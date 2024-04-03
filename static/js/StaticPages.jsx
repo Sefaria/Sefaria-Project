@@ -3149,33 +3149,186 @@ const product = ({ job }) => {
 const ProductsPage = memo(() => {
     const [products, setProducts] = useState({});
     const [error, setError] = useState(null);
+
+    const fetchProductsJSON = async () => {
+        const query = `
+        query {
+            products (
+                pagination: { limit: -1 }
+            )
+            {
+              data {
+                id
+                attributes {
+                  title
+                  url
+                  type
+                  description
+                  rectanglion {
+                    data {
+                      attributes {
+                        url
+                        alternativeText
+                      }
+                    }
+                  }
+                  createdAt
+                  updatedAt
+                  locale
+                  cta_labels {
+                    data {
+                      id
+                      attributes {
+                        text
+                        url
+                        icon {
+                          data {
+                            id
+                            attributes {
+                              url
+                              alternativeText
+                            }
+                          }
+                        }
+                        locale
+                        localizations {
+                          data {
+                            id
+                            attributes {
+                              text
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  localizations {
+                    data {
+                      attributes {
+                        locale
+                        title
+                        type
+                        description
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          
+        `;
+    
+        try {
+            const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "omit",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify({ query }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
     
     const loadProducts = async () => {
-        const dummy_data = {
-            "title": "My Sefaria Product",
-            "url": "www.sefaria.org",
-            "cta_labels": [
-                {
-                    "he": "הורידו עכשיו",
-                    "en": "Install now!", 
-                    "url": "www.example.com"
-                },
-                {
-                    "he": "חנות אפליקציות",
-                    "en": "App store", 
-                    "url": "www.example.com",
-                    "icon": "https://storage.googleapis.com/img.sefaria.org/topics/rosh-hashanah.jpeg",
-                }
-             ],
-            "type": "Experiment",
-            "rectanglionURL": "https://storage.googleapis.com/img.sefaria.org/topics/rosh-hashanah.jpeg",
-            "desc": {
-                "he": "אהגכלחדךגכחךדסכצד",
-                "en": "Vivamus dictum rutrum mi, ut varius odio viverra sit amet. Quisque vitae pharetra ipsum. Integer nec dui malesuada, maximus nisi vitae, ullamcorper enim. Aenean ultrices ullamcorper malesuada. Fusce et leo justo. Etiam quis mattis enim. "
+        if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+            try {
+                const productsData = await fetchProductsJSON();
+                console.log(productsData);
+                const heLocalization = productsData.attributes.localizations.data[0].attributes;
+                const ctaLabels = productsData.attributes.ctaLabels.data.attributes;
+
+                console.log(productsData);
+
+                const productsFromStrapi = productsData.data?.products?.data?.map((productsData) => {
+
+                    const ctaLabelsLocalized = ctaLabels.map((cta) => {
+                        return {
+                            text: {
+                                en: cta.text,
+                                he: cta.localizations.data[0].attributes.text
+                            },
+                            url: cta.url,
+                            icon: {
+                                url: cta.icon.data.attributes.url,
+                                altText: cta.icon.data.attributes.alternativeText
+                            }
+                        };
+                    });
+
+                    return {
+                        id: productsData.id,
+                        titles: {
+                            en: productsData.attributes.title,
+                            he: heLocalization.title
+                        },
+                        type: {
+                            en: productsData.attributes.type,
+                            he: productsData.attributes.localizations.data[0].attributes.type,
+                        },
+                        url: productsData.attributes.url,
+                        desc:
+                        {
+                            en: productsData.attributes.description,
+                            he: heLocalization.description
+                        },
+                        rectanglion: {
+                            url: productsData.attributes.rectanglion.data.attributes.url,
+                            alt: productsData.attributes.rectanglion.data.attributes.alternativeText,
+                        },
+                        ctaLabels: ctaLabelsLocalized,
+
+                    };
+                }, {});
+                console.log('Products from STRAPI', productsFromStrapi);
+                setProducts(productsFromStrapi);   
+            } catch (error) {
+                console.error("Fetch error:", error);
+                setError("Error: Sefaria's CMS cannot be reached");
             }
-        };
-        setProducts(dummy_data)
+        } else {
+            setError("Error: Sefaria's CMS cannot be reached");
+        }
     };
+    
+    // const loadProducts = async () => {
+    //     const dummy_data = {
+    //         "title": "My Sefaria Product",
+    //         "url": "www.sefaria.org",
+    //         "cta_labels": [
+    //             {
+    //                 "he": "הורידו עכשיו",
+    //                 "en": "Install now!", 
+    //                 "url": "www.example.com"
+    //             },
+    //             {
+    //                 "he": "חנות אפליקציות",
+    //                 "en": "App store", 
+    //                 "url": "www.example.com",
+    //                 "icon": "https://storage.googleapis.com/img.sefaria.org/topics/rosh-hashanah.jpeg",
+    //             }
+    //          ],
+    //         "type": "Experiment",
+    //         "rectanglionURL": "https://storage.googleapis.com/img.sefaria.org/topics/rosh-hashanah.jpeg",
+    //         "desc": {
+    //             "he": "אהגכלחדךגכחךדסכצד",
+    //             "en": "Vivamus dictum rutrum mi, ut varius odio viverra sit amet. Quisque vitae pharetra ipsum. Integer nec dui malesuada, maximus nisi vitae, ullamcorper enim. Aenean ultrices ullamcorper malesuada. Fusce et leo justo. Etiam quis mattis enim. "
+    //         }
+    //     };
+    //     setProducts(dummy_data)
+    // };
 
     useEffect(() => {
         loadProducts();
