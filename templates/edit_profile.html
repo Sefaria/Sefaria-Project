@@ -7,7 +7,7 @@
 {% block content %}
 <div id="editProfilePage" class="static biReady">
 	<div class="inner">
-        <h1 class="headerWithButtons">
+        <h1 class="headerWithButtons" style="display: flex;flex-direction: column;">
             <div class="start"></div>
             <div>
                 <span class="int-en">Edit Your Profile</span>
@@ -145,7 +145,7 @@
             <div class="field control-elem">
                 <label>
                     <span class="int-en">Profile URL <span class="sub">www.pecha.org/profile/{{ profile.slug }}</span></span>
-                    <span class="int-he">སྙིང་བསྡུས་ཀྱི་དྲ་ཐག<span class="sub">www.pecha.org/profile/{{ profile.slug }}</span></span>
+                    <span class="int-he">སྙིང་བསྡུས་ཀྱི་དྲ་ཐག <span class="sub">www.pecha.org/profile/{{ profile.slug }}</span></span>
                 </label>
                 <input id="slug"  value="{{ profile.slug }}">
             </div>
