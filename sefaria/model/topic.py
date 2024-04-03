@@ -545,6 +545,20 @@ class AuthorTopic(PersonTopic):
         from .schema import Term
         from collections import defaultdict
 
+        def get_all_best_paths(cat_aggregator):
+            best_paths = []
+            for (collective_title, _), cat_choice_dict in cat_aggregator.items():
+                cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
+                (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
+                best_paths.append(best_base_cat_path)
+            return best_paths
+
+        def is_prefix(tuple_to_check, list_of_tuples):
+            for t in list_of_tuples:
+                if tuple_to_check != t and tuple_to_check == t[:len(tuple_to_check)]:
+                    return True
+            return False
+
         def index_is_commentary(index):
             return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None) is not None
 
@@ -560,6 +574,8 @@ class AuthorTopic(PersonTopic):
             base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER+1])
             for icat in range(len(base.categories) - MAX_ICAT_FROM_END_TO_CONSIDER, len(base.categories)):
                 cat_aggregator[(collective_title, base_cat_path)][(icat, tuple(base.categories[:icat+1]))] += [index]
+
+        all_best_paths = get_all_best_paths(cat_aggregator)
         for (collective_title, _), cat_choice_dict in cat_aggregator.items():
             cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
             (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
@@ -580,6 +596,11 @@ class AuthorTopic(PersonTopic):
                 for temp_index in temp_indexes:
                     index_or_cat_list += [(temp_index, None, None)]
                 continue
+            if is_prefix(best_base_cat_path, all_best_paths):
+                for temp_index in temp_indexes:
+                    index_or_cat_list += [(temp_index, None, None)]
+                continue
+
             index_or_cat_list += [(index_category, collective_title_term, base_category)]
         return index_or_cat_list
 
