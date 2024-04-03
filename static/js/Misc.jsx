@@ -455,7 +455,7 @@ const FilterableList = ({
 
   const oldDesign = typeof showFilterHeader == 'undefined';
   return (
-    <div className="filterable-list">
+    <div className="filterable-list" style={{margin:"-4px 0 -120px -1000px"}}>
       {oldDesign ? <div className="filter-bar">
         <div className="filter-bar-inner">
           <SearchButton />
@@ -474,7 +474,7 @@ const FilterableList = ({
                 isOpen={displaySort}
                 toggle={()=>setDisplaySort(prev => !prev)}
                 enText={"Sort"}
-                heText={"מיון"}
+                heText={"ལྟར་ཚགས་སྒྲིག་བྱེད།"}
               />
               <DropdownOptionList
                 isOpen={displaySort}
@@ -631,11 +631,11 @@ class DropdownOptionList extends Component {
               this.props.options.map( (option, iSortTypeObj) => {
                 const tempClasses = classNames({'filter-title': 1, unselected: this.props.currOptionSelected !== option.type});
                 return (
-                  <tr key={option.type} className={tempClasses} onClick={()=>{ this.props.handleClick(option.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => {e.charCode == 13 ? this.props.handleClick(option.type) : null}} aria-label={`Sort by ${option.name}`}>
+                  <tr key={option.type}  className={tempClasses} onClick={()=>{ this.props.handleClick(option.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => {e.charCode == 13 ? this.props.handleClick(option.type) : null}} aria-label={`Sort by ${option.name}`}>
                     <td>
                       <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`}/>
                     </td>
-                    <td className="dropdown-option-list-label">
+                    <td className="dropdown-option-list-label" style={{padding:"15px 15px 15px 0"}}>
                       <span className="int-en">{option.name}</span>
                       <span className="int-he" dir="ltr">{option.heName}</span>
                     </td>
