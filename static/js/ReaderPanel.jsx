@@ -1260,10 +1260,11 @@ class ReaderControls extends Component {
     this.loadTranslations();
   }
   componentDidUpdate(prevProps, prevState) {
-    if (
+    if (this.props.data && (
       this.shouldShowVersion() !== this.shouldShowVersion(prevProps) ||
       this.props.currVersions !== prevProps.currVersions ||
-      this.props.currentRef !== prevProps.currentRef
+      this.props.currentRef !== prevProps.currentRef ||
+      !prevProps.data)
     ) {
       this.loadTranslations();
     }
