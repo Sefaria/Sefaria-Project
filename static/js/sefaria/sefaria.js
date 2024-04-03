@@ -2397,7 +2397,6 @@ _media: {},
     return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
   },
   areVersionsEqual(v1, v2) {
-      console.log(55, v1,v2);
     // v1, v2 are `currVersions` objects stored like {en: ven, he: vhe}
     return v1?.en === v2?.en && v1?.he === v2?.he;
   },

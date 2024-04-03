@@ -188,15 +188,6 @@ class ReaderPanel extends Component {
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
   }
-  updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
-    const newVersions = {
-        ...this.state.currVersions,
-        enAPIResult: enVTitle,
-        heAPIResult: heVTitle,
-    };
-    if (Sefaria.util.object_equals(this.state.currVersions, newVersions)) { return; }
-    this.conditionalSetState({ currVersions: newVersions });
-  }
   openConnectionsPanel(ref, additionalState) {
     /**
      * Decides whether to open a new connections panel or to open connections in the current panel
@@ -680,7 +671,6 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          updateCurrVersionsToMatchAPIResult={this.updateCurrVersionsToMatchAPIResult}
           navigatePanel={this.props.navigatePanel}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
@@ -1249,20 +1239,18 @@ class ReaderControls extends Component {
      * Preload translation versions to get shortVersionTitle to display
      */
     if (!this.shouldShowVersion()) { return; }
-    Sefaria.getTranslations(this.props.currentRef).then(versions => {
-      const enVTitle = this.props.currVersions.enAPIResult;
-      if (!enVTitle) {
-        // merged version from API
-        this.setDisplayVersionTitle({});
-        return;
+    const data = this.state.data;
+    if (data.sources) {
+      // merged version from API
+      this.setDisplayVersionTitle({});
+      return;
+    }
+    for (const version of Object.values(data.available_versions)) {
+      if (!version.isSource && version.versionTitle === data.versionTitle) {
+        this.setDisplayVersionTitle(version);
+        break;
       }
-      for (let version of Object.values(versions).flat()) {
-        if (version.versionTitle === enVTitle) {
-          this.setDisplayVersionTitle(version);
-          break;
-        }
-      }
-    });
+    }
   }
   openTranslations() {
     this.props.openConnectionsPanel([this.props.currentRef], {"connectionsMode": "Translations"});
