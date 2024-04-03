@@ -28,6 +28,8 @@ spec:
           - name: index-from-queue
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             env:
+            - name: SEARCH_HOST
+              value: "{{ .Values.nginx.SEARCH_HOST }}" 
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
             - name: NODEJS_HOST
