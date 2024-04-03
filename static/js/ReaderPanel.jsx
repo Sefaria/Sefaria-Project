@@ -48,14 +48,25 @@ class ReaderPanel extends Component {
   constructor(props) {
     super(props);
 
-    let state = this.clonePanel(props.initialState);
-    state["initialAnalyticsTracked"] = false;
-    state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel
-    this.state = state;
+    this.state = {
+      ...this.clonePanel(props.initialState),
+      initialAnalyticsTracked: false,
+      width: this.props.multiPanel ? 1000 : 500, // Assume we're in a small panel not using multipanel
+      data: null,
+    };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
   }
+  conditionalSetData() {
+    if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
+      const ref = this.state.currentlyVisibleRef;
+      Sefaria.getTextFromCurrVersions(ref, this.state.currVersions).then(data => {
+        this.setState({data: data});
+      })
+    }
+  }
   componentDidMount() {
+    this.conditionalSetData();
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
@@ -86,6 +97,10 @@ class ReaderPanel extends Component {
     this.replaceHistory = false;
     if (this.state.displaySettingsOpen) {
       $(".readerOptionsPanel").find('.on:focusable').first().focus();
+    }
+    if (!Sefaria.areCurrVersionObjectsEqual(this.state.currVersions, prevState.currVersions) ||
+        this.state.currentlyVisibleRef !== prevState.currentlyVisibleRef) {
+      this.conditionalSetData();
     }
   }
   conditionalSetState(state) {
@@ -172,6 +187,15 @@ class ReaderPanel extends Component {
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
+  }
+  updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
+    const newVersions = {
+        ...this.state.currVersions,
+        enAPIResult: enVTitle,
+        heAPIResult: heVTitle,
+    };
+    if (Sefaria.util.object_equals(this.state.currVersions, newVersions)) { return; }
+    this.conditionalSetState({ currVersions: newVersions });
   }
   openConnectionsPanel(ref, additionalState) {
     /**
@@ -527,16 +551,8 @@ class ReaderPanel extends Component {
             : this.state.highlightedRefs && this.state.highlightedRefs ? this.state.highlightedRefs[0]
               : null;
   }
-  currentData() {
-    // Returns the data from the library of the current ref
-    const ref  = this.currentRef();
-    if (!ref) { return null; }
-    if (typeof ref !== "string") { debugger; }
-    let data = Sefaria.ref(ref);
-    return data;
-  }
   currentBook() {
-    let data = this.currentData();
+    let data = this.state.data;
     if (data) {
       return data.indexTitle;
     } else {
@@ -664,6 +680,7 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
+          updateCurrVersionsToMatchAPIResult={this.updateCurrVersionsToMatchAPIResult}
           navigatePanel={this.props.navigatePanel}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
@@ -680,6 +697,7 @@ class ReaderPanel extends Component {
           highlightedNode={this.state.highlightedNode}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           scrollToHighlighted={this.state.scrollToHighlighted}
+          onRefClick={this.handleCitationClick}
           onSegmentClick={this.handleSheetSegmentClick}
           onCitationClick={this.handleCitationClick}
           openSheet={this.openSheet}
@@ -694,7 +712,7 @@ class ReaderPanel extends Component {
 
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
       const langMode = this.props.masterPanelLanguage || this.state.settings.language;
-      let data     = this.currentData();
+      let data     = this.state.data;
       const canEditText = data &&
                         ((langMode === "hebrew" && data.heVersionStatus !== "locked") ||
                         (langMode === "english" && data.versionStatus !== "locked") ||
@@ -795,6 +813,7 @@ class ReaderPanel extends Component {
                     currentRef={this.state.currentlyVisibleRef}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
+                    selectVersion={this.props.selectVersion}
                     showBaseText={this.showBaseText} />);
 
     } else if (this.state.menuOpen === "text toc") {
@@ -915,6 +934,7 @@ class ReaderPanel extends Component {
             setTopic={this.setTopic}
             setNavTopic={this.setNavigationTopic}
             openTopics={this.openMenu.bind(null, "topics")}
+            showBaseText={this.props.onNavTextClick || this.showBaseText}
             openNav={this.openMenu.bind(null, "navigation")}
             openSearch={this.openSearch}
             close={this.closeMenus}
@@ -1071,6 +1091,7 @@ class ReaderPanel extends Component {
         <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
           {hideReaderControls ? null :
           <ReaderControls
+            showBaseText={this.showBaseText}
             hasSidebar={this.state.hasSidebar}
             toggleSheetEditMode={this.toggleSheetEditMode}
             currentRef={this.state.currentlyVisibleRef}
@@ -1105,6 +1126,7 @@ class ReaderPanel extends Component {
             connectionData={this.state.connectionData}
             translationLanguagePreference={this.props.translationLanguagePreference}
             setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
+            data={this.state.data}
           />}
 
           {(items.length > 0 && !menu) ?
@@ -1122,7 +1144,7 @@ class ReaderPanel extends Component {
             parentPanel={this.props.initialState.mode}
             currentLayout={this.currentLayout}
             currentBook={this.currentBook}
-            currentData={this.currentData}
+            data={this.state.data}
             width={this.state.width}
             menuOpen={this.state.menuOpen} /> : null}
 
@@ -1195,7 +1217,6 @@ class ReaderControls extends Component {
     super(props);
     this.state = {
       displayVersionTitle: {},  // lang codes as keys and version title to display in header as values. prefers shortVersionTitle when available but falls back on versionTitle
-      data: null,
     };
   }
   openTextConnectionsPanel(e) {
@@ -1228,45 +1249,34 @@ class ReaderControls extends Component {
      * Preload translation versions to get shortVersionTitle to display
      */
     if (!this.shouldShowVersion()) { return; }
-    const data = this.state.data;
-    if (data.sources) {
-      // merged version from API
-      this.setDisplayVersionTitle({});
-      return;
-    }
-    for (const version of Object.values(data.available_versions)) {
-      if (!version.isSource && version.versionTitle === data.versionTitle) {
-        this.setDisplayVersionTitle(version);
-        break;
+    Sefaria.getTranslations(this.props.currentRef).then(versions => {
+      const enVTitle = this.props.currVersions.enAPIResult;
+      if (!enVTitle) {
+        // merged version from API
+        this.setDisplayVersionTitle({});
+        return;
       }
-    }
-  }
-  loadDataAndTranslations() {
-    const ref = this.props.currentRef;
-    if (ref) {
-      const versionPref = Sefaria.versionPreferences.getVersionPref(ref);
-      const getTextPromise = Sefaria.getTextFromCurrVersions(ref, this.props.currVersions).then(data => {
-        if ("error" in data) {
-          this.props.onError(data.error);
+      for (let version of Object.values(versions).flat()) {
+        if (version.versionTitle === enVTitle) {
+          this.setDisplayVersionTitle(version);
+          break;
         }
-        this.setState({data, runningQuery: null});
-        this.loadTranslations();
-      });
-      this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
-    }
+      }
+    });
   }
   openTranslations() {
     this.props.openConnectionsPanel([this.props.currentRef], {"connectionsMode": "Translations"});
   }
   componentDidMount() {
-    this.loadDataAndTranslations()
+    this.loadTranslations();
   }
   componentDidUpdate(prevProps, prevState) {
     if (
       this.shouldShowVersion() !== this.shouldShowVersion(prevProps) ||
-      !Sefaria.areCurrVersionObjectsEqual(this.props.currVersions.en, prevProps.currVersions.en)
+      this.props.currVersions !== prevProps.currVersions ||
+      this.props.currentRef !== prevProps.currentRef
     ) {
-      this.loadDataAndTranslations();
+      this.loadTranslations();
     }
   }
   componentWillUnmount() {
@@ -1283,7 +1293,7 @@ class ReaderControls extends Component {
     let sectionString = "";
     let heSectionString = "";
     let categoryAttribution = null;
-    const data = this.state.data;
+    const data = this.props.data;
 
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
@@ -1296,10 +1306,10 @@ class ReaderControls extends Component {
       }
 
     } else if (data) {
+      sectionString = data.ref.replace(data.indexTitle, "");
+      heSectionString = data.heRef.replace(data.heIndexTitle, "");
       title = data.indexTitle;
       heTitle = data.heIndexTitle;
-      sectionString = data.ref.replace(title, "");
-      heSectionString = data.heRef.replace(heTitle, "");
       categoryAttribution = data && Sefaria.categoryAttribution(data.categories);
     }
 
@@ -1411,6 +1421,7 @@ class ReaderControls extends Component {
 }
 ReaderControls.propTypes = {
   settings:                PropTypes.object.isRequired,
+  showBaseText:            PropTypes.func.isRequired,
   setOption:               PropTypes.func.isRequired,
   setConnectionsMode:      PropTypes.func.isRequired,
   setConnectionsCategory:  PropTypes.func.isRequired,
@@ -1444,7 +1455,7 @@ class ReaderDisplayOptionsMenu extends Component {
     return this.props.currentBook ? torah.includes(this.props.currentBook()) : false;
   }
   vowelToggleAvailability(){
-    let data = this.props.currentData();
+    let data = this.props.data;
     if(!data) return 2;
     let sample = data["he"];
     while (Array.isArray(sample)) {
@@ -1466,7 +1477,7 @@ class ReaderDisplayOptionsMenu extends Component {
   showLangaugeToggle() {
     if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
-    let data = this.props.currentData();
+    let data = this.props.data;
     if (!data) return true // Sheets don't have currentData, also show for now (4x todo)
 
     const hasHebrew = !!data.he.length;
@@ -1474,7 +1485,7 @@ class ReaderDisplayOptionsMenu extends Component {
     return !(hasHebrew && hasEnglish);
   }
   shouldPunctuationToggleRender() {
-    if (this.props.currentData?.()?.primary_category === "Talmud" && (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual")) { return true; }
+    if (this.props?.data?.primary_category === "Talmud" && (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual")) { return true; }
     else { return false; }
   }
 
@@ -1628,7 +1639,7 @@ ReaderDisplayOptionsMenu.propTypes = {
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func.isRequired,
   currentBook:   PropTypes.func,
-  currentData:   PropTypes.func,
+  data:          PropTypes.object,
   menuOpen:      PropTypes.string,
   multiPanel:    PropTypes.bool.isRequired,
   width:         PropTypes.number.isRequired,
