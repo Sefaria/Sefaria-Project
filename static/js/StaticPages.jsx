@@ -3246,24 +3246,27 @@ const ProductsPage = memo(() => {
         if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
             try {
                 const productsData = await fetchProductsJSON();
-                console.log(productsData);
-                const heLocalization = productsData.attributes.localizations.data[0].attributes;
-                const ctaLabels = productsData.attributes.ctaLabels.data.attributes;
+                // const productsData = productsDataFull.data.products.data;
+                // console.log(productsData);
+
 
                 console.log(productsData);
 
                 const productsFromStrapi = productsData.data?.products?.data?.map((productsData) => {
 
+                    const heLocalization = productsData.attributes.localizations.data[0].attributes;
+                    const ctaLabels = productsData.attributes.cta_labels.data;
+
                     const ctaLabelsLocalized = ctaLabels.map((cta) => {
                         return {
                             text: {
-                                en: cta.text,
-                                he: cta.localizations.data[0].attributes.text
+                                en: cta.attributes.text,
+                                he: cta.attributes.localizations.data[0].attributes.text
                             },
-                            url: cta.url,
+                            url: cta.attributes.url,
                             icon: {
-                                url: cta.icon.data.attributes.url,
-                                altText: cta.icon.data.attributes.alternativeText
+                                url: cta.attributes.icon.data.attributes.url,
+                                // altText: cta.attributes.icon.data.attributes.alternativeText
                             }
                         };
                     });
@@ -3286,7 +3289,7 @@ const ProductsPage = memo(() => {
                         },
                         rectanglion: {
                             url: productsData.attributes.rectanglion.data.attributes.url,
-                            alt: productsData.attributes.rectanglion.data.attributes.alternativeText,
+                            // alt: productsData.attributes.rectanglion.data.attributes.alternativeText,
                         },
                         ctaLabels: ctaLabelsLocalized,
 
@@ -3330,32 +3333,42 @@ const ProductsPage = memo(() => {
     //     setProducts(dummy_data)
     // };
 
+    debugger;
+
     useEffect(() => {
         loadProducts();
     }, []);
 
-    console.log("products: ", products.desc)
+    console.log("products: ", products)
     // TODO - Will need to use InterfaceText for language switching!!
+
+    
     return (
         <div>
-            <div class="productsHeader">
-                <span class="productsTitle">{products.title}</span>
-                <span class="productsTypeLabel">{products?.type}</span>
-                {/* Will need some kind of mapping here, conditional on icon image*/}
-                {products?.cta_labels?.map(item => (
-                    <a href={item.url}><img class="productsCTAIcon" src={item.icon}/><span key={item.en} class="productsCTA">{item.en}</span></a>
-                ))}
-            </div>
-           
-            <hr/>
-
-           <div class="productsInner">
-                <img src={products?.rectanglionURL}/>
-                <div class="productsDesc">{products?.desc?.en}</div>
-           </div>
+            {products?.map((product) => (
+                <div key={product.id}>
+                    <div className="productsHeader">
+                        <span className="productsTitle">{product.title}</span>
+                        <span className="productsTypeLabel">{product.type}</span>
+                        {/* Will need some kind of mapping here, conditional on icon image*/}
+                        {product.cta_labels?.map(item => (
+                            <a href={item.url} key={item.en}>
+                                <img className="productsCTAIcon" src={item.icon} alt={item.en} />
+                                <span className="productsCTA">{item.en}</span>
+                            </a>
+                        ))}
+                    </div>
+                    <hr/>
+                    <div className="productsInner">
+                        <img src={product.rectanglionURL} alt="Product Image"/>
+                        <div className="productsDesc">{product.desc?.en}</div>
+                    </div>
+                </div>
+            ))}
         </div>
     );
 });
+
 
 export {
     RemoteLearningPage,
