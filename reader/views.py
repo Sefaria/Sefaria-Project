@@ -393,6 +393,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         panel["sidebarSearchQuery"] = kwargs.get("sidebarSearchQuery", None)
         panel["selectedNamedEntity"] = kwargs.get("selectedNamedEntity", None)
         panel["selectedNamedEntityText"] = kwargs.get("selectedNamedEntityText", None)
+        panel["scrollToRef"] = kwargs.get("scrollToRef", None)
         if panelDisplayLanguage:
             settings_override.update({"language" : short_to_long_lang_code(panelDisplayLanguage)})
         if aliyotOverride:
@@ -559,6 +560,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
+        kwargs["scrollToRef"] = request.GET.get("scrollToRef", None)
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:

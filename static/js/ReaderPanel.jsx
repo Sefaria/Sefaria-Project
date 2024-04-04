@@ -768,7 +768,7 @@ class ReaderPanel extends Component {
           translationLanguagePreference={this.props.translationLanguagePreference}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
-          scrollToRef={this.state.connectionsPanelRef}
+          scrollToRef={this.state.scrollToRef}
           key="connections" />
       );
     }
