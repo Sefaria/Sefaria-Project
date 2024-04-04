@@ -380,6 +380,7 @@ class TextRange extends Component {
             formatHeAsPoetry={formatHeAsPoetry}
             placeSegmentNumbers={this.placeSegmentNumbers}
             navigatePanel={this.props.navigatePanel}
+            onTextRender={this.props.onTextRender}
           />
         </span>
       );
@@ -473,13 +474,18 @@ TextRange.propTypes = {
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
   translationLanguagePreference: PropTypes.string,
-  navigatePanel:          PropTypes.func
+  navigatePanel:          PropTypes.func,
+  onTextRender:           PropTypes.func
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
 };
 
 class TextSegment extends Component {
+  componentDidMount() {
+    console.log("Mounting ", this.props.sref);
+    this.props.onTextRender && this.props.onTextRender(this.props.sref);
+  }
   shouldComponentUpdate(nextProps) {
     if (this.props.highlight !== nextProps.highlight)           { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight)   { return true; }
@@ -601,6 +607,7 @@ class TextSegment extends Component {
   }
 
   render() {
+    console.log("Rendering ", this.props.sref);
     let linkCountElement = null;
     let he = this.props.he || "";
     let en = this.props.en || "";
@@ -688,7 +695,8 @@ TextSegment.propTypes = {
   onFootnoteClick: PropTypes.func,
   onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
-  navigatePanel: PropTypes.func
+  navigatePanel: PropTypes.func,
+  onTextRender: PropTypes.func,
 };
 
 export default TextRange;

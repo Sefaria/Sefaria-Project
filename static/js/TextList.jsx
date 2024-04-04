@@ -22,6 +22,7 @@ class TextList extends Component {
       textLoaded:  false, // has the text of those refs been loaded
       waitForText: true,  // should we delay rendering texts until preload is finished
     }
+    this.textRangesRef = React.createRef();
   }
   componentDidMount() {
     this._isMounted = true;
@@ -192,6 +193,15 @@ class TextList extends Component {
 
     return links;
   }
+  onTextRender(refRendered) {
+    if (this.props.scrollToRef === refRendered) {
+        const connectionsPanelRefElement = this.textRangesRef.current.querySelectorAll(`[data-ref='${this.props.scrollToRef}']`);
+        if (connectionsPanelRefElement.length > 0) {
+          console.log("Scrolling into view");
+          connectionsPanelRefElement[0].scrollIntoView();
+        }
+    }
+  }
   render() {
     var refs               = this.props.srefs;
     var oref               = Sefaria.ref(refs[0]);
@@ -230,6 +240,8 @@ class TextList extends Component {
                                       inlineReference={link.inline_reference || null}
                                       onCitationClick={this.props.onCitationClick}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
+                                      scrollToRef={this.props.scrollToRef}
+                                      onTextRender={this.onTextRender}
                                     />
                                     <ConnectionButtons>
                                       <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
@@ -243,7 +255,7 @@ class TextList extends Component {
                         }
                       }, this);
     return (
-        <div>
+        <div ref={this.textRangesRef}>
           {this.props.fullPanel ?
           <RecentFilterSet
             srefs={this.props.srefs}
@@ -277,6 +289,7 @@ TextList.propTypes = {
   selectedWords:           PropTypes.string,
   checkVisibleSegments:    PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  scrollToRef:             PropTypes.string
 };
 
 const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{

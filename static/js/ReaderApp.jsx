@@ -1455,7 +1455,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
         // getBaseRefAndFilter breaks up the ref "Rashi on Genesis 1:1:4" into filter "Rashi" and ref "Genesis 1:1",
         // so connectionsPanelRef is needed to store the entire "Rashi on Genesis 1:1:4"
-        connectionsPanelRef = ref;
+        connectionsPanelRef = Sefaria.humanRef(ref);
         ({ref, filter} = Sefaria.getBaseRefAndFilter(ref));
       }
       let refs, currentlyVisibleRef, highlightedRefs;
