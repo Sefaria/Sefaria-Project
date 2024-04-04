@@ -197,7 +197,6 @@ class TextList extends Component {
     if (this.props.scrollToRef === refRendered) {
         const connectionsPanelRefElement = this.textRangesRef.current.querySelectorAll(`[data-ref='${this.props.scrollToRef}']`);
         if (connectionsPanelRefElement.length > 0) {
-          console.log("Scrolling into view");
           connectionsPanelRefElement[0].scrollIntoView();
         }
     }

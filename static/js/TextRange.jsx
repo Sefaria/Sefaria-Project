@@ -483,7 +483,6 @@ TextRange.defaultProps = {
 
 class TextSegment extends Component {
   componentDidMount() {
-    console.log("Mounting ", this.props.sref);
     this.props.onTextRender && this.props.onTextRender(this.props.sref);
   }
   shouldComponentUpdate(nextProps) {
@@ -607,7 +606,6 @@ class TextSegment extends Component {
   }
 
   render() {
-    console.log("Rendering ", this.props.sref);
     let linkCountElement = null;
     let he = this.props.he || "";
     let en = this.props.en || "";
