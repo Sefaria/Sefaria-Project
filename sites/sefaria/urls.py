@@ -102,5 +102,5 @@ site_urlpatterns +=[
     url(r'^ideasforteaching/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
     url(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
     url(r'^annualreport2021?$', lambda x: HttpResponseRedirect('/annualreport/2021')), # Added for backwards compatability for old links that might still point to this
-    url(r'^annualreport/(?P<report_year>\d+)$', reader_views.annual_report),
+    url(r'^annualreport(/(?P<report_year>\d+)/?|/?)$', reader_views.annual_report),
 ]
