@@ -545,27 +545,6 @@ class AuthorTopic(PersonTopic):
         from .schema import Term
         from collections import defaultdict
 
-        # def get_all_best_paths(cat_aggregator):
-        #     best_paths = []
-        #     for (collective_title, _), cat_choice_dict in cat_aggregator.items():
-        #         cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
-        #         (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
-        #         if len(temp_indexes) == 1:
-        #             continue
-        #
-        #         base_category = Category().load({"path": list(best_base_cat_path)})
-        #         if collective_title is None:
-        #             index_category = base_category
-        #             collective_title_term = None
-        #         else:
-        #             index_category = Category.get_shared_category(temp_indexes)
-        #             collective_title_term = Term().load({"name": collective_title})
-        #         if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path,
-        #                                                                              collective_title is not None) or (
-        #                 collective_title is None and self._category_matches_author(index_category)):
-        #             continue
-        #         best_paths.append(best_base_cat_path)
-        #     return list(set(best_paths))
         def get_all_best_paths(cat_aggregator):
             best_paths = []
             for (collective_title, _), cat_choice_dict in cat_aggregator.items():
