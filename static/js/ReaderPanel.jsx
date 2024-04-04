@@ -98,7 +98,8 @@ class ReaderPanel extends Component {
     if (this.state.displaySettingsOpen) {
       $(".readerOptionsPanel").find('.on:focusable').first().focus();
     }
-    if (!Sefaria.areCurrVersionObjectsEqual(this.state.currVersions, prevState.currVersions) ||
+    if (!Sefaria.areCurrVersionObjectsEqual(prevState.currVersions?.en, this.state.currVersions?.en) ||
+        !Sefaria.areCurrVersionObjectsEqual(prevState.currVersions?.he, this.state.currVersions?.he) ||
         this.state.currentlyVisibleRef !== prevState.currentlyVisibleRef) {
       this.conditionalSetTextData();
     }
@@ -1246,7 +1247,9 @@ class ReaderControls extends Component {
       this.setDisplayVersionTitle({});
       return;
     }
+    console.log(1, data.versionTitle)
     for (const version of Object.values(data.available_versions)) {
+      console.log(2, version)
       if (!version.isSource && version.versionTitle === data.versionTitle) {
         this.setDisplayVersionTitle(version);
         break;
@@ -1262,9 +1265,9 @@ class ReaderControls extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (this.props.data && (
       this.shouldShowVersion() !== this.shouldShowVersion(prevProps) ||
-      this.props.currVersions !== prevProps.currVersions ||
-      this.props.currentRef !== prevProps.currentRef ||
-      !prevProps.data)
+      this.props.data.versionTitle !== prevProps.data?.versionTitle ||
+      this.props.currentRef !== prevProps.currentRef
+      )
     ) {
       this.loadTranslations();
     }
