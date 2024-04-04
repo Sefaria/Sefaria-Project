@@ -193,14 +193,7 @@ class TextList extends Component {
 
     return links;
   }
-  onTextRender(refRendered) {
-    if (this.props.scrollToRef === refRendered) {
-        const connectionsPanelRefElement = this.textRangesRef.current.querySelectorAll(`[data-ref='${this.props.scrollToRef}']`);
-        if (connectionsPanelRefElement.length > 0) {
-          connectionsPanelRefElement[0].scrollIntoView();
-        }
-    }
-  }
+
   render() {
     var refs               = this.props.srefs;
     var oref               = Sefaria.ref(refs[0]);

@@ -155,6 +155,11 @@ class TextRange extends Component {
         this.props.onTextLoad && this.props.onTextLoad(data.ref); // Don't call until the text is actually rendered
       }.bind(this));
     }
+
+    const connectionsPanelRefElement = document.querySelectorAll(`[data-ref='${this.props.scrollToRef}']`);
+    if (connectionsPanelRefElement.length > 0) {
+      connectionsPanelRefElement[0].scrollIntoView();
+    }
   }
   _updateCurrVersions(enVTitle, heVTitle) {
     // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
@@ -380,7 +385,6 @@ class TextRange extends Component {
             formatHeAsPoetry={formatHeAsPoetry}
             placeSegmentNumbers={this.placeSegmentNumbers}
             navigatePanel={this.props.navigatePanel}
-            onTextRender={this.props.onTextRender}
           />
         </span>
       );
@@ -482,9 +486,6 @@ TextRange.defaultProps = {
 };
 
 class TextSegment extends Component {
-  componentDidMount() {
-    this.props.onTextRender && this.props.onTextRender(this.props.sref);
-  }
   shouldComponentUpdate(nextProps) {
     if (this.props.highlight !== nextProps.highlight)           { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight)   { return true; }
