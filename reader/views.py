@@ -4329,13 +4329,18 @@ def serve_static_by_lang(request, page):
     return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), None, {})
 
 
+# TODO: This really should be handled by a CMS :)
 def annual_report(request, report_year):
     pdfs = {
         '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
         '2022': STATIC_URL + 'files/Sefaria_AnnualImpactReport_R14.pdf',
+        '2023': 'https://issuu.com/sefariaimpact/docs/sefaria_2023_impact_report?fr=sMmRkNTcyMzMyNTk',
     }
-    if report_year not in pdfs:
+    # Assume the most recent year as default when one is not provided
+    if not report_year:
+        report_year = max(pdfs.keys()) # Earlier versions of Python do not preserve insertion order in dictionaries :(
+    elif report_year not in pdfs:
         raise Http404
     # Renders a simple template, does not extend base.html
     return render(request, template_name='static/annualreport.html', context={'reportYear': report_year, 'pdfURL': pdfs[report_year]})
