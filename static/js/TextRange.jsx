@@ -36,8 +36,7 @@ class TextRange extends Component {
         !this.props.filter.compare(nextProps.filter))         { return true; }
     if (this.props.highlightedRefs && nextProps.highlightedRefs &&
         !this.props.highlightedRefs.compare(nextProps.highlightedRefs)) { return true; }
-    if (!Sefaria.areCurrVersionObjectsEqual(this.props.currVersions.en, nextProps.currVersions.en)) { return true; }
-    if (!Sefaria.areCurrVersionObjectsEqual(this.props.currVersions.he, nextProps.currVersions.he)) { return true; }
+    if (!Sefaria.areBothVersionsEqual(this.props.currVersions, nextProps.currVersions)) { return true; }
     if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight) { return true; }
     // todo: figure out when and if this component receives settings at all
@@ -61,14 +60,12 @@ class TextRange extends Component {
     if (this.state.data !== prevState.data) {
       this.onTextLoad()
     }
-    if (!Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.en, this.props.currVersions.en) ||
-        !Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.he, this.props.currVersions.he)) {
+    if (!Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions)) {
       this.setData();
     }
     // Place segment numbers again if update affected layout
     if ((this.props.basetext || this.props.segmentNumber) &&
-        (!Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.en, this.props.currVersions.en) ||
-        !Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.he, this.props.currVersions.he) ||
+        (!Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions) ||
         prevProps.settings.language !== this.props.settings.language ||
         prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
         prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||

@@ -98,8 +98,7 @@ class ReaderPanel extends Component {
     if (this.state.displaySettingsOpen) {
       $(".readerOptionsPanel").find('.on:focusable').first().focus();
     }
-    if (!Sefaria.areCurrVersionObjectsEqual(prevState.currVersions?.en, this.state.currVersions?.en) ||
-        !Sefaria.areCurrVersionObjectsEqual(prevState.currVersions?.he, this.state.currVersions?.he) ||
+    if (!Sefaria.areBothVersionsEqual(prevState.currVersions, this.state.currVersions) ||
         this.state.currentlyVisibleRef !== prevState.currentlyVisibleRef) {
       this.conditionalSetTextData();
     }

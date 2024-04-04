@@ -1035,6 +1035,10 @@ Sefaria = extend(Sefaria, {
   areCurrVersionObjectsEqual: function(version1, version2) {
       return version1?.versionTitle === version2?.versionTitle && version1?.languageFamilyName === version2?.languageFamilyName;
   },
+  areBothVersionsEqual(currVersions1, currVersions2) {
+      return Sefaria.areCurrVersionObjectsEqual(currVersions1?.en, currVersions2?.en) &&
+          Sefaria.areCurrVersionObjectsEqual(currVersions1?.he, currVersions2?.he);
+  },
   _index: {}, // Cache for text index records
    index: function(text, index) {
     if (!index) {

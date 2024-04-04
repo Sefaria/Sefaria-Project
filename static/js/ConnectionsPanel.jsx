@@ -89,8 +89,7 @@ class ConnectionsPanel extends Component {
       this.props.setConnectionsMode("Resources");
     }
 
-    if (!Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.en, this.props.currVersions.en) ||
-      !Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.he, this.props.currVersions.he) ||
+    if (!Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions) ||
       prevProps.masterPanelLanguage !== this.props.masterPanelLanguage ||
       prevProps.srefs[0] !== this.props.srefs[0]) {
       this.setCurrentVersions();

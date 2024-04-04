@@ -385,8 +385,7 @@ class ReaderApp extends Component {
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef !== prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
-          (!Sefaria.areCurrVersionObjectsEqual(prev.currVersions.en, next.currVersions.en)) ||
-          (!Sefaria.areCurrVersionObjectsEqual(prev.currVersions.he, next.currVersions.he)) ||
+          (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
           (prev.tab !== next.tab) ||
@@ -1286,8 +1285,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           !nextPanel.refs || nextPanel.refs.length == 0 ||
           !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
       if (nextPanel.refs.compare(prevPanel.refs)) {
-        if (!Sefaria.areCurrVersionObjectsEqual(nextPanel.currVersions.en, prevPanel.currVersions.en)) { return true; }
-        if (!Sefaria.areCurrVersionObjectsEqual(nextPanel.currVersions.he, prevPanel.currVersions.he)) { return true; }
+        if (!Sefaria.areBothVersionsEqual(nextPanel.currVersions, prevPanel.currVersions)) { return true; }
         //console.log('didPanelRefChange?', nextPanel.highlightedRefs, prevPanel.highlightedRefs);
         return !((nextPanel.highlightedRefs || []).compare(prevPanel.highlightedRefs || []));
       } else {
