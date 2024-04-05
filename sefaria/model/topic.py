@@ -598,9 +598,8 @@ class AuthorTopic(PersonTopic):
                     index_or_cat_list += [(temp_index, None, None)]
                 continue
             if is_prefix(original_best_base_cat_path, all_best_paths) and not collective_title:
-                # for temp_index in temp_indexes:
-                    # index_or_cat_list += [(temp_index, None, None)]
-                return "critical"
+                for temp_index in temp_indexes:
+                    index_or_cat_list += [(temp_index, None, None)]
                 continue
 
             index_or_cat_list += [(index_category, collective_title_term, base_category)]
