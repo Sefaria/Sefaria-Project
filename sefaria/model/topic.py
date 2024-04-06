@@ -582,7 +582,6 @@ class AuthorTopic(PersonTopic):
             if len(temp_indexes) == 1:
                 index_or_cat_list += [(temp_indexes[0], None, None)]
                 continue
-            original_best_base_cat_path = best_base_cat_path
             if best_base_cat_path == ('Talmud', 'Bavli'):
                 best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
             
@@ -597,7 +596,7 @@ class AuthorTopic(PersonTopic):
                 for temp_index in temp_indexes:
                     index_or_cat_list += [(temp_index, None, None)]
                 continue
-            if is_prefix(original_best_base_cat_path, all_best_paths) and not collective_title:
+            if not collective_title and is_prefix(best_base_cat_path, all_best_paths):
                 for temp_index in temp_indexes:
                     index_or_cat_list += [(temp_index, None, None)]
                 continue
