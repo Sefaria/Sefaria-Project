@@ -10,16 +10,16 @@
         <h1 class="headerWithButtons" style="display: flex;flex-direction: column;">
             <div class="start"></div>
             <div>
-                <span class="int-en">Edit Your Profile</span>
+                <span class="int-en">{% trans "Edit Your Profile" %}</span>
                 <span class="int-he">ཁྱེད་རང་གི་མི་སྒེར་གྱི་དཔྱད་གཞིའི་ཡིག་ཆ་རྩོམ་</span>
             </div>
             <div class="end">
                 <a class="button small transparent control-elem" href="/my/profile">
-                    <span class="int-en">Cancel</span>
+                    <span class="int-en">{% trans "Cancel" %</span>
                     <span class="int-he">ཕྱིར་འཐེན།</span>
                 </a>
                 <div id="saveProfile" class="button small blue control-elem" tabindex="0" role="button" >
-                    <span class="int-en">Save</span>
+                    <span class="int-en">{% trans "Save" %}</span>
                     <span class="int-he">ཉར་ཚགས་</span>
                 </div>
             </div>
@@ -27,49 +27,49 @@
         <div id="profileBox">
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">First Name</span>
+                    <span class="int-en">{% trans "First Name" %}</span>
                     <span class="int-he">དངོས་མིང་།</span>
                 </label>
                 <input id="firstName" value="{{ user.first_name }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">Last Name</span>
+                    <span class="int-en">{% trans "Last Name" %}</span>
                     <span class="int-he">རུས་མིང</span>
                 </label>
                 <input id="lastName"  value="{{ user.last_name }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">Title</span>
+                    <span class="int-en">{% trans "Title" %}</span>
                     <span class="int-he">གོ་གནས།</span>
                 </label>
                 <input id="position"  value="{{ profile.position }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">Organization</span>
+                    <span class="int-en">{% trans "Organization" %}</span>
                     <span class="int-he">ཚོགས་པ།</span>
                 </label>
                 <input id="organization" value="{{ profile.organization }}" >
             </div>
             <div class="field control-elem">
                  <label>
-                    <span class="int-en">Website</span>
+                    <span class="int-en">{% trans "Website" %}</span>
                     <span class="int-he">དྲ་ཚིགས།</span>
                 </label>
                 <input id="website" value="{{ profile.website }}" >
             </div>
             <div class="field control-elem">
                  <label>
-                    <span class="int-en">Location</span>
+                    <span class="int-en">{% trans "Location" %}</span>
                     <span class="int-he">གནས་ཡུལ།</span>
                 </label>
                 <input id="location" value="{{ profile.location }}" >
             </div>
             <div id="jewishEducation" class="field control-elem">
                  <label>
-                    <span class="int-en">Education <span class="sub">where have you learned</span></span>
+                    <span class="int-en">{% trans "Education" %}<span class="sub">{% trans "where have you learned" %}</span></span>
                     <span class="int-he">ཤེས་ཚད།<span class="sub">སློབ་སྦྱོང་བྱེད་གནས</span></span>
                 </label>
                 <ul id="jewishEducation">
@@ -84,7 +84,7 @@
         </div>
         <div id="aboutBox" class="control-elem">
             <label>
-                <span class="int-en">About Me</span>
+                <span class="int-en">{% trans "About Me" %}</span>
                 <span class="int-he">ངའི་སྐོར།</span>
             </label>
             <div contenteditable="true" id="bio">
@@ -95,17 +95,17 @@
         </div>
         {% if sheets %}
         <h2>
-            <span class="int-en">Public Sheets</span>
+            <span class="int-en">{% trans "Public Sheets" %}</span>
             <span class="int-he">སྤྱི་སྤྱོད་ཀྱི་ཤོག་ངོས།</span>
         </h2>
         <div id="sheetsBox">
             <div id="pinnedSheetsMessage" class=" control-elem">
-                <span class="int-en">You can drag and order source sheets that you want to pin to the top of your profile.</span>
+                <span class="int-en">{% trans "You can drag and order source sheets that you want to pin to the top of your profile." %}</span>
                 <span class="int-he">རང་གི་སྙིང་བསྡུས་ཀྱི་སྒང་ལ་འཛེར་རྒྱུའི་མ་ཕྱིའི་ཤོག་ངོས་དེ་ཁྱེད་ཀྱིས་ཐད་ཀར་ཕབ་སྟེ་དེའི་གོ་རིམ་སྒྲིག་ཆོག</span>
             </div>
             <div id="pinnedSheets" class="sheetSet control-elem">
                 <label>
-                    <span class="int-en">Pinned Sheets</span>
+                    <span class="int-en">{% trans "Pinned Sheets" %}</span>
                     <span class="int-he">འཛེར་ཡོད་པའི་ཤོག་ངོས།</span>
                 </label>
                 <ul class="sortableSheets">
@@ -116,7 +116,7 @@
             </div>
             <div class="sheetSet control-elem">
                 <label>
-                    <span class="int-en">All Sheets</span>
+                    <span class="int-en">{% trans "All Sheets" %}</span>
                     <span class="int-he">ཤོག་ངོས་ཡོངས་རྫོགས།</span>
                 </label>
                 <ul class="sortableSheets">
@@ -131,48 +131,48 @@
         {% endif %}
 
         <h2>
-            <span class="int-en">Contact</span>
+            <span class="int-en">{% trans "Contact" %}</span>
             <span class="int-he">འབྲེལ་གཏུག་བྱེད་དགོས།</span>
         </h2>
         <div id="contactBox">
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">Email (will be public)</span>
+                    <span class="int-en">{% trans "Email (will be public)" %}</span>
                     <span class="int-he">གློག་འཕྲིན། (will be public)</span>
                 </label>
                 <input id="public_email" value="{{ profile.public_email }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">Profile URL <span class="sub">www.pecha.org/profile/{{ profile.slug }}</span></span>
+                    <span class="int-en">{% trans "Profile URL" %} <span class="sub">www.pecha.org/profile/{{ profile.slug }}</span></span>
                     <span class="int-he">སྙིང་བསྡུས་ཀྱི་དྲ་ཐག <span class="sub">www.pecha.org/profile/{{ profile.slug }}</span></span>
                 </label>
                 <input id="slug"  value="{{ profile.slug }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">Twitter Handle</span>
+                    <span class="int-en">{% trans "Twitter Handle" %}</span>
                     <span class="int-he">Twitter</span>
                 </label>
                 <input id="twitter"  value="{{ profile.twitter }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">LinkedIn</span>
+                    <span class="int-en">{% trans "LinkedIn" %}</span>
                     <span class="int-he">LinkedIn</span>
                 </label>
                 <input id="linkedin"  value="{{ profile.linkedin }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">Facebook</span>
+                    <span class="int-en">{% trans "Facebook" %}</span>
                     <span class="int-he">Facebook</span>
                 </label>
                 <input id="facebook"  value="{{ profile.facebook }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">YouTube Channel</span>
+                    <span class="int-en">{% trans "YouTube Channel" %}</span>
                     <span class="int-he">ཡུས་ཁྲུབ།</span>
                 </label>
                 <input id="youtube" value="{{ profile.youtube }}">

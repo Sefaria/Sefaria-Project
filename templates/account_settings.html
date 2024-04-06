@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load i18n %}
 
 {% block content %}
 
@@ -8,36 +9,36 @@
 	<div class="headerWithButtons">
         <div class="start"></div>
         <h1>
-            <span class="int-en">Account Settings</span>
+            <span class="int-en">{% trans "Account Settings" %}</span>
             <span class="int-he">ཁ་བྱང་གི་སྒྲིག་འགོད་རྣམས།</span>
         </h1>
         <div class="end">
             <a class="button small transparent control-elem" href="/my/profile">
-                <span class="int-en">Cancel</span>
+                <span class="int-en">{% trans "Cancel" %}</span>
                 <span class="int-he">ཕྱིར་འཐེན།</span>
             </a>
             <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
-                <span class="int-en">Save</span>
+                <span class="int-en">{% trans "Save" %}</span>
                 <span class="int-he">ཉར་ཚགས།</span>
             </div>
         </div>
     </div>
 	<div id="emailNotifications" class="section">
 		<label class="control-elem">
-            <span class="int-en">Notification Frequency (Maximum)</span>
+            <span class="int-en">{% trans "Notification Frequency (Maximum)" %}</span>
 			<span class="int-he">གསལ་བརྡ་ཡོང་ཐེངས། (Maximum)</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle tripleOption control-elem" role="radiogroup">
 			<div role="radio" data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "daily" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-                <span class="int-en">Daily</span>
+                <span class="int-en">{% trans "Daily" %}</span>
 			    <span class="int-he">ཉིན་རེ་བཞིན།</span>
             </div>
             <div role="radio"  data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "weekly" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-                <span class="int-en">Weekly</span>
+                <span class="int-en">{% trans "Weekly" %}</span>
 			    <span class="int-he">བདུན་རེ་བཞིན།</span>
             </div>
             <div role="radio"  data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "never" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-                <span class="int-en">Never</span>
+                <span class="int-en">{% trans "Never" %}</span>
 			    <span class="int-he">གང་ཡང་མི་དགོས།</span>
             </div>
 		</div>
@@ -45,12 +46,12 @@
 	{% if SITE_SETTINGS.TORAH_SPECIFIC %}
 	<div id="siteLanguage" class="section">
 		<label class="control-elem">
-            <span class="int-en">Site Language</span>
+            <span class="int-en">{% trans "Site Language" %}</span>
 			<span class="int-he">རྨང་གཞིའི་སྐད་ཡིག</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
 			<div role="radio" data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} on{% endif %}" tabindex="{% if profile.settings.interface_language == "english" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-                <span class="int-bi">English</span>
+                <span class="int-bi">{% trans "English" %}</span>
             </div>
             <div role="radio" data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} on{% endif %}" tabindex="{% if profile.settings.interface_language == "hebrew" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-bi">བོད་ཡིག</span>
@@ -60,7 +61,7 @@
     {% if SITE_SETTINGS.SUPPORTED_TRANSLATION_LANGUAGES|length > 0 %}
 	<div id="translationLanguagePreference" class="section">
 		<label class="control-elem">
-            <span class="int-en">Preferred Translation Language</span>
+            <span class="int-en">{% trans "Preferred Translation Language" %}</span>
 			<span class="int-he">བདམས་ཟིན་པའི་སྐད་ཡིག་གཞན།</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle quadrupleOption control-elem" role="radiogroup">
@@ -74,7 +75,7 @@
     {% endif %}
     <div id="readingHistory" class="section">
 		<label class="control-elem">
-            <span class="int-en">Reading History</span>
+            <span class="int-en">{% trans "Reading History" %}</span>
 			<span class="int-he">དཔེ་ཀློག་ལོ་རྒྱུས།</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
@@ -91,7 +92,7 @@
 	</div>
     <div id="textualCustom" class="section">
 		<label class="control-elem">
-            <span class="int-en">Preferred Custom (Weekly Haftarot)</span>
+            <span class="int-en">{% trans "Preferred Custom (Weekly Haftarot)" %}</span>
 			<span class="int-he">བདམས་ཟིན་པའི་ལུགས་སྲོལ། (བདུན་རེའི་བསླབ་བྱ།)</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
@@ -108,13 +109,13 @@
 	{% endif %}
     <div id="username-change" class="section">
         <label class="control-elem">
-                <span class="int-en">Account Email (This is used for login)</span>
+                <span class="int-en">{% trans "Account Email (This is used for login)" %}</span>
                 <span class="int-he">གློག་འཕྲིན་ཁ་བྱང་། (This is used for login)</span>
         </label>
         <div id="username-change-display" class="form-section">
             <input id="email-display" type="text" disabled="disabled" value="{{ user.email }}" />
             <button id="change-email" type="button" class="button blue fillWidth">
-                <span class="int-en">Change Email</span>
+                <span class="int-en">{% trans "Change Email" %}</span>
                 <span class="int-he">གློག་འཕྲིན་བརྗེ།</span>
             </button>
             <span id="email-edit-ok" style="display:none"></span>
@@ -138,7 +139,7 @@
         <div id="gauth-email-disconnect-display" class="form-section">
             <input id="gauth-email-display" type="text" disabled="disabled" value="{{ profile.gauth_email }}" />
             <button id="disconnect-gauth-email" type="button" class="button blue fillWidth">
-                <span class="int-en">Disconnect</span>
+                <span class="int-en">{% trans "Disconnect" %}</span>
                 <span class="int-he">འབྲེལ་མཐུད་བཅད་ཟིན།</span>
             </button>
             <span id="gauth-disconnect-messages"></span>
@@ -146,21 +147,21 @@
     </div>
     <div id="gauth-email-disconnected" class="form-section" style="{% if profile.gauth_email %} display: none {% endif %}" >
             <div>
-                <span class="int-en">Your Google Account has been disconnected</span>
+                <span class="int-en">{% trans "Your Google Account has been disconnected" %}</span>
                 <span class="int-he">ཁྱེད་ཀྱི་དགོས་དགུའི་ཁ་བྱང་གི་འབྲེལ་མཐུད་བཅད་ཟིན།</span>
             </div>
             <div class="additional-info">
-                <span class="int-en">You can link to a new Google Account the next time you export a sheet</span>
+                <span class="int-en">{% trans "You can link to a new Google Account the next time you export a sheet" %}</span>
                 <span class="int-he">ཐེངས་རྗེས་མར་ཁྱེད་ཀྱི་ཤོག་ངོས་ཕྱིར་འདྲེན་བྱེད་སྐབས་ཁྱེད་ཀྱིས་དགོས་དགུའི་ཁ་བྱང་གསར་པ་ཞིག་ལ་མཐུད་ཆོག</span>
             </div>
         </div>
         <div class="saveCancel">
             <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
-                <span class="int-en">Save</span>
+                <span class="int-en">{% trans "Save" %}</span>
                 <span class="int-he">ཉར་ཚགས།</span>
             </div>
             <a class="button transparent small control-elem" href="/my/profile">
-                <span class="int-en">Cancel</span>
+                <span class="int-en">{% trans "Cancel" %}</span>
                 <span class="int-he">ཕྱིར་འཐེན།</span>
             </a>
         </div>

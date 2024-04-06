@@ -70,14 +70,14 @@
 			<div id="buttons">
 				{% if profile.id != request.user.id %}
 					<div id="messageMe" class="button white control-elem">
-						<span class="int-en">Message</span>
+						<span class="int-en">{% trans "Message" %}</span>
 						<span class="int-he"> </span>
 					</div>
 					<div id="followMe" class="{% if following %}following{% else %}follow{% endif %} button blue control-elem">
 						<span class="int-en">
-                            <span class="en follow">Follow</span>
-                            <span class="en state following">Following</span>
-                            <span class="en unfollow">Unfollow</span>
+                            <span class="en follow">{% trans "Follow" %}</span>
+                            <span class="en state following">{% trans "Following" %}</span>
+                            <span class="en unfollow">{% trans "Unfollow" %}</span>
                         </span>
                         <span class="int-he">
                             <span class="he follow">རྗེས་འཇུག་བྱོས།</span>
@@ -87,7 +87,7 @@
 					</div>
 				{% endif %}
 				{% if profile.id == request.user.id %}
-					<a id="editProfile" href="/settings/profile" class="button int-en">Edit Profile</a>
+					<a id="editProfile" href="/settings/profile" class="button int-en">{% trans "Edit Profile" %}</a>
 					<a id="editProfile" href="/settings/profile" class="button int-he">སྙིང་བསྡུས་རྩོམ་སྒྲིག </a>
 				{% endif %}
 			</div>

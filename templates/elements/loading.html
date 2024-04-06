@@ -1,5 +1,6 @@
 {% load static %}
 {% load sefaria_tags %}
+{% load i18n %}
 
 <div id="appLoading">
     <div class='loadingMessage'>
@@ -9,8 +10,7 @@
       <br>
       {% endif %}
       <div class="smallText">
-      	<span class="int-he">ཏོག་ཙམ་སྒུག་རོགས།...</span>
-      	<span class="int-en">Loading...</span>
+      	<span class="int-en">{% trans 'Loading...' %}}</span>
         </div>
     </div>
 </div>

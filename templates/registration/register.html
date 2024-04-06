@@ -10,7 +10,7 @@
 <div id="register" class="biReady registrationContent static">
     <div class="inner">
         <h1>
-          <span class="int-en">Sign Up</span>
+          <span class="int-en">{% trans "Sign Up" %}</span>
           <span class="int-he">ཐོ་འགོད་</span>
         </h1>
         <form id="register-form" action="{% url "register" %}" method="post" autocomplete="false">
@@ -20,16 +20,16 @@
             <input type="hidden" name="next" value="{{ next }}" />
         {% endif %}
         <button type="submit" class="control-elem button">
-            <span class="int-en">Sign Up</span>
+            <span class="int-en">{% trans "Sign Up" %}</span>
             <span class="int-he">ཐོ་འགོད་</span>
         </button>
         </form>
         <a class="registration-links control-elem" href="{% url "login" %}{% if next %}?next={{ next }}{% endif %}">
-          <span class="int-en">Already have an account? Log in</span>
+          <span class="int-en">{% trans "Already have an account? Log in" %}</span>
           <span class="int-he">ནང་འཛུལ།</span>
         </a>
         <p class="registration-links control-elem" href="{% url "login" %}{% if next %}?next={{ next }}{% endif %}">
-          <span class="int-en">By clicking "Sign Up" you agree to our <a href="/terms" target="_blank">Terms of Use</a> & <a href="privacy-policy" target="_blank">Privacy Policy</a></span>
+          <span class="int-en">{% trans 'By clicking "Sign Up" you agree to our' %} <a href="/terms" target="_blank">{% trans "Terms of Use" %}</a> & <a href="privacy-policy" target="_blank">{% trans "Privacy Policy" %}</a></span>
           <span class="int-he">"ཐོ་འགོད་"བྱ་རྒྱུ་དེ་ཁྱེད་ཀྱིས་ང་ཚོར་མོས་མཐུན་བྱས་པ་མཚོན་གྱི་ཡོད།<a href="/terms" target="_blank">བེད་སྤྱོད་བྱ་རྒྱུའི་དོན་ཚན།</a> <a href="privacy-policy" target="_blank">གསང་བའི་ཐབས་ཇུས།</a></span>
         </p>
     </div>
