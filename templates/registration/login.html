@@ -12,11 +12,11 @@
         <div class="inner">
             <p id="message">
                 <span class="int-en">{% trans "You are already logged in as" %}</span>
-                <span class="int-he">ཁྱེད་རང་གིས་ཐོ་འགོད་བྱས་ཟིན།</span>
+                <span class="int-he">{% trans "You are already logged in as" %}</span>
                 {{ user.email }}.
                 <a href="{% url "logout" %}">
                     <span class="int-en">{% trans "Logout." %}</span>
-                    <span class="int-he">ཕྱིར་ཐོན།</span>
+                    <span class="int-he">{% trans "Logout." %}</span>
                 </a>
             </p>
         </div>
@@ -29,12 +29,12 @@
             {% if message %}<p id="message">{{ message }}</p>{% endif %}
             <h1>
                 <span class="int-en">{% trans "Log in to Pecha" %}</span>
-                <span class="int-he">ནང་འཛུལ།</span>
+                <span class="int-he">{% trans "Log in to Pecha" %}</span>
             </h1>
             {% if form.errors %}
             <p class="error">
                 <span class="int-en">{% trans "Your username and password didn't match. Please try again." %}</span>
-                <span class="int-he">ཁྱེད་རང་གི་སྤྱོད་མཁན་གྱི་མིང་དང་གསང་གྲངས་ཆ་མི་མཚུངས། ཡང་བསྐྱར་ཚོད་ལྟ་ཐེངས་གཅིག་གནང་རོགས།</span>
+                <span class="int-he">{% trans "Your username and password didn't match. Please try again." %}</span>
             </p>
             {% endif %}
 
@@ -52,17 +52,17 @@
 
                 <button type="submit" class="button control-elem" id="login-submit-button">
                     <span class="int-en">{% trans "Login" %}</span>
-                    <span class="int-he">ནང་འཛུལ།</span>
+                    <span class="int-he">{% trans "Login" %}</span>
                 </button>
                 <a class="registration-links control-elem" href="{% url "password_reset" %}" id="resetLink">
                     <span class="int-en">{% trans "Forgot your password?" %}</span>
-                    <span class="int-he">གསང་བ་བརྗེད་སོང་ངམ།</span>
+                    <span class="int-he">{% trans "Forgot your password?" %}</span>
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
             <a class="registration-links control-elem" href="{% url "register" %}{% if next %}?next={{ next }}{% endif %}">
                 <span class="int-en">{% trans "Create a new account" %}</span>
-                <span class="int-he">འདིའི་ནང་ཁ་བྱང་གསར་བཟོ་བྱ་དགོས།</span>
+                <span class="int-he">{% trans "Create a new account" %}</span>
 
             </a>
 	    </div>

@@ -10,28 +10,28 @@
 {% block soc_description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
-    <meta name="robots" content="noindex, nofollow">
-    {% if EMBED %}
-        <link rel="canonical" href="{{ canonical_url }}">
-    {% endif %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}"/>
+<meta name="robots" content="noindex, nofollow">
+{% if EMBED %}
+<link rel="canonical" href="{{ canonical_url }}">
+{% endif %}
 {% endblock %}
 
 {% block content %}
 <!-- CSS placed here so it has precedence over other sheets in base.html -->
 <link rel="stylesheet" href="{% static 'css/sheets.css' %}">
-<link rel="stylesheet" href="{% static 'css/sheets-print.css' %}" media="print" />
+<link rel="stylesheet" href="{% static 'css/sheets-print.css' %}" media="print"/>
 <div id="sheetsContent" data-interface-lang="{{ request.interfaceLang }}">
 
     <div class="sheetsEditNavTop">
         <div class="sheetsMenuBar" role="menu">
             <div class="sheetsMenuBarInner">
                 <div class="sheetsMenuBarCommands">
-                <div class="sheetsMenuBarItem" id="fileMenu">
-                    <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "File" %}</span>
-                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">ཡིག་ཆ།</span>
-                    <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
-                        {% if not new_sheet %}
+                    <div class="sheetsMenuBarItem" id="fileMenu">
+                        <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "File" %}</span>
+                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">ཡིག་ཆ།</span>
+                        <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
+                            {% if not new_sheet %}
                             {% if user.email %}
                             <div class="optionItem" id="copySheet" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/copy.png' %}" alt="Copy Sheet Icon">
@@ -80,7 +80,7 @@
 
                             </div>
                             {% endif %}
-                        {% if is_owner %}
+                            {% if is_owner %}
                             {% if not sheet.assigner_id %}
 
                             <div class="optionGroup">
@@ -93,32 +93,32 @@
                                 </div>
                             </div>
                             {% endif %}
-                        {% endif %}
+                            {% endif %}
 
-                        <div class="line"></div>
+                            <div class="line"></div>
 
-                        {% endif %}
+                            {% endif %}
 
-                        <div class="optionItem" id="print" role="menuitem" tabindex="0">
-                            <img src="{% static 'img/print.png' %}" alt="Print Icon">
-                            <span class="optionItemText">
+                            <div class="optionItem" id="print" role="menuitem" tabindex="0">
+                                <img src="{% static 'img/print.png' %}" alt="Print Icon">
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Print" %}</span>
                                 <span class="int-he">པར་འདེབས།</span>
                             </span>
-                        </div>
-                        {% if not new_sheet %}
-                        <div class="optionItem" id="visualize" role="menuitem" tabindex="0">
-                            <i class="fa fa-picture-o"></i>
-                            <span class="optionItemText">
+                            </div>
+                            {% if not new_sheet %}
+                            <div class="optionItem" id="visualize" role="menuitem" tabindex="0">
+                                <i class="fa fa-picture-o"></i>
+                                <span class="optionItemText">
                                 <a href="/sheets/visual/{{sheet.id}}">
                                     <span class="int-en">{% trans "Visualize" %}</span>
                                     <span class="int-he">མཐོང་ཐུབ་པའི་རྣམ་ཅན།</span>
                                 </a>
                             </span>
-                        </div>
-                        <div class="optionItem" id="highlightToggle" role="menuitem" tabindex="0">
-                            <i class="fa fa-pencil"></i>
-                            <span class="optionItemText">
+                            </div>
+                            <div class="optionItem" id="highlightToggle" role="menuitem" tabindex="0">
+                                <i class="fa fa-pencil"></i>
+                                <span class="optionItemText">
                                 <span id="highlightToggleActivate">
                                     <span class="int-en">{% trans "Highlight Mode" %}</span>
                                     <span class="int-he">מצב סימון וצביעה</span>
@@ -128,313 +128,319 @@
                                     <span class="int-he">ནན་རྟགས་ཀྱི་རྣམ་ཅན།</span>
                                 </span>
                             </span>
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
                     </div>
-                </div>
-                <div class="sheetsMenuBarItem" id="formatMenu">
-                    <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Format" %}</span>
-                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">རྣམ་པ།</span>
-                    <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
-                        <div class="optionItem" id="numbered" role="menuitem" tabindex="0">
-                            <i class="fa fa-check hidden"></i>
-                            <span class="optionItemText">
+                    <div class="sheetsMenuBarItem" id="formatMenu">
+                        <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Format" %}</span>
+                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">རྣམ་པ།</span>
+                        <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
+                            <div class="optionItem" id="numbered" role="menuitem" tabindex="0">
+                                <i class="fa fa-check hidden"></i>
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Number Sources:" %}</span>
                                 <span class="int-he"> རྒྱུ་ཆའི་ཨང་རྟགས།</span>
                             </span>
-                        </div>
-                        <div class="optionItem" id="boxed" role="menuitem" tabindex="0">
-                            <i class="fa fa-check hidden"></i>
-                            <span class="optionItemText">
+                            </div>
+                            <div class="optionItem" id="boxed" role="menuitem" tabindex="0">
+                                <i class="fa fa-check hidden"></i>
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Box Sources:" %}</span>
                                 <span class="int-he">རྒྱུ་ཆ་གསོག་སྣོད།</span>
                             </span>
-                        </div>
-                        <!-- <div class="optionItem" id="bsd" role="menuitem" tabindex="0">
-                            <i class="fa fa-check hidden"></i>
-                            <span class="optionItemText"><span class="int-bi">בס"ד</span></span>
-                        </div> -->
-                        <div class="line"></div>
-                    {% if can_edit or can_add %}
+                            </div>
+                            <!-- <div class="optionItem" id="bsd" role="menuitem" tabindex="0">
+                                <i class="fa fa-check hidden"></i>
+                                <span class="optionItemText"><span class="int-bi">בס"ד</span></span>
+                            </div> -->
+                            <div class="line"></div>
+                            {% if can_edit or can_add %}
 
-                        <div class="optionItem" id="resetText" role="menuitem" tabindex="0">
-                            <img src="{% static 'img/reset text.png' %}" alt="Reset Source Text Icon">
-                            <span class="optionItemText">
+                            <div class="optionItem" id="resetText" role="menuitem" tabindex="0">
+                                <img src="{% static 'img/reset text.png' %}" alt="Reset Source Text Icon">
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Reset Source Text:" %}</span>
                                 <span class="int-he">མ་ཕྱིའི་དཔེ་ཆ་བསྐྱར་སྒྲིག</span>
                             </span>
-                        </div>
+                            </div>
 
-                        <div class="optionItem" id="splitSourceToSegment" role="menuitem" tabindex="0">
-                            <i class="fa fa-file-o hidden"></i>
-                            <span class="optionItemText">
+                            <div class="optionItem" id="splitSourceToSegment" role="menuitem" tabindex="0">
+                                <i class="fa fa-file-o hidden"></i>
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Auto-Segment Text:" %}</span>
                                 <span class="int-he">རང་འགུལ་གྱིས་དཔེ་ཆའི་ཚན་པ་བགོ་ཆས།</span>
                             </span>
-                        </div>
+                            </div>
 
 
-                        <div class="optionItem" id="removeNikkudot" role="menuitem" tabindex="0">
-                            <i class="fa fa-file-o hidden"></i>
-                            <span class="optionItemText">
+                            <div class="optionItem" id="removeNikkudot" role="menuitem" tabindex="0">
+                                <i class="fa fa-file-o hidden"></i>
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Remove Vowel Points:" %}</span>
                                 <span class="int-he">དབྱངས་རྟགས་རྣམས་སུབ།</span>
                             </span>
-                        </div>
+                            </div>
 
-                        <div class="optionItem" id="addSourceTitle" role="menuitem" tabindex="0">
-                            <i class="fa fa-pencil"></i>
-                            <span class="optionItemText">
+                            <div class="optionItem" id="addSourceTitle" role="menuitem" tabindex="0">
+                                <i class="fa fa-pencil"></i>
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Add Source Title:" %}</span>
                                 <span class="int-he">མ་ཕྱིའི་མཚན་བྱང་ཕྲིས།</span>
                             </span>
-                        </div>
-                    {% endif %}
-                        <div class="line"></div>
-                        <div id="sheetLayoutLanguageMenuItems">
-                            <div class="optionGroup" id="languageToggleGroup">
-                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">
-                                    <i class="fa fa-file-o hidden"></i>
-                                    <span class="optionItemText">
+                            </div>
+                            {% endif %}
+                            <div class="line"></div>
+                            <div id="sheetLayoutLanguageMenuItems">
+                                <div class="optionGroup" id="languageToggleGroup">
+                                    <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
+                                         tabindex="0">
+                                        <i class="fa fa-file-o hidden"></i>
+                                        <span class="optionItemText">
                                         <span class="int-en">{% trans "Sheet Language:" %}</span>
                                         <span class="int-he"> ཤོག་ངོས་ཀྱི་སྐད་ཡིག </span>
                                     </span>
-                                    <i class="optionItemCaret fa fa-caret"></i>
-                                </div>
-                                <div class="subMenu languageToggleOption">
-                                    <div class="english optionItem" role="menuitem" tabindex="0">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        <i class="optionItemCaret fa fa-caret"></i>
+                                    </div>
+                                    <div class="subMenu languageToggleOption">
+                                        <div class="english optionItem" role="menuitem" tabindex="0">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "English:" %}</span>
                                             <span class="int-he">དབྱིན་ཡིག</span>
                                         </span>
-                                    </div>
-                                    <div class="hebrew optionItem" role="menuitem" tabindex="0">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        </div>
+                                        <div class="hebrew optionItem" role="menuitem" tabindex="0">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Tibetan:" %}</span>
                                             <span class="int-he">བོད་ཡིག</span>
                                         </span>
-                                    </div>
-                                    <div class="bilingual optionItem" role="menuitem" tabindex="0">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        </div>
+                                        <div class="bilingual optionItem" role="menuitem" tabindex="0">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Bilingual:" %}</span>
                                             <span class="int-he">སྐད་གཉིས་ཤན་སྦྱར།</span>
                                         </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
 
-                            <div class="optionGroup disabled" id="layoutToggleGroup">
-                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
-                                    <span class="optionItemText">
+                                <div class="optionGroup disabled" id="layoutToggleGroup">
+                                    <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
+                                         tabindex="0"><i class="fa fa-file-o hidden"></i>
+                                        <span class="optionItemText">
                                         <span class="int-en">{% trans "Sheet Layout:" %}</span>
                                         <span class="int-he">ཤོག་ངོས་ཀྱི་རྣམ་པ།</span>
                                     </span>
-                                    <i class="optionItemCaret fa fa-caret"></i>
-                                </div>
-                                <div class="subMenu layoutToggleOption">
-                                    <div class="stacked optionItem" role="menuitem" tabindex="0">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        <i class="optionItemCaret fa fa-caret"></i>
+                                    </div>
+                                    <div class="subMenu layoutToggleOption">
+                                        <div class="stacked optionItem" role="menuitem" tabindex="0">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Stacked:" %}</span>
                                             <span class="int-he">ཚགས་དམ་པོ་བྱས་པ།</span>
                                         </span>
-                                    </div>
-                                    <div class="sideBySide optionItem" role="menuitem" tabindex="0">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        </div>
+                                        <div class="sideBySide optionItem" role="menuitem" tabindex="0">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Side-by-Side:" %}</span>
                                             <span class="int-he">ཕྱོགས་གཉིས་མཉམ་འཇོག</span>
                                         </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
 
-                            <div class="optionGroup disabled" id="sideBySideToggleGroup">
-                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
-                                    <span class="optionItemText">
+                                <div class="optionGroup disabled" id="sideBySideToggleGroup">
+                                    <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
+                                         tabindex="0"><i class="fa fa-file-o hidden"></i>
+                                        <span class="optionItemText">
                                         <span class="int-en">{% trans "Side-by-Side Layout:" %}</span>
                                         <span class="int-he">ཕྱོགས་གཉིས་མཉམ་འཇོག་གི་རྣམ་པ།</span>
                                     </span>
-                                    <i class="optionItemCaret fa fa-caret"></i>
-                                </div>
-                                <div class="subMenu sideBySideToggleOption">
-                                    <div class="heLeft optionItem" role="menuitem" tabindex="0">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        <i class="optionItemCaret fa fa-caret"></i>
+                                    </div>
+                                    <div class="subMenu sideBySideToggleOption">
+                                        <div class="heLeft optionItem" role="menuitem" tabindex="0">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Tibetan Left:" %}</span>
                                             <span class="int-he">བོད་ཡིག་གཡོན་ཕྱོགས།</span>
                                         </span>
-                                    </div>
-                                    <div class="heRight optionItem" role="menuitem" tabindex="0">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        </div>
+                                        <div class="heRight optionItem" role="menuitem" tabindex="0">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Tibetan Right:" %}</span>
                                             <span class="int-he">བོད་ཡིག་གཡས་ཕྱོགས།</span>
                                         </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div id="sourceLayoutLanguageMenuItems">
-                            <div class="optionGroup">
-                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
-                                    <span class="optionItemText">
+                            <div id="sourceLayoutLanguageMenuItems">
+                                <div class="optionGroup">
+                                    <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
+                                         tabindex="0"><i class="fa fa-file-o hidden"></i>
+                                        <span class="optionItemText">
                                         <span class="int-en">{% trans "Source Language:" %}</span>
                                         <span class="int-he">མ་ཕྱིའི་སྐད་ཡིག</span>
                                     </span>
-                                    <i class="optionItemCaret fa fa-caret"></i>
-                                </div>
-                                <div class="subMenu languageToggleOption">
-                                    <div class="english">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        <i class="optionItemCaret fa fa-caret"></i>
+                                    </div>
+                                    <div class="subMenu languageToggleOption">
+                                        <div class="english">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "English:" %}</span>
                                             <span class="int-he">དབྱིན་ཡིག</span>
                                         </span>
-                                    </div>
-                                    <div class="hebrew">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        </div>
+                                        <div class="hebrew">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Hebrew:" %}</span>
                                             <span class="int-he">བོད་ཡིག</span>
                                         </span>
-                                    </div>
-                                    <div class="bilingual">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        </div>
+                                        <div class="bilingual">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Bilingual:" %}</span>
                                             <span class="int-he">སྐད་གཉིས་ཤན་སྦྱར། </span>
                                         </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
 
-                            <div class="optionGroup disabled" id="layoutToggleGroup">
-                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
-                                    <span class="optionItemText">
+                                <div class="optionGroup disabled" id="layoutToggleGroup">
+                                    <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
+                                         tabindex="0"><i class="fa fa-file-o hidden"></i>
+                                        <span class="optionItemText">
                                         <span class="int-en">{% trans "Source Layout:" %}</span>
                                         <span class="int-he">མ་ཕྱིའི་རྣམ་པ།</span>
                                     </span>
-                                    <i class="optionItemCaret fa fa-caret"></i>
-                                </div>
-                                <div class="subMenu layoutToggleOption">
-                                    <div class="stacked">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        <i class="optionItemCaret fa fa-caret"></i>
+                                    </div>
+                                    <div class="subMenu layoutToggleOption">
+                                        <div class="stacked">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Stacked:" %}</span>
                                             <span class="int-he">ཚགས་དམ་པོ་བྱས་པ།</span>
                                         </span>
-                                    </div>
-                                    <div class="sideBySide">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        </div>
+                                        <div class="sideBySide">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Side-by-Side:" %}</span>
                                             <span class="int-he">ཕྱོགས་གཉིས་མཉམ་འཇོག</span>
                                         </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
 
-                            <div class="optionGroup disabled" id="sideBySideToggleGroup">
-                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0"><i class="fa fa-file-o hidden"></i>
-                                    <span class="optionItemText">
+                                <div class="optionGroup disabled" id="sideBySideToggleGroup">
+                                    <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
+                                         tabindex="0"><i class="fa fa-file-o hidden"></i>
+                                        <span class="optionItemText">
                                         <span class="int-en">{% trans "Side-by-Side Layout:" %}</span>
                                         <span class="int-he">ཕྱོགས་གཉིས་མཉམ་འཇོག་གི་རྣམ་པ།</span>
                                     </span>
-                                    <i class="optionItemCaret fa fa-caret"></i>
-                                </div>
-                                <div class="subMenu sideBySideToggleOption">
-                                    <div class="heLeft">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        <i class="optionItemCaret fa fa-caret"></i>
+                                    </div>
+                                    <div class="subMenu sideBySideToggleOption">
+                                        <div class="heLeft">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Tibetan Left:" %}</span>
                                             <span class="int-he">བོད་ཡིག་གཡོན་ཕྱོགས།</span>
                                         </span>
-                                    </div>
-                                    <div class="heRight">
-                                        <i class="fa fa-check hidden"></i>
-                                        <span class="optionItemText">
+                                        </div>
+                                        <div class="heRight">
+                                            <i class="fa fa-check hidden"></i>
+                                            <span class="optionItemText">
                                             <span class="int-en">{% trans "Tibetan Right:" %}</span>
                                             <span class="int-he">བོད་ཡིག་གཡོན་ཕྱོགས།</span>
                                         </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="optionGroup" id="resetSourceTogglesToSheetGroup">
-                                <div class="optionTitle">
-                                    <i class="fa fa-file-o hidden"></i>
-                                    <span class="optionItemText">
+                                <div class="optionGroup" id="resetSourceTogglesToSheetGroup">
+                                    <div class="optionTitle">
+                                        <i class="fa fa-file-o hidden"></i>
+                                        <span class="optionItemText">
                                         <span class="int-en">{% trans "Reset to Sheet Default:" %}</span>
                                         <span class="int-he">རྨང་གཞིའི་ཤོག་ངོས་ལྟར་སྒྲིག</span>
                                     </span>
+                                    </div>
                                 </div>
+
                             </div>
+
 
                         </div>
 
-
                     </div>
-
-                </div>
-                {% if can_edit or can_add %}
-                <div class="sheetsMenuBarItem" id="insertMenu">
-                    <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Insert:" %}</span>
-                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">ནང་འཇུག</span>
-                    <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
-                        <div class="optionItem" id="addSourceMenu" role="menuitem" tabindex="0">
-                            <img src="{% static 'img/source.png' %}" alt="Add Source Icon">
-                            <span class="optionItemText">
+                    {% if can_edit or can_add %}
+                    <div class="sheetsMenuBarItem" id="insertMenu">
+                        <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Insert:" %}</span>
+                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">ནང་འཇུག</span>
+                        <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
+                            <div class="optionItem" id="addSourceMenu" role="menuitem" tabindex="0">
+                                <img src="{% static 'img/source.png' %}" alt="Add Source Icon">
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Source:" %}</span>
                                 <span class="int-he">མ་ཕྱི།</span>
                             </span>
-                        </div>
-                        <!-- {% if is_owner %}
-                        <div class="optionItem" id="addParashaToSheetModalTrigger" role="menuitem" tabindex="0">
-                            <img src="{% static 'img/parasha.png' %}" alt="Add Parasha Icon">
-                            <span class="optionItemText">
-                                <span class="int-en">Parasha</span>
-                                <span class="int-he">Parasha</span>
-                            </span>
-                        </div>
-                        {% endif %} -->
-                        <div class="optionItem" id="addCustomMenu" role="menuitem" tabindex="0">
-                            <img src="{% static 'img/custom text.png' %}" alt="Add outside text icon">
-                            <span class="optionItemText">
+                            </div>
+                            <!-- {% if is_owner %}
+                            <div class="optionItem" id="addParashaToSheetModalTrigger" role="menuitem" tabindex="0">
+                                <img src="{% static 'img/parasha.png' %}" alt="Add Parasha Icon">
+                                <span class="optionItemText">
+                                    <span class="int-en">Parasha</span>
+                                    <span class="int-he">Parasha</span>
+                                </span>
+                            </div>
+                            {% endif %} -->
+                            <div class="optionItem" id="addCustomMenu" role="menuitem" tabindex="0">
+                                <img src="{% static 'img/custom text.png' %}" alt="Add outside text icon">
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Text:" %}</span>
                                 <span class="int-he">ཡི་གེ</span>
                             </span>
-                        </div>
-                        <div class="optionItem" id="addCommentMenu" role="menuitem" tabindex="0">
-                            <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
-                            <span class="optionItemText">
+                            </div>
+                            <div class="optionItem" id="addCommentMenu" role="menuitem" tabindex="0">
+                                <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Comment:" %}</span>
                                 <span class="int-he">མཆན།</span>
                             </span>
-                        </div>
-                        <div class="optionItem" id="addMediaMenu" role="menuitem" tabindex="0">
-                            <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
-                            <span class="optionItemText">
+                            </div>
+                            <div class="optionItem" id="addMediaMenu" role="menuitem" tabindex="0">
+                                <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
+                                <span class="optionItemText">
                                 <span class="int-en">{% trans "Media:" %}</span>
                                 <span class="int-he">སྨྱན།</span>
                             </span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                {% endif %}
-                <div class="sheetsMenuBarItem" id="highlightMenu">
-                    <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Highlight Tools:" %}</span>
-                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">ནན་རྟགས་ལག་ཆ་རྣམས།</span>
-                    <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
-                        <div class="optionItem segmentedContinuousToggle" data-mode="continuous">
+                    {% endif %}
+                    <div class="sheetsMenuBarItem" id="highlightMenu">
+                        <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Highlight Tools:" %}</span>
+                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">ནན་རྟགས་ལག་ཆ་རྣམས།</span>
+                        <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
+                            <div class="optionItem segmentedContinuousToggle" data-mode="continuous">
                             <span class="optionItemText">
                                 <span class="continuousActive" role="menuitem" tabindex="0">
                                     <span class="int-en">{% trans "Paragraph View:" %}</span>
@@ -445,28 +451,28 @@
                                     <span class="int-he">ཡིག་ཕྲེང་རེ་རེ་བཞིན་སྟོན།</span>
                                 </span>
                             </span>
-                        </div>
-                        {% if can_edit %}
-                        <div class='optionItem resetHighlighter'>
+                            </div>
+                            {% if can_edit %}
+                            <div class='optionItem resetHighlighter'>
                             <span class="optionItemText"><span class="int-en">{% trans "Reset:" %}</span>
                             <span class="int-he">བསྐྱར་སྒྲིག</span></span>
-                        </div>
-                        {% endif %}
-                        <div class="optionGroup">
-                            <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">
+                            </div>
+                            {% endif %}
+                            <div class="optionGroup">
+                                <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">
                                 <span class="optionItemText"><span class="int-en">{% trans "Filter:" %}</span>
                                 <span class="int-he">ཚགས་སྒྲིག</span></span>
-                                <i class="optionItemCaret fa fa-caret"></i>
-                            </div>
-                            <div class="subMenu">
-                                <div class='highlighterFilterTags'>
+                                    <i class="optionItemCaret fa fa-caret"></i>
+                                </div>
+                                <div class="subMenu">
+                                    <div class='highlighterFilterTags'>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="sheetsMenuBarItem" id="lastSavedMenu">
+                    <div class="sheetsMenuBarItem" id="lastSavedMenu">
                     <span id="lastSaved">
                     {% if sheet.dateModified %}
                         {% if can_edit or can_add %}
@@ -490,45 +496,45 @@
                         {% endif %}
                     {% endif %}
                     </span>
-                </div>
-                <div class="sheetsMenuBarItem" id="higlightModeMenu">
+                    </div>
+                    <div class="sheetsMenuBarItem" id="higlightModeMenu">
                     <span id="highlightModeDisplay">
                         <span class="int-en">{% trans "Highlight Mode is On" %}</span>
                         <span class="int-he">ནན་རྟགས་ཀྱི་རྣམ་པ་སྒོ་ཕྱེ་ཡོད།</span>
                     </span>
+                    </div>
                 </div>
-            </div>
                 <div class="sheetsMenuBarButtons">
 
-                {% if new_sheet %}
-                <a id="save" class="button" data-mode="editing" role="button" tabIndex="0">
-                    <i class="fa fa-floppy-o"></i>
-                    <span id="doSave">
+                    {% if new_sheet %}
+                    <a id="save" class="button" data-mode="editing" role="button" tabIndex="0">
+                        <i class="fa fa-floppy-o"></i>
+                        <span id="doSave">
                         <span class="int-en">{% trans "Save" %}</span>
                         <span class="int-he">ཉར་ཚགས།</span>
                     </span>
-                    <span id="inSave">
+                        <span id="inSave">
                         <span class="int-en">{% trans "Saving..." %}</span>
                         <span class="int-he">ཉར་བཞིན་པ་་་</span>
                     </span>
-                </a>
-                {% elif is_owner %}
-                <a id="share" class="button" role="button" tabIndex="0">
-                    <img src="{% static 'img/share.png' %}" alt="Share Icon">
-                    <span class="int-en">{% trans "Share" %}</span>
-                    <span class="int-he">མཉམ་སྤྱོད།</span>
-                </a>
-                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
-                    <span class="int-en">{% trans "View in Library" %}</span>
-                    <span class="int-he">དཔེ་མཛོད་ནང་སྟོན།</span>
-                </a>
-                {% else %}
-                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
-                    <span class="int-en">{% trans "View in Library" %}</span>
-                    <span class="int-he">དཔེ་མཛོད་ནང་སྟོན།</span>
-                </a>
-                {% endif %}
-            </div>
+                    </a>
+                    {% elif is_owner %}
+                    <a id="share" class="button" role="button" tabIndex="0">
+                        <img src="{% static 'img/share.png' %}" alt="Share Icon">
+                        <span class="int-en">{% trans "Share" %}</span>
+                        <span class="int-he">མཉམ་སྤྱོད།</span>
+                    </a>
+                    <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
+                        <span class="int-en">{% trans "View in Library" %}</span>
+                        <span class="int-he">དཔེ་མཛོད་ནང་སྟོན།</span>
+                    </a>
+                    {% else %}
+                    <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
+                        <span class="int-en">{% trans "View in Library" %}</span>
+                        <span class="int-he">དཔེ་མཛོད་ནང་སྟོན།</span>
+                    </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
         <div class="sheetsEditorControls">
@@ -536,671 +542,697 @@
         </div>
     </div>
 
-<div id="link"></div>
-<div id="error"></div>
-<div id="controls">
-    <div>
+    <div id="link"></div>
+    <div id="error"></div>
+    <div id="controls">
+        <div>
+        </div>
     </div>
-</div>
 
-<div id="sheet" class="
+    <div id="sheet" class="
     {% if request.interfaceLang == 'english' %}
         {{ sheet_class|default:'bilingual' }}
     {% else %}
         {{ sheet_class|default:'hebrew' }}
     {% endif %}
 " role="main">
-    {% if not user.email %}
-	<div id="fileControls">
-        <div id="fileControlMsg">
+        {% if not user.email %}
+        <div id="fileControls">
+            <div id="fileControlMsg">
             <span class="int-en">
-                {% trans "Like this?" %} <a href="/login?next=/sheets/new">{% trans "Login" %}</a> or <a href="/register?next=/sheets/new">{% trans "create an account" %}</a> {% trans "to build your own source sheet." %}
+                {% trans "Like this?" %} <a href="/login?next=/sheets/new">{% trans "Login" %}</a>{ % trans "or" %} <a
+                    href="/register?next=/sheets/new">{% trans "create an account" %}</a> {% trans "to build your own source sheet." %}
             </span>
-            <span class="int-he">
-                འདི་ལ་སྤྲོ་བ་འདུག་གམ། <a href="/login?next=/sheets/new">ནང་འཛུལ།</a> ཡང་ན་ <a href="/register?next=/sheets/new">ཁྱེད་རངསྒེར་གྱི་ཤོག་ངོས་བཟོ་བ་ལ་</a> འདིའི་ནང་ཁ་བྱང་གསར་བཟོ་བྱ་དགོས།
+                <span class="int-he">
+                {% trans "Like this?" %}<a href="/login?next=/sheets/new">{% trans "Login" %}</a>{ % trans "or" %} <a
+                        href="/register?next=/sheets/new">{% trans "create an account" %}</a> {% trans "to build your own source sheet." %}
             </span>
+            </div>
         </div>
-	</div>
 
-    {% endif %}
-
-	<div id="bsdHeader">בס"ד</div>
-	<div id="sheetHeader" {% if not displayed_collection %}style="display:none"{% endif %}>
-		{% if displayed_collection and displayed_collection.headerUrl %}
-		<a href="/collections/{{ displayed_collection.slug }}">
-			<img id="collectionHeader" src="{{ displayed_collection.headerUrl }}" alt="Logo for {{ displayed_collection.name }}" />
-		</a>
-		{% else %}
-            <a href="#"><img id="collectionHeader"/></a>
-		{% endif %}
-	</div>
-	<div id="title" role="heading" aria-level="1">
-		{% autoescape off %}
-            {% with title_t=title|default:_("Loading...") %}
-                {{ title_t }}
-            {% endwith %}
-		{% endautoescape %}
-	</div>
-	{% if sheet.attribution %}
-	<div id="author">
-		{% autoescape off %}
-			{{ sheet.attribution }}
-		{% endautoescape %}
-	</div>
-	{% elif assigner_id %}
-	<div id="author">
-		{% if author %}
-            {% blocktrans with owner=sheet.owner|user_link %}
-                Assignment Completed by {{ owner }}
-            {% endblocktrans %}
-		{% endif %}
-    </div>
-	{% elif sheet.assigner_id %}
-	<div id="author">
-		{% if author %}
-		    {% blocktrans with owner=sheet.owner|user_link %}
-                Assignment Completed by {{ owner }}
-            {% endblocktrans %}
         {% endif %}
-    </div>
-	{% elif author %}
-	<div id="author">
-        {% blocktrans with owner=sheet.owner|user_link %}
+
+        <div id="bsdHeader">בס"ד</div>
+        <div id="sheetHeader" {% if not displayed_collection %}style="display:none" {% endif %}>
+            {% if displayed_collection and displayed_collection.headerUrl %}
+            <a href="/collections/{{ displayed_collection.slug }}">
+                <img id="collectionHeader" src="{{ displayed_collection.headerUrl }}"
+                     alt="Logo for {{ displayed_collection.name }}"/>
+            </a>
+            {% else %}
+            <a href="#"><img id="collectionHeader"/></a>
+            {% endif %}
+        </div>
+        <div id="title" role="heading" aria-level="1">
+            {% autoescape off %}
+            {% with title_t=title|default:_("Loading...") %}
+            {{ title_t }}
+            {% endwith %}
+            {% endautoescape %}
+        </div>
+        {% if sheet.attribution %}
+        <div id="author">
+            {% autoescape off %}
+            {{ sheet.attribution }}
+            {% endautoescape %}
+        </div>
+        {% elif assigner_id %}
+        <div id="author">
+            {% if author %}
+            {% blocktrans with owner=sheet.owner|user_link %}
+            Assignment Completed by {{ owner }}
+            {% endblocktrans %}
+            {% endif %}
+        </div>
+        {% elif sheet.assigner_id %}
+        <div id="author">
+            {% if author %}
+            {% blocktrans with owner=sheet.owner|user_link %}
+            Assignment Completed by {{ owner }}
+            {% endblocktrans %}
+            {% endif %}
+        </div>
+        {% elif author %}
+        <div id="author">
+            {% blocktrans with owner=sheet.owner|user_link %}
             Source Sheet by {{ owner }}
-        {% endblocktrans %}
-	</div>
-	{% endif %}
+            {% endblocktrans %}
+        </div>
+        {% endif %}
 
-	{% if not new_sheet %}
+        {% if not new_sheet %}
 
-    <details id="sheetMetadata">
-    <summary>
-        <span class="int-en">{% trans "More info" %}</span>
-        <span class="int-he">གནས་ཚུལ་རྒྱས་པ།</span>
-    </summary>
-        <div class="metadataOpenDetails">
-            <div>
-                <span class="int-en">{% trans "Created" %} <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views
+        <details id="sheetMetadata">
+            <summary>
+                <span class="int-en">{% trans "More info" %}</span>
+                <span class="int-he">གནས་ཚུལ་རྒྱས་པ།</span>
+            </summary>
+            <div class="metadataOpenDetails">
+                <div>
+                <span class="int-en">{% trans "Created" %} <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span
+                        class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}{% trans "Views" %}
                 {% endif %}</span>{% if can_edit %}<span
                         class="editButton">{% trans "Edit" %}</span>{% endif %}</span>
-                <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{% if sheet.views == 1%}צפייה אחת{% else %}{{ sheet.views }}
-                צפיות{% endif %}</span>{% if can_edit %}<span class="editButton">עריכה</span>{% endif %}</span>
-            </div>
-            {% if sheet.via %}
-            <div id="via">
-                <span class="int-en">{% trans "Based on" %} <a href="/sheets/{{ sheet.via }}">{% trans "a sheet" %}</a>{% trans "by" %} {{ sheet.viaOwner|user_link }}</span>
-                <span class="int-he">གཞིར་བཞག་ཡོད།<a href="/sheets/{{ sheet.via }}">ཤོག་ངོས་ཤིག</a> מאת {{ sheet.viaOwner|user_link }}</span>
-            </div>
-
-        	{% elif assigner_id %}
-            <div id="assignmentAttribution">
-                <span class="int-en">{% trans "Assigned by" %}</span>
-                <span class="int-he"></span>
-                {{ assigner_id|user_link }}
-            </div>
-
-        	{% elif sheet.assigner_id %}
-            <div id="assignmentAttribution">
-                <span class="int-en">{% trans "Assigned by" %}</span>
-                <span class="int-he">ལས་བགོ་བྱས།</span>
-                {{ sheet.assigner_id|user_link }}
-            </div>
-
-            {% endif %}
-
-            <div id="sheetSummary">{{ sheet.summary|linebreaks }}</div>
-
-            <div id="sheetTags">
-                {% for topic in sheet.topics %}
-                    <a class="button" role="button" href="/topics/{{ topic.slug }}">
-                      {% if request.interfaceLang == 'english' %}
-                        {% if topic.en %}
-                          {{ topic.en }}
-                        {% else %}
-                          {{ topic.he }}
-                        {% endif %}
-                      {% elif request.interfaceLang == 'hebrew' %}
-                        {% if topic.he %}
-                          {{ topic.he }}
-                        {% else %}
-                          {{ topic.en }}
-                        {% endif %}
-                      {% endif %}
-                    </a>
-                {% endfor %}
-
-
-            </div>
-        </div>
-
-
-    </details>
-	{% endif %}
-
-	<ol id="sources">
-		{% include "sheet.html" with sources=sheet.sources %}
-	</ol>
-    {% if can_edit or can_add %}
-    <div id="addInterface">
-        <div class="buttonBar">
-            <div class="addInterfaceButton" id="sourceButton" tabindex="0" role="button"><img src="{% static 'img/source.png' %}" alt="Add Source Icon">
-                <span class="int-en">{% trans "Source" %}</span>
-                <span class="int-he">མ་ཕྱི་</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="connectionButton" tabindex="0" role="button">
-                <img src="{% static 'img/connection.png' %}" alt="Add Connections Icon">
-                <span class="int-en">{% trans "Connection" %}</span>
-                <span class="int-he">འབྲེལ་ཡོད།</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="customTextButton" tabindex="0" role="button">
-                <img src="{% static 'img/custom text.png' %}" alt="Add Outside Text Icon">
-                <span class="int-en">{% trans "Text" %}</span>
-                <span class="int-he">ཡི་གེ</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="mediaButton" tabindex="0" role="button">
-                <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
-                <span class="int-en">{% trans "Media" %}</span>
-                <span class="int-he">སྨྱན།</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="commentButton" tabindex="0" role="button">
-                <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
-                <span class="int-en">{% trans "Comment" %}</span>
-                <span class="int-he">མཆན།</span>
-            </div>
-        </div>
-        <div class="contentDiv">
-            <div id="addsourceDiv">
-                <div id="inlineAddDialogTitle" class="inlineAddDesc">
-                    <span class="int-en">{% trans "Select a text" %}</span>
-                    <span class="int-he">དཔེ་ཆ་ཞིག་འདེམ། </span>
+                    <span class="int-he">{% trans "Created" %} <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span
+                            class="views">{% if sheet.views == 1%}{% trans "View" %} {% else %}{{ sheet.views }}
+                {% endif %}{% trans "Views" %}</span>{% if can_edit %}<span class="editButton">{% trans "Edit" %}</span>{% endif %}</span>
                 </div>
-                <div class="blockContainer">
-                    <input id="inlineAdd" class="inlineAddTextInput"
-                           placeholder="{% trans "Search for a Text or Commentator" %}"/>
-                    <div class="buttonContainer">
-                        <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
-                            <div id="inlineAddSourceOK" class='button disabled' role="button" tabIndex="0">
-                                <span class="int-en">{% trans "Add Source" %}</span>
-                                <span class="int-he">རྒྱུ་ཆ་ཞོག</span>
+                {% if sheet.via %}
+                <div id="via">
+                    <span class="int-en">{% trans "Based on" %} <a
+                            href="/sheets/{{ sheet.via }}">{% trans "a sheet" %}</a>{% trans "by" %} {{ sheet.viaOwner|user_link }}</span>
+                    <span class="int-he">{% trans "Based on" %}<a
+                            href="/sheets/{{ sheet.via }}">{% trans "a sheet" %}</a>{{ sheet.viaOwner|user_link }}{% trans "by" %}</span>
+                </div>
+
+                {% elif assigner_id %}
+                <div id="assignmentAttribution">
+                    <span class="int-en">{% trans "Assigned by" %}</span>
+                    <span class="int-he">{% trans "Assigned by" %}</span>
+                    {{ assigner_id|user_link }}
+                </div>
+
+                {% elif sheet.assigner_id %}
+                <div id="assignmentAttribution">
+                    <span class="int-en">{% trans "Assigned by" %}</span>
+                    <span class="int-he">{% trans "Assigned by" %}</span>
+                    {{ sheet.assigner_id|user_link }}
+                </div>
+
+                {% endif %}
+
+                <div id="sheetSummary">{{ sheet.summary|linebreaks }}</div>
+
+                <div id="sheetTags">
+                    {% for topic in sheet.topics %}
+                    <a class="button" role="button" href="/topics/{{ topic.slug }}">
+                        {% if request.interfaceLang == 'english' %}
+                        {% if topic.en %}
+                        {{ topic.en }}
+                        {% else %}
+                        {{ topic.he }}
+                        {% endif %}
+                        {% elif request.interfaceLang == 'hebrew' %}
+                        {% if topic.he %}
+                        {{ topic.he }}
+                        {% else %}
+                        {{ topic.en }}
+                        {% endif %}
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+
+
+                </div>
+            </div>
+
+
+        </details>
+        {% endif %}
+
+        <ol id="sources">
+            {% include "sheet.html" with sources=sheet.sources %}
+        </ol>
+        {% if can_edit or can_add %}
+        <div id="addInterface">
+            <div class="buttonBar">
+                <div class="addInterfaceButton" id="sourceButton" tabindex="0" role="button"><img
+                        src="{% static 'img/source.png' %}" alt="Add Source Icon">
+                    <span class="int-en">{% trans "Source" %}</span>
+                    <span class="int-he">{% trans "Source" %}</span>
+                </div><!--
+         -->
+                <div class="addInterfaceButton" id="connectionButton" tabindex="0" role="button">
+                    <img src="{% static 'img/connection.png' %}" alt="Add Connections Icon">
+                    <span class="int-en">{% trans "Connection" %}</span>
+                    <span class="int-he">{% trans "Connection" %}</span>
+                </div><!--
+         -->
+                <div class="addInterfaceButton" id="customTextButton" tabindex="0" role="button">
+                    <img src="{% static 'img/custom text.png' %}" alt="Add Outside Text Icon">
+                    <span class="int-en">{% trans "Text" %}</span>
+                    <span class="int-he">{% trans "Text" %}</span>
+                </div><!--
+         -->
+                <div class="addInterfaceButton" id="mediaButton" tabindex="0" role="button">
+                    <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
+                    <span class="int-en">{% trans "Media" %}</span>
+                    <span class="int-he">{% trans "Media" %}</span>
+                </div><!--
+         -->
+                <div class="addInterfaceButton" id="commentButton" tabindex="0" role="button">
+                    <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
+                    <span class="int-en">{% trans "Comment" %}</span>
+                    <span class="int-he">{% trans "Comment" %}</span>
+                </div>
+            </div>
+            <div class="contentDiv">
+                <div id="addsourceDiv">
+                    <div id="inlineAddDialogTitle" class="inlineAddDesc">
+                        <span class="int-en">{% trans "Select a text" %}</span>
+                        <span class="int-he">{% trans "Select a text" %}</span>
+                    </div>
+                    <div class="blockContainer">
+                        <input id="inlineAdd" class="inlineAddTextInput"
+                               placeholder="{% trans " Search for a Text or Commentator" %}"/>
+                        <div class="buttonContainer">
+                            <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
+                                <div id="inlineAddSourceOK" class='button disabled' role="button" tabIndex="0">
+                                    <span class="int-en">{% trans "Add Source" %}</span>
+                                    <span class="int-he">{% trans "Add Source" %}</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="inlineAddOr">
-                            <span class="int-en">{% trans "or" %}</span>
-                            <span class="int-he">ཡང་ན་</span>
-                        </div>
-                        <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
-                            <div id="inlineAddBrowse" class='button' role="button" tabIndex="0">
-                                <span class="int-en">{% trans "Browse Sources" %}</span>
-                                <span class="int-he">མ་ཕྱི་རྣམས་ལ་མིག་བཤེར་བྱོས།</span>
+                            <div class="inlineAddOr">
+                                <span class="int-en">{% trans "or" %}</span>
+                                <span class="int-he">{% trans "or" %}</span>
+                            </div>
+                            <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
+                                <div id="inlineAddBrowse" class='button' role="button" tabIndex="0">
+                                    <span class="int-en">{% trans "Browse Sources" %}</span>
+                                    <span class="int-he">{% trans "Browse Sources" %}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-            </div>
-            <div id="addconnectionDiv">
-                <div class="inlineAddDesc">
-                    <span class="int-en">{% trans "Select connected texts" %}</span>
-                    <span class="int-he">སྦྲེལ་མཐུད་བྱས་ཡོད་པའི་དཔེ་ཆ་རྣམས་འདེམ།</span>
                 </div>
-                <div id="connectionsToAdd"></div>
-                <div class="button" role="button" tabIndex="0">
-                    <span class="int-en">{% trans "Add to Sheet" %}</span>
-                    <span class="int-he">ཤོག་ངོས་ནང་སྣོན།</span>
+                <div id="addconnectionDiv">
+                    <div class="inlineAddDesc">
+                        <span class="int-en">{% trans "Select connected texts" %}</span>
+                        <span class="int-he">{% trans "Select connected texts" %}</span>
+                    </div>
+                    <div id="connectionsToAdd"></div>
+                    <div class="button" role="button" tabIndex="0">
+                        <span class="int-en">{% trans "Add to Sheet" %}</span>
+                        <span class="int-he">{% trans "Add to Sheet" %}</span>
+                    </div>
                 </div>
-            </div>
-            <div id="addcustomTextDiv">
-                <div class="inlineAddDesc">
+                <div id="addcustomTextDiv">
+                    <div class="inlineAddDesc">
                     <span class="int-en">{% trans "Write or paste text<" %}/span>
-                    <span class="int-he">འབྲི་བ་དང་ཡང་ན་ངོ་བཤུ་ཞོག</span>
-                </div>
-                <div id="customTextLanguageToggle" class="toggle">
+                    <span class="int-he">{% trans "Write or paste text<" %}</span>
+                    </div>
+                    <div id="customTextLanguageToggle" class="toggle">
                     <span id="englishCustomText" class="toggleOption">
                         <img src="{% static 'img/english.png' %}" alt="English Language Toggle">
                     </span>
-                    <span id="bilingualCustomText" class="toggleOption active">
+                        <span id="bilingualCustomText" class="toggleOption active">
                         <img src="{% static 'img/bilingual.png' %}" alt="Bilingual Language Toggle">
                     </span>
-                    <span id="hebrewCustomText" class="toggleOption">
+                        <span id="hebrewCustomText" class="toggleOption">
                         <img src="{% static 'img/hebrew.png' %}" alt="Hebrew Language Toggle">
                     </span>
+                    </div>
+                    <div id="customTextContainer" class="flexContainer">
+                        <div class="contentToAdd en customTextEditables" tabindex="0">{% trans "English" %}</div>
+                        <div class="contentToAdd he customTextEditables" tabindex="0">{% trans "English" %}<</div>
+                    </div>
+                    <div class="button" role="button" tabIndex="0">
+                        <span class="int-en">{% trans "Add to Sheet" %}</span>
+                        <span class="int-he">{% trans "Add to Sheet" %}</span>
+                    </div>
                 </div>
-                <div id="customTextContainer" class="flexContainer">
-                    <div class="contentToAdd en customTextEditables" tabindex="0">{% trans "English" %}</div>
-                    <div class="contentToAdd he customTextEditables" tabindex="0">དབྱིན་ཡིག</div>
-                </div>
-                <div class="button" role="button" tabIndex="0">
-                    <span class="int-en">{% trans "Add to Sheet" %}</span>
-                    <span class="int-he"> ཤོག་ངོས་ནང་སྣོན། </span>
-                </div>
-            </div>
-            <div id="addmediaDiv">
-                <div class="inlineAddDesc">
-                    <span class="int-en">{% trans "Add Image, Youtube Video, SoundCloud link, or MP3" %}</span>
-                    <span class="int-he">འདྲ་པར་དང་ཡུས་ཁྲུབ་ཀྱི་བརྙན། SoundCloud ཡི་དྲ་ཐག་དང་ཡང་ན་MP3 བཅས་ཀྱི་གང་རུང་ཞིག་ཞོག</span>
-                </div>
-                <div class="blockContainer">
-                    <input id="inlineAddMediaInput" class="inlineAddTextInput" placeholder="{% trans 'Paste URL' %}" />
-                    <div class="buttonContainer">
-                        <div class="inlineAddSourceByttons">
-                            <div class="button" role="button" tabIndex="0">
-                                <span class="int-en">{% trans "Add to Sheet" %}</span>
-                                <span class="int-he">ཤོག་ངོས་ནང་སྣོན། </span>
+                <div id="addmediaDiv">
+                    <div class="inlineAddDesc">
+                        <span class="int-en">{% trans "Add Image, Youtube Video, SoundCloud link, or MP3" %}</span>
+                        <span class="int-he">འདྲ་པར་དང་ཡུས་ཁྲུབ་ཀྱི་བརྙན། SoundCloud ཡི་དྲ་ཐག་དང་ཡང་ན་MP3 བཅས་ཀྱི་གང་རུང་ཞིག་ཞོག</span>
+                    </div>
+                    <div class="blockContainer">
+                        <input id="inlineAddMediaInput" class="inlineAddTextInput"
+                               placeholder="{% trans 'Paste URL' %}"/>
+                        <div class="buttonContainer">
+                            <div class="inlineAddSourceByttons">
+                                <div class="button" role="button" tabIndex="0">
+                                    <span class="int-en">{% trans "Add to Sheet" %}</span>
+                                    <span class="int-he">{% trans "Add to Sheet" %}</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="inlineAddOr">
-                            <span class="int-en">{% trans "or" %}</span>
-                            <span class="int-he">ཡང་ན་</span>
-                        </div>
-                        <div class="inlineAddSourceByttons">
-                            <label for="addmediaFileSelector" class="button" role="button" tabIndex="0">
-                                <i class="fa fa-upload" aria-hidden="true"></i>
-                                <span class="int-en">{% trans "Upload an Image" %}</span>
-                                <span class="int-he">འདྲ་པར་ནང་འཇུག་བྱོས།</span>
-                            </label>
-                            <input id="addmediaFileSelector" type="file" style="display:none">
+                            <div class="inlineAddOr">
+                                <span class="int-en">{% trans "or" %}</span>
+                                <span class="int-he">{% trans "or" %}</span>
+                            </div>
+                            <div class="inlineAddSourceByttons">
+                                <label for="addmediaFileSelector" class="button" role="button" tabIndex="0">
+                                    <i class="fa fa-upload" aria-hidden="true"></i>
+                                    <span class="int-en">{% trans "Upload an Image" %}</span>
+                                    <span class="int-he">འདྲ་པར་ནང་འཇུག་བྱོས།</span>
+                                </label>
+                                <input id="addmediaFileSelector" type="file" style="display:none">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div id="addcommentDiv">
-                <div class="inlineAddDesc">
-                    <span class="int-en">{% trans "Comment on this section" %}</span>
-                    <span class="int-he">ཚན་པ་འདིའི་སྒང་ལ་མཆན་ཕྲིས།</span>
-                </div>
-                <div class="contentToAdd" tabindex="0" data-gramm="false"><br></div>
-                <div class="button" role="button" tabIndex="0">
-                    <span class="int-en">{% trans "Add to Sheet" %}</span>
-                    <span class="int-he">ཤོག་ངོས་ནང་སྣོན།</span>
+                <div id="addcommentDiv">
+                    <div class="inlineAddDesc">
+                        <span class="int-en">{% trans "Comment on this section" %}</span>
+                        <span class="int-he">{% trans "Comment on this section" %}</span>
+                    </div>
+                    <div class="contentToAdd" tabindex="0" data-gramm="false"><br></div>
+                    <div class="button" role="button" tabIndex="0">
+                        <span class="int-en">{% trans "Add to Sheet" %}</span>
+                        <span class="int-he">{% trans "Add to Sheet" %}</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-	{% endif %}
+        {% endif %}
 
-    <div id="sheetLoading" style="display:none">
-        <span class="int-en">{% trans "Loading..." %}</span>
-        <span class="int-he">ལེན་བཞིན་པ་་་</span>
-    </div>
+        <div id="sheetLoading" style="display:none">
+            <span class="int-en">{% trans "Loading..." %}</span>
+            <span class="int-he">{% trans "Loading..." %}</span>
+        </div>
 
-	{% if new_sheet and not hide_video %}
-	<div id="empty" class="well">
+        {% if new_sheet and not hide_video %}
+        <div id="empty" class="well">
 
-		<div class="fa fa-times remove"></div>
-        <iframe width="560" height="315" src="https://www.youtube.com/embed/gp_uI8obQoI" frameborder="0" allowfullscreen></iframe>
+            <div class="fa fa-times remove"></div>
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/gp_uI8obQoI" frameborder="0"
+                    allowfullscreen></iframe>
 
-        <h3>
-            <span class="int-en">{% trans "Watch a 2 minute intro video or " %}<a class="empty_readmore">{% trans "read more" %}</a>.</span>
-            <span class="int-he">སྐར་མ་གསུམ་ཅན་གྱི་ངོ་སྤྲོད་བརྙན་ཞིག་ལ་གཟིགས་སམ་ཡང་ན་<a class="empty_readmore">འདི་ལས་མང་ཙམ་ཀློག</a>.</span>
-        </h3>
-		<div id="howItWorks">
-		<h1>
-            <span class="int-en">{% trans "Source Sheet Builder: How it Works" %}</span>
-            <span class="int-he">མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས། འདིས་ལས་ཀ་བྱེད་སྟངས་ག་འདྲ་འདུག</span>
+            <h3>
+                <span class="int-en">{% trans "Watch a 2 minute intro video or " %}<a class="empty_readmore">{% trans "read more" %}</a>.</span>
+                <span class="int-he">{% trans "Watch a 2 minute intro video or " %}<a class="empty_readmore">{% trans "read more" %}</a>.</span>
+            </h3>
+            <div id="howItWorks">
+                <h1>
+                    <span class="int-en">{% trans "Source Sheet Builder: How it Works" %}</span>
+                    <span class="int-he">{% trans "Source Sheet Builder: How it Works" %}</span>
 
-        </h1>
-		<ul>
-			<li>
+                </h1>
+                <ul>
+                    <li>
                 <span class="int-en">
-                    <b>{% trans "Add Sources</b>{% trans "by typing a citation like:" %}
+                    <b>{% trans "Add Sources" %}</b>{% trans "by typing a citation like:" %}
 			        <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishnah Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
                 </span>
-                <span class="int-he">
+                        <span class="int-he">
                     <b>རྒྱུ་ཆ་རྣམས་སྣོན་</b> སྣོན་ཐབས་ནི་ལུང་ཚིག་ཅིག་བྲིས་ཏེ། དཔེར་ན།
 			        <div id="cite"><i>Mishnah Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
                 </span>
-			</li>
-			<li>
-                <span class="int-en"><b>{% trans "Reorder Sources" %}</b>{% trans "by dragging and dropping." %}</span>
-                <span class="int-he"><b> མ་ཕྱིའི་གོ་རིམ་བསྐྱར་སྒྲིག</b>drag དང་ drop བཀོལ་སྤྱོད།</span>
-            </li>
-			<li>
-                <span class="int-en"><b>{% trans "Print" %}</b>{% trans "your sheets to paper or PDF, or just" %} <b>{% trans "Share" %}</b>{% trans " the link." %}</span>
-                <span class="int-he"><b>ཁྱེད་ཀྱི་ཤོག་ངོས་ཤོག་ཐོག་ལ་</b> པར་འདེབས་བྱེད་པ་དང་ཡང་ན་ PDF ཡང་ན་དེའི་དྲ་ཐག་ <b>བརྒྱུད་སྐུར་</b> ཙམ་བྱ་རྒྱུ་ཡིན།</span>
-            </li>
-			<li>
-                <span class="int-en"><b>{% trans "More Options" %}</b>{% trans "are available in the icons that appear when you hover over a source." %}</span>
-                <span class="int-he"><b>ཁྱེད་ཀྱིས་མ་ཕྱི་ཞིག་གི་སྒང་ལ་བཞག་དུས་འཆར་ཡོང་བའི་འདྲ་པར་icon དེའི་ནང་འདེམ་གསེས་</b> འདི་ལས་མང་བ་ཡོད།</span>
-            </li>
-		</ul>
-		</div>
-		{% if not user.email %}
-			<center id="loginWarning">
-                <span class="int-en">{% trans "Take a spin! But you'll need to " %}<a href="/login?next=/sheets/new">{% trans "login" %}</a> or <a href="/register?next=/sheets/new">{% trans "register" %}</a> {% trans "to save your work." %}</span>
-                <span class="int-he">Take a spin! But you'll need to<a href="/login?next=/sheets/new">ནང་འཛུལ་བྱོས་</a> ཡང་ན་ <a href="/register?next=/sheets/new">ཁྱེད་ཀྱི་ལས་ཀ་ཉར་ཚགས་བྱེད་པ་ལ་</a> ཐོ་འགོད་བྱོས།</span>
+                    </li>
+                    <li>
+                        <span class="int-en"><b>{% trans "Reorder Sources" %}</b>{% trans "by dragging and dropping." %}</span>
+                        <span class="int-he"><b>{% trans "Reorder Sources" %}</b>{% trans "by dragging and dropping." %}</span>
+                    </li>
+                    <li>
+                        <span class="int-en"><b>{% trans "Print" %}</b>{% trans "your sheets to paper or PDF, or just" %} <b>{% trans "Share" %}</b>{% trans " the link." %}</span>
+                        <span class="int-he"><b>ཁྱེད་ཀྱི་ཤོག་ངོས་ཤོག་ཐོག་ལ་</b>{% trans "your sheets to paper or PDF, or just" %}<b>{% trans "Share" %}</b>{% trans " the link." %}</span>
+                    </li>
+                    <li>
+                        <span class="int-en"><b>{% trans "More Options" %}</b>{% trans "are available in the icons that appear when you hover over a source." %}</span>
+                        <span class="int-he"><b>{% trans "are available in the icons that appear when you hover over a source." %}</b>{% trans "More Options" %}</span>
+                    </li>
+                </ul>
+            </div>
+            {% if not user.email %}
+            <center id="loginWarning">
+                <span class="int-en">{% trans "Take a spin! But you'll need to " %}<a href="/login?next=/sheets/new">{% trans "login" %}</a> {% trans "or" %} <a
+                        href="/register?next=/sheets/new">{% trans "register" %}</a> {% trans "to save your work." %}</span>
+                <span class="int-he">Take a spin! But you'll need to<a href="/login?next=/sheets/new">{% trans "login" %}</a> {% trans "or" %} <a
+                        href="/register?next=/sheets/new">{% trans "to save your work." %}</a>{% trans "register" %}</span>
             </center>
-		{% endif %}
-	</div>
-	{% endif %}
+            {% endif %}
+        </div>
+        {% endif %}
 
-	<div id="printFooter">
-		<img src="{% static 'img/samekh.png' %}">
-		<div>
-            {% trans "Made with the Sefaria Source Sheet Builder"  %}
-			<br/>
-            www.sefaria.org/sheets
-		</div>
-	</div>
-
-<div class='highlighterTools'>
-    <div class='highlighterTagWindow'>
-        <span class="close-button"></span>
-        <div class='tagSelector'>
-            <div class='tagSelectorTitle'>
-                <span class="int-en">{% trans "Add Highlight" %}</span>
-                <span class="int-he">ནན་རྟགས་ཞོག</span>
-            </div>
-            <div class='sheetHighlighterTags'></div>
-            <div class='createNewHighlighterTag'>
-                <div class='colorSwatch active' style='background-color: #bd9eb6'></div>
-                <div class='colorSwatch' style='background-color: #afcab8'></div>
-                <div class='colorSwatch' style='background-color: #e5dabd'></div>
-                <div class='colorSwatch' style='background-color: #bd9796'></div>
-                <div class='colorSwatch' style='background-color: #a4b7de'></div>
-                <div class='colorSwatch' style='background-color: #e8dde5'></div>
-                <div class='colorSwatch' style='background-color: #d2ddc9'></div>
-                <div class='tagName' contenteditable='true'>{%trans "Create New" %}</div>
-            </div>
-            <div class='save button'>
-                <span class="int-en">{% trans "Save" %}</span>
-                <span class="int-he">ཉར་ཚགས།</span>
+        <div id="printFooter">
+            <img src="{% static 'img/samekh.png' %}">
+            <div>
+                {% trans "Made with the Sefaria Source Sheet Builder" %}
+                <br/>
+                www.sefaria.org/sheets
             </div>
         </div>
+
+        <div class='highlighterTools'>
+            <div class='highlighterTagWindow'>
+                <span class="close-button"></span>
+                <div class='tagSelector'>
+                    <div class='tagSelectorTitle'>
+                        <span class="int-en">{% trans "Add Highlight" %}</span>
+                        <span class="int-he">{% trans "Add Highlight" %}</span>
+                    </div>
+                    <div class='sheetHighlighterTags'></div>
+                    <div class='createNewHighlighterTag'>
+                        <div class='colorSwatch active' style='background-color: #bd9eb6'></div>
+                        <div class='colorSwatch' style='background-color: #afcab8'></div>
+                        <div class='colorSwatch' style='background-color: #e5dabd'></div>
+                        <div class='colorSwatch' style='background-color: #bd9796'></div>
+                        <div class='colorSwatch' style='background-color: #a4b7de'></div>
+                        <div class='colorSwatch' style='background-color: #e8dde5'></div>
+                        <div class='colorSwatch' style='background-color: #d2ddc9'></div>
+                        <div class='tagName' contenteditable='true'>{%trans "Create New" %}</div>
+                    </div>
+                    <div class='save button'>
+                        <span class="int-en">{% trans "Save" %}</span>
+                        <span class="int-he">{% trans "Save" %}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id='inlineTextPreview'></div>
+
     </div>
-</div>
 
-<div id='inlineTextPreview'></div>
-
-</div>
-
-{% if author %}
-<div id="bottomAuthor">
-	<span class="int-en">{% trans "Source Sheet created on Pecha by " %}</span>
-    <span class="int-he">དཔེ་ཆ་དྲ་ཚིག་ཐོག་ནང་མ་ཕྱིའི་ཤོག་ངོས་བཟོས་འདུག </span>
-    {{ sheet.owner|user_link }}
-	{% if sheet.via %}
-	<div id="bottomVia">
-        <span class="int-en">{% trans "Based on " %}<a href="/sheets/{{ sheet.via }}">{% trans "a sheet" %}</a>{% trans "by" %}{{ sheet.viaOwner|user_link }}</span>
-        <span class="int-he"> གཞིར་བཞག་ཡོད། <a href="/sheets/{{ sheet.via }}">ཤོག་ངོས་ཤིག </a> ནས་ {{ sheet.viaOwner|user_link }}</span>
+    {% if author %}
+    <div id="bottomAuthor">
+        <span class="int-en">{% trans "Source Sheet created on Pecha by " %}</span>
+        <span class="int-he">{% trans "Source Sheet created on Pecha by " %}</span>
+        {{ sheet.owner|user_link }}
+        {% if sheet.via %}
+        <div id="bottomVia">
+            <span class="int-en">{% trans "Based on " %}<a href="/sheets/{{ sheet.via }}">{% trans "a sheet" %}</a>{% trans "by" %}{{ sheet.viaOwner|user_link }}</span>
+            <span class="int-he">{% trans "Based on " %}<a href="/sheets/{{ sheet.via }}">{% trans "a sheet" %}</a>{% trans "by" %}{{ sheet.viaOwner|user_link }}</span>
+        </div>
+        {% endif %}
     </div>
-	{% endif %}
-</div>
-{% endif %}
+    {% endif %}
 
-<div id="belowSheet"></div>
+    <div id="belowSheet"></div>
 
 
-<div id="assignmentsModal" class="modal s2Modal">
+    <div id="assignmentsModal" class="modal s2Modal">
         <span class="close-button"></span>
         <div class="title">
             <span class="int-en">{% trans "Assignments" %}</span>
-            <span class="int-he">ལས་བགོ།</span>
+            <span class="int-he">{% trans "Assignments" %}</span>
         </div>
         <div class="content" id="assignmentDirections">
             <span class="int-en">{% trans "Assignments allow you to create a template that your students can fill out on their own." %}</span>
-            <span class="int-he">ལས་བགོ་བྱས་པ་དེས་ཁྱེད་ལ་རང་ཉིད་ཀྱི་སློབ་ཕྲུག་རྣམས་ཀྱིས་འགེངས་ཆོག་པའི་མ་དཔེ་གསར་བཟོ་བྱེད་པའི་ཆོག་མཆན་སྤྲོད་ཡོང་།</span>
+            <span class="int-he">{% trans "Assignments allow you to create a template that your students can fill out on their own." %}</span>
         </div>
-        <input id="assignmentURLLink" value="{{ request.META.HTTP_HOST }}/sheets/new?assignment={{sheet.id}}" />
+        <input id="assignmentURLLink" value="{{ request.META.HTTP_HOST }}/sheets/new?assignment={{sheet.id}}"/>
         <div class='button' id="makeSheetAssignableButton">
             <span class="int-en">{% trans "Assign this Sheet" %}</span>
-            <span class="int-he">ཤོག་ངོས་འདི་ལས་བགོ་བྱོས།</span>
+            <span class="int-he">{% trans "Assign this Sheet" %}</span>
         </div>
         <div class='button' id="StopCollectingAssignmentsButton">
             <span class="int-en">{% trans "Stop Collecting Assignments" %}</span>
-            <span class="int-he">ལས་བགོ་བསྡུ་རུབ་མཚམས་འཇོག་བྱེད།</span>
+            <span class="int-he">{% trans "Stop Collecting Assignments" %}</span>
         </div>
         <br/>
-                    <div id="assignedSheets">
-                                <div class="line"></div>
+        <div id="assignedSheets">
+            <div class="line"></div>
 
-                                <div class="title">
-                                    <span class="int-en">{% trans "Saved Assignments:" %}</span>
-                                    <span class="int-he">ལས་བགོ་ཉར་ཚགས་བྱས་ཡོད་པ་ནི་</span>
-                                </div>
-        						{% for assignment_sheet in assignments_from_sheet %}
-                                <a href="./{{ assignment_sheet.id }}?editor=1" target="_blank"><div class="button white" >{{ assignment_sheet.owner|user_name }}</div></a>
+            <div class="title">
+                <span class="int-en">{% trans "Saved Assignments:" %}</span>
+                <span class="int-he">{% trans "Saved Assignments:" %}</span>
+            </div>
+            {% for assignment_sheet in assignments_from_sheet %}
+            <a href="./{{ assignment_sheet.id }}?editor=1" target="_blank">
+                <div class="button white">{{ assignment_sheet.owner|user_name }}</div>
+            </a>
 
-                                {% empty %}
-                                    <em>
-                                        <span class="int-en">{% trans "Your student's saved assignments will be viewable here." %}</span>
-                                        <span class="int-he">ཁྱེད་ཀྱི་སློབ་ཕྲུག་གིས་ཉར་ཚགས་བྱས་པའི་ལས་བགོ་རྣམས་འདི་ནས་བལྟ་ཆོག</span>
-                                    </em>
-                                {% endfor %}
-                    </div>
+            {% empty %}
+            <em>
+                <span class="int-en">{% trans "Your student's saved assignments will be viewable here." %}</span>
+                <span class="int-he">{% trans "Your student's saved assignments will be viewable here." %}</span>
+            </em>
+            {% endfor %}
+        </div>
 
-</div>
-
-<div id="shareWithOthers" class="modal s2Modal">
-    <div class="content">
-		<textarea id="sheetSummaryInput" placeholder="{%trans "Write a summary to help others understand your sheet..."%}">{{sheet.summary}}</textarea>
     </div>
 
-    <div class="line"></div>
+    <div id="shareWithOthers" class="modal s2Modal">
+        <div class="content">
+            <textarea id="sheetSummaryInput"
+                      placeholder='{%trans "Write a summary to help others understand your sheet..."%}'>{{sheet.summary}}</textarea>
+        </div>
 
-    <div class="content">
-        <input id="addTag" placeholder='{%trans "Add Tags..."%}' />
-        <ul id="tags"></ul>
-        <div id="suggestedTags"></div>
-    </div>
+        <div class="line"></div>
 
-    <div class="line"></div>
+        <div class="content">
+            <input id="addTag" placeholder='{%trans "Add Tags..."%}'/>
+            <ul id="tags"></ul>
+            <div id="suggestedTags"></div>
+        </div>
+
+        <div class="line"></div>
 
 
-    <div class="content sideLabeled">
-        <label class="labelforOnOffSwitch">
-            <span class="int-en">{% trans "List on Pecha" %}</span>
-            <span class="int-he">དཔེ་ཆ་དྲ་ཚིགས་ནང་ཐོ་རུ་འགོད།</span>
-        </label>
-        <div>
-            <div class="onoffswitch">
-                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
-                <label class="onoffswitch-label" for="sheetPublicToggle">
-                    <span class="onoffswitch-inner"></span>
-                    <span class="onoffswitch-switch"></span>
-                </label>
+        <div class="content sideLabeled">
+            <label class="labelforOnOffSwitch">
+                <span class="int-en">{% trans "List on Pecha" %}</span>
+                <span class="int-he">{% trans "List on Pecha" %}</span>
+            </label>
+            <div>
+                <div class="onoffswitch">
+                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
+                    <label class="onoffswitch-label" for="sheetPublicToggle">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+                </div>
             </div>
         </div>
-    </div>
 
-   {% if sheet_collections %}
-    <div class="content sideLabeled" id="sourceSheetGroupOptions">
-        <label for="sourceSheetGroupSelect">
-            <span class="int-en">{% trans "Display Collection" %}</span>
-            <span class="int-he">ཕྱོགས་བསྒྲིགས་འཆར་སྟོན།</span>
-        </label>
+        {% if sheet_collections %}
+        <div class="content sideLabeled" id="sourceSheetGroupOptions">
+            <label for="sourceSheetGroupSelect">
+                <span class="int-en">{% trans "Display Collection" %}</span>
+                <span class="int-he">{% trans "Display Collection" %}</span>
+            </label>
 
-        <div>
-            <select id="sourceSheetGroupSelect">
-                <option value="">
-                    {% trans 'None' %}
-                </option>
+            <div>
+                <select id="sourceSheetGroupSelect">
+                    <option value="">
+                        {% trans 'None' %}
+                    </option>
 
-        		{% for collection in sheet_collections %}
+                    {% for collection in sheet_collections %}
                     <option
-                        value="{{ collection.slug }}"
-                        data-name="{{ collection.name }}"
-                        data-image="{{ collection.headerUrl|default:'' }}">
+                            value="{{ collection.slug }}"
+                            data-name="{{ collection.name }}"
+                            data-image="{{ collection.headerUrl|default:'' }}">
                         {{ collection.name }}
                     </option>
-    			{% endfor %}
+                    {% endfor %}
+                </select>
+                <div id="collectionsMessage">
+                    <span class="int-en">{% trans "To manage the collections this sheet appears in, visit your profile." %}</span>
+                    <span class="int-he">{% trans "To manage the collections this sheet appears in, visit your profile." %}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        <div class="content sideLabeled">
+            <label for="shareURL">
+                <span class="int-en">{% trans "Share a link" %}</span>
+                <span class="int-he">{% trans "Share a link" %}</span>
+            </label>
+            <div>
+                <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
+            </div>
+        </div>
+
+        <div class="line"></div>
+
+        <div class="content">
+            <label for="sourceSheetShareSelect">
+                <span class="int-en">{% trans "Anyone with access can" %}</span>
+                <span class="int-he">{% trans "Anyone with access can" %}</span>
+            </label>
+            <select id="sourceSheetShareSelect">
+                <option value="view">
+                    {% trans "View" %}
+                </option>
+                <option value="add">
+                    {% trans "Add" %}
+                </option>
+                <option value="edit">
+                    {% trans "Edit" %}
+                </option>
             </select>
-            <div id="collectionsMessage">
-                <span class="int-en">{% trans "To manage the collections this sheet appears in, visit your profile." %}</span>
-                <span class="int-he">ཤོག་ངོས་འདིའི་ནང་འཆར་རྒྱུའི་ཕྱོགས་བསྒྲིགས་འདི་དོ་དམ་བྱེད་པ་ལ་ཁྱེད་ཀྱི་སྙིང་བསྡུས་ཤོག་ངོས་སུ་གཟིགས།</span>
+
+            <div class="ok button int-en">{% trans "Save" %}</div>
+            <div class="ok button int-he">{% trans "Save" %}</div>
+
+        </div>
+
+    </div>
+
+    <div id="addToSheetModal" class="modal s2Modal">
+        <div class="header">
+            {% blocktrans %}
+            Add <span class="sourceName"></span> to a Source Sheet
+            {% endblocktrans %}
+        </div>
+        <ul id="sheetList">
+        </ul>
+        <div class="actions">
+            <div class="button ok">
+                <span class="int-en">{% trans "Add" %}</span>
+                <span class="int-he">{% trans "Add" %}</span>
+            </div>
+            <div class="button white cancel">
+                <span class="int-en">{% trans "Cancel" %}</span>
+                <span class="int-he">{% trans "Cancel" %}</span>
             </div>
         </div>
     </div>
-	{% endif %}
 
-
-    <div class="content sideLabeled">
-        <label for="shareURL">
-            <span class="int-en">{% trans "Share a link" %}</span>
-            <span class="int-he">དྲ་ཐག་བརྒྱུད་སྐུར།</span>
-        </label>
-        <div>
-            <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
+    <div id="embedSheetModal" class="gradient modal s2Modal">
+        <span class="close-button"></span>
+        <div class="title">
+            <span class="int-en">{% trans "Embed Sheet" %}</span>
+            <span class="int-he">{% trans "Embed Sheet" %}</span>
         </div>
-    </div>
-
-    <div class="line"></div>
-
-    <div class="content">
-        <label for="sourceSheetShareSelect">
-            <span class="int-en">{% trans "Anyone with access can" %}</span>
-            <span class="int-he"> སུས་ཀྱང་བལྟ་ཀློག་ཆོག་པ། </span>
-        </label>
-        <select id="sourceSheetShareSelect">
-          <option value="view">
-              {% trans "View" %}
-          </option>
-          <option value="add">
-              {% trans "Add" %}
-          </option>
-          <option value="edit">
-              {% trans "Edit" %}
-          </option>
-        </select>
-
-        <div class="ok button int-en">{% trans "Save" %}</div>
-        <div class="ok button int-he">ཉར་ཚགས།</div>
-
-    </div>
-
-</div>
-
-<div id="addToSheetModal" class="modal s2Modal">
-	<div class="header">
-        {% blocktrans %}
-            Add <span class="sourceName"></span> to a Source Sheet
-        {% endblocktrans %}
-    </div>
-	<ul id="sheetList">
-	</ul>
-	<div class="actions">
-		<div class="button ok">
-            <span class="int-en">{% trans "Add" %}</span>
-            <span class="int-he">སྣོན།</span>
+        <div class="content center">
+            <span class="int-en">{% trans "Copy and paste the embed code below. Adjust the values of width and height to best fit your design." %}</span>
+            <span class="int-he">{% trans "Copy and paste the embed code below. Adjust the values of width and height to best fit your design." %}</span>
         </div>
-		<div class="button white cancel">
-            <span class="int-en">{% trans "Cancel" %}</span>
-            <span class="int-he">ཕྱིར་འཐེན།</span>
-        </div>
-	</div>
-</div>
-
-<div id="embedSheetModal" class="gradient modal s2Modal">
-    <span class="close-button"></span>
-	<div class="title">
-        <span class="int-en">{% trans "Embed Sheet" %}</span>
-        <span class="int-he">ཤོག་ངོས་ཀྱི་Embed</span>
+        <textarea><iframe src="https://{{ request.get_host }}{{ request.get_full_path }}?embed=1" width="600px" height="600px"></iframe></textarea>
     </div>
-    <div class="content center">
-        <span class="int-en">{% trans "Copy and paste the embed code below. Adjust the values of width and height to best fit your design." %}</span>
-        <span class="int-he">embed ཨང་བརྡ་ངོ་བཤུ་བྱས་ཏེ་གཤམ་ལ་བཤུས། ཁྱེད་ཀྱི་ཇུས་འགོད་འོས་འཚམ་ཡོང་ཕྱིར་འཕྲེད་དང་ཞེང་ཁའི་ཚད་གཞི་སྙོམས་སྒྲིག་བྱོས།</span>
-    </div>
-	<textarea><iframe src="https://{{ request.get_host }}{{ request.get_full_path }}?embed=1" width="600px" height="600px"></iframe></textarea>
-</div>
 
-<div id="addParashaToSheetModal" class="modal s2Modal">
-	<div class="header">
-        <span class="int-en">{% trans "Add a Parasha to a Source Sheet" %}</span>
-        <span class="int-he">མ་ཕྱིའི་ཤོག་ངོས་ནང་ཚན་པ་ཞོག</span>
-    </div>
-	<div class="actions">
-		<div class="button white cancel">
-            <span class="int-en">{% trans "Cancel" %}</span>
-            <span class="int-he">ཕྱིར་འཐེན།</span>
-        </div>
-	</div>
-</div>
-
-<div id="overlay"></div>
-
-<div id="overrideLayoutModal" class="modal s2Modal">
-	<div class="header">Change this source's layout:</div>
-
-		<span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img src="{% static 'img/backs.png' %}"></span><span id="hebRightSource" class="toggleOption"><img src="{% static 'img/faces.png' %}"></span></span>
-
-		<span id="sheetLayoutToggleSource" class="toggle"><span id="sideBySideSource" class="toggleOption"><img src="{% static 'img/sideBySide.png' %}"></span><span id="stackedSource" class="toggleOption"><img src="{% static 'img/stacked.png' %}"></span></span>
-
-		<span id="languageToggleSource" class="toggle"><span id="englishSource" class="toggleOption"><img src="{% static 'img/english.png' %}"></span><span id="bilingualSource" class="toggleOption"><img src="{% static 'img/bilingual.png' %}"></span><span id="hebrewSource" class="toggleOption"><img src="{% static 'img/hebrew.png' %}"></span></span>
-	<br/>
-
-	<div class="button ok">{% trans "OK" %}</div>
-	<h6 id="resetToDefaults"><small>{% trans "Reset to sheet defaults" %}</small></h6>
-
-
-</div>
-
-
-<div id="publishPromptModal" class="modal s2Modal">
-	<div id="prompt">
+    <div id="addParashaToSheetModal" class="modal s2Modal">
         <div class="header">
-            <span class="int-en">{% trans "Would you like to make your Source Sheet public?" %}</span>
-            <span class="int-he">ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་མི་ཚང་མས་མཐོང་ཐུབ་པ་བྱེད་འདོད་འདུག་གམ།</span>
+            <span class="int-en">{% trans "Add a Parasha to a Source Sheet" %}</span>
+            <span class="int-he">{% trans "Add a Parasha to a Source Sheet" %}</span>
         </div>
+        <div class="actions">
+            <div class="button white cancel">
+                <span class="int-en">{% trans "Cancel" %}</span>
+                <span class="int-he">{% trans "Cancel" %}</span>
+            </div>
+        </div>
+    </div>
 
-		<p>
+    <div id="overlay"></div>
+
+    <div id="overrideLayoutModal" class="modal s2Modal">
+        <div class="header">Change this source's layout:</div>
+
+        <span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img
+                src="{% static 'img/backs.png' %}"></span><span id="hebRightSource" class="toggleOption"><img
+                src="{% static 'img/faces.png' %}"></span></span>
+
+        <span id="sheetLayoutToggleSource" class="toggle"><span id="sideBySideSource" class="toggleOption"><img
+                src="{% static 'img/sideBySide.png' %}"></span><span id="stackedSource" class="toggleOption"><img
+                src="{% static 'img/stacked.png' %}"></span></span>
+
+        <span id="languageToggleSource" class="toggle"><span id="englishSource" class="toggleOption"><img
+                src="{% static 'img/english.png' %}"></span><span id="bilingualSource" class="toggleOption"><img
+                src="{% static 'img/bilingual.png' %}"></span><span id="hebrewSource" class="toggleOption"><img
+                src="{% static 'img/hebrew.png' %}"></span></span>
+        <br/>
+
+        <div class="button ok">{% trans "OK" %}</div>
+        <h6 id="resetToDefaults"><small>{% trans "Reset to sheet defaults" %}</small></h6>
+
+
+    </div>
+
+
+    <div id="publishPromptModal" class="modal s2Modal">
+        <div id="prompt">
+            <div class="header">
+                <span class="int-en">{% trans "Would you like to make your Source Sheet public?" %}</span>
+                <span class="int-he">{% trans "Would you like to make your Source Sheet public?" %}</span>
+            </div>
+
+            <p>
             <span class="int-en">
                 {% trans "Your Source Sheet is looking great! You can share it with other members of the Pecha Community by making it public." %}
             </span>
-            <span class="int-he">
-                ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་ཀྱི་རྣམ་པ་ལེགས་པོ་འདུག ཁྱེད་ཀྱིས་དེ་མི་ཚང་མས་མཐོང་ཐུབ་པ་བཟོས་ཏེ། དཔེ་ཆ་དྲ་ཚིག་གི་ཚོགས་སྡེའི་ནང་གི་ཁོངས་མི་རྣམས་དང་མཉམ་སྤྱོད་བྱ་ཆོག
-            </span>
-        </p>
+                <span class="int-he">
+                {% trans "Your Source Sheet is looking great! You can share it with other members of the Pecha Community by making it public." %}
+                </span>
+            </p>
 
-		<div class="button publish">
-            <span class="int-en">{% trans "Make Public" %}</span>
-            <span class="int-he">མི་ཚང་མས་མཐོང་ཐུབ་པ་བཟོས།</span>
+            <div class="button publish">
+                <span class="int-en">{% trans "Make Public" %}</span>
+                <span class="int-he">{% trans "Make Public" %}</span>
+            </div>
+            <div class="button white later">
+                <span class="int-en">{% trans "Maybe Later" %}</span>
+                <span class="int-he">{% trans "Maybe Later" %}</span>
+            </div>
         </div>
-		<div class="button white later">
-            <span class="int-en">{% trans "Maybe Later" %}</span>
-            <span class="int-he">ཕལ་ཆེར་རྗེས་སུ་</span>
-        </div>
-	</div>
-	<div id="published" style="display:none;">
-		<div class="header">
-            <span class="int-en">{% trans "Your Sheet is now Public!" %}</span>
-            <span class="int-he">ད་ལྟ་ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་ཚང་མས་མཐོང་ཐུབ་པ་བཟོས་ཡོད།</span>
-        </div>
+        <div id="published" style="display:none;">
+            <div class="header">
+                <span class="int-en">{% trans "Your Sheet is now Public!" %}</span>
+                <span class="int-he">{% trans "Your Sheet is now Public!" %}</span>
+            </div>
 
-		<p>
-            <span class="int-en">{% trans "Thank you for contributing to a free, growing resource for Jewish learning." %}</span>
-            <span class="int-he">ནང་ཆོས་སློབ་གཉེར་གྱི་ཆེད་དུ་རིན་འབབ་སྤྲོད་མི་དགོས་པའི་རྒྱུ་ཆ་ཁ་སྣོན་དང་མཁོ་སྤྲོད་བྱས་པར་བཀའ་དྲིན་ཆེ་ཞུ།</span>
-        </p>
+            <p>
+                <span class="int-en">{% trans "Thank you for contributing to a free, growing resource for Jewish learning." %}</span>
+                <span class="int-he">{% trans "Thank you for contributing to a free, growing resource for Jewish learning." %}</span>
+            </p>
 
-		<div class="button ok">
-            <span class="int-en">{% trans "OK" %}</span>
-            <span class="int-he">འགྲིག</span>
+            <div class="button ok">
+                <span class="int-en">{% trans "OK" %}</span>
+                <span class="int-he">{% trans "OK" %}</span>
+            </div>
         </div>
-	</div>
-	<div id="notPublished" style="display:none;">
-		<div class="header">
-            <span class="int-en">{% trans "No problem, this sheet is still not listed on Sefaria." %}</span>
-            <span class="int-he">གནད་དོན་མི་འདུག ཤོག་ངོས་འདི་ད་དུང་དཔེ་ཆ་དྲ་ཚིག་གི་དཔེ་མཛོད་ནང་ཐོ་རུ་བཀོད་མི་འདུག</span>
-        </div>
+        <div id="notPublished" style="display:none;">
+            <div class="header">
+                <span class="int-en">{% trans "No problem, this sheet is still not listed on Sefaria." %}</span>
+                <span class="int-he">གནད་དོན་མི་འདུག ཤོག་ངོས་འདི་ད་དུང་དཔེ་ཆ་དྲ་ཚིག་གི་དཔེ་མཛོད་ནང་ཐོ་རུ་བཀོད་མི་འདུག</span>
+            </div>
 
-        <p>
+            <p>
             <span class="int-en">
                 {% trans "You can make your sheet public in the future from the" %}
                 <span class="label">{% trans "Share" %}</span> menu.
             </span>
-            <span class="int-he">
-                ཁྱེད་ཀྱིས་གཞུག་ཕྱོགས་རང་ཉིད་ཀྱི་ཤོག་ངོས་མི་ཚང་མས་མཐོང་ཐུབ་པ་བཟོ་ཆོག
-                <span class="label">མཉམ་སྤྱོད།</span>.
+                <span class="int-he">
+                {% trans "You can make your sheet public in the future from the" %}
+                <span class="label">{% trans "Share" %}</span>.
             </span>
-        </p>
+            </p>
 
-		<div class="button ok">
-            <span class="int-en">{% trans "OK" %}</span>
-            <span class="int-he">འགྲིག</span>
+            <div class="button ok">
+                <span class="int-en">{% trans "OK" %}</span>
+                <span class="int-he">{% trans "OK" %}</span>
+            </div>
         </div>
-	</div>
-</div>
+    </div>
 
 
-{% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
+    {% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
 
 
 </div> <!-- end sheetContent -->
@@ -1238,6 +1270,8 @@
 		{% endif %}
 	});
 {% endautoescape %}
+
+
 </script>
 {% if can_edit or can_add %}
 <script src="{% static 'ckeditor/ckeditor.js' %}"></script>

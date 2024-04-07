@@ -49,19 +49,19 @@
 
 				{% if profile.facebook %}
 				<div id="profileFacebook">
-					<a href="{{ profile.facebook|normalize_url }}" target="_blank">Facebook</a>
+					<a href="{{ profile.facebook|normalize_url }}" target="_blank">{% trans "Facebook" %}</a>
 				</div>
 				{% endif %}
 
 				{% if profile.twitter %}
 				<div id="profileTwittr">
-					<a href="http://www.twitter.com/{{ profile.twitter }}" target="_blank">Twitter</a>
+					<a href="http://www.twitter.com/{{ profile.twitter }}" target="_blank">{% trans "Twitter" %}</a>
 				</div>
 				{% endif %}
 
 				{% if profile.linkedin %}
 				<div id="profileLinkedIn">
-					<a href="{{ profile.linkedin|normalize_url }}" target="_blank">LinkedIn</a>
+					<a href="{{ profile.linkedin|normalize_url }}" target="_blank">{% trans "LinkedIn" %}</a>
 				</div>
 				{% endif %}
 
@@ -71,7 +71,7 @@
 				{% if profile.id != request.user.id %}
 					<div id="messageMe" class="button white control-elem">
 						<span class="int-en">{% trans "Message" %}</span>
-						<span class="int-he"> </span>
+						<span class="int-he">{% trans "Message" %}</span>
 					</div>
 					<div id="followMe" class="{% if following %}following{% else %}follow{% endif %} button blue control-elem">
 						<span class="int-en">
@@ -80,15 +80,15 @@
                             <span class="en unfollow">{% trans "Unfollow" %}</span>
                         </span>
                         <span class="int-he">
-                            <span class="he follow">རྗེས་འཇུག་བྱོས།</span>
-                            <span class="he state following">རྗེས་འཇུག་བྱེད་པ།</span>
-                            <span class="he unfollow">རྗེས་འཇུག་ཕྱིར་འཐེན།</span>
+                            <span class="he follow">{% trans "Follow" %}</span>
+                            <span class="he state following">{% trans "Following" %}</span>
+                            <span class="he unfollow">{% trans "Unfollow" %}</span>
                         </span>
 					</div>
 				{% endif %}
 				{% if profile.id == request.user.id %}
 					<a id="editProfile" href="/settings/profile" class="button int-en">{% trans "Edit Profile" %}</a>
-					<a id="editProfile" href="/settings/profile" class="button int-he">སྙིང་བསྡུས་རྩོམ་སྒྲིག </a>
+					<a id="editProfile" href="/settings/profile" class="button int-he">{% trans "Edit Profile" %}</a>
 				{% endif %}
 			</div>
 		</div>

@@ -4,13 +4,14 @@
 
 <div id="appLoading">
     <div class='loadingMessage'>
-      {% if SITE_SETTINGS.TORAH_SPECIFIC %}
-      <img class="int-en" src="{% static 'img/pecha-logo.svg' %}" alt="Sefaria Loading Icon" />
-      <img class="int-he" src="{% static 'img/pecha-logo.svg' %}" alt="Sefaria Loading Icon" />
-      <br>
-      {% endif %}
-      <div class="smallText">
-      	<span class="int-en">{% trans 'Loading...' %}}</span>
+        {% if SITE_SETTINGS.TORAH_SPECIFIC %}
+        <img class="int-en" src="{% static 'img/pecha-logo.svg' %}" alt="Sefaria Loading Icon"/>
+        <img class="int-he" src="{% static 'img/pecha-logo.svg' %}" alt="Sefaria Loading Icon"/>
+        <br>
+        {% endif %}
+        <div class="smallText">
+            <span class="int-en">{% trans 'Loading...' %}</span>
+            <span class="int-he">{% trans 'Loading...' %}</span>
         </div>
     </div>
 </div>
