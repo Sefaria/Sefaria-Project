@@ -579,9 +579,6 @@ class AuthorTopic(PersonTopic):
         for (collective_title, _), cat_choice_dict in cat_aggregator.items():
             cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
             (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
-            if len(temp_indexes) == 1:
-                index_or_cat_list += [(temp_indexes[0], None, None)]
-                continue
             if best_base_cat_path == ('Talmud', 'Bavli'):
                 best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
             
@@ -592,11 +589,9 @@ class AuthorTopic(PersonTopic):
             else:
                 index_category = Category.get_shared_category(temp_indexes)
                 collective_title_term = Term().load({"name": collective_title})
-            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or (collective_title is None and self._category_matches_author(index_category)):
-                for temp_index in temp_indexes:
-                    index_or_cat_list += [(temp_index, None, None)]
-                continue
-            if not collective_title and is_prefix(best_base_cat_path, all_best_paths):
+            if (len(temp_indexes) == 1
+                    or (index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or (collective_title is None and self._category_matches_author(index_category)))
+                    or (collective_title is None and is_prefix(best_base_cat_path, all_best_paths))):
                 for temp_index in temp_indexes:
                     index_or_cat_list += [(temp_index, None, None)]
                 continue
