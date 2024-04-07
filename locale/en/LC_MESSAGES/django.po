@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 21:01+0530\n"
+"POT-Creation-Date: 2024-04-07 23:18+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: reader/templatetags/sefaria_tags.py:221 sefaria/settings.py:25
-#: templates/account_settings.html:54 templates/sheets.html:769
+#: templates/account_settings.html:54 templates/sheets.html:787
+#: templates/sheets.html:788
 msgid "English"
 msgstr ""
 
@@ -248,10 +249,12 @@ msgid "Password"
 msgstr ""
 
 #: sefaria/forms.py:46 templates/edit_profile.html:30
+#: templates/edit_profile.html:31
 msgid "First Name"
 msgstr ""
 
 #: sefaria/forms.py:47 templates/edit_profile.html:37
+#: templates/edit_profile.html:38
 msgid "Last Name"
 msgstr ""
 
@@ -317,7 +320,7 @@ msgstr ""
 msgid "The email address is not valid."
 msgstr ""
 
-#: sefaria/settings.py:27
+#: sefaria/settings.py:27 templates/account_settings.html:57
 msgid "Tibetan"
 msgstr ""
 
@@ -351,27 +354,33 @@ msgstr ""
 msgid "Internal Server Error"
 msgstr ""
 
-#: templates/account_settings.html:12
+#: templates/account_settings.html:12 templates/account_settings.html:13
 msgid "Account Settings"
 msgstr ""
 
-#: templates/account_settings.html:17 templates/account_settings.html:164
+#: templates/account_settings.html:17 templates/account_settings.html:18
+#: templates/account_settings.html:164 templates/account_settings.html:165
+#: templates/edit_profile.html:18 templates/edit_profile.html:19
 #: templates/elements/login_prompt.html:8 templates/profile.html:188
-#: templates/sheets.html:1086 templates/sheets.html:1112
+#: templates/sheets.html:1111 templates/sheets.html:1112
+#: templates/sheets.html:1137 templates/sheets.html:1138
 msgid "Cancel"
 msgstr ""
 
-#: templates/account_settings.html:21 templates/account_settings.html:160
-#: templates/edit_profile.html:22 templates/sheets.html:507
-#: templates/sheets.html:905 templates/sheets.html:1065
+#: templates/account_settings.html:21 templates/account_settings.html:22
+#: templates/account_settings.html:160 templates/account_settings.html:161
+#: templates/edit_profile.html:22 templates/edit_profile.html:23
+#: templates/sheets.html:513 templates/sheets.html:927
+#: templates/sheets.html:928 templates/sheets.html:1090
+#: templates/sheets.html:1091
 msgid "Save"
 msgstr ""
 
-#: templates/account_settings.html:28
+#: templates/account_settings.html:28 templates/account_settings.html:29
 msgid "Notification Frequency (Maximum)"
 msgstr ""
 
-#: templates/account_settings.html:33
+#: templates/account_settings.html:33 templates/account_settings.html:34
 msgid "Daily"
 msgstr ""
 
@@ -379,31 +388,47 @@ msgstr ""
 msgid "Weekly"
 msgstr ""
 
-#: templates/account_settings.html:41
+#: templates/account_settings.html:41 templates/account_settings.html:42
 msgid "Never"
 msgstr ""
 
-#: templates/account_settings.html:49
+#: templates/account_settings.html:49 templates/account_settings.html:50
 msgid "Site Language"
 msgstr ""
 
-#: templates/account_settings.html:64
+#: templates/account_settings.html:64 templates/account_settings.html:65
 msgid "Preferred Translation Language"
 msgstr ""
 
-#: templates/account_settings.html:78
+#: templates/account_settings.html:78 templates/account_settings.html:79
 msgid "Reading History"
+msgstr ""
+
+#: templates/account_settings.html:83 templates/account_settings.html:84
+msgid "On"
+msgstr ""
+
+#: templates/account_settings.html:87 templates/account_settings.html:88
+msgid "Off"
 msgstr ""
 
 #: templates/account_settings.html:95
 msgid "Preferred Custom (Weekly Haftarot)"
 msgstr ""
 
+#: templates/account_settings.html:100 templates/account_settings.html:101
+msgid "Sephardi"
+msgstr ""
+
+#: templates/account_settings.html:104 templates/account_settings.html:105
+msgid "Ashkenazi"
+msgstr ""
+
 #: templates/account_settings.html:112
 msgid "Account Email (This is used for login)"
 msgstr ""
 
-#: templates/account_settings.html:118
+#: templates/account_settings.html:118 templates/account_settings.html:119
 msgid "Change Email"
 msgstr ""
 
@@ -415,11 +440,19 @@ msgstr ""
 msgid "Confirm New Email"
 msgstr ""
 
-#: templates/account_settings.html:142
+#: templates/account_settings.html:128 templates/account_settings.html:129
+msgid "Update Email"
+msgstr ""
+
+#: templates/account_settings.html:136 templates/account_settings.html:137
+msgid "Google Account (Allows for exporting sheets to Google Drive)"
+msgstr ""
+
+#: templates/account_settings.html:142 templates/account_settings.html:143
 msgid "Disconnect"
 msgstr ""
 
-#: templates/account_settings.html:150
+#: templates/account_settings.html:150 templates/account_settings.html:151
 msgid "Your Google Account has been disconnected"
 msgstr ""
 
@@ -501,8 +534,9 @@ msgid "Edit Collection on Sefaria"
 msgstr ""
 
 #: templates/edit_collection.html:20 templates/edit_term.html:40
-#: templates/elements/loading.html:13 templates/metrics.html:18
-#: templates/sheets.html:579 templates/sheets.html:822
+#: templates/elements/loading.html:13 templates/elements/loading.html:14
+#: templates/metrics.html:18 templates/sheets.html:588
+#: templates/sheets.html:841 templates/sheets.html:842
 msgid "Loading..."
 msgstr ""
 
@@ -510,81 +544,87 @@ msgstr ""
 msgid "Edit Your Profile on Sefaria"
 msgstr ""
 
-#: templates/edit_profile.html:13
+#: templates/edit_profile.html:13 templates/edit_profile.html:14
 msgid "Edit Your Profile"
 msgstr ""
 
-#: templates/edit_profile.html:44
+#: templates/edit_profile.html:44 templates/edit_profile.html:45
 msgid "Title"
 msgstr ""
 
-#: templates/edit_profile.html:51
+#: templates/edit_profile.html:51 templates/edit_profile.html:52
 msgid "Organization"
 msgstr ""
 
-#: templates/edit_profile.html:58
+#: templates/edit_profile.html:58 templates/edit_profile.html:59
 msgid "Website"
 msgstr ""
 
-#: templates/edit_profile.html:65
+#: templates/edit_profile.html:65 templates/edit_profile.html:66
 msgid "Location"
 msgstr ""
 
-#: templates/edit_profile.html:72
+#: templates/edit_profile.html:72 templates/edit_profile.html:73
 msgid "Education"
 msgstr ""
 
-#: templates/edit_profile.html:72
+#: templates/edit_profile.html:72 templates/edit_profile.html:73
 msgid "where have you learned"
 msgstr ""
 
-#: templates/edit_profile.html:87
+#: templates/edit_profile.html:82
+msgid "Add a line"
+msgstr ""
+
+#: templates/edit_profile.html:87 templates/edit_profile.html:88
 msgid "About Me"
 msgstr ""
 
-#: templates/edit_profile.html:98
+#: templates/edit_profile.html:98 templates/edit_profile.html:99
 msgid "Public Sheets"
 msgstr ""
 
-#: templates/edit_profile.html:103
+#: templates/edit_profile.html:103 templates/edit_profile.html:104
 msgid ""
 "You can drag and order source sheets that you want to pin to the top of your "
 "profile."
 msgstr ""
 
-#: templates/edit_profile.html:108
+#: templates/edit_profile.html:108 templates/edit_profile.html:109
 msgid "Pinned Sheets"
 msgstr ""
 
-#: templates/edit_profile.html:119
+#: templates/edit_profile.html:119 templates/edit_profile.html:120
 msgid "All Sheets"
 msgstr ""
 
-#: templates/edit_profile.html:134
+#: templates/edit_profile.html:134 templates/edit_profile.html:135
 msgid "Contact"
 msgstr ""
 
-#: templates/edit_profile.html:140
+#: templates/edit_profile.html:140 templates/edit_profile.html:141
 msgid "Email (will be public)"
 msgstr ""
 
-#: templates/edit_profile.html:147
+#: templates/edit_profile.html:147 templates/edit_profile.html:148
 msgid "Profile URL"
 msgstr ""
 
-#: templates/edit_profile.html:154
+#: templates/edit_profile.html:154 templates/edit_profile.html:155
 msgid "Twitter Handle"
 msgstr ""
 
-#: templates/edit_profile.html:161
+#: templates/edit_profile.html:161 templates/edit_profile.html:162
+#: templates/profile.html:64
 msgid "LinkedIn"
 msgstr ""
 
-#: templates/edit_profile.html:168
+#: templates/edit_profile.html:168 templates/edit_profile.html:169
+#: templates/profile.html:52
 msgid "Facebook"
 msgstr ""
 
-#: templates/edit_profile.html:175
+#: templates/edit_profile.html:175 templates/edit_profile.html:176
 msgid "YouTube Channel"
 msgstr ""
 
@@ -732,7 +772,9 @@ msgstr ""
 
 #: templates/elements/login_prompt.html:6
 #: templates/registration/register.html:13
+#: templates/registration/register.html:14
 #: templates/registration/register.html:23
+#: templates/registration/register.html:24
 msgid "Sign Up"
 msgstr ""
 
@@ -950,23 +992,27 @@ msgstr ""
 msgid "at "
 msgstr ""
 
-#: templates/profile.html:73
+#: templates/profile.html:58
+msgid "Twitter"
+msgstr ""
+
+#: templates/profile.html:73 templates/profile.html:74
 msgid "Message"
 msgstr ""
 
-#: templates/profile.html:78
+#: templates/profile.html:78 templates/profile.html:83
 msgid "Follow"
 msgstr ""
 
-#: templates/profile.html:79
+#: templates/profile.html:79 templates/profile.html:84
 msgid "Following"
 msgstr ""
 
-#: templates/profile.html:80
+#: templates/profile.html:80 templates/profile.html:85
 msgid "Unfollow"
 msgstr ""
 
-#: templates/profile.html:90
+#: templates/profile.html:90 templates/profile.html:91
 msgid "Edit Profile"
 msgstr ""
 
@@ -1004,31 +1050,32 @@ msgid ""
 "follow other Sefaria users."
 msgstr ""
 
-#: templates/registration/login.html:14
+#: templates/registration/login.html:14 templates/registration/login.html:15
 msgid "You are already logged in as"
 msgstr ""
 
-#: templates/registration/login.html:18
+#: templates/registration/login.html:18 templates/registration/login.html:19
 msgid "Logout."
 msgstr ""
 
-#: templates/registration/login.html:31
+#: templates/registration/login.html:31 templates/registration/login.html:32
 msgid "Log in to Pecha"
 msgstr ""
 
-#: templates/registration/login.html:36
+#: templates/registration/login.html:36 templates/registration/login.html:37
 msgid "Your username and password didn't match. Please try again."
 msgstr ""
 
-#: templates/registration/login.html:54 templates/sheets.html:557
+#: templates/registration/login.html:54 templates/registration/login.html:55
+#: templates/sheets.html:563 templates/sheets.html:567
 msgid "Login"
 msgstr ""
 
-#: templates/registration/login.html:58
+#: templates/registration/login.html:58 templates/registration/login.html:59
 msgid "Forgot your password?"
 msgstr ""
 
-#: templates/registration/login.html:64
+#: templates/registration/login.html:64 templates/registration/login.html:65
 msgid "Create a new account"
 msgstr ""
 
@@ -1037,11 +1084,14 @@ msgid "Password Reset"
 msgstr ""
 
 #: templates/registration/password_reset_complete.html:10
+#: templates/registration/password_reset_complete.html:11
 msgid "Your new password has been saved."
 msgstr ""
 
 #: templates/registration/password_reset_complete.html:14
+#: templates/registration/password_reset_complete.html:15
 #: templates/registration/password_reset_form.html:25
+#: templates/registration/password_reset_form.html:26
 msgid "Back to login"
 msgstr ""
 
@@ -1050,10 +1100,12 @@ msgid "Choose a new Password"
 msgstr ""
 
 #: templates/registration/password_reset_confirm.html:11
+#: templates/registration/password_reset_confirm.html:12
 msgid "Choose a new password"
 msgstr ""
 
 #: templates/registration/password_reset_confirm.html:18
+#: templates/registration/password_reset_confirm.html:19
 msgid "Save Password"
 msgstr ""
 
@@ -1062,6 +1114,7 @@ msgid "Password Reset Link Sent"
 msgstr ""
 
 #: templates/registration/password_reset_done.html:10
+#: templates/registration/password_reset_done.html:11
 msgid "An email has been sent with a link to reset your password."
 msgstr ""
 
@@ -1091,10 +1144,12 @@ msgid "Request a link to change your Sefaria password if you've forgotten it."
 msgstr ""
 
 #: templates/registration/password_reset_form.html:13
+#: templates/registration/password_reset_form.html:14
 msgid "Forgot Your Password"
 msgstr ""
 
 #: templates/registration/password_reset_form.html:20
+#: templates/registration/password_reset_form.html:21
 msgid "Send Reset Link"
 msgstr ""
 
@@ -1113,18 +1168,21 @@ msgid ""
 msgstr ""
 
 #: templates/registration/register.html:28
+#: templates/registration/register.html:29
 msgid "Already have an account? Log in"
 msgstr ""
 
 #: templates/registration/register.html:32
-msgid "By clicking \"Sign Up\" you agree to our"
+msgid "By clicking Sign Up you agree to our"
 msgstr ""
 
-#: templates/registration/register.html:32 templates/static/terms.html:4
+#: templates/registration/register.html:32
+#: templates/registration/register.html:33 templates/static/terms.html:4
 msgid "Terms of Use"
 msgstr ""
 
 #: templates/registration/register.html:32
+#: templates/registration/register.html:33
 #: templates/static/privacy-policy.html:4
 msgid "Privacy Policy"
 msgstr ""
@@ -1165,7 +1223,8 @@ msgstr ""
 msgid "Export to Google Drive"
 msgstr ""
 
-#: templates/sheets.html:56 templates/sheets.html:1095
+#: templates/sheets.html:56 templates/sheets.html:1120
+#: templates/sheets.html:1121
 msgid "Embed Sheet"
 msgstr ""
 
@@ -1177,11 +1236,11 @@ msgstr ""
 msgid "Tags"
 msgstr ""
 
-#: templates/sheets.html:90 templates/sheets.html:936
+#: templates/sheets.html:90 templates/sheets.html:958 templates/sheets.html:959
 msgid "Assignments"
 msgstr ""
 
-#: templates/sheets.html:105 templates/sheets.html:858
+#: templates/sheets.html:105 templates/sheets.html:878
 msgid "Print"
 msgstr ""
 
@@ -1225,455 +1284,473 @@ msgstr ""
 msgid "Add Source Title:"
 msgstr ""
 
-#: templates/sheets.html:199
+#: templates/sheets.html:200
 msgid "Sheet Language:"
 msgstr ""
 
-#: templates/sheets.html:208 templates/sheets.html:297
+#: templates/sheets.html:209 templates/sheets.html:301
 msgid "English:"
 msgstr ""
 
-#: templates/sheets.html:215
+#: templates/sheets.html:216
 msgid "Tibetan:"
 msgstr ""
 
-#: templates/sheets.html:222 templates/sheets.html:311
+#: templates/sheets.html:223 templates/sheets.html:315
 msgid "Bilingual:"
 msgstr ""
 
-#: templates/sheets.html:233
+#: templates/sheets.html:235
 msgid "Sheet Layout:"
 msgstr ""
 
-#: templates/sheets.html:242 templates/sheets.html:331
+#: templates/sheets.html:244 templates/sheets.html:336
 msgid "Stacked:"
 msgstr ""
 
-#: templates/sheets.html:249 templates/sheets.html:338
+#: templates/sheets.html:251 templates/sheets.html:343
 msgid "Side-by-Side:"
 msgstr ""
 
-#: templates/sheets.html:260 templates/sheets.html:349
+#: templates/sheets.html:263 templates/sheets.html:355
 msgid "Side-by-Side Layout:"
 msgstr ""
 
-#: templates/sheets.html:269 templates/sheets.html:358
+#: templates/sheets.html:272 templates/sheets.html:364
 msgid "Tibetan Left:"
 msgstr ""
 
-#: templates/sheets.html:276 templates/sheets.html:365
+#: templates/sheets.html:279 templates/sheets.html:371
 msgid "Tibetan Right:"
 msgstr ""
 
-#: templates/sheets.html:288
+#: templates/sheets.html:292
 msgid "Source Language:"
 msgstr ""
 
-#: templates/sheets.html:304
+#: templates/sheets.html:308
 msgid "Hebrew:"
 msgstr ""
 
-#: templates/sheets.html:322
+#: templates/sheets.html:327
 msgid "Source Layout:"
 msgstr ""
 
-#: templates/sheets.html:376
+#: templates/sheets.html:382
 msgid "Reset to Sheet Default:"
 msgstr ""
 
-#: templates/sheets.html:390
+#: templates/sheets.html:396
 msgid "Insert:"
 msgstr ""
 
-#: templates/sheets.html:396
+#: templates/sheets.html:402
 msgid "Source:"
 msgstr ""
 
-#: templates/sheets.html:412
+#: templates/sheets.html:418
 msgid "Text:"
 msgstr ""
 
-#: templates/sheets.html:419
+#: templates/sheets.html:425
 msgid "Comment:"
 msgstr ""
 
-#: templates/sheets.html:426
+#: templates/sheets.html:432
 msgid "Media:"
 msgstr ""
 
-#: templates/sheets.html:434
+#: templates/sheets.html:440
 msgid "Highlight Tools:"
 msgstr ""
 
-#: templates/sheets.html:440
+#: templates/sheets.html:446
 msgid "Paragraph View:"
 msgstr ""
 
-#: templates/sheets.html:444
+#: templates/sheets.html:450
 msgid "Line-by-line View:"
 msgstr ""
 
-#: templates/sheets.html:451
+#: templates/sheets.html:457
 msgid "Reset:"
 msgstr ""
 
-#: templates/sheets.html:457
+#: templates/sheets.html:463
 msgid "Filter:"
 msgstr ""
 
-#: templates/sheets.html:474
+#: templates/sheets.html:480
 msgid "Last Saved:"
 msgstr ""
 
-#: templates/sheets.html:478
+#: templates/sheets.html:484
 msgid "All changes saved in Pecha"
 msgstr ""
 
-#: templates/sheets.html:482 templates/sheets.html:511
+#: templates/sheets.html:488 templates/sheets.html:517
 msgid "Saving..."
 msgstr ""
 
-#: templates/sheets.html:486
+#: templates/sheets.html:492
 msgid "Changes Pending..."
 msgstr ""
 
-#: templates/sheets.html:496
+#: templates/sheets.html:502
 msgid "Highlight Mode is On"
 msgstr ""
 
-#: templates/sheets.html:518 templates/sheets.html:858
-#: templates/sheets.html:1187
+#: templates/sheets.html:524 templates/sheets.html:878
+#: templates/sheets.html:879 templates/sheets.html:1219
+#: templates/sheets.html:1223
 msgid "Share"
 msgstr ""
 
-#: templates/sheets.html:522 templates/sheets.html:527
+#: templates/sheets.html:528 templates/sheets.html:533
 msgid "View in Library"
 msgstr ""
 
-#: templates/sheets.html:557
+#: templates/sheets.html:563 templates/sheets.html:567
 msgid "Like this?"
 msgstr ""
 
-#: templates/sheets.html:557
+#: templates/sheets.html:564 templates/sheets.html:568
 msgid "create an account"
 msgstr ""
 
-#: templates/sheets.html:557
+#: templates/sheets.html:564 templates/sheets.html:568
 msgid "to build your own source sheet."
 msgstr ""
 
-#: templates/sheets.html:593 templates/sheets.html:601
+#: templates/sheets.html:602 templates/sheets.html:610
 #, python-format
 msgid ""
 "\n"
-"                Assignment Completed by %(owner)s\n"
+"            Assignment Completed by %(owner)s\n"
 "            "
 msgstr ""
 
-#: templates/sheets.html:608
+#: templates/sheets.html:617
 #, python-format
 msgid ""
 "\n"
 "            Source Sheet by %(owner)s\n"
-"        "
+"            "
 msgstr ""
 
-#: templates/sheets.html:618
+#: templates/sheets.html:627
 msgid "More info"
 msgstr ""
 
-#: templates/sheets.html:623
+#: templates/sheets.html:632 templates/sheets.html:636
 msgid "Created"
 msgstr ""
 
-#: templates/sheets.html:625 templates/sheets.html:1061
+#: templates/sheets.html:633 templates/sheets.html:638
+msgid "Views"
+msgstr ""
+
+#: templates/sheets.html:635 templates/sheets.html:638
+#: templates/sheets.html:1086
 msgid "Edit"
 msgstr ""
 
-#: templates/sheets.html:631
+#: templates/sheets.html:637 templates/sheets.html:1080
+msgid "View"
+msgstr ""
+
+#: templates/sheets.html:642 templates/sheets.html:644
 msgid "Based on"
 msgstr ""
 
-#: templates/sheets.html:631 templates/sheets.html:923
+#: templates/sheets.html:643 templates/sheets.html:645
+#: templates/sheets.html:945 templates/sheets.html:946
 msgid "a sheet"
 msgstr ""
 
-#: templates/sheets.html:631 templates/sheets.html:923
+#: templates/sheets.html:643 templates/sheets.html:645
+#: templates/sheets.html:945 templates/sheets.html:946
 msgid "by"
 msgstr ""
 
-#: templates/sheets.html:637 templates/sheets.html:644
+#: templates/sheets.html:650 templates/sheets.html:651
+#: templates/sheets.html:657 templates/sheets.html:658
 msgid "Assigned by"
 msgstr ""
 
-#: templates/sheets.html:687
+#: templates/sheets.html:701 templates/sheets.html:702
 msgid "Source"
 msgstr ""
 
-#: templates/sheets.html:692
+#: templates/sheets.html:707 templates/sheets.html:708
 msgid "Connection"
 msgstr ""
 
-#: templates/sheets.html:697
+#: templates/sheets.html:713 templates/sheets.html:714
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2115
 msgid "Text"
 msgstr ""
 
-#: templates/sheets.html:702
+#: templates/sheets.html:719 templates/sheets.html:720
 msgid "Media"
 msgstr ""
 
-#: templates/sheets.html:707
+#: templates/sheets.html:725 templates/sheets.html:726
 msgid "Comment"
 msgstr ""
 
-#: templates/sheets.html:714
+#: templates/sheets.html:732 templates/sheets.html:733
 msgid "Select a text"
 msgstr ""
 
-#: templates/sheets.html:719
-msgid "Search for a Text or Commentator"
+#: templates/sheets.html:737
+msgid " Search for a Text or Commentator"
 msgstr ""
 
-#: templates/sheets.html:723
+#: templates/sheets.html:741 templates/sheets.html:742
 msgid "Add Source"
 msgstr ""
 
-#: templates/sheets.html:728 templates/sheets.html:792
+#: templates/sheets.html:746 templates/sheets.html:747
+#: templates/sheets.html:811 templates/sheets.html:812
+#: templates/sheets.html:889 templates/sheets.html:891
 #: venv/lib/python3.9/site-packages/django/utils/text.py:309
 msgid "or"
 msgstr ""
 
-#: templates/sheets.html:733
+#: templates/sheets.html:751 templates/sheets.html:752
 msgid "Browse Sources"
 msgstr ""
 
-#: templates/sheets.html:743
+#: templates/sheets.html:761 templates/sheets.html:762
 msgid "Select connected texts"
 msgstr ""
 
-#: templates/sheets.html:748 templates/sheets.html:773
-#: templates/sheets.html:787 templates/sheets.html:813
+#: templates/sheets.html:766 templates/sheets.html:767
+#: templates/sheets.html:791 templates/sheets.html:792
+#: templates/sheets.html:806 templates/sheets.html:807
+#: templates/sheets.html:832 templates/sheets.html:833
 msgid "Add to Sheet"
 msgstr ""
 
-#: templates/sheets.html:754
+#: templates/sheets.html:772 templates/sheets.html:773
 msgid "Write or paste text<"
 msgstr ""
 
-#: templates/sheets.html:779
+#: templates/sheets.html:797
 msgid "Add Image, Youtube Video, SoundCloud link, or MP3"
 msgstr ""
 
-#: templates/sheets.html:783
+#: templates/sheets.html:802
 msgid "Paste URL"
 msgstr ""
 
-#: templates/sheets.html:798
+#: templates/sheets.html:817
 msgid "Upload an Image"
 msgstr ""
 
-#: templates/sheets.html:808
+#: templates/sheets.html:827 templates/sheets.html:828
 msgid "Comment on this section"
 msgstr ""
 
-#: templates/sheets.html:833
+#: templates/sheets.html:853 templates/sheets.html:854
 msgid "Watch a 2 minute intro video or "
 msgstr ""
 
-#: templates/sheets.html:833
+#: templates/sheets.html:853 templates/sheets.html:854
 msgid "read more"
 msgstr ""
 
-#: templates/sheets.html:838
+#: templates/sheets.html:858 templates/sheets.html:859
 msgid "Source Sheet Builder: How it Works"
 msgstr ""
 
-#: templates/sheets.html:845
-#, python-format
-msgid "Add Sources</b>{%% trans "
+#: templates/sheets.html:865
+msgid "Add Sources"
 msgstr ""
 
-#: templates/sheets.html:854
+#: templates/sheets.html:865
+msgid "by typing a citation like:"
+msgstr ""
+
+#: templates/sheets.html:874 templates/sheets.html:875
 msgid "Reorder Sources"
 msgstr ""
 
-#: templates/sheets.html:854
+#: templates/sheets.html:874 templates/sheets.html:875
 msgid "by dragging and dropping."
 msgstr ""
 
-#: templates/sheets.html:858
+#: templates/sheets.html:878 templates/sheets.html:879
 msgid "your sheets to paper or PDF, or just"
 msgstr ""
 
-#: templates/sheets.html:858
+#: templates/sheets.html:878 templates/sheets.html:879
 msgid " the link."
 msgstr ""
 
-#: templates/sheets.html:862
+#: templates/sheets.html:882 templates/sheets.html:883
 msgid "More Options"
 msgstr ""
 
-#: templates/sheets.html:862
+#: templates/sheets.html:882 templates/sheets.html:883
 msgid "are available in the icons that appear when you hover over a source."
 msgstr ""
 
-#: templates/sheets.html:869
+#: templates/sheets.html:889
 msgid "Take a spin! But you'll need to "
 msgstr ""
 
-#: templates/sheets.html:869
+#: templates/sheets.html:889 templates/sheets.html:891
 msgid "login"
 msgstr ""
 
-#: templates/sheets.html:869
+#: templates/sheets.html:890 templates/sheets.html:892
 msgid "register"
 msgstr ""
 
-#: templates/sheets.html:869
+#: templates/sheets.html:890 templates/sheets.html:892
 msgid "to save your work."
 msgstr ""
 
-#: templates/sheets.html:879
+#: templates/sheets.html:901
 msgid "Made with the Sefaria Source Sheet Builder"
 msgstr ""
 
-#: templates/sheets.html:890
+#: templates/sheets.html:912 templates/sheets.html:913
 msgid "Add Highlight"
 msgstr ""
 
-#: templates/sheets.html:902
+#: templates/sheets.html:924
 msgid "Create New"
 msgstr ""
 
-#: templates/sheets.html:918
+#: templates/sheets.html:940 templates/sheets.html:941
 msgid "Source Sheet created on Pecha by "
 msgstr ""
 
-#: templates/sheets.html:923
+#: templates/sheets.html:945 templates/sheets.html:946
 msgid "Based on "
 msgstr ""
 
-#: templates/sheets.html:940
+#: templates/sheets.html:962 templates/sheets.html:963
 msgid ""
 "Assignments allow you to create a template that your students can fill out "
 "on their own."
 msgstr ""
 
-#: templates/sheets.html:945
+#: templates/sheets.html:967 templates/sheets.html:968
 msgid "Assign this Sheet"
 msgstr ""
 
-#: templates/sheets.html:949
+#: templates/sheets.html:971 templates/sheets.html:972
 msgid "Stop Collecting Assignments"
 msgstr ""
 
-#: templates/sheets.html:957
+#: templates/sheets.html:979 templates/sheets.html:980
 msgid "Saved Assignments:"
 msgstr ""
 
-#: templates/sheets.html:965
+#: templates/sheets.html:989 templates/sheets.html:990
 msgid "Your student's saved assignments will be viewable here."
 msgstr ""
 
-#: templates/sheets.html:975
+#: templates/sheets.html:1000
 msgid "Write a summary to help others understand your sheet..."
 msgstr ""
 
-#: templates/sheets.html:981
+#: templates/sheets.html:1006
 msgid "Add Tags..."
 msgstr ""
 
-#: templates/sheets.html:991
+#: templates/sheets.html:1016 templates/sheets.html:1017
 msgid "List on Pecha"
 msgstr ""
 
-#: templates/sheets.html:1008
+#: templates/sheets.html:1033 templates/sheets.html:1034
 msgid "Display Collection"
 msgstr ""
 
-#: templates/sheets.html:1015
+#: templates/sheets.html:1040
 msgid "None"
 msgstr ""
 
-#: templates/sheets.html:1028
+#: templates/sheets.html:1053 templates/sheets.html:1054
 msgid "To manage the collections this sheet appears in, visit your profile."
 msgstr ""
 
-#: templates/sheets.html:1038
+#: templates/sheets.html:1063 templates/sheets.html:1064
 msgid "Share a link"
 msgstr ""
 
-#: templates/sheets.html:1050
+#: templates/sheets.html:1075 templates/sheets.html:1076
 msgid "Anyone with access can"
 msgstr ""
 
-#: templates/sheets.html:1055
-msgid "View"
-msgstr ""
-
-#: templates/sheets.html:1058 templates/sheets.html:1082
+#: templates/sheets.html:1083 templates/sheets.html:1107
+#: templates/sheets.html:1108
 msgid "Add"
 msgstr ""
 
-#: templates/sheets.html:1074
+#: templates/sheets.html:1099
 msgid ""
 "\n"
 "            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
-"        "
+"            "
 msgstr ""
 
-#: templates/sheets.html:1099
+#: templates/sheets.html:1124 templates/sheets.html:1125
 msgid ""
 "Copy and paste the embed code below. Adjust the values of width and height "
 "to best fit your design."
 msgstr ""
 
-#: templates/sheets.html:1107
+#: templates/sheets.html:1132 templates/sheets.html:1133
 msgid "Add a Parasha to a Source Sheet"
 msgstr ""
 
-#: templates/sheets.html:1130 templates/sheets.html:1174
-#: templates/sheets.html:1196
+#: templates/sheets.html:1162 templates/sheets.html:1206
+#: templates/sheets.html:1207 templates/sheets.html:1228
+#: templates/sheets.html:1229
 msgid "OK"
 msgstr ""
 
-#: templates/sheets.html:1131
+#: templates/sheets.html:1163
 msgid "Reset to sheet defaults"
 msgstr ""
 
-#: templates/sheets.html:1140
+#: templates/sheets.html:1172 templates/sheets.html:1173
 msgid "Would you like to make your Source Sheet public?"
 msgstr ""
 
-#: templates/sheets.html:1146
+#: templates/sheets.html:1178 templates/sheets.html:1181
 msgid ""
 "Your Source Sheet is looking great! You can share it with other members of "
 "the Pecha Community by making it public."
 msgstr ""
 
-#: templates/sheets.html:1154
+#: templates/sheets.html:1186 templates/sheets.html:1187
 msgid "Make Public"
 msgstr ""
 
-#: templates/sheets.html:1158
+#: templates/sheets.html:1190 templates/sheets.html:1191
 msgid "Maybe Later"
 msgstr ""
 
-#: templates/sheets.html:1164
+#: templates/sheets.html:1196 templates/sheets.html:1197
 msgid "Your Sheet is now Public!"
 msgstr ""
 
-#: templates/sheets.html:1169
+#: templates/sheets.html:1201 templates/sheets.html:1202
 msgid ""
 "Thank you for contributing to a free, growing resource for Jewish learning."
 msgstr ""
 
-#: templates/sheets.html:1180
+#: templates/sheets.html:1212
 msgid "No problem, this sheet is still not listed on Sefaria."
 msgstr ""
 
-#: templates/sheets.html:1186
+#: templates/sheets.html:1218 templates/sheets.html:1222
 msgid "You can make your sheet public in the future from the"
 msgstr ""
 
@@ -1692,7 +1769,7 @@ msgid ""
 "Sefaria's Source Sheet Builder."
 msgstr ""
 
-#: templates/sheets_visual.html:30
+#: templates/sheets_visual.html:30 templates/sheets_visual.html:31
 msgid "Back to Sheet"
 msgstr ""
 

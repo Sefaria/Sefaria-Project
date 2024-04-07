@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 21:02+0530\n"
+"POT-Creation-Date: 2024-04-07 23:18+0530\n"
 "PO-Revision-Date: 2023-10-23 15:48+0000\n"
 "Last-Translator: Lungsang, 2023\n"
 "Language-Team: Tibetan (https://app.transifex.com/OpenPecha/teams/176327/"
@@ -20,7 +20,8 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: reader/templatetags/sefaria_tags.py:221 sefaria/settings.py:25
-#: templates/account_settings.html:54 templates/sheets.html:769
+#: templates/account_settings.html:54 templates/sheets.html:787
+#: templates/sheets.html:788
 msgid "English"
 msgstr "དབྱིན་སྐད།"
 
@@ -274,10 +275,12 @@ msgid "Password"
 msgstr "གསང་ཚིག"
 
 #: sefaria/forms.py:46 templates/edit_profile.html:30
+#: templates/edit_profile.html:31
 msgid "First Name"
 msgstr "དངོས་མིང་།"
 
 #: sefaria/forms.py:47 templates/edit_profile.html:37
+#: templates/edit_profile.html:38
 msgid "Last Name"
 msgstr "རུས་མིང་།"
 
@@ -350,7 +353,7 @@ msgstr "གློག་འཕྲིན་འདི་བཀོལ་སྤྱོ
 msgid "The email address is not valid."
 msgstr "གློག་འཕྲིན་དེ་ཚུལ་མཐུན་ཞིག་མ་རེད།"
 
-#: sefaria/settings.py:27
+#: sefaria/settings.py:27 templates/account_settings.html:57
 #, fuzzy
 #| msgid "Tibetan"
 msgid "Tibetan"
@@ -388,27 +391,33 @@ msgstr "| Sefaria ཤོག་ངོས་རྙེད་མ་སོང་།"
 msgid "Internal Server Error"
 msgstr "གསོག་མཛོད་ནང་མའི་གནད་དོན།"
 
-#: templates/account_settings.html:12
+#: templates/account_settings.html:12 templates/account_settings.html:13
 msgid "Account Settings"
 msgstr "ཁ་བྱང་གི་སྒྲིག་འགོད་རྣམས།"
 
-#: templates/account_settings.html:17 templates/account_settings.html:164
+#: templates/account_settings.html:17 templates/account_settings.html:18
+#: templates/account_settings.html:164 templates/account_settings.html:165
+#: templates/edit_profile.html:18 templates/edit_profile.html:19
 #: templates/elements/login_prompt.html:8 templates/profile.html:188
-#: templates/sheets.html:1086 templates/sheets.html:1112
+#: templates/sheets.html:1111 templates/sheets.html:1112
+#: templates/sheets.html:1137 templates/sheets.html:1138
 msgid "Cancel"
 msgstr "ཕྱིར་འཐེན།"
 
-#: templates/account_settings.html:21 templates/account_settings.html:160
-#: templates/edit_profile.html:22 templates/sheets.html:507
-#: templates/sheets.html:905 templates/sheets.html:1065
+#: templates/account_settings.html:21 templates/account_settings.html:22
+#: templates/account_settings.html:160 templates/account_settings.html:161
+#: templates/edit_profile.html:22 templates/edit_profile.html:23
+#: templates/sheets.html:513 templates/sheets.html:927
+#: templates/sheets.html:928 templates/sheets.html:1090
+#: templates/sheets.html:1091
 msgid "Save"
 msgstr "ཉར་ཚགས།"
 
-#: templates/account_settings.html:28
+#: templates/account_settings.html:28 templates/account_settings.html:29
 msgid "Notification Frequency (Maximum)"
 msgstr "གསལ་བརྡ་ཡོང་ཐེངས། (Maximum)"
 
-#: templates/account_settings.html:33
+#: templates/account_settings.html:33 templates/account_settings.html:34
 msgid "Daily"
 msgstr "ཉིན་རེ་བཞིན།"
 
@@ -416,35 +425,51 @@ msgstr "ཉིན་རེ་བཞིན།"
 msgid "Weekly"
 msgstr "བདུན་རེ་བཞིན།"
 
-#: templates/account_settings.html:41
+#: templates/account_settings.html:41 templates/account_settings.html:42
 #, fuzzy
 #| msgid "reverted"
 msgid "Never"
 msgstr "སོར་འཇོག་བྱས་པ།"
 
-#: templates/account_settings.html:49
+#: templates/account_settings.html:49 templates/account_settings.html:50
 msgid "Site Language"
 msgstr "རྨང་གཞིའི་སྐད་ཡིག"
 
-#: templates/account_settings.html:64
+#: templates/account_settings.html:64 templates/account_settings.html:65
 msgid "Preferred Translation Language"
 msgstr "བདམས་ཟིན་པའི་སྐད་ཡིག་གཞན།"
 
-#: templates/account_settings.html:78
+#: templates/account_settings.html:78 templates/account_settings.html:79
 #, fuzzy
 #| msgid "Revision History of"
 msgid "Reading History"
 msgstr "ཡི་བཟོ་བཅོས་ཀྱི་ལོ་རྒྱུས།"
 
+#: templates/account_settings.html:83 templates/account_settings.html:84
+msgid "On"
+msgstr ""
+
+#: templates/account_settings.html:87 templates/account_settings.html:88
+msgid "Off"
+msgstr ""
+
 #: templates/account_settings.html:95
 msgid "Preferred Custom (Weekly Haftarot)"
 msgstr "བདམས་ཟིན་པའི་ལུགས་སྲོལ། (བདུན་རེའི་བསླབ་བྱ།)"
+
+#: templates/account_settings.html:100 templates/account_settings.html:101
+msgid "Sephardi"
+msgstr ""
+
+#: templates/account_settings.html:104 templates/account_settings.html:105
+msgid "Ashkenazi"
+msgstr ""
 
 #: templates/account_settings.html:112
 msgid "Account Email (This is used for login)"
 msgstr "གློག་འཕྲིན་ཁ་བྱང་། (This is used for login)"
 
-#: templates/account_settings.html:118
+#: templates/account_settings.html:118 templates/account_settings.html:119
 #, fuzzy
 #| msgid "New Email"
 msgid "Change Email"
@@ -458,17 +483,28 @@ msgstr "གློག་འཕྲིན་གསར་པ།"
 msgid "Confirm New Email"
 msgstr "གློག་འཕྲིན་གསར་པ་གཏན་འཁེལ་བྱོས།"
 
-#: templates/account_settings.html:142
+#: templates/account_settings.html:128 templates/account_settings.html:129
+#, fuzzy
+#| msgid "New Email"
+msgid "Update Email"
+msgstr "གློག་འཕྲིན་གསར་པ།"
+
+#: templates/account_settings.html:136 templates/account_settings.html:137
+msgid "Google Account (Allows for exporting sheets to Google Drive)"
+msgstr ""
+
+#: templates/account_settings.html:142 templates/account_settings.html:143
 msgid "Disconnect"
 msgstr "འབྲེལ་མཐུད་བཅད་ཟིན།"
 
-#: templates/account_settings.html:150
+#: templates/account_settings.html:150 templates/account_settings.html:151
 msgid "Your Google Account has been disconnected"
 msgstr "ཁྱེད་ཀྱི་དགོས་དགུའི་ཁ་བྱང་གི་འབྲེལ་མཐུད་བཅད་ཟིན།"
 
 #: templates/account_settings.html:154
 msgid "You can link to a new Google Account the next time you export a sheet"
-msgstr "ཐེངས་རྗེས་མར་ཁྱེད་ཀྱི་ཤོག་ངོས་ཕྱིར་འདྲེན་བྱེད་སྐབས་ཁྱེད་ཀྱིས་དགོས་དགུའི་ཁ་བྱང་གསར་པ་ཞིག་ལ་མཐུད་ཆོག"
+msgstr ""
+"ཐེངས་རྗེས་མར་ཁྱེད་ཀྱི་ཤོག་ངོས་ཕྱིར་འདྲེན་བྱེད་སྐབས་ཁྱེད་ཀྱིས་དགོས་དགུའི་ཁ་བྱང་གསར་པ་ཞིག་ལ་མཐུད་ཆོག"
 
 #: templates/activity.html:7
 msgid "Revision History of"
@@ -550,8 +586,9 @@ msgid "Edit Collection on Sefaria"
 msgstr "Sefaria ནང་གི་ཕྱོགས་བསྒྲིགས་རྩོམ་སྒྲིག་བྱེད།"
 
 #: templates/edit_collection.html:20 templates/edit_term.html:40
-#: templates/elements/loading.html:13 templates/metrics.html:18
-#: templates/sheets.html:579 templates/sheets.html:822
+#: templates/elements/loading.html:13 templates/elements/loading.html:14
+#: templates/metrics.html:18 templates/sheets.html:588
+#: templates/sheets.html:841 templates/sheets.html:842
 msgid "Loading..."
 msgstr "ལེན་བཞིན་པ་་་་་"
 
@@ -559,97 +596,103 @@ msgstr "ལེན་བཞིན་པ་་་་་"
 msgid "Edit Your Profile on Sefaria"
 msgstr "Sefaria ནང་གི་ཁྱེད་ཀྱི་སྙིང་བསྡུས་རྩོམ་སྒྲིག་བྱེད།"
 
-#: templates/edit_profile.html:13
+#: templates/edit_profile.html:13 templates/edit_profile.html:14
 #, fuzzy
 #| msgid "Edit Your Profile on Sefaria"
 msgid "Edit Your Profile"
 msgstr "ཁྱེད་རང་གི་མི་སྒེར་གྱི་དཔྱད་གཞིའི་ཡིག་ཆ་རྩོམ་"
 
-#: templates/edit_profile.html:44
+#: templates/edit_profile.html:44 templates/edit_profile.html:45
 msgid "Title"
 msgstr "གོ་གནས།"
 
-#: templates/edit_profile.html:51
+#: templates/edit_profile.html:51 templates/edit_profile.html:52
 #, fuzzy
 #| msgid "Translations"
 msgid "Organization"
 msgstr "ཚོགས་པ།"
 
-#: templates/edit_profile.html:58
+#: templates/edit_profile.html:58 templates/edit_profile.html:59
 msgid "Website"
 msgstr "དྲ་ཚིགས།"
 
-#: templates/edit_profile.html:65
+#: templates/edit_profile.html:65 templates/edit_profile.html:66
 msgid "Location"
 msgstr "གནས་ཡུལ།"
 
-#: templates/edit_profile.html:72
+#: templates/edit_profile.html:72 templates/edit_profile.html:73
 msgid "Education"
 msgstr "ཤེས་ཚད།"
 
-#: templates/edit_profile.html:72
+#: templates/edit_profile.html:72 templates/edit_profile.html:73
 msgid "where have you learned"
 msgstr "སློབ་སྦྱོང་བྱེད་གནས"
 
-#: templates/edit_profile.html:87
+#: templates/edit_profile.html:82
+msgid "Add a line"
+msgstr ""
+
+#: templates/edit_profile.html:87 templates/edit_profile.html:88
 #, fuzzy
 #| msgid "About Sefaria"
 msgid "About Me"
 msgstr "ངའི་སྐོར།"
 
-#: templates/edit_profile.html:98
+#: templates/edit_profile.html:98 templates/edit_profile.html:99
 #, fuzzy
 #| msgid "Source Sheets"
 msgid "Public Sheets"
 msgstr "སྤྱི་སྤྱོད་ཀྱི་ཤོག་ངོས།"
 
-#: templates/edit_profile.html:103
+#: templates/edit_profile.html:103 templates/edit_profile.html:104
 msgid ""
 "You can drag and order source sheets that you want to pin to the top of your "
 "profile."
 msgstr "རང་གི་སྙིང་བསྡུས་ཀྱི་སྒང་ལ་འཛེར་རྒྱུའི་མ་ཕྱིའི་ཤོག་ངོས་དེ་ཁྱེད་ཀྱིས་ཐད་ཀར་ཕབ་སྟེ་དེའི་གོ་རིམ་སྒྲིག་ཆོག"
 
-#: templates/edit_profile.html:108
+#: templates/edit_profile.html:108 templates/edit_profile.html:109
 #, fuzzy
 #| msgid "Source Sheets"
 msgid "Pinned Sheets"
 msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
 
-#: templates/edit_profile.html:119
+#: templates/edit_profile.html:119 templates/edit_profile.html:120
 #, fuzzy
 #| msgid "Source Sheets"
 msgid "All Sheets"
 msgstr "ཤོག་ངོས་ཡོངས་རྫོགས།"
 
-#: templates/edit_profile.html:134
+#: templates/edit_profile.html:134 templates/edit_profile.html:135
 msgid "Contact"
 msgstr "འབྲེལ་གཏུག་བྱེད་དགོས།"
 
-#: templates/edit_profile.html:140
+#: templates/edit_profile.html:140 templates/edit_profile.html:141
 msgid "Email (will be public)"
 msgstr "གློག་འཕྲིན། (will be public)"
 
-#: templates/edit_profile.html:147
+#: templates/edit_profile.html:147 templates/edit_profile.html:148
 #, fuzzy
 #| msgid "Paste URL"
 msgid "Profile URL"
 msgstr "སྙིང་བསྡུས་ཀྱི་དྲ་ཐག"
 
-#: templates/edit_profile.html:154
+#: templates/edit_profile.html:154 templates/edit_profile.html:155
 msgid "Twitter Handle"
 msgstr "Twitter"
 
-#: templates/edit_profile.html:161
+#: templates/edit_profile.html:161 templates/edit_profile.html:162
+#: templates/profile.html:64
 #, fuzzy
 #| msgid "Links"
 msgid "LinkedIn"
 msgstr "དྲ་ཐག"
 
-#: templates/edit_profile.html:168
+#: templates/edit_profile.html:168 templates/edit_profile.html:169
+#: templates/profile.html:52
 msgid "Facebook"
 msgstr "Facebook"
 
-#: templates/edit_profile.html:175
+#: templates/edit_profile.html:175 templates/edit_profile.html:176
 msgid "YouTube Channel"
 msgstr "ཡུས་ཁྲུབ།"
 
@@ -797,7 +840,9 @@ msgstr "བྱེད་སྒོ་མངགས།"
 
 #: templates/elements/login_prompt.html:6
 #: templates/registration/register.html:13
+#: templates/registration/register.html:14
 #: templates/registration/register.html:23
+#: templates/registration/register.html:24
 msgid "Sign Up"
 msgstr "ཐོ་འགོད་"
 
@@ -1057,23 +1102,29 @@ msgstr ""
 msgid "at "
 msgstr "ལ་"
 
-#: templates/profile.html:73
+#: templates/profile.html:58
+#, fuzzy
+#| msgid "Twitter Handle"
+msgid "Twitter"
+msgstr "Twitter"
+
+#: templates/profile.html:73 templates/profile.html:74
 msgid "Message"
 msgstr ""
 
-#: templates/profile.html:78
+#: templates/profile.html:78 templates/profile.html:83
 msgid "Follow"
 msgstr "རྗེས་འཇུག་བྱོས།"
 
-#: templates/profile.html:79
+#: templates/profile.html:79 templates/profile.html:84
 msgid "Following"
 msgstr "རྗེས་འཇུག་བྱེད་པ།"
 
-#: templates/profile.html:80
+#: templates/profile.html:80 templates/profile.html:85
 msgid "Unfollow"
 msgstr "རྗེས་འཇུག་ཕྱིར་འཐེན།"
 
-#: templates/profile.html:90
+#: templates/profile.html:90 templates/profile.html:91
 #, fuzzy
 #| msgid "Edit Your Profile on Sefaria"
 msgid "Edit Profile"
@@ -1115,35 +1166,36 @@ msgstr ""
 "མ་ཕྱིའི་ཤོག་ངོས་གསར་བཟོ་བྱེད་པ་དང་མཆན་འབྲི་བ་དང་ དཔེ་ཆ་དྲ་ཚིགས་སྤྱོད་མཁན་གཞན་ལ་རྗེས་འཇུག་བྱེད་པ་"
 "ལ། ཐོག་མར་དཔེ་ཆ་དྲ་ཚིགས་ནང་ནང་འཛུལ་བྱོས།"
 
-#: templates/registration/login.html:14
+#: templates/registration/login.html:14 templates/registration/login.html:15
 msgid "You are already logged in as"
 msgstr "ཁྱེད་རང་གིས་ཐོ་འགོད་བྱས་ཟིན།"
 
-#: templates/registration/login.html:18
+#: templates/registration/login.html:18 templates/registration/login.html:19
 msgid "Logout."
 msgstr "ཕྱིར་ཐོན།"
 
-#: templates/registration/login.html:31
+#: templates/registration/login.html:31 templates/registration/login.html:32
 #, fuzzy
 #| msgid "Log in to Sefaria"
 msgid "Log in to Pecha"
 msgstr "དཔེ་ཆ་དྲ་ཚིགས་ནང་ནང་འཛུལ་བྱོས།"
 
-#: templates/registration/login.html:36
+#: templates/registration/login.html:36 templates/registration/login.html:37
 msgid "Your username and password didn't match. Please try again."
 msgstr "ཁྱེད་རང་གི་སྤྱོད་མཁན་གྱི་མིང་དང་གསང་གྲངས་ཆ་མི་མཚུངས། ཡང་བསྐྱར་ཚོད་ལྟ་ཐེངས་གཅིག་གནང་རོགས།"
 
-#: templates/registration/login.html:54 templates/sheets.html:557
+#: templates/registration/login.html:54 templates/registration/login.html:55
+#: templates/sheets.html:563 templates/sheets.html:567
 msgid "Login"
 msgstr "ནང་འཛུལ།"
 
-#: templates/registration/login.html:58
+#: templates/registration/login.html:58 templates/registration/login.html:59
 #, fuzzy
 #| msgid "Forgot your Password"
 msgid "Forgot your password?"
 msgstr "ཁྱེད་ཀྱི་གསང་ཚིག་བརྗེད་སོང་ངམ།"
 
-#: templates/registration/login.html:64
+#: templates/registration/login.html:64 templates/registration/login.html:65
 #, fuzzy
 #| msgid "Create an Account"
 msgid "Create a new account"
@@ -1154,11 +1206,14 @@ msgid "Password Reset"
 msgstr "གསང་ཚིག་བསྐྱར་སྒྲིག"
 
 #: templates/registration/password_reset_complete.html:10
+#: templates/registration/password_reset_complete.html:11
 msgid "Your new password has been saved."
 msgstr "סיסמתך החדשה נשמרה בהצלחה."
 
 #: templates/registration/password_reset_complete.html:14
+#: templates/registration/password_reset_complete.html:15
 #: templates/registration/password_reset_form.html:25
+#: templates/registration/password_reset_form.html:26
 msgid "Back to login"
 msgstr "חזרה למסך ההתחברות"
 
@@ -1167,12 +1222,14 @@ msgid "Choose a new Password"
 msgstr "གསང་ཚིག་གསར་པ་ཞིག་འདེམ།"
 
 #: templates/registration/password_reset_confirm.html:11
+#: templates/registration/password_reset_confirm.html:12
 #, fuzzy
 #| msgid "Choose a new Password"
 msgid "Choose a new password"
 msgstr "གསང་ཚིག་གསར་པ་ཞིག་འདེམ།"
 
 #: templates/registration/password_reset_confirm.html:18
+#: templates/registration/password_reset_confirm.html:19
 #, fuzzy
 #| msgid "Password"
 msgid "Save Password"
@@ -1183,6 +1240,7 @@ msgid "Password Reset Link Sent"
 msgstr "གསང་ཚིག་བསྐྱར་སྒྲིག་གི་དྲ་ཐག་བཏང་ཟིན།"
 
 #: templates/registration/password_reset_done.html:10
+#: templates/registration/password_reset_done.html:11
 msgid "An email has been sent with a link to reset your password."
 msgstr "מייל עם קישור לאיפוס הסיסמא נשלח אליך בהצ."
 
@@ -1220,12 +1278,14 @@ msgstr ""
 "གལ་སྲིད་ཁྱེད་ཀྱིས་རང་གི་Sefaria ཡི་གསང་ཚིག་བརྗེད་སོང་ན་དེ་བསྐྱར་བརྗེ་བྱ་སའི་དྲ་ཐག་ཅིག་ལ་སྙན་ཞུ་ཕུལ།"
 
 #: templates/registration/password_reset_form.html:13
+#: templates/registration/password_reset_form.html:14
 #, fuzzy
 #| msgid "Forgot your Password"
 msgid "Forgot Your Password"
 msgstr "ཁྱེད་ཀྱི་གསང་ཚིག་བརྗེད་སོང་ངམ།"
 
 #: templates/registration/password_reset_form.html:20
+#: templates/registration/password_reset_form.html:21
 #, fuzzy
 #| msgid "Password Reset Link Sent"
 msgid "Send Reset Link"
@@ -1250,18 +1310,21 @@ msgstr ""
 "ཚིགས་ཀྱི་ནང་ཁ་བྱང་གསར་པ་ཞིག་བཟོ་དགོས"
 
 #: templates/registration/register.html:28
+#: templates/registration/register.html:29
 msgid "Already have an account? Log in"
 msgstr "ནང་འཛུལ།"
 
 #: templates/registration/register.html:32
-msgid "By clicking \"Sign Up\" you agree to our"
+msgid "By clicking Sign Up you agree to our"
 msgstr ""
 
-#: templates/registration/register.html:32 templates/static/terms.html:4
+#: templates/registration/register.html:32
+#: templates/registration/register.html:33 templates/static/terms.html:4
 msgid "Terms of Use"
 msgstr "བཀོལ་སྤྱོད་ཀྱི་སྒྲིག་གཞི་ཁག"
 
 #: templates/registration/register.html:32
+#: templates/registration/register.html:33
 #: templates/static/privacy-policy.html:4
 msgid "Privacy Policy"
 msgstr "སྒེར་དོན་གསང་རྒྱ།"
@@ -1306,7 +1369,8 @@ msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
 msgid "Export to Google Drive"
 msgstr ""
 
-#: templates/sheets.html:56 templates/sheets.html:1095
+#: templates/sheets.html:56 templates/sheets.html:1120
+#: templates/sheets.html:1121
 #, fuzzy
 #| msgid "Source Sheet"
 msgid "Embed Sheet"
@@ -1322,11 +1386,11 @@ msgstr "དཔེ་ཆ་དེ་བསུབ་འདུག"
 msgid "Tags"
 msgstr ""
 
-#: templates/sheets.html:90 templates/sheets.html:936
+#: templates/sheets.html:90 templates/sheets.html:958 templates/sheets.html:959
 msgid "Assignments"
 msgstr "ལས་བགོ།"
 
-#: templates/sheets.html:105 templates/sheets.html:858
+#: templates/sheets.html:105 templates/sheets.html:878
 msgid "Print"
 msgstr "ཁྱེད་ཀྱི་ཤོག་ངོས་ཤོག་ཐོག་ལ་"
 
@@ -1376,508 +1440,554 @@ msgstr ""
 msgid "Add Source Title:"
 msgstr ""
 
-#: templates/sheets.html:199
+#: templates/sheets.html:200
 msgid "Sheet Language:"
 msgstr ""
 
-#: templates/sheets.html:208 templates/sheets.html:297
+#: templates/sheets.html:209 templates/sheets.html:301
 #, fuzzy
 #| msgid "English"
 msgid "English:"
 msgstr "དབྱིན་སྐད།"
 
-#: templates/sheets.html:215
+#: templates/sheets.html:216
 #, fuzzy
 #| msgid "Tibetan"
 msgid "Tibetan:"
 msgstr "བོད་ཡིག"
 
-#: templates/sheets.html:222 templates/sheets.html:311
+#: templates/sheets.html:223 templates/sheets.html:315
 #, fuzzy
 #| msgid "Bilingual"
 msgid "Bilingual:"
 msgstr "སྐད་གཉིས་ཤན་སྦྱར།"
 
-#: templates/sheets.html:233
+#: templates/sheets.html:235
 msgid "Sheet Layout:"
 msgstr ""
 
-#: templates/sheets.html:242 templates/sheets.html:331
+#: templates/sheets.html:244 templates/sheets.html:336
 msgid "Stacked:"
 msgstr ""
 
-#: templates/sheets.html:249 templates/sheets.html:338
+#: templates/sheets.html:251 templates/sheets.html:343
 msgid "Side-by-Side:"
 msgstr ""
 
-#: templates/sheets.html:260 templates/sheets.html:349
+#: templates/sheets.html:263 templates/sheets.html:355
 msgid "Side-by-Side Layout:"
 msgstr ""
 
-#: templates/sheets.html:269 templates/sheets.html:358
+#: templates/sheets.html:272 templates/sheets.html:364
 #, fuzzy
 #| msgid "Tibetan"
 msgid "Tibetan Left:"
 msgstr "བོད་ཡིག"
 
-#: templates/sheets.html:276 templates/sheets.html:365
+#: templates/sheets.html:279 templates/sheets.html:371
 #, fuzzy
 #| msgid "Tibetan"
 msgid "Tibetan Right:"
 msgstr "བོད་ཡིག"
 
-#: templates/sheets.html:288
+#: templates/sheets.html:292
 msgid "Source Language:"
 msgstr ""
 
-#: templates/sheets.html:304
+#: templates/sheets.html:308
 #, fuzzy
 #| msgid "Hebrew"
 msgid "Hebrew:"
 msgstr "བོད་སྐད།"
 
-#: templates/sheets.html:322
+#: templates/sheets.html:327
 #, fuzzy
 #| msgid "Source Sheet"
 msgid "Source Layout:"
 msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
 
-#: templates/sheets.html:376
+#: templates/sheets.html:382
 msgid "Reset to Sheet Default:"
 msgstr ""
 
-#: templates/sheets.html:390
+#: templates/sheets.html:396
 msgid "Insert:"
 msgstr ""
 
-#: templates/sheets.html:396
+#: templates/sheets.html:402
 #, fuzzy
 #| msgid "Source Sheet"
 msgid "Source:"
 msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
 
-#: templates/sheets.html:412
+#: templates/sheets.html:418
 #, fuzzy
 #| msgid "Texts"
 msgid "Text:"
 msgstr "ཆོས་མཛོད།"
 
-#: templates/sheets.html:419
+#: templates/sheets.html:425
 msgid "Comment:"
 msgstr ""
 
-#: templates/sheets.html:426
+#: templates/sheets.html:432
 msgid "Media:"
 msgstr ""
 
-#: templates/sheets.html:434
+#: templates/sheets.html:440
 msgid "Highlight Tools:"
 msgstr ""
 
-#: templates/sheets.html:440
+#: templates/sheets.html:446
 msgid "Paragraph View:"
 msgstr ""
 
-#: templates/sheets.html:444
+#: templates/sheets.html:450
 msgid "Line-by-line View:"
 msgstr ""
 
-#: templates/sheets.html:451
+#: templates/sheets.html:457
 msgid "Reset:"
 msgstr ""
 
-#: templates/sheets.html:457
+#: templates/sheets.html:463
 msgid "Filter:"
 msgstr ""
 
-#: templates/sheets.html:474
+#: templates/sheets.html:480
 #, fuzzy
 #| msgid "Last Name"
 msgid "Last Saved:"
 msgstr "རུས་མིང་།"
 
-#: templates/sheets.html:478
+#: templates/sheets.html:484
 msgid "All changes saved in Pecha"
 msgstr ""
 
-#: templates/sheets.html:482 templates/sheets.html:511
+#: templates/sheets.html:488 templates/sheets.html:517
 #, fuzzy
 #| msgid "Loading..."
 msgid "Saving..."
 msgstr "ལེན་བཞིན་པ་་་་་"
 
-#: templates/sheets.html:486
+#: templates/sheets.html:492
 msgid "Changes Pending..."
 msgstr ""
 
-#: templates/sheets.html:496
+#: templates/sheets.html:502
 msgid "Highlight Mode is On"
 msgstr ""
 
-#: templates/sheets.html:518 templates/sheets.html:858
-#: templates/sheets.html:1187
+#: templates/sheets.html:524 templates/sheets.html:878
+#: templates/sheets.html:879 templates/sheets.html:1219
+#: templates/sheets.html:1223
 msgid "Share"
 msgstr "བརྒྱུད་སྐུར་"
 
-#: templates/sheets.html:522 templates/sheets.html:527
+#: templates/sheets.html:528 templates/sheets.html:533
 msgid "View in Library"
 msgstr ""
 
-#: templates/sheets.html:557
+#: templates/sheets.html:563 templates/sheets.html:567
 msgid "Like this?"
 msgstr "འདི་ལ་སྤྲོ་བ་འདུག་གམ།"
 
-#: templates/sheets.html:557
+#: templates/sheets.html:564 templates/sheets.html:568
 #, fuzzy
 #| msgid "Create an Account"
 msgid "create an account"
 msgstr "ཁྱེད་རངསྒེར་གྱི་ཤོག་ངོས་བཟོ་བ་ལ་"
 
-#: templates/sheets.html:557
+#: templates/sheets.html:564 templates/sheets.html:568
 #, fuzzy
 #| msgid "likes your Source Sheet"
 msgid "to build your own source sheet."
 msgstr "འདིའི་ནང་ཁ་བྱང་གསར་བཟོ་བྱ་དགོས།"
 
-#: templates/sheets.html:593 templates/sheets.html:601
-#, python-format
+#: templates/sheets.html:602 templates/sheets.html:610
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "                Assignment Completed by %(owner)s\n"
+#| "            "
 msgid ""
 "\n"
-"                Assignment Completed by %(owner)s\n"
+"            Assignment Completed by %(owner)s\n"
 "            "
 msgstr ""
 "\n"
 "                %(owner)s ཁོང་གིས་ལས་འགན་ཆ་ཚང་གྲུབ་པ་བྱས་སོང་།\n"
 "            "
 
-#: templates/sheets.html:608
-#, python-format
+#: templates/sheets.html:617
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "            Source Sheet by %(owner)s\n"
+#| "        "
 msgid ""
 "\n"
 "            Source Sheet by %(owner)s\n"
-"        "
+"            "
 msgstr ""
 "\n"
 "          %(owner)s  ཁོང་གིས་བཟོས་པའི་མ་ཕྱིའི་ཤོག་ངོས།\n"
 "        "
 
-#: templates/sheets.html:618
+#: templates/sheets.html:627
 msgid "More info"
 msgstr ""
 
-#: templates/sheets.html:623
+#: templates/sheets.html:632 templates/sheets.html:636
 #, fuzzy
 #| msgid "related"
 msgid "Created"
 msgstr "འབྲེལ་བ་ཡོད་པ།"
 
-#: templates/sheets.html:625 templates/sheets.html:1061
+#: templates/sheets.html:633 templates/sheets.html:638
+#, fuzzy
+#| msgid "View"
+msgid "Views"
+msgstr "སྟོན།"
+
+#: templates/sheets.html:635 templates/sheets.html:638
+#: templates/sheets.html:1086
 msgid "Edit"
 msgstr "རྩོམ་སྒྲིག་བྱེད།"
 
-#: templates/sheets.html:631
+#: templates/sheets.html:637 templates/sheets.html:1080
+msgid "View"
+msgstr "སྟོན།"
+
+#: templates/sheets.html:642 templates/sheets.html:644
 msgid "Based on"
 msgstr "གཞིར་བཞག་ཡོད།"
 
-#: templates/sheets.html:631 templates/sheets.html:923
+#: templates/sheets.html:643 templates/sheets.html:645
+#: templates/sheets.html:945 templates/sheets.html:946
 msgid "a sheet"
 msgstr "ཤོག་ངོས་ཤིག"
 
-#: templates/sheets.html:631 templates/sheets.html:923
+#: templates/sheets.html:643 templates/sheets.html:645
+#: templates/sheets.html:945 templates/sheets.html:946
 msgid "by"
 msgstr " ནས་ "
 
-#: templates/sheets.html:637 templates/sheets.html:644
+#: templates/sheets.html:650 templates/sheets.html:651
+#: templates/sheets.html:657 templates/sheets.html:658
 msgid "Assigned by"
 msgstr "ལས་བགོ་བྱས།"
 
-#: templates/sheets.html:687
+#: templates/sheets.html:701 templates/sheets.html:702
 #, fuzzy
 #| msgid "Source Sheet"
 msgid "Source"
 msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
 
-#: templates/sheets.html:692
+#: templates/sheets.html:707 templates/sheets.html:708
 #, fuzzy
 #| msgid "added a connection"
 msgid "Connection"
 msgstr "འབྲེལ་ཡོད་ཅིག་བསྣན་ཡོད།"
 
-#: templates/sheets.html:697
+#: templates/sheets.html:713 templates/sheets.html:714
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2115
 #, fuzzy
 #| msgid "Texts"
 msgid "Text"
 msgstr "ཆོས་མཛོད།"
 
-#: templates/sheets.html:702
+#: templates/sheets.html:719 templates/sheets.html:720
 msgid "Media"
 msgstr "སྨྱན།"
 
-#: templates/sheets.html:707
+#: templates/sheets.html:725 templates/sheets.html:726
 msgid "Comment"
 msgstr "མཆན།"
 
-#: templates/sheets.html:714
+#: templates/sheets.html:732 templates/sheets.html:733
 #, fuzzy
 #| msgid "deleted the text"
 msgid "Select a text"
 msgstr "དཔེ་ཆ་ཞིག་འདེམ།"
 
-#: templates/sheets.html:719
-msgid "Search for a Text or Commentator"
+#: templates/sheets.html:737
+#, fuzzy
+#| msgid "Search for a Text or Commentator"
+msgid " Search for a Text or Commentator"
 msgstr "དཔེ་ཆ་དང་ཡང་ན་འགྲེལ་བཤད་པ་འཚོལ་ཞིབ།"
 
-#: templates/sheets.html:723
+#: templates/sheets.html:741 templates/sheets.html:742
 msgid "Add Source"
 msgstr "རྒྱུ་ཆ་ཞོག"
 
-#: templates/sheets.html:728 templates/sheets.html:792
+#: templates/sheets.html:746 templates/sheets.html:747
+#: templates/sheets.html:811 templates/sheets.html:812
+#: templates/sheets.html:889 templates/sheets.html:891
 #: venv/lib/python3.9/site-packages/django/utils/text.py:309
 msgid "or"
 msgstr "ཡང་ན་"
 
-#: templates/sheets.html:733
+#: templates/sheets.html:751 templates/sheets.html:752
 msgid "Browse Sources"
 msgstr "མ་ཕྱི་རྣམས་ལ་མིག་བཤེར་བྱོས།"
 
-#: templates/sheets.html:743
+#: templates/sheets.html:761 templates/sheets.html:762
 #, fuzzy
 #| msgid "deleted the text"
 msgid "Select connected texts"
 msgstr "སྦྲེལ་མཐུད་བྱས་ཡོད་པའི་དཔེ་ཆ་རྣམས་འདེམ།"
 
-#: templates/sheets.html:748 templates/sheets.html:773
-#: templates/sheets.html:787 templates/sheets.html:813
+#: templates/sheets.html:766 templates/sheets.html:767
+#: templates/sheets.html:791 templates/sheets.html:792
+#: templates/sheets.html:806 templates/sheets.html:807
+#: templates/sheets.html:832 templates/sheets.html:833
 msgid "Add to Sheet"
 msgstr "ཤོག་ངོས་ནང་སྣོན།"
 
-#: templates/sheets.html:754
+#: templates/sheets.html:772 templates/sheets.html:773
 msgid "Write or paste text<"
 msgstr "འབྲི་བ་དང་ཡང་ན་ངོ་བཤུ་ཞོག"
 
-#: templates/sheets.html:779
+#: templates/sheets.html:797
 msgid "Add Image, Youtube Video, SoundCloud link, or MP3"
 msgstr "འདྲ་པར་དང་ཡུས་ཁྲུབ་ཀྱི་བརྙན། SoundCloud ཡི་དྲ་ཐག་དང་ཡང་ན་MP3 བཅས་ཀྱི་གང་རུང་ཞིག་ཞོག"
 
-#: templates/sheets.html:783
+#: templates/sheets.html:802
 msgid "Paste URL"
 msgstr "URL ཕོབ།"
 
-#: templates/sheets.html:798
+#: templates/sheets.html:817
 msgid "Upload an Image"
 msgstr "འདྲ་པར་ནང་འཇུག་བྱོས།"
 
-#: templates/sheets.html:808
+#: templates/sheets.html:827 templates/sheets.html:828
 msgid "Comment on this section"
 msgstr "ཚན་པ་འདིའི་སྒང་ལ་མཆན་ཕྲིས།"
 
-#: templates/sheets.html:833
+#: templates/sheets.html:853 templates/sheets.html:854
 msgid "Watch a 2 minute intro video or "
 msgstr "སྐར་མ་གསུམ་ཅན་གྱི་ངོ་སྤྲོད་བརྙན་ཞིག་ལ་གཟིགས་སམ་ཡང་ན་"
 
-#: templates/sheets.html:833
+#: templates/sheets.html:853 templates/sheets.html:854
 msgid "read more"
 msgstr "འདི་ལས་མང་ཙམ་ཀློག"
 
-#: templates/sheets.html:838
+#: templates/sheets.html:858 templates/sheets.html:859
 #, fuzzy
 #| msgid "Sefaria Source Sheet Builder"
 msgid "Source Sheet Builder: How it Works"
 msgstr "མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས། འདིས་ལས་ཀ་བྱེད་སྟངས་ག་འདྲ་འདུག"
 
-#: templates/sheets.html:845
-#, python-format
-msgid "Add Sources</b>{%% trans "
-msgstr ""
+#: templates/sheets.html:865
+#, fuzzy
+#| msgid "Add Source"
+msgid "Add Sources"
+msgstr "རྒྱུ་ཆ་ཞོག"
 
-#: templates/sheets.html:854
+#: templates/sheets.html:865
+#, fuzzy
+#| msgid "automatic citation link"
+msgid "by typing a citation like:"
+msgstr "རང་འགུལ་གྱི་ལུང་ཚིག་གི་དྲ་ཐག"
+
+#: templates/sheets.html:874 templates/sheets.html:875
 msgid "Reorder Sources"
 msgstr "མ་ཕྱིའི་གོ་རིམ་བསྐྱར་སྒྲིག"
 
-#: templates/sheets.html:854
+#: templates/sheets.html:874 templates/sheets.html:875
 msgid "by dragging and dropping."
 msgstr "drag དང་ drop བཀོལ་སྤྱོད།"
 
-#: templates/sheets.html:858
+#: templates/sheets.html:878 templates/sheets.html:879
 msgid "your sheets to paper or PDF, or just"
 msgstr "པར་འདེབས་བྱེད་པ་དང་ཡང་ན་ PDF ཡང་ན་དེའི་དྲ་ཐག་"
 
-#: templates/sheets.html:858
+#: templates/sheets.html:878 templates/sheets.html:879
 msgid " the link."
 msgstr " ཙམ་བྱ་རྒྱུ་ཡིན།"
 
-#: templates/sheets.html:862
+#: templates/sheets.html:882 templates/sheets.html:883
 msgid "More Options"
 msgstr " འདི་ལས་མང་བ་ཡོད།"
 
-#: templates/sheets.html:862
+#: templates/sheets.html:882 templates/sheets.html:883
 msgid "are available in the icons that appear when you hover over a source."
 msgstr "ཁྱེད་ཀྱིས་མ་ཕྱི་ཞིག་གི་སྒང་ལ་བཞག་དུས་འཆར་ཡོང་བའི་འདྲ་པར་icon དེའི་ནང་འདེམ་གསེས་"
 
-#: templates/sheets.html:869
+#: templates/sheets.html:889
 msgid "Take a spin! But you'll need to "
 msgstr "Take a spin! But you'll need to"
 
-#: templates/sheets.html:869
+#: templates/sheets.html:889 templates/sheets.html:891
 msgid "login"
 msgstr "ནང་འཛུལ།"
 
-#: templates/sheets.html:869
+#: templates/sheets.html:890 templates/sheets.html:892
 msgid "register"
 msgstr " ཐོ་འགོད་བྱོས།"
 
-#: templates/sheets.html:869
+#: templates/sheets.html:890 templates/sheets.html:892
 msgid "to save your work."
 msgstr "ཁྱེད་ཀྱི་ལས་ཀ་ཉར་ཚགས་བྱེད་པ་ལ་"
 
-#: templates/sheets.html:879
+#: templates/sheets.html:901
 msgid "Made with the Sefaria Source Sheet Builder"
 msgstr "དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས་ཀྱིས་བཟོས་པ།"
 
-#: templates/sheets.html:890
+#: templates/sheets.html:912 templates/sheets.html:913
 msgid "Add Highlight"
 msgstr "ནན་རྟགས་ཞོག"
 
-#: templates/sheets.html:902
+#: templates/sheets.html:924
 msgid "Create New"
 msgstr "གསར་པ་བཟོས།"
 
-#: templates/sheets.html:918
+#: templates/sheets.html:940 templates/sheets.html:941
 msgid "Source Sheet created on Pecha by "
 msgstr "དཔེ་ཆ་དྲ་ཚིག་ཐོག་ནང་མ་ཕྱིའི་ཤོག་ངོས་བཟོས་འདུག "
 
-#: templates/sheets.html:923
+#: templates/sheets.html:945 templates/sheets.html:946
 msgid "Based on "
 msgstr "གཞིར་བཞག་ཡོད། "
 
-#: templates/sheets.html:940
+#: templates/sheets.html:962 templates/sheets.html:963
 msgid ""
 "Assignments allow you to create a template that your students can fill out "
 "on their own."
-msgstr "ལས་བགོ་བྱས་པ་དེས་ཁྱེད་ལ་རང་ཉིད་ཀྱི་སློབ་ཕྲུག་རྣམས་ཀྱིས་འགེངས་ཆོག་པའི་མ་དཔེ་གསར་བཟོ་བྱེད་པའི་ཆོག་མཆན་སྤྲོད་ཡོང་།"
+msgstr ""
+"ལས་བགོ་བྱས་པ་དེས་ཁྱེད་ལ་རང་ཉིད་ཀྱི་སློབ་ཕྲུག་རྣམས་ཀྱིས་འགེངས་ཆོག་པའི་མ་དཔེ་གསར་བཟོ་བྱེད་པའི་ཆོག་མཆན་"
+"སྤྲོད་ཡོང་།"
 
-#: templates/sheets.html:945
+#: templates/sheets.html:967 templates/sheets.html:968
 msgid "Assign this Sheet"
 msgstr "ཤོག་ངོས་འདི་ལས་བགོ་བྱོས།"
 
-#: templates/sheets.html:949
+#: templates/sheets.html:971 templates/sheets.html:972
 msgid "Stop Collecting Assignments"
 msgstr "ལས་བགོ་བསྡུ་རུབ་མཚམས་འཇོག་བྱེད།"
 
-#: templates/sheets.html:957
+#: templates/sheets.html:979 templates/sheets.html:980
 msgid "Saved Assignments:"
 msgstr "ལས་བགོ་ཉར་ཚགས་བྱས་ཡོད་པ་ནི་"
 
-#: templates/sheets.html:965
+#: templates/sheets.html:989 templates/sheets.html:990
 msgid "Your student's saved assignments will be viewable here."
 msgstr "ཁྱེད་ཀྱི་སློབ་ཕྲུག་གིས་ཉར་ཚགས་བྱས་པའི་ལས་བགོ་རྣམས་འདི་ནས་བལྟ་ཆོག"
 
-#: templates/sheets.html:975
+#: templates/sheets.html:1000
 msgid "Write a summary to help others understand your sheet..."
 msgstr "གཞན་གྱིས་ཁྱེད་ཀྱི་ཤོག་ངོས་གསལ་རྟོགས་ཡོང་སླད་ངོ་སྤྲོད་སྙིང་བསྡུས་ཤིག་ཕྲིས།"
 
-#: templates/sheets.html:981
+#: templates/sheets.html:1006
 msgid "Add Tags..."
 msgstr "བར་སྟོང་ཞོག"
 
-#: templates/sheets.html:991
+#: templates/sheets.html:1016 templates/sheets.html:1017
 msgid "List on Pecha"
 msgstr "དཔེ་ཆ་དྲ་ཚིགས་ནང་ཐོ་རུ་འགོད།"
 
-#: templates/sheets.html:1008
+#: templates/sheets.html:1033 templates/sheets.html:1034
 #, fuzzy
 #| msgid "Sefaria Collections"
 msgid "Display Collection"
 msgstr "ཕྱོགས་བསྒྲིགས་འཆར་སྟོན།"
 
-#: templates/sheets.html:1015
+#: templates/sheets.html:1040
 msgid "None"
 msgstr "མི་འདུག"
 
-#: templates/sheets.html:1028
+#: templates/sheets.html:1053 templates/sheets.html:1054
 msgid "To manage the collections this sheet appears in, visit your profile."
 msgstr "ཤོག་ངོས་འདིའི་ནང་འཆར་རྒྱུའི་ཕྱོགས་བསྒྲིགས་འདི་དོ་དམ་བྱེད་པ་ལ་ཁྱེད་ཀྱི་སྙིང་བསྡུས་ཤོག་ངོས་སུ་གཟིགས།"
 
-#: templates/sheets.html:1038
+#: templates/sheets.html:1063 templates/sheets.html:1064
 msgid "Share a link"
 msgstr "དྲ་ཐག་བརྒྱུད་སྐུར།"
 
-#: templates/sheets.html:1050
+#: templates/sheets.html:1075 templates/sheets.html:1076
 msgid "Anyone with access can"
 msgstr " སུས་ཀྱང་བལྟ་ཀློག་ཆོག་པ། "
 
-#: templates/sheets.html:1055
-msgid "View"
-msgstr "སྟོན།"
-
-#: templates/sheets.html:1058 templates/sheets.html:1082
+#: templates/sheets.html:1083 templates/sheets.html:1107
+#: templates/sheets.html:1108
 msgid "Add"
 msgstr "སྣོན།"
 
-#: templates/sheets.html:1074
+#: templates/sheets.html:1099
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
+#| "        "
 msgid ""
 "\n"
 "            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
-"        "
+"            "
 msgstr ""
 "\n"
 "         <span class=\"sourceName\"></span>  མ་ཕྱིའི་ཤོག་ངོས་ཤིག་གི་ནང་སྣོན།\n"
 "        "
 
-#: templates/sheets.html:1099
+#: templates/sheets.html:1124 templates/sheets.html:1125
 msgid ""
 "Copy and paste the embed code below. Adjust the values of width and height "
 "to best fit your design."
-msgstr "ཨང་བརྡ་ངོ་བཤུ་བྱས་ཏེ་གཤམ་ལ་བཤུས། ཁྱེད་ཀྱི་ཇུས་འགོད་འོས་འཚམ་ཡོང་ཕྱིར་འཕྲེད་དང་ཞེང་ཁའི་ཚད་གཞི་སྙོམས་སྒྲིག་བྱོས།"
+msgstr ""
+"ཨང་བརྡ་ངོ་བཤུ་བྱས་ཏེ་གཤམ་ལ་བཤུས། ཁྱེད་ཀྱི་ཇུས་འགོད་འོས་འཚམ་ཡོང་ཕྱིར་འཕྲེད་དང་ཞེང་ཁའི་ཚད་གཞི་སྙོམས་"
+"སྒྲིག་བྱོས།"
 
-#: templates/sheets.html:1107
+#: templates/sheets.html:1132 templates/sheets.html:1133
 msgid "Add a Parasha to a Source Sheet"
 msgstr "མ་ཕྱིའི་ཤོག་ངོས་ནང་ཚན་པ་ཞོག"
 
-#: templates/sheets.html:1130 templates/sheets.html:1174
-#: templates/sheets.html:1196
+#: templates/sheets.html:1162 templates/sheets.html:1206
+#: templates/sheets.html:1207 templates/sheets.html:1228
+#: templates/sheets.html:1229
 msgid "OK"
 msgstr ""
 
-#: templates/sheets.html:1131
+#: templates/sheets.html:1163
 msgid "Reset to sheet defaults"
 msgstr ""
 
-#: templates/sheets.html:1140
+#: templates/sheets.html:1172 templates/sheets.html:1173
 #, fuzzy
 #| msgid "likes your Source Sheet"
 msgid "Would you like to make your Source Sheet public?"
 msgstr "ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་མི་ཚང་མས་མཐོང་ཐུབ་པ་བྱེད་འདོད་འདུག་གམ།"
 
-#: templates/sheets.html:1146
+#: templates/sheets.html:1178 templates/sheets.html:1181
 msgid ""
 "Your Source Sheet is looking great! You can share it with other members of "
 "the Pecha Community by making it public."
-msgstr "ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་ཀྱི་རྣམ་པ་ལེགས་པོ་འདུག ཁྱེད་ཀྱིས་དེ་མི་ཚང་མས་མཐོང་ཐུབ་པ་བཟོས་ཏེ། དཔེ་ཆ་དྲ་ཚིག་གི་ཚོགས་སྡེའི་ནང་གི་ཁོངས་མི་རྣམས་དང་མཉམ་སྤྱོད་བྱ་ཆོག"
+msgstr ""
+"ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་ཀྱི་རྣམ་པ་ལེགས་པོ་འདུག ཁྱེད་ཀྱིས་དེ་མི་ཚང་མས་མཐོང་ཐུབ་པ་བཟོས་ཏེ། དཔེ་ཆ་དྲ་ཚིག་གི་"
+"ཚོགས་སྡེའི་ནང་གི་ཁོངས་མི་རྣམས་དང་མཉམ་སྤྱོད་བྱ་ཆོག"
 
-#: templates/sheets.html:1154
+#: templates/sheets.html:1186 templates/sheets.html:1187
 msgid "Make Public"
 msgstr "མི་ཚང་མས་མཐོང་ཐུབ་པ་བཟོས།"
 
-#: templates/sheets.html:1158
+#: templates/sheets.html:1190 templates/sheets.html:1191
 msgid "Maybe Later"
 msgstr "ཕལ་ཆེར་རྗེས་སུ་"
 
-#: templates/sheets.html:1164
+#: templates/sheets.html:1196 templates/sheets.html:1197
 msgid "Your Sheet is now Public!"
 msgstr "ད་ལྟ་ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་ཚང་མས་མཐོང་ཐུབ་པ་བཟོས་ཡོད།"
 
-#: templates/sheets.html:1169
+#: templates/sheets.html:1201 templates/sheets.html:1202
 msgid ""
 "Thank you for contributing to a free, growing resource for Jewish learning."
-msgstr "ནང་ཆོས་སློབ་གཉེར་གྱི་ཆེད་དུ་རིན་འབབ་སྤྲོད་མི་དགོས་པའི་རྒྱུ་ཆ་ཁ་སྣོན་དང་མཁོ་སྤྲོད་བྱས་པར་བཀའ་དྲིན་ཆེ་ཞུ།"
+msgstr ""
+"ནང་ཆོས་སློབ་གཉེར་གྱི་ཆེད་དུ་རིན་འབབ་སྤྲོད་མི་དགོས་པའི་རྒྱུ་ཆ་ཁ་སྣོན་དང་མཁོ་སྤྲོད་བྱས་པར་བཀའ་དྲིན་ཆེ་ཞུ།"
 
-#: templates/sheets.html:1180
+#: templates/sheets.html:1212
 msgid "No problem, this sheet is still not listed on Sefaria."
 msgstr "གནད་དོན་མི་འདུག ཤོག་ངོས་འདི་ད་དུང་དཔེ་ཆ་དྲ་ཚིག་གི་དཔེ་མཛོད་ནང་ཐོ་རུ་བཀོད་མི་འདུག"
 
-#: templates/sheets.html:1186
+#: templates/sheets.html:1218 templates/sheets.html:1222
 msgid "You can make your sheet public in the future from the"
 msgstr "ཁྱེད་ཀྱིས་གཞུག་ཕྱོགས་རང་ཉིད་ཀྱི་ཤོག་ངོས་མི་ཚང་མས་མཐོང་ཐུབ་པ་བཟོ་ཆོག"
 
@@ -1898,7 +2008,7 @@ msgstr ""
 "དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས་སྤྱད་ནས་བཟོས་པ %(sheet.owner|user_name) འི་མ་ཕྱིའི་ཤོག་"
 "ངོས་ཀྱི་མཐོང་ཐུབ་པའི་རི་མོའི་རྣམ་པ་ཅན།"
 
-#: templates/sheets_visual.html:30
+#: templates/sheets_visual.html:30 templates/sheets_visual.html:31
 msgid "Back to Sheet"
 msgstr ""
 
