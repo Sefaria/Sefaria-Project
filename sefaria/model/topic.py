@@ -547,11 +547,16 @@ class AuthorTopic(PersonTopic):
 
         def get_all_best_paths(cat_aggregator):
             best_paths = []
-            for (collective_title, _), cat_choice_dict in cat_aggregator.items():
-                cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
-                (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
+            for cat_aggregator_item in cat_aggregator.items():
+                best_base_cat_path, _ = get_best_path_and_temp_indexes(cat_aggregator_item)
                 best_paths.append(best_base_cat_path)
             return best_paths
+
+        def get_best_path_and_temp_indexes(cat_aggregator_item):
+            (collective_title, _), cat_choice_dict = cat_aggregator_item
+            cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
+            (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
+            return best_base_cat_path, temp_indexes
 
         def is_prefix(tuple_to_check, list_of_tuples):
             for t in list_of_tuples:
@@ -577,8 +582,7 @@ class AuthorTopic(PersonTopic):
 
         all_best_paths = get_all_best_paths(cat_aggregator)
         for (collective_title, _), cat_choice_dict in cat_aggregator.items():
-            cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
-            (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
+            best_base_cat_path, temp_indexes = get_best_path_and_temp_indexes(((collective_title, _), cat_choice_dict))
             if best_base_cat_path == ('Talmud', 'Bavli'):
                 best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
             
