@@ -479,7 +479,6 @@ TextRange.propTypes = {
   textHighlights:         PropTypes.array,
   translationLanguagePreference: PropTypes.string,
   navigatePanel:          PropTypes.func,
-  onTextRender:           PropTypes.func
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
@@ -695,7 +694,6 @@ TextSegment.propTypes = {
   onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
   navigatePanel: PropTypes.func,
-  onTextRender: PropTypes.func,
 };
 
 export default TextRange;

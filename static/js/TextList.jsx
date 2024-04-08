@@ -22,7 +22,6 @@ class TextList extends Component {
       textLoaded:  false, // has the text of those refs been loaded
       waitForText: true,  // should we delay rendering texts until preload is finished
     }
-    this.textRangesRef = React.createRef();
   }
   componentDidMount() {
     this._isMounted = true;
@@ -233,7 +232,6 @@ class TextList extends Component {
                                       onCitationClick={this.props.onCitationClick}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
                                       filterRef={this.props.filterRef}
-                                      onTextRender={this.onTextRender}
                                     />
                                     <ConnectionButtons>
                                       <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
@@ -247,7 +245,7 @@ class TextList extends Component {
                         }
                       }, this);
     return (
-        <div ref={this.textRangesRef}>
+        <div>
           {this.props.fullPanel ?
           <RecentFilterSet
             srefs={this.props.srefs}
