@@ -1661,10 +1661,10 @@ def index_api(request, title, raw=False):
         def index_post(request, UID, method):
             return jsonResponse(func(UID, Index, j, raw=raw, method=method).contents(raw=raw))
 
-        USER_TYPE = None  # indicates whether a Content Engineer or Admin is modifying the Index
+        user_type = None  # indicates whether a Content Engineer or Admin is modifying the Index
         CONTENT_TYPE = "CONTENT"
         ADMIN_TYPE = "ADMIN"
-        UID = None
+        uid = None
         #todo: move this to texts_api, pass the changes down through the tracker and text chunk
         #if "versionTitle" in j:
         #    if j["versionTitle"] == "Sefaria Community Translation":
@@ -1677,13 +1677,13 @@ def index_api(request, title, raw=False):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            USER_TYPE = CONTENT_TYPE
-            UID = apikey["uid"]
+            user_type = CONTENT_TYPE
+            uid = apikey["uid"]
         else:
             if not request.user.is_staff:
                 return jsonResponse({"error": "You must be staff to edit an index record with the admin tool."})
-            USER_TYPE = ADMIN_TYPE
-            UID = request.user.id
+            user_type = ADMIN_TYPE
+            uid = request.user.id
 
         # use the update function if update is in the params
         func = tracker.update if request.GET.get("update", False) else tracker.add
@@ -1691,9 +1691,9 @@ def index_api(request, title, raw=False):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
-        if USER_TYPE == CONTENT_TYPE:
-            return index_post(request, UID, "API")
-        elif USER_TYPE == ADMIN_TYPE:
+        if user_type == CONTENT_TYPE:
+            return index_post(request, uid, "API")
+        elif user_type == ADMIN_TYPE:
             if 'schema' not in j:
                 # if book already exists and no schema provided, use old schema
                 j["title"] = title.replace("_", " ")
@@ -1702,9 +1702,9 @@ def index_api(request, title, raw=False):
                     book = library.get_index(title)
                     j['schema'] = book.contents()['schema']
                 except BookNameError:
-                    pass
+                    return jsonResponse({"error": f"Book {title} does not exist."})
             admin_post = csrf_protect(index_post)
-            return admin_post(request, UID, None)
+            return admin_post(request, uid, None)
 
     if request.method == "DELETE":
         if not request.user.is_staff:
