@@ -254,7 +254,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
       onBlur(e);
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
-        //debug: comment out the following line:
+        // debug: comment out the following line:
         setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }

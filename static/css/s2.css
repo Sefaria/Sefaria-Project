@@ -4602,6 +4602,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     max-width: 100%;
     min-height: 10px;
 }
+.singlePanel .search-suggestion{
+  width: auto;
+}
 
 .search-suggestion-text{
   font-family: 'EB Garamond';
