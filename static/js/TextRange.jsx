@@ -321,6 +321,8 @@ class TextRange extends Component {
             heLangCode={this.props.currVersions.he && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.he?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.he?.versionTitle)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
+            primaryDirection={data.primaryDirection}
+            translationDirection={data.translationDirection}
             highlight={highlight}
             showHighlight={this.props.showHighlight}
             textHighlights={textHighlights}
@@ -601,7 +603,14 @@ class TextSegment extends Component {
         </div>
     ) : null;
 
-
+    const primary = {
+      direction: this.props.primaryDirection,
+      text: (!enOnly) ? he + " " : '',
+    };
+    const translation = {
+      direction: this.props.translationDirection,
+      text: (!heOnly) ? en + " " : '',
+    };
 
     const classes=classNames({
       segment: 1,
@@ -622,7 +631,7 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <p className="segmentText">
-          <VersionContent overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }} bilingualOrder={["he", "en"]} imageLoadCallback={this.props.placeSegmentNumbers}/>
+          <VersionContent primary={primary} translation={translation} imageLoadCallback={this.props.placeSegmentNumbers}/>
         </p>
 
         <div className="clearFix"></div>
@@ -634,6 +643,8 @@ TextSegment.propTypes = {
   sref:            PropTypes.string,
   en:              PropTypes.string,
   he:              PropTypes.string,
+  primaryDirection: PropTypes.string,
+  translationDirection: PropTypes.string,
   highlight:       PropTypes.bool,
   showHighlight:   PropTypes.bool,
   textHighlights:  PropTypes.array,

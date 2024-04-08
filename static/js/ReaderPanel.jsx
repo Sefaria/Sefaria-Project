@@ -1246,9 +1246,7 @@ class ReaderControls extends Component {
       this.setDisplayVersionTitle({});
       return;
     }
-    console.log(1, data.versionTitle)
     for (const version of Object.values(data.available_versions)) {
-      console.log(2, version)
       if (!version.isSource && version.versionTitle === data.versionTitle) {
         this.setDisplayVersionTitle(version);
         break;

@@ -1518,9 +1518,6 @@ div.interfaceLinks-row a {
 .readerPanel.bilingual .readerNavMenu .gridBox {
   direction: ltr;
 }
-.readerPanel.english .he {
-  display: none;
-}
 .readerPanel.english .he.heOnly{
   display: inline;
   text-align: right;
@@ -1531,9 +1528,6 @@ div.interfaceLinks-row a {
 .readerPanel.hebrew .he {
   display: inline;
   text-align: right;
-}
-.readerPanel.hebrew .en {
-  display: none;
 }
 .readerPanel.english .heOnly .he,
 .readerPanel.bilingual .heOnly .he {
@@ -5394,17 +5388,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerPanel.english .SheetSource .sheetItem.segment .en {
   background-color: white;
 }
-.heLeft.bilingual .segment > .en,
-.heRight.bilingual .segment > .he ,
-.heLeft.bilingual .segment > p > .en,
-.heRight.bilingual .segment > p > .he {
+.heLeft.bilingual .segment > .translation,
+.heRight.bilingual .segment > .primary,
+.heLeft.bilingual .segment > p > .translation,
+.heRight.bilingual .segment > p > .primary {
   float: right;
   padding-left: 20px;
 }
-.heRight.bilingual .segment > .en,
-.heLeft.bilingual .segment > .he,
-.heRight.bilingual .segment > p > .en,
-.heLeft.bilingual .segment > p > .he {
+.heRight.bilingual .segment > .translation,
+.heLeft.bilingual .segment > .primary,
+.heRight.bilingual .segment > p > .translation,
+.heLeft.bilingual .segment > p > .primary {
   float: left;
   padding-right: 20px;
 }
