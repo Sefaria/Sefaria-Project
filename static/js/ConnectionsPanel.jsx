@@ -235,17 +235,16 @@ class ConnectionsPanel extends Component {
     const versionPref = Sefaria.versionPreferences.getVersionPref(this.props.srefs[0]);
     return await Sefaria.getTextFromCurrVersions(this.props.srefs[0], this.props.currVersions);
   }
-  getVersionFromData(d, lang) {
+  getVersionFromData(d, isSource) {
     //d - data received from this.getData()
     //language - the language of the version
-    //console.log(d);
-    const currentVersionTitle = (lang === "he") ? d.heVersionTitle : d.versionTitle;
+    const currentVersionTitle = (isSource) ? d.heVersionTitle : d.versionTitle;
     return {
-      ...d.versions.find(v => v.versionTitle === currentVersionTitle && v.language === lang),
+      ...d.versions.find(v => v.versionTitle === currentVersionTitle && !!v.isSource === isSource),
       title: d.indexTitle,
       heTitle: d.heIndexTitle,
-      sources: lang === "he" ? d.heSources : d.sources,
-      merged: lang === "he" ? !!d.heSources : !!d.sources,
+      sources: isSource ? d.heSources : d.sources,
+      merged: isSource ? !!d.heSources : !!d.sources,
     }
   }
   async setCurrentVersions() {
@@ -261,8 +260,8 @@ class ConnectionsPanel extends Component {
     }
     this.setState({
       currObjectVersions: {
-        en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? this.getVersionFromData(data, "en") : null,
-        he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? this.getVersionFromData(data, "he") : null,
+        en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? this.getVersionFromData(data, false) : null,
+        he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? this.getVersionFromData(data, true) : null,
       },
       sectionRef: data.sectionRef,
     });
