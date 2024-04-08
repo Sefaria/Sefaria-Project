@@ -156,7 +156,7 @@ class TextRange extends Component {
       }.bind(this));
     }
 
-    const connectionsPanelRefElement = document.querySelectorAll(`[data-ref='${this.props.scrollToRef}']`);
+    const connectionsPanelRefElement = document.querySelectorAll(`[data-ref='${this.props.filterRef}']`);
     if (connectionsPanelRefElement.length > 0) {
       connectionsPanelRefElement[0].scrollIntoView();
     }

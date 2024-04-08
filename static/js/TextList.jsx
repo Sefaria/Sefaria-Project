@@ -232,7 +232,7 @@ class TextList extends Component {
                                       inlineReference={link.inline_reference || null}
                                       onCitationClick={this.props.onCitationClick}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
-                                      scrollToRef={this.props.scrollToRef}
+                                      filterRef={this.props.filterRef}
                                       onTextRender={this.onTextRender}
                                     />
                                     <ConnectionButtons>
@@ -281,7 +281,7 @@ TextList.propTypes = {
   selectedWords:           PropTypes.string,
   checkVisibleSegments:    PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
-  scrollToRef:             PropTypes.string
+  filterRef:             PropTypes.string
 };
 
 const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
