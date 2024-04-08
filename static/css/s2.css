@@ -4550,6 +4550,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-top: 5px;
   padding-bottom: 5px;
 }
+.singlePanel .search-group-suggestions{
+  border-bottom-width: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
 .search-group-suggestions-items{
   display: flex;
   flex-direction: column;
@@ -4558,11 +4563,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .search-suggestion-link-wrapper{
   display: flex;
-  /*height: 35px;*/
   align-items: center;
 }
 .search-suggestion-link-wrapper:hover{
   text-decoration: none;
+}
+.singlePanel .search-suggestion-link-wrapper{
+  border-bottom: 0;
+  padding: 0;
 }
 
 .search-suggestion {
