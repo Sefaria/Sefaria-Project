@@ -4572,6 +4572,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom: 0;
   padding: 0;
 }
+.singlePanel .search-suggestion-link-wrapper.search-override-wrapper{
+  padding-top: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-top-color: #EDEDEC;
+  border-top-style: solid;
+  border-top-width: 0.766667px;
+  border-bottom-color: #EDEDEC;
+  border-bottom-style: solid;
+  border-bottom-width: 0.766667px;
+}
 
 .search-suggestion {
     display: flex;
@@ -4662,6 +4673,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .singlePanel .autocomplete-dropdown .type-title {
   width: 0;
   visibility: hidden;
+  padding-inline-end: 0;
 }
 
 .readerNavMenu .sheet {

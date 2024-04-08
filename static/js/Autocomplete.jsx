@@ -141,7 +141,8 @@ const SearchSuggestion = ({ value, type, label, url, pic,
   let searchOverrideText = null;
   let displayedLabel = label;
   let onClickCallBack = null;
-  let searchIconClassName = null
+  let searchIconClassName = null;
+  let searchOverrideWrapperClassName = null;
 
   const submitSearchOverride = () => {
       _submitSearch(label)
@@ -161,7 +162,9 @@ const SearchSuggestion = ({ value, type, label, url, pic,
             {displayedLabel}
             <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
         </>;
-    searchIconClassName = 'search-icon'
+    searchIconClassName = 'search-icon';
+    searchOverrideWrapperClassName = 'search-override-wrapper';
+
 
 }
 
@@ -170,7 +173,9 @@ const SearchSuggestion = ({ value, type, label, url, pic,
 
 
   return (
-      <a href={url} onClick={onClickCallBack} className={'search-suggestion-link-wrapper'}>
+      <a
+          // href={url}
+         onClick={onClickCallBack} className={`search-suggestion-link-wrapper ${searchOverrideWrapperClassName}`}>
           <div
             key={value}
             {...getItemProps({ index: universalIndex})}
@@ -192,7 +197,7 @@ const SearchSuggestion = ({ value, type, label, url, pic,
 };
 
 const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
-                      // onRefClick, showSearch, openTopic, openURL,
+                      onRefClick, showSearch, openTopic, openURL,
                             hideHebrewKeyboard,
                         setSearchFocused, searchFocused,
                _clearSearchBox, _submitSearch, _showSearch, _redirectToObject}) => {
@@ -352,9 +357,11 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     );
 };
 
- const Autocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate = null}) => {
+ const Autocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
   const [suggestions, setSuggestions] = useState([]);
   const [searchFocused, setSearchFocused] = useState(false);
+  console.log(onRefClick);
+  console.log(onNavigate);
   const {
     isOpen,
     getMenuProps,
@@ -475,7 +482,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
             openTopic={openTopic}
             openURL={openURL}
             suggestions={suggestions}
-            hideHebrewKeyboard={false}
+            hideHebrewKeyboard={hideHebrewKeyboard}
             highlightedIndex={highlightedIndex}
 
             setSearchFocused={setSearchFocused}
@@ -491,7 +498,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
         className={"autocomplete-dropdown"}
       >
       {/*//debug: make following condition always truthy:*/}
-          {(isOpen && searchFocused || true) &&
+          {((isOpen && searchFocused) || true) &&
               <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}
                    getInputProps={getInputProps} _submitSearch={_submitSearch}
               />

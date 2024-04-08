@@ -34,6 +34,7 @@ class Header extends Component {
     }
   }
   toggleMobileNavMenu() {
+    console.log("close toggle")
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
   }
   render() {
@@ -214,20 +215,13 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
   return (
     <div className={classes}>
       <div className="searchLine">
-        {/*<SearchBar*/}
-        {/*  onRefClick={onRefClick}*/}
-        {/*  showSearch={showSearch}*/}
-        {/*  openTopic={openTopic}*/}
-        {/*  openURL={openURL}*/}
-        {/*  onNavigate={close}*/}
-        {/*  fullWidth={true}*/}
-        {/*  hideHebrewKeyboard={true} />*/}
         <Autocomplete
             onRefClick={onRefClick}
             showSearch={showSearch}
             openTopic={openTopic}
             openURL={openURL}
             onNavigate={close}
+            hideHebrewKeyboard={true}
         />
       </div>
       <a href="/texts" onClick={close} className="textsPageLink">
