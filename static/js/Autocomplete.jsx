@@ -135,15 +135,19 @@ const getQueryObj = (query) => {
 
 const SearchSuggestion = ({ value, type, label, url, pic,
                               universalIndex, highlightedIndex, getItemProps,
-                                                            _submitSearch}) => {
+                                                            _submitSearch, _redirectToObject}) => {
   const isHebrew = Sefaria.hebrew.isHebrew(label);
   const searchOverridePre = Sefaria._('Search for') +':';
   let searchOverrideText = null;
   let displayedLabel = label;
-  let onClickCallBack = null;
   let searchIconClassName = null;
   let searchOverrideWrapperClassName = null;
 
+  const onClickSuggestion = () => {
+      _redirectToObject({type, url})
+  }
+
+  let onClickCallBack = onClickSuggestion;
   const submitSearchOverride = () => {
       _submitSearch(label)
     }
@@ -173,9 +177,7 @@ const SearchSuggestion = ({ value, type, label, url, pic,
 
 
   return (
-      <a
-          // href={url}
-         onClick={onClickCallBack} className={`search-suggestion-link-wrapper ${searchOverrideWrapperClassName}`}>
+      <a href={url} onClick={onClickCallBack} className={`search-suggestion-link-wrapper ${searchOverrideWrapperClassName}`}>
           <div
             key={value}
             {...getItemProps({ index: universalIndex})}
@@ -253,7 +255,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
         //debug: comment out the following line:
-        // setSearchFocused(false);
+        setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }
     };
@@ -287,7 +289,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
-                                            _submitSearch}) => {
+                                            _submitSearch, _redirectToObject}) => {
 
     let groupedSuggestions = groupByType(suggestions);
     let universalIndex = 0;
@@ -306,6 +308,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
                         initialIndexForGroup={InitialIndexForGroup}
 
                         _submitSearch={_submitSearch}
+                        _redirectToObject={_redirectToObject}
                     />
                 );
             })}
@@ -317,7 +320,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 }
 
 const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex,
-                                    _submitSearch}) => {
+                                    _submitSearch, _redirectToObject}) => {
 
     const type = suggestions[0].type;
     const enTitle = type_title_map[type]?.en;
@@ -348,6 +351,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
                             getItemProps = {getItemProps}
 
                             _submitSearch={_submitSearch}
+                            _redirectToObject={_redirectToObject}
 
                         />
                 );
@@ -360,8 +364,6 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
  const Autocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
   const [suggestions, setSuggestions] = useState([]);
   const [searchFocused, setSearchFocused] = useState(false);
-  console.log(onRefClick);
-  console.log(onNavigate);
   const {
     isOpen,
     getMenuProps,
@@ -498,9 +500,9 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
         className={"autocomplete-dropdown"}
       >
       {/*//debug: make following condition always truthy:*/}
-          {((isOpen && searchFocused) || true) &&
+          {(isOpen && searchFocused) &&
               <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}
-                   getInputProps={getInputProps} _submitSearch={_submitSearch}
+                   getInputProps={getInputProps} _submitSearch={_submitSearch} _redirectToObject={_redirectToObject}
               />
           }
       </div>

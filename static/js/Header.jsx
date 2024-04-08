@@ -34,7 +34,6 @@ class Header extends Component {
     }
   }
   toggleMobileNavMenu() {
-    console.log("close toggle")
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
   }
   render() {
