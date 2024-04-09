@@ -493,6 +493,13 @@ class TextIndexer(object):
                 print("Tried: {} times. Got {} versions".format(tries, len(versions)))
                 raise e
 
+    @staticmethod
+    def is_included_in_search(version):
+        return version.versionTitle not in [
+            "Yehoyesh's Yiddish Tanakh Translation [yi]",
+            'Miqra Mevoar, trans. and edited by David Kokhav, Jerusalem 2020'
+        ]
+
     @classmethod
     def index_all(cls, index_name, debug=False, for_es=True, action=None):
         cls.index_name = index_name
@@ -522,7 +529,7 @@ class TextIndexer(object):
                 except ValueError:
                     cls.best_time_period = None
             for v in vlist:
-                if v.versionTitle == "Yehoyesh's Yiddish Tanakh Translation [yi]":
+                if cls.is_included_in_search(v):
                     print("skipping yiddish. we don't like yiddish")
                     continue
 
