@@ -226,7 +226,7 @@ class TextList extends Component {
                                       hideTitle={hideTitle}
                                       numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
                                       basetext={false}
-                                      textHighlights={link.highlightedWords || null}
+                                      textHighlights={link.highlightedWords || this.props.textHighlights || null}
                                       inlineReference={link.inline_reference || null}
                                       onCitationClick={this.props.onCitationClick}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
@@ -277,6 +277,7 @@ TextList.propTypes = {
   selectedWords:           PropTypes.string,
   checkVisibleSegments:    PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  textHighlights:          PropTypes.array,
 };
 
 const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
