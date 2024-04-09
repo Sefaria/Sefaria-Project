@@ -192,6 +192,14 @@ class TextList extends Component {
 
     return links;
   }
+  getTextHighlights(link) {
+    const linkHighlightedWords = link.highlightedWords || [];
+    let textHighlights = this.props.filterRef === link.sourceRef ?
+                                                linkHighlightedWords.concat(this.props.textHighlights || [])
+                                                : linkHighlightedWords;
+    textHighlights = textHighlights.length > 0 ? textHighlights : null;
+    return textHighlights;
+  }
 
   render() {
     var refs               = this.props.srefs;
@@ -220,6 +228,7 @@ class TextList extends Component {
                         } else {
                           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
                           const classes = classNames({ textListTextRangeBox: 1,  typeQF: link.type.startsWith('quotation_auto')});
+                          const textHighlights = this.getTextHighlights(link);
                           return (<div className={classes} key={i + link.sourceRef}>
                                     <TextRange
                                       panelPosition ={this.props.panelPosition}
@@ -227,7 +236,7 @@ class TextList extends Component {
                                       hideTitle={hideTitle}
                                       numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
                                       basetext={false}
-                                      textHighlights={link.highlightedWords || this.props.textHighlights || null}
+                                      textHighlights={textHighlights}
                                       inlineReference={link.inline_reference || null}
                                       onCitationClick={this.props.onCitationClick}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
