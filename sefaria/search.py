@@ -495,7 +495,7 @@ class TextIndexer(object):
 
     @staticmethod
     def is_included_in_search(version):
-        return version.versionTitle not in [
+        return version.versionTitle in [
             "Yehoyesh's Yiddish Tanakh Translation [yi]",
             'Miqra Mevoar, trans. and edited by David Kokhav, Jerusalem 2020'
         ]
