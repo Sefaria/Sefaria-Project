@@ -3557,6 +3557,7 @@ form.globalUpdateForm + div.notificationsList {
   }
   .interface-hebrew #testimonialsPage .inner {
     margin-top: -70px;
+    margin-inline-end: auto;
   }
   .interface-hebrew #metricsPage .inner {
     margin-top: -70px;
