@@ -577,7 +577,6 @@ class TextSegment extends Component {
 
     const heOnly = !this.props.en;
     const enOnly = !this.props.he;
-    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
 
     if (this.props.showLinkCount) {
       const linkCount = this.props.linkCount;
@@ -605,11 +604,11 @@ class TextSegment extends Component {
 
     const primary = {
       direction: this.props.primaryDirection,
-      text: (!enOnly) ? he + " " : '',
+      text: he + " ",
     };
     const translation = {
       direction: this.props.translationDirection,
-      text: (!heOnly) ? en + " " : '',
+      text: en + " ",
     };
 
     const classes=classNames({
