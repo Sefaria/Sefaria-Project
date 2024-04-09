@@ -769,6 +769,7 @@ class ReaderPanel extends Component {
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
           textHighlights={this.state.textHighlights}
+          filterRef={this.state.filterRef}
           key="connections" />
       );
     }

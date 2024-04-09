@@ -192,6 +192,7 @@ class TextList extends Component {
 
     return links;
   }
+
   render() {
     var refs               = this.props.srefs;
     var oref               = Sefaria.ref(refs[0]);
@@ -230,6 +231,7 @@ class TextList extends Component {
                                       inlineReference={link.inline_reference || null}
                                       onCitationClick={this.props.onCitationClick}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
+                                      filterRef={this.props.filterRef}
                                     />
                                     <ConnectionButtons>
                                       <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
@@ -278,6 +280,7 @@ TextList.propTypes = {
   checkVisibleSegments:    PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
   textHighlights:          PropTypes.array,
+  filterRef:             PropTypes.string
 };
 
 const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
