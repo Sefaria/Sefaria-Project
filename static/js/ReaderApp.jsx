@@ -715,9 +715,6 @@ class ReaderApp extends Component {
           if("aliyot" in histories[0]) {
               url += "&aliyot=" + histories[0].aliyot;
           }
-          if (connectionsHistory.filterRef) {
-            hist.url += `&withRef=${connectionsHistory.filterRef}`;
-          }
           if(connectionsHistory.versionFilter) {
             hist.url += "&vside=" + Sefaria.util.encodeVtitle(connectionsHistory.versionFilter);
           }
@@ -1460,7 +1457,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       let filterRef;
       if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
         // getBaseRefAndFilter breaks up the ref "Rashi on Genesis 1:1:4" into filter "Rashi" and ref "Genesis 1:1",
-        // so filterRef is needed to store the entire "Rashi on Genesis 1:1:4"
+        // so `filterRef` is needed to store the entire "Rashi on Genesis 1:1:4"
         filterRef = Sefaria.humanRef(ref);
         ({ref, filter} = Sefaria.getBaseRefAndFilter(ref));
       }
