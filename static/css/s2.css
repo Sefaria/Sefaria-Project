@@ -1518,6 +1518,9 @@ div.interfaceLinks-row a {
 .readerPanel.bilingual .readerNavMenu .gridBox {
   direction: ltr;
 }
+.readerPanel.english .primary {
+  display: none;
+}
 .readerPanel.english .he.heOnly{
   display: inline;
   text-align: right;
@@ -1528,6 +1531,9 @@ div.interfaceLinks-row a {
 .readerPanel.hebrew .he {
   display: inline;
   text-align: right;
+}
+.readerPanel.hebrew .translation {
+  display: none;
 }
 .readerPanel.english .heOnly .he,
 .readerPanel.bilingual .heOnly .he {
