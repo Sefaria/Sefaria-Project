@@ -25,7 +25,7 @@ class SearchTextResult extends Component {
     getHighlights() {
         // Gets list of highlights (text in <b> tags) in the current match
         // Returns list of strings
-        let highlights = [];
+        let highlights = [this.props.query];
         let longestLength = 0;
         const highlightReg = /((?:[\s,.?!:;]){0,}<b>[^<]+<\/b>[\s,.?!:;]{0,})+/g;  // capture consecutive <b> tags in one match
         if (!this.props.data.highlight) { return []; }
