@@ -494,7 +494,7 @@ class TextIndexer(object):
                 raise e
 
     @staticmethod
-    def dont_included_in_search(version):
+    def excluded_from_search(version):
         return version.versionTitle in [
             "Yehoyesh's Yiddish Tanakh Translation [yi]",
             'Miqra Mevoar, trans. and edited by David Kokhav, Jerusalem 2020'
@@ -529,8 +529,8 @@ class TextIndexer(object):
                 except ValueError:
                     cls.best_time_period = None
             for v in vlist:
-                if cls.dont_included_in_search(v):
-                    print("skipping yiddish. we don't like yiddish")
+                if cls.excluded_from_search(v):
+                    print("skipping version")
                     continue
 
                 cls.index_version(v, action=action)
