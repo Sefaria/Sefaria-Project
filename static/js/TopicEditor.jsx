@@ -65,7 +65,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     };
     slugsToTitles = Object.assign(specialCases, slugsToTitles);
     const catMenu =   <div className="section">
-                                            <label><InterfaceText>Parent Topic</InterfaceText></label>
+                                            <label><InterfaceText>Parent Topic *</InterfaceText></label>
                                             <div className="categoryChooserMenu">
                                                 <select key="topicCats" id="topicCats" onChange={handleCatChange}>
                                                     {Object.keys(slugsToTitles).map(function (tempSlug, i) {
@@ -85,7 +85,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
             alert("You haven't changed any of the fields.");
             return false;
         }
-        if (data.catSlug === "") {
+        if (data.catSlug.length === 0) {
           alert(Sefaria._("Please choose a category."));
           return false;
         }
