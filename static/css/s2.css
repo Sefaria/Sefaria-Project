@@ -1920,7 +1920,9 @@ div.interfaceLinks-row a {
   margin-bottom: 15px;
 }
 .navSidebarModule .imageModuleImage {
-  width: 100%;
+  width: 250px;
+  height: 250px;
+  border-radius: 8px;
   box-sizing: border-box;
   border: 1px solid var(--lighter-grey);
 }
