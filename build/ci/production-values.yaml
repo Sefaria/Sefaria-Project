@@ -165,7 +165,10 @@ nginx:
   containerImage:
     imageRegistry:
     tag:
-  SEARCH_HOST: elasticsearch-es-http.elasticsearch.svc
+  SEARCH_HOST: "searchfix.cauldron.sefaria.org"
+  SEARCH_PORT: "443"
+  SEARCH_PATH: "api/search"
+  SEARCH_SSL_ENABLE: true
   disableScraping: false
   replicaCount: 2
   resources:

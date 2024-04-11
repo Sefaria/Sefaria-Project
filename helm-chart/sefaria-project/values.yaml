@@ -302,6 +302,9 @@ nginx:
     tag: latest
   # set to search-democracy for democracy
   SEARCH_HOST: elasticsearch-es-default.elasticsearch
+  SEARCH_PORT: 9200
+  SEARCH_PATH: ""
+  SEARCH_SSL_ENABLE: false
   disableScraping: true
   # key-pair values to load into nginx pod environment.  Takes precedence over global localsettings
   localsettings:
