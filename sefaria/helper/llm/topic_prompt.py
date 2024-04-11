@@ -86,7 +86,7 @@ def _make_llm_topic(sefaria_topic: Topic) -> LLMTopic:
     )
 
 
-def _make_topic_prompt_source(oref: Ref, context: str, with_commentary=True) -> TopicPromptSource:
+def _make_topic_prompt_source(oref: Ref, context: str) -> TopicPromptSource:
     """
     Return a dict that can be instantiated as `sefaria_interface.TopicPromptSource` in the LLM repo.
     This represents the basic metadata of a source for the LLM repo to process.
