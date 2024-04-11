@@ -194,7 +194,7 @@ cronJobs:
   dailyEmailNotifications:
     enabled: true
   indexFromQueue:
-    enabled: true
+    enabled: false
   metrics:
     enabled: true
   nationBuilderSync:
