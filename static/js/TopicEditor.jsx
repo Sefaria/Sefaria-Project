@@ -85,7 +85,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
             alert("You haven't changed any of the fields.");
             return false;
         }
-        if (data.catSlug.length === 0) {
+        if (data.catSlug === "" || typeof data.catSlug === "object") {
           alert(Sefaria._("Please choose a category."));
           return false;
         }
