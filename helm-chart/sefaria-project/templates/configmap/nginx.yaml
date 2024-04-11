@@ -86,8 +86,7 @@ data:
       }
 
       upstream elasticsearch_upstream {
-        # TODO template this properly so that nginx can redirect properly
-        server ${SEARCH_HOST}:${SEARCH_PORT};
+        server ${SEARCH_HOST}:9200;
         keepalive 32;
       }
 
