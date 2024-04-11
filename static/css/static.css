@@ -585,8 +585,8 @@
 .registrationContent #register-form p:nth-of-type(5){
   padding-top: 10px;
 }
-.interface-hebrew input#id_email::placeholder {
-  text-align: right;
+input#id_email::placeholder {
+  text-align: left;
 }
 input#id_email{
   text-align: left;
@@ -596,6 +596,7 @@ input#id_email{
   width: 100%;
 }
 .registrationContent a {
+  display: block;
 }
 .registrationContent a.registration-links, .registrationContent p.registration-links{
   margin-top: 20px;

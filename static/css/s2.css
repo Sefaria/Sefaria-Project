@@ -9092,13 +9092,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer {
   position: absolute;
   bottom: 0;
-  height: 2.5rem;
-  background-color: white;
+  height: 1.3rem;
+  background-color: transparent;
   border-top: 1px solid #F4F4F4;
   overflow: hidden;
   padding: 18px 40px 70px 40px;
   text-align: left;
-  color: #999;
+  color: #808080;
 }
 .singlePanel #footer {
   padding: 18px 15px 70px 15px;
@@ -9121,6 +9121,12 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footerInner {
   max-width: 1000px;
   margin: 0 auto;
+}
+#version_number {
+    position: fixed;
+    left: 30px;
+    bottom: 9px;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #footer .section {
   display: inline-block;
@@ -10792,9 +10798,9 @@ cursor: pointer;
     margin: -4px 0 -120px -1000px;
     width: 100%;
 }
-.interface-hebrew .profile-page .filterable-list {
+/* .interface-hebrew .profile-page .filterable-list {
   margin: -4px -1000px -120px 0;
-}
+} */
 .filterable-list .filter-bar {
   border-bottom: 1px solid #E2E2E1;
   display: flex;

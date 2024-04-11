@@ -143,7 +143,7 @@ class UserProfile extends Component {
       <div className="emptyList">
         <div className="emptyListText">
           <span className="int-en">0 Notes</span>
-          <span className="int-he">0 הערות</span>
+          <span className="int-he">0 དཔེ་ཆ་</span>
         </div>
       </div>
     );
@@ -202,13 +202,14 @@ class UserProfile extends Component {
             lessons, lectures, articles, and more.
           </span>
           <span className="int-he">
-            באפשרותכם להשתמש בדפי מקורות בכדי לארגן מקורות, ליצור טקסטים חדשים, לתכנן שיעורים, הרצאות, כתבות ועוד.
+          ཁྱེད་རང་གིས་ལས་ཀའི་རེའུ་མིག་སྤྱད་དེ་ཉར་ཚགས་དང་རྩ་འཛུགས་ཀྱི་འབྱུང་ཁུངས་ཉར་ཚགས་དང་སྒྲིག་འཛུགས་བྱས་ནས་ཡིག་སྐལ་གསར་པ་རྩོམ་འབྲི་དང་
+            སློབ་ཚན་དང་། འཆད་ཁྲིད། རྩོམ་ཡིག་སོགས་ཚུད་ཡོད།
           </span>
         </div>
         <a href="/sheets/new" className="resourcesLink sans-serif">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
           <span className="int-en">Create a New Sheet</span>
-          <span className="int-he">צור דף חדש</span>
+          <span className="int-he">ལས་ཀའི་རེའུ་མིག་གསར་པ་གཏོད་དགོས།</span>
         </a>
       </div>
     );
