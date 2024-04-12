@@ -1920,7 +1920,9 @@ div.interfaceLinks-row a {
   margin-bottom: 15px;
 }
 .navSidebarModule .imageModuleImage {
-  width: 100%;
+  width: 250px;
+  height: 250px;
+  border-radius: 8px;
   box-sizing: border-box;
   border: 1px solid var(--lighter-grey);
 }
@@ -2316,8 +2318,9 @@ div.interfaceLinks-row a {
 }
 .imageWithCaptionPhoto{
   border: 1px solid #EDEDEC;
-  max-width: 100%; 
-  height: auto;
+  height: 250px;
+  width: 250px;
+  border-radius: 8px;
   padding: 0 44;
   top: 121px;
   left: 835px;
