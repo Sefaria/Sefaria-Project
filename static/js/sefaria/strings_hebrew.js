@@ -515,8 +515,7 @@ const Strings = {
 
     //Module Names
     "Download Text": "הורדת טקסט",
-    "About this Text" : "אודות ספר זה",
-    "About This Text" : "אודות ספר זה",
+    "About this Text" : "ཆོས་མཛོད་འདིའི་སྐོར།",
     "Related Topics": "נושאים קשורים",
 
     // FilterableList
@@ -547,7 +546,10 @@ const Strings = {
     "cookie_message": "We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.",
     "OK": "OK",
     "You are previewing the Community page for": "You are previewing the Community page for",
-    " already exists.": " already exists."
+    " already exists.": " already exists.",
+    "Source Versions": "Source Versions",
+    "Alternate Source Versions": "Alternate Source Versions",
+    "Author:": "Author:"
   },
 
   _i18nInterfaceStringsWithContext: {
