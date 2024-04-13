@@ -1015,9 +1015,6 @@ body.newText #newTextCompare {
 	font-size: 12px;
 }
 
-/*#lexicon-modal .definitionSource {
-	font-size: 12px;*/
-}
 .refLink:hover {
 	text-decoration: underline;
 }
