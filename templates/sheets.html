@@ -37,7 +37,7 @@
                                 <img src="{% static 'img/copy.png' %}" alt="Copy Sheet Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">{% trans "Copy Sheet" %}</span>
-                                    <span class="int-he"> ཤོག་ངོས་ངོ་བཤུ། </span>
+                                    <span class="int-he">{% trans "Copy Sheet" %}</span>
                                 </span>
                             </div>
                             {% endif %}
@@ -46,7 +46,7 @@
                                 <i class="fa fa-google"></i>
                                 <span class="optionItemText">
                                     <span class="int-en">{% trans "Export to Google Drive" %}</span>
-                                    <span class="int-he">དགོས་དགུའི་གསོག་མཛོད་ནང་ཕྱིར་འདྲེན།</span>
+                                    <span class="int-he">{% trans "Export to Google Drive" %}</span>
                                 </span>
                             </div>
                             {% endif %}
@@ -54,7 +54,7 @@
                                 <img src="{% static 'img/embed.png' %}" alt="Embed Sheet Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">{% trans "Embed Sheet" %}</span>
-                                    <span class="int-he"> ཤོག་ངོས་ཀྱི་Embed </span>
+                                    <span class="int-he">{% trans "Embed Sheet" %}</span>
                                 </span>
 
                             </div>
@@ -63,7 +63,7 @@
                                 <img src="{% static 'img/delete.png' %}" alt="Delete Sheet Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">{% trans "Delete Sheet" %}</span>
-                                    <span class="int-he"> ཤོག་ངོས་སུབ། </span>
+                                    <span class="int-he">{% trans "Delete Sheet" %}</span>
                                 </span>
 
                             </div>
@@ -75,7 +75,7 @@
                                 <img src="{% static 'img/edittags.png' %}" alt="Edit Sheet Tags Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">{% trans "Tags" %}</span>
-                                    <span class="int-he">མཆན་འགྲེལ།</span>
+                                    <span class="int-he">{% trans "Tags" %}</span>
                                 </span>
 
                             </div>
@@ -88,7 +88,7 @@
                                     <img src="{% static 'img/assignment.png' %}" alt="Assignment Icon">
                                     <span class="optionItemText">
                                         <span class="int-en">{% trans "Assignments" %}</span>
-                                        <span class="int-he">ལས་བགོ།</span>
+                                        <span class="int-he">{% trans "Assignments" %}</span>
                                     </span>
                                 </div>
                             </div>
@@ -103,7 +103,7 @@
                                 <img src="{% static 'img/print.png' %}" alt="Print Icon">
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Print" %}</span>
-                                <span class="int-he">པར་འདེབས།</span>
+                                <span class="int-he">{% trans "Print" %}</span>
                             </span>
                             </div>
                             {% if not new_sheet %}
@@ -112,7 +112,7 @@
                                 <span class="optionItemText">
                                 <a href="/sheets/visual/{{sheet.id}}">
                                     <span class="int-en">{% trans "Visualize" %}</span>
-                                    <span class="int-he">མཐོང་ཐུབ་པའི་རྣམ་ཅན།</span>
+                                    <span class="int-he">{% trans "Visualize" %}</span>
                                 </a>
                             </span>
                             </div>
@@ -121,11 +121,11 @@
                                 <span class="optionItemText">
                                 <span id="highlightToggleActivate">
                                     <span class="int-en">{% trans "Highlight Mode" %}</span>
-                                    <span class="int-he">מצב סימון וצביעה</span>
+                                    <span class="int-he">{% trans "Highlight Mode" %}</span>
                                 </span>
                                 <span id="highlightToggleDeactivate">
                                     <span class="int-en">{% trans "Exit Highlight Mode" %}</span>
-                                    <span class="int-he">ནན་རྟགས་ཀྱི་རྣམ་ཅན།</span>
+                                    <span class="int-he">{% trans "Exit Highlight Mode" %}</span>
                                 </span>
                             </span>
                             </div>
@@ -134,20 +134,20 @@
                     </div>
                     <div class="sheetsMenuBarItem" id="formatMenu">
                         <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Format" %}</span>
-                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">རྣམ་པ།</span>
+                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Format" %}</span>
                         <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                             <div class="optionItem" id="numbered" role="menuitem" tabindex="0">
                                 <i class="fa fa-check hidden"></i>
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Number Sources:" %}</span>
-                                <span class="int-he"> རྒྱུ་ཆའི་ཨང་རྟགས།</span>
+                                <span class="int-he">{% trans "Number Sources:" %}</span>
                             </span>
                             </div>
                             <div class="optionItem" id="boxed" role="menuitem" tabindex="0">
                                 <i class="fa fa-check hidden"></i>
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Box Sources:" %}</span>
-                                <span class="int-he">རྒྱུ་ཆ་གསོག་སྣོད།</span>
+                                <span class="int-he">{% trans "Box Sources:" %}</span>
                             </span>
                             </div>
                             <!-- <div class="optionItem" id="bsd" role="menuitem" tabindex="0">
@@ -161,7 +161,7 @@
                                 <img src="{% static 'img/reset text.png' %}" alt="Reset Source Text Icon">
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Reset Source Text:" %}</span>
-                                <span class="int-he">མ་ཕྱིའི་དཔེ་ཆ་བསྐྱར་སྒྲིག</span>
+                                <span class="int-he">{% trans "Reset Source Text:" %}<</span>
                             </span>
                             </div>
 
@@ -169,7 +169,7 @@
                                 <i class="fa fa-file-o hidden"></i>
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Auto-Segment Text:" %}</span>
-                                <span class="int-he">རང་འགུལ་གྱིས་དཔེ་ཆའི་ཚན་པ་བགོ་ཆས།</span>
+                                <span class="int-he">{% trans "Auto-Segment Text:" %}</span>
                             </span>
                             </div>
 
@@ -178,7 +178,7 @@
                                 <i class="fa fa-file-o hidden"></i>
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Remove Vowel Points:" %}</span>
-                                <span class="int-he">དབྱངས་རྟགས་རྣམས་སུབ།</span>
+                                <span class="int-he">{% trans "Remove Vowel Points:" %}</span>
                             </span>
                             </div>
 
@@ -186,7 +186,7 @@
                                 <i class="fa fa-pencil"></i>
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Add Source Title:" %}</span>
-                                <span class="int-he">མ་ཕྱིའི་མཚན་བྱང་ཕྲིས།</span>
+                                <span class="int-he">{% trans "Add Source Title:" %}</span>
                             </span>
                             </div>
                             {% endif %}
@@ -198,7 +198,7 @@
                                         <i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText">
                                         <span class="int-en">{% trans "Sheet Language:" %}</span>
-                                        <span class="int-he"> ཤོག་ངོས་ཀྱི་སྐད་ཡིག </span>
+                                        <span class="int-he">{% trans "Sheet Language:" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -207,21 +207,21 @@
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "English:" %}</span>
-                                            <span class="int-he">དབྱིན་ཡིག</span>
+                                            <span class="int-he">{% trans "English:" %}</span>
                                         </span>
                                         </div>
                                         <div class="hebrew optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Tibetan:" %}</span>
-                                            <span class="int-he">བོད་ཡིག</span>
+                                            <span class="int-he">{% trans "Tibetan:" %}</span>
                                         </span>
                                         </div>
                                         <div class="bilingual optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Bilingual:" %}</span>
-                                            <span class="int-he">སྐད་གཉིས་ཤན་སྦྱར།</span>
+                                            <span class="int-he">{% trans "Bilingual:" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -233,7 +233,7 @@
                                          tabindex="0"><i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText">
                                         <span class="int-en">{% trans "Sheet Layout:" %}</span>
-                                        <span class="int-he">ཤོག་ངོས་ཀྱི་རྣམ་པ།</span>
+                                        <span class="int-he">{% trans "Sheet Layout:" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -242,14 +242,14 @@
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Stacked:" %}</span>
-                                            <span class="int-he">ཚགས་དམ་པོ་བྱས་པ།</span>
+                                            <span class="int-he">{% trans "Stacked:" %}</span>
                                         </span>
                                         </div>
                                         <div class="sideBySide optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Side-by-Side:" %}</span>
-                                            <span class="int-he">ཕྱོགས་གཉིས་མཉམ་འཇོག</span>
+                                            <span class="int-he">{% trans "Side-by-Side:" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -261,7 +261,7 @@
                                          tabindex="0"><i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText">
                                         <span class="int-en">{% trans "Side-by-Side Layout:" %}</span>
-                                        <span class="int-he">ཕྱོགས་གཉིས་མཉམ་འཇོག་གི་རྣམ་པ།</span>
+                                        <span class="int-he">{% trans "Side-by-Side Layout:" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -270,14 +270,14 @@
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Tibetan Left:" %}</span>
-                                            <span class="int-he">བོད་ཡིག་གཡོན་ཕྱོགས།</span>
+                                            <span class="int-he">{% trans "Tibetan Left:" %}</span>
                                         </span>
                                         </div>
                                         <div class="heRight optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Tibetan Right:" %}</span>
-                                            <span class="int-he">བོད་ཡིག་གཡས་ཕྱོགས།</span>
+                                            <span class="int-he">{% trans "Tibetan Right:" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -290,7 +290,7 @@
                                          tabindex="0"><i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText">
                                         <span class="int-en">{% trans "Source Language:" %}</span>
-                                        <span class="int-he">མ་ཕྱིའི་སྐད་ཡིག</span>
+                                        <span class="int-he">{% trans "Source Language:" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -299,21 +299,21 @@
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "English:" %}</span>
-                                            <span class="int-he">དབྱིན་ཡིག</span>
+                                            <span class="int-he">{% trans "English:" %}</span>
                                         </span>
                                         </div>
                                         <div class="hebrew">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Hebrew:" %}</span>
-                                            <span class="int-he">བོད་ཡིག</span>
+                                            <span class="int-he">བ{% trans "Hebrew:" %}</span>
                                         </span>
                                         </div>
                                         <div class="bilingual">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Bilingual:" %}</span>
-                                            <span class="int-he">སྐད་གཉིས་ཤན་སྦྱར། </span>
+                                            <span class="int-he">{% trans "Bilingual:" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -325,7 +325,7 @@
                                          tabindex="0"><i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText">
                                         <span class="int-en">{% trans "Source Layout:" %}</span>
-                                        <span class="int-he">མ་ཕྱིའི་རྣམ་པ།</span>
+                                        <span class="int-he">{% trans "Source Layout:" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -334,14 +334,14 @@
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Stacked:" %}</span>
-                                            <span class="int-he">ཚགས་དམ་པོ་བྱས་པ།</span>
+                                            <span class="int-he">{% trans "Stacked:" %}</span>
                                         </span>
                                         </div>
                                         <div class="sideBySide">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Side-by-Side:" %}</span>
-                                            <span class="int-he">ཕྱོགས་གཉིས་མཉམ་འཇོག</span>
+                                            <span class="int-he">{% trans "Side-by-Side:" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -353,7 +353,7 @@
                                          tabindex="0"><i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText">
                                         <span class="int-en">{% trans "Side-by-Side Layout:" %}</span>
-                                        <span class="int-he">ཕྱོགས་གཉིས་མཉམ་འཇོག་གི་རྣམ་པ།</span>
+                                        <span class="int-he">{% trans "Side-by-Side Layout:" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -362,14 +362,14 @@
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Tibetan Left:" %}</span>
-                                            <span class="int-he">བོད་ཡིག་གཡོན་ཕྱོགས།</span>
+                                            <span class="int-he">{% trans "Tibetan Left:" %}</span>
                                         </span>
                                         </div>
                                         <div class="heRight">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
                                             <span class="int-en">{% trans "Tibetan Right:" %}</span>
-                                            <span class="int-he">བོད་ཡིག་གཡོན་ཕྱོགས།</span>
+                                            <span class="int-he">{% trans "Tibetan Right:" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -380,7 +380,7 @@
                                         <i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText">
                                         <span class="int-en">{% trans "Reset to Sheet Default:" %}</span>
-                                        <span class="int-he">རྨང་གཞིའི་ཤོག་ངོས་ལྟར་སྒྲིག</span>
+                                        <span class="int-he">{% trans "Reset to Sheet Default:" %}</span>
                                     </span>
                                     </div>
                                 </div>
@@ -400,37 +400,28 @@
                                 <img src="{% static 'img/source.png' %}" alt="Add Source Icon">
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Source:" %}</span>
-                                <span class="int-he">མ་ཕྱི།</span>
+                                <span class="int-he">{% trans "Source:" %}</span>
                             </span>
                             </div>
-                            <!-- {% if is_owner %}
-                            <div class="optionItem" id="addParashaToSheetModalTrigger" role="menuitem" tabindex="0">
-                                <img src="{% static 'img/parasha.png' %}" alt="Add Parasha Icon">
-                                <span class="optionItemText">
-                                    <span class="int-en">Parasha</span>
-                                    <span class="int-he">Parasha</span>
-                                </span>
-                            </div>
-                            {% endif %} -->
                             <div class="optionItem" id="addCustomMenu" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/custom text.png' %}" alt="Add outside text icon">
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Text:" %}</span>
-                                <span class="int-he">ཡི་གེ</span>
+                                <span class="int-he">{% trans "Text:" %}</span>
                             </span>
                             </div>
                             <div class="optionItem" id="addCommentMenu" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Comment:" %}</span>
-                                <span class="int-he">མཆན།</span>
+                                <span class="int-he">{% trans "Comment:" %}</span>
                             </span>
                             </div>
                             <div class="optionItem" id="addMediaMenu" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Media:" %}</span>
-                                <span class="int-he">སྨྱན།</span>
+                                <span class="int-he">{% trans "Media:" %}</span>
                             </span>
                             </div>
                         </div>
@@ -444,24 +435,24 @@
                             <span class="optionItemText">
                                 <span class="continuousActive" role="menuitem" tabindex="0">
                                     <span class="int-en">{% trans "Paragraph View:" %}</span>
-                                    <span class="int-he">ཚན་པ་སྟོན།</span>
+                                    <span class="int-he">{% trans "Paragraph View:" %}</span>
                                 </span>
                                 <span class="segmentedActive" role="menuitem" tabindex="0">
                                     <span class="int-en">{% trans "Line-by-line View:" %}</span>
-                                    <span class="int-he">ཡིག་ཕྲེང་རེ་རེ་བཞིན་སྟོན།</span>
+                                    <span class="int-he">{% trans "Line-by-line View:" %}</span>
                                 </span>
                             </span>
                             </div>
                             {% if can_edit %}
                             <div class='optionItem resetHighlighter'>
                             <span class="optionItemText"><span class="int-en">{% trans "Reset:" %}</span>
-                            <span class="int-he">བསྐྱར་སྒྲིག</span></span>
+                            <span class="int-he"></span>{% trans "Reset:" %}</span>
                             </div>
                             {% endif %}
                             <div class="optionGroup">
                                 <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">
                                 <span class="optionItemText"><span class="int-en">{% trans "Filter:" %}</span>
-                                <span class="int-he">ཚགས་སྒྲིག</span></span>
+                                <span class="int-he"></span>{% trans "Filter:" %}</span>
                                     <i class="optionItemCaret fa fa-caret"></i>
                                 </div>
                                 <div class="subMenu">
@@ -478,19 +469,19 @@
                         {% if can_edit or can_add %}
                             <span class="lastSavedStamp">
                                 <span class="int-en">{% trans "Last Saved:" %} {{sheet.dateModified|date_string_to_date|naturaltime}}</span>
-                                <span class="int-he">נשמר לאחרונה:  {{sheet.dateModified|date_string_to_date}}</span>
+                                <span class="int-he">{% trans "Last Saved:" %} {{sheet.dateModified|date_string_to_date}}</span>
                             </span>
                             <span class="lastSavedConfirmed">
                                 <span class="int-en">{% trans "All changes saved in Pecha" %}</span>
-                                <span class="int-he">བཅོས་སྒྲིག་གང་བྱས་རྣམས་དཔེ་ཆ་དྲ་ཚིགས་ནང་ཉར་ཚགས་བྱས་ཡོད།</span>
+                                <span class="int-he">{% trans "All changes saved in Pecha" %}</span>
                             </span>
                             <span class="saving">
                                 <span class="int-en">{% trans "Saving..." %}</span>
-                                <span class="int-he">ཉར་བཞིན་པ་་་</span>
+                                <span class="int-he">{% trans "Saving..." %}</span>
                             </span>
                             <span class="pending">
                                 <span class="int-en">{% trans "Changes Pending..." %}</span>
-                                <span class="int-he">བཅོས་སྒྲིག་རྣམས་ད་ལྟ་སྒུག་ཐོའི་ནང་ཡོད་་་</span>
+                                <span class="int-he">{% trans "Changes Pending..." %}</span>
                             </span>
 
                         {% endif %}
@@ -500,7 +491,7 @@
                     <div class="sheetsMenuBarItem" id="higlightModeMenu">
                     <span id="highlightModeDisplay">
                         <span class="int-en">{% trans "Highlight Mode is On" %}</span>
-                        <span class="int-he">ནན་རྟགས་ཀྱི་རྣམ་པ་སྒོ་ཕྱེ་ཡོད།</span>
+                        <span class="int-he">{% trans "Highlight Mode is On" %}</span>
                     </span>
                     </div>
                 </div>
@@ -511,27 +502,27 @@
                         <i class="fa fa-floppy-o"></i>
                         <span id="doSave">
                         <span class="int-en">{% trans "Save" %}</span>
-                        <span class="int-he">ཉར་ཚགས།</span>
+                        <span class="int-he">{% trans "Save" %}</span>
                     </span>
                         <span id="inSave">
                         <span class="int-en">{% trans "Saving..." %}</span>
-                        <span class="int-he">ཉར་བཞིན་པ་་་</span>
+                        <span class="int-he">{% trans "Saving..." %}་</span>
                     </span>
                     </a>
                     {% elif is_owner %}
                     <a id="share" class="button" role="button" tabIndex="0">
                         <img src="{% static 'img/share.png' %}" alt="Share Icon">
                         <span class="int-en">{% trans "Share" %}</span>
-                        <span class="int-he">མཉམ་སྤྱོད།</span>
+                        <span class="int-he">{% trans "Share" %}</span>
                     </a>
                     <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
                         <span class="int-en">{% trans "View in Library" %}</span>
-                        <span class="int-he">དཔེ་མཛོད་ནང་སྟོན།</span>
+                        <span class="int-he">{% trans "View in Library" %}</span>
                     </a>
                     {% else %}
                     <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
                         <span class="int-en">{% trans "View in Library" %}</span>
-                        <span class="int-he">དཔེ་མཛོད་ནང་སྟོན།</span>
+                        <span class="int-he">{% trans "View in Library" %}</span>
                     </a>
                     {% endif %}
                 </div>
@@ -572,7 +563,7 @@
 
         {% endif %}
 
-        <div id="bsdHeader">בס"ד</div>
+        <div id="bsdHeader">{% trans "Header Title" %}</div>
         <div id="sheetHeader" {% if not displayed_collection %}style="display:none" {% endif %}>
             {% if displayed_collection and displayed_collection.headerUrl %}
             <a href="/collections/{{ displayed_collection.slug }}">
@@ -625,7 +616,7 @@
         <details id="sheetMetadata">
             <summary>
                 <span class="int-en">{% trans "More info" %}</span>
-                <span class="int-he">གནས་ཚུལ་རྒྱས་པ།</span>
+                <span class="int-he">{% trans "More info" %}</span>
             </summary>
             <div class="metadataOpenDetails">
                 <div>
@@ -734,7 +725,7 @@
                     </div>
                     <div class="blockContainer">
                         <input id="inlineAdd" class="inlineAddTextInput"
-                               placeholder="{% trans " Search for a Text or Commentator" %}"/>
+                               placeholder='{% trans " Search for a Text or Commentator" %}'/>
                         <div class="buttonContainer">
                             <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                                 <div id="inlineAddSourceOK" class='button disabled' role="button" tabIndex="0">
@@ -795,7 +786,7 @@
                 <div id="addmediaDiv">
                     <div class="inlineAddDesc">
                         <span class="int-en">{% trans "Add Image, Youtube Video, SoundCloud link, or MP3" %}</span>
-                        <span class="int-he">འདྲ་པར་དང་ཡུས་ཁྲུབ་ཀྱི་བརྙན། SoundCloud ཡི་དྲ་ཐག་དང་ཡང་ན་MP3 བཅས་ཀྱི་གང་རུང་ཞིག་ཞོག</span>
+                        <span class="int-he">{% trans "Add Image, Youtube Video, SoundCloud link, or MP3" %}</span>
                     </div>
                     <div class="blockContainer">
                         <input id="inlineAddMediaInput" class="inlineAddTextInput"
@@ -815,7 +806,7 @@
                                 <label for="addmediaFileSelector" class="button" role="button" tabIndex="0">
                                     <i class="fa fa-upload" aria-hidden="true"></i>
                                     <span class="int-en">{% trans "Upload an Image" %}</span>
-                                    <span class="int-he">འདྲ་པར་ནང་འཇུག་བྱོས།</span>
+                                    <span class="int-he">{% trans "Upload an Image" %}</span>
                                 </label>
                                 <input id="addmediaFileSelector" type="file" style="display:none">
                             </div>
@@ -866,7 +857,7 @@
 			        <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishnah Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
                 </span>
                         <span class="int-he">
-                    <b>རྒྱུ་ཆ་རྣམས་སྣོན་</b> སྣོན་ཐབས་ནི་ལུང་ཚིག་ཅིག་བྲིས་ཏེ། དཔེར་ན།
+                    <b>{% trans "Add Sources" %}</b> {% trans "by typing a citation like:" %}
 			        <div id="cite"><i>Mishnah Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
                 </span>
                     </li>
@@ -876,7 +867,7 @@
                     </li>
                     <li>
                         <span class="int-en"><b>{% trans "Print" %}</b>{% trans "your sheets to paper or PDF, or just" %} <b>{% trans "Share" %}</b>{% trans " the link." %}</span>
-                        <span class="int-he"><b>ཁྱེད་ཀྱི་ཤོག་ངོས་ཤོག་ཐོག་ལ་</b>{% trans "your sheets to paper or PDF, or just" %}<b>{% trans "Share" %}</b>{% trans " the link." %}</span>
+                        <span class="int-he"><b>{% trans "Print" %}</b>{% trans "your sheets to paper or PDF, or just" %}<b>{% trans "Share" %}</b>{% trans " the link." %}</span>
                     </li>
                     <li>
                         <span class="int-en"><b>{% trans "More Options" %}</b>{% trans "are available in the icons that appear when you hover over a source." %}</span>
@@ -1210,7 +1201,7 @@
         <div id="notPublished" style="display:none;">
             <div class="header">
                 <span class="int-en">{% trans "No problem, this sheet is still not listed on Sefaria." %}</span>
-                <span class="int-he">གནད་དོན་མི་འདུག ཤོག་ངོས་འདི་ད་དུང་དཔེ་ཆ་དྲ་ཚིག་གི་དཔེ་མཛོད་ནང་ཐོ་རུ་བཀོད་མི་འདུག</span>
+                <span class="int-he">{% trans "No problem, this sheet is still not listed on Sefaria." %}</span>
             </div>
 
             <p>
