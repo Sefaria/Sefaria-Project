@@ -61,12 +61,12 @@
 	</div>
 
 	<div id="newTextModal" class="modal">
-		<div class="header">Add a New Text</div>
-		<div id="newTextMsg">Text or commentator name:</div>
+		<div class="header">{% trans "Add a New Text" %}</div>
+		<div id="newTextMsg">{% trans "Text or commentator name:" %}</div>
 		<input id="newTextName">
 		<span id="newTextActions">
-			<span id="newTextOK" class="action btn inactive">Add</span>
-			<span id="newTextCancel" class="action btn">Cancel</span>
+			<span id="newTextOK" class="action btn inactive">{% trans "Add" %}</span>
+			<span id="newTextCancel" class="action btn">{% trans "Cancel" %}</span>
 
 		</span>
 	</div>
@@ -83,9 +83,9 @@
 
 			{% if request.user.is_authenticated %}
 			<div id="addReview">
-				<div id="yourReviewTitle">Your Review:</div>
+				<div id="yourReviewTitle">{% trans "Your Review:" %}</div>
 				<textarea id="reviewText"></textarea>
-				<a href="#" id="reviewHelpLink">How should I write a review?</a>
+				<a href="#" id="reviewHelpLink">{% trans "How should I write a review?" %}</a>
 				<div id="score>">
 					<div id="raty"></div>
 				</div>
@@ -93,104 +93,97 @@
 			</div>
 
 			<div id="reviewButtonsBox">
-				<div class="btn save">Save</div>
-				<div class="btn cancel">Cancel</div>
+				<div class="btn save">{% trans "Save" %}</div>
+				<div class="btn cancel">{% trans "Cancel" %}</div>
 			</div>
 			{% else %}
 			<div id="loginToReview">
-				To add your review, please <a href="/login?next={{ request.get_full_path }}">log in</a> or <a href="/register?next={{ request.get_full_path }}">register</a>.
+				{% trans "To add your review, please " %}<a href="/login?next={{ request.get_full_path }}">{% trans "log in" %}</a>{% trans "or" %} <a href="/register?next={{ request.get_full_path }}">{% trans "register" %}</a>.
 			</div>
 			<div id="reviewButtonsBox">
-				<div class="btn cancel">Close</div>
+				<div class="btn cancel">{% trans "Close" %}</div>
 			</div>
 			{% endif %}
 	</div>
 	<div id="reviewHelp">
-			<h3>Writing Helpful Reviews</h3>
-			<p><b>For primary texts and historical translations:</b> Indicate what outside source (book, web page) was used to compare the text, or make clear that your review is only looking at the text present.</p>
+			<h3>{% trans "Writing Helpful Reviews" %}</h3>
+			<p><b>{% trans "For primary texts and historical translations:" %}</b>{% trans " Indicate what outside source (book, web page) was used to compare the text, or make clear that your review is only looking at the text present." %}</p>
 			<div class="reviewExamples">
-				<div class="exampleReview">I compared this text to X printed edition and found no problems.</div>
-				<div class="exampleReview">I checked this text against the edition on X website, all looks good.</div>
-				<div class="exampleReview">I read this text carefully and don't see anything wrong.</div>
+				<div class="exampleReview">{% trans "I compared this text to X printed edition and found no problems." %}</div>
+				<div class="exampleReview">{% trans "I checked this text against the edition on X website, all looks good." %}</div>
+				<div class="exampleReview">{% trans "I read this text carefully and don't see anything wrong." %}</div>
 			</div>
 
-			<p><b>For original translations:</b> Review the text carefully next to the original, and comment on its accuracy and style according to our <a href="/translation-guidelines" target="_blank">translation guidelines</a>.</p>
+			<p><b>{% trans "For original translations:" %}</b>{% trans " Review the text carefully next to the original, and comment on its accuracy and style according to our " %}<a href="/translation-guidelines" target="_blank">{% trans "translation guidelines" %}</a>.</p>
 			<div class="reviewExamples">
-				<div class="exampleReview">This translation seems accurate to me.</div>
-				<div class="exampleReview">The language could be improved, but the translation seems right.</div>
-				<div class="exampleReview">This translation misunderstands the term X.</div>
+				<div class="exampleReview">{% trans "This translation seems accurate to me." %}</div>
+				<div class="exampleReview">{% trans "The language could be improved, but the translation seems right." %}</div>
+				<div class="exampleReview">{% trans "This translation misunderstands the term X." %}</div>
 			</div>
 
 			<div id="scoreHelp">
-				<b>How to Score your Review:</b>
+				<b>{% trans "How to Score your Review:" %}</b>
 				<div class="scoreExample">
-					<span class="raty" data-raty="1"></span> Compared closesly to a source, confident there are no problems.
+					<span class="raty" data-raty="1"></span>{% trans " Compared closesly to a source, confident there are no problems." %}
 				</div>
 				<div class="scoreExample">
-					<span class="raty" data-raty="0.8"></span> Compared to a source, didn't notice any problems.
+					<span class="raty" data-raty="0.8"></span>{% trans " Compared to a source, didn't notice any problems." %}
 				</div>
 				<div class="scoreExample">
-					<span class="raty" data-raty="0.6"></span> Looks problem free, but could be reviewed more closely.
+					<span class="raty" data-raty="0.6"></span>{% trans " Looks problem free, but could be reviewed more closely." %}
 				</div>
 				<div class="scoreExample">
-					<span class="raty" data-raty="0.4"></span> Found some issues that need to be addressed.
+					<span class="raty" data-raty="0.4"></span>{% trans " Found some issues that need to be addressed." %}
 				</div>
 				<div class="scoreExample">
-					<span class="raty" data-raty="0.2"></span> Found serious problems that need to be addressed.
+					<span class="raty" data-raty="0.2"></span>{% trans " Found serious problems that need to be addressed." %}
 				</div>
 			</div>
-			<div id="reviewHelpOK" class="btn">OK</div>
+			<div id="reviewHelpOK" class="btn">{% trans "OK" %}</div>
 		</div>
 	</div>
 
 
 	<div id="newVersionBox">
         <div id="editButtons" style="display:none;">
-            <span id="addVersionSave" class='button small'>Save</span>
-            <span id='addVersionCancel' class='button small white'>Cancel</span>
+            <span id="addVersionSave" class='button small'>{% trans "Save" %}</span>
+            <span id='addVersionCancel' class='button small white'>{% trans "Cancel" %}</span>
         </div>
 		<div id="addVersionHeader">
 			<div id="editTitle"></div>
 			<div id="addVersionHeaderLeft">
 				<div class="compareTitle"></div>
-				<a class="compareSource" href="#" target="_blank">Source <i class="fa fa-external-link"></i></a>
+				<a class="compareSource" href="#" target="_blank">{% trans "Source " %}<i class="fa fa-external-link"></i></a>
 			</div>
 			<div id="addVersionHeaderRight">
 
 				<div id="textTypeForm">
 					<label class="option">
 						<input type="radio" id="originalRadio" name="newTextType" value="original" checked="checked">
-						Original Translation
+						{% trans "Original Translation" %}
 					</label>
 					<label class="option">
 						<input type="radio" id="copyRadio" name="newTextType" value="copy">
-						Copied Text
+						{% trans "Copied Text" %}
 					</label>
 					<span id="showOriginal"></span>
 				</div>
 				<div id="cc0Message" class="alert">
-					This text will be published with a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">CC-0</a> licence, effectively donating it to the Public Domain. Only submit texts as "Original Translation" that you have authored.
+					{% trans "This text will be published with a " %}<a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">CC-0</a>{% trans ' licence, effectively donating it to the Public Domain. Only submit texts as "Original Translation" that you have authored.' %}
 				</div>
 				<div id="copiedTextForm">
 					<div id="copyWarning" class="alert">
-						Copied texts must either be in the <b>Public Domain</b> or carry a <b>Creative Commons</b> license such as <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">CC0</a>, <a href="http://creativecommons.org/licenses/by/3.0" target="_blank">CC-BY</a>, or <a href="http://creativecommons.org/licenses/by-sa/3.0/" target="_blank">CC-BY-SA</a>. You can learn more about when a text passes into the Public Domain on this <a href="http://copyright.cornell.edu/resources/publicdomain.cfm" target="_blank">summary of Copyright Terms</a>.
+						{% trans "Copied texts must either be in the " %}<b>{% trans "Public Domain" %}</b>{% trans " or carry a " %}<b>{% trans "Creative Commons" %}</b>{% trans " license such as " %}<a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">CC0</a>, <a href="http://creativecommons.org/licenses/by/3.0" target="_blank">CC-BY</a>, or <a href="http://creativecommons.org/licenses/by-sa/3.0/" target="_blank">CC-BY-SA</a>{% trans ". You can learn more about when a text passes into the Public Domain on this" %} <a href="http://copyright.cornell.edu/resources/publicdomain.cfm" target="_blank">{% trans "summary of Copyright Terms" %}</a>.
 					</div>
-					<div><span>Version Title:</span> <input id="versionTitle"></div>
-					<div><span>Copied from:</span> <input placeholder="a URL or book" id="versionSource"></div>
+					<div><span>{% trans "Version Title:" %}</span> <input id="versionTitle"></div>
+					<div><span>{% trans "Copied from:" %}</span> <input placeholder="a URL or book" id="versionSource"></div>
 				</div>
 
 				<div id="languageForm">
-					<span>Language:</span>
+					<span>{% trans "Language:</span>
 					<select id="language">
-					  <option value="en">English</option>
-					  <option value="he">Hebrew</option>
-					  <!--
-					  <option value="ar">Aramaic</option>
-					  <option value="ru">Russian</option>
-					  <option value="es">Spanish</option>
-					  <option value="fr">French</option>
-					  <option value="de">German</option>
-					-->
+					  <option value="en">{% trans "English" %}</option>
+					  <option value="he">{% trans "Hebrew" %}</option>
 					</select>
 				</div>
 

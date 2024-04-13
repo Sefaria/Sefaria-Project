@@ -35,7 +35,7 @@
             </div>
             <div role="radio"  data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "weekly" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">{% trans "Weekly" %}</span>
-			    <span class="int-he">བདུན་རེ་བཞིན།</span>
+			    <span class="int-he">{% trans "Weekly" %}</span>
             </div>
             <div role="radio"  data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "never" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">{% trans "Never" %}</span>
@@ -93,7 +93,7 @@
     <div id="textualCustom" class="section">
 		<label class="control-elem">
             <span class="int-en">{% trans "Preferred Custom (Weekly Haftarot)" %}</span>
-			<span class="int-he">བདམས་ཟིན་པའི་ལུགས་སྲོལ། (བདུན་རེའི་བསླབ་བྱ།)</span>
+			<span class="int-he">{% trans "Preferred Custom (Weekly Haftarot)" %}</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
 			<div role="radio" data-value="sephardi" class="toggleOption {% if profile.settings.textual_custom == "sephardi" %} on{% endif %}" tabindex="{% if profile.settings.textual_custom == "sephardi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
@@ -110,7 +110,7 @@
     <div id="username-change" class="section">
         <label class="control-elem">
                 <span class="int-en">{% trans "Account Email (This is used for login)" %}</span>
-                <span class="int-he">གློག་འཕྲིན་ཁ་བྱང་། (This is used for login)</span>
+                <span class="int-he">{% trans "Account Email (This is used for login)" %}</span>
         </label>
         <div id="username-change-display" class="form-section">
             <input id="email-display" type="text" disabled="disabled" value="{{ user.email }}" />
@@ -152,7 +152,7 @@
             </div>
             <div class="additional-info">
                 <span class="int-en">{% trans "You can link to a new Google Account the next time you export a sheet" %}</span>
-                <span class="int-he">ཐེངས་རྗེས་མར་ཁྱེད་ཀྱི་ཤོག་ངོས་ཕྱིར་འདྲེན་བྱེད་སྐབས་ཁྱེད་ཀྱིས་དགོས་དགུའི་ཁ་བྱང་གསར་པ་ཞིག་ལ་མཐུད་ཆོག</span>
+                <span class="int-he">{% trans "You can link to a new Google Account the next time you export a sheet" %}</span>
             </div>
         </div>
         <div class="saveCancel">

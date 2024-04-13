@@ -8,17 +8,19 @@
 <div class="container error static biReady">
     <div class="inner">
         <h1>
-            <span class="int-en">Page Not Found</span>
-            <span class="int-he">הדף שביקשת איננו נמצא</span>
+            <span class="int-en">{% trans "Page Not Found" %}</span>
+            <span class="int-he">{% trans "Page Not Found" %}</span>
         </h1>
         <p>
             <span class="int-en">
-                The requested URL couldn't be found.
+                {% trans "The requested URL couldn't be found.
                 If you've arrived here from a link on another site,
-                you may want to let them know their link isn't working.
+                you may want to let them know their link isn't working." %}
             </span>
             <span class="int-he">
-                הדף המבוקש איננו נמצא. אם הגעת לכאן מקישור מאתר אחר, ייתכן ותרצה ליידע אותם כי הקישור שלהם איננו תקין.
+               {% trans "The requested URL couldn't be found.
+                If you've arrived here from a link on another site,
+                you may want to let them know their link isn't working." %}
             </span>
         </p>
     </div>
