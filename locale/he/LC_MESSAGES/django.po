@@ -1817,7 +1817,7 @@ msgstr "མཐོང་ཐུབ་པའི་རི་མོའི་རྣམ
 
 #: templates/sheets.html:123 templates/sheets.html:124
 msgid "Highlight Mode"
-msgstr "מצב סימון וצביעה"
+msgstr "ནན་རྟགས་ཀྱི་རྣམ་ཅན།"
 
 #: templates/sheets.html:127 templates/sheets.html:128
 msgid "Exit Highlight Mode"
@@ -2099,7 +2099,7 @@ msgstr "ཤོག་ངོས་ཤིག"
 #: templates/sheets.html:634 templates/sheets.html:636
 #: templates/sheets.html:936 templates/sheets.html:937
 msgid "by"
-msgstr " ནས་ "
+msgstr "ནས་"
 
 #: templates/sheets.html:641 templates/sheets.html:642
 #: templates/sheets.html:648 templates/sheets.html:649
@@ -2359,7 +2359,7 @@ msgstr ""
 
 #: templates/sheets.html:1154
 msgid "Reset to sheet defaults"
-msgstr ""
+msgstr "Reset to sheet defaults"
 
 #: templates/sheets.html:1163 templates/sheets.html:1164
 #, fuzzy
@@ -2420,7 +2420,7 @@ msgstr ""
 
 #: templates/sheets_visual.html:30 templates/sheets_visual.html:31
 msgid "Back to Sheet"
-msgstr ""
+msgstr "Back to Sheet"
 
 #: templates/static/all_home.html:4 templates/static/all_home.html:6
 msgid "TBD"
