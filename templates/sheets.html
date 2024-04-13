@@ -29,7 +29,7 @@
                 <div class="sheetsMenuBarCommands">
                     <div class="sheetsMenuBarItem" id="fileMenu">
                         <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "File" %}</span>
-                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">ཡིག་ཆ།</span>
+                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "File" %}</span>
                         <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                             {% if not new_sheet %}
                             {% if user.email %}
@@ -394,7 +394,7 @@
                     {% if can_edit or can_add %}
                     <div class="sheetsMenuBarItem" id="insertMenu">
                         <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Insert:" %}</span>
-                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">ནང་འཇུག</span>
+                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Insert:" %}</span>
                         <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                             <div class="optionItem" id="addSourceMenu" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/source.png' %}" alt="Add Source Icon">
@@ -429,7 +429,7 @@
                     {% endif %}
                     <div class="sheetsMenuBarItem" id="highlightMenu">
                         <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Highlight Tools:" %}</span>
-                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">ནན་རྟགས་ལག་ཆ་རྣམས།</span>
+                        <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Highlight Tools:" %}</span>
                         <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                             <div class="optionItem segmentedContinuousToggle" data-mode="continuous">
                             <span class="optionItemText">
@@ -1134,7 +1134,7 @@
     <div id="overlay"></div>
 
     <div id="overrideLayoutModal" class="modal s2Modal">
-        <div class="header">Change this source's layout:</div>
+        <div class="header">{% trans "Change this source's layout:" %}</div>
 
         <span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img
                 src="{% static 'img/backs.png' %}"></span><span id="hebRightSource" class="toggleOption"><img

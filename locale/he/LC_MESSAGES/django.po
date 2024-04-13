@@ -1357,7 +1357,7 @@ msgstr "དཔེ་ཆ་དྲ་ཚིགས་ ཀྱི་མ་ཕྱི�
 #: templates/sheets.html:31
 #: venv/lib/python3.9/site-packages/django/db/models/fields/files.py:226
 msgid "File"
-msgstr ""
+msgstr "ཡིག་ཆ།"
 
 #: templates/sheets.html:39 templates/sheets.html:40
 #, fuzzy
@@ -1521,7 +1521,7 @@ msgstr "རྨང་གཞིའི་ཤོག་ངོས་ལྟར་སྒ
 
 #: templates/sheets.html:396
 msgid "Insert:"
-msgstr ""
+msgstr "ནང་འཇུག"
 
 #: templates/sheets.html:402 templates/sheets.html:403
 #, fuzzy
@@ -1545,7 +1545,7 @@ msgstr "སྨྱན།"
 
 #: templates/sheets.html:431
 msgid "Highlight Tools:"
-msgstr ""
+msgstr "ནན་རྟགས་ལག་ཆ་རྣམས།"
 
 #: templates/sheets.html:437 templates/sheets.html:438
 msgid "Paragraph View:"
