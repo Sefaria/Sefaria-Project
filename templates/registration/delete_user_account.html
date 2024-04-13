@@ -8,17 +8,17 @@
 <div id="deleteUser" class="static">
     <div class="inner">
         <h1>
-            <span class="int-en">{% trans Delete User %}</span>
+            <span class="int-en">{% trans "Delete User" %}</span>
         </h1>
         <form method="post" if="delete-form" action="{% url "delete/user-account" %}">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="button control-elem">
-                <span class="int-en">{% trans Delete User %}</span>
+                <span class="int-en">{% trans "Delete User" %}</span>
             </button>
         </form>
-        Note: deleting a user can take a while; once you hit "Delete User" please be patient as the user is deleted
-        from our system, and do not leave the page.
+        {% trans "Note: deleting a user can take a while; once you hit "Delete User" please be patient as the user is deleted
+        from our system, and do not leave the page." %}
     </div>
 </div>
 {% endblock %}

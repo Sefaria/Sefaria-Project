@@ -1316,7 +1316,7 @@ msgstr "ནང་འཛུལ།"
 
 #: templates/registration/register.html:32
 msgid "By clicking Sign Up you agree to our"
-msgstr ""
+msgstr "ཐོ་འགོད་"བྱ་རྒྱུ་དེ་ཁྱེད་ཀྱིས་ང་ཚོར་མོས་མཐུན་བྱས་པ་མཚོན་གྱི་ཡོད།"
 
 #: templates/registration/register.html:32
 #: templates/registration/register.html:33 templates/static/terms.html:4
