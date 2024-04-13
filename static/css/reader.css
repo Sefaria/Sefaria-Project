@@ -36,7 +36,7 @@ body {
 
 #sourcesPanelAnchor {
 	right: 0;
-	text-align: right;
+	text-align: left;
 
 }
 
@@ -618,7 +618,7 @@ body.newText #newTextCompare {
 .verse > .he, .hebrew .verse {
 	font-family: "Times New Roman";
 	font-size: 36px;
-	direction: rtl;
+	direction: ltr;
 }
 
 .verse > .he big {
@@ -666,7 +666,7 @@ body.newText #newTextCompare {
 }
 
 .basetext.hebrew{
-	direction: rtl;
+	direction: ltr;
 	left: 4%;
 	width: 58%;
 	top: 85px;
@@ -730,10 +730,10 @@ body.newText #newTextCompare {
 	display: block;
 	width: 48%;
 	font-size: 27px;
-	text-align: right;
+	text-align: left;
 	float: right;
 	margin-left: 0px;
-	direction: rtl;
+	direction: ltr;
 	margin-top: -6px;
 }
 
@@ -752,7 +752,7 @@ body.newText #newTextCompare {
 .basetext.bilingual.heLeft .verse > .he {
 	width: 47%;
 	float: left;
-	text-align: right;
+	text-align: left;
 	margin-left: 0px;
 }
 
@@ -762,8 +762,8 @@ body.newText #newTextCompare {
 
 .he {
 	display: none;
-	direction: rtl;
-	text-align: right;
+	direction: ltr;
+	text-align: left;
 	font-family: "Times New Roman", serif;
 }
 
@@ -799,7 +799,7 @@ body.newText #newTextCompare {
 .basetext.bilingual .verse .verseNum .alts_group {
     position: absolute;
     right: 0;
-    text-align: right;
+    text-align: left;
 }
 
 .basetext.hebrew .verse .verseNum .alts_group {
@@ -1201,8 +1201,8 @@ body.noCommentary .aboutBarBox {
 }
 
 body.hebrew .commentaryBox .commentary{
-	direction: rtl;
-	text-align: right;
+	direction: ltr;
+	text-align: left;
 }		
 
 body.hebrew .commentaryBox .commentary.sheet {
@@ -1240,8 +1240,8 @@ body .note .anchorText {
 	display: inline !important;
 }
 .heNote {
-	direction: rtl !important;
-	text-align: right !important;
+	direction: ltr !important;
+	text-align: left !important;
 }
 .heNote .en {
 	display: none !important;
@@ -1383,7 +1383,7 @@ body.hebrew .enNote .anchorText {
 	width: 34px;
 	margin-right: 6px;
 	margin-left: 7px;
-	text-align: right;
+	text-align: left;
 	font-size: 13px;
 }
 
@@ -1724,7 +1724,7 @@ body .screen .commentaryBox .noteMessage {
 }		
 
 body.hebrew .open {
-	direction: rtl;
+	direction: ltr;
 }
 
 body.hebrew .open.edit {
@@ -1990,7 +1990,7 @@ body.hebrew #addSourceTextBox .en {
 .open .label {
 	font-size: 16px;
 	display: inline-block;
-	text-align: right;
+	text-align: left;
 	margin-right: 18px;
 	width: 120px;
 	font-weight: bold;
@@ -2203,7 +2203,7 @@ body #addSourceTextBox .btn.inactive {
 	width: 100px;
 	min-height: 15px;
 	float: left;
-	text-align: right;
+	text-align: left;
 	margin: 0px 14px 0px 0px;
 	font-size: 17px;
 }

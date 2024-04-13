@@ -180,7 +180,7 @@ html {
   }
 }
 .navigation-a ul.navigation-a-right {
-  text-align: right;
+  text-align: left;
 }
 @media (max-width: 900px) {
   .navigation-a ul.navigation-a-right {
@@ -211,7 +211,7 @@ html {
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAAXNSR0IArs4c6QAAAa9JREFUOBGNlM8rRGEUht0pDGosjKYZpUSIkuwsiCaxUEqK2VOUBcrWv2BjxUJho6wsLLDzY2fhD5iR5NeOcJvIjOfM3O927m3mmlPPnPec835nZprvjlVVJvL5fCOjMWiDCLzCLVxZlpUj/x8saYV9+IZS8UJzFWoCt2GYgk+oJG4wJUouZDANv5VsUZ47dNSzkEYHfIDEHixDWgoiB/rTHlPPwBNInPmXHRb7hdeUDFG10AN1Th1Fd5mD6BMwMVnoUyVA3t3EkjkQlDFfmwPkc7NsQTXf0bGgJWaGb16dk18+EmLYawzkC+6Q3KdK4kiZqtGdskx/kmdlCJS86RuGrDLFZJmtGi1KB0q+VhOGsDLZsiyjGsOY4qoOkrO+YUauwCDoOKWo9xk9JfM+MPdSzqZdA8UlyDO3AvKLPsIG9LsmBHUKduEHdCy6PrpJZyKXdwKMOemaissOHJ9O9xTeh57GluMYIsehWy8STW/d8ZhkI0b9PjFasA1fsAOb0KCN1PLXYyKLGNdzj2YYArnZDyDRrA3Ua4UuDzd5QM/KaoxhmAO5Om5Qt8OI2/CJP6MVa1dvltQ5AAAAAElFTkSuQmCC");
 }
 .navigation-b {
-  text-align: right;
+  text-align: left;
   margin: 52px 0 0;
   overflow: visible;
 }
@@ -1110,7 +1110,7 @@ main .grid-container.freed-width {
 }
 #info-box > div {
   width: 100%;
-  text-align: right;
+  text-align: left;
 }
 #info-box > div .toggler {
   padding-right: 0;
@@ -1503,7 +1503,7 @@ div.toolbarModifier-hints dl dt {
   float: left;
   width: 9em;
   clear: both;
-  text-align: right;
+  text-align: left;
   border-top: 1px solid #ddd;
   padding-left: 1.5em;
   padding-right: .1em;

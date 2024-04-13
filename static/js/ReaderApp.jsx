@@ -1886,12 +1886,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       let contentSpans = container.querySelectorAll(".contentSpan");
       if (closestReaderPanel && !closestReaderPanel.classList.contains('continuous')) {
         contentSpans.forEach(el => {
-            el.outerHTML = `<div dir="${Sefaria.hebrew.isHebrew(el.innerText) ? 'rtl' : 'ltr'}">${el.innerHTML}</div>`;
+            el.outerHTML = `<div dir="${Sefaria.hebrew.isHebrew(el.innerText) ? 'ltr' : 'ltr'}">${el.innerHTML}</div>`;
         })
       }
 
       if (closestReaderPanel && closestReaderPanel.classList.contains('hebrew')) {
-        container.setAttribute('dir', 'rtl');
+        container.setAttribute('dir', 'ltr');
       }
 
       // Collapse all nodes with poetry classes. This is needed for specifically pasting into Google Docs in Chrome to work.

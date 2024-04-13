@@ -883,7 +883,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  text-align: right;
+  text-align: left;
   color: #666666;
   padding: 5px;
   direction: ltr;
@@ -907,7 +907,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-style: normal;
   font-weight: 400;
   line-height: 18px;
-  text-align: right;
+  text-align: left;
   color: #000000;
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 5px 17px 5px 17px;
@@ -1272,7 +1272,7 @@ div.interfaceLinks-row a {
 }
 
 .interface-hebrew #defaultModal {
-    text-align: right;
+    text-align: left;
     direction: ltr;
 }
 
@@ -1300,7 +1300,7 @@ div.interfaceLinks-row a {
 }
 
 #defaultModal .buttons {
-    text-align: right;
+    text-align: left;
 }
 
 .leader {
@@ -1390,7 +1390,7 @@ div.interfaceLinks-row a {
 }
 .interface-hebrew .ui-autocomplete .ui-menu-item {
   direction: ltr;
-  text-align: right;
+  text-align: left;
 }
 .ui-autocomplete .ui-menu-item img {
   display: inline-block;
@@ -1418,7 +1418,7 @@ div.interfaceLinks-row a {
 }
 .interface-hebrew .ui-autocomplete .ui-menu-item a {
   direction: ltr;
-  text-align: right;
+  text-align: left;
 }
 #globalWarningMessage {
   position: fixed;
@@ -1547,7 +1547,7 @@ div.interfaceLinks-row a {
 }
 .readerPanel.english .he.heOnly{
   display: inline;
-  text-align: right;
+  text-align: left;
 }
 .readerPanel.english .en {
   display: inline;
@@ -2017,7 +2017,7 @@ div.interfaceLinks-row a {
 }
 .readerNavTop .readerOptions {
   float: right;
-  text-align: right;
+  text-align: left;
   display: flex;
   align-items: center;
   width:27px;
@@ -3859,7 +3859,7 @@ select {
 .bookPage .content .versionDownloadButton .he {
     font-family: "Heebo", sans-serif;
     direction: ltr;
-    text-align: right;
+    text-align: left;
 }
 .modTools a .modtoolsButton,
 .bookPage .content a .versionDownloadButton {
@@ -4763,7 +4763,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .leftButtons {
   display: flex;
   flex-direction: row;
-  text-align: right;
+  text-align: left;
 }
 /* icons need a little nudge in flipped hebrew mode */
 .interface-hebrew .rightButtons {
@@ -5473,7 +5473,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment {
 }
 .segment.heOnly{
-  text-align: right;
+  text-align: left;
   direction: ltr;
 }
 .segment.enOnly{
@@ -5656,7 +5656,7 @@ But not to use a display block directive that might break continuous mode for ot
   border-bottom-color: #666;
 }
 .textRange .actionLinks {
-  text-align: right;
+  text-align: left;
 }
 .textRange .actionLinks > span {
   font-size: 13px;
@@ -5818,7 +5818,7 @@ But not to use a display block directive that might break continuous mode for ot
   text-align: left;
 }
 .interface-hebrew .connectionsPanel .flashMessage {
-  text-align: right;
+  text-align: left;
 }
 .textList {
   width: 100%;
@@ -6476,7 +6476,7 @@ But not to use a display block directive that might break continuous mode for ot
   direction: ltr;
 }
 .webpageList .webpage.hebrew{
-  text-align: right;
+  text-align: left;
   direction: ltr;
 }
 .webpageList .webpage .icon {
@@ -6512,7 +6512,7 @@ But not to use a display block directive that might break continuous mode for ot
   margin-top: 5px;
 }
 .interface-hebrew .webpageList .webpage .webpageMetadata {
-  text-align: right;
+  text-align: left;
   direction: ltr;
 }
 .interface-english .webpageList .webpage .webpageMetadata {
@@ -6569,7 +6569,7 @@ But not to use a display block directive that might break continuous mode for ot
   margin-top: 13px;
   margin-bottom: 2px;
   border-bottom: 0px;
-  text-align: right;
+  text-align: left;
 }
 .fullSizeImageLink {
   width: 292px;
@@ -6826,7 +6826,7 @@ But not to use a display block directive that might break continuous mode for ot
   text-align: left;
 }
 .topicButton .topicButtonTitle .he {
-  text-align: right;
+  text-align: left;
 }
 .topicButton .contentText .en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -6845,7 +6845,7 @@ But not to use a display block directive that might break continuous mode for ot
 .readerPanel.hebrew .named-entity-title-bar .three-dots-button.tooltip-toggle::before {
   right: unset;
   left: 30px;
-  text-align: right;
+  text-align: left;
 }
 .topicButton .smallText {
   margin-top: 10px;
@@ -8947,7 +8947,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   cursor: pointer;
   margin: 30px 10px;
   color: #999;
-  text-align: right;
+  text-align: left;
 }
 #editCollectionPage .deleteCollection:hover {
   text-decoration: underline;
@@ -9151,7 +9151,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer .section.last {
   float: right;
-  text-align: right;
+  text-align: left;
 }
 .interface-hebrew #footer .section.last {
   float: right;
@@ -9362,7 +9362,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
-  text-align: right;
+  text-align: left;
 }
 .aboutBox .versionDetails .separator,
 .versionsBox .versionDetails .separator {
@@ -11069,7 +11069,7 @@ cursor: pointer;
 .interface-hebrew .three-dots-button.tooltip-toggle::before {
   left: unset;
   right: 30px;
-  text-align: right;
+  text-align: left;
 }
 @media (max-width: 450px) {
   .three-dots-button.tooltip-toggle::before {
@@ -11205,7 +11205,7 @@ body .homeFeedWrapper .content {
   text-align: left;
 }
 .sideColumn .section h2 .int-he {
-  text-align: right;
+  text-align: left;
 }
 .sideColumn .section .description {
   margin-bottom: 25px;
@@ -11657,7 +11657,7 @@ body .homeFeedWrapper.userStats {
   text-align: left;
 }
 .interface-hebrew .editTextInfo .static label {
-  text-align: right
+  text-align: left
 }
 .editTextInfo #newIndex .sectionType input{
 	width: 100px;

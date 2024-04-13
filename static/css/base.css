@@ -40,7 +40,7 @@ p {
 	padding: 0px 2%;
 }
 #content.hebrew .biReady {
-	direction: rtl;
+	direction: ltr;
 }
 #content.english .biReady .he {
 	display: none;
@@ -51,7 +51,7 @@ p {
 #content.hebrew .biReady .he {
 	display: inline;
 	font-size: 120%;
-	text-align: right;
+	text-align: left;
 }
 #content.hebrew .biReady .he .enInHe {
   font-size: 83%;
@@ -61,7 +61,7 @@ p {
 }
 #content.hebrew .biReady p,
 #content.hebrew .biReady #bites h3 {
-	text-align: right;
+	text-align: left;
 }
 #content.hebrew .hideInHebrewMode {
   display: none !important;
@@ -135,7 +135,7 @@ body.hebrew #home #homeTitle #homeTitleBox {
 }
 
 body.hebrew #home .homeColumn, #content.hebrew #home .homeColumn {
-    text-align: right;
+    text-align: left;
 }
 
 #home .homeColumn h2 {
@@ -500,7 +500,7 @@ body.hebrew #home #homeConnect .followButton .fa {
   margin-bottom: 0;
 }
 .hebrew #home #announcement h3 {
-  text-align: right;
+  text-align: left;
 }
 .hebrew #home #announcement .btn {
   float: left;
@@ -715,8 +715,8 @@ body.hebrew #aboutPage .span5 {
 }
 
 #textsList .heTitle {
-  direction: rtl;
-  text-align: right;
+  direction: ltr;
+  text-align: left;
   font-family: "Times New Roman", serif;
   font-size: 24px;
   cursor: pointer;
@@ -843,12 +843,12 @@ body.hebrew #aboutPage .span5 {
   padding: 0;
   display: inline-block;
 }
-#textsList .text .title a,
+#textsList .text .title a
 {
   text-indent: -20px;
   padding-left: 20px;
 }
-#textsList .text .heTitle a,
+#textsList .text .heTitle a
 {
   text-indent: -20px;
   padding-right: 20px;
@@ -1196,7 +1196,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #activityList .text.he {
-	direction: rtl;
+	direction: ltr;
 }
 
 #activityList .time {
@@ -1255,8 +1255,8 @@ body.hebrew #aboutPage .span5 {
 
 .textPreview .he {
     font-size: 28px;
-    direction: rtl;
-    text-align: right;
+    direction: ltr;
+    text-align: left;
     line-height: 1.3;
     font-family: "Times New Roman", Serif;
 }
@@ -1298,7 +1298,7 @@ body.hebrew #aboutPage .span5 {
 	font-size: 20px;
 	display: inline-block;
 	vertical-align: top;
-	text-align: right;
+	text-align: left;
 }
 
 #newIndex .optional {
@@ -1328,7 +1328,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #textHeTitleVariants {
-	direction: rtl;
+	direction: ltr;
 }
 
 #newIndex #textTitle {
@@ -1339,7 +1339,7 @@ body.hebrew #aboutPage .span5 {
 #newIndex #heTitle {
 	font-size: 20px;
 	padding: 4px;
-	direction: rtl;
+	direction: ltr;
 }
 
 #newIndex select {
@@ -1389,7 +1389,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #newIndex #addShorthand {
-	text-align: right;
+	text-align: left;
 	display: block;
 }
 
@@ -1524,7 +1524,7 @@ body.hebrew #aboutPage .span5 {
 #tocBuilder label {
 	display: inline-block;
 	width: 100px;
-	text-align: right;
+	text-align: left;
 	margin-right: 10px;
 }
 
@@ -1568,7 +1568,7 @@ body.hebrew #aboutPage .span5 {
 	background-color: #08c;
 	position: relative;
 	color: white;
-	text-align: right;
+	text-align: left;
 	overflow: visible;
 	font-size: 11px;
 	line-height: 14px;
@@ -1632,7 +1632,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #translateCampaign #original {
-	direction: rtl;
+	direction: ltr;
 	font-size: 30px;
 	font-family: "Times New Roman", serif;
 	line-height: 39px;
@@ -2672,7 +2672,7 @@ text-align: left;width: 250px;display: inline-block;}
 }
 
 body.hebrew #footer {
-	direction: rtl;
+	direction: ltr;
 }
 body.english #footer .he {
 	display: none;
@@ -2683,7 +2683,7 @@ body.english #footer .en {
 body.hebrew #footer .he {
 	display: inline;
 	font-size: 120%;
-	text-align: right;
+	text-align: left;
 }
 body.hebrew #footer .en {
 	display: none;
