@@ -205,6 +205,7 @@ const Strings = {
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
     "Saves": "שמירות",
+    "You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.": "You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.",
 
     //publish flow:
     "Not Published" : "לא פורסם",
