@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-13 15:07+0530\n"
+"POT-Creation-Date: 2024-04-13 16:56+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,12 +17,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: reader/templatetags/sefaria_tags.py:221 sefaria/settings.py:25
-#: templates/account_settings.html:54 templates/sheets.html:778
+#: templates/account_settings.html:54 templates/edit_text.html:185
+#: templates/elements/notification.html:15
+#: templates/elements/notification.html:17 templates/sheets.html:778
 #: templates/sheets.html:779
 msgid "English"
 msgstr ""
 
 #: reader/templatetags/sefaria_tags.py:222 sefaria/settings.py:26
+#: templates/edit_text.html:186 templates/elements/notification.html:15
+#: templates/elements/notification.html:17
 msgid "Hebrew"
 msgstr ""
 
@@ -350,8 +354,16 @@ msgstr ""
 msgid "Page Not Found | Sefaria"
 msgstr ""
 
-#: templates/500.html:4
+#: templates/404.html:11 templates/404.html:12
+msgid "Page Not Found"
+msgstr ""
+
+#: templates/500.html:4 templates/500.html:10 templates/500.html:11
 msgid "Internal Server Error"
+msgstr ""
+
+#: templates/500.html:20 templates/500.html:27
+msgid "development team"
 msgstr ""
 
 #: templates/account_settings.html:12 templates/account_settings.html:13
@@ -361,15 +373,18 @@ msgstr ""
 #: templates/account_settings.html:17 templates/account_settings.html:18
 #: templates/account_settings.html:164 templates/account_settings.html:165
 #: templates/edit_profile.html:18 templates/edit_profile.html:19
-#: templates/elements/login_prompt.html:8 templates/profile.html:188
-#: templates/sheets.html:1102 templates/sheets.html:1103
-#: templates/sheets.html:1128 templates/sheets.html:1129
+#: templates/edit_text.html:69 templates/edit_text.html:97
+#: templates/edit_text.html:150 templates/elements/login_prompt.html:8
+#: templates/profile.html:188 templates/sheets.html:1102
+#: templates/sheets.html:1103 templates/sheets.html:1128
+#: templates/sheets.html:1129
 msgid "Cancel"
 msgstr ""
 
 #: templates/account_settings.html:21 templates/account_settings.html:22
 #: templates/account_settings.html:160 templates/account_settings.html:161
 #: templates/edit_profile.html:22 templates/edit_profile.html:23
+#: templates/edit_text.html:96 templates/edit_text.html:149
 #: templates/sheets.html:504 templates/sheets.html:505
 #: templates/sheets.html:918 templates/sheets.html:919
 #: templates/sheets.html:1081 templates/sheets.html:1082
@@ -384,7 +399,7 @@ msgstr ""
 msgid "Daily"
 msgstr ""
 
-#: templates/account_settings.html:37
+#: templates/account_settings.html:37 templates/account_settings.html:38
 msgid "Weekly"
 msgstr ""
 
@@ -412,7 +427,7 @@ msgstr ""
 msgid "Off"
 msgstr ""
 
-#: templates/account_settings.html:95
+#: templates/account_settings.html:95 templates/account_settings.html:96
 msgid "Preferred Custom (Weekly Haftarot)"
 msgstr ""
 
@@ -424,7 +439,7 @@ msgstr ""
 msgid "Ashkenazi"
 msgstr ""
 
-#: templates/account_settings.html:112
+#: templates/account_settings.html:112 templates/account_settings.html:113
 msgid "Account Email (This is used for login)"
 msgstr ""
 
@@ -456,11 +471,12 @@ msgstr ""
 msgid "Your Google Account has been disconnected"
 msgstr ""
 
-#: templates/account_settings.html:154
+#: templates/account_settings.html:154 templates/account_settings.html:155
 msgid "You can link to a new Google Account the next time you export a sheet"
 msgstr ""
 
-#: templates/activity.html:7
+#: templates/activity.html:7 templates/activity.html:36
+#: templates/activity.html:37
 msgid "Revision History of"
 msgstr ""
 
@@ -484,6 +500,14 @@ msgid ""
 "source sheets, and text translations, edits or additions. "
 msgstr ""
 
+#: templates/activity.html:45 templates/activity.html:46
+msgid "Public Activity"
+msgstr ""
+
+#: templates/activity.html:51 templates/activity.html:52
+msgid "Recent Activity on Sefaria"
+msgstr ""
+
 #: templates/activity.html:57
 msgid "All Activity"
 msgstr ""
@@ -492,7 +516,7 @@ msgstr ""
 msgid "Translations"
 msgstr ""
 
-#: templates/activity.html:59 templates/metrics.html:51
+#: templates/activity.html:59 templates/metrics.html:50
 #: templates/profile.html:106
 msgid "Source Sheets"
 msgstr ""
@@ -529,13 +553,74 @@ msgstr ""
 msgid "Admin: Delete a Sheet"
 msgstr ""
 
+#: templates/delete-sheet.html:11 templates/delete-sheet.html:19
+#: templates/sheets.html:65 templates/sheets.html:66
+msgid "Delete Sheet"
+msgstr ""
+
+#: templates/delete-sheet.html:13
+msgid "CAUTION THIS WILL DELETE THE SHEET ID YOU INPUT"
+msgstr ""
+
+#: templates/delete-sheet.html:14
+msgid "IT CANNOT BE UNDONE."
+msgstr ""
+
+#: templates/discussions.html:6 templates/discussions.html:14
+msgid "Discuss a Text on Sefaria"
+msgstr ""
+
+#: templates/discussions.html:18
+msgid "This is an <b>EXPERIMENTAL"
+msgstr ""
+
+#: templates/discussions.html:18
+msgid " feature. Please try it out and let us know what is"
+msgstr ""
+
+#: templates/discussions.html:18
+msgid "exciting"
+msgstr ""
+
+#: templates/discussions.html:18
+msgid " and what is"
+msgstr ""
+
+#: templates/discussions.html:18
+msgid "frustrating"
+msgstr ""
+
+#: templates/discussions.html:18
+msgid " about it!"
+msgstr ""
+
+#: templates/discussions.html:26
+msgid "Choose a Text"
+msgstr ""
+
+#: templates/discussions.html:31
+msgid "Start a Discussion"
+msgstr ""
+
+#: templates/discussions.html:33
+msgid "Anyone with the link below will be able to view and participate."
+msgstr ""
+
+#: templates/discussions.html:37
+msgid "Get Started"
+msgstr ""
+
+#: templates/discussions.html:41
+msgid "Your Discussions"
+msgstr ""
+
 #: templates/edit_collection.html:9
 msgid "Edit Collection on Sefaria"
 msgstr ""
 
 #: templates/edit_collection.html:20 templates/edit_term.html:40
 #: templates/elements/loading.html:13 templates/elements/loading.html:14
-#: templates/metrics.html:18 templates/sheets.html:579
+#: templates/metrics.html:17 templates/sheets.html:579
 #: templates/sheets.html:832 templates/sheets.html:833
 msgid "Loading..."
 msgstr ""
@@ -630,6 +715,193 @@ msgstr ""
 
 #: templates/edit_term.html:39
 msgid "Terms Editor"
+msgstr ""
+
+#: templates/edit_text.html:64
+msgid "Add a New Text"
+msgstr ""
+
+#: templates/edit_text.html:65
+msgid "Text or commentator name:"
+msgstr ""
+
+#: templates/edit_text.html:68 templates/sheets.html:1074
+#: templates/sheets.html:1098 templates/sheets.html:1099
+msgid "Add"
+msgstr ""
+
+#: templates/edit_text.html:86
+msgid "Your Review:"
+msgstr ""
+
+#: templates/edit_text.html:88
+msgid "How should I write a review?"
+msgstr ""
+
+#: templates/edit_text.html:101
+msgid "To add your review, please "
+msgstr ""
+
+#: templates/edit_text.html:101
+msgid "log in"
+msgstr ""
+
+#: templates/edit_text.html:101 templates/sheets.html:737
+#: templates/sheets.html:738 templates/sheets.html:802
+#: templates/sheets.html:803 templates/sheets.html:880
+#: templates/sheets.html:882
+#: venv/lib/python3.9/site-packages/django/utils/text.py:309
+msgid "or"
+msgstr ""
+
+#: templates/edit_text.html:101 templates/sheets.html:881
+#: templates/sheets.html:883
+msgid "register"
+msgstr ""
+
+#: templates/edit_text.html:104
+msgid "Close"
+msgstr ""
+
+#: templates/edit_text.html:109
+msgid "Writing Helpful Reviews"
+msgstr ""
+
+#: templates/edit_text.html:110
+msgid "For primary texts and historical translations:"
+msgstr ""
+
+#: templates/edit_text.html:110
+msgid ""
+" Indicate what outside source (book, web page) was used to compare the text, "
+"or make clear that your review is only looking at the text present."
+msgstr ""
+
+#: templates/edit_text.html:112
+msgid "I compared this text to X printed edition and found no problems."
+msgstr ""
+
+#: templates/edit_text.html:113
+msgid "I checked this text against the edition on X website, all looks good."
+msgstr ""
+
+#: templates/edit_text.html:114
+msgid "I read this text carefully and don't see anything wrong."
+msgstr ""
+
+#: templates/edit_text.html:117
+msgid "For original translations:"
+msgstr ""
+
+#: templates/edit_text.html:117
+msgid ""
+" Review the text carefully next to the original, and comment on its accuracy "
+"and style according to our "
+msgstr ""
+
+#: templates/edit_text.html:117
+msgid "translation guidelines"
+msgstr ""
+
+#: templates/edit_text.html:119
+msgid "This translation seems accurate to me."
+msgstr ""
+
+#: templates/edit_text.html:120
+msgid "The language could be improved, but the translation seems right."
+msgstr ""
+
+#: templates/edit_text.html:121
+msgid "This translation misunderstands the term X."
+msgstr ""
+
+#: templates/edit_text.html:125
+msgid "How to Score your Review:"
+msgstr ""
+
+#: templates/edit_text.html:127
+msgid " Compared closesly to a source, confident there are no problems."
+msgstr ""
+
+#: templates/edit_text.html:130
+msgid " Compared to a source, didn't notice any problems."
+msgstr ""
+
+#: templates/edit_text.html:133
+msgid " Looks problem free, but could be reviewed more closely."
+msgstr ""
+
+#: templates/edit_text.html:136
+msgid " Found some issues that need to be addressed."
+msgstr ""
+
+#: templates/edit_text.html:139
+msgid " Found serious problems that need to be addressed."
+msgstr ""
+
+#: templates/edit_text.html:142 templates/sheets.html:1153
+#: templates/sheets.html:1197 templates/sheets.html:1198
+#: templates/sheets.html:1219 templates/sheets.html:1220
+msgid "OK"
+msgstr ""
+
+#: templates/edit_text.html:156
+msgid "Source "
+msgstr ""
+
+#: templates/edit_text.html:163
+msgid "Original Translation"
+msgstr ""
+
+#: templates/edit_text.html:167
+msgid "Copied Text"
+msgstr ""
+
+#: templates/edit_text.html:172
+msgid "This text will be published with a "
+msgstr ""
+
+#: templates/edit_text.html:172
+msgid ""
+" licence, effectively donating it to the Public Domain. Only submit texts as "
+"\"Original Translation\" that you have authored."
+msgstr ""
+
+#: templates/edit_text.html:176
+msgid "Copied texts must either be in the "
+msgstr ""
+
+#: templates/edit_text.html:176
+msgid "Public Domain"
+msgstr ""
+
+#: templates/edit_text.html:176
+msgid " or carry a "
+msgstr ""
+
+#: templates/edit_text.html:176
+msgid "Creative Commons"
+msgstr ""
+
+#: templates/edit_text.html:176
+msgid " license such as "
+msgstr ""
+
+#: templates/edit_text.html:176
+msgid ""
+". You can learn more about when a text passes into the Public Domain on this"
+msgstr ""
+
+#: templates/edit_text.html:176
+msgid "summary of Copyright Terms"
+msgstr ""
+
+#: templates/edit_text.html:178
+msgid "Version Title:"
+msgstr ""
+
+#: templates/edit_text.html:179
+msgid "Copied from:"
 msgstr ""
 
 #: templates/elements/activity_feed.html:7
@@ -778,6 +1050,53 @@ msgstr ""
 msgid "Sign Up"
 msgstr ""
 
+#: templates/elements/notification.html:15
+#: templates/elements/notification.html:17
+msgid "New"
+msgstr ""
+
+#: templates/elements/notification.html:15
+#: templates/elements/notification.html:17
+msgid "version of"
+msgstr ""
+
+#: templates/elements/notification.html:27
+#: templates/elements/notification.html:28
+msgid "New Text:"
+msgstr ""
+
+#: templates/elements/notification.html:37
+#: templates/elements/notification.html:38
+msgid "likes your sheet,"
+msgstr ""
+
+#: templates/elements/notification.html:43
+#: templates/elements/notification.html:44
+msgid "published a new sheet"
+msgstr ""
+
+#: templates/elements/notification.html:49
+#: templates/elements/notification.html:50
+msgid "is now following you."
+msgstr ""
+
+#: templates/elements/notification.html:56
+#: templates/elements/notification.html:57
+#: templates/elements/notification.html:62
+#: templates/elements/notification.html:63 templates/email/notification.html:26
+msgid "added you to the collection"
+msgstr ""
+
+#: templates/elements/notification.html:68
+#: templates/elements/notification.html:69 templates/email/notification.html:29
+msgid "added a note to a"
+msgstr ""
+
+#: templates/elements/notification.html:68
+#: templates/elements/notification.html:69 templates/email/notification.html:31
+msgid "discussion you follow"
+msgstr ""
+
 #: templates/email/base.html:17
 msgid ""
 "\n"
@@ -848,18 +1167,6 @@ msgstr ""
 msgid "is now following you"
 msgstr ""
 
-#: templates/email/notification.html:26
-msgid "added you to the collection"
-msgstr ""
-
-#: templates/email/notification.html:29
-msgid "added a note to a"
-msgstr ""
-
-#: templates/email/notification.html:31
-msgid "discussion you follow"
-msgstr ""
-
 #: templates/email/notification.html:35
 msgid "This is a notification without a type, it shouldn't exist."
 msgstr ""
@@ -909,54 +1216,62 @@ msgid ""
 "translations, and source sheet."
 msgstr ""
 
-#: templates/metrics.html:5
+#: templates/leaderboard.html:30 templates/leaderboard.html:31
+msgid "Top Contributors"
+msgstr ""
+
+#: templates/metrics.html:4
 msgid "Sefaria Metrics"
 msgstr ""
 
-#: templates/metrics.html:7
+#: templates/metrics.html:6
 msgid ""
 "See graphs charting Sefaria's progress since 2013 across metrics including "
 "word counts, number of links and number of source sheets."
 msgstr ""
 
-#: templates/metrics.html:35
+#: templates/metrics.html:13 templates/metrics.html:14
+msgid "Metrics"
+msgstr ""
+
+#: templates/metrics.html:34
 msgid "Total Words in Library"
 msgstr ""
 
-#: templates/metrics.html:36
+#: templates/metrics.html:35
 msgid "Words in Hebrew & Aramaic"
 msgstr ""
 
-#: templates/metrics.html:37
+#: templates/metrics.html:36
 msgid "Words in Translation"
 msgstr ""
 
-#: templates/metrics.html:38
+#: templates/metrics.html:37
 msgid "Words of Original Translation created by Sefaria Volunteers"
 msgstr ""
 
-#: templates/metrics.html:39
+#: templates/metrics.html:38
 msgid "Number of Public Contributors"
 msgstr ""
 
-#: templates/metrics.html:40
+#: templates/metrics.html:39
 msgid "Number of Intertextual Links"
 msgstr ""
 
-#: templates/metrics.html:41
+#: templates/metrics.html:40
 msgid "Number of Source Sheets"
 msgstr ""
 
-#: templates/metrics.html:45 templates/metrics.html:46
-#: templates/metrics.html:47 templates/metrics.html:48
+#: templates/metrics.html:44 templates/metrics.html:45
+#: templates/metrics.html:46 templates/metrics.html:47
 msgid "Words"
 msgstr ""
 
-#: templates/metrics.html:49
+#: templates/metrics.html:48
 msgid "Contributors"
 msgstr ""
 
-#: templates/metrics.html:50
+#: templates/metrics.html:49
 msgid "Links"
 msgstr ""
 
@@ -970,12 +1285,38 @@ msgid ""
 "together with links to their available texts."
 msgstr ""
 
-#: templates/person.html:38
+#: templates/people.html:23 templates/people.html:24 templates/person.html:38
 msgid "Authors"
 msgstr ""
 
-#: templates/person.html:41 templates/talmud_people.html:6
+#: templates/people.html:29 templates/people.html:30 templates/person.html:41
+#: templates/talmud_people.html:6
 msgid "People in the Talmud"
+msgstr ""
+
+#: templates/person.html:86 templates/person.html:87
+msgid "Learn More"
+msgstr ""
+
+#: templates/person.html:91 templates/person.html:92 templates/person.html:97
+#: templates/person.html:98
+msgid "Wikipedia"
+msgstr ""
+
+#: templates/person.html:102 templates/person.html:103
+msgid "Wikipedia (Hebrew)"
+msgstr ""
+
+#: templates/person.html:109 templates/person.html:110
+msgid "Jewish Encyclopedia"
+msgstr ""
+
+#: templates/person.html:130 templates/person.html:131
+msgid "Works"
+msgstr ""
+
+#: templates/person.html:143 templates/person.html:144
+msgid "Map"
 msgstr ""
 
 #: templates/profile.html:4
@@ -1032,12 +1373,37 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
+#: templates/random.html:7
+msgid "Random Text | Sefaria.org"
+msgstr ""
+
+#: templates/random.html:14
+msgid "A Random Text on Sefaria<"
+msgstr ""
+
+#: templates/random.html:18
+msgid "Get Random"
+msgstr ""
+
 #: templates/registration/delete_user_account.html:4
 msgid "Admin: Delete a User"
 msgstr ""
 
+#: templates/registration/delete_user_account.html:11
+#: templates/registration/delete_user_account.html:17
+msgid "Delete User"
+msgstr ""
+
 #: templates/registration/logged_out.html:4
 msgid "Logged Out | Sefaria"
+msgstr ""
+
+#: templates/registration/logged_out.html:13
+msgid "You are now logged out."
+msgstr ""
+
+#: templates/registration/logged_out.html:13
+msgid "Log back in"
 msgstr ""
 
 #: templates/registration/login.html:4
@@ -1173,6 +1539,7 @@ msgid "Already have an account? Log in"
 msgstr ""
 
 #: templates/registration/register.html:32
+#: templates/registration/register.html:33
 msgid "By clicking Sign Up you agree to our"
 msgstr ""
 
@@ -1210,7 +1577,7 @@ msgstr ""
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr ""
 
-#: templates/sheets.html:31
+#: templates/sheets.html:31 templates/sheets.html:32
 #: venv/lib/python3.9/site-packages/django/db/models/fields/files.py:226
 msgid "File"
 msgstr ""
@@ -1226,10 +1593,6 @@ msgstr ""
 #: templates/sheets.html:56 templates/sheets.html:57 templates/sheets.html:1111
 #: templates/sheets.html:1112
 msgid "Embed Sheet"
-msgstr ""
-
-#: templates/sheets.html:65 templates/sheets.html:66
-msgid "Delete Sheet"
 msgstr ""
 
 #: templates/sheets.html:77 templates/sheets.html:78
@@ -1349,7 +1712,7 @@ msgstr ""
 msgid "Reset to Sheet Default:"
 msgstr ""
 
-#: templates/sheets.html:396
+#: templates/sheets.html:396 templates/sheets.html:397
 msgid "Insert:"
 msgstr ""
 
@@ -1369,7 +1732,7 @@ msgstr ""
 msgid "Media:"
 msgstr ""
 
-#: templates/sheets.html:431
+#: templates/sheets.html:431 templates/sheets.html:432
 msgid "Highlight Tools:"
 msgstr ""
 
@@ -1526,13 +1889,6 @@ msgstr ""
 msgid "Add Source"
 msgstr ""
 
-#: templates/sheets.html:737 templates/sheets.html:738
-#: templates/sheets.html:802 templates/sheets.html:803
-#: templates/sheets.html:880 templates/sheets.html:882
-#: venv/lib/python3.9/site-packages/django/utils/text.py:309
-msgid "or"
-msgstr ""
-
 #: templates/sheets.html:742 templates/sheets.html:743
 msgid "Browse Sources"
 msgstr ""
@@ -1621,10 +1977,6 @@ msgid "login"
 msgstr ""
 
 #: templates/sheets.html:881 templates/sheets.html:883
-msgid "register"
-msgstr ""
-
-#: templates/sheets.html:881 templates/sheets.html:883
 msgid "to save your work."
 msgstr ""
 
@@ -1702,11 +2054,6 @@ msgstr ""
 msgid "Anyone with access can"
 msgstr ""
 
-#: templates/sheets.html:1074 templates/sheets.html:1098
-#: templates/sheets.html:1099
-msgid "Add"
-msgstr ""
-
 #: templates/sheets.html:1090
 msgid ""
 "\n"
@@ -1724,10 +2071,8 @@ msgstr ""
 msgid "Add a Parasha to a Source Sheet"
 msgstr ""
 
-#: templates/sheets.html:1153 templates/sheets.html:1197
-#: templates/sheets.html:1198 templates/sheets.html:1219
-#: templates/sheets.html:1220
-msgid "OK"
+#: templates/sheets.html:1137
+msgid "Change this source's layout:"
 msgstr ""
 
 #: templates/sheets.html:1154
