@@ -83,31 +83,31 @@
         <div class="section">
             <div id="external_links">
                 <h3>
-                    <span class="int-en">Learn More</span>
-                    <span class="int-he">להרחבה</span>
+                    <span class="int-en">{% trans "Learn More" %}</span>
+                    <span class="int-he">{% trans "Learn More" %}</span>
                 </h3>
                 {% if enWikiLink and heWikiLink %}
                     <p>
-                        <span class="int-en"><a href="{{ enWikiLink }}">Wikipedia</a><i class="fa fa-external-link"></i></span>
-                        <span class="int-he"><a href="{{ heWikiLink }}">וויקיפדיה</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                        <span class="int-en"><a href="{{ enWikiLink }}">{% trans "Wikipedia" %}</a><i class="fa fa-external-link"></i></span>
+                        <span class="int-he"><a href="{{ heWikiLink }}">{% trans "Wikipedia" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
                     </p>
 
                 {% elif enWikiLink %}
                     <p>
-                        <span class="int-en"><a href="{{ enWikiLink }}">Wikipedia</a><i class="fa fa-external-link"></i></span>
-                        <span class="int-he"><a href="{{ enWikiLink }}">וויקיפדיה (אנגלית)</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                        <span class="int-en"><a href="{{ enWikiLink }}">{% trans "Wikipedia" %}</a><i class="fa fa-external-link"></i></span>
+                        <span class="int-he"><a href="{{ enWikiLink }}">{% trans "Wikipedia" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
                     </p>
                 {% elif heWikiLink %}
                     <p>
-                        <span class="int-en"><a href="{{ heWikiLink }}">Wikipedia (Hebrew)</a><i class="fa fa-external-link"></i></span>
-                        <span class="int-he"><a href="{{ heWikiLink }}">וויקיפדיה</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                        <span class="int-en"><a href="{{ heWikiLink }}">{% trans "Wikipedia (Hebrew)" %}</a><i class="fa fa-external-link"></i></span>
+                        <span class="int-he"><a href="{{ heWikiLink }}">{% trans "Wikipedia (Hebrew)" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
                     </p>
                 {% endif %}
 
                 {% if jeLink %}
                     <p>
-                        <span class="int-en"><a href="{{ jeLink }}">Jewish Encyclopedia</a><i class="fa fa-external-link"></i></span>
-                        <span class="int-he"><a href="{{ jeLink }}">האנציקלופדיה היהודית (אנגלית)</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                        <span class="int-en"><a href="{{ jeLink }}">{% trans "Jewish Encyclopedia" %}</a><i class="fa fa-external-link"></i></span>
+                        <span class="int-he"><a href="{{ jeLink }}">{% trans "Jewish Encyclopedia" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
                     </p>
                 {% endif %}
             </div>
@@ -127,8 +127,8 @@
             {% if indexes|length %}
             <div id="indexes">
                 <h3>
-                     <span class="int-en">Works</span>
-                     <span class="int-he">ספרים</span>
+                     <span class="int-en">{% trans "Works" %}</span>
+                     <span class="int-he">{% trans "Works" %}</span>
                 </h3>
                 {% for indx in indexes %}
                     <p>
@@ -140,8 +140,8 @@
             {% if places %}
             <div id="person-graphic-column">
                 <h3>
-                    <span class="int-en">Map</span>
-                    <span class="int-he">מפה</span>
+                    <span class="int-en">{% trans "Map" %}</span>
+                    <span class="int-he">{% trans "Map" %}</span>
                 </h3>
                     <div id="place-map"></div>
             </div>

@@ -12,9 +12,10 @@
 
     {% elif notification.type == "version" %}
         <div>
-            <span class="int-en">New {% if notification.content.language == "en" %}English{% else %}Hebrew{% endif %} version of
+            <span class="int-en">{% trans "New" %}{% if notification.content.language == "en" %}{% trans "English" %}{% else %}{% trans "Hebrew" %} {% endif %} {% trans "version of" %}
                 {{ notification.content.index|text_toc_link }}: {{notification.content.version }}</span>
-            <span class="int-he">גרסה חדשה של {{ notification.content.index|text_toc_link }} ב{% if notification.content.language == "en" %}אנגלית{% else %}עברית{% endif %} : {{notification.content.version }}</span>
+            <span class="int-he">{% trans "New" %}{% if notification.content.language == "en" %}{% trans "English" %}{% else %}{% trans "Hebrew" %} {% endif %} {% trans "version of" %}
+                {{ notification.content.index|text_toc_link }}: {{notification.content.version }}</span>
         </div>
         <div class="added-description">
             <span class="int-en">{% autoescape off %}{{ notification.content.en }}{% endautoescape %}</span>
@@ -23,8 +24,8 @@
 
     {% elif notification.type == "index" %}
         <div>
-            <span class="int-en">New Text: {{ notification.content.index|text_toc_link }}</span>
-            <span class="int-he">טקסט חדש זמין: {{ notification.content.index|text_toc_link }}</span>
+            <span class="int-en">{% trans "New Text:"%} {{ notification.content.index|text_toc_link }}</span>
+            <span class="int-he">{% trans "New Text:"%} {{ notification.content.index|text_toc_link }}</span>
         </div>
         <div class="added-description">
             <span class="int-en">{% autoescape off %}{{ notification.content.en }}{% endautoescape %}</span>
@@ -33,39 +34,39 @@
 
 	{% elif notification.type == "sheet like" %}
         <div>
-            <span class="int-en">{{ notification.content.liker|user_link }} likes your sheet, {{ notification.content.sheet_id|sheet_link }}.</span>
-            <span class="int-he">{{ notification.content.liker|user_link }}  אהב/ה את דף המקורות {{ notification.content.sheet_id|sheet_link }} שלך.</span>
+            <span class="int-en">{{ notification.content.liker|user_link }} {% trans "likes your sheet," %} {{ notification.content.sheet_id|sheet_link }}.</span>
+            <span class="int-he">{{ notification.content.liker|user_link }} {% trans "likes your sheet," %} {{ notification.content.sheet_id|sheet_link }}</span>
         </div>
 
 	{% elif notification.type == "sheet publish" %}
         <div>
-            <span class="int-en">{{ notification.content.publisher|user_link }} published a new sheet <div class="sheetLink">{{ notification.content.sheet_id|sheet_link }}</div></span>
-            <span class="int-he">{{ notification.content.publisher|user_link }} פרסם/ה דף מקורות חדש <div class="sheetLink">{{ notification.content.sheet_id|sheet_link }}</div></span>
+            <span class="int-en">{{ notification.content.publisher|user_link }}{% trans "published a new sheet"%}<div class="sheetLink">{{ notification.content.sheet_id|sheet_link }}</div></span>
+            <span class="int-he">{{ notification.content.publisher|user_link }}{% trans "published a new sheet"%} <div class="sheetLink">{{ notification.content.sheet_id|sheet_link }}</div></span>
         </div>
 
 	{% elif notification.type == "follow" %}
         <div>
-            <span class="int-en">{{ notification.content.follower|user_link }} is now following you.</span>
-            <span class="int-he"> כעת עוקב/ת אחרייך{{ notification.content.follower|user_link }} </span>
+            <span class="int-en">{{ notification.content.follower|user_link }}{% trans "is now following you." %}</span>
+            <span class="int-he">{{ notification.content.follower|user_link }}{% trans "is now following you." %} </span>
         </div>
 
     {% elif notification.type == "group add" %}
         <!-- for legacy data -->
         <div>
-            <span class="int-en">{{ notification.content.adder|user_link }} added you to the collection {{ notification.content.group_name|group_link }}.</span>
-            <span class="int-he">{{ notification.content.adder|user_link }} הוסיף אותך לאסופה {{ notification.content.group_name|group_link }}.</span>
+            <span class="int-en">{{ notification.content.adder|user_link }}{% trans "added you to the collection" %} {{ notification.content.group_name|group_link }}.</span>
+            <span class="int-he">{{ notification.content.adder|user_link }}{% trans "added you to the collection" %} {{ notification.content.group_name|group_link }}.</span>
         </div>
 
     {% elif notification.type == "collection add" %}
         <div>
-            <span class="int-en">{{ notification.content.adder|user_link }} added you to the collection {{ notification.content.collection_slug|collection_link }}.</span>
-            <span class="int-he">{{ notification.content.adder|user_link }} הוסיף אותך לאסופה {{ notification.content.collection_slug|collection_link }}.</span>
+            <span class="int-en">{{ notification.content.adder|user_link }}{% trans "added you to the collection" %} {{ notification.content.collection_slug|collection_link }}.</span>
+            <span class="int-he">{{ notification.content.adder|user_link }}{% trans "added you to the collection" %} {{ notification.content.collection_slug|collection_link }}.</span>
         </div>
 
 	{% elif notification.type == "discuss" %}
         <div>
-            <span class="int-en">{{ notification.content.adder|user_link }} added a note to a <a href="{{ notification.content.discussion_path|url_safe }}">discussion you follow</a>.</span>
-            <span class="int-he">{{ notification.content.adder|user_link }}  הוסיף/ה תגובה ל<a href="{{ notification.content.discussion_path|url_safe }}">שיחה אחריה את/ה עוקב/ת</a></span>
+            <span class="int-en">{{ notification.content.adder|user_link }}{% trans "added a note to a" %}<a href="{{ notification.content.discussion_path|url_safe }}">{% trans "discussion you follow" %}</a>.</span>
+            <span class="int-he">{{ notification.content.adder|user_link }}{% trans "added a note to a" %}<a href="{{ notification.content.discussion_path|url_safe }}">{% trans "discussion you follow" %}</a></span>
         </div>
         
 	{% elif notification.type == "unset" %}

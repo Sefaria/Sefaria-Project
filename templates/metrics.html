@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load i18n cache humanize sefaria_tags %}
-{% load i18n %}
 
 {% block title %}{% trans "Sefaria Metrics" %}{% endblock %}
 
@@ -11,8 +10,8 @@
 <div id="metricsPage" class="biReady container static">
 	<div class="inner">
         <h1>
-            <span class="int-en">Metrics</span>
-            <span class="int-he">מדדים</span>
+            <span class="int-en">{% trans "Metrics" %}</span>
+            <span class="int-he">{% trans "Metrics" %}</span>
         </h1>
 		<div id="metricsBox">
 			{% trans "Loading..." %}
