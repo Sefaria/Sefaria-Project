@@ -525,6 +525,14 @@ const Strings = {
     "Citing": "ལུང་འདྲེན།",
     "Sites that are listed here use the": "བཀོལ་སྤྱོད་བྱེད་པ་ལ་ཐོ་རུ་བཀོད་པའི་ས་ཆ་རྣམས།",
     "Sefaria Linker": "དཔེ་ཆ་དྲ་ཆིགས་ཀྱི་སྦྲེལ་མཐུད་བྱེད་ཆས།",
+    // Error message
+    "file_error_message": "Error: Please upload an image with the correct file extension (e.g. jpg, png)",
+    "Add Picture": "Add Picture",
+    "Upload New": "Upload New",
+    "Drag corners to crop image": "Drag corners to crop image",
+    "Sort": "Sort",
+    "Please log in to use this feature.": "Please log in to use this feature.",
+    "": ""
   },
 
   _i18nInterfaceStringsWithContext: {

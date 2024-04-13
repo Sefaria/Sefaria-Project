@@ -2931,7 +2931,7 @@ _media: {},
       }
   },
   _: function(inputStr, context=null){
-    if(Sefaria.interfaceLang != "english"){
+    if(Sefaria.interfaceLang !== "english"){
       return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
     } else {
       return inputStr;

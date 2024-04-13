@@ -204,8 +204,6 @@ const Strings = {
     "Indent Source": "הזחת מקור פנימה",
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
-    "Reset": "איפוס",
-    "Views": "צפיות",
     "Saves": "שמירות",
 
     //publish flow:
@@ -536,6 +534,20 @@ const Strings = {
     'Citing': 'מצטט',
     'Sites that are listed here use the': 'אתרים המפורטים כאן משתמשים',
     'Sefaria Linker': 'במרשתת ההפניות',
+    // Updated translations
+    "file_error_message": "Error: Please upload an image with the correct file extension (e.g. jpg, png)",
+    "Add Picture": "འདྲ་པར་སྣོན།",
+    "Upload New": "གསར་པ་ནང་འཇུག་བྱོས།",
+    "Drag corners to crop image": "Drag corners to crop image",
+    "Sort": "ལྟར་ཚགས་སྒྲིག་བྱེད།",
+    "Please log in to use this feature.": "ཁྱད་ཆོས་འདི་བེད་སྤྱོད་གཏོང་ཆེད་ནང་འཛུལ་བྱེད་རོགས།",
+    "Feedback sent": "Feedback sent!",
+    "Have some feedback? We would love to hear it.":"Have some feedback? We would love to hear it.",
+    "Submit": "Submit",
+    "cookie_message": "We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.",
+    "OK": "OK",
+    "You are previewing the Community page for": "You are previewing the Community page for",
+    " already exists.": " already exists."
   },
 
   _i18nInterfaceStringsWithContext: {
