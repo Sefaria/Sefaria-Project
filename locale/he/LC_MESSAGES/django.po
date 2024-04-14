@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-13 16:57+0530\n"
+"POT-Creation-Date: 2024-04-14 22:00+0530\n"
 "PO-Revision-Date: 2023-10-23 15:48+0000\n"
 "Last-Translator: Lungsang, 2023\n"
 "Language-Team: Tibetan (https://app.transifex.com/OpenPecha/teams/176327/"
@@ -23,7 +23,6 @@ msgstr ""
 #: templates/account_settings.html:54 templates/edit_text.html:185
 #: templates/elements/notification.html:15
 #: templates/elements/notification.html:17 templates/sheets.html:778
-#: templates/sheets.html:779
 msgid "English"
 msgstr "དབྱིན་སྐད།"
 
@@ -358,6 +357,7 @@ msgid "The email address is not valid."
 msgstr "གློག་འཕྲིན་དེ་ཚུལ་མཐུན་ཞིག་མ་རེད།"
 
 #: sefaria/settings.py:27 templates/account_settings.html:57
+#: templates/sheets.html:779
 #, fuzzy
 #| msgid "Tibetan"
 msgid "Tibetan"
@@ -397,11 +397,24 @@ msgstr "| Sefaria ཤོག་ངོས་རྙེད་མ་སོང་།"
 msgid "Page Not Found"
 msgstr "| Sefaria ཤོག་ངོས་རྙེད་མ་སོང་།"
 
+#: templates/404.html:16 templates/404.html:19
+msgid ""
+"The requested URL couldn't be found.If you've arrived here from a link on "
+"another site,you may want to let them know their link isn't working."
+msgstr ""
+
 #: templates/500.html:4 templates/500.html:10 templates/500.html:11
 msgid "Internal Server Error"
 msgstr "གསོག་མཛོད་ནང་མའི་གནད་དོན།"
 
-#: templates/500.html:20 templates/500.html:27
+#: templates/500.html:16 templates/500.html:19
+msgid ""
+"Unfortunately, we've encountered an error.An email has been sent "
+"automatically to our developers.If you have any questions about the problem,"
+"or think you can help us figure out what went wrong,please email our "
+msgstr ""
+
+#: templates/500.html:16 templates/500.html:19
 msgid "development team"
 msgstr ""
 
@@ -2167,7 +2180,7 @@ msgid "Add to Sheet"
 msgstr "ཤོག་ངོས་ནང་སྣོན།"
 
 #: templates/sheets.html:763 templates/sheets.html:764
-msgid "Write or paste text<"
+msgid "Write or paste text"
 msgstr "འབྲི་བ་དང་ཡང་ན་ངོ་བཤུ་ཞོག"
 
 #: templates/sheets.html:788 templates/sheets.html:789
