@@ -35,7 +35,7 @@ class SearchSheetResult extends Component {
         var clean_title = $("<span>" + s.title + "</span>").text();
         var href = "/sheets/" + s.sheetId;
         const snippetMarkup = this.get_snippet_markup(data);
-        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
+        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang === "en", he: snippetMarkup.lang === "he"});
         const ownerIsHe = Sefaria.hebrew.isHebrew(s.owner_name);
         const titleIsHe = Sefaria.hebrew.isHebrew(clean_title);
         const tags = s.tags && s.tags.length ? Sefaria.util.zip(s.tags, s.topic_slugs, s.topics_he) : [];
