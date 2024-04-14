@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-13 16:56+0530\n"
+"POT-Creation-Date: 2024-04-14 22:00+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,6 @@ msgstr ""
 #: templates/account_settings.html:54 templates/edit_text.html:185
 #: templates/elements/notification.html:15
 #: templates/elements/notification.html:17 templates/sheets.html:778
-#: templates/sheets.html:779
 msgid "English"
 msgstr ""
 
@@ -325,6 +324,7 @@ msgid "The email address is not valid."
 msgstr ""
 
 #: sefaria/settings.py:27 templates/account_settings.html:57
+#: templates/sheets.html:779
 msgid "Tibetan"
 msgstr ""
 
@@ -358,11 +358,24 @@ msgstr ""
 msgid "Page Not Found"
 msgstr ""
 
+#: templates/404.html:16 templates/404.html:19
+msgid ""
+"The requested URL couldn't be found.If you've arrived here from a link on "
+"another site,you may want to let them know their link isn't working."
+msgstr ""
+
 #: templates/500.html:4 templates/500.html:10 templates/500.html:11
 msgid "Internal Server Error"
 msgstr ""
 
-#: templates/500.html:20 templates/500.html:27
+#: templates/500.html:16 templates/500.html:19
+msgid ""
+"Unfortunately, we've encountered an error.An email has been sent "
+"automatically to our developers.If you have any questions about the problem,"
+"or think you can help us figure out what went wrong,please email our "
+msgstr ""
+
+#: templates/500.html:16 templates/500.html:19
 msgid "development team"
 msgstr ""
 
@@ -1905,7 +1918,7 @@ msgid "Add to Sheet"
 msgstr ""
 
 #: templates/sheets.html:763 templates/sheets.html:764
-msgid "Write or paste text<"
+msgid "Write or paste text"
 msgstr ""
 
 #: templates/sheets.html:788 templates/sheets.html:789
