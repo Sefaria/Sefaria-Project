@@ -619,6 +619,12 @@ const Strings = {
         "Exporting to Google Docs...": "གུ་གུལ་ཡིག་ཆའི་ནང་དུ་ཕྱིར་གཏོང་བྱེད་པ།",
         "Export Complete": "ཕྱིར་གཏོང་གི་ལས་དོན་ཡོངས་སུ་གྲུབ།",
         "Open in Google": "གུ་གུལ་ནས་འབྱེད།",
+        "Searching...": "བཙལ་བ་དང་།",
+        "0 results.": "གྲུབ་འབྲས་གང་ཡང་མ་ཐོབ།",
+        "Press enter to toggle search filter for ": "འཚོལ་ཞིབ་ཀྱི་འདེམས་གཅོག་བྱེད་པར་ཨེན་ཊི་མནན་དགོས།",
+        "Press enter to toggle the list of specific books within ": "གྱི་ནང་དུ་དཔེ་ཆའི་ཐོ་གཞུང་བྱེ་བྲག་པ་རྣམས་ལ་ཡིག་རིགས་དང་སྡེ་ཚན་གྱི་སྒོ་ནས་དབྱེ་འབྱེད་བྱེད་དུ་འཇུག་པར་ toggle དགོས།",
+        "moreResults": "འབྲས་བུ་གཞན་པ་།",
+        "anotherResult": "འབྲས་བུ་གཞན་ཡང་།"
     },
 
     _i18nInterfaceStringsWithContext: {
