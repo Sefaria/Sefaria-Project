@@ -39,7 +39,7 @@ class Header extends Component {
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
-    const logo = Sefaria.interfaceLang == "hebrew" ?
+    const logo = Sefaria.interfaceLang === "hebrew" ?
       <img src="/static/img/pecha-logo.svg" alt="Sefaria Logo"/> :
       <img src="/static/img/pecha-logo.svg" alt="Sefaria Logo"/>;
 
