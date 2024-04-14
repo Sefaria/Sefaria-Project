@@ -510,6 +510,13 @@ const FilterableList = ({
                 key={option}
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => setSort(option)}
+                tabIndex="0"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.target.click();
+                  }
+                }}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
@@ -2091,7 +2098,7 @@ function OnInView({ children, onVisible }) {
    *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
    *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
    */
-  const elementRef = useRef(); 
+  const elementRef = useRef();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -3289,11 +3296,11 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 }
 
 const ImageWithCaption = ({photoLink, caption }) => {
-  
+
   return (
     <div>
         <img class="imageWithCaptionPhoto" src={photoLink}/>
-        <div class="imageCaption"> 
+        <div class="imageCaption">
           <InterfaceText text={caption} />
         </div>
       </div>);
@@ -3311,6 +3318,76 @@ const AppStoreButton = ({ platform, href, altText }) => {
       </a>
   );
 };
+
+const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
+  const [selectedOpt, setSelectedOpt] = useState(defaultVal);
+
+  const handleOptionChange = (event) => {
+    setSelectedOpt(event.target.value);
+    callback(event.target.value);
+    closeInterface();
+  };
+
+  useEffect(()=>{
+    document.querySelector('.langSelectPopover').focus()
+  },[])
+
+  return (
+    <div className="langSelectPopover"
+      tabIndex="0"
+      onClick={(e) => {
+          e.stopPropagation();
+          e.nativeEvent.stopImmediatePropagation();
+        }
+      }
+
+      onBlur={(e) => {
+            setTimeout(() => {
+              if (!document.querySelector('.langSelectPopover').contains(document.activeElement)) {
+                closeInterface();
+              }
+            }, 50);
+        }
+      }
+    >
+      <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
+      <div className={classNames({active: selectedOpt === "source", radioChoice: 1 })}>
+        <label htmlFor="source"><InterfaceText>Source</InterfaceText></label>
+        <input
+          type="radio"
+          id="source"
+          name="options"
+          value="source"
+          checked={selectedOpt === "source"}
+          onChange={handleOptionChange}
+        />
+      </div>
+      <div className={classNames({active: selectedOpt === "translation", radioChoice: 1 })}>
+        <label htmlFor="translation"><InterfaceText>Translation</InterfaceText></label>
+        <input
+          type="radio"
+          id="translation"
+          name="options"
+          value="translation"
+          checked={selectedOpt === "translation"}
+          onChange={handleOptionChange}
+        />
+      </div>
+      <div className={classNames({active: selectedOpt === "sourcewtrans", radioChoice: 1 })}>
+        <label htmlFor="sourcewtrans"><InterfaceText>Source with Translation</InterfaceText></label>
+        <input
+          type="radio"
+          id="sourcewtrans"
+          name="options"
+          value="sourcewtrans"
+          checked={selectedOpt === "sourcewtrans"}
+          onChange={handleOptionChange}
+        />
+      </div>
+    </div>
+  );
+
+}
 
 
 export {
@@ -3380,5 +3457,6 @@ export {
   requestWithCallBack,
   OnInView,
   TopicPictureUploader,
-  ImageWithCaption
+  ImageWithCaption,
+  LangSelectInterface
 };
