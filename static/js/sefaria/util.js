@@ -950,7 +950,7 @@ Util.RefValidator.prototype = {
                 return;
               }
 
-              this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
+              this.$msg.css("direction", (data["lang"]==="he"?"ltr":"ltr"))
                   .html(this._getMessage(inString, data));
               if (!data.is_ref && this.options.allow_new_titles) {
                   this._allow(inString);

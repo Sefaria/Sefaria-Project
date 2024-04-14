@@ -27,7 +27,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     return cs.sort((a, b) => {
       let aSel, bSel;
       [aSel, bSel] = [a, b].map(x => !!csSelected.filter(y => y.slug === x.slug).length)
-      if (aSel == bSel) { return a.lastModified > b.lastModified ? -1 : 1; }
+      if (aSel === bSel) { return a.lastModified > b.lastModified ? -1 : 1; }
       else { return aSel ? -1 : 1; }
     });
   };
@@ -75,7 +75,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
 
   const handleCollectionInclusionChange = (data) => {
     // When a sheet has been added or removed, update collections list data in cache
-    let newCollections = Sefaria.getUserCollectionsFromCache(Sefaria._uid).filter(c => c.slug != data.collection.slug);
+    let newCollections = Sefaria.getUserCollectionsFromCache(Sefaria._uid).filter(c => c.slug !== data.collection.slug);
     // Put the new collection first since it's just been modified
     newCollections = [data.collectionListing, ...newCollections];
     // Update in cache, but not in Component state -- prevents the list from jumping around
@@ -117,7 +117,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
   return <div className="collectionsWidget">
     <div className="collectionsWidgetTop">
       <span className={"collectionsWidgetTitle"}>
-        <InterfaceText>Collections</InterfaceText>
+        <InterfaceText>{ Sefaria._("Collections")} </InterfaceText>
       </span>
       <div className="collectionsWidgetClose" onClick={onClose}>×</div>
     </div>
@@ -133,10 +133,10 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
           {collection.name}
         </label>
       })}
-      {dataLoaded && collections.length == 0 ?
+      {dataLoaded && collections.length === 0 ?
         <span className={"emptyMessage"}>
           <InterfaceText>
-            You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.
+           { Sefaria._("You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.")}
           </InterfaceText>
         </span> : null }
     </div>
@@ -147,13 +147,13 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       </div>
       {newName.length ?
       <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>
-        <InterfaceText>Create</InterfaceText>
+        <InterfaceText>{Sefaria._("Create")} </InterfaceText>
       </div>
       : null}
     </div>
     <div className="collectionsWidgetDone">
        <div className="button large fillWidth" onClick={onClose}>
-        <InterfaceText>Done</InterfaceText>
+        <InterfaceText>{Sefaria._("Done")}</InterfaceText>
       </div>     
     </div>
   </div>

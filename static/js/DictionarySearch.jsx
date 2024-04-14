@@ -38,7 +38,7 @@ class DictionarySearch extends Component {
       // The component is unmounted
       return;
     }
-    if (this.state.val != current) {
+    if (this.state.val !== current) {
       if (document.getElementById('keyboardInputMaster')) {
         // If the keyboard is open, place autocomplete results below it
         $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("option", "position", {my: "left+15 top+180", at: "left bottom",of: this.props.contextSelector + ' .dictionarySearchBox'});
@@ -94,7 +94,7 @@ class DictionarySearch extends Component {
       minLength: 1,
       focus: e => clearTimeout(this.state.timer),
       select: function( event, ui ) {
-        if (ui.item.value == "__invalid") { return false; }
+        if (ui.item.value === "__invalid") { return false; }
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.label);
         return false;
@@ -102,7 +102,7 @@ class DictionarySearch extends Component {
 
       source: function(request, response) {
         if (Sefaria.hebrew.containsEnglish(request.term)) {
-          response([{label: "Invalid entry.  Please type a Hebrew word.", value: "__invalid"}]);
+          response([{label: Sefaria._("Invalid entry.  Please type a Hebrew word.") , value: "__invalid"}]);
           return
         }
         Sefaria.lexiconCompletion(
@@ -172,7 +172,7 @@ class DictionarySearch extends Component {
       }
   }
   render() {
-    let inputClasses = classNames({search: 1, keyboardInput: Sefaria.interfaceLang == 'english'});
+    let inputClasses = classNames({search: 1, keyboardInput: Sefaria.interfaceLang === 'english'});
 
     return (
         <div className = "searchBox dictionarySearchBox ui-front">

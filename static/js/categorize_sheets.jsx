@@ -179,7 +179,7 @@ class SheetCategorizer extends React.Component {
     return (
       <div className="categorizer">
         <div id="edit-pane">
-          <h3>Topics/Tags:</h3>
+          <h3>{Sefaria._("Topics/Tags")} </h3>
           
           <div className="publishBox">
             <ReactTags
@@ -202,11 +202,11 @@ class SheetCategorizer extends React.Component {
               checked={this.state.noTags || false}
               onChange={this.handleNoTagsChange.bind(this)}
             ></input>
-            <label htmlFor="noTags">No Tags</label>
+            <label htmlFor="noTags">{Sefaria._("No Tags")}</label>
           </div>
           <div className="categorize-section">
             <fieldset>
-              <h3> Categories:</h3>
+              <h3> {Sefaria._("Categories")}</h3>
               {
                 this.state.allCategories.map((category, i) => (
                   <div key={i}>
@@ -222,19 +222,19 @@ class SheetCategorizer extends React.Component {
                 ))
               }
             </fieldset>
-            <input type="text" key="newCategory" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
+            <input type="text" key="newCategory" id="newCategory" placeholder={Sefaria._("New Category")} onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>{Sefaria._("Add")} </button>
           </div>
-          <button id="save-and-next" onClick={this.saveAndNext.bind(this)}>Save and Next</button>
+          <button id="save-and-next" onClick={this.saveAndNext.bind(this)}>{Sefaria._("Save and Next")} </button>
           <div className="left-pane-bottom">
-            <h3>Settings/Admin:</h3>
+            <h3>{Sefaria._("Settings/Admin")}</h3>
             <h4>Latest sheets without: {this.state.doesNotContain}</h4>
             <div>
-            <button onClick={this.toggleSheetSortingMechanism.bind(this)}>Switch to finding sheets without: {this.getOpposite(this.state.doesNotContain)}</button>
+            <button onClick={this.toggleSheetSortingMechanism.bind(this)}>{Sefaria._("Switch to finding sheets without")} {this.getOpposite(this.state.doesNotContain)}</button>
             </div>
             <div>
-            <button onClick={this.skipAndNext.bind(this)}>Skip this sheet</button>
+            <button onClick={this.skipAndNext.bind(this)}>{ Sefaria._("Skip this sheet")} </button>
             </div>
-            Sheet will not be saved!
+            { Sefaria._("Sheet will not be saved")}
           </div>
         </div>
         <div id="iframeContainer">

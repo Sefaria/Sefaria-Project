@@ -164,7 +164,7 @@ export const deserialize = el => {
           for (const elStyle of elStyles) {
               console.log(elStyle)
             const styleArray = elStyle.split(":");
-            if (styleArray.length == 2) {
+            if (styleArray.length === 2) {
               const styleType = styleArray[0].trim()
               const styleValue = styleArray[1].trim()
               addlAttrs[styleType] = styleValue
@@ -217,7 +217,7 @@ export const deserialize = el => {
       const elStyles = el.getAttribute("style").split(';');
       for (const elStyle of elStyles) {
         const styleArray = elStyle.split(":");
-        if (styleArray.length == 2) {
+        if (styleArray.length === 2) {
           const styleType = styleArray[0].trim()
           const styleValue = styleArray[1].trim()
           let attrs = {}
@@ -237,7 +237,7 @@ export const serialize = (content) => {
     //serialize formatting to html
     if (content.text) {
         const tagStringObj = Object.keys(content).reduce((tagString, key) => {
-            if (content[key] == true) {
+            if (content[key] === true) {
                 const htmlTag = format_to_html_lookup[key];
                 const preTag = (tagString.preTags + "<" + htmlTag + ">");
                 const postTag = ("</" + htmlTag + ">" + tagString.postTags);
@@ -271,7 +271,7 @@ export const serialize = (content) => {
                 const paragraphHTML = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
                 }, "");
-                if (content["text-align"] == "center") {
+                if (content["text-align"] === "center") {
                     return `<div style='text-align: center'>${paragraphHTML}</div>`
                 }
                 return `<div>${paragraphHTML}</div>`
@@ -359,8 +359,8 @@ const replaceDivineNames = (str, divineName) => {
 
 
 
-    const adoshemSub = divineName=="noSub" ? "אדני" : "אדושם";
-    const elokaiSub = divineName=="noSub" ? "ה" : "ק";
+    const adoshemSub = divineName==="noSub" ? "אדני" : "אדושם";
+    const elokaiSub = divineName==="noSub" ? "ה" : "ק";
 
     const newStr = str.replace(divineRE, "$1$2"+ divineSubs[divineName])
         .replace(adoshemRE, "$1$2"+ adoshemSub)
@@ -710,8 +710,8 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       segment: 1,
       selected: isActive
   };
-  const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
-  const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
+  const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent === "he" ? true : false };
+  const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent === "en" ? true : false };
   const dragStart = (e) => {
       const slateRange = ReactEditor.findEventRange(parentEditor, e)
       parentEditor.dragging = true
@@ -912,7 +912,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     }
 
 
-    if (inputType == "media") {
+    if (inputType === "media") {
         return (
             <div className="addInterfaceInput mediaInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
                 <input
