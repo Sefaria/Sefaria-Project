@@ -524,6 +524,8 @@ const Strings = {
     "Author": "מחבר",
     "Authors": "מחברים",
 
+    "Install Now": "התקינו עכשיו",
+
     //Topics
     "Wikipedia": "ויקיפדיה",
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
