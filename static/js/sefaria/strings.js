@@ -17,7 +17,7 @@ const Strings = {
     "Moderator Tools": "སྟངས་འཛིན་ལག་ཆ་རྣམས།",
     " with ": "མཉམ་དུ་",
     "Connections": "འབྲེལ་ཡོད་རྣམས།",
-    " & ": "|",
+    " & ": " | ",
     "My Source Sheets": "ངའི་མ་ཕྱིའི་ཤོག་ངོས།",
     "Public Source Sheets": "སྤྱི་དམངས་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས།",
     "Log in": "ནང་འཛུལ།",
@@ -35,7 +35,7 @@ const Strings = {
     "Stay Connected": "འབྲེལ་བ་རྒྱུན་འཁྱོངས་བྱོས།",
     "Get updates on new texts, learning resources, features, and more.": "དཔེ་དེབ་གསར་པ་ཁག་དང་སློབ་གཉེར་གྱི་རྒྱུ་ཆ། ཁྱད་ཆོས་གཞན་སོགས་ཁ་སྣོན་བྱས་པ་རྣམས་ལོངས།",
     "Support Sefaria": "དཔེ་ཆ་དྲ་ཆིགས་ལ་རྒྱབ་སྐྱོར་བྱེད་རོགས།",
-    "Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.": "དཔེ་ཆ་དྲ་ཆིགས་ཀྱི་དྲ་ཐོག་དཔེ་མཛོད་ནི་སྤྱི་སྤྱོད་ཁོ་ན་དང་ཁེ་མེད་ཀྱི་ལས་གཞི་ཞིག་ཡིན། ལས་གཞི་འདིར་དཔྱ་ཁྲལ་ཆག་ཡང་གི་ཞལ་འདེབས་ཀྱི་རྒྱབ་སྐྱོར་རེ་གནང་རོགས།",
+    "Sefaria is an open source, nonprofit project. Support us by making a tax-deductible donation.": "དཔེ་ཆ་དྲ་ཆིགས་ཀྱི་དྲ་ཐོག་དཔེ་མཛོད་ནི་སྤྱི་སྤྱོད་ཁོ་ན་དང་ཁེ་མེད་ཀྱི་ལས་གཞི་ཞིག་ཡིན། ལས་གཞི་འདིར་དཔྱ་ཁྲལ་ཆག་ཡང་གི་ཞལ་འདེབས་ཀྱི་རྒྱབ་སྐྱོར་རེ་གནང་རོགས།",
     "Make a Donation": "ཞལ་འདེབས་ཤིག་ཕུལ་རོགས།",
     "Join the Conversation": "གླེང་སྟེགས་ནང་མཉམ་ཞུགས་བྱོས།",
     "Explore the Community": "ཚོགས་སྡེ་དེ་སྔོགས།",
@@ -199,7 +199,6 @@ const Strings = {
     "Indent Source": "མ་ཕྱི་གཡས་སུ་སྣུར།",
     "Create New": "གསར་པ་བཟོ།",
     "Close": "སྒོ་རྒྱག",
-    "Views": "བལྟས་པ།",
     "Saves": "ཉར་ཚགས།",
 
     //publish flow:
@@ -513,26 +512,113 @@ const Strings = {
     // FilterableList
     "Sort by": "ལྟར་ཚགས་སྒྲིག་བྱེད།",
 
-    //Mobile Nav Header 
+    //Mobile Nav Header
     "Get Help": "རམ་འདེགས་ཞུ།", //already has a similar string here but with different capitalization, maybe fix bug when not right before a launch?
     "About Sefaria": "དཔེ་ཆ་དྲ་ཆིགས་ཀྱི་སྐོར།",
     "Saved & History": "ཉར་ཚགས། & ལོ་རྒྱུས།",
 
     //Misc
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.",
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.": "בראיט ולחת צורק מונחף, בגורמי מג׳מש. תרבנך וסתעד לכנו סתשם השמה – לתכי מורגם בורק? לתיג ישבעס",
 
     //WebPage
     "Citing": "ལུང་འདྲེན།",
     "Sites that are listed here use the": "བཀོལ་སྤྱོད་བྱེད་པ་ལ་ཐོ་རུ་བཀོད་པའི་ས་ཆ་རྣམས།",
     "Sefaria Linker": "དཔེ་ཆ་དྲ་ཆིགས་ཀྱི་སྦྲེལ་མཐུད་བྱེད་ཆས།",
-    // Error message
-    "file_error_message": "Error: Please upload an image with the correct file extension (e.g. jpg, png)",
-    "Add Picture": "Add Picture",
-    "Upload New": "Upload New",
-    "Drag corners to crop image": "Drag corners to crop image",
-    "Sort": "Sort",
-    "Please log in to use this feature.": "Please log in to use this feature.",
-    "": ""
+
+    // Updated translations
+    "file_error_message": "ནོར་འཁྲུལ། པར་རིས་དེ་ཕབ་ལེན་བྱེད་སྐབས་ཕབ་ལེན་བྱེད་ཡུལ་གྱི་ཡིག་རིགས་ནོར་མེད་པ་ངེས་པར་དུ་དགོས། (དཔེར་ན། jpg, png)",
+    "Add Picture": "འདྲ་པར་སྣོན།",
+    "Upload New": "གསར་པ་ནང་འཇུག་བྱོས།",
+    "Drag corners to crop image": "ཟུར་སྣེ་དག་དྲུད་ནས་པར་རིས་འབྲེག།",
+    "Sort": "ལྟར་ཚགས་སྒྲིག་བྱེད།",
+    "Please log in to use this feature.": "ཁྱད་ཆོས་འདི་བེད་སྤྱོད་གཏོང་ཆེད་ནང་འཛུལ་བྱེད་རོགས།",
+    "Feedback sent": "བསམ་ཚུལ་བསྐུར་བ།",
+    "Have some feedback? We would love to hear it.": "ང་ཚོས་ཁྱེད་ཀྱི་བསམ་ཚུལ་དེ་ཤེས་འདོད་ཆེན་པོ་ཡོད།",
+    "Submit": "རབ་འབྱོར་འདི་ལྟ་སྟེ་དཔེར་ན།",
+    "We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.": "ང་ཚོས་ཁྱེད་ལ་ང་ཚོའི་དྲྭ་ཚིགས་སྟེང་གི་མྱོང་ཚོར་ལེགས་ཤོས་དེ་སྤྲོད་ཆེད། ཀུ་སི་བེད་སྤྱོད་གཏོང་གི་ཡོད། འགྲིག་སོང་། ཞེས་པ་འི་སྟེང་དུ་མུ་མཐུད་བཀླགས།",
+    "OK": "འགྲིག་སོང་།",
+    "You are previewing the Community page for": "ཁྱེད་ཀྱིས་འདི་ལ་ཚོགས་སྡེའི་ཤོག་ལྷེ་སྔོན་མཐོང་བྱེད་བཞིན་ཡོད།",
+    " already exists.": "སྔོན་གྱི་མཐའ་ནི་རྣམ་པར་སྤངས།།",
+    "Source Versions": "བོད་སྒྱུར་མཆན།",
+    "Alternate Source Versions": "གཞན་ཡང་།",
+    "Author:": "རྩོམ་པ་པོ། ",
+    "Selected Citation": "ལུང་འདྲེན་གྱི་དཔེ་མཚོན་འགའ།",
+    "Add to": "ཁ་གསབ་བྱ་རྒྱུ།",
+    "Loading your sheets": "རས་ཟུང་དག་ཀྱང་བཀལ་ནས་སུ། །",
+    "Add": "ཁ་གསབ་",
+    "Save and Next": "ཉར་ཚགས་དང་རྗེས་མ།",
+    "Settings/Admin": "སྒྲིག་གཞི་དང་འཛིན་སྐྱོང་།",
+    "Switch to finding sheets without": "ནང་དོན་མེད་པའི་རས་གདན་བཙལ་ནས་བརྗེ་སྒྱུར།",
+    "Skip this sheet": "རས་གདན་འདི་ལ་མཆོངས་དང་།",
+    "Sheet will not be saved": "རབ་ཏུ་མི་བཟད་འཇིགས་པ་དག །",
+    "You haven't reordered the categories.": "ཁྱེད་ཀྱིས་སྡེ་ཚན་གྱི་གོ་རིམ་བརྗེ་པོ་བརྒྱབ་མེད།",
+    "Please change one of the fields before saving.": "གསོག་ཉར་མ་བྱས་གོང་ཞིང་ཁ་གཅིག་བརྗེ་སྒྱུར་བྱེད་རོགས།",
+    "Parent Category": "ཕ་མའི་སྡེ་ཚན།",
+    "Cannot delete a category with contents.": "སྡེ་ཚན་གྱི་ནང་གསེས་བསལ་མི་ཐུབ།",
+    "Category Editor": "སྡེ་ཚན་རྩོམ་སྒྲིག་པ།",
+    "Load More": "མང་ཙམ་བཀླགས།",
+    "All": "ཐམས་ཅད་དང་།",
+    "Success! You've created a new connection.": "ལམ་ལྷོང་། ཁྱེད་ཀྱིས་འབྲེལ་ལམ་གསར་པ་ཞིག་བསྐྲུན་ཡོད།",
+    "About this Source": "མ་ཕྱི་འདིའི་སྐོར།",
+    "Go to My Notes": "ངའི་ཟིན་ཐོ་ལ་སོང་།",
+    "Feedback": "བསམ་འཆར།",
+    "Advanced": "ཞིབ་ཕྲ།",
+    "Add Translation": "འགྱུར་མ་གསར་སྣོན།",
+    "Add Connection": "འབྲེལ་ཡོད་གསར་སྣོན།",
+    "Edit Text": "ཆོས་མཛོད་རྩོམ་སྒྲིག",
+    "Share on Facebook": "Facebook ཐོག་ནས་མཉམ་སྤྱོད་བྱེད།",
+    "Share on Twitter": "Twitter ཐོག་ནས་མཉམ་སྤྱོད་བྱེད།",
+    "Share by Email": "འཕྲིན་ཐུང་ཐོག་ནས་མཉམ་སྤྱོད་བྱེད།",
+    "Resources": "རྒྱུ་ཆ་རྣམས།",
+    "Invalid entry.  Please type a Hebrew word.": "ཁྱེད་ཀྱིས་ཧེ་བྷི་རུའི་ཚིག་ཅིག་བཀླག་རོགས།",
+    "Pecha Readings": "དཔེ་ཆ་ཀློག་མཁན།",
+    "Manuscripts": "ལག་བྲིས་མ་དང་།",
+    "Browse": "བྷོ་རོ་སི།",
+    "We currently only understand connections between two texts": "ད་ལྟ་ང་ཚོས་གཞུང་འདི་གཉིས་ཀྱི་འབྲེལ་བ་ཙམ་ལས་རྟོགས་ཐུབ་ཀྱི་མེད།",
+    "See Less": "ཉུང་ངུ་བལྟ།",
+    "No known Topics Here.": "འདིར་གྲགས་པའི་བརྗོད་བྱ་མེད།",
+    "No web pages known": "དྲྭ་ཚིགས་འདི་ལ་རྒྱུས་མངའ་ཡོད་མཁན་སུ་ཡང་མེད།",
+    "from": "དེ་ལས་",
+    "here": "འདིར་ནི་",
+    "You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.": "ཁྱེད་ཀྱིས་རང་གི་འདོད་པ་ལྟར་ཤོག་ལྷེ་དང་ཡང་ན་སྤྱི་སྤྱོད་ཤོག་ལྷེ་རྣམས་གོ་རིམ་བསྒྲིག་པར་ཚོགས་མཛོད་བེད་སྤྱོད་གཏོང་ཆོག་ཚོགས་མཛོད་རྣམས་སྒེར་གྱི་མཉམ་སྤྱོད་བྱེད་ཆོག་པའམ་ཡང་ན་སྤྱི་སྤྱོད་བྱེད་ཆོག་པ་ཡིན།",
+    "We do not currently support adding images to source sheets.": "ད་ལྟ་ང་ཚོས་ཡིག་ཆའི་ཁུངས་ཤོག་ལ་པར་རིས་སྣོན་རྒྱུར་རྒྱབ་སྐྱོར་བྱེད་ཀྱི་མེད།",
+    "Click to see connections to this source": " འདིར་འབྲེལ་ཡོད་ཀྱི་དྲ་སྦྲེལ་རྣམས་ལ་གཟིགས།",
+    "Click to see": "འདིར་གཟིགས།",
+    "connections to this source": "སྐྱེ་མཆེད་འདི་ལ་སྦྱོར་བ་ནི། །",
+    "View Copy": "པར་རིས་ལྟ་ཀློག་",
+    "View in the old sheets experience": "རས་རྙིང་ནང་གི་ལྟ་སྣང་།",
+    "ago": "དུས་ན།",
+    "Created": "བསྒྲུབས་པ་",
+    "Topics/Tags": " བརྗོད་བྱ།/ཐ་སྙད།",
+    "No Tags": "ཐ་སྙད་མེད།",
+    "New Category": "སྡེ་ཚན་གསར་པ།",
+    "Categories": "སྡེ་ཚན་།",
+    "Print": "པར་སྐྲུན།",
+    "Divine Name": "མིང་།",
+    "Other Text": "གཞུང་གཞན་དག་ལས་ཀྱང་།",
+    "Choose a text to connect": "མཚམས་སྦྱོར་གྱི་དཔེ་ཆ་ཞིག་འདེམས།",
+    "Courtesy of": "གུས་པར་སྨྲ་བ།",
+    "Views": "བལྟས་པ།",
+    'Select': "འདེམས་སྒྲུག",
+    'Currently Selected': "ད་ལྟ་འདེམས་སྒྲུག་བྱས་ཡོད་",
+    "Delete Note": "མཆན་འགོད།",
+    "Your Sheet": "ཁྱེད་ཀྱི་ཤོག་ངོས་།",
+    "Add to Sheet": "ཤོག་ངོས་ནང་སྣོན།",
+    "Section from": "སྡེ་ཚན་གྱི།",
+    "has been added to": "ནང་བསྣན་པ་རེད།",
+    "In order to add this source to a sheet, please": "ཤོག་ལྷེ་གཅིག་ལ་ཁུངས་འདི་ཁ་སྣོན་བྱེད་ཆེད།",
+    "log in": "འཛུལ་ཞུགས།",
+    "Dictionaries": "ཚིག་མཛོད།",
+    "Compare Text": "ཆོས་མཛོད་གཤིབ་བསྡུར།",
+    "Share": "བརྒྱུད་བསྐུར།",
+    "Go to translations": "བསྒྱུར་དུ་གཞུག་གོ། །",
+    "Add Note": "མཆན་འགོད།",
+    "Section": ", སྡེ་ཚན་།",
+    "Search in this Text": "ཆོས་མཛོད་འདིའི་ནང་ཚོལ།",
+    "Export to Google Docs": "གུ་གུལ་ཡིག་ཆའི་ནང་དུ་ཕྱིར་འདོན་བྱེད་པ།",
+    "Exporting to Google Docs...": "གུ་གུལ་ཡིག་ཆའི་ནང་དུ་ཕྱིར་གཏོང་བྱེད་པ།",
+    "Export Complete": "ཕྱིར་གཏོང་གི་ལས་དོན་ཡོངས་སུ་གྲུབ།",
+    "Open in Google": "གུ་གུལ་ནས་འབྱེད།",
   },
 
   _i18nInterfaceStringsWithContext: {
@@ -548,12 +634,12 @@ const Strings = {
       "Related Passage": "འབྲེལ་ཡོད་རྩོམ་ཡིག",
     },
     "SheetAuthorStatement": {
-      "by ": "", // by line on sheets in reader, intentionally left blank
+      "by ": "ཡིས་", // by line on sheets in reader, intentionally left blank
     },
     "AboutParashah": {
       "Torah Reading": "ཐོ་རཱ་དཔེ་ཀློག",
     },
-    "ConnectionPanelSection":{
+    "ConnectionPanelSection": {
       "Related Texts": "འབྲེལ་ཡོད་དཔེ་དེབ།",
       "Resources": "རྒྱུ་ཆ་ཁག",
       "Tools": "ལག་ཆ་རྣམས།",
@@ -566,7 +652,7 @@ const Strings = {
       "following": "རྗེས་འཇུག་བྱེད་བཞིན་པ།",
       "Follow Back": "བསྐྱར་དུ་རྗེས་འཇུག་བྱེད།",
     },
-    "DownloadVersions":{
+    "DownloadVersions": {
       "Select Format": "རྣམ་པ་འདེམ།",
       "Text (with Tags)": "དཔེ་དེབ་ (with Tags)",
       "Text (without Tags)": "དཔེ་དེབ། (without Tags)",
@@ -577,9 +663,6 @@ const Strings = {
       "Alphabetical": "གསལ་བྱེད་ཀྱི་གོ་རིམ།",
       "Recent": "ཉེ་ཆར་གྱི་",
       "Views": "བལྟས་པ།",
-      /*"Relevance": 'רלוונטיות', //these 3 are duplicates but it doesnt seem to work without them, why?
-      "Chronological": 'כרונולוגי',
-      "Newest": "הכי חדש",*/
     },
     "Header": {
       "Texts": "ཆོས་མཛོད།",
@@ -588,7 +671,7 @@ const Strings = {
       "Load More": "འདི་ལས་མང་བ་ལོངས།",
     },
     "ResourcesModule": {
-      "Resources": "རྒྱུ་ཆ་ཁག",
+      "Resources": "རྒྱུ་ཆ་རྣམས།",
     },
     "SearchFilters": {
       "Texts": "ཆོས་མཛོད།",
