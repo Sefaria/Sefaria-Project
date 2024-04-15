@@ -3147,7 +3147,7 @@ const product = ({ job }) => {
 
 
 const ProductsPage = memo(() => {
-    const [products, setProducts] = useState({});
+    const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
 
     const fetchProductsJSON = async () => {
@@ -3306,65 +3306,42 @@ const ProductsPage = memo(() => {
         }
     };
     
-    // const loadProducts = async () => {
-    //     const dummy_data = {
-    //         "title": "My Sefaria Product",
-    //         "url": "www.sefaria.org",
-    //         "cta_labels": [
-    //             {
-    //                 "he": "הורידו עכשיו",
-    //                 "en": "Install now!", 
-    //                 "url": "www.example.com"
-    //             },
-    //             {
-    //                 "he": "חנות אפליקציות",
-    //                 "en": "App store", 
-    //                 "url": "www.example.com",
-    //                 "icon": "https://storage.googleapis.com/img.sefaria.org/topics/rosh-hashanah.jpeg",
-    //             }
-    //          ],
-    //         "type": "Experiment",
-    //         "rectanglionURL": "https://storage.googleapis.com/img.sefaria.org/topics/rosh-hashanah.jpeg",
-    //         "desc": {
-    //             "he": "אהגכלחדךגכחךדסכצד",
-    //             "en": "Vivamus dictum rutrum mi, ut varius odio viverra sit amet. Quisque vitae pharetra ipsum. Integer nec dui malesuada, maximus nisi vitae, ullamcorper enim. Aenean ultrices ullamcorper malesuada. Fusce et leo justo. Etiam quis mattis enim. "
-    //         }
-    //     };
-    //     setProducts(dummy_data)
-    // };
-
-    debugger;
 
     useEffect(() => {
+        console.log("UseEffect triggered");
         loadProducts();
     }, []);
 
     console.log("products: ", products)
     // TODO - Will need to use InterfaceText for language switching!!
 
-    
+
     return (
         <div>
-            {products?.map((product) => (
-                <div key={product.id}>
-                    <div className="productsHeader">
-                        <span className="productsTitle">{product.title}</span>
-                        <span className="productsTypeLabel">{product.type}</span>
-                        {/* Will need some kind of mapping here, conditional on icon image*/}
-                        {product.cta_labels?.map(item => (
-                            <a href={item.url} key={item.en}>
-                                <img className="productsCTAIcon" src={item.icon} alt={item.en} />
-                                <span className="productsCTA">{item.en}</span>
-                            </a>
-                        ))}
+            {products ? (
+                products.map((product) => (
+                    <div key={product.id}>
+                        <div className="productsHeader">
+                            <span className="productsTitle">{product.titles.en}</span>
+                            <span className="productsTypeLabel">{product.type.en}</span>
+                            {/* Will need some kind of mapping here, conditional on icon image*/}
+                            {product.cta_labels?.map(cta => (
+                                <a href={cta.url} key={cta.text.en}>
+                                    <img className="productsCTAIcon" src={cta.icon.url} alt="Click icon" />
+                                    <span className="productsCTA">{cta.text.en}</span>
+                                </a>
+                            ))}
+                        </div>
+                        <hr/>
+                        <div className="productsInner">
+                            <img src={product.rectanglion.url} alt="Product Image"/>
+                            <div className="productsDesc">{product.desc?.en}</div>
+                        </div>
                     </div>
-                    <hr/>
-                    <div className="productsInner">
-                        <img src={product.rectanglionURL} alt="Product Image"/>
-                        <div className="productsDesc">{product.desc?.en}</div>
-                    </div>
-                </div>
-            ))}
+                ))
+            ) : (
+                <div>Loading...</div>
+            )}
         </div>
     );
 });
