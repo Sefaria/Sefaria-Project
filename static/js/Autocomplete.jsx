@@ -15,16 +15,17 @@ const _type_icon_map = {
   "Term": "iconmonstr-script-2.svg",
   "User": "profile.svg"
 };
+
 const type_title_map = {
-  "Collection": {"en": "Collections", "he": "אסופות"},
-  "AuthorTopic": {"en": "Authors", "he": "סופרים"},
-  "TocCategory": {"en": "Categories", "he": "קטגוריות"},
-  "PersonTopic": {"en": "Topics", "he": "נושאים"},
-  "Topic": {"en": "Topics", "he": "נושאים"},
-  "ref": {"en": "Books", "he": "ספרים"},
-  "search": {"en": "", "he": ""},
-  "Term": {"en": "Terms", "he": "מונחים"},
-  "User": {"en": "Users", "he": "משתמשים"}
+  "Collection": "Collections",
+  "AuthorTopic": "Authors",
+  "TocCategory": "Categories",
+  "PersonTopic": "Topics",
+  "Topic": "Topics",
+  "ref": "Books",
+  "search": "",
+  "Term": "Terms",
+  "User": "Users"
 };
 
 const _type_icon = function(itemType, itemPic) {
@@ -323,14 +324,13 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
                                     _submitSearch, _redirectToObject}) => {
 
     const type = suggestions[0].type;
-    const enTitle = type_title_map[type]?.en;
-    const heTitle = type_title_map[type]?.he;
+    const title = type_title_map[type];
 
     return (
         <div className={"search-group-suggestions"}>
 
             {(type != 'search') &&
-            <div className={'type-title'}><InterfaceText text={{en:enTitle, he:heTitle}} /></div>
+            <div className={'type-title'}><InterfaceText>{title}</InterfaceText></div>
             }
 
             <div className={"search-group-suggestions-items"}>

@@ -24,6 +24,12 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
 
+    //Autocomplete
+    "Books": "ספרים",
+    "Terms": "מונחים",
+    "Users": "משתמשים",
+    "Categories": "קטגוריות",
+
     // Texts Page
     "Learn More": "לקריאה נוספת",
     "Learning Schedules": "לוח לימוד יומי",
