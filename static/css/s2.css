@@ -11617,6 +11617,7 @@ body .homeFeedWrapper.userStats {
 }
 .editTextInfo .static label {
   margin-bottom: 15px;
+  height: revert;
 }
 .editTextInfo #newIndex {
   margin: 100px auto;

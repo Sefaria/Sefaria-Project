@@ -1065,6 +1065,8 @@ const EditTextInfo = function({initTitle, close}) {
   const [heDesc, setHeDesc] = useState(index.current?.heDesc || "");
   const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
   const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
+  const [dependence, setDependence] = useState(index.current?.dependence || "");
+  const [collectiveTitle, setCollectiveTitle] = useState(index.current?.collective_title?.en || "");
   const [pubDate, setPubDate] = useState(index.current?.pubDate);
   const [pubPlace, setPubPlace] = useState(index.current?.pubPlaceString?.en);
   const [hePubPlace, setHePubPlace] = useState(index.current?.pubPlaceString?.he);
@@ -1130,6 +1132,10 @@ const EditTextInfo = function({initTitle, close}) {
         return false;
       }
     }
+    if (dependence.charAt(0) !== dependence.charAt(0).toUpperCase()) {
+      alert(`${dependence} is invalid.  Please make sure the first letter is capitalized.`);
+      return false;
+    }
     return true;
   }
   const validateCompDate = (newValue, setter) => {
@@ -1165,9 +1171,13 @@ const EditTextInfo = function({initTitle, close}) {
     const enTitleVariantNames = titleVariants.map(i => i.name);
     const heTitleVariantNames = heTitleVariants.map(i => i.name);
     const authorSlugs = authors.map(i => i.slug);
-    let postIndex = {title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
-                    heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace
-                    }
+    let postIndex = {
+      title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
+      heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace
+    }
+    if (dependence.length > 0) {
+      postIndex.dependence = dependence;
+    }
     if (sections && sections.length > 0) {
       postIndex.sectionNames = sections;
     }
@@ -1221,7 +1231,14 @@ const EditTextInfo = function({initTitle, close}) {
       }
     });
   }
-
+  const validateCollectiveTitle = (newVal) => {
+    /* Upon the admin entering a value in the English Collective Title text field,
+    we can use the terms API to validate that that value is an actual name or English title of a Term object in our database.
+    If it is, we set the collective_title for that Index to be the name of that Term.
+    If it is not an existing Term, we can ask if they are trying to create a new Term.
+    If the admin confirms that they are trying to create a new Term, we then can ask the admin to enter the Hebrew primary title of the Term.
+    Finally, we set the collective_title for that Index to be the value the admin entered in the English Collective Title text field in the Index Editor.*/
+  }
   const removeAuthor = function (authorIDtoRemove) {
     let newAuthors = authors.filter(author => author.id !== authorIDtoRemove);
     setAuthors(newAuthors);
@@ -1316,6 +1333,16 @@ const EditTextInfo = function({initTitle, close}) {
                   <label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
                   <input id="hePubPlace" onChange={(e) => setHePubPlace(e.target.value)} defaultValue={hePubPlace}/>
                 </div>}
+            <div className="section">
+                <div><InterfaceText>Dependence</InterfaceText></div>
+                <label><div className="optional"><InterfaceText>Optional. (Most common value is "Commentary" but technically, any value is possible.  The first letter should be capitalized.)</InterfaceText></div></label>
+                <input id="dependence" onChange={(e) => setDependence(e.target.value)} defaultValue={dependence}/>
+            </div>
+            <div className="section">
+                <div><InterfaceText>English Collective Title</InterfaceText></div>
+                <label><div className="optional"><InterfaceText>Optional. For example, for "Rashi on Genesis", the English Collective Title is "Rashi".)</InterfaceText></div></label>
+                <input id="dependence" onChange={(e) => validateCollectiveTitle(e.target.value)} defaultValue={collectiveTitle}/>
+            </div>
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">
                 <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
