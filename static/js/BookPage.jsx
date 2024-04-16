@@ -1066,7 +1066,6 @@ const EditTextInfo = function({initTitle, close}) {
   const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
   const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
   const [dependence, setDependence] = useState(index.current?.dependence || "");
-  const [collectiveTitle, setCollectiveTitle] = useState(index.current?.collective_title?.en || "");
   const [pubDate, setPubDate] = useState(index.current?.pubDate);
   const [pubPlace, setPubPlace] = useState(index.current?.pubPlaceString?.en);
   const [hePubPlace, setHePubPlace] = useState(index.current?.pubPlaceString?.he);
@@ -1336,11 +1335,6 @@ const EditTextInfo = function({initTitle, close}) {
                   <option value="Midrash">Midrash</option>
                   <option value="Guides">Guides</option>
                 </select></div>
-            </div>
-            <div className="section">
-                <div><InterfaceText>English Collective Title</InterfaceText></div>
-                <label><div className="optional"><InterfaceText>Optional. For example, for "Rashi on Genesis", the English Collective Title is "Rashi".)</InterfaceText></div></label>
-                <input id="dependence" onChange={(e) => validateCollectiveTitle(e.target.value)} defaultValue={collectiveTitle}/>
             </div>
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">
