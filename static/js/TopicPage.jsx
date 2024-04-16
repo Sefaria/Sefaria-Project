@@ -594,7 +594,7 @@ const TopicPage = ({
                           renderTab={t => (
                             <div tabIndex="0" onKeyDown={(e)=>handleKeyDown(e)} className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
                               <InterfaceText text={t.title} />
-                              { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
+                              { t.icon && tab==='sources' ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
                               {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result)} closeInterface={()=>{setShowLangSelectInterface(false)}}/> : null}
                             </div>
                           )}
