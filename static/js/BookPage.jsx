@@ -1132,10 +1132,6 @@ const EditTextInfo = function({initTitle, close}) {
         return false;
       }
     }
-    if (dependence.charAt(0) !== dependence.charAt(0).toUpperCase()) {
-      alert(`${dependence} is invalid.  Please make sure the first letter is capitalized.`);
-      return false;
-    }
     return true;
   }
   const validateCompDate = (newValue, setter) => {
@@ -1173,10 +1169,7 @@ const EditTextInfo = function({initTitle, close}) {
     const authorSlugs = authors.map(i => i.slug);
     let postIndex = {
       title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
-      heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace
-    }
-    if (dependence.length > 0) {
-      postIndex.dependence = dependence;
+      heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace, dependence
     }
     if (sections && sections.length > 0) {
       postIndex.sectionNames = sections;
@@ -1335,8 +1328,14 @@ const EditTextInfo = function({initTitle, close}) {
                 </div>}
             <div className="section">
                 <div><InterfaceText>Dependence</InterfaceText></div>
-                <label><div className="optional"><InterfaceText>Optional. (Most common value is "Commentary" but technically, any value is possible.  The first letter should be capitalized.)</InterfaceText></div></label>
-                <input id="dependence" onChange={(e) => setDependence(e.target.value)} defaultValue={dependence}/>
+                <label><div className="optional"><InterfaceText>Optional</InterfaceText></div></label>
+                <div className="categoryChooserMenu"><select value={dependence} onChange={(e) => setDependence(e.target.value)}>
+                  <option value="">--Not a dependent text--</option>
+                  <option value="Commentary">Commentary</option>
+                  <option value="Targum">Targum</option>
+                  <option value="Midrash">Midrash</option>
+                  <option value="Guides">Guides</option>
+                </select></div>
             </div>
             <div className="section">
                 <div><InterfaceText>English Collective Title</InterfaceText></div>
