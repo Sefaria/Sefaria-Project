@@ -11679,7 +11679,10 @@ body .homeFeedWrapper.userStats {
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
 }
-
+.section .collectiveTitle {
+  display: flex;
+  justify-content: space-between;
+}
 .reorderTool {
   height: 50px;
   margin: 0 0 10px 0;

@@ -31,6 +31,7 @@ import {ContentLanguageContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
 
 import ReactTags from 'react-tag-autocomplete';
+import Cookies from "js-cookie";
 
 
 
@@ -1066,12 +1067,14 @@ const EditTextInfo = function({initTitle, close}) {
   const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
   const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
   const [dependence, setDependence] = useState(index.current?.dependence || "");
-  const [collectiveTitle, setCollectiveTitle] = useState(index.current?.collective_title?.en || "");
   const [pubDate, setPubDate] = useState(index.current?.pubDate);
   const [pubPlace, setPubPlace] = useState(index.current?.pubPlaceString?.en);
   const [hePubPlace, setHePubPlace] = useState(index.current?.pubPlaceString?.he);
   const [compPlace, setCompPlace] = useState(index.current?.compPlaceString?.en);
   const [heCompPlace, setHeCompPlace] = useState(index.current?.compPlaceString?.he);
+  const [collectiveTitle, setCollectiveTitle] = useState(index.current?.collective_title?.en || "");
+  const [heCollectiveTitle, setHeCollectiveTitle] = useState(index.current?.collective_title?.he || "");
+  const [creatingCollectiveTitle, setCreatingCollectiveTitle] = useState(false);
   const getYearAsStr = (init) => {
     if (typeof init === 'undefined' || init.length === 0) {
       return "";
@@ -1132,6 +1135,9 @@ const EditTextInfo = function({initTitle, close}) {
         return false;
       }
     }
+    if (!await validateCollectiveTitle()) {
+      return false;
+    }
     return true;
   }
   const validateCompDate = (newValue, setter) => {
@@ -1169,7 +1175,7 @@ const EditTextInfo = function({initTitle, close}) {
     const authorSlugs = authors.map(i => i.slug);
     let postIndex = {
       title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
-      heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace, dependence
+      heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace, dependence, collective_title: collectiveTitle
     }
     if (sections && sections.length > 0) {
       postIndex.sectionNames = sections;
@@ -1224,14 +1230,60 @@ const EditTextInfo = function({initTitle, close}) {
       }
     });
   }
-  const validateCollectiveTitle = (newVal) => {
-    /* Upon the admin entering a value in the English Collective Title text field,
-    we can use the terms API to validate that that value is an actual name or English title of a Term object in our database.
-    If it is, we set the collective_title for that Index to be the name of that Term.
-    If it is not an existing Term, we can ask if they are trying to create a new Term.
-    If the admin confirms that they are trying to create a new Term, we then can ask the admin to enter the Hebrew primary title of the Term.
-    Finally, we set the collective_title for that Index to be the value the admin entered in the English Collective Title text field in the Index Editor.*/
+  const fetchTerm = async () => {
+    try {
+      const response = await fetch(`/api/terms/${collectiveTitle}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
   }
+  const createCollectiveTitle = async () => {
+    const term = {
+      "name": collectiveTitle,
+      "titles": [{"primary": true, "lang": "en", "text": collectiveTitle},
+        {"primary": true, "lang": "he", "text": heCollectiveTitle}]
+    }
+    try {
+      const request = new Request(
+        `/api/terms/${collectiveTitle}`,
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+      );
+      const response = await fetch(request, {
+        method: 'POST',
+        mode: 'same-origin',
+        credentials: 'same-origin',
+        body: JSON.stringify(term),
+      });
+
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
+  }
+  const validateCollectiveTitle = async (newVal) => {
+    let term;
+    if (creatingCollectiveTitle) {
+      // term should not exist already, creating new one
+      term = await createCollectiveTitle();
+    } else {
+      // GET request to confirm that the term already exists
+      term = await fetchTerm();
+    }
+    if (term?.error) {
+      alert(term.error);
+      return false;
+    }
+    return true;
+  }
+
   const removeAuthor = function (authorIDtoRemove) {
     let newAuthors = authors.filter(author => author.id !== authorIDtoRemove);
     setAuthors(newAuthors);
@@ -1338,10 +1390,40 @@ const EditTextInfo = function({initTitle, close}) {
                 </select></div>
             </div>
             <div className="section">
-                <div><InterfaceText>English Collective Title</InterfaceText></div>
-                <label><div className="optional"><InterfaceText>Optional. For example, for "Rashi on Genesis", the English Collective Title is "Rashi".)</InterfaceText></div></label>
-                <input id="dependence" onChange={(e) => validateCollectiveTitle(e.target.value)} defaultValue={collectiveTitle}/>
+              {!creatingCollectiveTitle &&
+                                        <div>
+                                          <div><InterfaceText>English Collective Title</InterfaceText></div>
+                                          <label><div className="optional"><InterfaceText>Optional. For example, for "Rashi on Genesis", the English Collective Title is "Rashi".
+                                          You should create a new collective title if the collective title has never been created before and is not used by any texts in our system.)</InterfaceText></div></label>
+                                          <div className="collectiveTitle">
+                                          <input id="collectiveTitle" onChange={(e) => setCollectiveTitle(e.target.value)} defaultValue={collectiveTitle}/>
+                                          <div onClick={() => setCreatingCollectiveTitle(true)}
+                                               id="createCollectiveTitle"
+                                               className="button small"
+                                               tabIndex="0"
+                                               role="button">
+                                              <InterfaceText>Create New Collective Title</InterfaceText>
+                                          </div>
+                                          </div>
+                                        </div>}
             </div>
+            {creatingCollectiveTitle &&
+                                      <div>
+                                          <div className="section">
+                                            <div><InterfaceText>New English Collective Title</InterfaceText></div>
+                                            <input id="collectiveTitle"
+                                               onChange={(e) => setCollectiveTitle(e.target.value)}
+                                               defaultValue={collectiveTitle}/>
+                                          </div>
+                                          <div className="section">
+                                            <div><InterfaceText>New Hebrew Collective Title</InterfaceText></div>
+                                            <input id="heCollectiveTitle"
+                                               onChange={(e) => setHeCollectiveTitle(e.target.value)}
+                                               defaultValue={heCollectiveTitle}/>
+                                          </div>
+                                      </div>}
+
+
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">
                 <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
