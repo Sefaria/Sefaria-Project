@@ -36,7 +36,9 @@ class AbstractAutoLinker(object):
         if not getattr(self, '_auto', None):
             self._auto = auto
         if not getattr(self,'_link_type', None):
-            self._link_type = link_type if link_type else getattr(oref.index, 'dependence', 'Commentary').lower()
+            self._link_type = link_type if link_type else getattr(oref.index, 'dependence', '').lower()
+            if self._link_type == "":  # if 'dependence' was None or "", set it to 'commentary'
+                self._link_type = "commentary"
         self._user = kwargs.get('user', None)
         self._title = self._requested_oref.index.title
         self._links = None

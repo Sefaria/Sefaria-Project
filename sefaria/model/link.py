@@ -444,7 +444,7 @@ def get_category_category_linkset(cat1, cat2):
     clauses = []
 
     for i, cat in enumerate([cat1, cat2]):
-        queries += [{"$and": [{"categories": cat}, {'dependence': {'$in': [False, None]}}]}]
+        queries += [{"$and": [{"categories": cat}, {'dependence': {'$in': [False, None, ""]}}]}]
         titles += [text.library.get_indexes_in_corpus(cat) or text.library.get_indexes_in_category(cat)]
         if len(titles[i]) == 0:
             raise IndexError("No results for {}".format(queries[i]))
