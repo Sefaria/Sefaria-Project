@@ -199,16 +199,9 @@ const SearchSuggestion = ({ value, type, label, url, pic,
 );
 };
 
-const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
-                      // onRefClick, showSearch, openTopic, openURL,
-                            hideHebrewKeyboard,
+const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebrewKeyboard,
                         setSearchFocused, searchFocused,
-               // clearSearchBox,
-                            submitSearch,
-                            // showSearchWrapper,
-                            redirectToObject}) => {
-
-
+                            submitSearch, redirectToObject}) => {
 
     useEffect(() => {
       showVirtualKeyboardIcon(false); // Initially hide the virtual keyboard icon
@@ -482,10 +475,6 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     <div className={"search-container"}>
       <SearchInputBox
             getInputProps={getInputProps}
-            onRefClick={onRefClick}
-            showSearch={showSearch}
-            openTopic={openTopic}
-            openURL={openURL}
             suggestions={suggestions}
             hideHebrewKeyboard={hideHebrewKeyboard}
             highlightedIndex={highlightedIndex}
@@ -493,9 +482,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
             setSearchFocused={setSearchFocused}
             searchFocused={searchFocused}
 
-            clearSearchBox={clearSearchBox}
             submitSearch={submitSearch}
-            showSearchWrapper={showSearchWrapper}
             redirectToObject={redirectToObject}
       />
       <div
