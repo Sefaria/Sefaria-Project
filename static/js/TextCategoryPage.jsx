@@ -2,7 +2,7 @@ import React, { useContext, useState }  from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import { ContentLanguageContext } from './context';
+import { ReaderPanelContext } from './context';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
@@ -19,8 +19,8 @@ import {ContentText} from "./ContentText";
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
-  openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
-  const contentLang = useContext(ContentLanguageContext).language;
+  onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
+  const contentLang = useContext(ReaderPanelContext).language;
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
                       ["Talmud", "Bavli"]
@@ -71,7 +71,6 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   const comparePanelHeader = compare ? (
     <ComparePanelHeader
       category={cats[0]}
-      openDisplaySettings={openDisplaySettings}
       onBack={() => setCategories(aboutCats.slice(0, -1))}
       catTitle={catTitle}
       heCatTitle={heCatTitle} />
@@ -113,7 +112,6 @@ TextCategoryPage.propTypes = {
   categories:          PropTypes.array.isRequired,
   setCategories:       PropTypes.func.isRequired,
   toggleLanguage:      PropTypes.func.isRequired,
-  openDisplaySettings: PropTypes.func.isRequired,
   initialWidth:        PropTypes.number,
   compare:             PropTypes.bool,
 };
@@ -122,7 +120,7 @@ TextCategoryPage.propTypes = {
 const TextCategoryContents = ({category, contents, categories, setCategories, openTextTOC, initialWidth, nestLevel}) => {
   const content = [];
   const cats = categories || [];
-  const contentLang = useContext(ContentLanguageContext).language;
+  const contentLang = useContext(ReaderPanelContext).language;
   const sortedContents = contentLang === "hebrew" ? hebrewContentSort(contents) : contents;
 
   for (const item of sortedContents) {

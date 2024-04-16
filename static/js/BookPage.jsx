@@ -27,10 +27,12 @@ import Footer  from './Footer';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
-import {ContentLanguageContext} from './context';
+import {ReaderPanelContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
 
 import ReactTags from 'react-tag-autocomplete';
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
+import PopoverMenu from "./components/PopoverMenu";
 
 
 
@@ -140,9 +142,6 @@ class BookPage extends Component {
   isBookToc() {
     return (this.props.mode == "book toc")
   }
-  isTextToc() {
-    return (this.props.mode == "text toc")
-  }
   extendedNotesBack(event){
     return null;
   }
@@ -168,7 +167,7 @@ class BookPage extends Component {
       catUrl  = "/texts/" + category;
     }
 
-    const readButton = !this.state.indexDetails || this.isTextToc() || this.props.compare ? null :
+    const readButton = !this.state.indexDetails || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ?
         <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
           <InterfaceText>Continue Reading</InterfaceText>
@@ -209,28 +208,21 @@ class BookPage extends Component {
     return (
       <div className={classes}>
         <CategoryColorLine category={category} />
-        {this.isTextToc() || this.props.compare ?
+        {this.props.compare ?
         <>
           <div className="readerControls">
             <div className="readerControlsInner">
               <div className="leftButtons">
-                {this.props.compare ?
                 <MenuButton onClick={this.props.onCompareBack} compare={true} />
-                : <CloseButton onClick={this.props.close} />}
               </div>
               <div className="readerTextToc readerTextTocHeader">
-                {this.props.compare ?
                 <div className="readerTextTocBox">
                   <InterfaceText>{title}</InterfaceText>
                 </div>
-                :
-                <div className="readerTextTocBox sans-serif">
-                  <InterfaceText>Table of Contents</InterfaceText>
-                </div>}
               </div>
               <div className="rightButtons">
                 {Sefaria.interfaceLang !== "hebrew" ?
-                  <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                  <PopoverMenu buttonContent={(<DisplaySettingsButton/>)} menu={(<ReaderDisplayOptionsMenu/>)} context={ReaderPanelContext}/>
                   : <DisplaySettingsButton placeholder={true} />}
               </div>
             </div>

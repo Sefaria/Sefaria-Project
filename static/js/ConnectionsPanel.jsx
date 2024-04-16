@@ -434,7 +434,6 @@ class ConnectionsPanel extends Component {
         onCitationClick={this.props.onCitationClick}
         handleSheetClick={this.props.handleSheetClick}
         openNav={this.props.openNav}
-        openDisplaySettings={this.props.openDisplaySettings}
         closePanel={this.props.closePanel}
         selectedWords={this.props.selectedWords}
         checkVisibleSegments={this.checkVisibleSegments}
@@ -700,7 +699,6 @@ ConnectionsPanel.propTypes = {
   onTextClick: PropTypes.func,
   onCitationClick: PropTypes.func,
   openNav: PropTypes.func,
-  openDisplaySettings: PropTypes.func,
   closePanel: PropTypes.func,
   toggleLanguage: PropTypes.func,
   selectedWords: PropTypes.string,

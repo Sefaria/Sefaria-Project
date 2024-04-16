@@ -8,7 +8,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
+import {AdContext, StrapiDataContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";

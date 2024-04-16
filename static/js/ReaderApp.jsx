@@ -9,7 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
-import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
+import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -138,7 +138,7 @@ class ReaderApp extends Component {
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
-      menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "community", "book toc"
+      menuOpen:                state.menuOpen                || null, // "navigation", "display", "search", "sheets", "community", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
@@ -445,25 +445,11 @@ class ReaderApp extends Component {
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
-          case "text toc":
-            var ref    = state.refs.slice(-1)[0];
-            var bookTitle  = ref ? Sefaria.parseRef(ref).index : "404";
-            hist.title = Sefaria._(bookTitle) + " | " + Sefaria._(siteName);
-            hist.url   = bookTitle.replace(/ /g, "_");
-            hist.mode  = "text toc";
-            break;
           case "book toc":
             var bookTitle = state.bookRef;
             hist.title = Sefaria._(bookTitle) + " | " + Sefaria._(siteName);
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "book toc";
-            break;
-          case "sheet meta":
-            const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
-            const sheetTitle = sheet? sheet.title.stripHtml() : "";
-            hist.title = Sefaria._(siteName + " Source Sheets")+": " + sheetTitle;
-            hist.url = i == 0 ? "sheets/"+ state.sheetID : "sheet&s="+ state.sheetID;
-            hist.mode = "sheet meta";
             break;
           case "extended notes":
             var bookTitle = state.mode==="Connections" ?Sefaria.parseRef(state.currentlyVisibleRef).index : state.bookRef;
@@ -1395,7 +1381,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   backFromExtendedNotes(n, bookRef, currVersions){
     const panel = this.state.panels[n];
-    panel.menuOpen = panel.currentlyVisibleRef ? "text toc" : "book toc";
+    panel.menuOpen = "book toc";
     panel.bookRef = bookRef;
     panel.currVersions = currVersions;
    this.setState({panels: this.state.panels});
@@ -1841,7 +1827,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     return false;
   }
   getDisplayString(mode) {
-    const learningStatus = ["text toc", "book toc", "sheet meta",  "Text", "TextAndConnections", "SheetAndConnections"];
+    const learningStatus = ["book toc", "Text", "TextAndConnections", "SheetAndConnections"];
     const topicStatus = ["topicCat", "topic"]
     if(mode.includes("sheet")) {
       return "learning the Sheet"
@@ -1856,7 +1842,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   generateCurrentlyReading() {
     const currentHistoryState = this.makeHistoryState();
-    const inBeitMidrash = ["navigation", "text toc", "book toc", "sheet meta", "topics", "topic", "topicCat", "Text", "TextAndConnections", "Sheet", "SheetAndConnections"];
+    const inBeitMidrash = ["navigation", "book toc", "topics", "topic", "topicCat", "Text", "TextAndConnections", "Sheet", "SheetAndConnections"];
     currentHistoryState.title = currentHistoryState.title.match(/[^|]*/)[0];
     if (inBeitMidrash.includes(currentHistoryState.mode)) {
       return {title: currentHistoryState.title, url: currentHistoryState.url, mode: currentHistoryState.mode, display: this.getDisplayString(currentHistoryState.mode)};
@@ -2076,7 +2062,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const hasColorLine = [null, "book toc", "sheets", "sheets meta"];
     const headerHasBoxShadow = hasColorLine.indexOf(menuOpen) === -1 || !this.props.multiPanel;
     // Header is hidden on certain mobile panels, but still rendered so the mobileNavMenu can be opened
-    const hideHeader = !this.props.multiPanel && !this.state.headerMode && (!menuOpen || menuOpen === "text toc");
+    const hideHeader = !this.props.multiPanel && !this.state.headerMode && !menuOpen;
     const header = (
       <Header
         multiPanel={this.props.multiPanel}

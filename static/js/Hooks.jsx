@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo, useCallback, useRef, useContext} from 'react';
 import $  from './sefaria/sefariaJquery';
-import {ContentLanguageContext} from "./context";
+import {ReaderPanelContext} from "./context";
 import Sefaria from "./sefaria/sefaria";
 
 
@@ -8,7 +8,7 @@ function useContentLang(defaultToInterfaceOnBilingual, overrideLanguage){
     /* useful for determining language for content text while taking into account ContentLanguageContent and interfaceLang
     * `overrideLanguage` a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
     * `defaultToInterfaceOnBilingual` use if you want components not to render all languages in bilingual mode, and default them to what the interface language is*/
-    const contentLanguage = useContext(ContentLanguageContext);
+    const contentLanguage = useContext(ReaderPanelContext);
     const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
     const langShort = languageToFilter.slice(0,2);
     return [languageToFilter, langShort];
@@ -261,6 +261,25 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
   }, [fetchPage]);
 }
 
+function useOutsideClick(ref, onClickOutside) {
+  useEffect(() => {
+    /**
+     * Executes onClickOutside if clicked on outside of element
+     */
+    function handleClickOutside(event) {
+      if (ref.current && !ref.current.contains(event.target)) {
+        onClickOutside();
+      }
+    }
+    // Bind the event listener
+    document.addEventListener("mouseup", handleClickOutside);
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener("mouseup", handleClickOutside);
+    };
+  }, [ref]);
+}
+
 
 export {
   useScrollToLoad,
@@ -269,4 +288,5 @@ export {
   useDebounce,
   useContentLang,
   useIncrementalLoad,
+  useOutsideClick,
 };

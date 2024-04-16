@@ -196,7 +196,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 
 
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth,
-  openDisplaySettings, openSearch}) => {
+  openSearch}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
@@ -306,7 +306,7 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
-const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
+const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
@@ -423,7 +423,7 @@ const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, navHome,
-  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref,
+  toggleSignUpModal, setTab, openSearch, translationLanguagePreference, versionPref,
   topicTestVersion, onSetTopicSort, topicSort
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
@@ -534,7 +534,7 @@ const TopicPage = ({
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
-                    <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} topicImage={topicImage} />
+                    <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} topicImage={topicImage} />
                     {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
                           currTabName={tab}
@@ -593,7 +593,6 @@ TopicPage.propTypes = {
   setTab:              PropTypes.func.isRequired,
   multiPanel:          PropTypes.bool,
   navHome:             PropTypes.func,
-  openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,
   topicTestVersion:    PropTypes.string
 };
