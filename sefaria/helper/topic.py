@@ -1136,8 +1136,40 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     library.get_topic_toc_json(rebuild=True)
     library.get_topic_toc_category_mapping(rebuild=True)
 
+def _calculate_approved_review_state(current, requested, was_ai_generated):
+    "Calculates the review state of a description of topic link. Review state of a description can only 'increase'"
+    if not was_ai_generated:
+        return None
+    state_to_num = {
+        None: -1,
+        "not reviewed": 0,
+        "edited": 1,
+        "reviewed": 2
+    }
+    if state_to_num[requested] > state_to_num[current]:
+        return requested
+    else:
+        return current
+
+def _description_was_ai_generated(description: dict) -> bool:
+    return bool(description.get('ai_title', ''))
+
+def _get_merged_descriptions(current_descriptions, requested_descriptions):
+    from sefaria.utils.util import deep_update
+    for lang, requested_description_in_lang in requested_descriptions.items():
+        current_description_in_lang = current_descriptions.get(lang, {})
+        current_review_state = current_description_in_lang.get("review_state")
+        requested_review_state = requested_description_in_lang.get("review_state")
+        merged_review_state = _calculate_approved_review_state(current_review_state, requested_review_state, _description_was_ai_generated(current_description_in_lang))
+        if merged_review_state:
+            requested_description_in_lang['review_state'] = merged_review_state
+        else:
+            requested_description_in_lang.pop('review_state', None)
+    return deep_update(current_descriptions, requested_descriptions)
+
+
 def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
-                      interface_lang='en', linkType='about', description={}):
+                      interface_lang='en', linkType='about', description=None):
     """
     API helper function used by SourceEditor for editing sources associated with topics which are stored as RefTopicLink
     Slug, orig_tref, and linkType define the original RefTopicLink if one existed.
@@ -1147,6 +1179,7 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     :param linkType: (str) 'about' is used for most topics, except for 'authors' case
     :param description: (dict) Dictionary of title and prompt corresponding to `interface_lang`
     """
+    description = description or {}
     topic_obj = Topic.init(slug)
     if topic_obj is None:
         return {"error": "Topic does not exist."}
@@ -1166,9 +1199,7 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     link.ref = new_tref
 
     current_descriptions = getattr(link, 'descriptions', {})
-    if current_descriptions.get(interface_lang, {}) != description:  # has description in this language changed?
-        current_descriptions[interface_lang] = description
-        link.descriptions = current_descriptions
+    link.descriptions = _get_merged_descriptions(current_descriptions, {interface_lang: description})
 
     if hasattr(link, 'generatedBy') and getattr(link, 'generatedBy', "") == TopicLinkHelper.generated_by_sheets:
         del link.generatedBy  # prevent link from getting deleted when topic cronjob runs

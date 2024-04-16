@@ -1743,7 +1743,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="/static/files/Sefaria_AnnualImpactReport_R14.pdf"
+                        href="/annualreport"
                         he_href=""
                         he=""
                         en="Read Here"

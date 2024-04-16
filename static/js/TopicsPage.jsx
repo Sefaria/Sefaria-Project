@@ -62,7 +62,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner">
               <div className="navTitle tight sans-serif">
-                  <CategoryHeader type="topics" buttonsToDisplay={["subcategory", "reorder"]}>
+                  <CategoryHeader type="topics" toggleButtonIDs={["subcategory", "reorder"]}>
                     <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
                   </CategoryHeader>
               </div>
