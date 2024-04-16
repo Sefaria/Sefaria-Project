@@ -3250,7 +3250,8 @@ const ProductsPage = memo(() => {
                 // console.log(productsData);
 
 
-                console.log(productsData);
+                console.log('datadata', productsData);
+                debugger;
 
                 const productsFromStrapi = productsData.data?.products?.data?.map((productsData) => {
 
@@ -3265,7 +3266,7 @@ const ProductsPage = memo(() => {
                             },
                             url: cta.attributes.url,
                             icon: {
-                                url: cta.attributes.icon.data.attributes.url,
+                                url: cta.attributes.icon.data?.attributes.url,
                                 // altText: cta.attributes.icon.data.attributes.alternativeText
                             }
                         };
@@ -3327,7 +3328,7 @@ const ProductsPage = memo(() => {
                             {/* Will need some kind of mapping here, conditional on icon image*/}
                             {product.cta_labels?.map(cta => (
                                 <a href={cta.url} key={cta.text.en}>
-                                    <img className="productsCTAIcon" src={cta.icon.url} alt="Click icon" />
+                                    {cta.icon.url && <img className="productsCTAIcon" src={cta.icon.url} alt="Click icon" />}
                                     <span className="productsCTA">{cta.text.en}</span>
                                 </a>
                             ))}

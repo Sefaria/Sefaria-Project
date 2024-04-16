@@ -12763,7 +12763,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsInner img {
-  width: 30%;
+  width: 200px;
   max-width: 100%; 
   border: 2px solid purple;
   padding-right: 10%;
@@ -12779,6 +12779,7 @@ span.ref-link-color-3 {color: blue}
 .productsHeader {
   display: flex;
   justify-content: space-evenly;
+  margin-top: 10%;
 }
 
 .productsHeader .productsTitle {
