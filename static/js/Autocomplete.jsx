@@ -36,7 +36,6 @@ const _type_icon = function(itemType, itemPic) {
     }
 };
 
-
 function groupByType(seggestedItems) {
     const groupedItems = {};
 
@@ -69,14 +68,11 @@ const typesOrder = [
         "Term",
 ];
 function sortByTypeOrder(array) {
-    const typeIndex = {};
-    typesOrder.forEach((type, index) => {
-        typeIndex[type] = index;
-    });
 
     return array.sort((a, b) => {
-        const typeAIndex = typeIndex[a.type];
-        const typeBIndex = typeIndex[b.type];
+
+        const typeAIndex = typesOrder.indexOf(a.type);
+        const typeBIndex = typesOrder.indexOf(b.type);
 
         // If types are in the provided list, compare their index
         if (typeAIndex !== undefined && typeBIndex !== undefined) {
@@ -132,7 +128,7 @@ const getQueryObj = (query) => {
     });
 };
 
-const SearchSearchSuggestion = ({label, onClick, ...props}) => {
+const TextualSearchSuggestion = ({label, onClick, ...props}) => {
     const searchOverridePre = Sefaria._('Search for') +':';
     const displayedLabel = (
         <>
@@ -146,7 +142,7 @@ const SearchSearchSuggestion = ({label, onClick, ...props}) => {
         </>
     );
     return (
-        <div className={"searchSearchSuggestion"}>
+        <div className={"TextualSearchSuggestion"}>
             <SearchSuggestionInner onClick={() => onClick(label)} displayedLabel={displayedLabel} label={label} wrapperClasses={"search-override-wrapper"} {...props}/>
         </div>
     );
@@ -177,7 +173,7 @@ const SearchSuggestionInner = ({ value, type, displayedLabel, label, url, pic,
 );
 };
 
-const StamSearchSuggestion = ({label, onClick, type, url, ...props}) => {
+const EntitySearchSuggestion = ({label, onClick, type, url, ...props}) => {
     return (
         <SearchSuggestionInner onClick={() => onClick({type, url})} displayedLabel={label} label={label} type={type} url={url} {...props}/>
     );
@@ -302,19 +298,18 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 
 
 const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, ...props }) => {
-
-    const suggestionMappings = {
+    const _type_component_map = {
         search: {
             onSuggestionClick: submitSearch,
-            SuggestionComponent: SearchSearchSuggestion
+            SuggestionComponent: TextualSearchSuggestion
         },
         other: {
             onSuggestionClick: redirectToObject,
-            SuggestionComponent: StamSearchSuggestion
+            SuggestionComponent: EntitySearchSuggestion
         }
     };
 
-    const { onSuggestionClick, SuggestionComponent } = suggestionMappings[type] || suggestionMappings.other;
+    const { onSuggestionClick, SuggestionComponent } = _type_component_map[type] || _type_component_map.other;
 
     return (
         <SuggestionComponent onClick={onSuggestionClick} type={type} {...props} />
