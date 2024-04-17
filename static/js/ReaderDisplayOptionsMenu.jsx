@@ -34,6 +34,7 @@ const ReaderDisplayOptionsMenu = () => {
                 />
                 <div className="text-menu-border"/>
             </>}
+            {showLangaugeToggle() && !isComparePanel && <div className="text-menu-border"/>}
             {!isComparePanel && <LayoutButtons/>}
         </div>
     );

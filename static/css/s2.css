@@ -12947,6 +12947,12 @@ span.ref-link-color-3 {color: blue}
   background-color: var(--sefaria-blue);
 }
 
+.text-menu-border {
+  width: 100%;
+  height: 1px;
+  background-color: var(--lighter-grey);
+}
+
 #currentlyReadingContainer {
   margin: 5px 30px;
   flex-grow: 1;
