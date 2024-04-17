@@ -5,6 +5,7 @@ import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} f
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
+import {SignUpModalKind} from "./sefaria/signupModalContent";
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -54,6 +55,7 @@ const Modules = ({type, props}) => {
     "PortalMobile":           PortalMobile,
     "PortalOrganization":     PortalOrganization,
     "PortalNewsletter":       PortalNewsletter,
+    "RecentlyViewed":        RecentlyViewed,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -84,6 +86,66 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
     <InterfaceText markdown={{en: enText, he: heText}} />
   </Module>
 };
+
+const RecentlyViewedItem = ({oref}) => {
+   const trackItem = () => {
+     gtag('event', 'recently_viewed', {link_text: oref.ref, link_type: 'ref'})
+   }
+   return <li>
+            <a href={oref.ref} onClick={() => trackItem()}>{Sefaria._v({"he": oref.he_ref, "en": oref.ref})}</a>
+         </li>;
+}
+const RecentlyViewedList = ({items}) => {
+   const recentlyViewedListItems = items.map(x => { return <RecentlyViewedItem oref={x} key={`RecentlyViewedItem${x.ref}`}/>});
+   return <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedListItems}</ul></div>;
+}
+const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
+   const [recentlyViewedItems, setRecentlyViewedItems] = useState([]);
+   const handleAllHistory = (e) => {
+    if (!Sefaria._uid) {
+      e.preventDefault();
+      toggleSignUpModal(SignUpModalKind.ViewHistory);
+    }
+    gtag('event', 'recently_viewed', {link_type: 'all_history', logged_in: !!Sefaria._uid});
+   }
+
+   const filterRecentlyViewedItems = () => {
+        let itemsToShow = [];
+        let booksFound = [];
+        Sefaria.userHistory.items.forEach(x => {
+        if (!booksFound.includes(x.book) && x.book !== "Sheet") {
+           booksFound.push(x.book);
+           itemsToShow.push(x);
+        }});
+
+        itemsToShow = itemsToShow.slice(0, 3);
+        setRecentlyViewedItems(itemsToShow);
+   }
+
+   useEffect( () => {
+       if (!Sefaria.userHistory.loaded) {
+           Sefaria.loadUserHistory(20, filterRecentlyViewedItems);
+       } else {
+           filterRecentlyViewedItems();
+       }
+   }, []);
+
+   if (!Sefaria.userHistory.items || Sefaria.userHistory.items.length === 0) {
+     return null;
+   }
+   const allHistoryPhrase = mobile ? "All History" : "All history ";
+   const recentlyViewedList = <RecentlyViewedList items={recentlyViewedItems}/>;
+   return <Module>
+            <div className="recentlyViewed">
+                <div id="header">
+                  <ModuleTitle h1={true}>Recently Viewed</ModuleTitle>
+                  {!mobile && recentlyViewedList}
+                  <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>{allHistoryPhrase}</InterfaceText></a>
+                </div>
+                {mobile && recentlyViewedList}
+            </div>
+          </Module>;
+}
 
 const Promo = () =>
     <Module>
@@ -618,9 +680,6 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
       <a target="_blank" className="button small white appButton iconOnly" href={fbURL}>
         <img src="/static/icons/facebook.svg" alt={Sefaria._("Sefaria on Facebook")} />
       </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://twitter.com/SefariaProject">
-        <img src="/static/icons/twitter.svg" alt={Sefaria._("Sefaria on Twitter")} />
-      </a>
       <a target="_blank" className="button small white appButton iconOnly" href="https://www.instagram.com/sefariaproject">
         <img src="/static/icons/instagram.svg" alt={Sefaria._("Sefaria on Instagram")} />
       </a>
@@ -863,4 +922,5 @@ const PortalNewsletter = ({title, description}) => {
 export {
   NavSidebar,
   Modules,
+  RecentlyViewed
 };

@@ -1031,7 +1031,8 @@ def _get_user_calendar_params(request):
 def texts_list(request):
     title = _("Sefaria: a Living Library of Jewish Texts Online")
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-    return menu_page(request, page="navigation", title=title, desc=desc)
+    props = get_user_history_props(request)
+    return menu_page(request, page="navigation", title=title, desc=desc, props=props)
 
 
 def calendars(request):
@@ -1049,13 +1050,16 @@ def saved(request):
     return menu_page(request, props, page="saved", title=title, desc=desc)
 
 
-def user_history(request):
+def get_user_history_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
         uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20) if profile.settings.get("reading_history", True) else []
     else:
         uhistory = _get_anonymous_user_history(request)
-    props = {"userHistory": {"loaded": True, "items": uhistory}}
+    return {"userHistory": {"loaded": True, "items": uhistory}}
+
+def user_history(request):
+    props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)
@@ -3090,6 +3094,21 @@ def topics_list_api(request):
 
 
 @staff_member_required
+def generate_topic_prompts_api(request, slug: str):
+    if request.method == "POST":
+        from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
+        from sefaria.helper.llm.topic_prompt import get_ref_context_hints_by_lang
+        topic = Topic.init(slug)
+        post_body = json.loads(request.body)
+        ref_topic_links = post_body.get('ref_topic_links')
+        for lang, ref__context_hints in get_ref_context_hints_by_lang(ref_topic_links).items():
+            orefs, context_hints = zip(*ref__context_hints)
+            generate_and_save_topic_prompts(lang, topic, orefs, context_hints)
+        return jsonResponse({"acknowledged": True}, status=202)
+    return jsonResponse({"error": "This API only accepts POST requests."})
+
+
+@staff_member_required
 def add_new_topic_api(request):
     if request.method == "POST":
         data = json.loads(request.POST["json"])
@@ -3201,13 +3220,37 @@ def reorder_topics(request):
         results.append(topic.contents())
     return jsonResponse({"topics": results})
 
+@staff_member_required()
+def topic_ref_bulk_api(request):
+    """
+    API to bulk edit RefTopicLinks
+    """
+    topic_links = json.loads(request.body)
+    all_links_touched = []
+    for link in topic_links:
+        tref = link.get('ref')
+        tref = Ref(tref).normal()
+        slug = link.get("toTopic")
+        linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
+        descriptions = link.get("descriptions", link.get("description"))
+        languages = descriptions.keys()
+        for language in languages:
+            ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=tref,
+                                               linkType=linkType, description=descriptions[language], interface_lang=language)
+        all_links_touched.append(ref_topic_dict)
+    return jsonResponse(all_links_touched)
+
+
+
 @catch_error_as_json
 def topic_ref_api(request, tref):
     """
     API to get RefTopicLinks, as well as creating, editing, and deleting of RefTopicLinks
     """
-
-    data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
+    try:
+        data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
+    except Exception as e:
+        data = json.loads(request.body)
     slug = data.get('topic')
     interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
     tref = Ref(tref).normal()  # normalize input
@@ -4286,13 +4329,18 @@ def serve_static_by_lang(request, page):
     return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), None, {})
 
 
+# TODO: This really should be handled by a CMS :)
 def annual_report(request, report_year):
     pdfs = {
         '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
         '2022': STATIC_URL + 'files/Sefaria_AnnualImpactReport_R14.pdf',
+        '2023': 'https://issuu.com/sefariaimpact/docs/sefaria_2023_impact_report?fr=sMmRkNTcyMzMyNTk',
     }
-    if report_year not in pdfs:
+    # Assume the most recent year as default when one is not provided
+    if not report_year:
+        report_year = max(pdfs.keys()) # Earlier versions of Python do not preserve insertion order in dictionaries :(
+    elif report_year not in pdfs:
         raise Http404
     # Renders a simple template, does not extend base.html
     return render(request, template_name='static/annualreport.html', context={'reportYear': report_year, 'pdfURL': pdfs[report_year]})

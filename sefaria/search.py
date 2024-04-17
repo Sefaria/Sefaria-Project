@@ -493,6 +493,13 @@ class TextIndexer(object):
                 print("Tried: {} times. Got {} versions".format(tries, len(versions)))
                 raise e
 
+    @staticmethod
+    def excluded_from_search(version):
+        return version.versionTitle in [
+            "Yehoyesh's Yiddish Tanakh Translation [yi]",
+            'Miqra Mevoar, trans. and edited by David Kokhav, Jerusalem 2020'
+        ]
+
     @classmethod
     def index_all(cls, index_name, debug=False, for_es=True, action=None):
         cls.index_name = index_name
@@ -522,8 +529,8 @@ class TextIndexer(object):
                 except ValueError:
                     cls.best_time_period = None
             for v in vlist:
-                if v.versionTitle == "Yehoyesh's Yiddish Tanakh Translation [yi]":
-                    print("skipping yiddish. we don't like yiddish")
+                if cls.excluded_from_search(v):
+                    print("skipping version")
                     continue
 
                 cls.index_version(v, action=action)
@@ -744,7 +751,7 @@ def index_from_queue():
     queue = db.index_queue.find()
     for item in queue:
         try:
-            TextIndexer.index_ref(index_name, Ref(item["ref"]), item["version"], item["lang"], False)
+            TextIndexer.index_ref(index_name, Ref(item["ref"]), item["version"], item["lang"])
             db.index_queue.remove(item)
         except Exception as e:
             logging.error("Error indexing from queue ({} / {} / {}) : {}".format(item["ref"], item["version"], item["lang"], e))
