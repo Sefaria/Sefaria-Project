@@ -156,7 +156,7 @@ const SearchSuggestionInner = ({ value, type, displayedLabel, label, url, pic,
            ${highlightedIndex === universalIndex ? 'highlighted' : ''}`}
           >
              <img alt={type}
-                   className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type} type-icon`}
+                   className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type} type-icon ${!isHebrew ? 'english-result' : ''} `}
                    src={type_icon(type, pic)}/>
 
               <div className={` ${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''}

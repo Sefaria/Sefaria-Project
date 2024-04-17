@@ -4642,7 +4642,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-inline-start: 2px;
 }
 
-.interface-english .singlePanel .autocomplete-dropdown .type-icon{
+.singlePanel .autocomplete-dropdown .type-icon.english-result{
   margin-top: 2px;
 }
 
