@@ -741,7 +741,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError("You must add a hebrew translation Term for any new Category title: {}.".format(cat))
         '''
 
-        if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
+        if hasattr(self, "collective_title") and not hebrew_term(getattr(self, "collective_title", None)):
             raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
 
         #complex style records- all records should now conform to this
