@@ -4,7 +4,7 @@ import classNames from "classnames";
 import {EnglishText, HebrewText, InterfaceText, SearchButton} from "./Misc";
 import { useCombobox } from 'downshift';
 
-const _type_icon_map = {
+const type_icon_map = {
   "Collection": "collection.svg",
   "AuthorTopic": "iconmonstr-pen-17.svg",
   "TocCategory": "iconmonstr-view-6.svg",
@@ -28,11 +28,11 @@ const type_title_map = {
   "User": "Users"
 };
 
-const _type_icon = function(itemType, itemPic) {
+const type_icon = function(itemType, itemPic) {
     if (itemType === "User" && itemPic !== "") {
       return itemPic;
     } else {
-      return `/static/icons/${_type_icon_map[itemType]}`;
+      return `/static/icons/${type_icon_map[itemType]}`;
     }
 };
 
@@ -157,13 +157,13 @@ const SearchSuggestionInner = ({ value, type, displayedLabel, label, url, pic,
           >
              <img alt={type}
                    className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type} type-icon`}
-                   src={_type_icon(type, pic)}/>
+                   src={type_icon(type, pic)}/>
 
               <div className={` ${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''}
                search-suggestion-text`}>
                 {displayedLabel}
               </div>
-        </div>
+          </div>
       </a>
 );
 };
@@ -227,7 +227,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
         // debug: comment out the following line:
-        // setSearchFocused(false);
+        setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }
     };
@@ -286,9 +286,6 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
             })}
         </>
     );
-
-
-
 }
 
 
@@ -481,7 +478,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
         className={"autocomplete-dropdown"}
       >
       {/*//debug: make following condition always truthy:*/}
-          {((isOpen && searchFocused) || true) &&
+          {(isOpen && searchFocused) &&
               <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}
                    getInputProps={getInputProps} submitSearch={submitSearch} redirectToObject={redirectToObject}
               />
