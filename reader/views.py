@@ -26,6 +26,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
+from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from django import http
 from django.utils import timezone
@@ -1642,84 +1643,78 @@ def text_titles_api(request):
 def index_node_api(request, title):
     pass
 
-@catch_error_as_json
+
+CONTENT_TYPE = "CONTENT"
+ADMIN_TYPE = "ADMIN"
+
 @csrf_exempt
+@catch_error_as_json
 def index_api(request, title, raw=False):
-    """
-    API for manipulating text index records (aka "Text Info")
-    """
     if request.method == "GET":
-        with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
-        i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
+        return handle_get_request(request, title, raw)
+    elif request.method == "POST":
+        return handle_post_request(request, title, raw)
+    elif request.method == "DELETE":
+        return handle_delete_request(request, title)
 
-        if bool(int(request.GET.get("with_related_topics", False))):
-            i["relatedTopics"] = get_topics_for_book(title, annotate=True)
+def handle_get_request(request, title, raw):
+    with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
+    index_record = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
-        return jsonResponse(i, callback=request.GET.get("callback", None))
+    if bool(int(request.GET.get("with_related_topics", False))):
+        index_record["relatedTopics"] = get_topics_for_book(title, annotate=True)
 
-    if request.method == "POST":
-        def index_post(request, UID, method):
-            return jsonResponse(func(UID, Index, j, raw=raw, method=method).contents(raw=raw))
+    return jsonResponse(index_record, callback=request.GET.get("callback", None))
 
-        user_type = None  # indicates whether a Content Engineer or Admin is modifying the Index
-        CONTENT_TYPE = "CONTENT"
-        ADMIN_TYPE = "ADMIN"
-        uid = None
-        #todo: move this to texts_api, pass the changes down through the tracker and text chunk
-        #if "versionTitle" in j:
-        #    if j["versionTitle"] == "Sefaria Community Translation":
-        #        j["license"] = "CC0"
-        #        j["licenseVetter"] = True
-        if not request.user.is_authenticated:   # typical path for content engineers
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
+def handle_post_request(request, title, raw):
+    j = json.loads(request.POST.get("json"))
+    if not j:
+        return jsonResponse({"error": "Missing 'json' parameter in post data."})
+
+    user_type, uid = determine_user_type_and_id(request)
+
+    if user_type == CONTENT_TYPE:
+        return index_post(request, uid, title, j, "API", raw)
+    elif user_type == ADMIN_TYPE:
+        return handle_admin_post(request, uid, j, title, raw)
+
+@csrf_protect
+def handle_admin_post(request, uid, j, title, raw):
+    if 'schema' not in j:
+        # Adjust title and try to retrieve existing schema
+        j["title"] = j["title"].replace("_", " ")
+        title = j.get("oldTitle", j.get("title"))
+        try:
+            book = library.get_index(title)
+            j['schema'] = book.contents()['schema']
+        except BookNameError:
+            return jsonResponse({"error": f"Book {title} does not exist."})
+    return index_post(request, uid, title, j, None, raw)
+
+def determine_user_type_and_id(request):
+    if request.user.is_staff:
+        return ADMIN_TYPE, request.user.id
+    else:
+        key = request.POST.get("apikey")
+        if key:
             apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            user_type = CONTENT_TYPE
-            uid = apikey["uid"]
-        else:
-            if not request.user.is_staff:
-                return jsonResponse({"error": "You must be staff to edit an index record with the admin tool."})
-            user_type = ADMIN_TYPE
-            uid = request.user.id
+            if apikey:
+                return CONTENT_TYPE, apikey["uid"]
+        return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
 
-        # use the update function if update is in the params
-        func = tracker.update if request.GET.get("update", False) else tracker.add
-        j = json.loads(request.POST.get("json"))
-        if not j:
-            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+def index_post(request, uid, title, j, method, raw):
+    func = tracker.update if 'update' in j else tracker.add
+    return jsonResponse(func(uid, Index, j, raw=raw, method=method).contents(raw=raw))
 
-        if user_type == CONTENT_TYPE:
-            return index_post(request, uid, "API")
-        elif user_type == ADMIN_TYPE:
-            if 'schema' not in j:
-                # if book already exists and no schema provided, use old schema
-                j["title"] = title.replace("_", " ")
-                title = j.get("oldTitle", j.get("title"))
-                try:
-                    book = library.get_index(title)
-                    j['schema'] = book.contents()['schema']
-                except BookNameError:
-                    return jsonResponse({"error": f"Book {title} does not exist."})
-            admin_post = csrf_protect(index_post)
-            return admin_post(request, uid, None)
+def handle_delete_request(request, title):
+    if not request.user.is_staff:
+        return jsonResponse({"error": "Only moderators can delete indices."})
 
-    if request.method == "DELETE":
-        if not request.user.is_staff:
-            return jsonResponse({"error": "Only moderators can delete texts indices."})
+    title = title.replace("_", " ")
+    library.get_index(title).delete()
+    record_index_deletion(title, request.user.id)
 
-        title = title.replace("_", " ")
-
-        i = library.get_index(title)
-
-        i.delete()
-        record_index_deletion(title, request.user.id)
-
-        return jsonResponse({"status": "ok"})
-
-    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+    return jsonResponse({"status": "ok"})
 
 
 @catch_error_as_json
