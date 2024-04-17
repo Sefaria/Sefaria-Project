@@ -12912,11 +12912,6 @@ span.ref-link-color-3 {color: blue}
   color: black;
 }
 
-.interface-hebrew .layout-options,
-.interface-hebrew .layout-button-line {
-  flex-direction: row-reverse;
-}
-
 .layout-button-line {
   height: 57px;
   width: 216px;
