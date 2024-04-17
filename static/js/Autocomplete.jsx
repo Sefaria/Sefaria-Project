@@ -56,7 +56,9 @@ function groupByType(seggestedItems) {
     return result;
 };
 
-const typesOrder = [
+function sortByTypeOrder(array) {
+
+    const typesOrder = [
         "search",
         "ref",
         "Collection",
@@ -66,8 +68,7 @@ const typesOrder = [
         "AuthorTopic",
         "User",
         "Term",
-];
-function sortByTypeOrder(array) {
+    ];
 
     return array.sort((a, b) => {
 
