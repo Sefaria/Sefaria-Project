@@ -114,8 +114,8 @@ class ReaderPanel extends Component {
     const [data, prevData] = [this.state.data, prevState.data];
     return this.getContentLanguageOverride() === 'bilingual' &&
         this.state.settings.biLayout !== 'stacked' &&
-        (data.primaryDirection !== prevData.primaryDirection || data.translationDirection !== prevData.translationDirection) &&
-        data.primaryDirection === data.translationDirection;
+        (data?.primaryDirection !== prevData?.primaryDirection || data?.translationDirection !== prevData?.translationDirection) &&
+        data?.primaryDirection === data?.translationDirection;
   }
   conditionalSetState(state) {
     // Set state either in the central app or in the local component.
