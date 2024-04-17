@@ -6,7 +6,7 @@ import {ReaderPanelContext} from "./context";
 import LayoutButtons from "./LayoutButtons";
 
 const ReaderDisplayOptionsMenu = () => {
-    const {language, setOption} = useContext(ReaderPanelContext);
+    const {language, setOption, isComparePanel} = useContext(ReaderPanelContext);
     const showLangaugeToggle = () => {
       if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
@@ -34,7 +34,7 @@ const ReaderDisplayOptionsMenu = () => {
                 />
                 <div className="text-menu-border"/>
             </>}
-            <LayoutButtons/>
+            {!isComparePanel && <LayoutButtons/>}
         </div>
     );
 };

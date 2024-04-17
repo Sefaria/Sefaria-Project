@@ -649,7 +649,8 @@ class ReaderPanel extends Component {
       setIsMenuOpen: this.setDisplaySettingsOpen,
       setOption: this.setOption,
       textsData: this.state.data,
-      layout: this.currentLayout()
+      layout: this.currentLayout(),
+      isComparePanel: this.state.compare,
     };
 
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
