@@ -76,13 +76,7 @@ function sortByTypeOrder(array) {
 
         // If types are in the provided list, compare their index
         if (typeAIndex !== undefined && typeBIndex !== undefined) {
-            if (typeAIndex < typeBIndex) {
-                return -1;
-            }
-            if (typeAIndex > typeBIndex) {
-                return 1;
-            }
-            return 0;
+            return typeBIndex - typeAIndex
         }
 
         // If one of the types is not in the list, fallback to alphanumeric sorting
