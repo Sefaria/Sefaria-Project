@@ -227,7 +227,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
         // debug: comment out the following line:
-        setSearchFocused(false);
+        // setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }
     };
@@ -240,7 +240,6 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
     });
 
     const searchBoxClasses = classNames({ searchBox: 1, searchFocused });
-
 
     return (
       <div id="searchBox"
@@ -478,7 +477,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
         className={"autocomplete-dropdown"}
       >
       {/*//debug: make following condition always truthy:*/}
-          {(isOpen && searchFocused) &&
+          {((isOpen && searchFocused) || true) &&
               <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}
                    getInputProps={getInputProps} submitSearch={submitSearch} redirectToObject={redirectToObject}
               />
