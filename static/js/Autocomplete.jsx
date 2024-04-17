@@ -42,11 +42,10 @@ function groupByType(seggestedItems) {
 
     // Group items by their "type"
     seggestedItems.forEach(item => {
-        const itemType = item.type;
-        if (!groupedItems[itemType]) {
-            groupedItems[itemType] = [];
+        if (!groupedItems[item.type]) {
+            groupedItems[item.type] = [];
         }
-        groupedItems[itemType].push(item);
+        groupedItems[item.type].push(item);
     });
 
     //Convert into a datastructure like this: [{"type": name,
@@ -169,8 +168,6 @@ const SearchSuggestion = ({ value, type, label, url, pic,
         </>;
     searchIconClassName = 'search-icon';
     searchOverrideWrapperClassName = 'search-override-wrapper';
-
-
 }
 
 
@@ -198,6 +195,57 @@ const SearchSuggestion = ({ value, type, label, url, pic,
       </a>
 );
 };
+
+const SearchSearchSuggestion = ({label, onClick, ...props}) => {
+    const searchOverridePre = Sefaria._('Search for') +':';
+    const displayedLabel = (
+        <>
+            <span className={"search-override-text"}>
+                {searchOverridePre}
+                <span>&nbsp;</span>
+            </span>
+            <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}} />
+            {label}
+            <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
+        </>
+    );
+    return (
+        <div className={"searchSearchSuggestion"}>
+            <SearchSuggestionInner onClick={() => onClick(label)} displayedLabel={displayedLabel} label={label} wrapperClasses={"search-override-wrapper"} {...props}/>
+        </div>
+    );
+};
+
+const SearchSuggestionInner = ({ value, type, displayedLabel, label, url, pic,
+                                wrapperClasses,
+                              universalIndex, highlightedIndex, getItemProps, onClick}) => {
+  const isHebrew = Sefaria.hebrew.isHebrew(label);
+  return (
+      <a href={url} onClick={onClick} className={`search-suggestion-link-wrapper ${wrapperClasses}`}>
+          <div
+            key={value}
+            {...getItemProps({ index: universalIndex})}
+           className={` search-suggestion
+           ${highlightedIndex === universalIndex ? 'highlighted' : ''}`}
+          >
+             <img alt={type}
+                   className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type} type-icon`}
+                   src={_type_icon(type, pic)}/>
+
+              <div className={` ${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''}
+               search-suggestion-text`}>
+                {displayedLabel}
+              </div>
+        </div>
+      </a>
+);
+};
+
+const StamSearchSuggestion = ({label, onClick, type, url, ...props}) => {
+    return (
+        <SearchSuggestionInner onClick={() => onClick({type, url})} displayedLabel={label} label={label} type={type} url={url} {...props}/>
+    );
+}
 
 const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebrewKeyboard,
                         setSearchFocused, searchFocused,
@@ -252,7 +300,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
         // debug: comment out the following line:
-        setSearchFocused(false);
+        // setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }
     };
@@ -316,6 +364,27 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 
 }
 
+
+const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, ...props }) => {
+
+    const suggestionMappings = {
+        search: {
+            onSuggestionClick: submitSearch,
+            SuggestionComponent: SearchSearchSuggestion
+        },
+        other: {
+            onSuggestionClick: redirectToObject,
+            SuggestionComponent: StamSearchSuggestion
+        }
+    };
+
+    const { onSuggestionClick, SuggestionComponent } = suggestionMappings[type] || suggestionMappings.other;
+
+    return (
+        <SuggestionComponent onClick={onSuggestionClick} type={type} {...props} />
+    );
+}
+
 const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex,
                                     submitSearch, redirectToObject}) => {
 
@@ -325,30 +394,26 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     return (
         <div className={"search-group-suggestions"}>
 
-            {(type != 'search') &&
+         {(type != 'search') &&
             <div className={'type-title'}><InterfaceText>{title}</InterfaceText></div>
-            }
+         }
 
             <div className={"search-group-suggestions-items"}>
             {suggestions.map((suggestion, index) => {
-                const universalIndex = initialIndexForGroup + index
+                const universalIndex = initialIndexForGroup + index;
                 return (
-
-                        <SearchSuggestion
+                        <SearchSuggestionFactory
                             key={suggestion.key}
                             value={suggestion.value}
                             type={suggestion.type}
                             label={suggestion.label}
                             url={suggestion.url}
                             pic={suggestion.pic}
-
                             universalIndex = {universalIndex}
                             highlightedIndex = {highlightedIndex}
                             getItemProps = {getItemProps}
-
                             submitSearch={submitSearch}
                             redirectToObject={redirectToObject}
-
                         />
                 );
             })}
@@ -490,7 +555,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
         className={"autocomplete-dropdown"}
       >
       {/*//debug: make following condition always truthy:*/}
-          {(isOpen && searchFocused) &&
+          {((isOpen && searchFocused) || true) &&
               <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}
                    getInputProps={getInputProps} submitSearch={submitSearch} redirectToObject={redirectToObject}
               />
