@@ -1643,77 +1643,77 @@ def index_node_api(request, title):
     pass
 
 
-CONTENT_TYPE = "CONTENT"
-ADMIN_TYPE = "ADMIN"
-
 @csrf_exempt
 @catch_error_as_json
 def index_api(request, title, raw=False):
+    CONTENT_TYPE = "CONTENT"
+    ADMIN_TYPE = "ADMIN"
+
+    def handle_get_request(request, title, raw):
+        with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
+        index_record = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
+
+        if bool(int(request.GET.get("with_related_topics", False))):
+            index_record["relatedTopics"] = get_topics_for_book(title, annotate=True)
+
+        return jsonResponse(index_record, callback=request.GET.get("callback", None))
+
+    def handle_post_request(request, title, raw):
+        j = json.loads(request.POST.get("json"))
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+
+        user_type, uid = determine_user_type_and_id(request)
+
+        if user_type == CONTENT_TYPE:
+            return index_post(request, uid, j, "API", raw)
+        elif user_type == ADMIN_TYPE:
+            return handle_admin_post(request, uid, j, title, raw)
+
+    @csrf_protect
+    def handle_admin_post(request, uid, j, title, raw):
+        if 'schema' not in j:
+            # Adjust title and try to retrieve existing schema
+            j["title"] = j["title"].replace("_", " ")
+            title = j.get("oldTitle", j.get("title"))
+            try:
+                book = library.get_index(title)
+                j['schema'] = book.contents()['schema']
+            except BookNameError:
+                return jsonResponse({"error": f"Book {title} does not exist."})
+        return index_post(request, uid, j, None, raw)
+
+    def determine_user_type_and_id(request):
+        if request.user.is_staff:
+            return ADMIN_TYPE, request.user.id
+        else:
+            key = request.POST.get("apikey")
+            if key:
+                apikey = db.apikeys.find_one({"key": key})
+                if apikey:
+                    return CONTENT_TYPE, apikey["uid"]
+            return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
+
+    def index_post(request, uid, j, method, raw):
+        func = tracker.update if 'update' in j else tracker.add
+        return jsonResponse(func(uid, Index, j, raw=raw, method=method).contents(raw=raw))
+
+    def handle_delete_request(request, title):
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Only moderators can delete indices."})
+
+        title = title.replace("_", " ")
+        library.get_index(title).delete()
+        record_index_deletion(title, request.user.id)
+
+        return jsonResponse({"status": "ok"})
+
     if request.method == "GET":
         return handle_get_request(request, title, raw)
     elif request.method == "POST":
         return handle_post_request(request, title, raw)
     elif request.method == "DELETE":
         return handle_delete_request(request, title)
-
-def handle_get_request(request, title, raw):
-    with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
-    index_record = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
-
-    if bool(int(request.GET.get("with_related_topics", False))):
-        index_record["relatedTopics"] = get_topics_for_book(title, annotate=True)
-
-    return jsonResponse(index_record, callback=request.GET.get("callback", None))
-
-def handle_post_request(request, title, raw):
-    j = json.loads(request.POST.get("json"))
-    if not j:
-        return jsonResponse({"error": "Missing 'json' parameter in post data."})
-
-    user_type, uid = determine_user_type_and_id(request)
-
-    if user_type == CONTENT_TYPE:
-        return index_post(request, uid, title, j, "API", raw)
-    elif user_type == ADMIN_TYPE:
-        return handle_admin_post(request, uid, j, title, raw)
-
-@csrf_protect
-def handle_admin_post(request, uid, j, title, raw):
-    if 'schema' not in j:
-        # Adjust title and try to retrieve existing schema
-        j["title"] = j["title"].replace("_", " ")
-        title = j.get("oldTitle", j.get("title"))
-        try:
-            book = library.get_index(title)
-            j['schema'] = book.contents()['schema']
-        except BookNameError:
-            return jsonResponse({"error": f"Book {title} does not exist."})
-    return index_post(request, uid, title, j, None, raw)
-
-def determine_user_type_and_id(request):
-    if request.user.is_staff:
-        return ADMIN_TYPE, request.user.id
-    else:
-        key = request.POST.get("apikey")
-        if key:
-            apikey = db.apikeys.find_one({"key": key})
-            if apikey:
-                return CONTENT_TYPE, apikey["uid"]
-        return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
-
-def index_post(request, uid, title, j, method, raw):
-    func = tracker.update if 'update' in j else tracker.add
-    return jsonResponse(func(uid, Index, j, raw=raw, method=method).contents(raw=raw))
-
-def handle_delete_request(request, title):
-    if not request.user.is_staff:
-        return jsonResponse({"error": "Only moderators can delete indices."})
-
-    title = title.replace("_", " ")
-    library.get_index(title).delete()
-    record_index_deletion(title, request.user.id)
-
-    return jsonResponse({"status": "ok"})
 
 
 @catch_error_as_json
