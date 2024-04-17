@@ -104,6 +104,18 @@ class ReaderPanel extends Component {
         this.state.currentlyVisibleRef !== prevState.currentlyVisibleRef) {
       this.conditionalSetTextData();
     }
+    if (this.shouldLayoutUpdate(prevState)) {
+      const newLayout = (this.state.data.primaryDirection === 'rtl') ? 'heRight' : 'heLeft';
+      this.setOption('biLayout', newLayout);
+    }
+  }
+  shouldLayoutUpdate(prevState) {
+    //when we switch to two rtl (or ltr) texts and layout is side by side, we want the primary to be first
+    const [data, prevData] = [this.state.data, prevState.data];
+    return this.getContentLanguageOverride() === 'bilingual' &&
+        this.state.settings.biLayout !== 'stacked' &&
+        (data.primaryDirection !== prevData.primaryDirection || data.translationDirection !== prevData.translationDirection) &&
+        data.primaryDirection === data.translationDirection;
   }
   conditionalSetState(state) {
     // Set state either in the central app or in the local component.
@@ -123,10 +135,11 @@ class ReaderPanel extends Component {
     }
     this.setState({"error": message})
   }
-  getContentLanguageOverride(originalLanguage, mode, menuOpen) {
+  getContentLanguageOverride() {
     // Determines the actual content language used inside this ReaderPanel.
     // Because it's called in the constructor, assume state isnt necessarily defined and pass
     // variables mode and menuOpen manually
+    const [originalLanguage, mode, menuOpen] = [this.state.settings.language, this.state.mode, this.state.menuOpen]
     let contentLangOverride = originalLanguage;
     if (["topics", "allTopics", "calendars", "community", "collection" ].includes(menuOpen)) {   //  "story_editor",
       // Always bilingual for English interface, always Hebrew for Hebrew interface
@@ -455,14 +468,17 @@ class ReaderPanel extends Component {
   setDisplaySettingsOpen(bool) {
     this.conditionalSetState({displaySettingsOpen: bool});
   }
+  getLayoutCategory() {
+    const category = this.currentCategory();
+    return category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
+  }
   setOption(option, value) {
     if (option === "fontSize") {
       const step = 1.15;
       const size = this.state.settings.fontSize;
       value = (value === "smaller" ? size/step : size*step);
     } else if (option === "layout") {
-      const category = this.currentCategory();
-      option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
+      option = this.getLayoutCategory();
     }
 
     this.state.settings[option] = value;
@@ -565,8 +581,7 @@ class ReaderPanel extends Component {
     }
     // dont allow continuous mode in sidebar since it's currently not possible to control layout from sidebar
     if (this.state.mode === "Connections") {return "segmented"}
-    const category = this.currentCategory();
-    const option = (category && (category === "Tanakh" || category === "Talmud")) ? "layout" + category : "layoutDefault";
+    const option = this.getLayoutCategory();
     return this.state.settings[option];
   }
   handleKeyPress(e) {
@@ -628,11 +643,13 @@ class ReaderPanel extends Component {
 
     let items = [];
     let menu = null;
-    const readerPanelContextdata = {
-      language: this.getContentLanguageOverride(this.state.settings.language, this.state.mode, this.state.menuOpen),
+    const readerPanelContextData = {
+      language: this.getContentLanguageOverride(),
       isMenuOpen: this.state.displaySettingsOpen,
       setIsMenuOpen: this.setDisplaySettingsOpen,
       setOption: this.setOption,
+      textsData: this.state.data,
+      layout: this.currentLayout()
     };
 
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
@@ -1021,7 +1038,7 @@ class ReaderPanel extends Component {
     }
 
     let classes  = {readerPanel: 1, serif: 1, narrowColumn: this.state.width < 730};
-    classes[readerPanelContextdata.language] = 1;
+    classes[readerPanelContextData.language] = 1;
     classes[this.currentLayout()]        = 1;
     classes[this.state.settings.color]   = 1;
     classes = classNames(classes);
@@ -1037,7 +1054,7 @@ class ReaderPanel extends Component {
       this.props.hideNavHeader
     );
     return (
-      <ReaderPanelContext.Provider value={readerPanelContextdata}>
+      <ReaderPanelContext.Provider value={readerPanelContextData}>
         <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
           {hideReaderControls ? null :
             <ReaderControls
@@ -1062,7 +1079,6 @@ class ReaderPanel extends Component {
               onTextTitleClick={this.handleBaseSegmentClick}
               onSheetTitleClick={this.handleSheetSegmentClick}
               openMobileNavMenu={this.props.openMobileNavMenu}
-              currentLayout={this.currentLayout}
               onError={this.onError}
               openConnectionsPanel={this.openConnectionsPanel}
               connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
@@ -1317,7 +1333,6 @@ class ReaderControls extends Component {
     let displaySettingsMenu = (<ReaderDisplayOptionsMenu
       settings={this.props.settings}
       multiPanel={this.props.multiPanel}
-      currentLayout={this.props.currentLayout}
       currentBook={this.props.currentBook}
       data={this.props.data}
 
@@ -1376,7 +1391,6 @@ ReaderControls.propTypes = {
   currentMode:             PropTypes.func.isRequired,
   currentCategory:         PropTypes.func.isRequired,
   currentBook:             PropTypes.func.isRequired,
-  currentLayout:           PropTypes.func.isRequired,
   onError:                 PropTypes.func.isRequired,
   closePanel:              PropTypes.func,
   toggleLanguage:          PropTypes.func,

@@ -3,6 +3,7 @@ import Sefaria from "./sefaria/sefaria";
 import PropTypes from "prop-types";
 import SourceTranslationsButtons from "./SourceTranslationsButtons";
 import {ReaderPanelContext} from "./context";
+import LayoutButtons from "./LayoutButtons";
 
 const ReaderDisplayOptionsMenu = () => {
     const {language, setOption} = useContext(ReaderPanelContext);
@@ -33,6 +34,7 @@ const ReaderDisplayOptionsMenu = () => {
                 />
                 <div className="text-menu-border"/>
             </>}
+            <LayoutButtons/>
         </div>
     );
 };

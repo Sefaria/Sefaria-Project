@@ -12912,6 +12912,41 @@ span.ref-link-color-3 {color: blue}
   color: black;
 }
 
+.interface-hebrew .layout-options,
+.interface-hebrew .layout-button-line {
+  flex-direction: row-reverse;
+}
+
+.layout-button-line {
+  height: 57px;
+  width: 216px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layout-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.layout-button {
+  border: none;
+  width: 28px;
+  height: 24px;
+  -webkit-mask: var(--url) no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 100% 100%;
+  background-color: var(--medium-grey);
+}
+
+.layout-button.checked {
+  background-color: var(--sefaria-blue);
+}
 
 #currentlyReadingContainer {
   margin: 5px 30px;
