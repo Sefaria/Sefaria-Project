@@ -26,7 +26,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
-from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from django import http
 from django.utils import timezone
