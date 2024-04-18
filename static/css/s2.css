@@ -12862,6 +12862,8 @@ span.ref-link-color-3 {color: blue}
 
 .popover-menu {
   position: relative;
+  display: flex;
+  flex-direction: row-reverse;
 }
 
 .texts-properties-menu {
