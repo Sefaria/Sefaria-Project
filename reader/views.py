@@ -1648,18 +1648,6 @@ def index_api(request, title, raw=False):
     """
     API for manipulating text index records (aka "Text Info")
     """
-    def handle_optional_params(book, params):
-        """
-        Removes optional 'params' that were not passed or have value of empty string should be deleted from 'book' object.
-        """
-        deleted_params = False
-        for optional_param in ["dependence", "collective_title"]:
-            if params.get(optional_param, "") == "" and hasattr(book, optional_param):
-                delattr(book, optional_param)
-                deleted_params = True
-        if deleted_params:
-            book.save()
-
     if request.method == "GET":
         with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
         i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
@@ -1690,7 +1678,6 @@ def index_api(request, title, raw=False):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             book = func(apikey["uid"], Index, j, method="API", raw=raw)
-            handle_optional_params(book, j)  # removes optional params that have value of empty string
             return jsonResponse(book.contents(raw=raw))
         else:
             title = j.get("oldTitle", j.get("title"))
@@ -1704,7 +1691,6 @@ def index_api(request, title, raw=False):
         @csrf_protect
         def protected_index_post(request):
             book = func(request.user.id, Index, j, raw=raw)
-            handle_optional_params(book, j)  # removes optional params that have value of empty string
             return jsonResponse(
                 book.contents(raw=raw)
             )

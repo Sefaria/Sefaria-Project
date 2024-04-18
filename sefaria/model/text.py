@@ -726,7 +726,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
         if getattr(self, "dependence", None) == "":
-            raise InputError("Dependence field cannot be empty string.")
+            delattr(self, "dependence")
 
         from sefaria.model import Category
         if not Category().load({"path": self.categories}):
