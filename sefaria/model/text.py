@@ -338,7 +338,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return getattr(self, 'base_text_mapping', None) == 'many_to_one'
 
     def is_dependant_text(self):
-        return getattr(self, 'dependence', "") != ""
+        return getattr(self, 'dependence', None) is not None
 
     def all_titles(self, lang):
         if self.nodes:
@@ -725,6 +725,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
+        if getattr(self, "dependence", None) == "":
+            delattr(self, "dependence")
+
         from sefaria.model import Category
         if not Category().load({"path": self.categories}):
             raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
@@ -827,7 +830,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "primary_category" : self.get_primary_category(),
         }
 
-        if self.is_dependant_text():
+        if getattr(self, "dependence", False):
             toc_contents_dict["dependence"] = self.dependence
 
         if len(getattr(self, "corpora", [])) > 0:
@@ -5868,7 +5871,7 @@ class Library(object):
         """
 
         if not include_dependant:
-            q = {"categories": category, 'dependence': {'$in': [False, None, ""]}}
+            q = {"categories": category, 'dependence': {'$in': [False, None]}}
         else:
             q = {"categories": category}
 
@@ -5881,7 +5884,7 @@ class Library(object):
         :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
         :return: :class:`IndexSet` of :class:`Index` records in the specified category path
         """
-        q = {} if include_dependant else {'dependence': {'$in': [False, None, ""]}}
+        q = {} if include_dependant else {'dependence': {'$in': [False, None]}}
         for icat, cat in enumerate(path):
             q[f'categories.{icat}'] = cat
 
@@ -5890,7 +5893,7 @@ class Library(object):
     def get_indexes_in_corpus(self, corpus: str, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
         q = {'corpora': corpus}
         if not include_dependant:
-            q['dependence'] = {'$in': [False, None, ""]}
+            q['dependence'] = {'$in': [False, None]}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     def get_indices_by_collective_title(self, collective_title, full_records=False):
@@ -5910,7 +5913,7 @@ class Library(object):
         if dependence_type:
             q = {'dependence': dependence_type}
         else:
-            q = {"dependence": {"$exists": True}, "$expr": {"$gt": [{"$strLenCP": "$dependence"}, 0]}}
+            q = {'dependence': {'$exists': True}}
         if book_title:
             q['base_text_titles'] = book_title
         if structure_match:  # get only indices who's "base_text_mapping" is one that indicates it has the similar underlying schema as the base

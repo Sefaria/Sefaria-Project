@@ -29,7 +29,7 @@ def handle_dependant_indices(title):
     A generic method for handling dependant commentaries for methods in this package
     :param title: Title of book being changed
     """
-    dependant_indices = library.get_dependant_indices(title, dependence_type='Commentary', structure_match=True,
+    dependant_indices = library.get_dependant_indices(title, dependence_type='commentary', structure_match=True,
                                                       full_records=True)
     if len(dependant_indices) == 0:
         return
