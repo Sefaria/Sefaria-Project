@@ -15,6 +15,9 @@ const LayoutButtons = () => {
     const layoutState = calculateLayoutState(language, textsData.primaryDirection, textsData.translationDirection);
 
     const layoutButton = (layoutOption) => {
+        if (layoutState === 'mixed' && layoutOption === 'stacked') {
+            layoutOption = `${layoutOption}-${textsData.primaryDirection}${textsData.translationDirection}`
+        }
         const path = `/static/icons/${layoutState}-${layoutOption}.svg`;
         const optionName = (language === 'bilingual') ? 'biLayout' : 'layout';
         return (
