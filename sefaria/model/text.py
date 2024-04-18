@@ -741,8 +741,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError("You must add a hebrew translation Term for any new Category title: {}.".format(cat))
         '''
 
-        if hasattr(self, "collective_title") and not hebrew_term(getattr(self, "collective_title", None)):
-            raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
+        if hasattr(self, "collective_title"):
+            if self.collective_title == "":   # Index Editor can set collective_title to empty string if admin doesn't fill in a value
+                del self.collective_title
+            elif not hebrew_term(getattr(self, "collective_title", None)):
+                raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
 
         #complex style records- all records should now conform to this
         if self.nodes:
