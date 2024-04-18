@@ -1042,6 +1042,11 @@ class ReaderPanel extends Component {
     classes[readerPanelContextData.language] = 1;
     classes[this.currentLayout()]        = 1;
     classes[this.state.settings.color]   = 1;
+    if (readerPanelContextData.language !== 'bilingual') {
+      let prinaryOrTranslation = (readerPanelContextData.language === 'english') ? 'translation' : 'primary';
+      let direction = this.state.data?.[`${prinaryOrTranslation}Direction`];
+      classes[direction] = 1;
+    }
     classes = classNames(classes);
 
     const style = {"fontSize": this.state.settings.fontSize + "%"};

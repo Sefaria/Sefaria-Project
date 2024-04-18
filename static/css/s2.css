@@ -5317,7 +5317,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .sheetContent .title .he {
   display: none;
 }
-.interface-hebrew .readerPanel.english .textRange,
+.interface-hebrew .readerPanel.ltr .textRange,
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
 .interface-hebrew .readerPanel.english .essayGroup,
@@ -5326,7 +5326,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .readerPanel.bilingual .textTableOfContents {
   direction: ltr;
 }
-.interface-english .readerPanel.hebrew .textRange,
+.interface-english .readerPanel.rtl .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
 .interface-english .readerPanel.hebrew .essayGroup,
 .interface-english .readerPanel.hebrew .structToggles,
