@@ -470,7 +470,7 @@ const TopicPage = ({
     const displayTabs = [];
     let onClickFilterIndex = 2;
     let onClickLangToggleIndex = 2;
-    let authorWorksAdded = false
+    let authorWorksAdded = false;
 
     for (let tabObj of tabDisplayData) {
       const { key } = tabObj;
@@ -502,7 +502,7 @@ const TopicPage = ({
         });
       }
     }
-    if (displayTabs.length) {
+    if (displayTabs.length && tab!="key-sources") {
       displayTabs.push({
         title: {
           en: "",
@@ -522,7 +522,8 @@ const TopicPage = ({
           he: Sefaria._("A")
         },
         id: 'langToggle',
-        popover: true
+        popover: true,
+        justifyright: tab==="key-sources"
       });
       onClickLangToggleIndex = displayTabs.length - 1;
     }
