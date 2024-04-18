@@ -10639,9 +10639,9 @@ cursor: pointer;
   .interface-hebrew .tab-view .tab-list .justifyright {
     margin: initial;
   }
-  .tab-view .tab-list .justifyright {
-    margin: initial;
-  }
+  /*.tab-view .tab-list .justifyright {*/
+  /*  margin: initial;*/
+  /*}*/
   .tab-view .tab-list{
     flex-wrap: wrap;
   }
