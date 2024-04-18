@@ -1135,7 +1135,7 @@ const EditTextInfo = function({initTitle, close}) {
         return false;
       }
     }
-    if (!await validateCollectiveTitle()) {
+    if (collectiveTitle.length > 0 && !await validateCollectiveTitle()) {
       return false;
     }
     return true;
