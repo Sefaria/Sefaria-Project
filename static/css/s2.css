@@ -2507,7 +2507,8 @@ div.interfaceLinks-row a {
     height: auto;
     max-width: calc(66.67vw);
     max-height: calc(66.67vw);
-    margin-bottom: 10px;
+    margin: 0 auto 10px;
+    display: block;
   }
   .topicImage{
     padding-left: 0;
