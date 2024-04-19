@@ -20,7 +20,7 @@ html {
   height: 100%;
   width: 100%;
   margin: 0;
-  padding-top: 75px;
+  padding-top: 11.5rem;
   background-color: var(--sefaria-blue);
   line-height: 1;
   box-sizing: border-box;
@@ -28,8 +28,6 @@ html {
 }
 
 #pioneersPage .logo {
-  border: 0 solid #18345d;
-  border-image: none 100% 1 0 stretch;
   display: block;
   float: none;
   margin: 0 auto;
@@ -51,14 +49,11 @@ html {
 }
 
 #pioneersPage section.container {
-  border: 0 solid #18345d;
-  border-image: none 100% 1 0 stretch;
   box-sizing: border-box;
   display: block;
   margin: 0;
   padding: 1rem;
   position: relative;
-  vertical-align: baseline;
   width: 100%;
 }
 
@@ -70,7 +65,6 @@ html {
 
 #pioneersPage h2 {
   line-height: 1em;
-  /*min-height: 1.5em;*/
   font-size: 5.6rem;
   text-align: center;
   font-weight: 50;
@@ -104,6 +98,18 @@ html {
   vertical-align: baseline;
 }
 
+@media screen and (max-width: 768px) {
+  p {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  p.special-text {
+    padding-left: 3rem !important;
+    padding-right: 3rem !important;
+  }
+}
+
 #pioneersPage p.special-text {
   font-size: 1.92rem;
   font-style: italic;
@@ -123,10 +129,8 @@ html {
 #pioneersPage .divider {
   background-clip: content-box;
   background-color: #fdfdfd;
-  background-clip: content-box !important;
-  box-sizing: content-box !important;
-  border-top: 20px solid transparent !important;
-  border-bottom: 20px solid transparent !important;
+  border-top: 2rem solid transparent;
+  border-bottom: 2rem solid transparent;
   box-sizing: content-box;
   clear: both;
   display: block;
@@ -137,17 +141,9 @@ html {
   opacity: 1;
   padding: 1rem;
   position: relative;
-  vertical-align: baseline;
   width: 80%;
-  line-height: 1rem;
 }
 
-#pioneersPage p.footer {
-  font-size: 1.12rem;
-  font-style: italic;
-  text-align: center;
-  padding: 1rem;
-}
 {% endblock %}
 
 {% block content %}
@@ -156,8 +152,8 @@ html {
     <div class="inner-container">
       <h2 class="int-en serif">Sefaria Pioneers</h2>
       <h2 class="int-he serif">החלוצים של ספריא</h2>
-      <p style="font-style: italic; text-align: center">
-        <span class="int-en">10th Anniversary Gala 2024</span>
+      <p style="text-align: center">
+        <span class="int-en" style="font-style: italic">10th Anniversary Gala 2024</span>
         <span class="int-he">חגיגת יום השנה ה-10 2024</span>
       </p>
     </div>
@@ -165,8 +161,9 @@ html {
   <section class="container">
     <div class="inner-container">
       <img
+        alt="10th Anniversary Fringes Graphic"
         class="graphic"
-        src="https://ac-landing-pages-user-uploads-production.s3.amazonaws.com/0000140415/218aa698-a56f-42c1-b079-ff41c0ff06c3.png" />
+        src="{% static 'img/anniversary-gala-fringes.png' %}" />
     </div>
   </section>
   <section class="container">
@@ -205,7 +202,7 @@ html {
   </section>
   <section class="container">
     <div class="inner-container">
-      <div class="divider"></div>
+      <div class="divider" style="border-top-width: 1rem"></div>
     </div>
   </section>
   <section class="container">
@@ -404,6 +401,11 @@ html {
         </span>
       </p>
       <p></p>
+      <p></p>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
     </div>
   </section>
 </div>
