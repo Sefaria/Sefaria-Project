@@ -1177,7 +1177,7 @@ const EditTextInfo = function({initTitle, close}) {
     let postIndex = {
       title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
       heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace, dependence,
-      collective_title: collectiveTitle, base_text_titles: baseTextTitles
+      collective_title: collectiveTitle, base_text_titles: baseTextTitles.map(i => i.name)
     }
     if (sections && sections.length > 0) {
       postIndex.sectionNames = sections;
@@ -1344,6 +1344,13 @@ const EditTextInfo = function({initTitle, close}) {
     }
     return true;
   }
+  const handleDependenceChange = (e) => {
+    if (e.target.value === "") {
+      setCollectiveTitle("");
+      setBaseTextTitles([]);
+    }
+    setDependence(e.target.value);
+  }
   return (
       <div className="editTextInfo">
       <div className="static">
@@ -1432,7 +1439,7 @@ const EditTextInfo = function({initTitle, close}) {
             <div className="section">
                 <div><InterfaceText>Dependence</InterfaceText></div>
                 <label><div className="optional"><InterfaceText>Optional</InterfaceText></div></label>
-                <div className="categoryChooserMenu"><select value={dependence} onChange={(e) => setDependence(e.target.value)}>
+                <div className="categoryChooserMenu"><select value={dependence} onChange={handleDependenceChange}>
                   <option value="">--Not a dependent text--</option>
                   <option value="Commentary">Commentary</option>
                   <option value="Targum">Targum</option>
