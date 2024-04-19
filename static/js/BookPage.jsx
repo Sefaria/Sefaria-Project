@@ -1075,6 +1075,7 @@ const EditTextInfo = function({initTitle, close}) {
   const [collectiveTitle, setCollectiveTitle] = useState(index.current?.collective_title?.en || "");
   const [heCollectiveTitle, setHeCollectiveTitle] = useState(index.current?.collective_title?.he || "");
   const [creatingCollectiveTitle, setCreatingCollectiveTitle] = useState(false);
+  const [baseTextTitles, setBaseTextTitles] = useState(index.current.base_text_titles?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || [])
   const getYearAsStr = (init) => {
     if (typeof init === 'undefined' || init.length === 0) {
       return "";
@@ -1175,7 +1176,8 @@ const EditTextInfo = function({initTitle, close}) {
     const authorSlugs = authors.map(i => i.slug);
     let postIndex = {
       title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
-      heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace, dependence, collective_title: collectiveTitle
+      heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace, dependence,
+      collective_title: collectiveTitle, base_text_titles: baseTextTitles
     }
     if (sections && sections.length > 0) {
       postIndex.sectionNames = sections;
@@ -1293,6 +1295,55 @@ const EditTextInfo = function({initTitle, close}) {
     const url = `/api/v2/index/${enTitle}`;
     requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
   }
+  const renderCollectiveTitle = () => {
+     if (!creatingCollectiveTitle) {
+       return <div className="section">
+                <div><InterfaceText>English Collective Title</InterfaceText></div>
+                <label><div className="optional"><InterfaceText>Optional. For example, for "Rashi on Genesis", the English Collective Title is "Rashi".
+                You should create a new collective title if the collective title has never been created before and is not used by any texts in our system.)</InterfaceText></div></label>
+                <div className="collectiveTitle">
+                <input id="collectiveTitle" onChange={(e) => setCollectiveTitle(e.target.value)} defaultValue={collectiveTitle}/>
+                <div onClick={() => setCreatingCollectiveTitle(true)}
+                     id="createCollectiveTitle"
+                     className="button small"
+                     tabIndex="0"
+                     role="button">
+                    <InterfaceText>Create New Collective Title</InterfaceText>
+                </div>
+                </div>
+              </div>
+     }
+     else {
+       return <div>
+                    <div className="section">
+                      <div><InterfaceText>New English Collective Title</InterfaceText></div>
+                      <input id="collectiveTitle"
+                         onChange={(e) => setCollectiveTitle(e.target.value)}
+                         defaultValue={collectiveTitle}/>
+                    </div>
+                    <div className="section">
+                      <div><InterfaceText>New Hebrew Collective Title</InterfaceText></div>
+                      <input id="heCollectiveTitle"
+                         onChange={(e) => setHeCollectiveTitle(e.target.value)}
+                         defaultValue={heCollectiveTitle}/>
+                    </div>
+                </div>
+     }
+  }
+  const renderBaseTextTitles = () => {
+    return <div className="section">
+            <div><InterfaceText>Base Text Titles</InterfaceText></div><label><span className="optional">
+            <InterfaceText>Optional.  What text(s) is this book dependent on?  For example, for "Rashi on Genesis", the value for this field is "Genesis".</InterfaceText></span></label>
+            <TitleVariants titles={baseTextTitles} update={setBaseTextTitles} options={{'onTitleValidate': validateBaseTextTitle}}/>
+          </div>
+  }
+  const validateBaseTextTitle = (newVal) => {
+    if (!Sefaria.index(newVal.name)) {
+      alert(`${newVal.name} is not a book in the Sefaria library.`);
+      return false;
+    }
+    return true;
+  }
   return (
       <div className="editTextInfo">
       <div className="static">
@@ -1389,41 +1440,8 @@ const EditTextInfo = function({initTitle, close}) {
                   <option value="Guides">Guides</option>
                 </select></div>
             </div>
-            <div className="section">
-              {!creatingCollectiveTitle &&
-                                        <div>
-                                          <div><InterfaceText>English Collective Title</InterfaceText></div>
-                                          <label><div className="optional"><InterfaceText>Optional. For example, for "Rashi on Genesis", the English Collective Title is "Rashi".
-                                          You should create a new collective title if the collective title has never been created before and is not used by any texts in our system.)</InterfaceText></div></label>
-                                          <div className="collectiveTitle">
-                                          <input id="collectiveTitle" onChange={(e) => setCollectiveTitle(e.target.value)} defaultValue={collectiveTitle}/>
-                                          <div onClick={() => setCreatingCollectiveTitle(true)}
-                                               id="createCollectiveTitle"
-                                               className="button small"
-                                               tabIndex="0"
-                                               role="button">
-                                              <InterfaceText>Create New Collective Title</InterfaceText>
-                                          </div>
-                                          </div>
-                                        </div>}
-            </div>
-            {creatingCollectiveTitle &&
-                                      <div>
-                                          <div className="section">
-                                            <div><InterfaceText>New English Collective Title</InterfaceText></div>
-                                            <input id="collectiveTitle"
-                                               onChange={(e) => setCollectiveTitle(e.target.value)}
-                                               defaultValue={collectiveTitle}/>
-                                          </div>
-                                          <div className="section">
-                                            <div><InterfaceText>New Hebrew Collective Title</InterfaceText></div>
-                                            <input id="heCollectiveTitle"
-                                               onChange={(e) => setHeCollectiveTitle(e.target.value)}
-                                               defaultValue={heCollectiveTitle}/>
-                                          </div>
-                                      </div>}
-
-
+            {dependence.length > 0 && renderBaseTextTitles()}
+            {dependence.length > 0 && renderCollectiveTitle()}
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">
                 <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
