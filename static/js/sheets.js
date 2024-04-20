@@ -2108,7 +2108,7 @@ sjs.sheetTagger = {
 			$("#tags").tagit("createTag",$(this).text());
 			$(this).hide();
 		});
-		const dropdownAnchorSide = sjs.interfaceLang == "he" ? "right" : "left";
+		const dropdownAnchorSide = "left";
 		$("#addTag")
 		.keydown(function(e) {
 			if (e.shiftKey && (e.keyCode == 50 || e.keyCode == 51)) {
