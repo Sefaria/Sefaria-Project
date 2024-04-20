@@ -990,8 +990,8 @@ $(function() {
 
 	// ------------- Source Controls -------------------
 
-  var outdent_img = (sjs.interfaceLang == "en") ? '/static/img/outdent.png' : '/static/img/indent.png';
-  var indent_img = (sjs.interfaceLang == "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
+  var outdent_img = (sjs.interfaceLang === "en") ? '/static/img/outdent.png' : '/static/img/indent.png';
+  var indent_img = (sjs.interfaceLang === "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
 
   var ownerControls = "<div id='sourceControls' class='sideControls'>" +
               "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
