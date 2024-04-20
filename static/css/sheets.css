@@ -467,7 +467,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	content: "✎ ";
 }
 #sheetMetadata .int-he .editButton {
-	float: left;
+	float: right;
 }
 #sheetMetadata .metadataOpenDetails {
 	font-size: 14px;
@@ -1773,7 +1773,7 @@ label[for="sourceSheetShareSelect"] {
     float: right;
 }
 #shareWithOthers .ok.button.int-he {
-	float:left;
+	float:right;
 }
 #shareWithOthers .onoffswitch {
 }

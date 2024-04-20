@@ -624,7 +624,14 @@ const Strings = {
         "Press enter to toggle search filter for ": "འཚོལ་ཞིབ་ཀྱི་འདེམས་གཅོག་བྱེད་པར་ཨེན་ཊི་མནན་དགོས།",
         "Press enter to toggle the list of specific books within ": "གྱི་ནང་དུ་དཔེ་ཆའི་ཐོ་གཞུང་བྱེ་བྲག་པ་རྣམས་ལ་ཡིག་རིགས་དང་སྡེ་ཚན་གྱི་སྒོ་ནས་དབྱེ་འབྱེད་བྱེད་དུ་འཇུག་པར་ toggle དགོས།",
         "moreResults": "འབྲས་བུ་གཞན་པ་།",
-        "anotherResult": "འབྲས་བུ་གཞན་ཡང་།"
+        "anotherResult": "འབྲས་བུ་གཞན་ཡང་།",
+        "0 Notes": "༠ དཔེ་ཆ་",
+        "You can use sheets to save and organize sources, write new texts, create lessons, lectures, articles, and more.": "ཁྱེད་རང་གིས་ལས་ཀའི་རེའུ་མིག་སྤྱད་དེ་ཉར་ཚགས་དང་རྩ་འཛུགས་ཀྱི་འབྱུང་ཁུངས་ཉར་ཚགས་དང་སྒྲིག་འཛུགས་བྱས་ནས་ཡིག་སྐལ་གསར་པ་རྩོམ་འབྲི་དང་སློབ་ཚན་དང་། འཆད་ཁྲིད། རྩོམ་ཡིག་སོགས་ཚུད་ཡོད།",
+        "0 followers": "༠ འཁོར",
+        "0 following": "༠ རྗེས་འབྲང་",
+        "Edit Profile": "སྙིང་བསྡུས་རྩོམ་སྒྲིག",
+        "Settings": "སྒྲིག་འགོད་ཁག",
+        "Log Out": "ཕྱིར་ཐོན།",
     },
 
     _i18nInterfaceStringsWithContext: {
