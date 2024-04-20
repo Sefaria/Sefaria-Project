@@ -1311,7 +1311,7 @@ class MenuButton extends Component {
   render() {
     var isheb = Sefaria.interfaceLang == "hebrew";
     var icon = this.props.compare ? (isheb ?
-      <i className="fa fa-chevron-right"></i> : <i className="fa fa-chevron-left"></i>) :
+      <i className="fa fa-chevron-left"></i> : <i className="fa fa-chevron-left"></i>) :
         (<i className="fa fa-bars"></i>);
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}>{icon}</span>);
   }

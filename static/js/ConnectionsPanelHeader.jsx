@@ -67,7 +67,7 @@ class ConnectionsPanelHeader extends Component {
                             {this.props.multiPanel ? prev : null }
                         </EnglishText>
                         <HebrewText>
-                            <i className="fa fa-chevron-right"></i>
+                            <i className="fa fa-chevron-left"></i>
                             {this.props.multiPanel ? prevHe : null }
                         </HebrewText>
                     </InterfaceText>
@@ -86,7 +86,7 @@ class ConnectionsPanelHeader extends Component {
                             { Sefaria._("Resources") }
                         </EnglishText>
                         <HebrewText>
-                            <i className="fa fa-chevron-right"></i>
+                            <i className="fa fa-chevron-left"></i>
                             { Sefaria._("Resources")}
                         </HebrewText>
                     </InterfaceText>
