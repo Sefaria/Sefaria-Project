@@ -101,44 +101,40 @@ class Util {
         }
 
         function getTibetanNumberAsString(num) {
-            const tibetanText = "";
             if (num < 10) {
-                let tibNum = tibetanNumberFromEngNumber(num);
-                tibetanText.concat("༠",tibNum);
+                let tibNum = tibetanNumberFromEngNumber(num.toString());
+                return '༠' + tibNum;
 
-            } else {
-                while (num > 0) {
-                    num = Math.floor(num / 10);
-                    let tibNum = tibetanNumberFromEngNumber(num);
-                    tibetanText.concat(tibNum);
-                }
-
+            }else {
+                let tibetanTextArray = num
+                    .toString()
+                    .split("")
+                    .map(value => tibetanNumberFromEngNumber(value));
+                return  tibetanTextArray.join("");
             }
-
-            return tibetanText;
         }
 
-        function tibetanNumberFromEngNumber(number) {
-            switch (number) {
-                case 0:
+        function tibetanNumberFromEngNumber(numberAsString) {
+            switch (numberAsString) {
+                case "0":
                     return "༠";
-                case 1:
+                case "1":
                     return "༡";
-                case 2:
+                case "2":
                     return "༢";
-                case 3:
+                case "3":
                     return "༣";
-                case 4:
+                case "4":
                     return "༤";
-                case 5:
+                case "5":
                     return "༥";
-                case 6:
+                case "6":
                     return "༦";
-                case 7:
+                case "7":
                     return "༧";
-                case 8:
+                case "8":
                     return "༨";
-                case 9:
+                case "9":
                     return "༩";
             }
         }
