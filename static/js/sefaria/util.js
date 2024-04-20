@@ -78,7 +78,7 @@ class Util {
     }
     static localeDate(dateString) {
         // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
-        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'he-Hebr-IL';
+        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'bo';
         const dateOptions = {year: 'numeric', month: 'long', day: 'numeric'};
         return (new Date(dateString)).toLocaleDateString(locale, dateOptions);  // remove comma from english date
     }
