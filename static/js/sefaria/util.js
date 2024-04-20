@@ -132,11 +132,11 @@ class Util {
     static naturalTime(timeStamp, {lang, short}={}) {
       // given epoch time stamp, return string of time delta between `timeStamp` and now
       const now = Util.epoch_time();
-      let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
+      let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'bo' : 'en');
       let spacer = " ";
       if(short){
-          language = language == "en" ? "shortEn" : "shortHe";
-          spacer = language == "shortEn" ? "" : " ";
+          language = language === "en" ? "shortEn" : "shortBo";
+          spacer = language === "shortEn" ? "" : " ";
       }
       return Util.sefariaHumanizeDuration(now - timeStamp, { "language": language, "spacer": spacer });
     }
@@ -1047,15 +1047,15 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
       s: () => "s",
       ms: () => "ms",
     },
-    shortHe: {
-      y: () => "ש'",
-      mo: () => "ח'",
-      w: () => "שב'",
-      d: () => "י'",
-      h: () => "שע'",
-      m: () => "דק'",
-      s: () => "שנ'",
-      ms: () => "מלש'",
+    shortBo: {
+      y: () => "ཕྱི་ལོ",
+      mo: () => "ཟླ་",
+      w: () => "བདུན་ཕྲག་",
+      d: () => "ཚེས་",
+      h: () => "ཆུ་ཚོད་",
+      m: () => "སྐར་མ་",
+      s: () => "སྐར་ཆ་",
+      ms: () => "སྟོང་ཆ་གཅིག་",
     },
   },
 });

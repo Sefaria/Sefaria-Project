@@ -142,8 +142,8 @@ class UserProfile extends Component {
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <span className="int-en">0 Notes</span>
-          <span className="int-he">0 དཔེ་ཆ་</span>
+          <span className="int-en">{Sefaria._("0 Notes")}</span>
+          <span className="int-he">{Sefaria._("0 Notes")}</span>
         </div>
       </div>
     );
@@ -198,18 +198,16 @@ class UserProfile extends Component {
       <div className="emptyList">
         <div className="emptyListText">
           <span className="int-en">
-            You can use sheets to save and organize sources, write new texts, create
-            lessons, lectures, articles, and more.
+           {Sefaria._(" You can use sheets to save and organize sources, write new texts, create lessons, lectures, articles, and more.")}
           </span>
           <span className="int-he">
-          ཁྱེད་རང་གིས་ལས་ཀའི་རེའུ་མིག་སྤྱད་དེ་ཉར་ཚགས་དང་རྩ་འཛུགས་ཀྱི་འབྱུང་ཁུངས་ཉར་ཚགས་དང་སྒྲིག་འཛུགས་བྱས་ནས་ཡིག་སྐལ་གསར་པ་རྩོམ་འབྲི་དང་
-            སློབ་ཚན་དང་། འཆད་ཁྲིད། རྩོམ་ཡིག་སོགས་ཚུད་ཡོད།
+            {Sefaria._(" You can use sheets to save and organize sources, write new texts, create lessons, lectures, articles, and more.")}
           </span>
         </div>
         <a href="/sheets/new" className="resourcesLink sans-serif">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className="int-en">Create a New Sheet</span>
-          <span className="int-he">ལས་ཀའི་རེའུ་མིག་གསར་པ་གཏོད་དགོས།</span>
+          <span className="int-en">{Sefaria._("Create a New Sheet")}</span>
+          <span className="int-he">{Sefaria._("Create a New Sheet")}</span>
         </a>
       </div>
     );
@@ -245,8 +243,8 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/sheets/new" className="resourcesLink sans-serif">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className="int-en">Create a New Sheet</span>
-          <span className="int-he">יצירת דף מקורות</span>
+          <span className="int-en">{Sefaria._("Create a New Sheet")}</span>
+          <span className="int-he">{Sefaria._("Create a New Sheet")}</span>
         </a>
       </div>
     );
@@ -295,16 +293,16 @@ class UserProfile extends Component {
   renderEmptyFollowerList() {
     return (
       <div>
-        <span className="int-en">0 followers</span>
-        <span className="int-he">0 עוקבים</span>
+        <span className="int-en">{Sefaria._("0 followers")}</span>
+        <span className="int-he">{Sefaria._("0 followers")}</span>
       </div>
     );
   }
   renderEmptyFollowingList() {
     return (
       <div>
-        <span className="int-en">0 following</span>
-        <span className="int-he">0 נעקבים</span>
+        <span className="int-en">{Sefaria._("0 following")}</span>
+        <span className="int-he">{Sefaria._("0 following")}</span>
       </div>
     );
   }
@@ -605,17 +603,17 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
           Sefaria._uid === p.id ? (
           <div className="profile-actions">
             <a href="/settings/profile" className="resourcesLink sans-serif">
-              <span className="int-en">Edit Profile</span>
-              <span className="int-he">སྙིང་བསྡུས་རྩོམ་སྒྲིག</span>
+              <span className="int-en">{Sefaria._("Edit Profile")}</span>
+              <span className="int-he">{Sefaria._("Edit Profile")}</span>
             </a>
             <a href="/settings/account" className="resourcesLink sans-serif profile-settings">
               <img src="/static/icons/settings.svg" alt="Profile Settings" />
-              <span className="int-en">Settings</span>
-              <span className="int-he">སྒྲིག་འགོད་ཁག</span>
+              <span className="int-en">{Sefaria._("Settings")}</span>
+              <span className="int-he">{Sefaria._("Settings")}</span>
             </a>
             <a href="/logout" className="button transparent logoutLink">
-              <span className="int-en">Log Out</span>
-              <span className="int-he">ཕྱིར་ཐོན།</span>
+              <span className="int-en">{Sefaria._("Log Out")}</span>
+              <span className="int-he">{Sefaria._("Log Out")}</span>
             </a>
           </div>) : (
           <div className="profile-actions">
