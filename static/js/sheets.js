@@ -1556,17 +1556,17 @@ $(function() {
 		});
 	});
 
-	$("#sheet").on("mouseleave", ".sheetItem", function(e) {
-		$(this).removeClass("sourceControlsOpen");
-		$("#sourceControls").remove();
-		var $to = $(e.toElement || e.relatedTarget).closest(".sheetItem");
-		if ($to.length) {
-			$to.trigger("mouseenter");
-		}
-		e.stopPropagation();
-
-		$(".moveSourceLeft, .moveSourceRight, .moveSourceDown, .moveSourceUp, .copySource, .removeSource").off("click")
-	});
+	// $("#sheet").on("mouseleave", ".sheetItem", function(e) {
+	// 	$(this).removeClass("sourceControlsOpen");
+	// 	$("#sourceControls").remove();
+	// 	var $to = $(e.toElement || e.relatedTarget).closest(".sheetItem");
+	// 	if ($to.length) {
+	// 		$to.trigger("mouseenter");
+	// 	}
+	// 	e.stopPropagation();
+	//
+	// 	$(".moveSourceLeft, .moveSourceRight, .moveSourceDown, .moveSourceUp, .copySource, .removeSource").off("click")
+	// });
 
 	// Custom Source Titles
 	$(".editTitle").on("click", function(e) {
