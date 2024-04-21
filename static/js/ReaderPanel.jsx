@@ -653,6 +653,7 @@ class ReaderPanel extends Component {
       isComparePanel: this.state.compare,
       panelMode: this.props.initialState.mode,
       aliyotShowStatus: this.state.settings.aliyotTorah,
+      vowelsAndCantillationState: this.state.settings.vowels,
     };
 
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
