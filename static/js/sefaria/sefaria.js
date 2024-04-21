@@ -331,14 +331,14 @@ Sefaria = extend(Sefaria, {
       heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
     } else if (addressType === "Year") {
       enSection = section + 1241;  
-      heSection = Sefaria.hebrew.encodeHebrewNumeral(section+1);
+      heSection = Sefaria.hebrew.tibetanNumeral(section+1);
       heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
     } else if (addressType === "Folio") {
       enSection = Sefaria.hebrew.intToFolio(section);  
       heSection = Sefaria.hebrew.encodeHebrewFolio(enSection);
     } else {
       enSection = section + 1;
-      heSection = Sefaria.hebrew.encodeHebrewNumeral(section + 1);
+      heSection = Sefaria.hebrew.tibetanNumeral(section + 1);
     }
   return [enSection, heSection];
   },
@@ -929,7 +929,7 @@ Sefaria = extend(Sefaria, {
       const sectionRef =isSuperSection ? data.ref + delim + (i+1): data.sectionRef
       extend(segment_data, {
         ref: ref,
-        heRef: data.heRef + delim + Sefaria.hebrew.encodeHebrewNumeral(i+start),
+        heRef: data.heRef + delim + Sefaria.hebrew.tibetanNumeral(i+start),
         text: en[i],
         he: he[i],
         sections: data.sections.concat(i+1),

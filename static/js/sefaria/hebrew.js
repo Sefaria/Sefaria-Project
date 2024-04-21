@@ -107,10 +107,49 @@ class Hebrew {
     });
 
     // encode and join together, separating thousands with geresh
-    ret = ret.map(x => this.encodeHebrewNumeral(x));
+    ret = ret.map(x => this.tibetanNumeral(x));
     ret = ret.reverse().join(GERESH);
     ret = this.sanitize(ret, punctuation);
     return ret;
+  }
+
+  static tibetanNumeral(num) {
+    if (num < 10) {
+      let tibNum = tibetanNumberFromEngNumber(num.toString());
+      return '༠' + tibNum;
+
+    }else {
+      let tibetanTextArray = num
+          .toString()
+          .split("")
+          .map(value => tibetanNumberFromEngNumber(value));
+      return  tibetanTextArray.join("");
+    }
+  }
+
+  static tibetanNumberFromEngNumber(numberAsString) {
+    switch (numberAsString) {
+      case "0":
+        return "༠";
+      case "1":
+        return "༡";
+      case "2":
+        return "༢";
+      case "3":
+        return "༣";
+      case "4":
+        return "༤";
+      case "5":
+        return "༥";
+      case "6":
+        return "༦";
+      case "7":
+        return "༧";
+      case "8":
+        return "༨";
+      case "9":
+        return "༩";
+    }
   }
 
   static encodeHebrewNumeral(n, punctuation=true) {
@@ -159,11 +198,11 @@ class Hebrew {
     let a = daf.slice(-1);
     if (form === "short") {
       a = {a: ".", b: ":"}[a];
-      return this.encodeHebrewNumeral(n) + a;
+      return this.tibetanNumeral(n) + a;
     }
     else if (form === "long"){
       a = {a: 1, b: 2}[a];
-      return this.encodeHebrewNumeral(n) + " " + this.encodeHebrewNumeral(a);
+      return this.tibetanNumeral(n) + " " + this.tibetanNumeral(a);
     }
   }
 
@@ -174,8 +213,8 @@ class Hebrew {
    */
   static encodeHebrewFolio(daf) {
     const n = parseInt(daf.slice(0,-1));
-    let a = {a: "א", b: "ב", c: "ג", d: "ד"}[daf.slice(-1)];
-    return this.encodeHebrewNumeral(n) + "," + a;
+    let a = {a: "ཀ", b: "ཁ", c: "ག", d: "ང"}[daf.slice(-1)];
+    return this.tibetanNumeral(n) + "," + a;
   }
   static getNikkudRegex(rawString) {
     // given a Hebrew string, return regex that allows for arbitrary nikkud in between letters

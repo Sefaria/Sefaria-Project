@@ -1828,7 +1828,7 @@ function buildView(data) {
         } else {
             var start = data.sectionNames.length > 1 ? 0 : 1;
             var end = data.sectionNames.length - 1;
-            basetextHeTitle = data.heTitle + " " + data.sections.slice(start,end).map(encodeHebrewNumeral).join(", ");
+            basetextHeTitle = data.heTitle + " " + data.sections.slice(start,end).map(tibetanNumeral).join(", ");
         }
 
 	} else {

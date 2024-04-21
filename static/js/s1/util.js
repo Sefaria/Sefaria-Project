@@ -980,9 +980,9 @@ sjs.textBrowser = {
             var sectionName = node.sectionNames[this._currentDepth]
             var sectionNumber = (isTalmud ? intToDaf(i) : i+1);
             var key = sectionName + " " + sectionNumber;
-            if (sjs.interfaceLang == "he") {
+            if (sjs.interfaceLang === "he") {
             	var heSectionName = Sefaria.hebrewTerm(sectionName);
-            	var heSectionNumber = (isTalmud ? Sefaria.hebrew.encodeHebrewDaf(sectionNumber) : Sefaria.hebrew.encodeHebrewNumeral(sectionNumber));
+            	var heSectionNumber = (isTalmud ? Sefaria.hebrew.encodeHebrewDaf(sectionNumber) : Sefaria.hebrew.tibetanNumeral(sectionNumber));
             	var name =  heSectionName + " " + heSectionNumber;
            		Sefaria._translateTerms[key] = {"en": key, "he": name}
             } else {
@@ -1045,13 +1045,13 @@ sjs.textBrowser = {
 			en = !!en ? Sefaria.util.stripImgs(en) : en;
 			he = !!he ? Sefaria.util.stripImgs(he) : he;
 			var sectionLabel = isCommentary ? section.split(":")[0] : section;
-			sectionLabel = sjs.interfaceLang == "he" ? Sefaria.hebrew.encodeHebrewNumeral(sectionLabel) : sectionLabel;
+			sectionLabel = sjs.interfaceLang === "he" ? Sefaria.hebrew.tibetanNumeral(sectionLabel) : sectionLabel;
 			var html = "<div class='segment' data-section='" + section + "'>" +
 							(he ? "<span class='he'>" +
 									(isTalmud ? "" : "<span class='number'>(" + sectionLabel + ")</span> ") +
 									he + 
 								   "</span>" : "") +
-							(en && (sjs.interfaceLang != "he"  || !he) ? "<span class='en'>" +
+							(en && (sjs.interfaceLang !== "he"  || !he) ? "<span class='en'>" +
 									(isTalmud ? "" : "<span class='number'>(" + sectionLabel + ")</span> ") +
 									en + 
 								   "</span>" : "") +
@@ -1748,54 +1748,43 @@ function decodeHebrewNumeral(h) {
 
 	return n;
 }
-	
 
-function encodeHebrewNumeral(n) {
-	// Takes an integer and returns a string encoding it as a Hebrew numeral. 
-	
-	if (n >= 900) {
-		return n;
-	}
+function getTibetanNumberAsString(num) {
+	if (num < 10) {
+		let tibNum = tibetanNumberFromEngNumber(num.toString());
+		return '༠' + tibNum;
 
-	var values = sjs.hebrewNumerals;
-
-	if (n === 15 || n === 16) {
-		return values[n];
+	}else {
+		let tibetanTextArray = num
+			.toString()
+			.split("")
+			.map(value => tibetanNumberFromEngNumber(value));
+		return  tibetanTextArray.join("");
 	}
-	
-	var heb = "";
-	if (n >= 100) { 
-		var hundreds = n - (n % 100);
-		heb += values[hundreds];
-		n -= hundreds;
-	} 
-	if (n >= 10) {
-		var tens = n - (n % 10);
-		heb += values[tens];
-		n -= tens;
-	}
-	
-	if (n > 0) {
-		heb += values[n];	
-	} 
-	
-	return heb;
 }
 
-
-function encodeHebrewDaf(daf, form) {
-	// Ruturns Hebrew daf strings from "32b"
-	
-	form = form || "short";
-	var n = parseInt(daf.slice(0,-1));
-	var a = daf.slice(-1);
-	if (form === "short") {
-		a = {a: ".", b: ":"}[a];
-		return encodeHebrewNumeral(n) + a;
-	}		
-	else if (form === "long"){
-		a = {a: 1, b: 2}[a];
-		return encodeHebrewNumeral(n) + " " + encodeHebrewNumeral(a);
+function tibetanNumberFromEngNumber(numberAsString) {
+	switch (numberAsString) {
+		case "0":
+			return "༠";
+		case "1":
+			return "༡";
+		case "2":
+			return "༢";
+		case "3":
+			return "༣";
+		case "4":
+			return "༤";
+		case "5":
+			return "༥";
+		case "6":
+			return "༦";
+		case "7":
+			return "༧";
+		case "8":
+			return "༨";
+		case "9":
+			return "༩";
 	}
 }
 
