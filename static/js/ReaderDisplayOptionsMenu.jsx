@@ -34,9 +34,10 @@ const ReaderDisplayOptionsMenu = () => {
     const showAliyotToggle = () => {
         return haAliyot() && panelMode !== "Sheet";
     };
-    const onAliyotChange = () => {
-        const newAliyot = (aliyotShowStatus === 'aliyotOn') ? 'aliyotOff' : 'aliyotOn';
-        setOption('aliyotTorah', newAliyot)
+    const aliyotAreShown = aliyotShowStatus === 'aliyotOn';
+    const onAliyotClick = () => {
+        const newValue = (aliyotAreShown) ? 'aliyotOff' : 'aliyotOn';
+        setOption('aliyotTorah', newValue)
     };
 
     const sampleHas = (regex, textOrHe) => {
@@ -50,25 +51,22 @@ const ReaderDisplayOptionsMenu = () => {
         const vowels_re = /[\u05b0-\u05c3\u05c7]/g;
         return (showPrimary && sampleHas(vowels_re, 'he')) || (showTranslation && sampleHas(vowels_re, 'text'));
     };
-    const onVowelsClick = () => {
-        if (vowelsAndCantillationState === 'none') {
-            setOption('vowels', 'partial');
-        } else {
-            setOption('vowels', 'none')
-        }
-    };
     const vowelsAreShown = vowelsAndCantillationState !== 'none';
+    const onVowelsClick = () => {
+        const newVaue = (vowelsAreShown) ? 'none' : 'partial';
+        setOption('vowels', newVaue);
+    };
 
     const showCantillationToggle = () => {
         const cantillation_re = /[\u0591-\u05af]/g;
         return (showPrimary && sampleHas(cantillation_re, 'he')) || (showTranslation && sampleHas(cantillation_re, 'text'));
     };
     const cantillationDisabled = !vowelsAreShown;
+    const cantillationsAreShown = vowelsAndCantillationState === 'all';
     const onCantillationClick = () => {
-        const newValue = (vowelsAndCantillationState === 'all') ? 'partial' : 'all';
+        const newValue = (cantillationsAreShown) ? 'partial' : 'all';
         setOption('vowels', newValue)
     };
-    const cantillationsAreShown = vowelsAndCantillationState === 'all';
 
     const showPunctuationToggle = () => {
         return  textsData?.primary_category === "Talmud" && showPrimary;
@@ -94,8 +92,8 @@ const ReaderDisplayOptionsMenu = () => {
                 {showAliyotToggle() && <ToggleSwitchLine
                     name="aliyot"
                     text="Aliyot"
-                    onChange={onAliyotChange}
-                    isChecked={aliyotShowStatus === 'aliyotOn'}
+                    onChange={onAliyotClick}
+                    isChecked={aliyotAreShown}
                 />}
                 {borderLine}
                 <FontSizeButtons/>
