@@ -2587,6 +2587,7 @@ _media: {},
       return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
   processTopicsData: function(data) {
+    const lang = Sefaria.interfaceLang == "hebrew" ? 'he' : 'en'
     if (!data) { return null; }
     if (!data.refs) { return data; }
     const tabs = {};
@@ -2594,7 +2595,7 @@ _media: {},
       for (let refObj of linkTypeObj.refs) {
         let tabKey = linkTypeSlug;
         if (tabKey === 'about') {
-          tabKey = refObj.descriptions ? 'key-sources' : 'sources';
+          tabKey = refObj.descriptions && refObj.descriptions[lang] ? 'key-sources' : 'sources';
         }
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
