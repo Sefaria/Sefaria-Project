@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import SourceTranslationsButtons from "./SourceTranslationsButtons";
 import {ReaderPanelContext} from "./context";
 import LayoutButtons from "./LayoutButtons";
+import FontSizeButtons from "./FontSizeButton";
 
 const ReaderDisplayOptionsMenu = () => {
     const {language, setOption, isComparePanel} = useContext(ReaderPanelContext);
@@ -35,7 +36,11 @@ const ReaderDisplayOptionsMenu = () => {
                 <div className="text-menu-border"/>
             </>}
             {showLangaugeToggle() && !isComparePanel && <div className="text-menu-border"/>}
-            {!isComparePanel && <LayoutButtons/>}
+            {!isComparePanel && <>
+                <LayoutButtons/>
+                <div className="text-menu-border"/>
+                <FontSizeButtons/>
+            </>}
         </div>
     );
 };

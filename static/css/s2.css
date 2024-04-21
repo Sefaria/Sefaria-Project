@@ -12890,6 +12890,7 @@ span.ref-link-color-3 {color: blue}
 .texts-properties-menu .int-en,
 .texts-properties-menu .int-he {
   height: 18px;
+  align-content: center;
 }
 
 .show-source-translation-buttons {
@@ -12919,6 +12920,7 @@ span.ref-link-color-3 {color: blue}
   width: 216px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .layout-options {
@@ -12948,6 +12950,21 @@ span.ref-link-color-3 {color: blue}
   width: 100%;
   height: 1px;
   background-color: var(--lighter-grey);
+}
+
+.font-size-line {
+  width: 230px;
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.font-size-button {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border: none;
 }
 
 #currentlyReadingContainer {
