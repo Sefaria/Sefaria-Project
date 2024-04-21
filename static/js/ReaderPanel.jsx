@@ -651,6 +651,8 @@ class ReaderPanel extends Component {
       textsData: this.state.data,
       layout: this.currentLayout(),
       isComparePanel: this.state.compare,
+      panelMode: this.props.initialState.mode,
+      aliyotShowStatus: this.state.settings.aliyotTorah,
     };
 
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
@@ -1336,14 +1338,7 @@ class ReaderControls extends Component {
 
 
     const displaySettingsButton = (<DisplaySettingsButton/>);
-    let displaySettingsMenu = (<ReaderDisplayOptionsMenu
-      settings={this.props.settings}
-      multiPanel={this.props.multiPanel}
-      currentBook={this.props.currentBook}
-      data={this.props.data}
-
-      shownLanguage={this.props.settings.language}
-    />);
+    let displaySettingsMenu = (<ReaderDisplayOptionsMenu/>);
     let rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
           <SaveButton

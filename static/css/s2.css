@@ -12887,6 +12887,102 @@ span.ref-link-color-3 {color: blue}
   background-color: inherit;
 }
 
+.toggle-switch-container {
+  align-items: center;
+  display: flex;
+  direction: ltr;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 46px;
+  display: inline-block;
+  text-align: left;
+}
+
+.toggle-switch-checkbox {
+  display: none;
+}
+
+.toggle-switch-label {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border: 0 solid var(--light-grey);
+  border-radius: 20px;
+}
+
+.toggle-switch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+
+.toggle-switch-inner:before,
+.toggle-switch-inner:after {
+  float: left;
+  width: 50%;
+  height: 24px;
+  padding: 0;
+  line-height: 24px;
+  color: white;
+  font-weight: bold;
+  box-sizing: border-box;
+  content: "";
+  color: white;
+}
+
+.toggle-switch-inner:before {
+  padding-left: 10px;
+  background-color: var(--sefaria-blue);
+}
+
+.toggle-switch-inner:after {
+  padding-right: 10px;
+  background-color: var(--light-grey);
+}
+
+.toggle-switch-switch {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: white;
+  position: absolute;
+  top: 50%;
+  bottom: 0;
+  right: 24px;
+  border: 0 solid var(--light-grey);
+  border-radius: 20px;
+  transition: all 0.3s ease-in 0s;
+  transform: translateY(-50%);
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-inner {
+  margin-left: 0;
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-switch {
+  right: 2px;
+}
+
+.toggle-switch-checkbox:disabled + .toggle-switch-label .toggle-switch-inner:after {
+  background-color: var(--lighter-grey);
+}
+
+.toggle-switch-line {
+  display: flex;
+  width: 216px;
+  height: 49px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-switch-line:is(.disabled) .int-en,
+.toggle-switch-line:is(.disabled) .int-he {
+  color: var(--light-grey);
+}
+
 .texts-properties-menu .int-en,
 .texts-properties-menu .int-he {
   height: 18px;

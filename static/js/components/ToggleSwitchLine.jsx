@@ -2,7 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import ToggleSwitch from "./ToggleSwitch";
 import {InterfaceText} from "../Misc";
-import Sefaria from "../sefaria/sefaria";
 
 function ToggleSwitchLine({name, onChange, isChecked, text, disabled=false}) {
     return (

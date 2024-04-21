@@ -5,17 +5,17 @@ import SourceTranslationsButtons from "./SourceTranslationsButtons";
 import {ReaderPanelContext} from "./context";
 import LayoutButtons from "./LayoutButtons";
 import FontSizeButtons from "./FontSizeButton";
+import ToggleSwitchLine from "./components/ToggleSwitchLine";
 
 const ReaderDisplayOptionsMenu = () => {
-    const {language, setOption, isComparePanel} = useContext(ReaderPanelContext);
+    const {language, setOption, isComparePanel, panelMode, aliyotShowStatus, textsData} = useContext(ReaderPanelContext);
     const showLangaugeToggle = () => {
       if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
-      let data = this.props.data;
-      if (!data) return true // Sheets don't have currentData, also show for now (4x todo)
+      if (!textsData) return true
 
-      const hasHebrew = !!data.he.length;
-      const hasEnglish = !!data.text.length;
+      const hasHebrew = !!textsData.he.length;
+      const hasEnglish = !!textsData.text.length;
       return !(hasHebrew && hasEnglish);
     };
     const showPrimary = language !== 'english';
@@ -24,6 +24,18 @@ const ReaderDisplayOptionsMenu = () => {
         const language = (showPrimary && showTranslation) ? 'bilingual' : (showPrimary) ? 'hebrew' : 'english';
         setOption('language', language);
     };
+
+    const haAliyot = () => {
+        let booksWithAliyot = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Onkelos Genesis", "Onkelos Exodus", "Onkelos Leviticus", "Onkelos Numbers", "Onkelos Deuteronomy"];
+        return booksWithAliyot.includes(textsData?.book);
+    }
+    const showAliyotToggle = () => {
+        return haAliyot() && panelMode !== "Sheet";
+    }
+    const onAliyotChange = () => {
+        const newAliyot = (aliyotShowStatus === 'aliyotOn') ? 'aliyotOff' : 'aliyotOn';
+        setOption('aliyotTorah', newAliyot)
+    }
 
     return (
         <div className="texts-properties-menu">
@@ -38,6 +50,12 @@ const ReaderDisplayOptionsMenu = () => {
             {showLangaugeToggle() && !isComparePanel && <div className="text-menu-border"/>}
             {!isComparePanel && <>
                 <LayoutButtons/>
+                {showAliyotToggle() && <ToggleSwitchLine
+                    name="aliyot"
+                    text="Aliyot"
+                    onChange={onAliyotChange}
+                    isChecked={aliyotShowStatus === 'aliyotOn'}
+                />}
                 <div className="text-menu-border"/>
                 <FontSizeButtons/>
             </>}
