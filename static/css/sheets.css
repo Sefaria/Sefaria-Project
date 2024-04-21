@@ -589,8 +589,8 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 .interface-hebrew #sourceControls.sideControls{
 	width: auto;
-	right: 23px;
-	margin-right: 0;
+	left: 23px;
+	margin-left: 0;
 	top: 20px;
 	bottom: auto;
 	background-color: inherit;
