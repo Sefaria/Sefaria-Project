@@ -113,20 +113,6 @@ class Hebrew {
     return ret;
   }
 
-  static tibetanNumeral(num) {
-    if (num < 10) {
-      let tibNum = tibetanNumberFromEngNumber(num.toString());
-      return '༠' + tibNum;
-
-    }else {
-      let tibetanTextArray = num
-          .toString()
-          .split("")
-          .map(value => tibetanNumberFromEngNumber(value));
-      return  tibetanTextArray.join("");
-    }
-  }
-
   static tibetanNumberFromEngNumber(numberAsString) {
     switch (numberAsString) {
       case "0":
@@ -151,6 +137,21 @@ class Hebrew {
         return "༩";
     }
   }
+
+  static tibetanNumeral(num) {
+    if (num < 10) {
+      let tibNum = tibetanNumberFromEngNumber(num.toString());
+      return '༠' + tibNum;
+
+    }else {
+      let tibetanTextArray = num
+          .toString()
+          .split("")
+          .map(value => this.tibetanNumberFromEngNumber(value));
+      return  tibetanTextArray.join("");
+    }
+  }
+
 
   static encodeHebrewNumeral(n, punctuation=true) {
     n = parseInt(n);
