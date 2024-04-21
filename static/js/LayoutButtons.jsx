@@ -14,11 +14,19 @@ const LayoutButtons = () => {
     const {language, textsData, setOption, layout} = useContext(ReaderPanelContext);
     const layoutState = calculateLayoutState(language, textsData.primaryDirection, textsData.translationDirection);
 
-    const layoutButton = (layoutOption) => {
-        if (layoutState === 'mixed' && layoutOption === 'stacked') {
-            layoutOption = `${layoutOption}-${textsData.primaryDirection}${textsData.translationDirection}`
+    const getPath = (layoutOption) => {
+        if (layoutState === 'mixed') {
+            const directions = (layoutOption === 'heLeft') ? `${textsData.primaryDirection}${textsData.translationDirection}`  //heLeft means primary in left
+                : `${textsData.translationDirection}${textsData.primaryDirection}`;
+            if (layoutOption !== 'stacked') {
+                layoutOption = 'beside';
+            }
+            layoutOption = `${layoutOption}-${directions}`;
         }
-        const path = `/static/icons/${layoutState}-${layoutOption}.svg`;
+        return `/static/icons/${layoutState}-${layoutOption}.svg`;
+    }
+    const layoutButton = (layoutOption) => {
+        const path = getPath(layoutOption)
         const optionName = (language === 'bilingual') ? 'biLayout' : 'layout';
         return (
             <button
