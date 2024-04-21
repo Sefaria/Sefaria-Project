@@ -97,11 +97,11 @@ sjs.cache = {
 		}
 		
 		// Trim the data to "chapter" level
-		if (data.sections.length == data.sectionNames.length) {
+		if (data.sections.length === data.sectionNames.length) {
 			ref = ref.replace(/:/g, ".").slice(0, ref.lastIndexOf("."));
 			data.sections = data.sections.slice(0, data.sections.length - 1);
 		}
-		if (data.toSections.length == data.sectionNames.length) {
+		if (data.toSections.length === data.sectionNames.length) {
 			data.toSections = data.toSections.slice(0, data.toSections.length - 1);
 		}
 
@@ -1014,7 +1014,7 @@ sjs.textBrowser = {
 						"<span class='int-he'>དཔེ་ཆ་ཡོངས་རྫོགས།</span>" + 
 					"</span>";
 		for (var i = 0; i < this._path.length; i++) {
-			var name = sjs.interfaceLang == "he" ? Sefaria.hebrewTerm(this._path[i]) : this._path[i]
+			var name = sjs.interfaceLang === "he" ? Sefaria.hebrewTerm(this._path[i]) : this._path[i]
 			html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + name + "</span>";
 		}
 		$("#browserPath").html(html);
@@ -1027,7 +1027,7 @@ sjs.textBrowser = {
             ref = ref.replace(/_/g, " ").replace(/\./g, " ");
         }
         var oref = Sefaria.ref(ref);
-        var displayRef = sjs.interfaceLang == "he" ? (oref ? oref.heRef : "&nbsp;") : ref;
+        var displayRef = sjs.interfaceLang === "he" ? (oref ? oref.heRef : "&nbsp;") : ref;
 		$("#browserMessage").html(displayRef);
 		if (ref) {
 			$("#browserOK").removeClass("disabled");
@@ -1060,7 +1060,7 @@ sjs.textBrowser = {
 		}
 		var html = "";
 		var longer = data.text.length > data.he.length ? data.text : data.he;
-		if (longer.length == 0) {
+		if (longer.length === 0) {
 			html = "<div class='empty'>" + 
 						"<span class='int-en'>No text available.</span>" + 
 						"<span class='int-he'>אין טקסט זמין.</span>"

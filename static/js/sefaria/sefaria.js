@@ -892,7 +892,7 @@ Sefaria = extend(Sefaria, {
     if (data.textDepth === data.sections.length) {
         return;
     }
-    const isSuperSection = data.textDepth == data.sections.length + 2;
+    const isSuperSection = data.textDepth === data.sections.length + 2;
 
     settings = settings || {};
     let en = typeof data.text === "string" ? [data.text] : data.text;
