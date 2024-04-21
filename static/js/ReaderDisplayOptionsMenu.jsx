@@ -8,7 +8,7 @@ import FontSizeButtons from "./FontSizeButton";
 import ToggleSwitchLine from "./components/ToggleSwitchLine";
 
 const ReaderDisplayOptionsMenu = () => {
-    const {language, setOption, isComparePanel, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState} = useContext(ReaderPanelContext);
+    const {language, setOption, isComparePanel, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState} = useContext(ReaderPanelContext);
     const showLangaugeToggle = () => {
       if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
@@ -70,6 +70,15 @@ const ReaderDisplayOptionsMenu = () => {
     };
     const cantillationsAreShown = vowelsAndCantillationState === 'all';
 
+    const showPunctuationToggle = () => {
+        return  textsData?.primary_category === "Talmud" && showPrimary;
+    };
+    const punctuationsAreShown = punctuationState === 'punctuationOn';
+    const onPunctuationClick = () => {
+        const newValue = (punctuationsAreShown) ? 'punctuationOff' : 'punctuationOn';
+        setOption('punctuationTalmud', newValue);
+    };
+
     return (
         <div className="texts-properties-menu">
             {showLangaugeToggle() && <>
@@ -103,7 +112,13 @@ const ReaderDisplayOptionsMenu = () => {
                     disabled={cantillationDisabled}
                     onChange={onCantillationClick}
                     isChecked={cantillationsAreShown}
-                /> }
+                />}
+                {showPunctuationToggle() && <ToggleSwitchLine
+                    name="punctuation"
+                    text="Punctuation"
+                    onChange={onPunctuationClick}
+                    isChecked={punctuationsAreShown}
+                />}
             </>}
         </div>
     );
