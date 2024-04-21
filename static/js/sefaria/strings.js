@@ -394,6 +394,7 @@ const Strings = {
     "Aliyot" : "עליות לתורה",
     "Taamim and Nikkud" : "טעמים וניקוד",
     "Punctuation" : "פיסוק",
+    'Cantilation': 'טעמים',
     "Show Punctuation": "הצגת סימני פיסוק",
     "Hide Punctuation": "הסתרת סימני פיסוק",
     "Show Vowels and Cantillation": "הצג טקסט עם טעמי מקרא וניקוד",
