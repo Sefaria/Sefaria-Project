@@ -13054,6 +13054,7 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   justify-content: space-between;
   align-items: center;
+  direction: ltr;
 }
 
 .font-size-button {
