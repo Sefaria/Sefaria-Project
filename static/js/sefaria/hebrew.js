@@ -140,7 +140,7 @@ class Hebrew {
 
   static tibetanNumeral(num) {
     if (num < 10) {
-      let tibNum = tibetanNumberFromEngNumber(num.toString());
+      let tibNum = this.tibetanNumberFromEngNumber(num.toString());
       return '༠' + tibNum;
 
     }else {
