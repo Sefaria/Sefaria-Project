@@ -786,7 +786,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
             parashaData.parasha?.extraDetails?.aliyot?.map((aliya, index) => {
                let sectionNum = index+1;
                let sectionStr = sectionNum <= 7 ? sectionNum : 'M';
-               let heSectionStr = sectionNum <= 7 ? Sefaria.hebrew.encodeHebrewNumeral(sectionNum) : 'מ';
+               let heSectionStr = sectionNum <= 7 ? Sefaria.hebrew.tibetanNumeral(sectionNum) : 'མ';
                return (
                   <a className="sectionLink" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
                     <InterfaceText text={{en:sectionStr, he:heSectionStr}}/>

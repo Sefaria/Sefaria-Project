@@ -1872,7 +1872,7 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
 
     let numStr = "";
     if (includeNumbers) {
-        const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
+        const num = (lang==="he") ? Sefaria.hebrew(s.number) : s.number;
         numStr = "<small>(" + num + ")</small> ";
     }
     let str = "<span class='segment'>" + numStr + s[lang] + "</span> ";

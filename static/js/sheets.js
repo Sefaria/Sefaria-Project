@@ -2224,7 +2224,7 @@ function addSource(q, source, appendOrInsert, $target) {
 	var badRef = q.ref == undefined;
 	var $listTarget = $target || $("#sources");
 
-	if ($listTarget.length == 0) appendOrInsert = "append";
+	if ($listTarget.length === 0) appendOrInsert = "append";
 
 	if ($listTarget.hasClass('sheetItem') ) {
 		appendOrInsert = "insert";
@@ -2241,7 +2241,7 @@ function addSource(q, source, appendOrInsert, $target) {
 		};
 	}
 
-	var addedByMe = (source && source.addedBy && source.addedBy == Sefaria._uid) ||
+	var addedByMe = (source && source.addedBy && source.addedBy === Sefaria._uid) ||
 					(!source && sjs.can_add);
 
 	var attributionLink = (source && "userLink" in source ?
@@ -2334,7 +2334,7 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
 
     var numStr = "";
     if (includeNumbers) {
-        var num = (lang=="he") ? encodeHebrewNumeral(s.number) : s.number;
+        var num = (lang==="he") ? getTibetanNumberAsString(s.number) : s.number;
         numStr = "<small>(" + num + ")</small> ";
     }
     var str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
@@ -2419,7 +2419,7 @@ function setSourceNumbers() {
 	$("#sources > .sheetItem").each(function(index, value) {
 		index += 1;
 		$(this).find(".sourceNumber.en").html(index + ".");
-		$(this).find(".sourceNumber.he").html(encodeHebrewNumeral(index) + ".");
+		$(this).find(".sourceNumber.he").html(getTibetanNumberAsString(index) + ".");
 	});
 }
 

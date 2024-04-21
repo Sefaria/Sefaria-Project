@@ -105,12 +105,12 @@ class Util {
                 let tibNum = tibetanNumberFromEngNumber(num.toString());
                 return '༠' + tibNum;
 
-            }else {
+            } else {
                 let tibetanTextArray = num
                     .toString()
                     .split("")
                     .map(value => tibetanNumberFromEngNumber(value));
-                return  tibetanTextArray.join("");
+                return tibetanTextArray.join("");
             }
         }
 

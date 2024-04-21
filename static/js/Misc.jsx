@@ -3185,7 +3185,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
                       className={classNames({'textPreviewSegment': 1, highlight: segment.highlight, heOnly: heOnly, enOnly: enOnly})}
                       key={segment.ref}>
                     <sup><ContentText
-                        text={{"en": segment.number, "he": Sefaria.hebrew.encodeHebrewNumeral(segment.number)}}
+                        text={{"en": segment.number, "he": Sefaria.hebrew.tibetanNumeral(segment.number)}}
                         defaultToInterfaceOnBilingual={true}
                     /></sup> <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }} defaultToInterfaceOnBilingual={!overrideLanguage} overrideLanguage={overrideLanguage} bilingualOrder={["en", "he"]}/>
                   </div>
