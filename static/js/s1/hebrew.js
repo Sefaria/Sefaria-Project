@@ -238,7 +238,7 @@ var encodeSmallHebrewNumeral = function(n) {
         throw "Tried to encode small numeral " + n + " greater than 1200";
     } else {
         return breakIntMagnitudes(n, 100).reduce(function(prev, curr) {
-            prev.push(intToHeb(curr));
+            prev.push(tibetanNumeral(curr));
             return prev;
         }, []).join('');
     }
