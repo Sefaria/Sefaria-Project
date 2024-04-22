@@ -2312,6 +2312,10 @@ div.interfaceLinks-row a {
     padding: 0;
 }
 
+span .asterisk{
+  color: red !important;
+}
+
 .readerPanel .readerNavTop h2 {
     margin: 0;
     font-weight: 400;
