@@ -622,7 +622,7 @@ p.registration-links a:hover{
   text-align: left;
 }
 .interface-hebrew #visualizationsPage {
-  text-align: right;
+  text-align: left;
 }
 #visualLibraryPage {
   padding-top: 70px;
@@ -1621,7 +1621,7 @@ p.registration-links a:hover{
   margin: 0 0 30px 0;
 }
 body.interface-hebrew #visualGardenPage .reset {
-  direction: rtl;
+  direction: ltr;
   float: right;
 }
 body.interface-hebrew #visualGardenPage .filter-title .reset {
@@ -1668,7 +1668,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 #visualGardenPage #results .result-text span.he,
 #visualGardenPage #results .result-text span.int-he {
-   direction: rtl;
+   direction: ltr;
 }
 #visualGardenPage #results .result-text span.he {
  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -1920,7 +1920,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-weight: normal;
   font-size: 16px;
   line-height: 19px;
-  text-align: right;
+  text-align: left;
   color: #18345D;
   align-items: center;
   letter-spacing: 0px;
@@ -1994,7 +1994,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   text-align: left;
 }
 .interface-hebrew #mobilePage #mobileTestimonials .mobileTestimonialContent{
-  text-align: right;
+  text-align: left;
 }
 #mobilePage #mobileTestimonials .mobileTestimonialText{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2165,7 +2165,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-weight: normal;
   font-size: 20px;
   line-height: 23px;
-  text-align: right;
+  text-align: left;
   color: #FFFFFF;
   letter-spacing: 0px;
 }

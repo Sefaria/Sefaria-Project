@@ -1828,7 +1828,7 @@ function buildView(data) {
         } else {
             var start = data.sectionNames.length > 1 ? 0 : 1;
             var end = data.sectionNames.length - 1;
-            basetextHeTitle = data.heTitle + " " + data.sections.slice(start,end).map(encodeHebrewNumeral).join(", ");
+            basetextHeTitle = data.heTitle + " " + data.sections.slice(start,end).map(tibetanNumeral).join(", ");
         }
 
 	} else {
@@ -3386,7 +3386,7 @@ function buildOpen(editMode) {
 			if (this.id == "addSourceHebrew") {
 				sjs.langMode = "en"; // so english will show as compare text
 				$("#language").val("he");
-				$("#newVersion").css("direction", "rtl");
+				$("#newVersion").css("direction", "ltr");
 			} else {
 				sjs.langMode = "he";
 			}
@@ -3651,7 +3651,7 @@ sjs.editText = function(data) {
 	var text = sjs.makePlainText(sjs.editing.text);
 	sjs._$newVersion.val(text).trigger("autosize").trigger('keyup');
 	if (sjs.langMode === 'he') {
-		$("#newVersion").css("direction", "rtl");
+		$("#newVersion").css("direction", "ltr");
 	}
 };
 
@@ -4089,7 +4089,7 @@ function checkTextDirection() {
 	if (text === "") { return; }
 	
 	if (isHebrew(text)) {
-		$(this).css("direction", "rtl");
+		$(this).css("direction", "ltr");
 		$("#language").val("he");
 		$(this).parent().find(".textSyncNumbers").addClass("hebrew");
 	} else {	
@@ -4106,7 +4106,7 @@ function updateTextDirection() {
 	var val = $(this).val();
 
 	if (val === "he") {
-		$("#newVersion").css("direction", "rtl");
+		$("#newVersion").css("direction", "ltr");
 		$("#language").val("he");
 		$(".textSyncNumbers").addClass("hebrew");
 	} else if (val === "en") {

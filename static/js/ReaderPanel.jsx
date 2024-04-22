@@ -1361,7 +1361,7 @@ class ReaderControls extends Component {
                 { this.props.sheetID ?
                 <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
                 { this.props.sheetID ?
-                <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
+                <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "ltr" : "ltr"}}>
                   {title}
                 </h1>
                 :

@@ -50,7 +50,7 @@ class CollectionPage extends Component {
       this.setState({collectionData: null});
       this.loadData();
     }
-    if (this.props.tab != prevProps.tab) {
+    if (this.props.tab !== prevProps.tab) {
       this.setState({tab: this.props.tab});
     }
     if (prevState.sheetFilterTopic !== this.state.sheetFilterTopic && $(".content").scrollTop() > 260) {
@@ -82,7 +82,7 @@ class CollectionPage extends Component {
   }
   isMember() {
     const members   = this.memberList();
-    return members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
+    return members && members.filter(function(x) { return x.uid === Sefaria._uid } ).length !== 0;
   }
   pinSheet(sheetId) {
     if (this.pinning) { return; }
@@ -106,7 +106,7 @@ class CollectionPage extends Component {
     if (ai !== bi) {
       return  ai - bi;
     
-    } else if (option == "Recent") {
+    } else if (option === "Recent") {
       return Date.parse(b.modified) - Date.parse(a.modified);
   
     } else if (option === "Alphabetical") {
@@ -119,7 +119,7 @@ class CollectionPage extends Component {
   filterSheets(filter, sheet) {
     //generally speaking we want to filter also by partial match of a tag, but there are cases where we want to load only sheets that match a passed in tag. |
     //one such case is someone clicked a tag in the pinned tags view for the collection. For example if someone wants פורים they shouldnt get סיפורים
-    const exact = this.state.sheetFilterTopic == filter; 
+    const exact = this.state.sheetFilterTopic === filter;
     const n = text => text.toLowerCase();
     filter = n(filter);
     
@@ -139,9 +139,9 @@ class CollectionPage extends Component {
         infoUnderneath={true}
         showAuthorUnderneath={true}
         hideCollection={true}
-        pinned={this.state.collectionData.pinnedSheets.indexOf(sheet.id) != -1}
+        pinned={this.state.collectionData.pinnedSheets.indexOf(sheet.id) !== -1}
         pinnable={this.isMember()}
-        editable={sheet.author == Sefaria._uid}
+        editable={sheet.author === Sefaria._uid}
         saveable={sheet.author !== Sefaria._uid && !this.isMember()}
         collectable={true}
         pinSheet={this.pinSheet.bind(null, sheet.id)}
@@ -155,24 +155,24 @@ class CollectionPage extends Component {
     if (filter) {
       return (
         <div className="emptyMessage sans-serif">
-          <InterfaceText>No sheets matching </InterfaceText>;
+          <InterfaceText>{Sefaria._("No sheets matching")} </InterfaceText>;
           "<InterfaceText text={{en: filter, he: filter}} />".
         </div>
       );
     } else if (this.isMember()) {
       return (
         <div className="emptyMessage sans-serif">
-          <InterfaceText>You can add sheets to this collection on your profile.</InterfaceText>
+          <InterfaceText>{Sefaria._( "You can add sheets to this collection on your profile.")}</InterfaceText>
           <br />
           <a className="button" href="/my/profile">
-            <InterfaceText>Open Profile</InterfaceText>
+            <InterfaceText>{Sefaria._("Open Profile")}</InterfaceText>
           </a>
         </div>
       );
     } else {
       return (
         <div className="emptyMessage sans-serif">
-          <InterfaceText>There are no sheets in this collection yet.</InterfaceText>
+          <InterfaceText>{ Sefaria._("There are no sheets in this collection yet.")} </InterfaceText>
         </div>
       );
     }
@@ -185,7 +185,7 @@ class CollectionPage extends Component {
           e.preventDefault();
           this.props.searchInCollection(filter, this.state.collectionData.name);
         }}>
-        <InterfaceText>Search the full text of this collection for</InterfaceText>&nbsp;
+        <InterfaceText>{ Sefaria._("Search the full text of this collection for")}</InterfaceText>&nbsp;
         "<InterfaceText text={{en: filter, he: filter}} />" &raquo;
       </a>
     );
@@ -200,7 +200,7 @@ class CollectionPage extends Component {
       content = <LoadingMessage />;
     } else {
       const sheets  = collection.sheets;
-      const isAdmin = collection.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
+      const isAdmin = collection.admins.filter(function(x) { return x.uid === Sefaria._uid } ).length !== 0;
 
       if (collection.imageUrl) {
         sidebarModules.push({type: "Image", props: {url: collection.imageUrl}});
@@ -213,7 +213,7 @@ class CollectionPage extends Component {
             <CollectionMemberListing
               member={member}
               isAdmin={isAdmin}
-              isSelf={member.uid == Sefaria._uid}
+              isSelf={member.uid === Sefaria._uid}
               slug={this.props.slug}
               onDataChange={this.onDataChange}
               key={i} />
@@ -221,17 +221,17 @@ class CollectionPage extends Component {
         </div>
       );
       sidebarModules.push({type: "Wrapper", props: {
-        title: "Editors",
+        title: Sefaria._("Editors"),
         content: editorsBlock}});
 
       const hasContentsTab = (collection.pinnedTags && collection.pinnedTags.length);
       const tabs = !hasContentsTab ? []
-        : [{id: "contents", title: {en: "Contents", he: Sefaria._("Contents")}}];
+        : [{id: "contents", title: {en: Sefaria._("Contents") , he: Sefaria._("Contents")}}];
       tabs.push(
-        {id: "sheets", title: {en: "Sheets", he: Sefaria._("Sheets")}},
+        {id: "sheets", title: {en: Sefaria._("Sheets"), he: Sefaria._("Sheets")}},
         {
           id: 'filter',
-          title: {en: "Filter", he: Sefaria._("Filter")},
+          title: {en: Sefaria._("Filter"), he: Sefaria._("Filter")},
           icon: `/static/icons/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
           justifyright: true,
           clickTabOverride: () => {
@@ -332,7 +332,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
     </div> }
 
     <a className="collectionLabel" href="/collections">
-      <InterfaceText>Collection</InterfaceText>
+      <InterfaceText>{ Sefaria._("Collection")}</InterfaceText>
     </a>
 
     {collection.toc ?
@@ -371,7 +371,7 @@ const CollectionContentsTab = ({collection, setFilter}) => {
   const groupedTags = pinnedTags.reduce((accum, tag) => {
     if (typeof tag === "object") {
       return accum.concat([{label: tag, contents: []}]);
-    } else if (accum.length == 0) {
+    } else if (accum.length === 0) {
       return accum.concat([{label: null, contents: [tag]}]);
     } else {
       accum[accum.length -1].contents.push(tag);
@@ -469,7 +469,7 @@ CollectionInvitationBox.propTypes = {
 
 class CollectionMemberListing extends Component {
   render() {
-    if (this.props.member.role == "Invitation") {
+    if (this.props.member.role === "Invitation") {
       return this.props.isAdmin ?
         <CollectionInvitationListing
           member={this.props.member}
@@ -627,34 +627,34 @@ class CollectionMemberListingActions extends Component {
           <div className="collectionMemberListingActionsMenu">
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "admin")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Owner"})}><InterfaceText>Owner</InterfaceText></span>
+                <span className={classNames({role: 1, current: this.props.member.role === "Owner"})}><InterfaceText>{Sefaria._("Owner")}</InterfaceText></span>
                 - <InterfaceText>can invite & edit settings</InterfaceText>
               </div>
               : null }
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "member")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Editor"})}><InterfaceText>Editor</InterfaceText></span>
+                <span className={classNames({role: 1, current: this.props.member.role === "Editor"})}><InterfaceText>{Sefaria._("Editor")} </InterfaceText></span>
                 - <InterfaceText>can add & remove sheets</InterfaceText>
               </div>
               : null}
             {this.props.isAdmin || this.props.isSelf ?
               <div className="action" onClick={this.removeMember}>
-                <span className="role"><InterfaceText>{this.props.isSelf ? "Leave Collection" : "Remove"}</InterfaceText></span>
+                <span className="role"><InterfaceText>{this.props.isSelf ? Sefaria._("Leave Collection"): Sefaria._("Remove")}</InterfaceText></span>
               </div>
             : null }
             {this.props.isInvitation  && !this.state.invitationResent ?
               <div className="action" onClick={this.resendInvitation}>
-                <span className="role"><InterfaceText>Resend Invitation</InterfaceText></span>
+                <span className="role"><InterfaceText>{Sefaria._("Resend Invitation")}</InterfaceText></span>
               </div>
               : null}
             {this.props.isInvitation  && this.state.invitationResent ?
               <div className="action">
-                <span className="role"><InterfaceText>Invitation Resent</InterfaceText></span>
+                <span className="role"><InterfaceText>{Sefaria._("Invitation Resent" )}</InterfaceText></span>
               </div>
               : null}
             {this.props.isInvitation ?
               <div className="action" onClick={this.removeInvitation}>
-                <span className="role"><InterfaceText>Remove</InterfaceText></span>
+                <span className="role"><InterfaceText>{ Sefaria._("Remove")} </InterfaceText></span>
 
               </div>
               : null}

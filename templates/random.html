@@ -1,20 +1,21 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}Random Text | Sefaria.org{% endblock %}
+{% block title %}{% trans "Random Text | Sefaria.org" %}{% endblock %}
 
 {% block content %}
 
 <div id="randomPage" class="container doc">
     <div class="row">
         <div class="span8 offset2">
-            <h1>A Random Text on Sefaria</h1>
+            <h1>{% trans "A Random Text on Sefaria<" %}/h1>
            
             <center>
                 <div id="getRandom" class="btn btn-large btn-primary">
-                    Get Random
+                    {% trans "Get Random" %}
                 </div>
             </center>
 

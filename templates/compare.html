@@ -35,8 +35,8 @@
     }
 
     td.he{
-        direction: rtl;
-        text-align: right;
+        direction: ltr;
+        text-align: left;
     }
 
     td.en{
@@ -93,7 +93,7 @@
             }).toggleClass('filtered', checked);
         })};
     </script>
-    <div id="filters" style="direction: rtl">
+    <div id="filters" style="direction: ltr">
         <label><input id="yud" type="checkbox" value="י">י</label>
         <label><input id="vav" type="checkbox" value="ו">ו</label>
         <label><input type="checkbox" value='"'>"</label>
@@ -102,7 +102,7 @@
         <label><input type="checkbox" value='('>(</label>
         <label><input type="checkbox" value=')'>)</label>
     </div>
-    <div style="direction: rtl">
+    <div style="direction: ltr">
         <input id="filter" type="button" onclick="add_filter()" value="Update">
     </div>
     <div id="DiffTable"/>

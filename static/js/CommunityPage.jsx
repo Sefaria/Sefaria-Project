@@ -55,7 +55,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner mainColumn">
             
-            <h1><InterfaceText>Today on Pecha</InterfaceText></h1>
+            <h1><InterfaceText>{Sefaria._("Today on Pecha")} </InterfaceText></h1>
 
             {featuredContent}
             
@@ -110,13 +110,13 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
     recentSheetsContent.splice(6, 0, joinTheConversation);
     recentSheetsContent.push(
       <a className="button small white loadMore" onClick={loadMore}>
-        <InterfaceText context="RecentlyPublished">Load More</InterfaceText>
+        <InterfaceText context="RecentlyPublished">{ Sefaria._("Load More")}</InterfaceText>
       </a>
     );
   }
   return (
     <div className="recentlyPublished">            
-      <h2><InterfaceText>Recently Published</InterfaceText></h2>
+      <h2><InterfaceText>{ Sefaria._("Recently Published")}</InterfaceText></h2>
       <NBox content={recentSheetsContent} n={1} />
     </div>
   );
@@ -187,169 +187,6 @@ const FeaturedSheet = ({sheet, showDate, trackClicks, toggleSignUpModal}) => {
   );
 };
 
-
-
-/*
-
-
-            {parashah ?
-            <HomepageRow 
-              title="The Torah Portion"
-              aboutContent={parashah.topic}
-              sheet={parashah.sheet}
-              AboutComponent={AboutParashah} 
-              initialWidth={initialWidth} />
-            : null }
-
-            {calendar ?
-            <HomepageRow 
-              title="The Jewish Calendar"
-              aboutContent={calendar.topic}
-              sheet={calendar.sheet}
-              AboutComponent={AboutCalendar} 
-              initialWidth={initialWidth} />
-            : null }
-
-            {discover ?
-            <HomepageRow 
-              biTitles={{
-                en: "Discover " + discover.about.category.en,
-                he: Sefaria._("Discover ") + discover.about.category.he
-              }}
-              aboutContent={discover.about}
-              sheet={discover.sheet}
-              AboutComponent={AboutDiscover} 
-              initialWidth={initialWidth} />
-            : null }
-
-            {featured ?
-            <HomepageRow 
-              title={featured.heading}
-              sheet={featured.sheet}
-              initialWidth={initialWidth} />
-            : null }
-
-
-const HomepageRow = ({title, biTitles, aboutContent, sheet, AboutComponent, initialWidth}) => {
-  const blocks = [];
-  if (aboutContent) {
-    blocks.push(<AboutComponent content={aboutContent} />);
-  }
-  if (sheet) {
-    blocks.push(<FeaturedSheet sheet={sheet} />);
-  }
-
-  return (
-    <div>
-      <h2>
-        {biTitles ? 
-        <InterfaceText text={biTitles} />
-        : <InterfaceText>{title}</InterfaceText>}
-      </h2>
-
-      {blocks.length > 1 ?
-      <ResponsiveNBox content={blocks} initialWidth={initialWidth} />
-      : <NBox content={blocks} n={1} /> }
-    </div>
-  );
-};
-
-
-const AboutParashah = ({content}) => {
-  if (!content) { return null; }
-  const {primaryTitle, description, slug, ref} = content;
-  const title = {
-    en: primaryTitle.en.replace("Parashat ", ""),
-    he: primaryTitle.he.replace("פרשת ", ""),
-  }
-  const style = {"borderColor": Sefaria.palette.categoryColor("Tanakh")};
-  return (
-    <div className="navBlock withColorLine" style={style}>
-      <a href={`/topics/${slug}`} className="navBlockTitle serif">
-        <InterfaceText text={title} />
-      </a>       
-      <div className="navBlockDescription">
-        <InterfaceText text={description} />
-      </div>
-      <div className="readingLinks">
-        <div className="readingLinksHeader">
-          <InterfaceText context="AboutParashah">Torah Reading</InterfaceText>
-        </div>
-        <div className="calendarRef">
-          <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-          <a href={`/${ref.url}`} className="serif">
-            <InterfaceText text={ref} />
-          </a> 
-        </div>
-      </div>
-    </div>
-  )
-};
-
-
-const AboutCalendar = ({content}) => {
-  if (!content) { return null; }
-  const {primaryTitle, description, slug, date, readings} = content;
-
-  return (
-    <div className="navBlock" >
-      <a href={`/topics/${slug}`} className="navBlockTitle">
-        <InterfaceText text={primaryTitle} />
-      </a>
-      <div className="calendarDate">
-        <InterfaceText>{date}</InterfaceText>
-      </div>
-      <div className="navBlockDescription">
-        <InterfaceText text={description} />
-      </div>
-      {!readings ? null :
-      <div className="readingLinks">
-        <div className="readingLinksHeader">
-          <InterfaceText>Readings for</InterfaceText>&nbsp;<InterfaceText text={primaryTitle} />
-        </div>
-        {readings.map(ref => (
-          <div className="calendarRef" key={ref.url}>
-            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-            <a href={`/${ref.url}`} className="serif">
-              <InterfaceText text={ref} />
-           </a> 
-          </div>)
-        )}
-      </div> }
-    </div>
-  )
-};
-
-
-const AboutDiscover = ({content}) => {
-  if (!content) { return null; }
-  const {title, description, ref} = content;
-  const cat   = Sefaria.refCategories(ref.url)[0]; 
-  const style = {"borderColor": Sefaria.palette.categoryColor(cat)};
-
-  return (
-    <div className="navBlock withColorLine" style={style}>
-      <a href={`/topics/${ref.url}`} className="navBlockTitle">
-        <InterfaceText>{title}</InterfaceText>
-      </a>
-      <div className="navBlockDescription">
-        <InterfaceText>{description}</InterfaceText>
-      </div>
-      <div className="readingLinks">
-        <div className="readingLinksHeader">
-          <InterfaceText>Readings</InterfaceText>
-        </div>
-          <div className="calendarRef" key={ref.url}>
-            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-            <a href={`/${ref.url}`} className="serif">
-              <InterfaceText text={ref} />
-           </a> 
-          </div>
-      </div>
-    </div>
-  )
-};
-*/
 
 
 export default CommunityPage;

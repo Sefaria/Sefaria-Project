@@ -1,9 +1,6 @@
 import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
-import PropTypes from'prop-types';
-import $  from './sefaria/sefariaJquery';
-import { InterfaceText, DonateLink } from './Misc';
-import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
+import { InterfaceText } from './Misc';
 import Component from 'react-class';
 
 const Section = ({en, he, children}) => (
@@ -35,12 +32,9 @@ class Footer extends Component {
   render() {
     if (!Sefaria._siteSettings.TORAH_SPECIFIC) { return null; }
 
-    const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
-    const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
-    let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
     return (
       <div id='version_number'>
-                <InterfaceText>Version: 1.0.0</InterfaceText>
+                <InterfaceText>Version: 1.0.1</InterfaceText>
       </div>  
     );
   }
@@ -91,7 +85,7 @@ class LikeFollowButtons extends Component {
     }
   }
   render() {
-    var fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
+    var fbURL = Sefaria.interfaceLang === "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     var lang = Sefaria.interfaceLang.substring(0,2);
     return (<div id="socialButtons">
               <div id="facebookButton">

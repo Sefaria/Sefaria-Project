@@ -24,6 +24,7 @@ LANGUAGE_CODE = 'en'
 LANGUAGES = (
     ('en', _("English")),
     ('he', _("Hebrew")),
+    ('bo', _("Tibetan")),
 )
 
 SITE_ID = 1

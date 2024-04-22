@@ -327,8 +327,8 @@ class SheetMetadata extends Component {
                   </div>
                   <div className="readerTextToc readerTextTocHeader">
                     <div className="readerTextTocBox">
-                      <span className="int-en">Table of Contents</span>
-                      <span className="int-he">תוכן העניינים</span>
+                      <span className="int-en">{Sefaria._("Table of Contents")} </span>
+                      <span className="int-he">{Sefaria._("Table of Contents")}</span>
                     </div>
                   </div>
                   <div className="rightButtons">
@@ -346,7 +346,7 @@ class SheetMetadata extends Component {
                     </div>
 
                     <a className="tocCategory serif" href="/sheets">
-                      <span className="en">Sheet</span>
+                      <span className="en">{Sefaria._("Sheet")}</span>
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
                     </a>
 
@@ -378,21 +378,21 @@ class SheetMetadata extends Component {
                     </div> : null }
                     <div className="sheetMeta">
                       <div className="int-en">
-                          Created {Sefaria.util.naturalTime(timestampCreated, "en")} ago · {sheet.views} Views · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} Saves {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>)}
+                        {Sefaria._("Created")}  {Sefaria.util.naturalTime(timestampCreated, "en")} {Sefaria._("ago")} · {sheet.views} {Sefaria._("Views")} · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} {Sefaria._("Saves")} {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>)}
 
                       </div>
                       <div className="int-he">
-                          <span>נוצר לפני  {Sefaria.util.naturalTime(timestampCreated, "he")} · </span>
-                          <span>{sheet.views} צפיות · </span>
-                          <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } שמירות </span> {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>)}                      </div>
+                          <span> {Sefaria._("Created")} {Sefaria.util.naturalTime(timestampCreated, "he")} {Sefaria._("ago")}  · </span>
+                          <span>{sheet.views} · {Sefaria._("Views")}</span>
+                          <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } {Sefaria._("Saves")} </span> {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>)}                      </div>
                     </div>
 
                     <div>
                       <div className="sheetMetaButtons">
-                        {Sefaria._uid == sheet.owner && !Sefaria._uses_new_editor ?
+                        {Sefaria._uid === sheet.owner && !Sefaria._uses_new_editor ?
                         <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
                           <img src="/static/icons/tools-write-note.svg" alt="edit sheet" />
-                          <InterfaceText>Edit</InterfaceText>
+                          <InterfaceText>{Sefaria._("Edit")}</InterfaceText>
                         </a> : null }
 
                         <a href="#" className="button white" onClick={this.copySheet}>
@@ -402,25 +402,25 @@ class SheetMetadata extends Component {
 
                         <a href="#" className="button white" onClick={this.toggleCollectionsModal}>
                           <img src="/static/icons/plus.svg" alt="copy sheet" />
-                          <InterfaceText>Add to Collection</InterfaceText>
+                          <InterfaceText>{Sefaria._("Add to Collection")}</InterfaceText>
                         </a>
 
                         {Sefaria._uid !== sheet.owner && !Sefaria._uses_new_editor ?
                         <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
-                          <InterfaceText>View in Editor</InterfaceText>
+                          <InterfaceText>{ Sefaria._("View in Editor")}</InterfaceText>
                         </a> : null }
                       </div>
 
-                      {this.state.sheetCopyStatus == "Copied" ?
+                      {this.state.sheetCopyStatus === "Copied" ?
                       <div><a href={"/sheets/"+this.state.copiedSheetId}>
-                          <span className="int-en">View Copy &raquo;</span>
-                          <span className="int-he">צפייה בהעתק &raquo;</span>
+                          <span className="int-en">{ Sefaria._("View Copy")} &raquo;</span>
+                          <span className="int-he">{ Sefaria._("View Copy")}&raquo;</span>
                       </a></div> : null }
 
                       {Sefaria._uses_new_editor ?
                       <a className="smallText" href={"/sheets/"+sheet.id+"?editor=1"}>
-                        <span className="int-en">View in the old sheets experience</span>
-                        <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
+                        <span className="int-en">{ Sefaria._("View in the old sheets experience")}</span>
+                        <span className="int-he">{ Sefaria._("View in the old sheets experience")}</span>
                       </a> : null }
 
                       {this.state.showCollectionsModal ?
@@ -430,13 +430,13 @@ class SheetMetadata extends Component {
                     </div>
 
                     <div className="tocDetails sheetSummary">
-                      <h3><InterfaceText>About this Sheet</InterfaceText></h3>
+                      <h3><InterfaceText>{ Sefaria._("About this Sheet")}</InterfaceText></h3>
                       {details && !canEdit ? <div className="description" dangerouslySetInnerHTML={ {__html: details} }></div> : null}
                     </div>
 
                     {sheet.topics && sheet.topics.length > 0 && !canEdit ?
                     <div className="tocDetails tagsSection">
-                      <h3><InterfaceText>Tags</InterfaceText></h3>
+                      <h3><InterfaceText>{ Sefaria._("Tags")}</InterfaceText></h3>
                       <div className="sheetTags">
                         {sheet.topics.map((topic, i) => (
                             <a href={"/topics/" + topic.slug}
@@ -453,27 +453,27 @@ class SheetMetadata extends Component {
 
                     {canEdit ? <div className={"publishBox sans-serif"}>
                       <h3 className={"header"}>
-                        <InterfaceText>{this.state.published ? "Publish Settings" : "Publish Sheet"}</InterfaceText>
+                        <InterfaceText>{this.state.published ? Sefaria._("Publish Settings"): Sefaria._("Publish Sheet")}</InterfaceText>
                       </h3>
 
 
 
                       {this.state.published ?
-                        <p><InterfaceText>Your sheet is</InterfaceText> <strong><InterfaceText>published</InterfaceText></strong> <InterfaceText>on Sefaria and visible to others through search and topics.</InterfaceText></p> :
-                        <p><InterfaceText>List your sheet on Sefaria for others to discover.</InterfaceText></p>
+                        <p><InterfaceText>{ Sefaria._("Your sheet is")} </InterfaceText> <strong><InterfaceText>{ Sefaria._("published")}</InterfaceText></strong> <InterfaceText>{ Sefaria._("on Sefaria and visible to others through search and topics.")}</InterfaceText></p> :
+                        <p><InterfaceText>{ Sefaria._("List your sheet on Sefaria for others to discover.")}</InterfaceText></p>
                       }
 
 
                       <hr/>
-                      {this.state.validationFailed == "none" ? null :  <p className="error"><InterfaceText>{this.state.validationMsg}</InterfaceText></p> }
-                      <p className={"smallText"}><InterfaceText>Summary</InterfaceText></p>
+                      {this.state.validationFailed === "none" ? null :  <p className="error"><InterfaceText>{this.state.validationMsg}</InterfaceText></p> }
+                      <p className={"smallText"}><InterfaceText>{ Sefaria._("Summary")}</InterfaceText></p>
                       <textarea
-                        className={this.state.validationFailed == "both" || this.state.validationFailed == "summary" ? "error" : ""}
+                        className={this.state.validationFailed === "both" || this.state.validationFailed === "summary" ? "error" : ""}
                         rows="3"
                         maxLength="281"
                         placeholder={Sefaria._("Write a short description of your sheet...")}
                         value={this.state.summary} onChange={this.handleSummaryChange}></textarea>
-                      <p className={"smallText"}><InterfaceText>Topics</InterfaceText></p>
+                      <p className={"smallText"}><InterfaceText> {Sefaria._("Topics")}</InterfaceText></p>
                       <div className={this.state.validationFailed == "both" || this.state.validationFailed == "topics" ? "error" : ""}>
                       <ReactTags
                         ref={this.reactTags}
@@ -491,7 +491,7 @@ class SheetMetadata extends Component {
 
                         <div className={"publishButton"}>
                         <a href="#" className={this.state.published ? "button published" : "button"} onClick={this.togglePublish}>
-                          <InterfaceText>{this.state.published ? "Unpublish" : "Publish"}</InterfaceText>
+                          <InterfaceText>{this.state.published ? Sefaria._("Unpublish") : Sefaria._("Publish")}</InterfaceText>
                         </a>
                         </div>
 

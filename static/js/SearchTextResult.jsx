@@ -99,7 +99,7 @@ class SearchTextResult extends Component {
         const more_results_indicator = (!(data.duplicates)) ? "" :
             <div className='similar-trigger-box' onClick={this.toggleDuplicates}>
                     <span className='similar-title int-he'>
-                        {data.duplicates.length} {(data.duplicates.length > 1) ? " גרסאות נוספות" : " גרסה נוספת"}
+                        {data.duplicates.length} {(data.duplicates.length > 1) ? Sefaria._("moreResults")  : Sefaria._("anotherResult")}
                     </span>
                 <span className='similar-title int-en'>
                         {data.duplicates.length} more version{(data.duplicates.length > 1) ? "s" : null}
@@ -121,7 +121,7 @@ class SearchTextResult extends Component {
             </div>) : null;
 
         const snippetMarkup = this.get_snippet_markup(data);
-        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
+        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang === "en", he: snippetMarkup.lang === "he"});
         return (
             <div className="result textResult">
                 <a href={href} onClick={this.handleResultClick}>
