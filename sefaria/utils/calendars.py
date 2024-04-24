@@ -13,7 +13,7 @@ from django.utils import timezone
 import sefaria.model as model
 from sefaria.system.database import db
 from sefaria.utils.util import graceful_exception
-from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
+from sefaria.utils.hebrew import hebrew_parasha_name
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.schema import Term
 
