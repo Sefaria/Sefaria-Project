@@ -6616,9 +6616,6 @@ But not to use a display block directive that might break continuous mode for ot
     color: white;
 }
 
-.segment .linkCount {
-
-}
 
 .segment .linkCountDot {
     display: inline-block;
@@ -6645,12 +6642,13 @@ But not to use a display block directive that might break continuous mode for ot
 
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
-    right: -46px;
+    left: -46px;
 }
 
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
-    left: -48px;
+    right: -46px;
+    left: auto;
 }
 
 .readerPanel.english .segment .linkCount {
@@ -6676,7 +6674,7 @@ But not to use a display block directive that might break continuous mode for ot
 
 .singlePanel .readerPanel.hebrew .segment .segmentNumber,
 .singlePanel .readerPanel.bilingual .segment .segmentNumber {
-    right: -30px;
+    left: -30px;
 }
 
 .singlePanel .readerPanel.english .segment .linkCount {
@@ -6685,7 +6683,7 @@ But not to use a display block directive that might break continuous mode for ot
 
 .singlePanel .readerPanel.hebrew .segment .linkCount,
 .singlePanel .readerPanel.bilingual .segment .linkCount {
-    left: -30px;
+    right: -30px;
 }
 
 .singlePanel .readerPanel.english .sheetItem.segment .linkCount {
