@@ -200,7 +200,7 @@ class TextList extends Component {
     var links              = this.getLinks();
 
     var en = "No connections known" + (filter.length ? " for " + displayFilter.join(", ") + " here" : "") + ".";
-    var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
+    var he = displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") + "ལ་འདིར་འབྲེལ་བ་གང་ཡང་ཤེས་རྟོགས་མེད།";
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length === 0 ? message :
@@ -306,7 +306,7 @@ const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
         aclasses={"connection-button delete-link"}
         onClick={deleteLink}
         en={"Remove"}
-        he={"מחיקת קישור"}
+        he={"ཕྱིར་ཕུད།"}
       />
   ) : null;
 }
@@ -318,7 +318,7 @@ const OpenConnectionTabButton = ({srefs, openInTabCallback, openStrings}) =>{
   Takes a ref(s) for opening as a link and callback for opening in-app
    */
   const sref = Array.isArray(srefs) ? Sefaria.normRefList(srefs) : srefs;
-  const [en, he] = openStrings || ['Open', 'פתיחה'];
+  const [en, he] = openStrings || ['Open', 'སྒོ་ཕྱེས།'];
   const openLinkInTab = (event) => {
     if (openInTabCallback) {
       event.preventDefault();
@@ -352,7 +352,7 @@ const AddConnectionToSheetButton = ({srefs, addToSheetCallback, versions= {"en":
       aclasses={"connection-button add-to-sheet-link"}
       onClick={addToSheet}
       en={"Add to Sheet"}
-      he={"הוספה לדף מקורות"}
+      he={"ཤོག་ངོས་ནང་སྣོན།"}
     />
   );
 }

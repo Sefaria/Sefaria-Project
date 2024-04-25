@@ -7,7 +7,7 @@ const options_for_form = {
     // "Picture": {label: "Picture", field: "picture", placeholder: "Add a picture.", type: "picture"},
     "English Caption": {label: "English Caption", field: "enImgCaption", placeholder: "Add a caption for topic picture"},
     "Hebrew Caption": {label: "Hebrew Caption", field: "heImgCaption", placeholder: "Add a Hebrew caption for topic picture"},
-    "Title": {label: "Title *", field: "enTitle", placeholder: "Add a title."},
+    "Title": {label: "Title", field: "enTitle", placeholder: "Add a title."},
     "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title."},
     "English Description": {
         label: "English Description",
@@ -184,7 +184,7 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
         }
 
         return <div className="section">
-                    <label><InterfaceText>{label}</InterfaceText></label>
+                    <label><InterfaceText>{label}</InterfaceText>{label==="Title" && <span className="asterisk"> *</span>}</label>
                     {obj}
                </div>;
     }

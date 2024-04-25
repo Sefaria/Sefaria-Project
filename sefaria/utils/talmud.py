@@ -1,4 +1,4 @@
-from sefaria.utils.hebrew import encode_hebrew_numeral, encode_small_hebrew_numeral
+from sefaria.utils.tibetan import int_to_tib
 
 
 #Overlapping with AddressTalmud.toString()
@@ -18,10 +18,9 @@ def section_to_daf(section, lang="en"):
 
     elif lang == "he":
         if section > daf * 2:
-            daf = "{}{}".format(sanitize(encode_small_hebrew_numeral(daf), False) if daf < 1200 else encode_hebrew_numeral(daf, punctuation=False), ':')
+            daf = "{}ཁ".format(int_to_tib(daf))
         else:
-            daf = "{}{}".format(sanitize(encode_small_hebrew_numeral(daf), False) if daf < 1200 else encode_hebrew_numeral(daf, punctuation=False), '.')
-
+            daf = "{}ཀ".format(int_to_tib(daf))
     return daf
 
 
