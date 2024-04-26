@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-14 22:00+0530\n"
+"POT-Creation-Date: 2024-04-26 13:22+0530\n"
 "PO-Revision-Date: 2023-10-23 15:48+0000\n"
 "Last-Translator: Lungsang, 2023\n"
 "Language-Team: Tibetan (https://app.transifex.com/OpenPecha/teams/176327/"
@@ -20,8 +20,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: reader/templatetags/sefaria_tags.py:221 sefaria/settings.py:25
-#: templates/account_settings.html:54 templates/edit_text.html:185
-#: templates/elements/notification.html:15
+#: templates/edit_text.html:185 templates/elements/notification.html:15
 #: templates/elements/notification.html:17 templates/sheets.html:778
 msgid "English"
 msgstr "དབྱིན་སྐད།"
@@ -356,8 +355,7 @@ msgstr "གློག་འཕྲིན་འདི་བཀོལ་སྤྱོ
 msgid "The email address is not valid."
 msgstr "གློག་འཕྲིན་དེ་ཚུལ་མཐུན་ཞིག་མ་རེད།"
 
-#: sefaria/settings.py:27 templates/account_settings.html:57
-#: templates/sheets.html:779
+#: sefaria/settings.py:27 templates/sheets.html:779
 #, fuzzy
 #| msgid "Tibetan"
 msgid "Tibetan"
@@ -464,6 +462,18 @@ msgstr "སོར་འཇོག་བྱས་པ།"
 #: templates/account_settings.html:49 templates/account_settings.html:50
 msgid "Site Language"
 msgstr "རྨང་གཞིའི་སྐད་ཡིག"
+
+#: templates/account_settings.html:54
+#, fuzzy
+#| msgid "English"
+msgid "english"
+msgstr "English"
+
+#: templates/account_settings.html:57
+#, fuzzy
+#| msgid "Tibetan"
+msgid "tibetan"
+msgstr "བོད་ཡིག"
 
 #: templates/account_settings.html:64 templates/account_settings.html:65
 msgid "Preferred Translation Language"

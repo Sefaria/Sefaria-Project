@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-14 22:00+0530\n"
+"POT-Creation-Date: 2024-04-26 13:17+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: reader/templatetags/sefaria_tags.py:221 sefaria/settings.py:25
-#: templates/account_settings.html:54 templates/edit_text.html:185
-#: templates/elements/notification.html:15
+#: templates/edit_text.html:185 templates/elements/notification.html:15
 #: templates/elements/notification.html:17 templates/sheets.html:778
 msgid "English"
 msgstr ""
@@ -323,8 +322,7 @@ msgstr ""
 msgid "The email address is not valid."
 msgstr ""
 
-#: sefaria/settings.py:27 templates/account_settings.html:57
-#: templates/sheets.html:779
+#: sefaria/settings.py:27 templates/sheets.html:779
 msgid "Tibetan"
 msgstr ""
 
@@ -423,6 +421,14 @@ msgstr ""
 #: templates/account_settings.html:49 templates/account_settings.html:50
 msgid "Site Language"
 msgstr ""
+
+#: templates/account_settings.html:54
+msgid "english"
+msgstr "English"
+
+#: templates/account_settings.html:57
+msgid "tibetan"
+msgstr "བོད་ཡིག"
 
 #: templates/account_settings.html:64 templates/account_settings.html:65
 msgid "Preferred Translation Language"
