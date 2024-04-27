@@ -140,7 +140,7 @@
                                 <i class="fa fa-check hidden"></i>
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Number Sources:" %}</span>
-                                <span class="int-he">{% trans "Number Sources:" %}</span>
+                                <span class="int-he">མ་ཕྱིའི་ཤོག་ངོས་ཀྱི་གྲངས་འབོར།</span>
                             </span>
                             </div>
                             <div class="optionItem" id="boxed" role="menuitem" tabindex="0">
@@ -400,14 +400,14 @@
                                 <img src="{% static 'img/source.png' %}" alt="Add Source Icon">
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Source:" %}</span>
-                                <span class="int-he">{% trans "Source:" %}</span>
+                                <span class="int-he">མ་ཕྱིའི་ཤོག་ངོས།</span>
                             </span>
                             </div>
                             <div class="optionItem" id="addCustomMenu" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/custom text.png' %}" alt="Add outside text icon">
                                 <span class="optionItemText">
                                 <span class="int-en">{% trans "Text:" %}</span>
-                                <span class="int-he">{% trans "Text:" %}</span>
+                                <span class="int-he">ཆོས་མཛོད།</span>
                             </span>
                             </div>
                             <div class="optionItem" id="addCommentMenu" role="menuitem" tabindex="0">
@@ -690,7 +690,7 @@
                 <div class="addInterfaceButton" id="sourceButton" tabindex="0" role="button"><img
                         src="{% static 'img/source.png' %}" alt="Add Source Icon">
                     <span class="int-en">{% trans "Source" %}</span>
-                    <span class="int-he">{% trans "Source" %}</span>
+                    <span class="int-he">མ་ཕྱིའི་ཤོག་ངོས།</span>
                 </div><!--
          -->
                 <div class="addInterfaceButton" id="connectionButton" tabindex="0" role="button">
@@ -702,7 +702,7 @@
                 <div class="addInterfaceButton" id="customTextButton" tabindex="0" role="button">
                     <img src="{% static 'img/custom text.png' %}" alt="Add Outside Text Icon">
                     <span class="int-en">{% trans "Text" %}</span>
-                    <span class="int-he">{% trans "Text" %}</span>
+                    <span class="int-he">ཆོས་མཛོད།</span>
                 </div><!--
          -->
                 <div class="addInterfaceButton" id="mediaButton" tabindex="0" role="button">
@@ -721,11 +721,11 @@
                 <div id="addsourceDiv">
                     <div id="inlineAddDialogTitle" class="inlineAddDesc">
                         <span class="int-en">{% trans "Select a text" %}</span>
-                        <span class="int-he">{% trans "Select a text" %}</span>
+                        <span class="int-he">དཔེ་ཆ་ཞིག་འདེམ།</span>
                     </div>
                     <div class="blockContainer">
                         <input id="inlineAdd" class="inlineAddTextInput"
-                               placeholder='{% trans " Search for a Text or Commentator" %}'/>
+                               placeholder="{% trans " Search for a Text or Commentator" %}"/>
                         <div class="buttonContainer">
                             <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                                 <div id="inlineAddSourceOK" class='button disabled' role="button" tabIndex="0">
@@ -775,8 +775,8 @@
                     </span>
                     </div>
                     <div id="customTextContainer" class="flexContainer">
-                        <div class="contentToAdd en customTextEditables" tabindex="0">{% trans "English" %}</div>
-                        <div class="contentToAdd he customTextEditables" tabindex="0">{% trans "Tibetan" %}</div>
+                        <div class="contentToAdd en customTextEditables" tabindex="0">{% trans "english" %}</div>
+                        <div class="contentToAdd he customTextEditables" tabindex="0">{% trans "tibetan" %}</div>
                     </div>
                     <div class="button" role="button" tabIndex="0">
                         <span class="int-en">{% trans "Add to Sheet" %}</span>
