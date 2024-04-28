@@ -247,10 +247,10 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-left: auto;
 }
 .interface-hebrew .optionGroup .optionItemCaret.fa{
-	margin-right: auto;
+	margin-left: auto;
 }
 .interface-hebrew .optionItemCaret.fa-caret:before{
-	content: "\f0d9";
+	content: "\f0da";
 }
 .interface-english .optionItemCaret.fa-caret:before{
 	content: "\f0da";
