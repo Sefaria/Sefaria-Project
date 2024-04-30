@@ -28,7 +28,7 @@ from sefaria.model.user_profile import UserProfile, annotate_user_list, public_u
 from sefaria.model.collection import Collection, CollectionSet
 from sefaria.model.topic import TopicSet, Topic, RefTopicLink, RefTopicLinkSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
-from sefaria.utils.hebrew import has_hebrew, is_all_hebrew
+from sefaria.utils.tibetan import is_all_tibetan,has_tibetan
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.system.cache import django_cache
 from .history import record_sheet_publication, delete_sheet_publication
@@ -645,7 +645,7 @@ def get_sheet_language(sheet):
 	based on the language of its title.
 	"""
 	title = strip_tags(sheet.get("title", "")).replace("(Copy)", "").replace("\n", " ")
-	return "hebrew" if is_all_hebrew(title) else "english"
+	return "hebrew" if is_all_tibetan(title) else "english"
 
 
 def test():
@@ -1000,7 +1000,7 @@ def create_topic_from_title(title):
 		"slug": Topic.normalize_slug(title),
 		"titles": [{
 			"text": title,
-			"lang": "he" if has_hebrew(title) else "en",
+			"lang": "he" if has_tibetan(title) else "en",
 		"primary": True,
 		}]
 	})
@@ -1026,7 +1026,7 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 			new_topic = topic.copy()
 			tag_lang = 'en'
 			if use_as_typed:
-				tag_lang = 'he' if has_hebrew(new_topic['asTyped']) else 'en'
+				tag_lang = 'he' if has_tibetan(new_topic['asTyped']) else 'en'
 				new_topic[tag_lang] = new_topic['asTyped']
 			if not use_as_typed or tag_lang == 'en':
 				new_topic['he'] = topic_titles["he"]
@@ -1242,7 +1242,7 @@ class Sheet(abstract.AbstractMongoRecord):
 		import regex
 		title = strip_tags(self.title)
 		# Consider a sheet Hebrew if its title contains Hebrew character but no English characters
-		return has_hebrew(title) and not regex.search("[a-z|A-Z]", title)
+		return has_tibetan(title) and not regex.search("[a-z|A-Z]", title)
 
 
 class SheetSet(abstract.AbstractMongoSet):

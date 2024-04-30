@@ -49,7 +49,8 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
-from sefaria.utils.hebrew import has_hebrew, strip_nikkud
+from sefaria.utils.hebrew import strip_nikkud
+from sefaria.utils.tibetan import has_tibetan
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.clean import remove_old_counts
@@ -378,7 +379,7 @@ def title_regex_api(request, titles, json_response=True):
         errors = []
         # check request.domain and then look up in WebSites collection to get linker_params and return both resp and linker_params
         for title in titles:
-            lang = "he" if has_hebrew(title) else "en"
+            lang = "he" if has_tibetan(title) else "en"
             try:
                 re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True, parentheses=parentheses)
                 res[title] = re_string
@@ -399,7 +400,7 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
     for tref in refs:
         try:
             oref = model.Ref(tref)
-            lang = "he" if has_hebrew(tref) else "en"
+            lang = "he" if has_tibetan(tref) else "en"
             if useTextFamily:
                 text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
                                             lang="he", version=hebrew_version,
