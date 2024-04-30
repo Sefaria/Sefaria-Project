@@ -10736,6 +10736,10 @@ cursor: pointer;
   border-bottom: 4px solid var(--light-grey);
 }
 
+.singlePanel .tab-view.largeTabs .tab-list .active .tab {
+  padding-bottom: 16px;
+}
+
 .langSelectPopover {
   position: absolute;
   top: 100%;
