@@ -10658,6 +10658,9 @@ cursor: pointer;
   margin-inline-start: 10px;
 }
 
+.interface-hebrew .tab-view .tab-list .tab.popover{
+    transform: scale(1.3);
+}
 
 .tab-view .tab-list .tab a {
   color: inherit;
@@ -10691,6 +10694,14 @@ cursor: pointer;
 /*  font-size: 16px;*/
   margin: 0;
 /*  padding: 6px 9px;*/
+}
+/*.singlePanel .tab-view .tab-list .tab.filter,*/
+/*.tab-view.largeTabs .tab-list .tab.filter {*/
+/*  margin-top: 3px;*/
+/*}*/
+
+.interface-hebrew .singlePanel .tab-view.largeTabs .tab-list .tab.filter {
+  margin-top: 3px;
 }
 
 .tab-view .tab-list .tab.popover {
