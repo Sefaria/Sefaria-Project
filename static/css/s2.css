@@ -10652,9 +10652,10 @@ cursor: pointer;
   cursor: pointer;
 }
 
+
 .tab-view .tab-list .tab.popover {
   margin-inline-end: 0;
-  margin-inline-start: 5px;
+  margin-inline-start: 10px;
 }
 
 
