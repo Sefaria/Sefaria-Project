@@ -376,16 +376,19 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "filter": filter,
             "versionFilter": versionFilter,
         }
-        if filter and len(filter):
-            panel["connectionsMode"], delete_filter = get_connections_mode(filter)
-            if panel["connectionsMode"] == "ConnectionsList":
-                panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
-                if len(panel['filter']) == 1:
-                    panel['connectionsCategory'] = panel['filter'][0]
-            if panel['connectionsMode'] == "WebPagesList":
-                panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
-            if delete_filter:
-                del panel['filter']
+        if filter is not None:
+            panel["highlightedRefs"] = kwargs.get("highlightedRefs", None)
+            panel["showHighlight"] = kwargs.get('showHighlight', None)
+            if len(filter):
+                panel["connectionsMode"], delete_filter = get_connections_mode(filter)
+                if panel["connectionsMode"] == "ConnectionsList":
+                    panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
+                    if len(panel['filter']) == 1:
+                        panel['connectionsCategory'] = panel['filter'][0]
+                if panel['connectionsMode'] == "WebPagesList":
+                    panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
+                if delete_filter:
+                    del panel['filter']
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
@@ -553,6 +556,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             lang2 = request.GET.get("lang2", None)
             if lang2:
                 kwargs["connectionsPanelDisplayLanguage"] = lang2 if lang2 in ["en", "he"] else lang1 if lang1 in ["en", "he"] else request.interfaceLang[0:2]
+            kwargs["highlightedRefs"] = [oref.normal()]
+            kwargs["showHighlight"] = True
         if request.GET.get("aliyot", None):
             kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
         kwargs["selectedWords"] = request.GET.get("lookup", None)
