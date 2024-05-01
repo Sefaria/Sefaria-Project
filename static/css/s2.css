@@ -5462,8 +5462,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .stacked.bilingual .sheetContent .segment > p > .en {
   margin-top: 0;
 }
-.stacked.bilingual .basetext .segment > .en ,
-.stacked.bilingual .basetext .segment > p > .en {
+.stacked.bilingual .basetext .segment > .translation ,
+.stacked.bilingual .basetext .segment > p > .translation {
   margin: 10px 0 20px;
   color: #666;
 }
