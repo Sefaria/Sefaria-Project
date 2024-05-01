@@ -455,7 +455,7 @@ const FilterableList = ({
 
   const oldDesign = typeof showFilterHeader == 'undefined';
   return (
-    <div className="filterable-list" style={{margin:"-4px 0 -120px -1000px"}}>
+    <div className="filterable-list">
       {oldDesign ? <div className="filter-bar">
         <div className="filter-bar-inner">
           <SearchButton />
