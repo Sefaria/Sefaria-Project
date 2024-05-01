@@ -535,7 +535,8 @@ Sefaria = extend(Sefaria, {
     const versions = versionsResponse.versions;
     let primary, translation;
     if (versions.length === 1) {
-      primary = translation = versions[0];
+      primary = versions[0];
+      translation = {text: []};
     } else if (versions[0].isPrimary && !versions[1].isSource) {
       [primary, translation] = versions;
     } else {
