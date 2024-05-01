@@ -13036,6 +13036,7 @@ span.ref-link-color-3 {color: blue}
   -webkit-mask-position: center;
   -webkit-mask-size: 100% 100%;
   background-color: var(--medium-grey);
+  cursor: pointer;
 }
 
 .layout-button.checked {
@@ -13062,6 +13063,7 @@ span.ref-link-color-3 {color: blue}
   align-items: center;
   background-color: white;
   border: none;
+  cursor: pointer;
 }
 
 #currentlyReadingContainer {
