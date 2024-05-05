@@ -162,10 +162,10 @@ a, a:hover {
     --sans-serif-small-font-size: 14px;
 
     /* colors */
-    --inline-link-blue: #4871bf;
-    --sefaria-blue: #18345D;
-    --highlight-blue: #DDEEFF;
-    --highlight-blue-light: #F0F7FF;
+    --inline-link-blue: #cc5454;
+    --sefaria-blue: #b5343c;
+    --highlight-blue: #cc7273;
+    --highlight-blue-light: #eccbcc;
     --beit-midrash-grey: #333333;
     --dark-grey: #666666;
     --medium-grey: #999999;
