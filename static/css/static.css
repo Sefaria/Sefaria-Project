@@ -1841,7 +1841,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   top: 15px;
 }
 #mobilePage #mobilePageHeader{
-  background: #18345D;
+  background: #b5343c;
   padding: 70px 0;
   margin-top: 60px;
 }
@@ -1921,7 +1921,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 16px;
   line-height: 19px;
   text-align: left;
-  color: #18345D;
+  color: #b5343c;
   align-items: center;
   letter-spacing: 0px;
   justify-content: space-evenly;
@@ -2423,7 +2423,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   flex-direction: row-reverse;
 }
 #dafyomiPage #dafyomiPageHeader {
-  background-color: #18345D;
+  background-color: #b5343c;
   padding: 70px 0;
   margin-top: 60px;
   background-image: url(/static/img/daf-yomi-landing-page/talmudtextheader.jpg);
