@@ -43,6 +43,12 @@ test('Banner links exist - English', async ({ context }) => {
     await page.getByRole('banner').getByRole('link', { name: 'Help' }).click();
     expect(page.url()).toBe("https://www.sefaria.org/collections/sefaria-faqs")
 
+    const page1Promise = page.waitForEvent('popup');
+    await page.getByRole('banner').getByRole('link', { name: 'Donate' }).click();
+    const page1 = await page1Promise;
+    //Test redirect to https://donate.sefaria.org/
+    expect(page1.url()).toContain("https://donate.sefaria.org/")
+
 });
 
 test('Banner links exist - Hebrew', async ({ context }) => {
