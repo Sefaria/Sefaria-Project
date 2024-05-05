@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Pioneers | Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Sefaria Pioneers" %}{% endblock %}
+
+{% block css %}
+
+html {
+  font-size: 10px;
+}
+
+#pioneersPage {
+  box-sizing: border-box;
+  font-size: 1.6rem;
+  color: white;
+  min-height: 100%;
+  line-height: 1;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding-top: 11.5rem;
+  background-color: var(--sefaria-blue);
+  line-height: 1;
+  box-sizing: border-box;
+  color: white;
+}
+
+#pioneersPage .logo {
+  display: block;
+  float: none;
+  margin: 0 auto;
+  max-width: 100%;
+  opacity: 1;
+  padding: 1rem 0 0;
+  position: relative;
+  vertical-align: middle;
+  width: 130px;
+  opacity: 1;
+  padding-top: 1rem;
+}
+
+#pioneersPage .graphic {
+  width: auto;
+  margin: 0 auto;
+  max-width: 100%;
+  padding: 0;
+}
+
+#pioneersPage section.container {
+  box-sizing: border-box;
+  display: block;
+  margin: 0;
+  padding: 1rem;
+  position: relative;
+  width: 100%;
+}
+
+#pioneersPage div.inner-container {
+  max-width: 800px;
+  margin: 0 auto;
+  word-break: break-word;
+}
+
+#pioneersPage h2 {
+  line-height: 1em;
+  font-size: 5.6rem;
+  text-align: center;
+  font-weight: 50;
+  margin: 0;
+  padding: 0;
+  vertical-align: baseline;
+  word-break: normal;
+}
+
+#pioneersPage h3 {
+  text-align: center;
+  font-weight: 50;
+
+  line-height: 1.5em;
+  min-height: 1em;
+  font-size: 4rem;
+  margin: 0;
+  padding: 0;
+  padding-bottom: 1.5rem;
+  vertical-align: baseline;
+  word-break: normal;
+}
+
+#pioneersPage p {
+  line-height: 1.5em;
+  margin: 0;
+  min-height: 1.5em;
+  font-size: 1.6rem;
+  padding: 0;
+  text-align: start;
+  vertical-align: baseline;
+}
+
+@media screen and (max-width: 768px) {
+  p {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  p.special-text {
+    padding-left: 3rem !important;
+    padding-right: 3rem !important;
+  }
+}
+
+#pioneersPage p.special-text {
+  font-size: 1.92rem;
+  font-style: italic;
+  padding-left: 5rem;
+  padding-right: 5rem;
+}
+
+#pioneersPage p.special-text .int-he {
+  font-style: normal;
+}
+
+#pioneersPage p.special-text a {
+  text-decoration: underline;
+  color: white;
+}
+
+#pioneersPage .divider {
+  background-clip: content-box;
+  background-color: #fdfdfd;
+  border-top: 2rem solid transparent;
+  border-bottom: 2rem solid transparent;
+  box-sizing: content-box;
+  clear: both;
+  display: block;
+  float: none;
+  height: 1px;
+  margin: 0 auto;
+  max-width: 100%;
+  opacity: 1;
+  padding: 1rem;
+  position: relative;
+  width: 80%;
+}
+
+{% endblock %}
+
+{% block content %}
+<div id="pioneersPage">
+  <section class="container">
+    <div class="inner-container">
+      <h2 class="int-en serif">Sefaria Pioneers</h2>
+      <h2 class="int-he serif">החלוצים של ספריא</h2>
+      <p style="text-align: center">
+        <span class="int-en" style="font-style: italic">10th Anniversary Gala 2024</span>
+        <span class="int-he">חגיגת יום השנה ה-10 2024</span>
+      </p>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <img
+        alt="10th Anniversary Fringes Graphic"
+        class="graphic"
+        src="{% static 'img/anniversary-gala-fringes.png' %}" />
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <p class="special-text">
+        <span class="int-en">
+          These remarkable individuals have each demonstrated a profound
+          commitment to Sefaria, notably assisting the organization in its
+          first year. We are forever grateful to these Pioneers, whose
+          generosity is the very bedrock upon which we have been able to
+          build a vibrant digital future for the Jewish people.
+        </span>
+        <span class="int-he">
+          הא/נשים הבלתי-רגילים האלו הדגימו מחויבות עצומה לספריא וסייעו
+          לארגון בשנתו הראשונה והקריטית. אנו אסירי תודה על חברותם ותמיכתם של
+          החלוצים הללו, שהן היסוד עליו הצלחנו להקים עתיד דיגיטלי משגשג לעם
+          היהודי.
+        </span>
+      </p>
+      <p></p>
+      <p class="special-text">
+        <span class="int-en">
+          <a href="https://www.sefaria.org/topics/parashat-bereshit">
+            Parashat Bereshit</a
+          >
+          — or Genesis — is dedicated to the Sefaria Pioneers.
+        </span>
+        <span class="int-he">
+          <a href="https://www.sefaria.org/topics/parashat-bereshit"
+            >פרשת בראשית</a
+          >
+          מוקדשת תמיד לכבוד החלוצים של ספריא.
+        </span>
+      </p>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <div class="divider" style="border-top-width: 1rem"></div>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <h3 class="serif">
+        <span class="int-en">Phyllis Cook</span>
+        <span class="int-he">פיליס קוק</span>
+      </h3>
+      <p>
+        <span class="int-en">
+          Phyllis is Managing Director of PLC Philanthropic Services,
+          working with individuals, families, and nonprofits to achieve
+          their philanthropic objectives. As a board member of the Jim
+          Joseph Foundation, Phyllis championed and fiercely advocated for a
+          2013 gift to Sefaria that represented a full third of its Year 1
+          budget. Phyllis’s initial support solidified Sefaria's decade-long
+          partnership with the Jim Joseph Foundation, one of our most
+          generous donors.
+        </span>
+        <span class="int-he">
+          פיליס היא המנהלת האחראית ב- PLC שירותים פילנתרופיים, תפקיד הכולל
+          עבודה עם יחידים, משפחות ועמותות להשגת מטרותיהם הפילנתרופיות. כחברת
+          הועד המנהל של קרן ג'ים ג'וזף, פיליס הובילה ותמכה במתן מענק נדיב
+          לספריא שהיווה שליש מהתקציב השנתי בשנתנו הראשונה, 2013. התמיכה של
+          פיליס סייעה לנו לחזק את השותפות של ספריא עם קרן ג'ים ג'וזף בעשור
+          האחרון, והובילה לכך שהקרן היא בין התומכים הנדיבים ביותר שלנו.
+        </span>
+      </p>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <div class="divider"></div>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <h3 class="serif">
+        <span class="int-en">Felicia Herman</span>
+        <span class="int-he">פלישיה הרמן</span>
+      </h3>
+      <p>
+        <span class="int-en">
+          Felicia is Managing Director (North America) of the Maimonides
+          Fund. She was previously the Executive Director of The Natan Fund,
+          which was the very first philanthropic foundation to support
+          Sefaria. Felicia was also one of Sefaria’s earliest board members,
+          serving as a Director for seven years and championing Sefaria’s
+          growth.
+        </span>
+        <span class="int-he">
+          פלישיה היא המנהלת האחראית (צפון אמריקה) של קרן מיימונידיס. לפני
+          כן, שימשה כמנהלת העל של קרן נתן. פלישיה נפגשה עם מייסדי ספריא
+          באביב 2013, ומיד האמינה ביכולתה של ספריא להוות פרויקט היסטורי עבור
+          העם היהודי. בזכותה, קרן נתן תרמה את תרומת הקרן הראשונה לספריא
+          והמשיכה לתמוך בנו לאורך שנותינו הראשונות. פלישיה היתה אחת החברות
+          הראשונות בועד המנהל שלנו, תפקיד אשר מלאה במשך 8 שנים. היא עזבה רק
+          כאשר הצטרפה לקרן מיימונידיס, שגם היא מבין תומכינו הגדולים ביותר.
+        </span>
+      </p>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <div class="divider"></div>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <h3 class="serif">
+        <span class="int-en">Ilan Kaufthal</span>
+        <span class="int-he">אילן קאופטל</span>
+      </h3>
+      <p>
+        <span class="int-en">
+          Ilan is Chairman of East Wind and has over 30 years of experience
+          as an investment banker. In the spring of 2013, Ilan introduced
+          Sefaria’s founders to Rabbi Adin Steinsaltz (zt”l); a meeting that
+          led to the creation of the William Davidson Talmud, a historic
+          project that has made the Talmud accessible like never before.
+          Ilan also helped Sefaria’s founders hire its first CEO and
+          negotiate critical library acquisitions. He has been and continues
+          to be an indispensable supporter and adviser.
+        </span>
+        <span class="int-he">
+          אילן הוא יושב-ראשה של חברת הייעוץ East Wind ובעל ניסיון של למעלה
+          מ-30 שנה כבנקאי השקעות. באביב 2013 אילן הציג את מייסדיי ספריא בפני
+          הרב עדין שטיינזלץ זצ"ל, פגישה שהובילה ליצירת מהדורת ויליאם דוידסון
+          של התלמוד, פרוייקט היסטורי שהפך את התלמוד לנגיש יותר מאי-פעם. אילן
+          אף סייע למייסדי ספריא בבחירת המנכ"ל הראשון של הארגון ובמשא ומתן על
+          רכישות קריטיות של מקורות וטקסטים. הוא היה, וממשיך להיות, תומך
+          ויועץ חיוני לארגון.
+        </span>
+      </p>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <div class="divider"></div>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <h3 class="serif">
+        <span class="int-en">Joshua Kushner</span>
+        <span class="int-he">ג'ושוע קושניר</span>
+      </h3>
+      <p>
+        <span class="int-en">
+          Joshua is Founder and Managing Partner of Thrive Capital. He is
+          also a co-founder of Oscar, a health-insurance start-up that uses
+          technology, design, and data to help humanize and simplify
+          healthcare. Joshua hosted Sefaria’s launch event in 2013, joined
+          the board as its fifth member, and served as a Director for ten
+          years. Joshua has provided valuable guidance and advice to Sefaria
+          and remains a dedicated supporter.
+        </span>
+        <span class="int-he">
+          ג'ושוע הוא המייסד ושותף בכיר ב- Thrive Capital ומייסד שותף של חברת
+          Oscar, סטארט-אפ הפועל בתחום ביטוח הבריאות ומשתמש בטכנולוגיה, עיצוב
+          ומידע כדי לשפר ולפשט את שירותי הבריאות בארה״ב. ג'ושוע סיפק הון
+          ראשוני לספריא, אירח את אירוע ההשקה שלנו ב-2013, הצטרף לוועד המנהל
+          כחבר החמישי שלו, ושימש כדירקטור במשך כעשר שנים. ג'ושוע סיפק הדרכה
+          וייעוץ נחוצים לספריא וממשיך להיות תומך נאמן של הארגון.
+        </span>
+      </p>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <div class="divider"></div>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <h3 class="serif">
+        <span class="int-en"> James Rothschild </span>
+        <span class="int-he"> ג'יימס רוטשילד </span>
+      </h3>
+      <p>
+        <span class="int-en">
+          James is Co-Founder and Managing Partner of Tru Arrow Partners. He
+          is a Trustee of Yad Hanadiv (the Rothschild Foundation), which
+          continues the tradition of Rothschild family philanthropy in
+          Israel. James and Yad Hanadiv are long-time supporters of Sefaria,
+          notably helping Sefaria to develop a multi-faceted partnership
+          with the National Library of Israel that we hope will continue
+          long into the future.
+        </span>
+        <span class="int-he">
+          ג'יימס הוא מייסד שותף ושותף בכיר ב- Tru Arrow Partners. בתפקידו
+          כנאמן עבור יד הנדיב (קרן רוטשילד), הוא תומך בפועלה כממשיכת המסורת
+          הפילנתרופית של משפחת רוטשילד בישראל. ג'יימס ויד הנדיב הם תומכים
+          ותיקים של ספריא, ושניהם סייעו לארגון בפיתוח שותפות חשובה ועמוקה עם
+          הספריה הלאומית של ישראל. תקוותנו היא ששותפות זו תמשיך לפרוח עוד
+          שנים רבות. הוא גם הציג את מייסדי ספריא בפני הרב ג'ונתן סאקס זצ"ל.
+        </span>
+      </p>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <div class="divider"></div>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+      <h3 class="serif">
+        <span class="int-en">Ilan &amp; Dana Rubinstein</span>
+        <span class="int-he">אילן ודנה רובינשטיין</span>
+      </h3>
+      <p>
+        <span class="int-en">
+          Ilan is a co-founder of Ruby Capital and Ruby Ventures. Dana is a
+          doctoral candidate at the Hebrew University of Jerusalem and a
+          researcher at the Franz Rosenzweig Center. In Sefaria’s early
+          days, Ilan donated office space and even flew to Canada to help
+          Sefaria’s founders secure initial funding. Dana’s help in setting
+          Sefaria up as an Israeli entity has had a tremendous impact on
+          Sefaria’s continued growth. Ilan, Dana, and the broader Rubinstein
+          family sponsored Sefaria’s acquisition of the Nechama Leibowitz
+          Collection and the Responsa of the Chatam Sofer (of whom the
+          Rubinsteins are descendants!).
+        </span>
+        <span class="int-he">
+          אילן הוא מייסד שותף של Ruby Capital ו- Ruby Ventures. דנה היא
+          מועמדת לדוקטורט באוניברסיטה העברית בירושלים וחוקרת במרכז פרנץ
+          רוזנצוויג. בימים הראשונים של ספריא, אילן סייע לנו בגיוס ההון
+          הראשוני הנחוץ, ואפילו טס לקנדה כדי לעזור למייסדי ספריא להבטיח
+          מימון ראשוני. הוא תרם לספריא את משרדי טרייבקה היפיפיים ששימשו את
+          הארגון בשנים הראשונות של פועלה. כבר מההתחלה, דנה היתה תומכת חשובה
+          של ספריא, חברותא בשאלות של תרגום, ולאחרונה אף עזרה לנו באופן יוצא
+          דופן במאמצינו להקים עמותה רשמית בישראל. אילן, דנה ומשפחת
+          רובינשטיין הרחבה מימנו את רכישת אוסף נחמה ליבוביץ ושו"ת חת"ם סופר
+          (שמשפחת רובינשטיין היא מצאצאיו!).
+        </span>
+      </p>
+      <p></p>
+      <p></p>
+    </div>
+  </section>
+  <section class="container">
+    <div class="inner-container">
+    </div>
+  </section>
+</div>
+
+{% endblock %}
