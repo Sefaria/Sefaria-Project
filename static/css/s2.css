@@ -804,7 +804,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 
 .mobileNavMenu a.blue {
-    background-color: #18345D;
+    background-color: #b5343c;
     color: white;
     border-bottom: unset;
 }
@@ -1279,7 +1279,7 @@ div.interfaceLinks-row a {
 }
 
 #interruptingMessage.sefariaModalContentBox {
-    background-color: #18345D;
+    background-color: #b5343c;
     color: white;
     padding: 50px 70px;
     border-color: transparent;
@@ -4440,7 +4440,7 @@ details .open-details::before {
 }
 
 .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a {
-    color: #18345D;
+    color: #b5343c;
 }
 
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover {
@@ -9122,8 +9122,8 @@ a .button:hover {
 
 .button.appButton {
     box-shadow: none;
-    border: 2px solid #18345D;
-    color: #18345D;
+    border: 2px solid #b5343c;
+    color: #b5343c;
 }
 
 .button.appButton img {
@@ -12595,7 +12595,7 @@ section.SheetSource .SheetOutsideBiText {
 
 .editorToggleHeader {
     width: 100%;
-    background-color: #18345D;
+    background-color: #b5343c;
     color: white;
     height: 60px;
     font-size: 16px;
@@ -14294,7 +14294,7 @@ a.topicLexiconTitle.contentText {
     right: 0;
     color: white;
     z-index: 9999;
-    background-color: #18345D;
+    background-color: #b5343c;
     padding: 20px;
     line-height: 1.6;
     text-align: center;
