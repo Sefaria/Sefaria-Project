@@ -5620,13 +5620,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left;
   direction: ltr;
 }
-.segment.heOnly .en{
+.segment.heOnly .translation{
   display: none;
 }
+/*in the text reader we don't have enOnly anymore. it always hvae primary (which is one the meaning of heOnly) maybe this is useful for other cases*/
 .segment.enOnly .he{
   display: none;
 }
-.segment.heOnly .he{
+.segment.heOnly .source{
   display: initial;
 }
 .segment.enOnly .en{

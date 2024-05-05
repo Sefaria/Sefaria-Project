@@ -1046,9 +1046,10 @@ class ReaderPanel extends Component {
     classes[readerPanelContextData.language] = 1;
     classes[this.currentLayout()]        = 1;
     classes[this.state.settings.color]   = 1;
-    if (readerPanelContextData.language !== 'bilingual') {
-      let prinaryOrTranslation = (readerPanelContextData.language === 'english') ? 'translation' : 'primary';
-      let direction = this.state.data?.[`${prinaryOrTranslation}Direction`];
+    if (readerPanelContextData.language !== 'bilingual' || !this.state.data?.text?.length) {
+      let isPrimaryShown = readerPanelContextData.language === 'hebrew' || !this.state.data?.text?.length;
+      let primaryOrTranslation = isPrimaryShown ? 'primary' : 'translation';
+      let direction = this.state.data?.[`${primaryOrTranslation}Direction`];
       classes[direction] = 1;
     }
     classes = classNames(classes);

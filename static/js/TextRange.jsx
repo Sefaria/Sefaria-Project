@@ -1,4 +1,4 @@
-import React  from 'react';
+import React from 'react';
 import ReactDOM  from 'react-dom';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
@@ -8,6 +8,7 @@ import Component from 'react-class';
 import {EnglishText, HebrewText} from "./Misc";
 import {VersionContent} from "./ContentText";
 import {ContentText} from "./ContentText";
+import {ReaderPanelContext} from "./context";
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
@@ -440,6 +441,8 @@ TextRange.defaultProps = {
 };
 
 class TextSegment extends Component {
+  static contextType = ReaderPanelContext;
+
   shouldComponentUpdate(nextProps) {
     if (this.props.highlight !== nextProps.highlight)           { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight)   { return true; }
@@ -561,6 +564,7 @@ class TextSegment extends Component {
   }
 
   render() {
+    const {textsData} = this.context;
     let linkCountElement = null;
     let he = this.props.he || "";
     let en = this.props.en || "";
@@ -575,8 +579,8 @@ class TextSegment extends Component {
     en = this.props.formatEnAsPoetry ? this.addPoetrySpans(en) : en
     he = this.props.formatHeAsPoetry ? this.addPoetrySpans(he) : he
 
-    const heOnly = !this.props.en;
-    const enOnly = !this.props.he;
+    const heOnly = !this.props.en && textsData?.primaryDirection === 'rtl';
+    const enOnly = !this.props.he && textsData?.primaryDirection === 'ltr';
 
     if (this.props.showLinkCount) {
       const linkCount = this.props.linkCount;
