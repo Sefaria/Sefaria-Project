@@ -1668,20 +1668,8 @@ def index_api(request, title, raw=False):
         if user_type == CONTENT_TYPE:
             return index_post(request, uid, j, "API", raw)
         elif user_type == ADMIN_TYPE:
-            return handle_admin_post(request, uid, j, title, raw)
-
-    @csrf_protect
-    def handle_admin_post(request, uid, j, title, raw):
-        if 'schema' not in j:
-            # Adjust title and try to retrieve existing schema
-            j["title"] = j["title"].replace("_", " ")
-            title = j.get("oldTitle", j.get("title"))
-            try:
-                book = library.get_index(title)
-                j['schema'] = book.contents()['schema']
-            except BookNameError:
-                return jsonResponse({"error": f"Book {title} does not exist."})
-        return index_post(request, uid, j, None, raw)
+            admin_post = csrf_protect(index_post)
+            return admin_post(request, uid, j, None, raw)
 
     def determine_user_type_and_id(request):
         if request.user.is_staff:

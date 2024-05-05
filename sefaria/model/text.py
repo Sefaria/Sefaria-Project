@@ -546,26 +546,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     else:
                         raise InputError("Please specify section names for Index record.")
 
-                    if d["categories"][0] == "Talmud":
-                        node.addressTypes = ["Talmud", "Integer"]
-                        if d["categories"][1] == "Bavli" and d.get("heTitle") and not self.is_dependant_text():
-                            node.checkFirst = {
-                                "he": "משנה" + " " + d.get("heTitle"),
-                                "en": "Mishnah " + d.get("title")
-                            }
-                    elif d["categories"][0] == "Mishnah":
-                        node.addressTypes = ["Perek", "Mishnah"]
-                    else:
-                        if getattr(node, "addressTypes", None) is None:
+                    if not hasattr(node, "addressTypes"):
+                        if d["categories"][0] == "Talmud":
+                            node.addressTypes = ["Talmud", "Integer"]
+                            if d["categories"][1] == "Bavli" and d.get("heTitle") and not self.is_dependant_text():
+                                node.checkFirst = {
+                                    "he": "משנה" + " " + d.get("heTitle"),
+                                    "en": "Mishnah " + d.get("title")
+                                }
+                        elif d["categories"][0] == "Mishnah":
+                            node.addressTypes = ["Perek", "Mishnah"]
+                        else:
                             node.addressTypes = ["Integer" for _ in range(node.depth)]
-
-                    l = d.pop("length", None)
-                    if l:
-                        node.lengths = [l]
-
-                    ls = d.pop("lengths", None)
-                    if ls:
-                        node.lengths = ls  #overwrite if index.length is already there
 
                 #Build titles
                 node.add_title(d["title"], "en", True)
