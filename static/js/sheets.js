@@ -1264,7 +1264,7 @@ $(function() {
       var $target = $("#addInterface").prev(".sheetItem");
       if ($(this).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
       	var text = $(this).prev(".flexContainer").find(".contentToAdd:visible").html();
-      	text = text.stripHtml() == "English" || text == "עברית" ? "" : text;
+      	text = text.stripHtml() == "English" || text == "བོད་ཡིག" ? "" : text;
         source = {
           outsideText: text,
           isNew: true
@@ -1274,7 +1274,7 @@ $(function() {
         var en = $(this).prev(".flexContainer").find(".en").html();
         var he = $(this).prev(".flexContainer").find(".he").html();
         en = en.stripHtml() == "English" ? "" : en;
-        he = he.stripHtml() == "עברית" ? "" : he;
+        he = he.stripHtml() == "བོད་ཡིག" ? "" : he;
         source = {
           outsideBiText: {
             en: en,
@@ -1289,12 +1289,12 @@ $(function() {
       $target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
       autoSave();
       $("#customTextContainer .contentToAdd.en").html('English');
-      $("#customTextContainer .contentToAdd.he").html('עברית');
+      $("#customTextContainer .contentToAdd.he").html('བོད་ཡིག');
       $("#sheet").click();
     });
 
     $("#addcustomTextDiv").on("focus", ".contentToAdd", function(e) {
-    	if ($(this).html() == "English" || $(this).html() == "עברית") {
+    	if ($(this).html() == "English" || $(this).html() == "བོད་ཡིག") {
     		$(this).html("");
     	}
     });
@@ -3202,7 +3202,7 @@ sjs.replayLastEdit = function() {
 			source = {media: sjs.lastEdit.html, isNew: true};
 			break;
 		case "add english outside":
-			source = {outsideBiText: {en: sjs.lastEdit.html, he: "<i>עברית</i>"}, isNew: true};
+			source = {outsideBiText: {en: sjs.lastEdit.html, he: "<i>བོད་ཡིག</i>"}, isNew: true};
 			break;
 		case "add hebrew outside":
 			source = {outsideBiText: {he: sjs.lastEdit.html, en: "<i>English</i>"}, isNew: true};
