@@ -162,10 +162,10 @@ a, a:hover {
     --sans-serif-small-font-size: 14px;
 
     /* colors */
-    --inline-link-blue: #cc5454;
-    --sefaria-blue: #b5343c;
-    --highlight-blue: #cc7273;
-    --highlight-blue-light: #eccbcc;
+    --inline-link-blue: #4871bf;
+    --sefaria-blue: #18345D;
+    --highlight-blue: #DDEEFF;
+    --highlight-blue-light: #F0F7FF;
     --beit-midrash-grey: #333333;
     --dark-grey: #666666;
     --medium-grey: #999999;
@@ -193,6 +193,10 @@ a, a:hover {
     --miscelaneous-green: #3B5849;
     --selected-option: #000000;
     --select-blue: #0B71E7;
+    --pecha-red: #b5343c;
+    --highlight-red: #cc7273;
+    --highlight-red-light: #eccbcc;
+    --inline-link-red: #cc5454;
 }
 
 /* Font Family */
@@ -255,7 +259,7 @@ body, .en, .int-en {
     align-content: center;
     flex-direction: column;
     margin: 10px 20px;
-    background-color: var(--sefaria-blue);
+    background-color: var(--pecha-red);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     border-radius: 7px;
     cursor: pointer;
@@ -804,7 +808,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 
 .mobileNavMenu a.blue {
-    background-color: #b5343c;
+    background-color: var(--pecha-red);
     color: white;
     border-bottom: unset;
 }
@@ -1279,7 +1283,7 @@ div.interfaceLinks-row a {
 }
 
 #interruptingMessage.sefariaModalContentBox {
-    background-color: #b5343c;
+    background-color: var(--pecha-red);
     color: white;
     padding: 50px 70px;
     border-color: transparent;
@@ -2080,7 +2084,7 @@ div.interfaceLinks-row a {
 }
 
 .navSidebarModule.blue {
-    background-color: var(--sefaria-blue);
+    background-color: var(--pecha-red);
     color: white;
     padding: 34px 44px 45px;
 }
@@ -3176,7 +3180,7 @@ a.navBlockTitle:hover {
 .sidebarPromo.blue {
     padding-top: 33px;
     padding-bottom: 33px;
-    background-color: var(--sefaria-blue);
+    background-color: var(--pecha-red);
     color: #FFF;
 }
 
@@ -3189,7 +3193,7 @@ a.navBlockTitle:hover {
     width: fit-content;
     text-align: center;
     display: inline-block;
-    color: var(--sefaria-blue);
+    color: var(--pecha-red);
     background-color: white;
 }
 
@@ -3211,7 +3215,7 @@ a.navBlockTitle:hover {
 }
 
 .sidebarPromo.blue.button a:hover {
-    color: var(--sefaria-blue);
+    color: var(--pecha-red);
 }
 
 .sidebarPromo img {
@@ -3846,7 +3850,7 @@ a.navBlockTitle:hover {
     text-align: center;
     cursor: pointer;
     color: white;
-    background: #212E50;
+    background: var(--pecha-red);
     padding: 4px 10px;
     border-radius: 3px;
     margin: 10px auto 0;
@@ -3991,12 +3995,12 @@ a.navBlockTitle:hover {
 }
 
 .textTableOfContents .sectionLink.current {
-    background-color: var(--sefaria-blue);
+    background-color: var(--pecha-red);
     color: #FFFFFF;
 }
 
 .textTableOfContents .torahNavParshiot .sectionLink.current {
-    color: var(--sefaria-blue);
+    color: var(--pecha-red);
     font-weight: bold;
 }
 
@@ -4062,7 +4066,7 @@ a.navBlockTitle:hover {
 
 .textTableOfContents .schema-node-toc.linked.current,
 .textTableOfContents .schema-node-toc.linked.current .schema-node-title {
-    color: var(--sefaria-blue);
+    color: var(--pecha-red);
     font-weight: bold;
 }
 
@@ -4440,7 +4444,7 @@ details .open-details::before {
 }
 
 .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a {
-    color: #b5343c;
+    color: var(--pecha-red);
 }
 
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover {
@@ -4598,8 +4602,8 @@ select {
 
 .modTools a .modtoolsButton,
 .bookPage .content a .versionDownloadButton {
-    border-color: #212E50;
-    background-color: #212E50;
+    border-color: var(--pecha-red);
+    background-color: var(--pecha-red);
 }
 
 .modTools .workflowy-tool {
@@ -6090,7 +6094,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .toggleSet.blueStyle .toggleOption.on {
-    background-color: var(--sefaria-blue);
+    background-color: var(--pecha-red);
     color: white;
     border-radius: 6px;
 }
@@ -6782,7 +6786,7 @@ But not to use a display block directive that might break continuous mode for ot
 
 .segment sup.footnote-marker,
 .segment sup.endFootnote {
-    color: var(--inline-link-blue);
+    color: var(--inline-link-red);
 }
 
 .segment .he sup {
@@ -6809,7 +6813,7 @@ But not to use a display block directive that might break continuous mode for ot
     font-family: var(--hebrew-sans-serif-font-family);
     font-size: 0.5em;
     line-height: 1;
-    color: var(--inline-link-blue);
+    color: var(--inline-link-red);
 }
 
 .segment i.footnote {
@@ -8227,7 +8231,7 @@ But not to use a display block directive that might break continuous mode for ot
     width: 52px;
     margin: 0 3px;
     border: 0;
-    color: var(--sefaria-blue);
+    color: var(--pecha-red);
     font-weight: 600;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -8949,7 +8953,7 @@ But not to use a display block directive that might break continuous mode for ot
 .button {
     display: inline-block;
     color: white;
-    background-color: var(--sefaria-blue);
+    background-color: var(--pecha-red);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
     border-radius: 6px;
     padding: 16px 30px;
@@ -9122,8 +9126,8 @@ a .button:hover {
 
 .button.appButton {
     box-shadow: none;
-    border: 2px solid #b5343c;
-    color: #b5343c;
+    border: 2px solid var(--pecha-red);
+    color: var(--pecha-red);
 }
 
 .button.appButton img {
@@ -9800,7 +9804,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     width: 30px;
     border-radius: 30px;
     border: none;
-    background-color: var(--sefaria-blue);
+    background-color: var(--pecha-red);
     cursor: pointer;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
@@ -11239,7 +11243,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
 }
 
 .versionsBox a.selectButton.currSelectButton:not(.version-with-preview-title-line .selectButton) {
-    background-color: #212E50;
+    background-color: var(--pecha-red);
     text-decoration: none;
     cursor: default;
     line-height: 20px;
@@ -11949,7 +11953,7 @@ span.purim-emoji img {
     position: fixed;
     z-index: 9999;
     color: white;
-    background-color: #212E50;
+    background-color: var(--pecha-red);
     border-top: 1px solid #ccc;
     bottom: 0;
     box-sizing: border-box;
@@ -12595,7 +12599,7 @@ section.SheetSource .SheetOutsideBiText {
 
 .editorToggleHeader {
     width: 100%;
-    background-color: #b5343c;
+    background-color: var(--pecha-red);
     color: white;
     height: 60px;
     font-size: 16px;
@@ -13165,7 +13169,7 @@ section.SheetSource .SheetOutsideBiText {
     width: min-content;
     text-align: center;
     cursor: pointer;
-    background: var(--sefaria-blue);
+    background: var(--pecha-red);
     color: white;
     border-radius: 3px;
     margin-inline-start: 15px;
@@ -13648,7 +13652,7 @@ body .homeFeedWrapper.userStats {
 }
 
 .button.small.addTopic {
-    background-color: #212E50;
+    background-color: var(--pecha-red);
     color: #FFFFFF;
     float: right;
     margin-right: 30px;
@@ -14294,7 +14298,7 @@ a.topicLexiconTitle.contentText {
     right: 0;
     color: white;
     z-index: 9999;
-    background-color: #b5343c;
+    background-color: var(--pecha-red);
     padding: 20px;
     line-height: 1.6;
     text-align: center;
