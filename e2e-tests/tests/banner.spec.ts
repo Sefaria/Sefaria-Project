@@ -93,7 +93,7 @@ test('Banner links exist - Hebrew', async ({ context }) => {
     page2.close()
 
     // Testing Sign-up
-    await page.getByRole('banner').getByRole('link', { name: 'להרשמה' }).click();
+    await page.getByRole('banner').getByRole('link', { name: /הרשמה/ }).click();
     expect(getPathAndParams(page.url())).toBe("/register?next=%2Fsearch%3Fq%3DLove%26tab%3Dtext%26tvar%3D1%26tsort%3Drelevance%26svar%3D1%26ssort%3Drelevance");
     
     // Testing Help link
