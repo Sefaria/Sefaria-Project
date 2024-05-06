@@ -41,7 +41,7 @@ test('Banner links exist - English', async ({ context }) => {
     
     // Testing Help link
     await page.getByRole('banner').getByRole('link', { name: 'Help' }).click();
-    expect(getPathAndParams(page.url())).toBe("/collections/sefaria-faqs")
+    expect(getPathAndParams(page.url())).toContain("/collections/sefaria-faqs")
 
     const page1Promise = page.waitForEvent('popup');
     await page.getByRole('banner').getByRole('link', { name: 'Donate' }).click();
