@@ -976,7 +976,7 @@
         },
         {
           "name": "fill_in_missing_segments",
-          "description": "This parameter is only relevant for cases where the requested text is incomplete (i.e. not all of the segments in the requested version exist in the database for that text, such as a partial translation).\n\nWhen `fill_in_missing_segments=True`, the segments of text that are missing in the requested version will be filled by other versions of the same language.\n\nThis value defaults to `False`. \n",
+          "description": "This parameter is only relevant for cases where the requested text is incomplete (i.e. not all of the segments in the requested version exist in the database for that text, such as a partial translation).\n\nWhen `fill_in_missing_segments=1`, the segments of text that are missing in the requested version will be filled by other versions of the same language.\n\nThis value defaults to `0`. \n",
           "schema": {
             "enum": [
               "0",
