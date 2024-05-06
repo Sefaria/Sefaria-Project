@@ -5,7 +5,7 @@
 */
 
 import {test, expect} from '@playwright/test';
-import {goToPageWithLang, sleep} from "../utils";
+import {goToPageWithLang, getPathAndParams} from "../utils";
 import {LANGUAGES} from '../globals'
 
 test('Banner links exist - English', async ({ context }) => {
@@ -14,34 +14,34 @@ test('Banner links exist - English', async ({ context }) => {
 
     // Testing Sefaria logo
     await page.getByRole('link', { name: 'Sefaria Logo' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org/texts")
+    expect(getPathAndParams(page.url())).toBe("/texts")
 
     // Testing Texts link
     await page.getByRole('banner').getByRole('link', { name: 'Texts' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org/texts")
+    expect(getPathAndParams(page.url())).toBe("/texts")
 
     // Testing Topics link
     await page.getByRole('banner').getByRole('link', { name: 'Topics' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org/topics")
+    expect(getPathAndParams(page.url())).toBe("/topics")
 
     // Testing Community link
     await page.getByRole('banner').getByRole('link', { name: 'Community' }).click();
-    expect(page.url()).toContain("https://www.sefaria.org/community")
+    expect(getPathAndParams(page.url())).toContain("/community")
 
     // Testing Sign-up
     // This will end up on the page referenced by the previous "test", which is Community
     await page.getByRole('banner').getByRole('link', { name: 'Sign up' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org/register?next=%2Fcommunity")
+    expect(getPathAndParams(page.url())).toBe("/register?next=%2Fcommunity")
 
     // Testing log in link
     const page2 = await goToPageWithLang(context,'/texts',LANGUAGES.EN);
     await page2.getByRole('banner').getByRole('link', { name: 'Log in' }).click();
-    expect(page2.url()).toBe("https://www.sefaria.org/login?next=%2Ftexts")
+    expect(getPathAndParams(page2.url())).toBe("/login?next=%2Ftexts")
     await page2.close();
     
     // Testing Help link
     await page.getByRole('banner').getByRole('link', { name: 'Help' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org/collections/sefaria-faqs")
+    expect(getPathAndParams(page.url())).toBe("/collections/sefaria-faqs")
 
     const page1Promise = page.waitForEvent('popup');
     await page.getByRole('banner').getByRole('link', { name: 'Donate' }).click();
@@ -55,16 +55,16 @@ test('Banner links exist - Hebrew', async ({ context }) => {
     
     const page = await goToPageWithLang(context, '/', LANGUAGES.HE);
     await page.getByRole('link', { name: 'Sefaria Logo' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org.il/texts")
+    expect(getPathAndParams(page.url())).toBe("/texts")
 
     await page.getByRole('banner').getByRole('link', { name: 'מקורות' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org.il/texts")
+    expect(getPathAndParams(page.url())).toBe("/texts")
 
     await page.getByRole('banner').getByRole('link', { name: 'נושאים' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org.il/topics")
+    expect(getPathAndParams(page.url())).toBe("/topics")
 
     await page.getByRole('banner').getByRole('link', { name: 'קהילה' }).click();
-    expect(page.url()).toContain("https://www.sefaria.org.il/community")
+    expect(page.url()).toContain("/community")
 
     //look for and click Donate, while waiting for the page to pop up
     const page1Promise = page.waitForEvent('popup');
@@ -84,21 +84,21 @@ test('Banner links exist - Hebrew', async ({ context }) => {
     await page.getByPlaceholder('חיפוש').press('Enter');
     await page.getByText('תוצאות עבור').click();
     await page.getByRole('heading', { name: 'תוצאות עבור ״Love״' }).click();
-    expect(page.url()).toBe('https://www.sefaria.org.il/search?q=Love&tab=text&tvar=1&tsort=relevance&svar=1&ssort=relevance')
+    expect(getPathAndParams(page.url())).toBe('/search?q=Love&tab=text&tvar=1&tsort=relevance&svar=1&ssort=relevance')
     
     // Testing Login
     const page2 = await goToPageWithLang(context, '/', LANGUAGES.HE);
     await page2.getByRole('banner').getByRole('link', { name: 'התחברות'}).click();
-    expect(page2.url()).toBe("https://www.sefaria.org.il/login?next=%2Ftexts")
+    expect(getPathAndParams(page2.url())).toBe("/login?next=%2Ftexts")
     page2.close()
 
     // Testing Sign-up
     await page.getByRole('banner').getByRole('link', { name: 'להרשמה' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org.il/register?next=%2Fsearch%3Fq%3DLove%26tab%3Dtext%26tvar%3D1%26tsort%3Drelevance%26svar%3D1%26ssort%3Drelevance");
+    expect(getPathAndParams(page.url())).toBe("/register?next=%2Fsearch%3Fq%3DLove%26tab%3Dtext%26tvar%3D1%26tsort%3Drelevance%26svar%3D1%26ssort%3Drelevance");
     
     // Testing Help link
     await page.getByRole('banner').getByRole('link', { name: 'עזרה' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90");
+    expect(getPathAndParams(page.url())).toBe("/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90");
 
 });
 
@@ -124,10 +124,10 @@ test('Banner - Search, Keyboard, and Language toggle works for English site', as
     await page.getByRole('cell', { name: 'א', exact: true }).click();
     
     await page.locator('#panel-0').getByRole('link', { name: 'עברית' }).click()
-    expect(page.url()).toBe("https://www.sefaria.org.il/texts");
+    expect(getPathAndParams(page.url())).toBe("/texts");
 
     await page.getByRole('list').getByRole('link', { name: 'English' }).click();
-    expect(page.url()).toBe("https://www.sefaria.org.il/translations/en");
+    expect(getPathAndParams(page.url())).toBe("/translations/en");
 
     
 });

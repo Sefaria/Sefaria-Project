@@ -52,3 +52,8 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     await newPage.goto(url);
     return newPage;
 }
+
+export const getPathAndParams = (url: string) => {
+    const urlObj = new URL(url);
+    return urlObj.pathname + urlObj.search;
+}
