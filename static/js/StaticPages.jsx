@@ -9,6 +9,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
 import Cookies from 'js-cookie';
+import ReactMarkdown from 'react-markdown';
 
 
 
@@ -3328,7 +3329,8 @@ const ProductsPage = memo(() => {
                             {/* Will need some kind of mapping here, conditional on icon image*/}
                             {product.cta_labels?.map(cta => (
                                 <a href={cta.url} key={cta.text.en}>
-                                    {cta.icon.url && <img className="productsCTAIcon" src={cta.icon.url} alt="Click icon" />}
+                                    {console.log('cta', cta)}
+                                    {/* {cta.icon.url && <img className="productsCTAIcon" src={cta.icon.url} alt="Click icon" />} */}
                                     <span className="productsCTA">{cta.text.en}</span>
                                 </a>
                             ))}
@@ -3336,7 +3338,7 @@ const ProductsPage = memo(() => {
                         <hr/>
                         <div className="productsInner">
                             <img src={product.rectanglion.url} alt="Product Image"/>
-                            <div className="productsDesc">{product.desc?.en}</div>
+                            <ReactMarkdown className="productsDesc">{product.desc?.en}</ReactMarkdown>
                         </div>
                     </div>
                 ))

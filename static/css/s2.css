@@ -12757,7 +12757,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsInner {
-  border: 2px solid red;
+  /* border: 2px solid red; */
   display: flex;
   align-items: right;
 }
@@ -12765,12 +12765,12 @@ span.ref-link-color-3 {color: blue}
 .productsInner img {
   width: 200px;
   max-width: 100%; 
-  border: 2px solid purple;
-  padding-right: 10%;
+  border: 2px solid gray;
+  margin-right: 3%;
 }
 
 .productsInner .productsDesc {
-  border: 2px solid aquamarine;
+  /* border: 2px solid aquamarine; */
   font: 'Roboto', sans-serif; 
   color: #666666;
   font-size: 16px;
@@ -12778,7 +12778,7 @@ span.ref-link-color-3 {color: blue}
 
 .productsHeader {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: left;
   margin-top: 10%;
 }
 
@@ -12798,15 +12798,20 @@ span.ref-link-color-3 {color: blue}
   border-radius: 6px; 
   padding: 5px 10px; 
   color: #666666; 
+  margin-left: 3%;
 }
 
 .productsHeader .productsCTA {
   color: #4B71B7; 
+  border-width: 10px;
+  border-color: #0cd200;
 }
 
 .productsHeader .productsCTAIcon {
-  width: 1%;
-  height: 1%;
+  width: 10px;
+  height: 10px;
+  /* border-width: 10px;
+  border-color: #0cd200; */
 }
 
 .image-in-text-title {
