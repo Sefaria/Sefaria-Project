@@ -1113,22 +1113,22 @@
           {
             "name": "wrapLinks",
             "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
             },
             "in": "query"
           },
           {
             "name": "wrapNamedEntities",
             "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
             },
             "in": "query"
           },
@@ -1136,11 +1136,11 @@
             "name": "stripItags",
             "description": "Sefaria texts include footnotes and other `iTags` in the response. This param defaults to `0` which leaves them in. Changing it to `1` will remove them.",
             "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
             },
             "in": "query"
           },
@@ -1148,11 +1148,11 @@
             "name": "multiple",
             "description": "If the absolute value of this param is greater than `1` the API response will return include `|n|` text API responses which include `|n|-1` additional consecutive sections of the targeted text if they exist. If the integer is positive, it will return the next consecutive chapter[s], and if negative it will contain the previous consecutive chapter[s].",
             "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
             },
             "in": "query"
           },
@@ -1175,11 +1175,11 @@
           {
             "name": "fallbackOnDefaultVersion",
             "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
             },
             "in": "query"
           },
@@ -1187,11 +1187,11 @@
             "name": "sheets",
             "description": "The `sheets` param defaults to `0`, which turns off user-generated Sefaria Sheet data from being returned in the response. When you explicitly set `sheets=1` all of the user-generated sheet content to that specific connection is returned in list of JSON objects.\n\n_This usage is deprecated. Instead you should use the `Related API`._",
             "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
             },
             "in": "query"
           },
@@ -2945,13 +2945,13 @@
         {
           "name": "dependents",
           "description": "The dependents parameter, if `true`, includes dependent texts. By default, they are filtered out.",
-            "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
-            },
+          "schema": {
+            "enum": [
+              "0",
+              "1"
+            ],
+            "type": "string"
+          },
           "in": "query",
           "required": false
         }
@@ -3521,11 +3521,11 @@
             "name": "with_text",
             "description": "`with_text` is an optional parameter that determines whether or not the API response will include the text of any connected links. It's default is `1`",
             "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
             },
             "in": "query"
           },
@@ -3533,11 +3533,11 @@
             "name": "with_sheet_links",
             "description": "`with_sheet_links` is an optional parameter that determines whether or not the API response will include links to user generated source sheets from Sefaria. It's default is `0`",
             "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
             },
             "in": "query"
           }
@@ -3673,11 +3673,11 @@
             "name": "diaspora",
             "description": "When this value is set to `diaspora=1`, the text returned is the weekly Torah reading for the diaspora. When this value is set to `diaspora=0`, the text returned is the Torah reading for Israel. ",
             "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
             },
             "in": "query",
             "required": false
@@ -5313,11 +5313,11 @@
             "name": "ref_only",
             "description": "By default `0` the Name API returns `Ref`s, book titles, authors, topics, and collections. If true, the response will only contain text references.",
             "schema": {
-                "enum": [
-                    "0",
-                    "1"
-                ],
-                "type": "string"
+              "enum": [
+                "0",
+                "1"
+              ],
+              "type": "string"
             },
             "in": "query"
           }
