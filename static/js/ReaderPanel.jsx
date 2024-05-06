@@ -60,6 +60,7 @@ class ReaderPanel extends Component {
     this.readerContentRef = React.createRef();
   }
   conditionalSetTextData() {
+    this.setState({data: null});
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       const ref = this.state.currentlyVisibleRef;
       Sefaria.getTextFromCurrVersions(ref, this.state.currVersions).then(data => {

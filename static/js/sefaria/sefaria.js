@@ -542,8 +542,8 @@ Sefaria = extend(Sefaria, {
     } else {
       [translation, primary] = versions;
     }
-    ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle, direction: versionsResponse.translationDirection } = translation);
-    ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle, direction: versionsResponse.primaryDirection } = primary);
+    ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle, direction: versionsResponse.translationDirection, languageFamilyName: versionsResponse.translationLang } = translation);
+    ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle, direction: versionsResponse.primaryDirection, languageFamilyName: versionsResponse.primaryLang } = primary);
     if (translation.sources && !translation.sources.every(source => source === translation.sources[0])) {
         versionsResponse.sources = translation.sources;
     }
