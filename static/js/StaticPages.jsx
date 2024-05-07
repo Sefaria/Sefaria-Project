@@ -3327,18 +3327,17 @@ const ProductsPage = memo(() => {
                             <span className="productsTitle">{product.titles.en}</span>
                             <span className="productsTypeLabel">{product.type.en}</span>
                             {/* Will need some kind of mapping here, conditional on icon image*/}
-                            {console.log('ctaTEST', product.ctaLabels)}
                             {product.ctaLabels?.map(cta => (
                                 <a href={cta.url} key={cta.text.en}>
                                     {console.log('cta', cta)}
-                                    {/* {cta.icon.url && <img className="productsCTAIcon" src={cta.icon.url} alt="Click icon" />} */}
+                                    {cta.icon.url && <img className="productsCTAIcon" src={'http://localhost:1337' + cta.icon.url} alt="Click icon" />}
                                     <span className="productsCTA">{cta.text.en}</span>
                                 </a>
                             ))}
                         </div>
                         <hr/>
                         <div className="productsInner">
-                            <img src={product.rectanglion.url} alt="Product Image"/>
+                            <img src={'http://localhost:1337' + product.rectanglion.url} alt="Product Image"/>
                             <ReactMarkdown className="productsDesc">{product.desc?.en}</ReactMarkdown>
                         </div>
                     </div>
