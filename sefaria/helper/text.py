@@ -19,7 +19,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from sefaria.model import *
-from sefaria.utils.hebrew import has_hebrew
+from sefaria.utils.tibetan import has_tibetan
 
 def add_spelling(category, old, new, lang="en"):
     """
@@ -705,7 +705,7 @@ class WorkflowyParser(object):
         spl_title = title.split(self.title_lang_delim)
         titles = {}
         if len(spl_title) == 2:
-            he_pos = 1 if has_hebrew(spl_title[1]) else 0
+            he_pos = 1 if has_tibetan(spl_title[1]) else 0
             he = spl_title[he_pos].split(self.alt_title_delim)
             titles["hePrim"] = he[0].strip()
             titles["heAltList"] = [t.strip() for t in he[1:]]

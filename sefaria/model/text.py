@@ -32,7 +32,8 @@ import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError
-from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
+from sefaria.utils.hebrew import hebrew_term
+from sefaria.utils.tibetan import has_tibetan,is_all_tibetan
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
@@ -394,7 +395,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def get_alt_struct_node(self, title, lang=None):
         if not lang:
-            lang = "he" if has_hebrew(title) else "en"
+            lang = "he" if has_tibetan(title) else "en"
         return self.alt_titles_dict(lang).get(title)
 
     def get_alt_struct_roots(self):
@@ -581,7 +582,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 tv = d.pop("titleVariants", None)
                 if tv:
                     for t in tv:
-                        lang = "he" if has_hebrew(t) else "en"
+                        lang = "he" if has_tibetan(t) else "en"
                         node.add_title(t, lang)
 
                 ht = d.pop("heTitle", None)
@@ -2745,7 +2746,7 @@ class Ref(object, metaclass=RefCacheType):
 
         if tref:
             self.orig_tref = tref
-            self._lang = "he" if is_all_hebrew(tref) else "en"
+            self._lang = "he" if is_all_tibetan(tref) else "en"
             self.tref = self.__clean_tref(tref, self._lang)
             self.__init_tref()
             self._validate()
@@ -5469,7 +5470,7 @@ class Library(object):
             bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  # todo: factor out method
 
             # todo: cache
-            lang = "he" if has_hebrew(bookname) else "en"
+            lang = "he" if has_tibetan(bookname) else "en"
             node = self._title_node_maps[lang].get(bookname)
             if node:
                 indx = node.index
@@ -5787,7 +5788,7 @@ class Library(object):
         :rtype: :class:`sefaria.model.schema.SchemaNode`
         """
         if not lang:
-            lang = "he" if has_hebrew(title) else "en"
+            lang = "he" if has_tibetan(title) else "en"
         title = title.replace("_", " ")
         return self.get_title_node_dict(lang).get(title)
 
@@ -5947,7 +5948,7 @@ class Library(object):
         :return list: titles found in the string
         """
         if not lang:
-            lang = "he" if has_hebrew(s) else "en"
+            lang = "he" if has_tibetan(s) else "en"
         return [m.group('title') for m in self.all_titles_regex(lang, citing_only=citing_only).finditer(s)]
 
     def get_refs_in_string(self, st, lang=None, citing_only=False):
@@ -5964,7 +5965,7 @@ class Library(object):
 
         refs = []
         if lang is None:
-            lang = "he" if has_hebrew(st) else "en"
+            lang = "he" if has_tibetan(st) else "en"
         if lang == "he":
             from sefaria.utils.hebrew import strip_nikkud
             st = strip_nikkud(st)
@@ -6035,7 +6036,7 @@ class Library(object):
         """
         # todo: only match titles of content nodes
         if lang is None:
-            lang = "he" if has_hebrew(st) else "en"
+            lang = "he" if has_tibetan(st) else "en"
 
         if reg is None or title_nodes is None:
             reg, title_nodes = self.get_regex_and_titles_for_ref_wrapping(st, lang, citing_only)

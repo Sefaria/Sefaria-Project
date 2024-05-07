@@ -5,7 +5,7 @@ from sefaria.model import *
 from collections import defaultdict
 from sefaria.system.database import db
 from sefaria.model.abstract import SluggedAbstractMongoRecord
-from sefaria.utils.hebrew import has_hebrew
+from sefaria.utils.tibetan import has_tibetan
 
 django.setup()
 
@@ -154,7 +154,7 @@ def import_rabi_rav_rabbis_into_topics():
         rows = list(c)
     for row in rows:
         typ = row['Error Type (rabbi, title, mistake, correct)']
-        is_heb = has_hebrew(row['Snippet'])
+        is_heb = has_tibetan(row['Snippet'])
 
         if typ == 'title':
             slug_list = [row['Missing Title Slug']]
@@ -215,7 +215,7 @@ def add_ambiguous_topics():
     for k, v in unique_ambiguities.items():
         titles = [{
             "text": title,
-            "lang": "he" if has_hebrew(title) else "en"
+            "lang": "he" if has_tibetan(title) else "en"
         } for title in sorted(v, key=lambda x: len(x))]
         primary_langs_found = set()
         for title in titles:

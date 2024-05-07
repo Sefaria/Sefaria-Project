@@ -7,7 +7,8 @@ import unicodedata
 from . import abstract as abst
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError
-from sefaria.utils.hebrew import has_hebrew, strip_cantillation, has_cantillation
+from sefaria.utils.hebrew import strip_cantillation, has_cantillation
+from sefaria.utils.tibetan import has_tibetan
 
 
 class WordForm(abst.AbstractMongoRecord):
@@ -426,7 +427,7 @@ class LexiconLookupAggregator(object):
 
         lookup_ref = kwargs.get("lookup_ref", None)
         wform_pkey = lookup_key
-        if has_hebrew(input_word):
+        if has_tibetan(input_word):
             # This step technically used to happen in the lookup main method `lexicon_lookup` if there were no initial results, but in case where a
             # consonantal form was supplied in the first place, this optimizes queries.
             input_word = strip_cantillation(input_word)

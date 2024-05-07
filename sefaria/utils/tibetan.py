@@ -1,4 +1,10 @@
 from sefaria.system.decorators import memoized
+import regex
+
+any_tibetan = regex.compile(r"\p{Tibetan}")
+any_english = regex.compile(r"[a-zA-Z]")
+
+
 @memoized
 def english_number_from_tibetan_number(number_string):
     number_mapping = {
@@ -14,6 +20,7 @@ def english_number_from_tibetan_number(number_string):
         "༩": "9",
     }
     return number_mapping.get(number_string, "0")
+
 
 @memoized
 def tibetan_number_from_english_number(number_string):
@@ -45,3 +52,11 @@ def int_to_tib(number: int):
 def tib_to_int(num_str):
     int_num = "".join([english_number_from_tibetan_number(digit) for digit in num_str])
     return int(int_num)
+
+
+def has_tibetan(s):
+    return any_tibetan.search(s)
+
+
+def is_all_tibetan(s):
+    return any_tibetan.search(s) and not any_english.search(s)
