@@ -3327,7 +3327,8 @@ const ProductsPage = memo(() => {
                             <span className="productsTitle">{product.titles.en}</span>
                             <span className="productsTypeLabel">{product.type.en}</span>
                             {/* Will need some kind of mapping here, conditional on icon image*/}
-                            {product.cta_labels?.map(cta => (
+                            {console.log('ctaTEST', product.ctaLabels)}
+                            {product.ctaLabels?.map(cta => (
                                 <a href={cta.url} key={cta.text.en}>
                                     {console.log('cta', cta)}
                                     {/* {cta.icon.url && <img className="productsCTAIcon" src={cta.icon.url} alt="Click icon" />} */}
