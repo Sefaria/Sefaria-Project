@@ -3324,21 +3324,43 @@ const ProductsPage = memo(() => {
                 products.map((product) => (
                     <div key={product.id}>
                         <div className="productsHeader">
-                            <span className="productsTitle">{product.titles.en}</span>
-                            <span className="productsTypeLabel">{product.type.en}</span>
+                            <span className="productsTitle">
+                                <span className="int-en">{product.titles.en}</span>
+                                <span className="int-he">{product.titles.he}</span>
+                            </span>
+                            <span className="productsTypeLabel">                                
+                                <span className="int-en">{product.type.en}</span>
+                                <span className="int-he">{product.type.he}</span>
+                            </span>
                             {/* Will need some kind of mapping here, conditional on icon image*/}
-                            {product.ctaLabels?.map(cta => (
-                                <a href={cta.url} key={cta.text.en}>
-                                    {console.log('cta', cta)}
-                                    {cta.icon.url && <img className="productsCTAIcon" src={'http://localhost:1337' + cta.icon.url} alt="Click icon" />}
-                                    <span className="productsCTA">{cta.text.en}</span>
-                                </a>
-                            ))}
+                            <span className="cta">
+                                {product.ctaLabels?.map(cta => (
+                                    <a href={cta.url} key={cta.text.en}>
+                                        {console.log('cta', cta)}
+                                        {cta.icon.url && <img className="productsCTAIcon" src={'http://localhost:1337' + cta.icon.url} alt="Click icon" />}
+                                        <span className="productsCTA">
+                                            <span className='int-en'>{cta.text.en}</span>
+                                            <span className='int-he'>{cta.text.he}</span>
+                                        </span>
+                                        <img src="static/icons/chevron.svg"/>
+                                    </a>
+                                ))}
+                            </span>
                         </div>
                         <hr/>
                         <div className="productsInner">
                             <img src={'http://localhost:1337' + product.rectanglion.url} alt="Product Image"/>
-                            <ReactMarkdown className="productsDesc">{product.desc?.en}</ReactMarkdown>
+                            <span className='int-en'>
+                                <ReactMarkdown className="productsDesc">
+                                    {product.desc?.en}
+                                </ReactMarkdown>
+                            </span>
+                            <span className='int-he'>
+                                <ReactMarkdown className="productsDesc">
+                                    {product.desc?.he}
+                                </ReactMarkdown>
+                            </span>
+                            
                         </div>
                     </div>
                 ))

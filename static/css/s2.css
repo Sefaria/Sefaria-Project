@@ -12765,7 +12765,6 @@ span.ref-link-color-3 {color: blue}
 .productsInner img {
   width: 200px;
   max-width: 100%; 
-  border: 2px solid gray;
   margin-right: 3%;
 }
 
@@ -12801,19 +12800,33 @@ span.ref-link-color-3 {color: blue}
   margin-left: 3%;
 }
 
-.productsHeader .productsCTA {
+.productsHeader .cta {
+  display: flex;
+  align-items: center;
+}
+
+.productsHeader .cta .productsCTA {
   color: #4B71B7; 
   border-width: 10px;
   border-color: #0cd200;
-  margin-left: 4%;
-  justify-content: right;
+  margin-right: 10px;
 }
 
-.productsHeader .productsCTAIcon {
+.productsHeader .cta .productsCTAIcon {
   width: 10px;
   height: 10px;
+  margin-left: 10px;
   /* border-width: 10px;
   border-color: #0cd200; */
+}
+
+.productsTitle {
+  font-family: Roboto;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  text-align: left;
+  color: #666666;
 }
 
 .image-in-text-title {
