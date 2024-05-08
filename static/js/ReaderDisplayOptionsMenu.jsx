@@ -8,7 +8,7 @@ import FontSizeButtons from "./FontSizeButton";
 import ToggleSwitchLine from "./components/ToggleSwitchLine";
 
 const ReaderDisplayOptionsMenu = () => {
-    const {language, setOption, isComparePanel, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState} = useContext(ReaderPanelContext);
+    const {language, setOption, isComparePanel, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width} = useContext(ReaderPanelContext);
     const showLangaugeToggle = () => {
       if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
@@ -26,6 +26,10 @@ const ReaderDisplayOptionsMenu = () => {
     };
 
     const borderLine = <div className="text-menu-border"/>;
+
+    const showLayoutsToggle = () => {
+        return width > 600 || language !== 'bilingual';
+    }
 
     const haAliyot = () => {
         let booksWithAliyot = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Onkelos Genesis", "Onkelos Exodus", "Onkelos Leviticus", "Onkelos Numbers", "Onkelos Deuteronomy"];
@@ -88,7 +92,7 @@ const ReaderDisplayOptionsMenu = () => {
                 {borderLine}
             </>}
             {!isComparePanel && <>
-                <LayoutButtons/>
+                {showLayoutsToggle() && <LayoutButtons/>}
                 {showAliyotToggle() && <ToggleSwitchLine
                     name="aliyot"
                     text="Aliyot"

@@ -656,6 +656,7 @@ class ReaderPanel extends Component {
       aliyotShowStatus: this.state.settings.aliyotTorah,
       vowelsAndCantillationState: this.state.settings.vowels,
       punctuationState: this.state.settings.punctuationTalmud,
+      width: this.state.width,
     };
 
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
