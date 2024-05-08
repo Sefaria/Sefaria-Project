@@ -16,8 +16,9 @@ const LayoutButtons = () => {
 
     const getPath = (layoutOption) => {
         if (layoutState === 'mixed') {
-            const directions = (layoutOption === 'heLeft') ? `${textsData.primaryDirection}${textsData.translationDirection}`  //heLeft means primary in left
-                : `${textsData.translationDirection}${textsData.primaryDirection}`;
+            const translationDirection = textsData.translationDirection || textsData.primaryDirection.split('').reverse().join(''); //when there is an empty translation it has no direction. we will show the button as opposite layouts.
+            const directions = (layoutOption === 'heLeft') ? `${textsData.primaryDirection}${translationDirection}`  //heLeft means primary in left
+                : `${translationDirection}${textsData.primaryDirection}`;
             if (layoutOption !== 'stacked') {
                 layoutOption = 'beside';
             }
