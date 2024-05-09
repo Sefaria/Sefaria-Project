@@ -3324,16 +3324,18 @@ const ProductsPage = memo(() => {
                 products.map((product) => (
                     <div key={product.id}>
                         <div className="productsHeader">
-                            <span className="productsTitle">
-                                <span className="int-en">{product.titles.en}</span>
-                                <span className="int-he">{product.titles.he}</span>
-                            </span>
-                            <span className="productsTypeLabel">                                
-                                <span className="int-en">{product.type.en}</span>
-                                <span className="int-he">{product.type.he}</span>
-                            </span>
+                            <div className='productsTitleAndLabel'>
+                                <span className="productsTitle">
+                                    <span className="int-en">{product.titles.en}</span>
+                                    <span className="int-he">{product.titles.he}</span>
+                                </span>
+                                <span className="productsTypeLabel">                                
+                                    <span className="int-en">{product.type.en}</span>
+                                    <span className="int-he">{product.type.he}</span>
+                                </span>
+                            </div>
                             {/* Will need some kind of mapping here, conditional on icon image*/}
-                            <span className="cta">
+                            <div className="cta">
                                 {product.ctaLabels?.map(cta => (
                                     <a href={cta.url} key={cta.text.en}>
                                         {console.log('cta', cta)}
@@ -3342,10 +3344,10 @@ const ProductsPage = memo(() => {
                                             <span className='int-en'>{cta.text.en}</span>
                                             <span className='int-he'>{cta.text.he}</span>
                                         </span>
-                                        <img src="static/icons/chevron.svg"/>
+                                        <img className="productsChevron" src="static/icons/chevron.svg"/>
                                     </a>
                                 ))}
-                            </span>
+                            </div>
                         </div>
                         <hr/>
                         <div className="productsInner">

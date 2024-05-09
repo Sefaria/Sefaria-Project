@@ -12777,8 +12777,12 @@ span.ref-link-color-3 {color: blue}
 
 .productsHeader {
   display: flex;
-  justify-content: left;
+  justify-content: space-between;
   margin-top: 10%;
+}
+
+.productsTitleAndLabel {
+  flex:auto;
 }
 
 .productsHeader .productsTitle {
@@ -12827,6 +12831,11 @@ span.ref-link-color-3 {color: blue}
   line-height: 25.78px;
   text-align: left;
   color: #666666;
+}
+
+.productsChevron path {
+  fill: #4B71B7; /* Change to the desired color */
+  stroke-width: 0.5px; /* Adjust the thickness as needed */
 }
 
 .image-in-text-title {
