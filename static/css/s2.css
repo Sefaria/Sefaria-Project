@@ -2314,11 +2314,7 @@ div.interfaceLinks-row a {
   background-color: #FBFBFA;
   /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
   border-top: 80px solid #FBFBFA;
-  /*border-bottom: 120px solid #FBFBFA;*/
   margin-top: -80px;
-  margin-right: 0px;
-  /*margin-bottom: -120px;*/
-  margin-left: 0px;
 }
 .topicPanel h1 {
   text-align: unset;
