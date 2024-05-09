@@ -11652,6 +11652,9 @@ body .homeFeedWrapper .content {
   cursor: pointer;
   list-style: none;
 }
+.story details > summary::-webkit-details-marker {
+    display: none;
+}
 
 .story details > summary .topicStoryDescBlock {
   background-color: var(--lightest-grey);
