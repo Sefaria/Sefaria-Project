@@ -3338,13 +3338,11 @@ const ProductsPage = memo(() => {
                             <div className="cta">
                                 {product.ctaLabels?.map(cta => (
                                     <a href={cta.url} key={cta.text.en}>
-                                        {console.log('cta', cta)}
                                         {cta.icon.url && <img className="productsCTAIcon" src={'http://localhost:1337' + cta.icon.url} alt="Click icon" />}
                                         <span className="productsCTA">
                                             <span className='int-en'>{cta.text.en}</span>
                                             <span className='int-he'>{cta.text.he}</span>
                                         </span>
-                                        <img className="productsChevron" src="static/icons/chevron.svg"/>
                                     </a>
                                 ))}
                             </div>

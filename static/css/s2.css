@@ -12817,11 +12817,12 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsHeader .cta .productsCTAIcon {
-  width: 10px;
-  height: 10px;
-  margin-left: 10px;
-  /* border-width: 10px;
-  border-color: #0cd200; */
+  width: 13.33px;
+  height: 16px;
+  top: 646px;
+  left: 610px;
+  fill: #4B71B7;
+  margin: 0 5px;
 }
 
 .productsTitle {
@@ -12833,9 +12834,9 @@ span.ref-link-color-3 {color: blue}
   color: #666666;
 }
 
-.productsChevron path {
-  fill: #4B71B7; /* Change to the desired color */
-  stroke-width: 0.5px; /* Adjust the thickness as needed */
+.productsCTA::after{
+  content: " >";
+  color: #4B71B7;
 }
 
 .image-in-text-title {
