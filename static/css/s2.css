@@ -12821,8 +12821,8 @@ span.ref-link-color-3 {color: blue}
   height: 16px;
   top: 646px;
   left: 610px;
-  fill: #4B71B7;
   margin: 0 5px;
+  filter: invert(45%) sepia(17%) saturate(1643%) hue-rotate(180deg) brightness(90%) contrast(90%);
 }
 
 .productsTitle {
