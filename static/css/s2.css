@@ -5004,6 +5004,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 44px;
 }
 .leftButtons .readerNavMenuSearchButton span,
+.rightButtons .readerOptions img,
 .leftButtons .readerNavMenuCloseButton span {
   vertical-align: middle;
 }
@@ -12889,6 +12890,10 @@ span.ref-link-color-3 {color: blue}
 .popover-button {
   border: none;
   background-color: inherit;
+}
+
+.rightButtons .popover-button {
+  text-align: end;
 }
 
 .toggle-switch-container {
