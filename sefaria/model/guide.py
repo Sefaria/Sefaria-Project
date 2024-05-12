@@ -140,6 +140,9 @@ Formally:
     def set_expanded_refs(self):
         self.expanded_refs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
+    def load_by_ref(self, ref):
+        return self.load({"ref": ref.normal()})
+
     def contents(self):
         d = super(Guide, self).contents()
         d["anchorRef"] = d["ref"]
