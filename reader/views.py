@@ -1669,8 +1669,9 @@ def index_api(request, title, raw=False):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         user_type, uid = determine_user_type_and_id(request)
-
-        if user_type == CONTENT_TYPE:
+        if uid is None:
+            return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
+        elif user_type == CONTENT_TYPE:
             return index_post(request, uid, j, "API", raw)
         elif user_type == ADMIN_TYPE:
             admin_post = csrf_protect(index_post)
@@ -1685,7 +1686,7 @@ def index_api(request, title, raw=False):
                 apikey = db.apikeys.find_one({"key": key})
                 if apikey:
                     return CONTENT_TYPE, apikey["uid"]
-            return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
+        return None, None
 
     def index_post(request, uid, j, method, raw):
         func = tracker.update if 'update' in j else tracker.add
