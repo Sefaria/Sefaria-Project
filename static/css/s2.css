@@ -10580,6 +10580,9 @@ cursor: pointer;
   padding-bottom: 15px;
 }
 
+.interface-hebrew .singlePanel .langSelectPopover {
+  right: -233px;
+}
 .langSelectPopover .langHeader {
   font-weight: 500;
   font-size: 16px;
