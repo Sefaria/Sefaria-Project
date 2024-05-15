@@ -71,7 +71,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const title = compare ? null :
     <div className="navTitle tight sans-serif">
-        <CategoryHeader type="cats" buttonsToDisplay={["subcategory", "reorder"]}>
+        <CategoryHeader type="cats" toggleButtonIDs={["subcategory", "reorder"]}>
             <h1><InterfaceText>Browse the Library</InterfaceText></h1>
         </CategoryHeader>
       { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
