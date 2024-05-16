@@ -5106,7 +5106,7 @@
             "description": "Successful response"
           }
         },
-        "summary": "Recommended topics API",
+        "summary": "Recommended Topics",
         "description": "Given a list of refs this API returns the most used topics associated with them. It's a fast way of identifying potential shared topics amongst disperate references.\n\nn.b. The `ref_list` param is not required for a post request."
       },
       "parameters": [
