@@ -4750,13 +4750,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #EDEDED;
 }
 .readerControls .connectionsPanelHeader .connectionsHeaderTitle {
-  text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 16px;
   font-weight: lighter;
 }
+.readerControls .connectionsPanelHeader .connectionsHeaderTitle:not(.active) {
+  text-transform: uppercase;
+}
 .connectionsPanelHeader .connectionsHeaderTitle.active {
-  text-transform: none;
   cursor: pointer;
 }
 .connectionsHeaderTitle .fa-chevron-left {
@@ -4876,7 +4877,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
   color: #666;
   width: 100%;
 }
@@ -4908,6 +4908,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: row;
   text-align: right;
+  align-items: center;
 }
 /* icons need a little nudge in flipped hebrew mode */
 .interface-hebrew .rightButtons {

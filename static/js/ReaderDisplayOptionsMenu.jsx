@@ -8,7 +8,9 @@ import FontSizeButtons from "./FontSizeButton";
 import ToggleSwitchLine from "./components/ToggleSwitchLine";
 
 const ReaderDisplayOptionsMenu = () => {
-    const {language, setOption, isComparePanel, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width} = useContext(ReaderPanelContext);
+    const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width} = useContext(ReaderPanelContext);
+
+    const isSidePanel = panelMode !== 'Text';
     const showLangaugeToggle = () => {
       if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
@@ -91,7 +93,7 @@ const ReaderDisplayOptionsMenu = () => {
                 />
                 {borderLine}
             </>}
-            {!isComparePanel && <>
+            {!isSidePanel && <>
                 {showLayoutsToggle() && <LayoutButtons/>}
                 {showAliyotToggle() && <ToggleSwitchLine
                     name="aliyot"

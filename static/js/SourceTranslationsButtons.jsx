@@ -1,8 +1,11 @@
-import React, {useCallback} from "react";
+import React, {useCallback, useContext} from "react";
 import PropTypes from "prop-types";
 import {InterfaceText} from "./Misc";
+import {ReaderPanelContext} from "./context";
 
 function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts }) {
+    const {panelMode} = useContext(ReaderPanelContext);
+    const isSidePanel = panelMode !== 'Text';
     const createButton = useCallback((isPrimary, isTranslation, text) => {
         const isActive = (isPrimary === showPrimary && isTranslation === showTranslation);
         return (
@@ -18,7 +21,7 @@ function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts 
       <div className="show-source-translation-buttons">
           {createButton(true, false, 'Source')}
           {createButton(false, true, 'Translation')}
-          {createButton(true, true, 'Source with Translation')}
+          {!isSidePanel && createButton(true, true, 'Source with Translation')}
       </div>
     );
 }
