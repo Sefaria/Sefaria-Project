@@ -587,7 +587,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/collections/sefaria-faqs?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/collections/pecha-help-center?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224919?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="מדריך למשתמש המתחיל"
                 en="Tutorials for Learners"
@@ -948,7 +948,7 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "", "https://www.sefaria.org/collections/sefaria-faqs",""],
+          ["Help Center", "", "https://www.sefaria.org/collections/pecha-help-center",""],
           ["Webinars", "", "https://www.sefaria.org/sheets/228105?lang=bi",""],
           ["Request New Resources", "", "https://sefaria.typeform.com/to/aaZmi4JD?typeform-source=www.sefaria.org",""]
       ].map(i =>
