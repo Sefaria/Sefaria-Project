@@ -2166,6 +2166,17 @@ div.interfaceLinks-row a {
 .ai-info-messages-box *{
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
+.guideHeader .ai-info-tooltip {
+	display: inline;
+    float: inline-end;
+}
+
+.guideHeader .ai-message {
+  left: -180px;
+}
+.guideHeader .ai-info-tooltip .ai-info-icon {
+    margin-top: 5px;
+}
 .ai-info-last-message {
   align-items: center;
   display: flex;
@@ -2179,6 +2190,7 @@ div.interfaceLinks-row a {
 .ai-message {
   z-index: 1;
   position: absolute;
+  left: -180px;
   opacity: 0;
   visibility: hidden;
   transition: opacity 2s ease, visibility 0s 2s;

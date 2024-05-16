@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Component from 'react-class';
 import Sefaria from "./sefaria/sefaria";
 import TextRange from "./TextRange";
+import {AiInfoTooltip} from './Misc';
 
 // Constants for different prompt states
 const QUESTIONS = "questions";
@@ -141,6 +142,7 @@ class GuideBox extends Component {
         <h2 className="guideHeader">
           <span className="int-en">Learning Guide</span>
           <span className="int-he">מדריך למידה</span>
+          <AiInfoTooltip/>
         </h2>
         {this.state.promptState === QUESTIONS && <QuestionBox prompt={this.state.livePrompt} onClick={this.onClickQuestion} />}
         {this.state.promptState === SUMMARIES && <SummaryBox prompt={this.state.livePrompt} onClick={this.onClickSummary} />}
