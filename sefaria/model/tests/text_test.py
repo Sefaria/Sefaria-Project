@@ -412,6 +412,7 @@ def test_index_update():
         "heTitle": "כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
+        "addressTypes": ["Integer", "Integer"],  # this change will not go through as addressTypes cannot be changed this way for an existing Index. instead, it's necessary to edit the JaggedArrayNode
         "categories": ["Musar"]
     })
     i = model.Index().load({"title": ti})
@@ -419,8 +420,7 @@ def test_index_update():
     assert "Bavli" not in i.categories
 
     i = model.Index().load({"title": ti})
-    assert i.schema["addressTypes"] == ["Talmud", "Integer"]  # this is unexpected, but this shows why it is more efficient to update an Index with a schema
-                                                             # in order to get it to have the right addressTypes for Musar, we have to edit the JaggedArrayNode
+    assert i.schema["addressTypes"] == ["Talmud", "Integer"]
     model.IndexSet({"title": ti}).delete()
 
 
