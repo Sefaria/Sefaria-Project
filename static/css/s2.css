@@ -1484,7 +1484,8 @@ div.interfaceLinks-row a {
 .readerPanel .content {
   direction: ltr; /* Even in Hebrew Interface, we want scroll bars on the right */
 }
-.readerPanel .he {
+.readerPanel .he,
+.readerPanel .content .rtl {
   direction: rtl;
   text-align: right;
   unicode-bidi: initial;
