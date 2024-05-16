@@ -395,7 +395,7 @@ class UserProfile(object):
 
         # new editor
         self.show_editor_toggle = False
-        self.uses_new_editor = False
+        self.uses_new_editor = True
 
         # Fundraising
         self.is_sustainer = False
