@@ -10,6 +10,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 import structlog
 
+from sefaria.app_analytic import track_page_to_mp, add_sheet_data
+
 logger = structlog.get_logger(__name__)
 
 from django.template.loader import render_to_string
@@ -192,6 +194,7 @@ def view_sheet(request, sheet_id, editorMode=False):
     """
     View the sheet with sheet_id.
     """
+    track_page_to_mp(request=request, page_title='Sheets', text_ref=sheet_id)
     editor = request.GET.get('editor', '0')
     embed = request.GET.get('embed', '0')
 
@@ -200,6 +203,7 @@ def view_sheet(request, sheet_id, editorMode=False):
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
+
     if "error" in sheet and sheet["error"] != "Sheet updated.":
         return HttpResponse(sheet["error"])
 
@@ -232,7 +236,7 @@ def view_sheet(request, sheet_id, editorMode=False):
         viewer_is_liker = False
 
     canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
-
+    add_sheet_data(request=request, title=sheet["title"], action_type='View', owner=sheet["owner"])
     return render_template(request, 'sheets.html', None, {
         "sheetJSON": json.dumps(sheet),
         "sheet": sheet,
