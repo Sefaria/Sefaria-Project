@@ -74,18 +74,4 @@ python-dotenv~=1.0.1
 #opentelemetry-propagator-b3
 #opentelemetry-propagator-jaeger
 
-structlog~=24.1.0
-djangorestframework~=3.11.1
-Pillow~=10.0.1
-urllib3~=1.26.18
-python-dateutil~=2.9.0.post0
-beautifulsoup4~=4.12.3
-pip~=24.0
-attrs~=23.2.0
-wheel~=0.29.0
-ipaddress~=1.0.16
-setuptools~=69.2.0
-packaging~=24.0
-zipp~=3.18.1
-py~=1.11.0
 mixpanel~=4.10.1
