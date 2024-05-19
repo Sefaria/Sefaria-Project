@@ -791,6 +791,7 @@ class ReaderPanel extends Component {
           translationLanguagePreference={this.props.translationLanguagePreference}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
+          filterRef={this.state.filterRef}
           key="connections" />
       );
     }

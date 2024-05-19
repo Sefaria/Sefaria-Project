@@ -141,6 +141,11 @@ class TextRange extends Component {
 
     this.conditionalPlaceSegmentNumbers();
     this.props.onTextLoad && this.props.onTextLoad(data.ref);
+
+    const connectionsPanelRefElement = document.querySelectorAll(`[data-ref='${this.props.filterRef}']`);
+    if (connectionsPanelRefElement.length > 0) {
+      connectionsPanelRefElement[0].scrollIntoView();
+    }
   }
   _prefetchLinksAndNotes(data) {
     let sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
@@ -434,7 +439,7 @@ TextRange.propTypes = {
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
   translationLanguagePreference: PropTypes.string,
-  navigatePanel:          PropTypes.func
+  navigatePanel:          PropTypes.func,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
@@ -662,7 +667,7 @@ TextSegment.propTypes = {
   onFootnoteClick: PropTypes.func,
   onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
-  navigatePanel: PropTypes.func
+  navigatePanel: PropTypes.func,
 };
 
 export default TextRange;

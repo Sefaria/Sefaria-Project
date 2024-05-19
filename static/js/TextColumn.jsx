@@ -87,6 +87,7 @@ class TextColumn extends Component {
       // console.log("restore scroll by percentage for layout Width Change")
       this.restoreScrollPositionByPercentage();
     }
+    
   }
   handleScroll(event) {
     // console.log("scroll");

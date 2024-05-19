@@ -438,6 +438,7 @@ class ConnectionsPanel extends Component {
         selectedWords={this.props.selectedWords}
         checkVisibleSegments={this.checkVisibleSegments}
         translationLanguagePreference={this.props.translationLanguagePreference}
+        filterRef={this.props.filterRef}
       />);
 
     } else if (this.props.mode === "Sheets") {
@@ -718,6 +719,7 @@ ConnectionsPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   scrollPosition: PropTypes.number,
   setSideScrollPosition: PropTypes.func.isRequired,
+  filterRef: PropTypes.string,
 };
 
 
