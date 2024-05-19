@@ -1,6 +1,9 @@
+import os.path
+
 from mixpanel import Mixpanel
 
-mp = Mixpanel("1b8cd10a285fdeb2a2ccf5c1ae61df81")
+MATRIX_TOKEN = os.getenv("MATRIX_PROJECT_TOKEN")
+mp = Mixpanel(MATRIX_TOKEN)
 
 
 def add_signup_info(email, first_name, last_name):
