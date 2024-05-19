@@ -665,6 +665,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if getattr(self, attr, None):
                 delattr(self, attr)
 
+        # Index Editor can set collective_title and dependence to empty string if admin doesn't fill in a value.
+        # likewise, it can set base_text_titles to [] but we don't want empty strings/lists for these fields in the database
+        if getattr(self, "base_text_titles", None) == []:  # if base_text_titles is present but is empty list
+            delattr(self, "base_text_titles")
+        if getattr(self, "dependence", None) == "":
+            delattr(self, "dependence")
+        if hasattr(self, "collective_title"):
+            if self.collective_title == "":
+                del self.collective_title
+
     def _update_alt_structs_on_title_change(self):
         old_title = self.pkeys_orig_values["title"]
         new_title = self.nodes.primary_title("en")
@@ -683,20 +693,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             self._set_struct_objs()
 
     def _validate(self):
-        def handle_dependence_fields():
-            # Index Editor can set collective_title and dependence to empty string if admin doesn't fill in a value.
-            # likewise, it can set base_text_titles to [] but we don't want empty strings/lists for these fields in the database
-            if getattr(self, "base_text_titles", None) == []:  # if base_text_titles is present but is empty list
-                delattr(self, "base_text_titles")
-            if getattr(self, "dependence", None) == "":
-                delattr(self, "dependence")
-            if hasattr(self, "collective_title"):
-                if self.collective_title == "":
-                    del self.collective_title
-                elif not hebrew_term(getattr(self, "collective_title", None)):
-                    raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(
-                        self.collective_title))
-
         assert super(Index, self)._validate()
 
         # Keys that should be non empty lists
@@ -725,8 +721,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
-        handle_dependence_fields()
-
         from sefaria.model import Category
         if not Category().load({"path": self.categories}):
             raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
@@ -742,6 +736,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if not hebrew_term(cat):
                 raise InputError("You must add a hebrew translation Term for any new Category title: {}.".format(cat))
         '''
+
+        if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
+            raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(
+                self.collective_title))
 
         #complex style records- all records should now conform to this
         if self.nodes:
