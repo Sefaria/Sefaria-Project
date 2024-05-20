@@ -9982,7 +9982,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 
 .collectionInvitationBox .button {
-    margin: 0;
+    margin: 10;
 }
 
 .collectionSheetInner {
@@ -12432,7 +12432,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .interface-hebrew .tab-view .tab-list .tab {
-    margin: 0 0 0 30px;
+    margin: 0 0 0 0px;
 }
 
 .tab-view .tab-list .tab img {
@@ -12482,7 +12482,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .interface-hebrew .tab-view .tab-list .justifyright {
-    margin: 0 auto 0 0;
+    margin: 0 auto 0 30;
 }
 
 .tab-list :not(.active) .tab, .tab-list :not(.active) .tab a {
