@@ -29,7 +29,7 @@ const QuestionBox = ({ prompt, onClick }) => {
       </div>
       {prompt.map((p, i) => {
         return (
-          <div key={i} className="guidePromptBox" onClick={() => onClick(p)}>
+          <div key={i} className="guidePromptBox" onClick={() => onClick(p, i)}>
             <p>{p.question}</p>
             <span>{questionHelperText(p)}</span>
           </div>
@@ -58,7 +58,7 @@ const SummaryBox = ({ prompt, onClick }) => {
       </div>
       {prompt.commentaries.map((p, i) => {
         return (
-          <div key={i} className="guidePromptBox" onClick={() => onClick(p.commentaryRef)}>
+          <div key={i} className="guidePromptBox" onClick={() => onClick(p.commentaryRef, i)}>
             <p>{p.summaryText}</p>
             <span>{title(p.commentaryRef)}</span>
           </div>
@@ -127,12 +127,48 @@ class GuideBox extends Component {
     }
   }
 
-  onClickQuestion = (p) => {
+  onClickQuestion = (p, i) => {
+    const parsedRef = Sefaria.parseRef(this.props.sref);
+    gtag("event", "guide_question_clicked", {
+      panel_type: "sidebar",
+      panel_number: 1.5,  // Theoretically, this could be 2.5, 3.5, etc.
+      panel_name: "Learning Guide",
+      panel_category: "Resources | Guide",
+      ref: this.props.sref,
+      position: i + 1,
+      experiment: true,
+      text: p.question,
+      feature_name: "Key Questions",
+      engagement_type: "consult",
+      engagement_value: 1,
+      item_id: parsedRef.index
+      // version
+      // A_alef
+      // content_type
+    });
     this.setState({ promptState: SUMMARIES, livePrompt: p, backText: "Questions" });
   }
 
 
-  onClickSummary = (commentaryRef) => {
+  onClickSummary = (commentaryRef, i) => {
+    const parsedRef = Sefaria.parseRef(this.props.sref);
+    gtag("event", "guide_answer_clicked", {
+      panel_type: "sidebar",
+      panel_number: 1.5,  // Theoretically, this could be 2.5, 3.5, etc.
+      panel_name: "Learning Guide",
+      panel_category: "Resources | Guide",
+      ref: this.props.sref,
+      position: i + 1,  // Ideally, this should be question pos and answer pos.
+      experiment: true,
+      // text
+      feature_name: "Key Questions",
+      engagement_type: "consult",
+      engagement_value: 1,
+      item_id: parsedRef.index
+      // version
+      // A_alef
+      // content_type
+    });
     this.setState({ promptState: COMMENTARIES, commentaryRef: commentaryRef, backText: "Summary" });
   }
 

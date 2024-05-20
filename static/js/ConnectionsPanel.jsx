@@ -376,7 +376,7 @@ class ConnectionsPanel extends Component {
                 //ironically we need the masterpanel mode to be sheet to indicate a sheet is loaded, but the
                 // title prop to be something other than "Sheet" to indicate that a real source is being
                 // looked at
-                (this.props.masterPanelMode == "Sheet" && this.props.title !== "Sheet") ?
+                (this.props.masterPanelMode === "Sheet" && this.props.title !== "Sheet") ?
                     <>
                       <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
                       <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={resourcesButtonCounts["translations"]} urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} />
@@ -408,7 +408,7 @@ class ConnectionsPanel extends Component {
         </div>
       );
 
-    } else if (this.props.mode == "Navigation") {
+    } else if (this.props.mode === "Navigation") {
       content = (
         <TextTableOfContents
           narrowPanel={this.props.narrowPanel}
@@ -478,7 +478,7 @@ class ConnectionsPanel extends Component {
           /> : null
         }
       </div>);
-    } else if (this.props.mode == "Add To Sheet") {
+    } else if (this.props.mode === "Add To Sheet") {
       let refForSheet, versionsForSheet, selectedWordsForSheet, nodeRef;
       // add source from connections
       if (this.props.connectionData && this.props.connectionData.hasOwnProperty("addSource") && this.props.connectionData["addSource"] == 'connectionsPanel') {
@@ -549,7 +549,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "WebPages" || this.props.mode === "WebPagesList") {
       content = (<WebPagesList
         srefs={this.props.srefs}
-        filter={this.props.mode == "WebPages" ? null : this.props.webPagesFilter}
+        filter={this.props.mode === "WebPages" ? null : this.props.webPagesFilter}
         setWebPagesFilter={this.props.setWebPagesFilter}
         interfaceLang={this.props.interfaceLang}
         key="WebPages" />);
@@ -676,7 +676,7 @@ class ConnectionsPanel extends Component {
               />
     }
 
-    const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
+    const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) !== -1;
     let classes = classNames({ connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel });
     return (
       <div className={classes} key={this.props.mode}>
