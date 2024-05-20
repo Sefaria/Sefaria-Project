@@ -78,6 +78,7 @@ class GuideBox extends Component {
       guideLanguage: Sefaria.interfaceLang,
       guide: guide,
       livePrompt: guide.questions,
+      questionPosition: 0,
       promptState: QUESTIONS,
       commentaryRef: ""
     };
@@ -89,7 +90,7 @@ class GuideBox extends Component {
       const guides = Sefaria.guidesByRef(this.props.sref);
       if (guides.length) {
         const guide = guides[0];
-        this.setState({ guide: guide, livePrompt: guide.questions, promptState: QUESTIONS });
+        this.setState({ guide: guide, livePrompt: guide.questions, questionPosition: 0, promptState: QUESTIONS });
         this.resetHistory();
       }
     }
@@ -146,7 +147,7 @@ class GuideBox extends Component {
       // A_alef
       // content_type
     });
-    this.setState({ promptState: SUMMARIES, livePrompt: p, backText: "Questions" });
+    this.setState({ promptState: SUMMARIES, livePrompt: p, questionPosition: i+1, backText: "Questions" });
   }
 
 
@@ -158,9 +159,9 @@ class GuideBox extends Component {
       panel_name: "Learning Guide",
       panel_category: "Resources | Guide",
       ref: this.props.sref,
-      position: i + 1,  // Ideally, this should be question pos and answer pos.
+      position:  Number(this.state.questionPosition + "." + (i + 1)),  // Question position + decimal point + answer position, cast to number
       experiment: true,
-      // text
+      text: commentaryRef,
       feature_name: "Key Questions",
       engagement_type: "consult",
       engagement_value: 1,
@@ -181,7 +182,7 @@ class GuideBox extends Component {
           <AiInfoTooltip/>
         </h2>
         {this.state.promptState === QUESTIONS && <QuestionBox prompt={this.state.livePrompt} onClick={this.onClickQuestion} />}
-        {this.state.promptState === SUMMARIES && <SummaryBox prompt={this.state.livePrompt} onClick={this.onClickSummary} />}
+        {this.state.promptState === SUMMARIES && <SummaryBox prompt={this.state.livePrompt} questionPosition={this.state.questionPosition} onClick={this.onClickSummary} />}
         {this.state.promptState === COMMENTARIES && <TextRange sref={this.state.commentaryRef} />}
       </section>
     )
