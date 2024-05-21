@@ -3329,10 +3329,10 @@ const ProductsPage = memo(() => {
                                     <span className="int-en">{product.titles.en}</span>
                                     <span className="int-he">{product.titles.he}</span>
                                 </span>
-                                <span className="productsTypeLabel">                                
+                                {product.type.en ? (<span className="productsTypeLabel">                                
                                     <span className="int-en">{product.type.en}</span>
                                     <span className="int-he">{product.type.he}</span>
-                                </span>
+                                </span>) : ''}
                             </div>
                             {/* Will need some kind of mapping here, conditional on icon image*/}
                             <div className="cta">
