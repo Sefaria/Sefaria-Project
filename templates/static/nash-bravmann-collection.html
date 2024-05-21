@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}The Nash-Bravmann Collection{% endblock %}
+
+{% block description %}The Jack Nash and Ludwig Bravmann Collection is a free, online library of Rabbi Adin Steinsaltz's major commentaries in Hebrew and English. Interlinked to Sefaria’s vast and ever-growing corpus of Jewish text, The Nash-Bravmann collection will further integrate Rabbi Steinsaltz’s Torah into the Jewish library, while also bringing these already-renowned commentaries to an even wider global audience. This exciting partnership was made possible by a generous donation by the Pershing Square Foundation in honor of Jack Nash and Ludwig (Lou) Bravmann, two pioneering Jewish philanthropists whose lifelong support of Rabbi Steinsaltz was essential to his outsized output and impact.{% endblock %}
+
+{% block css %}
+#nashBravemannCollection {
+text-align: justify;
+}
+#nashBravemannCollection p {
+margin-bottom: 20px;
+}
+#cardBlock {
+background: white;
+border: 1px solid #F2F2F2;
+border-top: 6px solid #ccb479;
+padding: 50px 60px;
+margin-bottom: 60px
+}
+@media screen and (max-width: 500px) {
+#cardBlock {
+padding: 40px 20px;
+}
+}
+#nashBravemannCollection h1 {
+font-size: 30px;
+color: #000;
+margin-bottom: 5px;
+--english-font: var(
+--english-serif-font-family);
+--hebrew-font:  var(
+--hebrew-serif-font-family);
+text-align: unset;
+letter-spacing: 0;
+line-height: 36px;
+margin: 0 0 35px;
+}
+#cardBlock p {
+color: #666;
+}
+#nashBravemannCollection h2 {
+text-align: start;
+color: #666666;
+position: relative;
+font-size: 22px;
+font-weight: 501;
+margin: 50px 0 10px 0;
+letter-spacing: 0;
+height: auto;
+text-transform: none;
+border-bottom: 0;
+}
+
+#nashPhoto {
+width: 300px;
+height: 300px;
+left: 276px;
+top: 595px;
+margin: 0 0px 7px 0;
+}
+#bravemannPhoto {
+width: 300px;
+left: 276px;
+top: 1357px;
+margin: 0 0px 7px 0;
+}
+.nash-bravmann-photo-credit {
+font-family: 'Roboto';
+font-style: normal;
+font-weight: 400;
+font-size: 14px;
+line-height: 18px;
+margin: 0 0px 22px 0;
+color: #666666;
+}
+
+
+.nash-bravmann-quote {
+text-align: center;
+font-size: 18px;
+}
+.nash-bravmann-quote-he-verse {
+font-size: 24px
+}
+.verse-second-line-en {
+margin-top: -15px
+}
+.nash-bravmann-verse-ref {
+font-size: 22px;
+font-style: italic;
+text-decoration: underline;
+}
+
+{% endblock %}
+
+{% block content %}
+
+<div class="container static" id="nashBravemannCollection">
+    <div class="inner">
+        <h1>
+            <div>
+                <span class="int-en">The Jack Nash and Ludwig Bravmann Collection</span>
+                <span class="int-he">אוסף ג׳ק נאש ולודוויג ברוומן</span>
+            </div>
+        </h1>
+
+        <p>
+            <span class="int-en">The Jack Nash and Ludwig Bravmann Collection is a free, <a
+                    href="topics/adin-steinsaltz">online library of Rabbi Adin Even-Israel Steinsaltz's</a> major commentaries in Hebrew and English. Interlinked with Sefaria’s vast and ever-growing corpus of Jewish text, the Nash-Bravmann Collection further integrates Rabbi Steinsaltz’s Torah into the Jewish library, while also bringing these already-renowned commentaries to an even wider global audience.</span>
+            <span class="int-he">האוסף על שם ג׳ק נאש ולודוויג ברוומן הינו
+                    <a href="/topics/adin-steinsaltz">
+                    ספריה מקוונת חינמית הכוללת את הפרשנויות המרכזיות של הרב עדין אבן-ישראל שטיינזלץ</a>
+                    בעברית ובאנגלית. בעצם שילובם של כתבי הרב שטיינזלץ באופן שוטף בספרייה ההולכת ומתרחבת של ספריא, אוסף נאש-ברוומן משמש כאמצעי להטמעה מעמיקה של תורתו בתוך שאר עולם המקורות היהודי, תוך כדי הנגשת הפרשנויות הנודעות האלו לקהילתנו העולמית.</span>
+        </p>
+
+        <p>
+            <span class="int-en">In 2017, Sefaria had the honor of adding Rabbi Steinsaltz’s commentary and translation of the Babylonian Talmud to our library. In March 2024, with the addition of his commentaries on Tanakh and the Mishneh Torah, we launched the Nash-Bravmann Collection. This project continues to evolve as we add more of Rabbi Steinsaltz’s texts.</span>
+            <span class="int-he">ב-2017, זכינו להוסיף את ביאור שטיינזלץ לתלמוד הבבלי לספריא. במרץ 2024, עם הוספת הפרשנויות של הרב שטיינזלץ לתנ״ך ולמשנה תורה של רמב״ם, השקנו את אוסף נאש-ברוומן. בהמשך, אנו מצפים לצרף עוד מכתבי הרב שטיינזלץ לאוסף, אשר ימשיך להתרחב ברבות השנים.</span>
+        </p>
+
+        <p>
+            <span class="int-en">The Nash-Bravmann Collection was made possible by a generous donation from the Pershing Square Foundation in honor of Jack Nash and Ludwig (Lou) Bravmann, two pioneering Jewish philanthropists whose lifelong support of Rabbi Steinsaltz was essential to his outsized output and impact.</span>
+            <span class="int-he">האוסף המשמעותי הזה אפשרי בזכות תרומה נדיבה שניתנה על ידי קרן פרשינג סקוור לזכרם של ג׳ק נאש ולודוויג (לו) ברוומן, שני חלוצים בעולם הפילנתרופיה היהודית שתמכו לאין שיעור בעבודתו הענפה של הרב שטיינזלץ.</span>
+        </p>
+
+        <h2>
+            <span class="int-en">Jack Nash</span>
+            <span class="int-he">ג׳ק נאש</span>
+        </h2>
+
+        <img alt="Headshot of Jack Nash" id="nashPhoto" src="{% static 'img/jack-nash.png' %}">
+        <div class="int-en nash-bravmann-photo-credit">Photo courtesy of the Nash Family</div>
+        <div class="int-he nash-bravmann-photo-credit"> התמונה באדיבות משפחת נאש</div>
+
+        <p>
+            <span class="int-en">Jack Nash (April 10, 1929 - July 30, 2008) was a former chairman of Oppenheimer & Company and a pioneer of the modern hedge fund. Nash was born in Germany and immigrated to the United States with his family at the beginning of World War II when he was 11. He attended Stuyvesant High School in Manhattan and graduated from City College in 1953.</span>
+            <span class="int-he">ג׳ק נאש (10 באפריל 1929 - 30 ביולי 2008) היה יושב הראש של חברת אופנהיימר ושות׳ וחלוץ שפיתח את קרנות הגידור כפי שידועים לנו כיום. מר נאש נולד בגרמניה והיגר לארצות הברית עם משפחתו בתחילת מלחמת העולם השניה, בהיותו בן 11. הוא למד בתיכון על שם סטייבסנט במנהטן וסיים לימודי תואר בסיטי קולג׳ בשנת 1953.</span>
+        </p>
+
+        <p>
+            <span class="int-en">Nash joined Oppenheimer as a trainee in 1951 when it was still a small Wall Street investment firm, and became the company’s president in 1974 and chairman in 1979. At Oppenheimer, Nash specialized in leveraged buyouts and transformed the company into one of the world’s largest mutual fund businesses. In 1982, Nash started a new hedge fund, Odyssey Partners where he oversaw the fund’s short-term trades and negotiated deals. Under Nash’s leadership, the hedge fund grew to a multi-billion dollar operation before it closed in 1997.</span>
+            <span class="int-he">מר נאש הצטרף לחברת אופנהיימר כמתלמד בשנת 1951, בעוד היתה זו חברת השקעות קטנה הפועלת בוול סטריט. ב-1974, הוא מונה לנשיאות החברה וב-1979 מונה לתפקיד היו״ר. במהלך שנותיו באופנהיימר, מר נאש התמחה במינוף רכישת חברות ובכך שינה את פניה של החברה מעסק קטן לאחת מחברות הנאמנות הגדולות בעולם. ב-1982, מר נאש ייסד קרן גידור חדשה, בשם שותפי אודיסי, שם השגיח על כל הקשור למסחר קצר-טווח וניהל משא ומתן בכדי לסגור עסקאות משמעותיות. תחת הנהגתו של מר נאש, קרן הגידור צמחה לעסק בשווי מיליארדי דולרים עד שנסגרה ב-1997.</span>
+        </p>
+
+        <p>
+            <span class="int-en">Nash along with his wife, Helen Englander, donated millions of dollars to Jewish causes, as well as to other cultural and social institutions.</span>
+            <span class="int-he">יחד עם אשתו, הלן אינגלנדר, מר נאש תרם מיליוני דולרים לארגונים ומטרות יהודיים, בנוסף לתמיכתם בארגוני חברה ותרבות נוספים.</span>
+        </p>
+        <h2>
+            <span class="int-en">Ludwig (Lou) Bravmann</span>
+            <span class="int-he">לודוויג ברוומן</span>
+        </h2>
+        <img alt="Headshot of Ludwig Bravmann" id="bravemannPhoto" src="{% static 'img/ludwig-bravmann.png' %}">
+        <div class="int-en nash-bravmann-photo-credit">Photo courtesy of the Bravmann Family</div>
+        <div class="int-he nash-bravmann-photo-credit">התמונה באדיבות משפחת ברוומן</div>
+
+
+        <p>
+            <span class="int-en">Ludwig (Lou) Bravmann (April 15, 1925 - November 16, 2022) was an inspiring and storied Wall Street veteran. He began his career at Oppenheimer & Co. Inc. in 1952 as the firm's third employee. Mr. Bravmann advanced quickly, was named a general partner in 1962, and served as chairman of the Management Committee from 1975 to 1982. His commitment to his clients led him to become a managing director at Investments of Oppenheimer, a firm that has evolved into a national boutique with global access. Mr. Bravmann embodied the guiding spirit of Oppenheimer: a strong work ethic, a love of the markets, the joy of helping his clients succeed, and the memorable friendships made along the way.</span>
+            <span class="int-he">לודוויג (לו) ברוומן (15 באפריל 1925 - 16 בנובמבר 2022) היה מוותיקי וול סטריט שסיפורם עתיד להוות השראה עבור משקיעים רבים. בתחילת דרכו היה השכיר השלישי שהועסק על ידי חברת אופנהיימר ושות׳, אך מר ברוומן התקדם במהירות. כבר ב-1962 היה לשותף כללי, ובין השנים 1975-1982 היה ליושב ראש הועד המנהל של החברה. מחויבותו לצרכנים הובילה אותו לעמדת מנהל כללי של השקעות אופנהיימר, פירמה אשר היתה לחברת בוטיק כלל-ארצית עם נגישות בינלאומית. מר ברוומן נשא בחיקו את האתוס המנחה של אופנהיימר: מוסר עבודה גבוה, אהבה לשוקי ההון, מציאת אושר בהצלחת לקוחותיו, ופיתוח של מערכות יחסים בלתי נשכחות לאורך הדרך.</span>
+        </p>
+
+        <p>
+            <span class="int-en">Mr. Bravman was born in Wurzburg, Germany, and came to the United States in 1941. He studied at the City College of New York, served in the US military during World War II, and was awarded the Decorated Bronze Star Medal in recognition of heroic service. Along with his wife Lotte, Mr. Bravmann was active and generous to numerous Jewish and other philanthropic endeavors, and was known to lend support to friends and colleagues in the defining moments of their lives.</span>
+            <span class="int-he">מר ברוומן נולד בוירצבורג שבגרמניה והיגר לארצות הברית ב-1941. הוא למד בסיטי קולג׳ בניו יורק ושירת בצבא ארצות הברית במהלך מלחמת העולם השניה. לאחר המלחמה, הוענקה לו מדליית כוכב ארד בזכות מעשי גבורתו במהלך שירותו. יחד עם אישתו, לוטי, מר ברוומן היה פעיל ונתן בנדיבות רבה לטובת פעולות פילנתרופיות רבות, והיה ידוע אצל חבריו ומשפחתו בתור מי שאפשר לסמוך על תמיכתו בשעות אושר ומצוקה באשר יהיו.</span>
+        </p>
+
+        <p>
+            <span class="int-en">To commemorate the lives of these two great individuals, Rabbi Steinsaltz’s work is now more accessible to more people around the world than ever before.</span>
+            <span class="int-he">כדי להנציח את חייהם של שני האנשים הגדולים הללו, פועלו של הרב שטיינזלץ נגיש כעת ליותר אנשים ברחבי העולם מאי פעם.</span>
+        </p>
+
+
+        <h1 class="int-en">
+            <div class="nash-bravmann-quote">
+                <span class="nash-bravmann-quote-he-verse">
+                עֵץ־חַיִּים הִיא לַמַּחֲזִיקִים בָּהּ וְתֹמְכֶיהָ מְאֻשָּׁר ׃
+                </span>
+                <br>She is a tree of life to those who grasp her,
+                <div class="verse-second-line-en"> And whoever holds on to her is happy.</div>
+                <a class="nash-bravmann-verse-ref" href="/Proverbs.3.18?vhe=Tanach_with_Ta%27amei_Hamikra&lang=he">Proverbs
+                    3:18</a>
+            </div>
+        </h1>
+        <h1 class="int-he">
+            <div class="nash-bravmann-quote">
+                <span class="nash-bravmann-quote-he-verse">
+                עֵץ־חַיִּים הִיא לַמַּחֲזִיקִים בָּהּ וְתֹמְכֶיהָ מְאֻשָּׁר ׃
+                </span>
+                <br>
+                <a class="nash-bravmann-verse-ref" href="/Proverbs.3.18?vhe=Tanach_with_Ta%27amei_Hamikra&lang=he">משלי
+                    ג, יח</a>
+            </div>
+        </h1>
+    </div>
+</div>
+</div>
+
+{% endblock %}

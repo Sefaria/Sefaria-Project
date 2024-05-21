@@ -1,4 +1,4 @@
-import React  from 'react';
+import React, {useState} from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes  from 'prop-types';
 import {
@@ -9,6 +9,8 @@ import {
     SimpleLinkedBlock,
     ProfileListing,
     InterfaceText,
+    EnglishText,
+    HebrewText,
     CategoryHeader,
 } from './Misc';
 import {ContentText} from "./ContentText";
@@ -145,42 +147,148 @@ const TopicStoryDescBlock = ({topic, text}) => (
 )
 
 const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref}) => {
-  if (!text.ref) { return null; }
-  const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
-  const isCurated = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
-  const versions = text.versions || {}
-  const params = Sefaria.util.getUrlVersionsParams(versions);
-  const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
-  const heOnly = !text.en;
-  const enOnly = !text.he;
-  const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : langPref;
-  let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
-  const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
+    if (!text.ref) {
+        return null;
+    }
+    const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+    const isCurated = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
+    const versions = text.versions || {}
+    const params = Sefaria.util.getUrlVersionsParams(versions);
+    const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params : "");
+    const heOnly = !text.en;
+    const enOnly = !text.he;
+    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : langPref;
+    let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage}
+                                    bilingualOrder={["he", "en"]}/>;
+    const content = bodyTextIsLink ? <a href={url} style={{textDecoration: 'none'}}>{innerContent}</a> : innerContent;
 
-  return (
-    <StoryFrame
-      cls="topicPassageStory"
-      collapsibleSummary={isCurated ? <ColorBarBox tref={text.ref}><TopicStoryDescBlock topic={topic} text={text} /></ColorBarBox> : null}
-    >
-      {isCurated ?
-      <ColorBarBox tref={text.ref}>
+    return (
+        <StoryFrame
+            cls="topicPassageStory"
+            collapsibleSummary={isCurated ?
+                <ColorBarBox tref={text.ref}><TopicStoryDescBlock topic={topic} text={text}/></ColorBarBox> : null}
+        >
+            {isCurated ?
+                <ColorBarBox tref={text.ref}>
 
-        <div className={"systemText learningPrompt"}>
-            <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+                    <div className={"systemText learningPrompt"}>
+                        <InterfaceText
+                            text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}}/>
+                    </div>
+                </ColorBarBox>
+
+                : null
+            }
+            <ColorBarBox tref={text.ref}>
+                <StoryBodyBlock>
+                    {content}
+                </StoryBodyBlock>
+                <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
+
+            </ColorBarBox>
+        </StoryFrame>
+    );
+};
+const reviewStateToClassNameMap = {
+    "reviewed": "reviewed",
+    "not reviewed": "notReviewed",
+    "edited": "edited"
+}
+const reviewStateToDisplayedTextMap = {
+    "reviewed": "Reviewed",
+    "not reviewed": "Not Reviewed",
+    "edited": "Edited"
+}
+
+const ReviewStateIndicator = ({topic, topicLink}) => {
+    const [reviewStateByLang, markReviewed] = useReviewState(topic, topicLink);
+    if (!Sefaria.is_moderator){ return null; }
+    const langComponentMap = {he: HebrewText, en: EnglishText};
+    return (
+        <InterfaceText>
+            {
+                Object.entries(langComponentMap).map(([lang, LangComponent]) => (
+                    <LangComponent>
+                        <ReviewStateIndicatorLang reviewState={reviewStateByLang[lang]} markReviewed={() => markReviewed(lang)} />
+                    </LangComponent>
+                ))
+            }
+        </InterfaceText>
+    );
+};
+
+const ReviewStateIndicatorLang = ({reviewState, markReviewed}) => {
+    if (!reviewState) { return null; }
+    const reviewStateClassName = reviewStateToClassNameMap[reviewState];
+    const displayedText = reviewStateToDisplayedTextMap[reviewState];
+    return (
+        <div className={`button extraSmall reviewState ${reviewStateClassName}`} onClick={markReviewed}>
+            {displayedText}
         </div>
-      </ColorBarBox>
+    );
+}
 
-        : null
-      }
-      <ColorBarBox tref={text.ref}>
-          <StoryBodyBlock>
-              {content}
-          </StoryBodyBlock>
-          <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
+const markReviewedPostRequest = (lang, topic, topicLink) => {
+    const postData = {
+        "topic": topic,
+        "is_new": false,
+        'new_ref': topicLink.ref,
+        'interface_lang': lang === 'en' ? 'english' : 'hebrew',
+        'description' : {...topicLink.descriptions[lang], 'review_state': 'reviewed'}
+    };
+    return Sefaria.postToApi(`/api/ref-topic-links/${topicLink.ref}`, {}, postData);
+}
 
-      </ColorBarBox>
-    </StoryFrame>
-  );
+const useReviewState = (topic, topicLink) => {
+    const initialReviewStateByLang = Object.entries(topicLink?.descriptions).reduce((accum, [lang, desc]) => {
+        accum[lang] = desc?.review_state;
+        return accum;
+    }, {});
+    const [reviewStateByLang, setReviewState] = useState(initialReviewStateByLang);
+    const markReviewed = async (lang) => {
+        await markReviewedPostRequest(lang, topic, topicLink);
+        setReviewState(curr => ({...curr, [lang]: "reviewed"}));
+    }
+    return [reviewStateByLang, markReviewed];
+}
+
+const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
+    if (!text.ref) { return null; }
+    const versions = text.versions || {}
+    const params = Sefaria.util.getUrlVersionsParams(versions);
+    const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
+    const heOnly = !text.en;
+    const enOnly = !text.he;
+    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+    let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
+    const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
+
+    return (
+        <StoryFrame cls="introducedTextPassageStory">
+            <div className={"headerWithAdminButtonsContainer"}>
+                <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
+                    <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
+                </CategoryHeader>
+                <ReviewStateIndicator topic={topic} topicLink={text}/>
+            </div>
+            <div className={"systemText learningPrompt"}>
+                <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+            </div>
+            <SaveLine
+                dref={text.ref}
+                versions={versions}
+                toggleSignUpModal={toggleSignUpModal}
+                classes={"storyTitleWrapper"}
+                afterChildren={afterSave || null} >
+                <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
+            </SaveLine>
+            <ColorBarBox tref={text.ref}>
+                <StoryBodyBlock>
+                    {content}
+                </StoryBodyBlock>
+            </ColorBarBox>
+        </StoryFrame>
+    );
 };
 TopicTextPassage.propTypes = {
   text: textPropType,
@@ -201,7 +309,7 @@ const TextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=
 
   return (
     <StoryFrame cls="textPassageStory">
-      <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
+      <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
           <SaveLine
             dref={text.ref}
             versions={versions}

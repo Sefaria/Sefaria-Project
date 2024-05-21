@@ -137,7 +137,8 @@ data:
     SERVER_EMAIL = os.getenv("SERVER_EMAIL")
 
     auth_str = f'{os.getenv("ELASTIC_USERNAME")}:{os.getenv("ELASTIC_PASSWORD")}@' if os.getenv("ELASTIC_USERNAME") else ''
-    SEARCH_URL = f'http://{auth_str}{os.getenv("SEARCH_HOST")}:9200'
+    SEARCH_SSL_ENABLE = os.getenv("SEARCH_SSL_ENABLE").lower() == "true"
+    SEARCH_URL = f'http{"s" if SEARCH_SSL_ENABLE else ""}://{auth_str}{os.getenv("SEARCH_HOST")}:{os.getenv("SEARCH_PORT")}/{os.getenv("SEARCH_PATH")}'
     SEARCH_INDEX_ON_SAVE = True
     SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
     SEARCH_INDEX_NAME_SHEET = 'sheet'
@@ -212,6 +213,18 @@ data:
         'ROTATE_REFRESH_TOKENS': True,
         'SIGNING_KEY': os.getenv("SIMPLE_JWT_SIGNING_KEY"),
     }
+    
+    # Celery
+    # Either define SENTINEL_HEADLESS_URL if using sentinel or REDIS_URL for a simple redis instance
+    REDIS_URL = os.getenv("REDIS_URL")
+    REDIS_PORT = os.getenv("REDIS_PORT")
+    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+    CELERY_REDIS_BROKER_DB_NUM = os.getenv("CELERY_REDIS_BROKER_DB_NUM")
+    CELERY_REDIS_RESULT_BACKEND_DB_NUM = os.getenv("CELERY_REDIS_RESULT_BACKEND_DB_NUM")
+    CELERY_QUEUES = json.loads(os.getenv("CELERY_QUEUES", "{}"))
+    SENTINEL_HEADLESS_URL = os.getenv("SENTINEL_HEADLESS_URL") 
+    SENTINEL_TRANSPORT_OPTS = json.loads(os.getenv("SENTINEL_TRANSPORT_OPTS", "{}"))
+    SENTINEL_PASSWORD = os.getenv("SENTINEL_PASSWORD")
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
 

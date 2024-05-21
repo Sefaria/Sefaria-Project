@@ -1719,6 +1719,9 @@ div.interfaceLinks-row a {
   margin-bottom: 34px;
   padding: 0 44px;
 }
+.navSidebarModule #history .fa {
+  font-size: small;
+}
 .connectionsPanel .navSidebarModule{
   padding: initial;
 }
@@ -1731,6 +1734,84 @@ div.interfaceLinks-row a {
 .singlePanel .contentInner .navSidebarModule h1 {
   border: none;
   padding: 0;
+}
+.singlePanel .recentlyViewed {
+  background-color: var(--lightest-grey);
+  padding-inline: 10px 10px;
+  margin-inline: -15px -15px;
+  margin-block: -5px -5px;
+}
+.singlePanel .recentlyViewed ul {
+  display: revert;
+}
+.singlePanel .recentlyViewed #header {
+  margin-block-end: 10px;
+  margin-inline: 10px 10px;
+  padding-block: 5px 5px;
+  border-bottom: 1px solid var(--light-grey);
+  display: flex;
+  justify-content: space-between;
+}
+.singlePanel .recentlyViewed #header h1 {
+  margin-bottom: 0;
+}
+.singlePanel .recentlyViewed #header h1 span {
+  font-size: 16px;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+}
+.singlePanel .recentlyViewed #header a {
+  margin-block-start: 5px;
+}
+.singlePanel .recentlyViewed #history span {
+  color: var(--medium-grey);
+}
+
+.gDocAdvertBox {
+  margin-top: 50px;
+  background: var(--lighter-grey);
+  padding: 20px;
+  border-radius: 6px;
+}
+.gDocAdvertBox span  {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 19px;
+  letter-spacing: 0em;
+  color: var(--dark-grey);
+}
+.gDocAdvertBox span #newExtension {
+  font-weight: 600;
+}
+.gDocAdvertBox #installNow {
+  margin-top: 18px;
+  width: 99px;
+  height: 30px;
+}
+.interface-hebrew .gDocAdvertBox #installNow {
+  width: 120px;
+}
+
+.gDocAdvertBox #installNow a {
+  border-radius: 6px;
+  text-align: center;
+  background: #FFFFFF;
+  color: var(--dark-grey);
+  text-decoration: none;
+  padding: 4px 9px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 19px;
+  letter-spacing: 0em;
+}
+.gDocAdvertBox a {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 19px;
+  letter-spacing: 0em;
+  text-decoration: underline;
 }
 .readerPanel .navSidebarModule h3,
 .readerPanel .navSidebarModule h1,
@@ -1780,6 +1861,13 @@ div.interfaceLinks-row a {
   flex-wrap:wrap;
   padding: 0;
   margin: 0;
+}
+.singlePanel .recentlyViewed .navSidebarLink {
+  padding-inline-start: 25px;
+  padding-inline-end: 25px;
+}
+.multiPanel .recentlyViewed #history span::after {
+  content: "\203A";
 }
 .navSidebarLink > ul > li {
   display: inline;
@@ -2032,6 +2120,83 @@ div.interfaceLinks-row a {
   font-size: var(--serif-body-font-size);
   width: 100%;
 }
+
+.ai-info-messages-box {
+  background-color: rgb(251, 251, 250);
+  border-radius: 6px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
+  color: rgb(102, 102, 102);
+  cursor: default;
+  display: block;
+  font-family: "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
+  font-size: 16px;
+  margin-inline-start: 10px;
+  min-width: 150px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  width: 198px;
+  z-index: 1;
+}
+
+.ai-info-first-message {
+  border-bottom-color: rgb(204, 204, 204);
+  border-bottom-style: solid;
+  border-bottom-width: 0.833333px;
+  color: #666666;
+  cursor: default;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  padding-bottom: 6px;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-top: 12px;
+}
+.ai-info-first-message* {
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+.ai-info-messages-box a{
+  color: #4B71B7;
+}
+.ai-info-messages-box .ai-info-messages-hr {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+.ai-info-messages-box *{
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+.ai-info-last-message {
+  align-items: center;
+  display: flex;
+  line-height: 18px;
+  color: #666666;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  padding: 2px 12px 2px 12px;
+  font-size: 14px;
+  height: 23px;
+}
+.ai-message {
+  z-index: 1;
+  position: absolute;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 2s ease, visibility 0s 2s;
+}
+
+.ai-message.visible {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease;
+}
+
+.ai-info-tooltip .ai-info-icon{
+  margin-top: 12px;
+}
+.ai-info-tooltip{
+  position: relative;
+}
+
 .sidebarSearch .searchTopMatter,
 .sidebarSearch .searchTopic {
   display: none;
@@ -2149,8 +2314,7 @@ div.interfaceLinks-row a {
   background-color: #FBFBFA;
   /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
   border-top: 80px solid #FBFBFA;
-  border-bottom: 120px solid #FBFBFA;
-  margin: -80px 0 -120px 0;
+  margin-top: -80px;
 }
 .topicPanel h1 {
   text-align: unset;
@@ -7594,6 +7758,25 @@ a .button:hover {
   padding: 10px 14px;
   width: -moz-fit-content;
   width: fit-content;
+}
+
+.headerWithAdminButtonsContainer{
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+.button.extraSmall.reviewState.reviewed {
+  background-color: #5D956F;
+
+}
+.button.extraSmall.reviewState.notReviewed {
+  background-color: #CB6158;
+}
+.button.extraSmall.reviewState.edited {
+  background-color: #C3EB34;
 }
 .button.extraSmall {
   border-radius: 6px;

@@ -21,8 +21,9 @@ const Strings = {
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
     "Log in": "התחברות",
-    "Sign up": "הרשמה",
     "A": "א",
+    "Sign up": "להרשמה",
+    "Sign Up": "להרשמה",
 
     // Texts Page
     "Learn More": "לקריאה נוספת",
@@ -459,6 +460,10 @@ const Strings = {
     "Alternate Hebrew Titles": "חלופות כותר עבריות",
     "Alternate English Titles": "חלופות כותר לועזיות",
     "Optional": "אופציונלי",
+    "Recently viewed": "נצפו לאחרונה",
+    "All history ": "כל ההסטוריה ",
+    "All History": "כל ההסטוריה",
+
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
@@ -514,6 +519,8 @@ const Strings = {
     "Composed": "זמן חיבור",
     "Author": "מחבר",
     "Authors": "מחברים",
+
+    "Install Now": "התקינו עכשיו",
 
     //Topics
     "Wikipedia": "ויקיפדיה",

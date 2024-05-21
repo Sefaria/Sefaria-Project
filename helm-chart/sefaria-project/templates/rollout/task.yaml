@@ -1,0 +1,139 @@
+{{- if .Values.tasks.enabled }}
+ {{- $QueueConfig := (fromYaml (include "sefaria.tasks.queues" . )) -}}
+---
+# apiVersion: apps/v1
+# kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Values.deployEnv }}-tasks
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    app: tasks-{{ .Values.deployEnv }}
+    # releaseRevision: "{{ .Release.Revision }}"
+  annotations:
+    rollout.argoproj.io/revision: "{{ .Release.Revision }}"
+spec:
+  strategy:
+    blueGreen:
+      activeService: task-{{ .Values.deployEnv }}
+      autoPromotionEnabled: true
+      prePromotionAnalysis:
+        templates:
+          # - templateName: rollout-readiness-{{ .Values.deployEnv }}
+          - templateName: rollout-ready-{{ .Values.deployEnv }}
+        args:
+          - name: healthcheck-hostname
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+  selector:
+    matchLabels:
+      app: tasks-{{ .Values.deployEnv }}
+      # releaseRevision: "{{ .Release.Revision }}"
+  revisionHistoryLimit: 2
+  replicas: {{ .Values.tasks.replicaCount }}
+  progressDeadlineSeconds: 1200
+  template:
+    metadata:
+      labels:
+        app: tasks-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: celery
+        releaseRevision: "{{ .Release.Revision }}"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mongo
+            topologyKey: kubernetes.io/hostname
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - "tasks-{{ .Values.deployEnv }}"
+            topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      containers:
+      - name: tasks
+        image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+        imagePullPolicy: Always
+        command: ["celery"]
+        args: ["-A", "sefaria.celery_setup.app","worker", "-Q", "{{ $QueueConfig.tasks }}", "-l", "INFO"]
+        env:
+          - name: ENV_NAME
+            value: "{{ .Values.deployEnv }}"
+          - name: STACK_COMPONENT
+            value: tasks
+          - name: REDIS_HOST
+            value: "redis-{{ .Values.deployEnv }}"
+          - name: NODEJS_HOST
+            value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: VARNISH_HOST
+            value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: HELM_REVISION
+            value: "{{ .Release.Revision }}"
+        envFrom:
+          {{- if .Values.tasks.enabled }}
+          - secretRef:
+              name: {{ .Values.tasks.redis.sentinelPassword.ref }}
+          - secretRef:
+              name: {{ .Values.tasks.redis.redisPassword.ref }}
+          {{- end }}
+          - secretRef:
+              name: {{ template "sefaria.secrets.elasticUser" . }}
+          - secretRef:
+              name: {{ .Values.secrets.localSettings.ref }}
+              optional: true
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
+          - configMapRef:
+              name: local-settings-web-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-web-secrets-{{ .Values.deployEnv }}
+              optional: true
+        resources: {{ toYaml .Values.tasks.resources | nindent 10 }}
+        volumeMounts:
+        - mountPath: /app/sefaria/local_settings.py
+          name: local-settings
+          subPath: local_settings.py
+          readOnly: true
+        - mountPath: /client-secret
+          name: client-secret
+          readOnly: true
+        - mountPath: /app/logging-secret.json
+          name: logging-secret
+          subPath: logging-secret.json
+          readOnly: true
+        - name: elastic-cert
+          mountPath: /etc/ssl/certs/elastic
+          readOnly: true
+      volumes:
+        - name:  local-settings
+          configMap:
+            name: local-settings-file-{{ .Values.deployEnv }}
+            items:
+              - key: local_settings.py
+                path: local_settings.py
+        - name: elastic-cert
+          secret:
+            secretName: {{ template "sefaria.secrets.elasticCertificate" . }}
+            optional: true
+        - name: client-secret
+          secret:
+            secretName: {{ template "sefaria.secrets.googleClient" . }} # needs to be checked if it's a reference object or the data object we created.
+        - name: logging-secret
+          secret:
+            secretName: {{ template "sefaria.secrets.logging" . }}
+            optional: true
+{{- end }}
