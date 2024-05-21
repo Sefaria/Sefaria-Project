@@ -263,6 +263,10 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
 const TopicSponsorship = ({topic_slug}) => {
     // TODO: Store this data somewhere intelligent
     const topic_sponsorship_map = {
+        "parashat-bereshit": {
+            "en": "Parashat Bereshit, or Genesis, is dedicated to the [Sefaria Pioneers](/pioneers), Sefaria's earliest champions whose immense generosity was essential to the genesis of Sefaria and the digital future of Torah.",
+            "he": "פרשת בראשית מוקדשת [לחלוצי ספריא](/pioneers), מי שעודדו ותמכו בנו בראשית דרכנו ושבזכות נדיבותם הרבה עלה באפשרותנו ליצור את העתיד הדיגיטלי של התורה ושאר המקורות."
+        },
         "parashat-lech-lecha": {
             "en": "Sponsored by The Rita J. & Stanley H. Kaplan Family Foundation in honor of Scott and Erica Belsky’s wedding anniversary.",
             "he": "נתרם על-ידי קרן משפחת ריטה ג’. וסטנלי ה. קפלן, לכבוד יום הנישואים של סקוט ואריקה בלסקי."
