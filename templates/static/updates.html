@@ -6,13 +6,6 @@
 
 {% block description %}{% trans "See texts, translations and connections that have been recently added to Sefaria." %}{% endblock %}
 
-{% block css %}
-    #staticContentWrapper #content {
-      display: flex;
-      flex-direction: row;
-    }
-{% endblock %}
-
 {% block js %}
 <script>
     {% autoescape off %}
@@ -23,14 +16,15 @@
 {% endblock %}
 
 {% block content %}
-{% if not request.user_agent.is_mobile %}
-  {% include '_sidebar.html' with whichPage='updates' title="Updates" heTitle="עדכונים" %}
-{% endif %}
-<main id="updatesPage">
-    <div id="updatesPanelContent">
-        <h1 id="appLoading">Loading...</h1>
-    </div>
-</main>
-
+<div class="superAbout">
+    {% if not request.user_agent.is_mobile %}
+      {% include '_sidebar.html' with whichPage='updates' title="Updates" heTitle="עדכונים" %}
+    {% endif %}
+    <main id="updatesPage">
+        <div id="updatesPanelContent">
+            <h1 id="appLoading">Loading...</h1>
+        </div>
+    </main>
+</div>
 {% endblock %}
 {% block footer %} {% endblock %}

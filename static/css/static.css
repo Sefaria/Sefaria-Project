@@ -1,6 +1,10 @@
 #staticContentWrapper{
   background-color: #FBFBFA;
 }
+#staticContentWrapper #content .superAbout {
+  display: flex;
+  flex-direction: row;
+}
 .inApp #staticContentWrapper {
   display: none;
 }
@@ -3498,9 +3502,9 @@ form.globalUpdateForm + div.notificationsList {
   margin-inline-end: 100px;
 }
 @media (max-width: 1000px) and (min-width: 480px) {
-    #staticContentWrapper #content {
+    #staticContentWrapper #content .superAbout {
       display: flex;
-      flex-direction: column !important;
+      flex-direction: column;
     }
     .container.doc.legal.static .inner,
     #annualReport .inner,
@@ -3626,16 +3630,16 @@ form.globalUpdateForm + div.notificationsList {
     text-align: right;
   }
   h1.mobileAboutHeader {
-    margin: 40px 0 0 0 !important;
+    margin: 40px 0 0 0;
   }
   .interface-english #aboutSidebar li {
     margin-left: 5px;
   }
   .interface-english #aboutSidebar.mobileAbout h1 {
-    margin: 40px 50px 0 25px !important;
+    margin: 40px 50px 0 25px;
   }
   .interface-hebrew #aboutSidebar.mobileAbout h1 {
-    margin: 40px 30px 0 20px !important;
+    margin: 40px 30px 0 20px;
   }
   .interface-hebrew #aboutSidebar li {
     margin-right: -18px;

@@ -51,7 +51,7 @@ static_pages = [
     "team",
     "link-to-annual-report",
     'mobile-about-menu',
-    "updates"
+    "updates",
     "pioneers"
 ]
 
