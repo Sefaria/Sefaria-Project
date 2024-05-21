@@ -25,20 +25,6 @@ spec:
         args:
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
-      {{- if .Values.deploymentMessage }}
-      postPromotionAnalysis:
-        templates:
-          - templateName: rollout-complete-{{ .Values.deployEnv }}
-        args:
-          - name: revision
-            value: "{{ .Release.Revision }}"
-          - name: deployment
-            value: {{ .Values.deployEnv }}
-          - name: version
-            value: {{ .Values.web.containerImage.tag }}
-          - name: chartVersion
-            value: {{ .Chart.Version }}
-      {{- end }}
   selector:
     matchLabels:
       app: tasks-{{ .Values.deployEnv }}
