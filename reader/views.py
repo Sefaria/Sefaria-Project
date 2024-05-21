@@ -3199,7 +3199,7 @@ def topics_list_api(request):
     topics = get_all_topics(limit)
     response = [t.contents() for t in topics]
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=0"
     return response
 
 
@@ -3228,7 +3228,7 @@ def add_new_topic_api(request):
 
         t.save()
         clear_redis_cache()
-        
+
         library.build_topic_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
