@@ -694,7 +694,9 @@ class ConnectionsPanel extends Component {
             setFilter={this.props.setFilter}
             closePanel={this.props.closePanel}
             toggleLanguage={this.props.toggleLanguage}
-            interfaceLang={this.props.interfaceLang} />}
+            interfaceLang={this.props.interfaceLang}
+            backButtonSettings={this.props.backButtonSettings}
+          />}
         <div className="texts content">
           <div className="contentInner">{content}</div>
         </div>
@@ -745,6 +747,7 @@ ConnectionsPanel.propTypes = {
   setSideScrollPosition: PropTypes.func.isRequired,
   setPreviousSettings: PropTypes.func,
   filterRef: PropTypes.string,
+  backButtonSettings:      PropTypes.object,
 };
 
 
