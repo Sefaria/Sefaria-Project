@@ -12765,7 +12765,7 @@ span.ref-link-color-3 {color: blue}
 .productsInner img {
   width: 200px;
   max-width: 100%; 
-  margin-right: 3%;
+  margin-inline-end: 3%;
   max-height: 116px;
 }
 
@@ -12802,7 +12802,7 @@ span.ref-link-color-3 {color: blue}
   border-radius: 6px; 
   padding: 5px 10px; 
   color: #666666; 
-  margin-left: 3%;
+  margin-inline-start: 3%;
 }
 
 .productsHeader .cta {
@@ -12814,7 +12814,7 @@ span.ref-link-color-3 {color: blue}
   color: #4B71B7; 
   border-width: 10px;
   border-color: #0cd200;
-  margin-right: 10px;
+  margin-inline-end: 10px;
 }
 
 .productsHeader .cta .productsCTAIcon {
@@ -12823,12 +12823,11 @@ span.ref-link-color-3 {color: blue}
   top: 646px;
   left: 610px;
   margin: 0 5px;
-  /* filter: invert(45%) sepia(17%) saturate(1643%) hue-rotate(180deg) brightness(90%) contrast(90%); */
-  --image-path: attr(data-image-path);
+  filter: brightness(0) saturate(100%) invert(52%) sepia(17%) saturate(6763%) hue-rotate(200deg) brightness(78%) contrast(77%);;
+  /* --image-path: attr(data-image-path);
   mask: url(--image-path) no-repeat;
   background-color: #4B71B7;
-  border: #0cd200;
-  ;
+  border: #0cd200; */
 }
 
 .productsTitle {

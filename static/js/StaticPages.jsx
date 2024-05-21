@@ -3334,7 +3334,6 @@ const ProductsPage = memo(() => {
                                     <span className="int-he">{product.type.he}</span>
                                 </span>) : ''}
                             </div>
-                            {/* Will need some kind of mapping here, conditional on icon image*/}
                             <div className="cta">
                                 {product.ctaLabels?.map(cta => (
                                     <a href={cta.url} key={cta.text.en}>
