@@ -86,6 +86,7 @@ from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic, update_topic_titles
 from sefaria.helper.category import update_order_of_category_children, check_term
+from redis_clear import clear_redis_cache
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -3226,6 +3227,8 @@ def add_new_topic_api(request):
             t.image = data["image"]
 
         t.save()
+        clear_redis_cache()
+        
         library.build_topic_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
