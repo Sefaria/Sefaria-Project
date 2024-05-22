@@ -3323,8 +3323,17 @@ const ProductsPage = memo(() => {
     const DevBox = () => {
         return (
           <div className='productsDevBox'>
-            <p className='productsDevHeader'>Sefaria Developers</p>
-            <p>Check out the products our developer friends from around the world have been building for you! <a href="www.example.com">Explore</a></p>
+            <p className='productsDevHeader'>
+                <span className="int-en">Sefaria Developers</span>
+                <span className="int-he">עברית פה</span>
+            </p>
+            <p>
+                <span className="int-en">
+                    Check out the products our developer friends from around the world have been building for you! <a href="www.example.com">Explore</a>
+                </span>
+                <span className="int-he">עברית פה</span>
+                
+            </p>
           </div>
         );
       };

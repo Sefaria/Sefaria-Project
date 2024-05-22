@@ -12852,7 +12852,9 @@ span.ref-link-color-3 {color: blue}
     font-size: 16px;
     font-weight: 400;
     line-height: 18.75px;
-    text-align: left;
+    display: flex;
+    align-items: flex-start; 
+    flex-direction: column;
     padding: 3%;
 }
 
@@ -12861,7 +12863,6 @@ span.ref-link-color-3 {color: blue}
   font-size: 22px;
   font-weight: 500;
   line-height: 25.78px;
-  text-align: left;
   padding-bottom: 2%;
 
 }
