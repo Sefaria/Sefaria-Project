@@ -3135,15 +3135,15 @@ const JobsPage = memo(() => {
 */
 
 
-const product = ({ job }) => {
-    return (
-        <div className="job">
-            <a className="joblink" target="_blank" href={job.jobLink}>
-                {job.jobDescription}
-            </a>
-        </div>
-    );
-};
+// const product = ({ job }) => {
+//     return (
+//         <div className="job">
+//             <a className="joblink" target="_blank" href={job.jobLink}>
+//                 {job.jobDescription}
+//             </a>
+//         </div>
+//     );
+// };
 
 
 
@@ -3162,6 +3162,7 @@ const ProductsPage = memo(() => {
                 id
                 attributes {
                   title
+                  rank
                   url
                   type
                   description
@@ -3217,7 +3218,6 @@ const ProductsPage = memo(() => {
               }
             }
           }
-          
         `;
     
         try {
@@ -3279,6 +3279,7 @@ const ProductsPage = memo(() => {
                             en: productsData.attributes.title,
                             he: heLocalization.title
                         },
+                        rank: productsData.attributes.rank,
                         type: {
                             en: productsData.attributes.type,
                             he: productsData.attributes.localizations.data[0].attributes.type,
@@ -3297,8 +3298,10 @@ const ProductsPage = memo(() => {
 
                     };
                 }, {});
-                console.log('Products from STRAPI', productsFromStrapi);
-                setProducts(productsFromStrapi);   
+
+                const orderedProducts = productsFromStrapi.sort((a, b) => a.rank - b.rank);
+                console.log('Products from STRAPI', orderedProducts);
+                setProducts(orderedProducts);   
             } catch (error) {
                 console.error("Fetch error:", error);
                 setError("Error: Sefaria's CMS cannot be reached");
