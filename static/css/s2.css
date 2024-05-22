@@ -12839,10 +12839,43 @@ span.ref-link-color-3 {color: blue}
   color: #666666;
 }
 
-.productsCTA::after{
+.productsCTA::after {
   content: " >";
   color: #4B71B7;
 }
+
+.productsDevBox {
+    background: #EDEDEC;
+    color: #666666;
+    border: red;
+    font-family: Roboto;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 18.75px;
+    text-align: left;
+    padding: 3%;
+}
+
+.productsDevBox .productsDevHeader {
+  font-family: Roboto;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  text-align: left;
+  padding-bottom: 2%;
+
+}
+
+.productsDevBox a {
+  color: #4B71B7 !important; 
+
+}
+
+.productsDevBox a::after {
+  content: " >";
+  color: #4B71B7;
+}
+
 
 .image-in-text-title {
     margin: auto; /* English System Small */

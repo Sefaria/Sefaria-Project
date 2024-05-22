@@ -3318,11 +3318,21 @@ const ProductsPage = memo(() => {
     }, []);
 
     console.log("products: ", products)
-    // TODO - Will need to use InterfaceText for language switching!!
+
+
+    const DevBox = () => {
+        return (
+          <div className='productsDevBox'>
+            <p className='productsDevHeader'>Sefaria Developers</p>
+            <p>Check out the products our developer friends from around the world have been building for you! <a href="www.example.com">Explore</a></p>
+          </div>
+        );
+      };
 
 
     return (
         <div>
+            <DevBox />
             {products ? (
                 products.map((product) => (
                     <div key={product.id}>
