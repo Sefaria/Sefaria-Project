@@ -3281,7 +3281,6 @@ const ProductsPage = memo(() => {
                 }, {});
 
                 const orderedProducts = productsFromStrapi.sort((a, b) => a.rank - b.rank);
-                console.log('Products from Strapi', orderedProducts);
                 setProducts(orderedProducts);   
             } catch (error) {
                 console.error("Fetch error:", error);
@@ -3294,7 +3293,6 @@ const ProductsPage = memo(() => {
     
 
     useEffect(() => {
-        console.log("UseEffect triggered");
         loadProducts();
     }, []);
 
@@ -3337,39 +3335,38 @@ const ProductsPage = memo(() => {
     const ProductCTA = ({product}) => {
         return (
             <div className="cta">
-            {product.ctaLabels?.map(cta => (
-                <a href={cta.url} key={cta.text.en}>
-                    {cta.icon.url && <img className="productsCTAIcon" 
-                                          data-image-path={`http://localhost:1337${cta.icon.url}`} 
-                                          src={`http://localhost:1337${cta.icon.url}`} 
-                                          alt="Click icon" />}
-                                          
-                    <span className="productsCTA">
-                        <span className='int-en'>{cta.text.en}</span>
-                        <span className='int-he'>{cta.text.he}</span>
-                    </span>
-                </a>
-            ))}
-        </div>
+                {product.ctaLabels?.map(cta => (
+                    <a href={cta.url} key={cta.text.en}>
+                        {cta.icon.url && <img className="productsCTAIcon" 
+                                            data-image-path={`http://localhost:1337${cta.icon.url}`} 
+                                            src={`http://localhost:1337${cta.icon.url}`} 
+                                            alt="Click icon" />}
+                                            
+                        <span className="productsCTA">
+                            <span className='int-en'>{cta.text.en}</span>
+                            <span className='int-he'>{cta.text.he}</span>
+                        </span>
+                    </a>
+                ))}
+            </div>
         );
     };
 
     const ProductDesc = ({product}) => {
         return (
             <div className="productsInner">
-                            <img src={'http://localhost:1337' + product.rectanglion.url} alt="Product Image"/>
-                            <span className='int-en'>
-                                <ReactMarkdown className="productsDesc">
-                                    {product.desc?.en}
-                                </ReactMarkdown>
-                            </span>
-                            <span className='int-he'>
-                                <ReactMarkdown className="productsDesc">
-                                    {product.desc?.he}
-                                </ReactMarkdown>
-                            </span>
-                            
-                        </div>
+                <img src={'http://localhost:1337' + product.rectanglion.url} alt="Product Image"/>
+                <span className='int-en'>
+                    <ReactMarkdown className="productsDesc">
+                        {product.desc?.en}
+                    </ReactMarkdown>
+                </span>
+                <span className='int-he'>
+                    <ReactMarkdown className="productsDesc">
+                        {product.desc?.he}
+                    </ReactMarkdown>
+                </span>                 
+            </div>
         );
     };
 
@@ -3380,7 +3377,9 @@ const ProductsPage = memo(() => {
                             <ProductTitle product={product} />
                             <ProductCTA product={product} />
                         </div>
+
                         <hr/>
+
                         <ProductDesc product={product} />
             </div>
         );
@@ -3392,15 +3391,6 @@ const ProductsPage = memo(() => {
             ProductList.push(<Product key={product.id} product={product} />)
         }
     }
-
-
-    //  Map to a component, create an array of components, insert dev box to that array, map 
-    //  Pull out each div, own simple functional comp -- there's master product functional that maps the data and calls each of them
-    //  [product, product, devbox, product ]
-    //  leave the position as a variable so can change, even if in code. (n is a var)
-    //  render as children? array of react components.  {array[:n]} {dev} {array[n:]}
-
-    // Possible issue, state not set yet until return called? Bc of useEffect?
 
     const devBoxPosition = 2;
     const initialProducts = ProductList.slice(0, devBoxPosition);
