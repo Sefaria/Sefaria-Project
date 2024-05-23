@@ -3140,6 +3140,7 @@ const ProductsPage = memo(() => {
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
 
+    // GraphQL query to Strapi
     const fetchProductsJSON = async () => {
         const query = `
         query {
@@ -3232,6 +3233,7 @@ const ProductsPage = memo(() => {
         }
     };
     
+    // Loading Products data, and setting the state ordering the products by their `rank`
     const loadProducts = async () => {
         if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
             try {
@@ -3299,6 +3301,7 @@ const ProductsPage = memo(() => {
     console.log("products: ", products)
 
 
+    // The static content on the page inviting users to browse our "powered-by" products
     const DevBox = () => {
         return (
           <div className='productsDevBox'>
@@ -3317,6 +3320,11 @@ const ProductsPage = memo(() => {
         );
       };
 
+    /**
+     * The following are the building block components of an individual product. 
+     */
+    
+    // The title and gray background label for each product
     const ProductTitle = ({product}) => {
         return (
             <div className='productsTitleAndLabel'>
@@ -3332,6 +3340,7 @@ const ProductsPage = memo(() => {
         );
     };
 
+    // The call-to-action (link) in the heading of each product
     const ProductCTA = ({product}) => {
         return (
             <div className="cta">
@@ -3352,6 +3361,7 @@ const ProductsPage = memo(() => {
         );
     };
 
+    // The main body of each product entry, containing an image and description
     const ProductDesc = ({product}) => {
         return (
             <div className="productsInner">
@@ -3370,6 +3380,7 @@ const ProductsPage = memo(() => {
         );
     };
 
+    // The main product component, comprised of the building block sub-components
     const Product = ({key, product}) => {
         return (
             <div key={key} className="product">
@@ -3383,6 +3394,10 @@ const ProductsPage = memo(() => {
         );
     };
 
+    // In order to inject the static 'DevBox' in a fixed position on the page, we 
+    // create an array of <Product /> components, and then slice the list into two sub-lists at the 
+    // desired insertion position for the 'DevBox'.  When rendering, we render the 
+    // first sub-list, the <DevBox />, and finally the second sub-list. 
     const ProductList = [];
     if (products) {
         for (const product of products) {
