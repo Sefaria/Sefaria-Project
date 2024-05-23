@@ -3135,17 +3135,6 @@ const JobsPage = memo(() => {
 */
 
 
-// const product = ({ job }) => {
-//     return (
-//         <div className="job">
-//             <a className="joblink" target="_blank" href={job.jobLink}>
-//                 {job.jobDescription}
-//             </a>
-//         </div>
-//     );
-// };
-
-
 
 const ProductsPage = memo(() => {
     const [products, setProducts] = useState([]);
@@ -3262,7 +3251,6 @@ const ProductsPage = memo(() => {
                             url: cta.attributes.url,
                             icon: {
                                 url: cta.attributes.icon.data?.attributes.url,
-                                // altText: cta.attributes.icon.data.attributes.alternativeText
                             }
                         };
                     });
@@ -3286,7 +3274,6 @@ const ProductsPage = memo(() => {
                         },
                         rectanglion: {
                             url: productsData.attributes.rectanglion.data.attributes.url,
-                            // alt: productsData.attributes.rectanglion.data.attributes.alternativeText,
                         },
                         ctaLabels: ctaLabelsLocalized,
 
@@ -3294,7 +3281,7 @@ const ProductsPage = memo(() => {
                 }, {});
 
                 const orderedProducts = productsFromStrapi.sort((a, b) => a.rank - b.rank);
-                console.log('Products from STRAPI', orderedProducts);
+                console.log('Products from Strapi', orderedProducts);
                 setProducts(orderedProducts);   
             } catch (error) {
                 console.error("Fetch error:", error);
@@ -3318,12 +3305,12 @@ const ProductsPage = memo(() => {
         return (
           <div className='productsDevBox'>
             <p className='productsDevHeader'>
-                <span className="int-en">Sefaria Developers</span>
+                <span className="int-en">Powered by Sefaria</span>
                 <span className="int-he">עברית פה</span>
             </p>
             <p>
                 <span className="int-en">
-                    Check out the products our developer friends from around the world have been building for you! <a href="www.example.com">Explore</a>
+                Check out the products our software developer friends from around the world have been building for you! <a href="www.example.com">Explore</a>
                 </span>
                 <span className="int-he">עברית פה</span>
                 
@@ -3398,20 +3385,35 @@ const ProductsPage = memo(() => {
             </div>
         );
     };
-    
+
+    const ProductList = [];
+    if (products) {
+        for (const product of products) {
+            ProductList.push(<Product key={product.id} product={product} />)
+        }
+    }
+
+
     //  Map to a component, create an array of components, insert dev box to that array, map 
     //  Pull out each div, own simple functional comp -- there's master product functional that maps the data and calls each of them
     //  [product, product, devbox, product ]
     //  leave the position as a variable so can change, even if in code. (n is a var)
     //  render as children? array of react components.  {array[:n]} {dev} {array[n:]}
 
+    // Possible issue, state not set yet until return called? Bc of useEffect?
+
+    const devBoxPosition = 2;
+    const initialProducts = ProductList.slice(0, devBoxPosition);
+    const remainingProducts = ProductList.slice(devBoxPosition);
+
     return (
         <div>
-            {/* <DevBox /> */}
-            {products ? (
-                products.map((product) => (
-                    <Product key={product.id} product={product} />
-                ))
+            {products && products.length > 0 ? (
+                <>
+                {initialProducts}
+                <DevBox />
+                {remainingProducts}
+                </>
             ) : (
                 <div>Loading...</div>
             )}
