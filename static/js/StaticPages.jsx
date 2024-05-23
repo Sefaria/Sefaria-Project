@@ -3372,14 +3372,12 @@ const ProductsPage = memo(() => {
 
     const Product = ({key, product}) => {
         return (
-            <div key={key}>
+            <div key={key} className="product">
                         <div className="productsHeader">
                             <ProductTitle product={product} />
                             <ProductCTA product={product} />
                         </div>
-
                         <hr/>
-
                         <ProductDesc product={product} />
             </div>
         );

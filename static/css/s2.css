@@ -12756,6 +12756,10 @@ span.ref-link-color-3 {color: blue}
   }
 }
 
+.product hr {
+  border: 1px solid var(--light-grey);
+}
+
 .productsInner {
   /* border: 2px solid red; */
   display: flex;
@@ -12783,8 +12787,9 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsTitleAndLabel {
-  flex:auto;
+  flex: auto;
 }
+
 
 .productsHeader .productsTitle {
   font: 'Roboto', sans-serif; 
