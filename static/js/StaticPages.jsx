@@ -3247,12 +3247,6 @@ const ProductsPage = memo(() => {
         if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
             try {
                 const productsData = await fetchProductsJSON();
-                // const productsData = productsDataFull.data.products.data;
-                // console.log(productsData);
-
-
-                console.log('datadata', productsData);
-                debugger;
 
                 const productsFromStrapi = productsData.data?.products?.data?.map((productsData) => {
 
@@ -3338,42 +3332,44 @@ const ProductsPage = memo(() => {
         );
       };
 
+    const ProductTitle = ({product}) => {
+        return (
+            <div className='productsTitleAndLabel'>
+            <span className="productsTitle">
+                <span className="int-en">{product.titles.en}</span>
+                <span className="int-he">{product.titles.he}</span>
+            </span>
+            {product.type.en ? (<span className="productsTypeLabel">                                
+                <span className="int-en">{product.type.en}</span>
+                <span className="int-he">{product.type.he}</span>
+            </span>) : ''}
+        </div>
+        );
+    };
 
-    return (
-        <div>
-            <DevBox />
-            {products ? (
-                products.map((product) => (
-                    <div key={product.id}>
-                        <div className="productsHeader">
-                            <div className='productsTitleAndLabel'>
-                                <span className="productsTitle">
-                                    <span className="int-en">{product.titles.en}</span>
-                                    <span className="int-he">{product.titles.he}</span>
-                                </span>
-                                {product.type.en ? (<span className="productsTypeLabel">                                
-                                    <span className="int-en">{product.type.en}</span>
-                                    <span className="int-he">{product.type.he}</span>
-                                </span>) : ''}
-                            </div>
-                            <div className="cta">
-                                {product.ctaLabels?.map(cta => (
-                                    <a href={cta.url} key={cta.text.en}>
-                                        {cta.icon.url && <img className="productsCTAIcon" 
-                                                              data-image-path={`http://localhost:1337${cta.icon.url}`} 
-                                                              src={`http://localhost:1337${cta.icon.url}`} 
-                                                              alt="Click icon" />}
-                                                              
-                                        <span className="productsCTA">
-                                            <span className='int-en'>{cta.text.en}</span>
-                                            <span className='int-he'>{cta.text.he}</span>
-                                        </span>
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                        <hr/>
-                        <div className="productsInner">
+    const ProductCTA = ({product}) => {
+        return (
+            <div className="cta">
+            {product.ctaLabels?.map(cta => (
+                <a href={cta.url} key={cta.text.en}>
+                    {cta.icon.url && <img className="productsCTAIcon" 
+                                          data-image-path={`http://localhost:1337${cta.icon.url}`} 
+                                          src={`http://localhost:1337${cta.icon.url}`} 
+                                          alt="Click icon" />}
+                                          
+                    <span className="productsCTA">
+                        <span className='int-en'>{cta.text.en}</span>
+                        <span className='int-he'>{cta.text.he}</span>
+                    </span>
+                </a>
+            ))}
+        </div>
+        );
+    };
+
+    const ProductDesc = ({product}) => {
+        return (
+            <div className="productsInner">
                             <img src={'http://localhost:1337' + product.rectanglion.url} alt="Product Image"/>
                             <span className='int-en'>
                                 <ReactMarkdown className="productsDesc">
@@ -3387,7 +3383,34 @@ const ProductsPage = memo(() => {
                             </span>
                             
                         </div>
-                    </div>
+        );
+    };
+
+    const Product = ({key, product}) => {
+        return (
+            <div key={key}>
+                        <div className="productsHeader">
+                            <ProductTitle product={product} />
+                            <ProductCTA product={product} />
+                        </div>
+                        <hr/>
+                        <ProductDesc product={product} />
+            </div>
+        );
+    };
+    
+    //  Map to a component, create an array of components, insert dev box to that array, map 
+    //  Pull out each div, own simple functional comp -- there's master product functional that maps the data and calls each of them
+    //  [product, product, devbox, product ]
+    //  leave the position as a variable so can change, even if in code. (n is a var)
+    //  render as children? array of react components.  {array[:n]} {dev} {array[n:]}
+
+    return (
+        <div>
+            {/* <DevBox /> */}
+            {products ? (
+                products.map((product) => (
+                    <Product key={product.id} product={product} />
                 ))
             ) : (
                 <div>Loading...</div>
