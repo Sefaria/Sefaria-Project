@@ -48,7 +48,7 @@ const QuestionBox = ({ prompt, onClick }) => {
 const SummaryBox = ({ prompt, onClick }) => {
   const title = (commentaryRef) => {
     const index = Sefaria.parseRef(commentaryRef)?.index;
-    return index ? index.replace(/ on Pesach Haggadah$/, "") : commentaryRef;
+    return index ? index : commentaryRef; //todo: handle removal of "on Y" from "X on Y" when the base text is Y. 
   }
 
   return (
