@@ -3625,7 +3625,7 @@ sjs.divineSubs = {
 					"noSub": "יהוה",
 					"yy": "יי",
 					"ykvk": "יקוק",
-					"h": "ה'"
+					"h": "ה׳"
 				};
 
 function substituteDivineNames(text) {

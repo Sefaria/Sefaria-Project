@@ -479,10 +479,11 @@ Sefaria = extend(Sefaria, {
     let refStrs = [""];
     refs.map(ref => {
       let last = refStrs[refStrs.length-1];
-      if (encodeURI(`${hostStr}${last}|${ref}${paramStr}`).length > MAX_URL_LENGTH) {
-        refStrs.push(ref)
+      const encodedRef = encodeURIComponent(ref)
+      if (`${hostStr}${last}|${encodedRef}${paramStr}`.length > MAX_URL_LENGTH) {
+        refStrs.push(encodedRef)
       } else {
-        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
+        refStrs[refStrs.length-1] += last.length ? `|${encodedRef}` : encodedRef;
       }
     });
 
