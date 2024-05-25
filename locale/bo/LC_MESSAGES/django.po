@@ -430,11 +430,11 @@ msgstr ""
 
 #: templates/account_settings.html:54 templates/sheets.html:780
 msgid "english"
-msgstr ""
+msgstr "English"
 
 #: templates/account_settings.html:57 templates/sheets.html:781
 msgid "tibetan"
-msgstr ""
+msgstr "བོད་ཡིག"
 
 #: templates/account_settings.html:64 templates/account_settings.html:65
 msgid "Preferred Translation Language"

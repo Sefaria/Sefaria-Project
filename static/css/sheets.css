@@ -664,11 +664,12 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 #sheet .en {
 	direction: ltr;
 	text-align: left;
+	font-size: 16px;
 }
 #sheet .he {
 	direction: ltr;
 	text-align: left;
-	font-size: 24px;
+	font-size: 16px;
 }
 #sheet.english .en {
 	display: initial;
