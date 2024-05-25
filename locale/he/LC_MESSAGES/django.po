@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-28 12:42+0530\n"
+"POT-Creation-Date: 2024-05-25 14:07+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: reader/templatetags/sefaria_tags.py:221 sefaria/settings.py:25
+#: reader/templatetags/sefaria_tags.py:221 sefaria/settings.py:24
 #: templates/edit_text.html:185 templates/elements/notification.html:15
 #: templates/elements/notification.html:17 templates/sheets.html:209
 #: templates/sheets.html:210 templates/sheets.html:301
@@ -25,7 +25,7 @@ msgstr ""
 msgid "English"
 msgstr "དབྱིན་སྐད།"
 
-#: reader/templatetags/sefaria_tags.py:222 sefaria/settings.py:26
+#: reader/templatetags/sefaria_tags.py:222 sefaria/settings.py:25
 #: templates/edit_text.html:186 templates/elements/notification.html:15
 #: templates/elements/notification.html:17 templates/sheets.html:308
 #: templates/sheets.html:309
@@ -38,18 +38,18 @@ msgstr "བོད་སྐད།"
 msgid "Bilingual"
 msgstr "སྐད་གཉིས་ཤན་སྦྱར།"
 
-#: reader/views.py:645
+#: reader/views.py:681
 #, python-format
 msgid "Read the text of %(book)s online with commentaries and connections."
 msgstr "དྲ་ཐོག་ནས་དཔེ་ཆ་ %(book)s འདི་དང་འདིའི་འགྲེལ་བ་དང་འབྲེལ་ཡོད་བཅས་པ་མཉམ་དུ་ཀློག"
 
-#: reader/views.py:664
+#: reader/views.py:703
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 "ལོ་ངོ་གཉིས་སྟོང་ལྷག་རིང་གི་ནང་བསྟན་དཔེ་ཆ་རྣམས་བོད་སྐད་དང་དབྱིན་སྐད་ནང་བསྒྱུར་བ་རྣམས་འཚོལ་ཞིབ་དང་བལྟ་"
 "ཀློག་བྱ་ཐུབ།"
 
-#: reader/views.py:669 reader/views.py:3032 templates/delete-sheet.html:4
+#: reader/views.py:708 reader/views.py:3140 templates/delete-sheet.html:4
 #: templates/person.html:6 templates/person.html:8
 #: templates/registration/delete_user_account.html:4
 #: templates/registration/password_reset_complete.html:3
@@ -64,35 +64,35 @@ msgstr ""
 msgid "Sefaria"
 msgstr "Pecha"
 
-#: reader/views.py:671
+#: reader/views.py:710
 msgid "A source sheet created with Sefaria's Source Sheet Builder"
 msgstr "Pecha ཡི་མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས་སྤྱད་ནས་བཟོས་པའི་མ་ཕྱིའི་ཤོག་ངོས་ཤིག"
 
-#: reader/views.py:708
+#: reader/views.py:747
 msgid "Recently Viewed"
 msgstr "ཉེ་བའི་ཆར་བལྟས་པ།"
 
-#: reader/views.py:709
+#: reader/views.py:748
 msgid "Texts that you've recently viewed on Sefaria."
 msgstr "ཁྱེད་ཀྱིས་ཉེ་བའི་ཆར་Pechaབརྒྱུད་ནས་བལྟས་པའི་དཔེ་ཆ་རྣམས།"
 
-#: reader/views.py:718
+#: reader/views.py:760
 #, python-format
 msgid "Read %(categories)s texts online with commentaries and connections."
 msgstr ""
 "དྲ་ཐོག་ཏུ་སྤེལ་བའི་དཔེ་ཆ་རྣམས་ལ་འགྲེལ་བ་དང་འབྲེལ་ཡོད་མཉམ་འཇོག་བྱས་པ་རྣམས་ %(categories)s ཀློག"
 
-#: reader/views.py:719
+#: reader/views.py:762
 msgid " | Sefaria"
 msgstr " | Pecha"
 
-#: reader/views.py:752 reader/views.py:3069
+#: reader/views.py:796 reader/views.py:3180
 msgid ""
 "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish "
 "sources."
 msgstr "ཆོས་དཔེ་འདིའི་ནང་གི་དཔེ་ཆ་དང་མ་ཕྱིའི་ཤོག་ངོས་རྣམས།  ནང་བསྟན་དང་འབྲེལ་བའི་Pecha དཔེ་མཛོད།"
 
-#: reader/views.py:753 reader/views.py:3070
+#: reader/views.py:798 reader/views.py:3182
 #, python-format
 msgid ""
 "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other "
@@ -101,11 +101,11 @@ msgstr ""
 "ཆོས་དཔེ་ %(topic)s འདིའི་སྐོར་གྱི་དཔེ་དེབ་ཁག་དང་མ་ཕྱིའི་ཤོག་ངོས། Pecha དྲ་ཐོག་དཔེ་མཛོད་ནང་གི་མ་ཕྱི་"
 "གཞན་དག"
 
-#: reader/views.py:770
+#: reader/views.py:816
 msgid "Explore Jewish Texts by Topic"
 msgstr "བརྗོད་གཞི་ལྟར་ནང་པའི་དཔེ་ཆ་སྔོགས།"
 
-#: reader/views.py:771
+#: reader/views.py:818
 msgid ""
 "Explore Jewish texts related to traditional and contemporary topics, coming "
 "from Torah, Talmud, and more."
@@ -113,25 +113,25 @@ msgstr ""
 "ཐོ་རཱ་དང་ཐལ་མུས་ཊི་དེ་བཞིན་གཞན་གང་མང་ཞིག་ནས་ཡོང་བའི་སྲོལ་རྒྱུན་དང་གནས་སྐབས་ཀྱི་བརྗོད་གཞི་གཉིས་དང་"
 "འབྲེལ་བའི་ནང་བསྟན་དཔེ་དེབ་ཁག་སྔོགས།"
 
-#: reader/views.py:847
+#: reader/views.py:898
 msgid "Sefaria Search"
 msgstr "Pecha འཚོལ་ཞིབ།"
 
-#: reader/views.py:848
+#: reader/views.py:899
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 "ལོ་ངོ་གཉིས་སྟོང་ལྷག་རིང་གི་ནང་བསྟན་དཔེ་ཆ་རྣམས་དབྱིན་ཡིག་དང་བོད་ཡིག་གཉིས་ཀྱི་ནང་འཚོལ་ཞིབ་དང་བལྟ་ཀློག་"
 "བྱ་ཐུབ།"
 
-#: reader/views.py:873 reader/views.py:934
+#: reader/views.py:925 reader/views.py:986
 msgid "Sefaria Collections"
 msgstr "Pecha ཡི་ཕྱོགས་བསྒྲིགས།"
 
-#: reader/views.py:1032
+#: reader/views.py:1103
 msgid "Pecha - Buddhism in your own words"
 msgstr ""
 
-#: reader/views.py:1033
+#: reader/views.py:1104
 msgid ""
 "The largest free library of Buddhist texts available to read online in "
 "Tibetan, English and Chinese"
@@ -139,36 +139,36 @@ msgstr ""
 "བོད་སྐད་དང་དབྱིན་སྐད་གཉིས་ཀྱི་ནང་ཡོད་པའི་ནང་པའི་གཞུང་ལུགས་དཔེ་ཀློག་བྱ་སའི་རིན་མེད་དྲ་ཐོག་དཔེ་མཛོད་ཆེ་"
 "ཤོས། འདིའི་ནང་འཚོ་བའི་ཁྲོད་ངེས་པར་མཁོ་བའི་ནང་པའི་ཆོས་གཞུང་རྩ་འགྲེལ་སྣ་ཚོགས་བཞུགས་ཡོད།"
 
-#: reader/views.py:1038
+#: reader/views.py:1109
 msgid "Learning Schedules"
 msgstr "སློབ་གཉེར་བྱེད་པའི་དུས་བཅད་རྣམས།"
 
-#: reader/views.py:1039
+#: reader/views.py:1110
 msgid ""
 "Weekly Torah portions, Daf Yomi, and other schedules for Torah learning."
 msgstr "ཐོ་རཱ་སློབ་གཉེར་བྱ་ཕྱིར་བདུན་རེའི་ཐོ་རཱའི་ཆ་ཤས་ཁག་དང་། Daf Yomi, དུས་བཅད་གཞན་བཅས་སོ།།"
 
-#: reader/views.py:1045
+#: reader/views.py:1116
 msgid "My Saved Content"
 msgstr "ངའི་གསོག་ཉར་བྱས་པའི་ནང་དོན།"
 
-#: reader/views.py:1046
+#: reader/views.py:1117
 msgid "See your saved content on Sefaria"
 msgstr "Pecha ནང་གི་ཁྱེད་ཀྱི་གསོག་ཉར་ནང་དོན་ལ་གཟིགས།"
 
-#: reader/views.py:1059
+#: reader/views.py:1133
 msgid "My User History"
 msgstr "ངའི་བཀོལ་སྤྱོད་ཀྱི་ལོ་རྒྱུས།"
 
-#: reader/views.py:1060
+#: reader/views.py:1134
 msgid "See your user history on Sefaria"
 msgstr "Pecha ནང་གི་ཁྱེད་ཀྱི་བཀོལ་སྤྱོད་ཀྱི་ལོ་རྒྱུས་ལ་གཟིགས།"
 
-#: reader/views.py:1065
+#: reader/views.py:1139
 msgid "New Additions to the Sefaria Library"
 msgstr "Pecha དཔེ་མཛོད་ནང་གི་པར་གཞི་གསར་པ་ཁག"
 
-#: reader/views.py:1066
+#: reader/views.py:1140
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
@@ -176,40 +176,40 @@ msgstr ""
 "Pecha དྲ་ཐོག་དཔེ་མཛོད་ནང་ཉེ་ཆར་གསར་སྣོན་བྱས་པའི་དཔེ་ཆ་དང་འགྱུར་དེབ། དེ་བཞིན་འབྲེལ་ཡོད་རྣམས་ལ་"
 "གཟིགས།"
 
-#: reader/views.py:1072
+#: reader/views.py:1146
 msgid "User Stats"
 msgstr "སྤྱོད་མཁན་གྱི་གནས་བབས།"
 
-#: reader/views.py:1079
+#: reader/views.py:1153
 msgid "Sefaria Notifications"
 msgstr "Pecha ཡི་གསར་བརྡ་ཁག"
 
-#: reader/views.py:1089
+#: reader/views.py:1163
 msgid "Moderator Tools"
 msgstr "སྟངས་འཛིན་ལག་ཆ་རྣམས།"
 
-#: reader/views.py:1131 reader/views.py:3032
+#: reader/views.py:1208 reader/views.py:3140
 msgid "Topics"
 msgstr "ཉེར་མཁོ།"
 
-#: reader/views.py:1133
+#: reader/views.py:1210
 msgid "Source Sheet"
 msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
 
-#: reader/views.py:1164
+#: reader/views.py:1240
 msgid "Texts"
 msgstr "ཆོས་མཛོད།"
 
-#: reader/views.py:3033
+#: reader/views.py:3141
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr "Pecha དཔེ་མཛོད་ནང་ནས་བརྗོད་གཞི་ལྟར་ནང་པའི་ཆོས་དཔེ་རྣམས་སྔོགས།"
 
-#: reader/views.py:3467
+#: reader/views.py:3599
 #, python-format
 msgid "%(full_name)s on Sefaria"
 msgstr "Pecha ནང་གི་ %(full_name)s"
 
-#: reader/views.py:3468
+#: reader/views.py:3600
 #, python-format
 msgid ""
 "%(full_name)s is on Sefaria. Follow to view their public source sheets, "
@@ -218,31 +218,31 @@ msgstr ""
 "%(full_name)s ཁོང་ནི་ Pecha དྲ་ཐོག་དཔེ་མཛོད་ནང་གནས་འདུག ཁོང་ཚོའི་མ་ཕྱིའི་ཤོག་ངོས་དང་མཆན་བྲིས་"
 "པ། ཡིག་བསྒྱུར་བཅས་ལ་གཟིགས་ན་རྗེས་འཇུག་བྱ་དགོས།"
 
-#: reader/views.py:3481 reader/views.py:3509 reader/views.py:3634
+#: reader/views.py:3614 reader/views.py:3642 reader/views.py:3776
 msgid "You must be logged in to update your profile."
 msgstr "ཁྱེད་ཀྱི་སྙིང་བསྡུས་ཁ་གསབ་བྱེད་པར་ངེས་པར་དུ་ནང་འཛུལ་བྱ་དགོས།"
 
-#: reader/views.py:3519
+#: reader/views.py:3652
 msgid "Email fields did not match"
 msgstr "གློག་འཕྲིན་དེ་དག་མཐུན་གྱི་མི་འདུག"
 
-#: reader/views.py:3521
+#: reader/views.py:3654
 msgid "Incorrect account password for this account"
 msgstr "ཁ་བྱང་འདིའི་ནང་འཇུག་རྒྱུའི་ཁ་བྱང་གི་གསང་ཚིག་ནོར་འདུག"
 
-#: reader/views.py:3600
+#: reader/views.py:3735
 msgid "You must be logged in to update your profile photo."
 msgstr "ཁྱེད་ཀྱི་སྙིང་བསྡུས་ནང་འདྲ་པར་ནང་འཇུག་བྱེད་པར་ངེས་པར་དུ་ནང་འཛུལ་བྱ་དགོས།"
 
-#: reader/views.py:3715
+#: reader/views.py:3860
 msgid "You must be logged in to delete your account."
 msgstr "ཁྱེད་ཀྱི་ཁ་བྱང་བསུབ་པ་ལ་ངེས་པར་དུ་ནང་འཛུལ་བྱ་དགོས།"
 
-#: reader/views.py:3851
+#: reader/views.py:4011
 msgid "From the Community: Today on Sefaria"
 msgstr "Pecha ནང་གི་ཚོགས་སྡེ་དེའི་ དེ་རིང་གི་རྣམ་པ།"
 
-#: reader/views.py:3852
+#: reader/views.py:4013
 msgid ""
 "New and featured source sheets, divrei torah, articles, sermons and more "
 "created by members of the Sefaria community."
@@ -350,11 +350,11 @@ msgstr "གློག་འཕྲིན་འདི་བཀོལ་སྤྱོ
 msgid "The email address is not valid."
 msgstr "གློག་འཕྲིན་དེ་ཚུལ་མཐུན་ཞིག་མ་རེད།"
 
-#: sefaria/settings.py:27 templates/sheets.html:216 templates/sheets.html:217
+#: sefaria/settings.py:26 templates/sheets.html:216 templates/sheets.html:217
 msgid "Tibetan"
 msgstr "བོད་ཡིག"
 
-#: sefaria/views.py:192 sefaria/views.py:195 sefaria/views.py:279
+#: sefaria/views.py:196 sefaria/views.py:199 sefaria/views.py:283
 #: templates/static/app.html:383
 #: templates/static/aramaic-translation-contest.html:189
 #: templates/static/home.html:392 templates/static/mobile.html:388
@@ -362,11 +362,11 @@ msgstr "བོད་ཡིག"
 msgid "Sorry, there was an error."
 msgstr "དགོངས་དག གནད་དོན་ཞིག་བྱུང་སོང་།"
 
-#: sourcesheets/views.py:398
+#: sourcesheets/views.py:402
 msgid "You must be logged in to create a new collection."
 msgstr "ཁྱེད་ཀྱིས་ཕྱོགས་བསྒྲིགས་གསར་བཟོ་བྱེད་པར་ཐོག་མར་ངེས་པར་དུ་ནང་འཛུལ་བྱ་དགོས།"
 
-#: sourcesheets/views.py:561
+#: sourcesheets/views.py:565
 msgid ""
 "Leaving this collection would leave it without any owners. Please appoint "
 "another owner before leaving, or delete the collection."
@@ -374,7 +374,7 @@ msgstr ""
 "ཕྱོགས་བསྒྲིགས་འདི་ནས་ཐོན་ན་འདིའི་བདག་པོ་མེད་པར་ལུས་འགྲོ་བས། མ་ཐོན་སྔོན་ལ་བདག་པོ་གཞན་ཞིག་བསྐོ་རོགས། "
 "ཡང་ན་ཐོག་མར་ཕྱོགས་བསྒྲིགས་འདི་སུབ་རོགས།"
 
-#: sourcesheets/views.py:1156
+#: sourcesheets/views.py:1160
 msgid "You must be logged in to access this api."
 msgstr "API འདི་སྔོག་པ་ལ་ངེས་པར་དུ་ནང་འཛུལ་བྱ་དགོས།"
 
