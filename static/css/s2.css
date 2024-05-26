@@ -2167,8 +2167,8 @@ div.interfaceLinks-row a {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 .guideHeader .ai-info-tooltip {
-	display: inline;
-    float: inline-end;
+  display: inline;
+  float: inline-end;
 }
 
 .guideHeader .ai-message {
@@ -6940,9 +6940,9 @@ But not to use a display block directive that might break continuous mode for ot
 
 .toolsButtonContainer.blue .experimentLabel {
   --english-font: var(--english-sans-serif-font-family);
-  color: #ccc;
+  color: var(--light-grey);
   font-size: 14px;
-  border: 1px solid #CCCCCC;
+  border: 1px solid var(--light-grey);
   border-radius: 6px;
   float: inline-end;
   padding: 2px;
