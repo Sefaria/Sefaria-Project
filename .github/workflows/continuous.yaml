@@ -20,6 +20,7 @@ jobs:
           filterOutClosed: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
   build-generic:
+    name: "Continuous Image Build: ${{ github.even_name }}"
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -88,6 +89,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   build-derived:
+    name: "Continuous Image build Stage 2: ${{ github.even_name }}"
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -164,7 +166,7 @@ jobs:
 # Below Tests only run on PR
 #######
   jest-tests:
-    name: "Jest"   # This name is referenced when slacking status
+    name: "Continuous Testing: Jest"   # This name is referenced when slacking status
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
     steps:
@@ -182,6 +184,7 @@ jobs:
         run: cat /home/runner/jestResults.json; STATUS=`jq ".numFailedTestSuites" /home/runner/jestResults.json`; exit $STATUS
         if: ${{ always() }}
   sandbox-deploy:
+    name: "Continuous Testing: Sandbox Deploy"
     concurrency:
       group: dev-mongo
       cancel-in-progress: false
@@ -238,6 +241,7 @@ jobs:
           PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
           NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
   sandbox-ready:
+    name: "Continuous Testing: Sandbox Status"
     if: ${{ github.event_name == 'pull_request' }}
     needs: sandbox-deploy
     runs-on: ubuntu-latest
@@ -254,11 +258,11 @@ jobs:
           WAIT_DURATION: "3000"
           GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
   pytest-job:
+    name: "Continuous Testing: PyTest"
     concurrency:
       group: dev-mongo
       cancel-in-progress: false
     if: ${{ github.event_name == 'pull_request' }}
-    name: "PyTest"  # This name is referenced when slacking status
     needs:
       - sandbox-ready
     permissions:
@@ -317,6 +321,7 @@ jobs:
         run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest
         if: always()
   ending-notification:
+    name: "Continuous Testing: Notifications"
     runs-on: ubuntu-latest
     if: ${{ always() && github.event_name == 'pull_request' }}
     needs:
@@ -336,7 +341,7 @@ jobs:
           GITUSER_SLACK_MAP: ${{secrets.GITUSER_SLACK_MAP}}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   sandbox-cleanup:
-    name: "Clean up CI Sandbox"
+    name: "Continuous Testing: Clean up"
     if: ${{ always() && github.event_name == 'pull_request' }}
     needs:
       - pytest-job
