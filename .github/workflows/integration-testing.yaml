@@ -64,7 +64,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ needs.variables.outputs.branch }}
             us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ needs.variables.outputs.branch }}
           # generate Docker tags based on the following events/attributes
           tags: |
@@ -120,7 +119,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ needs.variables.outputs.branch }}
             us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ needs.variables.outputs.branch }}
           # generate Docker tags based on the following events/attributes
           tags: |
