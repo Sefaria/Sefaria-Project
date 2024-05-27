@@ -3288,11 +3288,17 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+const imgAltTextFactory = (caption) => {
+  const lang = Sefaria.interfaceLang === "hebrew" ? 'he' : 'en';
+  const fallBackMessage = lang === 'he' ? "Illustrative image" : "תמונה להמחשה";
+  const captionMessage = caption[lang];
+  if(captionMessage) {return captionMessage} else {return fallBackMessage}
+}
 const ImageWithCaption = ({photoLink, caption }) => {
-  
+  const altText = imgAltTextFactory(caption)
   return (
     <div>
-        <img class="imageWithCaptionPhoto" src={photoLink}/>
+        <img class="imageWithCaptionPhoto" src={photoLink} alt={altText}/>
         <div class="imageCaption"> 
           <InterfaceText text={caption} />
         </div>
