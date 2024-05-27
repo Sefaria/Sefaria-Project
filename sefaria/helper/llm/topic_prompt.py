@@ -86,7 +86,7 @@ def _make_llm_topic(sefaria_topic: Topic) -> LLMTopic:
     )
 
 
-def _make_topic_prompt_source(oref: Ref, context: str, normalize_text=True) -> TopicPromptSource:
+def _make_topic_prompt_source(oref: Ref, context: str, with_commentary=True, normalize_text=True) -> TopicPromptSource:
     """
     Return a dict that can be instantiated as `sefaria_interface.TopicPromptSource` in the LLM repo.
     This represents the basic metadata of a source for the LLM repo to process.
@@ -112,7 +112,7 @@ def _make_topic_prompt_source(oref: Ref, context: str, normalize_text=True) -> T
         author_name = "N/A"
 
     commentary = None
-    if index.get_primary_category() == "Tanakh":
+    if index.get_primary_category() == "Tanakh" and with_commentary:
         commentary = _get_commentary_for_tref(oref.normal())
     surrounding_text = _get_surrounding_text(oref)
 
