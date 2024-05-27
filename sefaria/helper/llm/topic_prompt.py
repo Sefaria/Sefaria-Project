@@ -72,7 +72,7 @@ def _get_surrounding_text(oref: Ref) -> Optional[Dict[str, str]]:
         return _lang_dict_by_func(lambda lang: context_ref.text(lang).as_string())
 
 
-def _make_llm_topic(sefaria_topic: Topic) -> LLMTopic:
+def make_llm_topic(sefaria_topic: Topic) -> LLMTopic:
     """
     Return a dict that can be instantiated as `sefaria_interface.Topic` in the LLM repo.
     This represents the basic metadata of a topic for the LLM repo to process.
@@ -86,7 +86,7 @@ def _make_llm_topic(sefaria_topic: Topic) -> LLMTopic:
     )
 
 
-def _make_topic_prompt_source(oref: Ref, context: str, with_commentary=True, normalize_text=True) -> TopicPromptSource:
+def make_topic_prompt_source(oref: Ref, context: str, with_commentary=True, normalize_text=True) -> TopicPromptSource:
     """
     Return a dict that can be instantiated as `sefaria_interface.TopicPromptSource` in the LLM repo.
     This represents the basic metadata of a source for the LLM repo to process.
@@ -142,8 +142,8 @@ def make_topic_prompt_input(lang: str, sefaria_topic: Topic, orefs: List[Ref], c
     """
     return TopicPromptInput(
         lang=lang,
-        topic=_make_llm_topic(sefaria_topic),
-        sources=[_make_topic_prompt_source(oref, context) for oref, context in zip(orefs, contexts)]
+        topic=make_llm_topic(sefaria_topic),
+        sources=[make_topic_prompt_source(oref, context) for oref, context in zip(orefs, contexts)]
     )
 
 
