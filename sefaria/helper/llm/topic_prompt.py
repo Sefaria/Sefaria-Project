@@ -86,7 +86,7 @@ def _make_llm_topic(sefaria_topic: Topic) -> LLMTopic:
     )
 
 
-def _make_topic_prompt_source(oref: Ref, context: str) -> TopicPromptSource:
+def _make_topic_prompt_source(oref: Ref, context: str, normalize_text=True) -> TopicPromptSource:
     """
     Return a dict that can be instantiated as `sefaria_interface.TopicPromptSource` in the LLM repo.
     This represents the basic metadata of a source for the LLM repo to process.
@@ -96,7 +96,12 @@ def _make_topic_prompt_source(oref: Ref, context: str) -> TopicPromptSource:
     """
 
     index = oref.index
-    text = _lang_dict_by_func(lambda lang: oref.text(lang).as_string())
+    def get_text_by_lang(lang: str) -> str:
+        s = oref.text(lang).as_string()
+        if normalize_text:
+            s = re.sub(r"<[^>]+>", "", TextChunk.strip_itags(s))
+        return s
+    text = _lang_dict_by_func(get_text_by_lang)
     book_description = _lang_dict_by_func(lambda lang: getattr(index, f"{lang}Desc", "N/A"))
     book_title = _lang_dict_by_func(index.get_title)
     composition_time_period = index.composition_time_period()
