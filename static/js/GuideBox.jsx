@@ -99,6 +99,7 @@ class GuideBox extends Component {
   /**
    * Overrides the setState method to add the current state to the history before updating it.
    * @param {Object} newState - The new state object.
+   * TODO: In order to make this code generic we should consider using a mixin or a higher order component.
    */
   setState(newState) {
     this.stateHistory.push(this.state);
