@@ -14,7 +14,7 @@ jobs:
       branch: ${{ steps.branch-name.outputs.current_branch }}
       runner-image: us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT}}/containers/hosted-runner:latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -43,26 +43,20 @@ jobs:
       matrix:
         app: [ web, node ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
       - id: auth
         name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: gcr.io
-          username: oauth2accesstoken
-          password: '${{ steps.auth.outputs.access_token }}'
       - name: Login to GAR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: us-east1-docker.pkg.dev
           username: oauth2accesstoken
@@ -103,26 +97,20 @@ jobs:
       matrix:
         app: [ asset, linker ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
       - id: auth
         name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: gcr.io
-          username: oauth2accesstoken
-          password: '${{ steps.auth.outputs.access_token }}'
       - name: Login to GAR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: us-east1-docker.pkg.dev
           username: oauth2accesstoken
@@ -164,7 +152,7 @@ jobs:
     runs-on: sefaria-integrations
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup base utils
         run: |
           export DEBIAN_FRONTEND=noninteractive
@@ -221,7 +209,7 @@ jobs:
           needs:
             - run-tests
           steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v4
             - uses: actions/setup-node@v2
               with:
                 node-version: '14'
