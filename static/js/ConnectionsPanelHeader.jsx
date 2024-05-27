@@ -49,7 +49,25 @@ class ConnectionsPanelHeader extends Component {
       /** TODO: fix for interfacetext */
     const previousMode = this.getPreviousMode();
     let title;
-    if (this.props.connectionsMode === "Resources") {
+    const backButtonSettings = this.props.backButtonSettings;
+    if (backButtonSettings) {
+      const onClick = (e) => {
+        e.preventDefault();
+        backButtonSettings.onClick();
+      };        
+      title = <a href={backButtonSettings.url} className="connectionsHeaderTitle sans-serif active" onClick={onClick}>
+      <InterfaceText>
+          <EnglishText>
+              <i className="fa fa-chevron-left"></i>
+              { backButtonSettings.backText }
+          </EnglishText>
+          <HebrewText>
+              <i className="fa fa-chevron-right"></i>
+              { backButtonSettings.backText }
+          </HebrewText>
+      </InterfaceText>
+    </a>;
+    } else if (this.props.connectionsMode === "Resources") {
       // Top Level Menu
       title = <div className="connectionsHeaderTitle sans-serif">
                     <InterfaceText text={{en: "Resources" , he:"קישורים וכלים" }} />
@@ -143,7 +161,8 @@ ConnectionsPanelHeader.propTypes = {
     setConnectionsCategory: PropTypes.func.isRequired,
     closePanel:             PropTypes.func.isRequired,
     toggleLanguage:         PropTypes.func,
-    interfaceLang:          PropTypes.string.isRequired
+    interfaceLang:          PropTypes.string.isRequired,
+    backButtonSettings:     PropTypes.object,
 };
 
 
