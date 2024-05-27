@@ -3307,13 +3307,13 @@ const ProductsPage = memo(() => {
           <div className='productsDevBox'>
             <p className='productsDevHeader'>
                 <span className="int-en">Powered by Sefaria</span>
-                <span className="int-he">עברית פה</span>
+                <span className="int-he">פרויקטים מכח ספריא</span>
             </p>
             <p>
                 <span className="int-en">
                 Check out the products our software developer friends from around the world have been building for you! <a href="www.example.com">Explore</a>
                 </span>
-                <span className="int-he">עברית פה</span>
+                <span className="int-he">נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="www.example.com">גלו את הפרויקטים</a></span>
                 
             </p>
           </div>
@@ -3323,7 +3323,7 @@ const ProductsPage = memo(() => {
     /**
      * The following are the building block components of an individual product. 
      */
-    
+     
     // The title and gray background label for each product
     const ProductTitle = ({product}) => {
         return (
