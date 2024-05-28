@@ -278,8 +278,6 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
             if other_term and not self.same_record(other_term):
                 raise InputError("A Term with the title {} in it already exists".format(title))
         self.title_group.validate()
-        if self.name != self.get_primary_title():
-            raise InputError("Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
 
     @staticmethod
     def normalize(term, lang="en"):
