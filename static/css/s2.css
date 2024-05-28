@@ -4571,25 +4571,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom: 0;
   padding: 0;
 }
-.singlePanel .search-suggestion-link-wrapper.search-override-wrapper{
+.singlePanel .search-suggestion-link-wrapper.search-override-wrapper {
   padding-top: 12px;
   padding-bottom: 12px;
   margin-bottom: 16px;
-  border-top-color: #EDEDEC;
-  border-top-style: solid;
-  border-top-width: 0.766667px;
-  border-bottom-color: #EDEDEC;
-  border-bottom-style: solid;
-  border-bottom-width: 0.766667px;
+  border-top: 0.766667px solid #EDEDEC;
+  border-bottom: 0.766667px solid #EDEDEC;
 }
 
 .search-suggestion {
     display: flex;
     list-style-type: none;
-    padding-top: 6px;
-    padding-bottom: 6px;
-    padding-right: 12px;
-    padding-left: 12px;
+    padding: 6px 12px;
     font-family: 'EB Garamond';
     font-style: normal;
     font-weight: 400;
