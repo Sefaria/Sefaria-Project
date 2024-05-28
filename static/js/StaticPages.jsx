@@ -3141,73 +3141,75 @@ const ProductsPage = memo(() => {
     const [error, setError] = useState(null);
 
     // GraphQL query to Strapi
+    // TODO - add publicationState:PREVIEW, to query for draft feature for admin
     const fetchProductsJSON = async () => {
         const query = `
         query {
-            products (
-                pagination: { limit: -1 }
-            )
-            {
-              data {
-                id
-                attributes {
-                  title
-                  rank
-                  url
-                  type
-                  description
-                  rectanglion {
-                    data {
-                      attributes {
-                        url
-                        alternativeText
-                      }
-                    }
-                  }
-                  createdAt
-                  updatedAt
-                  locale
-                  cta_labels {
-                    data {
-                      id
-                      attributes {
-                        text
-                        url
-                        icon {
-                          data {
-                            id
-                            attributes {
-                              url
-                              alternativeText
-                            }
-                          }
-                        }
-                        locale
-                        localizations {
-                          data {
-                            id
-                            attributes {
-                              text
-                            }
+                products (
+                    pagination: { limit: -1 },
+                    sort: "rank:asc"
+                )
+                {
+                  data {
+                    id
+                    attributes {
+                      title
+                      rank
+                      url
+                      type
+                      description
+                      rectanglion {
+                        data {
+                          attributes {
+                            url
+                            alternativeText
                           }
                         }
                       }
-                    }
-                  }
-                  localizations {
-                    data {
-                      attributes {
-                        locale
-                        title
-                        type
-                        description
+                      createdAt
+                      updatedAt
+                      locale
+                      cta_labels {
+                        data {
+                          id
+                          attributes {
+                            text
+                            url
+                            icon {
+                              data {
+                                id
+                                attributes {
+                                  url
+                                  alternativeText
+                                }
+                              }
+                            }
+                            locale
+                            localizations {
+                              data {
+                                id
+                                attributes {
+                                  text
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                      localizations {
+                        data {
+                          attributes {
+                            locale
+                            title
+                            type
+                            description
+                          }
+                        }
                       }
                     }
                   }
                 }
-              }
             }
-          }
         `;
     
         try {
@@ -3227,6 +3229,7 @@ const ProductsPage = memo(() => {
                 throw new Error(`HTTP Error: ${response.statusText}`);
             }
             const data = await response.json();
+            console.log(data);
             return data;
         } catch (error) {
             throw error;
@@ -3281,9 +3284,7 @@ const ProductsPage = memo(() => {
 
                     };
                 }, {});
-
-                const orderedProducts = productsFromStrapi.sort((a, b) => a.rank - b.rank);
-                setProducts(orderedProducts);   
+                setProducts(productsFromStrapi);   
             } catch (error) {
                 console.error("Fetch error:", error);
                 setError("Error: Sefaria's CMS cannot be reached");
