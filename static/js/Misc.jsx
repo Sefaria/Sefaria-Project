@@ -3289,9 +3289,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 }
 
 const getImgAltText = (caption) => {
-  const fallBackMessage = Sefaria._('Illustrative image');
-  const captionMessage = Sefaria._v(caption);
-  if(captionMessage) {return captionMessage} else {return fallBackMessage};
+return Sefaria._v(caption) || Sefaria._('Illustrative image');
 }
 const ImageWithCaption = ({photoLink, caption }) => {
   return (
