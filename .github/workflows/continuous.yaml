@@ -20,7 +20,7 @@ jobs:
           filterOutClosed: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
   build-generic:
-    name: "Continuous Image Build: ${{ github.even_name }}"
+    name: "Continuous Image Build: ${{ github.event_name }}"
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -89,7 +89,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   build-derived:
-    name: "Continuous Image build Stage 2: ${{ github.even_name }}"
+    name: "Continuous Image build Stage 2: ${{ github.event_name }}"
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
