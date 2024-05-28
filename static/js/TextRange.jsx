@@ -419,10 +419,14 @@ class TextRange extends Component {
     return (
       <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={ref}>
         {sidebarNum}
+        
         {this.props.hideTitle ? null :
         (<div className="title">
           <div className="titleBox" role="heading" aria-level="2">
-            <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>
+            { (!title.includes("data")) ?
+              <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>
+              : null
+            }
           </div>
           {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
         </div>)}

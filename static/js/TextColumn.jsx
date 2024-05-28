@@ -38,7 +38,6 @@ class TextColumn extends Component {
          content_type: Sefaria.index(this.props.bookTitle).primary_category,
          item_id: this.props.bookTitle
        }
-      console.log(params)
       gtag("event", "select_content", params)
 
     this.node.addEventListener("scroll", this.handleScroll);

@@ -659,7 +659,9 @@ class SchemaNode extends Component {
           return (
             <a className={linkClasses} href={"/" + Sefaria.normRef(path)} data-ref={path} key={i}>
               <span className="schema-node-title" role="heading" aria-level="3">
-                <ContentText text={{en:node.title , he:node.heTitle }}/>
+              {/* do not list content if it is intro to Sabche */}
+              {(node.title !== 'data') ?  <ContentText text={{en:node.title , he:node.heTitle }}/> : ""} 
+              
               </span>
             </a>);
         } else {
