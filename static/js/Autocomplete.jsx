@@ -28,7 +28,7 @@ const type_title_map = {
   "User": "Users"
 };
 
-const type_icon = function(itemType, itemPic) {
+function type_icon(itemType, itemPic) {
     if (itemType === "User" && itemPic !== "") {
       return itemPic;
     } else {
@@ -49,11 +49,11 @@ function groupByType(seggestedItems) {
 
     //Convert into a datastructure like this: [{"type": name,
     //                                         "items" : [item1, item2]}]
-    const result = Object.keys(groupedItems).map(type => ({
+    return Object.keys(groupedItems).map(type => ({
         type,
         items: groupedItems[type]
     }));
-    return result;
+
 };
 
 function sortByTypeOrder(array) {
@@ -268,7 +268,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
     return (
         <>
             {groupedSuggestions.map((object, index) => {
-                const InitialIndexForGroup = universalIndex;
+                const initialIndexForGroup = universalIndex;
                 universalIndex += object.items.length;
                 return (
                     <SuggestionsGroup
@@ -276,7 +276,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
                         highlightedIndex={highlightedIndex}
                         key={object.type}
                         suggestions={object.items}
-                        initialIndexForGroup={InitialIndexForGroup}
+                        initialIndexForGroup={initialIndexForGroup}
 
                         submitSearch={submitSearch}
                         redirectToObject={redirectToObject}

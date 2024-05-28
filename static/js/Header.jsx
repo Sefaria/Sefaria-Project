@@ -135,20 +135,6 @@ Header.propTypes = {
   hasBoxShadow: PropTypes.bool.isRequired,
 };
 
-
-
-// SearchBar.propTypes = {
-//   onRefClick:         PropTypes.func.isRequired,
-//   showSearch:         PropTypes.func.isRequired,
-//   openTopic:          PropTypes.func.isRequired,
-//   openURL:            PropTypes.func.isRequired,
-//   fullWidth:          PropTypes.bool,
-//   hideHebrewKeyboard: PropTypes.bool,
-// };
-
-
-
-
 const LoggedOutButtons = ({mobile, loginOnly}) => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");

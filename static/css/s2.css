@@ -4543,9 +4543,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-bottom: 10px;
 }
 .search-group-suggestions{
-  border-bottom-color: rgb(204, 204, 204);
-  border-bottom-style: solid;
-  border-bottom-width: 0.766667px;
+  border-bottom: 0.766667px solid rgb(204, 204, 204);
   display: flex;
   align-items: start;
   padding-top: 5px;
