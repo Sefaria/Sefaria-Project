@@ -2168,6 +2168,17 @@ div.interfaceLinks-row a {
 .ai-info-messages-box *{
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
+.guideHeader .ai-info-tooltip {
+  display: inline;
+  float: inline-end;
+}
+
+.guideHeader .ai-message {
+  left: -180px;
+}
+.guideHeader .ai-info-tooltip .ai-info-icon {
+    margin-top: 5px;
+}
 .ai-info-last-message {
   align-items: center;
   display: flex;
@@ -2181,6 +2192,7 @@ div.interfaceLinks-row a {
 .ai-message {
   z-index: 1;
   position: absolute;
+  left: -180px;
   opacity: 0;
   visibility: hidden;
   transition: opacity 2s ease, visibility 0s 2s;
@@ -6894,6 +6906,18 @@ But not to use a display block directive that might break continuous mode for ot
   flex-wrap: wrap;
 }
 
+.toolsButtonContainer.blue {
+  background-color: var(--sefaria-blue);
+  color: white;
+  margin: -29px 34px 20px;
+  margin-inline-start: -34px;
+  margin-inline-end: -34px;
+  padding-inline-start: 68px;
+  padding-inline-end: 34px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
 .toolsButtonContainer .toolsButtonText,
 .toolsButtonContainer .toolsSecondaryButton {
   position: relative;
@@ -6914,6 +6938,17 @@ But not to use a display block directive that might break continuous mode for ot
   height: var(--sans-serif-small-font-size);
   margin-inline-start: 30px;
   align-self: flex-start;
+}
+
+.toolsButtonContainer.blue .experimentLabel {
+  --english-font: var(--english-sans-serif-font-family);
+  color: var(--light-grey);
+  font-size: 14px;
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  float: inline-end;
+  padding: 2px;
+  line-height: 14px;
 }
 
 .linkArrow {
@@ -7024,6 +7059,9 @@ But not to use a display block directive that might break continuous mode for ot
 .toolsButton.textTypeface .toolsButtonText span.he{
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 122%;
+}
+.blue .toolsButton .toolsButtonIcon {
+  filter: invert(1);
 }
 .toolsButton .toolsButtonIcon {
   color: #999;
@@ -9492,6 +9530,51 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-size: 14px;
   line-height: 18px;
   color: var(--medium-grey);
+}
+.guideBox .guideHeader {
+  color: var(--dark-grey);
+  padding-bottom: 13px;
+  margin: 0;
+  margin-bottom: 15px;
+  text-align: initial;
+  text-transform: none;
+  font-size: 22px;
+  border-bottom: solid 1px var(--light-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.guideBox .guideHeader i {
+  margin-right: 8px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.guideBox .guideTitle {
+  padding: 10px 0 10px 0;
+  display: inline-block;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 29px;
+  color: #000000;
+}
+.guideBox .guidePromptBox {
+  direction: ltr;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  padding: 8px 15px;
+  border: 2px solid var(--mishnah-blue);
+  background-color: #FFFFFF;
+  cursor: pointer;
+}
+.guideBox .guidePromptBox p {
+  font-size: 16px;
+}
+.guideBox .guidePromptBox span {
+  font-size: 14px;
+  color: var(--medium-grey);
+  margin-top: 10px;
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
