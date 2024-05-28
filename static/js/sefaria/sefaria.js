@@ -479,10 +479,11 @@ Sefaria = extend(Sefaria, {
     let refStrs = [""];
     refs.map(ref => {
       let last = refStrs[refStrs.length-1];
-      if (encodeURI(`${hostStr}${last}|${ref}${paramStr}`).length > MAX_URL_LENGTH) {
-        refStrs.push(ref)
+      const encodedRef = encodeURIComponent(ref)
+      if (`${hostStr}${last}|${encodedRef}${paramStr}`.length > MAX_URL_LENGTH) {
+        refStrs.push(encodedRef)
       } else {
-        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
+        refStrs[refStrs.length-1] += last.length ? `|${encodedRef}` : encodedRef;
       }
     });
 
@@ -616,46 +617,46 @@ Sefaria = extend(Sefaria, {
       return response;
   },
   subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck) {
-    const response = await fetch(`/api/subscribe/${email}`,
-        {
-            method: "POST",
-            mode: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': Cookies.get('csrftoken'),
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
-                educator: educatorCheck,
-                firstName: firstName,
-                lastName: lastName
-            })
-        }
-    );
-    if (!response.ok) { throw "error"; }
-    const json = await response.json();
-    if (json.error) { throw json; }
-    return json;
+      const payload = {
+        language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
+        educator: educatorCheck,
+        firstName: firstName,
+        lastName: lastName,
+      };
+      return await Sefaria.postToApi(`/api/subscribe/${email}`, null, payload);
   },
   subscribeSteinsaltzNewsletter: async function(firstName, lastName, email) {
-      const response = await fetch(`/api/subscribe/steinsaltz/${email}`,
-          {
-              method: "POST",
-              mode: 'same-origin',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': Cookies.get('csrftoken'),
-              },
-              credentials: 'same-origin',
-              body: JSON.stringify({firstName, lastName}),
-          }
-      );
-      if (!response.ok) { throw "error"; }
-      const json = await response.json();
-      if (json.error) { throw json; }
-      return json;
+      const payload = {firstName, lastName};
+      return await Sefaria.postToApi(`/api/subscribe/steinsaltz/${email}`, null, payload);
   },
+
+    postToApi: async function(url, urlParams, payload) {
+    let apiUrl = this.apiHost + url;
+    if (urlParams) {
+        apiUrl += '?' + new URLSearchParams(urlParams).toString();
+    }
+    const response = await fetch(apiUrl, {
+        method: "POST",
+        mode: 'same-origin',
+        headers: {
+            'X-CSRFToken': Cookies.get('csrftoken'),
+            'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        throw new Error("Error posting to API");
+    }
+
+    const json = await response.json();
+    if (json.error) {
+        throw new Error(json.error);
+    }
+
+    return json;
+},
   subscribeSefariaAndSteinsaltzNewsletter: async function(firstName, lastName, email, educatorCheck) {
       const responses = await Promise.all([
           Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, educatorCheck),
@@ -1924,6 +1925,17 @@ _media: {},
     })
     return manuscriptPages
   },
+  _guides: {},
+ guidesByRef: function(refs) {
+    refs = typeof refs === "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    let guides = [];
+    refs.forEach(r => {
+      if (this._guides[r]) {
+        guides = guides.concat(this._guides[r]);
+      }
+    })
+    return guides
+  },
   relatedApi: function(ref, callback) {
     var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
     return this._api(url, data => {
@@ -1939,16 +1951,17 @@ _media: {},
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
-		      media: this._saveItemsByRef(data.media, this._media),
-          manuscripts: this._saveItemsByRef(data.manuscripts, this._manuscripts)
+          media: this._saveItemsByRef(data.media, this._media),
+          manuscripts: this._saveItemsByRef(data.manuscripts, this._manuscripts),
+          guides: this._saveItemsByRef(data.guides, this._guides)
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "webpages", "media"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages", "media", "guides"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: [], guides: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }

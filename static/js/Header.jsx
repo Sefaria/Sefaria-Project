@@ -16,7 +16,6 @@ import {
 } from './Misc';
 import {Autocomplete} from './Autocomplete'
 
-
 class Header extends Component {
   constructor(props) {
     super(props)
