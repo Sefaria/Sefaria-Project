@@ -9558,6 +9558,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #000000;
 }
 .guideBox .guidePromptBox {
+  direction: ltr;
   margin-bottom: 20px;
   border-radius: 10px;
   padding: 8px 15px;
