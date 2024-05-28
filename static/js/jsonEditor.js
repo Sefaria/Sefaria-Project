@@ -58,6 +58,14 @@ window.SefariaJsonEditor = function(schemaName, initData, container) {
     <div>
       <Form
 				schema={schema}
+                uiSchema={{
+                  "titles":
+                      {
+                        'ui:options': {
+                          orderable: false
+                        }
+                      }
+                }}
 				formData={initData}
 				onSubmit={onSubmit}
 				onError={log} />
@@ -75,8 +83,9 @@ const schemas = {
       ],
     "properties": {
       "name": {
-        "title": "Primary English Term",
+        "title": "Primary English Term Name",
         "type": "string",
+        "readOnly": true,
       },
       "titles": {
         "title": "List of variations of this term in English and Hebrew",
