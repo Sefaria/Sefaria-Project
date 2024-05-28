@@ -30,6 +30,9 @@ services:
     volumes:
       - .:/app
     command: npm start
+    depends_on:
+      - db
+      - cache
     ports:
       - "3000:3000"
 
