@@ -676,7 +676,7 @@ const MobileInterfaceLanguageToggle = () => {
 
 
 const HelpButton = () => {
-  const url = Sefaria._v({he: "/collections/9roOd5E7", en:"/collections/help-center"});
+  const url = Sefaria._v({he: "/collections/help-center", en:"/collections/help-center"});
   return (
     <div className="help">
       <a href={url}>
