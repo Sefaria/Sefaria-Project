@@ -946,7 +946,7 @@ def tag_list_api(request, sort_by="count"):
     """
     response = public_tag_list(sort_by)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=0"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -958,7 +958,7 @@ def user_tag_list_api(request, user_id):
     # return jsonResponse({"error": "You are not authorized to view that."})
     response = sheet_topics_counts({"owner": int(user_id)})
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=0"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -968,7 +968,7 @@ def trending_tags_api(request):
     """
     response = trending_topics(ntags=18)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=0"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -1016,7 +1016,7 @@ def story_form_sheets_by_tag(request, tag):
     sheets = [sheet_to_story_dict(request, s["id"]) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=0"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -1028,7 +1028,7 @@ def sheets_by_tag_api(request, tag):
     sheets = [sheet_to_dict(s) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=0"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 

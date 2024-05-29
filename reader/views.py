@@ -3199,7 +3199,7 @@ def topics_list_api(request):
     topics = get_all_topics(limit)
     response = [t.contents() for t in topics]
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=0"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
