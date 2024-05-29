@@ -62,7 +62,7 @@ window.SefariaJsonEditor = function(schemaName, initData, container) {
 				formData={initData}
 				onSubmit={onSubmit}
 				onError={log} />
-      { isUpdate ? <div className="btn btn-danger" style={{"float":"right"}} onClick={onDelete}>Delete</div> : null }
+      {/*{ isUpdate ? <div className="btn btn-danger" style={{"float":"right"}} onClick={onDelete}>Delete</div> : null }*/}
     </div>,
 		container);
 };
