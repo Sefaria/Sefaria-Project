@@ -25,6 +25,7 @@ import {
   JobsPage,
   TeamMembersPage,
 } from './StaticPages';
+import UpdatesPanel from './UpdatesPanel';
 import {
   SignUpModal,
   InterruptingMessage,
@@ -2327,4 +2328,5 @@ export {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  UpdatesPanel
 };

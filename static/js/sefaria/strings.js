@@ -468,6 +468,16 @@ const Strings = {
     "All History": "כל ההסטוריה",
 
 
+     //About
+    "What is Sefaria?": "מהי ספריא",
+    "Team": "צוות ספריא",
+    "Jobs at Sefaria": "משרות פנויות בספריא",
+    "Our Supporters": "התומכים שלנו",
+    "Metrics": "מדדים",
+    "Annual Report": 'דו"ח שנתי',
+    "Terms of Use": "תנאי שימוש",
+    "Privacy Policy": "מדיניות פרטיות",
+
     //user stats
     "Torah Tracker" : "לימוד במספרים",
     "Previous Year": "לשנה האחרונה",
