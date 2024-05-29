@@ -103,6 +103,9 @@ const Strings = {
     "Reset": "לאתחל",
     "Search Topics": "חפש נושאים",
 
+    // Topic Images
+    "Illustrative image" : "תמונה להמחשה",
+
 
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",

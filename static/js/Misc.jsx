@@ -3288,11 +3288,13 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+const getImgAltText = (caption) => {
+return Sefaria._v(caption) || Sefaria._('Illustrative image');
+}
 const ImageWithCaption = ({photoLink, caption }) => {
-  
   return (
     <div>
-        <img class="imageWithCaptionPhoto" src={photoLink}/>
+        <img class="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
         <div class="imageCaption"> 
           <InterfaceText text={caption} />
         </div>
