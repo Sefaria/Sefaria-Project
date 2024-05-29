@@ -9,7 +9,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.sheets import get_sheets_for_ref
-from sefaria.utils.hebrew import hebrew_term
+from sefaria.utils.hebrew import hebrew_term, english_term
 
 
 def format_link_object_for_client(link, with_text, ref, pos=None):
@@ -73,7 +73,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     # this is now simpler, and there is explicit data on the index record for it.
     if com["type"] == "commentary":
         com["collectiveTitle"] = {
-            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
+            'en': english_term(getattr(linkRef.index, 'collective_title', linkRef.index.title)),
             'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
         }
     else:

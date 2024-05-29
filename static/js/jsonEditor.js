@@ -113,9 +113,15 @@ const schemas = {
       	"required": ["text", "lang"],
       },
       "scheme": {
-        "title": "Optional name of a term scheme this term participates in.",
+        "title": "Optional name of a term scheme this term participates in",
         "type": "string",
         "readOnly": true,
+
+      }
+    },
+    "x-ordering": ["name", "titles", "scheme"]
+  }
+};
         // "enum": ['', 'Holidays',
         //    'Parasha',
         //    'Tag Category',
@@ -126,8 +132,3 @@ const schemas = {
         //    'section_names',
         //    'targum_titles',
         //    'toc_categories']
-      }
-    },
-    "x-ordering": ["name", "titles", "scheme"]
-  }
-};

@@ -500,17 +500,15 @@ def hebrew_plural(s):
 
 	return known[s] if s in known else str(s) + "s"
 
+def english_term(s):
+	get_term(s, lang='en')
 
-def hebrew_term(s):
+def get_term(s, lang='he'):
 	from sefaria.model import library
 	from sefaria.system.exceptions import BookNameError
-
-	if has_hebrew(s):
-		return s
-
 	term = library.get_simple_term_mapping().get(s)
 	if term:
-		return term["he"]
+		return term[lang]
 	else:
 		try:
 			# If s is a text title, look for a stored Hebrew title
@@ -518,6 +516,12 @@ def hebrew_term(s):
 			return i.get_title("he")
 		except BookNameError:
 			return ''
+def hebrew_term(s):
+	if has_hebrew(s):
+		return s
+
+	return get_term(s)
+
 
 
 def hebrew_parasha_name(value):

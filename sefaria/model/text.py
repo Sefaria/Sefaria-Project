@@ -26,7 +26,7 @@ import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError
-from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
+from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term, english_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
@@ -295,7 +295,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             contents["authors"] = [{"en": author.get_primary_title("en"), "he": author.get_primary_title("he"), "slug": author.slug} for author in authors]
 
         if getattr(self, "collective_title", None):
-            contents["collective_title"] = {"en": self.collective_title, "he": hebrew_term(self.collective_title)}
+            contents["collective_title"] = {"en": english_term(self.collective_title), "he": hebrew_term(self.collective_title)}
 
         if getattr(self, "base_text_titles", None):
             contents["base_text_titles"] = [{"en": btitle, "he": hebrew_term(btitle)} for btitle in self.base_text_titles]
@@ -831,9 +831,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["order"] = order
 
         if hasattr(self, "collective_title"):
-            toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
+            toc_contents_dict["commentator"] = english_term(self.collective_title) # todo: deprecate Only used in s1 js code
             toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title) # todo: deprecate Only used in s1 js code
-            toc_contents_dict["collectiveTitle"] = self.collective_title
+            toc_contents_dict["collectiveTitle"] = english_term(self.collective_title)
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
 
         if include_base_texts and hasattr(self, 'base_text_titles'):
@@ -2521,9 +2521,9 @@ class TextFamily(object):
             d[attr] = getattr(self._original_oref, attr)[:]
 
         if getattr(self._inode.index, 'collective_title', None):
-            d["commentator"] = getattr(self._inode.index, 'collective_title', "") # todo: deprecate Only used in s1 js code
+            d["commentator"] = english_term(getattr(self._inode.index, 'collective_title', "")) # todo: deprecate Only used in s1 js code
             d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', "")) # todo: deprecate Only used in s1 js code
-            d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
+            d["collectiveTitle"] = english_term(getattr(self._inode.index, 'collective_title', ""))
             d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
 
         if len(self._nonExistantVersions) > 0:

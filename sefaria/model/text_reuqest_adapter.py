@@ -5,7 +5,7 @@ from typing import List
 import django
 django.setup()
 from sefaria.model import *
-from sefaria.utils.hebrew import hebrew_term
+from sefaria.utils.hebrew import hebrew_term, english_term
 from sefaria.system.exceptions import InputError
 from sefaria.datatype.jagged_array import JaggedTextArray
 
@@ -117,7 +117,7 @@ class TextRequestAdapter:
             'isComplex': index.is_complex(),
             'isDependant': index.is_dependant_text(),
             'order': getattr(index, 'order', ''),
-            'collectiveTitle': getattr(index, 'collective_title', ''),
+            'collectiveTitle': english_term(getattr(index, 'collective_title', '')),
             'heCollectiveTitle': hebrew_term(getattr(index, 'collective_title', '')),
             'alts': index.get_trimmed_alt_structs_for_ref(self.oref),
         })
