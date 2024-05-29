@@ -9,9 +9,9 @@ import DjangoCSRF  from './lib/django-csrf';
 DjangoCSRF.init();
 
 window.SefariaJsonEditor = function(schemaName, initData, container) {
-
-  if (schemaName in schemas) {
-    var schema = schemas[schemaName];
+    if (schemaName in schemas) {
+      var schema = schemas[schemaName];
+      var uiSchema = schemas[`${schemaName}UI`];
   } else {
     alert("Unrecognized schema name");
     return;
@@ -58,14 +58,7 @@ window.SefariaJsonEditor = function(schemaName, initData, container) {
     <div>
       <Form
 				schema={schema}
-                uiSchema={{
-                  "titles":
-                      {
-                        'ui:options': {
-                          orderable: false
-                        }
-                      }
-                }}
+                uiSchema={uiSchema}
 				formData={initData}
 				onSubmit={onSubmit}
 				onError={log} />
@@ -75,6 +68,18 @@ window.SefariaJsonEditor = function(schemaName, initData, container) {
 };
 
 const schemas = {
+  "termsUI": {
+                  "titles":
+                      {
+                        'ui:options': {
+                          orderable: false
+                        }
+                      },
+                   // "scheme": {
+                   //    "ui:placeholder": "Select a term scheme"
+                   //
+                   // }
+                },
   "terms": {
     "type": "object",
     "required": [
@@ -109,7 +114,18 @@ const schemas = {
       },
       "scheme": {
         "title": "Optional name of a term scheme this term participates in.",
-        "type": "string"
+        "type": "string",
+        "readOnly": true,
+        // "enum": ['', 'Holidays',
+        //    'Parasha',
+        //    'Tag Category',
+        //    'commentary_works',
+        //    'he-month',
+        //    'pseudo_toc_categories',
+        //    'search_filter_categories',
+        //    'section_names',
+        //    'targum_titles',
+        //    'toc_categories']
       }
     },
     "x-ordering": ["name", "titles", "scheme"]
