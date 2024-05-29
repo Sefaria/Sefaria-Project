@@ -160,8 +160,8 @@ const hasPrompts = (description) => {
      */
     return description?.title?.length && (Sefaria.is_moderator || description?.published !== false);
 }
-
-const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => item => {
+const adminRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, true);
+const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
   const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
@@ -184,6 +184,7 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPr
       text={text}
       bodyTextIsLink= {true}
       langPref={langPref}
+      isAdmin={isAdmin}
     />
   );
 };
@@ -450,6 +451,14 @@ const useTabDisplayData = (translationLanguagePreference) => {
       filterFunc: refFilter,
       sortFunc: refSort,
       renderWrapper: refRenderWrapper,
+    },
+    {
+      key: 'adminTab',
+      fetcher: fetchBulkText.bind(null, translationLanguagePreference),
+      sortOptions: ['Relevance', 'Chronological'],
+      filterFunc: refFilter,
+      sortFunc: refSort,
+      renderWrapper: adminRefRenderWrapper,
     },
     {
       key: 'key-sources',

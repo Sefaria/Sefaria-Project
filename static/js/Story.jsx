@@ -146,7 +146,7 @@ const TopicStoryDescBlock = ({topic, text}) => (
       </div>
 )
 
-const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref}) => {
+const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, isAdmin}) => {
     if (!text.ref) {
         return null;
     }
