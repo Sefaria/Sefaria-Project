@@ -1347,10 +1347,9 @@ class CloseButton extends Component {
 
 class DisplaySettingsButton extends Component {
   render() {
-    // let style = this.props.placeholder ? {visibility: "hidden"} : {};
-    let icon;
     let style = this.props.placeholder ? {visibility: "hidden"} : {};
-    const altText = "Text display options";
+    let icon;
+    const altText = Sefaria._('Text display options')
     const classes = classNames({saveButton: 1, "tooltip-toggle": true});
 
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {

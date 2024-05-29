@@ -273,6 +273,7 @@ const Strings = {
     "Location: ": "מיקום: ",
     "Translations": "תרגומים",
     "Uncategorized": "לא מסווג",
+    "Text display options": "אפשרויות תצוגת טקסט",
 
     // Collections
     "Collections": "אסופות",
