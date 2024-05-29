@@ -10,6 +10,7 @@ import palette from './sefaria/palette';
 import classNames from 'classnames';
 import Cookies from 'js-cookie';
 import ReactMarkdown from 'react-markdown';
+import Sefaria from './sefaria/sefaria';
 
 
 
@@ -3141,12 +3142,18 @@ const ProductsPage = memo(() => {
     const [error, setError] = useState(null);
 
     // GraphQL query to Strapi
-    // TODO - add publicationState:PREVIEW, to query for draft feature for admin
     const fetchProductsJSON = async () => {
+
+        // If the viewer is an admin, edit the query to retrieve the drafts as well
+        var includeDrafts = '';
+        if (Sefaria.is_moderator){
+            includeDrafts = 'publicationState:PREVIEW,';
+        }
         const query = `
         query {
                 products (
                     pagination: { limit: -1 },
+                    ${includeDrafts}
                     sort: "rank:asc"
                 )
                 {
@@ -3211,7 +3218,7 @@ const ProductsPage = memo(() => {
                 }
             }
         `;
-    
+        
         try {
             const response = await fetch(STRAPI_INSTANCE + "/graphql", {
                 method: "POST",
@@ -3244,18 +3251,18 @@ const ProductsPage = memo(() => {
 
                 const productsFromStrapi = productsData.data?.products?.data?.map((productsData) => {
 
-                    const heLocalization = productsData.attributes.localizations.data[0].attributes;
-                    const ctaLabels = productsData.attributes.cta_labels.data;
+                    const heLocalization = productsData.attributes?.localizations?.data[0]?.attributes;
+                    const ctaLabels = productsData.attributes?.cta_labels?.data;
 
                     const ctaLabelsLocalized = ctaLabels.map((cta) => {
                         return {
                             text: {
-                                en: cta.attributes.text,
-                                he: cta.attributes.localizations.data[0].attributes.text
+                                en: cta.attributes?.text,
+                                he: cta.attributes?.localizations?.data[0]?.attributes.text
                             },
-                            url: cta.attributes.url,
+                            url: cta.attributes?.url,
                             icon: {
-                                url: cta.attributes.icon.data?.attributes.url,
+                                url: cta.attributes?.icon?.data?.attributes?.url,
                             }
                         };
                     });
@@ -3263,22 +3270,22 @@ const ProductsPage = memo(() => {
                     return {
                         id: productsData.id,
                         titles: {
-                            en: productsData.attributes.title,
-                            he: heLocalization.title
+                            en: productsData.attributes?.title,
+                            he: heLocalization?.title
                         },
-                        rank: productsData.attributes.rank,
+                        rank: productsData.attributes?.rank,
                         type: {
-                            en: productsData.attributes.type,
-                            he: productsData.attributes.localizations.data[0].attributes.type,
+                            en: productsData.attributes?.type,
+                            he: productsData.attributes?.localizations?.data[0]?.attributes?.type,
                         },
-                        url: productsData.attributes.url,
+                        url: productsData.attributes?.url,
                         desc:
                         {
-                            en: productsData.attributes.description,
-                            he: heLocalization.description
+                            en: productsData.attributes?.description,
+                            he: heLocalization?.description
                         },
                         rectanglion: {
-                            url: productsData.attributes.rectanglion.data.attributes.url,
+                            url: productsData.attributes?.rectanglion?.data?.attributes?.url,
                         },
                         ctaLabels: ctaLabelsLocalized,
 
