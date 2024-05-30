@@ -12984,6 +12984,10 @@ span.ref-link-color-3 {color: blue}
   }
 }
 
+.product {
+  max-width: 600px;
+}
+
 .product hr {
   border: 1px solid var(--light-grey);
 }
@@ -13006,6 +13010,7 @@ span.ref-link-color-3 {color: blue}
   font: 'Roboto', sans-serif; 
   color: #666666;
   font-size: 16px;
+  margin-top: 0;
 }
 
 .productsHeader {
@@ -13090,6 +13095,7 @@ span.ref-link-color-3 {color: blue}
     flex-direction: column;
     padding: 3%;
     margin-top: 10%;
+    max-width: 600px;
 }
 
 .productsDevBox .productsDevHeader {

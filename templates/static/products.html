@@ -16,21 +16,15 @@
 {% endblock %}
 
 {% block content %}
-
-    <main id="ProductsPage" class="container static sans-serif">
-        <div class="inner">
-            <header>
-                <h1>
-                    <span class="int-en productsTitle">Sefaria's Products</span>
-                    <span class="int-he">המוצרים שלנו</span>
-                </h1>
-            </header>
-            <div id="productsPageContent">
-                <div>
-                    <h1 id="appLoading">Loading...</h1>
-                </div>
-            </div>
+<div class="superAbout">
+    {% if not request.user_agent.is_mobile %}
+      {% include '_sidebar.html' with whichPage='products' title="Products" heTitle="מוצרים" %}
+    {% endif %}
+    <main id="productsPage">
+        <div id="productsPageContent">
+            <h1 id="appLoading">Loading...</h1>
         </div>
     </main>
-
+</div>
 {% endblock %}
+{% block footer %} {% endblock %}
