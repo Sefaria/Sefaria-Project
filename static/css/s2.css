@@ -12988,6 +12988,11 @@ span.ref-link-color-3 {color: blue}
   max-width: 600px;
 }
 
+#productsPageContent {
+  margin-top: 225px;
+  margin-inline-start: 68px;
+}
+
 .product hr {
   border: 1px solid var(--light-grey);
 }
@@ -13010,6 +13015,9 @@ span.ref-link-color-3 {color: blue}
   font: 'Roboto', sans-serif; 
   color: #666666;
   font-size: 16px;
+}
+
+.productsDesc p {
   margin-top: 0;
 }
 
@@ -13110,6 +13118,10 @@ span.ref-link-color-3 {color: blue}
 .productsDevBox a {
   color: #4B71B7 !important; 
 
+}
+
+.productsDevBox p {
+  margin-top: 0;
 }
 
 .productsDevBox a::after {
