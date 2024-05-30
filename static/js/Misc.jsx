@@ -1350,7 +1350,7 @@ class DisplaySettingsButton extends Component {
     let style = this.props.placeholder ? {visibility: "hidden"} : {};
     let icon;
     const altText = Sefaria._('Text display options')
-    const classes = classNames({saveButton: 1, "tooltip-toggle": true});
+    const classes = classNames({readerOptionsTooltip: 1, "tooltip-toggle": true});
 
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
