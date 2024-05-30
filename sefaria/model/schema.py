@@ -240,7 +240,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
     collection = 'term'
     track_pkeys = True
-    pkeys = ["name"]
+    pkeys = ["name", "titles"]
     title_group = None
     history_noun = "term"
 
@@ -285,6 +285,11 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         otherwise return 'term' unchanged """
         t = Term().load_by_title(term)
         return t.get_primary_title(lang=lang) if t else term
+
+
+    @classmethod
+    def process_title_change_in_term(cls, term, **kwargs):
+        pass
 
 
 class TermSet(abst.AbstractMongoSet):

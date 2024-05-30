@@ -83,6 +83,7 @@ subscribe(topic.process_topic_delete,                                 topic.Auth
 # TODO Use Sefaria-Project/scripts/search_for_indexes_that_use_terms.py for now
 subscribe(cascade(schema.TermSet, "scheme"),                                schema.TermScheme, "attributeChange", "name")
 subscribe(text.reset_simple_term_mapping,                                   schema.Term, "delete")
+subscribe(schema.Term.process_title_change_in_term,                                schema.Term, "attributeChange", "titles")
 subscribe(text.reset_simple_term_mapping,                                   schema.Term, "save")
 """
 Notes on where Terms are used
