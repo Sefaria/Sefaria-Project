@@ -26,6 +26,7 @@ import {
   TeamMembersPage,
   ProductsPage
 } from './StaticPages';
+import UpdatesPanel from './UpdatesPanel';
 import {
   SignUpModal,
   InterruptingMessage,
@@ -174,7 +175,8 @@ class ReaderApp extends Component {
       topicSort:               state.topicSort               || null,
       webPagesFilter:          state.webPagesFilter          || null,
       sideScrollPosition:      state.sideScrollPosition      || null,
-      topicTestVersion:        state.topicTestVersion        || null
+      topicTestVersion:        state.topicTestVersion        || null,
+      filterRef:               state.filterRef               || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -424,7 +426,7 @@ class ReaderApp extends Component {
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL.
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
-      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch"]);
+      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide"]);
     const addTab = (url) => {
       if (state.tab && state.menuOpen !== "search") {
         return  url + `&tab=${state.tab}`
@@ -587,6 +589,9 @@ class ReaderApp extends Component {
 
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
+        if (!!state.filterRef) {
+          hist.filterRef = state.filterRef;
+        }
         if(state.connectionsMode === "WebPagesList") {
           hist.sources = "WebPage:" + state.webPagesFilter;
         } else {
@@ -1451,7 +1456,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       });
     } else {  // Text
       let filter = [];
+      let filterRef;
       if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
+        // getBaseRefAndFilter breaks up the ref "Rashi on Genesis 1:1:4" into filter "Rashi" and ref "Genesis 1:1",
+        // so `filterRef` is needed to store the entire "Rashi on Genesis 1:1:4"
+        filterRef = Sefaria.humanRef(ref);
         ({ref, filter} = Sefaria.getBaseRefAndFilter(ref));
       }
       let refs, currentlyVisibleRef, highlightedRefs;
@@ -1471,6 +1480,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         currVersions,
         highlightedRefs,
         filter,
+        filterRef,
         recentFilters: filter,
         currentlyVisibleRef, mode: "Text",
         ...options
@@ -2320,4 +2330,5 @@ export {
   JobsPage,
   TeamMembersPage,
   ProductsPage,
+  UpdatesPanel
 };

@@ -13,7 +13,6 @@ import ReactMarkdown from 'react-markdown';
 import Sefaria from './sefaria/sefaria';
 
 
-
 /*  Templates:
 
         <Header
@@ -1438,7 +1437,7 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Donate Now"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/en"
+                enButtonUrl="https://donate.sefaria.org/"
                 heButtonUrl="https://donate.sefaria.org/he"
                 borderColor="#004E5F"
             />,
@@ -1494,7 +1493,7 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Donate Online"
                     heTitle=""
-                    enText="<p>Make a donation by <strong>credit card, PayPal, GooglePay, ApplePay, Venmo, or bank transfer</strong> on our <a href='http://donate.sefaria.org/en'>main donation page</a>.</p>"
+                    enText="<p>Make a donation by <strong>credit card, PayPal, GooglePay, ApplePay, Venmo, or bank transfer</strong> on our <a href='http://donate.sefaria.org/'>main donation page</a>.</p>"
                     heText=""
                     colorBar="#AB4E66"
                 />,
@@ -1606,7 +1605,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="Can I still donate from outside the USA?"
             heTitle=""
-            enText="<p>Yes! Donors outside of the USA may make a gift online  – via credit card, PayPal, GooglePay, ApplePay, Venmo, and bank transfer – <a href='https://donate.sefaria.org/en'>on this page</a> On this page you can modify your currency. You can also <a href='https://sefaria.formstack.com/forms/wire_request'>make a wire transfer</a>.</p>"
+            enText="<p>Yes! Donors outside of the USA may make a gift online  – via credit card, PayPal, GooglePay, ApplePay, Venmo, and bank transfer – <a href='https://donate.sefaria.org/'>on this page</a> On this page you can modify your currency. You can also <a href='https://sefaria.formstack.com/forms/wire_request'>make a wire transfer</a>.</p>"
             heText=""
             colorBar="#7F85A9"
         />
@@ -1745,7 +1744,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="/static/files/Sefaria_AnnualImpactReport_R14.pdf"
+                        href="/annualreport"
                         he_href=""
                         he=""
                         en="Read Here"
@@ -2919,11 +2918,10 @@ const JobsPageHeader = ({ jobsAreAvailable }) => {
     return (
         <>
             <header>
-                <h1 className="serif">
+                <h1 className="mobileAboutHeader">
                     <span className="int-en">Jobs at Sefaria</span>
                     <span className="int-he">משרות פנויות בספריא</span>
                 </h1>
-
                 {jobsAreAvailable ? (
                     <>
                         <h2>

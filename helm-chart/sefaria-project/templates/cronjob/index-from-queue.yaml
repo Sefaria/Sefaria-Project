@@ -28,6 +28,8 @@ spec:
           - name: index-from-queue
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             env:
+            - name: SEARCH_HOST
+              value: "{{ .Values.nginx.SEARCH_HOST }}" 
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
             - name: NODEJS_HOST
@@ -35,6 +37,8 @@ spec:
             - name: VARNISH_HOST
               value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             envFrom:
+            - secretRef:
+                name: {{ template "sefaria.secrets.elasticAdmin" . }}
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
                 optional: true

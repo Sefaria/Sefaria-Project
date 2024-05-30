@@ -1,17 +1,24 @@
 import {DEFAULT_LANGUAGE, LANGUAGES, testUser} from './globals'
 import {BrowserContext}  from 'playwright-core';
 import type { Page } from 'playwright-core';
-import os from 'os';
 
 let langCookies: any = [];
 let loginCookies: any = [];
 
+const hideModals = async (page: Page) => {
+    await page.evaluate(() => {
+        const style = document.createElement('style');
+        style.innerHTML = '#interruptingMessageBox {display: none;}';
+        document.head.appendChild(style);
+    });
+}
+
 export const changeLanguage = async (page: Page, language: string) => {
     await page.locator('.interfaceLinks-button').click()
     if (language === LANGUAGES.EN) {
-        await page.getByRole('banner').getByRole('link', { name: 'English' }).click()
+        await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
     } else if (language === LANGUAGES.HE) {
-        await page.getByRole('banner').getByRole('link', { name: ' עברית' }).click()
+        await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
     }
 }
 
@@ -26,6 +33,7 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     // this is a hack to get the cookie to work
     const newPage: Page = await context.newPage();
     await newPage.goto(url);
+    await hideModals(newPage);
     return newPage;
 }
 
@@ -50,5 +58,11 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     // this is a hack to get the cookie to work
     const newPage: Page = await context.newPage();
     await newPage.goto(url);
+    await hideModals(newPage);
     return newPage;
+}
+
+export const getPathAndParams = (url: string) => {
+    const urlObj = new URL(url);
+    return urlObj.pathname + urlObj.search;
 }

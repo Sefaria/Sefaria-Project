@@ -23,6 +23,7 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -59,6 +60,7 @@ const __filterChildrenByLanguage = (children, language) => {
   let newChildren = chlArr.filter(x=> x.type == currLangComponent);
   return newChildren;
 };
+
 
 const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
   /**
@@ -1093,12 +1095,12 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
-const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
+const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
   return (
     <span className={adminClasses}>
-      {buttonsToDisplay.map((key, i) => {
+      {buttonIDs.map((key, i) => {
         const top = i === 0;
-        const bottom = i === buttonsToDisplay.length - 1;
+        const bottom = i === buttonIDs.length - 1;
         const [buttonText, toggleAddingTopics] = buttonOptions[key];
         return (
           <AdminEditorButton
@@ -1112,9 +1114,7 @@ const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
     </span>
   );
 };
-
-
-const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"]}) => {
+const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcategory", "edit"], actionButtons = {}}) => {
   /*
   Provides an interface for using admin tools.
   `type` is 'sources', 'cats', 'books' or 'topics'
@@ -1122,7 +1122,8 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
         for `type` === 'books' it's the name of the book
         for `type` === 'topics' it's a dictionary of the topic object
         for `type` === 'sources' it's a list where the first item is topic slug and second item is source data
-  `buttonsToDisplay` is a list that says in the specified order we want all of the buttons in buttonOptions
+  `toggleButtonIDs` is a list of IDs that appear in buttonOptions. Each ID will create a button that performs the toggle action specified for it in buttonOptions. toggleButtonIDs will always appear before actionButtons
+  `actionButtons` is an object where each key is an ID of a new button in the list and each value is an array of form [English Display Text, callback]. actionButtons will always appear after toggleButtonIDs.
    */
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
@@ -1130,19 +1131,21 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   const [addSource, toggleAddSource] = useEditToggle();
   const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
-  const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
+  const buttonIDs = toggleButtonIDs.concat(Object.keys(actionButtons));
+
+  const buttonOptions = Object.assign({"subcategory": ["Add sub-category", toggleAddCategory],
                           "source": ["Add a source", toggleAddSource],
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
-                          "edit": ["Edit", toggleEditCategory]};
-
+                          "edit": ["Edit", toggleEditCategory]}, actionButtons);
 
   let wrapper = "";
   let adminButtonsSpan = null;
   if (Sefaria.is_moderator) {
     if (editCategory) {
       adminButtonsSpan = <CategoryEditorWrapper toggle={toggleEditCategory} data={data} type={type}/>;
-    } else if (addSource) {
+    }
+      else if (addSource) {
       adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
     } else if (addCategory) {
       adminButtonsSpan = <CategoryAdderWrapper toggle={toggleAddCategory} data={data} type={type}/>;
@@ -1155,7 +1158,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
       const adminClasses = classNames({adminButtons: 1, hiddenButtons});
         adminButtonsSpan = <AllAdminButtons
         buttonOptions={buttonOptions}
-        buttonsToDisplay={buttonsToDisplay}
+        buttonIDs={buttonIDs}
         adminClasses={adminClasses}
       />;
     }
@@ -1506,6 +1509,39 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
     { children }
   </div>
 )};
+
+const AiInfoTooltip = () => {
+  const [showMessage, setShowMessage] = useState(false);
+  const aiInfoIcon = (
+            <img className="ai-info-icon" src="/static/icons/ai-info.svg" alt="AI Info Icon" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}/>
+    );
+        const aiMessage = (
+        <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
+              <div className="ai-info-first-message">
+              <InterfaceText>
+                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a></EnglishText>
+                  <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית ועברו הגהה על ידי צוות העורכים שלנו.&nbsp;
+                       <a href={"/sheets/541399?lang=en"}>לפרטים נוספים</a></HebrewText>
+              </InterfaceText>
+
+          </div>
+          <hr className="ai-info-messages-hr" />
+          <div className="ai-info-last-message">
+              <InterfaceText><EnglishText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></EnglishText>
+              <HebrewText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>כתבו לנו</a></HebrewText>
+              </InterfaceText>
+          </div>
+        </div>
+    );
+  return (
+    <div className="ai-info-tooltip">
+      {aiInfoIcon}
+        <div className={`ai-message ${(showMessage) ? 'visible' : ''}`}>
+            {aiMessage}
+        </div>
+    </div>
+  );
+};
 
 
 class FollowButton extends Component {
@@ -3328,6 +3364,7 @@ export {
   TextBlockLink,
   ToggleSet,
   ToolTipped,
+  AiInfoTooltip,
   TwoOrThreeBox,
   ResponsiveNBox,
   SheetMetaDataBox,
