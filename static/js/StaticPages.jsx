@@ -3353,8 +3353,8 @@ const ProductsPage = memo(() => {
                 {product.ctaLabels?.map(cta => (
                     <a href={cta.url} key={cta.text.en}>
                         {cta.icon.url && <img className="productsCTAIcon" 
-                                            data-image-path={`http://localhost:1337${cta.icon.url}`} 
-                                            src={`http://localhost:1337${cta.icon.url}`} 
+                                            data-image-path={cta.icon.url} 
+                                            src={cta.icon.url} 
                                             alt="Click icon" />}
                                             
                         <span className="productsCTA">
@@ -3371,7 +3371,7 @@ const ProductsPage = memo(() => {
     const ProductDesc = ({product}) => {
         return (
             <div className="productsInner">
-                <img src={'http://localhost:1337' + product.rectanglion.url} alt="Product Image"/>
+                <img src={product.rectanglion.url} alt="Product Image"/>
                 <span className='int-en'>
                     <ReactMarkdown className="productsDesc">
                         {product.desc?.en}
