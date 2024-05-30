@@ -1,4 +1,5 @@
 import VersionPreferences from "./VersionPreferences";
+import axiosApi from "./axios";
 
 var extend     = require('extend'),
     param      = require('querystring').stringify;
@@ -519,7 +520,7 @@ Sefaria = extend(Sefaria, {
     // requiredVersions is array of objects that can have language and versionTitle
     const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
     //TODO here's the place for getting it from cache
-    const apiObject = await Sefaria._ApiPromise(url);
+    const apiObject = await axiosApi.get(url);
     //TODO here's the place for all changes we want to add, and saving in cache
     return apiObject;
   },
@@ -555,7 +556,8 @@ Sefaria = extend(Sefaria, {
     // versionObjs are objects with language and versionTitle
     primaryVersionObj = (primaryVersionObj?.languageFamilyName) ? primaryVersionObj : {language: 'primary'};
     translationVersionObj = (translationVersionObj?.languageFamilyName) ? translationVersionObj : {language: 'translation'}; //TODO language prefernces; when defauld primary and trnaslation is the same
-    const versionsResponse = await Sefaria.getTextsFromAPIV3(ref, [primaryVersionObj, translationVersionObj], true, 'wrap_all_entities');
+    const { data } = await Sefaria.getTextsFromAPIV3(ref, [primaryVersionObj, translationVersionObj], true, 'wrap_all_entities');
+    const versionsResponse = data;
     Sefaria._adaptApiResponse(versionsResponse);
     return versionsResponse;
   },
