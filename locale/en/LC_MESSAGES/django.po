@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-01 19:15+0530\n"
+"POT-Creation-Date: 2024-06-01 19:57+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -87,9 +87,7 @@ msgstr " | Pecha"
 msgid ""
 "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish "
 "sources."
-msgstr ""
-"Texts & Source Sheets from Torah, Talmud and Pecha's library of Jewish "
-"sources."
+msgstr "Texts & Source Sheets from Pecha's library of Buddhist sources."
 
 #: reader/views.py:798 reader/views.py:3182
 #, python-format
@@ -262,7 +260,7 @@ msgstr ""
 msgid "Email Address"
 msgstr ""
 
-#: sefaria/forms.py:40 sefaria/forms.py:48 templates/account_settings.html:126
+#: sefaria/forms.py:40 sefaria/forms.py:48 templates/account_settings.html:110
 msgid "Password"
 msgstr ""
 
@@ -398,7 +396,7 @@ msgid "Account Settings"
 msgstr ""
 
 #: templates/account_settings.html:17 templates/account_settings.html:18
-#: templates/account_settings.html:164 templates/account_settings.html:165
+#: templates/account_settings.html:148 templates/account_settings.html:149
 #: templates/edit_profile.html:18 templates/edit_profile.html:19
 #: templates/edit_text.html:69 templates/edit_text.html:97
 #: templates/edit_text.html:150 templates/elements/login_prompt.html:8
@@ -409,7 +407,7 @@ msgid "Cancel"
 msgstr ""
 
 #: templates/account_settings.html:21 templates/account_settings.html:22
-#: templates/account_settings.html:160 templates/account_settings.html:161
+#: templates/account_settings.html:144 templates/account_settings.html:145
 #: templates/edit_profile.html:22 templates/edit_profile.html:23
 #: templates/edit_text.html:96 templates/edit_text.html:149
 #: templates/sheets.html:506 templates/sheets.html:507
@@ -462,51 +460,39 @@ msgstr ""
 msgid "Off"
 msgstr ""
 
-#: templates/account_settings.html:95 templates/account_settings.html:96
-msgid "Preferred Custom (Weekly Haftarot)"
-msgstr ""
-
-#: templates/account_settings.html:100 templates/account_settings.html:101
-msgid "Sephardi"
-msgstr ""
-
-#: templates/account_settings.html:104 templates/account_settings.html:105
-msgid "Ashkenazi"
-msgstr ""
-
-#: templates/account_settings.html:112 templates/account_settings.html:113
+#: templates/account_settings.html:96 templates/account_settings.html:97
 msgid "Account Email (This is used for login)"
 msgstr ""
 
-#: templates/account_settings.html:118 templates/account_settings.html:119
+#: templates/account_settings.html:102 templates/account_settings.html:103
 msgid "Change Email"
 msgstr ""
 
-#: templates/account_settings.html:124
+#: templates/account_settings.html:108
 msgid "New Email"
 msgstr ""
 
-#: templates/account_settings.html:125
+#: templates/account_settings.html:109
 msgid "Confirm New Email"
 msgstr ""
 
-#: templates/account_settings.html:128 templates/account_settings.html:129
+#: templates/account_settings.html:112 templates/account_settings.html:113
 msgid "Update Email"
 msgstr ""
 
-#: templates/account_settings.html:136 templates/account_settings.html:137
+#: templates/account_settings.html:120 templates/account_settings.html:121
 msgid "Google Account (Allows for exporting sheets to Google Drive)"
 msgstr ""
 
-#: templates/account_settings.html:142 templates/account_settings.html:143
+#: templates/account_settings.html:126 templates/account_settings.html:127
 msgid "Disconnect"
 msgstr ""
 
-#: templates/account_settings.html:150 templates/account_settings.html:151
+#: templates/account_settings.html:134 templates/account_settings.html:135
 msgid "Your Google Account has been disconnected"
 msgstr ""
 
-#: templates/account_settings.html:154 templates/account_settings.html:155
+#: templates/account_settings.html:138 templates/account_settings.html:139
 msgid "You can link to a new Google Account the next time you export a sheet"
 msgstr ""
 
