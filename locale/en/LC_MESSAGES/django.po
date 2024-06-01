@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-25 14:08+0530\n"
+"POT-Creation-Date: 2024-06-01 19:15+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,14 +90,16 @@ msgid ""
 msgstr ""
 "Texts & Source Sheets from Torah, Talmud and Pecha's library of Jewish "
 "sources."
+
 #: reader/views.py:798 reader/views.py:3182
 #, python-format
 msgid ""
 "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other "
 "sources in Sefaria's library."
 msgstr ""
-"Buddhist texts and source sheets about %(topic)s from "
-"sources in Pecha's library."
+"Buddhist texts and source sheets about %(topic)s from sources in Pecha's "
+"library."
+
 #: reader/views.py:816
 msgid "Explore Jewish Texts by Topic"
 msgstr ""
@@ -206,8 +208,8 @@ msgid ""
 "%(full_name)s is on Sefaria. Follow to view their public source sheets, "
 "notes and translations."
 msgstr ""
-"%(full_name)s is on Pecha. Follow to view their public source sheets, "
-"notes and translations."
+"%(full_name)s is on Pecha. Follow to view their public source sheets, notes "
+"and translations."
 
 #: reader/views.py:3614 reader/views.py:3642 reader/views.py:3776
 msgid "You must be logged in to update your profile."
@@ -526,8 +528,8 @@ msgid ""
 "View a user's acitvitiy history on Sefaria, including published source "
 "sheets, and text translations, edits or additions."
 msgstr ""
-"View a user's acitvitiy history on Pecha, including published source "
-"sheets, and text translations, edits or additions."
+"View a user's acitvitiy history on Pecha, including published source sheets, "
+"and text translations, edits or additions."
 
 #: templates/activity.html:21
 msgid ""
@@ -1171,6 +1173,7 @@ msgstr ""
 "\t\t%(inviter)s invited you to contribute to the collection %(collection)s "
 "on Pecha.\n"
 "\t\t"
+
 #: templates/email/collection_signup_invitation_email.html:14
 #, python-format
 msgid ""
@@ -1180,10 +1183,17 @@ msgid ""
 "\t\t"
 msgstr ""
 "\n"
-"\t\tTo accept this invitation, <a href=\"%(register)s\">create a free "
-"Pecha account</a>.\n"
+"\t\tTo accept this invitation, <a href=\"%(register)s\">create a free Pecha "
+"account</a>.\n"
 "\t\t"
+
 #: templates/email/collection_signup_invitation_email.html:24
+#, fuzzy
+#| msgid ""
+#| "\t\tSefaria is a free living library of Jewish texts. Collections on "
+#| "Sefaria help you easily build and share collections of source sheets you "
+#| "create or find on Sefaria.<br>.\t\tFeel free to send any questions over "
+#| "<a href=\"mailto:hello@sefaria.org\">email</a>.\t\t"
 msgid ""
 "\n"
 "\t\tSefaria is a free living library of Jewish texts. Collections on Sefaria "
@@ -1193,13 +1203,10 @@ msgid ""
 "org\">email</a>.\n"
 "\t\t"
 msgstr ""
-"\n"
-"\t\Pecha is a free living library of Buddhist texts. Collections on Pecha "
-"help you easily build and share collections of source sheets you create or "
-"find on Pecha.<br>.\n"
-"\t\tFeel free to send any questions over <a href=\"mailto:hello@pecha."
-"org\">email</a>.\n"
-"\t\t"
+"Pecha is a free living library of Jewish texts. Collections on Pecha help "
+"you easily build and share collections of source sheets you create or find "
+"on Pecha.\t\tFeel free to send any questions over <a href=\"mailto:"
+"hello@pecha.org\">email</a>."
 
 #: templates/email/notification.html:8
 msgid "sent you a message:"
@@ -1235,6 +1242,7 @@ msgid ""
 "Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria"
 msgstr ""
 "Link Explorer - Visualized Connections Between Talmud and Tanakh | Pecha"
+
 #: templates/explore.html:4
 #, python-format
 msgid ""
@@ -1243,6 +1251,7 @@ msgid ""
 msgstr ""
 "Link Explorer - Visualized Connections Between %(bottomCatTitle)s and "
 "%(topCatTitle)s | Pecha"
+
 #: templates/explore.html:6
 msgid ""
 "Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom "
@@ -1266,8 +1275,9 @@ msgid ""
 "See who has been contributing most to Sefaria in terms of texts, "
 "translations, and source sheet."
 msgstr ""
-"See who has been contributing most to Pecha in terms of texts, "
-"translations, and source sheet."
+"See who has been contributing most to Pecha in terms of texts, translations, "
+"and source sheet."
+
 #: templates/leaderboard.html:30 templates/leaderboard.html:31
 msgid "Top Contributors"
 msgstr ""
@@ -1283,6 +1293,7 @@ msgid ""
 msgstr ""
 "See graphs charting Pecha's progress since 2013 across metrics including "
 "word counts, number of links and number of source sheets."
+
 #: templates/metrics.html:13 templates/metrics.html:14
 msgid "Metrics"
 msgstr ""
@@ -1339,6 +1350,7 @@ msgid ""
 msgstr ""
 "Biographies and information about the authors of Jewish texts on Pecha, "
 "together with links to their available texts."
+
 #: templates/people.html:23 templates/people.html:24 templates/person.html:38
 msgid "Authors"
 msgstr ""
@@ -1384,6 +1396,7 @@ msgid ""
 msgstr ""
 "is on Pecha. Follow to view their public source sheets, notes and "
 "translations."
+
 #: templates/profile.html:20
 msgid "at "
 msgstr ""
@@ -1470,8 +1483,9 @@ msgid ""
 "Log in to your Sefaria account to make source sheets, write notes, and "
 "follow other Sefaria users."
 msgstr ""
-"Log in to your Pecha account to make source sheets, write notes, and "
-"follow other Pecha users."
+"Log in to your Pecha account to make source sheets, write notes, and follow "
+"other Pecha users."
+
 #: templates/registration/login.html:14 templates/registration/login.html:15
 msgid "You are already logged in as"
 msgstr ""
@@ -1590,6 +1604,7 @@ msgid ""
 msgstr ""
 "Create an account on Pecha to make source sheets, take notes and follow "
 "other people."
+
 #: templates/registration/register.html:28
 #: templates/registration/register.html:29
 msgid "Already have an account? Log in"
@@ -2157,6 +2172,7 @@ msgid ""
 msgstr ""
 "Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
 "Pecha's Source Sheet Builder."
+
 #: templates/sheets_visual.html:30 templates/sheets_visual.html:31
 msgid "Back to Sheet"
 msgstr ""
@@ -2222,6 +2238,7 @@ msgid ""
 msgstr ""
 "Get updates on new texts and features on Pecha by signing up for our "
 "newsletter or following us on social media."
+
 #: templates/static/contest.html:4 templates/static/contest.html:6
 msgid "Powered by Sefaria Contest"
 msgstr "Powered by Pecha Contest"
@@ -2236,9 +2253,9 @@ msgid ""
 "directly to Sefaria and have not yet been published elsewhere in print or on "
 "the web."
 msgstr ""
-"Texts on Pecha that list this page as their source were contributed "
-"directly to Pecha and have not yet been published elsewhere in print or on "
-"the web."
+"Texts on Pecha that list this page as their source were contributed directly "
+"to Pecha and have not yet been published elsewhere in print or on the web."
+
 #: templates/static/daf-yomi.html:4
 msgid "Daf Yomi | Sefaria"
 msgstr "Daf Yomi | Pecha"
@@ -2274,6 +2291,7 @@ msgid ""
 msgstr ""
 "Pecha is a nonprofit organization dedicated to building the future of "
 "Buddhist learning in an open and participatory way."
+
 #: templates/static/en/ways-to-give.html:4
 #: templates/static/he/ways-to-give.html:5
 msgid "Donate to Sefaria"
@@ -2285,8 +2303,9 @@ msgid ""
 "Support Sefaria by making a tax-deductible donation online or by check or "
 "wire transfer."
 msgstr ""
-"Support Pecha by making a tax-deductible donation online or by check or "
-"wire transfer."
+"Support Pecha by making a tax-deductible donation online or by check or wire "
+"transfer."
+
 #: templates/static/ios.html:4
 msgid "Sefaria iOS"
 msgstr "Pecha iOS"
@@ -2302,6 +2321,7 @@ msgid ""
 msgstr ""
 "Job openings at Pecha, a nonprofit technology organization dedicated to "
 "building the Buddhist future."
+
 #: templates/static/linker.html:4
 msgid "Linker Plugin"
 msgstr ""
@@ -2313,6 +2333,7 @@ msgid ""
 msgstr ""
 "Automatically turn citations on your website into links or dynamic popups "
 "with the full text from Pecha."
+
 #: templates/static/mobile.html:4
 msgid "Sefaria Mobile Apps"
 msgstr "Pecha Mobile Apps"
@@ -2346,6 +2367,7 @@ msgid ""
 msgstr ""
 "Pecha’s open data and API can be used by anyone.  You can find it all for "
 "free in our GitHub repository!"
+
 #: templates/static/ramban-sponsorships.html:4
 #: templates/static/ramban-sponsorships.html:6
 msgid "Ramban on Torah - Thank you to our Sponsors"
@@ -2370,6 +2392,7 @@ msgid ""
 msgstr ""
 "Pecha Community Translations are open, crowd-sourced translations of texts "
 "available in the Pecha Library."
+
 #: templates/static/sefaria-edition.html:4
 msgid "About Sefaria Editions"
 msgstr "About Pecha Editions"
@@ -2381,6 +2404,7 @@ msgid ""
 msgstr ""
 "The Pecha Edition is a Pecha commissioned translation created by "
 "professional translators."
+
 #: templates/static/sheets.html:4
 msgid "Sheets on Sefaria"
 msgstr "Sheets on Pecha"
@@ -2392,6 +2416,7 @@ msgid ""
 msgstr ""
 "Mix and match sources from Pecha’s library of Jewish texts, and add your "
 "comments, images and videos."
+
 #: templates/static/shraga-silverstein.html:4
 msgid "In Memory of Rabbi Shraga Silverstein"
 msgstr ""
@@ -2411,6 +2436,7 @@ msgid ""
 msgstr ""
 "Pecha gratefully acknowledges the following donors whose generosity and "
 "leadership are making Pecha possible."
+
 #: templates/static/team.html:5
 msgid "The Sefaria Team"
 msgstr "The Pecha Team"
@@ -2454,6 +2480,7 @@ msgid ""
 msgstr ""
 "Projects which have been created to make interactive visualizations of the "
 "texts and connections in the Pecha Library of Torah texts."
+
 #: templates/static/william-davidson-talmud.html:4
 #: templates/static/william-davidson-talmud.html:84
 msgid "The William Davidson Talmud"
@@ -2514,6 +2541,7 @@ msgstr ""
 "How big is Torah compared to Talmud? This sunburst diagram lets you see the "
 "number of words in the texts and categories of Pecha's library (which is "
 "growing every day!)."
+
 #: templates/visual_parasha_colors.html:6
 msgid "Visualizing the Parshiot"
 msgstr ""
