@@ -1,4 +1,5 @@
 import React  from 'react';
+import SheetsTopics from "./SheetsTopics";
 const SheetsHeroBanner = () => {
     return <div id="aboutCover">
             <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay="true" loop muted>
@@ -9,17 +10,6 @@ const SheetsHeroBanner = () => {
         </div>;
 }
 
-const SheetsTopicsTOC = () => {
-    return "TOC placeholder"
-}
-
-const SheetsTopicsCalendar = () => {
-    return "Calendar Placeholder"
-}
-
-const SheetsTopics = () => {
-    return <div><SheetsTopicsTOC/><SheetsTopicsCalendar/></div>
-}
 const SheetsSidebar = () => {
     return "Sidebar Placeholder"
 }
