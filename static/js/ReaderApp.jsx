@@ -13,7 +13,6 @@ import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent,
 import {
   ContestLandingPage,
   RemoteLearningPage,
-  SheetsLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
@@ -37,6 +36,7 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import SheetsHomePage from "./SheetsHomePage";
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -2316,7 +2316,6 @@ export {
   loadServerData,
   EditCollectionPage,
   RemoteLearningPage,
-  SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
@@ -2328,5 +2327,6 @@ export {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
-  UpdatesPanel
+  UpdatesPanel,
+  SheetsHomePage
 };
