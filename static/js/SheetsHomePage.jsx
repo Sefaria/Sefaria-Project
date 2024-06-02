@@ -9,9 +9,27 @@ const SheetsHeroBanner = () => {
         </div>;
 }
 
+const SheetsTopicsTOC = () => {
+    return "TOC placeholder"
+}
+
+const SheetsTopicsCalendar = () => {
+    return "Calendar Placeholder"
+}
+
+const SheetsTopics = () => {
+    return <div><SheetsTopicsTOC/><SheetsTopicsCalendar/></div>
+}
+const SheetsSidebar = () => {
+    return "Sidebar Placeholder"
+}
 const SheetsHomePage = () => {
     return <div>
                 <SheetsHeroBanner/>
+                <div id="sheetsHomePage">
+                    <SheetsTopics/>
+                    <SheetsSidebar/>
+                </div>
            </div>
 }
 export default SheetsHomePage;
