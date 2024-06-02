@@ -5,6 +5,12 @@
   display: flex;
   flex-direction: row;
 }
+#sheetsButton {
+  display: none;
+}
+#sheetsLandingPage #sheetsButton {
+  display: inline;
+}
 .inApp #staticContentWrapper {
   display: none;
 }

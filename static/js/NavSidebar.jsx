@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
+import {AppStoreButton, CreateSheetsButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
@@ -44,6 +44,8 @@ const Modules = ({type, props}) => {
     "GetTheApp":              GetTheApp,
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
+    "CreateASheet":           CreateASheet,
+    "WhatIsASourceSheet":     WhatIsASourceSheet,
     "AboutTranslatedText":    AboutTranslatedText,
     "AboutCollections":       AboutCollections,
     "ExploreCollections":     ExploreCollections,
@@ -691,7 +693,34 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
   );
 };
 
-
+const WhatIsASourceSheet = () => (
+  <Module>
+    <ModuleTitle h1={true}>What is a Source Sheet?</ModuleTitle>
+    <InterfaceText>
+        <EnglishText>
+            Lorem ipsum
+            <a href="/sheets/393695" className="resourcesLink">Get Started</a>
+        </EnglishText>
+        <HebrewText>
+            Lorem ipsum
+            <a href="/sheets/399333" className="resourcesLink">Get Started</a>
+        </HebrewText>
+    </InterfaceText>
+  </Module>
+);
+const CreateASheet = () => (
+  <Module>
+    <ModuleTitle h1={true}>Create A Sheet</ModuleTitle>
+    <InterfaceText>
+        <EnglishText>
+            Mix and match sources along with outside sources, comments, images, and videos.
+        </EnglishText>
+        <HebrewText>
+            </HebrewText>
+    </InterfaceText>
+     <CreateSheetsButton/>
+  </Module>
+);
 const AboutLearningSchedules = () => (
   <Module>
     <ModuleTitle h1={true}>Learning Schedules</ModuleTitle>

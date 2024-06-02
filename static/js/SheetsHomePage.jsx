@@ -1,4 +1,5 @@
 import React  from 'react';
+import {NavSidebar} from "./NavSidebar";
 const SheetsHeroBanner = () => {
     return <div id="aboutCover">
             <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay="true" loop muted>
@@ -9,9 +10,20 @@ const SheetsHeroBanner = () => {
         </div>;
 }
 
+const SheetsSidebar = () => {
+    const sidebarModules = [
+    {type: "CreateASheet"},
+    {type: "WhatIsASourceSheet"},
+  ];
+    return <NavSidebar modules={sidebarModules} />
+}
+
+
+
 const SheetsHomePage = () => {
     return <div>
                 <SheetsHeroBanner/>
+                <SheetsSidebar/>
            </div>
 }
 export default SheetsHomePage;
