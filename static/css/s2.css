@@ -13004,10 +13004,8 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsInner img {
-  width: 200px;
   max-width: 100%; 
   margin-inline-end: 3%;
-  max-height: 116px;
 }
 
 .productsInner .productsDesc {
