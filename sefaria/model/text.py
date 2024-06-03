@@ -1372,9 +1372,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             languageCode = re.search(r"\[([a-z]{2})\]$", versionTitle)
             if languageCode and languageCode.group(1):
                 actualLanguage = languageCode.group(1)
-        if not actualLanguage:
-            actualLanguage = self.language
-        self.actualLanguage = actualLanguage
+        self.actualLanguage = actualLanguage or self.language
 
         if not hasattr(self, 'languageFamilyName'):
             self.languageFamilyName = constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
