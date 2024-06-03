@@ -699,11 +699,11 @@ const WhatIsASourceSheet = () => (
     <InterfaceText>
         <EnglishText>
             Lorem ipsum
-            <a href="/sheets/393695" className="resourcesLink">Get Started</a>
+            <a href="/sheets/393695" className="button" id="getStarted">Get Started</a>
         </EnglishText>
         <HebrewText>
             Lorem ipsum
-            <a href="/sheets/399333" className="resourcesLink">Get Started</a>
+            <a href="/sheets/399333" className="button" id="getStarted">Get Started</a>
         </HebrewText>
     </InterfaceText>
   </Module>

@@ -27,13 +27,12 @@ const SheetsSidebar = () => {
 
 
 const SheetsHomePage = () => {
-  return <div className="readerNavMenu" key="0">
+  return <div className="readerNavMenu sheets" key="0">
             <div className="content">
                 <SheetsHeroBanner/>
-           </div>
                 <div className="sidebarLayout">
                     <div className="contentInner">
-                                    <SheetsSidebar/>        
+                        <SheetsSidebar/>
                     </div>
                 </div>
                 <Footer/>
