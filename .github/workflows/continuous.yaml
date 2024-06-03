@@ -1,6 +1,7 @@
 name: Continuous
 on:
   pull_request:
+  merge_group:
 
 concurrency:
   group: ${{ github.ref }}
@@ -8,12 +9,12 @@ concurrency:
 
 jobs:
   build-generic:
+    if: ${{ github.event_name == 'pull_request' }}
     name: "Continuous Image Build"
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
     strategy:
       matrix:
         app: [ web, node ]
@@ -76,6 +77,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   build-derived:
+    if: ${{ github.event_name == 'pull_request' }}
     name: "Continuous Image Build Stage 2"
     runs-on: ubuntu-latest
     permissions:
@@ -86,7 +88,6 @@ jobs:
     strategy:
       matrix:
         app: [ asset, linker ]
-    if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
