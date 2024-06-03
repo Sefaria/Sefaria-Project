@@ -10011,6 +10011,7 @@ span.purim-emoji img{
 }
 
 #aboutCover {
+  margin-top: -90px;
   height: 440px;
   padding: 180px 0;
   background-color: #ADA99B;

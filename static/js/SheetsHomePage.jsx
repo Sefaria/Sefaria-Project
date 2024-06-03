@@ -1,4 +1,7 @@
 import React  from 'react';
+import {InterfaceText, ResponsiveNBox} from "./Misc";
+import {NavSidebar} from "./NavSidebar";
+import Footer from "./Footer";
 const SheetsHeroBanner = () => {
     return <div id="aboutCover">
             <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay="true" loop muted>
@@ -14,8 +17,15 @@ const SheetsHeroBanner = () => {
 }
 
 const SheetsHomePage = () => {
-    return <div className="sheetsLandingPage">
+  return <div className="readerNavMenu" key="0">
+            <div className="content">
                 <SheetsHeroBanner/>
-           </div>
+                <div className="sidebarLayout">
+                    <div className="contentInner">
+                    </div>
+                </div>
+                <Footer/>
+            </div>
+        </div>
 }
 export default SheetsHomePage;
