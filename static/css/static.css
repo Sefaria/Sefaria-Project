@@ -726,34 +726,10 @@ p.registration-links a:hover{
   margin: 0;
   width: 100%;
 }
-#aboutCover {
-  height: 440px;
-  padding: 180px 0;
-  background-color: #ADA99B;
-  box-sizing: border-box;
-  text-align: center;
-  overflow: hidden;
-  position: relative;
-}
-#aboutVideo {
-  position: absolute;
-  top: -90px;
-  left: 0;
-  min-width: 1200px;
-  z-index: 0;
-  width: 100%;
-}
 
 @media (max-width: 450px) {
   #aboutPage #aboutHeader {
     margin-bottom: 130px;
-  }
-  #aboutPage #aboutCover {
-    height: 270px;
-    padding: 180px 0;
-  }
-  #aboutPage #aboutVideo {
-    min-width: 900px;
   }
 }
 #donatePage pre{
@@ -3662,25 +3638,4 @@ form.globalUpdateForm + div.notificationsList {
 }
 .about.section {
   padding-top: 40px;
-}
-#sheetsLandingPage .overlayTextOnSheetsHero {
-  color: white;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
-  font-family: Source Serif Pro, serif;
-  font-weight: 400;
-}
-.overlayTextOnSheetsHero #title {
-  position: absolute;
-  left: 72px;
-  font-size: 50px;
-  top: 145px;
-  line-height: 62.65px;
-}
-.overlayTextOnSheetsHero #message {
-  position: absolute;
-  left: 72px;
-  font-family: Source Sans Pro, serif;
-  font-size: 24px;
-  line-height: 18px;
-  top: 227px;
 }

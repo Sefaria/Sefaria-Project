@@ -14,7 +14,7 @@ const SheetsHeroBanner = () => {
 }
 
 const SheetsHomePage = () => {
-    return <div>
+    return <div className="sheetsLandingPage">
                 <SheetsHeroBanner/>
            </div>
 }

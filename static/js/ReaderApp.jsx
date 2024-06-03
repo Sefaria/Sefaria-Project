@@ -542,6 +542,11 @@ class ReaderApp extends Component {
             hist.url = "calendars";
             hist.mode = "calendars";
             break;
+          case "sheets":
+            hist.url = "sheets";
+            hist.mode = "sheets";
+            hist.title = Sefaria._("Sheets on Sefaria");
+            break;
           case "updates":
             hist.title = Sefaria._("New Additions to the " + siteName + " Library");
             hist.url = "updates";
