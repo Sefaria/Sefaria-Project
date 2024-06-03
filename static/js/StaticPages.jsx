@@ -3346,6 +3346,19 @@ const ProductsPage = memo(() => {
         );
     };
 
+    // onClickQuestion = (p, i) => {
+    //     gtag("event", "products_${specific_cta}_clicked", {
+    //       panel_type: "static",
+    //       panel_number: 0,  // 
+    //       panel_name: "Products Page",
+    //       position: rank,
+    //       experiment: experiment,
+    //       feature_name: "Products",
+    //       engagement_type: "static",
+    //       engagement_value: 0,
+    //     });
+    // }
+
     // The call-to-action (link) in the heading of each product
     const ProductCTA = ({product}) => {
         return (
@@ -3369,9 +3382,10 @@ const ProductsPage = memo(() => {
 
     // The main body of each product entry, containing an image and description
     const ProductDesc = ({product}) => {
+        console.log(`http://localhost:1337${product.rectanglion.url}`);
         return (
             <div className="productsInner">
-                <img src={product.rectanglion.url} alt="Product Image"/>
+                <img src={`http://localhost:1337${product.rectanglion.url}`} alt="Product Image"/>
                 <span className='int-en'>
                     <ReactMarkdown className="productsDesc">
                         {product.desc?.en}
@@ -3417,14 +3431,12 @@ const ProductsPage = memo(() => {
 
     return (
         <div>
-            {products && products.length > 0 ? (
+            {products && products.length > 0 && (
                 <>
                 {initialProducts}
-                <DevBox />
+                {/* <DevBox /> */}
                 {remainingProducts}
                 </>
-            ) : (
-                <div>Loading...</div>
             )}
         </div>
     );
