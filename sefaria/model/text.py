@@ -1376,20 +1376,12 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             actualLanguage = self.language
         self.actualLanguage = actualLanguage
 
-        if not getattr(self, 'languageFamilyName', None):
-            try:
-                self.languageFamilyName = constants.LANGUAGE_CODES[self.actualLanguage]
-            except KeyError:
-                self.languageFamilyName = constants.LANGUAGE_CODES[self.language]
-
+        if not hasattr(self, 'languageFamilyName'):
+            self.languageFamilyName = constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
         self.isSource = getattr(self, "isSource", False)
-        if not getattr(self, "isPrimary", False):
-            if self.isSource or not VersionSet({'title': self.title}):
-                self.isPrimary = True
-            else:
-                self.isPrimary = False
-
-        if not getattr(self, 'direction', None):
+        if not hasattr(self, "isPrimary"):
+            self.isPrimary = self.isSource or not VersionSet({'title': self.title}) #first version is primary
+        if not hasattr(self, 'direction'):
             self.direction = 'rtl' if self.language == 'he' else 'ltr'
 
         if getattr(self, "priority", None):
