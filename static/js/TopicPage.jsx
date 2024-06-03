@@ -453,7 +453,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: refRenderWrapper,
     },
     {
-      key: 'adminTab',
+      key: 'admin-tab',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
