@@ -1,5 +1,7 @@
 import React  from 'react';
+import {InterfaceText, ResponsiveNBox} from "./Misc";
 import {NavSidebar} from "./NavSidebar";
+import Footer from "./Footer";
 const SheetsHeroBanner = () => {
     return <div id="aboutCover">
             <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay="true" loop muted>
@@ -7,6 +9,10 @@ const SheetsHeroBanner = () => {
                 <source src="/static/img/home-video.mp4" type="video/mp4"/>
                 Video of sofer writing letters of the Torah
             </video>
+            <div className="overlayTextOnSheetsHero">
+                <div id="title">Join the Torah Conversation</div>
+                <div id="message">Create, share, and discover source sheets.</div>
+            </div>
         </div>;
 }
 
@@ -21,9 +27,17 @@ const SheetsSidebar = () => {
 
 
 const SheetsHomePage = () => {
-    return <div>
+  return <div className="readerNavMenu" key="0">
+            <div className="content">
                 <SheetsHeroBanner/>
-                <SheetsSidebar/>
            </div>
+                <div className="sidebarLayout">
+                    <div className="contentInner">
+                                    <SheetsSidebar/>        
+                    </div>
+                </div>
+                <Footer/>
+            </div>
+        </div>
 }
 export default SheetsHomePage;
