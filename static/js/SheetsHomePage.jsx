@@ -1,5 +1,8 @@
 import React  from 'react';
 import SheetsTopics from "./SheetsTopics";
+import Footer from "./Footer";
+import {InterfaceText, ResponsiveNBox} from "./Misc";
+import {NavSidebar} from "./NavSidebar";
 const SheetsHeroBanner = () => {
     return <div id="aboutCover">
             <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay="true" loop muted>
@@ -18,12 +21,18 @@ const SheetsSidebar = () => {
     return "Sidebar Placeholder"
 }
 const SheetsHomePage = () => {
-    return <div className="sheetsLandingPage">
+    return <div className="readerNavMenu" key="0">
+            <div className="content">
                 <SheetsHeroBanner/>
-                <div id="sheetsFlexbox">
-                    <SheetsTopics/>
+                <div className="sidebarLayout">
+                    <div className="contentInner">
+                        <SheetsTopics/>
+                    </div>
                     <SheetsSidebar/>
+                    {/*<NavSidebar modules={sidebarModules}/>*/}
                 </div>
-           </div>
+                <Footer/>
+            </div>
+        </div>
 }
 export default SheetsHomePage;
