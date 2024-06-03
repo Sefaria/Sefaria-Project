@@ -13029,7 +13029,6 @@ span.ref-link-color-3 {color: blue}
   flex: auto;
 }
 
-
 .productsHeader .productsTitle {
   font: 'Roboto', sans-serif; 
   color: #666666;
@@ -13147,8 +13146,12 @@ span.ref-link-color-3 {color: blue}
   }
 
   .productsInner img {
-    width: 100%;
-  }
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-width: 700px;
+      max-height: 350px;
+    } 
 
   .product {
     margin-right: 5%;
@@ -13165,7 +13168,7 @@ span.ref-link-color-3 {color: blue}
   #productsPageContent {
     margin-inline-start: 10px;
     margin-top: 100px;
-}
+  }
 }
 
 @-webkit-keyframes load5 {
