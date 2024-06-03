@@ -16,6 +16,11 @@
   width: 30%;
   margin-top: 15px;
 }
+#sheetsHomePage {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
 .inApp #staticContentWrapper {
   display: none;
 }

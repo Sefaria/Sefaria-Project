@@ -1,5 +1,6 @@
 import React  from 'react';
 import {NavSidebar} from "./NavSidebar";
+import SheetsTopics from "./SheetsTopics";
 const SheetsHeroBanner = () => {
     return <div id="aboutCover">
             <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay="true" loop muted>
@@ -23,7 +24,10 @@ const SheetsSidebar = () => {
 const SheetsHomePage = () => {
     return <div>
                 <SheetsHeroBanner/>
-                <SheetsSidebar/>
+                <div id="sheetsHomePage">
+                    <SheetsTopics/>
+                    <SheetsSidebar/>
+                </div>
            </div>
 }
 export default SheetsHomePage;
