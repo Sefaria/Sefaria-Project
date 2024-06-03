@@ -3031,7 +3031,7 @@ const TitleVariants = function({titles, update, options}) {
                     allowNew={true}
                     tags={titles}
                     onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
-                    placeholderText={Sefaria._("Add a title...")}
+                    placeholderText={Sefaria._("Add a title and press 'enter' or 'tab'.")}
                     delimiters={["Enter", "Tab"]}
                     onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
                     onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
@@ -3288,11 +3288,13 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+const getImgAltText = (caption) => {
+return Sefaria._v(caption) || Sefaria._('Illustrative image');
+}
 const ImageWithCaption = ({photoLink, caption }) => {
-  
   return (
     <div>
-        <img class="imageWithCaptionPhoto" src={photoLink}/>
+        <img class="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
         <div class="imageCaption"> 
           <InterfaceText text={caption} />
         </div>
