@@ -1350,7 +1350,7 @@ class DisplaySettingsButton extends Component {
     let style = this.props.placeholder ? {visibility: "hidden"} : {};
     let icon;
     const altText = Sefaria._('Text display options')
-    const classes = classNames({readerOptionsTooltip: 1, "tooltip-toggle": true});
+    const classes = "readerOptionsTooltip tooltip-toggle";
 
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
@@ -1374,9 +1374,8 @@ class DisplaySettingsButton extends Component {
                 onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
                 {icon}
               </a>
-          </ToolTipped>
-
-              );
+            </ToolTipped>
+            );
   }
 }
 DisplaySettingsButton.propTypes = {
