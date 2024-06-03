@@ -570,7 +570,7 @@ const TopicPage = ({
 
     // Set up tabs and register incremental load hooks
     const displayTabs = [];
-    let onClickFilterIndex = 2;
+    let onClickFilterIndex = 3;
     let onClickLangToggleIndex = 2;
     let authorWorksAdded = false;
 
