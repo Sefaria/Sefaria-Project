@@ -160,7 +160,7 @@ const hasPrompts = (description) => {
      */
     return description?.title?.length && (Sefaria.is_moderator || description?.published !== false);
 }
-const adminRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, true);
+const adminRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, true, true);
 const keySourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, true);
 const allSourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, false);
 

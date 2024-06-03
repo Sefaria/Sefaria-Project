@@ -2659,11 +2659,15 @@ _media: {},
     if (tabs["key-sources"]) {
       tabs["sources"]["title"] = {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')};
     }
-    console.log(tabs);
     if (tabs["key-sources"]){
         const allRefs = [...tabs["key-sources"].refs, ...tabs["sources"].refs];
         tabs["sources"].refs = allRefs;
+    };
+    if (Sefaria.is_moderator){
+        tabs["admin-tab"] = {...tabs["sources"]};
+        tabs["admin-tab"].title = {en: 'Admin Tab', he: "כרטיסיית עורכים"};
     }
+
 
     data.tabs = tabs;
     return data;
