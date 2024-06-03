@@ -2661,7 +2661,6 @@ _media: {},
     }
     console.log(tabs);
     if (tabs["key-sources"]){
-        console.log("JOJOJOJOJOJ");
         const allRefs = [...tabs["key-sources"].refs, ...tabs["sources"].refs];
         tabs["sources"].refs = allRefs;
     }

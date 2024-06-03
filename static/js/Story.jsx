@@ -146,7 +146,7 @@ const TopicStoryDescBlock = ({topic, text}) => (
       </div>
 )
 
-const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, isAdmin}) => {
+const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayDescription}) => {
     if (!text.ref) {
         return null;
     }
@@ -165,10 +165,10 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, isAdmin}
     return (
         <StoryFrame
             cls="topicPassageStory"
-            collapsibleSummary={isCurated ?
+            collapsibleSummary={isCurated && displayDescription ?
                 <ColorBarBox tref={text.ref}><TopicStoryDescBlock topic={topic} text={text}/></ColorBarBox> : null}
         >
-            {isCurated ?
+            {isCurated && displayDescription ?
                 <ColorBarBox tref={text.ref}>
 
                     <div className={"systemText learningPrompt"}>

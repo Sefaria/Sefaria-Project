@@ -161,7 +161,10 @@ const hasPrompts = (description) => {
     return description?.title?.length && (Sefaria.is_moderator || description?.published !== false);
 }
 const adminRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, true);
-const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin) => item => {
+const keySourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, true);
+const allSourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, false);
+
+const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin, displayDescription) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
   const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
@@ -185,6 +188,7 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPr
       bodyTextIsLink= {true}
       langPref={langPref}
       isAdmin={isAdmin}
+      displayDescription={displayDescription}
     />
   );
 };
@@ -466,7 +470,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
       sortFunc: refSort,
-      renderWrapper: refRenderWrapper,
+      renderWrapper: keySourcesRefRenderWrapper,
     },
     {
       key: 'sources',
@@ -474,7 +478,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
       sortFunc: refSort,
-      renderWrapper: refRenderWrapper,
+      renderWrapper: allSourcesRefRenderWrapper,
     },
     {
       key: 'sheets',
