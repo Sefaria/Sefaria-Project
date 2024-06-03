@@ -20,7 +20,7 @@ const SheetsSidebar = () => {
 const SheetsHomePage = () => {
     return <div className="sheetsLandingPage">
                 <SheetsHeroBanner/>
-                <div id="sheetsHomePage">
+                <div id="sheetsFlexbox">
                     <SheetsTopics/>
                     <SheetsSidebar/>
                 </div>

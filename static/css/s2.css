@@ -10057,6 +10057,10 @@ span.purim-emoji img{
   line-height: 18px;
   top: 227px;
 }
+#sheetsFlexbox {
+  display: flex;
+  justify-content: space-around;
+}
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
