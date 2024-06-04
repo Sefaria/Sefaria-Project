@@ -7885,6 +7885,9 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 16px;
   white-space: nowrap;
 }
+.button.getStartedSheets:hover {
+  color: black;
+}
 .button.disabled{
   border: 1px solid var(--light-grey);
   background-color: var(--lightest-grey);
