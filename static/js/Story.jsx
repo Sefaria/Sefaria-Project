@@ -139,7 +139,7 @@ StorySheetList.propTypes = {
 
 const TopicStoryDescBlock = ({topic, text}) => (
       <div className="topicStoryDescBlock">
-        <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
+        <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
             <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}></StoryTitleBlock>
         </CategoryHeader>
         <div>{Sefaria._(Sefaria.index(Sefaria.parseRef(text.ref).index).primary_category).toUpperCase()}</div>
@@ -248,7 +248,6 @@ const markReviewedPostRequest = (lang, topic, topicLink) => {
 }
 
 const useReviewState = (topic, topicLink) => {
-    console.log(topicLink);
     const initialReviewStateByLang = Object.entries(topicLink?.descriptions).reduce((accum, [lang, desc]) => {
         accum[lang] = desc?.review_state;
         return accum;
