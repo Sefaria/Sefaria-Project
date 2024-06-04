@@ -2,7 +2,7 @@ import {InterfaceText, ResponsiveNBox} from "../Misc";
 import React from "react";
 import Sefaria from "../sefaria/sefaria";
 import {Box} from "./GenericComponents";
-const SheetsTopicsTOC = ({setNavTopic}) => {
+const SheetsTopicsTOC = ({setNavTopic, initialWidth}) => {
     const categoryListings = Sefaria.topic_toc.map(cat => {
         const openCat = e => {
             e.preventDefault();
@@ -16,19 +16,15 @@ const SheetsTopicsTOC = ({setNavTopic}) => {
                     onBoxTitleClick={openCat}/>;
     });
     return (
-    <div className="readerNavCategories">
+    <div className="sheetsTopicTOC readerNavCategories">
         <div className="sheetsFont">Browse by Topic</div>
-      <ResponsiveNBox content={categoryListings} initialWidth={1000} />
+      <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
     </div>
   );
 }
 
 const SheetsTopicsCalendar = () => {
-    return "Calendar Placeholder"
+    return <div className="sheetsTopicsCalendar">Calendar Placeholder</div>
 }
 
-const SheetsTopics = ({setNavTopic}) => {
-    return <div><SheetsTopicsTOC setNavTopic={setNavTopic}/><SheetsTopicsCalendar/></div>
-}
-
-export default SheetsTopics;
+export { SheetsTopicsCalendar, SheetsTopicsTOC }

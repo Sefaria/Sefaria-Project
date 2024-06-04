@@ -7870,36 +7870,7 @@ But not to use a display block directive that might break continuous mode for ot
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border: none;
 }
-.sheets .button {
-  background-color: var(--midrash-green);
-}
-.sheets .sheetsFont {
-  color: var(--midrash-green);
-  font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 18px;
-}
-.sheets .sidebarLayout {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 50px;
-}
-.button.getStartedSheets {
-  width: 111px;
-  height: 39px;
-  padding: 10px 15px 10px 15px;
-  border-radius: 6px;
-  border: 1px solid #CCCCCC;
-  display: block;
-  background-color: white;
-  color: black;
-  font-size: 16px;
-  white-space: nowrap;
-}
-.button.getStartedSheets:hover {
-  color: black;
-}
+
 .button.disabled{
   border: 1px solid var(--light-grey);
   background-color: var(--lightest-grey);
@@ -10092,9 +10063,10 @@ span.purim-emoji img{
   line-height: 18px;
   top: 227px;
 }
-#sheetsFlexbox {
-  display: flex;
-  justify-content: space-around;
+@media screen and (max-width: 800px) {
+  .interface-english .overlayTextOnSheetsHero #message, .interface-hebrew .overlayTextOnSheetsHero #message {
+    top: 287px;
+  }
 }
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
@@ -13196,7 +13168,43 @@ span.ref-link-color-3 {color: blue}
 .blockButton {
   cursor: pointer;
 }
-
+.sheets .button {
+  background-color: var(--midrash-green);
+}
+.sheets .sheetsFont {
+  color: var(--midrash-green);
+  font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+}
+.sheets .sidebarLayout {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 50px;
+}
+.sheets .sidebarLayout .sheetsTopics {
+  display: flex;
+  flex-direction: column;
+}
+.singlePanel .sheets .sidebarLayout .sheetsTopicTOC, .singlePanel .sheets .sidebarLayout .sheetsTopicsCalendar {
+  margin-top: 30px;
+}
+.button.getStartedSheets {
+  width: 111px;
+  height: 39px;
+  padding: 10px 15px 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #CCCCCC;
+  display: block;
+  background-color: white;
+  color: black;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.button.getStartedSheets:hover {
+  color: black;
+}
 .image-in-text {
     display: flex;
     justify-content: center;

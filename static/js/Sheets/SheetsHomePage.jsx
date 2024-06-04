@@ -3,7 +3,7 @@ import {InterfaceText, ResponsiveNBox} from "../Misc";
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
 import {Button} from "./GenericComponents";
-import SheetsTopics from "./SheetsTopics";
+import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsTopics";
 const GetStartedButton = ({href}) => {
     return <Button classes={{getStartedSheets: 1}} href={href}>Get Started</Button>
 }
@@ -35,13 +35,18 @@ const SheetsSidebar = () => {
 
 
 
-const SheetsHomePage = ({setNavTopic}) => {
+const SheetsHomePage = ({setNavTopic, multiPanel, initialWidth}) => {
+  const sheetsTopicsTOC = <SheetsTopicsTOC setNavTopic={setNavTopic} initialWidth={initialWidth}/>;
   return <div className="readerNavMenu sheets" key="0">
             <div className="content">
                 <SheetsHeroBanner/>
                 <div className="sidebarLayout">
-                    <SheetsTopics setNavTopic={setNavTopic}/>
+                    <div className="sheetsTopics">
+                        <SheetsTopicsCalendar setNavTopic={setNavTopic}/>
+                        {multiPanel && sheetsTopicsTOC}
+                    </div>
                     <SheetsSidebar/>
+                    {!multiPanel && sheetsTopicsTOC}
                 </div>
                 <Footer/>
             </div>

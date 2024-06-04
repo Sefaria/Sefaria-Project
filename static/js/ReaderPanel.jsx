@@ -1044,7 +1044,9 @@ class ReaderPanel extends Component {
       );
 
     } else if (this.state.menuOpen === "sheets") {
-      menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}/>);
+      menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}
+                              multiPanel={this.props.multiPanel}
+                              initialWidth={this.state.width}/>);
     } else if (this.state.menuOpen === "profile") {
       menu = (
         <UserProfile
