@@ -1115,13 +1115,6 @@ const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
   );
 };
 
-const CreateSheetsButton = () => {
-  return <a className="button small" href="/sheets/new">
-          <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" id="sheetsButton"/>
-          <InterfaceText>Create</InterfaceText>
-        </a>
-}
-
 const CategoryHeader = ({children, type, data = [], toggleButtonIDs = ["subcategory", "edit"], actionButtons = {}}) => {
   /*
   Provides an interface for using admin tools.

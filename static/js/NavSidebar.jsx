@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import {AppStoreButton, CreateSheetsButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
+import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
+import {Button} from "./Sheets/GenericComponents";
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
@@ -699,11 +700,11 @@ const WhatIsASourceSheet = () => (
     <InterfaceText>
         <EnglishText>
             Lorem ipsum
-            <a href="/sheets/393695" className="button" id="getStarted">Get Started</a>
+            <Button classNames={{getStarted: 1}} href="/sheets/393695">Get Started</Button>
         </EnglishText>
         <HebrewText>
             Lorem ipsum
-            <a href="/sheets/399333" className="button" id="getStarted">Get Started</a>
+            <Button classNames={{getStarted: 1}} href="/sheets/399333">Get Started</Button>
         </HebrewText>
     </InterfaceText>
   </Module>
@@ -721,6 +722,11 @@ const CreateASheet = () => (
      <CreateSheetsButton/>
   </Module>
 );
+
+const CreateSheetsButton = () => {
+  const img = <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" id="sheetsButton"/>;
+  return <Button img={img} classes={{small: 1}} href="/sheets/new">Create</Button>
+}
 const AboutLearningSchedules = () => (
   <Module>
     <ModuleTitle h1={true}>Learning Schedules</ModuleTitle>
