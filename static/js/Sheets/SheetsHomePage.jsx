@@ -1,8 +1,15 @@
 import React  from 'react';
-import SheetsTopics from "./SheetsTopics";
-import Footer from "./Footer";
-import {InterfaceText, ResponsiveNBox} from "./Misc";
-import {NavSidebar} from "./NavSidebar";
+import {InterfaceText, ResponsiveNBox} from "../Misc";
+import {NavSidebar} from "../NavSidebar";
+import Footer from "../Footer";
+import {Button} from "./GenericComponents";
+const GetStartedButton = ({href}) => {
+    return <Button classes={{getStartedSheets: 1}} href={href}>Get Started</Button>
+}
+const CreateSheetsButton = () => {
+  const img = <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" id="sheetsButton"/>;
+  return <Button img={img} classes={{small: 1}} href="/sheets/new">Create</Button>
+}
 const SheetsHeroBanner = () => {
     return <div id="aboutCover">
             <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay="true" loop muted>
@@ -18,21 +25,26 @@ const SheetsHeroBanner = () => {
 }
 
 const SheetsSidebar = () => {
-    return "Sidebar Placeholder"
+    const sidebarModules = [
+    {type: "CreateASheet"},
+    {type: "WhatIsASourceSheet"},
+  ];
+    return <NavSidebar modules={sidebarModules} />
 }
+
+
+
 const SheetsHomePage = () => {
-    return <div className="readerNavMenu" key="0">
+  return <div className="readerNavMenu sheets" key="0">
             <div className="content">
                 <SheetsHeroBanner/>
                 <div className="sidebarLayout">
                     <div className="contentInner">
-                        <SheetsTopics/>
+                        <SheetsSidebar/>
                     </div>
-                    <SheetsSidebar/>
-                    {/*<NavSidebar modules={sidebarModules}/>*/}
                 </div>
                 <Footer/>
             </div>
         </div>
 }
-export default SheetsHomePage;
+export { SheetsHomePage, GetStartedButton, CreateSheetsButton };
