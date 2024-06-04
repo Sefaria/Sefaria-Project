@@ -1,9 +1,25 @@
-import { ResponsiveNBox } from "../Misc";
+import {InterfaceText, ResponsiveNBox} from "../Misc";
 import React from "react";
-import { getTopicTOCListings } from "../TopicsPage";
+import Sefaria from "../sefaria/sefaria";
+
 
 const SheetsTopicsTOC = ({setNavTopic}) => {
-    const categoryListings = getTopicTOCListings(setNavTopic);
+    const categoryListings = Sefaria.topic_toc.map(cat => {
+        const openCat = e => {
+            e.preventDefault();
+            setNavTopic(cat.slug, {en: cat.en, he: cat.he})
+        }
+        return (
+            <div className="navBlock">
+                <a href={`/topics/category/${cat.slug}`} className="navBlockTitle" onClick={openCat}>
+              <InterfaceText text={cat} />
+            </a>
+            <div className="navBlockDescription">
+              <InterfaceText text={cat.categoryDescription} />
+            </div>
+          </div>
+        );
+    });
     return (
     <div className="readerNavCategories">
         <div id="sheetsFont">Browse by Topic</div>
