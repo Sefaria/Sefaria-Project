@@ -8,14 +8,6 @@
 #sheetsButton {
   display: none;
 }
-#sheetsLandingPage #sheetsButton {
-  display: inline;
-}
-#sheetsLandingPage .resourcesLink {
-  display: block;
-  width: 30%;
-  margin-top: 15px;
-}
 .inApp #staticContentWrapper {
   display: none;
 }
