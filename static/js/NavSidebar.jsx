@@ -700,11 +700,11 @@ const WhatIsASourceSheet = () => (
     <InterfaceText>
         <EnglishText>
             Lorem ipsum
-            <Button classNames={{getStarted: 1}} href="/sheets/393695">Get Started</Button>
+            <Button classes={{getStarted: 1}} href="/sheets/393695">Get Started</Button>
         </EnglishText>
         <HebrewText>
             Lorem ipsum
-            <Button classNames={{getStarted: 1}} href="/sheets/399333">Get Started</Button>
+            <Button classes={{getStarted: 1}} href="/sheets/399333">Get Started</Button>
         </HebrewText>
     </InterfaceText>
   </Module>
