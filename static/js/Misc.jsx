@@ -3383,6 +3383,5 @@ export {
   requestWithCallBack,
   OnInView,
   TopicPictureUploader,
-  ImageWithCaption,
-  CreateSheetsButton
+  ImageWithCaption
 };
