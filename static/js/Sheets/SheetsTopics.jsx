@@ -1,17 +1,7 @@
 import {InterfaceText, ResponsiveNBox} from "../Misc";
 import React from "react";
 import Sefaria from "../sefaria/sefaria";
-
-const Box = ({boxTitleChildren, boxTitleHref, onBoxTitleClick, boxTextChildren}) => {
-    return <div className="navBlock">
-                <a href={boxTitleHref} className="navBlockTitle" onClick={onBoxTitleClick}>
-                    {boxTitleChildren}
-                </a>
-                <div className="navBlockDescription">
-                    {boxTextChildren}
-                </div>
-            </div>
-}
+import {Box} from "./GenericComponents";
 const SheetsTopicsTOC = ({setNavTopic}) => {
     const categoryListings = Sefaria.topic_toc.map(cat => {
         const openCat = e => {
