@@ -3,6 +3,7 @@ import {InterfaceText, ResponsiveNBox} from "../Misc";
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
 import {Button} from "./GenericComponents";
+import SheetsTopics from "./SheetsTopics";
 const GetStartedButton = ({href}) => {
     return <Button classes={{getStartedSheets: 1}} href={href}>Get Started</Button>
 }
@@ -12,7 +13,7 @@ const CreateSheetsButton = () => {
 }
 const SheetsHeroBanner = () => {
     return <div id="aboutCover">
-            <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay="true" loop muted>
+            <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay={true} loop muted>
                 <source src="/static/img/home-video.webm" type="video/webm"/>
                 <source src="/static/img/home-video.mp4" type="video/mp4"/>
                 Video of sofer writing letters of the Torah
@@ -34,12 +35,13 @@ const SheetsSidebar = () => {
 
 
 
-const SheetsHomePage = () => {
+const SheetsHomePage = ({setNavTopic}) => {
   return <div className="readerNavMenu sheets" key="0">
             <div className="content">
                 <SheetsHeroBanner/>
                 <div className="sidebarLayout">
                     <div className="contentInner">
+                        <SheetsTopics setNavTopic={setNavTopic}/>
                         <SheetsSidebar/>
                     </div>
                 </div>

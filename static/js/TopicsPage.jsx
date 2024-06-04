@@ -12,11 +12,13 @@ import Footer  from './Footer';
 import {CategoryHeader} from "./Misc";
 import Component from 'react-class';
 
-const getTopicTOCListings = (openCat) => {
+const getTopicTOCListings = ({setNavTopic}) => {
+    const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})}
     return Sefaria.topic_toc.map(cat => {
     return (
       <div className="navBlock">
-        <a href={`/topics/category/${cat.slug}`} className="navBlockTitle" onClick={openCat}>
+        <a href={`/topics/category/${cat.slug}`} className="navBlockTitle"
+           onClick={openCat}>
           <InterfaceText text={cat} />
         </a>
         <div className="navBlockDescription">
@@ -29,8 +31,7 @@ const getTopicTOCListings = (openCat) => {
 
 // The root topics page listing topic categories to browse
 const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
-  const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
-  let categoryListings = getTopicTOCListings(openCat);
+  let categoryListings = getTopicTOCListings(setNavTopic);
   const letter = Sefaria.interfaceLang === "hebrew" ? "א" : "a";
   categoryListings.push(
     <div className="navBlock">
