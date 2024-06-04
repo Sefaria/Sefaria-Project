@@ -248,7 +248,7 @@ class ConnectionsPanel extends Component {
     }
   }
   async setCurrentVersions() {
-    const data = await this.getData();
+    const { data } = await this.getData();
     let currentLanguage = this.props.masterPanelLanguage;
     if (currentLanguage === "bilingual") {
       currentLanguage = "hebrew"
