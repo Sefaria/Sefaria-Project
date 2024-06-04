@@ -146,7 +146,7 @@ const TopicStoryDescBlock = ({topic, text}) => (
       </div>
 )
 
-const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayDescription}) => {
+const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayDescription, isAdmin}) => {
     if (!text.ref) {
         return null;
     }
@@ -183,8 +183,15 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
                 <StoryBodyBlock>
                     {content}
                 </StoryBodyBlock>
+                <div className={"headerWithAdminButtonsContainer"}>
+                    <div className={"headerWithAdminButtons"}>
                 <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
+                        </div>
+                    {isAdmin &&
+                        <ReviewStateIndicator topic={topic} topicLink={text}/>
+                    }
 
+                    </div>
             </ColorBarBox>
         </StoryFrame>
     );
@@ -201,6 +208,7 @@ const reviewStateToDisplayedTextMap = {
 }
 
 const ReviewStateIndicator = ({topic, topicLink}) => {
+    if (!topicLink.descriptions){ return null; }
     const [reviewStateByLang, markReviewed] = useReviewState(topic, topicLink);
     if (!Sefaria.is_moderator){ return null; }
     const langComponentMap = {he: HebrewText, en: EnglishText};
@@ -240,6 +248,7 @@ const markReviewedPostRequest = (lang, topic, topicLink) => {
 }
 
 const useReviewState = (topic, topicLink) => {
+    console.log(topicLink);
     const initialReviewStateByLang = Object.entries(topicLink?.descriptions).reduce((accum, [lang, desc]) => {
         accum[lang] = desc?.review_state;
         return accum;

@@ -7768,6 +7768,9 @@ a .button:hover {
   flex-wrap: nowrap;
   width: 100%;
 }
+.button.extraSmall.reviewState{
+  margin-inline-end: 7px;
+}
 .button.extraSmall.reviewState.reviewed {
   background-color: #5D956F;
 
