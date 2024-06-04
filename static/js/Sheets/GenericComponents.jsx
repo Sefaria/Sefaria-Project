@@ -1,6 +1,6 @@
 import {InterfaceText} from "../Misc";
-
-const Button = (img, href, children, classes={}) => {
+import classNames from "classnames";
+const Button = ({img, href, children, classes={}}) => {
   classes = {button: 1, ...classes};
   return <a className={classNames(classes)} href={href}>
           {img}
