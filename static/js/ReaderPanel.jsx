@@ -41,7 +41,7 @@ import {
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
-import SheetsHomePage from "./SheetsHomePage";
+import SheetsHomePage from "./Sheets/SheetsHomePage";
 
 
 class ReaderPanel extends Component {

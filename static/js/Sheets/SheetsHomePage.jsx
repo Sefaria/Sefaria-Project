@@ -1,7 +1,7 @@
 import React  from 'react';
-import {InterfaceText, ResponsiveNBox} from "./Misc";
-import {NavSidebar} from "./NavSidebar";
-import Footer from "./Footer";
+import {InterfaceText, ResponsiveNBox} from "../Misc";
+import {NavSidebar} from "../NavSidebar";
+import Footer from "../Footer";
 const SheetsHeroBanner = () => {
     return <div id="aboutCover">
             <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay="true" loop muted>
