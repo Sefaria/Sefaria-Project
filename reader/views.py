@@ -4029,11 +4029,14 @@ def digitized_by_sefaria(request):
 
 def parashat_hashavua_redirect(request):
     """ Redirects to this week's Parashah"""
-    diaspora = request.GET.get("diaspora", "1")
-    calendars = get_keyed_calendar_items()  # TODO Support israel / customs
+    diaspora = bool(int(request.GET.get("diaspora", "1")))
+    redirect_bool = bool(int(request.GET.get("redirect", "1")))
+    calendars = get_keyed_calendar_items(diaspora=diaspora)  # TODO Support israel / customs
     parashah = calendars["Parashat Hashavua"]
-    return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
-
+    if redirect_bool:
+        return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
+    else:
+        return jsonResponse(parashah)
 
 def daf_yomi_redirect(request):
     """ Redirects to today's Daf Yomi"""
