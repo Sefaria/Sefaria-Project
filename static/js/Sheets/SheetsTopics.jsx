@@ -2,27 +2,32 @@ import {InterfaceText, ResponsiveNBox} from "../Misc";
 import React from "react";
 import Sefaria from "../sefaria/sefaria";
 
-
+const Box = ({boxTitleChildren, boxTitleHref, onBoxTitleClick, boxTextChildren}) => {
+    return <div className="navBlock">
+                <a href={boxTitleHref} className="navBlockTitle" onClick={onBoxTitleClick}>
+                    {boxTitleChildren}
+                </a>
+                <div className="navBlockDescription">
+                    {boxTextChildren}
+                </div>
+            </div>
+}
 const SheetsTopicsTOC = ({setNavTopic}) => {
     const categoryListings = Sefaria.topic_toc.map(cat => {
         const openCat = e => {
             e.preventDefault();
             setNavTopic(cat.slug, {en: cat.en, he: cat.he})
         }
-        return (
-            <div className="navBlock">
-                <a href={`/topics/category/${cat.slug}`} className="navBlockTitle" onClick={openCat}>
-              <InterfaceText text={cat} />
-            </a>
-            <div className="navBlockDescription">
-              <InterfaceText text={cat.categoryDescription} />
-            </div>
-          </div>
-        );
+        const boxTitleChildren = <InterfaceText text={cat}/>;
+        const boxTextChildren = <InterfaceText text={cat.categoryDescription}/>
+        return <Box boxTitleHref={`/topics/category/${cat.slug}`}
+                    boxTitleChildren={boxTitleChildren}
+                    boxTextChildren={boxTextChildren}
+                    onBoxTitleClick={openCat}/>;
     });
     return (
     <div className="readerNavCategories">
-        <div id="sheetsFont">Browse by Topic</div>
+        <div className="sheetsFont">Browse by Topic</div>
       <ResponsiveNBox content={categoryListings} initialWidth={1000} />
     </div>
   );

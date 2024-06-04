@@ -78,4 +78,4 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
 };
 
 
-export { TopicsPage, getTopicTOCListings };
+export default TopicsPage;

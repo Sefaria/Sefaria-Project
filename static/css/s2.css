@@ -7873,6 +7873,19 @@ But not to use a display block directive that might break continuous mode for ot
 .sheets .button {
   background-color: var(--midrash-green);
 }
+.sheets .sheetsFont {
+  color: var(--midrash-green);
+  font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: left;
+}
+.sheets .sidebarLayout {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 50px;
+}
 .button.getStartedSheets {
   width: 111px;
   height: 39px;

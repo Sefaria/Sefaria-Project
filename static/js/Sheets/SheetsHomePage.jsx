@@ -40,10 +40,8 @@ const SheetsHomePage = ({setNavTopic}) => {
             <div className="content">
                 <SheetsHeroBanner/>
                 <div className="sidebarLayout">
-                    <div className="contentInner">
-                        <SheetsTopics setNavTopic={setNavTopic}/>
-                        <SheetsSidebar/>
-                    </div>
+                    <SheetsTopics setNavTopic={setNavTopic}/>
+                    <SheetsSidebar/>
                 </div>
                 <Footer/>
             </div>
