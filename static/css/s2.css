@@ -7873,7 +7873,7 @@ But not to use a display block directive that might break continuous mode for ot
 .sheets .button {
   background-color: var(--midrash-green);
 }
-.sheets #getStarted {
+.button.getStartedSheets {
   width: 111px;
   height: 39px;
   padding: 10px 15px 10px 15px;
