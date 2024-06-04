@@ -3147,75 +3147,74 @@ const ProductsPage = memo(() => {
         if (Sefaria.is_moderator){
             includeDrafts = 'publicationState:PREVIEW,';
         }
-        const query = `
-        query {
-                products (
-                    pagination: { limit: -1 },
-                    ${includeDrafts}
-                    sort: "rank:asc"
-                )
-                {
-                  data {
-                    id
-                    attributes {
-                      title
-                      rank
-                      url
-                      type
-                      description
-                      rectanglion {
-                        data {
-                          attributes {
-                            url
-                            alternativeText
-                          }
-                        }
+        
+        const query = `query {
+            products (
+                pagination: { limit: -1 },
+                ${includeDrafts}
+                sort: "rank:asc"
+            )
+            {
+              data {
+                id
+                attributes {
+                  title
+                  rank
+                  url
+                  type
+                  description
+                  rectanglion {
+                    data {
+                      attributes {
+                        url
+                        alternativeText
                       }
-                      createdAt
-                      updatedAt
-                      locale
-                      cta_labels {
-                        data {
-                          id
-                          attributes {
-                            text
-                            url
-                            icon {
-                              data {
-                                id
-                                attributes {
-                                  url
-                                  alternativeText
-                                }
-                              }
-                            }
-                            locale
-                            localizations {
-                              data {
-                                id
-                                attributes {
-                                  text
-                                }
-                              }
+                    }
+                  }
+                  createdAt
+                  updatedAt
+                  locale
+                  call_to_actions {
+                    data {
+                      id
+                      attributes {
+                        text
+                        url
+                        icon {
+                          data {
+                            id
+                            attributes {
+                              url
+                              alternativeText
                             }
                           }
                         }
-                      }
-                      localizations {
-                        data {
-                          attributes {
-                            locale
-                            title
-                            type
-                            description
+                        locale
+                        localizations {
+                          data {
+                            id
+                            attributes {
+                              text
+                            }
                           }
                         }
                       }
                     }
                   }
+                  localizations {
+                    data {
+                      attributes {
+                        locale
+                        title
+                        type
+                        description
+                      }
+                    }
+                  }
                 }
+              }
             }
-        `;
+        }`;
         
         try {
             const response = await fetch(STRAPI_INSTANCE + "/graphql", {
@@ -3246,11 +3245,12 @@ const ProductsPage = memo(() => {
         if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
             try {
                 const productsData = await fetchProductsJSON();
+                console.log(productsData);
 
                 const productsFromStrapi = productsData.data?.products?.data?.map((productsData) => {
 
                     const heLocalization = productsData.attributes?.localizations?.data[0]?.attributes;
-                    const ctaLabels = productsData.attributes?.cta_labels?.data;
+                    const ctaLabels = productsData.attributes?.call_to_actions?.data;
 
                     const ctaLabelsLocalized = ctaLabels.map((cta) => {
                         return {
