@@ -7879,7 +7879,6 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
-  text-align: left;
 }
 .sheets .sidebarLayout {
   display: flex;
@@ -10073,6 +10072,10 @@ span.purim-emoji img{
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
   font-family: Source Serif Pro, serif;
   font-weight: 400;
+}
+.interface-hebrew .overlayTextOnSheetsHero #title, .interface-hebrew .overlayTextOnSheetsHero #message {
+  right: 72px;
+  left: revert;
 }
 .overlayTextOnSheetsHero #title {
   position: absolute;
