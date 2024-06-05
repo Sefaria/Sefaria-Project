@@ -1172,6 +1172,13 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
   }
   return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
 }
+
+const PencilSourceEditor = (topic, text) => {
+    const [addSource, toggleAddSource] = useEditToggle();
+    const editorSpan = addSource ? <SourceEditor topic={topic} origData={text.ref} close={toggleAddSource}/> : <img src={"/static/icons/editing-pencil.svg"}/>;
+    const wrapper = "headerWithAdminButtons";
+    return <span className={wrapper} id={"editTopic"} onClick={toggleAddSource}><span>{editorSpan}</span></span>;
+}
 const ReorderEditorWrapper = ({toggle, type, data}) => {
     /*
     Wrapper for ReorderEditor that can reorder topics, categories, and sources.  It is only used for reordering topics and categories at the
@@ -3458,5 +3465,6 @@ export {
   OnInView,
   TopicPictureUploader,
   ImageWithCaption,
-  LangSelectInterface
+  LangSelectInterface,
+  PencilSourceEditor
 };

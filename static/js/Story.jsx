@@ -11,9 +11,10 @@ import {
     InterfaceText,
     EnglishText,
     HebrewText,
-    CategoryHeader,
+    CategoryHeader, PencilSourceEditor,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import {SourceEditor} from "./SourceEditor";
 
 // Much of Stories was removed November 2022.
 // It remains because some of the Components are re-used in other areas of the site.
@@ -168,6 +169,7 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
             collapsibleSummary={isCurated && displayDescription ?
                 <ColorBarBox tref={text.ref}><TopicStoryDescBlock topic={topic} text={text}/></ColorBarBox> : null}
         >
+        <PencilSourceEditor topic={topic} text={text}/>
             {isCurated && displayDescription ?
                 <ColorBarBox tref={text.ref}>
 
@@ -185,15 +187,17 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
                 </StoryBodyBlock>
                 <div className={"headerWithAdminButtonsContainer"}>
                     <div className={"headerWithAdminButtons"}>
+                {/*<CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]} persistentButtons={true}>*/}
                 <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
+                {/*</CategoryHeader>*/}
                         </div>
                     {isAdmin &&
                         <ReviewStateIndicator topic={topic} topicLink={text}/>
                     }
-
-                    </div>
+                </div>
             </ColorBarBox>
         </StoryFrame>
+
     );
 };
 const reviewStateToClassNameMap = {

@@ -79,9 +79,11 @@ const AdminEditorButton = ({toggleAddingTopics, text, top=false, bottom=false}) 
 
 function useEditToggle() {
   const [editingBool, toggleEditingBool] = useState(false);
+  console.log("useEditToggle");
   const toggleAddingTopics = function(e) {
       if (e.currentTarget.id === "editTopic") {
         toggleEditingBool(true);
+        console.log("toggleAddingTopics");
       }
       else if(e.currentTarget.id === "cancel") {
         toggleEditingBool(false);
