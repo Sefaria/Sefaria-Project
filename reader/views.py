@@ -1593,7 +1593,29 @@ def parashat_hashavua_api(request):
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
+@catch_error_as_json
+def next_holiday(request):
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    import requests
+    current_date = datetime.now().date()
+    date_in_three_months = current_date + relativedelta(months=+3)
 
+    # Format the date as YYYY-MM-DD
+    current_date = current_date.strftime('%Y-%m-%d')
+    date_in_three_months = date_in_three_months.strftime("%Y-%m-%d")
+    israel = request.GET.get("israel", "on") # or 'off'
+    response = requests.get(f"https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&start={current_date}&end={date_in_three_months}&i={israel}")
+    if response.status_code == 200:
+        for hebcal_holiday in json.loads(response.text)['items']:
+            if hebcal_holiday['category'] != 'holiday':
+                continue
+            for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
+                if result['type'] == 'Topic':
+                    return jsonResponse({"slug": result['key']})
+        return {"error": "Couldn't find any topics corresponding to HebCal results"}
+    else:
+        return {"error": "Couldn't establish connection with HebCal API"}
 @catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
@@ -4026,14 +4048,19 @@ def digitized_by_sefaria(request):
         "texts": texts,
     })
 
+def get_parashat_hashavua(request):
+    diaspora = request.GET.get("diaspora", "1")
+    calendars = get_keyed_calendar_items(diaspora=diaspora)
+    parashah = calendars["Parashat Hashavua"]
+    return parashah
+
+def parashat_hashavua_json(request):
+    return get_parashah(request)
 
 def parashat_hashavua_redirect(request):
     """ Redirects to this week's Parashah"""
-    diaspora = request.GET.get("diaspora", "1")
-    calendars = get_keyed_calendar_items()  # TODO Support israel / customs
-    parashah = calendars["Parashat Hashavua"]
+    parashah = get_parashah(request)
     return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
-
 
 def daf_yomi_redirect(request):
     """ Redirects to today's Daf Yomi"""

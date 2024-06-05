@@ -108,9 +108,11 @@ urlpatterns += [
 
 ]
 
-# Calendar Redirects
+# Calendar Data & Redirects
 urlpatterns += [
+    url(r'^next-holiday$', reader_views.next_holiday),
     url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
+    url(r'^parashat-hashavua-json$', reader_views.parashat_hashavua_json),
     url(r'^todays-daf-yomi$', reader_views.daf_yomi_redirect),
 ]
 
