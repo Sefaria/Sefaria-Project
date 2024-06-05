@@ -3306,6 +3306,20 @@ const ProductsPage = memo(() => {
 
     console.log("products: ", products)
 
+    // Generalized function for catcching products page analytics
+    productsAnalytics = (rank, product_cta, label, event) => {
+        gtag("event", `${product_cta}_${event}`, {
+          panel_type: "strapi-static",
+          panel_number: 0,   
+          panel_name: "Products Page",
+          position: rank,
+          experiment: 1,
+          feature_name: label,
+          engagement_type: "static",
+          engagement_value: 0,
+        });
+    }
+
 
     // The static content on the page inviting users to browse our "powered-by" products
     const DevBox = () => {
@@ -3346,36 +3360,32 @@ const ProductsPage = memo(() => {
         );
     };
 
-    // onClickQuestion = (p, i) => {
-    //     gtag("event", "products_${specific_cta}_clicked", {
-    //       panel_type: "static",
-    //       panel_number: 0,  // 
-    //       panel_name: "Products Page",
-    //       position: rank,
-    //       experiment: experiment,
-    //       feature_name: "Products",
-    //       engagement_type: "static",
-    //       engagement_value: 0,
-    //     });
-    // }
+
 
     // The call-to-action (link) in the heading of each product
     const ProductCTA = ({product}) => {
         return (
             <div className="cta">
-                {product.ctaLabels?.map(cta => (
-                    <a href={cta.url} key={cta.text.en}>
-                        {cta.icon.url && <img className="productsCTAIcon" 
-                                            data-image-path={cta.icon.url} 
-                                            src={cta.icon.url} 
-                                            alt="Click icon" />}
-                                            
-                        <span className="productsCTA">
-                            <span className='int-en'>{cta.text.en}</span>
-                            <span className='int-he'>{cta.text.he}</span>
-                        </span>
-                    </a>
-                ))}
+                    {product.ctaLabels?.map(cta => (
+                    <OnInView onVisible={() => productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "viewed")}>
+
+                        <a onClick={productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "clicked")} 
+                            href={cta.url} 
+                            key={cta.text.en}>
+                            {cta.icon.url && <img className="productsCTAIcon" 
+                                                data-image-path={cta.icon.url} 
+                                                src={cta.icon.url} 
+                                                alt="Click icon" />}
+                                                
+                            <span className="productsCTA">
+                                <span className='int-en'>{cta.text.en}</span>
+                                <span className='int-he'>{cta.text.he}</span>
+                            </span>
+                        </a>
+
+                    </OnInView>
+                    ))}
+                
             </div>
         );
     };
