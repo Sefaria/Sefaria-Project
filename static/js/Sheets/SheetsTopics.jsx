@@ -16,15 +16,31 @@ const SheetsTopicsTOC = ({setNavTopic, initialWidth}) => {
                     onBoxTitleClick={openCat}/>;
     });
     return (
-    <div className="sheetsTopicTOC readerNavCategories">
-        <div className="sheetsFont">Browse by Topic</div>
-      <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
+    <div className="sheetsTopicTOC">
+        <SheetsWrapper title="Browse by Topic"><ResponsiveNBox content={categoryListings} initialWidth={initialWidth} /></SheetsWrapper>
     </div>
   );
 }
 
+const SheetsWrapper = ({title, children}) => {
+    return <div>
+                <div className="sheetsFont">{title}</div>
+                {children}
+           </div>
+}
+
+const SheetsParashah = () => {
+    return <div>A</div>
+}
+
+const SheetsHoliday = () => {
+    return <div>A</div>
+}
 const SheetsTopicsCalendar = () => {
-    return <div className="sheetsTopicsCalendar">Calendar Placeholder</div>
+    return <div className="sheetsTopicsCalendar">
+                <SheetsWrapper title="Parashat HaShavua"><SheetsParashah/></SheetsWrapper>
+                <SheetsWrapper title="Upcoming Holiday"><SheetsHoliday/></SheetsWrapper>
+          </div>
 }
 
 export { SheetsTopicsCalendar, SheetsTopicsTOC }

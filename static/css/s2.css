@@ -13177,6 +13177,7 @@ span.ref-link-color-3 {color: blue}
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
+  margin-bottom: 15px;
 }
 .sheets .sidebarLayout {
   display: flex;
@@ -13187,8 +13188,15 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: column;
 }
-.singlePanel .sheets .sidebarLayout .sheetsTopicTOC, .singlePanel .sheets .sidebarLayout .sheetsTopicsCalendar {
+.singlePanel .sheetsTopicTOC, .singlePanel .sheetsTopicsCalendar {
   margin-top: 30px;
+}
+.multiPanel .sheetsTopicTOC {
+  margin-top: 30px;
+}
+.sheetsTopicsCalendar {
+  display: flex;
+  justify-content: space-between;
 }
 .button.getStartedSheets {
   width: 111px;
