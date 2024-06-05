@@ -2,6 +2,18 @@ import {InterfaceText, ResponsiveNBox} from "../Misc";
 import React from "react";
 import Sefaria from "../sefaria/sefaria";
 import {Box} from "./GenericComponents";
+
+const fetcher = async ({url}) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
+}
 const SheetsTopicsTOC = ({setNavTopic, initialWidth}) => {
     const categoryListings = Sefaria.topic_toc.map(cat => {
         const openCat = e => {
@@ -30,6 +42,7 @@ const SheetsWrapper = ({title, children}) => {
 }
 
 const SheetsParashah = () => {
+    const parashah = fetcher('/parashat-hashavua-json')
     return <div>A</div>
 }
 
