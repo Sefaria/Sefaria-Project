@@ -3382,10 +3382,9 @@ const ProductsPage = memo(() => {
 
     // The main body of each product entry, containing an image and description
     const ProductDesc = ({product}) => {
-        console.log(`http://localhost:1337${product.rectanglion.url}`);
         return (
             <div className="productsInner">
-                <img src={`http://localhost:1337${product.rectanglion.url}`} alt="Product Image"/>
+                <img src={product.rectanglion.url} alt="Product Image"/>
                 <span className='int-en'>
                     <ReactMarkdown className="productsDesc">
                         {product.desc?.en}
