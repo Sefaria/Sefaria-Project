@@ -1,6 +1,10 @@
 #staticContentWrapper{
   background-color: #FBFBFA;
 }
+#staticContentWrapper #content .superAbout {
+  display: flex;
+  flex-direction: row;
+}
 .inApp #staticContentWrapper {
   display: none;
 }
@@ -695,7 +699,7 @@ p.registration-links a:hover{
   content: "ת)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }*/
-#supportersPage{
+#supportersPage {
   text-align: center;
 }
 #supportersPage .leading-supporters p.tagline:first-child {
@@ -723,7 +727,8 @@ p.registration-links a:hover{
   width: 100%;
 }
 #aboutCover {
-  height: 540px;
+  height: 440px;
+  margin-left: 250px;
   padding: 180px 0;
   background-color: #ADA99B;
   box-sizing: border-box;
@@ -739,40 +744,7 @@ p.registration-links a:hover{
   z-index: 0;
   width: 100%;
 }
-#aboutPage .inner {
-  margin-top: -440px;
-}
-#aboutHeader {
-  color: white;
-  margin-bottom: 250px;
-  text-align: center;
-  position: relative;
-}
-#aboutPage #aboutTitle {
-  font-size: 50px;
-  margin-bottom: 20px;
-}
-#aboutTitleSub {
-  font-size: 24px;
-}
-#aboutPage .section {
-  margin-bottom: 60px;
-}
-#aboutPage p {
-  font-size: 16px;
-  margin-bottom: 30px;
-}
-#aboutPage .year {
-  margin-top: 30px;
-}
-#aboutPage .year.first {
-  margin-top: 0;
-}
-#aboutPage .historyItem {
-  font-size: 16px;
-  margin: 14px 0;
-  line-height: 1.2;
-}
+
 @media (max-width: 450px) {
   #aboutPage #aboutHeader {
     margin-bottom: 130px;
@@ -780,9 +752,6 @@ p.registration-links a:hover{
   #aboutPage #aboutCover {
     height: 270px;
     padding: 180px 0;
-  }
-  #aboutPage .inner {
-    margin-top: -365px;
   }
   #aboutPage #aboutVideo {
     min-width: 900px;
@@ -804,10 +773,6 @@ p.registration-links a:hover{
 }
 #linkExplorerPage {
   padding-top: 60px;
-}
-#supportersPage p{
-  font-size: 16px;
-  color: #666;
 }
 #linkerPage h2 {
   margin: 30px 0 30px 0;
@@ -1244,13 +1209,10 @@ p.registration-links a:hover{
 #connectPage {
   text-align: center;
 }
-#jobsPage {
-  font-size: 18px
-}
 #jobsPage nav{
   margin-top: 60px;
 }
-#jobsPage nav:not(.navigationVisible){
+#jobsPage nav:not(.navigationVisible, #aboutSidebar){
   display: none;
 }
 /*#jobsPage nav h3{
@@ -1327,7 +1289,7 @@ p.registration-links a:hover{
 }
 
 #jobsPage .solicitationNotice, #jobsPage .solicitationNotice p{
-  margin-top: 80px;
+  margin-top: 30px;
   font-style: normal;
   font-weight: normal;
   font-size: 14px;
@@ -1375,6 +1337,7 @@ p.registration-links a:hover{
   font-size: 18px;
 }
 .static.legal iframe {
+  margin-top: -600px;
   width: 100%;
   height: 600px;
   border: 1px solid #aaa;
@@ -3295,4 +3258,409 @@ display: none;
 /*** Filters for coloring svgs ***/
 .svg-white {
   filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
+}
+
+#aboutPage .inner {
+  margin-top: 45px;
+}
+div .notificationsList {
+  margin-top: -20px;
+}
+form.globalUpdateForm + div.notificationsList {
+  margin-top: 20px;
+}
+#teamPage .inner {
+  margin-top: 90px;
+}
+.interface-hebrew #jobsPage .inner {
+  margin-top: 70px;
+}
+.interface-english #jobsPage .inner {
+  margin-top: 65px;
+}
+#aboutHeader {
+  color: white;
+  margin-bottom: 250px;
+  text-align: center;
+  position: relative;
+}
+#aboutPage #aboutTitle {
+  font-size: 50px;
+  margin-bottom: 20px;
+}
+#aboutTitleSub {
+  font-size: 24px;
+}
+#aboutPage .section {
+  margin-bottom: 60px;
+}
+#aboutPage p {
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+#aboutPage .year {
+  margin-top: 30px;
+}
+#aboutPage .year.first {
+  margin-top: 0;
+}
+#aboutPage .historyItem {
+  font-size: 16px;
+  margin: 14px 0;
+  line-height: 1.2;
+}
+#supportersPage h3, #supportersPage h2 {
+  text-align: left;
+  max-width: revert;
+}
+#supportersPage p{
+  font-size: 16px;
+  color: #666;
+  text-align: left;
+  max-width: revert;
+}
+.interface-hebrew #supportersPage h3, .interface-hebrew #supportersPage p, .interface-hebrew #supportersPage h2 {
+  max-width: revert;
+  text-align: right;
+}
+#teamPage, #metricsPage {
+  min-height: 600px;
+}
+#jobsPage {
+  font-size: 18px;
+  min-height: 600px;
+}
+
+#aboutSidebar {
+  margin-top: 70px;
+}
+.interface-hebrew #aboutSidebar.updates {
+  left: revert;
+  margin-right: 0;
+}
+.interface-english #aboutSidebar {
+  text-align: left;
+}
+.interface-hebrew #aboutSidebar {
+  text-align: right;
+}
+.interface-hebrew #aboutSidebar h1 {
+  font-size: 22px;
+  margin: 0 50px 60px 30px;
+}
+#aboutSidebar h1 {
+  margin: 0 0 60px 50px;
+  padding-top: 60px;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--dark-grey);
+  min-width: max-content;
+}
+#testimonialsPage p {
+  font-size: 16px;
+}
+#aboutPage h1, #testimonialsPage h1 {
+  text-align: left;
+}
+#aboutPage h2 {
+  font-weight: normal;
+}
+#teamPage h2 {
+  text-align: left;
+  font-weight: normal;
+}
+.interface-hebrew #aboutPage h1, .interface-hebrew #teamPage h2, .interface-hebrew #testimonialsPage h1 {
+  text-align: right;
+}
+#aboutSidebar.annualreport h1 {
+  margin-left: 50px;
+}
+
+#aboutSidebar ul {
+  list-style-type: none;
+}
+#aboutSidebar li {
+  min-width: max-content;
+  padding: 10px;
+  margin: 0;
+  color: #666666;
+}
+#aboutSidebar a {
+  text-decoration: none !important;
+  font-size: 16px;
+}
+#aboutSidebar a:hover {
+  text-decoration: underline;
+}
+.annualReport {
+  padding-top: 85px;
+}
+.interface-hebrew .annualReport {
+  padding-top: 95px;
+}
+.annualReport a {
+  color: blue;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 19px;
+  letter-spacing: 0;
+  text-align: left;
+}
+.mobileAboutPage {
+  margin: 50px 0 0 0;
+  padding-top: 15px;
+}
+.mobileAbout {
+  top: 100px;
+  right: 0px;
+  left: 0px;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  overflow: auto;
+  z-index: 2;
+}
+.mobileAbout a {
+  margin-left: -30px;
+  font-family: "Roboto", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 35px;
+  color: var(--dark-grey);
+  display: block;
+  font-size: 16px;
+}
+#aboutSidebar.mobileAbout .fa-chevron-left {
+  padding-top: 10px;
+  color: var(--dark-grey);
+  display: block;
+  margin-left: 60px;
+  float: left;
+}
+#aboutSidebar.mobileAbout .fa-chevron-right {
+  float: right;
+  padding-top: 10px;
+  color: var(--dark-grey);
+  display: block;
+  margin-right: 30px;
+}
+#aboutSidebar .fa-chevron-right, #aboutSidebar .fa-chevron-left {
+  display: none;
+}
+#about.selected, #team.selected, #jobs.selected, #updates.selected, #testimonials.selected,
+#supporters.selected, #metrics.selected, #annualreport.selected, #terms.selected, #privacy.selected {
+  background-color: var(--lighter-grey);
+  color: var(--selected-option);
+  border-radius: 6px;
+  padding: 5px;
+  margin-left: -5px;
+}
+#testimonialsPage .inner {
+  margin-top: 80px;
+}
+.interface-hebrew #testimonialsPage .inner {
+  margin-top: 90px;
+}
+#supportersPage .inner {
+  margin-top: 85px;
+}
+#metricsPage .inner {
+  margin-top: 60px;
+}
+#updatesPanelContent .readerNavMenu .content .contentInner {
+    margin-top: 160px;
+}
+#updatesPage .readerNavMenu {
+    position: relative;
+}
+#updatesPanelContent .navSideBar {
+    margin-left: 200px;
+}
+
+.mobileAboutHeader, .updatesHeader, .jobsHeader {
+  display: none;
+}
+.container.doc.legal.static .inner {
+  margin-top: 675px;
+}
+.container.doc.legal.static .inner,
+#annualReport .inner,
+#metricsPage .inner,
+#supportersPage .inner,
+#testimonialsPage .inner,
+#aboutPage .inner,
+#teamPage .inner,
+#jobsPage .inner {
+  margin-inline-start: 100px;
+}
+#updatesPanelContent .readerNavMenu .content .contentInner {
+  margin-inline-start: 100px;
+}
+.interface-hebrew #testimonialsPage .inner {
+  margin-inline-start: auto;
+  margin-inline-end: 100px;
+}
+@media (max-width: 1000px) and (min-width: 480px) {
+    #staticContentWrapper #content .superAbout {
+      display: flex;
+      flex-direction: column;
+    }
+    .container.doc.legal.static .inner,
+    #annualReport .inner,
+    #metricsPage .inner,
+    #supportersPage .inner,
+    #testimonialsPage .inner,
+    #aboutPage .inner,
+    #teamPage .inner,
+    #jobsPage .inner {
+      padding-top: 0;
+      margin-inline-start: 50px;
+    }
+    #updatesPanelContent .readerNavMenu .content .contentInner {
+      margin-top: 0;
+      margin-inline-start: 20px;
+    }
+    .interface-hebrew #testimonialsPage .inner {
+      margin: 0 auto;
+      margin-right: 20px;
+    }
+}
+@media (max-width: 480px) {
+  .container.doc.legal.static .inner, #annualReport .inner, #metricsPage .inner, #supportersPage .inner,
+  #testimonialsPage .inner, #aboutPage .inner, #teamPage .inner, #jobsPage .inner {
+    margin-inline-start: auto;
+  }
+  #updatesPage .globalUpdateForm {
+    margin-top: 50px;
+    width: 270px;
+  }
+  div.notificationsList {
+    width: 50%;
+  }
+  #updatesPanelContent .readerNavMenu .content .contentInner {
+    margin: auto 0;
+  }
+  #aboutSidebar.mobileAbout {
+    margin-top: -90px;
+    display: block;
+  }
+  .interface-english #aboutSidebar.mobileAbout h1.int-en {
+    display: block;
+  }
+  .interface-hebrew #aboutSidebar.mobileAbout h1.int-he {
+    display: block;
+  }
+  .interface-hebrew #teamPage .inner, .interface-hebrew #jobsPage .inner,
+  .interface-hebrew #annualReport .inner,
+  .interface-hebrew .container.doc.legal.static .inner {
+    margin-top: -80px;
+  }
+  .interface-hebrew #supportersPage .inner {
+    margin-top: -65px;
+  }
+  .interface-hebrew #testimonialsPage .inner {
+    margin-top: -70px;
+    margin-inline-end: auto;
+  }
+  .interface-hebrew #metricsPage .inner {
+    margin-top: -70px;
+  }
+  .interface-hebrew #aboutPage .inner {
+    margin-top: -85px;
+  }
+  .interface-english .container.doc.legal.static .inner,
+  .interface-english #annualReport .inner,
+  .interface-english #metricsPage .inner,
+  .interface-english #supportersPage .inner,
+  .interface-english #testimonialsPage .inner,
+  .interface-english #jobsPage .inner {
+    margin-top: -70px;
+  }
+  .interface-english #teamPage .inner {
+    margin-top: -75px;
+  }
+  .interface-hebrew .about.section {
+    padding-top: 50px;
+  }
+  div #metricsBox {
+    margin-top: 50px;
+  }
+  #testimonialsPage .testimonial.section {
+    margin-top: 50px;
+  }
+  #aboutPage .inner {
+     margin-top: -80px;
+  }
+  #aboutSidebar.mobileAbout ul {
+    padding-top: 10px;
+  }
+  #jobsPage .inner #jobsPageContent {
+    margin-top: 0px;
+  }
+  .interface-hebrew #jobsPage .inner #jobsPageContent {
+    margin-top: 60px;
+  }
+  div #teamMembersPageContent {
+    margin-top: 40px;
+  }
+  .interface-hebrew div #teamMembersPageContent {
+    margin-top: 50px;
+  }
+  .interface-hebrew div #teamMembersPageContent {
+    margin-top: 60px;
+  }
+  h1 .updatesHeader {
+    margin-top: -60px;
+  }
+  .annualReport {
+    margin: 0;
+    padding-top: 55px;
+  }
+  #aboutSidebar.mobileAbout h1, h1.mobileAboutHeader {
+    font-family: 'Roboto', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 22px;
+    text-align: left;
+    line-height: 26px;
+    color: var(--dark-grey);
+  }
+  .interface-hebrew h1.mobileAboutHeader, .interface-hebrew #aboutSidebar h1 {
+    text-align: right;
+  }
+  h1.mobileAboutHeader {
+    margin: 40px 0 0 0;
+  }
+  .interface-english #aboutSidebar li {
+    margin-left: 5px;
+  }
+  .interface-english #aboutSidebar.mobileAbout h1 {
+    margin: 40px 50px 0 25px;
+  }
+  .interface-hebrew #aboutSidebar.mobileAbout h1 {
+    margin: 40px 30px 0 20px;
+  }
+  .interface-hebrew #aboutSidebar li {
+    margin-right: -18px;
+  }
+  div .section.leading-supporters {
+    margin-top: 40px;
+  }
+
+  .updatesHeader, .jobsHeader, .mobileAboutHeader {
+    display: block;
+  }
+  .static.legal iframe {
+    margin-top: 60px;
+  }
+}
+#metricsBox {
+  margin-top: 30px;
+}
+.updateTextarea {
+  width: 100%;
+}
+.about.section {
+  padding-top: 40px;
 }

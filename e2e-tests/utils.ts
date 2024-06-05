@@ -16,9 +16,9 @@ const hideModals = async (page: Page) => {
 export const changeLanguage = async (page: Page, language: string) => {
     await page.locator('.interfaceLinks-button').click()
     if (language === LANGUAGES.EN) {
-        await page.getByRole('banner').getByRole('link', { name: 'English' }).click()
+        await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
     } else if (language === LANGUAGES.HE) {
-        await page.getByRole('banner').getByRole('link', { name: ' עברית' }).click()
+        await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
     }
 }
 
@@ -60,4 +60,9 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     await newPage.goto(url);
     await hideModals(newPage);
     return newPage;
+}
+
+export const getPathAndParams = (url: string) => {
+    const urlObj = new URL(url);
+    return urlObj.pathname + urlObj.search;
 }

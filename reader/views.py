@@ -34,7 +34,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data, UserWrapper
+from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
@@ -320,7 +320,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide")
     if filter[0] in sidebarModes:
         return filter[0], True
     elif filter[0].endswith(" ConnectionsList"):
@@ -376,16 +376,19 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "filter": filter,
             "versionFilter": versionFilter,
         }
-        if filter and len(filter):
-            panel["connectionsMode"], delete_filter = get_connections_mode(filter)
-            if panel["connectionsMode"] == "ConnectionsList":
-                panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
-                if len(panel['filter']) == 1:
-                    panel['connectionsCategory'] = panel['filter'][0]
-            if panel['connectionsMode'] == "WebPagesList":
-                panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
-            if delete_filter:
-                del panel['filter']
+        if filter is not None:
+            panel["highlightedRefs"] = kwargs.get("highlightedRefs", None)
+            panel["showHighlight"] = kwargs.get('showHighlight', None)
+            if len(filter):
+                panel["connectionsMode"], delete_filter = get_connections_mode(filter)
+                if panel["connectionsMode"] == "ConnectionsList":
+                    panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
+                    if len(panel['filter']) == 1:
+                        panel['connectionsCategory'] = panel['filter'][0]
+                if panel['connectionsMode'] == "WebPagesList":
+                    panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
+                if delete_filter:
+                    del panel['filter']
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
@@ -553,6 +556,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             lang2 = request.GET.get("lang2", None)
             if lang2:
                 kwargs["connectionsPanelDisplayLanguage"] = lang2 if lang2 in ["en", "he"] else lang1 if lang1 in ["en", "he"] else request.interfaceLang[0:2]
+            kwargs["highlightedRefs"] = [oref.normal()]
+            kwargs["showHighlight"] = True
         if request.GET.get("aliyot", None):
             kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
         kwargs["selectedWords"] = request.GET.get("lookup", None)
@@ -1034,7 +1039,6 @@ def texts_list(request):
     props = get_user_history_props(request)
     return menu_page(request, page="navigation", title=title, desc=desc, props=props)
 
-
 def calendars(request):
     title = _("Learning Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Weekly Torah portions, Daf Yomi, and other schedules for Torah learning.")
@@ -1063,12 +1067,6 @@ def user_history(request):
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)
-
-
-def updates(request):
-    title = _("New Additions to the Sefaria Library")
-    desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
-    return menu_page(request, page="updates", title=title, desc=desc)
 
 
 @login_required
@@ -1253,7 +1251,7 @@ def edit_text_info(request, title=None, new_title=None):
         # Edit Existing
         title = title.replace("_", " ")
         i = library.get_index(title)
-        if not (request.user.is_staff or user_started_text(request.user.id, title)):
+        if not request.user.is_staff:
             return render_template(request,'static/generic.html', None, {
                 "title": "Permission Denied",
                 "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title
@@ -1642,73 +1640,67 @@ def text_titles_api(request):
 def index_node_api(request, title):
     pass
 
-@catch_error_as_json
+
 @csrf_exempt
+@catch_error_as_json
 def index_api(request, title, raw=False):
-    """
-    API for manipulating text index records (aka "Text Info")
-    """
-    if request.method == "GET":
+    CONTENT_TYPE = "CONTENT"
+    ADMIN_TYPE = "ADMIN"
+
+    def handle_get_request(request, title, raw):
         with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
-        i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
+        index_record = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
         if bool(int(request.GET.get("with_related_topics", False))):
-            i["relatedTopics"] = get_topics_for_book(title, annotate=True)
+            index_record["relatedTopics"] = get_topics_for_book(title, annotate=True)
 
-        return jsonResponse(i, callback=request.GET.get("callback", None))
+        return jsonResponse(index_record, callback=request.GET.get("callback", None))
 
-    if request.method == "POST":
-        # use the update function if update is in the params
-
-        func = tracker.update if request.GET.get("update", False) else tracker.add
+    def handle_post_request(request, title, raw):
         j = json.loads(request.POST.get("json"))
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
-        j["title"] = title.replace("_", " ")
-        #todo: move this to texts_api, pass the changes down through the tracker and text chunk
-        #if "versionTitle" in j:
-        #    if j["versionTitle"] == "Sefaria Community Translation":
-        #        j["license"] = "CC0"
-        #        j["licenseVetter"] = True
-        if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], Index, j, method="API", raw=raw).contents(raw=raw))
+
+        user_type, uid = determine_user_type_and_id(request)
+        if uid is None:
+            return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
+        elif user_type == CONTENT_TYPE:
+            return index_post(request, uid, j, "API", raw)
+        elif user_type == ADMIN_TYPE:
+            admin_post = csrf_protect(index_post)
+            return admin_post(request, uid, j, None, raw)
+
+    def determine_user_type_and_id(request):
+        if request.user.is_staff:
+            return ADMIN_TYPE, request.user.id
         else:
-            title = j.get("oldTitle", j.get("title"))
-            try:
-                library.get_index(title)  # getting the index just to tell if it exists
-                # Only allow staff and the person who submitted a text to edit
-                if not request.user.is_staff and not user_started_text(request.user.id, title):
-                   return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
-            except BookNameError:
-                pass  # if this is a new text, allow any logged in user to submit
-        @csrf_protect
-        def protected_index_post(request):
-            return jsonResponse(
-                func(request.user.id, Index, j, raw=raw).contents(raw=raw)
-            )
+            key = request.POST.get("apikey")
+            if key:
+                apikey = db.apikeys.find_one({"key": key})
+                if apikey:
+                    return CONTENT_TYPE, apikey["uid"]
+        return None, None
 
-        return protected_index_post(request)
+    def index_post(request, uid, j, method, raw):
+        func = tracker.update if 'update' in j else tracker.add
+        return jsonResponse(func(uid, Index, j, raw=raw, method=method).contents(raw=raw))
 
-    if request.method == "DELETE":
+    def handle_delete_request(request, title):
         if not request.user.is_staff:
-            return jsonResponse({"error": "Only moderators can delete texts indices."})
+            return jsonResponse({"error": "Only moderators can delete indices."})
 
         title = title.replace("_", " ")
-
-        i = library.get_index(title)
-
-        i.delete()
+        library.get_index(title).delete()
         record_index_deletion(title, request.user.id)
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+    if request.method == "GET":
+        return handle_get_request(request, title, raw)
+    elif request.method == "POST":
+        return handle_post_request(request, title, raw)
+    elif request.method == "DELETE":
+        return handle_delete_request(request, title)
 
 
 @catch_error_as_json
@@ -2178,6 +2170,7 @@ def related_api(request, tref):
             "topics": get_topics_for_ref(tref, annotate=True),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),
+            "guides": GuideSet.load_set_for_client(tref)
         }
         for value in response.values():
             for item in value:
@@ -2559,9 +2552,10 @@ def terms_api(request, name):
         def _internal_do_post(request, uid):
             t = Term().load({'name': name}) or Term().load_by_title(name)
             if request.method == "POST":
-                term = request.POST.get("json")
-                if not term:
-                    return {"error": "Missing 'json' parameter in POST data."}
+                if "json" in request.POST:
+                    term = request.POST.get("json")
+                else:
+                    term = request.body
                 term = json.loads(term)
                 if t and not request.GET.get("update"):
                     return {"error": "Term already exists."}
@@ -3115,6 +3109,7 @@ def add_new_topic_api(request):
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
         update_topic_titles(t, **data)
+        t.set_slug_to_primary_title()
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()

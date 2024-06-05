@@ -72,7 +72,6 @@ def test_dup_index_save():
             "titleVariants": [title],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Commentary"],
-            "lengths": [50, 501]
         }
         idx2 = model.Index(d2).save()
 
@@ -402,25 +401,26 @@ def test_index_update():
         "heTitle": "כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
-        "categories": ["Musar"],
-        "lengths": [50, 501]
+        "categories": ["Talmud", "Bavli"],
     }).save()
     i = model.Index().load({"title": ti})
-    assert "Musar" in i.categories
-    assert i.nodes.lengths == [50, 501]
+    assert "Bavli" in i.categories
+    assert i.schema["addressTypes"] == ["Talmud", "Integer"]
 
     i = model.Index().update({"title": ti}, {
         "title": ti,
         "heTitle": "כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
-        "categories": ["Jewish Thought"]
+        "addressTypes": ["Integer", "Integer"],  # this change will not go through as addressTypes cannot be changed this way for an existing Index. instead, it's necessary to edit the JaggedArrayNode
+        "categories": ["Musar"]
     })
     i = model.Index().load({"title": ti})
-    assert "Musar" not in i.categories
-    assert "Jewish Thought" in i.categories
-    assert i.nodes.lengths == [50, 501]
+    assert "Musar" in i.categories
+    assert "Bavli" not in i.categories
 
+    i = model.Index().load({"title": ti})
+    assert i.schema["addressTypes"] == ["Talmud", "Integer"]
     model.IndexSet({"title": ti}).delete()
 
 
@@ -434,7 +434,6 @@ def test_index_delete():
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
         "categories": ["Musar"],
-        "lengths": [50, 501]
     }).save()
     new_version1 = model.Version(
                 {
@@ -568,7 +567,6 @@ class TestModifyVersion:
             "titleVariants": [cls.simpleIndexTitle],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
-            "lengths": [50, 501]
         }).save()
         cls.simpleVersion = model.Version(
             {
@@ -744,7 +742,6 @@ class TestVersionActualLanguage:
             "titleVariants": [cls.myIndexTitle],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
-            "lengths": [50, 501]
         }).save()
         cls.versionWithTranslation = model.Version(
             {

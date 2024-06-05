@@ -165,10 +165,10 @@ nginx:
   containerImage:
     imageRegistry:
     tag:
-  SEARCH_HOST: "searchfix.cauldron.sefaria.org"
-  SEARCH_PORT: "443"
-  SEARCH_PATH: "api/search"
-  SEARCH_SSL_ENABLE: true
+  SEARCH_HOST: "elasticsearch-es-http.elasticsearch.svc"
+  SEARCH_PORT: "9200"
+  SEARCH_PATH: ""
+  SEARCH_SSL_ENABLE: false
   disableScraping: false
   replicaCount: 2
   resources:
@@ -197,7 +197,7 @@ cronJobs:
   dailyEmailNotifications:
     enabled: true
   indexFromQueue:
-    enabled: false
+    enabled: true
   metrics:
     enabled: true
   nationBuilderSync:

@@ -24,6 +24,12 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
 
+    //Autocomplete
+    "Books": "ספרים",
+    "Terms": "מונחים",
+    "Users": "משתמשים",
+    "Categories": "קטגוריות",
+
     // Texts Page
     "Learn More": "לקריאה נוספת",
     "Learning Schedules": "לוח לימוד יומי",
@@ -102,6 +108,9 @@ const Strings = {
     "All Topics": "כל הנושאים",
     "Reset": "לאתחל",
     "Search Topics": "חפש נושאים",
+
+    // Topic Images
+    "Illustrative image" : "תמונה להמחשה",
 
 
     // Community Page
@@ -273,6 +282,7 @@ const Strings = {
     "Location: ": "מיקום: ",
     "Translations": "תרגומים",
     "Uncategorized": "לא מסווג",
+    "Text display options": "אפשרויות תצוגת טקסט",
 
     // Collections
     "Collections": "אסופות",
@@ -458,6 +468,16 @@ const Strings = {
     "All history ": "כל ההסטוריה ",
     "All History": "כל ההסטוריה",
 
+
+     //About
+    "What is Sefaria?": "מהי ספריא",
+    "Team": "צוות ספריא",
+    "Jobs at Sefaria": "משרות פנויות בספריא",
+    "Our Supporters": "התומכים שלנו",
+    "Metrics": "מדדים",
+    "Annual Report": 'דו"ח שנתי',
+    "Terms of Use": "תנאי שימוש",
+    "Privacy Policy": "מדיניות פרטיות",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",

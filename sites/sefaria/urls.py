@@ -48,7 +48,11 @@ static_pages = [
     "word-by-word",
     "cloudflare_site_is_down_en",
     "cloudflare_site_is_down_he",
-    "team"
+    "team",
+    "link-to-annual-report",
+    'mobile-about-menu',
+    "updates",
+    "pioneers"
 ]
 
 static_pages_by_lang = [
@@ -76,8 +80,8 @@ site_urlpatterns = [
 
 # Redirects to Wikis etc
 site_urlpatterns += [
-    url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/en?c_src=mobile-app' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he?c_src=mobile-app')),
-    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/en' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he')),
+    url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he?c_src=mobile-app')),
+    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he')),
     url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
     url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),

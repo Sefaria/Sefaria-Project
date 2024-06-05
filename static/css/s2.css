@@ -1713,6 +1713,8 @@ div.interfaceLinks-row a {
   padding: 30px 0 0 0;
   border: none;
 }
+
+
 .navSidebarModule {
   font-size: 16px;
   color: #666;
@@ -2166,6 +2168,17 @@ div.interfaceLinks-row a {
 .ai-info-messages-box *{
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
+.guideHeader .ai-info-tooltip {
+  display: inline;
+  float: inline-end;
+}
+
+.guideHeader .ai-message {
+  left: -180px;
+}
+.guideHeader .ai-info-tooltip .ai-info-icon {
+    margin-top: 5px;
+}
 .ai-info-last-message {
   align-items: center;
   display: flex;
@@ -2179,6 +2192,7 @@ div.interfaceLinks-row a {
 .ai-message {
   z-index: 1;
   position: absolute;
+  left: -180px;
   opacity: 0;
   visibility: hidden;
   transition: opacity 2s ease, visibility 0s 2s;
@@ -2314,8 +2328,7 @@ div.interfaceLinks-row a {
   background-color: #FBFBFA;
   /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
   border-top: 80px solid #FBFBFA;
-  border-bottom: 120px solid #FBFBFA;
-  margin: -80px 0 -120px 0;
+  margin-top: -80px;
 }
 .topicPanel h1 {
   text-align: unset;
@@ -4647,6 +4660,163 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-transform: uppercase;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.search-container{
+  position: relative;
+}
+.autocomplete-dropdown{
+  background: #FFFFFF;
+  position: absolute;
+  top: 45px;
+  width: auto;
+  max-width: 130%;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 0px 0px 6px 4px;
+  z-index: 2;
+}
+.singlePanel .autocomplete-dropdown {
+  width: 100vw;
+  position: fixed;
+  top: 120px;
+  inset-inline-start: 0;
+  padding-bottom: 10px;
+}
+.search-group-suggestions{
+  border-bottom: 0.766667px solid rgb(204, 204, 204);
+  display: flex;
+  align-items: start;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.singlePanel .search-group-suggestions{
+  border-bottom-width: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.search-group-suggestions-items{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 0%;
+}
+.search-suggestion-link-wrapper{
+  display: flex;
+  align-items: center;
+}
+.search-suggestion-link-wrapper:hover{
+  text-decoration: none;
+}
+.singlePanel .search-suggestion-link-wrapper{
+  border-bottom: 0;
+  padding: 0;
+}
+.singlePanel .search-suggestion-link-wrapper.search-override-wrapper {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-top: 0.766667px solid #EDEDEC;
+  border-bottom: 0.766667px solid #EDEDEC;
+}
+
+.search-suggestion {
+    display: flex;
+    list-style-type: none;
+    padding: 6px 12px;
+    font-family: 'EB Garamond';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 23px;
+    cursor: pointer;
+    width: max-content;
+    flex-grow: 1;
+    max-width: 100%;
+    min-height: 10px;
+}
+.singlePanel .search-suggestion{
+  width: auto;
+}
+
+.search-suggestion-text{
+  font-family: 'EB Garamond';
+}
+.singlePanel .search-suggestion-text{
+  color: #000000;
+}
+.search-suggestion-text.hebrew-result{
+  font-family: "Taamey Frank";
+}
+.search-suggestion.highlighted{
+  background-color: #EDEDEC;
+}
+
+.autocomplete-dropdown .search-override-text{
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  margin-top: 3px;
+
+  /* Dark Grey */
+  color: #666666;
+}
+.autocomplete-dropdown .type-icon{
+  display: inline-block;
+  opacity: .4;
+  height: 18px;
+  width: 18px;
+  margin-top: 2px;
+}
+.singlePanel .autocomplete-dropdown .type-icon{
+  padding-inline-start: 2px;
+}
+
+.singlePanel .autocomplete-dropdown .type-icon.english-result{
+  margin-top: 2px;
+}
+
+.autocomplete-dropdown .type-icon.ac-img-User{
+  opacity: 1;
+  border-radius: 50%;
+}
+
+.interface-english .autocomplete-dropdown .type-icon {
+  margin-right: 10px;
+}
+.interface-hebrew .autocomplete-dropdown .type-icon {
+  margin-left: 10px;
+}
+.interface-hebrew .autocomplete-dropdown .type-icon {
+  margin-left: 10px;
+}
+.autocomplete-dropdown .type-icon.search-icon {
+  padding-inline-start: 3px;
+}
+.autocomplete-dropdown .type-title{
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 18px;
+  color: #999999;
+  margin-top: 6px;
+  width: 20%;
+  padding-inline-end: 10px;
+}
+.autocomplete-dropdown .type-title .int-en{
+  margin-left: 15px;
+  margin-right: 114px;
+}
+.autocomplete-dropdown .type-title .int-he{
+  margin-right: 15px;
+  margin-left: 114px;
+}
+.singlePanel .autocomplete-dropdown .type-title {
+  width: 0;
+  visibility: hidden;
+  padding-inline-end: 0;
+}
+
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
@@ -4980,6 +5150,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerOptions .int-he img {
     height: 18px;
+}
+.rightButtons .readerOptionsTooltip.tooltip-toggle::before {
+    top: 47px;
+    left: -50px;
 }
 .rightButtons .readerOptions {
   vertical-align: middle;
@@ -6893,6 +7067,18 @@ But not to use a display block directive that might break continuous mode for ot
   flex-wrap: wrap;
 }
 
+.toolsButtonContainer.blue {
+  background-color: var(--sefaria-blue);
+  color: white;
+  margin: -29px 34px 20px;
+  margin-inline-start: -34px;
+  margin-inline-end: -34px;
+  padding-inline-start: 68px;
+  padding-inline-end: 34px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
 .toolsButtonContainer .toolsButtonText,
 .toolsButtonContainer .toolsSecondaryButton {
   position: relative;
@@ -6913,6 +7099,17 @@ But not to use a display block directive that might break continuous mode for ot
   height: var(--sans-serif-small-font-size);
   margin-inline-start: 30px;
   align-self: flex-start;
+}
+
+.toolsButtonContainer.blue .experimentLabel {
+  --english-font: var(--english-sans-serif-font-family);
+  color: var(--light-grey);
+  font-size: 14px;
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  float: inline-end;
+  padding: 2px;
+  line-height: 14px;
 }
 
 .linkArrow {
@@ -7023,6 +7220,9 @@ But not to use a display block directive that might break continuous mode for ot
 .toolsButton.textTypeface .toolsButtonText span.he{
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 122%;
+}
+.blue .toolsButton .toolsButtonIcon {
+  filter: invert(1);
 }
 .toolsButton .toolsButtonIcon {
   color: #999;
@@ -9492,6 +9692,51 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 18px;
   color: var(--medium-grey);
 }
+.guideBox .guideHeader {
+  color: var(--dark-grey);
+  padding-bottom: 13px;
+  margin: 0;
+  margin-bottom: 15px;
+  text-align: initial;
+  text-transform: none;
+  font-size: 22px;
+  border-bottom: solid 1px var(--light-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.guideBox .guideHeader i {
+  margin-right: 8px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.guideBox .guideTitle {
+  padding: 10px 0 10px 0;
+  display: inline-block;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 29px;
+  color: #000000;
+}
+.guideBox .guidePromptBox {
+  direction: ltr;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  padding: 8px 15px;
+  border: 2px solid var(--mishnah-blue);
+  background-color: #FFFFFF;
+  cursor: pointer;
+}
+.guideBox .guidePromptBox p {
+  font-size: 16px;
+}
+.guideBox .guidePromptBox span {
+  font-size: 14px;
+  color: var(--medium-grey);
+  margin-top: 10px;
+}
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
   text-align: right;
@@ -11617,6 +11862,7 @@ body .homeFeedWrapper.userStats {
 }
 .editTextInfo .static label {
   margin-bottom: 15px;
+  height: revert;
 }
 .editTextInfo #newIndex {
   margin: 100px auto;
@@ -11678,7 +11924,10 @@ body .homeFeedWrapper.userStats {
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
 }
-
+.section .collectiveTitle {
+  display: flex;
+  justify-content: space-between;
+}
 .reorderTool {
   height: 50px;
   margin: 0 0 10px 0;

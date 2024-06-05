@@ -1,25 +1,32 @@
 {% extends "base.html" %}
 {% load i18n cache humanize sefaria_tags %}
 {% load i18n %}
-
+{% load static %}
 {% block title %}{% trans "Sefaria Metrics" %}{% endblock %}
 
 {% block description %}{% trans "See graphs charting Sefaria's progress since 2013 across metrics including word counts, number of links and number of source sheets." %}{% endblock %}
 
 {% block content %}
+<div class="superAbout">
+    {% if not request.user_agent.is_mobile %}
+        {% include '_sidebar.html' with whichPage='metrics' title="Metrics" heTitle="מדדים" %}
+    {% endif %}
+    <div id="metricsPage" class="biReady container static">
 
-<div id="metricsPage" class="biReady container static">
-	<div class="inner">
-        <h1>
-            <span class="int-en">Metrics</span>
-            <span class="int-he">מדדים</span>
-        </h1>
-		<div id="metricsBox">
-			{% trans "Loading..." %}
-		</div>
-	</div>
+
+        <div class="inner">
+            {% if request.user_agent.is_mobile %}
+                <h1 class="mobileAboutHeader">
+                    <span class="int-en">Metrics</span>
+                    <span class="int-he">מדדים</span>
+                </h1>
+            {% endif %}
+            <div id="metricsBox">
+                {% trans "Loading..." %}
+            </div>
+        </div>
+    </div>
 </div>
-
 {% endblock %}
 
 {% block js %} 

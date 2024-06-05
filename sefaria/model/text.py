@@ -527,7 +527,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if not d.get("categories"):
                 raise InputError("Please provide category for Index record: {}.".format(d.get("title")))
 
-            # Data is being loaded from dict in old format, rewrite to new format
+            # Data is being loaded from dict in old format, rewrite to new format,
+            # Used by GUI Index tools (Index Editor and the /add/new index creation tool) that do not pass a 'schema'
             # Assumption is that d has a complete title collection
             if "schema" not in d:
                 node = getattr(self, "nodes", None)
@@ -546,26 +547,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     else:
                         raise InputError("Please specify section names for Index record.")
 
-                    if d["categories"][0] == "Talmud":
-                        node.addressTypes = ["Talmud", "Integer"]
-                        if d["categories"][1] == "Bavli" and d.get("heTitle") and not self.is_dependant_text():
-                            node.checkFirst = {
-                                "he": "משנה" + " " + d.get("heTitle"),
-                                "en": "Mishnah " + d.get("title")
-                            }
-                    elif d["categories"][0] == "Mishnah":
-                        node.addressTypes = ["Perek", "Mishnah"]
-                    else:
-                        if getattr(node, "addressTypes", None) is None:
+                    if self.is_new():
+                        if d["categories"][0] == "Talmud" and d["categories"][1] == "Bavli":
+                            node.addressTypes = ["Talmud", "Integer"]
+                        else:
                             node.addressTypes = ["Integer" for _ in range(node.depth)]
-
-                    l = d.pop("length", None)
-                    if l:
-                        node.lengths = [l]
-
-                    ls = d.pop("lengths", None)
-                    if ls:
-                        node.lengths = ls  #overwrite if index.length is already there
 
                 #Build titles
                 node.add_title(d["title"], "en", True)
@@ -679,6 +665,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if getattr(self, attr, None):
                 delattr(self, attr)
 
+        # Index Editor can set collective_title and dependence to empty string if admin doesn't fill in a value.
+        # likewise, it can set base_text_titles to [] but we don't want empty strings/lists for these fields in the database
+        if getattr(self, "base_text_titles", None) == []:  # if base_text_titles is present but is empty list
+            delattr(self, "base_text_titles")
+        if getattr(self, "dependence", None) == "":
+            delattr(self, "dependence")
+        if hasattr(self, "collective_title"):
+            if self.collective_title == "":
+                del self.collective_title
+
     def _update_alt_structs_on_title_change(self):
         old_title = self.pkeys_orig_values["title"]
         new_title = self.nodes.primary_title("en")
@@ -742,7 +738,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         '''
 
         if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
-            raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
+            raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(
+                self.collective_title))
 
         #complex style records- all records should now conform to this
         if self.nodes:
