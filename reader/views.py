@@ -4048,12 +4048,17 @@ def digitized_by_sefaria(request):
         "texts": texts,
     })
 
+def get_parashah(request):
+    diaspora = request.GET.get("diaspora", "1")
+    calendars = get_keyed_calendar_items(diaspora=diaspora)
+    parashah = calendars["Parashat Hashavua"]
+    return parashah
 
+def parashat_hashavua_json(request):
+    return get_parashah(request)
 def parashat_hashavua_redirect(request):
     """ Redirects to this week's Parashah"""
-    diaspora = request.GET.get("diaspora", "1")
-    calendars = get_keyed_calendar_items()  # TODO Support israel / customs
-    parashah = calendars["Parashat Hashavua"]
+    parashah = get_parashah(request)
     return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
 
 
