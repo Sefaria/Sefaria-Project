@@ -34,8 +34,12 @@ const SheetsSidebar = () => {
 
 
 
-const SheetsHomePage = ({setNavTopic, multiPanel, initialWidth}) => {
-  const sheetsTopicsTOC = <SheetsTopicsTOC setNavTopic={setNavTopic} initialWidth={initialWidth}/>;
+const SheetsHomePage = ({setNavTopic, multiPanel}) => {
+  const handleClick = (e, slug, en, he) => {
+        e.preventDefault();
+        setNavTopic(slug, {en, he});
+  }
+  const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={handleClick}/>;
   return <div className="readerNavMenu sheets" key="0">
             <div className="content">
                 <SheetsHeroBanner/>
