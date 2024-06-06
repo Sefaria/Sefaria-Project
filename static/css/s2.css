@@ -13215,6 +13215,15 @@ span.ref-link-color-3 {color: blue}
   .sheets .sheetsFont {
     flex: revert;
   }
+  .sheets .sheetsTopics {
+    width: revert;
+  }
+  .sheets .navSidebar {
+    width: revert;
+  }
+  .sheets .button {
+    display: block;
+  }
 }
 .button.getStartedSheets {
   width: 111px;
