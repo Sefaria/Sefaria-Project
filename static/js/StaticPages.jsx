@@ -11,6 +11,7 @@ import classNames from 'classnames';
 import Cookies from 'js-cookie';
 import ReactMarkdown from 'react-markdown';
 import Sefaria from './sefaria/sefaria';
+import { OnInView } from './Misc';
 
 
 /*  Templates:
@@ -3306,8 +3307,8 @@ const ProductsPage = memo(() => {
 
     console.log("products: ", products)
 
-    // Generalized function for catcching products page analytics
-    productsAnalytics = (rank, product_cta, label, event) => {
+    // Generalized function for catching products page analytics
+    const productsAnalytics = (rank, product_cta, label, event) => {
         gtag("event", `${product_cta}_${event}`, {
           panel_type: "strapi-static",
           panel_number: 0,   
