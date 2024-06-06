@@ -1593,6 +1593,16 @@ def parashat_hashavua_api(request):
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
+def find_holiday_in_hebcal_results(response):
+    for hebcal_holiday in json.loads(response.text)['items']:
+        if hebcal_holiday['category'] != 'holiday':
+            continue
+        for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
+            if result['type'] == 'Topic':
+                topic = Topic.init(result['key'])
+                if topic:
+                    return jsonResponse(topic.contents())
+    return jsonResponse({"error": "Couldn't find any topics corresponding to HebCal results"})
 @catch_error_as_json
 def next_holiday(request):
     from datetime import datetime
@@ -1606,17 +1616,9 @@ def next_holiday(request):
     date_in_three_months = date_in_three_months.strftime("%Y-%m-%d")
     response = requests.get(f"https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&start={current_date}&end={date_in_three_months}")
     if response.status_code == 200:
-        for hebcal_holiday in json.loads(response.text)['items']:
-            if hebcal_holiday['category'] != 'holiday':
-                continue
-            for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
-                if result['type'] == 'Topic':
-                    topic = Topic.init(result['key'])
-                    if topic:
-                        return jsonResponse(topic.contents())
-        return {"error": "Couldn't find any topics corresponding to HebCal results"}
+        return find_holiday_in_hebcal_results(response)
     else:
-        return {"error": "Couldn't establish connection with HebCal API"}
+        return jsonResponse({"error": "Couldn't establish connection with HebCal API"})
 @catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
@@ -4049,18 +4051,11 @@ def digitized_by_sefaria(request):
         "texts": texts,
     })
 
-def get_parashat_hashavua(request):
-    diaspora = bool(int(request.GET.get("diaspora", "1")))
-    calendars = get_keyed_calendar_items(diaspora=diaspora)
-    parashah = calendars["Parashat Hashavua"]
-    return parashah
-
-def parashat_hashavua_json(request):
-    return jsonResponse(get_parashat_hashavua(request))
-
 def parashat_hashavua_redirect(request):
     """ Redirects to this week's Parashah"""
-    parashah = get_parashat_hashavua(request)
+    diaspora = request.GET.get("diaspora", "1")
+    calendars = get_keyed_calendar_items()
+    parashah = calendars["Parashat Hashavua"]
     return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
 
 def daf_yomi_redirect(request):
