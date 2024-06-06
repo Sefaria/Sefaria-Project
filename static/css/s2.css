@@ -13178,6 +13178,7 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   line-height: 18px;
   margin-bottom: 15px;
+  flex: 1 1 100%;
 }
 .sheets .sidebarLayout {
   display: flex;
@@ -13189,6 +13190,14 @@ span.ref-link-color-3 {color: blue}
   flex-direction: column;
   width: 66%;
 }
+.sheets .sheetsTopics .navBlock {
+  flex: 1 1 50%;
+}
+.sheets .sheetsWrapper {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+}
 .singlePanel .sheetsTopicTOC, .singlePanel .sheetsTopicsCalendar {
   margin-top: 30px;
 }
@@ -13198,6 +13207,14 @@ span.ref-link-color-3 {color: blue}
 .sheetsTopicsCalendar {
   display: flex;
   justify-content: space-between;
+}
+@media screen and (max-width: 800px) {
+  .sheets .sheetsWrapper, .sheets .sheetsTopicsCalendar {
+    flex-direction: column;
+  }
+  .sheets .sheetsFont {
+    flex: revert;
+  }
 }
 .button.getStartedSheets {
   width: 111px;

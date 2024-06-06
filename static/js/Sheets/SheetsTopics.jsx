@@ -20,13 +20,13 @@ const SheetsTopicsTOC = ({setNavTopic, initialWidth}) => {
     });
     return (
     <div className="sheetsTopicTOC">
-        <SheetsWrapper title="Browse by Topic"><ResponsiveNBox content={categoryListings} initialWidth={initialWidth} /></SheetsWrapper>
+        <SheetsWrapper title="Browse by Topic">{categoryListings}</SheetsWrapper>
     </div>
   );
 }
 
 const SheetsWrapper = ({title, children}) => {
-    return <div>
+    return <div className="sheetsWrapper">
                 <div className="sheetsFont">{title}</div>
                 {children}
            </div>
@@ -46,12 +46,15 @@ const SheetsHoliday = () => {
     const [holidayTitle, setHolidayTitle] = useState("Loading...");
     const [holidayDesc, setHolidayDesc] = useState("");
     const [holidayURL, setHolidayURL] = useState("");
-    useEffect(async () => {
-        await Sefaria.getNextHoliday();
-        const holiday = Sefaria._holidays['next'];
-        setHolidayTitle(holiday.primaryTitle[getInterfaceLang()]);
-        setHolidayURL(`/topics/${holiday.slug}`)
-        setHolidayDesc(holiday.description[getInterfaceLang()]);
+    useEffect( () => {
+        async function fetchData() {
+            await Sefaria.getNextHoliday();
+            const holiday = Sefaria._holidays['next'];
+            setHolidayTitle(holiday.primaryTitle[getInterfaceLang()]);
+            setHolidayURL(`/topics/${holiday.slug}`)
+            setHolidayDesc(holiday.description[getInterfaceLang()]);
+        }
+        fetchData();
     }, []);
     if (holidayURL === "") {
         return <div className="navBlock">Loading...</div>
