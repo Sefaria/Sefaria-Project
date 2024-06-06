@@ -1173,13 +1173,11 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
   return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
 }
 
-const PencilSourceEditor = (topic, text) => {
+const PencilSourceEditor = ({topic, text, classes}) => {
     const [addSource, toggleAddSource] = useEditToggle();
-    console.log(topic);
-    console.log(text)
-    const editorSpan = addSource ? <SourceEditor topic={topic.topic} origData={topic.text} close={toggleAddSource}/> : <img src={"/static/icons/editing-pencil.svg"}/>;
-    const wrapper = "headerWithAdminButtons";
-    return <span className={wrapper} id={"editTopic"} onClick={toggleAddSource}><span>{editorSpan}</span></span>;
+    const editorSpan = addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
+        <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"}/>;
+    return <span>{editorSpan}</span>;
 }
 const ReorderEditorWrapper = ({toggle, type, data}) => {
     /*

@@ -7768,6 +7768,10 @@ a .button:hover {
   flex-wrap: nowrap;
   width: 100%;
 }
+.headerWithAdminButtonsContainer .pencilEditorButton{
+  margin-top: 8px;
+  margin-inline-end: 6px;
+}
 .button.extraSmall.reviewState{
   margin-inline-end: 7px;
 }
@@ -11667,6 +11671,7 @@ body .homeFeedWrapper .content {
   margin-inline-start: -20px;
   padding: 20px;
   display: flex;
+  justify-content: space-between;
 }
 
 /* extremely hacky, but required unless there's a major refactor of CategoryHeader logic */

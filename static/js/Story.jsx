@@ -140,9 +140,7 @@ StorySheetList.propTypes = {
 
 const TopicStoryDescBlock = ({topic, text}) => (
       <div className="topicStoryDescBlock">
-        <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
             <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}></StoryTitleBlock>
-        </CategoryHeader>
         <div>{Sefaria._(Sefaria.index(Sefaria.parseRef(text.ref).index).primary_category).toUpperCase()}</div>
       </div>
 )
@@ -162,14 +160,13 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage}
                                     bilingualOrder={["he", "en"]}/>;
     const content = bodyTextIsLink ? <a href={url} style={{textDecoration: 'none'}}>{innerContent}</a> : innerContent;
-
+    console.log(topic)
     return (
         <StoryFrame
             cls="topicPassageStory"
             collapsibleSummary={isCurated && displayDescription ?
                 <ColorBarBox tref={text.ref}><TopicStoryDescBlock topic={topic} text={text}/></ColorBarBox> : null}
         >
-        <PencilSourceEditor topic={topic} text={text}/>
             {isCurated && displayDescription ?
                 <ColorBarBox tref={text.ref}>
 
@@ -187,13 +184,12 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
                 </StoryBodyBlock>
                 <div className={"headerWithAdminButtonsContainer"}>
                     <div className={"headerWithAdminButtons"}>
-                {/*<CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]} persistentButtons={true}>*/}
                 <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
-                {/*</CategoryHeader>*/}
                         </div>
                     {isAdmin &&
-                        <ReviewStateIndicator topic={topic} topicLink={text}/>
-                    }
+                        <ReviewStateIndicator topic={topic} topicLink={text}/>}
+                    {isAdmin &&
+                        <PencilSourceEditor topic={topic} text={text} classes={"pencilEditorButton"}/>}
                 </div>
             </ColorBarBox>
         </StoryFrame>
