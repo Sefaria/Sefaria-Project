@@ -2587,6 +2587,14 @@ _media: {},
     stories: [],
     page: 0
   },
+  _holidays: {},
+  getNextHoliday: function() {
+      return this._cachedApiPromise({
+          url:   `${this.apiHost}/next-holiday`,
+          key:   'next',
+          store: this._holidays,
+    });
+  },
   _parashaNextRead: {},
   getParashaNextRead: function(parasha) {
     return this._cachedApiPromise({

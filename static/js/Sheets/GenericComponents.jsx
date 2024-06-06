@@ -9,15 +9,15 @@ const Button = ({img, href, children, classes={}}) => {
           </a>
 }
 
-const Box = ({boxTitleChildren, boxTitleHref, onBoxTitleClick, boxTextChildren}) => {
+const Card = ({cardTitleChildren, cardTitleHref, oncardTitleClick, cardTextChildren}) => {
     return <div className="navBlock">
-                <a href={boxTitleHref} className="navBlockTitle" onClick={onBoxTitleClick}>
-                    {boxTitleChildren}
+                <a href={cardTitleHref} className="navBlockTitle" onClick={oncardTitleClick}>
+                    {cardTitleChildren}
                 </a>
                 <div className="navBlockDescription">
-                    {boxTextChildren}
+                    {cardTextChildren}
                 </div>
             </div>
 }
 
-export { Button, Box }
+export { Button, Card }

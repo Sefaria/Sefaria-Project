@@ -1,31 +1,22 @@
 import {InterfaceText, ResponsiveNBox} from "../Misc";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
-import {Box} from "./GenericComponents";
+import {Card} from "./GenericComponents";
 
-const fetcher = async ({url}) => {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      throw error;
-    }
-}
+const getInterfaceLang = () => Sefaria.interfaceLang === "english" ? 'en' : 'he';
+
 const SheetsTopicsTOC = ({setNavTopic, initialWidth}) => {
     const categoryListings = Sefaria.topic_toc.map(cat => {
         const openCat = e => {
             e.preventDefault();
             setNavTopic(cat.slug, {en: cat.en, he: cat.he})
         }
-        const boxTitleChildren = <InterfaceText text={cat}/>;
-        const boxTextChildren = <InterfaceText text={cat.categoryDescription}/>
-        return <Box boxTitleHref={`/topics/category/${cat.slug}`}
-                    boxTitleChildren={boxTitleChildren}
-                    boxTextChildren={boxTextChildren}
-                    onBoxTitleClick={openCat}/>;
+        const cardTitleChildren = <InterfaceText text={cat}/>;
+        const cardTextChildren = <InterfaceText text={cat.categoryDescription}/>
+        return <Card cardTitleHref={`/topics/category/${cat.slug}`}
+                    cardTitleChildren={cardTitleChildren}
+                    cardTextChildren={cardTextChildren}
+                    oncardTitleClick={openCat}/>;
     });
     return (
     <div className="sheetsTopicTOC">
@@ -42,12 +33,33 @@ const SheetsWrapper = ({title, children}) => {
 }
 
 const SheetsParashah = () => {
-    const parashah = fetcher('/parashat-hashavua-json')
-    return <div>A</div>
+    const parashah = Sefaria.calendars.find(element => element.title && element.title.en === "Parashat Hashavua");
+    const parashahTitle = <InterfaceText>{parashah.displayValue[getInterfaceLang()]}</InterfaceText>;
+    const parashahDesc = <InterfaceText>{parashah.description[getInterfaceLang()]}</InterfaceText>;
+    return <Card cardTitleHref={`/${parashah.url}`}
+                    cardTitleChildren={parashahTitle}
+                    cardTextChildren={parashahDesc}
+                    oncardTitleClick={e => e.preventDefault()}/>;
 }
 
 const SheetsHoliday = () => {
-    return <div>A</div>
+    const [holidayTitle, setHolidayTitle] = useState("Loading...");
+    const [holidayDesc, setHolidayDesc] = useState("");
+    const [holidayURL, setHolidayURL] = useState("");
+    useEffect(async () => {
+        await Sefaria.getNextHoliday();
+        const holiday = Sefaria._holidays['next'];
+        setHolidayTitle(holiday.primaryTitle[getInterfaceLang()]);
+        setHolidayURL(`/topics/${holiday.slug}`)
+        setHolidayDesc(holiday.description[getInterfaceLang()]);
+    }, []);
+    if (holidayURL === "") {
+        return <div className="navBlock">Loading...</div>
+    }
+    return <Card cardTitleHref={holidayURL}
+                 cardTitleChildren={<InterfaceText>{holidayTitle}</InterfaceText>}
+                 cardTextChildren={<InterfaceText>{holidayDesc}</InterfaceText>}
+                 oncardTitleClick={e => e.preventDefault()}/>;
 }
 const SheetsTopicsCalendar = () => {
     return <div className="sheetsTopicsCalendar">

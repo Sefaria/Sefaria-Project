@@ -1,5 +1,4 @@
 import React  from 'react';
-import {InterfaceText, ResponsiveNBox} from "../Misc";
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
 import {Button} from "./GenericComponents";

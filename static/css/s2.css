@@ -13187,6 +13187,7 @@ span.ref-link-color-3 {color: blue}
 .sheets .sidebarLayout .sheetsTopics {
   display: flex;
   flex-direction: column;
+  width: 66%;
 }
 .singlePanel .sheetsTopicTOC, .singlePanel .sheetsTopicsCalendar {
   margin-top: 30px;
