@@ -7,6 +7,8 @@ import {useRef} from "react";
 
 const SourceEditor = ({topic, close, origData={}}) => {
     console.log("Source Editor");
+    console.log(topic);
+    console.log(origData);
     const isNew = !origData.ref;
     const [displayRef, setDisplayRef] = useState(origData.lang === 'he' ?
                                                             (origData.heRef || "") :  (origData.ref || "") );

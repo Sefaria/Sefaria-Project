@@ -1175,7 +1175,9 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
 
 const PencilSourceEditor = (topic, text) => {
     const [addSource, toggleAddSource] = useEditToggle();
-    const editorSpan = addSource ? <SourceEditor topic={topic} origData={text.ref} close={toggleAddSource}/> : <img src={"/static/icons/editing-pencil.svg"}/>;
+    console.log(topic);
+    console.log(text)
+    const editorSpan = addSource ? <SourceEditor topic={topic.topic} origData={topic.text} close={toggleAddSource}/> : <img src={"/static/icons/editing-pencil.svg"}/>;
     const wrapper = "headerWithAdminButtons";
     return <span className={wrapper} id={"editTopic"} onClick={toggleAddSource}><span>{editorSpan}</span></span>;
 }
