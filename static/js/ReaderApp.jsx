@@ -36,7 +36,6 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
-import {SheetsHomePage} from "./Sheets/SheetsHomePage";
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -2333,5 +2332,4 @@ export {
   JobsPage,
   TeamMembersPage,
   UpdatesPanel,
-  SheetsHomePage
 };
