@@ -7972,6 +7972,7 @@ a .button:hover {
 .headerWithAdminButtonsContainer .pencilEditorButton{
   margin-top: 8px;
   margin-inline-end: 6px;
+  cursor: pointer;
 }
 .button.extraSmall.reviewState{
   margin-inline-end: 7px;
