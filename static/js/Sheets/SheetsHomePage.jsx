@@ -1,7 +1,7 @@
 import React  from 'react';
-import {InterfaceText, ResponsiveNBox} from "./Misc";
-import {NavSidebar} from "./NavSidebar";
-import Footer from "./Footer";
+import {InterfaceText, ResponsiveNBox} from "../Misc";
+import {NavSidebar} from "../NavSidebar";
+import Footer from "../Footer";
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
     `title` and `message` are shown on top of the video. `posterImg` is shown while video is downloaded,
