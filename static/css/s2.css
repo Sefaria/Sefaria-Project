@@ -10030,7 +10030,7 @@ span.purim-emoji img{
 
 #aboutCover {
   margin-top: -90px;
-  height: 440px;
+  height: 240px;
   padding: 180px 0;
   background-color: #ADA99B;
   box-sizing: border-box;
@@ -10061,20 +10061,38 @@ span.purim-emoji img{
   font-family: Source Serif Pro, serif;
   font-weight: 400;
 }
+.interface-hebrew .overlayTextOnSheetsHero #title, .interface-hebrew .overlayTextOnSheetsHero #message {
+  right: 10%;
+  left: revert;
+}
 .overlayTextOnSheetsHero #title {
   position: absolute;
-  left: 72px;
+  left: 10%;
   font-size: 50px;
   top: 145px;
   line-height: 62.65px;
 }
 .overlayTextOnSheetsHero #message {
   position: absolute;
-  left: 72px;
+  left: 10%;
   font-family: Source Sans Pro, serif;
   font-size: 24px;
   line-height: 18px;
   top: 227px;
+}
+@media screen and (max-width: 600px) {
+  .overlayTextOnSheetsHero #title {
+    font-size: 24px;
+    top: 115px;
+  }
+  .overlayTextOnSheetsHero #message {
+    font-size: 16px;
+    top: 175px;
+  }
+  #aboutCover {
+    height: 150px;
+    padding: 130px 0;
+  }
 }
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
