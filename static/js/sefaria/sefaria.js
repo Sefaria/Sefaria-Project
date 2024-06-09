@@ -2638,7 +2638,7 @@ _media: {},
       for (let refObj of linkTypeObj.refs) {
         let tabKey = linkTypeSlug;
         if (tabKey === 'about') {
-          tabKey = refObj.descriptions && refObj.descriptions[lang] ? 'key-sources' : 'sources';
+            tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) ? 'key-sources' : 'sources';
         }
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
