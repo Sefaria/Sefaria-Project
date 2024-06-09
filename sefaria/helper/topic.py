@@ -682,7 +682,7 @@ def calculate_other_ref_scores(ref_topic_map):
             try:
                 tp = oref.index.best_time_period()
                 year = int(tp.start) if tp else 3000
-            except ValueError:
+            except (ValueError, AttributeError):
                 year = 3000
             comp_date_map[(topic, tref)] = year
             order_id_map[(topic, tref)] = oref.order_id()
