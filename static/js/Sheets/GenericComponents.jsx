@@ -9,13 +9,13 @@ const Button = ({img, href, children, classes={}}) => {
           </a>
 }
 
-const Card = ({cardTitleChildren, cardTitleHref, oncardTitleClick, cardTextChildren}) => {
+const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText}) => {
     return <div className="navBlock">
                 <a href={cardTitleHref} className="navBlockTitle" onClick={oncardTitleClick}>
-                    {cardTitleChildren}
+                    <InterfaceText text={cardTitle}/>
                 </a>
                 <div className="navBlockDescription">
-                    {cardTextChildren}
+                    <InterfaceText text={cardText}/>
                 </div>
             </div>
 }
