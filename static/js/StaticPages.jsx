@@ -3395,7 +3395,7 @@ const ProductsPage = memo(() => {
     const ProductDesc = ({product}) => {
         return (
             <div className="productsInner">
-                <img src={product.rectanglion.url} alt="Product Image"/>
+                <img src={product.rectanglion.url} alt={`Image for product: ${product?.titles?.en}`}/>
                 <span className='int-en'>
                     <ReactMarkdown className="productsDesc">
                         {product.desc?.en}
