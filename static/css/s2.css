@@ -12998,18 +12998,19 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsInner {
-  /* border: 2px solid red; */
   display: flex;
   align-items: right;
 }
 
 .productsInner img {
   max-width: 100%; 
+  max-height: 116px;
+  height: auto;
+  display: block;
   margin-inline-end: 3%;
 }
 
 .productsInner .productsDesc {
-  /* border: 2px solid aquamarine; */
   font: 'Roboto', sans-serif; 
   color: #666666;
   font-size: 16px;
