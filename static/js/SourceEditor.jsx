@@ -6,9 +6,6 @@ import React, {useState} from "react";
 import {useRef} from "react";
 
 const SourceEditor = ({topic, close, origData={}}) => {
-    console.log("Source Editor");
-    console.log(topic);
-    console.log(origData);
     const isNew = !origData.ref;
     const [displayRef, setDisplayRef] = useState(origData.lang === 'he' ?
                                                             (origData.heRef || "") :  (origData.ref || "") );
@@ -52,7 +49,9 @@ const SourceEditor = ({topic, close, origData={}}) => {
         let url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
         let postData = {"topic": topic, "is_new": isNew, 'new_ref': displayRef, 'interface_lang': Sefaria.interfaceLang};
         postData['description'] = {"title": data.enTitle, "prompt": data.prompt, "ai_context": data.ai_context, "review_state": "edited"};
-        requestWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
+        const currentUrlObj = new URL(window.location.href);
+        const tabName = currentUrlObj.searchParams.get('tab');
+        requestWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = `/topics/${topic}?sort=Relevance&tab=tabName`});
     }
 
     const handleChange = (x) => {

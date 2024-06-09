@@ -160,7 +160,6 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage}
                                     bilingualOrder={["he", "en"]}/>;
     const content = bodyTextIsLink ? <a href={url} style={{textDecoration: 'none'}}>{innerContent}</a> : innerContent;
-    console.log(topic)
     return (
         <StoryFrame
             cls="topicPassageStory"
