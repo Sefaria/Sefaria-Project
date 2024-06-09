@@ -2678,7 +2678,7 @@ _media: {},
     };
     if (Sefaria.is_moderator){
         tabs["admin-tab"] = {...tabs["sources"]};
-        tabs["admin-tab"].title = {en: 'Admin Tab', he: "כרטיסיית עורכים"};
+        tabs["admin-tab"].title = {en: 'Admin', he: "עורכים"};
     }
 
 
