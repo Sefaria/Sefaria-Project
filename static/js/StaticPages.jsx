@@ -11,7 +11,6 @@ import classNames from 'classnames';
 import Cookies from 'js-cookie';
 
 
-
 /*  Templates:
 
         <Header
@@ -2917,11 +2916,10 @@ const JobsPageHeader = ({ jobsAreAvailable }) => {
     return (
         <>
             <header>
-                <h1 className="serif">
+                <h1 className="mobileAboutHeader">
                     <span className="int-en">Jobs at Sefaria</span>
                     <span className="int-he">משרות פנויות בספריא</span>
                 </h1>
-
                 {jobsAreAvailable ? (
                     <>
                         <h2>
@@ -3141,5 +3139,5 @@ export {
     DonatePage,
     WordByWordPage,
     JobsPage,
-    TeamMembersPage,
+    TeamMembersPage
 };

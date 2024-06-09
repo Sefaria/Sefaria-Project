@@ -24,7 +24,6 @@ import CollectionPage from "./CollectionPage"
 import { NotificationsPanel } from './NotificationsPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
 import UserProfile  from './UserProfile';
-import UpdatesPanel  from './UpdatesPanel';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
@@ -51,6 +50,7 @@ class ReaderPanel extends Component {
     let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
     state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel
+    state.backButtonSettings = null;
     this.state = state;
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -235,6 +235,9 @@ class ReaderPanel extends Component {
       highlightedNode,
       highlightedRefsInSheet
     });
+  }
+  setPreviousSettings(backButtonSettings) {
+    this.setState({ backButtonSettings });
   }
   showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], convertCommentaryRefToBaseRef=true) {
     /* Set the current primary text `ref`, which may be either a string or an array of strings.
@@ -768,7 +771,9 @@ class ReaderPanel extends Component {
           translationLanguagePreference={this.props.translationLanguagePreference}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
+          setPreviousSettings={this.setPreviousSettings}
           filterRef={this.state.filterRef}
+          backButtonSettings={this.state.backButtonSettings}
           key="connections" />
       );
     }
@@ -1015,14 +1020,6 @@ class ReaderPanel extends Component {
           initialWidth={this.state.width} />
       );
 
-    } else if (this.state.menuOpen === "updates") {
-      menu = (
-        <UpdatesPanel
-          interfaceLang={this.props.interfaceLang}
-          multiPanel={this.props.multiPanel}
-          navHome={this.openMenu.bind(null, "navigation")} />
-      );
-
     } else if (this.state.menuOpen === "user_stats") {
       menu = (<UserStats />);
 
@@ -1120,6 +1117,7 @@ class ReaderPanel extends Component {
             connectionData={this.state.connectionData}
             translationLanguagePreference={this.props.translationLanguagePreference}
             setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
+            backButtonSettings={this.state.backButtonSettings}
           />}
 
           {(items.length > 0 && !menu) ?
@@ -1336,6 +1334,7 @@ class ReaderControls extends Component {
           closePanel={this.props.closePanel}
           toggleLanguage={this.props.toggleLanguage}
           interfaceLang={this.props.interfaceLang}
+          backButtonSettings={this.props.backButtonSettings}
         />
       </div>
       :
@@ -1448,6 +1447,7 @@ ReaderControls.propTypes = {
   toggleSignUpModal:       PropTypes.func.isRequired,
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
+  backButtonSettings:      PropTypes.object,
 };
 
 

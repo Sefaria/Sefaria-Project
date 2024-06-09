@@ -1363,6 +1363,8 @@ class DisplaySettingsButton extends Component {
   render() {
     let style = this.props.placeholder ? {visibility: "hidden"} : {};
     let icon;
+    const altText = Sefaria._('Text display options')
+    const classes = "readerOptionsTooltip tooltip-toggle";
 
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
@@ -1373,17 +1375,21 @@ class DisplaySettingsButton extends Component {
     } else {
       icon = <span className="textIcon">Aa</span>;
     }
-    return (<a
-              className="readerOptions"
-              tabIndex="0"
-              role="button"
-              aria-haspopup="true"
-              aria-label="Toggle Reader Menu Display Settings"
-              style={style}
-              onClick={this.props.onClick}
-              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
-              {icon}
-            </a>);
+    return (
+            <ToolTipped {...{ altText, classes}}>
+                <a
+                className="readerOptions"
+                tabIndex="0"
+                role="button"
+                aria-haspopup="true"
+                aria-label="Toggle Reader Menu Display Settings"
+                style={style}
+                onClick={this.props.onClick}
+                onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+                {icon}
+              </a>
+            </ToolTipped>
+            );
   }
 }
 DisplaySettingsButton.propTypes = {
@@ -3045,7 +3051,7 @@ const TitleVariants = function({titles, update, options}) {
                     allowNew={true}
                     tags={titles}
                     onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
-                    placeholderText={Sefaria._("Add a title...")}
+                    placeholderText={Sefaria._("Add a title and press 'enter' or 'tab'.")}
                     delimiters={["Enter", "Tab"]}
                     onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
                     onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
@@ -3302,12 +3308,14 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+const getImgAltText = (caption) => {
+return Sefaria._v(caption) || Sefaria._('Illustrative image');
+}
 const ImageWithCaption = ({photoLink, caption }) => {
-
   return (
     <div>
-        <img class="imageWithCaptionPhoto" src={photoLink}/>
-        <div class="imageCaption">
+        <img class="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
+        <div class="imageCaption"> 
           <InterfaceText text={caption} />
         </div>
       </div>);

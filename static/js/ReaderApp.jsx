@@ -25,6 +25,7 @@ import {
   JobsPage,
   TeamMembersPage,
 } from './StaticPages';
+import UpdatesPanel from './UpdatesPanel';
 import {
   SignUpModal,
   InterruptingMessage,
@@ -424,7 +425,7 @@ class ReaderApp extends Component {
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL.
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
-      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch"]);
+      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide"]);
     const addTab = (url) => {
       if (state.tab && state.menuOpen !== "search") {
         return  url + `&tab=${state.tab}`
@@ -2327,4 +2328,5 @@ export {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  UpdatesPanel
 };

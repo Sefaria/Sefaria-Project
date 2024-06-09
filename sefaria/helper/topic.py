@@ -1246,10 +1246,10 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
     # first validate data
     for s in sources:
         try:
-             ref = Ref(s['ref']).normal()
+             Ref(s['ref']).normal()
         except InputError as e:
             return {"error": f"Invalid ref {s['ref']}"}
-        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": ref})
+        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": s['ref']})
         if link is None:
             return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
         order = getattr(link, 'order', {})
