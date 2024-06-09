@@ -34,33 +34,26 @@ const SheetsParashah = ({handleClick}) => {
 }
 
 const SheetsHoliday = ({handleClick}) => {
-    const [holidayTitle, setHolidayTitle] = useState({});
-    const [holidayDesc, setHolidayDesc] = useState({});
-    const [holidayURL, setHolidayURL] = useState("");
     const [holiday, setHoliday] = useState({});
     useEffect( () => {
         async function fetchData() {
             await Sefaria.getNextHoliday();
             const holiday = Sefaria._holidays['next'];
-            setHolidayTitle(holiday.primaryTitle);
-            setHolidayURL(`/topics/${holiday.slug}`)
-            setHolidayDesc(holiday.description);
-            setHoliday(holiday);
+            setHoliday({...holiday});
         }
         fetchData();
     }, []);
-    if (holidayURL === "") {
+    if (Object.keys(holiday).length === 0) {
         return <div className="navBlock">Loading...</div>
     }
-    return <Card cardTitleHref={holidayURL}
-                 cardTitle={holidayTitle}
-                 cardText={holidayDesc}
-                 oncardTitleClick={(e) => handleClick(e, holiday.slug, holiday.en, holiday.he)}/>;
+    return <Card cardTitleHref={`/topics/${holiday.slug}`}
+                 cardTitle={holiday.primaryTitle}
+                 cardText={holiday.description}/>;
 }
-const SheetsTopicsCalendar = ({setNavTopic}) => {
+const SheetsTopicsCalendar = ({handleClick}) => {
     return <div className="sheetsTopicsCalendar">
-                <SheetsWrapper title="Parashat HaShavua"><SheetsParashah setNavTopic={setNavTopic}/></SheetsWrapper>
-                <SheetsWrapper title="Upcoming Holiday"><SheetsHoliday setNavTopic={setNavTopic}/></SheetsWrapper>
+                <SheetsWrapper title="Parashat HaShavua"><SheetsParashah handleClick={handleClick}/></SheetsWrapper>
+                <SheetsWrapper title="Upcoming Holiday"><SheetsHoliday handleClick={handleClick}/></SheetsWrapper>
           </div>
 }
 

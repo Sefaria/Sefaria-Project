@@ -53,7 +53,7 @@ const SheetsHomePage = ({setNavTopic, multiPanel}) => {
                 />
                 <div className="sidebarLayout">
                     <div className="sheetsTopics">
-                        <SheetsTopicsCalendar setNavTopic={setNavTopic}/>
+                        <SheetsTopicsCalendar handleClick={handleClick}/>
                         {multiPanel && sheetsTopicsTOC}
                     </div>
                     <SheetsSidebar/>
