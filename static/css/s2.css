@@ -10945,7 +10945,7 @@ cursor: pointer;
 .tab-view.largeTabs .tab-list .tab.filter {
 /*  font-size: 16px;*/
   margin: 0;
-  z-index: 1;
+  /*z-index: 1;*/
 /*  padding: 6px 9px;*/
 }
 /*.singlePanel .tab-view .tab-list .tab.filter,*/
