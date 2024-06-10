@@ -13044,7 +13044,7 @@ span.ref-link-color-3 {color: blue}
   line-height: 18px;
   background-color: #EDEDEC; 
   border-radius: 6px; 
-  padding: 5px 10px; 
+  padding: 0.01px 5px;
   color: #666666; 
   margin-inline-start: 3%;
 }
