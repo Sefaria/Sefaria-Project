@@ -2,7 +2,7 @@ import {InterfaceText} from "../Misc";
 import React, {useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
 import {Card} from "./GenericComponents";
-
+const getParashah = () => { return Sefaria.calendars.find(element => element.title && element.title.en === "Parashat Hashavua"); }
 const SheetsTopicsTOC = ({handleClick}) => {
     const categoryListings = Sefaria.topic_toc.map(cat => {
         return <Card cardTitleHref={`/topics/category/${cat.slug}`}
@@ -25,15 +25,15 @@ const SheetsWrapper = ({title, children}) => {
 }
 
 const SheetsParashah = ({handleClick}) => {
-    const parashah = Sefaria.calendars.find(element => element.title && element.title.en === "Parashat Hashavua");
+    const parashah = getParashah();
     const parashahTitle = parashah.displayValue;
     const parashahDesc = parashah.description;
-    return <Card cardTitleHref={`/${parashah.url}`}
+    return <Card cardTitleHref={`/topics/${parashah.topic}`}
                     cardTitle={parashahTitle}
                     cardText={parashahDesc}/>;
 }
 
-const SheetsHoliday = ({handleClick}) => {
+const SheetsHoliday = () => {
     const [holiday, setHoliday] = useState({});
     useEffect( () => {
         async function fetchData() {
@@ -48,12 +48,12 @@ const SheetsHoliday = ({handleClick}) => {
     }
     return <Card cardTitleHref={`/topics/${holiday.slug}`}
                  cardTitle={holiday.primaryTitle}
-                 cardText={holiday.description}
-                 oncardTitleClick={(e) => handleClick(e, holiday.slug, holiday.primaryTitle['en'], holiday.primaryTitle['he'])}/>;
+                 cardText={holiday.description}/>;
 }
 const SheetsTopicsCalendar = ({handleClick}) => {
+    const parashah = getParashah(); // check
     return <div className="sheetsTopicsCalendar">
-                <SheetsWrapper title="Parashat HaShavua"><SheetsParashah handleClick={handleClick}/></SheetsWrapper>
+                {parashah?.topic && <SheetsWrapper title="Parashat HaShavua"><SheetsParashah handleClick={handleClick}/></SheetsWrapper>}
                 <SheetsWrapper title="Upcoming Holiday"><SheetsHoliday handleClick={handleClick}/></SheetsWrapper>
           </div>
 }
