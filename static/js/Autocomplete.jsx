@@ -198,7 +198,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
 
 
     const handleSearchButtonClick = (event) => {
-      const inputQuery = otherDownShiftProps.value
+      const inputQuery = otherDownShiftProps.value || document.getElementsByClassName('keyboardInput')[0].value;
       if (inputQuery) {
         submitSearch(inputQuery);
       } else {
