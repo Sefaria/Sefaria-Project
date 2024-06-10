@@ -287,6 +287,7 @@ def make_parashah_response_from_calendar_entry(db_parasha):
 
     parashiot = db_parasha["parasha"].split("-") # Could be a double parashah
     p_en, p_he = [], []
+    parasha_topic = None
     for p in parashiot:
         parasha_topic = model.Topic().load({"parasha": p})
         if parasha_topic:
@@ -305,6 +306,8 @@ def make_parashah_response_from_calendar_entry(db_parasha):
         'extraDetails': {'aliyot': db_parasha["aliyot"]},
         'description': parasha_description
     }
+    if parasha_topic:
+        parasha['topic'] = parasha_topic.slug
     return [parasha]
 
 
