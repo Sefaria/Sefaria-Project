@@ -307,7 +307,7 @@ def make_parashah_response_from_calendar_entry(db_parasha):
         'description': parasha_description
     }
     if parasha_topic:
-        parasha['topic'] = parasha_topic.slug
+        parasha['topic'] = parasha_topic.slug   # include the slug so that the Sheets Homepage has access to the parasha's topic link
     return [parasha]
 
 
