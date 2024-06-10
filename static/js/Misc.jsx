@@ -1197,9 +1197,12 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
     }
     const _createURLs = (type, data) => {
       if (reorderingSources) {
+        const currentUrl = window.location.href;
+        const urlObj = new URL(currentUrl);
+        const tabName = urlObj.searchParams.get('tab');
         return {
           url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
-          redirect: `/topics/${data.slug}`,
+          redirect: `/topics/${data.slug}?sort=Relevance&tab=${tabName}`,
           origItems: _filterAndSortRefs(data.refs?.about?.refs) || [],
         }
       }
