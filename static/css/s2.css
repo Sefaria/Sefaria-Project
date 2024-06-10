@@ -10067,10 +10067,12 @@ span.purim-emoji img{
   .overlayTextOnSheetsHero #title {
     font-size: 24px;
     top: 115px;
+    left: 15%;
   }
   .overlayTextOnSheetsHero #message {
     font-size: 16px;
     top: 175px;
+    left: 15%;
   }
   #aboutCover {
     height: 150px;
@@ -13189,23 +13191,42 @@ span.ref-link-color-3 {color: blue}
   margin-bottom: 15px;
   flex: 1 1 100%;
 }
+.sheets .sheetsTopicsCalendar .sheetsFont {
+  flex: revert;
+}
 .sheets .sidebarLayout {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   margin-top: 50px;
+  max-width: revert;
 }
 .sheets .sidebarLayout .sheetsTopics {
   display: flex;
   flex-direction: column;
-  width: 66%;
+  width: 55%;
+  margin-inline-start: 10%;
+}
+.sheets .sheetsTopics .navBlock::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 95%;
+  border-top: 1px solid #EDEDEC;
 }
 .sheets .sheetsTopics .navBlock {
   flex: 1 1 50%;
+  position: relative;
+  border-top: revert;
 }
-.sheets .sheetsWrapper {
+.sheets .sheetsTopicTOC .sheetsWrapper {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
+}
+.sheets .sheetsTopicsCalendar .sheetsWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 .singlePanel .sheetsTopicTOC, .singlePanel .sheetsTopicsCalendar {
   margin-top: 30px;
@@ -13220,12 +13241,13 @@ span.ref-link-color-3 {color: blue}
 @media screen and (max-width: 800px) {
   .sheets .sheetsWrapper, .sheets .sheetsTopicsCalendar {
     flex-direction: column;
+    margin-bottom: 20px;
+  }
+  .sheets .sidebarLayout .sheetsTopics {
+    width: revert;
   }
   .sheets .sheetsFont {
     flex: revert;
-  }
-  .sheets .sheetsTopics {
-    width: revert;
   }
   .sheets .navSidebar {
     width: revert;

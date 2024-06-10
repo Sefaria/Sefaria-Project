@@ -48,7 +48,8 @@ const SheetsHoliday = ({handleClick}) => {
     }
     return <Card cardTitleHref={`/topics/${holiday.slug}`}
                  cardTitle={holiday.primaryTitle}
-                 cardText={holiday.description}/>;
+                 cardText={holiday.description}
+                 oncardTitleClick={(e) => handleClick(e, holiday.slug, holiday.primaryTitle['en'], holiday.primaryTitle['he'])}/>;
 }
 const SheetsTopicsCalendar = ({handleClick}) => {
     return <div className="sheetsTopicsCalendar">
