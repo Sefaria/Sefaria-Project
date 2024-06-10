@@ -10924,9 +10924,6 @@ cursor: pointer;
 .tab-view .tab-list .active .tab {
   border-bottom: 4px solid #CCC;
 }
-/*.interface-hebrew .tab-view .tab-list .tab {*/
-/*  margin: 0 0 0 30px;*/
-/*}*/
 .tab-view .tab-list .tab img {
   width: 18px;
   height: 18px;
@@ -10944,15 +10941,8 @@ cursor: pointer;
 }
 .tab-view .tab-list .tab.filter,
 .tab-view.largeTabs .tab-list .tab.filter {
-/*  font-size: 16px;*/
   margin: 0;
-  /*z-index: 1;*/
-/*  padding: 6px 9px;*/
 }
-/*.singlePanel .tab-view .tab-list .tab.filter,*/
-/*.tab-view.largeTabs .tab-list .tab.filter {*/
-/*  margin-top: 3px;*/
-/*}*/
 
 .interface-hebrew .singlePanel .tab-view.largeTabs .tab-list .tab.filter {
   margin-top: 3px;
