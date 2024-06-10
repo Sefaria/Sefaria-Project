@@ -743,53 +743,62 @@ class TestVersionActualLanguage:
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }).save()
-        cls.versionWithTranslation = model.Version(
+        cls.firstTranslationVersion = model.Version(
             {
-                "chapter": cls.myIndex.nodes.create_skeleton(),
+                "chapter": [['1'], ['2'], ["original text", "2nd"]],
                 "versionTitle": "Version 1 TEST [fr]",
                 "versionSource": "blabla",
-                "language": "he",
+                "language": "en",
                 "title": cls.myIndexTitle
             }
-        )
-        cls.versionWithTranslation.chapter = [['1'], ['2'], ["original text", "2nd"]]
-        cls.versionWithTranslation.save()
-        cls.versionWithoutTranslation = model.Version(
+        ).save()
+        cls.sourceVersion = model.Version(
             {
-                "chapter": cls.myIndex.nodes.create_skeleton(),
+                "chapter":cls.myIndex.nodes.create_skeleton(),
                 "versionTitle": "Version 1 TEST",
                 "versionSource": "blabla",
                 "language": "he",
                 "title": cls.myIndexTitle
             }
         )
-        cls.versionWithoutTranslation.chapter = [['1'], ['2'], ["original text", "2nd"]]
-        cls.versionWithoutTranslation.save()
+        cls.sourceVersion.chapter = [['1'], ['2'], ["original text", "2nd"]]
+        cls.sourceVersion.save()
         cls.versionWithLangCodeMismatch = model.Version(
             {
                 "chapter": cls.myIndex.nodes.create_skeleton(),
                 "versionTitle": "Version 1 TEST [ar]",
                 "versionSource": "blabla",
-                "language": "he",
-                "actualLanguage": "fr",
+                "language": "en",
+                'actualLanguage': 'fr',
                 "title": cls.myIndexTitle
             }
         )
         
     @classmethod
     def teardown_class(cls):
-        for c in [cls.myIndex, cls.versionWithTranslation, cls.versionWithoutTranslation, cls.versionWithLangCodeMismatch]:
+        for c in [cls.myIndex, cls.sourceVersion, cls.firstTranslationVersion, cls.versionWithLangCodeMismatch]:
             try:
                 c.delete()
             except Exception:
                 pass
     
-    def test_normalizes_actualLanguage_from_brackets(self):
-        assert self.versionWithTranslation.actualLanguage == "fr"
-    
-    def test_normalizes_language_from_language(self):
-        assert self.versionWithoutTranslation.actualLanguage == "he"
+    def test_normalize(self):
+        assert self.firstTranslationVersion.actualLanguage == 'fr'
+        assert self.firstTranslationVersion.direction == 'ltr'
+        assert self.firstTranslationVersion.languageFamilyName == 'french'
+        assert self.firstTranslationVersion.isPrimary is True
+        assert self.firstTranslationVersion.isSource is False
+        assert self.sourceVersion.actualLanguage == 'he'
+        assert self.sourceVersion.direction == 'rtl'
+        assert self.sourceVersion.languageFamilyName == 'hebrew'
+        assert self.sourceVersion.isSource is True
+        assert self.sourceVersion.isPrimary is True
+        self.versionWithLangCodeMismatch._normalize()
+        assert self.versionWithLangCodeMismatch.actualLanguage == 'fr'
+        assert self.versionWithLangCodeMismatch.direction == 'ltr'
+        assert self.versionWithLangCodeMismatch.languageFamilyName == 'french'
+        assert self.versionWithLangCodeMismatch.isSource is False
+        assert self.versionWithLangCodeMismatch.isPrimary is False
 
-    def test_save_when_language_mismatch(self):
-        self.versionWithLangCodeMismatch.save()
-        assert self.versionWithLangCodeMismatch.actualLanguage == "ar"
+
+
