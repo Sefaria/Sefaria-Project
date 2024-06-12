@@ -25,8 +25,10 @@ class GoogleStorageManager(object):
     @classmethod
     def get_bucket(cls, bucket_name):
         if getattr(cls, 'client', None) is None:
-            # for local development, change below line to cls.client = storage.Client(project="production-deployment")
-            cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
+            if GOOGLE_APPLICATION_CREDENTIALS_FILEPATH is None:
+                cls.client = storage.Client(project="production-deployment")
+            else:
+                cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
         bucket = cls.client.get_bucket(bucket_name)
         return bucket
 
@@ -88,6 +90,19 @@ class GoogleStorageManager(object):
     @classmethod
     def get_url(cls, filename, bucket_name):
         return "{}/{}/{}".format(cls.BASE_URL, bucket_name, filename)
+
+    @classmethod
+    def get_bucket_and_filename_from_url(cls, url):
+        """
+        Assumes input is of the form "gs://<bucket>/<blob>"
+        Very similar to `get_filename_from_url`. Consider refactor.
+        @param url:
+        @return:
+        """
+        match = re.match(r"gs://([^/]+)/(.+)$", url)
+        bucket_name = match.group(1)
+        blob_name = match.group(2)
+        return bucket_name, blob_name
 
     @classmethod
     def get_filename_from_url(cls, old_file_url):
