@@ -1186,7 +1186,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
         return {
           url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
           redirect: `/topics/${data.slug}`,
-          origItems: _filterAndSortRefs(data.refs?.about?.refs) || [],
+          origItems: _filterAndSortRefs(data.tabs?.sources?.refs) || [],
         }
       }
       switch (type) {  // at /texts or /topics
