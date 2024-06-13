@@ -853,7 +853,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 4px 0;
 }
 .header .interfaceLinks .interfaceLinks-option {
-  display: flex;
+  /* display: flex; */
   text-decoration: none;
   font-style: normal;
   font-weight: normal;
@@ -13144,6 +13144,11 @@ span.ref-link-color-3 {color: blue}
     width: 67%;
   }
 }
+
+.dropdownHeader {
+  margin-bottom: 1rem;
+}
+
 .image-in-text-title {
     margin: auto; /* English System Small */
     margin-top: 15px;

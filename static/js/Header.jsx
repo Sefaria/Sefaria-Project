@@ -15,6 +15,7 @@ import {
   DonateLink
 } from './Misc';
 import {Autocomplete} from './Autocomplete'
+import { DropdownMenu } from './common/DropdownMenu';
 
 class Header extends Component {
   constructor(props) {
@@ -43,6 +44,25 @@ class Header extends Component {
       <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
       <img src="/static/img/logo.svg" alt="Sefaria Logo"/>;
 
+    // const sampleHeader = "Sefaria Links";
+    const sampleBody = [
+      {
+        'url': '//developers.sefaria.org',
+        'text': 'Developer Portal',
+        'icon': '/static/icons/developers_icon.svg'
+      },
+      {
+        'url': '/',
+        'text': 'Library',
+        'icon': '/static/icons/library_icon.svg'
+      },
+      {
+        'url': '//sheets.sefaria.org',
+        'text': 'Sheets',
+        'icon': '/static/icons/sheets_icon.svg'
+      }
+    ];
+
     const headerContent = (
       <>
 
@@ -69,10 +89,7 @@ class Header extends Component {
             : <LoggedOutButtons headerMode={this.props.headerMode}/>
           }
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <InterfaceLanguageMenu
-                currentLang={Sefaria.interfaceLang}
-                translationLanguagePreference={this.props.translationLanguagePreference}
-                setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
+              <DropdownMenu bodyItems={sampleBody}/> : null}
         </div>
       </>
     );
