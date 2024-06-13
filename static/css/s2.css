@@ -13204,6 +13204,8 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: column;
   width: 55%;
+}
+.sheets .sidebarLayout .sheetsTopicsCalendar, .sheets .sidebarLayout .sheetsTopicTOC {
   margin-inline-start: 10%;
 }
 .sheets .sheetsTopics .navBlock::before {
@@ -13241,7 +13243,16 @@ span.ref-link-color-3 {color: blue}
 @media screen and (max-width: 800px) {
   .sheets .sheetsWrapper, .sheets .sheetsTopicsCalendar {
     flex-direction: column;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+  }
+  .sheets .sidebarLayout {
+    margin-top: revert;
+  }
+  .singlePanel .sheets .navSidebar {
+    margin-block-start: 5px;
+  }
+  .singlePanel .sheets .navSidebarModule {
+    padding: 0 35px;
   }
   .sheets .sidebarLayout .sheetsTopics {
     width: revert;
