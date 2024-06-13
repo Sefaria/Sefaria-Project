@@ -17,6 +17,22 @@ from sefaria.helper.descriptions import create_era_link
 logger = structlog.get_logger(__name__)
 
 def get_topic(v2, topic, lang, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
+    """
+    Helper function for api/topics/<slug>
+    TODO fill in rest of parameters
+    @param v2:
+    @param topic: slug of topic to get data for
+    @param lang: the language of the user to sort the ref links by
+    @param with_html: True if description should be returned with HTML. If false, HTML is stripped.
+    @param with_links: Should intra-topic links be returned. If true, return dict has a `links` key
+    @param annotate_links:
+    @param with_refs:
+    @param group_related:
+    @param annotate_time_period:
+    @param ref_link_type_filters:
+    @param with_indexes:
+    @return:
+    """
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         return {}
@@ -236,6 +252,12 @@ def get_topic_by_parasha(parasha:str) -> Topic:
 def sort_refs_by_relevance(a, b, lang="english"):
     """
     This function should mimic behavior of `refSort` in TopicPage.jsx.
+    It is a comparison function that takes two items from the list and returns the corresponding integer to indicate which should go first. To be used with `cmp_to_key`.
+    It considers the following criteria in order:
+    - If one object has an `order` key and another doesn't, the one with the `order` key comes first
+    - curatedPrimacy, higher comes first
+    - pagerank, higher comes first
+    - numDatasource (how many distinct links have this ref/topic pair) multiplied by tfidf (a bit complex, in short how "central" to this topic is the vocab used in this ref), higher comes first
     @param lang: language to sort by. Defaults to "english".
     @return:
     """
