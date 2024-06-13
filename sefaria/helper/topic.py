@@ -3,7 +3,7 @@ from tqdm import tqdm
 from pymongo import UpdateOne, InsertOne
 from typing import Optional, Union
 from collections import defaultdict
-from functools import cmp_to_key
+from functools import cmp_to_key, partial
 from sefaria.model import *
 from sefaria.model.place import process_topic_place_change
 from sefaria.system.exceptions import InputError
@@ -16,7 +16,7 @@ from sefaria import tracker
 from sefaria.helper.descriptions import create_era_link
 logger = structlog.get_logger(__name__)
 
-def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
+def get_topic(v2, topic, lang, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         return {}
@@ -45,7 +45,7 @@ def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, w
     if with_links:
         response['links'] = group_links_by_type('intraTopic', intra_links, annotate_links, group_related)
     if with_refs:
-        ref_links = sort_and_group_similar_refs(ref_links)
+        ref_links = sort_and_group_similar_refs(ref_links, lang)
         if v2:
             ref_links = group_links_by_type('refTopic', ref_links, False, False)
         response['refs'] = ref_links
@@ -169,8 +169,8 @@ def iterate_and_merge(new_ref_links, new_link, subset_ref_map, temp_subset_refs)
                 new_ref_links[index] = merge_props_for_similar_refs(new_ref_links[index], new_link)
     return new_ref_links
 
-def sort_and_group_similar_refs(ref_links):
-    ref_links.sort(key=cmp_to_key(sort_refs_by_relevance))
+def sort_and_group_similar_refs(ref_links, lang):
+    ref_links.sort(key=cmp_to_key(partial(sort_refs_by_relevance, lang=lang)))
     subset_ref_map = defaultdict(list)
     new_ref_links = []
     for link in ref_links:
@@ -233,15 +233,27 @@ def get_topic_by_parasha(parasha:str) -> Topic:
     return Topic().load({"parasha": parasha})
 
 
-def sort_refs_by_relevance(a, b):
+def sort_refs_by_relevance(a, b, lang="english"):
+    """
+    This function should mimic behavior of `refSort` in TopicPage.jsx.
+    @param lang: language to sort by. Defaults to "english".
+    @return:
+    """
     aord = a.get('order', {})
     bord = b.get('order', {})
+    def curated_primacy(order_dict, lang):
+        return order_dict.get("curatedPrimacy", {}).get(lang, 0)
+
     if not aord and not bord:
         return 0
     if bool(aord) != bool(bord):
-        return len(bord) - len(aord)
-    if aord.get("curatedPrimacy") or bord.get("curatedPrimacy"):
-        return len(bord.get("curatedPrimacy", {})) - len(aord.get("curatedPrimacy", {}))
+        return int(bool(bord)) - int(bool(aord))
+    for curr_lang in ("english", "hebrew"):
+        short_lang = curr_lang[:2]
+        aprimacy = curated_primacy(aord, short_lang)
+        bprimacy = curated_primacy(bord, short_lang)
+        if lang == curr_lang and (aprimacy > 0 or bprimacy > 0):
+            return bprimacy - aprimacy
     if aord.get('pr', 0) != bord.get('pr', 0):
         return bord.get('pr', 0) - aord.get('pr', 0)
     return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
@@ -318,7 +330,7 @@ def ref_topic_link_prep(link):
         link['dataSource']['slug'] = data_source_slug
     return link
 
-def get_topics_for_ref(tref, annotate=False):
+def get_topics_for_ref(tref, lang="english", annotate=False):
     serialized = [l.contents() for l in Ref(tref).topiclinkset()]
     if annotate:
         if len(serialized) > 0:
@@ -329,7 +341,7 @@ def get_topics_for_ref(tref, annotate=False):
     for link in serialized:
         ref_topic_link_prep(link)
 
-    serialized.sort(key=cmp_to_key(sort_refs_by_relevance))
+    serialized.sort(key=cmp_to_key(partial(sort_refs_by_relevance, lang=lang)))
     return serialized
 
 
