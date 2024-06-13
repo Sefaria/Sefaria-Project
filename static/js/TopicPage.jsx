@@ -118,7 +118,6 @@ const refSort = (currSortOption, a, b) => {
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
       return 0;
     }
-    else if (a.order.custom_order !== b.order.custom_order) { return b.order.custom_order - a.order.custom_order; }  // custom_order, when present, should trump other data
     else if (a.order.pr !== b.order.pr) {
         return b.order.pr - a.order.pr;
     }
