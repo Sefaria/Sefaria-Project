@@ -2331,5 +2331,5 @@ export {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
-  UpdatesPanel,
+  UpdatesPanel
 };
