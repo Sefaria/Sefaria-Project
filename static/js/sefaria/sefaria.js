@@ -2629,7 +2629,6 @@ _media: {},
       return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
   processTopicsData: function(data) {
-      console.log(data)
     const lang = Sefaria.interfaceLang == "hebrew" ? 'he' : 'en'
     if (!data) { return null; }
     if (!data.refs) { return data; }
