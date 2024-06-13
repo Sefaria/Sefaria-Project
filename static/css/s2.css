@@ -13240,31 +13240,43 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   justify-content: space-between;
 }
+.singlePanel .sheets .navSidebar {
+  margin-block-start: 5px;
+  width: revert;
+}
+.singlePanel .sheets .navSidebarModule {
+  padding: 0 35px;
+}
+.singlePanel .sheets .sheetsWrapper, .singlePanel .sheets .sheetsTopicsCalendar {
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.singlePanel .sheets .sidebarLayout {
+  margin-top: revert;
+}
+
+.singlePanel .sheets .sidebarLayout .sheetsTopics {
+  width: revert;
+}
+.singlePanel .sheets .sheetsFont {
+  flex: revert;
+}
+.singlePanel .sheets .button {
+  display: block;
+}
 @media screen and (max-width: 800px) {
-  .sheets .sheetsWrapper, .sheets .sheetsTopicsCalendar {
-    flex-direction: column;
-    margin-bottom: 10px;
-  }
-  .sheets .sidebarLayout {
-    margin-top: revert;
-  }
-  .singlePanel .sheets .navSidebar {
-    margin-block-start: 5px;
-  }
-  .singlePanel .sheets .navSidebarModule {
-    padding: 0 35px;
-  }
   .sheets .sidebarLayout .sheetsTopics {
-    width: revert;
-  }
-  .sheets .sheetsFont {
-    flex: revert;
-  }
-  .sheets .navSidebar {
-    width: revert;
+    width: 100%;
   }
   .sheets .button {
     display: block;
+  }
+  .sheets .navSidebar {
+    width: revert;
+    border-top: 40px solid #FBFBFA;
+    margin-block-start: -40px;
+    margin-top: 30px;
+    border-bottom: 40px solid #FBFBFA;
   }
 }
 .button.getStartedSheets {
