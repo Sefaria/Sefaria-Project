@@ -1297,20 +1297,11 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if link is None:
         return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
 
-    if lang in link.order.get('availableLangs', []):
-        link.order['availableLangs'].remove(lang)
-    if lang in link.order.get('curatedPrimacy', []):
-        link.order['curatedPrimacy'].pop(lang)
-
-    if len(link.order.get('availableLangs', [])) > 0:
-        link.save()
+    if link.can_delete():
+        link.delete()
         return {"status": "ok"}
-    else:   # deleted in both hebrew and english so delete link object
-        if link.can_delete():
-            link.delete()
-            return {"status": "ok"}
-        else:
-            return {"error": f"Cannot delete link between {tref} and {to_topic}."}
+    else:
+        return {"error": f"Cannot delete link between {tref} and {to_topic}."}
 
 
 def add_image_to_topic(topic_slug, image_uri, en_caption, he_caption):
