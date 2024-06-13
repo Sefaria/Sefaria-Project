@@ -248,12 +248,11 @@ def sort_refs_by_relevance(a, b, lang="english"):
         return 0
     if bool(aord) != bool(bord):
         return int(bool(bord)) - int(bool(aord))
-    for curr_lang in ("english", "hebrew"):
-        short_lang = curr_lang[:2]
-        aprimacy = curated_primacy(aord, short_lang)
-        bprimacy = curated_primacy(bord, short_lang)
-        if lang == curr_lang and (aprimacy > 0 or bprimacy > 0):
-            return bprimacy - aprimacy
+    short_lang = lang[:2]
+    aprimacy = curated_primacy(aord, short_lang)
+    bprimacy = curated_primacy(bord, short_lang)
+    if aprimacy > 0 or bprimacy > 0:
+        return bprimacy - aprimacy
     if aord.get('pr', 0) != bord.get('pr', 0):
         return bord.get('pr', 0) - aord.get('pr', 0)
     return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
