@@ -1664,6 +1664,11 @@ body.hasBannerMessage .sheetsEditNavTop {
 	height: 16px;
 	width: 16px;
 }
+#customTextLanguageToggle #hebrewCustomText img {
+	margin-bottom: 13px;
+	height: 16px;
+	width: 10px;
+}
 #customTextContainer, #addmediaDiv, #addcommentDiv, #addsourceDiv{
 	width: 702px;
     margin: 0 74px 0 74px;
