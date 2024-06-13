@@ -1177,7 +1177,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
             return [];
         }
         // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
-        refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+        refs = refs.filter((x) => !x.is_sheet);
         // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
         return refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
     }
