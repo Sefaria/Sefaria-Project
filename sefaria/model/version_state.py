@@ -153,13 +153,16 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self.content = self.index.nodes.visit_content(self._content_node_visitor, self.content)
         self.index.nodes.visit_structure(self._aggregate_structure_state, self)
         self.linksCount = link.LinkSet(Ref(self.index.title)).count()
-        fsr = self._first_section_ref()
-        self.first_section_ref = fsr.normal() if fsr else None
+        self._set_first_section_ref()
         self.save()
 
         if USE_VARNISH:
             from sefaria.system.varnish.wrapper import invalidate_counts
             invalidate_counts(self.index)
+
+    def _set_first_section_ref(self):
+        fsr = self._first_section_ref()
+        self.first_section_ref = fsr.normal() if fsr else None
 
     def get_flag(self, flag):
         return self.flags.get(flag, False) # consider all flags False until set True
@@ -463,8 +466,12 @@ def process_index_delete_in_version_state(indx, **kwargs):
     from sefaria.system.database import db
     db.vstate.delete_one({"title": indx.title})
 
+
 def process_index_title_change_in_version_state(indx, **kwargs):
-    VersionStateSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
+    vs = VersionState().load({"title": kwargs["old"]})
+    vs._set_first_section_ref()
+    vs.title = kwargs["new"]
+    vs.save()
 
 
 def create_version_state_on_index_creation(indx, **kwargs):
