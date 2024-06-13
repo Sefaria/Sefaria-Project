@@ -1,8 +1,8 @@
 import React  from 'react';
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
-import {Button} from "./GenericComponents";
 import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsTopics";
+import {Button} from "../shared/GenericComponents";
 const GetStartedButton = ({href}) => {
     return <Button classes={{getStartedSheets: 1}} href={href}>Get Started</Button>
 }
