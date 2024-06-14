@@ -170,7 +170,8 @@ def text_at_revision(tref, version, lang, revision):
     text = str(current.text)  # needed?
 
     for r in changes:
-        if r["revision"] == revision: break
+        if r["revision"] == revision:
+            break
         patch = dmp.patch_fromText(r["revert_patch"])
         text = dmp.patch_apply(patch, text)[0]
 

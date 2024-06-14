@@ -942,12 +942,14 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
             oref = Ref(tref)
         except InputError as e:
             continue
-        if getattr(oref.index, 'authors', None) is None: continue
+        if getattr(oref.index, 'authors', None) is None:
+            continue
         for author in oref.index.authors:
             by_author[author] += [rd.contents()]
     for author, rd_list in by_author.items():
         rd_list = list(filter(lambda x: x['pagesheetrank'] > min_pr, rd_list))
-        if len(rd_list) == 0: continue
+        if len(rd_list) == 0:
+            continue
         top_rd_indexes = sorted(range(len(rd_list)), key=lambda i: rd_list[i]['pagesheetrank'])[-top_n:]
         top_rds = [rd_list[i] for i in top_rd_indexes]
         for rd in top_rds:

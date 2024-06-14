@@ -532,20 +532,24 @@ class UserProfile(object):
         # URL Fields: website, facebook, linkedin
         url_val = URLValidator()
         try:
-            if self.facebook: url_val(self.facebook)
+            if self.facebook:
+                url_val(self.facebook)
         except ValidationError as e:
             return "The Facebook URL you entered is not valid."
         try:
-            if self.linkedin: url_val(self.linkedin)
+            if self.linkedin:
+                url_val(self.linkedin)
         except ValidationError as e:
             return "The LinkedIn URL you entered is not valid."
         try:
-            if self.website: url_val(self.website)
+            if self.website:
+                url_val(self.website)
         except ValidationError as e:
             return "The Website URL you entered is not valid."
         email_val = EmailValidator()
         try:
-            if self.email: email_val(self.email)
+            if self.email:
+                email_val(self.email)
         except ValidationError as e:
             return "The email address you entered is not valid."
 
