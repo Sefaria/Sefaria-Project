@@ -19,6 +19,5 @@ for user in users:
 
 print(out)
 
-f = open('contacts.csv','w')
-f.write(out.encode('utf-8'))
-f.close() 
+with open('contacts.csv', 'w', encoding='utf-8') as f:
+	f.write(out)

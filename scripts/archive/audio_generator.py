@@ -89,10 +89,9 @@ class Queue(object):
     # through the aliyot and process each one. 
     def aliyot(self):
         # parses the parshiyot and records number of pessukim in each aliyah
-        f = open('C:/Users/Tamar Yastrab/Documents/Sefaria-Project/tamars_work/parsha_aliyot3.txt', 'rt')
-        content = f.read()
-        holder = content.split('\n')
-        f.close()
+        with open('C:/Users/Tamar Yastrab/Documents/Sefaria-Project/tamars_work/parsha_aliyot3.txt', 'rt') as f:
+            content = f.read()
+            holder = content.split('\n')
         parshiyot = {}
         temp = []
         for key in holder:
@@ -113,10 +112,9 @@ class Queue(object):
                 num_verses = (parshiyot[parsha])[aliyah]
                 parsha2 = parsha.replace('â€™', "’")
                 print(parsha2, str(aliyah + 1))
-                f = open('C:/Users/Tamar Yastrab/Documents/PocketTorah/data/torah/labels/'+ parsha2 + "-" + str(aliyah + 1) + '.txt', 'r')
-                content = f.read()
-                holder = content.split(',')
-                f.close()    
+                with open('C:/Users/Tamar Yastrab/Documents/PocketTorah/data/torah/labels/'+ parsha2 + "-" + str(aliyah + 1) + '.txt', 'r') as f:
+                    content = f.read()
+                    holder = content.split(',')
                 self.dictionary_maker(parsha2, holder, str(aliyah+1), num_verses)
                 aliyah += 1
      
@@ -170,11 +168,10 @@ def json_maker(title, time_stamps):
     print(data)
     json_file = json.dumps(data)
     file_name = title + ".json"
-    f = open(file_name, "w")
-    f.write(json_file)
-    f.close()      
-    
-    
+    with open(file_name, "w") as f:
+        f.write(json_file)
+
+
 def __main():
     q = Queue(6000)
     q.passuk_counter()
