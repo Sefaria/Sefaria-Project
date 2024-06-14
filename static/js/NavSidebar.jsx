@@ -582,7 +582,7 @@ const GetTheApp = () => (
 
 
 const StayConnected = () => { // TODO: remove? looks like we are not using this
-  const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
+  const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/pecha.org" : "https://www.facebook.com/pecha.org";
 
   return (
     <Module>
@@ -592,16 +592,16 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
       {/*<NewsletterSignUpForm context="sidebar" />*/}
 
       <a target="_blank" className="button small white appButton iconOnly" href={fbURL}>
-        <img src="/static/icons/facebook.svg" alt={Sefaria._("Sefaria on Facebook")} />
+        <img src="/static/icons/facebook.svg" alt={Sefaria._("Pecha on Facebook")} />
       </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://twitter.com/SefariaProject">
-        <img src="/static/icons/twitter.svg" alt={Sefaria._("Sefaria on Twitter")} />
+      <a target="_blank" className="button small white appButton iconOnly" href="https://x.com/pechadotorg">
+        <img src="/static/icons/twitter.svg" alt={Sefaria._("Pecha on Twitter")} />
       </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://www.instagram.com/sefariaproject">
-        <img src="/static/icons/instagram.svg" alt={Sefaria._("Sefaria on Instagram")} />
+      <a target="_blank" className="button small white appButton iconOnly" href="https://www.instagram.com/pecha_org/">
+        <img src="/static/icons/instagram.svg" alt={Sefaria._("Pecha on Instagram")} />
       </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://www.youtube.com/user/SefariaProject">
-        <img src="/static/icons/youtube.svg" alt={Sefaria._("Sefaria on YouTube")} />
+      <a target="_blank" className="button small white appButton iconOnly" href="https://www.youtube.com/channel/UCB1eWJqy97FBViE86l3Hf_g">
+        <img src="/static/icons/youtube.svg" alt={Sefaria._("Pecha on YouTube")} />
       </a>
 
     </Module>
