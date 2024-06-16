@@ -10050,14 +10050,14 @@ span.purim-emoji img{
 }
 .overlayTextOnSheetsHero #title {
   position: absolute;
-  left: 10%;
+  left: 6%;
   font-size: 50px;
   top: 145px;
   line-height: 62.65px;
 }
 .overlayTextOnSheetsHero #message {
   position: absolute;
-  left: 10%;
+  left: 6%;
   font-family: Source Sans Pro, serif;
   font-size: 24px;
   line-height: 18px;
