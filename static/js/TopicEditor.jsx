@@ -93,12 +93,12 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
           alert(Sefaria._("Title must be provided."));
           return false;
         }
-        if (data.enImgCaption.length > 150) {
-            alert("English caption is too long.  It should not be more than 150 characters");
+        if (data.enImgCaption.length > 300) {
+            alert("English caption is too long.  It should not be more than 300 characters");
             return false;
         }
-        if (data.heImgCaption.length > 150) {
-            alert("Hebrew caption is too long.  It should not be more than 150 characters")
+        if (data.heImgCaption.length > 300) {
+            alert("Hebrew caption is too long.  It should not be more than 300 characters")
             return false;
         }
         if (sortedSubtopics.length > 0 && !isNew) {
