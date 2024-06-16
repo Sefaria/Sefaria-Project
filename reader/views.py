@@ -2167,7 +2167,7 @@ def related_api(request, tref):
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
-            "topics": get_topics_for_ref(tref, annotate=True),
+            "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),
             "guides": GuideSet.load_set_for_client(tref)
@@ -3057,7 +3057,7 @@ def topic_page(request, topic, test_version=None):
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         },
-        "topicData": _topic_page_data(topic),
+        "topicData": _topic_page_data(topic, request.interfaceLang),
     }
 
     if test_version is not None:
@@ -3167,7 +3167,7 @@ def topics_api(request, topic, v2=False):
         annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
         with_indexes = bool(int(request.GET.get("with_indexes", False)))
         ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-        response = get_topic(v2, topic, with_html=with_html, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
+        response = get_topic(v2, topic, request.interfaceLang, with_html=with_html, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -3253,7 +3253,7 @@ def topic_ref_api(request, tref):
     annotate = bool(int(data.get("annotate", False)))
 
     if request.method == "GET":
-        response = get_topics_for_ref(tref, annotate)
+        response = get_topics_for_ref(tref, request.interfaceLang, annotate)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     else:
         if not request.user.is_staff:
@@ -3279,8 +3279,8 @@ _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],
 }
 
-def _topic_page_data(topic):
-    _topic_data(topic=topic, annotate_time_period=True)
+def _topic_page_data(topic, lang):
+    _topic_data(topic=topic, lang=lang, annotate_time_period=True)
 
 
 def _topic_data(**kwargs):
