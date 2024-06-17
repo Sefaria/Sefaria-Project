@@ -850,7 +850,8 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .interfaceLinks-options {
   display: flex;
   flex-direction: column;
-  padding: 4px 0;
+  padding: 4px;
+  max-width: 220px;
 }
 .header .interfaceLinks .interfaceLinks-option {
   /* display: flex; */
@@ -13147,6 +13148,21 @@ span.ref-link-color-3 {color: blue}
 
 .dropdownHeader {
   margin-bottom: 1rem;
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  text-align: left;
+
+}
+
+.dropdownDesc {
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: left;
+
 }
 
 .image-in-text-title {

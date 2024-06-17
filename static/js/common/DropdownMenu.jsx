@@ -52,7 +52,7 @@ const DropdownMenu = ({header, bodyItems}) => {
                    <div className="dropdownHeader">
                         <img src={item.icon} />{item.text}
                     </div>
-                   <div>Description goes here</div>
+                   <div className='dropdownDesc'>Lorem ipsum dolor sit amet, lorem dolor.</div>
                 </a>)
             }
               {/* <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
