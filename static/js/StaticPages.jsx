@@ -3134,11 +3134,120 @@ const JobsPage = memo(() => {
 * Products Page
 */
 
+// The static content on the page inviting users to browse our "powered-by" products
+const DevBox = () => {
+    return (
+      <div className='productsDevBox'>
+        <p className='productsDevHeader'>
+            <span className="int-en">Powered by Sefaria</span>
+            <span className="int-he">פרויקטים מכח ספריא</span>
+        </p>
+        <p>
+            <span className="int-en">
+            Check out the products our software developer friends from around the world have been building for you! <a href="www.example.com">Explore</a>
+            </span>
+            <span className="int-he">נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="www.example.com">גלו את הפרויקטים</a></span>
+            
+        </p>
+      </div>
+    );
+  };
+
+/**
+ * The following are the building block components of an individual product. 
+ */
+ 
+// The title and gray background label for each product
+const ProductTitle = ({product}) => {
+    return (
+        <div className='productsTitleAndLabel'>
+        <span className="productsTitle">
+            <span className="int-en">{product.titles.en}</span>
+            <span className="int-he">{product.titles.he}</span>
+        </span>
+        {product.type.en ? (<span className="productsTypeLabel">                                
+            <span className="int-en">{product.type.en}</span>
+            <span className="int-he">{product.type.he}</span>
+        </span>) : ''}
+    </div>
+    );
+};
+
+
+
+// The call-to-action (link) in the heading of each product
+// TODO - uncomment <OnInView /> once analytics is confirmed
+const ProductCTA = ({cta}) => {
+    return (
+
+        // <OnInView onVisible={() => productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "viewed")}>
+
+        // TODO - once analytics finalized, add onClick={productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "clicked")}
+        <a  href={cta.url} 
+            key={cta.text.en}>
+            {cta.icon.url && <img className="productsCTAIcon" 
+                                data-image-path={cta.icon.url} 
+                                src={cta.icon.url} 
+                                alt="Click icon" />}
+                                
+            <span className="productsCTA">
+                <span className='int-en'>{cta.text.en}</span>
+                <span className='int-he'>{cta.text.he}</span>
+            </span>
+        </a>
+
+        // </OnInView>
+
+
+    );
+};
+
+// The main body of each product entry, containing an image and description
+const ProductDesc = ({product}) => {
+    return (
+        <div className="productsInner">
+            <img src={product.rectanglion.url} alt={`Image for product: ${product?.titles?.en}`}/>
+            <span className='int-en'>
+                <ReactMarkdown className="productsDesc">
+                    {product.desc?.en}
+                </ReactMarkdown>
+            </span>
+            <span className='int-he'>
+                <ReactMarkdown className="productsDesc">
+                    {product.desc?.he}
+                </ReactMarkdown>
+            </span>                 
+        </div>
+    );
+};
+
+// The main product component, comprised of the building block sub-components
+const Product = ({key, product}) => {
+    return (
+        <div key={key} className="product">
+            <div className="productsHeader">
+                <ProductTitle product={product} />
+                <div className="cta">
+                    {product.ctaLabels?.map(cta => (
+                        <ProductCTA cta={cta} />
+                    ))}
+                </div>       
+            </div>
+            <ProductDesc product={product} />
+        </div>
+    );
+};
+
+
 
 
 const ProductsPage = memo(() => {
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
+
+    useEffect(() => {
+        loadProducts();
+    }, []);
 
     // GraphQL query to Strapi
     const fetchProductsJSON = async () => {
@@ -3234,7 +3343,6 @@ const ProductsPage = memo(() => {
                 throw new Error(`HTTP Error: ${response.statusText}`);
             }
             const data = await response.json();
-            console.log(data);
             return data;
         } catch (error) {
             throw error;
@@ -3246,7 +3354,6 @@ const ProductsPage = memo(() => {
         if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
             try {
                 const productsData = await fetchProductsJSON();
-                console.log(productsData);
 
                 const productsFromStrapi = productsData.data?.products?.data?.map((productsData) => {
 
@@ -3299,130 +3406,21 @@ const ProductsPage = memo(() => {
             setError("Error: Sefaria's CMS cannot be reached");
         }
     };
-    
 
-    useEffect(() => {
-        loadProducts();
-    }, []);
+    // Generalized function for catching products page analytics - to be revisited
+    // const productsAnalytics = (rank, product_cta, label, event) => {
+    //     gtag("event", `${product_cta}_${event}`, {
+    //       panel_type: "strapi-static",
+    //       panel_number: 0,   
+    //       panel_name: "Products Page",
+    //       position: rank,
+    //       experiment: 1,
+    //       feature_name: label,
+    //       engagement_type: "static",
+    //       engagement_value: 0,
+    //     });
+    // }
 
-    console.log("products: ", products)
-
-    // Generalized function for catching products page analytics
-    const productsAnalytics = (rank, product_cta, label, event) => {
-        gtag("event", `${product_cta}_${event}`, {
-          panel_type: "strapi-static",
-          panel_number: 0,   
-          panel_name: "Products Page",
-          position: rank,
-          experiment: 1,
-          feature_name: label,
-          engagement_type: "static",
-          engagement_value: 0,
-        });
-    }
-
-
-    // The static content on the page inviting users to browse our "powered-by" products
-    const DevBox = () => {
-        return (
-          <div className='productsDevBox'>
-            <p className='productsDevHeader'>
-                <span className="int-en">Powered by Sefaria</span>
-                <span className="int-he">פרויקטים מכח ספריא</span>
-            </p>
-            <p>
-                <span className="int-en">
-                Check out the products our software developer friends from around the world have been building for you! <a href="www.example.com">Explore</a>
-                </span>
-                <span className="int-he">נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="www.example.com">גלו את הפרויקטים</a></span>
-                
-            </p>
-          </div>
-        );
-      };
-
-    /**
-     * The following are the building block components of an individual product. 
-     */
-     
-    // The title and gray background label for each product
-    const ProductTitle = ({product}) => {
-        return (
-            <div className='productsTitleAndLabel'>
-            <span className="productsTitle">
-                <span className="int-en">{product.titles.en}</span>
-                <span className="int-he">{product.titles.he}</span>
-            </span>
-            {product.type.en ? (<span className="productsTypeLabel">                                
-                <span className="int-en">{product.type.en}</span>
-                <span className="int-he">{product.type.he}</span>
-            </span>) : ''}
-        </div>
-        );
-    };
-
-
-
-    // The call-to-action (link) in the heading of each product
-    const ProductCTA = ({product}) => {
-        return (
-            <div className="cta">
-                    {product.ctaLabels?.map(cta => (
-                    <OnInView onVisible={() => productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "viewed")}>
-
-                        <a onClick={productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "clicked")} 
-                            href={cta.url} 
-                            key={cta.text.en}>
-                            {cta.icon.url && <img className="productsCTAIcon" 
-                                                data-image-path={cta.icon.url} 
-                                                src={cta.icon.url} 
-                                                alt="Click icon" />}
-                                                
-                            <span className="productsCTA">
-                                <span className='int-en'>{cta.text.en}</span>
-                                <span className='int-he'>{cta.text.he}</span>
-                            </span>
-                        </a>
-
-                    </OnInView>
-                    ))}
-                
-            </div>
-        );
-    };
-
-    // The main body of each product entry, containing an image and description
-    const ProductDesc = ({product}) => {
-        return (
-            <div className="productsInner">
-                <img src={product.rectanglion.url} alt={`Image for product: ${product?.titles?.en}`}/>
-                <span className='int-en'>
-                    <ReactMarkdown className="productsDesc">
-                        {product.desc?.en}
-                    </ReactMarkdown>
-                </span>
-                <span className='int-he'>
-                    <ReactMarkdown className="productsDesc">
-                        {product.desc?.he}
-                    </ReactMarkdown>
-                </span>                 
-            </div>
-        );
-    };
-
-    // The main product component, comprised of the building block sub-components
-    const Product = ({key, product}) => {
-        return (
-            <div key={key} className="product">
-                        <div className="productsHeader">
-                            <ProductTitle product={product} />
-                            <ProductCTA product={product} />
-                        </div>
-                        <hr/>
-                        <ProductDesc product={product} />
-            </div>
-        );
-    };
 
     // In order to inject the static 'DevBox' in a fixed position on the page, we 
     // create an array of <Product /> components, and then slice the list into two sub-lists at the 
@@ -3441,13 +3439,13 @@ const ProductsPage = memo(() => {
 
     return (
         <div>
-            {products && products.length > 0 && (
+            {products && products.length > 0  ? (
                 <>
                 {initialProducts}
                 {/* <DevBox /> */}
                 {remainingProducts}
                 </>
-            )}
+            ) : null}
         </div>
     );
 });

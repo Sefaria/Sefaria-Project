@@ -13024,6 +13024,9 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   justify-content: space-between;
   margin-top: 10%;
+  margin-bottom: 3%;
+  padding-bottom: 3%;
+  border-bottom: 1px solid #CCCCCC;
 }
 
 .productsTitleAndLabel {
