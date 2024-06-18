@@ -3165,12 +3165,9 @@ const ProductTitle = ({product}) => {
         <div className='productsTitleAndLabel'>
         <span className="productsTitle">
             <InterfaceText text={{en: product.titles.en , he: product.titles.he }} />
-            <span className="int-en">{}</span>
-            <span className="int-he">{}</span>
         </span>
-        {product.type.en ? (<span className="productsTypeLabel">                                
-            <span className="int-en">{product.type.en}</span>
-            <span className="int-he">{product.type.he}</span>
+        {product.type.en ? (<span className="productsTypeLabel"> 
+            <InterfaceText text={{en: product.type.en , he: product.type.he }} />                               
         </span>) : ''}
     </div>
     );
@@ -3194,8 +3191,7 @@ const ProductCTA = ({cta}) => {
                                 alt="Click icon" />}
                                 
             <span className="productsCTA">
-                <span className='int-en'>{cta.text.en}</span>
-                <span className='int-he'>{cta.text.he}</span>
+                <InterfaceText text={{en: cta.text.en , he: cta.text.he }} />
             </span>
         </a>
 
@@ -3207,19 +3203,23 @@ const ProductCTA = ({cta}) => {
 
 // The main body of each product entry, containing an image and description
 const ProductDesc = ({product}) => {
+    console.log(product);
     return (
         <div className="productsInner">
             <img src={product.rectanglion.url} alt={`Image for product: ${product?.titles?.en}`}/>
-            <span className='int-en'>
-                <ReactMarkdown className="productsDesc">
-                    {product.desc?.en}
-                </ReactMarkdown>
-            </span>
-            <span className='int-he'>
-                <ReactMarkdown className="productsDesc">
-                    {product.desc?.he}
-                </ReactMarkdown>
-            </span>                 
+
+            <InterfaceText>  
+                <HebrewText>  
+                    <ReactMarkdown className="productsDesc">
+                        {product.desc?.he}
+                    </ReactMarkdown> 
+                </HebrewText>  
+                <EnglishText>
+                    <ReactMarkdown className="productsDesc">
+                        {product.desc?.en}
+                    </ReactMarkdown>
+                </EnglishText>
+            </InterfaceText>           
         </div>
     );
 };
