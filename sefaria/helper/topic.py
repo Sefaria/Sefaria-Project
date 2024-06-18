@@ -1292,7 +1292,9 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
 
     # now update curatedPrimacy data
     for display_order, s in enumerate(sources[::-1]):
-        link = ref_to_link[s['ref']]
+        link = ref_to_link.get(s['ref'])
+        if not link:
+            continue
         order = getattr(link, 'order', {})
         curatedPrimacy = order.get('curatedPrimacy', {})
         curatedPrimacy[lang] = display_order
