@@ -1486,6 +1486,8 @@ var VKI_attach, VKI_close;
                     break;
                   case "Enter":
                     VKI_addListener(td, 'click', function() {
+                      let element = document.querySelector('[vki_attached="true"]');
+                      element.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true}));
                       if (self.VKI_target.nodeName != "TEXTAREA") {
                         if (self.VKI_enterSubmit && self.VKI_target.form) {
                           for (var z = 0, subm = false; z < self.VKI_target.form.elements.length; z++)

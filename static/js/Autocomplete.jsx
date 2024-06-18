@@ -184,14 +184,14 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
    const { onBlur, onKeyDown, ...otherDownShiftProps } = getInputProps();
 
     const handleSearchKeyDown = (event) => {
-      onKeyDown(event)
+      onKeyDown(event);
       if (event.keyCode !== 13) return;
       const highlightedItem = highlightedIndex > -1 ? suggestions[highlightedIndex] : null
       if (highlightedItem  && highlightedItem.type != 'search'){
         redirectToObject(highlightedItem);
         return;
       }
-      const inputQuery = otherDownShiftProps.value
+      const inputQuery = otherDownShiftProps.value || document.getElementsByClassName('keyboardInput')[0].value;
       if (!inputQuery) return;
       submitSearch(inputQuery);
     };
