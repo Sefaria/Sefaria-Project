@@ -103,7 +103,7 @@ class SearchResultList extends Component {
           this.state.hits = this.state.hits.concat(cachedQuery.hits.hits);
           this.state.totals = cachedQuery.hits.total;
           this.state.pagesLoaded += 1;
-          args.start = this.state.pagesLoaded * this.querySize;
+          args.start = this.state.pagesLoaded * this.querySize[this.props.tab];
           if (this.props.tab === "text") {
             // Since texts only have one filter type, aggregations are only requested once on first page
             args.aggregationsToUpdate = [];
@@ -134,8 +134,9 @@ class SearchResultList extends Component {
                   pagesLoaded: 0,
                   moreToLoad: true
               };
-              this.setState(state);
-              this._executeQuery(newProps, this.props.tab);
+              this.setState(state, () => {
+                  this._executeQuery(newProps, this.props.tab);
+              })
       }
     }
     async addRefTopic(topic) {
@@ -314,7 +315,7 @@ class SearchResultList extends Component {
                   hits: data.hits.hits,
                   totals: currTotal,
                   pagesLoaded: 1,
-                  moreToLoad: currTotal.getValue() > this.querySize[type]
+                  moreToLoad: currTotal.getValue() > this.querySize[this.props.tab]
                 };
                 this.setState(state, () => {
                   this.updateTotalResults();
@@ -365,7 +366,7 @@ class SearchResultList extends Component {
         applied_filters: request_applied,
         appliedFilterAggTypes,
         aggregationsToUpdate,
-        size: this.querySize[type],
+        size: this.querySize[this.props.tab],
         field,
         sort_type: sortType,
         exact: fieldExact === field,
@@ -400,12 +401,6 @@ class SearchResultList extends Component {
       }
       this.setState({error: true});
       this.updateRunningQuery(null);
-    }
-    showSheets() {
-      this.props.updateTab('sheet');
-    }
-    showTexts() {
-      this.props.updateTab('text');
     }
     render () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
@@ -461,14 +456,6 @@ class SearchResultList extends Component {
         return (
           <div>
             <div className="searchTopMatter">
-              {!this.props.searchInBook ?
-              <SearchTabs
-                clickTextButton={this.showTexts}
-                clickSheetButton={this.showSheets}
-                textTotal={this.state.totals["text"]}
-                sheetTotal={this.state.totals["sheet"]}
-                currentTab={tab} /> : null
-              }
               {Sefaria.multiPanel && !this.props.compare ?
               <SearchSortBox
                 type={tab}
@@ -493,33 +480,9 @@ SearchResultList.propTypes = {
   textSearchState:          PropTypes.object,
   sheetSearchState:         PropTypes.object,
   onResultClick:            PropTypes.func,
-  updateTab:                PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func,
 };
-
-
-const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, currentTab}) => (
-  <div className="type-buttons sans-serif">
-    <SearchTab label={"Sources"} total={textTotal} onClick={clickTextButton} active={currentTab === "text"} />
-    <SearchTab label={"Sheets"} total={sheetTotal} onClick={clickSheetButton} active={currentTab === "sheet"} />
-  </div>
-);
-
-
-const SearchTab = ({label, total, onClick, active}) => {
-  const classes = classNames({"search-dropdown-button": 1, active});
-
-  return (
-    <div className={classes} onClick={onClick} onKeyPress={e => {e.charCode === 13 ? onClick(e) : null}} role="button" tabIndex="0">
-      <div className="type-button-title">
-        <InterfaceText>{label}</InterfaceText>&nbsp;
-        <InterfaceText>{`(${total.asString()})`}</InterfaceText>
-      </div>
-    </div>
-  );
-};
-
 
 const SearchSortBox = ({type, updateAppliedOptionSort, sortType}) => {
   const [isOpen, setIsOpen] = useState(false);
