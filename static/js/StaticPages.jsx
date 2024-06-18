@@ -3139,15 +3139,17 @@ const DevBox = () => {
     return (
       <div className='productsDevBox'>
         <p className='productsDevHeader'>
-            <span className="int-en">Powered by Sefaria</span>
-            <span className="int-he">פרויקטים מכח ספריא</span>
+            <InterfaceText text={{en: "Powered by Sefaria" , he:"פרויקטים מכח ספריא" }} />
         </p>
         <p>
-            <span className="int-en">
-            Check out the products our software developer friends from around the world have been building for you! <a href="www.example.com">Explore</a>
-            </span>
-            <span className="int-he">נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="www.example.com">גלו את הפרויקטים</a></span>
-            
+            <InterfaceText>  
+                <HebrewText>   
+                    נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="www.example.com">גלו את הפרויקטים</a>                
+                </HebrewText>  
+                <EnglishText>
+                Check out the products our software developer friends from around the world have been building for you! <a href="www.example.com">Explore</a> 
+                </EnglishText>
+            </InterfaceText>
         </p>
       </div>
     );
@@ -3162,8 +3164,9 @@ const ProductTitle = ({product}) => {
     return (
         <div className='productsTitleAndLabel'>
         <span className="productsTitle">
-            <span className="int-en">{product.titles.en}</span>
-            <span className="int-he">{product.titles.he}</span>
+            <InterfaceText text={{en: product.titles.en , he: product.titles.he }} />
+            <span className="int-en">{}</span>
+            <span className="int-he">{}</span>
         </span>
         {product.type.en ? (<span className="productsTypeLabel">                                
             <span className="int-en">{product.type.en}</span>
