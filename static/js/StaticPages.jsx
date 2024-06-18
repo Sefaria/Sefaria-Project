@@ -3,7 +3,10 @@ import {
     SimpleInterfaceBlock,
     TwoOrThreeBox,
     ResponsiveNBox,
-    NBox, InterfaceText,
+    NBox, 
+    InterfaceText, 
+    HebrewText, 
+    EnglishText
 } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
@@ -3251,6 +3254,8 @@ const ProductsPage = memo(() => {
     useEffect(() => {
         loadProducts();
     }, []);
+
+    console.log(products);
 
     // GraphQL query to Strapi
     const fetchProductsJSON = async () => {

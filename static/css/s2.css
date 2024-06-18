@@ -12993,10 +12993,6 @@ span.ref-link-color-3 {color: blue}
   margin-inline-start: 68px;
 }
 
-.product hr {
-  border: 1px solid var(--light-grey);
-}
-
 .productsInner {
   display: flex;
   align-items: right;
@@ -13011,8 +13007,8 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsInner .productsDesc {
-  font: 'Roboto', sans-serif; 
-  color: #666666;
+  font: var(--english-sans-serif-font-family); 
+  color: var(--dark-grey);
   font-size: 16px;
 }
 
@@ -13026,7 +13022,7 @@ span.ref-link-color-3 {color: blue}
   margin-top: 10%;
   margin-bottom: 3%;
   padding-bottom: 3%;
-  border-bottom: 1px solid #CCCCCC;
+  border-bottom: 1px solid var(--light-grey);
 }
 
 .productsTitleAndLabel {
@@ -13034,21 +13030,21 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsHeader .productsTitle {
-  font: 'Roboto', sans-serif; 
-  color: #666666;
+  font: var(--english-sans-serif-font-family); 
+  color: var(--dark-grey);
   font-size: 22px;
   font-weight: 500px;
 }
 
 .productsHeader .productsTypeLabel {
-  font: 'Roboto', sans-serif; 
+  font: var(--english-sans-serif-font-family); 
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
-  background-color: #EDEDEC; 
+  background-color: var(--lighter-grey); 
   border-radius: 6px; 
   padding: 0.01px 5px;
-  color: #666666; 
+  color: var(--dark-grey); 
   margin-inline-start: 3%;
 }
 
@@ -13058,9 +13054,8 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsHeader .cta .productsCTA {
-  color: #4B71B7; 
+  color: var(--commentary-blue); 
   border-width: 10px;
-  border-color: #0cd200;
   margin-inline-end: 10px;
 }
 
@@ -13073,29 +13068,27 @@ span.ref-link-color-3 {color: blue}
   filter: brightness(0) saturate(100%) invert(52%) sepia(17%) saturate(6763%) hue-rotate(200deg) brightness(78%) contrast(77%);;
   /* --image-path: attr(data-image-path);
   mask: url(--image-path) no-repeat;
-  background-color: #4B71B7;
-  border: #0cd200; */
+  background-color: #4B71B7; */
 }
 
 .productsTitle {
-  font-family: Roboto;
+  font-family: var(--english-sans-serif-font-family);
   font-size: 22px;
   font-weight: 500;
   line-height: 25.78px;
   text-align: left;
-  color: #666666;
+  color: var(--dark-grey);
 }
 
 .productsCTA::after {
   content: " >";
-  color: #4B71B7;
+  color: var(--commentary-blue);
 }
 
 .productsDevBox {
-    background: #EDEDEC;
-    color: #666666;
-    border: red;
-    font-family: Roboto;
+    background: var(--lighter-grey);
+    color: var(--dark-grey);
+    font-family: var(--english-sans-serif-font-family);
     font-size: 16px;
     font-weight: 400;
     line-height: 18.75px;
@@ -13108,7 +13101,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsDevBox .productsDevHeader {
-  font-family: Roboto;
+  font-family: var(--english-sans-serif-font-family);
   font-size: 22px;
   font-weight: 500;
   line-height: 25.78px;
@@ -13117,7 +13110,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsDevBox a {
-  color: #4B71B7 !important; 
+  color: var(--commentary-blue) !important; 
 
 }
 
@@ -13127,7 +13120,7 @@ span.ref-link-color-3 {color: blue}
 
 .productsDevBox a::after {
   content: " >";
-  color: #4B71B7;
+  color: var(--commentary-blue);
 }
 
 
