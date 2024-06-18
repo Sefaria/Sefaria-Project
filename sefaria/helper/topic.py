@@ -1216,12 +1216,11 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     topic_obj = Topic.init(slug)
     if topic_obj is None:
         return {"error": "Topic does not exist."}
-    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref}
-    # we don't know what link is being targeted b/c we don't know the dataSource.
-    # we'll guess that the most likely candidate is the link with the highest curatedPrimacy
-    link_set = RefTopicLinkSet(ref_topic_dict, sort=[["order.curatedPrimacy", -1]]).array()
-    link_already_existed = len(link_set) > 0
-    link = link_set[0] if link_already_existed else RefTopicLink(ref_topic_dict)
+    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref, "dataSource": "learning-team"}
+    link = RefTopicLink().load(ref_topic_dict)
+    link_already_existed = link is not None
+    if not link_already_existed:
+        link = RefTopicLink(ref_topic_dict)
 
     if not hasattr(link, 'order'):
         link.order = {}
