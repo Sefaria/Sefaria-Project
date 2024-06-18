@@ -174,7 +174,7 @@ const EntitySearchSuggestion = ({label, onClick, type, url, ...props}) => {
     );
 }
 
-const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebrewKeyboard,
+const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebrewKeyboard, setInputValue,
                         setSearchFocused, searchFocused,
                             submitSearch, redirectToObject}) => {
 
@@ -224,12 +224,14 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
 
     const blurSearch = (e) => {
       onBlur(e);
+      const oldValue = document.getElementsByClassName('keyboardInput')[0].value;
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
         // debug: comment out the following line:
         setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }
+      setInputValue(oldValue)
     };
 
     const inputClasses = classNames({
@@ -353,6 +355,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     getInputProps,
     getItemProps,
     highlightedIndex,
+    setInputValue
   } = useCombobox({
     items: suggestions,
     itemToString: (item) => (item ? item.name : ''),
@@ -465,6 +468,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
             suggestions={suggestions}
             hideHebrewKeyboard={hideHebrewKeyboard}
             highlightedIndex={highlightedIndex}
+            setInputValue={setInputValue}
 
             setSearchFocused={setSearchFocused}
             searchFocused={searchFocused}
