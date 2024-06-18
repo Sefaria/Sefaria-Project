@@ -178,6 +178,12 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
                         setSearchFocused, searchFocused,
                             submitSearch, redirectToObject}) => {
 
+    const getInputValue = () =>{
+        return otherDownShiftProps.value || document.getElementsByClassName('keyboardInput')[0].value;
+    }
+    const getVirtualKeyboardInputValue = () =>{
+        return document.getElementsByClassName('keyboardInput')[0].value;
+    }
     useEffect(() => {
       showVirtualKeyboardIcon(false); // Initially hide the virtual keyboard icon
     }, []);
@@ -191,14 +197,14 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
         redirectToObject(highlightedItem);
         return;
       }
-      const inputQuery = otherDownShiftProps.value || document.getElementsByClassName('keyboardInput')[0].value;
+      const inputQuery = getInputValue();
       if (!inputQuery) return;
       submitSearch(inputQuery);
     };
 
 
     const handleSearchButtonClick = (event) => {
-      const inputQuery = otherDownShiftProps.value || document.getElementsByClassName('keyboardInput')[0].value;
+      const inputQuery = getInputValue();
       if (inputQuery) {
         submitSearch(inputQuery);
       } else {
@@ -224,14 +230,14 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
 
     const blurSearch = (e) => {
       onBlur(e);
-      const oldValue = document.getElementsByClassName('keyboardInput')[0].value;
+      const oldValue = getVirtualKeyboardInputValue();
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
         // debug: comment out the following line:
         setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }
-      setInputValue(oldValue)
+      !document.getElementById('keyboardInputMaster') && setInputValue(oldValue)
     };
 
     const inputClasses = classNames({
