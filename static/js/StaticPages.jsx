@@ -3186,8 +3186,7 @@ const ProductCTA = ({cta}) => {
         // <OnInView onVisible={() => productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "viewed")}>
 
         // TODO - once analytics finalized, add onClick={productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "clicked")}
-        <a  href={cta.url} 
-            key={cta.text.en}>
+        <a href={cta.url} >
             {cta.icon.url && <img className="productsCTAIcon" 
                                 data-image-path={cta.icon.url} 
                                 src={cta.icon.url} 
@@ -3206,7 +3205,6 @@ const ProductCTA = ({cta}) => {
 
 // The main body of each product entry, containing an image and description
 const ProductDesc = ({product}) => {
-    console.log(product);
     return (
         <div className="productsInner">
             <img src={product.rectanglion.url} alt={`Image for product: ${product?.titles?.en}`}/>
@@ -3228,14 +3226,14 @@ const ProductDesc = ({product}) => {
 };
 
 // The main product component, comprised of the building block sub-components
-const Product = ({key, product}) => {
+const Product = ({id, product}) => {
     return (
-        <div key={key} className="product">
+        <div key={id} className="product">
             <div className="productsHeader">
                 <ProductTitle product={product} />
                 <div className="cta">
                     {product.ctaLabels?.map(cta => (
-                        <ProductCTA cta={cta} />
+                        <ProductCTA key={cta.id} cta={cta} />
                     ))}
                 </div>       
             </div>
@@ -3254,8 +3252,6 @@ const ProductsPage = memo(() => {
     useEffect(() => {
         loadProducts();
     }, []);
-
-    console.log(products);
 
     // GraphQL query to Strapi
     const fetchProductsJSON = async () => {
@@ -3377,7 +3373,8 @@ const ProductsPage = memo(() => {
                             url: cta.attributes?.url,
                             icon: {
                                 url: cta.attributes?.icon?.data?.attributes?.url,
-                            }
+                            },
+                            id: cta.id
                         };
                     });
 
