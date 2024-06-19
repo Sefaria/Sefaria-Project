@@ -3188,9 +3188,9 @@ const ProductCTA = ({cta}) => {
         // TODO - once analytics finalized, add onClick={productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "clicked")}
         <a href={cta.url} >
             {cta.icon.url && <img className="productsCTAIcon" 
-                                data-image-path={cta.icon.url} 
-                                src={cta.icon.url} 
-                                alt="Click icon" />}
+                                    style={{"--image-url": cta.icon.url}}
+                                    src={cta.icon.url} 
+                                    alt="Click icon" />}
                                 
             <span className="productsCTA">
                 <InterfaceText text={{en: cta.text.en , he: cta.text.he }} />
@@ -3226,9 +3226,9 @@ const ProductDesc = ({product}) => {
 };
 
 // The main product component, comprised of the building block sub-components
-const Product = ({id, product}) => {
+const Product = ({product}) => {
     return (
-        <div key={id} className="product">
+        <div className="product">
             <div className="productsHeader">
                 <ProductTitle product={product} />
                 <div className="cta">
@@ -3443,7 +3443,7 @@ const ProductsPage = memo(() => {
     const remainingProducts = ProductList.slice(devBoxPosition);
 
     return (
-        <div>
+        <div className='productsFlexWrapper'>
             {products && products.length > 0  ? (
                 <>
                 {initialProducts}
