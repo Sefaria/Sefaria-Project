@@ -13158,7 +13158,6 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownHeaderText {
-  /* border: 5px solid red; */
   padding-left: 10px;
 }
 
@@ -13172,8 +13171,11 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownItem {
-  border-bottom: 1px solid var(--light-grey);
   padding: 0px 0px 5px 10px !important;
+}
+
+.dropdownItem:not(:last-child){
+  border-bottom: 1px solid var(--light-grey);
 }
 
 .image-in-text-title {
