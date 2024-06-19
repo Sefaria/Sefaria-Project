@@ -783,22 +783,31 @@ class TestVersionActualLanguage:
                 pass
     
     def test_normalize(self):
-        assert self.firstTranslationVersion.actualLanguage == 'fr'
-        assert self.firstTranslationVersion.direction == 'ltr'
-        assert self.firstTranslationVersion.languageFamilyName == 'french'
-        assert self.firstTranslationVersion.isPrimary is True
-        assert self.firstTranslationVersion.isSource is False
-        assert self.sourceVersion.actualLanguage == 'he'
-        assert self.sourceVersion.direction == 'rtl'
-        assert self.sourceVersion.languageFamilyName == 'hebrew'
-        assert self.sourceVersion.isSource is True
-        assert self.sourceVersion.isPrimary is True
+        expected_attrs = {
+            'firstTranslationVersion': {
+                'actualLanguage': 'fr',
+                'direction': 'ltr',
+                'languageFamilyName': 'french',
+                'isPrimary': True,
+                'isSource': False,
+            },
+            'sourceVersion': {
+                'actualLanguage': 'he',
+                'direction': 'rtl',
+                'languageFamilyName': 'hebrew',
+                'isPrimary': True,
+                'isSource': True,
+            },
+            'versionWithLangCodeMismatch': {
+                'actualLanguage': 'fr',
+                'direction': 'ltr',
+                'languageFamilyName': 'french',
+                'isPrimary': False,
+                'isSource': False,
+            },
+        }
         self.versionWithLangCodeMismatch._normalize()
-        assert self.versionWithLangCodeMismatch.actualLanguage == 'fr'
-        assert self.versionWithLangCodeMismatch.direction == 'ltr'
-        assert self.versionWithLangCodeMismatch.languageFamilyName == 'french'
-        assert self.versionWithLangCodeMismatch.isSource is False
-        assert self.versionWithLangCodeMismatch.isPrimary is False
-
-
-
+        for version_key in expected_attrs:
+            version = getattr(self, version_key)
+            for attr in expected_attrs[version_key]:
+                assert getattr(version, attr) == expected_attrs[version_key][attr]
