@@ -52,7 +52,7 @@ class ReaderApp extends Component {
         mode:                    "Menu",
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
-        searchTab:               props.initialSearchType,
+        searchType:               props.initialSearchType,
         tab:                     props.initialTab,
         topicSort:               props.initialTopicSort,
         textSearchState: new SearchState({
@@ -154,7 +154,7 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
       searchQuery:             state.searchQuery             || null,
-      searchTab:               state.searchTab               || 'text',
+      searchType:               state.searchType               || 'text',
       showHighlight:           state.showHighlight           || null,
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
@@ -390,7 +390,7 @@ class ReaderApp extends Component {
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
-          (prev.searchTab != next.searchTab) ||
+          (prev.searchType != next.searchType) ||
           (prev.tab !== next.tab) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
@@ -478,7 +478,7 @@ class ReaderApp extends Component {
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery.stripHtml() + " | " : "";
             hist.title += Sefaria._(siteName + " Search");
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchTab}` +
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchType}` +
               state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
               state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode  = "search";
@@ -1710,15 +1710,15 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const textSearchState =  (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].textSearchState)  ? this.state.panels[0].textSearchState.update({ filtersValid: false })  : new SearchState({ type: 'text' });
     const sheetSearchState = (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].sheetSearchState) ? this.state.panels[0].sheetSearchState.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
 
-    const searchTab = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchTab : "text";
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchTab, textSearchState, sheetSearchState });
+    const searchType = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchType : "text";
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchType, textSearchState, sheetSearchState });
   }
   searchInCollection(searchQuery, collection) {
     let panel;
     const textSearchState =  new SearchState({ type: 'text' });
     const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [collection], appliedFilterAggTypes: ['collections']});
 
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchType": "sheet", searchQuery, textSearchState, sheetSearchState });
   }
   showCommunity() {
     this.setSinglePanelState({menuOpen: "community"});

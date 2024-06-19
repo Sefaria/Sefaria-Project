@@ -409,7 +409,7 @@ class SearchResultList extends Component {
         const searchState = this._getSearchState(type);
         let results       = [];
 
-        if (type == "text") {
+        if (type === "text") {
           results = Sefaria.search.mergeTextResultsVersions(this.state.hits);
           results = results.filter(result => !!result._source.version).map(result =>
             <SearchTextResult
@@ -434,7 +434,7 @@ class SearchResultList extends Component {
           }
 
 
-        } else if (type == "sheet") {
+        } else if (type === "sheet") {
           results = this.state.hits.map(result =>
             <SearchSheetResult
               data={result}
@@ -456,7 +456,7 @@ class SearchResultList extends Component {
             <div className="searchTopMatter">
               {Sefaria.multiPanel && !this.props.compare ?
               <SearchSortBox
-                type
+                type={this.props.type}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                 sortType={searchState.sortType} />
               :

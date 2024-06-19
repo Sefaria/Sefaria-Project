@@ -887,7 +887,7 @@ class ReaderPanel extends Component {
                     key={"searchPage"}
                     interfaceLang={this.props.interfaceLang}
                     query={this.state.searchQuery}
-                    type={this.state.searchTab}
+                    type={this.state.searchType}
                     textSearchState={this.state.textSearchState}
                     sheetSearchState={this.state.sheetSearchState}
                     settings={Sefaria.util.clone(this.state.settings)}

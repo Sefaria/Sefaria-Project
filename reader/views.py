@@ -839,7 +839,7 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
-        "initialSearchTab": search_params["tab"],
+        "initialSearchType": search_params["tab"],
         "initialTextSearchFilters": search_params["textFilters"],
         "initialTextSearchFilterAggTypes": search_params["textFilterAggTypes"],
         "initialTextSearchField": search_params["textField"],

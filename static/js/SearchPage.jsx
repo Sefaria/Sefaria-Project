@@ -56,7 +56,7 @@ class SearchPage extends Component {
 
               <SearchResultList
                 query={this.props.query}
-                type={this.props.tab}
+                type={this.props.type}
                 compare={this.props.compare}
                 textSearchState={this.props.textSearchState}
                 sheetSearchState={this.props.sheetSearchState}
@@ -73,13 +73,13 @@ class SearchPage extends Component {
               {this.state.totalResults?.getValue() > 0 ?
               <SearchFilters
                 query={this.props.query}
-                searchState={this.props[`${this.props.tab}SearchState`]}
-                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.tab, this.props[`${this.props.tab}SearchState`])}
-                updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.tab)}
-                updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.tab)}
+                searchState={this.props[`${this.props.type}SearchState`]}
+                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.type, this.props[`${this.props.type}SearchState`])}
+                updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.type)}
+                updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.type)}
                 closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
                 compare={this.props.compare}
-                type={this.props.tab} />
+                type={this.props.type} />
               : null }
             </div>
             : null }
@@ -93,7 +93,7 @@ class SearchPage extends Component {
 SearchPage.propTypes = {
   interfaceLang:            PropTypes.oneOf(["english", "hebrew"]),
   query:                    PropTypes.string,
-  tab:                      PropTypes.oneOf(["text", "sheet"]),
+  type:                      PropTypes.oneOf(["text", "sheet"]),
   textSearchState:          PropTypes.object,
   sheetSearchState:         PropTypes.object,
   settings:                 PropTypes.object,
