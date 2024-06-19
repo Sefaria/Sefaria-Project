@@ -47,14 +47,14 @@ const DropdownMenu = ({header, bodyItems}) => {
             : null}
 
             <div className="interfaceLinks-options">
-            {bodyItems.map(item =>
-                <a className={`interfaceLinks-option int-bi int-en`} href={item.url}>
-                   <div className="dropdownHeader">
-                        <img src={item.icon} />{item.text}
-                    </div>
-                   <div className='dropdownDesc'>Lorem ipsum dolor sit amet, lorem dolor.</div>
-                </a>)
-            }
+              {bodyItems.map(item =>
+                  <a className={`interfaceLinks-option int-bi int-en dropdownItem`} href={item.url}>
+                    <div className="dropdownHeader">
+                          <img src={item.icon} />{item.text}
+                      </div>
+                    <div className='dropdownDesc'>Lorem ipsum dolor sit amet, lorem dolor.</div>
+                  </a>)
+              }
               {/* <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
               <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a> */}
             </div>

@@ -13153,6 +13153,7 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   line-height: 18.75px;
   text-align: left;
+  color: var(--selected-option);
 
 }
 
@@ -13162,7 +13163,10 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   line-height: 18px;
   text-align: left;
+}
 
+.dropdownItem {
+  border-bottom: 1px solid var(--light-grey);
 }
 
 .image-in-text-title {
