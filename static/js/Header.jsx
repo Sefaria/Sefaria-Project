@@ -47,11 +47,6 @@ class Header extends Component {
     // const sampleHeader = "Sefaria Links";
     const sampleBody = [
       {
-        'url': '//developers.sefaria.org',
-        'text': 'Developer Portal',
-        'icon': '/static/icons/developers_icon.svg'
-      },
-      {
         'url': '/',
         'text': 'Library',
         'icon': '/static/icons/library_icon.svg'
@@ -60,6 +55,11 @@ class Header extends Component {
         'url': '//sheets.sefaria.org',
         'text': 'Sheets',
         'icon': '/static/icons/sheets_icon.svg'
+      },
+      {
+        'url': '//developers.sefaria.org',
+        'text': 'Developer Portal',
+        'icon': '/static/icons/developers_icon.svg'
       }
     ];
 

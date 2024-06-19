@@ -13147,7 +13147,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownHeader {
-  margin-bottom: 1rem;
+  margin-bottom: 10px;
   font-family: Roboto;
   font-size: 16px;
   font-weight: 400;
@@ -13157,16 +13157,23 @@ span.ref-link-color-3 {color: blue}
 
 }
 
+.dropdownHeaderText {
+  /* border: 5px solid red; */
+  padding-left: 10px;
+}
+
 .dropdownDesc {
   font-family: Roboto;
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
   text-align: left;
+  padding-left: 30px;
 }
 
 .dropdownItem {
   border-bottom: 1px solid var(--light-grey);
+  padding: 0px 0px 5px 10px !important;
 }
 
 .image-in-text-title {

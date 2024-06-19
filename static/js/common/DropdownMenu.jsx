@@ -50,7 +50,8 @@ const DropdownMenu = ({header, bodyItems}) => {
               {bodyItems.map(item =>
                   <a className={`interfaceLinks-option int-bi int-en dropdownItem`} href={item.url}>
                     <div className="dropdownHeader">
-                          <img src={item.icon} />{item.text}
+                          <img src={item.icon} />
+                          <span className='dropdownHeaderText'>{item.text}</span>
                       </div>
                     <div className='dropdownDesc'>Lorem ipsum dolor sit amet, lorem dolor.</div>
                   </a>)
