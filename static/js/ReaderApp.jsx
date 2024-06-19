@@ -52,7 +52,7 @@ class ReaderApp extends Component {
         mode:                    "Menu",
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
-        searchTab:               props.initialSearchTab,
+        searchTab:               props.initialSearchType,
         tab:                     props.initialTab,
         topicSort:               props.initialTopicSort,
         textSearchState: new SearchState({
@@ -1181,9 +1181,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     };
     this.setPanelState(n, updates);
   }
-  updateSearchTab(n, searchTab) {
-    this.setPanelState(n, { searchTab });
-  }
   updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     const state = this.state.panels[n];
     const searchState = this._getSearchState(state, type);
@@ -2125,7 +2122,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var onSidebarSearchClick           = this.handleSidebarSearchClick.bind(null, i);
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
-      var updateSearchTab                = this.updateSearchTab.bind(null, i);
       var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
@@ -2183,7 +2179,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDefaultOption={this.setDefaultOption}
                       unsetTextHighlight={unsetTextHighlight}
                       onQueryChange={updateQuery}
-                      updateSearchTab={updateSearchTab}
                       updateSearchFilter={updateSearchFilter}
                       updateSearchOptionField={updateSearchOptionField}
                       updateSearchOptionSort={updateSearchOptionSort}

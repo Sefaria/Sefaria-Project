@@ -56,7 +56,7 @@ class SearchPage extends Component {
 
               <SearchResultList
                 query={this.props.query}
-                tab={this.props.tab}
+                type={this.props.tab}
                 compare={this.props.compare}
                 textSearchState={this.props.textSearchState}
                 sheetSearchState={this.props.sheetSearchState}
@@ -101,7 +101,6 @@ SearchPage.propTypes = {
   close:                    PropTypes.func,
   onResultClick:            PropTypes.func,
   onQueryChange:            PropTypes.func,
-  updateTab:                PropTypes.func,
   updateAppliedFilter:      PropTypes.func,
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,

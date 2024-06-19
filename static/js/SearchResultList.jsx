@@ -103,8 +103,8 @@ class SearchResultList extends Component {
           this.state.hits = this.state.hits.concat(cachedQuery.hits.hits);
           this.state.totals = cachedQuery.hits.total;
           this.state.pagesLoaded += 1;
-          args.start = this.state.pagesLoaded * this.querySize[this.props.tab];
-          if (this.props.tab === "text") {
+          args.start = this.state.pagesLoaded * this.querySize[this.props.type];
+          if (this.props.type === "text") {
             // Since texts only have one filter type, aggregations are only requested once on first page
             args.aggregationsToUpdate = [];
           }
@@ -128,14 +128,14 @@ class SearchResultList extends Component {
           moreToLoad: true,
         });
         this._executeAllQueries(newProps);
-      } else if (this._shouldUpdateQuery(this.props, newProps, this.props.tab)) {
+      } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
               let state = {
                   hits: [],
                   pagesLoaded: 0,
                   moreToLoad: true
               };
               this.setState(state, () => {
-                  this._executeQuery(newProps, this.props.tab);
+                  this._executeQuery(newProps, this.props.type);
               })
       }
     }
@@ -250,8 +250,6 @@ class SearchResultList extends Component {
       this.updateRunningQuery(null);
     }
     handleScroll() {
-      var tab = this.props.tab;
-
       if (!this.state.moreToLoad) { return; }
       if (this.state.runningQueries) { return; }
 
@@ -262,8 +260,8 @@ class SearchResultList extends Component {
       }
     }
     _shouldUpdateQuery(oldProps, newProps) {
-      const oldSearchState = this._getSearchState(this.props.tab, oldProps);
-      const newSearchState = this._getSearchState(this.props.tab, newProps);
+      const oldSearchState = this._getSearchState(this.props.type, oldProps);
+      const newSearchState = this._getSearchState(this.props.type, newProps);
       return !oldSearchState.isEqual({ other: newSearchState, fields: ['appliedFilters', 'field', 'sortType'] }) ||
         ((oldSearchState.filtersValid !== newSearchState.filtersValid) && oldSearchState.appliedFilters.length > 0);  // Execute a second query to apply filters after an initial query which got available filters
     }
@@ -276,7 +274,7 @@ class SearchResultList extends Component {
     }
     _executeAllQueries(props) {
       this._executeTopicQuery();
-      this._executeQuery(props, this.props.tab);
+      this._executeQuery(props, this.props.type);
     }
     _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type) {
       // Returns a list of aggregations type which we should request from the server.
@@ -303,9 +301,9 @@ class SearchResultList extends Component {
       // 2) Apply filters (Triggered from componentWillReceiveProps)
 
       const request_applied = args.applied_filters;
-      const searchState = this._getSearchState(this.props.tab, props);
+      const searchState = this._getSearchState(this.props.type, props);
       const { appliedFilters, appliedFilterAggTypes } = searchState;
-      const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[this.props.tab];
+      const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[this.props.type];
 
       args.success = data => {
               this.updateRunningQuery(null);
@@ -315,7 +313,7 @@ class SearchResultList extends Component {
                   hits: data.hits.hits,
                   totals: currTotal,
                   pagesLoaded: 1,
-                  moreToLoad: currTotal.getValue() > this.querySize[this.props.tab]
+                  moreToLoad: currTotal.getValue() > this.querySize[this.props.type]
                 };
                 this.setState(state, () => {
                   this.updateTotalResults();
@@ -323,7 +321,7 @@ class SearchResultList extends Component {
                 });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
-                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${this.props.tab}`, query_label, data.hits.total.getValue());
+                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${this.props.type}`, query_label, data.hits.total.getValue());
               }
 
               if (data.aggregations) {
@@ -343,7 +341,7 @@ class SearchResultList extends Component {
                     orphans.push(...tempOrphans);
                   }
                 }
-                this.props.registerAvailableFilters(this.props.tab, availableFilters, registry, orphans, args.aggregationsToUpdate);
+                this.props.registerAvailableFilters(this.props.type, availableFilters, registry, orphans, args.aggregationsToUpdate);
               }
             };
       args.error = this._handleError;
@@ -354,19 +352,19 @@ class SearchResultList extends Component {
     _getQueryArgs(props) {
       props = props || this.props;
 
-      const searchState = this._getSearchState(this.props.tab, props);
+      const searchState = this._getSearchState(this.props.type, props);
       const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
-      const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[this.props.tab];
-      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, this.props.tab);
+      const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[this.props.type];
+      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, this.props.type);
 
       return {
         query: props.query,
-        type: this.props.tab,
+        type: this.props.type,
         applied_filters: request_applied,
         appliedFilterAggTypes,
         aggregationsToUpdate,
-        size: this.querySize[this.props.tab],
+        size: this.querySize[this.props.type],
         field,
         sort_type: sortType,
         exact: fieldExact === field,
@@ -375,14 +373,14 @@ class SearchResultList extends Component {
     _loadNextPage() {
       console.log("load next page")
       const args = this._getQueryArgs(this.props);
-      args.start = this.state.pagesLoaded * this.querySize[this.props.tab];
+      args.start = this.state.pagesLoaded * this.querySize[this.props.type];
       args.error = () => console.log("Failure in SearchResultList._loadNextPage");
       args.success =  data => {
           let nextHits = this.state.hits.concat(data.hits.hits);
 
           this.state.hits = nextHits;
           this.state.pagesLoaded += 1;
-          if (this.state.pagesLoaded * this.querySize[this.props.tab] >= this.state.totals.getValue() ) {
+          if (this.state.pagesLoaded * this.querySize[this.props.type] >= this.state.totals.getValue() ) {
             this.state.moreToLoad = false;
           }
 
@@ -407,11 +405,11 @@ class SearchResultList extends Component {
             return null;
         }
 
-        const { tab }     = this.props;
-        const searchState = this._getSearchState(tab);
+        const { type }     = this.props;
+        const searchState = this._getSearchState(type);
         let results       = [];
 
-        if (tab == "text") {
+        if (type == "text") {
           results = Sefaria.search.mergeTextResultsVersions(this.state.hits);
           results = results.filter(result => !!result._source.version).map(result =>
             <SearchTextResult
@@ -436,7 +434,7 @@ class SearchResultList extends Component {
           }
 
 
-        } else if (tab == "sheet") {
+        } else if (type == "sheet") {
           results = this.state.hits.map(result =>
             <SearchSheetResult
               data={result}
@@ -458,7 +456,7 @@ class SearchResultList extends Component {
             <div className="searchTopMatter">
               {Sefaria.multiPanel && !this.props.compare ?
               <SearchSortBox
-                type={tab}
+                type
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                 sortType={searchState.sortType} />
               :
@@ -476,7 +474,7 @@ class SearchResultList extends Component {
 }
 SearchResultList.propTypes = {
   query:                    PropTypes.string,
-  tab:                      PropTypes.oneOf(["text", "sheet"]),
+  type:                      PropTypes.oneOf(["text", "sheet"]),
   textSearchState:          PropTypes.object,
   sheetSearchState:         PropTypes.object,
   onResultClick:            PropTypes.func,
