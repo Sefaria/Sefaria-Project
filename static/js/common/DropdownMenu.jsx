@@ -4,9 +4,6 @@ const DropdownMenu = ({header, bodyItems}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
   
-    const getCurrentPage = () => {
-      return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
-    }
     const handleClick = (e) => {
       e.stopPropagation();
       setIsOpen(isOpen => !isOpen);
@@ -36,11 +33,12 @@ const DropdownMenu = ({header, bodyItems}) => {
   
     return (
         <div className="interfaceLinks" ref={wrapperRef}>
-          <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/></a>
+          <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Module Switcher')}/></a>
           <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
             { header ? 
                 (
                     <div className="interfaceLinks-header">
+                      {/* TODO: Deal with Hebrew text,  use <InterfaceText />*/}
                         <span className="int-en">{header}</span>
                     </div>
                 ) 
