@@ -117,7 +117,7 @@ class SearchResultList extends Component {
         $(ReactDOM.findDOMNode(this)).closest(".content").on("scroll.infiteScroll", this.handleScroll);
     }
     componentWillUnmount() {
-        this._abortRunningQueries();  // todo: make this work w/ promises
+        this._abortRunningQuery();  // todo: make this work w/ promises
         $(ReactDOM.findDOMNode(this)).closest(".content").off("scroll.infiniteScroll", this.handleScroll);
     }
     componentWillReceiveProps(newProps) {
