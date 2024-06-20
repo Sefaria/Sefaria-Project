@@ -13174,10 +13174,12 @@ span.ref-link-color-3 {color: blue}
 
 .dropdownItem {
   padding: 0px 0px 5px 10px !important;
+  text-align: left;
+  padding-left: 10px;
 }
 
-.dropdownItem:not(:last-child){
-  border-bottom: 1px solid var(--light-grey);
+.dropdownSeparator {
+  border: 1px solid var(--light-grey);
 }
 
 .image-in-text-title {

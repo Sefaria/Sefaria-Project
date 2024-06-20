@@ -1,6 +1,41 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
 
-const DropdownMenu = ({header, bodyItems}) => {
+
+// Todo
+// Fix the styling on the 'dropdown item' (regular one)
+// Restore the header to also show the globe icon
+
+const DropdownMenuSeparator = () => {
+
+  return (
+    <div className='dropdownSeparator'></div>
+  );
+
+}
+
+const DropdownMenuItem = ({url, children}) => {
+  return (
+
+    <a className={`interfaceLinks-option int-bi int-en dropdownItem`} href={url}>
+      {children}
+    </a>
+
+  );
+}
+
+const DropdownMenuItemWithIcon = ({icon, text}) => {
+  return (
+    <>
+      <div className="dropdownHeader">
+        <img src={icon} />
+        <span className='dropdownHeaderText'>{text}</span>
+      </div>
+      <div className='dropdownDesc'>Lorem ipsum dolor sit amet, lorem dolor.</div>
+  </>
+  );
+}
+
+const DropdownMenu = ({children}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
   
@@ -33,29 +68,10 @@ const DropdownMenu = ({header, bodyItems}) => {
   
     return (
         <div className="interfaceLinks" ref={wrapperRef}>
-          <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Module Switcher')}/></a>
+          <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/module_switcher_icon.svg" alt={Sefaria._('Toggle Module Switcher')}/></a>
           <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
-            { header ? 
-                (
-                    <div className="interfaceLinks-header">
-                      {/* TODO: Deal with Hebrew text,  use <InterfaceText />*/}
-                        <span className="int-en">{header}</span>
-                    </div>
-                ) 
-            : null}
-
             <div className="interfaceLinks-options">
-              {bodyItems.map(item =>
-                  <a className={`interfaceLinks-option int-bi int-en dropdownItem`} href={item.url}>
-                    <div className="dropdownHeader">
-                          <img src={item.icon} />
-                          <span className='dropdownHeaderText'>{item.text}</span>
-                      </div>
-                    <div className='dropdownDesc'>Lorem ipsum dolor sit amet, lorem dolor.</div>
-                  </a>)
-              }
-              {/* <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-              <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a> */}
+              {children}
             </div>
           </div>
         </div>
@@ -64,5 +80,8 @@ const DropdownMenu = ({header, bodyItems}) => {
 
 
   export {
-    DropdownMenu
+    DropdownMenu, 
+    DropdownMenuSeparator, 
+    DropdownMenuItem,
+    DropdownMenuItemWithIcon
   };

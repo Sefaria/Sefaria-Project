@@ -15,7 +15,7 @@ import {
   DonateLink
 } from './Misc';
 import {Autocomplete} from './Autocomplete'
-import { DropdownMenu } from './common/DropdownMenu';
+import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
 
 class Header extends Component {
   constructor(props) {
@@ -89,7 +89,22 @@ class Header extends Component {
             : <LoggedOutButtons headerMode={this.props.headerMode}/>
           }
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <DropdownMenu bodyItems={sampleBody}/> : null}
+              <DropdownMenu>
+                <DropdownMenuItem url={'www.sefaria.org'}>item 1</DropdownMenuItem>
+                <DropdownMenuItem url={'www.google.com'}>item 2</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem url={'/'}>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} text={'Library'} />
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem url={'//sheets.sefaria.org'}>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} text={'Sheets'} />
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem url={'//developers.sefaria.org'}>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} text={'Developers'} />
+                </DropdownMenuItem>
+              </DropdownMenu> : null}
         </div>
       </>
     );
