@@ -803,8 +803,8 @@ class JaggedArrayNodeSection extends Component {
       if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
       let [section, heSection] = Sefaria.getSectionStringByAddressType(this.props.addressTypes[0], i, this.props.offset);
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
-      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref); //the second clause is for depth 1 texts
-      const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
+      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || (Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref) && this.props.depth > 1); //the second clause is for depth 1 texts
+      const linkClasses = classNames({"sectionLink": 1, "current": currentPlace});
       let link = (
         <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
           <ContentText text={{en:section, he:heSection}}/>
