@@ -177,7 +177,7 @@ const markReviewedPostRequest = (lang, topic, topicLink) => {
         'interface_lang': lang === 'en' ? 'english' : 'hebrew',
         'description' : {...topicLink.descriptions[lang], 'review_state': 'reviewed'}
     };
-    return Sefaria.postToApi(`/api/ref-topic-links/${topicLink.ref}`, {}, postData);
+    return Sefaria.postToApi(`/api/ref-topic-links/${encodeURIComponent(topicLink.ref)}`, {}, postData);
 }
 
 const useReviewState = (topic, topicLink) => {
