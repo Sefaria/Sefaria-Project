@@ -847,6 +847,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
 			sheet_data = {
 				"owner":           sheet["owner"],
+				"collections": 		[{'name': c.name, 'slug': c.slug} for c in CollectionSet({"sheets": sheet['id']}).array()],
 				"_id":             str(sheet["_id"]),
 				"id":              str(sheet["id"]),
 				"public":          sheet["status"] == "public",
