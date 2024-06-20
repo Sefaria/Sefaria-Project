@@ -836,6 +836,11 @@ class RefTopicLink(abst.AbstractMongoRecord):
             self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
     def _sanitize(self):
+        """
+        Sanitize the "title" and "prompt" for all descriptions.
+        Since they're human editable they are candidates for XSS.
+        @return:
+        """
         for lang in ("en", "he"):
             description = getattr(self, "descriptions", {}).get(lang)
             if description:
