@@ -278,6 +278,7 @@ GOOGLE_APPLICATION_CREDENTIALS = {
   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/pecha-15%40pecha-418412.iam.gserviceaccount.com",
   "universe_domain": "googleapis.com"
 }
+print("TESTING ...", GOOGLE_APPLICATION_CREDENTIALS)
 
 
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
