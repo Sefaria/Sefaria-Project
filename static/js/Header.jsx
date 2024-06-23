@@ -88,11 +88,9 @@ class Header extends Component {
             <LoggedInButtons headerMode={this.props.headerMode}/>
             : <LoggedOutButtons headerMode={this.props.headerMode}/>
           }
+
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <DropdownMenu>
-                <DropdownMenuItem url={'www.sefaria.org'}>item 1</DropdownMenuItem>
-                <DropdownMenuItem url={'www.google.com'}>item 2</DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem url={'/'}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} text={'Library'} />
                 </DropdownMenuItem>
@@ -104,7 +102,19 @@ class Header extends Component {
                 <DropdownMenuItem url={'//developers.sefaria.org'}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} text={'Developers'} />
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem url={'//developers.sefaria.org'}>
+                  {'More of our products >'}
+                </DropdownMenuItem>
+
               </DropdownMenu> : null}
+
+          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
+              <InterfaceLanguageMenu
+                currentLang={Sefaria.interfaceLang}
+                translationLanguagePreference={this.props.translationLanguagePreference}
+                setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
+        
         </div>
       </>
     );
