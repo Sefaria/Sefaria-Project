@@ -16,7 +16,7 @@ const DropdownMenuSeparator = () => {
 const DropdownMenuItem = ({url, children}) => {
   return (
 
-    <a className={`interfaceLinks-option int-bi int-en dropdownItem`} href={url}>
+    <a className={`interfaceLinks-option int-bi int-en dropdownItem`} href={url} target="_blank">
       {children}
     </a>
 
