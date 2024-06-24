@@ -11,7 +11,7 @@ import {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  CategoryHeader, requestWithCallBack
+  CategoryHeader
 } from './Misc';
 import {ContentText} from "./ContentText";
 import {validateMarkdownLinks} from "./AdminEditor";
@@ -1293,7 +1293,8 @@ const EditTextInfo = function({initTitle, close}) {
   const deleteObj = () => {
     setSavingStatus(true);
     const url = `/api/v2/index/${enTitle}`;
-    requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
+    Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
+        .then(() => window.location.href = '/texts');
   }
   const renderCollectiveTitle = () => {
      if (!creatingCollectiveTitle) {

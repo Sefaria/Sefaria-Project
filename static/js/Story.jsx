@@ -170,14 +170,14 @@ const ReviewStateIndicatorLang = ({reviewState, markReviewed}) => {
 }
 
 const markReviewedPostRequest = (lang, topic, topicLink) => {
-    const postData = {
+    const payload = {
         "topic": topic,
         "is_new": false,
         'new_ref': topicLink.ref,
         'interface_lang': lang === 'en' ? 'english' : 'hebrew',
         'description' : {...topicLink.descriptions[lang], 'review_state': 'reviewed'}
     };
-    return Sefaria.postToApi(`/api/ref-topic-links/${encodeURIComponent(topicLink.ref)}`, {}, postData);
+    return Sefaria.postRefTopicLink(topicLink.ref, payload);
 }
 
 const useReviewState = (topic, topicLink) => {
