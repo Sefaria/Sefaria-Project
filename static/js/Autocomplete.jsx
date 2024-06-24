@@ -179,7 +179,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
                             submitSearch, redirectToObject}) => {
 
     const getInputValue = () =>{
-        return otherDownShiftProps.value || document.getElementsByClassName('keyboardInput')[0].value;
+        return otherDownShiftProps.value || getVirtualKeyboardInputValue();
     }
     const getVirtualKeyboardInputValue = () =>{
         return document.getElementsByClassName('keyboardInput')[0].value;
