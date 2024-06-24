@@ -6,7 +6,6 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
-import SearchResultList  from './SearchResultList';
 import SearchFilters from './SearchFilters';
 import Component from 'react-class';
 import {
@@ -26,6 +25,7 @@ class SearchPage extends Component {
   render () {
     const classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
+    const { list: ListComponent } = this.props;
     return (
       <div className={classes} key={this.props.query}>
         {this.props.compare ?
@@ -54,7 +54,7 @@ class SearchPage extends Component {
                 : null }
               </div>
 
-              <SearchResultList
+              <ListComponent
                 query={this.props.query}
                 type={this.props.type}
                 compare={this.props.compare}

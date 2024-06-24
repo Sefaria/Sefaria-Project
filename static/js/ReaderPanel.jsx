@@ -9,6 +9,7 @@ import {ContentLanguageContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
 import TextsPage  from './TextsPage';
+import SearchResultList from "./SearchResultList";
 import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
@@ -885,6 +886,7 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<SearchPage
                     key={"searchPage"}
+                    list={SearchResultList}
                     interfaceLang={this.props.interfaceLang}
                     query={this.state.searchQuery}
                     type={this.state.searchType}
