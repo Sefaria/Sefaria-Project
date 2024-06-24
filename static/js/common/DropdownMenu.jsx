@@ -1,4 +1,5 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
+import { InterfaceText } from '../Misc';
 
 
 // Todo
@@ -23,14 +24,18 @@ const DropdownMenuItem = ({url, children}) => {
   );
 }
 
-const DropdownMenuItemWithIcon = ({icon, text}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
   return (
     <>
       <div className="dropdownHeader">
         <img src={icon} />
-        <span className='dropdownHeaderText'>{text}</span>
+        <span className='dropdownHeaderText'>
+          <InterfaceText text={{'en': textEn, 'he': textHe}} />
+        </span>
       </div>
-      <div className='dropdownDesc'>Lorem ipsum dolor sit amet, lorem dolor.</div>
+      <div className='dropdownDesc'>
+        <InterfaceText text={{'en': 'Lorem ipsum dolor sit amet, lorem dolor.', 'he': 'לורם איפסום דולור סיט אמט'}} />     
+      </div>
   </>
   );
 }

@@ -73,19 +73,19 @@ class Header extends Component {
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <DropdownMenu>
                 <DropdownMenuItem url={'/'}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} text={'Library'} />
+                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem url={'//sheets.sefaria.org'}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} text={'Sheets'} />
+                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem url={'//developers.sefaria.org'}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} text={'Developers'} />
+                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem url={'//sefaria.org/products'}>
-                  {'See all products >'}
+                  <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products >'}} />
                 </DropdownMenuItem>
 
               </DropdownMenu> : null}

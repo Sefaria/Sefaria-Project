@@ -861,7 +861,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  text-align: right;
   color: #666666;
   padding: 5px;
   direction: ltr;
@@ -13153,7 +13152,6 @@ span.ref-link-color-3 {color: blue}
   font-size: 16px;
   font-weight: 400;
   line-height: 18.75px;
-  text-align: left;
   color: var(--selected-option);
 
 }
@@ -13167,7 +13165,6 @@ span.ref-link-color-3 {color: blue}
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
-  text-align: left;
   padding-left: 30px;
   padding-bottom: 10px;
   padding-right: 10px;
@@ -13175,7 +13172,6 @@ span.ref-link-color-3 {color: blue}
 
 .dropdownItem {
   padding: 10px 0px 5px 10px !important;
-  text-align: left !important;
   flex-direction: column;
 }
 
