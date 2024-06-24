@@ -10,6 +10,7 @@ import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
+import SearchState from "./searchState";
 
 
 let Sefaria = Sefaria || {
@@ -2754,6 +2755,31 @@ _media: {},
     return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
+    sheetsWithRefSearchState(sref) {
+      /*
+      This function is used to generate the SearchState with its relevant FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
+       */
+      const sheets = this.sheetsByRef(sref);
+      let filters = {}; // object where keys are slugs of filters and values are the data for filternodes
+      sheets.forEach(sheet => {
+        sheet?.topics.forEach(topic => {
+          let filter = topic.slug in filters ? filters[topic.slug] : {title: topic.en, heTitle: topic.he,
+                                                                                     docCount: 0, aggKey: topic.slug,
+                                                                                     selected: 0, aggType: 'topics_en'};
+          filter.docCount += 1;
+          filters[topic.slug] = filter;
+        })
+        sheet?.collections.forEach(collection => {
+            let filter = collection.slug in filters ? filters[collection.slug] : {title: collection.name, heTitle: collection.name,
+                                                                                     docCount: 0, aggKey: collection.slug,
+                                                                                     selected: 0, aggType: 'collections'};
+          filter.docCount += 1;
+          filters[collection.slug] = filter;
+        })
+      })
+      filters = Object.values(filters);
+      return new SearchState({ type: 'sheet', availableFilters: filters });
+    },
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {
       if (reset) {

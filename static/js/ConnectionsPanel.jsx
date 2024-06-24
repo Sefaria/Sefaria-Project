@@ -470,18 +470,7 @@ class ConnectionsPanel extends Component {
       children and parent is undefined
       selected is 0
        */
-      const sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
-      const filters = {};
-      sheets.forEach(sheet => {
-        sheet.topics.forEach(topic => {
-          let filter = topic.slug in filters ? filters[topic.slug] : {[topic.slug]:
-                                                                                    {title: topic.en, heTitle: topic.he,
-                                                                                     docCount: 0, aggKey: topic.slug,
-                                                                                     selected: 0, aggType: 'topics_en'}};
-          filter.docCount += 1;
-        })
-      })
-      const sheetsWithRefState = new SearchState({ type: 'sheet', availableFilters: filters });
+      const sheetsWithRefSearchState = Sefaria.sheets.sheetsWithRefSearchState(this.props.srefs);
       const connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
       content = (<div>
         {this.props.srefs[0].indexOf("Sheet") === -1 ?
