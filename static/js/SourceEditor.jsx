@@ -92,7 +92,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
     }
 
     const deleteTopicSource = function() {
-        const url = `/api/ref-topic-links/${encodeURIComponent(origData.ref)}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
+        const url = `/api/ref-topic-links/${Sefaria.normRef(origData.ref)}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
         Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
             .then(() => window.location.href = `/topics/${topic}`);
     }

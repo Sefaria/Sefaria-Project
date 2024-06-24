@@ -630,7 +630,7 @@ Sefaria = extend(Sefaria, {
       return await Sefaria.apiRequestWithBody(`/api/subscribe/steinsaltz/${email}`, null, payload);
   },
   postRefTopicLink: function(refInUrl, payload) {
-      const url = `/api/ref-topic-links/${encodeURIComponent(Sefaria.normRef(refInUrl))}`;
+      const url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
       // payload will need to be refactored once /api/ref-topic-links takes a more standard input
       return Sefaria.adminEditorApiRequest(url, null, payload);
   },
