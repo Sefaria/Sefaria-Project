@@ -90,7 +90,6 @@ class SearchPage extends Component {
   }
 }
 SearchPage.propTypes = {
-  interfaceLang:            PropTypes.oneOf(["english", "hebrew"]),
   query:                    PropTypes.string,
   type:                      PropTypes.oneOf(["text", "sheet"]),
   searchState:              PropTypes.object,

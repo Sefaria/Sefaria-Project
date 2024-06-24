@@ -41,6 +41,7 @@ import { event } from 'jquery';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import SearchState from "./sefaria/searchState";
 
 
 class ConnectionsPanel extends Component {
@@ -458,6 +459,29 @@ class ConnectionsPanel extends Component {
       />);
 
     } else if (this.props.mode === "Sheets") {
+      /*
+      Write a function that takes a list of sheets and generates the available filters. Should create two types of filters, collection filters and topic filters.
+      How to create a FilterNode:
+
+      For collections, determine lang of title and put it in the right field (either title or heTitle)
+      docCount is how many times this collection of topic comes up in the list of sheets
+      aggKey is a unique ID for the collection or topic (slug in both cases)
+      aggType is either topic or collection (look at code for exact spelling)
+      children and parent is undefined
+      selected is 0
+       */
+      const sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
+      const filters = {};
+      sheets.forEach(sheet => {
+        sheet.topics.forEach(topic => {
+          let filter = topic.slug in filters ? filters[topic.slug] : {[topic.slug]:
+                                                                                    {title: topic.en, heTitle: topic.he,
+                                                                                     docCount: 0, aggKey: topic.slug,
+                                                                                     selected: 0, aggType: 'topics_en'}};
+          filter.docCount += 1;
+        })
+      })
+      const sheetsWithRefState = new SearchState({ type: 'sheet', availableFilters: filters });
       const connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
       content = (<div>
         {this.props.srefs[0].indexOf("Sheet") === -1 ?

@@ -887,7 +887,6 @@ class ReaderPanel extends Component {
       menu = (<SearchPage
                     key={"searchPage"}
                     list={SearchResultList}
-                    interfaceLang={this.props.interfaceLang}
                     query={this.state.searchQuery}
                     type={this.state.searchType}
                     searchState={this.state[`${this.state.searchType}SearchState`]}
