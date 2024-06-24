@@ -58,8 +58,7 @@ class SearchPage extends Component {
                 query={this.props.query}
                 type={this.props.type}
                 compare={this.props.compare}
-                textSearchState={this.props.textSearchState}
-                sheetSearchState={this.props.sheetSearchState}
+                searchState={this.props.searchState}
                 onResultClick={this.props.onResultClick}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                 registerAvailableFilters={this.props.registerAvailableFilters}
@@ -73,8 +72,8 @@ class SearchPage extends Component {
               {this.state.totalResults?.getValue() > 0 ?
               <SearchFilters
                 query={this.props.query}
-                searchState={this.props[`${this.props.type}SearchState`]}
-                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.type, this.props[`${this.props.type}SearchState`])}
+                searchState={this.props.searchState}
+                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.type, this.props.searchState)}
                 updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.type)}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.type)}
                 closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
@@ -94,8 +93,7 @@ SearchPage.propTypes = {
   interfaceLang:            PropTypes.oneOf(["english", "hebrew"]),
   query:                    PropTypes.string,
   type:                      PropTypes.oneOf(["text", "sheet"]),
-  textSearchState:          PropTypes.object,
-  sheetSearchState:         PropTypes.object,
+  searchState:              PropTypes.object,
   settings:                 PropTypes.object,
   panelsOpen:               PropTypes.number,
   close:                    PropTypes.func,
