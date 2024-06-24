@@ -44,25 +44,6 @@ class Header extends Component {
       <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
       <img src="/static/img/logo.svg" alt="Sefaria Logo"/>;
 
-    // const sampleHeader = "Sefaria Links";
-    const sampleBody = [
-      {
-        'url': '/',
-        'text': 'Library',
-        'icon': '/static/icons/library_icon.svg'
-      },
-      {
-        'url': '//sheets.sefaria.org',
-        'text': 'Sheets',
-        'icon': '/static/icons/sheets_icon.svg'
-      },
-      {
-        'url': '//developers.sefaria.org',
-        'text': 'Developer Portal',
-        'icon': '/static/icons/developers_icon.svg'
-      }
-    ];
-
     const headerContent = (
       <>
 
@@ -103,8 +84,8 @@ class Header extends Component {
                   <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} text={'Developers'} />
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem url={'//developers.sefaria.org'}>
-                  {'More of our products >'}
+                <DropdownMenuItem url={'//sefaria.org/products'}>
+                  {'See all products >'}
                 </DropdownMenuItem>
 
               </DropdownMenu> : null}

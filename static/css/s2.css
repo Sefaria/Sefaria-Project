@@ -844,9 +844,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {∫
   font-family: "Heebo", sans-serif;
 }
+
 .interfaceLinks-options {
   display: flex;
   flex-direction: column;
@@ -854,7 +855,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   max-width: 220px;
 }
 .header .interfaceLinks .interfaceLinks-option {
-  /* display: flex; */
+  display: flex;
   text-decoration: none;
   font-style: normal;
   font-weight: normal;
@@ -13173,13 +13174,13 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownItem {
-  padding: 0px 0px 5px 10px !important;
+  padding: 10px 0px 5px 10px !important;
   text-align: left !important;
+  flex-direction: column;
 }
 
 .dropdownSeparator {
   border: 1px solid var(--light-grey);
-  margin: 5px;
 }
 
 .image-in-text-title {
