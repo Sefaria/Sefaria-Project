@@ -357,6 +357,23 @@ class BDBEntry(DictionaryEntry):
         return ['<br>'.join(strings)]
 
 
+class KovetzYesodotEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+
+    def headword_string(self):
+        return f'<big><b>{self.headword}</b></big>'
+
+    def as_strings(self, with_headword=True):
+        strings = []
+        if with_headword:
+            strings.append(self.headword_string())
+        for key, value in self.content.items():
+            if key != 'reference':
+                strings.append(f'<b>{key}</b>')
+            strings += value
+        return ['<br>'.join(strings)]
+
+
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
         'BDB Augmented Strong': StrongsDictionaryEntry,
@@ -367,7 +384,8 @@ class LexiconEntrySubClassMapping(object):
         'Sefer HaShorashim': HebrewDictionaryEntry,
         'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry,
         'BDB Dictionary': BDBEntry,
-        'BDB Aramaic Dictionary': BDBEntry
+        'BDB Aramaic Dictionary': BDBEntry,
+        'Kovetz Yesodot VaChakirot': KovetzYesodotEntry,
     }
 
     @classmethod
