@@ -260,17 +260,17 @@ class SearchResultList extends Component {
       }
     }
     _shouldUpdateQuery(oldProps, newProps) {
-      const oldSearchState = this._getSearchState(this.props.type, oldProps);
-      const newSearchState = this._getSearchState(this.props.type, newProps);
+      const oldSearchState = this._getSearchState(oldProps);
+      const newSearchState = this._getSearchState(newProps);
       return !oldSearchState.isEqual({ other: newSearchState, fields: ['appliedFilters', 'field', 'sortType'] }) ||
         ((oldSearchState.filtersValid !== newSearchState.filtersValid) && oldSearchState.appliedFilters.length > 0);  // Execute a second query to apply filters after an initial query which got available filters
     }
-    _getSearchState(type, props) {
+    _getSearchState(props) {
       props = props || this.props;
       if (!props.query) {
           return;
       }
-      return props[`${type}SearchState`];
+      return props['searchState'];
     }
     _executeAllQueries(props) {
       this._executeTopicQuery();
@@ -301,7 +301,7 @@ class SearchResultList extends Component {
       // 2) Apply filters (Triggered from componentWillReceiveProps)
 
       const request_applied = args.applied_filters;
-      const searchState = this._getSearchState(this.props.type, props);
+      const searchState = this._getSearchState(props);
       const { appliedFilters, appliedFilterAggTypes } = searchState;
       const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[this.props.type];
 
@@ -352,7 +352,7 @@ class SearchResultList extends Component {
     _getQueryArgs(props) {
       props = props || this.props;
 
-      const searchState = this._getSearchState(this.props.type, props);
+      const searchState = this._getSearchState(props);
       const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
       const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[this.props.type];
@@ -406,7 +406,7 @@ class SearchResultList extends Component {
         }
 
         const { type }     = this.props;
-        const searchState = this._getSearchState(type);
+        const searchState = this._getSearchState();
         let results       = [];
 
         if (type === "text") {
@@ -475,8 +475,7 @@ class SearchResultList extends Component {
 SearchResultList.propTypes = {
   query:                    PropTypes.string,
   type:                      PropTypes.oneOf(["text", "sheet"]),
-  textSearchState:          PropTypes.object,
-  sheetSearchState:         PropTypes.object,
+  searchState:              PropTypes.object,
   onResultClick:            PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func,

@@ -890,8 +890,7 @@ class ReaderPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     query={this.state.searchQuery}
                     type={this.state.searchType}
-                    textSearchState={this.state.textSearchState}
-                    sheetSearchState={this.state.sheetSearchState}
+                    searchState={this.state[`${this.state.searchType}SearchState`]}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
