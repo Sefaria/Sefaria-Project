@@ -289,7 +289,7 @@ export class PopupManager {
         this.linkerHeader.style["border-top-color"] = this.category_colors[primaryCategory];
 
         // TODO is this right?
-        if (this.contentLang !== "he") {
+        if (this.contentLang.slice(0, 2) !== "he") {
             // [].forEach.call(heElems, function(e) {e.style.display = "None"});
             this.heTitle.style.display = "None";
             [].forEach.call(this.enElems, function(e) {e.style.display = "Block"});
@@ -413,6 +413,9 @@ export class PopupManager {
             elem.addEventListener('mouseout', this.hidePopup, false);
         } else if (this.mode === "popup-click") {
             elem.addEventListener('click', (event) => {
+                if (event.ctrlKey) {
+                    return;
+                }
                 event.preventDefault();
                 event.stopPropagation();
                 this.showPopup(elem, source);
