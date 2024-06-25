@@ -2677,7 +2677,7 @@ _media: {},
     };
     if (Sefaria.is_moderator){
         tabs["admin"] = {...tabs["sources"]};
-        tabs["admin"].title = {en: 'Admin', he: "עורכים"};
+        tabs["admin"].title = {en: 'Admin', he: "עריכה"};
     }
 
 
