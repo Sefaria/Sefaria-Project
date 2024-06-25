@@ -453,17 +453,8 @@ class SearchResultList extends Component {
 
         return (
           <div>
-            <div className="searchTopMatter">
-              {Sefaria.multiPanel && !this.props.compare ?
-              <SearchSortBox
-                type={this.props.type}
-                updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                sortType={searchState.sortType} />
-              :
-              <SearchFilterButton
-                openMobileFilters={this.props.openMobileFilters}
-                nFilters={searchState.appliedFilters.length} />}
-            </div>
+            <SearchTopMatter type={this.props.type} compare={this.props.compare} updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+                             searchState={searchState} openMobileFilters={this.props.openMobileFilters}/>
             <div className="searchResultList">
               { queryFullyLoaded || haveResults ? results : null }
               { this.state.isQueryRunning ? loadingMessage : null }
@@ -481,21 +472,36 @@ SearchResultList.propTypes = {
   registerAvailableFilters: PropTypes.func,
 };
 
+const SearchTopMatter = ({type, compare, updateAppliedOptionSort, searchState, openMobileFilters}) => {
+    return <div className="searchTopMatter">
+            {Sefaria.multiPanel && !compare ?
+                <SearchSortBox
+                    type={type}
+                    updateAppliedOptionSort={updateAppliedOptionSort}
+                    sortType={searchState.sortType}/>
+                :
+                <SearchFilterButton
+                    openMobileFilters={openMobileFilters}
+                    nFilters={searchState.appliedFilters.length}/>}
+        </div>
+}
 const SearchSortBox = ({type, updateAppliedOptionSort, sortType}) => {
-  const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
-  const handleClick = (newSortType) => {
-    if (sortType === newSortType) {
-      return;
+    const handleClick = (newSortType) => {
+        if (sortType === newSortType) {
+            return;
+        }
+        updateAppliedOptionSort(type, newSortType);
+        setIsOpen(false);
     }
-    updateAppliedOptionSort(type, newSortType);
-    setIsOpen(false);
-  }
-  const filterTextClasses = classNames({ searchFilterToggle: 1, active: isOpen });
-  return (
-    <DropdownModal close={() => {setIsOpen(false)}} isOpen={isOpen}>
-      <DropdownButton
-        isOpen={isOpen}
+    const filterTextClasses = classNames({searchFilterToggle: 1, active: isOpen});
+    return (
+        <DropdownModal close={() => {
+            setIsOpen(false)
+        }} isOpen={isOpen}>
+            <DropdownButton
+                isOpen={isOpen}
         toggle={() => {setIsOpen(!isOpen)}}
         enText={"Sort"}
         heText={"מיון"}
@@ -525,4 +531,4 @@ const SearchFilterButton = ({openMobileFilters, nFilters}) => (
 );
 
 
-export default SearchResultList;
+export { SearchResultList, SearchTopMatter };

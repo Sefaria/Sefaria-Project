@@ -57,6 +57,7 @@ class SearchPage extends Component {
               <ListComponent
                 query={this.props.query}
                 type={this.props.type}
+                listItems={this.props.listItems}
                 compare={this.props.compare}
                 searchState={this.props.searchState}
                 onResultClick={this.props.onResultClick}

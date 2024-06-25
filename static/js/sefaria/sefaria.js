@@ -2755,11 +2755,30 @@ _media: {},
     return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
-    sheetsWithRefSearchState(sref) {
+    sortSheetsByInterfaceLang(sheets) {
+        return sheets.sort((a, b) => {
+                              // First sort by language / interface language
+                              let aHe, bHe;
+                              [aHe, bHe] = [a.title, b.title].map(Sefaria.hebrew.isHebrew);
+                              if (aHe !== bHe) { return (bHe ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
+                              // Then by number of views
+                              return b.views - a.views;
+                            })
+    },
+    filterSheetsForDisplay(sheets, connectedSheet) {
+      // filters out duplicate sheets by sheet ID number and filters so that we don't show sheets as connections to themselves
+      return sheets.filter(
+                    (sheet, index, self) =>
+                      index === self.findIndex((s) => (
+                        s.id === sheet.id
+                      ))).filter(sheet => {
+                          return sheet.id !== connectedSheet;});
+    },
+    sheetsWithRefSearchState(sheets) {
       /*
       This function is used to generate the SearchState with its relevant FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
        */
-      const sheets = this.sheetsByRef(sref);
+
       let filters = {}; // object where keys are slugs of filters and values are the data for filternodes
       sheets.forEach(sheet => {
         sheet?.topics.forEach(topic => {
@@ -2942,14 +2961,17 @@ _media: {},
       this._userSheetsByRef[ref] = data;
       return Sefaria._saveItemsByRef(data, this._userSheetsByRef);
     },
-    sheetsTotalCount: function(refs) {
-      // Returns the total number of private and public sheets on `refs` without double counting my public sheets.
-      var sheets = Sefaria.sheets.sheetsByRef(refs) || [];
+    sheetsTotal: function(refs) {
+      // Returns the combination of private and public sheets on `refs` without double counting my public sheets.
+      let sheets = Sefaria.sheets.sheetsByRef(refs) || [];
       if (Sefaria._uid) {
-        var mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
-        sheets = sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }).concat(mySheets);
+        const mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
+        sheets = mySheets.concat(sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }));
       }
-      return sheets.length;
+      return sheets;
+    },
+    sheetsTotalCount: function(refs) {
+      return Sefaria.sheets.sheetsTotal(refs).length;
     },
     extractIdFromSheetRef: function (ref) {
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);

@@ -459,38 +459,30 @@ class ConnectionsPanel extends Component {
       />);
 
     } else if (this.props.mode === "Sheets") {
-      /*
-      Write a function that takes a list of sheets and generates the available filters. Should create two types of filters, collection filters and topic filters.
-      How to create a FilterNode:
-
-      For collections, determine lang of title and put it in the right field (either title or heTitle)
-      docCount is how many times this collection of topic comes up in the list of sheets
-      aggKey is a unique ID for the collection or topic (slug in both cases)
-      aggType is either topic or collection (look at code for exact spelling)
-      children and parent is undefined
-      selected is 0
-       */
-      const sheetsWithRefSearchState = Sefaria.sheets.sheetsWithRefSearchState(this.props.srefs);
       const connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
-      content = (<div>
-        {this.props.srefs[0].indexOf("Sheet") === -1 ?
-          <MySheetsList
-            srefs={this.props.srefs}
-            connectedSheet={connectedSheet}
-            fullPanel={this.props.fullPanel}
-            handleSheetClick={this.props.handleSheetClick}
-          />
-          : null
-        }
-        {this.props.srefs[0].indexOf("Sheet") === -1 ?
-          <PublicSheetsList
-            srefs={this.props.srefs}
-            connectedSheet={connectedSheet}
-            fullPanel={this.props.fullPanel}
-            handleSheetClick={this.props.handleSheetClick}
-          /> : null
-        }
-      </div>);
+      let sheets = Sefaria.sheets.sheetsTotal(this.props.srefs);
+      sheets = Sefaria.sheets.sortSheetsByInterfaceLang(sheets);
+      sheets = Sefaria.sheets.filterSheetsForDisplay(sheets, connectedSheet);
+      const sheetsWithRefSearchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
+      // content = (<div>
+      //   {this.props.srefs[0].indexOf("Sheet") === -1 ?
+      //     <MySheetsList
+      //       srefs={this.props.srefs}
+      //       connectedSheet={connectedSheet}
+      //       fullPanel={this.props.fullPanel}
+      //       handleSheetClick={this.props.handleSheetClick}
+      //     />
+      //     : null
+      //   }
+      //   {this.props.srefs[0].indexOf("Sheet") === -1 ?
+      //     <PublicSheetsList
+      //       srefs={this.props.srefs}
+      //       connectedSheet={connectedSheet}
+      //       fullPanel={this.props.fullPanel}
+      //       handleSheetClick={this.props.handleSheetClick}
+      //     /> : null
+      //   }
+      // </div>);
     } else if (this.props.mode === "Add To Sheet") {
       let refForSheet, versionsForSheet, selectedWordsForSheet, nodeRef;
       // add source from connections

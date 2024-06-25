@@ -9,7 +9,7 @@ import {ContentLanguageContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
 import TextsPage  from './TextsPage';
-import SearchResultList from "./SearchResultList";
+import {SearchResultList} from "./SearchResultList";
 import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
