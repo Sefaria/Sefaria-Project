@@ -93,7 +93,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     multiPanel ? {type: "RecentlyViewed", props: {toggleSignUpModal}} : {type: null},
     {type: "Translations"},
     {type: "LearningSchedules"},
-    {type: "JoinTheCommunity"},
     {type: "Resources"},
   ];
 
