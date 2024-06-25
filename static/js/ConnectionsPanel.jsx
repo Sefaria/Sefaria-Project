@@ -42,6 +42,7 @@ import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import SearchState from "./sefaria/searchState";
+import SheetsWithRefPage from "./Sheets/SheetsWithRefPage";
 
 
 class ConnectionsPanel extends Component {
@@ -460,29 +461,7 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "Sheets") {
       const connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
-      let sheets = Sefaria.sheets.sheetsTotal(this.props.srefs);
-      sheets = Sefaria.sheets.sortSheetsByInterfaceLang(sheets);
-      sheets = Sefaria.sheets.filterSheetsForDisplay(sheets, connectedSheet);
-      const sheetsWithRefSearchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
-      // content = (<div>
-      //   {this.props.srefs[0].indexOf("Sheet") === -1 ?
-      //     <MySheetsList
-      //       srefs={this.props.srefs}
-      //       connectedSheet={connectedSheet}
-      //       fullPanel={this.props.fullPanel}
-      //       handleSheetClick={this.props.handleSheetClick}
-      //     />
-      //     : null
-      //   }
-      //   {this.props.srefs[0].indexOf("Sheet") === -1 ?
-      //     <PublicSheetsList
-      //       srefs={this.props.srefs}
-      //       connectedSheet={connectedSheet}
-      //       fullPanel={this.props.fullPanel}
-      //       handleSheetClick={this.props.handleSheetClick}
-      //     /> : null
-      //   }
-      // </div>);
+      return <SheetsWithRefPage srefs={this.props.srefs} connectedSheet={connectedSheet}/>;
     } else if (this.props.mode === "Add To Sheet") {
       let refForSheet, versionsForSheet, selectedWordsForSheet, nodeRef;
       // add source from connections

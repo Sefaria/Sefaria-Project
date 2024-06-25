@@ -8,6 +8,7 @@ import {
     ColorBarBox, InterfaceText,
     ProfilePic,
 } from './Misc';
+import SheetResult from "./Sheets/SheetResult";
 
 
 class SearchSheetResult extends Component {
@@ -35,43 +36,8 @@ class SearchSheetResult extends Component {
         var clean_title = $("<span>" + s.title + "</span>").text();
         var href = "/sheets/" + s.sheetId;
         const snippetMarkup = this.get_snippet_markup(data);
-        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
-        const ownerIsHe = Sefaria.hebrew.isHebrew(s.owner_name);
-        const titleIsHe = Sefaria.hebrew.isHebrew(clean_title);
-        const tags = s.tags && s.tags.length ? Sefaria.util.zip(s.tags, s.topic_slugs, s.topics_he) : [];
-        return (
-            <div className='result sheetResult'>
-                <a href={href} onClick={this.handleSheetClick}>
-                    <div className={classNames({'result-title': 1, 'in-en': !titleIsHe, 'in-he': titleIsHe})}>
-                        <span dir={titleIsHe ? "rtl" : "ltr"}>{clean_title}</span>
-                    </div>
-                    <ColorBarBox tref={"Sheet 1"}>
-                      <div className={snippetClasses}>
-                          <span dir={snippetMarkup.lang === 'he' ? "rtl" : "ltr"} dangerouslySetInnerHTML={snippetMarkup.markup} ></span>
-                      </div>
-                    </ColorBarBox>
-                </a>
-                <div className="sheetData sans-serif">
-                    <a className="ownerData sans-serif" href={s.profile_url} onClick={this.handleProfileClick}>
-                        <ProfilePic
-                            url={s.owner_image}
-                            name={s.owner_name}
-                            len={30}
-                        />
-                        <span className={classNames({'ownerName': 1, 'in-en': !ownerIsHe, 'in-he': ownerIsHe})}>{s.owner_name}</span>
-                    </a>
-                    <span className='tagsViews'>
-                    {tags.map((topic, i) => {
-                        return (
-                          <a href={`/topics/${topic[1]}`} target="_blank" key={`link${topic[1]}${i}`}>
-                              <InterfaceText text={{en: topic[0], he: topic[2]}} />
-                          </a>
-                        );
-                      })}
-                    </span>
-                </div>
-            </div>
-        );
+        return <SheetResult href={href} clean_title={clean_title} handleSheetClick={this.handleSheetClick}
+                snippetMarkup={snippetMarkup} profile_url={s.profile_url} owner_name={s.owner_name} owner_image={s.owner_image}/>;
     }
 }
 SearchSheetResult.propTypes = {
