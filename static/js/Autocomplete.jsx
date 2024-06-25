@@ -182,7 +182,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
         return otherDownShiftProps.value || getVirtualKeyboardInputValue();
     }
     const getVirtualKeyboardInputValue = () =>{
-        return document.getElementsByClassName('keyboardInput')[0].value;
+        return document.querySelector('#searchBox .keyboardInput').value;
     }
     useEffect(() => {
       showVirtualKeyboardIcon(false); // Initially hide the virtual keyboard icon
