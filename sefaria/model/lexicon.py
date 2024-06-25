@@ -369,7 +369,7 @@ class KovetzYesodotEntry(DictionaryEntry):
             strings.append(self.headword_string())
         for key, value in self.content.items():
             if key != 'reference':
-                strings.append(f'<b>{key}</b>')
+                strings.append(f'<br><small>{key}</small>')
             strings += value
         return ['<br>'.join(strings)]
 
