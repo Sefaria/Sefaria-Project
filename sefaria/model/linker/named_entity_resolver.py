@@ -1,10 +1,6 @@
 import dataclasses
 from typing import List, Dict, Type, Set
-try:
-    import re2 as re
-    re.set_fallback_notification(re.FALLBACK_WARNING)
-except ImportError:
-    import re
+import re2 as re
 from functools import reduce
 from collections import defaultdict
 from sefaria.model.linker.ref_part import RawNamedEntity
