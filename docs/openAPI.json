@@ -59,7 +59,6 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "he",
                           "languageFamilyName": "hebrew",
-                          "isBaseText": true,
                           "isSource": true,
                           "isPrimary": true,
                           "direction": "rtl",
@@ -91,7 +90,6 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "he",
                           "languageFamilyName": "hebrew",
-                          "isBaseText": true,
                           "isSource": true,
                           "isPrimary": true,
                           "direction": "rtl",
@@ -121,9 +119,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "en",
                           "languageFamilyName": "english",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -151,9 +148,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "en",
                           "languageFamilyName": "english",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -181,7 +177,6 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "he",
                           "languageFamilyName": "hebrew",
-                          "isBaseText": true,
                           "isSource": true,
                           "isPrimary": true,
                           "direction": "rtl",
@@ -211,7 +206,6 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "he",
                           "languageFamilyName": "hebrew",
-                          "isBaseText": true,
                           "isSource": true,
                           "isPrimary": true,
                           "direction": "rtl",
@@ -241,7 +235,6 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "he",
                           "languageFamilyName": "hebrew",
-                          "isBaseText": true,
                           "isSource": true,
                           "isPrimary": true,
                           "direction": "rtl",
@@ -271,9 +264,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "en",
                           "languageFamilyName": "english",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -301,9 +293,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "en",
                           "languageFamilyName": "english",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -331,9 +322,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "en",
                           "languageFamilyName": "english",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -361,9 +351,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "en",
                           "languageFamilyName": "english",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -391,7 +380,6 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "he",
                           "languageFamilyName": "hebrew",
-                          "isBaseText": true,
                           "isSource": true,
                           "isPrimary": true,
                           "direction": "rtl",
@@ -421,7 +409,6 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "he",
                           "languageFamilyName": "hebrew",
-                          "isBaseText": true,
                           "isSource": true,
                           "isPrimary": true,
                           "direction": "rtl",
@@ -451,9 +438,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "fr",
                           "languageFamilyName": "french",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -481,7 +467,6 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "he",
                           "languageFamilyName": "hebrew",
-                          "isBaseText": true,
                           "isSource": true,
                           "isPrimary": true,
                           "direction": "rtl",
@@ -511,9 +496,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "en",
                           "languageFamilyName": "english",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -541,9 +525,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "pl",
                           "languageFamilyName": "polish",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -571,9 +554,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "it",
                           "languageFamilyName": "italian",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -601,9 +583,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "fa",
                           "languageFamilyName": "persian",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "rtl",
                           "language": "he",
                           "title": "Esther",
@@ -631,9 +612,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "fa",
                           "languageFamilyName": "persian",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -661,9 +641,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "yi",
                           "languageFamilyName": "yiddish",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "rtl",
                           "language": "he",
                           "title": "Esther",
@@ -691,9 +670,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "es",
                           "languageFamilyName": "spanish",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -721,9 +699,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "fr",
                           "languageFamilyName": "french",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -751,9 +728,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "eo",
                           "languageFamilyName": "esperanto",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -781,9 +757,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "de",
                           "languageFamilyName": "german",
-                          "isBaseText": false,
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -811,7 +786,6 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "he",
                           "languageFamilyName": "hebrew",
-                          "isBaseText": "",
                           "isSource": true,
                           "isPrimary": true,
                           "direction": "rtl",
@@ -841,9 +815,8 @@
                           "hasManuallyWrappedRefs": "",
                           "actualLanguage": "en",
                           "languageFamilyName": "english",
-                          "isBaseText": "",
                           "isSource": false,
-                          "isPrimary": "",
+                          "isPrimary": false,
                           "direction": "ltr",
                           "language": "en",
                           "title": "Esther",
@@ -1374,7 +1347,6 @@
                         "purchaseInformationURL": "https://www.israelbookshoppublications.com/store/pc/Metsudah-Five-Megilloth-w-Rashi-26p309.htm",
                         "shortVersionTitle": "",
                         "shortVersionTitleInHebrew": "",
-                        "isBaseText": true,
                         "firstSectionRef": "Rashi on Ecclesiastes 1:1"
                       },
                       {
@@ -1395,7 +1367,6 @@
                         "purchaseInformationURL": "https://www.israelbookshoppublications.com/store/pc/Metsudah-Five-Megilloth-w-Rashi-26p309.htm",
                         "shortVersionTitle": "",
                         "shortVersionTitleInHebrew": "",
-                        "isBaseText": false,
                         "firstSectionRef": "Rashi on Ecclesiastes 1:1"
                       },
                       {
@@ -1416,7 +1387,6 @@
                         "purchaseInformationURL": "",
                         "shortVersionTitle": "",
                         "shortVersionTitleInHebrew": "",
-                        "isBaseText": true,
                         "firstSectionRef": "Rashi on Ecclesiastes 1:1"
                       },
                       {
@@ -1437,7 +1407,6 @@
                         "purchaseInformationURL": "",
                         "shortVersionTitle": "",
                         "shortVersionTitleInHebrew": "",
-                        "isBaseText": false,
                         "firstSectionRef": "Rashi on Ecclesiastes 3:3"
                       },
                       {
@@ -1458,7 +1427,6 @@
                         "purchaseInformationURL": "",
                         "shortVersionTitle": "Abraham Cohen, Soncino Press, 1946",
                         "shortVersionTitleInHebrew": "",
-                        "isBaseText": false,
                         "firstSectionRef": "Rashi on Ecclesiastes 1:1"
                       }
                     ]
@@ -5641,9 +5609,6 @@
           "shortVersionTitleInHebrew": {
             "type": "string"
           },
-          "isBaseText": {
-            "type": "boolean"
-          },
           "firstSectionRef": {
             "type": "string"
           }
@@ -5666,7 +5631,6 @@
           "purchaseInformationURL": "https://jps.org/books/contemporary-torah/",
           "shortVersionTitle": "The Contemporary Torah, JPS, 2006",
           "shortVersionTitleInHebrew": "",
-          "isBaseText": false,
           "firstSectionRef": "Genesis 1"
         }
       },
@@ -6696,8 +6660,7 @@
               "purchaseInformationImage": "",
               "purchaseInformationURL": "",
               "shortVersionTitle": "",
-              "shortVersionTitleInHebrew": "",
-              "isBaseText": true
+              "shortVersionTitleInHebrew": ""
             },
             {
               "title": "Mishnah Peah",
@@ -6716,8 +6679,7 @@
               "purchaseInformationImage": "",
               "purchaseInformationURL": "",
               "shortVersionTitle": "",
-              "shortVersionTitleInHebrew": "",
-              "isBaseText": true
+              "shortVersionTitleInHebrew": ""
             },
             {
               "title": "Mishnah Peah",
@@ -6736,8 +6698,7 @@
               "purchaseInformationImage": "",
               "purchaseInformationURL": "",
               "shortVersionTitle": "Dr. Joshua Kulp",
-              "shortVersionTitleInHebrew": "",
-              "isBaseText": false
+              "shortVersionTitleInHebrew": ""
             },
             {
               "title": "Mishnah Peah",
@@ -6756,8 +6717,7 @@
               "purchaseInformationImage": "",
               "purchaseInformationURL": "",
               "shortVersionTitle": "",
-              "shortVersionTitleInHebrew": "",
-              "isBaseText": false
+              "shortVersionTitleInHebrew": ""
             },
             {
               "title": "Mishnah Peah",
@@ -6776,8 +6736,7 @@
               "purchaseInformationImage": "",
               "purchaseInformationURL": "",
               "shortVersionTitle": "Lazarus Goldschmidt, 1929 ",
-              "shortVersionTitleInHebrew": "",
-              "isBaseText": false
+              "shortVersionTitleInHebrew": ""
             },
             {
               "title": "Mishnah Peah",
@@ -6796,8 +6755,7 @@
               "purchaseInformationImage": "",
               "purchaseInformationURL": "",
               "shortVersionTitle": "",
-              "shortVersionTitleInHebrew": "",
-              "isBaseText": false
+              "shortVersionTitleInHebrew": ""
             },
             {
               "title": "Mishnah Peah",
@@ -6816,8 +6774,7 @@
               "purchaseInformationImage": "",
               "purchaseInformationURL": "",
               "shortVersionTitle": "",
-              "shortVersionTitleInHebrew": "",
-              "isBaseText": false
+              "shortVersionTitleInHebrew": ""
             },
             {
               "title": "Mishnah Peah",
@@ -6836,8 +6793,7 @@
               "purchaseInformationImage": "",
               "purchaseInformationURL": "",
               "shortVersionTitle": "",
-              "shortVersionTitleInHebrew": "",
-              "isBaseText": ""
+              "shortVersionTitleInHebrew": ""
             }
           ],
           "textDepth": 2,
@@ -7378,11 +7334,6 @@
             "description": "A Hebrew short title for the version",
             "type": "string"
           },
-          "isBaseText": {
-            "description": "Is this a text that has commentary. `true` indicates that there are commentaries on this text, while `false` indicates that the text does not have any commentary. ",
-            "type": "boolean",
-            "example": "True"
-          },
           "firstSectionRef": {
             "description": "The first `ref` for this title on a section level (as opposed to the more granular segment level). For example, `Genesis 1` would be the first section level ref of Genesis (as opposed to the segment, `Genesis 1:1`), and `Rashi on Kohelet 1:1` is the first section level ref of `Rashi on Kohelet` (as opposed to the segment level of `Rashi on Kohelet 1:1:1`)",
             "type": "string",
@@ -7407,7 +7358,6 @@
           "purchaseInformationURL": "",
           "shortVersionTitle": "",
           "shortVersionTitleInHebrew": "",
-          "isBaseText": false,
           "firstSectionRef": "Shulchan Arukh, Orach Chayim 1"
         }
       },
@@ -9089,7 +9039,7 @@
             "items": {
               "$ref": "#/components/schemas/v3TextVersionsJSON"
             },
-            "example": "{\n\"status\": \"locked\",\n\"priority\": 2,\n\"license\": \"CC-BY-SA\",\n\"versionNotes\": \"<i>Miqra According to the Masorah</i> (MAM) is a digital Hebrew edition of the Tanakh based on the Aleppo Codex and related manuscripts. It is designed for readers, and as such it contains added elements to aid vocalization of the text. For instance: When an accent is marked in an unstressed syllable, an extra accent is added in the proper place (<i>pashta</i>, <i>zarqa</i>, <i>segol</i>, <i>telisha</i>). <i>Legarmeih</i> and <i>paseq</i> are visibly distinguished. <i>Qamaz qatan</i> is indicated by its designated Unicode character (alternatives are documented where traditions differ about its application).<br>The text of MAM is fully documented. The <a href=\\\"https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94/%D7%9E%D7%99%D7%93%D7%A2_%D7%A2%D7%9C_%D7%9E%D7%94%D7%93%D7%95%D7%A8%D7%94_%D7%96%D7%95\\\">complete introduction</a> to the edition (Hebrew) explains the types of editorial decisions that have been made and the reasons for them (<a href=\\\"https://en.wikisource.org/wiki/User:Dovi/Miqra_according_to_the_Masorah#About_this_Edition_(English_Abstract)\\\">English abstract</a>). In addition, every word in the Bible about which there is some textual concern or ambiguity includes a documentation note; these notes can be viewed conveniently <a href=\\\"https://bdenckla.github.io/MAM-with-doc/\\\">here</a>. If an error is discovered, it may be reported to <a href=\\\"https://he.wikisource.org/wiki/%D7%A9%D7%99%D7%97%D7%AA_%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi\\\">User:Dovi</a> at Hebrew Wikisource. Please check the documentation notes before reporting an error.\",\n\"formatAsPoetry\": \"\",\n\"digitizedBySefaria\": \"\",\n\"method\": \"\",\n\"heversionSource\": \"\",\n\"versionUrl\": \"\",\n\"versionTitleInHebrew\": \"מקרא על פי המסורה\",\n\"versionNotesInHebrew\": \"\",\n\"shortVersionTitle\": \"\",\n\"shortVersionTitleInHebrew\": \"\",\n\"extendedNotes\": \"\",\n\"extendedNotesHebrew\": \"\",\n\"purchaseInformationImage\": \"\",\n\"purchaseInformationURL\": \"\",\n\"hasManuallyWrappedRefs\": \"\",\n\"actualLanguage\": \"he\",\n\"languageFamilyName\": \"hebrew\",\n\"isBaseText\": true,\n\"isSource\": true,\n\"isPrimary\": true,\n\"direction\": \"rtl\",\n\"language\": \"he\",\n\"versionSource\": \"https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94\",\n\"versionTitle\": \"Miqra according to the Masorah\",\n\"text\": [\n[\n\"חֲז֖וֹן עֹֽבַדְיָ֑ה כֹּֽה־אָמַר֩ אֲדֹנָ֨י יֱהֹוִ֜ה לֶאֱד֗וֹם שְׁמוּעָ֨ה שָׁמַ֜עְנוּ מֵאֵ֤ת יְהֹוָה֙ וְצִיר֙ בַּגּוֹיִ֣ם שֻׁלָּ֔ח ק֛וּמוּ וְנָק֥וּמָה עָלֶ֖יהָ לַמִּלְחָמָֽה׃\",\n\"הִנֵּ֥ה קָטֹ֛ן נְתַתִּ֖יךָ בַּגּוֹיִ֑ם בָּז֥וּי אַתָּ֖ה מְאֹֽד׃\",\n\"זְד֤וֹן לִבְּךָ֙ הִשִּׁיאֶ֔ךָ שֹׁכְנִ֥י בְחַגְוֵי־סֶ֖לַע מְר֣וֹם שִׁבְתּ֑וֹ אֹמֵ֣ר בְּלִבּ֔וֹ מִ֥י יוֹרִדֵ֖נִי אָֽרֶץ׃\",\n\"אִם־תַּגְבִּ֣יהַּ כַּנֶּ֔שֶׁר וְאִם־בֵּ֥ין כּֽוֹכָבִ֖ים שִׂ֣ים קִנֶּ֑ךָ מִשָּׁ֥ם אוֹרִֽידְךָ֖ נְאֻם־יְהֹוָֽה׃\",\n\"אִם־גַּנָּבִ֤ים בָּאֽוּ־לְךָ֙ אִם־שׁ֣וֹדְדֵי לַ֔יְלָה אֵ֣יךְ נִדְמֵ֔יתָה הֲל֥וֹא יִגְנְב֖וּ דַּיָּ֑ם אִם־בֹּֽצְרִים֙ בָּ֣אוּ לָ֔ךְ הֲל֖וֹא יַשְׁאִ֥ירוּ עֹלֵלֽוֹת׃\",\n\"אֵ֚יךְ נֶחְפְּשׂ֣וּ עֵשָׂ֔ו נִבְע֖וּ מַצְפֻּנָֽיו׃\",\n\"עַֽד־הַגְּב֣וּל שִׁלְּח֗וּךָ כֹּ֚ל אַנְשֵׁ֣י בְרִיתֶ֔ךָ הִשִּׁיא֛וּךָ יָכְל֥וּ לְךָ֖ אַנְשֵׁ֣י שְׁלֹמֶ֑ךָ לַחְמְךָ֗ יָשִׂ֤ימוּ מָזוֹר֙ תַּחְתֶּ֔יךָ אֵ֥ין תְּבוּנָ֖ה בּֽוֹ׃\",\n\"הֲל֛וֹא בַּיּ֥וֹם הַה֖וּא נְאֻם־יְהֹוָ֑ה וְהַאֲבַדְתִּ֤י חֲכָמִים֙ מֵֽאֱד֔וֹם וּתְבוּנָ֖ה מֵהַ֥ר עֵשָֽׂו׃\",\n\"וְחַתּ֥וּ גִבּוֹרֶ֖יךָ תֵּימָ֑ן לְמַ֧עַן יִכָּֽרֶת־אִ֛ישׁ מֵהַ֥ר עֵשָׂ֖ו מִקָּֽטֶל׃\",\n\"מֵחֲמַ֛ס אָחִ֥יךָ יַעֲקֹ֖ב תְּכַסְּךָ֣ בוּשָׁ֑ה וְנִכְרַ֖תָּ לְעוֹלָֽם׃\",\n\"בְּיוֹם֙ עֲמׇֽדְךָ֣ מִנֶּ֔גֶד בְּי֛וֹם שְׁב֥וֹת זָרִ֖ים חֵיל֑וֹ וְנׇכְרִ֞ים בָּ֣אוּ <span class=\\\"mam-kq-trivial\\\">שְׁעָרָ֗ו</span> וְעַל־יְרוּשָׁלַ֙͏ִם֙ יַדּ֣וּ גוֹרָ֔ל גַּם־אַתָּ֖ה כְּאַחַ֥ד מֵהֶֽם׃\",\n\"וְאַל־תֵּ֤רֶא בְיוֹם־אָחִ֙יךָ֙ בְּי֣וֹם נׇכְר֔וֹ וְאַל־תִּשְׂמַ֥ח לִבְנֵֽי־יְהוּדָ֖ה בְּי֣וֹם אׇבְדָ֑ם וְאַל־תַּגְדֵּ֥ל פִּ֖יךָ בְּי֥וֹם צָרָֽה׃\",\n\"אַל־תָּב֤וֹא בְשַֽׁעַר־עַמִּי֙ בְּי֣וֹם אֵידָ֔ם אַל־תֵּ֧רֶא גַם־אַתָּ֛ה בְּרָעָת֖וֹ בְּי֣וֹם אֵיד֑וֹ וְאַל־תִּשְׁלַ֥חְנָה בְחֵיל֖וֹ בְּי֥וֹם אֵידֽוֹ׃\",\n\"וְאַֽל־תַּעֲמֹד֙ עַל־הַפֶּ֔רֶק לְהַכְרִ֖ית אֶת־פְּלִיטָ֑יו וְאַל־תַּסְגֵּ֥ר שְׂרִידָ֖יו בְּי֥וֹם צָרָֽה׃\",\n\"כִּֽי־קָר֥וֹב יוֹם־יְהֹוָ֖ה עַל־כׇּל־הַגּוֹיִ֑ם כַּאֲשֶׁ֤ר עָשִׂ֙יתָ֙ יֵעָ֣שֶׂה לָּ֔ךְ גְּמֻלְךָ֖ יָשׁ֥וּב בְּרֹאשֶֽׁךָ׃\",\n\"כִּ֗י כַּֽאֲשֶׁ֤ר שְׁתִיתֶם֙ עַל־הַ֣ר קׇדְשִׁ֔י יִשְׁתּ֥וּ כׇֽל־הַגּוֹיִ֖ם תָּמִ֑יד וְשָׁת֣וּ וְלָע֔וּ וְהָי֖וּ כְּל֥וֹא הָיֽוּ׃\",\n\"וּבְהַ֥ר צִיּ֛וֹן תִּהְיֶ֥ה פְלֵיטָ֖ה וְהָ֣יָה קֹ֑דֶשׁ וְיָֽרְשׁוּ֙ בֵּ֣ית יַֽעֲקֹ֔ב אֵ֖ת מוֹרָֽשֵׁיהֶֽם׃\",\n\"וְהָיָה֩ בֵית־יַעֲקֹ֨ב אֵ֜שׁ וּבֵ֧ית יוֹסֵ֣ף לֶהָבָ֗ה וּבֵ֤ית עֵשָׂו֙ לְקַ֔שׁ וְדָלְק֥וּ בָהֶ֖ם וַאֲכָל֑וּם וְלֹֽא־יִֽהְיֶ֤ה שָׂרִיד֙ לְבֵ֣ית עֵשָׂ֔ו כִּ֥י יְהֹוָ֖ה דִּבֵּֽר׃\",\n\"וְיָרְשׁ֨וּ הַנֶּ֜גֶב אֶת־הַ֣ר עֵשָׂ֗ו וְהַשְּׁפֵלָה֙ אֶת־פְּלִשְׁתִּ֔ים וְיָרְשׁוּ֙ אֶת־שְׂדֵ֣ה אֶפְרַ֔יִם וְאֵ֖ת שְׂדֵ֣ה שֹׁמְר֑וֹן וּבִנְיָמִ֖ן אֶת־הַגִּלְעָֽד׃\",\n\"וְגָלֻ֣ת הַֽחֵל־הַ֠זֶּ֠ה לִבְנֵ֨י יִשְׂרָאֵ֤ל אֲשֶֽׁר־כְּנַעֲנִים֙ עַד־צָ֣רְפַ֔ת וְגָלֻ֥ת יְרוּשָׁלַ֖͏ִם אֲשֶׁ֣ר בִּסְפָרַ֑ד יִֽרְשׁ֕וּ אֵ֖ת עָרֵ֥י הַנֶּֽגֶב׃\",\n\"וְעָל֤וּ מֽוֹשִׁעִים֙ בְּהַ֣ר צִיּ֔וֹן לִשְׁפֹּ֖ט אֶת־הַ֣ר עֵשָׂ֑ו וְהָיְתָ֥ה לַֽיהֹוָ֖ה הַמְּלוּכָֽה׃\"\n]\n],\n\"firstSectionRef\": \"Obadiah 1\"}\n"
+            "example": "{\n\"status\": \"locked\",\n\"priority\": 2,\n\"license\": \"CC-BY-SA\",\n\"versionNotes\": \"<i>Miqra According to the Masorah</i> (MAM) is a digital Hebrew edition of the Tanakh based on the Aleppo Codex and related manuscripts. It is designed for readers, and as such it contains added elements to aid vocalization of the text. For instance: When an accent is marked in an unstressed syllable, an extra accent is added in the proper place (<i>pashta</i>, <i>zarqa</i>, <i>segol</i>, <i>telisha</i>). <i>Legarmeih</i> and <i>paseq</i> are visibly distinguished. <i>Qamaz qatan</i> is indicated by its designated Unicode character (alternatives are documented where traditions differ about its application).<br>The text of MAM is fully documented. The <a href=\\\"https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94/%D7%9E%D7%99%D7%93%D7%A2_%D7%A2%D7%9C_%D7%9E%D7%94%D7%93%D7%95%D7%A8%D7%94_%D7%96%D7%95\\\">complete introduction</a> to the edition (Hebrew) explains the types of editorial decisions that have been made and the reasons for them (<a href=\\\"https://en.wikisource.org/wiki/User:Dovi/Miqra_according_to_the_Masorah#About_this_Edition_(English_Abstract)\\\">English abstract</a>). In addition, every word in the Bible about which there is some textual concern or ambiguity includes a documentation note; these notes can be viewed conveniently <a href=\\\"https://bdenckla.github.io/MAM-with-doc/\\\">here</a>. If an error is discovered, it may be reported to <a href=\\\"https://he.wikisource.org/wiki/%D7%A9%D7%99%D7%97%D7%AA_%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi\\\">User:Dovi</a> at Hebrew Wikisource. Please check the documentation notes before reporting an error.\",\n\"formatAsPoetry\": \"\",\n\"digitizedBySefaria\": \"\",\n\"method\": \"\",\n\"heversionSource\": \"\",\n\"versionUrl\": \"\",\n\"versionTitleInHebrew\": \"מקרא על פי המסורה\",\n\"versionNotesInHebrew\": \"\",\n\"shortVersionTitle\": \"\",\n\"shortVersionTitleInHebrew\": \"\",\n\"extendedNotes\": \"\",\n\"extendedNotesHebrew\": \"\",\n\"purchaseInformationImage\": \"\",\n\"purchaseInformationURL\": \"\",\n\"hasManuallyWrappedRefs\": \"\",\n\"actualLanguage\": \"he\",\n\"languageFamilyName\": \"hebrew\",\n\"isSource\": true,\n\"isPrimary\": true,\n\"direction\": \"rtl\",\n\"language\": \"he\",\n\"versionSource\": \"https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94\",\n\"versionTitle\": \"Miqra according to the Masorah\",\n\"text\": [\n[\n\"חֲז֖וֹן עֹֽבַדְיָ֑ה כֹּֽה־אָמַר֩ אֲדֹנָ֨י יֱהֹוִ֜ה לֶאֱד֗וֹם שְׁמוּעָ֨ה שָׁמַ֜עְנוּ מֵאֵ֤ת יְהֹוָה֙ וְצִיר֙ בַּגּוֹיִ֣ם שֻׁלָּ֔ח ק֛וּמוּ וְנָק֥וּמָה עָלֶ֖יהָ לַמִּלְחָמָֽה׃\",\n\"הִנֵּ֥ה קָטֹ֛ן נְתַתִּ֖יךָ בַּגּוֹיִ֑ם בָּז֥וּי אַתָּ֖ה מְאֹֽד׃\",\n\"זְד֤וֹן לִבְּךָ֙ הִשִּׁיאֶ֔ךָ שֹׁכְנִ֥י בְחַגְוֵי־סֶ֖לַע מְר֣וֹם שִׁבְתּ֑וֹ אֹמֵ֣ר בְּלִבּ֔וֹ מִ֥י יוֹרִדֵ֖נִי אָֽרֶץ׃\",\n\"אִם־תַּגְבִּ֣יהַּ כַּנֶּ֔שֶׁר וְאִם־בֵּ֥ין כּֽוֹכָבִ֖ים שִׂ֣ים קִנֶּ֑ךָ מִשָּׁ֥ם אוֹרִֽידְךָ֖ נְאֻם־יְהֹוָֽה׃\",\n\"אִם־גַּנָּבִ֤ים בָּאֽוּ־לְךָ֙ אִם־שׁ֣וֹדְדֵי לַ֔יְלָה אֵ֣יךְ נִדְמֵ֔יתָה הֲל֥וֹא יִגְנְב֖וּ דַּיָּ֑ם אִם־בֹּֽצְרִים֙ בָּ֣אוּ לָ֔ךְ הֲל֖וֹא יַשְׁאִ֥ירוּ עֹלֵלֽוֹת׃\",\n\"אֵ֚יךְ נֶחְפְּשׂ֣וּ עֵשָׂ֔ו נִבְע֖וּ מַצְפֻּנָֽיו׃\",\n\"עַֽד־הַגְּב֣וּל שִׁלְּח֗וּךָ כֹּ֚ל אַנְשֵׁ֣י בְרִיתֶ֔ךָ הִשִּׁיא֛וּךָ יָכְל֥וּ לְךָ֖ אַנְשֵׁ֣י שְׁלֹמֶ֑ךָ לַחְמְךָ֗ יָשִׂ֤ימוּ מָזוֹר֙ תַּחְתֶּ֔יךָ אֵ֥ין תְּבוּנָ֖ה בּֽוֹ׃\",\n\"הֲל֛וֹא בַּיּ֥וֹם הַה֖וּא נְאֻם־יְהֹוָ֑ה וְהַאֲבַדְתִּ֤י חֲכָמִים֙ מֵֽאֱד֔וֹם וּתְבוּנָ֖ה מֵהַ֥ר עֵשָֽׂו׃\",\n\"וְחַתּ֥וּ גִבּוֹרֶ֖יךָ תֵּימָ֑ן לְמַ֧עַן יִכָּֽרֶת־אִ֛ישׁ מֵהַ֥ר עֵשָׂ֖ו מִקָּֽטֶל׃\",\n\"מֵחֲמַ֛ס אָחִ֥יךָ יַעֲקֹ֖ב תְּכַסְּךָ֣ בוּשָׁ֑ה וְנִכְרַ֖תָּ לְעוֹלָֽם׃\",\n\"בְּיוֹם֙ עֲמׇֽדְךָ֣ מִנֶּ֔גֶד בְּי֛וֹם שְׁב֥וֹת זָרִ֖ים חֵיל֑וֹ וְנׇכְרִ֞ים בָּ֣אוּ <span class=\\\"mam-kq-trivial\\\">שְׁעָרָ֗ו</span> וְעַל־יְרוּשָׁלַ֙͏ִם֙ יַדּ֣וּ גוֹרָ֔ל גַּם־אַתָּ֖ה כְּאַחַ֥ד מֵהֶֽם׃\",\n\"וְאַל־תֵּ֤רֶא בְיוֹם־אָחִ֙יךָ֙ בְּי֣וֹם נׇכְר֔וֹ וְאַל־תִּשְׂמַ֥ח לִבְנֵֽי־יְהוּדָ֖ה בְּי֣וֹם אׇבְדָ֑ם וְאַל־תַּגְדֵּ֥ל פִּ֖יךָ בְּי֥וֹם צָרָֽה׃\",\n\"אַל־תָּב֤וֹא בְשַֽׁעַר־עַמִּי֙ בְּי֣וֹם אֵידָ֔ם אַל־תֵּ֧רֶא גַם־אַתָּ֛ה בְּרָעָת֖וֹ בְּי֣וֹם אֵיד֑וֹ וְאַל־תִּשְׁלַ֥חְנָה בְחֵיל֖וֹ בְּי֥וֹם אֵידֽוֹ׃\",\n\"וְאַֽל־תַּעֲמֹד֙ עַל־הַפֶּ֔רֶק לְהַכְרִ֖ית אֶת־פְּלִיטָ֑יו וְאַל־תַּסְגֵּ֥ר שְׂרִידָ֖יו בְּי֥וֹם צָרָֽה׃\",\n\"כִּֽי־קָר֥וֹב יוֹם־יְהֹוָ֖ה עַל־כׇּל־הַגּוֹיִ֑ם כַּאֲשֶׁ֤ר עָשִׂ֙יתָ֙ יֵעָ֣שֶׂה לָּ֔ךְ גְּמֻלְךָ֖ יָשׁ֥וּב בְּרֹאשֶֽׁךָ׃\",\n\"כִּ֗י כַּֽאֲשֶׁ֤ר שְׁתִיתֶם֙ עַל־הַ֣ר קׇדְשִׁ֔י יִשְׁתּ֥וּ כׇֽל־הַגּוֹיִ֖ם תָּמִ֑יד וְשָׁת֣וּ וְלָע֔וּ וְהָי֖וּ כְּל֥וֹא הָיֽוּ׃\",\n\"וּבְהַ֥ר צִיּ֛וֹן תִּהְיֶ֥ה פְלֵיטָ֖ה וְהָ֣יָה קֹ֑דֶשׁ וְיָֽרְשׁוּ֙ בֵּ֣ית יַֽעֲקֹ֔ב אֵ֖ת מוֹרָֽשֵׁיהֶֽם׃\",\n\"וְהָיָה֩ בֵית־יַעֲקֹ֨ב אֵ֜שׁ וּבֵ֧ית יוֹסֵ֣ף לֶהָבָ֗ה וּבֵ֤ית עֵשָׂו֙ לְקַ֔שׁ וְדָלְק֥וּ בָהֶ֖ם וַאֲכָל֑וּם וְלֹֽא־יִֽהְיֶ֤ה שָׂרִיד֙ לְבֵ֣ית עֵשָׂ֔ו כִּ֥י יְהֹוָ֖ה דִּבֵּֽר׃\",\n\"וְיָרְשׁ֨וּ הַנֶּ֜גֶב אֶת־הַ֣ר עֵשָׂ֗ו וְהַשְּׁפֵלָה֙ אֶת־פְּלִשְׁתִּ֔ים וְיָרְשׁוּ֙ אֶת־שְׂדֵ֣ה אֶפְרַ֔יִם וְאֵ֖ת שְׂדֵ֣ה שֹׁמְר֑וֹן וּבִנְיָמִ֖ן אֶת־הַגִּלְעָֽד׃\",\n\"וְגָלֻ֣ת הַֽחֵל־הַ֠זֶּ֠ה לִבְנֵ֨י יִשְׂרָאֵ֤ל אֲשֶֽׁר־כְּנַעֲנִים֙ עַד־צָ֣רְפַ֔ת וְגָלֻ֥ת יְרוּשָׁלַ֖͏ִם אֲשֶׁ֣ר בִּסְפָרַ֑ד יִֽרְשׁ֕וּ אֵ֖ת עָרֵ֥י הַנֶּֽגֶב׃\",\n\"וְעָל֤וּ מֽוֹשִׁעִים֙ בְּהַ֣ר צִיּ֔וֹן לִשְׁפֹּ֖ט אֶת־הַ֣ר עֵשָׂ֑ו וְהָיְתָ֥ה לַֽיהֹוָ֖ה הַמְּלוּכָֽה׃\"\n]\n],\n\"firstSectionRef\": \"Obadiah 1\"}\n"
           },
           "available_versions": {
             "type": "array",
@@ -9274,7 +9224,6 @@
               "hasManuallyWrappedRefs": "",
               "actualLanguage": "he",
               "languageFamilyName": "hebrew",
-              "isBaseText": true,
               "isSource": true,
               "isPrimary": true,
               "direction": "rtl",
@@ -9419,14 +9368,11 @@
                 "description": "The overarching family for the specific language detailed in `actualLanguage`. For example, `Arabic` would be the overarching `languageFamily` for `judeo-arabic`.",
                 "type": "string"
               },
-              "isBaseText": {
-                "type": "string"
-              },
               "isSource": {
                 "type": "boolean"
               },
               "isPrimary": {
-                "type": "string"
+                "type": "boolean"
               },
               "direction": {
                 "type": "string"
@@ -9472,9 +9418,8 @@
           "hasManuallyWrappedRefs": "",
           "actualLanguage": "en",
           "languageFamilyName": "english",
-          "isBaseText": "",
           "isSource": false,
-          "isPrimary": "",
+          "isPrimary": false,
           "direction": "ltr",
           "language": "en",
           "title": "Obadiah",
@@ -9564,10 +9509,6 @@
             "description": "The overarching family for the specific language detailed in `actualLanguage`. For example, `Arabic` would be the overarching family for `judeo-arabic`. ",
             "type": "string"
           },
-          "isBaseText": {
-            "description": "Indicates whether or not this text is the base for a commentary (i.e. `Genesis` is a base text for `Ramban on Genesis`)",
-            "type": "boolean"
-          },
           "isSource": {
             "type": "boolean"
           },
@@ -9629,7 +9570,6 @@
           "hasManuallyWrappedRefs": "",
           "actualLanguage": "he",
           "languageFamilyName": "hebrew",
-          "isBaseText": true,
           "isSource": true,
           "isPrimary": true,
           "direction": "rtl",

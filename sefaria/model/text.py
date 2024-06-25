@@ -1297,7 +1297,12 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "title",    # FK to Index.title
         "versionSource",
         "versionTitle",
-        "chapter"  # required.  change to "content"?
+        "chapter",  # required.  change to "content"?
+        "actualLanguage",  # ISO language code
+        'languageFamilyName', # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
+        'isSource',  # bool, True if this version is not a translation
+        'isPrimary',  # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
+        'direction',  # 'rtl' or 'ltr'
     ]
 
     """
@@ -1323,12 +1328,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
-        "actualLanguage",  # ISO language code
-        'languageFamilyName',  # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
-        "isBaseText",  # should be deprecated (needs some changes on client side)
-        'isSource',  # bool, True if this version is not a translation
-        'isPrimary', # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
-        'direction',  # 'rtl' or 'ltr'
     ]
 
     def __str__(self):
@@ -1343,14 +1342,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
-        languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
-        if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
-            self.actualLanguage = languageCodeRe.group(1)
-        if not getattr(self, 'languageFamilyName', None):
-            try:
-                self.languageFamilyName = constants.LANGUAGE_CODES[self.actualLanguage]
-            except KeyError:
-                self.languageFamilyName = constants.LANGUAGE_CODES[self.language]
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
         index = self.get_index()
@@ -1386,16 +1377,20 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
     def _normalize(self):
         # add actualLanguage -- TODO: migration to get rid of bracket notation completely
-        actualLanguage = getattr(self, "actualLanguage", None) 
-        versionTitle = getattr(self, "versionTitle", None) 
+        actualLanguage = getattr(self, "actualLanguage", None)
+        versionTitle = getattr(self, "versionTitle", None)
         if not actualLanguage and versionTitle:
             languageCode = re.search(r"\[([a-z]{2})\]$", versionTitle)
             if languageCode and languageCode.group(1):
-                self.actualLanguage = languageCode.group(1)
-            else:
-                self.actualLanguage = self.language
+                actualLanguage = languageCode.group(1)
+        self.actualLanguage = actualLanguage or self.language
 
-        if not getattr(self, 'direction', None):
+        if not hasattr(self, 'languageFamilyName'):
+            self.languageFamilyName = constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
+        self.isSource = getattr(self, "isSource", self.actualLanguage == 'he')
+        if not hasattr(self, "isPrimary"):
+            self.isPrimary = self.isSource or not VersionSet({'title': self.title}) #first version is primary
+        if not hasattr(self, 'direction'):
             self.direction = 'rtl' if self.language == 'he' else 'ltr'
 
         if getattr(self, "priority", None):
