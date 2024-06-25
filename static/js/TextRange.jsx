@@ -120,18 +120,22 @@ class TextRange extends Component {
     return data;
   }
   onTextLoad(data) {
+    if (data.error) {
+      // If there was an error, don't update the state
+      return;
+    }
     // Initiate additional API calls when text data first loads
     this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      this.props.showBaseText(data.ref, true, this.props.currVersions);
+      this.props.showBaseText(data.ref, true, this.props.currVersions, [], false);
       return;
     } else if (this.props.basetext && data.spanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       // console.log("Re-rewriting spanning ref")
-      this.props.showBaseText(data.spanningRefs, true, this.props.currVersions, this.props.versionLanguage);
+      this.props.showBaseText(data.spanningRefs, true, this.props.currVersions, [], false);
       return;
     }
 
@@ -139,7 +143,7 @@ class TextRange extends Component {
 
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
-      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.currVersions);
+      this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.currVersions, [], false);
       return;
     }
 
@@ -150,6 +154,11 @@ class TextRange extends Component {
         this.placeSegmentNumbers();
         this.props.onTextLoad && this.props.onTextLoad(data.ref); // Don't call until the text is actually rendered
       }.bind(this));
+    }
+
+    const connectionsPanelRefElement = document.querySelectorAll(`[data-ref='${this.props.filterRef}']`);
+    if (connectionsPanelRefElement.length > 0) {
+      connectionsPanelRefElement[0].scrollIntoView();
     }
   }
   _updateCurrVersions(enVTitle, heVTitle) {
@@ -469,7 +478,7 @@ TextRange.propTypes = {
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
   translationLanguagePreference: PropTypes.string,
-  navigatePanel:          PropTypes.func
+  navigatePanel:          PropTypes.func,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
@@ -684,7 +693,7 @@ TextSegment.propTypes = {
   onFootnoteClick: PropTypes.func,
   onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
-  navigatePanel: PropTypes.func
+  navigatePanel: PropTypes.func,
 };
 
 export default TextRange;

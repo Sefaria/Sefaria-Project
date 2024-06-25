@@ -47,7 +47,7 @@ class Footer extends Component {
                 <Link href="/team" en="Team" he="צוות" />
                 <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
                 <Link href="/metrics" en="Metrics" he="מדדים" />
-                <Link href="/annualreport/2022" en="Annual Report" he='דו"ח שנתי' />
+                <Link href="/annualreport" en="Annual Report" he='דו"ח שנתי' />
                 <Link href="/terms" en="Terms of Use" he="תנאי שימוש" />
                 <Link href="/privacy-policy" en="Privacy Policy" he="מדיניות פרטיות" />
             </Section>
@@ -67,8 +67,8 @@ class Footer extends Component {
             </Section>
 
             <Section en="Developers" he="מפתחים">
-                <Link href="/developers" en="Get Involved" he="הצטרפו אלינו" blank={true} />
-                <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} />
+                <Link href="https://developers.sefaria.org" en="Get Involved" he="הצטרפו אלינו" blank={true} />
+                <Link href="https://developers.sefaria.org/reference" en="API Docs" he="מסמכי API" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="Github" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="בסיס נתונים" blank={true} />
             </Section>
@@ -86,19 +86,18 @@ class Footer extends Component {
                   <InterfaceText>Connect</InterfaceText>
               </div>
               <NewsletterSignUpForm contextName="Footer" />
-              <LikeFollowButtons />
               <div className="socialLinks">
-                  <Link href={fbURL} en="Facebook" he="פייסבוק" blank={true}/>
+                  <Link href="https://www.instagram.com/sefariaproject/" en="Instagram" he="אינסטגרם" blank={true} />
                   &bull;
-                  <Link href="https://twitter.com/SefariaProject" en="Twitter" he="טוויטר" />
+                  <Link href={fbURL} en="Facebook" he="פייסבוק" blank={true} />
                   <br />
 
-                  <Link href="https://www.youtube.com/user/SefariaProject" en="YouTube" he="יוטיוב" />
+                  <Link href="https://www.youtube.com/user/SefariaProject" en="YouTube" he="יוטיוב" blank={true} />
                   &bull;
                   <Link href={blgURL} en="Blog" he="בלוג" blank={true}/>
                   <br />
 
-                  <Link href="https://www.instagram.com/sefariaproject/" en="Instagram" he="אינסטגרם" />
+                  <Link href="https://www.linkedin.com/company/sefaria/" en="LinkedIn" he="לינקדאין" blank={true} />
                   &bull;
                   <Link href="mailto:hello@sefaria.org" en="Email" he="דוא&quot;ל" />
               </div>
@@ -121,71 +120,4 @@ class Footer extends Component {
   }
 }
 
-class LikeFollowButtons extends Component {
-  componentDidMount() {
-    this.loadFacebook();
-    this.loadTwitter();
-  }
-  loadFacebook() {
-    if (typeof FB !== "undefined") {
-       FB.XFBML.parse();
-    } else {
-      (function(d, s, id) {
-        var js, fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) return;
-        js = d.createElement(s); js.id = id;
-        js.src = Sefaria.interfaceLang ==  "hebrew" ?
-          "https://connect.facebook.net/he_IL/sdk.js#xfbml=1&version=v2.10&appId=206308089417064"
-          : "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=206308089417064";
-        fjs.parentNode.insertBefore(js, fjs);
-      }(document, 'script', 'facebook-jssdk'));
-    }
-  }
-  loadTwitter() {
-    if (typeof twttr !== "undefined") {
-      if ("widgets" in twttr) {
-        twttr.widgets.load();
-      }
-    } else {
-      window.twttr = (function(d, s, id) {
-        var js, fjs = d.getElementsByTagName(s)[0],
-          t = window.twttr || {};
-        if (d.getElementById(id)) return t;
-        js = d.createElement(s);
-        js.id = id;
-        js.src = "https://platform.twitter.com/widgets.js";
-        fjs.parentNode.insertBefore(js, fjs);
-
-        t._e = [];
-        t.ready = function(f) {
-          t._e.push(f);
-        };
-
-        return t;
-      }(document, "script", "twitter-wjs"));
-    }
-  }
-  render() {
-    var fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
-    var lang = Sefaria.interfaceLang.substring(0,2);
-    return (<div id="socialButtons">
-              <div id="facebookButton">
-                <div className="fb-like"
-                  data-href={fbURL}
-                  data-layout="button"
-                  data-action="like"
-                  data-size="small"
-                  data-show-faces="false"
-                  data-share="true"></div>
-              </div>
-              <div id="twitterButton">
-                <a className="twitter-follow-button"
-                  href="https://twitter.com/SefariaProject"
-                  data-show-screen-name="false"
-                  data-show-count="false"
-                  data-lang={lang}></a>
-              </div>
-            </div>);
-  }
-}
 export default Footer;

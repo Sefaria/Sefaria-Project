@@ -25,6 +25,7 @@ import {
   JobsPage,
   TeamMembersPage,
 } from './StaticPages';
+import UpdatesPanel from './UpdatesPanel';
 import {
   SignUpModal,
   InterruptingMessage,
@@ -173,7 +174,8 @@ class ReaderApp extends Component {
       topicSort:               state.topicSort               || null,
       webPagesFilter:          state.webPagesFilter          || null,
       sideScrollPosition:      state.sideScrollPosition      || null,
-      topicTestVersion:        state.topicTestVersion        || null
+      topicTestVersion:        state.topicTestVersion        || null,
+      filterRef:               state.filterRef               || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -280,8 +282,14 @@ class ReaderApp extends Component {
       } else {
         state.panels = [];
       }
-      this.setState(state, () => {
-        if (state.scrollPosition) {
+
+      // need to clone state and panels; if we don't clone them, when we run setState, it will make it so that
+      // this.state.panels refers to the same object as history.state.panels, which cause back button bugs
+      const newState = {...state};
+      newState.panels = newState.panels.map(panel => this.clonePanel(panel));
+
+      this.setState(newState, () => {
+        if (newState.scrollPosition) {
           $(".content").scrollTop(event.state.scrollPosition)
             .trigger("scroll");
         }
@@ -423,7 +431,7 @@ class ReaderApp extends Component {
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL.
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
-      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch"]);
+      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide"]);
     const addTab = (url) => {
       if (state.tab && state.menuOpen !== "search") {
         return  url + `&tab=${state.tab}`
@@ -474,7 +482,7 @@ class ReaderApp extends Component {
             break;
           case "search":
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
-            hist.title = state.searchQuery ? state.searchQuery + " | " : "";
+            hist.title = state.searchQuery ? state.searchQuery.stripHtml() + " | " : "";
             hist.title += Sefaria._(siteName + " Search");
             hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchTab}` +
               state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
@@ -586,6 +594,9 @@ class ReaderApp extends Component {
 
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
+        if (!!state.filterRef) {
+          hist.filterRef = state.filterRef;
+        }
         if(state.connectionsMode === "WebPagesList") {
           hist.sources = "WebPage:" + state.webPagesFilter;
         } else {
@@ -920,7 +931,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     });
   }
 }
-  
+
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
@@ -970,7 +981,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (textRef) {
       this.setTextListHighlight(n, textRef);
     }
-    this.openPanelAt(n, citationRef, currVersions, {scrollToHighlighted: !!replace});
+    this.openPanelAt(n, citationRef, currVersions, {scrollToHighlighted: !!replace}, false);
   }
   openNamedEntityInNewPanel(n, textRef, namedEntityState) {
     //this.setTextListHighlight(n, [textRef]);
@@ -1422,13 +1433,21 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options, replace) {
-    // Open a new panel after `n` with the new ref
-    // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
-    // If book level, Open book toc
+  openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true, replaceHistory=false, saveLastPlace=true) {
+    /* Open a new panel or replace existing panel. If book level, Open book toc
+    * @param {int} n: Open new panel after `n` with the new ref
+    * @param {string} ref: ref to use for new panel.  `ref` can refer to book, actual ref, or sheet.
+    * @param {Object} currVersions: Object with properties `en` and `he`
+    * @param {Object} options: options to use for new panel
+    * @param {bool} replace: whether to replace existing panel at `n`, otherwise insert new panel at `n`
+    * @param {bool} convertCommentaryRefToBaseRef: if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
+    * @param {bool} replaceHistory: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
+    * @param {bool} saveLastPlace: whether to save user history.
+    */
+    this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
     const index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
-    let panel;
+    let panel, connectionPanel;
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else if (parsedRef.book === "Sheet") {
@@ -1441,8 +1460,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         ...options
       });
     } else {  // Text
+      let filter = [];
+      let filterRef;
+      if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
+        // getBaseRefAndFilter breaks up the ref "Rashi on Genesis 1:1:4" into filter "Rashi" and ref "Genesis 1:1",
+        // so `filterRef` is needed to store the entire "Rashi on Genesis 1:1:4"
+        filterRef = Sefaria.humanRef(ref);
+        ({ref, filter} = Sefaria.getBaseRefAndFilter(ref));
+      }
       let refs, currentlyVisibleRef, highlightedRefs;
-      if (ref.constructor === Array) {
+      if (Array.isArray(ref)) {
         // When called with an array, set highlight for the whole spanning range of the array
         refs = ref;
         currentlyVisibleRef = Sefaria.normRef(ref);
@@ -1453,21 +1480,49 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         currentlyVisibleRef = ref;
         highlightedRefs = [];
       }
-      //console.log("Higlighted refs:", highlightedRefs)
-      panel = this.makePanelState({
+      let panelProps = {
         refs,
         currVersions,
         highlightedRefs,
+        filter,
+        filterRef,
+        recentFilters: filter,
         currentlyVisibleRef, mode: "Text",
         ...options
-      });
+      };
+      if (filter.length > 0) {  // there will be a filter such as ["Rashi"] if convertCommentaryRefToBaseRef is true
+        [panel, connectionPanel] = this.makePanelWithConnectionsState(panelProps);
+      }
+      else {
+        panel = this.makePanelState(panelProps);
+      }
+      panel.currentlyVisibleRef = Sefaria.humanRef(panelProps.currentlyVisibleRef);
     }
 
     const newPanels = this.state.panels.slice();
     newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
+    if (connectionPanel) {
+      newPanels.push(connectionPanel);
+    }
     this.setState({panels: newPanels});
-    this.saveLastPlace(panel, n+1);
+    if (saveLastPlace) {
+      this.saveLastPlace(panel, n + 1, !!connectionPanel);
+    }
   }
+  makePanelWithConnectionsState(panelProps) {
+    // in the case of multipanel, create two panels based on panelProps
+    let connectionPanel;  // in mobile, connectionPanel will remain undefined
+    if (this.props.multiPanel) {
+        const connectionPanelProps = {...panelProps, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
+        connectionPanel = this.makePanelState(connectionPanelProps);
+    } else {
+        panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
+    }
+    const panel = this.makePanelState(panelProps);
+    panel.showHighlight = true;
+    return [panel, connectionPanel];
+  }
+
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
@@ -2107,6 +2162,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
+                      openPanelAt={this.openPanelAt}
                       panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
@@ -2278,4 +2334,5 @@ export {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  UpdatesPanel
 };

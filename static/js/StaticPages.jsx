@@ -11,7 +11,6 @@ import classNames from 'classnames';
 import Cookies from 'js-cookie';
 
 
-
 /*  Templates:
 
         <Header
@@ -1436,7 +1435,7 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Donate Now"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/en"
+                enButtonUrl="https://donate.sefaria.org/"
                 heButtonUrl="https://donate.sefaria.org/he"
                 borderColor="#004E5F"
             />,
@@ -1463,13 +1462,13 @@ const DonatePage = () => (
                 borderColor="#4B71B7"
             />,
             <FeatureBox
-                enTitle="Sponsor a Text"
+                enTitle="Join a Giving Circle"
                 heTitle=""
-                enText="There are many opportunities to sponsor a text or translation in Sefaria's ever growing library and receive a personal dedication. "
+                enText="Become a lead supporter of Sefaria and ensure a vibrant future for the Jewish textual tradition."
                 heText=""
-                enButtonText="Learn More"
+                enButtonText="Join Now or Learn More"
                 heButtonText=""
-                enButtonUrl="https://drive.google.com/file/d/1FU8bHy7jZz86aywF7_kYMV0N3_h-k0nM/view"
+                enButtonUrl="https://donate.sefaria.org/campaign/giving-circles/c557214"
                 heButtonUrl=""
                 borderColor="#7C416F"
             />
@@ -1492,7 +1491,7 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Donate Online"
                     heTitle=""
-                    enText="<p>Make a donation by <strong>credit card, PayPal, GooglePay, ApplePay, Venmo, or bank transfer</strong> on our <a href='http://donate.sefaria.org/en'>main donation page</a>.</p>"
+                    enText="<p>Make a donation by <strong>credit card, PayPal, GooglePay, ApplePay, Venmo, or bank transfer</strong> on our <a href='http://donate.sefaria.org/'>main donation page</a>.</p>"
                     heText=""
                     colorBar="#AB4E66"
                 />,
@@ -1604,7 +1603,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="Can I still donate from outside the USA?"
             heTitle=""
-            enText="<p>Yes! Donors outside of the USA may make a gift online  – via credit card, PayPal, GooglePay, ApplePay, Venmo, and bank transfer – <a href='https://donate.sefaria.org/en'>on this page</a> On this page you can modify your currency. You can also <a href='https://sefaria.formstack.com/forms/wire_request'>make a wire transfer</a>.</p>"
+            enText="<p>Yes! Donors outside of the USA may make a gift online  – via credit card, PayPal, GooglePay, ApplePay, Venmo, and bank transfer – <a href='https://donate.sefaria.org/'>on this page</a> On this page you can modify your currency. You can also <a href='https://sefaria.formstack.com/forms/wire_request'>make a wire transfer</a>.</p>"
             heText=""
             colorBar="#7F85A9"
         />
@@ -1743,7 +1742,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="/static/files/Sefaria_AnnualImpactReport_R14.pdf"
+                        href="/annualreport"
                         he_href=""
                         he=""
                         en="Read Here"
@@ -1928,13 +1927,16 @@ const WordByWordPage = () => (
 
 
 const PoweredByPage = () => (
-    <StaticPage>
+    <StaticPage optionalClass="englishOnly">
         <Header
             enTitle="Powered by Sefaria"
-            enText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in our GitHub repository!"
-            heText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in our GitHub repository!"
-            enActionURL="https://github.com/Sefaria"
+            enText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in the Sefaria Developer Portal!"
+            heTitle="Powered by Sefaria"
+            heText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in the Sefaria Developer Portal!"
+            enActionURL="https://developers.sefaria.org/"
             enActionText="Create Something New"
+            heActionURL="https://developers.sefaria.org/"
+            heActionText="Create Something New"
             newTab={true}
         />
         <GreyBox>
@@ -1942,6 +1944,9 @@ const PoweredByPage = () => (
             <EnBlock padded={true}>
                 <p>We do our best to ensure that the texts we put in our library come with a Creative Commons license, so the texts can be used and reused, for free. We also make all of our code available for open source use by other developers in any way they’d like. To date, there are more than 70 projects Powered by Sefaria, and nearly 100 sites linked to the Sefaria library through our Linker API.</p>
             </EnBlock>
+            <HeBlock padded={true}>
+                <p>We do our best to ensure that the texts we put in our library come with a Creative Commons license, so the texts can be used and reused, for free. We also make all of our code available for open source use by other developers in any way they’d like. To date, there are more than 70 projects Powered by Sefaria, and nearly 100 sites linked to the Sefaria library through our Linker API.</p>
+            </HeBlock>
             <Spacer/>
         </GreyBox>
         <GreyBox light={true}>
@@ -1954,6 +1959,10 @@ const PoweredByPage = () => (
             enImgAlt="Screenshot of AlHaTorah"
             borderColor={palette.colors.darkteal}
             link="https://alhatorah.org/"
+            heText="AlHaTorah is a website with a broad range of tools for studying Tanakh, including study guides broken down by parashah, biblical art, and interactive modules. Among the available sources, AlHaTorah makes use of biblical commentaries from Sefaria’s library."
+            heTitle="AlHaTorah"
+            heImg="/static/img/powered-by-landing-page/alhatorah.org_.png"
+            heImgAlt="Screenshot of AlHaTorah"
         />
         <Feature
             enTitle="AllDaf"
@@ -1962,6 +1971,10 @@ const PoweredByPage = () => (
             enImgAlt="Screenshot of AllDaf"
             borderColor={palette.colors.yellow}
             link="https://alldaf.org/"
+            heTitle="AllDaf"
+            heText="This app for learning Daf Yomi from the Orthodox Union provides users with personalized feeds that adapt to learners’ interests, supporting study of the Daf in a user-friendly and approachable format. The English text on AllDaf is sourced from Sefaria."
+            heImg="/static/img/powered-by-landing-page/alldaf.org_.png"
+            heImgAlt="Screenshot of AllDaf"
         />
         <Feature
             enTitle="Hadran"
@@ -1970,6 +1983,10 @@ const PoweredByPage = () => (
             enImgAlt="Screenshot of Hadran"
             borderColor={palette.colors.green}
             link="https://hadran.org.il/"
+            heTitle="Hadran"
+            heText="Founded in 2018 by a group of women studying Talmud together, Hadran aims to make the study of Talmud more accessible to Jewish women at all levels of learning. Among the resources they provide are guides to learning Daf Yomi, and these lessons use texts from Sefaria."
+            heImg="/static/img/powered-by-landing-page/hadran.org.il_daf_yevamot-63_.png"
+            heImgAlt="Screenshot of Hadran"
         />
         <Feature
             enTitle="Dicta"
@@ -1978,6 +1995,10 @@ const PoweredByPage = () => (
             enImgAlt="Screenshot of Dicta"
             borderColor={palette.colors.lightblue}
             link="https://dicta.org.il/"
+            heTitle="Dicta"
+            heText="Dicta is a nonprofit research organization based in Israel that applies cutting-edge machine learning and natural language processing (the ability of a computer program to understand human language as it is spoken and written) to the analysis of Hebrew texts. Sefaria and Dicta often collaborate, sharing texts and splitting the costs of shared projects. Dicta offers a broad range of tools for free use by anyone, including the ability to add nikud (vocalization) to text as you type, intuitive Talmud and Bible search, and more."
+            heImg="/static/img/powered-by-landing-page/talmudsearch.dicta.org.il_.png"
+            heImgAlt="Screenshot of Dicta"
         />
         <Feature
             enTitle="Artscroll Smart Siddur"
@@ -1986,46 +2007,50 @@ const PoweredByPage = () => (
             enImgAlt="Screenshot of Artscroll Smart Siddur"
             borderColor={palette.colors.red}
             link="https://www.artscroll.com/Categories/DSD.html"
+            heTitle="Artscroll Smart Siddur"
+            heText="This app converts the popular ArtSchool Siddur into a fully digital format, including hyperlinks to secondary sources, translations, and commentary, as well as the ability to customize your siddur experience.  When you click on citations to non-ArtScroll books in the siddur's footnotes, they include texts from the Sefaria library."
+            heImg="/static/img/powered-by-landing-page/artscroll siddur.png"
+            heImgAlt="Screenshot of Artscroll Smart Siddur"
         />
         <GreyBox>
             <H2Block en="Tell us about your projects!" he="Tell us about your projects!"/>
             <EnBlock padded={true}>
-                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
+                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:developers@sefaria.org">developers@sefaria.org</a>.</p>
             </EnBlock>
+            <HeBlock padded={true}>
+                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:developers@sefaria.org">developers@sefaria.org</a>.</p>
+            </HeBlock>
             <Spacer/>
         </GreyBox>
 
         <ButtonRow white={true} enTitle="Explore a few more projects" heTitle="Explore a few more projects">
             {[["HaTanakh.com", "http://www.hatanakh.com/"],
                 ["Koveah", "https://koveah.org/"],
-                ["Parasha Bytes", "https://parashabytes.zemon.name/bytes/"],
                 ["Shnayim Mikra", "http://www.shnayim.com/"],
                 ["Russel Neiss' Micrography", "https://github.com/rneiss/micrography"],
                 ["Sefaria Wordpress Plugin", "https://github.com/JoshMB/sefaria-wp-plugin"],
-                ["Mizmor Shir", "http://mizmor-shir.herokuapp.com/"],
                 ["Capish - Interactive Learning", "https://capish.me/"],
                 ["Sefer Similarity Map", "https://jhostyk.github.io/SeferSimilarityMap/"],
                 ["Sefaria Space: (Topic Museum + Text Mania)", "https://sefaria-space.web.app/"],
                 ["T'Feeling", "https://tfeeling.netlify.app/"],
                 ["The Taryag Mitzvos", "https://thetaryag.com/"],
-                ["Visualizations of Sefaria", "https://guedalia.github.io/testab/test"],
                 ["Gematriaphone", "http://alexboxer.com/gematriaphone/"],
                 ["Yamim Noraim Machzor", "https://play.google.com/store/apps/details?id=com.machzoryamimnoraim"],
                 ["Sefaria Sidebar Extension", "https://github.com/DovOps/SefariaSidebarExtension/"],
                 ["Kindle Seforim", "https://kindleseforim.paritcher.com/"],
                 ["The Jewish Story Through Books", "https://joshcooper417.github.io/"]
-            ].map(i =>
+            ].map(([enText, hrefURL]) =>
                 <SimpleButton
                     white={true}
                     rounded={false}
                     tall={true}
                     newTab={true}
-                    href={i[1]}
-                    en={i[0]}
+                    href={hrefURL}
+                    en={enText}
+                    he={enText}
                 />)
             }
         </ButtonRow>
-
 
     </StaticPage>
 );
@@ -2891,11 +2916,10 @@ const JobsPageHeader = ({ jobsAreAvailable }) => {
     return (
         <>
             <header>
-                <h1 className="serif">
+                <h1 className="mobileAboutHeader">
                     <span className="int-en">Jobs at Sefaria</span>
                     <span className="int-he">משרות פנויות בספריא</span>
                 </h1>
-
                 {jobsAreAvailable ? (
                     <>
                         <h2>
@@ -3115,5 +3139,5 @@ export {
     DonatePage,
     WordByWordPage,
     JobsPage,
-    TeamMembersPage,
+    TeamMembersPage
 };

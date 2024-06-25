@@ -457,7 +457,7 @@ def test_complex_with_depth_1():
 
     c = TextChunk(r, "en")
     assert len(c.text) == 3
-    assert "Kiddush" in c.text[0]
+    assert "kiddush" in c.text[0].lower()
     assert "seventh day" in c.text[2]
 
 

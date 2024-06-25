@@ -57,7 +57,6 @@ localSettings:
   DEBUG: true
   DOMAIN_LANGUAGE: {}
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
-  SEARCH_URL: "http://elasticsearch-data:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
   FRONT_END_URL:  "http://${NAME}.integration.sefaria.org"

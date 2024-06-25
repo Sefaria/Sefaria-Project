@@ -17,13 +17,7 @@ import json
 import itertools
 from collections import defaultdict
 from bs4 import BeautifulSoup, Tag
-try:
-    import re2 as re
-    re.set_fallback_notification(re.FALLBACK_WARNING)
-except ImportError:
-    logger.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
-    import re
-
+import re2 as re
 from . import abstract as abst
 from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
@@ -385,12 +379,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         full_title_list = list(self.alt_titles_dict(lang).keys())
         alt_titles = list(map(re.escape, full_title_list))
         reg = '(?P<title>' + '|'.join(sorted(alt_titles, key=len, reverse=True)) + r')($|[:., ]+)'
-        try:
-            reg = re.compile(reg, max_mem=384 * 1024 * 1024)
-        except TypeError:
-            reg = re.compile(reg)
-
-        return reg
+        # increase max memory b/c re2 is RAM limited and the titles regex exceeds this limit
+        options = re.Options()
+        options.max_mem = 384 * 1024 * 1024
+        return re.compile(reg, options=options)
 
     def get_alt_struct_node(self, title, lang=None):
         if not lang:
@@ -535,7 +527,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if not d.get("categories"):
                 raise InputError("Please provide category for Index record: {}.".format(d.get("title")))
 
-            # Data is being loaded from dict in old format, rewrite to new format
+            # Data is being loaded from dict in old format, rewrite to new format,
+            # Used by GUI Index tools (Index Editor and the /add/new index creation tool) that do not pass a 'schema'
             # Assumption is that d has a complete title collection
             if "schema" not in d:
                 node = getattr(self, "nodes", None)
@@ -554,26 +547,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     else:
                         raise InputError("Please specify section names for Index record.")
 
-                    if d["categories"][0] == "Talmud":
-                        node.addressTypes = ["Talmud", "Integer"]
-                        if d["categories"][1] == "Bavli" and d.get("heTitle") and not self.is_dependant_text():
-                            node.checkFirst = {
-                                "he": "משנה" + " " + d.get("heTitle"),
-                                "en": "Mishnah " + d.get("title")
-                            }
-                    elif d["categories"][0] == "Mishnah":
-                        node.addressTypes = ["Perek", "Mishnah"]
-                    else:
-                        if getattr(node, "addressTypes", None) is None:
+                    if self.is_new():
+                        if d["categories"][0] == "Talmud" and d["categories"][1] == "Bavli":
+                            node.addressTypes = ["Talmud", "Integer"]
+                        else:
                             node.addressTypes = ["Integer" for _ in range(node.depth)]
-
-                    l = d.pop("length", None)
-                    if l:
-                        node.lengths = [l]
-
-                    ls = d.pop("lengths", None)
-                    if ls:
-                        node.lengths = ls  #overwrite if index.length is already there
 
                 #Build titles
                 node.add_title(d["title"], "en", True)
@@ -687,6 +665,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if getattr(self, attr, None):
                 delattr(self, attr)
 
+        # Index Editor can set collective_title and dependence to empty string if admin doesn't fill in a value.
+        # likewise, it can set base_text_titles to [] but we don't want empty strings/lists for these fields in the database
+        if getattr(self, "base_text_titles", None) == []:  # if base_text_titles is present but is empty list
+            delattr(self, "base_text_titles")
+        if getattr(self, "dependence", None) == "":
+            delattr(self, "dependence")
+        if hasattr(self, "collective_title"):
+            if self.collective_title == "":
+                del self.collective_title
+
     def _update_alt_structs_on_title_change(self):
         old_title = self.pkeys_orig_values["title"]
         new_title = self.nodes.primary_title("en")
@@ -750,7 +738,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         '''
 
         if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
-            raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
+            raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(
+                self.collective_title))
 
         #complex style records- all records should now conform to this
         if self.nodes:
@@ -1308,7 +1297,12 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "title",    # FK to Index.title
         "versionSource",
         "versionTitle",
-        "chapter"  # required.  change to "content"?
+        "chapter",  # required.  change to "content"?
+        "actualLanguage",  # ISO language code
+        'languageFamilyName', # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
+        'isSource',  # bool, True if this version is not a translation
+        'isPrimary',  # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
+        'direction',  # 'rtl' or 'ltr'
     ]
 
     """
@@ -1334,12 +1328,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
-        "actualLanguage",  # ISO language code
-        'languageFamilyName',  # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
-        "isBaseText",  # should be deprecated (needs some changes on client side)
-        'isSource',  # bool, True if this version is not a translation
-        'isPrimary', # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
-        'direction',  # 'rtl' or 'ltr'
     ]
 
     def __str__(self):
@@ -1354,14 +1342,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
-        languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
-        if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
-            self.actualLanguage = languageCodeRe.group(1)
-        if not getattr(self, 'languageFamilyName', None):
-            try:
-                self.languageFamilyName = constants.LANGUAGE_CODES[self.actualLanguage]
-            except KeyError:
-                self.languageFamilyName = constants.LANGUAGE_CODES[self.language]
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
         index = self.get_index()
@@ -1397,16 +1377,20 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
     def _normalize(self):
         # add actualLanguage -- TODO: migration to get rid of bracket notation completely
-        actualLanguage = getattr(self, "actualLanguage", None) 
-        versionTitle = getattr(self, "versionTitle", None) 
+        actualLanguage = getattr(self, "actualLanguage", None)
+        versionTitle = getattr(self, "versionTitle", None)
         if not actualLanguage and versionTitle:
             languageCode = re.search(r"\[([a-z]{2})\]$", versionTitle)
             if languageCode and languageCode.group(1):
-                self.actualLanguage = languageCode.group(1)
-            else:
-                self.actualLanguage = self.language
+                actualLanguage = languageCode.group(1)
+        self.actualLanguage = actualLanguage or self.language
 
-        if not getattr(self, 'direction', None):
+        if not hasattr(self, 'languageFamilyName'):
+            self.languageFamilyName = constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
+        self.isSource = getattr(self, "isSource", self.actualLanguage == 'he')
+        if not hasattr(self, "isPrimary"):
+            self.isPrimary = self.isSource or not VersionSet({'title': self.title}) #first version is primary
+        if not hasattr(self, 'direction'):
             self.direction = 'rtl' if self.language == 'he' else 'ltr'
 
         if getattr(self, "priority", None):
@@ -5606,10 +5590,10 @@ class Library(object):
         reg = self._title_regexes.get(key)
         if not reg:
             re_string = self.all_titles_regex_string(lang, with_terms, citing_only)
-            try:
-                reg = re.compile(re_string, max_mem=512 * 1024 * 1024)
-            except TypeError:
-                reg = re.compile(re_string)
+            # increase max memory b/c re2 is RAM limited and the titles regex exceeds this limit
+            options = re.Options()
+            options.max_mem = 512 * 1024 * 1024
+            reg = re.compile(re_string, options=options)
             self._title_regexes[key] = reg
         return reg
 
