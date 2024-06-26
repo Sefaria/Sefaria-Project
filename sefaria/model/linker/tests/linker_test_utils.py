@@ -8,8 +8,6 @@ from sefaria.settings import ENABLE_LINKER
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
 
-ref_resolver = library.get_ref_resolver()
-
 
 class RefPartTypeNone:
     """
@@ -58,7 +56,7 @@ class EncodedPart:
 
     @staticmethod
     def convert_to_raw_encoded_part_list(lang, text, span_inds, part_types):
-        nlp = ref_resolver.get_raw_ref_part_model(lang)
+        nlp = library.get_linker(lang).get_ner().raw_ref_part_model
         doc = nlp.make_doc(text)
         span = doc[0:]
         raw_encoded_part_list = []
@@ -104,7 +102,7 @@ class EncodedPartList:
     @property
     def span(self):
         if not self._span:
-            nlp = ref_resolver.get_raw_ref_part_model(self.lang)
+            nlp = library.get_linker(self.lang).get_ner().raw_ref_part_model
             doc = nlp.make_doc(self.input_str)
             self._span = doc[0:]
         return self._span
@@ -131,7 +129,7 @@ class EncodedPartList:
         return raw_ref_parts
 
     def get_raw_ref_params(self):
-        return self.lang, self.raw_ref_parts, self.span
+        return self.span, self.lang, self.raw_ref_parts
 
     def print_debug_info(self):
         print('Input:', self.input_str)
