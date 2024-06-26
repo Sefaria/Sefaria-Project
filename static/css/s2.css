@@ -4609,6 +4609,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .sheetResult .ownerName {
   color: var(--midrash-green);
   margin-inline-start: 10px;
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
 }
 .searchContent .sheetResult .date {
   color: #999999;
@@ -4616,10 +4618,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
-  margin-inline-start: 10px;
+  margin-inline-start: 5px;
 }
 .searchContent .sheetResult .bullet {
-  margin-inline-start: 10px;
+  margin-inline-start: 5px;
 }
 .searchContent .sheetResult .sheetData .tagsViews a:not(:last-of-type):after{
   content: ",";
