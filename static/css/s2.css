@@ -10042,21 +10042,16 @@ span.purim-emoji img{
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
   font-family: Source Serif Pro, serif;
   font-weight: 400;
-}
-.interface-hebrew .overlayTextOnSheetsHero #title, .interface-hebrew .overlayTextOnSheetsHero #message {
-  right: 10%;
-  left: revert;
+  margin-inline-start: 10%;
 }
 .overlayTextOnSheetsHero #title {
   position: absolute;
-  left: 10%;
   font-size: 50px;
   top: 145px;
   line-height: 62.65px;
 }
 .overlayTextOnSheetsHero #message {
   position: absolute;
-  left: 10%;
   font-family: Source Sans Pro, serif;
   font-size: 24px;
   line-height: 18px;
