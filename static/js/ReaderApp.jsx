@@ -281,8 +281,14 @@ class ReaderApp extends Component {
       } else {
         state.panels = [];
       }
-      this.setState(state, () => {
-        if (state.scrollPosition) {
+
+      // need to clone state and panels; if we don't clone them, when we run setState, it will make it so that
+      // this.state.panels refers to the same object as history.state.panels, which cause back button bugs
+      const newState = {...state};
+      newState.panels = newState.panels.map(panel => this.clonePanel(panel));
+
+      this.setState(newState, () => {
+        if (newState.scrollPosition) {
           $(".content").scrollTop(event.state.scrollPosition)
             .trigger("scroll");
         }
