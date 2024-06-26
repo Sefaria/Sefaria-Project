@@ -174,31 +174,37 @@ const EntitySearchSuggestion = ({label, onClick, type, url, ...props}) => {
     );
 }
 
-const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebrewKeyboard,
+const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebrewKeyboard, setInputValue,
                         setSearchFocused, searchFocused,
                             submitSearch, redirectToObject}) => {
 
+    const getInputValue = () =>{
+        return otherDownShiftProps.value || getVirtualKeyboardInputValue();
+    }
+    const getVirtualKeyboardInputValue = () =>{
+        return document.querySelector('#searchBox .keyboardInput').value;
+    }
     useEffect(() => {
       showVirtualKeyboardIcon(false); // Initially hide the virtual keyboard icon
     }, []);
    const { onBlur, onKeyDown, ...otherDownShiftProps } = getInputProps();
 
     const handleSearchKeyDown = (event) => {
-      onKeyDown(event)
+      onKeyDown(event);
       if (event.keyCode !== 13) return;
       const highlightedItem = highlightedIndex > -1 ? suggestions[highlightedIndex] : null
       if (highlightedItem  && highlightedItem.type != 'search'){
         redirectToObject(highlightedItem);
         return;
       }
-      const inputQuery = otherDownShiftProps.value
+      const inputQuery = getInputValue();
       if (!inputQuery) return;
       submitSearch(inputQuery);
     };
 
 
     const handleSearchButtonClick = (event) => {
-      const inputQuery = otherDownShiftProps.value
+      const inputQuery = getInputValue();
       if (inputQuery) {
         submitSearch(inputQuery);
       } else {
@@ -224,12 +230,14 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
 
     const blurSearch = (e) => {
       onBlur(e);
+      const oldValue = getVirtualKeyboardInputValue();
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
         // debug: comment out the following line:
         setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }
+      !document.getElementById('keyboardInputMaster') && setInputValue(oldValue)
     };
 
     const inputClasses = classNames({
@@ -353,6 +361,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     getInputProps,
     getItemProps,
     highlightedIndex,
+    setInputValue
   } = useCombobox({
     items: suggestions,
     itemToString: (item) => (item ? item.name : ''),
@@ -465,6 +474,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
             suggestions={suggestions}
             hideHebrewKeyboard={hideHebrewKeyboard}
             highlightedIndex={highlightedIndex}
+            setInputValue={setInputValue}
 
             setSearchFocused={setSearchFocused}
             searchFocused={searchFocused}

@@ -45,7 +45,7 @@ from .topic import Topic, PersonTopic, AuthorTopic, TopicLinkType, IntraTopicLin
 from .portal import Portal
 from .manuscript import Manuscript, ManuscriptSet, ManuscriptPage, ManuscriptPageSet
 from .linker.ref_part import RawRef
-from .linker.ref_resolver import RefResolver
+from .linker.linker import Linker
 from . import dependencies
 
 library._build_index_maps()

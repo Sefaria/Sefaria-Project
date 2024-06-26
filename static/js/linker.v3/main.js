@@ -6,6 +6,10 @@ import {LinkExcluder} from "./excluder";
 
 
 (function(ns) {
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+    }
+
     function sanitizeElem(elem) {
         const cleaned = DOMPurify.sanitize(elem, { USE_PROFILES: { html: true } });
         const cleanedElem = document.createElement("div");
@@ -100,7 +104,6 @@ import {LinkExcluder} from "./excluder";
     function findOccurrences(text) {
         const occurrences = [];
         findAndReplaceDOMText(document, {
-            preset: 'prose',
             find: text,
             replace: function(portion, match) {
                 if (portion.index === 0) {
@@ -114,7 +117,7 @@ import {LinkExcluder} from "./excluder";
 
     function getNextWhiteSpaceIndex(text) {
         const match = text.match(/\S\s+/);  // `\S` so whitespace can't be at beginning of string
-        if (match === null || text.substring(0, match.index+1).indexOf('\n') > -1) { return -1; }  // \n's are added in by Readability and therefore make it challenging to match against. stop when you hit one.
+        if (match === null) { return -1; }
         return match.index + 1;
     }
 
@@ -142,9 +145,12 @@ import {LinkExcluder} from "./excluder";
         const newEndChar = getNthWhiteSpaceIndex(text, numWordsAround, endChar);
         const textRev = [...text].reverse().join("");
         const newStartChar = text.length - getNthWhiteSpaceIndex(textRev, numWordsAround, text.length - startChar);
-        const wordsAroundText = text.substring(newStartChar, newEndChar);
+        const wordsAroundText = escapeRegExp(text.substring(newStartChar, newEndChar));
+        // findAndReplaceDOMText and Readability deal with element boundaries differently
+        // in order to more flexibly find these boundaries, we treat all whitespace the same
+        const wordsAroundReg = wordsAroundText.replace(/\s+/g, '\\s+');
         return {
-            text: wordsAroundText,
+            text: RegExp(wordsAroundReg, "g"),
             startChar: startChar - newStartChar,
         };
     }
@@ -193,6 +199,26 @@ import {LinkExcluder} from "./excluder";
             return node;
         }
     }
+    function isMatchUniqueEnough(globalLinkStarts, match, charError=5) {
+        /**
+         * Return true if `match` represents one of the matches we've determined to be unique enough to represent this link
+         */
+        for (let globalStart of globalLinkStarts) {
+            if (Math.abs(match.startIndex - globalStart) <= charError) {
+                return true;
+            }
+        }
+        return false;
+    }
+    function isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength=30) {
+        /**
+         * return true if first occurrence is sufficiently long (longer than `maxSearchLength`)
+         * AND searchText includes more than just the text of the link.
+         */
+        if (occurrences.length === 0) { return false; }
+        const firstOccurrenceLength = occurrences[0][1] - occurrences[0][0];
+        return firstOccurrenceLength >= maxSearchLength && firstOccurrenceLength > linkObj.text.length;
+    }
 
     function wrapRef(linkObj, normalizedText, refData, iLinkObj, resultsKey, maxNumWordsAround = 10, maxSearchLength = 30) {
         /**
@@ -218,9 +244,9 @@ import {LinkExcluder} from "./excluder";
             ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround));
             occurrences = findOccurrences(searchText);
             numWordsAround += 1;
-            if (searchText.length >= maxSearchLength) { break; }
+            if (isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength)) { break; }
         }
-        if (occurrences.length === 0 || (occurrences.length > 1 && searchText.length < maxSearchLength)) {
+        if (occurrences.length !== 1 && !isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength)) {
             if (ns.debug) {
                 console.log("MISSED", numWordsAround, occurrences.length, linkObj);
             }
@@ -228,11 +254,11 @@ import {LinkExcluder} from "./excluder";
         }
         const globalLinkStarts = occurrences.map(([start, end]) => linkStartChar + start);
         findAndReplaceDOMText(document, {
-            preset: 'prose',
             find: linkObj.text,
             replace: function(portion, match) {
-                // check this is the unique match found above
-                if (globalLinkStarts.indexOf(match.startIndex) === -1) { return portion.text; }
+                if (!isMatchUniqueEnough(globalLinkStarts, match)) {
+                    return portion.text;
+                }
 
                 // check if should be excluded from linking and/or tracking
                 const matchKey = match.startIndex + "|" + match.endIndex;

@@ -7874,24 +7874,7 @@ But not to use a display block directive that might break continuous mode for ot
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border: none;
 }
-.sheets .button {
-  background-color: var(--midrash-green);
-}
-.button.getStartedSheets {
-  width: 111px;
-  height: 39px;
-  padding: 10px 15px 10px 15px;
-  border-radius: 6px;
-  border: 1px solid #CCCCCC;
-  display: block;
-  background-color: white;
-  color: black;
-  font-size: 16px;
-  white-space: nowrap;
-}
-.button.getStartedSheets:hover {
-  color: black;
-}
+
 .button.disabled{
   border: 1px solid var(--light-grey);
   background-color: var(--lightest-grey);
@@ -10080,6 +10063,9 @@ span.purim-emoji img{
   top: 227px;
 }
 @media screen and (max-width: 600px) {
+  .overlayTextOnSheetsHero {
+    margin-inline-start: 15%;
+  }
   .overlayTextOnSheetsHero #title {
     font-size: 24px;
     top: 115px;
@@ -13193,7 +13179,121 @@ span.ref-link-color-3 {color: blue}
 .blockButton {
   cursor: pointer;
 }
+.sheets .button {
+  background-color: var(--midrash-green);
+}
+.sheets .sheetsFont {
+  color: var(--midrash-green);
+  font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-bottom: 15px;
+  flex: 1 1 100%;
+}
+.sheets .sheetsTopicsCalendar .sheetsFont {
+  flex: revert;
+}
+.sheets .sidebarLayout {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 50px;
+  max-width: revert;
+}
+.sheets .sidebarLayout .sheetsTopics {
+  display: flex;
+  flex-direction: column;
+  width: 55%;
+}
+.sheets .sidebarLayout .sheetsTopicsCalendar, .sheets .sidebarLayout .sheetsTopicTOC {
+  margin-inline-start: 10%;
+}
+.sheets .sheetsTopics .navBlock::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 95%;
+  border-top: 1px solid #EDEDEC;
+}
+.sheets .sheetsTopics .navBlock {
+  flex: 1 1 50%;
+  position: relative;
+  border-top: revert;
+}
+.sheets .sheetsTopicTOC .sheetsWrapper {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+}
+.sheets .sheetsTopicsCalendar .sheetsWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.singlePanel .sheetsTopicTOC, .singlePanel .sheetsTopicsCalendar {
+  margin-top: 30px;
+}
+.multiPanel .sheetsTopicTOC {
+  margin-top: 30px;
+}
+.sheetsTopicsCalendar {
+  display: flex;
+  justify-content: space-between;
+}
+.singlePanel .sheets .navSidebar {
+  margin-block-start: 5px;
+  width: revert;
+}
+.singlePanel .sheets .navSidebarModule {
+  padding: 0 35px;
+}
+.singlePanel .sheets .sheetsWrapper, .singlePanel .sheets .sheetsTopicsCalendar {
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.singlePanel .sheets .sidebarLayout {
+  margin-top: revert;
+}
 
+.singlePanel .sheets .sidebarLayout .sheetsTopics {
+  width: revert;
+}
+.singlePanel .sheets .sheetsFont {
+  flex: revert;
+}
+.singlePanel .sheets .button {
+  display: block;
+}
+@media screen and (max-width: 800px) {
+  .sheets .sidebarLayout .sheetsTopics {
+    width: 100%;
+  }
+  .sheets .button {
+    display: block;
+  }
+  .sheets .navSidebar {
+    width: revert;
+    border-top: 40px solid #FBFBFA;
+    margin-block-start: -40px;
+    margin-top: 30px;
+    border-bottom: 40px solid #FBFBFA;
+  }
+}
+.button.getStartedSheets {
+  width: 111px;
+  height: 39px;
+  padding: 10px 15px 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #CCCCCC;
+  display: block;
+  background-color: white;
+  color: black;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.button.getStartedSheets:hover {
+  color: black;
+}
 .image-in-text {
     display: flex;
     justify-content: center;

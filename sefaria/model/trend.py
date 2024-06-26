@@ -7,8 +7,6 @@ import json
 import time
 from datetime import datetime, date, timedelta
 
-from py import process
-
 from . import abstract as abst
 from . import user_profile
 from . import text

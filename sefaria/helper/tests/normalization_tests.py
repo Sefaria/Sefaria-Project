@@ -1,3 +1,4 @@
+import pytest
 import django
 django.setup()
 from sefaria.helper.normalization import *
@@ -73,6 +74,19 @@ def test_complicated_normalizer_composer():
     assert repl0 == ' '
 
 
+@pytest.mark.parametrize(('unnorm', 'norm', 'normalizer_steps', 'test_word'), [
+    ["<b><i> test", " test", ['html', 'double-space'], 'test'],
+    ["\n\n\nThe rest of Chapter 1.\n \n", " The rest of Chapter 1. ", ['unidecode', 'html', 'double-space'], 'Chapter 1'],
+])
+def test_mapping(unnorm, norm, normalizer_steps, test_word):
+    nsc = NormalizerComposer(normalizer_steps)
+    assert nsc.normalize(unnorm) == norm
+    start_norm_ind = norm.index(test_word)
+    norm_inds = (start_norm_ind, start_norm_ind+len(test_word))
+    unnorm_inds = nsc.norm_to_unnorm_indices(unnorm, [norm_inds])[0]
+    assert unnorm[slice(*unnorm_inds)] == norm[slice(*norm_inds)]
+
+
 def test_html_normalizer_for_empty_prefix():
     text = """It is written<sup>24</sup><i class="footnote"><i>1K</i>. 17:1.</i> <i>Elijah the Tisbite</i>"""
     normalizer = NormalizerComposer(['html'])
@@ -82,8 +96,7 @@ def test_html_normalizer_for_empty_prefix():
     ne_start = norm_text.index(ne)
     ne_norm_prefix_inds = (ne_start, ne_start)
     assert norm_text[ne_norm_prefix_inds[0]:ne_norm_prefix_inds[0]+len(ne)] == ne
-    mapping = normalizer.get_mapping_after_normalization(text)
-    ne_inds = normalizer.convert_normalized_indices_to_unnormalized_indices([ne_norm_prefix_inds], mapping)[0]
+    ne_inds = normalizer.norm_to_unnorm_indices(text, [ne_norm_prefix_inds])[0]
     # actual test
     assert ne_inds[0] == ne_inds[1]
     assert text[ne_inds[0]:ne_inds[0]+len(ne)] == ne
@@ -102,6 +115,7 @@ def test_nested_itag():
     assert text[s:e] == """<i class="footnote">bull<sup>nested</sup><i class="footnote">The</i>.</i>"""
 
 
+@pytest.mark.xfail(reason="not clear we want to support char_indices_from_word_indices as it's unused")
 def test_two_steps_normalization():
     test_string = ' This is a {{test}}'
 

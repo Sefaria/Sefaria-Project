@@ -60,10 +60,10 @@ class Record():
         lang = 'he' if len(re.findall('[א-ת]', string)) > len(string) / 2 else 'en'
         if lang == 'en':
             string = translliterate_russian_to_latin(string)
-        ref_resolver = library.get_ref_resolver()
+        linker = library.get_linker('he')
         if lang == 'he':  # remove this line when linker v3 is availabe in English
-            refs = ref_resolver.bulk_resolve_refs(lang, [None], [string])
-            refs = {y.ref for x in refs for y in x if type(y) != AmbiguousResolvedRef}
+            doc = linker.link(string, type_filter='citation')
+            refs = {y.ref for y in doc.resolved_refs if not y.is_ambiguous}
         else:  # remove else statement (with its content) when linker v3 is availabe in English
             refs = set()
             library.apply_action_for_all_refs_in_string(re.sub('[\(\)]', '', string), lambda x, y: refs.add(x), 'en', citing_only=True)

@@ -3,7 +3,7 @@ import json
 import spacy
 import structlog
 from sefaria.model.linker.ref_part import TermContext, RefPartType
-from sefaria.model.linker.ref_resolver import ResolvedRef, AmbiguousResolvedRef
+from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
@@ -119,14 +119,16 @@ def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _F
 
 
 def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
-    resolver = library.get_ref_resolver()
-    resolved_title = resolver.bulk_resolve_refs(request_text.lang, [None], [request_text.title])
-    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved_body = resolver.bulk_resolve_refs(request_text.lang, [context_ref], [request_text.body], with_failures=True)
+    linker = library.get_linker(request_text.lang)
+    title_doc = linker.link(request_text.title, type_filter='citation')
+    context_ref = None
+    if len(title_doc.resolved_refs) == 1 and not title_doc.resolved_refs[0].is_ambiguous:
+        context_ref = title_doc.resolved_refs[0].ref
+    body_doc = linker.link_by_paragraph(request_text.body, context_ref, with_failures=True, type_filter='citation')
 
     response = {
-        "title": _make_find_refs_response_inner(resolved_title, options),
-        "body": _make_find_refs_response_inner(resolved_body, options),
+        "title": _make_find_refs_response_inner(title_doc.resolved_refs, options),
+        "body": _make_find_refs_response_inner(body_doc.resolved_refs, options),
     }
 
     return response
@@ -177,14 +179,13 @@ def _get_trefs_from_response(response):
     return trefs
 
 
-def _make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], options: _FindRefsTextOptions):
+def _make_find_refs_response_inner(resolved_ref_list: List[PossiblyAmbigResolvedRef], options: _FindRefsTextOptions):
     ref_results = []
     ref_data = {}
     debug_data = []
-    resolved_ref_list = [resolved_ref for inner_resolved in resolved for resolved_ref in inner_resolved]
     for resolved_ref in resolved_ref_list:
         resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
-        start_char, end_char = resolved_ref.raw_ref.char_indices
+        start_char, end_char = resolved_ref.raw_entity.char_indices
         text = resolved_ref.pretty_text
         link_failed = resolved_refs[0].ref is None
         if not link_failed and resolved_refs[0].ref.is_book_level(): continue
@@ -249,12 +250,12 @@ def _get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: _FindRe
     return as_array[:options.max_segments or None], was_truncated
 
 
-def _make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
+def _make_debug_response_for_linker(resolved_ref: PossiblyAmbigResolvedRef) -> dict:
     debug_data = {
-        "orig_part_strs": [p.text for p in resolved_ref.raw_ref.raw_ref_parts],
-        "orig_part_types": [p.type.name for p in resolved_ref.raw_ref.raw_ref_parts],
-        "final_part_strs": [p.text for p in resolved_ref.raw_ref.parts_to_match],
-        "final_part_types": [p.type.name for p in resolved_ref.raw_ref.parts_to_match],
+        "orig_part_strs": [p.text for p in resolved_ref.raw_entity.raw_ref_parts],
+        "orig_part_types": [p.type.name for p in resolved_ref.raw_entity.raw_ref_parts],
+        "final_part_strs": [p.text for p in resolved_ref.raw_entity.parts_to_match],
+        "final_part_types": [p.type.name for p in resolved_ref.raw_entity.parts_to_match],
         "resolved_part_strs": [p.term.slug if isinstance(p, TermContext) else p.text for p in resolved_ref.resolved_parts],
         "resolved_part_types": [p.type.name for p in resolved_ref.resolved_parts],
         "resolved_part_classes": [p.__class__.__name__ for p in resolved_ref.resolved_parts],
@@ -262,7 +263,7 @@ def _make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
         "context_type": resolved_ref.context_type.name if resolved_ref.context_type else None,
     }
     if RefPartType.RANGE.name in debug_data['final_part_types']:
-        range_part = next((p for p in resolved_ref.raw_ref.parts_to_match if p.type == RefPartType.RANGE), None)
+        range_part = next((p for p in resolved_ref.raw_entity.parts_to_match if p.type == RefPartType.RANGE), None)
         debug_data.update({
             'input_range_sections': [p.text for p in range_part.sections],
             'input_range_to_sections': [p.text for p in range_part.toSections]
