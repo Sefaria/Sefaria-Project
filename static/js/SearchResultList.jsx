@@ -437,7 +437,8 @@ class SearchResultList extends Component {
         } else if (type === "sheet") {
           results = this.state.hits.map(result =>
             <SearchSheetResult
-              data={result}
+              metadata={result._source}
+              snippet={result.highlight.content.join("...")}
               query={this.props.query}
               key={result._id}
               onResultClick={this.props.onResultClick} />

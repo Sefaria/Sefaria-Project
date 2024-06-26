@@ -4574,6 +4574,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 24px;
   margin-bottom: 15px;
 }
+.sheetResult .result-title {
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+  color: #000000;
+}
+.sheetResult .snippet.en {
+  color: #666666;
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+}
 .searchContent .result-title .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
@@ -4593,8 +4607,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
 }
 .searchContent .sheetResult .ownerName {
-  color: #000;
+  color: var(--midrash-green);
   margin-inline-start: 10px;
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+}
+.searchContent .sheetResult .date {
+  color: #999999;
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-inline-start: 5px;
+}
+.searchContent .sheetResult .bullet {
+  margin-inline-start: 5px;
 }
 .searchContent .sheetResult .sheetData .tagsViews a:not(:last-of-type):after{
   content: ",";
