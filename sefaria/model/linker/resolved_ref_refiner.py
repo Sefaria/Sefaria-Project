@@ -8,16 +8,6 @@ from sefaria.system.exceptions import InputError
 from sefaria.model.text import Ref
 
 
-def subref(ref: Ref, section: int):
-    if ref.index_node.addressTypes[len(ref.sections)-1] == "Talmud":
-        d = ref._core_dict()
-        d['sections'][-1] += (section-1)
-        d['toSections'] = d['sections'][:]
-        return Ref(_obj=d)
-    else:
-        return ref.subref(section)
-
-
 class ResolvedRefRefiner(ABC):
 
     def __init__(self, part_to_match: RawRefPart, node: ReferenceableBookNode, resolved_ref: 'ResolvedRef'):
@@ -36,7 +26,7 @@ class ResolvedRefRefiner(ABC):
         Helper function to avoid matching AddressInteger sections out of order
         Returns True if there is a RawRefPart which immediately precedes `raw_ref_part` and is not yet included in this match
         """
-        prev_part = self.resolved_ref.raw_ref.prev_num_parts_map.get(self.part_to_match, None)
+        prev_part = self.resolved_ref.raw_entity.prev_num_parts_map.get(self.part_to_match, None)
         if prev_part is None: return False
         return prev_part not in set(self.resolved_ref.resolved_parts)
 
@@ -88,14 +78,10 @@ class ResolvedRefRefinerForNumberedPart(ResolvedRefRefiner):
     def __refine_context_free(self, lang: str, fromSections=None) -> List['ResolvedRef']:
         if self.node is None:
             return []
-        try:
-            possible_sections, possible_to_sections, addr_classes = self.node.get_all_possible_sections_from_string(lang, self.part_to_match.text, fromSections, strip_prefixes=True)
-        except (IndexError, TypeError, KeyError):
-            return []
+        possible_subrefs, can_match_out_of_order_list = self.node.possible_subrefs(lang, self.resolved_ref.ref, self.part_to_match.text, fromSections)
         refined_refs = []
-        addr_classes_used = []
-        for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
-            if self._has_prev_unused_numbered_ref_part() and not addr_class.can_match_out_of_order(lang, self.part_to_match.text):
+        for refined_ref, can_match_out_of_order in zip(possible_subrefs, can_match_out_of_order_list):
+            if self._has_prev_unused_numbered_ref_part() and not can_match_out_of_order:
                 """
                 If raw_ref has NUMBERED parts [a, b]
                 and part b matches before part a
@@ -103,16 +89,7 @@ class ResolvedRefRefinerForNumberedPart(ResolvedRefRefiner):
                 discard match because AddressInteger parts need to match in order
                 """
                 continue
-            try:
-                refined_ref = subref(self.resolved_ref.ref, sec)
-                if toSec != sec:
-                    to_ref = subref(self.resolved_ref.ref, toSec)
-                    refined_ref = refined_ref.to(to_ref)
-                refined_refs += [refined_ref]
-                addr_classes_used += [addr_class]
-            except (InputError, IndexError, AssertionError, AttributeError):
-                continue
-
+            refined_refs += [refined_ref]
         return [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=self.node, ref=refined_ref) for refined_ref in refined_refs]
 
 

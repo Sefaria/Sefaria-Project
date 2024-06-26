@@ -624,27 +624,52 @@ Sefaria = extend(Sefaria, {
         firstName: firstName,
         lastName: lastName,
       };
-      return await Sefaria.postToApi(`/api/subscribe/${email}`, null, payload);
+      return await Sefaria.apiRequestWithBody(`/api/subscribe/${email}`, null, payload);
   },
   subscribeSteinsaltzNewsletter: async function(firstName, lastName, email) {
       const payload = {firstName, lastName};
-      return await Sefaria.postToApi(`/api/subscribe/steinsaltz/${email}`, null, payload);
+      return await Sefaria.apiRequestWithBody(`/api/subscribe/steinsaltz/${email}`, null, payload);
   },
-
-    postToApi: async function(url, urlParams, payload) {
+  postRefTopicLink: function(refInUrl, payload) {
+      const url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
+      // payload will need to be refactored once /api/ref-topic-links takes a more standard input
+      return Sefaria.adminEditorApiRequest(url, null, payload);
+  },
+  adminEditorApiRequest: async function(url, urlParams, payload, method="POST") {
+      /**
+       * Wraps apiRequestWithBody() with basic alerting if response has an error
+       */
+      let result;
+      try {
+          result = await Sefaria.apiRequestWithBody(url, urlParams, payload, method);
+      } catch (e) {
+          alert(Sefaria._("Something went wrong. Sorry!"));
+          throw e;
+      }
+      if (result.error) {
+          alert(result.error);
+          throw result.error;
+      } else {
+          return result;
+      }
+  },
+  apiRequestWithBody: async function(url, urlParams, payload, method="POST") {
+    /**
+     * Generic function for performing an API request with a payload. Payload and urlParams are optional and will not be used if falsy.
+     */
     let apiUrl = this.apiHost + url;
     if (urlParams) {
         apiUrl += '?' + new URLSearchParams(urlParams).toString();
     }
     const response = await fetch(apiUrl, {
-        method: "POST",
+        method,
         mode: 'same-origin',
         headers: {
             'X-CSRFToken': Cookies.get('csrftoken'),
             'Content-Type': 'application/json'
         },
         credentials: 'same-origin',
-        body: JSON.stringify(payload)
+        body: payload && JSON.stringify(payload)
     });
 
     if (!response.ok) {
