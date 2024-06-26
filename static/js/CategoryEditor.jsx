@@ -2,7 +2,7 @@ import {CategoryChooser, InterfaceText, ToggleSet} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {requestWithCallBack, AdminToolHeader} from "./Misc";
+import {AdminToolHeader} from "./Misc";
 import React, {useState, useRef} from "react";
 
 const displayOptionForSources = (child) => {
@@ -84,7 +84,9 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
         else if (type === 'sources') {
             postCategoryData = {sources: tocItems};
         }
-        requestWithCallBack({url: postURL, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = redirect})
+        Sefaria.adminEditorApiRequest(postURL, null, postCategoryData)
+            .then(() => window.location.href = redirect)
+            .finally(() => setSavingStatus(false));
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -187,7 +189,9 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         if (urlParams.length > 0) {
             url += `?${urlParams.join('&')}`;
         }
-        requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
+        Sefaria.adminEditorApiRequest(url, null, postCategoryData)
+            .then(() => window.location.href = "/texts/"+fullPath)
+            .finally(() => setSavingStatus(false));
     }
 
 
@@ -197,7 +201,8 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             return;
         }
         const url = `/api/category/${origPath.concat(origData.origEn).join("/")}`;
-        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
+        Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
+            .then(() => window.location.href = `/texts`);
     }
     const primaryOptions = [
                           {name: "true",   content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True") },

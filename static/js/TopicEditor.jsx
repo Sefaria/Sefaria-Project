@@ -1,5 +1,5 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText, requestWithCallBack, TopicPictureUploader} from "./Misc";
+import {InterfaceText, TopicPictureUploader} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
@@ -93,12 +93,12 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
           alert(Sefaria._("Title must be provided."));
           return false;
         }
-        if (data.enImgCaption.length > 150) {
-            alert("English caption is too long.  It should not be more than 150 characters");
+        if (data.enImgCaption.length > 300) {
+            alert("English caption is too long.  It should not be more than 300 characters");
             return false;
         }
-        if (data.heImgCaption.length > 150) {
-            alert("Hebrew caption is too long.  It should not be more than 150 characters")
+        if (data.heImgCaption.length > 300) {
+            alert("Hebrew caption is too long.  It should not be more than 300 characters")
             return false;
         }
         if (sortedSubtopics.length > 0 && !isNew) {
@@ -109,7 +109,9 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const saveReorderedSubtopics = function () {
          const url = `/api/topic/reorder`;
          const postCategoryData = {topics: sortedSubtopics};
-         requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
+         Sefaria.adminEditorApiRequest(url, null, postCategoryData)
+             .then(() => window.location.href = "/topics")
+             .finally(() => setSavingStatus(false));
     }
 
     const prepData = () => {
@@ -189,7 +191,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
 
     const deleteObj = function() {
         const url = `/api/topic/delete/${data.origSlug}`;
-        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
+        Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => window.location.href = "/topics");
     }
     let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu", "English Alternate Titles", "Hebrew Alternate Titles",];
     if (isCategory) {
