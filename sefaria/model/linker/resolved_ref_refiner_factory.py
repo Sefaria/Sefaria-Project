@@ -1,5 +1,5 @@
 from sefaria.model.linker.ref_part import RawRefPart, RefPartType
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode, NumberedReferenceableBookNode
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode, NumberedReferenceableBookNode, MapReferenceableBookNode
 from sefaria.model.linker.resolved_ref_refiner import ResolvedRefRefinerForDefaultNode, ResolvedRefRefinerForNumberedPart, ResolvedRefRefinerForDiburHamatchilPart, ResolvedRefRefinerForRangedPart, ResolvedRefRefinerForNamedNode, ResolvedRefRefiner, ResolvedRefRefinerCatchAll
 
 
@@ -48,6 +48,7 @@ def initialize_resolved_ref_refiner_factory() -> ResolvedRefRefinerFactory:
     refiners_to_register = [
         (key(is_default=True), ResolvedRefRefinerForDefaultNode),
         (key(RefPartType.NUMBERED, node_class=NumberedReferenceableBookNode), ResolvedRefRefinerForNumberedPart),
+        (key(RefPartType.NUMBERED, node_class=MapReferenceableBookNode), ResolvedRefRefinerForNumberedPart),
         (key(RefPartType.RANGE, node_class=NumberedReferenceableBookNode), ResolvedRefRefinerForRangedPart),
         (key(RefPartType.NAMED, node_class=NamedReferenceableBookNode), ResolvedRefRefinerForNamedNode),
         (key(RefPartType.NUMBERED, node_class=NamedReferenceableBookNode), ResolvedRefRefinerForNamedNode),

@@ -1,5 +1,5 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText, requestWithCallBack, TopicPictureUploader} from "./Misc";
+import {InterfaceText, TopicPictureUploader} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
@@ -109,7 +109,9 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const saveReorderedSubtopics = function () {
          const url = `/api/topic/reorder`;
          const postCategoryData = {topics: sortedSubtopics};
-         requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
+         Sefaria.adminEditorApiRequest(url, null, postCategoryData)
+             .then(() => window.location.href = "/topics")
+             .finally(() => setSavingStatus(false));
     }
 
     const prepData = () => {
@@ -189,7 +191,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
 
     const deleteObj = function() {
         const url = `/api/topic/delete/${data.origSlug}`;
-        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
+        Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => window.location.href = "/topics");
     }
     let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu", "English Alternate Titles", "Hebrew Alternate Titles",];
     if (isCategory) {
