@@ -8,7 +8,6 @@ import {
     ColorBarBox, InterfaceText,
     ProfilePic,
 } from './Misc';
-import SheetResult from "./Sheets/SheetResult";
 
 
 class SearchSheetResult extends Component {
