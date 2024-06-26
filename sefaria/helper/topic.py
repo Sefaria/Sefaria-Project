@@ -1320,12 +1320,13 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if link is None:
         return {"error": f"A learning-team link between {tref} and {to_topic} doesn't exist. If you are trying to delete a non-learning-team link, reach out to the engineering team."}
 
-    if lang in link.order.get('availableLangs', []):
-        link.order['availableLangs'].remove(lang)
     if lang in link.order.get('curatedPrimacy', []):
         link.order['curatedPrimacy'].pop(lang)
+    if lang in getattr(link, 'descriptions', {}):
+        link.descriptions.pop(lang)
 
-    if len(link.order.get('availableLangs', [])) > 0:
+    # Note, using curatedPrimacy as a proxy here since we are currently only allowing deletion of learning-team links.
+    if len(link.order.get('curatedPrimacy', [])) > 0:
         link.save()
         return {"status": "ok"}
     else:   # deleted in both hebrew and english so delete link object
