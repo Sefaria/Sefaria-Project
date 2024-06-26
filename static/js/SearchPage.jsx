@@ -26,6 +26,7 @@ class SearchPage extends Component {
     const classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
     const { list: ListComponent } = this.props;
+    const searchTopMsg = this.props.key === "searchPage" ? "Results for" : "Sheets with";
     return (
       <div className={classes} key={this.props.query}>
         {this.props.compare ?
@@ -41,7 +42,7 @@ class SearchPage extends Component {
               
               <div className="searchTopLine">
                 <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
-                  <InterfaceText>Results for</InterfaceText>&nbsp;
+                  <InterfaceText>{searchTopMsg}</InterfaceText>&nbsp;
                   <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}} />
                   { this.props.query }
                   <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
