@@ -4,7 +4,7 @@ import SearchSheetResult from "../SearchSheetResult";
 import {SearchTotal} from "../sefaria/searchTotal";
 const SheetsWithRefList = ({type, listItems, query, compare, updateTotalResults, searchState, onResultClick, updateAppliedOptionSort, openMobileFilters}) => {
     useEffect(() => {
-        updateTotalResults(new SearchTotal(listItems));
+        updateTotalResults(new SearchTotal({value: listItems.length}));
     }, []);
     return <div>
                 <SearchTopMatter type={type} compare={compare} updateAppliedOptionSort={updateAppliedOptionSort}

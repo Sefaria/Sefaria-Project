@@ -37,6 +37,7 @@ const SheetsWithRefPage = ({srefs, connectedSheet}) => {
     }
     return <SearchPage
           key={"sheetsPage"}
+          searchTopMsg="Sheets With"
           list={SheetsWithRefList}
           listItems={sheets}
           query={srefs[0]}
