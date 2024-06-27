@@ -784,13 +784,24 @@ def get_top_sheets(limit=3):
 	query = {"status": "public", "views": {"$gte": 100}}
 	return sheet_list(query=query, limit=limit)
 
+def get_collections_with_sheets(sheet_ids):
+	"""
+	Return every public collection that has a sheet in `sheet_ids`
+	"""
+	collections = CollectionSet({'sheets': {'$in': sheet_ids }, 'listed': True}, hint="sheets_listed")
+	sheet_id_to_collections = defaultdict(list)
+	for collection in collections:
+		for sheet_id in collection.sheets:
+			sheet_id_to_collections[sheet_id].append({'name': collection.name, 'slug': collection.slug})
+	return sheet_id_to_collections
 
-def get_sheets_for_ref(tref, uid=None, in_collection=None):
+def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
 	If `in_collection` (list of slugs) is present, only return sheets in one of the listed collections.
+	If `include_collections` is present, given the list of sheets that include tref, return all public collections that have at least one of those sheets
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
@@ -827,6 +838,10 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 			user_profiles[profile]["profile_pic_url_small"] = ""
 
 	results = []
+	sheet_id_to_collection = {}
+	if include_collections:
+		sheet_id_to_collection = get_collections_with_sheets([s['id'] for s in sheets])
+
 	for sheet in sheets:
 		anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", []))
 		ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
@@ -847,7 +862,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
 			sheet_data = {
 				"owner":           sheet["owner"],
-				"collections": 		[{'name': c.name, 'slug': c.slug} for c in CollectionSet({"sheets": sheet['id']}).array()],
 				"_id":             str(sheet["_id"]),
 				"id":              str(sheet["id"]),
 				"public":          sheet["status"] == "public",
@@ -875,6 +889,9 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 				"category":        "Sheets", # ditto
 				"type":            "sheet", # ditto
 			}
+			if include_collections:
+				sheet_data["collections"] = sheet_id_to_collection[sheet["id"]]
+				sheet_data["dateCreated"] = sheet["dateCreated"]
 
 			results.append(sheet_data)
 	return results
