@@ -1,16 +1,30 @@
 import SearchPage from "../SearchPage";
 import SheetsWithRefList from "./SheetsWithRefList";
 import Sefaria from "../sefaria/sefaria";
+import {useEffect, useState} from "react";
 const SheetsWithRefPage = ({srefs, connectedSheet}) => {
-  let sheets = Sefaria.sheets.sheetsTotal(srefs);
-  sheets = Sefaria.sheets.sortSheetsByInterfaceLang(sheets);
-  sheets = Sefaria.sheets.filterSheetsForDisplay(sheets, connectedSheet);
-  const searchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
-    const onSearchResultClick = () => {alert('resultClick')}
-    const updateSearchFilter = () => {alert('filter')}
-    const updateSearchOptionField = () => {alert("field")}
-    const updateSearchOptionSort = () => {alert("sort")}
-    const registerAvailableFilters = () => {alert("register")}
+    const [sheets, setSheets] = useState([]);
+    const [searchState, setSearchState] = useState(null);
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+      delete Sefaria.sheets._sheetsByRef[srefs];
+      Sefaria.sheets.getSheetsByRef(srefs).then(sheets => {
+          sheets = Sefaria.sheets.sortSheetsByInterfaceLang(sheets);
+          sheets = Sefaria.sheets.filterSheetsForDisplay(sheets, connectedSheet);
+          const searchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
+          setSheets(sheets);
+          setSearchState(searchState);
+          setLoading(false);
+      })
+    }, []);
+    const onSearchResultClick = (props) => {console.log(props)}
+    const updateSearchFilter = (props) => {console.log(props)}
+    const updateSearchOptionField = (props) => {console.log(props)}
+    const updateSearchOptionSort = (props) => {console.log(props)}
+    const registerAvailableFilters = (props) => {console.log(props)}
+    if (loading) {
+        return <div>Loading...</div>;
+    }
     return <SearchPage
           key={"sheetsPage"}
           list={SheetsWithRefList}

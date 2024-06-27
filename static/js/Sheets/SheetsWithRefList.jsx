@@ -13,10 +13,11 @@ const SheetsWithRefList = ({type, listItems, query, compare, searchState, onResu
                                 owner_name: item.ownerName,
                                 owner_image: item.ownerImageUrl,
                                 profile_url: item.ownerProfileUrl,
+                                dateCreated: item.dateCreated
                             };
                             return <SearchSheetResult
                                 metadata={metadata}
-                                snippet={item.summary}
+                                snippet={item?.summary || ""}
                                 query={query}
                                 key={item.id}
                                 onResultClick={onResultClick}/>

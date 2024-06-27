@@ -2780,6 +2780,13 @@ _media: {},
     return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
+    getSheetsByRef: function(srefs) {
+        return Sefaria._cachedApiPromise({
+          url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}`,
+          key: srefs,
+          store: Sefaria.sheets._sheetsByRef
+        });
+      },
     sortSheetsByInterfaceLang(sheets) {
         return sheets.sort((a, b) => {
                               // First sort by language / interface language
@@ -2986,17 +2993,14 @@ _media: {},
       this._userSheetsByRef[ref] = data;
       return Sefaria._saveItemsByRef(data, this._userSheetsByRef);
     },
-    sheetsTotal: function(refs) {
-      // Returns the combination of private and public sheets on `refs` without double counting my public sheets.
+    sheetsTotalCount: function(refs) {
+      // Returns the total number of private and public sheets on `refs` without double counting my public sheets.
       let sheets = Sefaria.sheets.sheetsByRef(refs) || [];
       if (Sefaria._uid) {
         const mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
         sheets = mySheets.concat(sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }));
       }
-      return sheets;
-    },
-    sheetsTotalCount: function(refs) {
-      return Sefaria.sheets.sheetsTotal(refs).length;
+      return sheets.length;
     },
     extractIdFromSheetRef: function (ref) {
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
