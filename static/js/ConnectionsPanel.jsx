@@ -41,8 +41,6 @@ import { event } from 'jquery';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';
-import SearchState from "./sefaria/searchState";
-import SheetsWithRefPage from "./Sheets/SheetsWithRefPage";
 
 
 class ConnectionsPanel extends Component {
@@ -387,6 +385,7 @@ class ConnectionsPanel extends Component {
                   null
               }
               <ResourcesList
+                srefs={this.props.srefs}
                 setConnectionsMode={this.props.setConnectionsMode}
                 counts={resourcesButtonCounts}
               />
@@ -459,9 +458,6 @@ class ConnectionsPanel extends Component {
         filterRef={this.props.filterRef}
       />);
 
-    } else if (this.props.mode === "Sheets") {
-      const connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
-      return <SheetsWithRefPage srefs={this.props.srefs} connectedSheet={connectedSheet}/>;
     } else if (this.props.mode === "Add To Sheet") {
       let refForSheet, versionsForSheet, selectedWordsForSheet, nodeRef;
       // add source from connections
@@ -735,11 +731,11 @@ ConnectionsPanel.propTypes = {
 };
 
 
-const ResourcesList = ({ masterPanelMode, setConnectionsMode, counts }) => {
+const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => setConnectionsMode("Sheets")} />
+      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => window.open(`${Sefaria.apiHost}/sheetsWithRef?ref=${srefs}`)} />
       <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
       <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
       <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />

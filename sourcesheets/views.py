@@ -1022,7 +1022,8 @@ def sheets_by_ref_api(request, ref):
     """
     return jsonResponse(get_sheets_for_ref(ref, include_collections=True))
 
-
+def sheets_with_ref(request, ref):
+    pass
 def get_aliyot_by_parasha_api(request, parasha):
     response = {"ref":[]};
 
