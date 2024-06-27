@@ -31,7 +31,7 @@ spec:
   revisionHistoryLimit: 1
   replicas: {{ .Values.linker.replicaCount }}
   progressDeadlineSeconds: 1200
-  template:
+https://github.com/Sefaria/Sefaria-Project/pull/1941  template:
     metadata:
       labels:
         app: linker-{{ .Values.deployEnv }}
@@ -61,6 +61,72 @@ spec:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       tolerations: {{ toYaml .Values.linker.tolerations | nindent 8 }}
       serviceAccountName: "{{ .Values.linker.serviceAccount }}"
+      initContainers:
+      - name: migrate
+        image: "{{ .Values.linker.containerImage.imageRegistry }}:{{ .Values.linker.containerImage.tag }}"
+        imagePullPolicy: Always
+        args: [ "python manage.py migrate" ]
+        env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /app/logging-secret.json
+          - name: ENV_NAME
+            value: "{{ .Values.deployEnv }}"
+          - name: STACK_COMPONENT
+            value: web
+          - name: REDIS_HOST
+            value: "redis-{{ .Values.deployEnv }}"
+          - name: NODEJS_HOST
+            value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: VARNISH_HOST
+            value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: HELM_REVISION
+            value: "{{ .Release.Revision }}"
+          - name: ENABLE_LINKER
+            value: "True"
+          - name: DISABLE_AUTOCOMPLETER
+            value: "True"
+        envFrom:
+          - secretRef:
+              name: {{ .Values.secrets.localSettings.ref }}
+              optional: true
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
+          - configMapRef:
+              name: local-settings-linker-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-linker-secrets-{{ .Values.deployEnv }}
+              optional: true
+        ports:
+          - containerPort: 80
+            protocol: TCP
+        resources: {{ toYaml .Values.linker.resources.web.resources | nindent 10 }}
+        volumeMounts:
+        # https://stackoverflow.com/questions/53491603/kubernetes-volumemounts-a-file-not-a-directory
+        - mountPath: /app/sefaria/local_settings.py
+          name: local-settings
+          subPath: local_settings.py
+          readOnly: true
+        - mountPath: /varnish-secret
+          name: varnish-secret
+          readOnly: true
+        - mountPath: /school-lookup-data
+          name: school-lookup-data
+          readOnly: true
+        - mountPath: /client-secret
+          name: client-secret
+          readOnly: true
+        #TODO: what is this used for?  Is it needed? There's no env var pointing to this location
+        - mountPath: /google-cloud-secret
+          name: backup-manager-secret
+          readOnly: true
+        - mountPath: /app/logging-secret.json
+          name: logging-secret
+          subPath: logging-secret.json
+          readOnly: true
       containers:
       - name: linker
         image: "{{ .Values.linker.containerImage.imageRegistry }}:{{ .Values.linker.containerImage.tag }}"
