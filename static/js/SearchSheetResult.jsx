@@ -30,9 +30,7 @@ class SearchSheetResult extends Component {
     }
     formatDate(dateString) {
         const date = new Date(dateString);
-        // Define options for Intl.DateTimeFormat
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        // Use Intl.DateTimeFormat to format the date
         return new Intl.DateTimeFormat('en-US', options).format(date);
     }
     render() {
@@ -43,28 +41,28 @@ class SearchSheetResult extends Component {
         const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang === "en", he: snippetMarkup.lang === "he"});
         const ownerIsHe = Sefaria.hebrew.isHebrew(s.owner_name);
         const titleIsHe = Sefaria.hebrew.isHebrew(clean_title);
-        const date = this.formatDate(this.props.metadata.dateCreated);
+        const dateString = this.formatDate(this.props.metadata.dateCreated);
         return (
             <div className='result sheetResult'>
-                <a href={href} onClick={this.handleSheetClick}>
-                    <div className="sheetData sans-serif">
-                        <a className="ownerData sans-serif" href={s.profile_url} onClick={this.handleProfileClick}>
-                            <ProfilePic
-                                url={s.owner_image}
-                                name={s.owner_name}
-                                len={30}
-                            />
-                            <span className={classNames({
-                                'ownerName': 1,
-                                'in-en': !ownerIsHe,
-                                'in-he': ownerIsHe
-                            })}>{s.owner_name}</span>
-                            <span className="bullet">{'\u2022'}</span>
-                            <span className="date">
-                                {date}
+                <div className="sheetData sans-serif">
+                    <a className="ownerData sans-serif" href={s.profile_url} onClick={this.handleProfileClick}>
+                        <ProfilePic
+                            url={s.owner_image}
+                            name={s.owner_name}
+                            len={30}
+                        />
+                        <span className={classNames({
+                            'ownerName': 1,
+                            'in-en': !ownerIsHe,
+                            'in-he': ownerIsHe
+                        })}>{s.owner_name}</span>
+                        <span className="bullet">{'\u2022'}</span>
+                        <span className="date">
+                                {dateString}
                             </span>
-                        </a>
-                    </div>
+                    </a>
+                </div>
+                <a href={href} onClick={this.handleSheetClick}>
                     <div className={classNames({'result-title': 1, 'in-en': !titleIsHe, 'in-he': titleIsHe})}>
                         <span dir={titleIsHe ? "rtl" : "ltr"}>{clean_title}</span>
                     </div>
