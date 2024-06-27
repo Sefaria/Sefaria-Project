@@ -17,11 +17,21 @@ const SheetsWithRefPage = ({srefs, connectedSheet}) => {
           setLoading(false);
       })
     }, []);
-    const onSearchResultClick = (props) => {console.log(props)}
-    const updateSearchFilter = (props) => {console.log(props)}
-    const updateSearchOptionField = (props) => {console.log(props)}
-    const updateSearchOptionSort = (props) => {console.log(props)}
-    const registerAvailableFilters = (props) => {console.log(props)}
+    const onSearchResultClick = (...args) => {
+        args.forEach(arg => console.log(arg));
+    }
+    const updateSearchFilter = (...args) => {
+        args.forEach(arg => console.log(arg));
+    }
+    const updateSearchOptionField = (...args) => {
+        args.forEach(arg => console.log(arg));
+    }
+    const updateSearchOptionSort = (...args) => {
+        args.forEach(arg => console.log(arg));
+    }
+    const registerAvailableFilters = (...args) => {
+       args.forEach(arg => console.log(arg));
+    }
     if (loading) {
         return <div>Loading...</div>;
     }

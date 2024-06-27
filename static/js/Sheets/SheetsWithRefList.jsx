@@ -1,7 +1,11 @@
 import {SearchTopMatter} from "../SearchResultList";
-import React from "react";
+import React, {useState, useEffect} from "react";
 import SearchSheetResult from "../SearchSheetResult";
-const SheetsWithRefList = ({type, listItems, query, compare, searchState, onResultClick, updateAppliedOptionSort, openMobileFilters}) => {
+import {SearchTotal} from "../sefaria/searchTotal";
+const SheetsWithRefList = ({type, listItems, query, compare, updateTotalResults, searchState, onResultClick, updateAppliedOptionSort, openMobileFilters}) => {
+    useEffect(() => {
+        updateTotalResults(new SearchTotal(listItems));
+    }, []);
     return <div>
                 <SearchTopMatter type={type} compare={compare} updateAppliedOptionSort={updateAppliedOptionSort}
                          searchState={searchState} openMobileFilters={openMobileFilters}/>
