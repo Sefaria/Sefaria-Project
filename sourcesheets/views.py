@@ -1020,7 +1020,7 @@ def sheets_by_ref_api(request, ref):
     """
     API to get public sheets by ref.
     """
-    return jsonResponse(get_sheets_for_ref(ref))
+    return jsonResponse(get_sheets_for_ref(ref, include_collections=True))
 
 
 def get_aliyot_by_parasha_api(request, parasha):
