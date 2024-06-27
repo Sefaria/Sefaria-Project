@@ -42,6 +42,7 @@ import {
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import SheetsWithRefPage from "./Sheets/SheetsWithRefPage";
 
 
 class ReaderPanel extends Component {
@@ -781,25 +782,27 @@ class ReaderPanel extends Component {
 
     if (this.state.menuOpen === "navigation") {
 
-      const openNav     = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
+      const openNav = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
       const openTextTOC = this.state.compare ? this.openCompareTextTOC : null;
 
       menu = (<TextsPage
-                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
-                    compare={this.state.compare}
-                    multiPanel={this.props.multiPanel}
-                    categories={this.state.navigationCategories || []}
-                    settings={this.state.settings}
-                    setCategories={this.setNavigationCategories}
-                    openTextTOC={openTextTOC}
-                    setOption={this.setOption}
-                    toggleLanguage={this.toggleLanguage}
-                    onCompareBack={this.props.closePanel}
-                    openSearch={this.openSearch}
-                    openDisplaySettings={this.openDisplaySettings}
-                    initialWidth={this.state.width}
-                    toggleSignUpModal={this.props.toggleSignUpModal} />);
-
+          key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory : "navHome"}
+          compare={this.state.compare}
+          multiPanel={this.props.multiPanel}
+          categories={this.state.navigationCategories || []}
+          settings={this.state.settings}
+          setCategories={this.setNavigationCategories}
+          openTextTOC={openTextTOC}
+          setOption={this.setOption}
+          toggleLanguage={this.toggleLanguage}
+          onCompareBack={this.props.closePanel}
+          openSearch={this.openSearch}
+          openDisplaySettings={this.openDisplaySettings}
+          initialWidth={this.state.width}
+          toggleSignUpModal={this.props.toggleSignUpModal}/>);
+    } else if (this.state.menuOpen === "sheetsWithRef") {
+      const connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
+      menu = (<SheetsWithRefPage srefs={Sefaria.sheetsWithRef} connectedSheet={connectedSheet}/>);
     } else if (this.state.menuOpen === "sheet meta") {
       menu = (<SheetMetadata
                     mode={this.state.menuOpen}
