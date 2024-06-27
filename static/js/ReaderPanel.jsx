@@ -887,9 +887,8 @@ class ReaderPanel extends Component {
                     key={"searchPage"}
                     interfaceLang={this.props.interfaceLang}
                     query={this.state.searchQuery}
-                    tab={this.state.searchTab}
-                    textSearchState={this.state.textSearchState}
-                    sheetSearchState={this.state.sheetSearchState}
+                    type={this.state.searchType}
+                    searchState={this.state[`${this.state.searchType}SearchState`]}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
@@ -897,7 +896,6 @@ class ReaderPanel extends Component {
                     toggleLanguage={this.toggleLanguage}
                     close={this.props.closePanel}
                     onQueryChange={this.props.onQueryChange}
-                    updateTab={this.props.updateSearchTab}
                     updateAppliedFilter={this.props.updateSearchFilter}
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
@@ -1168,7 +1166,6 @@ ReaderPanel.propTypes = {
   backFromExtendedNotes:       PropTypes.func,
   unsetTextHighlight:          PropTypes.func,
   onQueryChange:               PropTypes.func,
-  updateSearchTab:             PropTypes.func,
   updateSearchFilter:          PropTypes.func,
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
