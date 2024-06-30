@@ -3206,21 +3206,13 @@ const ProductCTA = ({cta}) => {
 // The main body of each product entry, containing an image and description
 const ProductDesc = ({product}) => {
     return (
-        <div className="productsInner">
-            <img src={`http://localhost:1337${product.rectanglion.url}`} alt={`Image for product: ${product?.titles?.en}`}/>
-
-            <InterfaceText>  
-                <HebrewText>  
-                    <ReactMarkdown className="productsDesc">
-                        {product.desc?.he}
-                    </ReactMarkdown> 
-                </HebrewText>  
-                <EnglishText>
-                    <ReactMarkdown className="productsDesc">
-                        {product.desc?.en}
-                    </ReactMarkdown>
-                </EnglishText>
-            </InterfaceText>           
+        <div className="productInner">
+            <div className='productImgWrapper'>
+                <img src={`http://localhost:1337${product.rectanglion.url}`} alt={`Image for product: ${product?.titles?.en}`}/>
+            </div>
+            <div className='productDescWrapper'>
+                <InterfaceText markdown={{en: product.desc?.en, he: product.desc?.he }} />
+            </div>            
         </div>
     );
 };

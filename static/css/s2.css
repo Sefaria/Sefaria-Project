@@ -12984,10 +12984,10 @@ span.ref-link-color-3 {color: blue}
   }
 }
 
-.productsFlexWrapper {
+/* .productsFlexWrapper {
   display: flex;
   flex-direction: column;
-}
+} */
 
 .product {
   max-width: 600px;
@@ -12998,24 +12998,32 @@ span.ref-link-color-3 {color: blue}
   margin-top: 165px;
 }
 
-
-.productsInner {
+.productInner {
   display: flex;
   align-items: right;
 }
 
-.productsInner img {
+.productInner img {
   max-width: 100%; 
   max-height: 116px;
   height: auto;
   display: block;
   margin-inline-end: 3%;
+  padding-right: 20px;
 }
 
-.productsInner .productsDesc {
+.productInner .productsDesc {
   font: var(--english-sans-serif-font-family); 
   color: var(--dark-grey);
   font-size: 16px;
+}
+
+.productImgWrapper {
+  flex: 0 0 auto;
+}
+
+.productDescWrapper {
+  flex: 1 1 auto;
 }
 
 .productsDesc p {
@@ -13067,11 +13075,11 @@ span.ref-link-color-3 {color: blue}
 
 
 .productsHeader .cta .productsCTAIcon {
-  height: 16px;
+  height: 12px;
   top: 646px;
   left: 610px;
   margin: 0 5px;
-  vertical-align: middle;
+  vertical-align: baseline;
   /** This uses the filter to recolor SVGs in a single line to commentary blue. 
   To determine the appropriate parameters, see a filter color picker such as https://angel-rs.github.io/css-color-filter-generator/ */
   filter: brightness(0) saturate(100%) invert(52%) sepia(17%) saturate(6763%) hue-rotate(200deg) brightness(78%) contrast(77%);
@@ -13144,17 +13152,18 @@ span.ref-link-color-3 {color: blue}
 }
 
 @media (max-width: 768px) {
-  .productsInner {
+  .productInner {
       flex-direction: column; 
       align-items: flex-start; 
   }
 
-  .productsInner img {
+  .productInner img {
       display: block;
       width: 100%;
       height: 100%;
       max-width: 700px;
       max-height: 350px;
+      padding-bottom: 20px;
     } 
 
   .product {
@@ -13168,7 +13177,7 @@ span.ref-link-color-3 {color: blue}
   .productsDevBox {
     margin-right: 5%;
   }
-
+}
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
