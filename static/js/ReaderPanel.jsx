@@ -884,24 +884,24 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<SearchPage
-                    key={"searchPage"}
-                    interfaceLang={this.props.interfaceLang}
-                    query={this.state.searchQuery}
-                    type={this.state.searchType}
-                    searchState={this.state[`${this.state.searchType}SearchState`]}
-                    settings={Sefaria.util.clone(this.state.settings)}
-                    panelsOpen={this.props.panelsOpen}
-                    onResultClick={this.props.onSearchResultClick}
-                    openDisplaySettings={this.openDisplaySettings}
-                    toggleLanguage={this.toggleLanguage}
-                    close={this.props.closePanel}
-                    onQueryChange={this.props.onQueryChange}
-                    updateAppliedFilter={this.props.updateSearchFilter}
-                    updateAppliedOptionField={this.props.updateSearchOptionField}
-                    updateAppliedOptionSort={this.props.updateSearchOptionSort}
-                    registerAvailableFilters={this.props.registerAvailableFilters}
-                    compare={this.state.compare}
-                  />);
+                  key={"searchPage"}
+                  interfaceLang={this.props.interfaceLang}
+                  query={this.state.searchQuery}
+                  type={this.state.searchType}
+                  searchState={this.state[`${this.state.searchType}SearchState`]}
+                  settings={Sefaria.util.clone(this.state.settings)}
+                  panelsOpen={this.props.panelsOpen}
+                  onResultClick={this.props.onSearchResultClick}
+                  openDisplaySettings={this.openDisplaySettings}
+                  toggleLanguage={this.toggleLanguage}
+                  close={this.props.closePanel}
+                  onQueryChange={this.props.onQueryChange}
+                  updateAppliedFilter={this.props.updateSearchFilter}
+                  updateAppliedOptionField={this.props.updateSearchOptionField}
+                  updateAppliedOptionSort={this.props.updateSearchOptionSort}
+                  registerAvailableFilters={this.props.registerAvailableFilters}
+                  compare={this.state.compare}
+              />);
 
     } else if (this.state.menuOpen === "topics") {
       if (this.state.navigationTopicCategory) {
