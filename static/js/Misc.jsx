@@ -3317,10 +3317,10 @@ const AppStoreButton = ({ platform, href, altText }) => {
 };
 
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
-  const [selectedOpt, setSelectedOpt] = useState(defaultVal);
+  const [lang, setLang] = useState(defaultVal);
 
   const handleOptionChange = (event) => {
-    setSelectedOpt(event.target.value);
+    setLang(event.target.value);
     callback(event.target.value);
     closeInterface();
   };
@@ -3349,36 +3349,36 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
       }
     >
       <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
-      <div className={classNames({active: selectedOpt === "source", radioChoice: 1 })}>
+      <div className={classNames({active: lang === "source", radioChoice: 1 })}>
         <label htmlFor="source"><InterfaceText>Source</InterfaceText></label>
         <input
           type="radio"
           id="source"
           name="options"
           value="source"
-          checked={selectedOpt === "source"}
+          checked={lang === "source"}
           onChange={handleOptionChange}
         />
       </div>
-      <div className={classNames({active: selectedOpt === "translation", radioChoice: 1 })}>
+      <div className={classNames({active: lang === "translation", radioChoice: 1 })}>
         <label htmlFor="translation"><InterfaceText>Translation</InterfaceText></label>
         <input
           type="radio"
           id="translation"
           name="options"
           value="translation"
-          checked={selectedOpt === "translation"}
+          checked={lang === "translation"}
           onChange={handleOptionChange}
         />
       </div>
-      <div className={classNames({active: selectedOpt === "sourcewtrans", radioChoice: 1 })}>
+      <div className={classNames({active: lang === "sourcewtrans", radioChoice: 1 })}>
         <label htmlFor="sourcewtrans"><InterfaceText>Source with Translation</InterfaceText></label>
         <input
           type="radio"
           id="sourcewtrans"
           name="options"
           value="sourcewtrans"
-          checked={selectedOpt === "sourcewtrans"}
+          checked={lang === "sourcewtrans"}
           onChange={handleOptionChange}
         />
       </div>
