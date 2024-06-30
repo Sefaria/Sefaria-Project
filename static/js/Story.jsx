@@ -73,8 +73,6 @@ SheetListStory.propTypes = {
  *****************************/
 
 // todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
-
-// todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
 const StoryFrame = ({cls, cardColor, collapsibleSummary, children}) => {
 
 
