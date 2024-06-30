@@ -259,44 +259,6 @@ const useReviewState = (topic, topicLink) => {
     return [reviewStateByLang, markReviewed];
 }
 
-const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
-    if (!text.ref) { return null; }
-    const versions = text.versions || {}
-    const params = Sefaria.util.getUrlVersionsParams(versions);
-    const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
-    const heOnly = !text.en;
-    const enOnly = !text.he;
-    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
-    let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
-    const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
-
-    return (
-        <StoryFrame cls="introducedTextPassageStory">
-            <div className={"headerWithAdminButtonsContainer"}>
-                <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
-                    <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
-                </CategoryHeader>
-                <ReviewStateIndicator topic={topic} topicLink={text}/>
-            </div>
-            <div className={"systemText learningPrompt"}>
-                <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
-            </div>
-            <SaveLine
-                dref={text.ref}
-                versions={versions}
-                toggleSignUpModal={toggleSignUpModal}
-                classes={"storyTitleWrapper"}
-                afterChildren={afterSave || null} >
-                <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
-            </SaveLine>
-            <ColorBarBox tref={text.ref}>
-                <StoryBodyBlock>
-                    {content}
-                </StoryBodyBlock>
-            </ColorBarBox>
-        </StoryFrame>
-    );
-};
 TopicTextPassage.propTypes = {
   text: textPropType,
 };

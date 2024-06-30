@@ -1158,6 +1158,7 @@ const PencilSourceEditor = ({topic, text, classes}) => {
         <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"}/>;
     return <>{editorSpan}</>;
 }
+
 const ReorderEditorWrapper = ({toggle, type, data}) => {
     /*
     Wrapper for ReorderEditor that can reorder topics, categories, and sources.  It is only used for reordering topics and categories at the
@@ -1176,8 +1177,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
     }
     const _createURLs = (type, data) => {
       if (reorderingSources) {
-        const currentUrl = window.location.href;
-        const urlObj = new URL(currentUrl);
+        const urlObj = new URL(window.location.href);
         const tabName = urlObj.searchParams.get('tab');
         return {
           url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
