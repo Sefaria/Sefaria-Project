@@ -73,12 +73,10 @@ SheetListStory.propTypes = {
  *****************************/
 
 // todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
-const StoryFrame = ({cls, cardColor, collapsibleSummary, children}) => {
-
-
+const StoryFrame = ({cls, cardColor, children}) => {
 return (
      <div className={'story ' + cls}>
-        {collapsibleSummary ? (<details><summary>{collapsibleSummary}</summary>{children}</details>) : children }
+         {children}
      </div>
 )};
 StoryFrame.propTypes = {
@@ -86,6 +84,13 @@ StoryFrame.propTypes = {
     cardColor:  PropTypes.string,
     collapsibleSummary: PropTypes.func,
 };
+const SummarizedStoryFrame = ({cls, cardColor, collapsibleSummary, children}) => {
+return (
+     <div className={'story ' + cls}>
+        <details><summary>{collapsibleSummary}</summary>{children}</details>
+     </div>
+)};
+
 
 
 
@@ -158,10 +163,11 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage}
                                     bilingualOrder={["he", "en"]}/>;
     const content = bodyTextIsLink ? <a href={url} style={{textDecoration: 'none'}}>{innerContent}</a> : innerContent;
+    const isIntroducedSource = isCurated && displayDescription
+    const StoryFrameComp = isIntroducedSource ? SummarizedStoryFrame : StoryFrame
     return (
-        <StoryFrame
-            cls="topicPassageStory"
-            collapsibleSummary={isCurated && displayDescription ?
+        <StoryFrameComp cls="topicPassageStory"
+                        collapsibleSummary={isIntroducedSource ?
                 <ColorBarBox tref={text.ref}><TopicStoryDescBlock topic={topic} text={text}/></ColorBarBox> : null}
         >
             {isCurated && displayDescription ?
@@ -189,7 +195,7 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
                         <PencilSourceEditor topic={topic} text={text} classes={"pencilEditorButton"}/>}
                 </div>
             </ColorBarBox>
-        </StoryFrame>
+        </StoryFrameComp>
 
     );
 };
