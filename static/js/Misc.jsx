@@ -1150,6 +1150,8 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
   return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
 }
 
+
+//Pencil-shaped button to open the ref-link (source) editor
 const PencilSourceEditor = ({topic, text, classes}) => {
     const [addSource, toggleAddSource] = useEditToggle();
     const editorSpan = addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
@@ -3336,6 +3338,7 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
         }
       }
 
+      // HACK to prevent the option menu to close once an option is selected (which is technically blurring this element)
       onBlur={(e) => {
             setTimeout(() => {
               if (!document.querySelector('.langSelectPopover').contains(document.activeElement)) {
