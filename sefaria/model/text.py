@@ -19,7 +19,7 @@ from collections import defaultdict
 from bs4 import BeautifulSoup, Tag
 import re2 as re
 from . import abstract as abst
-from .schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
+from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
@@ -234,7 +234,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         self.struct_objs = {}
         if getattr(self, "alt_structs", None) and self.nodes:
             for name, struct in list(self.alt_structs.items()):
-                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
+                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=AltStructNode)
                 self.struct_objs[name].title_group = self.nodes.title_group
 
     def is_complex(self):
@@ -1297,7 +1297,12 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "title",    # FK to Index.title
         "versionSource",
         "versionTitle",
-        "chapter"  # required.  change to "content"?
+        "chapter",  # required.  change to "content"?
+        "actualLanguage",  # ISO language code
+        'languageFamilyName', # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
+        'isSource',  # bool, True if this version is not a translation
+        'isPrimary',  # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
+        'direction',  # 'rtl' or 'ltr'
     ]
 
     """
@@ -1323,12 +1328,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
-        "actualLanguage",  # ISO language code
-        'languageFamilyName',  # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
-        "isBaseText",  # should be deprecated (needs some changes on client side)
-        'isSource',  # bool, True if this version is not a translation
-        'isPrimary', # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
-        'direction',  # 'rtl' or 'ltr'
     ]
 
     def __str__(self):
@@ -1343,14 +1342,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
-        languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
-        if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
-            self.actualLanguage = languageCodeRe.group(1)
-        if not getattr(self, 'languageFamilyName', None):
-            try:
-                self.languageFamilyName = constants.LANGUAGE_CODES[self.actualLanguage]
-            except KeyError:
-                self.languageFamilyName = constants.LANGUAGE_CODES[self.language]
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
         index = self.get_index()
@@ -1386,16 +1377,20 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
     def _normalize(self):
         # add actualLanguage -- TODO: migration to get rid of bracket notation completely
-        actualLanguage = getattr(self, "actualLanguage", None) 
-        versionTitle = getattr(self, "versionTitle", None) 
+        actualLanguage = getattr(self, "actualLanguage", None)
+        versionTitle = getattr(self, "versionTitle", None)
         if not actualLanguage and versionTitle:
             languageCode = re.search(r"\[([a-z]{2})\]$", versionTitle)
             if languageCode and languageCode.group(1):
-                self.actualLanguage = languageCode.group(1)
-            else:
-                self.actualLanguage = self.language
+                actualLanguage = languageCode.group(1)
+        self.actualLanguage = actualLanguage or self.language
 
-        if not getattr(self, 'direction', None):
+        if not hasattr(self, 'languageFamilyName'):
+            self.languageFamilyName = constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
+        self.isSource = getattr(self, "isSource", self.actualLanguage == 'he')
+        if not hasattr(self, "isPrimary"):
+            self.isPrimary = self.isSource or not VersionSet({'title': self.title}) #first version is primary
+        if not hasattr(self, 'direction'):
             self.direction = 'rtl' if self.language == 'he' else 'ltr'
 
         if getattr(self, "priority", None):
@@ -4949,7 +4944,7 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
-        self._ref_resolver = None
+        self._linker_by_lang = {}
 
         # Topics
         self._topic_mapping = {}
@@ -5714,36 +5709,57 @@ class Library(object):
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
-    def get_ref_resolver(self, rebuild=False):
-        resolver = self._ref_resolver
-        if not resolver or rebuild:
-            resolver = self.build_ref_resolver()
-        return resolver
+    def get_linker(self, lang: str, rebuild=False):
+        linker = self._linker_by_lang.get(lang)
+        if not linker or rebuild:
+            linker = self.build_linker(lang)
+        return linker
 
-    def build_ref_resolver(self):
+    def build_linker(self, lang: str):
+        from sefaria.model.linker.linker import Linker
+
+        logger.info("Loading Spacy Model")
+
+        named_entity_resolver = self._build_named_entity_resolver(lang)
+        ref_resolver = self._build_ref_resolver(lang)
+        named_entity_recognizer = self._build_named_entity_recognizer(lang)
+        self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver)
+        return self._linker_by_lang[lang]
+
+    @staticmethod
+    def _build_named_entity_resolver(lang: str):
+        from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
+
+        named_entity_types_to_topics = {
+            "PERSON": {"ontology_roots": ['people'], "single_slugs": ['god', 'the-tetragrammaton']},
+            "GROUP": {'ontology_roots': ["group-of-people"]},
+        }
+        return NamedEntityResolver(TopicMatcher(lang, named_entity_types_to_topics))
+
+    @staticmethod
+    def _build_named_entity_recognizer(lang: str):
+        from .linker.named_entity_recognizer import NamedEntityRecognizer
+        from sefaria.helper.linker import load_spacy_model
+
+        return NamedEntityRecognizer(
+            lang,
+            load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
+            load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
+        )
+
+    def _build_ref_resolver(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
         from .linker.ref_resolver import RefResolver, TermMatcher
         from sefaria.model.schema import NonUniqueTermSet
-        from sefaria.helper.linker import load_spacy_model
-
-        logger.info("Loading Spacy Model")
 
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
-        self._ref_resolver = RefResolver(
-            {k: load_spacy_model(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items() if v is not None},
-            {k: load_spacy_model(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items() if v is not None},
-            {
-                "en": MatchTemplateTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
-                "he": MatchTemplateTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
-            },
-            {
-                "en": TermMatcher('en', non_unique_terms),
-                "he": TermMatcher('he', non_unique_terms),
-            }
+
+        return RefResolver(
+           lang, MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone'),
+           TermMatcher(lang, non_unique_terms),
         )
-        return self._ref_resolver
 
     def get_index_forest(self):
         """
