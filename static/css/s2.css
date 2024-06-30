@@ -12994,9 +12994,10 @@ span.ref-link-color-3 {color: blue}
 }
 
 #productsPageContent {
-  margin-top: 225px;
-  margin-inline-start: 68px;
+  margin-inline-start: 70px;
+  margin-top: 165px;
 }
+
 
 .productsInner {
   display: flex;
@@ -13065,18 +13066,16 @@ span.ref-link-color-3 {color: blue}
 }
 
 
-.productsHeader .cta .productsCTAIcon::before {
-  -webkit-mask: url("--image-url") no-repeat;
-  mask: url("--image-url") no-repeat;
-  background-color: var(--commentary-blue);  
-}
-
 .productsHeader .cta .productsCTAIcon {
   height: 16px;
   top: 646px;
   left: 610px;
   margin: 0 5px;
   vertical-align: middle;
+  /** This uses the filter to recolor SVGs in a single line to commentary blue. 
+  To determine the appropriate parameters, see a filter color picker such as https://angel-rs.github.io/css-color-filter-generator/ */
+  filter: brightness(0) saturate(100%) invert(52%) sepia(17%) saturate(6763%) hue-rotate(200deg) brightness(78%) contrast(77%);
+
 }
 
 .productsTitle {
@@ -13170,11 +13169,6 @@ span.ref-link-color-3 {color: blue}
     margin-right: 5%;
   }
 
-  #productsPageContent {
-    margin-inline-start: 10px;
-    margin-top: 100px;
-  }
-}
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
