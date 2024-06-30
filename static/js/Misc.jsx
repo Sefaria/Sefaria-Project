@@ -1156,7 +1156,7 @@ const PencilSourceEditor = ({topic, text, classes}) => {
     const [addSource, toggleAddSource] = useEditToggle();
     const editorSpan = addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
         <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"}/>;
-    return <span>{editorSpan}</span>;
+    return <>{editorSpan}</>;
 }
 const ReorderEditorWrapper = ({toggle, type, data}) => {
     /*

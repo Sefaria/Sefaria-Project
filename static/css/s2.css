@@ -7971,6 +7971,7 @@ a .button:hover {
 }
 .headerWithAdminButtonsContainer .pencilEditorButton{
   margin-top: 8px;
+  margin-bottom: 5px;
   margin-inline-end: 6px;
   cursor: pointer;
 }
