@@ -506,8 +506,8 @@ class TextSegment extends Component {
   handleRefLinkClick(refLink, event) {
     event.preventDefault();
     let newRef = Sefaria.humanRef(refLink.attr("data-ref"));
-    const newBook = Sefaria.parseRef(newRef)?.book;
-    const currBook = Sefaria.parseRef(this.props.sref)?.book;
+    const newBook = Sefaria.parseRef(newRef)?.index;
+    const currBook = Sefaria.parseRef(this.props.sref)?.index;
     const isScrollLink = refLink.attr('data-scroll-link');
 
     // two options: in most cases, we open a new panel, but if isScrollLink is 'true', we should navigate in the same panel to the new location
