@@ -82,7 +82,6 @@ return (
 StoryFrame.propTypes = {
     cls:        PropTypes.string,   // Story type as class name
     cardColor:  PropTypes.string,
-    collapsibleSummary: PropTypes.func,
 };
 const SummarizedStoryFrame = ({cls, cardColor, collapsibleSummary, children}) => {
 return (
@@ -90,7 +89,11 @@ return (
         <details><summary>{collapsibleSummary}</summary>{children}</details>
      </div>
 )};
-
+SummarizedStoryFrame.propTypes = {
+    cls:        PropTypes.string,   // Story type as class name
+    cardColor:  PropTypes.string,
+    collapsibleSummary: PropTypes.func
+};
 
 
 
