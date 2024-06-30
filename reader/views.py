@@ -429,7 +429,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
     panel = {
         "menuOpen": "search",
         "searchQuery": search_params["query"],
-        "searchTab": search_params["tab"],
+        "searchType": search_params["tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -839,7 +839,7 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
-        "initialSearchTab": search_params["tab"],
+        "initialSearchType": search_params["tab"],
         "initialTextSearchFilters": search_params["textFilters"],
         "initialTextSearchFilterAggTypes": search_params["textFilterAggTypes"],
         "initialTextSearchField": search_params["textField"],
