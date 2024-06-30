@@ -25,6 +25,7 @@ const Modules = ({type, props}) => {
     "AboutSefaria":           AboutSefaria,
     "Promo":                  Promo,
     "Resources":              Resources,
+    "Footer":                 SidebarFooter,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
@@ -250,6 +251,18 @@ const Resources = () => (
     </div>
   </Module>
 );
+
+const SidebarFooter = () => (
+  <Module>
+    <h3><InterfaceText context="ResourcesModule">Footer</InterfaceText></h3>
+    <div className="linkList">
+      <IconLink text="Footer 1" url="/mobile" icon="mobile.svg" />
+      <IconLink text="Footer 2" url="/sheets" icon="sheet.svg" />
+      <IconLink text="Footer 3" url="/collections" icon="collection.svg" />
+    </div>
+  </Module>
+);
+
 
 
 const TheJewishLibrary = ({hideTitle}) => (
