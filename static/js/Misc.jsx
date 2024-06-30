@@ -3319,7 +3319,7 @@ const AppStoreButton = ({ platform, href, altText }) => {
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const [lang, setLang] = useState(defaultVal);
 
-  const handleOptionChange = (event) => {
+  const handleLangChange = (event) => {
     setLang(event.target.value);
     callback(event.target.value);
     closeInterface();
@@ -3357,7 +3357,7 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
           name="options"
           value="source"
           checked={lang === "source"}
-          onChange={handleOptionChange}
+          onChange={handleLangChange}
         />
       </div>
       <div className={classNames({active: lang === "translation", radioChoice: 1 })}>
@@ -3368,7 +3368,7 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
           name="options"
           value="translation"
           checked={lang === "translation"}
-          onChange={handleOptionChange}
+          onChange={handleLangChange}
         />
       </div>
       <div className={classNames({active: lang === "sourcewtrans", radioChoice: 1 })}>
@@ -3379,7 +3379,7 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
           name="options"
           value="sourcewtrans"
           checked={lang === "sourcewtrans"}
-          onChange={handleOptionChange}
+          onChange={handleLangChange}
         />
       </div>
     </div>
