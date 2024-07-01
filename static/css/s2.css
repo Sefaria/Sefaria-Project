@@ -844,13 +844,15 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {∫
   font-family: "Heebo", sans-serif;
 }
+
 .interfaceLinks-options {
   display: flex;
   flex-direction: column;
-  padding: 4px 0;
+  padding: 4px;
+  max-width: 220px;
 }
 .header .interfaceLinks .interfaceLinks-option {
   display: flex;
@@ -859,7 +861,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  text-align: right;
   color: #666666;
   padding: 5px;
   direction: ltr;
@@ -13148,6 +13149,40 @@ span.ref-link-color-3 {color: blue}
     width: 67%;
   }
 }
+
+.dropdownHeader {
+  margin-bottom: 10px;
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  color: var(--selected-option);
+
+}
+
+.dropdownHeaderText {
+  padding-left: 10px;
+}
+
+.dropdownDesc {
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  padding-left: 30px;
+  padding-bottom: 10px;
+  padding-right: 10px;
+}
+
+.dropdownItem {
+  padding: 10px 0px 5px 10px !important;
+  flex-direction: column;
+}
+
+.dropdownSeparator {
+  border: 1px solid var(--light-grey);
+}
+
 .image-in-text-title {
     margin: auto; /* English System Small */
     margin-top: 15px;
@@ -13158,6 +13193,7 @@ span.ref-link-color-3 {color: blue}
     font-size: 14px;
     line-height: 18px;
     color: #666666;
+}
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
