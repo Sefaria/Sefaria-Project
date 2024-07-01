@@ -157,7 +157,7 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
         return null;
     }
     const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
-    const isCurated = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
+    const isCurated = text.descriptions?.[langKey]?.title ?? false;
     const url = `/${Sefaria.normRef(text.ref)}${Sefaria.util.getUrlVersionsParams(text.versions) ? `?${Sefaria.util.getUrlVersionsParams(text.versions)}` : ''}`;
     const heOnly = !text.en;
     const enOnly = !text.he;
