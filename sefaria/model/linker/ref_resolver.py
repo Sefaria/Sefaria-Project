@@ -7,7 +7,7 @@ from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
 import structlog
@@ -108,6 +108,10 @@ class ResolvedRef(abst.Cloneable):
                 self.resolved_parts = [part] + self.resolved_parts
             else:
                 self.resolved_parts += [part]
+        if not self.ref:
+            # self may reference an AltStructNode and therefore doesn't have a ref.
+            # Use ref from other which is expected to be equivalent or more specific
+            self.ref = other.ref
 
     def get_resolved_parts(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> List[RawRefPart]:
         """
@@ -137,6 +141,23 @@ class ResolvedRef(abst.Cloneable):
 
     def get_node_children(self):
         return self.node.get_children(self.ref)
+
+    def contains(self, other: 'ResolvedRef') -> bool:
+        if other.ref and self.ref:
+            return self.ref.contains(other.ref)
+        if not other.node or not self.node:
+            return False
+        if isinstance(other.node, NamedReferenceableBookNode) and isinstance(other.node._titled_tree_node, schema.AltStructNode):
+            other_node = other.node._titled_tree_node
+            if isinstance(self.node, NamedReferenceableBookNode) and isinstance(self.node._titled_tree_node, schema.AltStructNode):
+                return self.node._titled_tree_node.is_ancestor_of(other_node)
+            # other is alt struct and self has a ref
+            # check that every leaf node is contained by self's ref
+            return all([self.ref.contains(child.ref()) for child in other_node.get_leaf_nodes()])
+        # self is alt struct and other has a ref
+        # check if any leaf node contains other's ref
+        return any([child.ref().contains(other.ref) for child in self.node._titled_tree_node.get_leaf_nodes()])
+
 
     @property
     def order_key(self):
@@ -688,14 +709,14 @@ class ResolvedRefPruner:
         resolved_refs.sort(key=lambda x: x.ref and x.ref.order_id())
         for i, r in enumerate(resolved_refs[:-1]):
             next_r = resolved_refs[i+1]
-            if r.ref.contains(next_r.ref) and next_r.ref.contains(r.ref):
+            if r.contains(next_r) and next_r.contains(r):
                 next_r.ref = r.ref
 
         # make unique
         resolved_refs = list({r.ref: r for r in resolved_refs}.values())
         if thoroughness >= ResolutionThoroughness.HIGH or len(resolved_refs) > 1:
             # remove matches that have empty refs
-            resolved_refs = list(filter(lambda x: not x.ref.is_empty(), resolved_refs))
+            resolved_refs = list(filter(lambda x: x.ref and not x.ref.is_empty(), resolved_refs))
         return resolved_refs
 
     @staticmethod
@@ -747,21 +768,36 @@ class ResolvedRefPruner:
         Merge matches where one ref is contained in another ref
         E.g. if matchA.ref == Ref("Genesis 1") and matchB.ref == Ref("Genesis 1:1"), matchA will be deleted and its parts will be appended to matchB's parts
         """
-        resolved_refs.sort(key=lambda x: "N/A" if x.ref is None else x.ref.order_id())
+        def get_sort_key(resolved_ref: ResolvedRef) -> str:
+            if resolved_ref.ref is None:
+                if resolved_ref.node is None:
+                    return "N/A"
+                elif isinstance(resolved_ref.node._titled_tree_node, schema.AltStructNode):
+                    leaves = resolved_ref.node._titled_tree_node.get_leaf_nodes()
+                    # assume leaves are contiguous. If this is wrong, will be disproven later in the function
+                    if len(leaves) == 0:
+                        return "N/A"
+                    approx_ref = leaves[0].ref().to(leaves[-1].ref())
+                    return approx_ref.order_id()
+                else:
+                    return "N/A"
+            else:
+                return resolved_ref.ref.order_id()
+        resolved_refs.sort(key=get_sort_key)
         merged_resolved_refs = []
         next_merged = False
         for imatch, match in enumerate(resolved_refs[:-1]):
             next_match = resolved_refs[imatch+1]
-            if match.is_ambiguous or match.ref is None or next_match.ref is None or next_merged:
+            if match.is_ambiguous or match.node is None or next_match.node is None or next_merged:
                 merged_resolved_refs += [match]
                 next_merged = False
                 continue
-            if match.ref.index.title != next_match.ref.index.title:
+            if match.ref and next_match.ref and match.ref.index.title != next_match.ref.index.title:
                 # optimization, the easiest cases to check for
                 merged_resolved_refs += [match]
-            elif match.ref.contains(next_match.ref):
+            elif match.contains(next_match):
                 next_match.merge_parts(match)
-            elif next_match.ref.contains(match.ref):
+            elif next_match.contains(match):
                 # unfortunately Ref.order_id() doesn't consistently put larger refs before smaller ones
                 # e.g. Tosafot on Berakhot 2 precedes Tosafot on Berakhot Chapter 1...
                 # check if next match actually contains this match
