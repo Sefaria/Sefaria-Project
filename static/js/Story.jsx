@@ -158,8 +158,7 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
     }
     const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
     const isCurated = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
-    const params = Sefaria.util.getUrlVersionsParams(text.versions);
-    const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params : "");
+    const url = `/${Sefaria.normRef(text.ref)}${Sefaria.util.getUrlVersionsParams(text.versions) ? `?${Sefaria.util.getUrlVersionsParams(text.versions)}` : ''}`;
     const heOnly = !text.en;
     const enOnly = !text.he;
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : langPref;
