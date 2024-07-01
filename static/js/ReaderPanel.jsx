@@ -801,8 +801,7 @@ class ReaderPanel extends Component {
           initialWidth={this.state.width}
           toggleSignUpModal={this.props.toggleSignUpModal}/>);
     } else if (this.state.menuOpen === "sheetsWithRef") {
-      const connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
-      menu = (<SheetsWithRefPage srefs={Sefaria.sheetsWithRef} connectedSheet={connectedSheet}/>);
+      menu = (<SheetsWithRefPage srefs={Sefaria.sheetsWithRef['en']}/>);
     } else if (this.state.menuOpen === "sheet meta") {
       menu = (<SheetMetadata
                     mode={this.state.menuOpen}

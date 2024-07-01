@@ -1025,8 +1025,10 @@ def sheets_by_ref_api(request, ref):
     return jsonResponse(get_sheets_for_ref(ref, include_collections=True))
 
 def sheets_with_ref(request, tref):
-    title = _(f"Sheets with {tref} on Sefaria")
-    return menu_page(request, page="sheetsWithRef", title=title, props={"sheetsWithRef": tref})
+    he_tref = Ref(tref).he_normal()
+    ref = tref if request.interfaceLang == "english" else he_tref
+    title = _(f"Sheets with ")+ref+_(" on Sefaria")
+    return menu_page(request, page="sheetsWithRef", title=title, props={"sheetsWithRef": {"en": tref, "he": he_tref}})
 def get_aliyot_by_parasha_api(request, parasha):
     response = {"ref":[]};
 

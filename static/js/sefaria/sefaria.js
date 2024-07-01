@@ -2787,25 +2787,6 @@ _media: {},
           store: Sefaria.sheets._sheetsByRef
         });
       },
-    sortSheetsByInterfaceLang(sheets) {
-        return sheets.sort((a, b) => {
-                              // First sort by language / interface language
-                              let aHe, bHe;
-                              [aHe, bHe] = [a.title, b.title].map(Sefaria.hebrew.isHebrew);
-                              if (aHe !== bHe) { return (bHe ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
-                              // Then by number of views
-                              return b.views - a.views;
-                            })
-    },
-    filterSheetsForDisplay(sheets, connectedSheet) {
-      // filters out duplicate sheets by sheet ID number and filters so that we don't show sheets as connections to themselves
-      return sheets.filter(
-                    (sheet, index, self) =>
-                      index === self.findIndex((s) => (
-                        s.id === sheet.id
-                      ))).filter(sheet => {
-                          return sheet.id !== connectedSheet;});
-    },
     sheetsWithRefSearchState(sheets) {
       /*
       This function is used to generate the SearchState with its relevant FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
