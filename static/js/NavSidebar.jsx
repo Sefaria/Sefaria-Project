@@ -6,7 +6,6 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
-import { data } from 'jquery';
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
