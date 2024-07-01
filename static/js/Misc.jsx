@@ -3316,9 +3316,29 @@ const AppStoreButton = ({ platform, href, altText }) => {
   );
 };
 
+
+const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
+
+  return (
+    <>
+      <div className={classNames({ active: lang === buttonId, radioChoice: 1 })}>
+        <label htmlFor="source">
+          <InterfaceText>{buttonTitle}</InterfaceText>
+        </label>
+        <input
+          type="radio"
+          id={buttonId}
+          name="options"
+          value={buttonId}
+          checked={lang === buttonId}
+          onChange={handleLangChange}
+        />
+      </div>
+    </>
+  );
+};
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const [lang, setLang] = useState(defaultVal);
-
   const handleLangChange = (event) => {
     setLang(event.target.value);
     callback(event.target.value);
@@ -3349,39 +3369,9 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
       }
     >
       <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
-      <div className={classNames({active: lang === "source", radioChoice: 1 })}>
-        <label htmlFor="source"><InterfaceText>Source</InterfaceText></label>
-        <input
-          type="radio"
-          id="source"
-          name="options"
-          value="source"
-          checked={lang === "source"}
-          onChange={handleLangChange}
-        />
-      </div>
-      <div className={classNames({active: lang === "translation", radioChoice: 1 })}>
-        <label htmlFor="translation"><InterfaceText>Translation</InterfaceText></label>
-        <input
-          type="radio"
-          id="translation"
-          name="options"
-          value="translation"
-          checked={lang === "translation"}
-          onChange={handleLangChange}
-        />
-      </div>
-      <div className={classNames({active: lang === "sourcewtrans", radioChoice: 1 })}>
-        <label htmlFor="sourcewtrans"><InterfaceText>Source with Translation</InterfaceText></label>
-        <input
-          type="radio"
-          id="sourcewtrans"
-          name="options"
-          value="sourcewtrans"
-          checked={lang === "sourcewtrans"}
-          onChange={handleLangChange}
-        />
-      </div>
+      <LangRadioButton buttonTitle="Source Language" lang={lang} buttonId="source" handleLangChange={handleLangChange}/>
+      <LangRadioButton buttonTitle="Translation" lang={lang} buttonId="translation" handleLangChange={handleLangChange}/>
+      <LangRadioButton buttonTitle="Source with Translation" lang={lang} buttonId="sourcewtrans" handleLangChange={handleLangChange}/>
     </div>
   );
 
