@@ -143,21 +143,15 @@ class ResolvedRef(abst.Cloneable):
         return self.node.get_children(self.ref)
 
     def contains(self, other: 'ResolvedRef') -> bool:
-        if other.ref and self.ref:
-            return self.ref.contains(other.ref)
+        """
+        Does `self` contain `other`. If `self.ref` and `other.ref` aren't None, this is just ref comparison.
+        Otherwise, see if the schema/altstruct node that back `self` contains `other`'s node.
+        @param other:
+        @return:
+        """
         if not other.node or not self.node:
             return False
-        if isinstance(other.node, NamedReferenceableBookNode) and isinstance(other.node._titled_tree_node, schema.AltStructNode):
-            other_node = other.node._titled_tree_node
-            if isinstance(self.node, NamedReferenceableBookNode) and isinstance(self.node._titled_tree_node, schema.AltStructNode):
-                return self.node._titled_tree_node.is_ancestor_of(other_node)
-            # other is alt struct and self has a ref
-            # check that every leaf node is contained by self's ref
-            return all([self.ref.contains(child.ref()) for child in other_node.get_leaf_nodes()])
-        # self is alt struct and other has a ref
-        # check if any leaf node contains other's ref
-        return any([child.ref().contains(other.ref) for child in self.node._titled_tree_node.get_leaf_nodes()])
-
+        return self.node.contains(other.node, self.ref, other.ref)
 
     @property
     def order_key(self):
