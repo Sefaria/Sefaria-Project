@@ -3189,7 +3189,7 @@ const ProductCTA = ({cta}) => {
         <a href={cta.url} >
             {cta.icon.url && <img className="productsCTAIcon" 
                                     style={{"--image-url": cta.icon.url}}
-                                    src={`http://localhost:1337${cta.icon.url}`}
+                                    src={cta.icon.url}
                                     alt="Click icon" />}
                                 
             <span className="productsCTA">
@@ -3208,7 +3208,7 @@ const ProductDesc = ({product}) => {
     return (
         <div className="productInner">
             <div className='productImgWrapper'>
-                <img src={`http://localhost:1337${product.rectanglion.url}`} alt={`Image for product: ${product?.titles?.en}`}/>
+                <img src={product.rectanglion.url} alt={`Image for product: ${product?.titles?.en}`}/>
             </div>
             <div className='productDescWrapper'>
                 <InterfaceText markdown={{en: product.desc?.en, he: product.desc?.he }} />
