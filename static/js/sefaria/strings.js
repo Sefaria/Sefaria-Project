@@ -94,6 +94,7 @@ const Strings = {
     "Title must be provided": "יש לספק כותרת",
     "Unfortunately, there may have been an error saving this topic information": "הודעת שגיאה: נראה כי חלה שגיאה במהלך שמירת הנתונים",
     "Something went wrong. Sorry!": "מצטערים, משהו השתבש",
+    "Admin" : "עריכה",
 
 
     // Topics Tool

@@ -2701,7 +2701,8 @@ _media: {},
     }
     if (Sefaria.is_moderator){
         tabs["admin"] = {...tabs["sources"]};
-        tabs["admin"].title = {en: 'Admin', he: "עריכה"};
+        tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
+
     }
 
 
