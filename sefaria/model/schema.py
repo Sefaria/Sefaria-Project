@@ -1489,7 +1489,11 @@ class SchemaNode(TitledTreeNode):
         return self.traverse_to_list(lambda n, i: list(n.all_children()) if n.is_virtual else [n])[1:]
 
     def __eq__(self, other):
-        return self.address() == other.address()
+        try:
+            return self.address() == other.address()
+        except AttributeError:
+            # in case `other` isn't a SchemaNode
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
