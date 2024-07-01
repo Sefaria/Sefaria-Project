@@ -94,7 +94,7 @@ logger.info("Initializing TOC Tree")
 library.get_toc_tree()
 
 logger.info("Initializing Shared Cache")
-library.init_shared_cache()
+# library.init_shared_cache()
 
 if not DISABLE_AUTOCOMPLETER:
     logger.info("Initializing Full Auto Completer")
