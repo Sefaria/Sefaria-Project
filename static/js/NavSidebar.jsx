@@ -269,12 +269,7 @@ const SidebarFooter = () => {
 
   data = getSidebarFooterData();
 
-  console.log(data)
-
   return (
-    // flex row
-    // Separate the data from the rendering (pass as list, map)
-    // function hook - returns the list
     <Module>
       <h3/>
       <div className="footerContainer">
