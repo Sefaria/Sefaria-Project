@@ -6,6 +6,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
+import { data } from 'jquery';
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -252,16 +253,41 @@ const Resources = () => (
   </Module>
 );
 
-const SidebarFooter = () => (
-  <Module>
-    <h3><InterfaceText context="ResourcesModule">Footer</InterfaceText></h3>
-    <div className="linkList">
-      <IconLink text="Footer 1" url="/mobile" icon="mobile.svg" />
-      <IconLink text="Footer 2" url="/sheets" icon="sheet.svg" />
-      <IconLink text="Footer 3" url="/collections" icon="collection.svg" />
-    </div>
-  </Module>
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'}, 
+                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'}, 
+                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'www.example.com'},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': 'www.example.com'},
+                                    {'he': 'בלוג','en':'Blog', 'url': 'www.example.com'},
+                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'www.example.com'},
+                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'www.example.com'},
+                                    {'he': 'יוטיוב','en':'YouTube', 'url':'www.example.com'},
+                                    {'he': 'חנות','en':'Shop', 'url': 'www.example.com'},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': 'www.example.com'},
+                                    {'he': 'תרומות','en':'Donate', 'url': 'www.example.com'},
+                                  ];
+
+const SidebarFooter = () => {
+
+  data = getSidebarFooterData();
+
+  console.log(data)
+
+  return (
+    // flex row
+    // Separate the data from the rendering (pass as list, map)
+    // function hook - returns the list
+    <Module>
+      <h3/>
+      <div className="footerContainer">
+        {data.map(footerLink => 
+          <a href={footerLink.url}>
+            <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
+          </a>
+        )}
+      </div>
+    </Module>
 );
+}
 
 
 
