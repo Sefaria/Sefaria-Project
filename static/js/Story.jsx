@@ -144,10 +144,11 @@ StorySheetList.propTypes = {
     toggleSignUpModal: PropTypes.func
 };
 
-const TopicStoryDescBlock = ({topic, text}) => (
+const TopicStoryDescBlock = ({title, tref}) =>
+    (
       <div className="topicStoryDescBlock">
-            <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}></StoryTitleBlock>
-        <div>{Sefaria._(Sefaria.index(Sefaria.parseRef(text.ref).index).primary_category).toUpperCase()}</div>
+            <StoryTitleBlock en={title.en} he={title.he}></StoryTitleBlock>
+        <div>{Sefaria._(Sefaria.index(Sefaria.parseRef(tref).index).primary_category).toUpperCase()}</div>
       </div>
 )
 
@@ -171,7 +172,8 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
     return (
         <StoryFrameComp cls="topicPassageStory"
                         collapsibleSummary={isIntroducedSource ?
-                <ColorBarBox tref={text.ref}><TopicStoryDescBlock topic={topic} text={text}/></ColorBarBox> : null}
+                <ColorBarBox tref={text.ref}><TopicStoryDescBlock title={{'en': text.descriptions?.en?.title, 'he': text.descriptions?.he?.title}}
+                                                                  tref={text.ref}/></ColorBarBox> : null}
         >
             {isCurated && displayDescription ?
                 <ColorBarBox tref={text.ref}>
