@@ -13148,6 +13148,19 @@ span.ref-link-color-3 {color: blue}
     width: 67%;
   }
 }
+
+.footerContainer {
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding-top: 25px;
+}
+
+.footerContainer a {
+  padding: 3px 10px;
+}
+
 .image-in-text-title {
     margin: auto; /* English System Small */
     margin-top: 15px;
