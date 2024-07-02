@@ -13003,7 +13003,6 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   align-items: right;
   flex-direction: row;
-  flex-wrap: wrap;
 }
 
 .productInner img {
@@ -13155,7 +13154,7 @@ span.ref-link-color-3 {color: blue}
     color: #666666;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 480px) {
 
   .productImgWrapper {
     display: block;
@@ -13198,9 +13197,13 @@ span.ref-link-color-3 {color: blue}
     padding-bottom: 3px;
   }
 
-  /* .productsDevBox {
+  .productInner {
+    flex-direction: column;
+  }
+
+  .productsDevBox {
     margin-right: 5%;
-  } */
+  }
 }
 
 @-webkit-keyframes load5 {
