@@ -3322,7 +3322,7 @@ const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
   return (
     <>
       <div className={classNames({ active: lang === buttonId, radioChoice: 1 })}>
-        <label htmlFor="source">
+        <label htmlFor={buttonId}>
           <InterfaceText>{buttonTitle}</InterfaceText>
         </label>
         <input
@@ -3339,6 +3339,12 @@ const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
 };
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const [lang, setLang] = useState(defaultVal);
+  const buttonData = [
+  { buttonTitle: "Source Language", buttonId: "source" },
+  { buttonTitle: "Translation", buttonId: "translation" },
+  { buttonTitle: "Source with Translation", buttonId: "sourcewtrans" }
+];
+
   const handleLangChange = (event) => {
     setLang(event.target.value);
     callback(event.target.value);
@@ -3369,9 +3375,15 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
       }
     >
       <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
-      <LangRadioButton buttonTitle="Source Language" lang={lang} buttonId="source" handleLangChange={handleLangChange}/>
-      <LangRadioButton buttonTitle="Translation" lang={lang} buttonId="translation" handleLangChange={handleLangChange}/>
-      <LangRadioButton buttonTitle="Source with Translation" lang={lang} buttonId="sourcewtrans" handleLangChange={handleLangChange}/>
+       {buttonData.map((button, index) => (
+        <LangRadioButton
+          key={index}
+          buttonTitle={button.buttonTitle}
+          lang={lang}
+          buttonId={button.buttonId}
+          handleLangChange={handleLangChange}
+        />
+      ))}
     </div>
   );
 
