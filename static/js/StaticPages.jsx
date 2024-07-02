@@ -3435,15 +3435,21 @@ const ProductsPage = memo(() => {
     const remainingProducts = ProductList.slice(devBoxPosition);
 
     return (
-        <div className='productsFlexWrapper'>
-            {products && products.length > 0  ? (
-                <>
-                {initialProducts}
-                {/* <DevBox /> */}
-                {remainingProducts}
-                </>
-            ) : null}
-        </div>
+        <>
+                <h1 className="mobileAboutHeader">
+                    <span className="int-en">Sefaria's Products</span>
+                    <span className="int-he">מוצרים של בספריא</span>
+                </h1>
+            <div className='productsFlexWrapper'>
+                {products && products.length > 0  ? (
+                    <>
+                    {initialProducts}
+                    {/* <DevBox /> */}
+                    {remainingProducts}
+                    </>
+                ) : null}
+            </div>
+        </>
     );
 });
 
