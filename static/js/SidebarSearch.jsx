@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {InterfaceText, EnglishText, HebrewText} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import SearchState from './sefaria/searchState';
-import SearchResultList  from './SearchResultList';
+import {SearchResultList}  from './SearchResultList';
 import DictionarySearch  from './DictionarySearch';
 import classNames from 'classnames';
 

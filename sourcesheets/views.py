@@ -17,6 +17,7 @@ from django.http import Http404
 
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
+from django.utils.translation import ugettext as _
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
@@ -45,6 +46,7 @@ import sefaria.model.dependencies
 
 
 from sefaria.gauth.decorators import gauth_required
+from reader.views import menu_page
 
 def annotate_user_links(sources):
     """
@@ -1020,9 +1022,13 @@ def sheets_by_ref_api(request, ref):
     """
     API to get public sheets by ref.
     """
-    return jsonResponse(get_sheets_for_ref(ref))
+    return jsonResponse(get_sheets_for_ref(ref, include_collections=True))
 
-
+def sheets_with_ref(request, tref):
+    he_tref = Ref(tref).he_normal()
+    ref = tref if request.interfaceLang == "english" else he_tref
+    title = _(f"Sheets with ")+ref+_(" on Sefaria")
+    return menu_page(request, page="sheetsWithRef", title=title, props={"sheetsWithRef": {"en": tref, "he": he_tref}})
 def get_aliyot_by_parasha_api(request, parasha):
     response = {"ref":[]};
 

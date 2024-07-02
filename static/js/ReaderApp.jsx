@@ -454,6 +454,11 @@ class ReaderApp extends Component {
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
+          case "sheetsWithRef":
+            hist.title = Sefaria._("Sheets with ") + Sefaria.sheetsWithRef[Sefaria.interfaceLang] + Sefaria._(" on Sefaria");
+            hist.mode = "sheetsWithRef";
+            hist.url = `sheetsWithRef/${Sefaria.sheetsWithRef['en']}`;
+            break;
           case "text toc":
             var ref    = state.refs.slice(-1)[0];
             var bookTitle  = ref ? Sefaria.parseRef(ref).index : "404";

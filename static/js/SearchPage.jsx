@@ -6,7 +6,6 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
-import SearchResultList  from './SearchResultList';
 import SearchFilters from './SearchFilters';
 import Component from 'react-class';
 import {
@@ -26,6 +25,7 @@ class SearchPage extends Component {
   render () {
     const classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
+    const { list: ListComponent } = this.props;
     return (
       <div className={classes} key={this.props.query}>
         {this.props.compare ?
@@ -41,7 +41,7 @@ class SearchPage extends Component {
               
               <div className="searchTopLine">
                 <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
-                  <InterfaceText>Results for</InterfaceText>&nbsp;
+                  <InterfaceText>{this.props.searchTopMsg}</InterfaceText>&nbsp;
                   <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}} />
                   { this.props.query }
                   <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
@@ -54,9 +54,10 @@ class SearchPage extends Component {
                 : null }
               </div>
 
-              <SearchResultList
+              <ListComponent
                 query={this.props.query}
                 type={this.props.type}
+                listItems={this.props.listItems}
                 compare={this.props.compare}
                 searchState={this.props.searchState}
                 onResultClick={this.props.onResultClick}
@@ -90,7 +91,6 @@ class SearchPage extends Component {
   }
 }
 SearchPage.propTypes = {
-  interfaceLang:            PropTypes.oneOf(["english", "hebrew"]),
   query:                    PropTypes.string,
   type:                      PropTypes.oneOf(["text", "sheet"]),
   searchState:              PropTypes.object,
