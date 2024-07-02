@@ -111,7 +111,10 @@ class ReaderPanel extends Component {
     // Because it's called in the constructor, assume state isnt necessarily defined and pass
     // variables mode and menuOpen manually
     let contentLangOverride = originalLanguage;
-    if (["topics", "allTopics", "calendars", "community", "collection" ].includes(menuOpen)) {   //  "story_editor",
+    if (["topics"].includes(menuOpen)) {
+      contentLangOverride = "bilingual";
+    }
+    else if (["allTopics", "calendars", "community", "collection" ].includes(menuOpen)) {   //  "story_editor",
       // Always bilingual for English interface, always Hebrew for Hebrew interface
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
