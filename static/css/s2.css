@@ -13170,17 +13170,32 @@ span.ref-link-color-3 {color: blue}
   .productsHeader {
     flex-direction: column;
     align-items: flex-start;
+    padding-top: 5px;
+    padding-bottom: 5px;
   }
 
   .productsTitleAndLabel {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .productsTypeLabel {
+    padding: 1px 1px !important;
+    margin-top: 3px;
+    margin-left: 0px !important;
   }
 
   .cta {
     flex-direction: column;
     align-items: flex-start !important;
+  }
+
+  .cta a {
+    padding-top: 3px;
+    padding-bottom: 3px;
   }
 
   /* .productsDevBox {
