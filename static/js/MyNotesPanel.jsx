@@ -15,7 +15,6 @@ import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import TextRange  from './TextRange';
 import { AddToSourceSheetWindow } from './AddToSourceSheet';
-import Footer  from './Footer';
 import Component          from 'react-class';
 
 
@@ -85,7 +84,6 @@ class MyNotesPanel extends Component {
             </div>
 
           </div>
-          <Footer />
         </div>
       </div>);
   }

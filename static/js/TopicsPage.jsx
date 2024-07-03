@@ -8,7 +8,6 @@ import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar, Modules } from './NavSidebar';
-import Footer  from './Footer';
 import {CategoryHeader} from "./Misc";
 import Component from 'react-class';
 
@@ -71,7 +70,6 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
           </div>
           <NavSidebar modules={sidebarModules} />
         </div>
-        <Footer />
       </div>
     </div>
   );
