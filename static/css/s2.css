@@ -13011,7 +13011,6 @@ span.ref-link-color-3 {color: blue}
   height: auto;
   display: block;
   margin-inline-end: 3%;
-  padding-right: 20px;
   padding-bottom: 20px;
 }
 
@@ -13027,6 +13026,8 @@ span.ref-link-color-3 {color: blue}
 
 .productDescWrapper {
   flex: 1 1 auto;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .productsDesc p {
