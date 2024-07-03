@@ -115,6 +115,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         displays_under_link = IntraTopicLink().load({"fromTopic": slug, "linkType": "displays-under"})
         if getattr(displays_under_link, "toTopic", "") == "authors":
             self.subclass = "author"
+        self.pools = sorted(set(getattr(self, 'pools', [])))
 
     def _sanitize(self):
         super()._sanitize()
