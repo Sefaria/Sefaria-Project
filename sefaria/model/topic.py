@@ -49,6 +49,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
         'image',
         "portal_slug",  # slug to relevant Portal object
+        'pools',  # list of strings, any of them represents a pool that this topic is member of
     ]
 
     attr_schemas = {
