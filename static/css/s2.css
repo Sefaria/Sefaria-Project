@@ -1489,7 +1489,7 @@ div.interfaceLinks-row a {
   text-align: right;
   unicode-bidi: initial;
 }
-}
+
 .interface-hebrew .readerPanel .en {
   direction: ltr;
 }
@@ -10906,7 +10906,6 @@ cursor: pointer;
   cursor: pointer;
 }
 
-
 .tab-view .tab-list .tab.popover {
   margin-inline-end: 0;
   margin-inline-start: 10px;
@@ -11948,6 +11947,14 @@ body .homeFeedWrapper .content {
   margin: 10px 0;
   text-align: justify;
   font-size: 18px;
+}
+/*HACK to make English text of sources in topic pages lrt*/
+.interface-hebrew .storyBody {
+    direction: ltr;
+    margin-top: 10px;
+    margin-right: -17px;
+    margin-bottom: 10px;
+    margin-left: 26px;
 }
 .story .storySheetListItem > div.storyBody.sheetSummary > * {
   color: var(--dark-grey);
