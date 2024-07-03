@@ -173,7 +173,7 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
                 <ColorBarBox tref={text.ref}><TopicStoryDescBlock title={{'en': text.descriptions?.en?.title, 'he': text.descriptions?.he?.title}}
                                                                   tref={text.ref}/></ColorBarBox> : null}
         >
-            {isCurated && displayDescription ?
+            {isIntroducedSource ?
                 <ColorBarBox tref={text.ref}>
 
                     <div className={"systemText learningPrompt"}>
