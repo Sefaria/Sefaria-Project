@@ -4,7 +4,6 @@ import classNames  from 'classnames';
 import Component from 'react-class';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import Footer  from './Footer';
 import { NavSidebar } from './NavSidebar';
 import {
   CategoryColorLine,
@@ -121,7 +120,6 @@ class TopicPageAll extends Component {
             </div>
             <NavSidebar modules={sidebarModules} />
           </div>
-          <Footer />
         </div>
       </div>
     );
