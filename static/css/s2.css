@@ -13099,8 +13099,8 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsCTA::after {
-  content: " >";
-  color: var(--commentary-blue);
+    content: " ›";
+    color: var(--commentary-blue);
 }
 
 .productsDevBox {
@@ -13137,7 +13137,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsDevBox a::after {
-  content: url("/static/icons/chevron.svg");
+  content: " ›";
   color: var(--commentary-blue);
 }
 
