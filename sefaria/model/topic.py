@@ -52,6 +52,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'pools',  # list of strings, any of them represents a pool that this topic is member of
     ]
 
+    optional_pools = {'sheets', 'textual', 'torahtab'}
+
     attr_schemas = {
         "image": {
                 "image_uri": {
@@ -104,6 +106,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if getattr(self, "image", False):
             img_url = self.image.get("image_uri")
             if img_url: validate_url(img_url)
+        assert all(pool in self.optional_pools for pool in self.pools), f'Pools {[pool for pool in self.pools if pool not in self.optional_pools]} is not an optional pool'
 
     def _normalize(self):
         super()._normalize()
@@ -431,6 +434,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if pool_name not in self.pools:
             self.pools.append(pool_name)
             self.save()
+
+    def update_sheets_pool(self):
 
 class PersonTopic(Topic):
     """
