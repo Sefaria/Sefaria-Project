@@ -427,6 +427,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def __repr__(self):
         return "{}.init('{}')".format(self.__class__.__name__, self.slug)
 
+    def add_pool(self, pool_name):
+        if pool_name not in self.pools:
+            self.pools.append(pool_name)
+            self.save()
 
 class PersonTopic(Topic):
     """
