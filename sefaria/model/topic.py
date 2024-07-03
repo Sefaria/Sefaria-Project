@@ -440,9 +440,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             self.save()
 
     def update_sheets_pool(self):
+        pool = 'sheets'
         sheets_links = self.get_sheets_links()
-        if bool(sheets_links) != 'sheets' in self.pools:
-            self.pools.remove('sheets') if 'sheets' in self.pools else self.pools.append('sheets')
+        if bool(sheets_links) != pool in self.pools:
+            self.pools.remove(pool) if pool in self.pools else self.pools.append(pool)
             self.save()
 
 
