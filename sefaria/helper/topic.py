@@ -281,7 +281,7 @@ def sort_refs_by_relevance(a, b, lang="english"):
 
 
 def get_random_topic(good_to_promote=True) -> Optional[Topic]:
-    query = {"good_to_promote": True} if good_to_promote else {}
+    query = {"pools": 'sheets'} if good_to_promote else {}
     random_topic_dict = list(db.topics.aggregate([
         {"$match": query},
         {"$sample": {"size": 1}}
