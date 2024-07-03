@@ -13164,7 +13164,7 @@ span.ref-link-color-3 {color: blue}
   } 
 
   #productsPageContent {
-    margin-right: 70px;
+    margin: 100px 10px 0px 10px;;
   }
 
   .productsHeader {
@@ -13183,7 +13183,7 @@ span.ref-link-color-3 {color: blue}
   }
 
   .productsTypeLabel {
-    padding: 1px 1px !important;
+    padding: 1px 5px !important;
     margin-top: 3px;
     margin-left: 0px !important;
   }
@@ -13202,8 +13202,9 @@ span.ref-link-color-3 {color: blue}
     flex-direction: column;
   }
 
-  .productsDevBox {
-    margin-right: 5%;
+  .productDescWrapper{
+    padding-left: 0px;
+    padding-right: 0px;
   }
 }
 
