@@ -367,6 +367,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             kwargs['record_kwargs'] = {'context_slug': self.slug}
             return TopicLinkSetHelper.find(intra_link_query, **kwargs)
 
+    def get_sheets_links(self, query_kwargs: dict = None, **kwargs):
+        query_kwargs['is_sheet'] = True
+        return self.link_set('refTopic', query_kwargs, **kwargs)
+
     def contents(self, **kwargs):
         mini = kwargs.get('minify', False)
         d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
@@ -436,6 +440,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             self.save()
 
     def update_sheets_pool(self):
+        sheets_links = self.get_sheets_links()
+        if bool(sheets_links) != 'sheets' in self.pools:
+            self.pools.remove('sheets') if 'sheets' in self.pools else self.pools.append('sheets')
+            self.save()
+
 
 class PersonTopic(Topic):
     """
