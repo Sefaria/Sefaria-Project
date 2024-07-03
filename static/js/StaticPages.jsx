@@ -3176,19 +3176,32 @@ const ProductTitle = ({product}) => {
     );
 };
 
+// Generalized function for catching products page analytics - to be revisited
+const productsAnalytics = (rank, product, cta, label, link_type, event) => {
+    gtag("event", `products_${event}`, {
+        area: 'Products',
+        panel_type: "strapi-static",
+        panel_number: 0,   
+        panel_name: "Products",
+        position: rank,
+        text: cta,
+        experiment: label === 'Experiment' ?  1 : 0,
+        feature_name: product,  
+        action: link_type,
+        engagement_type: "navigation",
+        engagement_value: 0
+    });
+}
 
 
 // The call-to-action (link) in the heading of each product
 // TODO - uncomment <OnInView /> once analytics is confirmed
-const ProductCTA = ({cta}) => {
+const ProductCTA = ({product, cta}) => {
     return (
 
-        // <OnInView onVisible={() => productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "viewed")}>
-
-        // TODO - once analytics finalized, add onClick={productsAnalytics(product?.rank, `${product?.titles.en}_${cta.text.en}`, product?.type.en, "clicked")}
-        <a href={cta.url} >
+        // <OnInView onVisible={() => productsAnalytics(product?.rank, product?.titles.en, cta.text.en, product?.type.en, "viewed")}>
+        <a href={cta.url} onClick={productsAnalytics(product.rank, product.titles.en, cta.text.en, product.type.en, "cta", "clicked")}>
             {cta.icon.url && <img className="productsCTAIcon" 
-                                    style={{"--image-url": cta.icon.url}}
                                     src={cta.icon.url}
                                     alt="Click icon" />}
                                 
@@ -3197,7 +3210,7 @@ const ProductCTA = ({cta}) => {
             </span>
         </a>
 
-        // </OnInView>
+        // </OnInView> 
 
 
     );
@@ -3225,7 +3238,7 @@ const Product = ({product}) => {
                 <ProductTitle product={product} />
                 <div className="cta">
                     {product.ctaLabels?.map(cta => (
-                        <ProductCTA key={cta.id} cta={cta} />
+                        <ProductCTA key={cta.id} product={product} cta={cta} />
                     ))}
                 </div>       
             </div>
@@ -3403,20 +3416,6 @@ const ProductsPage = memo(() => {
             setError("Error: Sefaria's CMS cannot be reached");
         }
     };
-
-    // Generalized function for catching products page analytics - to be revisited
-    // const productsAnalytics = (rank, product_cta, label, event) => {
-    //     gtag("event", `${product_cta}_${event}`, {
-    //       panel_type: "strapi-static",
-    //       panel_number: 0,   
-    //       panel_name: "Products Page",
-    //       position: rank,
-    //       experiment: 1,
-    //       feature_name: label,
-    //       engagement_type: "static",
-    //       engagement_value: 0,
-    //     });
-    // }
 
 
     // In order to inject the static 'DevBox' in a fixed position on the page, we 
