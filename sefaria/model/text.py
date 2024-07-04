@@ -5032,18 +5032,30 @@ class Library(object):
         self._full_title_list_jsons = {}
 
     def init_shared_cache(self, rebuild=False):
+        logger.info("Initializing Shared Cache: TOC")
         self.get_toc(rebuild=rebuild)
+        logger.info("Initializing Shared Cache: TOC JSON")
         self.get_toc_json(rebuild=rebuild)
+        logger.info("Initializing Shared Cache: TOPIC MAPPING")
         self.get_topic_mapping(rebuild=rebuild)
+        logger.info("Initializing Shared Cache: TOPIC TOC")
         self.get_topic_toc(rebuild=rebuild)
+        logger.info("Initializing Shared Cache: TOPIC TOC JSON")
         self.get_topic_toc_json(rebuild=rebuild)
+        logger.info("Initializing Shared Cache: TOPIC TOC CATEGORY MAPPING")
         self.get_topic_toc_category_mapping(rebuild=rebuild)
+        logger.info("Initializing Shared Cache: TEXT TITLES")
         self.get_text_titles_json(rebuild=rebuild)
+        logger.info("Initializing Shared Cache: TERM MAPPING")
         self.get_simple_term_mapping(rebuild=rebuild)
+        logger.info("Initializing Shared Cache: TERM MAPPING JSON")
         self.get_simple_term_mapping_json(rebuild=rebuild)
+        logger.info("Initializing Shared Cache: VIRTUAL BOOKS")
         self.get_virtual_books(rebuild=rebuild)
         if rebuild:
+            logger.info("Initializing Shared Cache: DEL `regenerating` from cache")
             scache.delete_shared_cache_elem("regenerating")
+        logger.info("Initializing Shared Cache: Done")
 
     def get_last_cached_time(self):
         if not self.last_cached:

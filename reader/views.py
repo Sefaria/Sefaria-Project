@@ -95,6 +95,7 @@ library.get_toc_tree()
 
 logger.info("Initializing Shared Cache")
 library.init_shared_cache()
+logger.info("Finished Initializing Shared Cache")
 
 if not DISABLE_AUTOCOMPLETER:
     logger.info("Initializing Full Auto Completer")
@@ -4624,6 +4625,7 @@ def rollout_health_api(request):
     }
     """
     def isRedisReachable():
+        logger.info("Testing Redis healthz-rollout")
         try:
             redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
             return redis_client.ping() == True
@@ -4632,9 +4634,11 @@ def rollout_health_api(request):
             return False
 
     def isMultiserverReachable():
+        logger.info("Testing Monitor healthz-rollout")
         return True
 
     def isNodeJsReachable():
+        logger.info("Testing Node healthz-rollout")
         url = NODE_HOST + "/healthz"
         try:
             statusCode = urllib.request.urlopen(url).status
@@ -4644,6 +4648,7 @@ def rollout_health_api(request):
             return False
 
     def is_database_reachable():
+        logger.info("Testing Mongo healthz-rollout")
         try:
             from sefaria.system.database import db
             return True
@@ -4660,8 +4665,9 @@ def rollout_health_api(request):
         'nodejsReady': isNodeJsReachable(),
         'revisionNumber': os.getenv("HELM_REVISION"),
     }
+    logger.info("healthz-rollout results: ")
+    logger.info(resp)
 
-    print(resp)
 
     if allReady:
         statusCode = 200
