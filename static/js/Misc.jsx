@@ -1154,9 +1154,8 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
 //Pencil-shaped button to open the ref-link (source) editor
 const PencilSourceEditor = ({topic, text, classes}) => {
     const [addSource, toggleAddSource] = useEditToggle();
-    const editorSpan = addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
+    return addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
         <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"}/>;
-    return <>{editorSpan}</>;
 }
 
 const ReorderEditorWrapper = ({toggle, type, data}) => {
