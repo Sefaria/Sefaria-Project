@@ -3319,7 +3319,6 @@ const AppStoreButton = ({ platform, href, altText }) => {
 const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
 
   return (
-    <>
       <div className={classNames({ active: lang === buttonId, radioChoice: 1 })}>
         <label htmlFor={buttonId}>
           <InterfaceText>{buttonTitle}</InterfaceText>
@@ -3333,7 +3332,6 @@ const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
           onChange={handleLangChange}
         />
       </div>
-    </>
   );
 };
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
