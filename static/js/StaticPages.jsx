@@ -3195,6 +3195,7 @@ const productsAnalytics = (rank, product, cta, label, link_type, event) => {
 
 
 // The call-to-action (link) in the heading of each product
+// For desc link, change cta text to desc and "cta" to desc
 // TODO - uncomment <OnInView /> once analytics is confirmed
 const ProductCTA = ({product, cta}) => {
     return (
