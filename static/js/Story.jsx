@@ -85,9 +85,9 @@ StoryFrame.propTypes = {
 };
 const SummarizedStoryFrame = ({cls, cardColor, collapsibleSummary, children}) => {
 return (
-     <div className={'story ' + cls}>
+    <StoryFrame cls={cls}>
         <details><summary>{collapsibleSummary}</summary>{children}</details>
-     </div>
+    </StoryFrame>
 )};
 SummarizedStoryFrame.propTypes = {
     cls:        PropTypes.string,   // Story type as class name
