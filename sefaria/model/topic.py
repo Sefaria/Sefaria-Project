@@ -374,6 +374,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def contents(self, **kwargs):
         mini = kwargs.get('minify', False)
         d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
+        if kwargs.get('remove_pools', True):
+            d.pop('pools', None)
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
