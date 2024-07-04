@@ -280,8 +280,8 @@ def sort_refs_by_relevance(a, b, lang="english"):
     return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
 
 
-def get_random_topic(good_to_promote=True) -> Optional[Topic]:
-    query = {"pools": 'sheets'} if good_to_promote else {}
+def get_random_topic(pool='torahtab') -> Optional[Topic]:
+    query = {"pools": pool} if pool else {}
     random_topic_dict = list(db.topics.aggregate([
         {"$match": query},
         {"$sample": {"size": 1}}
