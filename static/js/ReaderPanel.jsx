@@ -114,7 +114,7 @@ class ReaderPanel extends Component {
     if (["topics"].includes(menuOpen)) {
       contentLangOverride = "bilingual";
     }
-    else if (mode === "Connections" || (!!menuOpen && menuOpen !== 'topics')){
+    else if (mode === "Connections" || !!menuOpen){
       // Always Hebrew for Hebrew interface, treat bilingual as English for English interface
       contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
     }
