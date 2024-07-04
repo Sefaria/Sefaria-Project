@@ -3374,7 +3374,7 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
       <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
        {buttonData.map((button, index) => (
         <LangRadioButton
-          key={index}
+          key={button.buttonId}
           buttonTitle={button.buttonTitle}
           lang={lang}
           buttonId={button.buttonId}
