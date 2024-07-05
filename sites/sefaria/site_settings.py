@@ -11,8 +11,8 @@ SITE_SETTINGS = {
 		"he": "Pecha དཔེ་མཛོད།",
 	},
 	"SUPPORTED_TRANSLATION_LANGUAGES": ['en', 'es', 'fr', 'de'],
-	"COLLECTIONS_BUCKET": "pecha-collection-images",
-	"PROFILES_BUCKET": 'pecha-profile-pictures',
-	"UGC_BUCKET": 'pecha-sheet-user-uploaded-media',
-	"TOPICS_BUCKET": 'pecha-topic-pictures'
+	"COLLECTIONS_BUCKET": "pecha-collection-image",
+	"PROFILES_BUCKET": 'pecha-profile-picture',
+	"UGC_BUCKET": 'pecha-sheet-user-uploaded-picture',
+	"TOPICS_BUCKET": 'pecha-topic-picture'
 }
