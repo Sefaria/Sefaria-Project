@@ -105,7 +105,7 @@ class SearchResultList extends Component {
         let results       = [];
 
         if (type === "text") {
-          results = Sefaria.search.mergeTextResultsVersions(this.state.hits);
+          results = Sefaria.search.mergeTextResultsVersions(this.props.hits);
           results = results.filter(result => !!result._source.version).map(result =>
             <SearchTextResult
               data={result}
@@ -130,7 +130,7 @@ class SearchResultList extends Component {
 
 
         } else if (type === "sheet") {
-          results = this.state.hits.map(result =>
+          results = this.props.hits.map(result =>
             <SearchSheetResult
               metadata={result._source}
               snippet={result.highlight.content.join("...")}
@@ -152,12 +152,12 @@ class SearchResultList extends Component {
                   {Sefaria.multiPanel && !this.props.compare ?
                       <SearchSortBox
                           type={type}
-                          updateAppliedOptionSort={updateAppliedOptionSort}
-                          sortType={searchState.sortType}/>
+                          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+                          sortType={this.props.searchState.sortType}/>
                       :
                       <SearchFilterButton
-                          openMobileFilters={openMobileFilters}
-                          nFilters={searchState.appliedFilters.length}/>}
+                          openMobileFilters={this.props.openMobileFilters}
+                          nFilters={this.props.searchState.appliedFilters.length}/>}
               </div>
               <div className="searchResultList">
                   {queryFullyLoaded || haveResults ? results : null}
@@ -177,7 +177,8 @@ SearchResultList.propTypes = {
     registerAvailableFilters: PropTypes.func,
     loadNextPage:             PropTypes.func,
     queryFullyLoaded: PropTypes.bool,
-    isQueryRunning:   PropTypes.bool
+    isQueryRunning:   PropTypes.bool,
+    topics:           PropTypes.array
 };
 
 const SearchSortBox = ({type, updateAppliedOptionSort, sortType}) => {

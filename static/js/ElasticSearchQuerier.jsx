@@ -47,7 +47,6 @@ class ElasticSearchQuerier extends Component {
           }
           cachedQuery = Sefaria.search.getCachedQuery(args);
       }
-      this.updateTotalResults();
     }
     componentDidMount() {
         this._executeAllQueries();
@@ -172,9 +171,6 @@ class ElasticSearchQuerier extends Component {
       this.state.isQueryRunning = !!ajax;
       this.setState(this.state);
     }
-    totalResults() {
-      return this.state.totals;
-    }
     _abortRunningQuery() {
       if(this.state.runningQueries) {
           this.state.runningQueries.abort();  //todo: make work with promises
@@ -195,7 +191,9 @@ class ElasticSearchQuerier extends Component {
       return props['searchState'];
     }
     _executeAllQueries(props) {
-      this._executeTopicQuery();
+      if (!this.props.searchInBook) {
+        this._executeTopicQuery();
+      }
       this._executeQuery(props, this.props.type);
     }
     _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type) {
@@ -325,19 +323,21 @@ class ElasticSearchQuerier extends Component {
                     moreToLoad={this.state.moreToLoad}
                     isQueryRunning={this.state.isQueryRunning}
                     searchTopMsg="Results for"
-                    query={this.props.searchQuery}
+                    query={this.props.query}
+                    hits={this.state.hits}
+                    totalResults={this.state.totals}
                     type={this.props.type}
                     searchState={this.props.searchState}
                     settings={this.props.settings}
                     panelsOpen={this.props.panelsOpen}
-                    onResultClick={this.props.onSearchResultClick}
+                    onResultClick={this.props.onResultClick}
                     openDisplaySettings={this.props.openDisplaySettings}
                     toggleLanguage={this.props.toggleLanguage}
                     close={this.props.closePanel}
                     onQueryChange={this.props.onQueryChange}
-                    updateAppliedFilter={this.props.updateSearchFilter}
-                    updateAppliedOptionField={this.props.updateSearchOptionField}
-                    updateAppliedOptionSort={this.props.updateSearchOptionSort}
+                    updateAppliedFilter={this.props.updateAppliedFilter}
+                    updateAppliedOptionField={this.props.updateAppliedOptionField}
+                    updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
                     compare={this.props.compare}
                     loadNextPage={this._loadNextPage}

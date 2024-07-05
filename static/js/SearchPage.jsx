@@ -26,18 +26,23 @@ class SearchPage extends Component {
   render () {
     const classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
+    const searchResultList = <SearchResultList
+                                        query={this.props.query}
+                                        hits={this.props.hits}
+                                        type={this.props.type}
+                                        compare={this.props.compare}
+                                        searchState={this.props.searchState}
+                                        onResultClick={this.props.onResultClick}
+                                        updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+                                        registerAvailableFilters={this.props.registerAvailableFilters}
+                                        openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                                        loadNextPage={this.props.loadNextPage}
+                                        isLoading={this.props.isQueryRunning}
+                                        moreToLoad={this.props.moreToLoad}
+                                        topics={this.props.topics}
+                                      />;
     if (this.props.searchInBook) {
-      return <SearchResultList
-          query={this.props.query}
-          compare={false}
-          searchInBook={true}
-          type={"text"}
-          searchState={this.props.searchState}
-          updateTotalResults={n => console.log(n)}
-          registerAvailableFilters={n => console.log(n)}
-          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-          onResultClick={this.props.onResultClick}
-        />
+      return searchResultList;
     }
     return (
       <div className={classes} key={this.props.query}>
@@ -59,34 +64,20 @@ class SearchPage extends Component {
                   { this.props.query }
                   <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
                 </h1>
-                {this.state.totalResults?.getValue() > 0 ?
+                {this.props.totalResults?.getValue() > 0 ?
                 <div className="searchResultCount sans-serif">
-                  <InterfaceText>{this.state.totalResults.asString()}</InterfaceText>&nbsp;
+                  <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
                   <InterfaceText>Results</InterfaceText>
                 </div>
                 : null }
               </div>
 
-              <SearchResultList
-                query={this.props.query}
-                type={this.props.type}
-                listItems={this.props.listItems}
-                compare={this.props.compare}
-                searchState={this.props.searchState}
-                onResultClick={this.props.onResultClick}
-                updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                registerAvailableFilters={this.props.registerAvailableFilters}
-                openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-                loadNextPage={this.props.loadNextPage}
-                isQueryRunning={this.props.isQueryRunning}
-                moreToLoad={this.props.queryFullyLoaded}
-                topics={this.props.topics}
-              />
+              {searchResultList}
             </div>
 
             {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
             <div className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
-              {this.state.totalResults?.getValue() > 0 ?
+              {this.props.totalResults?.getValue() > 0 ?
               <SearchFilters
                 query={this.props.query}
                 searchState={this.props.searchState}
@@ -121,7 +112,8 @@ SearchPage.propTypes = {
   registerAvailableFilters: PropTypes.func,
   loadNextPage:             PropTypes.func,
   moreToLoad:               PropTypes.bool,
-  topics:                   PropTypes.array
+  topics:                   PropTypes.array,
+  totalResults:             PropTypes.object,
 };
 
 
