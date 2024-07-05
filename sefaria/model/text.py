@@ -1305,6 +1305,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     pkeys = ["title", "versionTitle"]
 
     required_attrs = [
+        
         "language",
         "title",    # FK to Index.title
         "versionSource",
@@ -1781,7 +1782,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
+    def __init__(self, oref, lang="en", vtitle=None, completestatus="done", exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
         """
         :param oref:
         :type oref: Ref
@@ -1806,6 +1807,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         self.sources = []
         self.text = self._original_text = self.empty_text()
         self.vtitle = vtitle
+        self.completestatus = completestatus
 
         self.full_version = None
         self.versionSource = None  # handling of source is hacky
@@ -1918,11 +1920,13 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                     "versionTitle": self.vtitle,
                     "versionSource": self.versionSource,
                     "language": self.lang,
+                    "status": self.completestatus,
                     "title": self._oref.index.title
                 }
             )
         else:
             self.full_version = Version().load({"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle})
+            print("version:: >>>>>>>>>>>>", self.full_version)
             assert self.full_version, "Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
             if self.versionSource:
                 self.full_version.versionSource = self.versionSource  # hack

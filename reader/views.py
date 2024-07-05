@@ -1570,7 +1570,7 @@ def texts_api(request, tref):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"],
+            tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], completestatus=t["completestatus"],
                                 method="API", skip_links=skip_links, count_after=count_after)
             return jsonResponse({"status": "ok"})
         else:
@@ -1578,7 +1578,7 @@ def texts_api(request, tref):
             def protected_post(request):
                 t = json.loads(j)
                 tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"],
-                                    t.get("versionSource", None), skip_links=skip_links, count_after=count_after)
+                                    t.get("versionSource", None), completestatus=t["completestatus"], skip_links=skip_links, count_after=count_after)
                 return jsonResponse({"status": "ok"})
 
             return protected_post(request)
@@ -3564,7 +3564,7 @@ def revert_api(request, tref, lang, version, revision):
 
     new_text = text_at_revision(oref.normal(), version, lang, revision)
 
-    tracker.modify_text(request.user.id, oref, version, lang, new_text, type="revert")
+    tracker.modify_text(request.user.id, oref, version, lang, new_text, completestatus="done", type="revert")
 
     return jsonResponse({"status": "ok"})
 

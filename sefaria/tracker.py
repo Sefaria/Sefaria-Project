@@ -16,7 +16,7 @@ if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
 
-def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
+def modify_text(user, oref, vtitle, lang, text, vsource=None, completestatus="done", **kwargs):
     """
     Updates a chunk of text, identified by oref, versionTitle, and lang, and records history.
     :param user:
@@ -27,7 +27,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     :param vsource:
     :return:
     """
-    chunk = model.TextChunk(oref, lang, vtitle)
+    chunk = model.TextChunk(oref, lang, vtitle, completestatus)
     if getattr(chunk.version(), "status", "") == "locked" and not model.user_profile.is_user_staff(user):
         raise InputError("This text has been locked against further edits.")
     action = kwargs.get("type") or "edit" if chunk.text else "add"
