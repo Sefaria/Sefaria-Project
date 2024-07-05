@@ -43,6 +43,7 @@ import {
 } from './Misc';
 import {ContentText} from "./ContentText";
 import SheetsWithRefPage from "./Sheets/SheetsWithRefPage";
+import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
 
 
 class ReaderPanel extends Component {
@@ -886,10 +887,7 @@ class ReaderPanel extends Component {
                     }/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
-      menu = (<SearchPage
-                    key={"searchPage"}
-                    searchTopMsg="Results for"
-                    list={SearchResultList}
+      menu = (<ElasticSearchQuerier
                     query={this.state.searchQuery}
                     type={this.state.searchType}
                     searchState={this.state[`${this.state.searchType}SearchState`]}
@@ -904,9 +902,7 @@ class ReaderPanel extends Component {
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
-                    compare={this.state.compare}
-                  />);
-
+                    compare={this.state.compare}/>);
     } else if (this.state.menuOpen === "topics") {
       if (this.state.navigationTopicCategory) {
         menu = (

@@ -9,6 +9,7 @@ import classNames from 'classnames';
 import {
   SearchButton,
 } from './Misc';
+import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
 
 
 const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarSearchQuery, setSidebarSearchQuery, onSidebarSearchClick }) => {
@@ -111,22 +112,18 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
     </div>
 
 
-      {query ?
-        <SearchResultList
-          query={query}
-          compare={false}
-          searchInBook={true}
-          type={"text"}
-          searchState={searchState}
-          updateTotalResults={n => console.log(n)}
-          registerAvailableFilters={n => console.log(n)}
-          updateAppliedOptionSort={updateAppliedOptionSort}
-          onResultClick={onSidebarSearchClick}
-        /> :
-
-        null
-
-    }
+      {query &&
+          <ElasticSearchQuerier
+              query={query}
+              compare={false}
+              searchInBook={true}
+              type={"text"}
+              searchState={searchState}
+              updateTotalResults={n => console.log(n)}
+              registerAvailableFilters={n => console.log(n)}
+              updateAppliedOptionSort={updateAppliedOptionSort}
+              onResultClick={onSidebarSearchClick}
+              />}
 
 
     </div>

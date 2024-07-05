@@ -13,6 +13,7 @@ import {
   InterfaceText,
   LoadingMessage,
 } from './Misc';
+import {SearchResultList} from "./SearchResultList";
 
 class SearchPage extends Component {
   constructor(props) {
@@ -25,7 +26,19 @@ class SearchPage extends Component {
   render () {
     const classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
-    const { list: ListComponent } = this.props;
+    if (this.props.searchInBook) {
+      return <SearchResultList
+          query={this.props.query}
+          compare={false}
+          searchInBook={true}
+          type={"text"}
+          searchState={this.props.searchState}
+          updateTotalResults={n => console.log(n)}
+          registerAvailableFilters={n => console.log(n)}
+          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          onResultClick={this.props.onResultClick}
+        />
+    }
     return (
       <div className={classes} key={this.props.query}>
         {this.props.compare ?
@@ -54,7 +67,7 @@ class SearchPage extends Component {
                 : null }
               </div>
 
-              <ListComponent
+              <SearchResultList
                 query={this.props.query}
                 type={this.props.type}
                 listItems={this.props.listItems}
@@ -63,8 +76,11 @@ class SearchPage extends Component {
                 onResultClick={this.props.onResultClick}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                 registerAvailableFilters={this.props.registerAvailableFilters}
-                updateTotalResults={n => this.setState({totalResults: n})}
                 openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                loadNextPage={this.props.loadNextPage}
+                isQueryRunning={this.props.isQueryRunning}
+                moreToLoad={this.props.queryFullyLoaded}
+                topics={this.props.topics}
               />
             </div>
 
@@ -103,6 +119,9 @@ SearchPage.propTypes = {
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func,
+  loadNextPage:             PropTypes.func,
+  moreToLoad:               PropTypes.bool,
+  topics:                   PropTypes.array
 };
 
 
