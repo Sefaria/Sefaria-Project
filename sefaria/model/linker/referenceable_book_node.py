@@ -66,6 +66,34 @@ class ReferenceableBookNode:
     def referenceable(self) -> bool:
         return True
 
+    def contains(self, other: 'ReferenceableBookNode', self_ref: Optional[text.Ref], other_ref: Optional[text.Ref]) -> bool:
+        """
+        Does `self` contain `other`. If `self_ref` and `other_ref` aren't None, this is just ref comparison.
+        Otherwise, see if the schema/altstruct node that back `self` contains `other`'s node.
+        @param other:
+        @param self_ref: although `self` has a ref (if it's backed by a schemaNode) this ref doesn't include sections. For this reason, we need to be able to pass `self_ref`.
+        @param other_ref: see `self_ref` for docs.
+        @return:
+        """
+        if other_ref and self_ref:
+            return self_ref.contains(other_ref)
+        try:
+            if other_ref is None:
+                other_node = other._get_titled_tree_node()
+                if self_ref is None:
+                    return self._get_titled_tree_node().is_ancestor_of(other_node)
+                # other is alt struct and self has a ref
+                # check that every leaf node is contained by self's ref
+                return all([self_ref.contains(child.ref()) for child in other_node.get_leaf_nodes()])
+            # self is alt struct and other has a ref
+            # check if any leaf node contains other's ref
+            return any([child.ref().contains(other_ref) for child in self._get_titled_tree_node().get_leaf_nodes()])
+        except NotImplementedError:
+            return False
+
+    def _get_titled_tree_node(self) -> schema.TitledTreeNode:
+        raise NotImplementedError
+
 
 class NamedReferenceableBookNode(ReferenceableBookNode):
 
@@ -78,6 +106,9 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
     @property
     def referenceable(self):
         return getattr(self._titled_tree_node, 'referenceable', not self.is_default())
+
+    def _get_titled_tree_node(self) -> schema.TitledTreeNode:
+        return self._titled_tree_node
 
     def is_default(self):
         return self._titled_tree_node.is_default()
@@ -157,6 +188,9 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
     @property
     def referenceable(self):
         return getattr(self._ja_node, 'referenceable', True)
+
+    def _get_titled_tree_node(self) -> schema.TitledTreeNode:
+        return self._ja_node
 
     def is_default(self):
         return self._ja_node.is_default() and self._ja_node.parent is not None
@@ -301,7 +335,7 @@ class MapReferenceableBookNode(NumberedReferenceableBookNode):
         return section
 
     def ref(self):
-        return self._ref
+        raise NotImplementedError(f'{self.__class__} does not have a single ref.')
 
     def possible_subrefs(self, lang: str, initial_ref: text.Ref, section_str: str, fromSections=None) -> Tuple[List[text.Ref], List[bool]]:
         try:
