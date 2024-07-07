@@ -3201,7 +3201,7 @@ const ProductCTA = ({product, cta}) => {
     return (
 
         // <OnInView onVisible={() => productsAnalytics(product?.rank, product?.titles.en, cta.text.en, product?.type.en, "viewed")}>
-        <a href={cta.url} onClick={productsAnalytics(product.rank, product.titles.en, cta.text.en, product.type.en, "cta", "clicked")}>
+        <a href={cta.url} onClick={(e) => productsAnalytics(product.rank, product.titles.en, cta.text.en, product.type.en, "cta", "clicked")}>
             {cta.icon.url && <img className="productsCTAIcon" 
                                     src={cta.icon.url}
                                     alt="Click icon" />}
