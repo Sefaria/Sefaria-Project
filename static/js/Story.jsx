@@ -152,7 +152,7 @@ const TopicStoryDescBlock = ({title, tref}) =>
       </div>
 )
 
-const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayDescription, isAdmin, hideEnglishlessSources=false}) => {
+const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayDescription, isAdmin, hideLanguageMissingSources=false}) => {
     if (!text.ref) {
         return null;
     }
@@ -167,10 +167,10 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
     const content = bodyTextIsLink ? <a href={url} style={{textDecoration: 'none'}}>{innerContent}</a> : innerContent;
     const isIntroducedSource = isCurated && displayDescription
     const StoryFrameComp = isIntroducedSource ? SummarizedStoryFrame : StoryFrame
-    const hideThisEnglishlessText = heOnly && (langPref == 'english') && hideEnglishlessSources;
+    const hideThisLanguageMissingSource = (heOnly && (langPref == 'english') && hideLanguageMissingSources) || (enOnly && (langPref == 'hebrew') && hideLanguageMissingSources);
 
     return (
-        !hideThisEnglishlessText &&
+        !hideThisLanguageMissingSource &&
         <StoryFrameComp cls="topicPassageStory"
                         collapsibleSummary={isIntroducedSource ?
                 <ColorBarBox tref={text.ref}><TopicStoryDescBlock title={{'en': text.descriptions?.en?.title, 'he': text.descriptions?.he?.title}}

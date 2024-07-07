@@ -163,7 +163,7 @@ const adminRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, l
 const keySourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, true, true);
 const allSourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, false, true);
 
-const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin, displayDescription, hideEnglishlessSources) => item => {
+const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin, displayDescription, hideLanguageMissingSources) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
   const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
@@ -188,7 +188,7 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPr
       langPref={langPref}
       isAdmin={isAdmin}
       displayDescription={displayDescription}
-      hideEnglishlessSources={hideEnglishlessSources}
+      hideLanguageMissingSources={hideLanguageMissingSources}
     />
   );
 };
