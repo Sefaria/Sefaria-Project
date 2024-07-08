@@ -367,8 +367,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             kwargs['record_kwargs'] = {'context_slug': self.slug}
             return TopicLinkSetHelper.find(intra_link_query, **kwargs)
 
-    def get_sheets_links(self, query_kwargs: dict = None, **kwargs):
-        query_kwargs['is_sheet'] = True
+    def get_ref_links(self, is_sheet, query_kwargs: dict = None, **kwargs):
+        query_kwargs['is_sheet'] = is_sheet
         return self.link_set('refTopic', query_kwargs, **kwargs)
 
     def contents(self, **kwargs):
@@ -441,10 +441,13 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             self.pools.append(pool_name)
             self.save()
 
-    def update_sheets_pool(self):
-        pool = 'sheets'
-        sheets_links = self.get_sheets_links()
-        if bool(sheets_links) != pool in self.pools:
+    def update_pool_by_links(self, pool):
+        """
+        updating the pools 'sheets' or 'textual' according to the existence of links
+        :param pool: 'sheets' or 'textual'
+        """
+        links = self.get_ref_links(pool == 'sheets')
+        if bool(links) != pool in self.pools:
             self.pools.remove(pool) if pool in self.pools else self.pools.append(pool)
             self.save()
 
