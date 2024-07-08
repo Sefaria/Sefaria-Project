@@ -851,6 +851,13 @@ class RefTopicLink(abst.AbstractMongoRecord):
         topic = self.get_topic()
         topic.add_pool(self.get_pool())
 
+    def delete(self, force=False, override_dependencies=False):
+        topic = self.get_topic()
+        pool = self.get_pool()
+        super(RefTopicLink, self).delete()
+        if topic:
+            topic.update_pool_by_links(pool)
+
     def _sanitize(self):
         super()._sanitize()
         for lang, d in getattr(self, "descriptions", {}).items():
