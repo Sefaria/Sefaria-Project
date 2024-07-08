@@ -840,7 +840,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
         self.descriptions = d
         return self
 
-    def get_pool(self):
+    def get_related_pool(self):
         return 'sheets' if self.is_sheet else 'textual'
 
     def get_topic(self):
@@ -849,11 +849,11 @@ class RefTopicLink(abst.AbstractMongoRecord):
     def save(self, override_dependencies=False):
         super(RefTopicLink, self).save(override_dependencies)
         topic = self.get_topic()
-        topic.add_pool(self.get_pool())
+        topic.add_pool(self.get_related_pool())
 
     def delete(self, force=False, override_dependencies=False):
         topic = self.get_topic()
-        pool = self.get_pool()
+        pool = self.get_related_pool()
         super(RefTopicLink, self).delete(force, override_dependencies)
         if topic:
             topic.update_pool_by_links(pool)
