@@ -847,14 +847,14 @@ class RefTopicLink(abst.AbstractMongoRecord):
         return Topic().load({'slug': self.toTopic})
 
     def save(self, override_dependencies=False):
-        super(RefTopicLink, self).save()
+        super(RefTopicLink, self).save(override_dependencies)
         topic = self.get_topic()
         topic.add_pool(self.get_pool())
 
     def delete(self, force=False, override_dependencies=False):
         topic = self.get_topic()
         pool = self.get_pool()
-        super(RefTopicLink, self).delete()
+        super(RefTopicLink, self).delete(force, override_dependencies)
         if topic:
             topic.update_pool_by_links(pool)
 
