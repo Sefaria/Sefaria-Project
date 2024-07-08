@@ -1174,10 +1174,18 @@ class AbstractTextRecord(object):
         if isinstance(t, list):
             for i, v in enumerate(t):
                 if isinstance(v, str):
+                    tags = re.findall('<[^>]+>', t[i])
+                    for tag in tags:
+                        if tag == "<br>":
+                            t[i] = re.sub("<br>", " ", v)
                     t[i] = re.sub('<[^>]+>', "", v)
                 else:
                     t[i] = AbstractTextRecord.remove_html(v)
         elif isinstance(t, str):
+            tags = re.findall('<[^>]+>', t)
+            for tag in tags:
+                if tag == "<br>":
+                    t = re.sub("<br>", " ", t)
             t = re.sub('<[^>]+>', "", t)
         else:
             return False
