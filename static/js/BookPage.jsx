@@ -50,17 +50,30 @@ class BookPage extends Component {
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
-      dlReady: false
+      dlReady: false,
+      isContentVisible: true
     };
   }
   componentDidMount() {
     this.loadData();
   }
+
+ 
   componentDidUpdate(prevProps, prevState) {
     if ((this.props.settingsLanguage != prevProps.settingsLanguage)) {
       this.forceUpdate();
     }
   }
+
+  handleCheckVisibility(value) {
+    if("nodes" in value) {
+      this.state.isContentVisible = true
+    } else {
+      this.state.isContentVisible = false
+    }
+  }
+
+
   getDataRef() {
     // Returns ref to be used to looking up data
     return Sefaria.sectionRef(this.props.currentRef) || this.props.currentRef;
@@ -146,6 +159,9 @@ class BookPage extends Component {
   extendedNotesBack(event){
     return null;
   }
+
+
+  
   render() {
     const title     = this.props.title;
     const index     = Sefaria.index(title);
@@ -177,8 +193,11 @@ class BookPage extends Component {
         <a className="button small readButton" href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}>
           <InterfaceText>Start Reading</InterfaceText>
         </a>
-
-    const tabs = [{id: "contents", title: {en: "Contents", he: Sefaria._("Contents")}}];
+    const tabs = []
+    if (this.state.isContentVisible) {
+      tabs.push({id: "contents", title: {en: "Contents", he: Sefaria._("Contents")}});
+    }
+    
     if (this.isBookToc()){
       tabs.push({id: "versions", title: {en: "Versions", he: Sefaria._("Versions")}});
     }
@@ -188,6 +207,8 @@ class BookPage extends Component {
         { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
       </div>
     );
+  
+    
 
     const sidebarModules = !this.state.indexDetails ? [] :
       [
@@ -284,26 +305,27 @@ class BookPage extends Component {
                   <Modules type={"AboutText"} props={{index: this.state.indexDetails, hideTitle: true}} />
                 </div>}
 
-                 <TabView
-                  tabs={tabs}
-                  currTabName={this.props.tab}
-                  setTab={this.props.setTab}
-                  renderTab={renderTab}
-                  containerClasses={"largeTabs"}>
-                   <TextTableOfContents
-                        narrowPanel={this.props.narrowPanel}
-                        title={this.props.title}
-                        close={this.props.close}
-                        showBaseText={this.props.showBaseText}
-                        currVersions={this.props.currVersions}
-                   />
-                   <VersionsList
-                     currObjectVersions={currObjectVersions}
-                     openVersionInReader={this.openVersion}
-                     currentRef={this.props.currentRef}
-                     viewExtendedNotes={this.props.viewExtendedNotes}
-                   />
-                 </TabView>
+               {<TabView
+                tabs={tabs}
+                currTabName={this.props.tab}
+                setTab={this.props.setTab}
+                renderTab={renderTab}
+                containerClasses={"largeTabs"}>
+                  {this.state.isContentVisible? <TextTableOfContents
+                      narrowPanel={this.props.narrowPanel}
+                      title={this.props.title}
+                      close={this.props.close}
+                      showBaseText={this.props.showBaseText}
+                      currVersions={this.props.currVersions}
+                      onCheckVisibility={this.handleCheckVisibility}
+                  />: null }
+                  <VersionsList
+                    currObjectVersions={currObjectVersions}
+                    openVersionInReader={this.openVersion}
+                    currentRef={this.props.currentRef}
+                    viewExtendedNotes={this.props.viewExtendedNotes}
+                  />
+                </TabView>}
 
 
               </div>
@@ -351,11 +373,25 @@ class TextTableOfContents extends Component {
       tab: "schema",
       indexDetails: Sefaria.getIndexDetailsFromCache(props.title)
     };
+
+
   }
   componentDidMount() {
     this.loadData();
     this.scrollToCurrent();
   }
+
+  componentDidMount() {
+    this.test()
+  }
+
+  test(){
+    if (this.props.onCheckVisibility) {
+      this.props.onCheckVisibility(this.state.indexDetails.schema)
+    }
+    
+  }
+
   loadData(){
     // Ensures data this text is in cache, rerenders after data load if needed
     Sefaria.getIndexDetails(this.props.title).then((data) => {
@@ -522,7 +558,9 @@ TextTableOfContents.propTypes = {
     narrowPanel:     PropTypes.bool,
     close:           PropTypes.func,
     showBaseText:    PropTypes.func,
+    onCheckVisibility: PropTypes.func,
     currVersions:    PropTypes.object
+    
 };
 
 
