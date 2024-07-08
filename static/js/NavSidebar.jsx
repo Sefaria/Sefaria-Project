@@ -267,7 +267,7 @@ const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'w
 
 const SidebarFooter = () => {
 
-  data = getSidebarFooterData();
+  const data = getSidebarFooterData();
 
   return (
     <Module>
