@@ -5,6 +5,7 @@ import structlog
 import sefaria.system.logging as sefaria_logging
 import os
 
+from decoder import private_key_1
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -269,7 +270,7 @@ GOOGLE_APPLICATION_CREDENTIALS = {
   "type": "service_account",
   "project_id": os.getenv("project_id"),
   "private_key_id": os.getenv("private_key_id"),
-  "private_key": os.getenv("private_key"),
+  "private_key": private_key_1,
   "client_email": os.getenv("client_email"),
   "client_id": os.getenv("client_id"),
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
