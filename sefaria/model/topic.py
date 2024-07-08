@@ -837,6 +837,17 @@ class RefTopicLink(abst.AbstractMongoRecord):
         self.descriptions = d
         return self
 
+    def get_pool(self):
+        return 'sheets' if self.is_sheet else 'textual'
+
+    def get_topic(self):
+        return Topic().load({'slug': self.toTopic})
+
+    def save(self, override_dependencies=False):
+        super(RefTopicLink, self).save()
+        topic = self.get_topic()
+        topic.add_pool(self.get_pool())
+
     def _sanitize(self):
         super()._sanitize()
         for lang, d in getattr(self, "descriptions", {}).items():
