@@ -8,14 +8,18 @@ import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
 
 const NavSidebar = ({modules}) => {
-  return <div className="navSidebar sans-serif">
+  return (
+    <div className="navSidebar sans-serif">
     {modules.map((m, i) =>
       <Modules
         type={m.type}
         props={m.props || {}}
         key={i} />
     )}
+    <SidebarFooter />
   </div>
+
+  )
 };
 
 
@@ -25,7 +29,7 @@ const Modules = ({type, props}) => {
     "AboutSefaria":           AboutSefaria,
     "Promo":                  Promo,
     "Resources":              Resources,
-    "Footer":                 SidebarFooter,
+    // "Footer":                 SidebarFooter,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
@@ -270,16 +274,18 @@ const SidebarFooter = () => {
   const data = getSidebarFooterData();
 
   return (
-    <Module>
-      <h3/>
-      <div className="footerContainer">
-        {data.map(footerLink => 
-          <a href={footerLink.url}>
-            <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
-          </a>
-        )}
-      </div>
-    </Module>
+    <div className = "stickySidebarFooter">
+      <Module>
+        <h3/>
+        <div className="footerContainer">
+          {data.map(footerLink => 
+            <a href={footerLink.url}>
+              <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
+            </a>
+          )}
+        </div>
+      </Module>
+    </div>
 );
 }
 
