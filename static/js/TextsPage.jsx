@@ -95,6 +95,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
     {type: "Resources"},
+    {type: "Footer"},
   ];
 
   const footer = compare ? null : <Footer />;
