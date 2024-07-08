@@ -1318,6 +1318,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     chosen to avoid naming conflicts and ambiguity on the TextAPI. See TextFamily for more details.
     """
     optional_attrs = [
+        "iscompleted",
         "status",
         "priority",
         "license",
@@ -1409,7 +1410,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 self.actualLanguage = self.language
 
         if not getattr(self, 'direction', None):
-            self.direction = 'rtl' if self.language == 'he' else 'ltr'
+            self.direction = 'ltr' if self.language == 'he' else 'ltr'
 
         if getattr(self, "priority", None):
             try:
@@ -1920,7 +1921,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                     "versionTitle": self.vtitle,
                     "versionSource": self.versionSource,
                     "language": self.lang,
-                    "status": self.completestatus,
+                    "iscompleted": self.completestatus,
                     "title": self._oref.index.title
                 }
             )
