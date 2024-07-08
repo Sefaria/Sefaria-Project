@@ -77,6 +77,7 @@ class VersionBlock extends Component {
     super(props);
     this.updateableVersionAttributes = [
       "versionTitle",
+      "iscompleted",
       "versionSource",
       "versionNotes",
       "license",
@@ -221,12 +222,18 @@ class VersionBlock extends Component {
             <label htmlFor="versionTitle" className="">Version Title</label>
             {close_icon}
             <input id="versionTitle" name="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.handleInputChange} />
-
+            <br></br>
             <label htmlFor="versionTitleInHebrew" className="">Hebrew Version Title</label>
             <input id="versionTitleInHebrew" name="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.handleInputChange} />
-
+            <br></br>
             <label htmlFor="shortVersionTitle" className="">Short Version Title</label>
             <input id="shortVersionTitle" name="shortVersionTitle" className="" type="text" value={this.state.shortVersionTitle} onChange={this.handleInputChange} />
+
+            <label htmlFor="iscompleted">Text completion status</label>
+            <select id="iscompleted" name="iscompleted" className="" value={this.state.iscompleted} onChange={this.handleInputChange}>
+              <option key="in_progress"  value="in_progress">in_progress</option>
+              <option key="done"  value="done">done</option>
+            </select>
 
             <label htmlFor="shortVersionTitleInHebrew" className="">Short Hebrew Version Title</label>
             <input id="shortVersionTitleInHebrew" name="shortVersionTitleInHebrew" className="" type="text" value={this.state.shortVersionTitleInHebrew} onChange={this.handleInputChange} />
