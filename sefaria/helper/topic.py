@@ -1075,7 +1075,7 @@ def update_topic_titles(topic, title="", heTitle="", **kwargs):
     for lang in ['en', 'he']:   # first remove all titles and add new primary and then alt titles
         for title in topic.get_titles(lang):
             topic.remove_title(title, lang)
-        topic.add_title(new_primary[lang], lang, True, False)
+        topic.add_title(new_primary[lang], lang, True, True)
         if 'altTitles' in kwargs:
             for title in kwargs['altTitles'][lang]:
                 topic.add_title(title, lang)
