@@ -68,7 +68,7 @@ requests
 Cerberus
 celery[redis]
 google-re2
-dnspython~=2.5.0
+dnspython==2.5.0
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
