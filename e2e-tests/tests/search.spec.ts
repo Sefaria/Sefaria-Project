@@ -5,7 +5,7 @@ test('Search auto complete', async ({ context }) => {
   const page = await goToPageWithLang(context, '/');
   await page.getByPlaceholder('Search').fill('אהבה');
   await page.waitForSelector('text=אהבה', { state: 'visible' });
-  await page.getByRole('option', { name: 'אהבה', exact: true }).click();
+  await page.getByText('אהבה', { exact: true }).click();
   await expect(page).toHaveTitle(/Love/);
 });
 

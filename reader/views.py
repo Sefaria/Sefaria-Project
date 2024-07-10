@@ -34,7 +34,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data, UserWrapper
+from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
@@ -114,7 +114,7 @@ if not DISABLE_AUTOCOMPLETER:
 
 if ENABLE_LINKER:
     logger.info("Initializing Linker")
-    library.build_ref_resolver()
+    library.build_linker('he')
 
 if server_coordinator:
     server_coordinator.connect()
@@ -320,7 +320,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide")
     if filter[0] in sidebarModes:
         return filter[0], True
     elif filter[0].endswith(" ConnectionsList"):
@@ -376,16 +376,19 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "filter": filter,
             "versionFilter": versionFilter,
         }
-        if filter and len(filter):
-            panel["connectionsMode"], delete_filter = get_connections_mode(filter)
-            if panel["connectionsMode"] == "ConnectionsList":
-                panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
-                if len(panel['filter']) == 1:
-                    panel['connectionsCategory'] = panel['filter'][0]
-            if panel['connectionsMode'] == "WebPagesList":
-                panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
-            if delete_filter:
-                del panel['filter']
+        if filter is not None:
+            panel["highlightedRefs"] = kwargs.get("highlightedRefs", None)
+            panel["showHighlight"] = kwargs.get('showHighlight', None)
+            if len(filter):
+                panel["connectionsMode"], delete_filter = get_connections_mode(filter)
+                if panel["connectionsMode"] == "ConnectionsList":
+                    panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
+                    if len(panel['filter']) == 1:
+                        panel['connectionsCategory'] = panel['filter'][0]
+                if panel['connectionsMode'] == "WebPagesList":
+                    panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
+                if delete_filter:
+                    del panel['filter']
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
@@ -553,6 +556,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             lang2 = request.GET.get("lang2", None)
             if lang2:
                 kwargs["connectionsPanelDisplayLanguage"] = lang2 if lang2 in ["en", "he"] else lang1 if lang1 in ["en", "he"] else request.interfaceLang[0:2]
+            kwargs["highlightedRefs"] = [oref.normal()]
+            kwargs["showHighlight"] = True
         if request.GET.get("aliyot", None):
             kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
         kwargs["selectedWords"] = request.GET.get("lookup", None)
@@ -1034,7 +1039,6 @@ def texts_list(request):
     props = get_user_history_props(request)
     return menu_page(request, page="navigation", title=title, desc=desc, props=props)
 
-
 def calendars(request):
     title = _("Learning Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Weekly Torah portions, Daf Yomi, and other schedules for Torah learning.")
@@ -1063,12 +1067,6 @@ def user_history(request):
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)
-
-
-def updates(request):
-    title = _("New Additions to the Sefaria Library")
-    desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
-    return menu_page(request, page="updates", title=title, desc=desc)
 
 
 @login_required
@@ -1253,7 +1251,7 @@ def edit_text_info(request, title=None, new_title=None):
         # Edit Existing
         title = title.replace("_", " ")
         i = library.get_index(title)
-        if not (request.user.is_staff or user_started_text(request.user.id, title)):
+        if not request.user.is_staff:
             return render_template(request,'static/generic.html', None, {
                 "title": "Permission Denied",
                 "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title
@@ -1642,73 +1640,67 @@ def text_titles_api(request):
 def index_node_api(request, title):
     pass
 
-@catch_error_as_json
+
 @csrf_exempt
+@catch_error_as_json
 def index_api(request, title, raw=False):
-    """
-    API for manipulating text index records (aka "Text Info")
-    """
-    if request.method == "GET":
+    CONTENT_TYPE = "CONTENT"
+    ADMIN_TYPE = "ADMIN"
+
+    def handle_get_request(request, title, raw):
         with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
-        i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
+        index_record = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
         if bool(int(request.GET.get("with_related_topics", False))):
-            i["relatedTopics"] = get_topics_for_book(title, annotate=True)
+            index_record["relatedTopics"] = get_topics_for_book(title, annotate=True)
 
-        return jsonResponse(i, callback=request.GET.get("callback", None))
+        return jsonResponse(index_record, callback=request.GET.get("callback", None))
 
-    if request.method == "POST":
-        # use the update function if update is in the params
-
-        func = tracker.update if request.GET.get("update", False) else tracker.add
+    def handle_post_request(request, title, raw):
         j = json.loads(request.POST.get("json"))
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
-        j["title"] = title.replace("_", " ")
-        #todo: move this to texts_api, pass the changes down through the tracker and text chunk
-        #if "versionTitle" in j:
-        #    if j["versionTitle"] == "Sefaria Community Translation":
-        #        j["license"] = "CC0"
-        #        j["licenseVetter"] = True
-        if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], Index, j, method="API", raw=raw).contents(raw=raw))
+
+        user_type, uid = determine_user_type_and_id(request)
+        if uid is None:
+            return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
+        elif user_type == CONTENT_TYPE:
+            return index_post(request, uid, j, "API", raw)
+        elif user_type == ADMIN_TYPE:
+            admin_post = csrf_protect(index_post)
+            return admin_post(request, uid, j, None, raw)
+
+    def determine_user_type_and_id(request):
+        if request.user.is_staff:
+            return ADMIN_TYPE, request.user.id
         else:
-            title = j.get("oldTitle", j.get("title"))
-            try:
-                library.get_index(title)  # getting the index just to tell if it exists
-                # Only allow staff and the person who submitted a text to edit
-                if not request.user.is_staff and not user_started_text(request.user.id, title):
-                   return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
-            except BookNameError:
-                pass  # if this is a new text, allow any logged in user to submit
-        @csrf_protect
-        def protected_index_post(request):
-            return jsonResponse(
-                func(request.user.id, Index, j, raw=raw).contents(raw=raw)
-            )
+            key = request.POST.get("apikey")
+            if key:
+                apikey = db.apikeys.find_one({"key": key})
+                if apikey:
+                    return CONTENT_TYPE, apikey["uid"]
+        return None, None
 
-        return protected_index_post(request)
+    def index_post(request, uid, j, method, raw):
+        func = tracker.update if 'update' in j else tracker.add
+        return jsonResponse(func(uid, Index, j, raw=raw, method=method).contents(raw=raw))
 
-    if request.method == "DELETE":
+    def handle_delete_request(request, title):
         if not request.user.is_staff:
-            return jsonResponse({"error": "Only moderators can delete texts indices."})
+            return jsonResponse({"error": "Only moderators can delete indices."})
 
         title = title.replace("_", " ")
-
-        i = library.get_index(title)
-
-        i.delete()
+        library.get_index(title).delete()
         record_index_deletion(title, request.user.id)
 
         return jsonResponse({"status": "ok"})
 
-    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+    if request.method == "GET":
+        return handle_get_request(request, title, raw)
+    elif request.method == "POST":
+        return handle_post_request(request, title, raw)
+    elif request.method == "DELETE":
+        return handle_delete_request(request, title)
 
 
 @catch_error_as_json
@@ -2175,9 +2167,10 @@ def related_api(request, tref):
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
-            "topics": get_topics_for_ref(tref, annotate=True),
+            "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),
+            "guides": GuideSet.load_set_for_client(tref)
         }
         for value in response.values():
             for item in value:
@@ -2559,9 +2552,10 @@ def terms_api(request, name):
         def _internal_do_post(request, uid):
             t = Term().load({'name': name}) or Term().load_by_title(name)
             if request.method == "POST":
-                term = request.POST.get("json")
-                if not term:
-                    return {"error": "Missing 'json' parameter in POST data."}
+                if "json" in request.POST:
+                    term = request.POST.get("json")
+                else:
+                    term = request.body
                 term = json.loads(term)
                 if t and not request.GET.get("update"):
                     return {"error": "Term already exists."}
@@ -3063,7 +3057,7 @@ def topic_page(request, topic, test_version=None):
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         },
-        "topicData": _topic_page_data(topic),
+        "topicData": _topic_page_data(topic, request.interfaceLang),
     }
 
     if test_version is not None:
@@ -3094,12 +3088,28 @@ def topics_list_api(request):
 
 
 @staff_member_required
+def generate_topic_prompts_api(request, slug: str):
+    if request.method == "POST":
+        from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
+        from sefaria.helper.llm.topic_prompt import get_ref_context_hints_by_lang
+        topic = Topic.init(slug)
+        post_body = json.loads(request.body)
+        ref_topic_links = post_body.get('ref_topic_links')
+        for lang, ref__context_hints in get_ref_context_hints_by_lang(ref_topic_links).items():
+            orefs, context_hints = zip(*ref__context_hints)
+            generate_and_save_topic_prompts(lang, topic, orefs, context_hints)
+        return jsonResponse({"acknowledged": True}, status=202)
+    return jsonResponse({"error": "This API only accepts POST requests."})
+
+
+@staff_member_required
 def add_new_topic_api(request):
     if request.method == "POST":
         data = json.loads(request.POST["json"])
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
         update_topic_titles(t, **data)
+        t.set_slug_to_primary_title()
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
@@ -3157,7 +3167,7 @@ def topics_api(request, topic, v2=False):
         annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
         with_indexes = bool(int(request.GET.get("with_indexes", False)))
         ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-        response = get_topic(v2, topic, with_html=with_html, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
+        response = get_topic(v2, topic, request.interfaceLang, with_html=with_html, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -3205,13 +3215,37 @@ def reorder_topics(request):
         results.append(topic.contents())
     return jsonResponse({"topics": results})
 
+@staff_member_required()
+def topic_ref_bulk_api(request):
+    """
+    API to bulk edit RefTopicLinks
+    """
+    topic_links = json.loads(request.body)
+    all_links_touched = []
+    for link in topic_links:
+        tref = link.get('ref')
+        tref = Ref(tref).normal()
+        slug = link.get("toTopic")
+        linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
+        descriptions = link.get("descriptions", link.get("description"))
+        languages = descriptions.keys()
+        for language in languages:
+            ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=tref,
+                                               linkType=linkType, description=descriptions[language], interface_lang=language)
+        all_links_touched.append(ref_topic_dict)
+    return jsonResponse(all_links_touched)
+
+
+
 @catch_error_as_json
 def topic_ref_api(request, tref):
     """
     API to get RefTopicLinks, as well as creating, editing, and deleting of RefTopicLinks
     """
-
-    data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
+    try:
+        data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
+    except Exception as e:
+        data = json.loads(request.body)
     slug = data.get('topic')
     interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
     tref = Ref(tref).normal()  # normalize input
@@ -3219,7 +3253,7 @@ def topic_ref_api(request, tref):
     annotate = bool(int(data.get("annotate", False)))
 
     if request.method == "GET":
-        response = get_topics_for_ref(tref, annotate)
+        response = get_topics_for_ref(tref, request.interfaceLang, annotate)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     else:
         if not request.user.is_staff:
@@ -3236,7 +3270,7 @@ def topic_ref_api(request, tref):
 
 @staff_member_required
 def reorder_sources(request):
-    sources = json.loads(request.POST["json"]).get("sources", [])
+    sources = json.loads(request.body).get("sources", [])
     slug = request.GET.get('topic')
     lang = 'en' if request.GET.get('lang') == 'english' else 'he'
     return jsonResponse(update_order_of_topic_sources(slug, sources, request.user.id, lang=lang))
@@ -3245,8 +3279,8 @@ _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],
 }
 
-def _topic_page_data(topic):
-    _topic_data(topic=topic, annotate_time_period=True)
+def _topic_page_data(topic, lang):
+    _topic_data(topic=topic, lang=lang, annotate_time_period=True)
 
 
 def _topic_data(**kwargs):
@@ -4290,13 +4324,18 @@ def serve_static_by_lang(request, page):
     return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), None, {})
 
 
+# TODO: This really should be handled by a CMS :)
 def annual_report(request, report_year):
     pdfs = {
         '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
         '2022': STATIC_URL + 'files/Sefaria_AnnualImpactReport_R14.pdf',
+        '2023': 'https://issuu.com/sefariaimpact/docs/sefaria_2023_impact_report?fr=sMmRkNTcyMzMyNTk',
     }
-    if report_year not in pdfs:
+    # Assume the most recent year as default when one is not provided
+    if not report_year:
+        report_year = max(pdfs.keys()) # Earlier versions of Python do not preserve insertion order in dictionaries :(
+    elif report_year not in pdfs:
         raise Http404
     # Renders a simple template, does not extend base.html
     return render(request, template_name='static/annualreport.html', context={'reportYear': report_year, 'pdfURL': pdfs[report_year]})

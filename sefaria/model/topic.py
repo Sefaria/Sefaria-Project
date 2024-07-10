@@ -126,11 +126,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
 
-    def add_title(self, text, lang, primary=False, replace_primary=False):
-        super(Topic, self).add_title(text, lang, primary=primary, replace_primary=replace_primary)
-        if lang == 'en' and primary:
-            self.set_slug_to_primary_title()
-
     def title_is_transliteration(self, title, lang):
         return self.title_group.get_title_attr(title, lang, 'transliteration') is not None
 
@@ -839,6 +834,21 @@ class RefTopicLink(abst.AbstractMongoRecord):
         else:  # Ref is a regular Sefaria Ref
             self.ref = Ref(self.ref).normal()
             self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
+
+    def _sanitize(self):
+        """
+        Sanitize the "title" and "prompt" for all descriptions.
+        Since they're human editable they are candidates for XSS.
+        @return:
+        """
+        for lang in ("en", "he"):
+            description = getattr(self, "descriptions", {}).get(lang)
+            if description:
+                for field in ("title", "prompt"):
+                    value = description.get(field)
+                    if value:
+                        description[field] = bleach.clean(value, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+                self.descriptions[lang] = description
 
     def _validate(self):
         Topic.validate_slug_exists(self.toTopic)

@@ -21,9 +21,12 @@ import {
     InterfaceText,
     FilterableList,
     ToolTipped,
+    AiInfoTooltip,
     SimpleLinkedBlock,
     CategoryHeader,
-    ImageWithCaption
+    ImageWithCaption,
+    EnglishText,
+    HebrewText
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -101,8 +104,6 @@ const refSort = (currSortOption, a, b) => {
     return a.order.comp_date - b.order.comp_date;
   }
   else {
-    const aAvailLangs = a.order.availableLangs;
-    const bAvailLangs = b.order.availableLangs;
     if ((Sefaria.interfaceLang === 'english') &&
       (a.order.curatedPrimacy.en > 0 || b.order.curatedPrimacy.en > 0)) {
       return b.order.curatedPrimacy.en - a.order.curatedPrimacy.en; }
@@ -110,12 +111,13 @@ const refSort = (currSortOption, a, b) => {
       (a.order.curatedPrimacy.he > 0 || b.order.curatedPrimacy.he > 0)) {
       return b.order.curatedPrimacy.he - a.order.curatedPrimacy.he;
     }
+    const aAvailLangs = a.order.availableLangs;
+    const bAvailLangs = b.order.availableLangs;
     if (Sefaria.interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
       if (aAvailLangs.indexOf('en') > -1) { return -1; }
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
       return 0;
     }
-    else if (a.order.custom_order !== b.order.custom_order) { return b.order.custom_order - a.order.custom_order; }  // custom_order, when present, should trump other data
     else if (a.order.pr !== b.order.pr) {
         return b.order.pr - a.order.pr;
     }
@@ -150,6 +152,14 @@ const sheetSort = (currSortOption, a, b) => {
   }
 };
 
+const hasPrompts = (description) => {
+    /**
+     * returns true if description has a title
+     * If description is explicitly marked as not published, only return true if user is a moderator
+     */
+    return description?.title?.length && (Sefaria.is_moderator || description?.published !== false);
+}
+
 const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
@@ -166,11 +176,10 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
     </ToolTipped>
   );
 
-  const hasPrompts = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
 
   // When running a test, topicTestVersion is respected.
   // const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
-  const Passage = hasPrompts ? IntroducedTextPassage : TextPassage;
+  const Passage = hasPrompts(text?.descriptions?.[langKey]) ? IntroducedTextPassage : TextPassage;
   return (
     <Passage
       key={item[0]}
@@ -271,8 +280,8 @@ const TopicSponsorship = ({topic_slug}) => {
     // TODO: Store this data somewhere intelligent
     const topic_sponsorship_map = {
         "parashat-bereshit": {
-            "en": "Parashat Bereshit, or Genesis, is dedicated to the [Sefaria Pioneers](https://sefaria.ac-page.com/pioneers), Sefaria's earliest champions whose immense generosity was essential to the genesis of Sefaria and the digital future of Torah.",
-            "he": "פרשת בראשית מוקדשת [לחלוצי ספריא](https://sefaria.ac-page.com/pioneers), מי שעודדו ותמכו בנו בראשית דרכנו ושבזכות נדיבותם הרבה עלה באפשרותנו ליצור את העתיד הדיגיטלי של התורה ושאר המקורות."
+            "en": "Parashat Bereshit, or Genesis, is dedicated to the [Sefaria Pioneers](/pioneers), Sefaria's earliest champions whose immense generosity was essential to the genesis of Sefaria and the digital future of Torah.",
+            "he": "פרשת בראשית מוקדשת [לחלוצי ספריא](/pioneers), מי שעודדו ותמכו בנו בראשית דרכנו ושבזכות נדיבותם הרבה עלה באפשרותנו ליצור את העתיד הדיגיטלי של התורה ושאר המקורות."
         },
         "parashat-lech-lecha": {
             "en": "Sponsored by The Rita J. & Stanley H. Kaplan Family Foundation in honor of Scott and Erica Belsky’s wedding anniversary.",
@@ -306,21 +315,94 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
+const isLinkPublished = (lang, link) => {return link.descriptions?.[lang]?.published !== false;}
+
+const getLinksWithAiContent = (refTopicLinks = []) => {
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    return refTopicLinks.filter(link => {
+        return link.descriptions?.[lang]?.ai_title?.length > 0 && isLinkPublished(lang, link)
+    });
+};
+
+const getLinksToGenerate = (refTopicLinks = []) => {
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    return refTopicLinks.filter(link => {
+        return link.descriptions?.[lang]?.ai_context?.length > 0  &&
+            !link.descriptions?.[lang]?.prompt;
+    });
+};
+const getLinksToPublish = (refTopicLinks = []) => {
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    return refTopicLinks.filter(link => {
+        return !isLinkPublished(lang, link);
+    });
+};
+
+const generatePrompts = async(topicSlug, linksToGenerate) => {
+    linksToGenerate.forEach(ref => {
+        ref['toTopic'] = topicSlug;
+    });
+    const payload = {ref_topic_links: linksToGenerate};
+    try {
+        await Sefaria.apiRequestWithBody(`/api/topics/generate-prompts/${topicSlug}`, {}, payload);
+        const refValues = linksToGenerate.map(item => item.ref).join(", ");
+        alert("The following prompts are generating: " + refValues);
+    } catch (error) {
+        console.error("Error occurred:", error);
+    }
+};
+
+const publishPrompts = async (topicSlug, linksToPublish) => {
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    linksToPublish.forEach(ref => {
+        ref['toTopic'] = topicSlug;
+        ref.descriptions[lang]["published"] = true;
+    });
+    try {
+        const response = await Sefaria.apiRequestWithBody(`/api/ref-topic-links/bulk`, {}, linksToPublish);
+        const refValues = response.map(item => item.anchorRef).join(", ");
+        const shouldRefresh = confirm("The following prompts have been published: " + refValues + ". Refresh page to see results?");
+        if (shouldRefresh) {
+            window.location.reload();
+        }
+    } catch (error) {
+        console.error("Error occurred:", error);
+    }
+};
+
+const getTopicHeaderAdminActionButtons = (topicSlug, refTopicLinks) => {
+    const linksToGenerate = getLinksToGenerate(refTopicLinks);
+    const linksToPublish = getLinksToPublish(refTopicLinks);
+    const actionButtons = {};
+    if (linksToGenerate.length > 0) {
+        actionButtons['generate'] = ["Generate", () => generatePrompts(topicSlug, linksToGenerate)];
+    }
+    if (linksToPublish.length > 0) {
+        actionButtons['publish'] = ["Publish", () => publishPrompts(topicSlug, linksToPublish)];
+    }
+
+    return actionButtons;
+};
+
 const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
-  const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
-  return (
+  const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
+  const hasAiContentLinks = getLinksWithAiContent(topicData.refs?.about?.refs).length != 0;
+
+
+return (
     <div>
-      
         <div className="navTitle tight">
-                <CategoryHeader type="topics" data={topicData} buttonsToDisplay={["source", "edit", "reorder"]}>
+                <CategoryHeader type="topics" data={topicData} toggleButtonIDs={["source", "edit", "reorder"]} actionButtons={actionButtons}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
                 </CategoryHeader>
+            {hasAiContentLinks &&
+                <AiInfoTooltip/>
+            }
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?

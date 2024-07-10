@@ -1,17 +1,19 @@
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {requestWithCallBack, Autocompleter, InterfaceText} from "./Misc";
+import {Autocompleter, InterfaceText} from "./Misc";
 import React, {useState} from "react";
+import {useRef} from "react";
 
 const SourceEditor = ({topic, close, origData={}}) => {
     const isNew = !origData.ref;
     const [displayRef, setDisplayRef] = useState(origData.lang === 'he' ?
                                                             (origData.heRef || "") :  (origData.ref || "") );
-    const title = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.title || '') : (origData?.descriptions?.he?.title || '');
-    const prompt = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.prompt || '') : (origData?.descriptions?.he?.prompt || '');
+    const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+    const { title = '', prompt = '', ai_context = '' } = origData?.descriptions?.[langKey] || {};
+
     const [data, setData] = useState({enTitle: title,  // use enTitle for hebrew or english case
-                                                prompt: prompt,
+                                                prompt, ai_context
                                                 });
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
@@ -44,12 +46,16 @@ const SourceEditor = ({topic, close, origData={}}) => {
     const save = async function () {
         setSavingStatus(true);
         let refInUrl = isNew ? displayRef : origData.ref;
-        let url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
-        let postData = {"topic": topic, "is_new": isNew, 'new_ref': displayRef, 'interface_lang': Sefaria.interfaceLang};
-        if (data.enTitle.length > 0) {
-            postData['description'] = {"title": data.enTitle, "prompt": data.prompt};
+        const payload = {
+            new_ref: displayRef,
+            topic,
+            is_new: isNew,
+            interface_lang: Sefaria.interfaceLang,
+            description: {"title": data.enTitle, "prompt": data.prompt, "ai_context": data.ai_context, "review_state": "edited"},
         }
-        requestWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
+        Sefaria.postRefTopicLink(refInUrl, payload)
+            .then(() => window.location.href = `/topics/${topic}`)
+            .finally(() => setSavingStatus(false));
     }
 
     const handleChange = (x) => {
@@ -86,13 +92,18 @@ const SourceEditor = ({topic, close, origData={}}) => {
     }
 
     const deleteTopicSource = function() {
-        const url = `/api/ref-topic-links/${origData.ref}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
-        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/topics/${topic}`});
+        const url = `/api/ref-topic-links/${Sefaria.normRef(origData.ref)}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
+        Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
+            .then(() => window.location.href = `/topics/${topic}`);
     }
+    const previousTitleItemRef = useRef(data.enTitle ? "Previous Title" : null); //use useRef to make value null even if component re-renders
+    const previousPromptItemRef = useRef(data.prompt ? "Previous Prompt" : null);
+    const previousTitleItem = previousTitleItemRef.current;
+    const previousPromptItem = previousPromptItemRef.current;
 
     return <div>
         <AdminEditor title="Source Editor" close={close}  data={data} savingStatus={savingStatus}
-                validate={validate} items={["Title", "Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
+                validate={validate} items={[previousTitleItem, "Title", previousPromptItem, "Prompt", "Context for Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
                 extras={
                     [<div>
                         <label><InterfaceText>Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')</InterfaceText></label>

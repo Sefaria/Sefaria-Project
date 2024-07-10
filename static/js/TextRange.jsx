@@ -155,6 +155,11 @@ class TextRange extends Component {
         this.props.onTextLoad && this.props.onTextLoad(data.ref); // Don't call until the text is actually rendered
       }.bind(this));
     }
+
+    const connectionsPanelRefElement = document.querySelectorAll(`[data-ref='${this.props.filterRef}']`);
+    if (connectionsPanelRefElement.length > 0) {
+      connectionsPanelRefElement[0].scrollIntoView();
+    }
   }
   _updateCurrVersions(enVTitle, heVTitle) {
     // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
@@ -473,7 +478,7 @@ TextRange.propTypes = {
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
   translationLanguagePreference: PropTypes.string,
-  navigatePanel:          PropTypes.func
+  navigatePanel:          PropTypes.func,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
@@ -688,7 +693,7 @@ TextSegment.propTypes = {
   onFootnoteClick: PropTypes.func,
   onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
-  navigatePanel: PropTypes.func
+  navigatePanel: PropTypes.func,
 };
 
 export default TextRange;

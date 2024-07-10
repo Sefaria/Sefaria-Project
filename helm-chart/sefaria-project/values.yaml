@@ -235,6 +235,30 @@ varnish:
     image: ibmcom/varnish-metrics-exporter
     tag: 0.32.0
 
+tasks:
+  enabled: false
+  resources:
+    requests:
+      memory: "100Mi"
+      cpu: "100m"
+    limits:
+      memory: "200Mi"
+      cpu: "400m"
+  replicaCount: 1
+  redis:
+    url: "redis://127.0.0.1"
+    port: "6397"
+    brokerDBNumber: "0"
+    resultBackendDBNumber: "1"
+    sentinelURL: ""
+    transportOptions: {}
+    redisPassword:
+      ref: redis-password
+    sentinelPassword:
+      ref: sentinel-password
+  queues:
+    llm: default-llm
+
 ingress:
  # You can set path: serviceName: and port: for each host. By default they are
  # set to '/*', 'nginx', '80' respectively for each. Do note that changing this
@@ -278,6 +302,9 @@ nginx:
     tag: latest
   # set to search-democracy for democracy
   SEARCH_HOST: elasticsearch-es-default.elasticsearch
+  SEARCH_PORT: 9200
+  SEARCH_PATH: ""
+  SEARCH_SSL_ENABLE: false
   disableScraping: true
   # key-pair values to load into nginx pod environment.  Takes precedence over global localsettings
   localsettings:
@@ -351,6 +378,15 @@ secrets:
     #   RECAPTCHA_PUBLIC_KEY:
     #   RECAPTCHA_PRIVATE_KEY:
     #   SIMPLE_JWT_SIGNING_KEY:
+    #   REDIS_PORT
+    #   REDIS_PASSWORD
+    #   CELERY_REDIS_BROKER_DB_NUM
+    #   CELERY_REDIS_RESULT_BACKEND_DB_NUM
+    #   CELERY_QUEUES
+    #   SENTINEL_HEADLESS_URL
+    #   SENTINEL_TRANSPORT_OPTS
+    #   SENTINEL_PASSWORD
+    #   REDIS_URL
     #   MOBILE_APP_KEY:
   backupManager:
     # If you're using a reference to an existing secret then the data: section
@@ -380,7 +416,6 @@ secrets:
     # should be commented out and vice-versa.
     ref: elastic-admin
     # data:
-
 
 # Settings for various cronjobs
 cronJobs:

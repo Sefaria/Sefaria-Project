@@ -98,6 +98,30 @@ varnish:
       ref: varnish-secret-production
   monitoring:
     enabled: true
+tasks:
+  enabled: true
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "6Gi"
+      cpu: "1000m"
+  replicaCount: 1
+  redis:
+    url: ""
+    port: "26379"
+    brokerDBNumber: 2
+    resultBackendDBNumber: 3
+    sentinelURL: "redis-headless.redis.svc.cluster.local"
+    transportOptions:
+      master_name: mymaster
+    redisPassword:
+      ref: redis-password
+    sentinelPassword:
+      ref: sentinel-password
+  queues:
+    llm: llm-llm
 ingress:
   hosts:
     - host: "sefaria.org"
@@ -141,7 +165,10 @@ nginx:
   containerImage:
     imageRegistry:
     tag:
-  SEARCH_HOST: elasticsearch-es-http.elasticsearch.svc
+  SEARCH_HOST: "elasticsearch-es-http.elasticsearch.svc"
+  SEARCH_PORT: "9200"
+  SEARCH_PATH: ""
+  SEARCH_SSL_ENABLE: false
   disableScraping: false
   replicaCount: 2
   resources:

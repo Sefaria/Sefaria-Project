@@ -23,6 +23,7 @@ djangorestframework_simplejwt==3.3.0
 PyJWT==1.7.1 # pinned b/c current version 2.0.0 breaks simplejwt. waiting for 2.0.1
 elasticsearch==8.8.2
 git+https://github.com/Sefaria/elasticsearch-dsl-py@v8.0.0#egg=elasticsearch-dsl
+git+https://github.com/Sefaria/LLM@v1.0.3#egg=sefaria_llm_interface&subdirectory=app/llm_interface
 geojson==2.5.0
 geopy==2.3.0
 gevent==20.12.0; sys_platform != 'darwin'
@@ -65,7 +66,9 @@ babel
 python-bidi
 requests
 Cerberus
+celery[redis]
 google-re2
+dnspython~=2.5.0
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
