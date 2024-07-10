@@ -3990,8 +3990,10 @@ class Ref(object, metaclass=RefCacheType):
             except AttributeError:  # This is a schema node, try to get a default child
                 if self.has_default_child():
                     return self.default_child_ref().padded_ref()
+                elif self.is_book_level():
+                    raise InputError("Please pass a more specific ref for this book, and try again. The ref you passed is a 'complex' book-level ref. We only support book-level refs in cases of texts with a 'simple' structure. ")
                 else:
-                    raise InputError("Can not pad a schema node ref")
+                    raise InputError("Cannot pad a schema node ref.")
 
             d = self._core_dict()
             if self.is_talmud():
