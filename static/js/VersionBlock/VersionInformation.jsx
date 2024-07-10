@@ -11,7 +11,6 @@ function VersionInformation({currentRef, version}) {
     }
     return (
         <div className="versionDetailsInformation">
-            <div className="">Version completion status: "{version.iscompleted}"</div>
             <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionSource": 1, "versionDetailsElement": 1}, "versionSource"))}>
               <span className="versionDetailsLabel">
                 {`${Sefaria._("Source")}: `}
