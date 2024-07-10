@@ -1174,7 +1174,7 @@ class AbstractTextRecord(object):
 
         def conditional_replace(match):
             tag = match.group()
-            if tag == "<br/>":
+            if tag in ["<br/>", "<br>"]:
                 return " "
             return ""
 
