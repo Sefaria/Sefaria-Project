@@ -228,36 +228,36 @@ class VersionBlock extends Component {
             <br></br>
             <label htmlFor="shortVersionTitle" className="">Short Version Title</label>
             <input id="shortVersionTitle" name="shortVersionTitle" className="" type="text" value={this.state.shortVersionTitle} onChange={this.handleInputChange} />
-
+            <br></br>
             <label htmlFor="iscompleted">Text completion status</label>
             <select id="iscompleted" name="iscompleted" className="" value={this.state.iscompleted} onChange={this.handleInputChange}>
               <option key="in_progress"  value="in_progress">in_progress</option>
               <option key="done"  value="done">done</option>
             </select>
-
+            <br></br>
             <label htmlFor="shortVersionTitleInHebrew" className="">Short Hebrew Version Title</label>
             <input id="shortVersionTitleInHebrew" name="shortVersionTitleInHebrew" className="" type="text" value={this.state.shortVersionTitleInHebrew} onChange={this.handleInputChange} />
-
+            <br></br>
             <label htmlFor="versionSource">Version Source</label>
             <input id="versionSource" name="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.handleInputChange} />
-
+            <br></br>
             <label id="license_label" htmlFor="license">License</label>
             <select id="license" name="license" className=""  value={this.state.license} onChange={this.handleInputChange}>
               {licenses.map(v => <option key={v} value={v}>{v?v:"(None Listed)"}</option>)}
             </select>
-
+            <br></br>
             <label id="digitzedBySefaria_label" htmlFor="digitzedBySefaria">Digitized by Sefaria</label>
             <input type="checkbox" id="digitzedBySefaria" name="digitizedBySefaria" checked={this.state.digitizedBySefaria} onChange={this.handleInputChange}/>
-
+            <br></br>
             <label id="priority_label" htmlFor="priority">Priority</label>
             <input id="priority" name="priority" className="" type="text" value={this.state.priority} onChange={this.handleInputChange} />
-
+            <br></br>
             <label id="locked_label" htmlFor="locked">Locked</label>
             <input type="checkbox" id="locked" name="status" checked={this.state.status == "locked"} onChange={this.handleInputChange}/>
-
+            <br></br>
             <label id="versionNotes_label" htmlFor="versionNotes">VersionNotes</label>
             <textarea id="versionNotes" name="versionNotes" placeholder="Version Notes" onChange={this.handleInputChange} value={this.state.versionNotes} rows="5" cols="40"/>
-
+            <br></br>
             <label id="versionNotesInHebrew_label" htmlFor="versionNotes_in_hebrew">Hebrew VersionNotes</label>
             <textarea id="versionNotesInHebrew" name="versionNotesInHebrew" placeholder="Hebrew Version Notes" onChange={this.handleInputChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
             <div>
@@ -290,6 +290,7 @@ class VersionBlock extends Component {
                  />
               </div>
               <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
+              {this.props.version.iscompleted !=="done" ? <div className="versionLanguage sans-serif">{this.props.version.iscompleted.toUpperCase()}</div>: null}
               <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
             <div className="versionSelect sans-serif">
