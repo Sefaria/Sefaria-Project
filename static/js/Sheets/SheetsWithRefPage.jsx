@@ -17,8 +17,20 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
             });
         return sheets;
     }
+    const applySortOption = (sheets) => {
+        switch(searchState.sortType) {
+            case 'views':
+                sheets = sheets.sort((a, b) => b.views - a.views);
+            break;
+            case 'relevance':
+            break;
+            case 'dateCreated':
+                sheets = sheets.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
+            break;
+        }
+        return sheets;
+    }
     const prepSheetsForDisplay = (sheets) => {
-        sheets = applyFilters(sheets);
         sheets = sheets.sort((a, b) => {
                               // First place user's sheet
                               if (a.owner === Sefaria.uid && b.owner !== Sefaria.uid) {
@@ -41,7 +53,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                         ))
         return sheets;
     }
-    const normalizeSheetsMetaData = () => {
+    const normalizeSheetsMetaData = (sheets) => {
         return sheets.map(sheet => {
             return {
                         sheetId: sheet.id,
@@ -54,6 +66,11 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                         snippet: sheet?.summary || ""
                     }
         })
+    }
+    const applyFiltersAndSortOptions = () => {
+        let sortedSheets = sheets;
+        sortedSheets = applyFilters(sortedSheets);
+        return applySortOption(sortedSheets);
     }
     const handleSheetsLoad = (sheets) => {
       const searchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
@@ -80,10 +97,12 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     if (loading) {
         return <div>Loading...</div>;
     }
+    let sortedSheets = applyFiltersAndSortOptions();
+    sortedSheets = normalizeSheetsMetaData(sortedSheets);
     return <SearchPage
           key={"sheetsPage"}
           searchTopMsg="Sheets With"
-          hits={normalizeSheetsMetaData()}
+          hits={sortedSheets}
           query={srefs}
           type={'sheet'}
           compare={false}
