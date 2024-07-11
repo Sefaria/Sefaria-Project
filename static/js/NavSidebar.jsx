@@ -961,5 +961,6 @@ const PortalNewsletter = ({title, description}) => {
 export {
   NavSidebar,
   Modules,
-  RecentlyViewed
+  RecentlyViewed, 
+  SidebarFooter
 };
