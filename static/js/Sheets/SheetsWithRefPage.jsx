@@ -1,11 +1,13 @@
 import SearchPage from "../SearchPage";
 import Sefaria from "../sefaria/sefaria";
 import {useEffect, useState} from "react";
+import {SearchTotal} from "../sefaria/searchTotal";
 const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateAppliedFilter,
                            updateAppliedOptionField, updateAppliedOptionSort, onResultClick,
                            registerAvailableFilters}) => {
     const [sheets, setSheets] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [totalResults, setTotalResults] = useState(new SearchTotal());
     const applyFilters = (sheets) => {
         searchState.appliedFilters.forEach((appliedFilter, i) => {
             const type = searchState.appliedFilterAggTypes[i];
@@ -77,6 +79,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
       setSheets(prepSheetsForDisplay(sheets));
       updateSearchState(searchState, 'sheet');
       setLoading(false);
+      setTotalResults(new SearchTotal({value: sheets.length}));
     }
     useEffect(() => {
       // 'collections' won't be present if the related API set _sheetsByRef,
@@ -105,6 +108,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
           hits={sortedSheets}
           query={srefs}
           type={'sheet'}
+          totalResults={totalResults}
           compare={false}
           searchState={searchState}
           panelsOpen={1}
