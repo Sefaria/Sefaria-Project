@@ -16,20 +16,20 @@
     <meta name="robots" content="index, follow">
     <meta name="revisit-after" content="7 days">
 
-    {% if noindex or DEBUG %}
+    <!-- {% if noindex or DEBUG %}
         <meta name="robots" content="noindex, nofollow">
-    {% endif %}
+    {% endif %} -->
 
-    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" />
+    <!-- <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" /> -->
 
-    {% if SITE_SETTINGS.TORAH_SPECIFIC %}
+    <!-- {% if SITE_SETTINGS.TORAH_SPECIFIC %}
     <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
     <link rel="alternate" href="https://www.sefaria.org.il{{ request.path }}" hreflang="he" />
-    {% endif %}
+    {% endif %} -->
 
-    {% if canonical_url %}
+    <!-- {% if canonical_url %}
     <link rel="canonical" href="{{canonical_url}}" />
-    {% endif %}
+    {% endif %} -->
 
     {% block ogtype %}
         <meta property="og:type" content="website"/>
@@ -47,7 +47,7 @@
     <meta property="og:url" content="https://{{ request.get_host }}{{ request.get_full_path }}" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@sefariaproject" />
+    <!-- <meta name="twitter:site" content="@sefariaproject" /> -->
     <meta name="twitter:title" content="{{title|striptags}}" />
     <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
     <meta name="twitter:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=twitter&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
