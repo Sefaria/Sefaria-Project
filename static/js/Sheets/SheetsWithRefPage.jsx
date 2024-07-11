@@ -62,8 +62,12 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
       setLoading(false);
     }
     useEffect(() => {
-      // 'collections' won't be present if the related API set _sheetsByRef, but will be present if the sheets_by_ref_api has run
-      if (!('collections' in Sefaria.sheets._sheetsByRef[srefs])) {
+      // 'collections' won't be present if the related API set _sheetsByRef,
+      // but 'collections' will be present if the sheets_by_ref_api has run
+      // if the field is not present, we need to call the sheets_by_ref_api
+      const currentSheetsByRef = Sefaria.sheets._sheetsByRef[srefs];
+      const collectionsInCache = !!currentSheetsByRef && currentSheetsByRef.every(sheet => 'collections' in sheet);
+      if (!collectionsInCache) {
           delete Sefaria.sheets._sheetsByRef[srefs];
           Sefaria.sheets.getSheetsByRef(srefs).then(sheets => {
               handleSheetsLoad(sheets);
