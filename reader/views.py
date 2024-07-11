@@ -120,7 +120,17 @@ if server_coordinator:
     server_coordinator.connect()
 #    #    #
 
+def sitemap(request):
+    # Define the path to the sitemap.xml file
+    filepath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'sitemap.xml')
+    try:
+        with open(filepath, 'r') as f:
+            sitemap_content = f.read()
+        return HttpResponse(sitemap_content, content_type='application/xml')
+    except FileNotFoundError:
+        return HttpResponse("Sitemap not found", status=404, content_type='text/plain')
 
+        
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
     This is a general purpose custom function that serves to render all the templates in the project and provide a central point for all similar processing.

@@ -25,6 +25,7 @@ handler404 = 'reader.views.custom_page_not_found'
 
 # App Pages
 urlpatterns = [
+    url(r'^sitemap\.xml$', reader_views.sitemap, name='sitemap'),
     url(r'^$', reader_views.home, name="home"),
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
     url(r'^texts/saved/?$', reader_views.saved),
