@@ -13161,6 +13161,11 @@ span.ref-link-color-3 {color: blue}
   padding: 3px 10px;
 }
 
+.stickySidebarFooter {
+  position: sticky;
+  top: 0;
+}
+
 .image-in-text-title {
     margin: auto; /* English System Small */
     margin-top: 15px;
