@@ -888,10 +888,10 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=N
 				"is_featured":     sheet.get("is_featured", False),
 				"category":        "Sheets", # ditto
 				"type":            "sheet", # ditto
+				"dateCreated":		sheet.get("dateCreated", None)
 			}
 			if include_collections:
 				sheet_data["collections"] = sheet_id_to_collection[sheet["id"]]
-				sheet_data["dateCreated"] = sheet["dateCreated"]
 
 			results.append(sheet_data)
 	return results

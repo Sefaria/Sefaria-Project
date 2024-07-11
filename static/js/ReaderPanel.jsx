@@ -802,7 +802,14 @@ class ReaderPanel extends Component {
           initialWidth={this.state.width}
           toggleSignUpModal={this.props.toggleSignUpModal}/>);
     } else if (this.state.menuOpen === "sheetsWithRef") {
-      menu = (<SheetsWithRefPage srefs={Sefaria.sheetsWithRef['en']}/>);
+      menu = (<SheetsWithRefPage srefs={Sefaria.sheetsWithRef['en']}
+                                 searchState={this.state['sheetSearchState']}
+                                 updateSearchState={this.props.updateSearchState}
+                                 updateAppliedFilter={this.props.updateSearchFilter}
+                                 updateAppliedOptionField={this.props.updateSearchOptionField}
+                                 updateAppliedOptionSort={this.props.updateSearchOptionSort}
+                                 registerAvailableFilters={this.props.registerAvailableFilters}
+                                 onResultClick={this.props.onSearchResultClick}/>);
     } else if (this.state.menuOpen === "sheet meta") {
       menu = (<SheetMetadata
                     mode={this.state.menuOpen}

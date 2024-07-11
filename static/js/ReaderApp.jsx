@@ -1192,6 +1192,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     };
     this.setPanelState(n, updates);
   }
+  updateSearchState(n, searchState, type) {
+    const searchStateName = this._getSearchStateName(type);
+    this.setPanelState(n,{[searchStateName]: searchState});
+  }
   updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     const state = this.state.panels[n];
     const searchState = this._getSearchState(state, type);
@@ -2134,6 +2138,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
       var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
+      let updateSearchState              = this.updateSearchState.bind(null, i);
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
@@ -2164,6 +2169,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
                       openPanelAt={this.openPanelAt}
+                      updateSearchState={updateSearchState}
                       panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}

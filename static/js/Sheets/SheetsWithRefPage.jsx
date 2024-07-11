@@ -1,10 +1,10 @@
 import SearchPage from "../SearchPage";
-import SheetsWithRefList from "./SheetsWithRefList";
 import Sefaria from "../sefaria/sefaria";
 import {useEffect, useState} from "react";
-const SheetsWithRefPage = ({srefs}) => {
+const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateAppliedFilter,
+                           updateAppliedOptionField, updateAppliedOptionSort, onResultClick,
+                           registerAvailableFilters}) => {
     const [sheets, setSheets] = useState([]);
-    const [searchState, setSearchState] = useState(null);
     const [loading, setLoading] = useState(true);
     const applyFilters = (sheets) => {
         searchState.appliedFilters.forEach((appliedFilter, i) => {
@@ -35,58 +35,60 @@ const SheetsWithRefPage = ({srefs}) => {
                               return b.views - a.views;
                             })
         // filters out duplicate sheets by sheet ID number and filters so that we don't show sheets as connections to themselves
-        return sheets.filter((sheet, index, self) =>
+        sheets = sheets.filter((sheet, index, self) =>
                           index === self.findIndex((s) => (
                             s.id === sheet.id)
                         ))
+        return sheets;
+    }
+    const normalizeSheetsMetaData = () => {
+        return sheets.map(sheet => {
+            return {
+                        sheetId: sheet.id,
+                        title: sheet.title,
+                        owner_name: sheet.ownerName,
+                        owner_image: sheet.ownerImageUrl,
+                        profile_url: sheet.ownerProfileUrl,
+                        dateCreated: sheet.dateCreated,
+                        _id: sheet.id,
+                        snippet: sheet?.summary || ""
+                    }
+        })
+    }
+    const handleSheetsLoad = (sheets) => {
+      const searchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
+      setSheets(prepSheetsForDisplay(sheets));
+      updateSearchState(searchState, 'sheet');
+      setLoading(false);
     }
     useEffect(() => {
-      delete Sefaria.sheets._sheetsByRef[srefs];
-      Sefaria.sheets.getSheetsByRef(srefs).then(sheets => {
-          const searchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
-          setSheets(sheets);
-          setSearchState(searchState);
-          setLoading(false);
-      })
+      // 'collections' won't be present if the related API set _sheetsByRef, but will be present if the sheets_by_ref_api has run
+      if (!('collections' in Sefaria.sheets._sheetsByRef[srefs])) {
+          delete Sefaria.sheets._sheetsByRef[srefs];
+          Sefaria.sheets.getSheetsByRef(srefs).then(sheets => {
+              handleSheetsLoad(sheets);
+          })
+      }
+      else {
+          handleSheetsLoad(Sefaria.sheets._sheetsByRef[srefs]);
+      }
     }, []);
-    const onSearchResultClick = (...args) => {
-        args.forEach(arg => console.log(arg));
-    }
-    const updateSearchFilter = (type, searchState, filterNode) => {
-        if (filterNode.isUnselected()) {
-          filterNode.setSelected(true);
-        } else {
-          filterNode.setUnselected(true);
-        }
-        const update = Sefaria.search.getAppliedSearchFilters(searchState.availableFilters);
-        setSearchState(searchState.update(update));
-    }
-    const updateSearchOptionField = (...args) => {
-        args.forEach(arg => console.log(arg));
-    }
-    const updateSearchOptionSort = (...args) => {
-        args.forEach(arg => console.log(arg));
-    }
-    const registerAvailableFilters = (...args) => {
-       args.forEach(arg => console.log(arg));
-    }
     if (loading) {
         return <div>Loading...</div>;
     }
     return <SearchPage
           key={"sheetsPage"}
           searchTopMsg="Sheets With"
-          list={SheetsWithRefList}
-          listItems={prepSheetsForDisplay(sheets)}
+          hits={normalizeSheetsMetaData()}
           query={srefs}
           type={'sheet'}
           compare={false}
           searchState={searchState}
           panelsOpen={1}
-          onResultClick={onSearchResultClick}
-          updateAppliedFilter={updateSearchFilter}
-          updateAppliedOptionField={updateSearchOptionField}
-          updateAppliedOptionSort={updateSearchOptionSort}
+          onResultClick={onResultClick}
+          updateAppliedFilter={updateAppliedFilter}
+          updateAppliedOptionField={updateAppliedOptionField}
+          updateAppliedOptionSort={updateAppliedOptionSort}
           registerAvailableFilters={registerAvailableFilters}/>
 }
 export default SheetsWithRefPage;

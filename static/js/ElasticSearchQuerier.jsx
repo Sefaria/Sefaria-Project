@@ -317,6 +317,19 @@ class ElasticSearchQuerier extends Component {
       this.setState({error: true});
       this.updateRunningQuery(null);
     }
+    normalizeHitsMetaData() {
+        if (this.props.type === 'sheet') {
+            let results = this.state.hits;
+            return results.map(result => {
+                let normalizedResult = result._source;
+                normalizedResult.snippet = result.highlight.content.join('...');
+                return normalizedResult;
+            })
+        }
+        else {
+            return this.state.hits;
+        }
+    }
     render () {
         return <SearchPage
                     key={"searchPage"}
@@ -324,7 +337,7 @@ class ElasticSearchQuerier extends Component {
                     isQueryRunning={this.state.isQueryRunning}
                     searchTopMsg="Results for"
                     query={this.props.query}
-                    hits={this.state.hits}
+                    hits={this.normalizeHitsMetaData()}
                     totalResults={this.state.totals}
                     type={this.props.type}
                     searchState={this.props.searchState}
