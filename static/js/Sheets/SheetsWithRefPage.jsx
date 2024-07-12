@@ -2,21 +2,62 @@ import SearchPage from "../SearchPage";
 import Sefaria from "../sefaria/sefaria";
 import {useEffect, useState} from "react";
 import {SearchTotal} from "../sefaria/searchTotal";
+import {Children as availableFilters} from "../lib/react";
 const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateAppliedFilter,
                            updateAppliedOptionField, updateAppliedOptionSort, onResultClick,
                            registerAvailableFilters}) => {
     const [sheets, setSheets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [totalResults, setTotalResults] = useState(new SearchTotal());
+    const [origAvailableFilters, setOrigAvailableFilters] = useState([]);
+    const cloneFilters = (availableFilters, resetDocCounts = true) => {
+        return availableFilters.map(availableFilter => {
+            let newAvailableFilter = availableFilter.clone();
+            if (resetDocCounts) newAvailableFilter.docCount = 0;
+            return newAvailableFilter;
+        })
+    }
+    const getDocCounts = (availableFilters) => {
+        return availableFilters.map(availableFilter => availableFilter.docCount).sort((a, b) => a - b);
+    }
+    const updateAvailableFilters = (availableFilters) => {
+        const newDocCounts = getDocCounts(availableFilters);
+        const currDocCounts = getDocCounts(searchState.availableFilters);
+        if (!newDocCounts.compare(currDocCounts)) {
+            searchState.availableFilters = availableFilters;
+            updateSearchState(searchState, 'sheet');
+        }
+    }
+    const updateDocCounts = (newAvailableFilters, appliedFilter) => {
+        newAvailableFilters.forEach((newFilter, i) => {
+            if (newFilter.aggKey === appliedFilter) {
+                newAvailableFilters[i].docCount++;
+            }
+        })
+    }
     const applyFilters = (sheets) => {
-        searchState.appliedFilters.forEach((appliedFilter, i) => {
-            const type = searchState.appliedFilterAggTypes[i];
-            sheets = sheets.filter(sheet => {
-                        const items = type === 'topics_en' ? sheet.topics : sheet.collections;
-                        const slugs = items.map(x => x.slug);
-                        return slugs.includes(appliedFilter);
-                    });
+        if (searchState.appliedFilters.length === 0) {
+            updateAvailableFilters(origAvailableFilters);
+        }
+        else {
+            let newAvailableFilters = cloneFilters(origAvailableFilters);
+            searchState.appliedFilters.forEach((appliedFilter, i) => {
+                const type = searchState.appliedFilterAggTypes[i];
+                sheets = sheets.filter(sheet => {
+                    const items = type === 'topics_en' ? sheet.topics : sheet.collections;
+                    const slugs = items.map(x => x.slug);
+                    const slugFound = slugs.includes(appliedFilter);
+                    if (slugFound) {
+                        slugs.forEach(slug => {
+                            updateDocCounts(newAvailableFilters, slug);
+                        })
+                    }
+                    return slugFound;
+                });
             });
+            newAvailableFilters = newAvailableFilters.filter(availableFilter => availableFilter.docCount > 0);
+            updateAvailableFilters(newAvailableFilters);
+        }
         return sheets;
     }
     const applySortOption = (sheets) => {
@@ -78,6 +119,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
       const searchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
       setSheets(prepSheetsForDisplay(sheets));
       updateSearchState(searchState, 'sheet');
+      setOrigAvailableFilters(searchState.availableFilters);
       setLoading(false);
       setTotalResults(new SearchTotal({value: sheets.length}));
     }
