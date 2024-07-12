@@ -2178,6 +2178,37 @@ def related_api(request, tref):
                     del item['expandedRefs']
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
+@catch_error_as_json
+def webpages_api(request, tref):
+    """
+    API for retrieving available webpages list of a ref.
+    """
+    response = get_webpages_for_ref(tref)
+    for item in response:
+        if 'expandedRefs' in item:
+            del item['expandedRefs']
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+@catch_error_as_json
+def media_api(request, tref):
+    """
+    API for retrieving available media list of a ref.
+    """
+    response = get_media_for_ref(tref)
+    for item in response:
+        if 'expandedRefs' in item:
+            del item['expandedRefs']
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+def guides_api(request, tref):
+    """
+    API for retrieving available guides list of a ref.
+    """
+    response = GuideSet.load_set_for_client(tref)
+    for item in response:
+        if 'expandedRefs' in item:
+            del item['expandedRefs']
+    return jsonResponse(response, callback=request.GET.get("callback", None))
 
 @catch_error_as_json
 def versions_api(request, tref):
