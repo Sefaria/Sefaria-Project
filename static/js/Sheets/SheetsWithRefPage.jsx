@@ -20,12 +20,11 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     const getDocCounts = (availableFilters) => {
         return availableFilters.map(availableFilter => availableFilter.docCount).sort((a, b) => a - b);
     }
-    const updateAvailableFilters = (availableFilters) => {
+    const checkForRegisteringAvailableFilters = (availableFilters) => {
         const newDocCounts = getDocCounts(availableFilters);
         const currDocCounts = getDocCounts(searchState.availableFilters);
         if (!newDocCounts.compare(currDocCounts)) {
-            searchState.availableFilters = availableFilters;
-            updateSearchState(searchState, 'sheet');
+            registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics_en']);
         }
     }
     const updateDocCounts = (newAvailableFilters, appliedFilter) => {
@@ -37,7 +36,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     }
     const applyFilters = (sheets) => {
         if (searchState.appliedFilters.length === 0) {
-            updateAvailableFilters(origAvailableFilters);
+            checkForRegisteringAvailableFilters(origAvailableFilters);
         }
         else {
             let newAvailableFilters = cloneFilters(origAvailableFilters);
@@ -56,7 +55,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                 });
             });
             newAvailableFilters = newAvailableFilters.filter(availableFilter => availableFilter.docCount > 0);
-            updateAvailableFilters(newAvailableFilters);
+            checkForRegisteringAvailableFilters(newAvailableFilters);
         }
         return sheets;
     }
@@ -110,11 +109,6 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                     }
         })
     }
-    const applyFiltersAndSortOptions = () => {
-        let sortedSheets = sheets;
-        sortedSheets = applyFilters(sortedSheets);
-        return applySortOption(sortedSheets);
-    }
     const handleSheetsLoad = (sheets) => {
       const searchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
       setSheets(prepSheetsForDisplay(sheets));
@@ -139,11 +133,24 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
           handleSheetsLoad(Sefaria.sheets._sheetsByRef[srefs]);
       }
     }, []);
+
+    origAvailableFilters.forEach(availableFilter => {
+        const selected = searchState.appliedFilters.includes(availableFilter.aggKey);
+        if (selected && selected !== Boolean(availableFilter.selected)) {
+            availableFilter.setSelected(true);
+        }
+        else if (selected !== Boolean(availableFilter.selected)) {
+            availableFilter.setUnselected(true);
+        }
+    })
+    let sortedSheets = [...sheets];
+    sortedSheets = applyFilters(sortedSheets);
+    sortedSheets = applySortOption(sortedSheets);
+    sortedSheets = normalizeSheetsMetaData(sortedSheets);
     if (loading) {
         return <div>Loading...</div>;
     }
-    let sortedSheets = applyFiltersAndSortOptions();
-    sortedSheets = normalizeSheetsMetaData(sortedSheets);
+
     return <SearchPage
           key={"sheetsPage"}
           searchTopMsg="Sheets With"
