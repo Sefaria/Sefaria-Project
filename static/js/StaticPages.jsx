@@ -3181,7 +3181,7 @@ const productsAnalytics = (rank, product, cta, label, link_type, event) => {
     gtag("event", `products_${event}`, {
         area: 'Products',
         panel_type: "strapi-static",
-        panel_number: 0,   
+        panel_number: 1,   
         panel_name: "Products",
         position: rank,
         text: cta,
