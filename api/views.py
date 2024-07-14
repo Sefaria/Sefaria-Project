@@ -1,8 +1,10 @@
 from sefaria.model import *
 from sefaria.model.text_reuqest_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
+from sefaria.system.exceptions import InputError
 from django.views import View
 from .api_warnings import *
+
 
 
 class Text(View):
@@ -53,6 +55,14 @@ class Text(View):
         if return_format not in self.RETURN_FORMATS:
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
         text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format)
-        data = text_manager.get_versions_for_query()
-        data = self._handle_warnings(data)
-        return jsonResponse(data)
+
+        try:
+            # For a SchemaNode, data is an error which handle_warnings doesn't handle (or even get triggered?)
+            # How to trigger a 400 appropriate error with an appropriate message?
+            data = text_manager.get_versions_for_query()
+            data = self._handle_warnings(data)
+            return jsonResponse(data)
+        except InputError as e:
+            raise InputError(e)
+
+
