@@ -24,6 +24,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         const newDocCounts = getDocCounts(availableFilters);
         const currDocCounts = getDocCounts(searchState.availableFilters);
         if (!newDocCounts.compare(currDocCounts)) {
+            availableFilters = availableFilters.sort((a, b) => b.docCount - a.docCount || a.title.localeCompare(b.title));
             registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics_en']);
         }
     }
@@ -45,15 +46,19 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                 sheets = sheets.filter(sheet => {
                     const items = type === 'topics_en' ? sheet.topics : sheet.collections;
                     const slugs = items.map(x => x.slug);
-                    const slugFound = slugs.includes(appliedFilter);
-                    if (slugFound) {
-                        slugs.forEach(slug => {
-                            updateDocCounts(newAvailableFilters, slug);
-                        })
-                    }
-                    return slugFound;
+                    return slugs.includes(appliedFilter);
                 });
             });
+            ['collections', 'topics_en'].forEach(type => {
+              sheets.forEach(sheet => {
+                const items = type === 'topics_en' ? sheet.topics : sheet.collections;
+                const slugs = items.map(x => x.slug);
+                slugs.forEach(slug => {
+                    updateDocCounts(newAvailableFilters, slug);
+                })
+              })
+            })
+
             newAvailableFilters = newAvailableFilters.filter(availableFilter => availableFilter.docCount > 0);
             checkForRegisteringAvailableFilters(newAvailableFilters);
         }
@@ -88,11 +93,6 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                               // Then by number of views
                               return b.views - a.views;
                             })
-        // filters out duplicate sheets by sheet ID number and filters so that we don't show sheets as connections to themselves
-        sheets = sheets.filter((sheet, index, self) =>
-                          index === self.findIndex((s) => (
-                            s.id === sheet.id)
-                        ))
         return sheets;
     }
     const normalizeSheetsMetaData = (sheets) => {
@@ -117,6 +117,13 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
       setLoading(false);
       setTotalResults(new SearchTotal({value: sheets.length}));
     }
+    const getSheetsByRefCallback = (sheets) => {
+        // filters out duplicate sheets by sheet ID number and filters so that we don't show sheets as connections to themselves
+        return sheets.filter((sheet, index, self) =>
+                          index === self.findIndex((s) => (
+                            s.id === sheet.id)
+                        ))
+    }
     useEffect(() => {
       // 'collections' won't be present if the related API set _sheetsByRef,
       // but 'collections' will be present if the sheets_by_ref_api has run
@@ -125,7 +132,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
       const collectionsInCache = !!currentSheetsByRef && currentSheetsByRef.every(sheet => 'collections' in sheet);
       if (!collectionsInCache) {
           delete Sefaria.sheets._sheetsByRef[srefs];
-          Sefaria.sheets.getSheetsByRef(srefs).then(sheets => {
+          Sefaria.sheets.getSheetsByRef(srefs, getSheetsByRefCallback).then(sheets => {
               handleSheetsLoad(sheets);
           })
       }

@@ -6,7 +6,6 @@ import extend from 'extend';
 import classNames from 'classnames';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
-import { SearchTotal } from "./sefaria/searchTotal";
 import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
 import SearchFilters from './SearchFilters';

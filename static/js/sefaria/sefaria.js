@@ -2780,11 +2780,12 @@ _media: {},
     return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
-    getSheetsByRef: function(srefs) {
+    getSheetsByRef: function(srefs, callback) {
         return Sefaria._cachedApiPromise({
           url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}`,
           key: srefs,
-          store: Sefaria.sheets._sheetsByRef
+          store: Sefaria.sheets._sheetsByRef,
+          processor: callback
         });
       },
     sheetsWithRefSearchState(sheets) {
