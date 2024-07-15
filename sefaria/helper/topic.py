@@ -960,33 +960,18 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
                 "order": {"custom_order": rd['pagesheetrank']}
             }).save()
 
-
 def recalculate_secondary_topic_data():
-    # run before everything else because this creates new links
-    calculate_popular_writings_for_authors(100, 300)
+    sheet_source_links = RefTopicLinkSet({'pools': 'textual'})
+    sheet_topic_links = RefTopicLinkSet({'pools': 'sheets'})
+    sheet_related_links = IntraTopicLinkSet()
 
-    sheet_source_links, sheet_related_links, sheet_topic_links = generate_all_topic_links_from_sheets()
     related_links = update_intra_topic_link_orders(sheet_related_links)
-    all_ref_links = update_ref_topic_link_orders(sheet_source_links, sheet_topic_links)
-
-    # now that we've gathered all the new links, delete old ones and insert new ones
-    RefTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
-    RefTopicLinkSet({"is_sheet": True}).delete()
-    IntraTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
-    print(f"Num Ref Links {len(all_ref_links)}")
-    print(f"Num Intra Links {len(related_links)}")
-    print(f"Num to Update {len(list(filter(lambda x: getattr(x, '_id', False), all_ref_links + related_links)))}")
-    print(f"Num to Insert {len(list(filter(lambda x: not getattr(x, '_id', False), all_ref_links + related_links)))}")
+    all_ref_links = update_ref_topic_link_orders(sheet_source_links.array(), sheet_topic_links.array())
 
     db.topic_links.bulk_write([
         UpdateOne({"_id": l._id}, {"$set": {"order": l.order}})
-        if getattr(l, "_id", False) else
-        InsertOne(l.contents(for_db=True))
         for l in (all_ref_links + related_links)
     ])
-    add_num_sources_to_topics()
-    make_titles_unique()
-
 
 def set_all_slugs_to_primary_title():
     # reset all slugs to their primary titles, if they have drifted away
