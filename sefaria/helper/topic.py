@@ -1071,7 +1071,6 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
     return topic_obj
 
 def update_topic_titles(topic, title="", heTitle="", **kwargs):
-    new_primary = {"en": title, "he": heTitle}
     titles = kwargs['titles']
     # enPrimary = [title['text'] for title in titles if title.get('primary', False) and title['lang'] == 'en'][0]
     # hePrimary = [title['text'] for title in titles if title.get('primary', False) and title['lang'] == 'he'][0]
