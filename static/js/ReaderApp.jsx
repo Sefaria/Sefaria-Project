@@ -455,7 +455,8 @@ class ReaderApp extends Component {
             hist.mode  = "navigation";
             break;
           case "sheetsWithRef":
-            hist.title = Sefaria._("Sheets with ") + Sefaria.sheetsWithRef[Sefaria.interfaceLang] + Sefaria._(" on Sefaria");
+            const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+            hist.title = Sefaria._("Sheets with ") + Sefaria.sheetsWithRef[lang] + Sefaria._(" on Sefaria");
             hist.mode = "sheetsWithRef";
             hist.url = `sheetsWithRef/${Sefaria.sheetsWithRef['en']}`;
             break;

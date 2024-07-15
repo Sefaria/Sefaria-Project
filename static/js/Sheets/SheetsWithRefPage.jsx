@@ -133,6 +133,18 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                             s.id === sheet.id)
                         ))
     }
+    const updateOrigAvailableFilters = () => {
+        // update component prop 'origAvailableFilters' based on changes to availableFilters in 'searchState'
+        origAvailableFilters.forEach(availableFilter => {
+            const selected = searchState.appliedFilters.includes(availableFilter.aggKey);
+            if (selected && selected !== Boolean(availableFilter.selected)) {
+                availableFilter.setSelected(true);
+            } else if (selected !== Boolean(availableFilter.selected)) {
+                availableFilter.setUnselected(true);
+            }
+        })
+    }
+
     useEffect(() => {
       // 'collections' won't be present if the related API set _sheetsByRef,
       // but 'collections' will be present if the sheets_by_ref_api has run
@@ -150,15 +162,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
       }
     }, []);
 
-    origAvailableFilters.forEach(availableFilter => {
-        const selected = searchState.appliedFilters.includes(availableFilter.aggKey);
-        if (selected && selected !== Boolean(availableFilter.selected)) {
-            availableFilter.setSelected(true);
-        }
-        else if (selected !== Boolean(availableFilter.selected)) {
-            availableFilter.setUnselected(true);
-        }
-    })
+    updateOrigAvailableFilters();
     let sortedSheets = [...sheets];
     sortedSheets = applyFilters(sortedSheets);
     sortedSheets = applySortOption(sortedSheets);
