@@ -114,24 +114,49 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
              .finally(() => setSavingStatus(false));
     }
 
+    const extractDisambiguationFromTitle = function(titleText){
+        let regex = /\((.+)\)$/;
+        let matches = titleText.match(regex);
+        let insideBrackets = matches ? matches[1] : null;
+        // let newString = titleText.replace(regex, "");
+        return insideBrackets
+    }
+    const removeDisambiguationFromTitle = function(titleText){
+        let regex = /\((.+)\)$/;
+        let newString = titleText.replace(regex, "");
+        console.log(newString);
+        return newString
+    }
     const prepData = () => {
         // always add category, title, heTitle, altTitles
         let postData = { category: data.catSlug, title: data.enTitle, heTitle: data.heTitle, altTitles: {}, titles: []};
         postData.altTitles.en = data.enAltTitles.map(x => x.name); // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
         postData.altTitles.he = data.heAltTitles.map(x => x.name);
 
-        postData['titles'].push({'text': data['enTitle'], "lang": 'en', 'primary': true})
-        postData['titles'].push({'text': data['heTitle'], "lang": 'he', 'primary': true})
+        let enPrimaryTitleObj = {'text': removeDisambiguationFromTitle(data.enTitle), "lang": 'en', "primary": true};
+        let enDisambiguation = extractDisambiguationFromTitle(data.enTitle);
+        if (enDisambiguation) {enPrimaryTitleObj["disambiguation"]=enDisambiguation};
+        let hePrimaryTitleObj = {'text': removeDisambiguationFromTitle(data.heTitle), "lang": 'he', "primary": true};
+        let heDisambiguation = extractDisambiguationFromTitle(data.heTitle);
+        if (heDisambiguation) {hePrimaryTitleObj["disambiguation"]=heDisambiguation};
+        postData['titles'].push(enPrimaryTitleObj)
+        postData['titles'].push(hePrimaryTitleObj)
         const enAltTitles = data['enAltTitles'];
         const heAltTitles = data['heAltTitles'];
         if (Array.isArray(enAltTitles)) {
             enAltTitles.forEach((title, index) => {
-                postData['titles'].push({'text': title['name'], "lang": 'en'})
+                let titleObj = {'text': removeDisambiguationFromTitle(title['name']), "lang": 'en'};
+                let disambiguation = extractDisambiguationFromTitle(title['name']);
+                if (disambiguation) {titleObj["disambiguation"]=disambiguation}
+                postData['titles'].push(titleObj)
             });
         }
         if (Array.isArray(heAltTitles)) {
             heAltTitles.forEach((title, index) => {
-                postData['titles'].push({'text': title['name'], "lang": 'he'})
+                let titleObj = {'text': removeDisambiguationFromTitle(title['name']), "lang": 'he'};
+                let disambiguation = extractDisambiguationFromTitle(title['name']);
+                if (disambiguation) {titleObj["disambiguation"]=disambiguation};
+                postData['titles'].push(titleObj);
             });
         };
 
