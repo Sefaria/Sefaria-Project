@@ -730,12 +730,20 @@ ConnectionsPanel.propTypes = {
   backButtonSettings:      PropTypes.object,
 };
 
+const createSheetsWithRefURL = (srefs) => {
+  if (Array.isArray(srefs)) {
+    window.open(`${Sefaria.apiHost}/sheetsWithRef/${srefs}?range=1`);
+  }
+  else if (typeof srefs === "string") {
+    window.open(`${Sefaria.apiHost}/sheetsWithRef/${srefs}`);
+  }
+}
 
 const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => window.open(`${Sefaria.apiHost}/sheetsWithRef/${srefs}`)} />
+      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => createSheetsWithRefURL(srefs)} />
       <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
       <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
       <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />

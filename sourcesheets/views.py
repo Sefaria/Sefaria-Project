@@ -1025,10 +1025,18 @@ def sheets_by_ref_api(request, ref):
     return jsonResponse(get_sheets_for_ref(ref, include_collections=True))
 
 def sheets_with_ref(request, tref):
+    """
+    Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
+    """
+    is_range = bool(int(request.GET.get('range', 0)))
+    if is_range:
+        refs = [Ref(r) for r in tref.split(",")]
+        tref = refs[0].to(refs[-1]).normal()
     he_tref = Ref(tref).he_normal()
-    ref = tref if request.interfaceLang == "english" else he_tref
-    title = _(f"Sheets with ")+ref+_(" on Sefaria")
+    normal_ref = tref if request.interfaceLang == "english" else he_tref
+    title = _(f"Sheets with ")+normal_ref+_(" on Sefaria")
     return menu_page(request, page="sheetsWithRef", title=title, props={"sheetsWithRef": {"en": tref, "he": he_tref}})
+
 def get_aliyot_by_parasha_api(request, parasha):
     response = {"ref":[]};
 
