@@ -35,34 +35,43 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
             }
         })
     }
+    const getSheetSlugs = (type, sheet) => {
+        const items = type === 'topics_en' ? sheet.topics : sheet.collections;
+        return items.map(x => x.slug);
+    }
+    const applyFiltersToSheets = (sheets) => {
+        searchState.appliedFilters.forEach((appliedFilter, i) => {
+            const type = searchState.appliedFilterAggTypes[i];
+            sheets = sheets.filter(sheet => {
+                const slugs = getSheetSlugs(type, sheet);
+                return slugs.includes(appliedFilter);
+            });
+        });
+        return sheets;
+    }
+
     const applyFilters = (sheets) => {
         if (searchState.appliedFilters.length === 0) {
             checkForRegisteringAvailableFilters(origAvailableFilters);
         }
         else {
             let newAvailableFilters = cloneFilters(origAvailableFilters);
-            searchState.appliedFilters.forEach((appliedFilter, i) => {
-                const type = searchState.appliedFilterAggTypes[i];
-                sheets = sheets.filter(sheet => {
-                    const items = type === 'topics_en' ? sheet.topics : sheet.collections;
-                    const slugs = items.map(x => x.slug);
-                    return slugs.includes(appliedFilter);
-                });
-            });
-            ['collections', 'topics_en'].forEach(type => {
+            sheets = applyFiltersToSheets(sheets);
+            newAvailableFilters = updateNewAvailableFilters(newAvailableFilters, sheets);
+            checkForRegisteringAvailableFilters(newAvailableFilters);
+        }
+        return sheets;
+    }
+    const updateNewAvailableFilters = (newAvailableFilters, sheets) => {
+        ['collections', 'topics_en'].forEach(type => {
               sheets.forEach(sheet => {
-                const items = type === 'topics_en' ? sheet.topics : sheet.collections;
-                const slugs = items.map(x => x.slug);
+                const slugs = getSheetSlugs(type, sheet);
                 slugs.forEach(slug => {
                     updateDocCounts(newAvailableFilters, slug);
                 })
               })
             })
-
-            newAvailableFilters = newAvailableFilters.filter(availableFilter => availableFilter.docCount > 0);
-            checkForRegisteringAvailableFilters(newAvailableFilters);
-        }
-        return sheets;
+        return newAvailableFilters.filter(availableFilter => availableFilter.docCount > 0);
     }
     const applySortOption = (sheets) => {
         switch(searchState.sortType) {
