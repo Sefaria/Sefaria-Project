@@ -366,7 +366,12 @@ class TextColumn extends Component {
     let content =  this.props.srefs.map((sref) => {
       const oref = Sefaria.getRefFromCache(sref);
       const isCurrentlyVisible = oref && this.props.currentlyVisibleRef === oref.sectionRef;
-      return (<TextRange
+      return (
+        <div>
+          <div class="wrapper">
+            <div class="ribbon-wrapper-green"><div class="ribbon-green">book status</div></div>
+          </div>
+          <TextRange
         panelPosition ={this.props.panelPosition}
         sref={sref}
         isCurrentlyVisible={isCurrentlyVisible}
@@ -395,7 +400,10 @@ class TextColumn extends Component {
         navigatePanel={this.props.navigatePanel}
         translationLanguagePreference={this.props.translationLanguagePreference}
         updateCurrVersionsToMatchAPIResult={this.props.updateCurrVersionsToMatchAPIResult}
-        key={sref} />);
+        key={sref} />
+        </div>
+        
+      );
     });
 
     let pre, post, bookTitle;
