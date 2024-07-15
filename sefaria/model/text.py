@@ -3991,7 +3991,7 @@ class Ref(object, metaclass=RefCacheType):
                 if self.has_default_child():
                     return self.default_child_ref().padded_ref()
                 elif self.is_book_level():
-                    raise InputError("Please pass a more specific ref for this book, and try again. The ref you passed is a 'complex' book-level ref. We only support book-level refs in cases of texts with a 'simple' structure. ")
+                    raise InputError("Please pass a more specific ref for this book, and try again. The ref you passed is a 'complex' book-level ref. We only support book-level refs in cases of texts with a 'simple' structure. To learn more about the structure of a text on Sefaria, see: https://developers.sefaria.org/docs/the-schema-of-a-simple-text")
                 else:
                     raise InputError("Cannot pad a schema node ref.")
 

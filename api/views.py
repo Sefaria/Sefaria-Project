@@ -62,7 +62,7 @@ class Text(View):
             data = text_manager.get_versions_for_query()
         except Exception as e:
             # Todo - which 400 code exactly to pass? Will have to check the message of the error to
-            # make sure you're sending the right response to the user. 
+            # make sure you're sending the right response to the user.
             return jsonResponse({'error': "Please pass a more specific Ref"}, status=400)
 
         data = self._handle_warnings(data)
