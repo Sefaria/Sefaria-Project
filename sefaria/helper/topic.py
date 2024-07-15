@@ -1073,16 +1073,25 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
 def update_topic_titles(topic, title="", heTitle="", **kwargs):
     new_primary = {"en": title, "he": heTitle}
     titles = kwargs['titles']
-    enPrimary = [title['text'] for title in titles if title.get('primary', False) and title['lang'] == 'en'][0]
-    hePrimary = [title['text'] for title in titles if title.get('primary', False) and title['lang'] == 'he'][0]
+    # enPrimary = [title['text'] for title in titles if title.get('primary', False) and title['lang'] == 'en'][0]
+    # hePrimary = [title['text'] for title in titles if title.get('primary', False) and title['lang'] == 'he'][0]
+    enPrimary = [title for title in titles if title.get('primary', False) and title['lang'] == 'en'][0]
+    hePrimary = [title for title in titles if title.get('primary', False) and title['lang'] == 'he'][0]
     new_primary = {"en": enPrimary, "he": hePrimary}
+
+    enNonPrimary = [title for title in titles if not title.get('primary', False) and title['lang'] == 'en']
+    heNonPrimary = [title for title in titles if not title.get('primary', False) and title['lang'] == 'he']
+    nonPrimary = {'en': enNonPrimary, 'he': heNonPrimary}
+
     for lang in ['en', 'he']:   # first remove all titles and add new primary and then alt titles
         for title in topic.get_titles(lang):
             topic.remove_title(title, lang)
-        topic.add_title(new_primary[lang], lang, True, False)
-        if 'altTitles' in kwargs:
-            for title in kwargs['altTitles'][lang]:
-                topic.add_title(title, lang)
+        topic.add_title(new_primary[lang]['text'], lang, True, False, disambiguation=new_primary[lang].get("disambiguation", ""))
+        # if 'altTitles' in kwargs:
+        if nonPrimary:
+            # for title in kwargs['altTitles'][lang]:
+            for title in nonPrimary[lang]:
+                topic.add_title(title['text'], lang, disambiguation=title.get("disambiguation", ""))
     return topic
 
 
