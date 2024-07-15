@@ -750,7 +750,6 @@ ConnectionsPanel.propTypes = {
   backButtonSettings:      PropTypes.object,
 };
 
-
 const ResourcesList = ({ masterPanelMode, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
