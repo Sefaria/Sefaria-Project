@@ -39,7 +39,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'categoryDescription',  # dictionary, keys are 2-letter language codes
         'isTopLevelDisplay',
         'displayOrder',
-        'numSources',
+        'numSources',  # total number of refLinks, to texts and sheets.
         'shouldDisplay',
         'parasha',  # name of parsha as it appears in `parshiot` collection
         'ref',  # dictionary for topics with refs associated with them (e.g. parashah) containing strings `en`, `he`, and `url`.
@@ -436,20 +436,16 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def __repr__(self):
         return "{}.init('{}')".format(self.__class__.__name__, self.slug)
 
-    def add_pool(self, pool_name):
-        if pool_name not in self.pools:
-            self.pools.append(pool_name)
-            self.save()
-
-    def update_pool_by_links(self, pool):
+    def update_after_link_change(self, pool):
         """
-        updating the pools 'sheets' or 'textual' according to the existence of links
+        updating the pools 'sheets' or 'textual' according to the existence of links and the numSources
         :param pool: 'sheets' or 'textual'
         """
         links = self.get_ref_links(pool == 'sheets')
         if bool(links) != pool in self.pools:
             self.pools.remove(pool) if pool in self.pools else self.pools.append(pool)
-            self.save()
+        self.numSources = self.link_set('refTopic').count()
+        self.save()
 
 
 class PersonTopic(Topic):
@@ -849,14 +845,14 @@ class RefTopicLink(abst.AbstractMongoRecord):
     def save(self, override_dependencies=False):
         super(RefTopicLink, self).save(override_dependencies)
         topic = self.get_topic()
-        topic.add_pool(self.get_related_pool())
+        topic.update_after_link_change(self.get_related_pool())
 
     def delete(self, force=False, override_dependencies=False):
         topic = self.get_topic()
         pool = self.get_related_pool()
         super(RefTopicLink, self).delete(force, override_dependencies)
         if topic:
-            topic.update_pool_by_links(pool)
+            topic.update_after_link_change(pool)
 
     def _sanitize(self):
         super()._sanitize()
