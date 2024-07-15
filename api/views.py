@@ -56,13 +56,18 @@ class Text(View):
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
         text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format)
 
+
         try:
-            # For a SchemaNode, data is an error which handle_warnings doesn't handle (or even get triggered?)
-            # How to trigger a 400 appropriate error with an appropriate message?
+            # Todo - Maybe this error should be inside the get_versions_for_query() fxn?
             data = text_manager.get_versions_for_query()
-            data = self._handle_warnings(data)
-            return jsonResponse(data)
-        except InputError as e:
-            raise InputError(e)
+        except Exception as e:
+            # Todo - which 400 code exactly to pass? Will have to check the message of the error to
+            # make sure you're sending the right response to the user. 
+            return jsonResponse({'error': "Please pass a more specific Ref"}, status=400)
+
+        data = self._handle_warnings(data)
+        return jsonResponse(data)
+
+
 
 
