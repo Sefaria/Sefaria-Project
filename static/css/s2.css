@@ -4346,6 +4346,14 @@ details .open-details::before {
     border-bottom: solid 1px #CCC;
 }
 
+.language-block .status {
+    border-bottom: solid 1px #CCC;
+}
+
+.language-block .versionDoneStatus {
+    border-bottom: solid 1px #CCC;
+}
+
 .bookPage .versionsBox .versionBlock {
     padding-top: 20px;
     padding-bottom: 34px;
@@ -4364,7 +4372,7 @@ details .open-details::before {
     color: black;
 }
 
-.versionBlock .versionBlockHeading .versionLanguage {
+.versionBlock .versionBlockHeading .versionLanguage, .status {
     display: none;
 }
 
@@ -4377,6 +4385,19 @@ details .open-details::before {
     line-height: 18px;
     color: #666666;
     background: #EDEDEC;
+    border-radius: 25px;
+    padding: 5px 10px;
+}
+
+.bookPage .versionBlock .versionBlockHeading .status {
+    display: initial;
+    margin-inline-start: auto;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 18px;
+    color: #ffffff;
+    background: var(--pecha-red);
     border-radius: 25px;
     padding: 5px 10px;
 }
@@ -11207,7 +11228,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
     border-radius: 2px;
 }
 
-.versionsBox .versionLanguage {
+.versionsBox .versionLanguage, .status {
     padding-bottom: 15px;
     letter-spacing: 1px;
     font-style: normal;
@@ -11217,15 +11238,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
     color: #666666;
 }
 
-.interface-hebrew .versionsBox .versionLanguage {
+.interface-hebrew .versionsBox .versionLanguage, .status {
     direction: ltr;
 }
 
-.versionsBox div:not(:first-child) .versionLanguage {
+.versionsBox div:not(:first-child) .versionLanguage,.status {
     padding-top: 25px;
 }
 
-.versionsBox .versionLanguage .versionCount {
+.versionsBox .versionLanguage, .status .versionCount {
     color: #999;
 }
 
@@ -14961,6 +14982,28 @@ span.ref-link-color-3 {
 .blockButton {
     cursor: pointer;
 }
+
+/*text completion status*/
+
+.label {
+    color: white;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    margin-top: 80px;
+    transform: translateX(-50%);
+    padding: 5px;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+  
+  .success {background-color: #04AA6D;} /* Green */
+  .info {background-color: #2196F3;} /* Blue */
+  .warning {background-color: #ff9800;} /* Orange */
+  .danger {background-color: var(--pecha-red);} /* Red */
+  .other {background-color: #e7e7e7; color: black;} /* Gray */
+
+/*text completion status*/
 
 .image-in-text {
     display: flex;
