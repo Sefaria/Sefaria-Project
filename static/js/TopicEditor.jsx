@@ -116,9 +116,24 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
 
     const prepData = () => {
         // always add category, title, heTitle, altTitles
-        let postData = { category: data.catSlug, title: data.enTitle, heTitle: data.heTitle, altTitles: {}};
+        let postData = { category: data.catSlug, title: data.enTitle, heTitle: data.heTitle, altTitles: {}, titles: []};
         postData.altTitles.en = data.enAltTitles.map(x => x.name); // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
         postData.altTitles.he = data.heAltTitles.map(x => x.name);
+
+        postData['titles'].push({'text': data['enTitle'], "lang": 'en', 'primary': true})
+        postData['titles'].push({'text': data['heTitle'], "lang": 'he', 'primary': true})
+        const enAltTitles = data['enAltTitles'];
+        const heAltTitles = data['heAltTitles'];
+        if (Array.isArray(enAltTitles)) {
+            enAltTitles.forEach((title, index) => {
+                postData['titles'].push({'text': title['name'], "lang": 'en'})
+            });
+        }
+        if (Array.isArray(heAltTitles)) {
+            heAltTitles.forEach((title, index) => {
+                postData['titles'].push({'text': title['name'], "lang": 'he'})
+            });
+        };
 
         // add image if image or caption changed
         const origImageURI = origData?.origImage?.image_uri || "";
