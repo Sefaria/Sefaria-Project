@@ -812,15 +812,16 @@ class TestVersionActualLanguage:
             for attr in expected_attrs[version_key]:
                 assert getattr(version, attr) == expected_attrs[version_key][attr]
 
+@pytest.mark.parametrize(('text_with_html', 'text_without_html'),
+                         [
+                         ["</big>בּ<big>ְרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ",
+                          "בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ"],
+                         [
+                             "Happy is the <big>man</big> who has not followed the counsel of the wicked,<br/>or taken the path of sinners,<br>or joined the company of the insolent;",
+                             "Happy is the man who has not followed the counsel of the wicked, or taken the path of sinners, or joined the company of the insolent;"]
+                         ])
 
-def test_remove_html():
-    pasuk_with_html = "</big>בּ<big>ְרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ"
-    pasuk_without_html = "בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ"
-
-    pasuk_with_br = "Happy is the <big>man</big> who has not followed the counsel of the wicked,<br/>or taken the path of sinners,<br>or joined the company of the insolent;"
-    pasuk_without_br = "Happy is the man who has not followed the counsel of the wicked, or taken the path of sinners, or joined the company of the insolent;"
-
-    assert model.TextChunk.remove_html(pasuk_with_html) == pasuk_without_html
-    assert model.TextChunk.remove_html(pasuk_with_br) == pasuk_without_br
+def test_remove_html(text_with_html, text_without_html):
+    assert model.TextChunk.remove_html(text_with_html) == text_without_html
 
 
