@@ -157,8 +157,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         //convert title and altTitles to the database format, including extraction of disambiguation from title string
         postData['titles'].push(createPrimaryTitleObj(data, 'en'));
         postData['titles'].push(createPrimaryTitleObj(data, 'he'));
-        postData['titles'].concat(createNonPrimaryTitleObjArray(data, 'en'));
-        postData['titles'].concat(createNonPrimaryTitleObjArray(data, 'he'));
+        postData['titles'] = postData['titles'].concat(createNonPrimaryTitleObjArray(data, 'en'));
+        postData['titles'] = postData['titles'].concat(createNonPrimaryTitleObjArray(data, 'he'));
 
         // add image if image or caption changed
         const origImageURI = origData?.origImage?.image_uri || "";
