@@ -4,6 +4,8 @@ import {
     TwoOrThreeBox,
     ResponsiveNBox,
     NBox, InterfaceText,
+    LoadingMessage,
+    LoadingRing,
 } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
@@ -3117,7 +3119,10 @@ const JobsPage = memo(() => {
             {error ? (
                 <h1>{error}</h1>
             ) : loading ? (
-                <h1>Loading...</h1>
+                <>
+                    <LoadingMessage />
+                    <LoadingRing />
+                </>
             ) : (
                 <>
                     <JobsPageHeader jobsAreAvailable={jobsAvailable} />
