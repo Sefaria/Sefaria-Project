@@ -131,6 +131,17 @@ def sitemap(request):
         return HttpResponse("Sitemap not found", status=404, content_type='text/plain')
 
 
+def robot(request):
+    # Define the path to the robots.txt file
+    filepath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'robots.txt')
+    try:
+        with open(filepath, 'r') as f:
+            robots_content = f.read()
+        return HttpResponse(robots_content, content_type='text/plain')
+    except FileNotFoundError:
+        return HttpResponse("robots.txt not found", status=404, content_type='text/plain')         
+
+
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
     This is a general purpose custom function that serves to render all the templates in the project and provide a central point for all similar processing.
