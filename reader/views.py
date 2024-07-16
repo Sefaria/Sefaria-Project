@@ -20,7 +20,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
-from django.http import Http404, QueryDict, HttpResponse
+from django.http import Http404, QueryDict
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
@@ -119,27 +119,6 @@ if ENABLE_LINKER:
 if server_coordinator:
     server_coordinator.connect()
 #    #    #
-
-def sitemap(request):
-    # Define the path to the sitemap.xml file
-    filepath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'sitemap.xml')
-    try:
-        with open(filepath, 'r') as f:
-            sitemap_content = f.read()
-        return HttpResponse(sitemap_content, content_type='application/xml')
-    except FileNotFoundError:
-        return HttpResponse("Sitemap not found", status=404, content_type='text/plain')
-
-
-def robot(request):
-    # Define the path to the robots.txt file
-    filepath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'robots.txt')
-    try:
-        with open(filepath, 'r') as f:
-            robots_content = f.read()
-        return HttpResponse(robots_content, content_type='text/plain')
-    except FileNotFoundError:
-        return HttpResponse("robots.txt not found", status=404, content_type='text/plain')         
 
 
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
