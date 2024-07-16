@@ -123,7 +123,7 @@ class TitleGroup(object):
         self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
         return self
 
-    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined", disambiguation=''):
+    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
         """
         :param text: Text of the title
         :param language:  Language code of the title (e.g. "en" or "he")
@@ -150,8 +150,7 @@ class TitleGroup(object):
 
         if presentation == "alone" or presentation == "both":
             d["presentation"] = presentation
-        if disambiguation:
-            d['disambiguation'] = disambiguation
+
         has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
         if has_primary and primary:
             if not replace_primary:
@@ -172,16 +171,15 @@ class AbstractTitledObject(object):
         self.add_title(en_title, 'en', primary=True)
         self.add_title(he_title, 'he', primary=True)
 
-    def add_title(self, text, lang, primary=False, replace_primary=False, disambiguation=''):
+    def add_title(self, text, lang, primary=False, replace_primary=False):
         """
         :param text: Text of the title
         :param language:  Language code of the title (e.g. "en" or "he")
         :param primary: Is this a primary title?
         :param replace_primary: must be true to replace an existing primary title
-        :param disambiguation:
         :return: the object
         """
-        return self.title_group.add_title(text, lang, primary, replace_primary, disambiguation=disambiguation)
+        return self.title_group.add_title(text, lang, primary, replace_primary)
 
     def remove_title(self, text, lang):
         return self.title_group.remove_title(text, lang)

@@ -383,7 +383,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 title += ' [Ambiguous]'
         return title
 
-    def get_titles(self, lang=None, with_disambiguation=False):
+    def get_titles(self, lang=None, with_disambiguation=True):
         if with_disambiguation:
             titles = []
             for title in self.get_titles_object():
