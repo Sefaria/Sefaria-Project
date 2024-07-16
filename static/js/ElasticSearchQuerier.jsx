@@ -55,24 +55,21 @@ class ElasticSearchQuerier extends Component {
         this._abortRunningQuery();  // todo: make this work w/ promises
     }
     componentWillReceiveProps(newProps) {
-      if(this.props.query !== newProps.query) {
-        this.setState({
-          totals: new SearchTotal(),
-          hits: [],
-          moreToLoad: true,
+      let state = {
+              hits: [],
+              pagesLoaded: 0,
+              moreToLoad: true
+          };
+      if (this.props.query !== newProps.query) {
+        this.setState(state, () => {
+            this._executeAllQueries(newProps);
+            this.props.resetSearchFilters('sheet');
+            this.props.resetSearchFilters('text');
         });
-        this._executeAllQueries(newProps);
-        // this.props.resetSearchFilters('sheet');
-        // this.props.resetSearchFilters('text');
       } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
-              let state = {
-                  hits: [],
-                  pagesLoaded: 0,
-                  moreToLoad: true
-              };
-              this.setState(state, () => {
-                  this._executeQuery(newProps, this.props.type);
-              })
+          this.setState(state, () => {
+              this._executeQuery(newProps, this.props.type);
+          })
       }
     }
     async addRefTopic(topic) {
