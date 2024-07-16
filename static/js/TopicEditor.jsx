@@ -117,22 +117,19 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     }
 
     const extractDisambiguationFromTitle = function(titleText){
-        return titleText.match(disambiguationExtractionRegex);
+        return titleText.match(disambiguationExtractionRegex)?.[1];
     }
     const removeDisambiguationFromTitle = function(titleText){
         return titleText.replace(disambiguationExtractionRegex, "").trimEnd();
     }
 
-    const createPrimaryTitleObj = function(data, lang){
-        const fieldName = lang == 'en' ? 'enTitle' : 'heTitle';
-        let primaryTitleObj = {'text': removeDisambiguationFromTitle(data[fieldName]), "lang": lang, "primary": true};
-        let disambiguation = extractDisambiguationFromTitle(data[fieldName]);
+    const createPrimaryTitleObj = function(rawTitle, lang){
+        let primaryTitleObj = {'text': removeDisambiguationFromTitle(rawTitle), "lang": lang, "primary": true};
+        let disambiguation = extractDisambiguationFromTitle(rawTitle);
         if (disambiguation) {primaryTitleObj["disambiguation"]=disambiguation};
         return primaryTitleObj;
     };
-    const createNonPrimaryTitleObjArray = function(data, lang){
-        const fieldName = lang == 'en' ? 'enAltTitles' : 'heAltTitles';
-        const altTitles = data[fieldName];
+    const createNonPrimaryTitleObjArray = function(altTitles, lang){
         const titleObjArray = []
         if (Array.isArray(altTitles)) {
             altTitles.forEach((title, index) => {
@@ -147,15 +144,15 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
 
     const prepData = () => {
         // always add category, title, heTitle, altTitles
-        let postData = { category: data.catSlug, title: data.enTitle, heTitle: data.heTitle, altTitles: {}, titles: []};
-        postData.altTitles.en = data.enAltTitles.map(x => x.name); // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
-        postData.altTitles.he = data.heAltTitles.map(x => x.name);
+        let postData = { category: data.catSlug, titles: []};
+        // postData.altTitles.en = data.enAltTitles.map(x => x.name); // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
+        // postData.altTitles.he = data.heAltTitles.map(x => x.name);
 
         //convert title and altTitles to the database format, including extraction of disambiguation from title string
-        postData['titles'].push(createPrimaryTitleObj(data, 'en'));
-        postData['titles'].push(createPrimaryTitleObj(data, 'he'));
-        postData['titles'] = postData['titles'].concat(createNonPrimaryTitleObjArray(data, 'en'));
-        postData['titles'] = postData['titles'].concat(createNonPrimaryTitleObjArray(data, 'he'));
+        postData['titles'].push(createPrimaryTitleObj(data.enTitle, 'en'));
+        postData['titles'].push(createPrimaryTitleObj(data.heTitle, 'he'));
+        postData['titles'] = postData['titles'].concat(createNonPrimaryTitleObjArray(data.enAltTitles, 'en'));
+        postData['titles'] = postData['titles'].concat(createNonPrimaryTitleObjArray(data.heAltTitles, 'he'));
 
         // add image if image or caption changed
         const origImageURI = origData?.origImage?.image_uri || "";
