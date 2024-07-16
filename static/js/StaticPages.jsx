@@ -14,7 +14,7 @@ import classNames from 'classnames';
 import Cookies from 'js-cookie';
 import ReactMarkdown from 'react-markdown';
 import Sefaria from './sefaria/sefaria';
-import { OnInView } from './Misc';
+import { OnInView, handleAnalyticsOnMarkdown } from './Misc';
 
 
 /*  Templates:
@@ -3224,7 +3224,7 @@ const ProductDesc = ({product}) => {
             <div className='productImgWrapper'>
                 <img src={product.rectanglion.url} alt={`Image for product: ${product?.titles?.en}`}/>
             </div>
-            <div className='productDescWrapper'>
+            <div className='productDescWrapper' onClick={(e) => handleAnalyticsOnMarkdown(e, productsAnalytics, product.rank, product.titles.en, null, null, "product_desc", "clicked")}>
                 <InterfaceText markdown={{en: product.desc?.en, he: product.desc?.he }} />
             </div>            
         </div>

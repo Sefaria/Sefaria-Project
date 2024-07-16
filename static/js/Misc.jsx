@@ -23,6 +23,7 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+import { ReaderApp } from './ReaderApp'; 
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -3311,6 +3312,33 @@ const AppStoreButton = ({ platform, href, altText }) => {
       </a>
   );
 };
+
+const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_type, event) => {
+  //Allow global navigation handling in app via link elements
+  // If a default has been prevented, assume a custom handler is already in place
+  if (e.isDefaultPrevented()) {
+    return;
+  }
+  // Don't trigger from v1 Sheet Builder which has conflicting CSS
+  if (typeof sjs !== "undefined") {
+    return;
+  }
+  // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
+  // Get the <a> element.
+  const linkTarget = ReaderApp.getHTMLLinkParentOfEventTarget(e);
+  // Ignore clicks from non-a elements.
+  if (!linkTarget) {
+    return;
+  }
+  const href = linkTarget.getAttribute('href');
+  if (!href) {
+    return;
+  }
+  else {
+    console.log(`GTAG CALLED on ${href}`);
+    gtag_fxn(rank, product, cta, label, link_type, event);
+  }
+}
 
 
 export {
