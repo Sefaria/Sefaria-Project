@@ -1,5 +1,4 @@
 # Django settings for sefaria project.
-import os
 import os.path
 from django.utils.translation import ugettext_lazy as _
 from dotenv import load_dotenv

@@ -31,5 +31,19 @@ jobs:
       - name: Push Docker image
         run: docker push ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }} && docker push ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:latest
       
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          pip install redis
+
+      - name: Run clear cache script
+        run: python redis_clear.py
+        env:
+          REDIS_URL: ${{ secrets.STAGING_REDIS_URL }}
+
       - name: Deploy to render
         run: curl -X POST ${{ secrets.DEPLOY_HOOK_NOTIFICATION_DEV }}ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }}

@@ -10,6 +10,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 import structlog
 
+from sefaria.app_analytic import track_page_to_mp, add_sheet_data
+
 logger = structlog.get_logger(__name__)
 
 from django.template.loader import render_to_string
@@ -192,6 +194,7 @@ def view_sheet(request, sheet_id, editorMode=False):
     """
     View the sheet with sheet_id.
     """
+    track_page_to_mp(request=request, page_title='Sheets', text_ref=sheet_id)
     editor = request.GET.get('editor', '0')
     embed = request.GET.get('embed', '0')
 
@@ -200,6 +203,7 @@ def view_sheet(request, sheet_id, editorMode=False):
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
+
     if "error" in sheet and sheet["error"] != "Sheet updated.":
         return HttpResponse(sheet["error"])
 
@@ -232,7 +236,7 @@ def view_sheet(request, sheet_id, editorMode=False):
         viewer_is_liker = False
 
     canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
-
+    add_sheet_data(request=request, title=sheet["title"], action_type='View', owner=sheet["owner"])
     return render_template(request, 'sheets.html', None, {
         "sheetJSON": json.dumps(sheet),
         "sheet": sheet,
@@ -942,7 +946,7 @@ def tag_list_api(request, sort_by="count"):
     """
     response = public_tag_list(sort_by)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -954,7 +958,7 @@ def user_tag_list_api(request, user_id):
     # return jsonResponse({"error": "You are not authorized to view that."})
     response = sheet_topics_counts({"owner": int(user_id)})
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -964,7 +968,7 @@ def trending_tags_api(request):
     """
     response = trending_topics(ntags=18)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -1012,7 +1016,7 @@ def story_form_sheets_by_tag(request, tag):
     sheets = [sheet_to_story_dict(request, s["id"]) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -1024,7 +1028,7 @@ def sheets_by_tag_api(request, tag):
     sheets = [sheet_to_dict(s) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 

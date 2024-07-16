@@ -6,9 +6,9 @@ import classNames from "classnames";
 const options_for_form = {
     // "Picture": {label: "Picture", field: "picture", placeholder: "Add a picture.", type: "picture"},
     "English Caption": {label: "English Caption", field: "enImgCaption", placeholder: "Add a caption for topic picture"},
-    "Hebrew Caption": {label: "Hebrew Caption", field: "heImgCaption", placeholder: "Add a Hebrew caption for topic picture"},
+    "Hebrew Caption": {label: "Tibetan Caption", field: "heImgCaption", placeholder: "Add a Hebrew caption for topic picture"},
     "Title": {label: "Title", field: "enTitle", placeholder: "Add a title."},
-    "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title."},
+    "Hebrew Title": {label: "Tibetan Title", field: "heTitle", placeholder: "Add a title."},
     "English Description": {
         label: "English Description",
         field: "enDescription",
@@ -17,7 +17,7 @@ const options_for_form = {
         markdown: true,
     },
     "Hebrew Description": {
-        label: "Hebrew Description",
+        label: "Tibetan Description",
         field: "heDescription",
         placeholder: "Add a description.",
         type: 'textarea',
@@ -29,7 +29,7 @@ const options_for_form = {
         placeholder: "Add a short description.", type: 'input'
     },
     "Hebrew Short Description": {
-        label: "Hebrew Short Description for Table of Contents", field: "heCategoryDescription",
+        label: "Tibetan Short Description for Table of Contents", field: "heCategoryDescription",
         placeholder: "Add a short description.", type: 'input'
     },
     "English Alternate Titles": {
@@ -37,7 +37,7 @@ const options_for_form = {
         placeholder: "Add a title.", type: 'title variants'
     },
     "Hebrew Alternate Titles": {
-        label: "Hebrew Alternate Titles", field: "heAltTitles",
+        label: "Tibetan Alternate Titles", field: "heAltTitles",
         placeholder: "Add a title.", type: 'title variants'
     },
     "Birth Place": {
@@ -184,7 +184,7 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
         }
 
         return <div className="section">
-                    <label><InterfaceText>{label}</InterfaceText>{label==="Title" && <span className="asterisk"> *</span>}</label>
+                    <label><InterfaceText>{label}</InterfaceText>{(label==="Title" || label==="Tibetan Title") && <span className="asterisk"> *</span>}</label>
                     {obj}
                </div>;
     }

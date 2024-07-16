@@ -353,7 +353,7 @@ class SheetContent extends Component {
               name={this.props.authorStatement}
               outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle"}}
             />
-            <InterfaceText text={{en: "By", he: "מאת"}}/>
+            <InterfaceText text={{en: "By", he: "བརྩམས་མཁན།"}}/>
             <a href={this.props.authorUrl} className="sheetAuthorName">
               <InterfaceText>{this.props.authorStatement}</InterfaceText>
             </a>

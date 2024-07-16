@@ -49,7 +49,7 @@ class AutoCompleter(object):
     """
     def __init__(self, lang, lib, include_titles=True, include_categories=False,
                  include_parasha=False, include_lexicons=False, include_users=False, include_collections=False,
-                 include_topics=False, min_topics=10, *args, **kwargs):
+                 include_topics=False, min_topics=0, *args, **kwargs):
         """
 
         :param lang:

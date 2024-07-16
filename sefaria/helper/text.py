@@ -250,7 +250,7 @@ def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_re
         assert isinstance(ja, JaggedTextArray)
         modified_text = ja.modify_by_function(rewrite_function)
         if needs_rewrite_function(ja.array()):
-            modify_text(uid, oref, vtitle, lang, modified_text, **kwargs)
+            modify_text(uid, oref, vtitle, lang, modified_text, completestatus="done," **kwargs)
 
 
 def modify_many_texts_and_make_report(rewrite_function, versions_query=None, return_zeros=False):
@@ -833,7 +833,7 @@ class WorkflowyParser(object):
             vtitle = self.version_info['info']['versionTitle']
             lang = self.version_info['info']['language']
             vsource = self.version_info['info']['versionSource']
-            modify_text(user, ref, vtitle, lang, text, vsource)
+            modify_text(user, ref, vtitle, lang, text, vsource, completestatus="done")
 
     def save_version_default(self, idx):
         Version(

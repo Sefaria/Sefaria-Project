@@ -1,5 +1,5 @@
 Appium-Python-Client==1.2.0
-apscheduler==3.6.
+apscheduler~=3.6.0
 bleach==1.4.2
 boto3==1.16.6
 bs4==0.0.1
@@ -72,3 +72,5 @@ python-dotenv
 #opentelemetry-exporter-otlp
 #opentelemetry-propagator-b3
 #opentelemetry-propagator-jaeger
+
+mixpanel~=4.10.1

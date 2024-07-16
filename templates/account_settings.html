@@ -90,22 +90,6 @@
             <span id="reading-history-warning"></span>
 		</div>
 	</div>
-    <div id="textualCustom" class="section">
-		<label class="control-elem">
-            <span class="int-en">{% trans "Preferred Custom (Weekly Haftarot)" %}</span>
-			<span class="int-he">{% trans "Preferred Custom (Weekly Haftarot)" %}</span>
-        </label>
-		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
-			<div role="radio" data-value="sephardi" class="toggleOption {% if profile.settings.textual_custom == "sephardi" %} on{% endif %}" tabindex="{% if profile.settings.textual_custom == "sephardi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-                <span class="int-en">{% trans "Sephardi" %}</span>
-                <span class="int-he">{% trans "Sephardi" %}</span>
-            </div>
-            <div role="radio" data-value="ashkenazi" class="toggleOption {% if profile.settings.textual_custom == "ashkenazi" %} on{% endif %}" tabindex="{% if profile.settings.textual_custom == "ashkenazi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-                <span class="int-en">{% trans "Ashkenazi" %}</span>
-                <span class="int-he">{% trans "Ashkenazi" %}</span>
-            </div>
-		</div>
-	</div>
 	{% endif %}
     <div id="username-change" class="section">
         <label class="control-elem">
