@@ -1218,6 +1218,21 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       })
     });
   }
+  resetSearchFilters(n, type) {
+    // reset both availableFilters and appliedFilters
+    const state = this.state.panels[n];
+    const searchState = this._getSearchState(state, type);
+    const searchStateName = this._getSearchStateName(type);
+    searchState.availableFilters.forEach(filterNode => {
+      if (!filterNode.isUnselected()) {
+        filterNode.setUnselected(true);
+      }
+    })
+    this.setPanelState(n, {
+      [searchStateName]: searchState.update({appliedFilters: [], appliedFilterAggTypes: [], filterRegistry: {},
+                                            filtersValid: false}),
+    });
+  }
   updateSearchFilter(n, type, searchState, filterNode) {
     const searchStateName = this._getSearchStateName(type);
     if (filterNode.isUnselected()) {
@@ -2139,8 +2154,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
       var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
-      let updateSearchState              = this.updateSearchState.bind(null, i);
+      const updateSearchState            = this.updateSearchState.bind(null, i);
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
+      const resetSearchFilters           = this.resetSearchFilters.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
       var openConnectionsPanel           = this.openTextListAt.bind(null, i+1);
@@ -2171,6 +2187,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                     <ReaderPanel
                       openPanelAt={this.openPanelAt}
                       updateSearchState={updateSearchState}
+                      resetSearchFilters={resetSearchFilters}
                       panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}

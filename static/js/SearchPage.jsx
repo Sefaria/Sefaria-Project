@@ -23,6 +23,7 @@ class SearchPage extends Component {
       mobileFiltersOpen: false,
     };
   }
+
   render () {
     const classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
@@ -113,7 +114,7 @@ SearchPage.propTypes = {
   loadNextPage:             PropTypes.func,
   moreToLoad:               PropTypes.bool,
   topics:                   PropTypes.array,
-  totalResults:             PropTypes.object,
+  totalResults:             PropTypes.object
 };
 
 

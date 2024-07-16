@@ -62,6 +62,8 @@ class ElasticSearchQuerier extends Component {
           moreToLoad: true,
         });
         this._executeAllQueries(newProps);
+        // this.props.resetSearchFilters('sheet');
+        // this.props.resetSearchFilters('text');
       } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
               let state = {
                   hits: [],
@@ -375,7 +377,8 @@ ElasticSearchQuerier.propTypes = {
     onQueryChange: PropTypes.func,
     updateAppliedFilter: PropTypes.func,
     updateAppliedOptionSort: PropTypes.func,
-    updateAppliedOptionField: PropTypes.func
+    updateAppliedOptionField: PropTypes.func,
+    resetSearchFilters:       PropTypes.func
 };
 
 export { ElasticSearchQuerier };
