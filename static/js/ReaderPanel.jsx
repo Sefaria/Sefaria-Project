@@ -1137,7 +1137,7 @@ class ReaderPanel extends Component {
           />}
 
           {(items.length > 0 && !menu) ?
-          <div className="readerContent" style={style}>
+            <div className="readerContent" style={style}>
             {items}
           </div> : null}
 

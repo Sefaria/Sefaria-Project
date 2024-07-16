@@ -195,6 +195,27 @@ class VersionBlock extends Component {
   hasExtendedNotes(){
     return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
   }
+  setTextCompletionStatus(){
+    if (Sefaria.interfaceLang == "hebrew") {
+      
+      if (this.props.version.iscompleted == "done") {
+        return null
+      } else {
+        return (
+          <div className="status sans-serif danger">{"སྒྲིག་བཞིན་ཡོད།"}</div>
+        )
+      }
+    } else {
+      if (this.props.version.iscompleted == "done") {
+        return null
+      } else {
+        return (
+          <div className="status sans-serif danger">{"In progress"}</div>
+        )
+      }
+    }
+     
+  }
 
   render() {
     if(this.props.version.title == "Sheet") return null //why are we even getting here in such a case??;
@@ -206,14 +227,15 @@ class VersionBlock extends Component {
         this.props.currObjectVersions, this.props.openVersionInSidebar);
     const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, this.props.currentRef,
         this.props.version, this.props.currObjectVersions, this.props.rendermode, this.props.firstSectionRef, this.props.openVersionInReader);
-
+    let textStatus = this.setTextCompletionStatus()
+ 
     if (this.state.editing && Sefaria.is_moderator) {
       // Editing View
       let close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
 
       let licenses = Object.keys(Sefaria.getLicenseMap());
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
-
+     
       return (
         <div className = "versionBlock">
           <div className="error">{this.state.error}</div>
@@ -290,9 +312,11 @@ class VersionBlock extends Component {
                  />
               </div>
               <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
-              {this.props.version.iscompleted !=="done" ? <div className="versionLanguage sans-serif">{this.props.version.iscompleted.toUpperCase()}</div>: null}
+              {/* {this.props.version.iscompleted !=="done" ? <div className="versionLanguage sans-serif">{this.props.version.iscompleted.toUpperCase()}</div>: null} */}
+              
               <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
+            
             <div className="versionSelect sans-serif">
               <VersionBlockSelectButton
                    isSelected={this.props.isCurrent}
@@ -313,6 +337,7 @@ class VersionBlock extends Component {
           { !v.merged ?
             <div className="versionDetails sans-serif">
               <VersionInformation currentRef={this.props.currentRef} version={v}/>
+              {textStatus}
               <VersionImage version={v}/>
             </div> : null
           }

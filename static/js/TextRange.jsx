@@ -116,11 +116,11 @@ class TextRange extends Component {
       Sefaria.getText(this.props.sref, settings).then(this.onTextLoad);
     } else if (!!data && this.props.isCurrentlyVisible) {
       this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
-    }
+    }    
     return data;
   }
   onTextLoad(data) {
-    // Initiate additional API calls when text data first loads
+    // Initiate additional API calls when text data first loads 
     this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
