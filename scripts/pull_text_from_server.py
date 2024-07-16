@@ -98,7 +98,7 @@ def save_text(user_id, version_title, version_lang, action_type, text_json):
         my_ref = derive_ref(node_list)
         print(my_ref)
         my_text = get_text(text_json['text'], node_list)
-        modify_text(user_id, my_ref, version_title, version_lang, my_text, type=action_type)
+        modify_text(user_id, my_ref, version_title, version_lang, my_text, completestatus="done", type=action_type)
 
     move_through_schema(text_json, modify_ja)
 
@@ -107,7 +107,7 @@ def save_row(user_id, version_title, version_lang, action_type, row):
     ref = Ref(row[0])
     print("Saving: {}".format(ref.normal()))
     try:
-        modify_text(user_id, ref, version_title, version_lang, row[1], type=action_type)
+        modify_text(user_id, ref, version_title, version_lang, row[1], completestatus="done", type=action_type)
     except InputError:
         pass
 

@@ -6,7 +6,7 @@ from tqdm import tqdm
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from collections import defaultdict
-from sefaria.utils.hebrew import has_hebrew
+from sefaria.utils.tibetan import has_tibetan
 from sefaria.model.linker.match_template import MatchTemplate
 from sefaria.model.schema import TitleGroup
 from sefaria.utils.hebrew import encode_hebrew_numeral
@@ -178,9 +178,9 @@ class ReusableTermCreator():
         title_term_map = {}
         for (generic_title_en, generic_title_he), alt_titles in sorted(title_map.items(), key=lambda x: x[0]):
             alt_titles |= set(hard_coded_title_map.get(generic_title_en, []))
-            alt_he = [tit for tit in alt_titles if has_hebrew(tit) and tit != generic_title_he]
+            alt_he = [tit for tit in alt_titles if has_tibetan(tit) and tit != generic_title_he]
             alt_he += [t for t in self.get_abbr_for_one_word_hebrew_name(generic_title_he) if t not in alt_he]
-            alt_en = [tit for tit in alt_titles if not has_hebrew(tit) and tit != generic_title_en]
+            alt_en = [tit for tit in alt_titles if not has_tibetan(tit) and tit != generic_title_en]
             term = self.RTM.create_term(context="shas", en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he)
             title_term_map[generic_title_en] = term
         return title_term_map

@@ -33,8 +33,8 @@
     <div class="inner">
         {% if single %}
 		    <h1>
-				<span class="int-en">Revision History of {{ ref|ref_link }}</a></span>
-				<span class="int-he">היסטורית עריכה {{ ref|he_ref_link }}</span>
+				<span class="int-en">{% trans "Revision History of" %} {{ ref|ref_link }}</a></span>
+				<span class="int-he">{% trans "Revision History of" %} {{ ref|he_ref_link }}</span>
 		    </h1>
 		    <h2>
 				<span class="int-en">{{ version }}</span>
@@ -42,14 +42,14 @@
 		    </h2>
         {% elif for_user %}
             <h1>
-            	<span class="int-en">{{ profile.id|user_link }} | Public Activity</span>
-				<span class="int-he"{{ profile.id|user_link }} | פעילות גלויה></span>
+            	<span class="int-en">{{ profile.id|user_link }}| {% trans "Public Activity" %}</span>
+				<span class="int-he">{{ profile.id|user_link }} | {% trans "Public Activity" %}</span>
             	
         	</h1>
         {% else %}
             <h1>
-				<span class="int-en">Recent Activity on Sefaria</span>
-				<span class="int-he">פעילות אחרונה בספריא</span>
+				<span class="int-en">{% trans "Recent Activity on Sefaria" %}</span>
+				<span class="int-he">{% trans "Recent Activity on Sefaria" %}</span>
         	</h1>
         {% endif %}
         <div class="activityFilterSection sans-serif">

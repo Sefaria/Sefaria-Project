@@ -158,7 +158,7 @@ a > img {
 .image-clean > figcaption
 {
 	font-size: .9em;
-	text-align: right;
+	text-align: left;
 }
 
 .image-grayscale

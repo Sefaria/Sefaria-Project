@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
-import $ from './sefaria/sefariaJquery';
 import SearchState from './sefaria/searchState';
-import classNames  from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import {
   InterfaceText,
-  LoadingMessage,
   CloseButton,
   ToggleSet,
 } from './Misc';
@@ -24,7 +21,7 @@ class SearchFilters extends Component {
     // Save current filters
     // todo: check for cases when we want to rebuild / not
     const { field, fieldExact } = this.props.searchState;
-    if ((newProps.query != this.props.query)
+    if ((newProps.query !== this.props.query)
         || (newProps.searchState.availableFilters.length !== this.props.searchState.availableFilters.length)) {
 
       this.setState({
@@ -205,7 +202,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
   }
 
   const updateFilters = text => {
-    if (text && text != "") {
+    if (text && text !== "") {
       if (!expandable) {
         setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)).sort(x => wordSelected(x)));
       } else { // don't sort
@@ -246,7 +243,7 @@ class SearchFilterExactBox extends Component {
     this.props.checkBoxClick();
   }
   handleKeyPress(e) {
-    if (e.charCode == 13) { // enter
+    if (e.charCode === 13) { // enter
       this.handleClick(e);
     }
   }
@@ -280,7 +277,7 @@ class SearchFilter extends Component {
     };
   }
   componentWillReceiveProps(newProps) {
-    if (newProps.filter.selected != this.state.selected) {
+    if (newProps.filter.selected !== this.state.selected) {
       this.setState({selected: newProps.filter.selected});
     }
   }
@@ -310,12 +307,12 @@ class SearchFilter extends Component {
     this.props.expandable && this.setState({expanded: !this.state.expanded});    
   }
   handleKeyPress(e) {
-    if (e.charCode == 13) { // enter
+    if (e.charCode === 13) { // enter
       this.handleFilterClick(e);
     }
   }
   handleExpandKeyPress(e) {
-    if (e.charCode == 13) { // enter
+    if (e.charCode === 13) { // enter
       this.toggleExpanded();
     }
   }
@@ -324,14 +321,14 @@ class SearchFilter extends Component {
   }
   render() {
     const { filter, expandable } = this.props;
-    const toggleMessage = "Press enter to toggle search filter for " + filter.title + ".";
-    const expandMessage = "Press enter to toggle the list of specific books within " + filter.title + " to filter by."
+    const toggleMessage = Sefaria._("Press enter to toggle search filter for ") + filter.title + ".";
+    const expandMessage = filter.title + Sefaria._("Press enter to toggle the list of specific books within ");
 
     return (
       <>
         <li>
           <div className="checkboxAndText">
-            <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
+            <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected === 1} onChange={this.handleFilterClick}/>
             <label 
               onClick={this.handleFilterClick} 
               id={"label-for-"+this.props.filter.aggKey} 

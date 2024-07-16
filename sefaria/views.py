@@ -49,7 +49,8 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
-from sefaria.utils.hebrew import has_hebrew, strip_nikkud
+from sefaria.utils.hebrew import strip_nikkud
+from sefaria.utils.tibetan import has_tibetan
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.clean import remove_old_counts
@@ -61,6 +62,7 @@ from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs
+from sefaria.app_analytic import add_signup_info
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -73,42 +75,44 @@ def process_register_form(request, auth_method='session'):
     from sefaria.utils.util import epoch_time
     from sefaria.helper.file import get_resized_file
     import hashlib
-    import urllib.parse, urllib.request
+    import urllib.request
     from google.cloud.exceptions import GoogleCloudError
     from PIL import Image
     form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
     token_dict = None
     if form.is_valid():
         with transaction.atomic():
-            new_user = form.save()
+            form.save()
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
-            p = UserProfile(id=user.id, user_registration=True)
-            p.assign_slug()
-            p.join_invited_collections()
+            profile = UserProfile(id=user.id, user_registration=True)
+            # add analytics
+            add_signup_info(email=profile.email,first_name=profile.first_name,last_name=profile.last_name)
+            profile.assign_slug()
+            profile.join_invited_collections()
             if hasattr(request, "interfaceLang"):
-                p.settings["interface_language"] = request.interfaceLang
+                profile.settings["interface_language"] = request.interfaceLang
 
 
             # auto-add profile pic from gravatar if exists
-            email_hash = hashlib.md5(p.email.lower().encode('utf-8')).hexdigest()
+            email_hash = hashlib.md5(profile.email.lower().encode('utf-8')).hexdigest()
             gravatar_url = "https://www.gravatar.com/avatar/" + email_hash + "?d=404&s=250"
             try:
                 with urllib.request.urlopen(gravatar_url) as r:
                     bucket_name = GoogleStorageManager.PROFILES_BUCKET
                     with Image.open(r) as image:
                         now = epoch_time()
-                        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(p.slug, now), bucket_name, None)
-                        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(p.slug, now), bucket_name, None)
-                        p.profile_pic_url = big_pic_url
-                        p.profile_pic_url_small = small_pic_url
+                        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, None)
+                        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(profile.slug, now), bucket_name, None)
+                        profile.profile_pic_url = big_pic_url
+                        profile.profile_pic_url_small = small_pic_url
             except urllib.error.HTTPError as e:
                 logger.info("The Gravatar server couldn't fulfill the request. Error Code {}".format(e.code))
             except urllib.error.URLError as e:
                 logger.info("HTTP Error from Gravatar Server. Reason: {}".format(e.reason))
             except GoogleCloudError as e:
                 logger.warning("Error communicating with Google Storage Manager. {}".format(e))
-            p.save()
+            profile.save()
 
         if auth_method == 'session':
             auth_login(request, user)
@@ -378,7 +382,7 @@ def title_regex_api(request, titles, json_response=True):
         errors = []
         # check request.domain and then look up in WebSites collection to get linker_params and return both resp and linker_params
         for title in titles:
-            lang = "he" if has_hebrew(title) else "en"
+            lang = "he" if has_tibetan(title) else "en"
             try:
                 re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True, parentheses=parentheses)
                 res[title] = re_string
@@ -399,7 +403,7 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
     for tref in refs:
         try:
             oref = model.Ref(tref)
-            lang = "he" if has_hebrew(tref) else "en"
+            lang = "he" if has_tibetan(tref) else "en"
             if useTextFamily:
                 text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
                                             lang="he", version=hebrew_version,

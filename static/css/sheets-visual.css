@@ -86,8 +86,8 @@ body {
 	direction: ltr;
 }
 .sheetItem .he {
-	direction: rtl;
-	text-align: right;
+	direction: ltr;
+	text-align: left;
 	font-family: "Times New Roman", Serif;
 	font-size: 24px;
 }

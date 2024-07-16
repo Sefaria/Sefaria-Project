@@ -516,10 +516,10 @@ function addAxis(d) {
 
     if(categories[d.collection].talmudAddressed) {
         ticks = SefariaD3.talmudRefTicks(d);
-        d.scale = SefariaD3.textScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d, "talmud");
+        d.scale = SefariaD3.textScale(isEnglish()?"ltr":"ltr", d.base_x, d.base_x + d.base_width, d, "talmud");
     } else {
         ticks = SefariaD3.integerRefTicks(d);
-        d.scale = SefariaD3.textScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d, "integer");
+        d.scale = SefariaD3.textScale(isEnglish()?"ltr":"ltr", d.base_x, d.base_x + d.base_width, d, "integer");
     }
 
     d.s = SefariaD3.scaleNormalizationFunction(d.scale);

@@ -1,7 +1,9 @@
 # Django settings for sefaria project.
-
 import os.path
 from django.utils.translation import ugettext_lazy as _
+from dotenv import load_dotenv
+
+load_dotenv()
 
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
@@ -21,6 +23,7 @@ LANGUAGE_CODE = 'en'
 LANGUAGES = (
     ('en', _("English")),
     ('he', _("Hebrew")),
+    ('bo', _("Tibetan")),
 )
 
 SITE_ID = 1
@@ -366,3 +369,10 @@ WEBPACK_LOADER = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # Use the app password you generated
+EMAIL_USE_TLS = True

@@ -331,14 +331,14 @@ Sefaria = extend(Sefaria, {
       heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
     } else if (addressType === "Year") {
       enSection = section + 1241;  
-      heSection = Sefaria.hebrew.encodeHebrewNumeral(section+1);
+      heSection = Sefaria.hebrew.tibetanNumeral(section+1);
       heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
     } else if (addressType === "Folio") {
       enSection = Sefaria.hebrew.intToFolio(section);  
       heSection = Sefaria.hebrew.encodeHebrewFolio(enSection);
     } else {
       enSection = section + 1;
-      heSection = Sefaria.hebrew.encodeHebrewNumeral(section + 1);
+      heSection = Sefaria.hebrew.tibetanNumeral(section + 1);
     }
   return [enSection, heSection];
   },
@@ -892,7 +892,7 @@ Sefaria = extend(Sefaria, {
     if (data.textDepth === data.sections.length) {
         return;
     }
-    const isSuperSection = data.textDepth == data.sections.length + 2;
+    const isSuperSection = data.textDepth === data.sections.length + 2;
 
     settings = settings || {};
     let en = typeof data.text === "string" ? [data.text] : data.text;
@@ -929,7 +929,7 @@ Sefaria = extend(Sefaria, {
       const sectionRef =isSuperSection ? data.ref + delim + (i+1): data.sectionRef
       extend(segment_data, {
         ref: ref,
-        heRef: data.heRef + delim + Sefaria.hebrew.encodeHebrewNumeral(i+start),
+        heRef: data.heRef + delim + Sefaria.hebrew.tibetanNumeral(i+start),
         text: en[i],
         he: he[i],
         sections: data.sections.concat(i+1),
@@ -1658,8 +1658,8 @@ Sefaria = extend(Sefaria, {
             //Init of the Dict with the Category level descriptions
             Sefaria.toc.map(e=> {this._descDict[[e.category, []]] = [e.enShortDesc, e.heShortDesc]})
             // todo: get this data out of code (into db?)
-            this._descDict[["Commentary", []]] = ["Interpretations and discussions surrounding Jewish texts, ranging from early medieval to contemporary.", "פירושים ודיונים סביב טקסטים תורניים, מימי הביניים ועד ימינו."]
-            this._descDict[["Quoting Commentary", []]] = ["References to this source within commentaries on other texts in the wider library.", "התייחסויות אל המקור הנוכחי במפרשים משניים."]
+            this._descDict[["Commentary", []]] = ["Interpretations and discussions surrounding Buddhist texts, ranging from early medieval to contemporary.", "ནང་པའི་གཞུང་ལུགས་ཀྱི་འགྲེལ་བཤད་དང་བགྲོ་གླེང་། དུས་རབས་བར་མའི་སྟོད་ནས་དེང་སང་གི་བར།"]
+            this._descDict[["Quoting Commentary", []]] = ["References to this source within commentaries on other texts in the wider library.", "མཛོད་ཀྱི་གཞུང་གཞན་གྱི་འགྲེལ་པར་འདི་དང་སྦྱར་བ་ནི།"]
 
             // special case of a category in sidebar that is a sub cat on the navigation toc pages
             this._descDict[["Targum", []]] = this.getDescriptions("Targum", ["Tanakh"])
@@ -2931,7 +2931,7 @@ _media: {},
       }
   },
   _: function(inputStr, context=null){
-    if(Sefaria.interfaceLang != "english"){
+    if(Sefaria.interfaceLang !== "english"){
       return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
     } else {
       return inputStr;

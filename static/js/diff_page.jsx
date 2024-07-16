@@ -114,10 +114,10 @@ class PageLoader extends Component {
   }
 
   componentDidUpdate() {
-  if (this.props.secRef != this.state.secRef ||
-      this.props.lang != this.state.lang ||
-      this.props.v1 != this.state.v1 ||
-      this.props.v2 != this.state.v2) {
+  if (this.props.secRef !== this.state.secRef ||
+      this.props.lang !== this.state.lang ||
+      this.props.v1 !== this.state.v1 ||
+      this.props.v2 !== this.state.v2) {
 
     var newPathname =
     ['/compare', this.state.secRef, this.state.lang,
@@ -139,7 +139,7 @@ class PageLoader extends Component {
       v1={this.props.v1 ? this.props.v1 : ""}
       v2={this.props.v2 ? this.props.v2 : ""}
       formSubmit={this.formSubmit}/>
-      {(this.props.secRef != null & this.props.v1 != null & this.props.v2 != null & this.props.lang != null)
+      {(this.props.secRef != null & this.props.v1 != null & this.props.v2 != null && this.props.lang != null)
       ? (this.props.refArray)
           ?
             this.props.refArray.map(x =>
@@ -217,11 +217,11 @@ class DataForm extends Component {
         return true;
       } else if (nextVersions === null && prevVersions === null) {
         return false;
-      } else if (nextVersions.length != prevVersions.length) {
+      } else if (nextVersions.length !== prevVersions.length) {
         return true;
       } else {
         for (let i=0; i<nextVersions.length; i++) {
-          if (nextVersions[i] != prevVersions[i]) {
+          if (nextVersions[i] !== prevVersions[i]) {
             return true;
           }
         }
@@ -230,10 +230,10 @@ class DataForm extends Component {
     }
     return(
       versionChanged(nextState.possibleVersions, this.state.possibleVersions) ||
-      (this.state.secRef != nextState.secRef) ||
-      (this.state.lang != nextState.lang) ||
-      (this.state.v1 != nextState.v1) ||
-      (this.state.v2 != nextState.v2)
+      (this.state.secRef !== nextState.secRef) ||
+      (this.state.lang !== nextState.lang) ||
+      (this.state.v1 !== nextState.v1) ||
+      (dthis.state.v2 !== nextState.v2)
     );
   }
 
@@ -418,7 +418,7 @@ class DiffRow extends Component {
     diff1 = seg1.ValidateDiff(diff1);
     diff2 = seg2.ValidateDiff(diff2);
 
-    if (diff1.length != diff2.length) {
+    if (diff1.length !== diff2.length) {
       debugger;
       console.log('diffs do not match in length');
     }
@@ -489,7 +489,7 @@ class DiffRow extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.segRef != nextProps.segRef) {
+    if (this.props.segRef !== nextProps.segRef) {
       let enVersion1 = null, heVersion1 = null, enVersion2 = null, heVersion2 = null;
       if (this.props.lang === "en") { enVersion1 = this.props.v1; enVersion2 = this.props.v2; }
       else                          { heVersion1 = this.props.v1; heVersion2 = this.props.v2; }

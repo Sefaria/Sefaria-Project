@@ -152,7 +152,8 @@ const AlphabeticalTopicsNav = () => {
     return result;
   };
 
-  const letters = Sefaria.interfaceLang === "hebrew" ? letterRange("א", "ת") : letterRange("A", "Z");
+  const tibetanLetterRange = ["ཀ","ཁ","ག","ང","ཅ","ཆ","ཇ","ཉ","ཏ","ཐ","ད","ན","པ","ཕ","བ","མ","ཙ","ཚ","ཛ","ཝ","ཞ","ཟ","འ","ཡ","ར","ལ","ཤ","ས","ཧ","ཨ"]
+  const letters = Sefaria.interfaceLang === "hebrew" ? tibetanLetterRange : letterRange("A", "Z");
   return (
     <div className="alphabeticalTopicsNav sans-serif">
       {letters.map(letter => (

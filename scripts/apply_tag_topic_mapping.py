@@ -6,7 +6,7 @@ from sefaria.model import *
 from sefaria.system.database import db
 from pymongo import UpdateOne
 
-from sefaria.utils.hebrew import has_hebrew
+from sefaria.utils.tibetan import has_tibetan
 with open('data/sheet_mapping.json', 'r') as fin:
     tag_topic = json.load(fin)
 
@@ -26,7 +26,7 @@ for sheet in db.sheets.find():
                     "slug": tag,
                     "titles": [{
                         "text": tag,
-                        "lang": "he" if has_hebrew(tag) else "en",
+                        "lang": "he" if has_tibetan(tag) else "en",
                         "primary": True
                     }]
                 })

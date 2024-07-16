@@ -8,7 +8,8 @@ from sefaria.model.schema import Term, NonUniqueTerm, TitleGroup
 from sefaria.system.exceptions import InputError
 from sefaria.model.version_state import StateNode
 from sefaria.system.database import db
-from sefaria.utils.hebrew import strip_cantillation, has_hebrew
+from sefaria.utils.hebrew import strip_cantillation
+from sefaria.utils.tibetan import has_tibetan
 
 """
 Utility classes for converting Indexes so they are discoverable by Linker.v3
@@ -109,7 +110,7 @@ class ReusableTermManager:
             en_title = title_modifier('en', en_title)
             he_title = title_modifier('he', he_title)
         for new_alt in new_alt_titles:
-            if has_hebrew(new_alt):
+            if has_tibetan(new_alt):
                 alt_he_titles += [new_alt]
             else:
                 alt_en_titles += [new_alt]

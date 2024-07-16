@@ -9,9 +9,7 @@ import Sefaria from './sefaria/sefaria';
 import { FilterNode } from './sefaria/search';
 import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
-import SearchFilters from './SearchFilters';
 import SearchState from './sefaria/searchState';
-import Strings from "./sefaria/strings.js"
 import {
   DropdownModal,
   DropdownButton,
@@ -19,9 +17,6 @@ import {
   InterfaceText,
   LoadingMessage,
 } from './Misc';
-
-
-
 
 
 const SourcesSheetsDiv = (props) => {
@@ -438,7 +433,7 @@ class SearchResultList extends Component {
       this.updateRunningQuery(type, runningNextPageQuery, false);
     }
     _handleError(jqXHR, textStatus, errorThrown) {
-      if (textStatus == "abort") {
+      if (textStatus === "abort") {
         // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
         //this.updateCurrentQuery(null);
         return;
@@ -461,7 +456,7 @@ class SearchResultList extends Component {
         const searchState = this._getSearchState(tab);
         let results       = [];
 
-        if (tab == "text") {
+        if (tab === "text") {
           results = Sefaria.search.mergeTextResultsVersions(this.state.hits.text);
           results = results.filter(result => !!result._source.version).map(result =>
             <SearchTextResult
@@ -486,7 +481,7 @@ class SearchResultList extends Component {
           }
 
 
-        } else if (tab == "sheet") {
+        } else if (tab === "sheet") {
           results = this.state.hits.sheet.map(result =>
             <SearchSheetResult
               data={result}
@@ -496,8 +491,8 @@ class SearchResultList extends Component {
           );
         }
 
-        const loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
-        const noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
+        const loadingMessage   = (<LoadingMessage message={Sefaria._("Searching...")} heMessage={Sefaria._("Searching...")}/>);
+        const noResultsMessage = (<LoadingMessage message={Sefaria._("0 results..")} heMessage={Sefaria._("0 results..")}  />);
 
         const queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
         const haveResults      = !!results.length;
@@ -582,8 +577,8 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType}) => {
       <DropdownButton
         isOpen={isOpen}
         toggle={() => {setIsOpen(!isOpen)}}
-        enText={"Sort"}
-        heText={"מיון"}
+        enText={Sefaria._("Sort") }
+        heText={Sefaria._("Sort") }
         buttonStyle={true}
       />
       <DropdownOptionList

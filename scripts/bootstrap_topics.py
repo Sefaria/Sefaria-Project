@@ -7,7 +7,7 @@ from sefaria.utils.util import titlecase
 from sefaria.system.database import db
 from sefaria.helper.topic import generate_all_topic_links_from_sheets, update_ref_topic_link_orders, update_intra_topic_link_orders, add_num_sources_to_topics
 from sefaria.system.exceptions import DuplicateRecordError
-from sefaria.utils.hebrew import has_hebrew
+from sefaria.utils.tibetan import has_tibetan
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from pymongo import UpdateOne, DeleteOne
 
@@ -574,7 +574,7 @@ def do_sheet_refactor(tag_to_slug_map):
             else:
                 # uncategorized
                 term = Term().load_by_title(t)
-                titles = term.titles if term else [{"lang": "he" if has_hebrew(t) else "en", "text": t, "primary": True}]
+                titles = term.titles if term else [{"lang": "he" if has_tibetan(t) else "en", "text": t, "primary": True}]
                 if t in uncategorized_dict:
                     topic_slug = uncategorized_dict[t]
                 else:

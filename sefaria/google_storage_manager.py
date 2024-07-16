@@ -1,8 +1,9 @@
-from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 from google.cloud import storage
 import re
 from io import BytesIO
 from sefaria.site.site_settings import SITE_SETTINGS
+from .settings import GOOGLE_APPLICATION_CREDENTIALS
+from google.oauth2 import service_account
 
 class GoogleStorageManager(object):
 
@@ -26,7 +27,11 @@ class GoogleStorageManager(object):
     def get_bucket(cls, bucket_name):
         if getattr(cls, 'client', None) is None:
             # for local development, change below line to cls.client = storage.Client(project="production-deployment")
-            cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
+            # cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
+            # cls.client = storage.Client(credentials=GOOGLE_APPLICATION_CREDENTIALS)
+            credentials = service_account.Credentials.from_service_account_info(GOOGLE_APPLICATION_CREDENTIALS)
+            cls.client = storage.Client(credentials=credentials, project=GOOGLE_APPLICATION_CREDENTIALS["project_id"])
+        # Initialize the client with the credentials
         bucket = cls.client.get_bucket(bucket_name)
         return bucket
 

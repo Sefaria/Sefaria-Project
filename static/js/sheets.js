@@ -990,8 +990,8 @@ $(function() {
 
 	// ------------- Source Controls -------------------
 
-  var outdent_img = (sjs.interfaceLang == "en") ? '/static/img/outdent.png' : '/static/img/indent.png';
-  var indent_img = (sjs.interfaceLang == "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
+  var outdent_img = (sjs.interfaceLang === "en") ? '/static/img/outdent.png' : '/static/img/indent.png';
+  var indent_img = (sjs.interfaceLang === "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
 
   var ownerControls = "<div id='sourceControls' class='sideControls'>" +
               "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
@@ -1264,7 +1264,7 @@ $(function() {
       var $target = $("#addInterface").prev(".sheetItem");
       if ($(this).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
       	var text = $(this).prev(".flexContainer").find(".contentToAdd:visible").html();
-      	text = text.stripHtml() == "English" || text == "עברית" ? "" : text;
+      	text = text.stripHtml() == "English" || text == "བོད་ཡིག" ? "" : text;
         source = {
           outsideText: text,
           isNew: true
@@ -1274,7 +1274,7 @@ $(function() {
         var en = $(this).prev(".flexContainer").find(".en").html();
         var he = $(this).prev(".flexContainer").find(".he").html();
         en = en.stripHtml() == "English" ? "" : en;
-        he = he.stripHtml() == "עברית" ? "" : he;
+        he = he.stripHtml() == "བོད་ཡིག" ? "" : he;
         source = {
           outsideBiText: {
             en: en,
@@ -1289,12 +1289,12 @@ $(function() {
       $target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
       autoSave();
       $("#customTextContainer .contentToAdd.en").html('English');
-      $("#customTextContainer .contentToAdd.he").html('עברית');
+      $("#customTextContainer .contentToAdd.he").html('བོད་ཡིག');
       $("#sheet").click();
     });
 
     $("#addcustomTextDiv").on("focus", ".contentToAdd", function(e) {
-    	if ($(this).html() == "English" || $(this).html() == "עברית") {
+    	if ($(this).html() == "English" || $(this).html() == "བོད་ཡིག") {
     		$(this).html("");
     	}
     });
@@ -2108,7 +2108,7 @@ sjs.sheetTagger = {
 			$("#tags").tagit("createTag",$(this).text());
 			$(this).hide();
 		});
-		const dropdownAnchorSide = sjs.interfaceLang == "he" ? "right" : "left";
+		const dropdownAnchorSide = "left";
 		$("#addTag")
 		.keydown(function(e) {
 			if (e.shiftKey && (e.keyCode == 50 || e.keyCode == 51)) {
@@ -2224,7 +2224,7 @@ function addSource(q, source, appendOrInsert, $target) {
 	var badRef = q.ref == undefined;
 	var $listTarget = $target || $("#sources");
 
-	if ($listTarget.length == 0) appendOrInsert = "append";
+	if ($listTarget.length === 0) appendOrInsert = "append";
 
 	if ($listTarget.hasClass('sheetItem') ) {
 		appendOrInsert = "insert";
@@ -2241,7 +2241,7 @@ function addSource(q, source, appendOrInsert, $target) {
 		};
 	}
 
-	var addedByMe = (source && source.addedBy && source.addedBy == Sefaria._uid) ||
+	var addedByMe = (source && source.addedBy && source.addedBy === Sefaria._uid) ||
 					(!source && sjs.can_add);
 
 	var attributionLink = (source && "userLink" in source ?
@@ -2334,7 +2334,7 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
 
     var numStr = "";
     if (includeNumbers) {
-        var num = (lang=="he") ? encodeHebrewNumeral(s.number) : s.number;
+        var num = (lang==="he") ? getTibetanNumberAsString(s.number) : s.number;
         numStr = "<small>(" + num + ")</small> ";
     }
     var str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
@@ -2419,7 +2419,7 @@ function setSourceNumbers() {
 	$("#sources > .sheetItem").each(function(index, value) {
 		index += 1;
 		$(this).find(".sourceNumber.en").html(index + ".");
-		$(this).find(".sourceNumber.he").html(encodeHebrewNumeral(index) + ".");
+		$(this).find(".sourceNumber.he").html(getTibetanNumberAsString(index) + ".");
 	});
 }
 
@@ -3202,7 +3202,7 @@ sjs.replayLastEdit = function() {
 			source = {media: sjs.lastEdit.html, isNew: true};
 			break;
 		case "add english outside":
-			source = {outsideBiText: {en: sjs.lastEdit.html, he: "<i>עברית</i>"}, isNew: true};
+			source = {outsideBiText: {en: sjs.lastEdit.html, he: "<i>བོད་ཡིག</i>"}, isNew: true};
 			break;
 		case "add hebrew outside":
 			source = {outsideBiText: {he: sjs.lastEdit.html, en: "<i>English</i>"}, isNew: true};

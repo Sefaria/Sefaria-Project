@@ -3,16 +3,16 @@
 SITE_SETTINGS = {
 	"TORAH_SPECIFIC": True,
 	"SITE_NAME": {
-		"en": "Sefaria",
-		"he": "ספריא"
+		"en": "Pecha",
+		"he": "དཔེ་ཆ།"
 	},
 	"LIBRARY_NAME": {
-		"en": "The Sefaria Library",
-		"he": "האוסף של ספריא",
+		"en": "The Pecha Library",
+		"he": "Pecha དཔེ་མཛོད།",
 	},
 	"SUPPORTED_TRANSLATION_LANGUAGES": ['en', 'es', 'fr', 'de'],
-	"COLLECTIONS_BUCKET": "sefaria-collection-images",
-	"PROFILES_BUCKET": 'sefaria-profile-pictures',
-	"UGC_BUCKET": 'sheet-user-uploaded-media',
-	"TOPICS_BUCKET": 'img.sefaria.org'
+	"COLLECTIONS_BUCKET": "pecha-collection-image",
+	"PROFILES_BUCKET": 'pecha-profile-picture',
+	"UGC_BUCKET": 'pecha-sheet-user-uploaded-picture',
+	"TOPICS_BUCKET": 'pecha-topic-picture'
 }

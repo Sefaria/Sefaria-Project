@@ -167,7 +167,7 @@ SearchState.metadataByType = {
       {
         type: 'relevance',
         name: 'Relevance',
-        heName: 'רלוונטיות',
+        heName: 'འབྲེལ་ཡོད་ཀྱི་དོན་དང་།',
         fieldArray: ['pagesheetrank'],
         sort_method: 'score',  // if sort_method == 'score', it will combine the standard elasticsearch score with `field`
         score_missing: 0.04,  // this default value comes from the equation used to calculate pagesheetrank. see search.py where this field is created
@@ -175,7 +175,7 @@ SearchState.metadataByType = {
       {
         type: 'chronological',
         name: 'Chronological',
-        heName: 'כרונולוגי',
+        heName: 'དུས་ཀྱི་རིམ་པ།',
         fieldArray: ['comp_date', 'order'],  // if sort_method == 'sort', then we need to define fieldArray, which is a list of fields we want to sort on
         sort_method: 'sort',
         direction: 'asc',
@@ -194,14 +194,14 @@ SearchState.metadataByType = {
       {
         type: 'relevance',
         name: 'Relevance',
-        heName: 'רלוונטיות',
+        heName: 'འབྲེལ་ཡོད་ཀྱི་དོན་དང་།',
         fieldArray: [],
         sort_method: 'score',
       },
       {
         type: 'dateCreated',
         name: 'Date Created',
-        heName: 'תאריך',
+        heName: 'བཟོས་པའི་དུས།',
         fieldArray: ['dateCreated'],
         sort_method: 'sort',
         direction: 'desc',
@@ -209,7 +209,7 @@ SearchState.metadataByType = {
       {
         type: 'views',
         name: 'Views',
-        heName: 'צפיות',
+        heName: 'བལྟས་པ།',
         fieldArray: ['views'],
         sort_method: 'sort',
         direction: 'desc',

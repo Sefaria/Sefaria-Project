@@ -38,7 +38,6 @@ class TextColumn extends Component {
          content_type: Sefaria.index(this.props.bookTitle).primary_category,
          item_id: this.props.bookTitle
        }
-      console.log(params)
       gtag("event", "select_content", params)
 
     this.node.addEventListener("scroll", this.handleScroll);
@@ -360,14 +359,41 @@ class TextColumn extends Component {
     const ref = $segment.attr("data-ref");
     this.props.setTextListHighlight(ref, shouldShowHighlight);
   }
+
+  setTextCompletionStatus(versions){
+    if (this.props.interfaceLang == "hebrew") {
+      
+      if (versions[0].iscompleted == "done") {
+        return null
+      } else {
+        return (
+          <span class="label danger">{"སྒྲིག་བཞིན་ཡོད།"}</span>
+        )
+      }
+    } else {
+      if (versions[0].iscompleted == "done") {
+        return null
+      } else {
+        return (
+          <span class="label danger">{"In progress"}</span>
+        )
+      }
+    }
+     
+  }
+
   render() {
     let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
+    const versions = Sefaria.getRefFromCache(this.props.srefs[0])?.versions;
     const isDictionary = (index && index.categories[0] === "Reference");
     let content =  this.props.srefs.map((sref) => {
       const oref = Sefaria.getRefFromCache(sref);
+      
       const isCurrentlyVisible = oref && this.props.currentlyVisibleRef === oref.sectionRef;
-      return (<TextRange
+      return (
+        <div>
+        <TextRange
         panelPosition ={this.props.panelPosition}
         sref={sref}
         isCurrentlyVisible={isCurrentlyVisible}
@@ -396,10 +422,13 @@ class TextColumn extends Component {
         navigatePanel={this.props.navigatePanel}
         translationLanguagePreference={this.props.translationLanguagePreference}
         updateCurrVersionsToMatchAPIResult={this.props.updateCurrVersionsToMatchAPIResult}
-        key={sref} />);
+        key={sref} />
+        </div>
+        
+      );
     });
 
-    let pre, post, bookTitle;
+    let pre, post, bookTitle, textStatus;
     if (content.length) {
       // Add Next and Previous loading indicators
       const first   = Sefaria.ref(this.props.srefs[0]);
@@ -422,9 +451,14 @@ class TextColumn extends Component {
       post = hasNext && this.state.showScrollPlaceholders ?
         <LoadingMessage className="base next" key={"next"}/> :
         <LoadingMessage message={" "} heMessage={" "} className="base next final" key={"next"}/>;
+      textStatus = versions ?
+       this.setTextCompletionStatus(versions): null
+          
     }
 
     return (<div className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
+      
+      {textStatus}
       {pre}
       {content}
       {post}

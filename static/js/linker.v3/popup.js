@@ -102,7 +102,7 @@ export class PopupManager {
                 'font-family: "Frank Ruhl Libre";' +
                 'font-size: 21px;' +
                 'line-height: 1.5;' +
-                'direction: rtl;' +
+                'direction: ltr;' +
             '}' +
             '.content-hebrew .sefaria-text .en {' +
                 'display: none;' +
@@ -125,7 +125,7 @@ export class PopupManager {
                 'font-family: "Helvetica Neue", "Helvetica", sans-serif;' +
             '}' +
             '.interface-hebrew .truncatedMessage {' +
-                'direction: rtl;' +
+                'direction: ltr;' +
                 'font-family: "Heebo", sans-serif;' +
             '}' +
             '#sefaria-logo {' +
@@ -170,7 +170,7 @@ export class PopupManager {
                 'padding-bottom: 3px;' +
             '}'+
             '.interface-hebrew .sefaria-footer {' +
-                'direction: rtl;' +
+                'direction: ltr;' +
                 'font-family: "Heebo", sans-serif' +
             '}'+
             '#sefaria-popup.short-screen .sefaria-text{'+
@@ -219,13 +219,13 @@ export class PopupManager {
         }[this.interfaceLang];
 
         html += '<div id="sefaria-linker-header">' +
-                '<div id="sefaria-title"><span class="he" dir="rtl"></span><span class="en"></span></div>' +
+                '<div id="sefaria-title"><span class="he" dir="ltr"></span><span class="en"></span></div>' +
             '</div>' +
             '<div class="sefaria-text" id="sefaria-linker-text" tabindex="0"></div>' +
 
             '<div class="sefaria-footer">' +
                 '<div class="sefaria-powered-by-box">' + poweredByText + ' <div id="sefaria-logo">&nbsp;</div></div>' +
-                (this.mode == "popup-click" ?
+                (this.mode === "popup-click" ?
                 '<span class="sefaria-read-more-button">' +
                     '<a class = "sefaria-popup-ref" target="_blank" href = "">' + readMoreText + '</a>' +
                 '</span>' : "") +
@@ -314,7 +314,7 @@ export class PopupManager {
             heBox.innerHTML = (he[i] || "").replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
             enBox.className = "en" + (!heBox.innerHTML ? " enOnly" : "");
             heBox.className = "he" + (!enBox.innerHTML ? " heOnly" : "");
-            heBox.setAttribute("dir", "rtl");
+            heBox.setAttribute("dir", "ltr");
             if (heBox.innerHTML) { this.textBox.appendChild(heBox); }
             if (enBox.innerHTML) { this.textBox.appendChild(enBox);}
         }

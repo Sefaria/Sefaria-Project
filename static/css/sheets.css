@@ -1,5 +1,10 @@
 html {
 }
+:root {
+    /* colors */
+    --pecha-red: #b5343c;
+
+}
 body {
 	overflow-x: visible;
     background-color:#f8f8f8;
@@ -31,7 +36,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	display: inline-block;
 }
 #fileControls {
-	text-align: right;
+	text-align: left;
 	line-height: 8px;
 	position: fixed;
 	bottom: 0;
@@ -112,7 +117,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-top: 50px;
 }
 #sheetHeader {
-	text-align: right;
+	text-align: left;
 	padding-bottom: 10px;
 	padding-left: inherit;
 	margin-bottom: 6px;
@@ -125,7 +130,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 #bsdHeader {
 	display: none;
-	direction: rtl;
+	direction: ltr;
 	font-size: 18px;
 	position: relative;
 	top: -40px;
@@ -163,7 +168,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	line-height: 1.2;
 }
 .interface-hebrew .optionsMenu{
-	/*text-align: right;*/
+	/*text-align: left;*/
 	min-width: 250px;
 }
 .optionsMenu img, .addInterfaceButton img {
@@ -247,10 +252,10 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-left: auto;
 }
 .interface-hebrew .optionGroup .optionItemCaret.fa{
-	margin-right: auto;
+	margin-left: auto;
 }
 .interface-hebrew .optionItemCaret.fa-caret:before{
-	content: "\f0d9";
+	content: "\f0da";
 }
 .interface-english .optionItemCaret.fa-caret:before{
 	content: "\f0da";
@@ -360,7 +365,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	padding: 10px;
 }
 #textPreview .he , #inlineTextPreview .he {
-	direction: rtl;
+	direction: ltr;
 }
 #textPreview .previewNoText, #inlineTextPreview .previewNoText {
 	direction: ltr;
@@ -383,7 +388,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	--hebrew-font: var(--hebrew-serif-font-family);
 }
 #title.heTitle {
-	direction: rtl;
+	direction: ltr;
 }
 #author {
 	text-align: center;
@@ -467,7 +472,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	content: "✎ ";
 }
 #sheetMetadata .int-he .editButton {
-	float: left;
+	float: right;
 }
 #sheetMetadata .metadataOpenDetails {
 	font-size: 14px;
@@ -550,7 +555,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 #sheet #sources .sheetItem .sourceNumber.en {
 	position: absolute;
 	width: 50px;
-	text-align: right;
+	text-align: left;
 	top: 28px;
 	left: 6px;
 }
@@ -589,8 +594,8 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 .interface-hebrew #sourceControls.sideControls{
 	width: auto;
-	right: 23px;
-	margin-right: 0;
+	left: 23px;
+	margin-left: 0;
 	top: 20px;
 	bottom: auto;
 	background-color: inherit;
@@ -659,11 +664,12 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 #sheet .en {
 	direction: ltr;
 	text-align: left;
+	font-size: 16px;
 }
 #sheet .he {
-	direction: rtl;
-	text-align: right;
-	font-size: 24px;
+	direction: ltr;
+	text-align: left;
+	font-size: 16px;
 }
 #sheet.english .en {
 	display: initial;
@@ -835,7 +841,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	padding: 0;
 }
 .interface-hebrew #addParashaToSheetModal{
-	direction: rtl;
+	direction: ltr;
 }
 #addToSheetModal .header {
 	font-size: 22px;
@@ -1079,14 +1085,14 @@ a:active {
 	}
 	#sheet #sources .sheetItem .sourceNumber.he {
 		right: -2px;
-		text-align: right;
+		text-align: left;
 	}
 	#sheet.bilingual.sideBySide .en {
 		text-align: left !important;
 		width: 100%;
 	}
 	#sheet.bilingual.sideBySide .he {
-		text-align: right !important;
+		text-align: left !important;
 		width: 100%;
 	}
 	#controls, #fileControls {
@@ -1338,7 +1344,7 @@ line-height: normal;
 	z-index:101;
 }
 .alertBox.interface-hebrew{
-	direction: rtl;
+	direction: ltr;
 }
 .mediaWrapper.hidden {
 	display: none;
@@ -1490,7 +1496,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 }
 .activeSource {
 	background-color: #FBFBFA;
-	border-left:solid 6px #212e50;
+	border-left:solid 6px var(--pecha-red);
 	border-top:solid 1px #F2F2F2;
 	border-bottom:solid 1px #F2F2F2;
 }
@@ -1629,8 +1635,8 @@ body.hasBannerMessage .sheetsEditNavTop {
 	margin-bottom: 0;
 }
 .sheetsEditNavTop .button {
-	background-color: #212e50;
-	border-color: #212e50;
+	background-color: var(--pecha-red);;
+	border-color: var(--pecha-red);;
 	padding: 12px 24px;
 }
 .sheetsEditNavTop .button {
@@ -1657,6 +1663,11 @@ body.hasBannerMessage .sheetsEditNavTop {
 	margin-bottom: 13px;
 	height: 16px;
 	width: 16px;
+}
+#customTextLanguageToggle #hebrewCustomText img {
+	margin-bottom: 13px;
+	height: 16px;
+	width: 10px;
 }
 #customTextContainer, #addmediaDiv, #addcommentDiv, #addsourceDiv{
 	width: 702px;
@@ -1694,7 +1705,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 	margin:0 !important;
 }
 #sheet #addcustomTextDiv .customTextEditables.he {
-	text-align: right;
+	text-align: left;
 	display: block;
 }
 #sheetsContent #inlineAddMediaInput {
@@ -1773,7 +1784,7 @@ label[for="sourceSheetShareSelect"] {
     float: right;
 }
 #shareWithOthers .ok.button.int-he {
-	float:left;
+	float:right;
 }
 #shareWithOthers .onoffswitch {
 }
@@ -1832,7 +1843,7 @@ label[for="sourceSheetShareSelect"] {
 	width: 400px;
 }
 .interface-hebrew .s2Modal, .interface-hebrew.s2Modal{
-	direction: rtl;
+	direction: ltr;
 }
 .s2Modal .title {
 	font-size: 20px;
@@ -1844,7 +1855,7 @@ label[for="sourceSheetShareSelect"] {
 	text-align: left;
 }
 .interface-hebrew .s2Modal .content{
-	text-align: right;
+	text-align: left;
 }
 .s2Modal .ok.button {
 	margin: 0 auto;
@@ -2107,5 +2118,5 @@ a.tagit-close {
 	display: block;
 }  /* TODO add ability to set outside text source formatting from menu bar like real sources to remove need for this. Allow overrides to occur like real source texts */
 #peopleListModal.interface-hebrew{
-	direction: rtl;
+	direction: ltr;
 }

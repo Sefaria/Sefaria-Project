@@ -275,7 +275,7 @@
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
 							"<img src='{% static 'img/english.png' %}' /></div>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" +
-							"<img src='{% static 'img/hebrew.png' %}' /></div>" +
+							"<img src='{% static 'img/tibetan.png' %}' /></div>" +
 						"</div></div>";
 
             // Structure selector

@@ -233,7 +233,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   position: absolute;
   top: 0px;
   width: 50%;
-  text-align: right;
+  text-align: left;
   right: 100%; 
   font-size: 18px;
   padding: 0px;
@@ -249,7 +249,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 }
 .textSyncNumbers .segmentLabel {  
   font-size: 16px;
-  direction: rtl;
+  direction: ltr;
   line-height: 1.7;
   background: #3A87AD;
   color: white;
@@ -477,8 +477,8 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 #browserPreview .segment .he {
   font-size: 130%;
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  text-align: right;
-  direction: rtl;
+  text-align: left;
+  direction: ltr;
 }
 #browserPreview .empty {
   text-align: center;
@@ -558,7 +558,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   padding-right: 10px;
   background-color: #212D4F;
   color: #fff;
-  text-align: right;
+  text-align: left;
 }
 .interface-hebrew .onoffswitch-inner:after {
   text-align: left;

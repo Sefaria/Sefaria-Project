@@ -175,7 +175,7 @@
                 'padding-bottom: 3px;' +
             '}'+
             '.interface-hebrew .sefaria-footer {' +
-                'direction: rtl;' +
+                'direction: ltr;' +
                 'font-family: "Heebo", sans-serif' +
             '}'+
             '#sefaria-popup.short-screen .sefaria-text{'+

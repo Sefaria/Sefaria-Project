@@ -65,7 +65,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     };
     slugsToTitles = Object.assign(specialCases, slugsToTitles);
     const catMenu =   <div className="section">
-                                            <label><InterfaceText>Parent Topic</InterfaceText></label>
+                                            <InterfaceText>Parent Topic</InterfaceText><span className="asterisk"> *</span>  
                                             <div className="categoryChooserMenu">
                                                 <select key="topicCats" id="topicCats" onChange={handleCatChange}>
                                                     {Object.keys(slugsToTitles).map(function (tempSlug, i) {
@@ -85,14 +85,14 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
             alert("You haven't changed any of the fields.");
             return false;
         }
-        if (data.catSlug === "") {
+        if (data.catSlug === "" || typeof data.catSlug === "object") {
           alert(Sefaria._("Please choose a category."));
           return false;
         }
-        if (data.enTitle.length === 0) {
-          alert(Sefaria._("Title must be provided."));
-          return false;
-        }
+        if (data.enTitle.length === 0 || data.heTitle.length === 0) {
+            alert(Sefaria._("Both English and Tibetan titles must be provided."));
+            return false;
+          }
         if (data.enImgCaption.length > 150) {
             alert("English caption is too long.  It should not be more than 150 characters");
             return false;

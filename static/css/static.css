@@ -585,8 +585,8 @@
 .registrationContent #register-form p:nth-of-type(5){
   padding-top: 10px;
 }
-.interface-hebrew input#id_email::placeholder {
-  text-align: right;
+input#id_email::placeholder {
+  text-align: left;
 }
 input#id_email{
   text-align: left;
@@ -596,6 +596,7 @@ input#id_email{
   width: 100%;
 }
 .registrationContent a {
+  display: block;
 }
 .registrationContent a.registration-links, .registrationContent p.registration-links{
   margin-top: 20px;
@@ -621,7 +622,7 @@ p.registration-links a:hover{
   text-align: left;
 }
 .interface-hebrew #visualizationsPage {
-  text-align: right;
+  text-align: left;
 }
 #visualLibraryPage {
   padding-top: 70px;
@@ -1620,7 +1621,7 @@ p.registration-links a:hover{
   margin: 0 0 30px 0;
 }
 body.interface-hebrew #visualGardenPage .reset {
-  direction: rtl;
+  direction: ltr;
   float: right;
 }
 body.interface-hebrew #visualGardenPage .filter-title .reset {
@@ -1667,7 +1668,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 #visualGardenPage #results .result-text span.he,
 #visualGardenPage #results .result-text span.int-he {
-   direction: rtl;
+   direction: ltr;
 }
 #visualGardenPage #results .result-text span.he {
  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -1840,7 +1841,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   top: 15px;
 }
 #mobilePage #mobilePageHeader{
-  background: #18345D;
+  background: #b5343c;
   padding: 70px 0;
   margin-top: 60px;
 }
@@ -1919,8 +1920,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-weight: normal;
   font-size: 16px;
   line-height: 19px;
-  text-align: right;
-  color: #18345D;
+  text-align: left;
+  color: #b5343c;
   align-items: center;
   letter-spacing: 0px;
   justify-content: space-evenly;
@@ -1993,7 +1994,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   text-align: left;
 }
 .interface-hebrew #mobilePage #mobileTestimonials .mobileTestimonialContent{
-  text-align: right;
+  text-align: left;
 }
 #mobilePage #mobileTestimonials .mobileTestimonialText{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2164,7 +2165,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-weight: normal;
   font-size: 20px;
   line-height: 23px;
-  text-align: right;
+  text-align: left;
   color: #FFFFFF;
   letter-spacing: 0px;
 }
@@ -2422,7 +2423,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   flex-direction: row-reverse;
 }
 #dafyomiPage #dafyomiPageHeader {
-  background-color: #18345D;
+  background-color: #b5343c;
   padding: 70px 0;
   margin-top: 60px;
   background-image: url(/static/img/daf-yomi-landing-page/talmudtextheader.jpg);

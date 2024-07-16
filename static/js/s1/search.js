@@ -462,7 +462,7 @@ $.extend(Sefaria.search.FilterNode.prototype, {
             + (this.isPartial()?' indeterminate="indeterminate" ':'')
             + ' name="' + this.getId() + '" />'
             + '<span class="en">' + this.title + '&nbsp;(' + this.doc_count + ')&nbsp;</span>'
-            + '<span class="he" dir="rtl">' + this.heTitle + '&nbsp;(' + this.doc_count + ')&nbsp;</span>';
+            + '<span class="he" dir="ltr">' + this.heTitle + '&nbsp;(' + this.doc_count + ')&nbsp;</span>';
         if (this.hasChildren()) {
             html += '<i class="fa fa-caret-down"></i><ul>';
             for (var i = 0; i < this.children.length; i++) {

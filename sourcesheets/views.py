@@ -9,6 +9,9 @@ from io import StringIO, BytesIO
 from django.contrib.admin.views.decorators import staff_member_required
 
 import structlog
+
+from sefaria.app_analytic import track_page_to_mp, add_sheet_data
+
 logger = structlog.get_logger(__name__)
 
 from django.template.loader import render_to_string
@@ -43,8 +46,8 @@ from bs4 import BeautifulSoup
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
 
-
 from sefaria.gauth.decorators import gauth_required
+
 
 def annotate_user_links(sources):
     """
@@ -58,52 +61,53 @@ def annotate_user_links(sources):
 
     return sources
 
+
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
-	profile = UserProfile(id=request.user.id)
-	if getattr(profile, "uses_new_editor", False):
-		sheet = {
-				'status': 'unlisted',
-				'title': '',
-				'sources': [],
-				'nextNode': 1,
-				'options': {
-					'layout':    "stacked",
-					'boxed':  0,
-					'language':    "bilingual",
-					'numbered':    0,
-					'assignable':    0,
-					'divineNames':    "noSub",
-					'collaboration':    "none",
-					'highlightMode':    0,
-					'langLayout':    "heRight",
-					'bsd':    0,
-				}
-		}
+    profile = UserProfile(id=request.user.id)
+    if getattr(profile, "uses_new_editor", False):
+        sheet = {
+            'status': 'unlisted',
+            'title': '',
+            'sources': [],
+            'nextNode': 1,
+            'options': {
+                'layout': "stacked",
+                'boxed': 0,
+                'language': "bilingual",
+                'numbered': 0,
+                'assignable': 0,
+                'divineNames': "noSub",
+                'collaboration': "none",
+                'highlightMode': 0,
+                'langLayout': "heRight",
+                'bsd': 0,
+            }
+        }
 
-		responseSheet = save_sheet(sheet, request.user.id)
-		return catchall(request, str(responseSheet["id"]), True)
+        responseSheet = save_sheet(sheet, request.user.id)
+        return catchall(request, str(responseSheet["id"]), True)
 
-	"""
+    """
 	View an new, empty source sheet.
 	"""
-	if "assignment" in request.GET:
-		sheet_id  = int(request.GET["assignment"])
+    if "assignment" in request.GET:
+        sheet_id = int(request.GET["assignment"])
 
-		query = { "owner": request.user.id or -1, "assignment_id": sheet_id }
-		existingAssignment = db.sheets.find_one(query) or []
-		if "id" in existingAssignment:
-			return view_sheet(request,str(existingAssignment["id"]),True)
+        query = {"owner": request.user.id or -1, "assignment_id": sheet_id}
+        existingAssignment = db.sheets.find_one(query) or []
+        if "id" in existingAssignment:
+            return view_sheet(request, str(existingAssignment["id"]), True)
 
-		if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
-			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
-				return assigned_sheet(request, sheet_id)
+        if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
+            if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
+                return assigned_sheet(request, sheet_id)
 
-	query         = {"owner": request.user.id or -1 }
-	hide_video    = db.sheets.count_documents(query) > 2
+    query = {"owner": request.user.id or -1}
+    hide_video = db.sheets.count_documents(query) > 2
 
-	return render_template(request,'sheets.html', None, {
+    return render_template(request, 'sheets.html', None, {
         "can_edit": True,
         "new_sheet": True,
         "is_owner": True,
@@ -186,20 +190,22 @@ def make_sheet_class_string(sheet):
 
 
 @ensure_csrf_cookie
-def view_sheet(request, sheet_id, editorMode = False):
+def view_sheet(request, sheet_id, editorMode=False):
     """
     View the sheet with sheet_id.
     """
+    track_page_to_mp(request=request, page_title='Sheets', text_ref=sheet_id)
     editor = request.GET.get('editor', '0')
     embed = request.GET.get('embed', '0')
 
-    if editor != '1' and embed !='1' and editorMode is False:
+    if editor != '1' and embed != '1' and editorMode is False:
         return catchall(request, sheet_id, True)
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
+
     if "error" in sheet and sheet["error"] != "Sheet updated.":
-            return HttpResponse(sheet["error"])
+        return HttpResponse(sheet["error"])
 
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
@@ -212,24 +218,26 @@ def view_sheet(request, sheet_id, editorMode = False):
     except User.DoesNotExist:
         author = "Someone Mysterious"
 
-    sheet_class          = make_sheet_class_string(sheet)
-    sheet_collections    = get_user_collections_for_sheet(request.user.id, sheet_id) if sheet["owner"] == request.user.id else None
-    displayed_collection = Collection().load({"slug": sheet["displayedCollection"]}) if sheet.get("displayedCollection", None) else None
-    embed_flag           = "embed" in request.GET
-    likes                = sheet.get("likes", [])
-    like_count           = len(likes)
+    sheet_class = make_sheet_class_string(sheet)
+    sheet_collections = get_user_collections_for_sheet(request.user.id, sheet_id) if sheet[
+                                                                                         "owner"] == request.user.id else None
+    displayed_collection = Collection().load({"slug": sheet["displayedCollection"]}) if sheet.get("displayedCollection",
+                                                                                                  None) else None
+    embed_flag = "embed" in request.GET
+    likes = sheet.get("likes", [])
+    like_count = len(likes)
     if request.user.is_authenticated:
-        can_edit_flag    = can_edit(request.user, sheet)
-        can_add_flag     = can_add(request.user, sheet)
-        viewer_is_liker  = request.user.id in likes
+        can_edit_flag = can_edit(request.user, sheet)
+        can_add_flag = can_add(request.user, sheet)
+        viewer_is_liker = request.user.id in likes
     else:
-        can_edit_flag    = False
-        can_add_flag     = False
-        viewer_is_liker  = False
+        can_edit_flag = False
+        can_add_flag = False
+        viewer_is_liker = False
 
     canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
-
-    return render_template(request,'sheets.html', None, {
+    add_sheet_data(request=request, title=sheet["title"], action_type='View', owner=sheet["owner"])
+    return render_template(request, 'sheets.html', None, {
         "sheetJSON": json.dumps(sheet),
         "sheet": sheet,
         "sheet_class": sheet_class,
@@ -239,12 +247,12 @@ def view_sheet(request, sheet_id, editorMode = False):
         "author": author,
         "is_owner": request.user.id == sheet["owner"],
         "sheet_collections": sheet_collections,
-        "displayed_collection":  displayed_collection,
+        "displayed_collection": displayed_collection,
         "like_count": like_count,
         "viewer_is_liker": viewer_is_liker,
         "current_url": request.get_full_path,
         "canonical_url": canonical_url,
-        "assignments_from_sheet":assignments_from_sheet(sheet_id),
+        "assignments_from_sheet": assignments_from_sheet(sheet_id),
     })
 
 
@@ -275,11 +283,11 @@ def view_visual_sheet(request, sheet_id):
     except User.DoesNotExist:
         author = "Someone Mysterious"
 
-    sheet_class     = make_sheet_class_string(sheet)
-    can_edit_flag   = can_edit(request.user, sheet)
-    can_add_flag    = can_add(request.user, sheet)
+    sheet_class = make_sheet_class_string(sheet)
+    can_edit_flag = can_edit(request.user, sheet)
+    can_add_flag = can_add(request.user, sheet)
 
-    return render_template(request,'sheets_visual.html', None, {
+    return render_template(request, 'sheets_visual.html', None, {
         "sheetJSON": json.dumps(sheet),
         "sheet": sheet,
         "sheet_class": sheet_class,
@@ -309,17 +317,17 @@ def assigned_sheet(request, assignment_id):
         if key in sheet:
             del sheet[key]
 
-    assigner             = UserProfile(id=sheet["owner"])
-    assigner_id	         = assigner.id
-    sheet_class          = make_sheet_class_string(sheet)
-    can_edit_flag        = True
-    can_add_flag         = can_add(request.user, sheet)
-    embed_flag           = "embed" in request.GET
-    likes                = sheet.get("likes", [])
-    like_count           = len(likes)
-    viewer_is_liker      = request.user.id in likes
+    assigner = UserProfile(id=sheet["owner"])
+    assigner_id = assigner.id
+    sheet_class = make_sheet_class_string(sheet)
+    can_edit_flag = True
+    can_add_flag = can_add(request.user, sheet)
+    embed_flag = "embed" in request.GET
+    likes = sheet.get("likes", [])
+    like_count = len(likes)
+    viewer_is_liker = request.user.id in likes
 
-    return render_template(request,'sheets.html', None, {
+    return render_template(request, 'sheets.html', None, {
         "sheetJSON": json.dumps(sheet),
         "sheet": sheet,
         "assignment_id": assignment_id,
@@ -332,7 +340,7 @@ def assigned_sheet(request, assignment_id):
         "is_owner": True,
         "is_public": sheet["status"] == "public",
         "sheet_collections": [],
-        "displayed_collection":  None,
+        "displayed_collection": None,
         "like_count": like_count,
         "viewer_is_liker": viewer_is_liker,
         "current_url": request.get_full_path,
@@ -380,7 +388,6 @@ def delete_sheet_api(request, sheet_id):
     except AuthorizationException as e:
         logger.warn("Failed to connect to elastic search server on sheet delete.")
 
-
     return jsonResponse({"status": "ok"})
 
 
@@ -402,6 +409,7 @@ def collections_api(request, slug=None):
         else:
             user_id = request.user.id
             return protected_collections_post_api(request, user_id, slug=slug)
+
 
 @csrf_protect
 @login_required
@@ -545,7 +553,7 @@ def collections_role_api(request, slug, uid, role):
         return jsonResponse({"error": "No collection with slug `{}`.".format(slug)})
     uid = int(uid)
     if request.user.id not in collection.admins:
-        if not (uid == request.user.id and role == "remove"): # non admins can remove themselves
+        if not (uid == request.user.id and role == "remove"):  # non admins can remove themselves
             return jsonResponse({"error": "You must be a collection owner to change contributor roles."})
     user = UserProfile(id=uid)
     if not user.exists():
@@ -553,7 +561,8 @@ def collections_role_api(request, slug, uid, role):
     if role not in ("member", "publisher", "admin", "remove"):
         return jsonResponse({"error": "Unknown collection contributor role."})
     if uid == request.user.id and collection.admins == [request.user.id] and role != "admin":
-        return jsonResponse({"error": _("Leaving this collection would leave it without any owners. Please appoint another owner before leaving, or delete the collection.")})
+        return jsonResponse({"error": _(
+            "Leaving this collection would leave it without any owners. Please appoint another owner before leaving, or delete the collection.")})
     if role == "remove":
         collection.remove_member(uid)
     else:
@@ -636,7 +645,8 @@ def save_sheet_api(request):
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"})
+                return jsonResponse(
+                    {"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
@@ -650,17 +660,17 @@ def save_sheet_api(request):
 
         if apikey:
             if "id" in sheet:
-                sheet["lastModified"] = get_sheet(sheet["id"])["dateModified"] # Usually lastModified gets set on the frontend, so we need to set it here to match with the previous dateModified so that the check in `save_sheet` returns properly
+                sheet["lastModified"] = get_sheet(sheet["id"])[
+                    "dateModified"]  # Usually lastModified gets set on the frontend, so we need to set it here to match with the previous dateModified so that the check in `save_sheet` returns properly
             user = User.objects.get(id=apikey["uid"])
         else:
             user = request.user
 
         if "id" in sheet:
             existing = get_sheet(sheet["id"])
-            if "error" not in existing  and \
-                not can_edit(user, existing) and \
-                not can_add(request.user, existing):
-
+            if "error" not in existing and \
+                    not can_edit(user, existing) and \
+                    not can_add(request.user, existing):
                 return jsonResponse({"error": "You don't have permission to edit this sheet."})
         else:
             existing = None
@@ -694,17 +704,19 @@ def bulksheet_api(request, sheet_id_list):
         cb = request.GET.get("callback", None)
         only_public = bool(int(request.GET.get("public", True)))
         sheet_id_list = [int(sheet_id) for sheet_id in set(sheet_id_list.split("|"))]
-        response = jsonResponse({s['sheet_id']: s for s in sheet_list_to_story_list(request, sheet_id_list, only_public)}, cb)
+        response = jsonResponse(
+            {s['sheet_id']: s for s in sheet_list_to_story_list(request, sheet_id_list, only_public)}, cb)
         return response
 
 
 @api_view(["GET"])
 def user_sheet_list_api(request, user_id, sort_by="date", limiter=0, offset=0):
-    sort_by  = sort_by if sort_by else "date"
-    limiter  = int(limiter) if limiter else 0
-    offset   = int(offset) if offset else 0
-    private  = int(user_id) == request.user.id
-    return jsonResponse(user_sheets(user_id, sort_by, private=private, limit=limiter, skip=offset), callback=request.GET.get("callback", None))
+    sort_by = sort_by if sort_by else "date"
+    limiter = int(limiter) if limiter else 0
+    offset = int(offset) if offset else 0
+    private = int(user_id) == request.user.id
+    return jsonResponse(user_sheets(user_id, sort_by, private=private, limit=limiter, skip=offset),
+                        callback=request.GET.get("callback", None))
 
 
 def sheet_api(request, sheet_id):
@@ -725,7 +737,7 @@ def sheet_api(request, sheet_id):
 
 def sheet_node_api(request, sheet_id, node_id):
     if request.method == "GET":
-        sheet_node = get_sheet_node(int(sheet_id),int(node_id))
+        sheet_node = get_sheet_node(int(sheet_id), int(node_id))
         return jsonResponse(sheet_node, callback=request.GET.get("callback", None))
 
     if request.method == "POST":
@@ -738,7 +750,7 @@ def check_sheet_modified_api(request, sheet_id, timestamp):
     If modified, return the new sheet.
     """
     sheet_id = int(sheet_id)
-    callback=request.GET.get("callback", None)
+    callback = request.GET.get("callback", None)
     last_mod = get_last_updated_time(sheet_id)
     if not last_mod:
         return jsonResponse({"error": "Couldn't find last modified time."}, callback)
@@ -775,15 +787,15 @@ def add_source_to_sheet_api(request, sheet_id):
         can further specify the origin or content of text for that ref.
 
     """
+
     def remove_footnotes(txt):
-        #removes all i tags that are of class "footnote" as well as the preceding "sup" tag
+        # removes all i tags that are of class "footnote" as well as the preceding "sup" tag
         soup = BeautifulSoup(txt, parser='lxml')
         for el in soup.find_all("i", {"class": "footnote"}):
             if el.previousSibling.name == "sup":
                 el.previousSibling.decompose()
             el.decompose()
         return bleach.clean(str(soup), tags=Version.ALLOWED_TAGS, attributes=Version.ALLOWED_ATTRS, strip=True)
-
 
     # Internal func that does the same thing for each language to get text for the source
     def get_correct_text_from_source_obj(source_obj, ref_obj, lang):
@@ -793,18 +805,20 @@ def add_source_to_sheet_api(request, sheet_id):
             del source_obj[lang]
             return lang_tc
         else:  # otherwise get the text chunk for the prvided ref, either with a version (if provided) or the default.
-            lang_tc = TextChunk(ref_obj, lang, source["version-"+lang]) if source.get("version-"+lang, None) else TextChunk(ref_obj, lang)
+            lang_tc = TextChunk(ref_obj, lang, source["version-" + lang]) if source.get("version-" + lang,
+                                                                                        None) else TextChunk(ref_obj,
+                                                                                                             lang)
             lang_tc = lang_tc.ja().flatten_to_string()
-            if "version-"+lang in source_obj:
-                del source_obj["version-"+lang]
+            if "version-" + lang in source_obj:
+                del source_obj["version-" + lang]
             return lang_tc if lang_tc != "" else "..."
 
     sheet = db.sheets.find_one({"id": int(sheet_id)})
     if not sheet:
         return {"error": "No sheet with id %s." % (id)}
     if sheet["owner"] != request.user.id:
-        return jsonResponse({"error": "User can only edit their own sheet" })
-    
+        return jsonResponse({"error": "User can only edit their own sheet"})
+
     source = json.loads(request.POST.get("source"))
     if not source:
         return jsonResponse({"error": "No source to copy given."})
@@ -830,6 +844,7 @@ def add_source_to_sheet_api(request, sheet_id):
 
     return jsonResponse(response)
 
+
 @login_required
 def copy_source_to_sheet_api(request, sheet_id):
     """
@@ -844,7 +859,7 @@ def copy_source_to_sheet_api(request, sheet_id):
     if not sheet:
         return {"error": "No sheet with id %s." % (id)}
     if sheet["owner"] != request.user.id:
-        return jsonResponse({"error": "User can only edit their own sheet" })
+        return jsonResponse({"error": "User can only edit their own sheet"})
     source = get_sheet_node(int(copy_sheet), int(copy_source))
     del source["node"]
     response = add_source_to_sheet(int(sheet_id), source)
@@ -869,7 +884,7 @@ def update_sheet_topics_api(request, sheet_id):
     API to update tags for sheet_id.
     """
     topics = json.loads(request.POST.get("topics"))
-    sheet = db.sheets.find_one({"id": int(sheet_id)}, {"topics":1})
+    sheet = db.sheets.find_one({"id": int(sheet_id)}, {"topics": 1})
     if sheet["owner"] != request.user.id:
         return jsonResponse({"error": "user can only add topics to their own sheet"})
     old_topics = sheet.get("topics", [])
@@ -886,7 +901,7 @@ def visual_sheet_api(request, sheet_id):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
     visualNodes = json.loads(request.POST.get("visualNodes"))
-    zoomLevel =  json.loads(request.POST.get("zoom"))
+    zoomLevel = json.loads(request.POST.get("zoom"))
     add_visual_data(int(sheet_id), visualNodes, zoomLevel)
     return jsonResponse({"status": "ok"})
 
@@ -931,7 +946,7 @@ def tag_list_api(request, sort_by="count"):
     """
     response = public_tag_list(sort_by)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -939,12 +954,13 @@ def user_tag_list_api(request, user_id):
     """
     API to retrieve the list of public tags ordered by count.
     """
-    #if int(user_id) != request.user.id:
-        #return jsonResponse({"error": "You are not authorized to view that."})
+    # if int(user_id) != request.user.id:
+    # return jsonResponse({"error": "You are not authorized to view that."})
     response = sheet_topics_counts({"owner": int(user_id)})
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=5"
     return response
+
 
 def trending_tags_api(request):
     """
@@ -952,14 +968,14 @@ def trending_tags_api(request):
     """
     response = trending_topics(ntags=18)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
 def all_sheets_api(request, limiter, offset=0):
-    limiter  = int(limiter)
-    offset   = int(offset)
-    lang     = request.GET.get("lang")
+    limiter = int(limiter)
+    offset = int(offset)
+    lang = request.GET.get("lang")
     filtered = request.GET.get("filtered", False)
     response = public_sheets(limit=limiter, skip=offset, lang=lang, filtered=filtered)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
@@ -996,11 +1012,11 @@ def sheet_list_to_story_list(request, sid_list, public=True):
 
 
 def story_form_sheets_by_tag(request, tag):
-    sheets   = get_sheets_by_topic(tag, public=True)
-    sheets   = [sheet_to_story_dict(request, s["id"]) for s in sheets]
+    sheets = get_sheets_by_topic(tag, public=True)
+    sheets = [sheet_to_story_dict(request, s["id"]) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -1008,11 +1024,11 @@ def sheets_by_tag_api(request, tag):
     """
     API to get a list of sheets by `tag`.
     """
-    sheets   = get_sheets_by_topic(tag, public=True)
-    sheets   = [sheet_to_dict(s) for s in sheets]
+    sheets = get_sheets_by_topic(tag, public=True)
+    sheets = [sheet_to_dict(s) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    response["Cache-Control"] = "max-age=5"
     return response
 
 
@@ -1024,10 +1040,12 @@ def sheets_by_ref_api(request, ref):
 
 
 def get_aliyot_by_parasha_api(request, parasha):
-    response = {"ref":[]};
+    response = {"ref": []};
 
     if parasha == "V'Zot HaBerachah":
-        return jsonResponse({"ref":["Deuteronomy 33:1-7","Deuteronomy 33:8-12","Deuteronomy 33:13-17","Deuteronomy 33:18-21","Deuteronomy 33:22-26","Deuteronomy 33:27-29","Deuteronomy 34:1-12"]}, callback=request.GET.get("callback", None))
+        return jsonResponse({"ref": ["Deuteronomy 33:1-7", "Deuteronomy 33:8-12", "Deuteronomy 33:13-17",
+                                     "Deuteronomy 33:18-21", "Deuteronomy 33:22-26", "Deuteronomy 33:27-29",
+                                     "Deuteronomy 34:1-12"]}, callback=request.GET.get("callback", None))
 
     else:
         p = db.parshiot.find({"parasha": parasha}, limit=1).sort([("date", 1)])
@@ -1096,8 +1114,9 @@ def resolve_options_of_sources(sheet):
     return sheet
 
 
-
-@gauth_required(scope=['openid', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'], ajax=True)
+@gauth_required(
+    scope=['openid', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'],
+    ajax=True)
 def export_to_drive(request, credential, sheet_id):
     """
     Export a sheet to Google Drive.
@@ -1123,9 +1142,9 @@ def export_to_drive(request, credential, sheet_id):
         resumable=True)
 
     new_file = service.files().create(body=file_metadata,
-                                        media_body=media,
-                                        fields='webViewLink').execute()
-        
+                                      media_body=media,
+                                      fields='webViewLink').execute()
+
     user_info = user_info_service.userinfo().get().execute()
 
     profile = UserProfile(id=request.user.id)
@@ -1133,6 +1152,7 @@ def export_to_drive(request, credential, sheet_id):
     profile.save()
 
     return jsonResponse(new_file)
+
 
 @catch_error_as_json
 def upload_sheet_media(request):
@@ -1151,7 +1171,8 @@ def upload_sheet_media(request):
         img_file_in_mem = BytesIO(base64.b64decode(request.POST.get('file')))
 
         if imghdr.what(img_file_in_mem) == "gif":
-            img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"{request.user.id}-{uuid.uuid1()}.gif", bucket_name)
+            img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"{request.user.id}-{uuid.uuid1()}.gif",
+                                                       bucket_name)
 
         else:
             im = Image.open(img_file_in_mem)
@@ -1160,7 +1181,9 @@ def upload_sheet_media(request):
             im.save(img_file, format=im.format)
             img_file.seek(0)
 
-            img_url = GoogleStorageManager.upload_file(img_file, f"{request.user.id}-{uuid.uuid1()}.{im.format.lower()}", bucket_name)
+            img_url = GoogleStorageManager.upload_file(img_file,
+                                                       f"{request.user.id}-{uuid.uuid1()}.{im.format.lower()}",
+                                                       bucket_name)
 
         return jsonResponse({"url": img_url})
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -1172,8 +1195,8 @@ def next_untagged(request):
     from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
-    if("sheetId" in body):
-       update_sheet_tags_categories(body, request.user.id)
+    if ("sheetId" in body):
+        update_sheet_tags_categories(body, request.user.id)
     return jsonResponse(get_sheet_categorization_info("topics", body['skipIds']))
 
 
@@ -1183,7 +1206,6 @@ def next_uncategorized(request):
     from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
-    if("sheetId" in body):
-       update_sheet_tags_categories(body, request.user.id)
+    if ("sheetId" in body):
+        update_sheet_tags_categories(body, request.user.id)
     return jsonResponse(get_sheet_categorization_info("categories", body['skipIds']))
-

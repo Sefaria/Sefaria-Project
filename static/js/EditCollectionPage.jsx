@@ -111,8 +111,8 @@ class EditCollectionPage extends Component {
   save() {
     var collectionData = Sefaria.util.clone(this.state);
 
-    if (collectionData["headerUrl"] == "/static/img/loading.gif") { collectionData["headerUrl"] = null; }
-    if (collectionData["imageUrl"] == "/static/img/loading.gif") { collectionData["imageUrl"] = null; }
+    if (collectionData["headerUrl"] === "/static/img/loading.gif") { collectionData["headerUrl"] = null; }
+    if (collectionData["imageUrl"] === "/static/img/loading.gif") { collectionData["imageUrl"] = null; }
 
     $.post("/api/collections", {json: JSON.stringify(collectionData)}, function(data) {
         if ("error" in data) {

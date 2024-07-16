@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-
+{% load i18n %}
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}Discuss a Text on Sefaria{% endblock %}
+{% block title %}{% trans "Discuss a Text on Sefaria" %}{% endblock %}
 
 {% block content %}
 
@@ -11,11 +11,11 @@
 
     <span class="row">
         <span class="span12">
-            <h1>Discuss a Text on Sefaria</h1>
+            <h1>{% trans "Discuss a Text on Sefaria" %}</h1>
         </span>
         <span class="span6 offset3">
             <div class="alert alert-error">
-                This is an <b>EXPERIMENTAL</b> feature. Please try it out and let us know what is <b>exciting</b> and what is <b>frustrating</b> about it!
+                {% trans "This is an <b>EXPERIMENTAL" %}</b>{% trans " feature. Please try it out and let us know what is" %} <b>{% trans "exciting" %}</b>{% trans " and what is" %} <b>{% trans "frustrating" %}</b>{% trans " about it!" %}
                 <a href="mailto:hello@sefaria.org" target="_blank" class="btn btn-mini">Send us Feedback</a>
             </div>
         </span>
@@ -23,31 +23,22 @@
 
     <span class="row">
         <span class="span6">
-            <h2>Choose a Text</h2>
+            <h2>{% trans "Choose a Text" %}</h2>
             <!--<span class="btn btn-large btn-primary">Browse</span>-->
             <div id="chooseText"></div>
         </span>
         <span class="span5">
-            <h2>Start a Discussion</h2>
+            <h2>{% trans "Start a Discussion" %}</h2>
 
-            <div>Anyone with the link below will be able to view and participate.</div>
+            <div>{% trans "Anyone with the link below will be able to view and participate." %}</div>
             <!--<i id="discussLinkIcon" class="fa fa-link"></i> -->
             <input id="discussLink" placeholder="choose a text to get your link" />
             <br><br>
-            <a id="goLink" class='btn btn-large btn-primary' href='#'>Get Started</a>
+            <a id="goLink" class='btn btn-large btn-primary' href='#'>{% trans "Get Started" %}</a>
             <br><br>
-            <!--
-            <div class="shareBox addthis_toolbox addthis_default_style addthis_32x32_style">
-                <a class="addthis_button_facebook"></a>
-                <a class="addthis_button_twitter"></a>
-                <a class="addthis_button_google_plusone_share"></a>
-                <a class="addthis_button_gmail"></a>
-                <a class="addthis_button_email"></a>
-            </div>
-            -->
             {% if discussions|length %}
             <div>
-            <h3>Your Discussions</h3>
+            <h3>{% trans "Your Discussions" %}</h3>
             {% for discussion in discussions %}
                 <div class="discussion">
                     {{ discussion|discussion_link }}
@@ -61,7 +52,7 @@
     </span>
 </div>
 
-{% include "elements/login_prompt.html" with msg="Please login to Start a Discussion." %}
+{% include "elements/login_prompt.html" with msg={% trans "Please login to Start a Discussion." %} %}
 
 {% endblock %}
 

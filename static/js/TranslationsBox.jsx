@@ -125,7 +125,7 @@ const TranslationsHeader = () => (
         <EnglishText>Pecha acquires translations to enrich your learning experience. Preview or choose a different translation below.</EnglishText>
         <HebrewText>དཔེ་ཆ་དྲ་ཚིག་གིས་འགྱུར་མ་ཁག་བཟོས་ཏེ་སྦྱོང་ཡག་ལ་རོག་རམ་བྱེད་ཐུབ་ གཤམ་འོག་ལ་སྐད་ཡིག་གཞན་འདེམ་རོགས་།</HebrewText>
       </InterfaceText>
-      <a href="/sheets/511573" target="_blank" className="inTextLink">
+      <a href="/sheets/36" target="_blank" className="inTextLink">
         <InterfaceText>
           <EnglishText>Learn more ›</EnglishText>
           <HebrewText> མུ་མཐུད་གཟིགས་་ ›</HebrewText>

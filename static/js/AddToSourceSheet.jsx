@@ -33,7 +33,7 @@ class AddToSourceSheetBox extends Component {
     this.loadSheets();
   }
   componentDidUpdate(prevProps, prevState) {
-    if (!prevProps.srefs.compare(this.props.srefs) || prevProps.nodeRef !=this.props.nodeRef) {
+    if (!prevProps.srefs.compare(this.props.srefs) || prevProps.nodeRef !==this.props.nodeRef) {
       this.setState({showConfirm: false});
     }
   }
@@ -51,11 +51,11 @@ class AddToSourceSheetBox extends Component {
   setDefaultSheet() {
     if (this.state.selectedSheet) { return; }
     if (!Sefaria._uid) {
-        this.setState({selectedSheet: {title: "Your Sheet"}});
+        this.setState({selectedSheet: {title: Sefaria._( "Your Sheet")}});
     } else {
       var sheets = Sefaria.sheets.userSheets(Sefaria._uid);
       if (!sheets.length) {
-        this.setState({selectedSheet: {title: "Create a New Sheet"}});
+        this.setState({selectedSheet: {title: Sefaria._( "Create a New Sheet")}});
       } else {
         this.setState({selectedSheet: sheets[0]});
       }
@@ -116,7 +116,7 @@ class AddToSourceSheetBox extends Component {
         // If something is highlighted and main panel language is not bilingual:
         // Use passed in language to determine which version this highlight covers.
         var selectedWords = this.props.selectedWords; //if there was highlighted single panel
-        if (selectedWords && language != "bilingual") {
+        if (selectedWords && language !== "bilingual") {
           source[language.slice(0,2)] = selectedWords;
         }
       }
@@ -133,7 +133,7 @@ class AddToSourceSheetBox extends Component {
     for (let i = 0; i < refs.length; i++) {
       let ref = Sefaria.getRefFromCache(refs[i]);
       if (ref && (Sefaria.isFullSegmentImage(ref.he) || Sefaria.isFullSegmentImage(ref.text))) {
-        alert("We do not currently support adding images to source sheets.");
+        alert(Sefaria._( "We do not currently support adding images to source sheets."));
         return false;
       }
     }
@@ -178,8 +178,8 @@ class AddToSourceSheetBox extends Component {
         disallowedTagsMode: 'discard',
       });
       let titleRetval = {
-        "en": `${sheetTitle}, Section #${nodeID}`,
-        "he": `${sheetTitle}, סעיף ${nodeID}`
+        "en": `${sheetTitle} ${Sefaria._("Section")}${nodeID}`,
+        "he": `${sheetTitle} ${Sefaria._("Section")}${nodeID}`
       }
       if (refTitles){ //show the refs also of a source, just to be nice
         titleRetval["en"] += `(${refTitles["en"]})`;
@@ -201,7 +201,7 @@ class AddToSourceSheetBox extends Component {
     const titleRef = this.makeTitleRef();
     const sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     let sheetsList = Sefaria._uid && sheets ? sheets.map((sheet) => {
-      let classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
+      let classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id === sheet.id});
       let title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled Source Sheet");
       let selectSheet = this.selectSheet.bind(this, sheet);
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
@@ -211,20 +211,20 @@ class AddToSourceSheetBox extends Component {
     return (
       <div className="addToSourceSheetBox noselect">
         <div className="addToSourceSheetBoxTitle sans-serif">
-          <span className="int-en">Selected Citation</span>
-          <span className="int-he">מקור להוספה</span>
+          <span className="int-en">{ Sefaria._("Selected Citation")}</span>
+          <span className="int-he">{ Sefaria._("Selected Citation")}</span>
         </div>
         <div className="selectedRef">
           <span className="en">{titleRef["en"]}</span>
           <span className="he">{titleRef["he"]}</span>
         </div>
         <div className="addToSourceSheetBoxTitle sans-serif">
-          <span className="int-en">Add to</span>
-          <span className="int-he">יעד להוספה</span>
+          <span className="int-en">{ Sefaria._("Add to")} </span>
+          <span className="int-he">{ Sefaria._("Add to")} </span>
         </div>
         <div className="dropdown">
           <div className={`dropdownMain noselect ${this.state.sheetListOpen ? "open" : ""}`} onClick={this.toggleSheetList}>
-            {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("Untitled Source Sheet") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}          </div>
+            {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("Untitled Source Sheet") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage={Sefaria._("Loading your sheets")}  heMessage={Sefaria._("Loading your sheets")}/>}          </div>
           {this.state.sheetListOpen ?
           <div className="dropdownListBox noselect">
             <div className="dropdownList noselect">
@@ -233,16 +233,16 @@ class AddToSourceSheetBox extends Component {
             <div className="newSheet noselect">
               <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")}/>
               <div className="button small noselect" onClick={this.createSheet} >
-                <span className="int-en">Create</span>
-                <span className="int-he">יצירה</span>
+                <span className="int-en">{ Sefaria._("Create")} </span>
+                <span className="int-he">{ Sefaria._("Create")}</span>
               </div>
              </div>
           </div>
           : null}
         </div>
         <div className="button noselect fillWidth" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet}>
-          <span className="int-en noselect">Add to Sheet</span>
-          <span className="int-he noselect">הוספה לדף המקורות</span>
+          <span className="int-en noselect">{ Sefaria._("Add to Sheet")}</span>
+          <span className="int-he noselect">{ Sefaria._("Add to Sheet")}</span>
         </div>
       </div>);
   }
@@ -273,20 +273,20 @@ class ConfirmAddToSheet extends Component {
         disallowedTagsMode: 'discard',
       });
       srefTitles = {
-        "en": `Section from "${sheetTitle}"`,
-        "he": `הקטע מתוך  "${sheetTitle}"`,
+        "en": `${Sefaria._("Section from")} "${sheetTitle}"`,
+        "he": `${Sefaria._("Section from")} "${sheetTitle}"`,
       };
     }
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
                 <span className="int-en">
                   <a href={sref}>{srefTitles["en"]}</a>
-                  &nbsp;has been added to&nbsp;
+                  &nbsp;{Sefaria._("has been added to")}&nbsp;
                    <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
                 </span>
                 <span className="int-he">
                   <a href={sref}>{srefTitles["he"]}</a>
-                   &nbsp;נוסף בהצלחה לדף המקורות&nbsp;
+                   &nbsp;{Sefaria._("has been added to")}&nbsp;
                   <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
                 </span>
               </div>
@@ -313,7 +313,7 @@ class AddToSourceSheetWindow extends Component {
       <div className="sourceSheetBoxTitle">
         <img src="/static/icons/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
         {Sefaria._uid ? null : <span>
-            In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
+           {Sefaria._("In order to add this source to a sheet, please ")} <a href={"/login" + nextParam}> {Sefaria._("log in")} </a>
         </span>}
         <div className="clearFix"></div>
       </div>

@@ -13,7 +13,7 @@ from django.utils.translation import ugettext as _
 from . import abstract as abst
 from sefaria.model.user_profile import public_user_data
 from sefaria.system.exceptions import InputError
-from sefaria.utils import hebrew
+from sefaria.utils.tibetan import has_tibetan
 
 class Collection(abst.AbstractMongoRecord):
     """
@@ -168,7 +168,7 @@ class Collection(abst.AbstractMongoRecord):
         return list(set(names))
 
     def primary_name(self, lang):
-        return self.name if (hebrew.has_hebrew(self.name) == (lang == "he")) else None
+        return self.name if (has_tibetan(self.name) == (lang == "he")) else None
 
     def contents(self, with_content=False, authenticated=False):
         from sefaria.sheets import sheet_topics_counts

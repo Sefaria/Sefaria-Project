@@ -97,6 +97,6 @@ em { font-style: italic; }
 #extended { margin: 2em 0; }
 #extended label { text-decoration: underline; }
 #yahoo { width: 7em; }
-#right, #right2 { text-align: right; }
+#right, #right2 { text-align: left; }
 #tooltip.right { width: 250px; }
 #fancy2 { float: right; }

@@ -27,7 +27,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
       </div>
     );
   });
-  const letter = Sefaria.interfaceLang === "hebrew" ? "א" : "a";
+  const letter = Sefaria.interfaceLang === "hebrew" ? "ཀ" : "a";
   categoryListings.push(
     <div className="navBlock">
       <a href={"/topics/all/" + letter} className="navBlockTitle">

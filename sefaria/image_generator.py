@@ -144,7 +144,7 @@ def make_img_http_response(text, category, ref_str, lang, platform):
         print(e)
         height = platforms[platform]["height"]
         width = platforms[platform]["width"]
-        img = Image.new('RGBA', (width, height), color="#18345D")
+        img = Image.new('RGBA', (width, height), color="#b5343c")
         logo = Image.open("static/img/logo-white.png")
         logo.thumbnail((400, 400))
         logo_padded = Image.new('RGBA', (width, height))

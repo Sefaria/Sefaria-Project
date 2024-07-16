@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_container
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata6:/data/db
+  db-local:
+    image: postgres:14-alpine
+    container_name: pecha-container
+    restart: always
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=sefaria
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./data/db-local:/var/lib/postgresql/data
+volumes:
+  dbdata6:

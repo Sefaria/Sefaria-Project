@@ -8,26 +8,24 @@ import React, {useState, useRef} from "react";
 const displayOptionForSources = (child) => {
     if (Sefaria.interfaceLang === 'english') {
         return child?.descriptions?.en ? `${child?.descriptions?.en?.title} - ${child.ref}` : child.ref;
-    }
-    else {
+    } else {
         const refInCache = Sefaria.getRefFromCache(child.ref);
         const displayRef = refInCache ? refInCache.heRef : child.ref;
         return child?.descriptions?.he ? `${child?.descriptions?.he?.title} - ${displayRef}` : displayRef;
     }
 }
-const displayOptions = {"cats": (child) => child.title || child.category,
-                        "topics": (child) => child.en,
-                        "sources": (child) => displayOptionForSources(child)};
-const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentChangedStatus=null}) => {
+const displayOptions = {
+    "cats": (child) => child.title || child.category,
+    "topics": (child) => child.en,
+    "sources": (child) => displayOptionForSources(child)
+};
+const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentChangedStatus = null}) => {
     const clickHandler = (dir, child) => {
         const index = subcategoriesAndBooks.indexOf(child);
         let index_to_swap = -1;
-        if (dir === 'down' && index < subcategoriesAndBooks.length - 1)
-        {
+        if (dir === 'down' && index < subcategoriesAndBooks.length - 1) {
             index_to_swap = index + 1;
-        }
-        else if (dir === 'up' && index > 0)
-        {
+        } else if (dir === 'up' && index > 0) {
             index_to_swap = index - 1;
         }
         if (index_to_swap >= 0) {
@@ -43,14 +41,14 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentC
 
     return subcategoriesAndBooks.map((child, i) => {
         return <div id={`reorder-${i}`} className="reorderTool">
-                    <div id="title">{displayOptions[displayType](child)}</div>
-                    <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)}/>
-                    <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)}/>
-              </div>;
-        })
+            <div id="title">{displayOptions[displayType](child)}</div>
+            <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)}/>
+            <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)}/>
+        </div>;
+    })
 }
 
-const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}) => {
+const ReorderEditor = ({close, type = "", postURL = "", redirect = "", origItems = []}) => {
     /*
     Wrapper for Reorder that allows a full-screen view of `origItems` elements to be reordered.
     This is currently used when admin edits the root of the topic TOC or category TOC, as well
@@ -65,9 +63,8 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
     }
     const validate = () => {
         if (!isChanged) {
-            alert("You haven't reordered the categories.")
-        }
-        else {
+            alert(Sefaria._("You haven't reordered the categories."))
+        } else {
             save();
         }
     }
@@ -77,35 +74,40 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
         if (type === "cats") {
             // use displayOptions to map toc objects to titles of category/book
             postCategoryData = {subcategoriesAndBooks: tocItems.map(x => displayOptions["cats"](x)), path: []};
-        }
-        else if (type === "topics") {
-             postCategoryData = {topics: tocItems};
-        }
-        else if (type === 'sources') {
+        } else if (type === "topics") {
+            postCategoryData = {topics: tocItems};
+        } else if (type === 'sources') {
             postCategoryData = {sources: tocItems};
         }
-        requestWithCallBack({url: postURL, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = redirect})
+        requestWithCallBack({
+            url: postURL,
+            data: postCategoryData,
+            setSavingStatus,
+            redirect: () => window.location.href = redirect
+        })
     }
     return <div className="editTextInfo">
-            <div className="static">
-                <div className="inner">
-                    {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
-                    <div id="newIndex">
-                        <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
-                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={update} displayType={type}/>
-                    </div>
+        <div className="static">
+            <div className="inner">
+                {savingStatus ? <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
+                <div id="newIndex">
+                    <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
+                    <Reorder subcategoriesAndBooks={tocItems} updateOrder={update} displayType={type}/>
                 </div>
             </div>
+        </div>
     </div>
 }
 
-const CategoryEditor = ({origData={}, close, origPath=[]}) => {
+const CategoryEditor = ({origData = {}, close, origPath = []}) => {
     const [path, setPath] = useState(origPath);
-    const [data, setData] = useState({enTitle: origData.origEn,
-                                heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he || "",
-                                enDescription: origData?.origDesc?.en || "",
-                                enCategoryDescription: origData?.origCategoryDesc?.en,
-                                heCategoryDescription: origData?.origCategoryDesc?.he});
+    const [data, setData] = useState({
+        enTitle: origData.origEn,
+        heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he || "",
+        enDescription: origData?.origDesc?.en || "",
+        enCategoryDescription: origData?.origCategoryDesc?.en,
+        heCategoryDescription: origData?.origCategoryDesc?.he
+    });
     const [isNew, setIsNew] = useState(origData?.origEn === "");
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
@@ -113,19 +115,19 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const origSubcategoriesAndBooks = useRef((Sefaria.tocItemsByCategories([...origPath, origData.origEn]) || []));
     const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState([...origSubcategoriesAndBooks.current]);
 
-    const handlePrimaryClick = function(type, status) {
+    const handlePrimaryClick = function (type, status) {
         setIsPrimary(status);
         setChanged(true);
     }
 
     const populateCatMenu = (update) => (
         <div className="section">
-            <label><InterfaceText>Parent Category</InterfaceText></label>
+            <label><InterfaceText>{Sefaria._("Parent Category")} </InterfaceText></label>
             <CategoryChooser categories={path} update={update}/>
         </div>
     )
 
-    const updateCatMenu = function(newPath) {
+    const updateCatMenu = function (newPath) {
         if (newPath !== path && !changed) {
             setChanged(true);
         }
@@ -134,20 +136,20 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
     let catMenu = populateCatMenu(updateCatMenu);
 
-    const updateData = function(newData) {
+    const updateData = function (newData) {
         setChanged(true);
         setData(newData);
     }
 
     const validate = async function () {
         if (!changed) {
-            alert("Please change one of the fields before saving.");
+            alert(Sefaria._("Please change one of the fields before saving."));
             return false;
         }
 
         if (data.enTitle.length === 0) {
-          alert(Sefaria._("Title must be provided."));
-          return false;
+            alert(Sefaria._("Title must be provided."));
+            return false;
         }
         await save();
     }
@@ -187,48 +189,60 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         if (urlParams.length > 0) {
             url += `?${urlParams.join('&')}`;
         }
-        requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
+        requestWithCallBack({
+            url,
+            data: postCategoryData,
+            setSavingStatus,
+            redirect: () => window.location.href = "/texts/" + fullPath
+        });
     }
 
 
-    const deleteObj = function() {
+    const deleteObj = function () {
         if (subcategoriesAndBooks.length > 0) {
-            alert("Cannot delete a category with contents.");
+            alert(Sefaria._("Cannot delete a category with contents."));
             return;
         }
         const url = `/api/category/${origPath.concat(origData.origEn).join("/")}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
     }
     const primaryOptions = [
-                          {name: "true",   content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True") },
-                          {name: "false", content: Sefaria._("False"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to False") },
-                        ];
+        {name: "true", content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True")},
+        {
+            name: "false",
+            content: Sefaria._("False"),
+            role: "radio",
+            ariaLabel: Sefaria._("Set Primary Status to False")
+        },
+    ];
     const items = ["Title", "Hebrew Title", "English Description", "Hebrew Description",
-                    "Category Menu", "English Short Description", "Hebrew Short Description"];
+        "Category Menu", "English Short Description", "Hebrew Short Description"];
     return <div>
-        <AdminEditor title="Category Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
-                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items} path={path}
-                extras={
-                    [isNew ? null :
-                        <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged}
-                                 updateOrder={setSubcategoriesAndBooks} displayType="cats"/>,
-                         <div className="section">
-                             <br/>
-                            <label>
-                            <InterfaceText>{Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}</InterfaceText>
-                            </label>
-                            <ToggleSet
-                              blueStyle={true}
-                              ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
-                              label=""
-                              name="primary"
-                              separated={false}
-                              options={primaryOptions}
-                              setOption={handlePrimaryClick}
-                              currentValue={isPrimary} />
-                         </div>,
-                        ]
-                }/>
+        <AdminEditor title={Sefaria._("Category Editor")} close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
+                     validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items}
+                     path={path}
+                     extras={
+                         [isNew ? null :
+                             <Reorder subcategoriesAndBooks={subcategoriesAndBooks}
+                                      updateParentChangedStatus={setChanged}
+                                      updateOrder={setSubcategoriesAndBooks} displayType="cats"/>,
+                             <div className="section">
+                                 <br/>
+                                 <label>
+                                     <InterfaceText>{Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}</InterfaceText>
+                                 </label>
+                                 <ToggleSet
+                                     blueStyle={true}
+                                     ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
+                                     label=""
+                                     name="primary"
+                                     separated={false}
+                                     options={primaryOptions}
+                                     setOption={handlePrimaryClick}
+                                     currentValue={isPrimary}/>
+                             </div>,
+                         ]
+                     }/>
 
     </div>;
 }

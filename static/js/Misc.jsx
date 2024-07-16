@@ -171,7 +171,7 @@ class ProfilePic extends Component {
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
       if (!e.target.files[0].type.startsWith('image/')) {
-        this.setState({ error: "Error: Please upload an image with the correct file extension (e.g. jpg, png)"});
+        this.setState({ error: Sefaria._("file_error_message")});
         return;
       }
       const reader = new FileReader();
@@ -302,8 +302,8 @@ class ProfilePic extends Component {
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
-                <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-                <span className="int-he">{ showDefault ? "འདྲ་པར་སྣོན།" : "གསར་པ་ནང་འཇུག་བྱོས།" }</span>
+                <span className="int-en">{ showDefault ? Sefaria._("Add Picture") : Sefaria._("Upload New") }</span>
+                <span className="int-he">{ showDefault ? Sefaria._("Add Picture") : Sefaria._("Upload New") }</span>
               </label>
             </div>) : null
           }
@@ -327,17 +327,17 @@ class ProfilePic extends Component {
               { (uploading || isFirstCropChange) ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
                 <div>
                   <div className="smallText profile-pic-cropper-desc">
-                    <span className="int-en">Drag corners to crop image</span>
-                    <span className="int-he">לחיתוך התמונה, גרור את הפינות</span>
+                    <span className="int-en">{ Sefaria._("Drag corners to crop image") }</span>
+                    <span className="int-he">{ Sefaria._("Drag corners to crop image") }</span>
                   </div>
                   <div className="profile-pic-cropper-button-row">
                     <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
-                      <span className="int-en">Cancel</span>
-                      <span className="int-he">בטל</span>
+                      <span className="int-en">{ Sefaria._("Cancel") }</span>
+                      <span className="int-he">{ Sefaria._("Cancel") }</span>
                     </a>
                     <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
-                      <span className="int-en">Save</span>
-                      <span className="int-he">שמור</span>
+                      <span className="int-en">{ Sefaria._("Save") }</span>
+                      <span className="int-he">{ Sefaria._("Save") }</span>
                     </a>
                   </div>
                 </div>
@@ -473,8 +473,8 @@ const FilterableList = ({
               <DropdownButton
                 isOpen={displaySort}
                 toggle={()=>setDisplaySort(prev => !prev)}
-                enText={"Sort"}
-                heText={"מיון"}
+                enText={ Sefaria._("Sort") }
+                heText={ Sefaria._("Sort") }
               />
               <DropdownOptionList
                 isOpen={displaySort}
@@ -631,11 +631,11 @@ class DropdownOptionList extends Component {
               this.props.options.map( (option, iSortTypeObj) => {
                 const tempClasses = classNames({'filter-title': 1, unselected: this.props.currOptionSelected !== option.type});
                 return (
-                  <tr key={option.type} className={tempClasses} onClick={()=>{ this.props.handleClick(option.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => {e.charCode == 13 ? this.props.handleClick(option.type) : null}} aria-label={`Sort by ${option.name}`}>
+                  <tr key={option.type}  className={tempClasses} onClick={()=>{ this.props.handleClick(option.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => {e.charCode == 13 ? this.props.handleClick(option.type) : null}} aria-label={`Sort by ${option.name}`}>
                     <td>
                       <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`}/>
                     </td>
-                    <td className="dropdown-option-list-label">
+                    <td className="dropdown-option-list-label" style={{padding:"15px 15px 15px 0"}}>
                       <span className="int-en">{option.name}</span>
                       <span className="int-he" dir="ltr">{option.heName}</span>
                     </td>
@@ -1311,7 +1311,7 @@ class MenuButton extends Component {
   render() {
     var isheb = Sefaria.interfaceLang == "hebrew";
     var icon = this.props.compare ? (isheb ?
-      <i className="fa fa-chevron-right"></i> : <i className="fa fa-chevron-left"></i>) :
+      <i className="fa fa-chevron-left"></i> : <i className="fa fa-chevron-left"></i>) :
         (<i className="fa fa-bars"></i>);
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}>{icon}</span>);
   }
@@ -1643,7 +1643,7 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
             <label>
               <span className="optional"><InterfaceText>Please use horizontal, square, or only-slightly-vertical images for best results.</InterfaceText></span>
             </label>
-            <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
+            <div role="button" title={ Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
               <label htmlFor="addImageFileSelector">
                 <div className="button extraSmall blue control-elem" tabIndex="0" role="button">
                       <InterfaceText>Upload Picture</InterfaceText>
@@ -1757,7 +1757,7 @@ const SheetListing = ({
     }
   };
 
-  const title = sheet.title ? sheet.title.stripHtmlConvertLineBreaks() : "Untitled Source Sheet";
+  const title = sheet.title ? sheet.title.stripHtmlConvertLineBreaks() : Sefaria._("Untitled Source Sheet");
 
   const viewsIcon = sheet.public ?
     <div className="sheetViews sans-serif"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
@@ -1983,16 +1983,16 @@ class LoginPrompt extends Component {
     return (
       <div className="loginPrompt">
         <div className="loginPromptMessage">
-          <span className="int-en">Please log in to use this feature.</span>
-          <span className="int-he">ཁྱད་ཆོས་འདི་བེད་སྤྱོད་གཏོང་ཆེད་ནང་འཛུལ་བྱེད་རོགས།</span>
+          <span className="int-en">{ Sefaria._("Please log in to use this feature.")}</span>
+          <span className="int-he">{ Sefaria._("Please log in to use this feature.")}</span>
         </div>
         <a className="button" href={"/login" + nextParam}>
-          <span className="int-en">Log In</span>
-          <span className="int-he">ནང་འཛུལ།</span>
+          <span className="int-en">{ Sefaria._("Log In")}</span>
+          <span className="int-he">{ Sefaria._("Log In")}</span>
         </a>
         <a className="button" href={"/register" + nextParam}>
-          <span className="int-en">Sign Up</span>
-          <span className="int-he">ཞུགས་ཐོ་གསར་འགོད།</span>
+          <span className="int-en">{ Sefaria._("Sign Up")}</span>
+          <span className="int-he">{ Sefaria._("Sign Up")}</span>
         </a>
       </div>);
   }
@@ -2032,8 +2032,8 @@ class SignUpModal extends Component {
               <InterfaceText>Sign Up</InterfaceText>
             </a>
             <div className="sefariaModalBottomContent">
-              <InterfaceText>Already have an account?</InterfaceText>&nbsp;
-              <a href={"/login" + nextParam}><InterfaceText>Sign in</InterfaceText></a>
+              <InterfaceText>{ Sefaria._("Already have an account?")} </InterfaceText>&nbsp;
+              <a href={"/login" + nextParam}><InterfaceText>{ Sefaria._("Sign in")}</InterfaceText></a>
             </div>
           </div>
         </div>
@@ -2557,8 +2557,8 @@ Dropdown.propTypes = {
 
 class LoadingMessage extends Component {
   render() {
-    var message = this.props.message || "Loading...";
-    var heMessage = this.props.heMessage || "ཏོག་ཙམ་སྒུག་རོགས།...";
+    var message = this.props.message ||  Sefaria._("Loading...") ;
+    var heMessage = this.props.heMessage || Sefaria._("Loading...");
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
     return (<div className={classes}>
               <InterfaceText>
@@ -2684,15 +2684,15 @@ class FeedbackBox extends Component {
     if (this.state.feedbackSent) {
         return (
             <div className="feedbackBox sans-serif">
-                <p className="int-en">Feedback sent!</p>
-                <p className="int-he">משוב נשלח!</p>
+                <p className="int-en">{ Sefaria._("Feedback sent")}</p>
+                <p className="int-he">{ Sefaria._("Feedback sent")} </p>
             </div>
         )
     }
     return (
         <div className="feedbackBox sans-serif">
-            <p className="int-en">Have some feedback? We would love to hear it.</p>
-            <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
+            <p className="int-en">{ Sefaria._("Have some feedback? We would love to hear it.") }  </p>
+            <p className="int-he">{ Sefaria._("Have some feedback? We would love to hear it.") } </p>
 
             {this.state.alertmsg ?
                 <div>
@@ -2724,8 +2724,8 @@ class FeedbackBox extends Component {
                 : null }
 
              <div className="button" role="button" onClick={() => this.sendFeedback()}>
-                 <span className="int-en">Submit</span>
-                 <span className="int-he">שליחה</span>
+                 <span className="int-en"> {Sefaria._("Submit")}</span>
+                 <span className="int-he">{Sefaria._("Submit")}</span>
              </div>
         </div>
     );
@@ -2782,14 +2782,12 @@ class CookiesNotification extends Component {
       <div className="cookiesNotification">
 
           <span className="int-en">
-            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
-            <span className='int-en button small white' onClick={this.setCookie}>OK</span>
+            <span>{ Sefaria._("We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.") }<a href="/privacy-policy">{ Sefaria._("Learn More") }</a>.</span>
+            <span className='int-en button small white' onClick={this.setCookie}>{ Sefaria._("OK") }</span>
           </span>
           <span className="int-he">
-            <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
-              <a href="/privacy-policy">קראו עוד בנושא</a>
-            </span>
-            <span className='int-he button small white' onClick={this.setCookie}>לחצו כאן לאישור</span>
+            <span>{ Sefaria._("We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.") }<a href="/privacy-policy">{ Sefaria._("Learn More") }</a></span>
+            <span className='int-he button small white' onClick={this.setCookie}>{ Sefaria._("OK") }</span>
           </span>
 
        </div>
@@ -2816,7 +2814,7 @@ const CommunityPagePreviewControls = ({date}) => {
 
   return (
     <div id="communityPagePreviewControls">
-      <InterfaceText>You are previewing the Community page for </InterfaceText>
+      <InterfaceText> { Sefaria._("You are previewing the Community page for")} </InterfaceText>
       <a className="date" href={"/admin/community-preview?date=" + date}>
         <InterfaceText>{date}</InterfaceText>
       </a>
@@ -2893,10 +2891,10 @@ const AdminToolHeader = function({title, validate, close}) {
               </h1>
               <div className="end">
                 <a onClick={close} id="cancel" className="button small transparent control-elem">
-                  <InterfaceText>Cancel</InterfaceText>
+                  <InterfaceText>{ Sefaria._("Cancel")}</InterfaceText>
                 </a>
                 <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
-                  <InterfaceText>Save</InterfaceText>
+                  <InterfaceText>{ Sefaria._("Save")}</InterfaceText>
                 </div>
               </div>
             </div>
@@ -2955,7 +2953,7 @@ const CategoryChooser = function({categories, update}) {
           {menus.map((menu, index) =>
             <div className="categoryChooserMenu">
               <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
-              <option key="chooseCategory" value="Choose a category">Table of Contents</option>
+              <option key="chooseCategory" value="Choose a category">{ Sefaria._("Table of Contents")} </option>
               {menu}
               </select>
             </div>)}
@@ -2985,7 +2983,7 @@ const TitleVariants = function({titles, update, options}) {
   const onTitleValidate = function (title) {
     const validTitle = titles.every((item) => item.name !== title.name);
     if (!validTitle) {
-      alert(title.name+" already exists.");
+      alert(title.name+  Sefaria._(" already exists."))
     }
     return validTitle;
   }
@@ -3187,7 +3185,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
                       className={classNames({'textPreviewSegment': 1, highlight: segment.highlight, heOnly: heOnly, enOnly: enOnly})}
                       key={segment.ref}>
                     <sup><ContentText
-                        text={{"en": segment.number, "he": Sefaria.hebrew.encodeHebrewNumeral(segment.number)}}
+                        text={{"en": segment.number, "he": Sefaria.hebrew.tibetanNumeral(segment.number)}}
                         defaultToInterfaceOnBilingual={true}
                     /></sup> <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }} defaultToInterfaceOnBilingual={!overrideLanguage} overrideLanguage={overrideLanguage} bilingualOrder={["en", "he"]}/>
                   </div>

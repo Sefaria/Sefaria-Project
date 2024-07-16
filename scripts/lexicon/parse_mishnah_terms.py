@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from sefaria.model import *
-from sefaria.utils.hebrew import has_hebrew
+from sefaria.utils.tibetan import has_tibetan
 
 import csv
 
@@ -21,7 +21,7 @@ def extract_form_tuples(csv_row):
     forms = [(csv_row[0].strip(), 'eng'), (csv_row[1].strip(), 'heb')]
     forms += [(x.strip(), 'eng') for x in csv_row[2].split(",") if len(x)]
     forms += [(x.strip(), 'heb') for x in csv_row[3].split(",") if len(x)]
-    forms += [(x.strip(), 'heb' if has_hebrew(x) else 'eng') for x in csv_row[4].split(",") if len(x)]
+    forms += [(x.strip(), 'heb' if has_tibetan(x) else 'eng') for x in csv_row[4].split(",") if len(x)]
     return forms
 
 

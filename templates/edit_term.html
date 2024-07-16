@@ -3,6 +3,7 @@
 {% load sefaria_tags %}
 {% load humanize %}
 {% load static %}
+{% load i18n %}
 
 {% block title %}Edit Term: {{ term.name }}{% endblock %}
 
@@ -35,8 +36,8 @@
 
 <div id="editTerm" class="static container">
   <div class="inner">
-    <h1>Terms Editor</h1>
-    <div id="jsonEditor"><i>Loading...</i></div>
+    <h1>{% trans "Terms Editor" %}</h1>
+    <div id="jsonEditor"><i>{% trans "Loading..." %}</i></div>
   </div>
 </div>
 

@@ -107,11 +107,51 @@ class Hebrew {
     });
 
     // encode and join together, separating thousands with geresh
-    ret = ret.map(x => this.encodeHebrewNumeral(x));
+    ret = ret.map(x => this.tibetanNumeral(x));
     ret = ret.reverse().join(GERESH);
     ret = this.sanitize(ret, punctuation);
     return ret;
   }
+
+  static tibetanNumberFromEngNumber(numberAsString) {
+    switch (numberAsString) {
+      case "0":
+        return "༠";
+      case "1":
+        return "༡";
+      case "2":
+        return "༢";
+      case "3":
+        return "༣";
+      case "4":
+        return "༤";
+      case "5":
+        return "༥";
+      case "6":
+        return "༦";
+      case "7":
+        return "༧";
+      case "8":
+        return "༨";
+      case "9":
+        return "༩";
+    }
+  }
+
+  static tibetanNumeral(num) {
+    if (num < 10) {
+      let tibNum = this.tibetanNumberFromEngNumber(num.toString());
+      return '༠' + tibNum;
+
+    }else {
+      let tibetanTextArray = num
+          .toString()
+          .split("")
+          .map(value => this.tibetanNumberFromEngNumber(value));
+      return  tibetanTextArray.join("");
+    }
+  }
+
 
   static encodeHebrewNumeral(n, punctuation=true) {
     n = parseInt(n);
@@ -159,11 +199,11 @@ class Hebrew {
     let a = daf.slice(-1);
     if (form === "short") {
       a = {a: ".", b: ":"}[a];
-      return this.encodeHebrewNumeral(n) + a;
+      return this.tibetanNumeral(n) + a;
     }
     else if (form === "long"){
       a = {a: 1, b: 2}[a];
-      return this.encodeHebrewNumeral(n) + " " + this.encodeHebrewNumeral(a);
+      return this.tibetanNumeral(n) + " " + this.tibetanNumeral(a);
     }
   }
 
@@ -174,8 +214,8 @@ class Hebrew {
    */
   static encodeHebrewFolio(daf) {
     const n = parseInt(daf.slice(0,-1));
-    let a = {a: "א", b: "ב", c: "ג", d: "ד"}[daf.slice(-1)];
-    return this.encodeHebrewNumeral(n) + "," + a;
+    let a = {a: "ཀ", b: "ཁ", c: "ག", d: "ང"}[daf.slice(-1)];
+    return this.tibetanNumeral(n) + "," + a;
   }
   static getNikkudRegex(rawString) {
     // given a Hebrew string, return regex that allows for arbitrary nikkud in between letters
@@ -259,7 +299,7 @@ class Hebrew {
   static dafToInt(daf) {
     var amud = daf.slice(-1);
     var i = parseInt(daf.slice(0, -1)) - 1;
-    i = amud == "a" ? i * 2 : i*2 +1;
+    i = amud === "a" ? i * 2 : i*2 +1;
     return i;
   }
   
@@ -278,66 +318,66 @@ class Hebrew {
 }
 
 Hebrew.hebrewNumerals = {
-  "\u05D0": 1,
-  "\u05D1": 2,
-  "\u05D2": 3,
-  "\u05D3": 4,
-  "\u05D4": 5,
-  "\u05D5": 6,
-  "\u05D6": 7,
-  "\u05D7": 8,
-  "\u05D8": 9,
-  "\u05D9": 10,
-  "\u05D8\u05D5": 15,
-  "\u05D8\u05D6": 16,
-  "\u05DB": 20,
-  "\u05DC": 30,
-  "\u05DE": 40,
-  "\u05E0": 50,
-  "\u05E1": 60,
-  "\u05E2": 70,
-  "\u05E4": 80,
-  "\u05E6": 90,
-  "\u05E7": 100,
-  "\u05E8": 200,
-  "\u05E9": 300,
-  "\u05EA": 400,
-  "\u05EA\u05E7": 500,
-  "\u05EA\u05E8": 600,
-  "\u05EA\u05E9": 700,
-  "\u05EA\u05EA": 800,
-  1: "\u05D0",
-  2: "\u05D1",
-  3: "\u05D2",
-  4: "\u05D3",
-  5: "\u05D4",
-  6: "\u05D5",
-  7: "\u05D6",
-  8: "\u05D7",
-  9: "\u05D8",
-  10: "\u05D9",
-  15: "\u05D8\u05D5",
-  16: "\u05D8\u05D6",
-  20: "\u05DB",
-  30: "\u05DC",
-  40: "\u05DE",
-  50: "\u05E0",
-  60: "\u05E1",
-  70: "\u05E2",
-  80: "\u05E4",
-  90: "\u05E6",
-  100: "\u05E7",
-  200: "\u05E8",
-  300: "\u05E9",
-  400: "\u05EA",
-  500: "\u05EA\u05E7",
-  600: "\u05EA\u05E8",
-  700: "\u05EA\u05E9",
-  800: "\u05EA\u05EA",
-  900: "\u05EA\u05EA\u05E7",
-  1000: "\u05EA\u05EA\u05E8",
-  1100: "\u05EA\u05EA\u05E9",
-  1200: "\u05EA\u05EA\u05EA"
+  "༡": 1,
+  "༢": 2,
+  "༣": 3,
+  "༤": 4,
+  "༥": 5,
+  "༦": 6,
+  "༧": 7,
+  "༨": 8,
+  "༩": 9,
+  "༡༠": 10,
+  "༡༥": 15,
+  "༡༦": 16,
+  "༢༠": 20,
+  "༣༠": 30,
+  "༤༠": 40,
+  "༥༠": 50,
+  "༦༠": 60,
+  "༧༠": 70,
+  "༨༠": 80,
+  "༩༠": 90,
+  "༡༠༠": 100,
+  "༢༠༠": 200,
+  "༣༠༠": 300,
+  "༤༠༠": 400,
+  "༥༠༠": 500,
+  "༦༠༠": 600,
+  "༧༠༠": 700,
+  "༨༠༠": 800,
+  1: "༡",
+  2: "༢",
+  3: "༣",
+  4: "༤",
+  5: "༥",
+  6: "༦",
+  7: "༧",
+  8: "༨",
+  9: "༩",
+  10: "༡༠",
+  15: "༡༥",
+  16: "༡༦",
+  20: "༢༠",
+  30: "༣༠",
+  40: "༤༠",
+  50: "༥༠",
+  60: "༦༠",
+  70: "༧༠",
+  80: "༨༠",
+  90: "༩༠",
+  100: "༡༠༠",
+  200: "༢༠༠",
+  300: "༣༠༠",
+  400: "༤༠༠",
+  500: "༥༠༠",
+  600: "༦༠༠",
+  700: "༧༠༠",
+  800: "༨༠༠",
+  900: "༩༠༠",
+  1000: "༡༠༠༠",
+  1100: "༡༡༠༠",
+  1200: "༡༢༠༠"
 };
 
 export default Hebrew;

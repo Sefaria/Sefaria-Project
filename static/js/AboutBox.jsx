@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import VersionBlock, {VersionsBlocksList} from './VersionBlock/VersionBlock';
-import Component             from 'react-class';
+import Component from 'react-class';
 import {InterfaceText} from "./Misc";
 import {ContentText} from "./ContentText";
 import { Modules } from './NavSidebar';
@@ -19,7 +19,7 @@ class AboutBox extends Component {
     }
   }
   setTextMetaData() {
-    if (this.props.title == "Sheet") {
+    if (this.props.title === "Sheet") {
       const sheetID = (Sefaria.sheets.extractIdFromSheetRef(this.props.srefs));
       if (!Sefaria.sheets.loadSheetByID(sheetID)) {
           Sefaria.sheets.loadSheetByID(sheetID, function (data) {
@@ -58,7 +58,7 @@ class AboutBox extends Component {
     let currentVersionsByActualLangs = Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions);
     for(let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
       if (this._includeOtherVersionsLangs.includes(lang)){ //remove current version if its "he"
-        versionsByLang[lang] = versionsByLang[lang].filter((v) => v.versionTitle != ver.versionTitle);
+        versionsByLang[lang] = versionsByLang[lang].filter((v) => v.versionTitle !== ver.versionTitle);
       }
     }
     this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
@@ -77,8 +77,8 @@ class AboutBox extends Component {
       if (d) {
           detailSection = (<div className="detailsSection">
                   <h2 className="aboutHeader">
-                      <span className="int-en">About This Text</span>
-                      <span className="int-he">ཆོས་མཛོད་འདིའི་སྐོར།</span>
+                      <span className="int-en">{ Sefaria._("About This Text")}</span>
+                      <span className="int-he">{ Sefaria._("About This Text")}</span>
                   </h2>
                   <div className="aboutTitle">
                       {d.title.stripHtml()}
@@ -98,12 +98,12 @@ class AboutBox extends Component {
     const category = Sefaria.index(this.state?.details?.title)?.primary_category;
     const isDictionary = d?.lexiconName;
     const sourceVersion = this.state.currentVersionsByActualLangs?.he;
-    const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang != "he").map(([lang, version])=> version);
+    const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang !== "he").map(([lang, version])=> version);
     const multiple_translations = translationVersions?.length > 1;
-    const no_source_versions = multiple_translations || translationVersions?.length == 1 && !sourceVersion;
-    const sourceVersionSectionTitle = {en: "Current Version", he:"מהדורה נוכחית"};
-    const translationVersionsSectionTitle = multiple_translations ? {en: "Current Translations", he:"תרגומים נוכחיים"} : {en: "Current Translation", he:"תרגום נוכחי"};
-    const alternateVersionsSectionTitle = no_source_versions ? {en: "Source Versions", he:"מהדורות בשפת המקור"} : {en: "Alternate Source Versions", he:"מהדורות נוספות בשפת המקור"}
+    const no_source_versions = multiple_translations || translationVersions?.length === 1 && !sourceVersion;
+    const sourceVersionSectionTitle = {en: Sefaria._("Current Version"), he:Sefaria._("Current Version")};
+    const translationVersionsSectionTitle = multiple_translations ? {en: Sefaria._("Current Translations"), he:Sefaria._("Current Translations")} : {en: Sefaria._("Current Translation"), he: Sefaria._("Current Translation")};
+    const alternateVersionsSectionTitle = no_source_versions ? {en: Sefaria._("Source Versions"), he: Sefaria._("Source Versions")} : {en: Sefaria._("Alternate Source Versions"), he: Sefaria._("Alternate Source Versions")}
 
     let detailSection = null;
     if (d) {
@@ -138,7 +138,7 @@ class AboutBox extends Component {
       detailSection = (
         <div className="detailsSection sans-serif">
           <h2 className="aboutHeader">
-            <InterfaceText>About This Text</InterfaceText>
+            <InterfaceText>{ Sefaria._("About This Text")}</InterfaceText>
           </h2>
           <a href={bookPageUrl} className="aboutTitle serif">
             <ContentText text={{en: d.title, he:d.heTitle}}/>
@@ -150,7 +150,7 @@ class AboutBox extends Component {
             <div className="aboutAuthor">
               <span className="aboutAuthorInner">
                   <span className="authorLabel">
-                      <ContentText text={{en:"Author:", he: "מחבר:"}} />
+                      <ContentText text={{en: Sefaria._("Author:"), he: Sefaria._("Author:")}} />
                   </span>
                   <span className="authorName">
                       <ContentText text={authorsElems} />
@@ -164,8 +164,8 @@ class AboutBox extends Component {
 
           { !!placeTextEn || !!dateTextEn ?
             <div className="aboutComposed">
-              <span className="en">{`Composed: ${!!placeTextEn ? placeTextEn : ""} ${!!dateTextEn ? dateTextEn : ""}`}</span>
-              <span className="he">{`נוצר/נערך: ${!!placeTextHe ? placeTextHe : ""} ${!!dateTextHe ? dateTextHe : ""}`}</span>
+              <span className="en">{ Sefaria._("Composed")} {`${!!placeTextEn ? placeTextEn : ""} ${!!dateTextEn ? dateTextEn : ""}`}</span>
+              <span className="he">{ Sefaria._("Composed")} {`${!!placeTextHe ? placeTextHe : ""} ${!!dateTextHe ? dateTextHe : ""}`}</span>
             </div> : null
           }
         </div>

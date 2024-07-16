@@ -448,7 +448,7 @@ dd {
   float: left;
   clear: left;
   width: 120px;
-  text-align: right;
+  text-align: left;
 }
 .dl-horizontal dd {
   margin-left: 130px;
@@ -504,7 +504,7 @@ blockquote.pull-right {
 }
 blockquote.pull-right p,
 blockquote.pull-right small {
-  text-align: right;
+  text-align: left;
 }
 q:before,
 q:after,
@@ -1465,7 +1465,7 @@ legend + .control-group {
   float: left;
   width: 140px;
   padding-top: 5px;
-  text-align: right;
+  text-align: left;
 }
 .form-horizontal .controls {
   margin-left: 160px;
@@ -3052,7 +3052,7 @@ input[type="submit"].btn.btn-mini {
   text-align: center;
 }
 .pagination-right {
-  text-align: right;
+  text-align: left;
 }
 .pager {
   margin-left: 0;
@@ -3638,7 +3638,7 @@ a.thumbnail:hover {
 .modal-footer {
   padding: 14px 15px 15px;
   margin-bottom: 0;
-  text-align: right;
+  text-align: left;
   background-color: #f5f5f5;
   border-top: 1px solid #ddd;
   -webkit-border-radius: 0 0 6px 6px;

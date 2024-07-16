@@ -4,7 +4,7 @@
 	background-color: #eee;
 }
 .countdown_rtl {
-	direction: rtl;
+	direction: ltr;
 }
 .countdown_holding span {
 	color: #888;
