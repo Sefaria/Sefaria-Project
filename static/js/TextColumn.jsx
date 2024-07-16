@@ -367,7 +367,7 @@ class TextColumn extends Component {
         return null
       } else {
         return (
-          <span class="label danger">{"འཕེལ་རྒྱས་འགྲོ་བཞིན་ཡོད།"}</span>
+          <span class="label danger">{"སྒྲིག་བཞིན་ཡོད།"}</span>
         )
       }
     } else {
