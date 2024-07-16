@@ -4389,7 +4389,7 @@ details .open-details::before {
     padding: 5px 10px;
 }
 
-.bookPage .versionBlock .versionBlockHeading .status {
+.versionDetails .status {
     display: initial;
     margin-inline-start: auto;
     font-style: normal;
@@ -14988,12 +14988,11 @@ span.ref-link-color-3 {
 .label {
     color: white;
     position: absolute;
-    top: 0;
+    top: 5px;
     left: 50%;
-    margin-top: 80px;
     transform: translateX(-50%);
-    padding: 5px;
-    border-radius: 10px;
+    padding: 3px 8px 0px 8px;
+    border-radius: 20px;
     font-size: 18px;
   }
   

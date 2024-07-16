@@ -202,7 +202,7 @@ class VersionBlock extends Component {
         return null
       } else {
         return (
-          <div className="status sans-serif danger">{"འཕེལ་རྒྱས་འགྲོ་བཞིན་ཡོད།"}</div>
+          <div className="status sans-serif danger">{"སྒྲིག་བཞིན་ཡོད།"}</div>
         )
       }
     } else {
@@ -313,9 +313,10 @@ class VersionBlock extends Component {
               </div>
               <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
               {/* {this.props.version.iscompleted !=="done" ? <div className="versionLanguage sans-serif">{this.props.version.iscompleted.toUpperCase()}</div>: null} */}
-              {textStatus}
+              
               <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
+            
             <div className="versionSelect sans-serif">
               <VersionBlockSelectButton
                    isSelected={this.props.isCurrent}
@@ -336,6 +337,7 @@ class VersionBlock extends Component {
           { !v.merged ?
             <div className="versionDetails sans-serif">
               <VersionInformation currentRef={this.props.currentRef} version={v}/>
+              {textStatus}
               <VersionImage version={v}/>
             </div> : null
           }
