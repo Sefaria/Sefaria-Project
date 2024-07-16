@@ -35,6 +35,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const [isChanged, setIsChanged] = useState(false);
     const [changedPicture, setChangedPicture] = useState(false);
 
+    const disambiguationExtractionRegex = /\((.+)\)$/;
+
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
@@ -115,15 +117,10 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     }
 
     const extractDisambiguationFromTitle = function(titleText){
-        let regex = /\((.+)\)$/;
-        let matches = titleText.match(regex);
-        let insideBrackets = matches ? matches[1] : null;
-        return insideBrackets
+        return titleText.match(disambiguationExtractionRegex);
     }
     const removeDisambiguationFromTitle = function(titleText){
-        let regex = /\((.+)\)$/;
-        let newTitle = titleText.replace(regex, "");
-        return newTitle
+        return titleText.replace(disambiguationExtractionRegex, "").trimEnd();
     }
 
     const createPrimaryTitleObj = function(data, lang){
