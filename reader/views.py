@@ -114,7 +114,7 @@ if not DISABLE_AUTOCOMPLETER:
 
 if ENABLE_LINKER:
     logger.info("Initializing Linker")
-    library.build_ref_resolver()
+    library.build_linker('he')
 
 if server_coordinator:
     server_coordinator.connect()
@@ -3270,7 +3270,7 @@ def topic_ref_api(request, tref):
 
 @staff_member_required
 def reorder_sources(request):
-    sources = json.loads(request.POST["json"]).get("sources", [])
+    sources = json.loads(request.body).get("sources", [])
     slug = request.GET.get('topic')
     lang = 'en' if request.GET.get('lang') == 'english' else 'he'
     return jsonResponse(update_order_of_topic_sources(slug, sources, request.user.id, lang=lang))

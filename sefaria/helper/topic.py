@@ -715,7 +715,7 @@ def calculate_other_ref_scores(ref_topic_map):
             try:
                 tp = oref.index.best_time_period()
                 year = int(tp.start) if tp else 3000
-            except ValueError:
+            except (ValueError, AttributeError):
                 year = 3000
             comp_date_map[(topic, tref)] = year
             order_id_map[(topic, tref)] = oref.order_id()
@@ -1216,12 +1216,11 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     topic_obj = Topic.init(slug)
     if topic_obj is None:
         return {"error": "Topic does not exist."}
-    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref}
-    # we don't know what link is being targeted b/c we don't know the dataSource.
-    # we'll guess that the most likely candidate is the link with the highest curatedPrimacy
-    link_set = RefTopicLinkSet(ref_topic_dict, sort=[["order.curatedPrimacy", -1]]).array()
-    link_already_existed = len(link_set) > 0
-    link = link_set[0] if link_already_existed else RefTopicLink(ref_topic_dict)
+    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref, "dataSource": "learning-team"}
+    link = RefTopicLink().load(ref_topic_dict)
+    link_already_existed = link is not None
+    if not link_already_existed:
+        link = RefTopicLink(ref_topic_dict)
 
     if not hasattr(link, 'order'):
         link.order = {}
@@ -1283,15 +1282,19 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
              Ref(s['ref']).normal()
         except InputError as e:
             return {"error": f"Invalid ref {s['ref']}"}
-        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": s['ref']})
+        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": s['ref'], "dataSource": "learning-team"})
         if link is None:
-            return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
+            # for now, we are focusing on learning team links and the lack of existence isn't considered an error
+            continue
+            # return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
         order = getattr(link, 'order', {})
         ref_to_link[s['ref']] = link
 
     # now update curatedPrimacy data
     for display_order, s in enumerate(sources[::-1]):
-        link = ref_to_link[s['ref']]
+        link = ref_to_link.get(s['ref'])
+        if not link:
+            continue
         order = getattr(link, 'order', {})
         curatedPrimacy = order.get('curatedPrimacy', {})
         curatedPrimacy[lang] = display_order
@@ -1312,17 +1315,18 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if Topic.init(to_topic) is None:
         return {"error": f"Topic {to_topic} doesn't exist."}
 
-    topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref}
+    topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref, "dataSource": "learning-team"}
     link = RefTopicLink().load(topic_link)
     if link is None:
-        return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
+        return {"error": f"A learning-team link between {tref} and {to_topic} doesn't exist. If you are trying to delete a non-learning-team link, reach out to the engineering team."}
 
-    if lang in link.order.get('availableLangs', []):
-        link.order['availableLangs'].remove(lang)
     if lang in link.order.get('curatedPrimacy', []):
         link.order['curatedPrimacy'].pop(lang)
+    if lang in getattr(link, 'descriptions', {}):
+        link.descriptions.pop(lang)
 
-    if len(link.order.get('availableLangs', [])) > 0:
+    # Note, using curatedPrimacy as a proxy here since we are currently only allowing deletion of learning-team links.
+    if len(link.order.get('curatedPrimacy', [])) > 0:
         link.save()
         return {"status": "ok"}
     else:   # deleted in both hebrew and english so delete link object
