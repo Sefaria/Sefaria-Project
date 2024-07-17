@@ -14988,12 +14988,14 @@ span.ref-link-color-3 {
 .label {
     color: white;
     position: absolute;
-    top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 3px 8px 0px 8px;
-    border-radius: 20px;
-    font-size: 18px;
+    left: 0;
+    top:100px;
+    padding: 20px;
+    justify-content: center;  /* Center horizontally */
+    align-items: center;  /* Center vertically */
+    border-top-right-radius: 50px;  /* Top right corner */
+    border-bottom-right-radius: 50px;  /* Bottom right corner */
+    font-size: 25px;
   }
   
   .success {background-color: #04AA6D;} /* Green */
