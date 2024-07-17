@@ -8,7 +8,15 @@
 <head>
     <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
     <meta charset="utf-8"/>
-    <meta name="description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/>
+    <!-- <meta name="description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/> -->
+
+    <!-- SEO Tags -->
+    <meta name="title" content="Pecha - A Living Library of Buddhist Text">
+    <meta name="keywords" content="pecha, Pecha, pecha.org, pecha, དཔེ་ཆ་, Tibetan Buddhism, Buddhist texts, ">
+    <meta name="description" content="Pecha.org is a Living library of buddhist texts online. It contains the pecha related with buddhism. Pecha.org is contains the largest collection of pecha."/>
+    <meta name="author" content="Pecha.org">
+    <meta name="robots" content="index, follow">
+    <meta name="revisit-after" content="7 days">
 
     {% if noindex or DEBUG %}
         <meta name="robots" content="noindex, nofollow">
