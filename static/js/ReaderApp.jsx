@@ -45,7 +45,7 @@ class ReaderApp extends Component {
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];
-
+    const searchType = props.initialSearchType;
     if (props.initialMenu) {
       // If a menu is specified in `initialMenu`, make a panel for it
       panels[0] = {
@@ -54,7 +54,7 @@ class ReaderApp extends Component {
         searchQuery:             props.initialQuery,
         topicSort:               props.initialTopicSort,
         searchState: new SearchState({
-          type:                  props.initialSearchType,
+          type:                  searchType,
           appliedFilters:        props.initialSearchFilters,
           field:                 props.initialSearchField,
           appliedFilterAggTypes: props.initialSearchFilterAggTypes,
@@ -103,7 +103,6 @@ class ReaderApp extends Component {
     const layoutOrientation = (props.interfaceLang == "hebrew") ? "rtl" : "ltr";
 
     this.state = {
-      searchType: props.initialSearchType,
       panels: panels,
       headerMode: props.headerMode,
       defaultVersions: defaultVersions,
@@ -147,9 +146,8 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
       searchQuery:             state.searchQuery             || null,
-      searchType:              this.state.searchType         || 'text',
       showHighlight:           state.showHighlight           || null,
-      searchState:             state.searchState             || new SearchState({ type: this.state.searchType }),
+      searchState:             state.searchState             || new SearchState({ type: this.props.initialSearchType }),
       compare:                 state.compare                 || false,
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
@@ -478,8 +476,8 @@ class ReaderApp extends Component {
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery.stripHtml() + " | " : "";
             hist.title += Sefaria._(siteName + " Search");
-            const prefix = this.state.searchType === 'text' ? 't' : 's';
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchType}` +
+            const prefix = state.searchState.type === 'text' ? 't' : 's';
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` +
               state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
             hist.mode  = "search";
             break;
@@ -1192,7 +1190,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           filtersValid: true,
           aggregationsToUpdate,
         }) : new SearchState({
-        type: this.state.searchType,
+        type: this.props.initialSearchType,
         availableFilters,
         filterRegistry,
         orphanFilters,
@@ -1701,17 +1699,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.setSinglePanelState(state);
   }
   showSearch(searchQuery) {
-    let panel;
-    const searchState =  (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState)  ? this.state.panels[0].searchState.update({ filtersValid: false })
-        : new SearchState({ type: this.state.searchType });
-
-    const searchType = this.state.searchType;
+    const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState
+    const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
+        : new SearchState({ type: this.props.initialSearchType });
+    const searchType = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchType : this.props.initialSearchType;
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchType, searchState });
   }
   searchInCollection(searchQuery, collection) {
-    let panel;
-    const searchState =  new SearchState({ type: this.state.searchType });
-
+    const appliedFilters = this.state.searchType === 'sheet' ? [collection] : [];
+    const appliedFilterAggTypes = this.state.searchType === 'sheet' ? ['collections'] : [];
+    const searchState = new SearchState({ type: this.state.searchType,  appliedFilters, appliedFilterAggTypes});
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchType": "sheet", searchQuery, searchState });
   }
   showCommunity() {

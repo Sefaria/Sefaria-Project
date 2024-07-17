@@ -394,6 +394,7 @@ class Search {
       exact
     }) {
       const { sortTypeArray, aggregation_field_array } = SearchState.metadataByType[type];
+      console.log(sortTypeArray);
       const { sort_method, fieldArray, score_missing, direction } = sortTypeArray.find( x => x.type === sort_type );
       return {
         type,
