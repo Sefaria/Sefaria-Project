@@ -58,13 +58,11 @@ class Text(View):
 
 
         try:
-            # Todo - Maybe this error should be inside the get_versions_for_query() fxn?
             data = text_manager.get_versions_for_query()
-        except Exception as e:
-            # Todo - which 400 code exactly to pass? Will have to check the message of the error to
-            # make sure you're sending the right response to the user.
-            return jsonResponse({'error': "Please pass a more specific Ref"}, status=400)
-
+        except InputError as e:
+            # Todo - which 400 code exactly to pass?
+            if str(e) == "Can not get TextRange at this level, please provide a more precise reference":
+                return jsonResponse({'error': "Please pass a more specific ref for this book, and try again. The ref you passed is a \'complex\' book-level ref. We only support book-level refs in cases of texts with a 'simple' structure. To learn more about the structure of a text on Sefaria, see: https://developers.sefaria.org/docs/the-schema-of-a-simple-text"}, status=400)
         data = self._handle_warnings(data)
         return jsonResponse(data)
 
