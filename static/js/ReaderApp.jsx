@@ -52,8 +52,6 @@ class ReaderApp extends Component {
         mode:                    "Menu",
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
-        searchType:               props.initialSearchType,
-        tab:                     props.initialSearchType,
         topicSort:               props.initialTopicSort,
         searchState: new SearchState({
           type:                  props.initialSearchType,
@@ -105,6 +103,7 @@ class ReaderApp extends Component {
     const layoutOrientation = (props.interfaceLang == "hebrew") ? "rtl" : "ltr";
 
     this.state = {
+      searchType: props.initialSearchType,
       panels: panels,
       headerMode: props.headerMode,
       defaultVersions: defaultVersions,
@@ -148,9 +147,9 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
       searchQuery:             state.searchQuery             || null,
-      searchType:               state.searchType               || 'text',
+      searchType:              this.state.searchType         || 'text',
       showHighlight:           state.showHighlight           || null,
-      searchState:             state.searchState             || new SearchState({ type: this.state.tab }),
+      searchState:             state.searchState             || new SearchState({ type: this.state.searchType }),
       compare:                 state.compare                 || false,
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
@@ -479,9 +478,9 @@ class ReaderApp extends Component {
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery.stripHtml() + " | " : "";
             hist.title += Sefaria._(siteName + " Search");
-            const prefix = this.props
+            const prefix = this.state.searchType === 'text' ? 't' : 's';
             hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchType}` +
-              state.searchState.makeURL({ prefix: 't', isStart: false }) : "");
+              state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
             hist.mode  = "search";
             break;
           case "topics":
@@ -1193,7 +1192,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           filtersValid: true,
           aggregationsToUpdate,
         }) : new SearchState({
-        type,
+        type: this.state.searchType,
         availableFilters,
         filterRegistry,
         orphanFilters,
@@ -1201,7 +1200,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       })
     });
   }
-  updateSearchFilter(n, type, searchState, filterNode) {
+  updateSearchFilter(n, searchState, filterNode) {
     if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
     } else {
@@ -1703,18 +1702,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showSearch(searchQuery) {
     let panel;
-    const textSearchState =  (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].textSearchState)  ? this.state.panels[0].textSearchState.update({ filtersValid: false })  : new SearchState({ type: 'text' });
-    const sheetSearchState = (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].sheetSearchState) ? this.state.panels[0].sheetSearchState.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
+    const searchState =  (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState)  ? this.state.panels[0].searchState.update({ filtersValid: false })
+        : new SearchState({ type: this.state.searchType });
 
-    const searchType = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchType : "text";
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchType, textSearchState, sheetSearchState });
+    const searchType = this.state.searchType;
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchType, searchState });
   }
   searchInCollection(searchQuery, collection) {
     let panel;
-    const textSearchState =  new SearchState({ type: 'text' });
-    const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [collection], appliedFilterAggTypes: ['collections']});
+    const searchState =  new SearchState({ type: this.state.searchType });
 
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchType": "sheet", searchQuery, textSearchState, sheetSearchState });
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchType": "sheet", searchQuery, searchState });
   }
   showCommunity() {
     this.setSinglePanelState({menuOpen: "community"});
