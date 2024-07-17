@@ -45,7 +45,7 @@ class ReaderApp extends Component {
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];
-    const searchType = props.initialSearchType;
+    const searchType = props.initialSearchType || 'text';
     if (props.initialMenu) {
       // If a menu is specified in `initialMenu`, make a panel for it
       panels[0] = {
@@ -147,7 +147,7 @@ class ReaderApp extends Component {
       translationsSlug:        state.translationsSlug        || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
-      searchState:             state.searchState             || new SearchState({ type: this.props.initialSearchType }),
+      searchState:             state.searchState             || new SearchState({ type: this.props.initialSearchType || 'text' }),
       compare:                 state.compare                 || false,
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
@@ -1190,7 +1190,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           filtersValid: true,
           aggregationsToUpdate,
         }) : new SearchState({
-        type: this.props.initialSearchType,
+        type: this.props.initialSearchType || 'text',
         availableFilters,
         filterRegistry,
         orphanFilters,
@@ -1701,7 +1701,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   showSearch(searchQuery) {
     const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState
     const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
-        : new SearchState({ type: this.props.initialSearchType });
+        : new SearchState({ type: this.props.initialSearchType || 'text'});
     const searchType = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchType : this.props.initialSearchType;
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchType, searchState });
   }
