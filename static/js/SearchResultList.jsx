@@ -131,7 +131,8 @@ class SearchResultList extends Component {
         } else if (type === "sheet") {
           results = this.props.hits.map((result, i) =>
             <SearchSheetResult
-              hit={result}
+              metadata={result}
+              snippet={result.snippet}
               query={this.props.query}
               key={result._id}
               onResultClick={this.props.onResultClick} />
