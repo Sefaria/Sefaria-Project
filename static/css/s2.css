@@ -11460,7 +11460,7 @@ span.purim-emoji img {
 }
 
 .bookMetaDataBox {
-    margin: 40px auto;
+    margin: 60px auto;
     text-align: center;
 }
 
@@ -14987,16 +14987,33 @@ span.ref-link-color-3 {
 
 .label {
     color: white;
-    position: absolute;
-    left: 0;
-    top:100px;
-    padding: 20px;
+    position: -webkit-sticky;  /* For Safari */
+    position: sticky;
+    margin-left: -15px;
+    top: 44px;
+    box-shadow: 50px 10px 10px #888888;
+    padding: 5px 20px 5px 10px;
     justify-content: center;  /* Center horizontally */
     align-items: center;  /* Center vertically */
-    border-top-right-radius: 50px;  /* Top right corner */
-    border-bottom-right-radius: 50px;  /* Bottom right corner */
+    clip-path: polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%);
     font-size: 25px;
   }
+
+  @media (max-width: 700px) {
+    .label {
+        color: white;
+        position: -webkit-sticky;  /* For Safari */
+        position: relative;
+        margin-left: -15px;
+        top: 44px;
+        left: 40%;
+        transform: translateX(-100%);
+        padding: 5px 20px 5px 10px;
+        clip-path: inset(0 0 0 0 round 50px);
+        font-size: 25px;
+      }
+  }
+
   
   .success {background-color: #04AA6D;} /* Green */
   .info {background-color: #2196F3;} /* Blue */
