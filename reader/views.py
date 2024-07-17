@@ -1242,6 +1242,7 @@ def edit_text(request, ref=None, lang=None, version=None):
     })
 
 @ensure_csrf_cookie
+@staff_member_required
 @sanitize_get_params
 def edit_text_info(request, title=None, new_title=None):
     """
