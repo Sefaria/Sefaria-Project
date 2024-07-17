@@ -1102,8 +1102,8 @@ def update_topic(topic, **kwargs):
     """
     Can update topic object's title, hebrew title, category, description, and categoryDescription fields
     :param topic: (Topic) The topic to update
-    :param **kwargs can be title, heTitle, category, description, categoryDescription, and rebuild_toc where `title`, `heTitle`,
-         and `category` are strings. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
+    :param **kwargs can be titles, category, description, categoryDescription, and rebuild_toc where `titles` is a list
+     of title objects as they are represented in the database, and `category` is a string. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
          The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """

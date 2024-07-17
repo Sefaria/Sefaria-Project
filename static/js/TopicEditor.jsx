@@ -131,28 +131,24 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     };
     const createNonPrimaryTitleObjArray = function(altTitles, lang){
         const titleObjArray = []
-        if (Array.isArray(altTitles)) {
-            altTitles.forEach((title, index) => {
-                let titleObj = {'text': removeDisambiguationFromTitle(title['name']), "lang": lang};
-                let disambiguation = extractDisambiguationFromTitle(title['name']);
-                if (disambiguation) {titleObj["disambiguation"]=disambiguation}
-                titleObjArray.push(titleObj)
-            });
-        }
+        altTitles.forEach((title) => {
+            let titleObj = {'text': removeDisambiguationFromTitle(title), "lang": lang};
+            let disambiguation = extractDisambiguationFromTitle(title);
+            if (disambiguation) {titleObj["disambiguation"]=disambiguation}
+            titleObjArray.push(titleObj)
+        });
         return titleObjArray
     };
 
     const prepData = () => {
         // always add category, title, heTitle, altTitles
         let postData = { category: data.catSlug, titles: []};
-        // postData.altTitles.en = data.enAltTitles.map(x => x.name); // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
-        // postData.altTitles.he = data.heAltTitles.map(x => x.name);
 
         //convert title and altTitles to the database format, including extraction of disambiguation from title string
         postData['titles'].push(createPrimaryTitleObj(data.enTitle, 'en'));
         postData['titles'].push(createPrimaryTitleObj(data.heTitle, 'he'));
-        postData['titles'] = postData['titles'].concat(createNonPrimaryTitleObjArray(data.enAltTitles, 'en'));
-        postData['titles'] = postData['titles'].concat(createNonPrimaryTitleObjArray(data.heAltTitles, 'he'));
+        postData['titles'] = postData['titles'].concat(createNonPrimaryTitleObjArray(data.enAltTitles.map(x => x.name), 'en'));
+        postData['titles'] = postData['titles'].concat(createNonPrimaryTitleObjArray(data.heAltTitles.map(x => x.name), 'he'));
 
         // add image if image or caption changed
         const origImageURI = origData?.origImage?.image_uri || "";
