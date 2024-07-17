@@ -167,12 +167,9 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     sortedSheets = applyFilters(sortedSheets);
     sortedSheets = applySortOption(sortedSheets);
     sortedSheets = normalizeSheetsMetaData(sortedSheets);
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
     return <SearchPage
           key={"sheetsPage"}
+          isQueryRunning={loading}
           searchTopMsg="Sheets With"
           hits={sortedSheets}
           query={srefs}
