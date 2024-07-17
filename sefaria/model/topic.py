@@ -106,7 +106,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if getattr(self, "image", False):
             img_url = self.image.get("image_uri")
             if img_url: validate_url(img_url)
-        assert all(pool in self.optional_pools for pool in self.pools), f'Pools {[pool for pool in self.pools if pool not in self.optional_pools]} is not an optional pool'
+        assert all(pool in self.optional_pools for pool in self.get_pools()), f'Pools {[pool for pool in self.get_pools() if pool not in self.optional_pools]} is not an optional pool'
 
     def _normalize(self):
         super()._normalize()
@@ -118,7 +118,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         displays_under_link = IntraTopicLink().load({"fromTopic": slug, "linkType": "displays-under"})
         if getattr(displays_under_link, "toTopic", "") == "authors":
             self.subclass = "author"
-        self.pools = sorted(set(getattr(self, 'pools', [])))
+        if self.get_pools():
+            self.pools = sorted(set(self.get_pools()))
+        elif hasattr(self, 'pools'):
+            delattr(self, 'pools')
 
     def _sanitize(self):
         super()._sanitize()
@@ -127,6 +130,20 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             for k, v in p.items():
                 p[k] = bleach.clean(v, tags=[], strip=True)
             setattr(self, attr, p)
+
+    def get_pools(self):
+        return getattr(self, 'pools', [])
+
+    def has_pool(self, pool):
+        return pool in self.get_pools()
+
+    def add_pool(self, pool): #does not save!
+        self.pools = self.get_pools()
+        self.pools.append(pool)
+
+    def remove_pool(self, pool): #does not save!
+        pools = self.get_pools()
+        pools.remove(pool)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -444,8 +461,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         :param pool: 'sheets' or 'textual'
         """
         links = self.get_ref_links(pool == 'sheets')
-        if bool(links) != pool in self.pools:
-            self.pools.remove(pool) if pool in self.pools else self.pools.append(pool)
+        if bool(links) != pool in self.get_pools():
+            self.remove_pool(pool) if pool in self.get_pools() else self.add_pool(pool)
         self.numSources = self.link_set('refTopic').count()
         self.save()
 
