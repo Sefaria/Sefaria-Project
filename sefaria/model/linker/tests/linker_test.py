@@ -105,6 +105,9 @@ crrd = create_raw_ref_data
     # Base text context
     [crrd(['@ובתוס\'', '#דכ"ז ע"ב', '*ד"ה והלכתא'], "Rashi on Berakhot 2a"), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
+    # Mis-classified part types
+    [crrd(['@ושו"ע', "#אה״ע", "#סי׳ כ״ח", "#סעיף א"]), ("Shulchan Arukh, Even HaEzer 28:1",)],
+
     # Ibid
     [crrd(['&שם', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 7", "Genesis 1:7"]],  # ambiguous ibid
     [crrd(['&Ibid', '#12'], prev_trefs=["Exodus 1:7"], lang='en'), ["Exodus 1:12", "Exodus 12"]],  # ambiguous ibid when context is segment level (not clear if this is really ambiguous. maybe should only have segment level result)
