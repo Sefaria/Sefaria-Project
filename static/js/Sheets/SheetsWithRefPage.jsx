@@ -121,7 +121,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     const handleSheetsLoad = (sheets) => {
       const searchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
       setSheets(prepSheetsForDisplay(sheets));
-      updateSearchState(searchState, 'sheet');
+      updateSearchState(searchState);
       setOrigAvailableFilters(searchState.availableFilters);
       setLoading(false);
       setTotalResults(new SearchTotal({value: sheets.length}));
