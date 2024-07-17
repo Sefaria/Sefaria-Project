@@ -577,6 +577,9 @@ class AuthorTopic(PersonTopic):
                 index_category = Category.get_shared_category(temp_indexes)
                 collective_title_term = Term().load({"name": collective_title})
             if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or (collective_title is None and self._category_matches_author(index_category)):
+                if (collective_title and "Ibn Ezra" in collective_title):
+                    index_or_cat_list += [(index_category, collective_title_term, base_category)]
+                    continue
                 for temp_index in temp_indexes:
                     index_or_cat_list += [(temp_index, None, None)]
                 continue
