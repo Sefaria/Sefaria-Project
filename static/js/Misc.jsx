@@ -3314,18 +3314,25 @@ const AppStoreButton = ({ platform, href, altText }) => {
 };
 
 const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_type, event) => {
-  //Allow global navigation handling in app via link elements
-  // If a default has been prevented, assume a custom handler is already in place
-  if (e.isDefaultPrevented()) {
-    return;
-  }
-  // Don't trigger from v1 Sheet Builder which has conflicting CSS
-  if (typeof sjs !== "undefined") {
-    return;
-  }
+
   // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
   // Get the <a> element.
-  const linkTarget = ReaderApp.getHTMLLinkParentOfEventTarget(e);
+
+  //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
+  let target = e.target,
+  parent = target,
+  outmost = event.currentTarget;
+  
+  while (parent) {
+    if(parent.nodeName === 'A'){
+      const linkTarget = parent
+    }
+    else if (parent.parentNode === outmost) {
+      return null;
+    }
+    parent = parent.parentNode;
+  }
+
   // Ignore clicks from non-a elements.
   if (!linkTarget) {
     return;
