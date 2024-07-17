@@ -4395,7 +4395,7 @@ details .open-details::before {
     font-style: normal;
     font-weight: normal;
     font-size: 14px;
-    line-height: 18px;
+    height: 18px;
     color: #ffffff;
     background: var(--pecha-red);
     border-radius: 25px;
