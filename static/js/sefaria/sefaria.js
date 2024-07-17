@@ -2792,26 +2792,41 @@ _media: {},
       /*
       This function is used to generate the SearchState with its relevant FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
        */
+      const newFilter = (item, type) => {
+          let title, heTitle, aggType;
+          aggType = type === 'topics' ? 'topics_en' : 'collections';
+          if (type === 'topics') {
+              [title, heTitle] = [item.en, item.he];
+          }
+          else if (type === 'collections') {
+              [title, heTitle] = [item.name, item.name];
+          }
+          return {
+              title, heTitle,
+              docCount: 0, aggKey: item.slug,
+              selected: 0, aggType
+          };
+      }
 
-      let filters = {}; // object where keys are slugs of filters and values are the data for filternodes
+      let filters = {'topics': [], 'collections': []};
       sheets.forEach(sheet => {
-        sheet?.topics.forEach(topic => {
-          let filter = topic.slug in filters ? filters[topic.slug] : {title: topic.en, heTitle: topic.he,
-                                                                                     docCount: 0, aggKey: topic.slug,
-                                                                                     selected: 0, aggType: 'topics_en'};
-          filter.docCount += 1;
-          filters[topic.slug] = filter;
-        })
-        sheet?.collections.forEach(collection => {
-            let filter = collection.slug in filters ? filters[collection.slug] : {title: collection.name, heTitle: collection.name,
-                                                                                     docCount: 0, aggKey: collection.slug,
-                                                                                     selected: 0, aggType: 'collections'};
-          filter.docCount += 1;
-          filters[collection.slug] = filter;
+        ['topics', 'collections'].forEach(itemsType => {
+            let slugsFound = [];  // keep track of topic slugs or collection slugs in this sheet
+            sheet[[itemsType]]?.forEach(item => {
+              if (!slugsFound.includes(item.slug)) { // we don't want to increase docCount when one sheet already
+                                                    // has a topic/collection with the same slug as the current topic/collection
+                let filter = filters[[itemsType]].find(f => f.aggKey === item.slug);
+                if (!filter) {
+                  filter = newFilter(item, itemsType);
+                  filters[[itemsType]].push(filter);
+                }
+                slugsFound.push(item.slug);
+                filter.docCount += 1;
+              }
+            })
         })
       })
-      filters = Object.values(filters);
-      return new SearchState({ type: 'sheet', availableFilters: filters });
+      return new SearchState({ type: 'sheet', availableFilters: [...filters.collections, ...filters.topics] });
     },
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {

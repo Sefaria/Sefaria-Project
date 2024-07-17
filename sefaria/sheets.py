@@ -795,14 +795,6 @@ def get_collections_with_sheets(sheet_ids):
 			sheet_id_to_collections[sheet_id].append({'name': collection.name, 'slug': collection.slug})
 	return sheet_id_to_collections
 
-def remove_slug_duplicates(topics):
-	slugs = []
-	normalizedTopics = []
-	for t in topics:
-		if t['slug'] not in slugs:
-			slugs.append(t['slug'])
-			normalizedTopics.append(t)
-	return normalizedTopics
 def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=None):
 	"""
 	Returns a list of sheets that include ref,
@@ -867,7 +859,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=N
 			collection = Collection().load({"slug": sheet["displayedCollection"]})
 			sheet["collectionTOC"] = getattr(collection, "toc", None)
 		topics = add_langs_to_topics(sheet.get("topics", []))
-		topics = remove_slug_duplicates(topics)
 		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
 			sheet_data = {
 				"owner":           sheet["owner"],
