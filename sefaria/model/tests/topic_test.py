@@ -173,6 +173,15 @@ class TestTopics(object):
         assert t1.titles == [{"text": "Tamar", "lang" : "en", "primary": True},
                                 {"text": "תמר", "lang": "he", "primary":True, "disambiguation": "יהודה"}]
 
+        update_topic(t1, description={"en": "abcdefg"})
+        assert t1.description == {"en": "abcdefg"}
+
+        with pytest.raises(Exception):
+            update_topic(t1, titles=[{"a": "Tamar", "b" : "en"},
+                                {"c": "תמר", "lang": "d", "disambiguation": "יהודה"}])
+        with pytest.raises(Exception):
+            update_topic(t1, slug='abc')
+
 
 
 

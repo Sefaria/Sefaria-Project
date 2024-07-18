@@ -1100,7 +1100,7 @@ def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwar
 
 def update_topic(topic, **kwargs):
     """
-    Can update topic object's title, hebrew title, category, description, and categoryDescription fields
+    Can update topic object's titles, category, description, and categoryDescription fields
     :param topic: (Topic) The topic to update
     :param **kwargs can be titles, category, description, categoryDescription, and rebuild_toc where `titles` is a list
      of title objects as they are represented in the database, and `category` is a string. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
