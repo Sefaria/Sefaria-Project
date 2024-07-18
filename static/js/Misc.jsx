@@ -3313,19 +3313,24 @@ const AppStoreButton = ({ platform, href, altText }) => {
   );
 };
 
-const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_type, event) => {
+const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_type, analytics_event) => {
 
   // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
   // Get the <a> element.
 
   //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
-  let target = e.target,
-  parent = target,
-  outmost = event.currentTarget;
+  let target = e.target;
+  let linkTarget = null;
+  let parent = target;
+  let outmost = e.currentTarget;
+  debugger;
+
+  console.log(e);
+  console.log('got here!!');
   
   while (parent) {
     if(parent.nodeName === 'A'){
-      const linkTarget = parent
+      linkTarget = parent
     }
     else if (parent.parentNode === outmost) {
       return null;
@@ -3343,7 +3348,8 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
   }
   else {
     console.log(`GTAG CALLED on ${href}`);
-    gtag_fxn(rank, product, cta, label, link_type, event);
+    e.preventDefault();
+    gtag_fxn(rank, product, cta, label, link_type, analytics_event);
   }
 }
 
@@ -3415,5 +3421,6 @@ export {
   requestWithCallBack,
   OnInView,
   TopicPictureUploader,
-  ImageWithCaption
+  ImageWithCaption, 
+  handleAnalyticsOnMarkdown
 };
