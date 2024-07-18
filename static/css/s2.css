@@ -14998,7 +14998,7 @@ span.ref-link-color-3 {
     position: sticky;
     top: 40px;
     left: 0;
-    margin-left: -15px;
+    margin-left: 0;
     filter: drop-shadow(0px 10px 5px rgba(0,0,0,0.2));
     
 }
@@ -15024,8 +15024,41 @@ span.ref-link-color-3 {
        0 100%/var(--r) calc(2*var(--r)),
       conic-gradient(from 90deg at var(--r) calc(100% - 2*var(--r)),#0000 25%,var(--c) 0)
        0 0/calc(101% - .5lh) 100%;
+    background-repeat: no-repeat;
+  }
+  .ribbon {
+    --r: .4em; /* control the ribbon shape (the radius) */
+    --c:var(--pecha-red);
+  
+
+    position: absolute;
+    line-height: 1.8; 
+    padding: .15em 1em calc(2*var(--r)) .9em;
+    border-radius: var(--r) 0 0 var(--r);
+    border: #000;
+    background: 
+      radial-gradient(100% 50% at left,var(--c) 98%,#0000 101%)
+       100% 0/.5lh calc(100% - 2*var(--r)),
+      radial-gradient(100% 50% at right,#c55250ff 98%,#0000 101%) 
+       0 100%/var(--r) calc(2*var(--r)),
+      conic-gradient(from 90deg at var(--r) calc(100% - 2*var(--r)),#0000 25%,var(--c) 0)
+       0 0/calc(101% - .5lh) 100%;
     background-repeat: no-repeat;   
   }
+
+
+
+
+  @media (max-width: 850px) {
+
+    .ribbon-wrap {
+        position: absolute;
+        left: 50%;
+        top: 10px;
+        filter: drop-shadow(0px 10px 5px rgba(0,0,0,0.2));
+        transform: translateX(-40%);
+        
+    }
 
 
 
