@@ -1157,8 +1157,8 @@ def user_history(request):
 
 
 def updates(request):
-    title = _("New Additions to the Sefaria Library")
-    desc = _("See texts, translations and connections that have been recently added to Sefaria.")
+    title = _("New Additions to the Pecha Library")
+    desc = _("See texts, translations and connections that have been recently added to Pecha.")
     return menu_page(request, page="updates", title=title, desc=desc)
 
 

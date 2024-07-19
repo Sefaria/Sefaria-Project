@@ -3,9 +3,7 @@ Disallow: /admin/
 Disallow: /accounts/
 Disallow: /api/
 Disallow: /settings/
-Disallow: /login/
 Disallow: /logout/
-Disallow: /register/
 Disallow: /reset/
 Disallow: /password_change/
 Disallow: /password_reset/
@@ -13,6 +11,8 @@ Disallow: /search/
 
 Allow: /static/
 Allow: /media/
+Allow: /register/
+Allow: /login/
 
 Sitemap: https://pecha.org/sitemap.xml
 
