@@ -11460,7 +11460,7 @@ span.purim-emoji img {
 }
 
 .bookMetaDataBox {
-    margin: 40px auto;
+    margin: 60px auto;
     text-align: center;
 }
 
@@ -14985,16 +14985,109 @@ span.ref-link-color-3 {
 
 /*text completion status*/
 
-.label {
-    color: white;
-    position: absolute;
-    top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 3px 8px 0px 8px;
-    border-radius: 20px;
-    font-size: 18px;
+
+
+  /* HTML: <div class="ribbon">Your text content</div> */
+.ribbon {
+  font-size: 25px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.ribbon-wrap {
+    position: sticky;
+    top: 40px;
+    left: 0;
+    margin-left: 0;
+    filter: drop-shadow(0px 10px 5px rgba(0,0,0,0.2));
+    
+}
+/* HTML: <div class="ribbon">Your text content</div> */
+
+  .ribbon-padding {
+    padding: 200px;
   }
+  .ribbon {
+    --r: .4em; /* control the ribbon shape (the radius) */
+    --c:var(--pecha-red);
+  
+
+    position: absolute;
+    line-height: 1.8; 
+    padding: .15em 1em calc(2*var(--r)) .9em;
+    border-radius: var(--r) 0 0 var(--r);
+    border: #000;
+    background: 
+      radial-gradient(100% 50% at left,var(--c) 98%,#0000 101%)
+       100% 0/.5lh calc(100% - 2*var(--r)),
+      radial-gradient(100% 50% at right,#c55250ff 98%,#0000 101%) 
+       0 100%/var(--r) calc(2*var(--r)),
+      conic-gradient(from 90deg at var(--r) calc(100% - 2*var(--r)),#0000 25%,var(--c) 0)
+       0 0/calc(101% - .5lh) 100%;
+    background-repeat: no-repeat;
+  }
+  .ribbon {
+    --r: .4em; /* control the ribbon shape (the radius) */
+    --c:var(--pecha-red);
+  
+
+    position: absolute;
+    line-height: 1.8; 
+    padding: .15em 1em calc(2*var(--r)) .9em;
+    border-radius: var(--r) 0 0 var(--r);
+    border: #000;
+    background: 
+      radial-gradient(100% 50% at left,var(--c) 98%,#0000 101%)
+       100% 0/.5lh calc(100% - 2*var(--r)),
+      radial-gradient(100% 50% at right,#c55250ff 98%,#0000 101%) 
+       0 100%/var(--r) calc(2*var(--r)),
+      conic-gradient(from 90deg at var(--r) calc(100% - 2*var(--r)),#0000 25%,var(--c) 0)
+       0 0/calc(101% - .5lh) 100%;
+    background-repeat: no-repeat;   
+  }
+
+
+
+
+  @media (max-width: 850px) {
+
+    .ribbon-wrap {
+        position: absolute;
+        left: 50%;
+        top: 10px;
+        filter: drop-shadow(0px 10px 5px rgba(0,0,0,0.2));
+        transform: translateX(-40%);
+        
+    }
+
+
+
+
+  @media (max-width: 850px) {
+
+    .ribbon-wrap {
+        position: absolute;
+        left: 50%;
+        top: 10px;
+        filter: drop-shadow(0px 10px 5px rgba(0,0,0,0.2));
+        transform: translateX(-40%);
+        
+    }
+
+    .ribbon {
+        --r: .1em; /* control the ribbon shape (the radius) */
+        --c:var(--pecha-red);
+        position: relative;
+        line-height: 1; 
+        top: 8px;
+        padding: calc(2*var(--r)) 1em 0 .9em;
+        border-radius: var(--r) 0 0 var(--r);
+        border: #000;
+        border-radius: 50px;
+        background: var(--pecha-red);   
+      }
+  }
+
   
   .success {background-color: #04AA6D;} /* Green */
   .info {background-color: #2196F3;} /* Blue */
