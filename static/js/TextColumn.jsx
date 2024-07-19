@@ -367,7 +367,7 @@ class TextColumn extends Component {
         return null
       } else {
         return (
-          <span class="label danger">{"སྒྲིག་བཞིན་ཡོད།"}</span>
+          <div className='ribbon-wrap'><span class="ribbon ribbon-padding">{"སྒྲིག་བཞིན་ཡོད།"}</span></div>
         )
       }
     } else {
@@ -375,7 +375,7 @@ class TextColumn extends Component {
         return null
       } else {
         return (
-          <span class="label danger">{"In progress"}</span>
+          <div className='ribbon-wrap'><span class="ribbon ">{"In progress"}</span></div>
         )
       }
     }
