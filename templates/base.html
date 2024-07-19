@@ -19,14 +19,14 @@
     <meta name="revisit-after" content="7 days">
 
     {% if noindex or DEBUG %}
-        <meta name="robots" content="noindex, nofollow">
+        <meta name="robots" content="index, follow">
     {% endif %}
 
     <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" />
 
     {% if SITE_SETTINGS.TORAH_SPECIFIC %}
-    <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
-    <link rel="alternate" href="https://www.sefaria.org.il{{ request.path }}" hreflang="he" />
+    <link rel="alternate" href="https://www.pecha.org{{ request.path }}" hreflang="en" />
+    <link rel="alternate" href="https://www.pecha.org.il{{ request.path }}" hreflang="he" />
     {% endif %}
 
     {% if canonical_url %}
