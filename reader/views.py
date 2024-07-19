@@ -1191,11 +1191,11 @@ def canonical_url(request):
 
     path = request.get_full_path()
     if request.interfaceLang == "hebrew":
-        host = "https://www.sefaria.org.il"
+        host = "https://www.pecha.org"
         # Default params for texts, text toc, and text category
         path = re.sub("\?lang=he(&aliyot=0)?$", "", path)
     else:
-        host = "https://www.sefaria.org"
+        host = "https://www.pecha.org"
         # Default params for texts, text toc, and text category
         path = re.sub("\?lang=bi(&aliyot=0)?$", "", path)
 
