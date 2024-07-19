@@ -2892,22 +2892,22 @@ const JobsPageHeader = ({ jobsAreAvailable }) => {
         <>
             <header>
                 <h1 className="serif">
-                    <span className="int-en">Jobs at Sefaria</span>
+                    <span className="int-en">Jobs at Pecha</span>
                     <span className="int-he">משרות פנויות בספריא</span>
                 </h1>
 
                 {jobsAreAvailable ? (
                     <>
                         <h2>
-                            <span className="int-en">About Sefaria</span>
+                            <span className="int-en">About Pecha</span>
                             <span className="int-he">אודות ספריא</span>
                         </h2>
                         <p>
                             <span className="int-en">
-                                Sefaria is a nonprofit organization dedicated to creating the
-                                future of Torah in an open and participatory way. We are assembling
-                                a free, living library of Jewish texts and their interconnections,
-                                in Hebrew and in translation.
+                                Pecha is a nonprofit organization dedicated to creating the
+                                future of Buddhist text in an open and participatory way. We are assembling
+                                a free, living library of Buddhist texts and their interconnections,
+                                in Tibetan and in translation.
                             </span>
                             <span className="int-he">
                                 ספריא היא ארגון ללא מטרות רווח שמטרתו יצירת הדור הבא של לימוד התורה
