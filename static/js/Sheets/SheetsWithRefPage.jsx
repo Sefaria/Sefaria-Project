@@ -28,10 +28,10 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
             registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics_en']);
         }
     }
-    const updateDocCounts = (newAvailableFilters, appliedFilter) => {
+    const updateDocCounts = (newAvailableFilters, slugs) => {
         newAvailableFilters.forEach((newFilter, i) => {
-            if (newFilter.aggKey === appliedFilter) {
-                newAvailableFilters[i].docCount++;
+            if (newFilter.aggKey in slugs) {
+                newAvailableFilters[i].docCount = slugs[newFilter.aggKey];
             }
         })
     }
@@ -63,14 +63,20 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         return sheets;
     }
     const updateNewAvailableFilters = (newAvailableFilters, sheets) => {
-        ['collections', 'topics_en'].forEach(type => {
-              sheets.forEach(sheet => {
-                const slugs = getSheetSlugs(type, sheet);
-                slugs.forEach(slug => {
-                    updateDocCounts(newAvailableFilters, slug);
-                })
-              })
+      ['collections', 'topics_en'].forEach(type => {
+          let allSlugs = {};
+          sheets.forEach(sheet => {
+            let slugs = getSheetSlugs(type, sheet);
+            slugs = [...new Set(slugs)];  // don't double count slugs since there are duplicates 
+            slugs.forEach(slug => {
+                if (!(slug in allSlugs)) {
+                  allSlugs[slug] = 0;
+                }
+                allSlugs[slug] += 1;
             })
+          })
+          updateDocCounts(newAvailableFilters, allSlugs);
+        })
         return newAvailableFilters.filter(availableFilter => availableFilter.docCount > 0);
     }
     const applySortOption = (sheets) => {
