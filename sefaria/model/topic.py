@@ -549,6 +549,9 @@ class AuthorTopic(PersonTopic):
             return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None) is not None
 
         indexes = self.get_authored_indexes()
+        if self.slug == "ibn-ezra":
+            ins = IndexSet({"authors": "moses-kimchi"})
+            indexes += sorted(ins, key=lambda i: Ref(i.title).order_id())
         
         index_or_cat_list = [] # [(index_or_cat, collective_title_term, base_category)]
         cat_aggregator = defaultdict(lambda: defaultdict(list))  # of shape {(collective_title, top_cat): {(icat, category): [index_object]}}
@@ -577,9 +580,9 @@ class AuthorTopic(PersonTopic):
                 index_category = Category.get_shared_category(temp_indexes)
                 collective_title_term = Term().load({"name": collective_title})
             if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or (collective_title is None and self._category_matches_author(index_category)):
-                if (collective_title and "Ibn Ezra" in collective_title):
-                    index_or_cat_list += [(index_category, collective_title_term, base_category)]
-                    continue
+                # if (collective_title and "Ibn Ezra" in collective_title):
+                #     index_or_cat_list += [(index_category, collective_title_term, base_category)]
+                #     continue
                 for temp_index in temp_indexes:
                     index_or_cat_list += [(temp_index, None, None)]
                 continue
