@@ -10045,7 +10045,8 @@ span.purim-emoji img{
 .overlayTextOnSheetsHero {
   color: white;
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
-  font-family: Source Serif Pro, serif;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-weight: 400;
   margin-inline-start: 10%;
 }
@@ -10057,7 +10058,6 @@ span.purim-emoji img{
 }
 .overlayTextOnSheetsHero #message {
   position: absolute;
-  font-family: Source Sans Pro, serif;
   font-size: 24px;
   line-height: 18px;
   top: 227px;
