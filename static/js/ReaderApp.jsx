@@ -45,7 +45,7 @@ class ReaderApp extends Component {
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];
-    const searchType = props.initialSearchType || 'text';
+    const searchType = props.initialSearchType || 'text';  // should really be set by URL such as sheets.sefaria.org or www.sefaria.org
     if (props.initialMenu) {
       // If a menu is specified in `initialMenu`, make a panel for it
       panels[0] = {
@@ -383,7 +383,6 @@ class ReaderApp extends Component {
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery !== next.searchQuery) ||
-          (prev.searchType !== next.searchType) ||
           (prev.tab !== next.tab) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
@@ -1700,17 +1699,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.setSinglePanelState(state);
   }
   showSearch(searchQuery) {
-    const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState
+    const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState;
     const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
         : new SearchState({ type: this.props.initialSearchType || 'text'});
-    const searchType = this.props.initialSearchType;
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchType, searchState });
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchState });
   }
   searchInCollection(searchQuery, collection) {
     const appliedFilters = [collection];
     const appliedFilterAggTypes = ['collections'];
     const searchState = new SearchState({ type: 'sheet',  appliedFilters, appliedFilterAggTypes});
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchType": "sheet", searchQuery, searchState });
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchState });
   }
   showCommunity() {
     this.setSinglePanelState({menuOpen: "community"});
