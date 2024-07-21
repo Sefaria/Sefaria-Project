@@ -1178,13 +1178,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   updateSearchState(n, searchState) {
     this.setPanelState(n,{searchState: searchState});
   }
-  updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
+  updateAvailableFilters(n, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     const state = this.state.panels[n];
     const searchState = this._getSearchState(state);
     this.setPanelState(n, {
       searchState: !!searchState ?
         searchState.update({
-          type,
+          type: searchState.type,
           availableFilters,
           filterRegistry,
           orphanFilters,
@@ -1703,13 +1703,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState
     const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
         : new SearchState({ type: this.props.initialSearchType || 'text'});
-    const searchType = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchType : this.props.initialSearchType;
+    const searchType = this.props.initialSearchType;
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchType, searchState });
   }
   searchInCollection(searchQuery, collection) {
-    const appliedFilters = this.state.searchType === 'sheet' ? [collection] : [];
-    const appliedFilterAggTypes = this.state.searchType === 'sheet' ? ['collections'] : [];
-    const searchState = new SearchState({ type: this.state.searchType,  appliedFilters, appliedFilterAggTypes});
+    const appliedFilters = [collection];
+    const appliedFilterAggTypes = ['collections'];
+    const searchState = new SearchState({ type: 'sheet',  appliedFilters, appliedFilterAggTypes});
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchType": "sheet", searchQuery, searchState });
   }
   showCommunity() {

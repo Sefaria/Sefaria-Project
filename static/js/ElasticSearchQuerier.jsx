@@ -253,7 +253,7 @@ class ElasticSearchQuerier extends Component {
                     orphans.push(...tempOrphans);
                   }
                 }
-                this.props.registerAvailableFilters(searchState.type, availableFilters, registry, orphans, args.aggregationsToUpdate);
+                this.props.registerAvailableFilters(availableFilters, registry, orphans, args.aggregationsToUpdate);
               }
             };
       args.error = this._handleError;
