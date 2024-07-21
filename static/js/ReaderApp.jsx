@@ -1178,12 +1178,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   updateSearchState(n, searchState) {
     this.setPanelState(n,{searchState: searchState});
   }
-  updateAvailableFilters(n, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
+  updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     const state = this.state.panels[n];
     const searchState = this._getSearchState(state);
     this.setPanelState(n, {
       searchState: !!searchState ?
         searchState.update({
+          type,
           availableFilters,
           filterRegistry,
           orphanFilters,
