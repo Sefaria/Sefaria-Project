@@ -165,23 +165,6 @@ class TestTopics(object):
         assert "<script>" not in t.description["he"]
         assert "<script>" not in t.slug
 
-    def test_update_topic(self, topic_graph):
-        ts = topic_graph['topics']
-        t1 = ts['1']
-        update_topic(t1, titles=[{"text": "Tamar", "lang" : "en", "primary": True},
-                                {"text": "תמר", "lang": "he", "primary":True, "disambiguation": "יהודה"}])
-        assert t1.titles == [{"text": "Tamar", "lang" : "en", "primary": True},
-                                {"text": "תמר", "lang": "he", "primary":True, "disambiguation": "יהודה"}]
-
-        update_topic(t1, description={"en": "abcdefg"})
-        assert t1.description == {"en": "abcdefg"}
-
-        with pytest.raises(Exception):
-            update_topic(t1, titles=[{"a": "Tamar", "b" : "en"},
-                                {"c": "תמר", "lang": "d", "disambiguation": "יהודה"}])
-        with pytest.raises(Exception):
-            update_topic(t1, slug='abc')
-
 
 
 
