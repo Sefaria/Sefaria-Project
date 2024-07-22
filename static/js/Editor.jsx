@@ -1901,12 +1901,6 @@ const insertSource = (editor, ref) => {
         let segments = Sefaria.makeSegments(text, false);
         segments = Sefaria.stripImagesFromSegments(segments);
 
-        // let includeNumbers = $.inArray("Talmud", text.categories) == -1;
-        // includeNumbers = text.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
-        // console.log("text", text);
-        // console.log(segments.length);
-        // console.log("segment refs", segments)
-        // console.log("includeNumbers", includeNumbers);
         let includeNumbers = shouldIncludeSegmentNums(text);
         const segmented = !(text.categories[0] in {"Tanakh": 1, "Talmud": 1});
 
