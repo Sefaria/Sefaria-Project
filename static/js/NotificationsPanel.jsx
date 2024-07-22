@@ -286,7 +286,7 @@ const IndexNotification = ({date, content}) => {
   return (
     <Notification
       topLine={topLine}
-      imageUrl={"/static/img/icon.png"}
+      imageUrl={"/static/img/pecha-icon.png"}
       date={date}
       body={body} />
   );
@@ -318,7 +318,7 @@ const VersionNotification = ({date, content}) => {
   return (
     <Notification
       topLine={topLine}
-      imageUrl={"/static/img/icon.png"}
+      imageUrl={"/static/img/pecha-icon.png"}
       date={date}
       body={body} />
   );
@@ -335,7 +335,7 @@ const GeneralNotification = ({date, content}) => {
   return (
     <Notification
       topLine={topLine}
-      imageUrl={"/static/img/icon.png"}
+      imageUrl={"/static/img/pecha-icon.png"}
       date={date} />
   );
 };
