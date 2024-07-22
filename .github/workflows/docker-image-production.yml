@@ -24,6 +24,11 @@ jobs:
           OWNER: '${{ github.repository_owner }}'
           REPOSITORY: '${{ github.repository }}'
 
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install python-bidi    
+
       - name: Build Docker image
         run: docker build -t ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }} . && docker tag ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }} ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:latest
 
@@ -31,5 +36,6 @@ jobs:
       - name: Push Docker image
         run: docker push ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }} && docker push ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:latest
       
+
       - name: Deploy to render
         run: curl -X POST ${{ secrets.DEPLOY_HOOK_NOTIFICATION }}ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }}
