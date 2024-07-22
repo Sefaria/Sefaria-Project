@@ -2782,7 +2782,7 @@ _media: {},
   sheets: {
     getSheetsByRef: function(srefs, callback) {
         return Sefaria._cachedApiPromise({
-          url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}?include_collections=1`,
+          url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}?include_collections=1&include_first_comment=1`,
           key: srefs,
           store: Sefaria.sheets._sheetsByRef,
           processor: callback
