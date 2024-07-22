@@ -25,11 +25,6 @@ jobs:
           REPOSITORY: '${{ github.repository }}'
 
 
-      - name: Install dependencies
-        run: |
-          pip install python-bidi
-
-
       - name: Build Docker image
         run: docker build -t ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }} . && docker tag ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }} ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:latest
 
