@@ -1070,18 +1070,6 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
-def update_topic_titles(topic, title="", heTitle="", **kwargs):
-    new_primary = {"en": title, "he": heTitle}
-    for lang in ['en', 'he']:   # first remove all titles and add new primary and then alt titles
-        for title in topic.get_titles(lang):
-            topic.remove_title(title, lang)
-        topic.add_title(new_primary[lang], lang, True, False)
-        if 'altTitles' in kwargs:
-            for title in kwargs['altTitles'][lang]:
-                topic.add_title(title, lang)
-    return topic
-
-
 def update_authors_place_and_time(topic, dataSource='learning-team-editing-tool', **kwargs):
     # update place info added to author, then update year and era info
     if not hasattr(topic, 'properties'):
@@ -1112,16 +1100,18 @@ def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwar
 
 def update_topic(topic, **kwargs):
     """
-    Can update topic object's title, hebrew title, category, description, and categoryDescription fields
+    Can update topic object's titles, category, description, and categoryDescription fields
     :param topic: (Topic) The topic to update
-    :param **kwargs can be title, heTitle, category, description, categoryDescription, and rebuild_toc where `title`, `heTitle`,
-         and `category` are strings. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
+    :param **kwargs can be titles, category, description, categoryDescription, and rebuild_toc where `titles` is a list
+     of title objects as they are represented in the database, and `category` is a string. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
          The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """
     old_category = ""
     orig_slug = topic.slug
-    update_topic_titles(topic, **kwargs)
+    new_titles = kwargs.get('titles')
+    if new_titles:
+        topic.set_titles(new_titles)
     if kwargs.get('category') == 'authors':
         topic = update_authors_place_and_time(topic, **kwargs)
 
