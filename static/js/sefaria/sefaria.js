@@ -2782,7 +2782,7 @@ _media: {},
   sheets: {
     getSheetsByRef: function(srefs, callback) {
         return Sefaria._cachedApiPromise({
-          url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}?include_collections=1`,
+          url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}?include_collections=1&include_first_comment=1`,
           key: srefs,
           store: Sefaria.sheets._sheetsByRef,
           processor: callback
@@ -2790,11 +2790,11 @@ _media: {},
       },
     sheetsWithRefSearchState(sheets) {
       /*
-      This function is used to generate the SearchState with its relevant FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
+      This function is used to generate the SearchState with its relevant
+      FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
        */
       const newFilter = (item, type) => {
-          let title, heTitle, aggType;
-          aggType = type === 'topics' ? 'topics_en' : 'collections';
+          let title, heTitle;
           if (type === 'topics') {
               [title, heTitle] = [item.en, item.he];
           }
@@ -2804,13 +2804,13 @@ _media: {},
           return {
               title, heTitle,
               docCount: 0, aggKey: item.slug,
-              selected: 0, aggType
+              selected: 0, aggType: type,
           };
       }
 
       let filters = {'topics': [], 'collections': []};
       sheets.forEach(sheet => {
-        ['topics', 'collections'].forEach(itemsType => {
+        Object.keys(filters).forEach(itemsType => {
             let slugsFound = [];  // keep track of topic slugs or collection slugs in this sheet
             sheet[[itemsType]]?.forEach(item => {
               if (!slugsFound.includes(item.slug)) { // we don't want to increase docCount when one sheet already
