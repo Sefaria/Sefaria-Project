@@ -2,9 +2,9 @@
 {% load i18n cache humanize sefaria_tags static %}
 {% get_static_prefix as STATIC_PREFIX %}
 
-{% block title %}{% trans "Sefaria: a Living Library of Jewish Texts Online" %}{% endblock %}
+{% block title %}{% trans "Pecha: a Living Library of Buddhist Texts Online" %}{% endblock %}
 
-{% block description %}{% trans "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more." %}{% endblock %}
+{% block description %}{% trans "The largest free library of Buddhist texts available to read online in Tibetan and English including commentaries and more." %}{% endblock %}
 
 {% block head %}
     <meta property="og:type" content="website"/>
@@ -15,7 +15,7 @@
     {
       "@context": "http://schema.org",
       "@type": "WebSite",
-      "name": "{% trans "Sefaria" %}",
+      "name": "{% trans "Pecha" %}",
       "url": "https://{{ request.META.HTTP_HOST }}",
       "potentialAction": {
         "@type": "SearchAction",
