@@ -25,7 +25,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         const currDocCounts = getDocCounts(searchState.availableFilters);
         if (!newDocCounts.compare(currDocCounts)) {
             availableFilters = availableFilters.sort((a, b) => b.docCount - a.docCount || a.title.localeCompare(b.title));
-            registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics_en']);
+            registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics']);
         }
     }
     const updateDocCounts = (newAvailableFilters, slugs) => {
@@ -36,7 +36,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         })
     }
     const getSheetSlugs = (type, sheet) => {
-        const items = type === 'topics_en' ? sheet.topics : sheet.collections;
+        const items = sheet[[type]];
         return items.map(x => x.slug);
     }
     const applyFiltersToSheets = (sheets) => {
@@ -63,11 +63,11 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         return sheets;
     }
     const updateNewAvailableFilters = (newAvailableFilters, sheets) => {
-      ['collections', 'topics_en'].forEach(type => {
+      ['collections', 'topics'].forEach(type => {
           let allSlugs = {};
           sheets.forEach(sheet => {
             let slugs = getSheetSlugs(type, sheet);
-            slugs = [...new Set(slugs)];  // don't double count slugs since there are duplicates 
+            slugs = [...new Set(slugs)];  // don't double count slugs since there are duplicates
             slugs.forEach(slug => {
                 if (!(slug in allSlugs)) {
                   allSlugs[slug] = 0;
