@@ -63,7 +63,7 @@ unidecode==1.1.1
 user-agents==2.2.0
 sentry-sdk==1.26.0
 babel
-python-bidi
+python-bidi==0.4.2
 requests
 Cerberus
 dnspython

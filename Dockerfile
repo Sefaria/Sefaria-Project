@@ -13,7 +13,6 @@ COPY package*.json ./
 
 RUN pip install -r requirements.txt
 RUN npm install --unsafe-perm
-RUN pip install python-bidi
 
 COPY ./node ./node
 COPY ./static/js ./static/js
