@@ -3323,14 +3323,11 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
   let linkTarget = null;
   let parent = target;
   let outmost = e.currentTarget;
-  debugger;
-
-  console.log(e);
-  console.log('got here!!');
   
   while (parent) {
     if(parent.nodeName === 'A'){
-      linkTarget = parent
+      linkTarget = parent;
+      break;
     }
     else if (parent.parentNode === outmost) {
       return null;
@@ -3347,8 +3344,6 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
     return;
   }
   else {
-    console.log(`GTAG CALLED on ${href}`);
-    e.preventDefault();
     gtag_fxn(rank, product, cta, label, link_type, analytics_event);
   }
 }
