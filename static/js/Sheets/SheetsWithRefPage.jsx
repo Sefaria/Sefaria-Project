@@ -25,18 +25,18 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         const currDocCounts = getDocCounts(searchState.availableFilters);
         if (!newDocCounts.compare(currDocCounts)) {
             availableFilters = availableFilters.sort((a, b) => b.docCount - a.docCount || a.title.localeCompare(b.title));
-            registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics_en']);
+            registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics']);
         }
     }
-    const updateDocCounts = (newAvailableFilters, appliedFilter) => {
+    const updateDocCounts = (newAvailableFilters, slugs) => {
         newAvailableFilters.forEach((newFilter, i) => {
-            if (newFilter.aggKey === appliedFilter) {
-                newAvailableFilters[i].docCount++;
+            if (newFilter.aggKey in slugs) {
+                newAvailableFilters[i].docCount = slugs[newFilter.aggKey];
             }
         })
     }
     const getSheetSlugs = (type, sheet) => {
-        const items = type === 'topics_en' ? sheet.topics : sheet.collections;
+        const items = sheet[[type]];
         return items.map(x => x.slug);
     }
     const applyFiltersToSheets = (sheets) => {
@@ -63,14 +63,20 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         return sheets;
     }
     const updateNewAvailableFilters = (newAvailableFilters, sheets) => {
-        ['collections', 'topics_en'].forEach(type => {
-              sheets.forEach(sheet => {
-                const slugs = getSheetSlugs(type, sheet);
-                slugs.forEach(slug => {
-                    updateDocCounts(newAvailableFilters, slug);
-                })
-              })
+      ['collections', 'topics'].forEach(type => {
+          let allSlugs = {};
+          sheets.forEach(sheet => {
+            let slugs = getSheetSlugs(type, sheet);
+            slugs = [...new Set(slugs)];  // don't double count slugs since there are duplicates
+            slugs.forEach(slug => {
+                if (!(slug in allSlugs)) {
+                  allSlugs[slug] = 0;
+                }
+                allSlugs[slug] += 1;
             })
+          })
+          updateDocCounts(newAvailableFilters, allSlugs);
+        })
         return newAvailableFilters.filter(availableFilter => availableFilter.docCount > 0);
     }
     const applySortOption = (sheets) => {
@@ -104,8 +110,31 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                             })
         return sheets;
     }
+    const getFirstSource150Chars = (firstSource) => {
+        const lang = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
+        let comment = ""
+        if (firstSource) {
+            if ('text' in firstSource) {
+                comment = firstSource.text[lang];
+            }
+            else if ('outsideBiText' in firstSource) {
+                comment = firstSource.outsideBiText[lang];
+            }
+            else if ('outsideText' in firstSource) {
+                comment = firstSource.outsideText;
+            }
+            else if ('comment' in firstSource) {
+                comment = firstSource.comment;
+            }
+        }
+        return comment.length <= 150 ? comment : comment.substring(0, 150)+"...";
+    }
     const normalizeSheetsMetaData = (sheets) => {
         return sheets.map(sheet => {
+            let summary = sheet.summary;
+            if (!summary) {
+                summary = getFirstSource150Chars(sheet?.firstSource);
+            }
             return {
                         sheetId: sheet.id,
                         title: sheet.title,
@@ -114,7 +143,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                         profile_url: sheet.ownerProfileUrl,
                         dateCreated: sheet.dateCreated,
                         _id: sheet.id,
-                        snippet: sheet?.summary || ""
+                        snippet: summary
                     }
         })
     }
@@ -167,12 +196,9 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     sortedSheets = applyFilters(sortedSheets);
     sortedSheets = applySortOption(sortedSheets);
     sortedSheets = normalizeSheetsMetaData(sortedSheets);
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
     return <SearchPage
           key={"sheetsPage"}
+          isQueryRunning={loading}
           searchTopMsg="Sheets With"
           hits={sortedSheets}
           query={srefs}

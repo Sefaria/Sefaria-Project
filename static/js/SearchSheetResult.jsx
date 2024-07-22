@@ -12,7 +12,7 @@ import {
 
 class SearchSheetResult extends Component {
     handleSheetClick(e) {
-      const s = this.props.hit;
+      const s = this.props.metadata;
       if (this.props.onResultClick) {
         e.preventDefault()
         this.props.onResultClick("Sheet " + s.sheetId);
@@ -20,11 +20,11 @@ class SearchSheetResult extends Component {
       Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`);
     }
     handleProfileClick(e) {
-      const s = this.props.hit;
+      const s = this.props.metadata;
       Sefaria.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`);
     }
     get_snippet_markup() {
-      const snippet = this.props.hit.snippet.replace(/^[ .,;:!-)\]]+/, "");
+      const snippet = this.props.snippet.replace(/^[ .,;:!-)\]]+/, "");
       const lang = Sefaria.hebrew.isHebrew(snippet) ? "he" : "en";
       return { markup: {__html: snippet}, lang };
     }
@@ -34,14 +34,14 @@ class SearchSheetResult extends Component {
         return new Intl.DateTimeFormat('en-US', options).format(date);
     }
     render() {
-        const s = this.props.hit;
+        const s = this.props.metadata;
         var clean_title = $("<span>" + s.title + "</span>").text();
         var href = "/sheets/" + s.sheetId;
         const snippetMarkup = this.get_snippet_markup();
         const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang === "en", he: snippetMarkup.lang === "he"});
         const ownerIsHe = Sefaria.hebrew.isHebrew(s.owner_name);
         const titleIsHe = Sefaria.hebrew.isHebrew(clean_title);
-        const dateString = this.formatDate(this.props.hit.dateCreated);
+        const dateString = this.formatDate(this.props.metadata.dateCreated);
         return (
             <div className='result sheetResult'>
                 <div className="sheetData sans-serif">

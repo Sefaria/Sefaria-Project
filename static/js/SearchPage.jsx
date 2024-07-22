@@ -38,7 +38,7 @@ class SearchPage extends Component {
                                         registerAvailableFilters={this.props.registerAvailableFilters}
                                         openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
                                         loadNextPage={this.props.loadNextPage}
-                                        isLoading={this.props.isQueryRunning}
+                                        isQueryRunning={this.props.isQueryRunning}
                                         moreToLoad={this.props.moreToLoad}
                                         topics={this.props.topics}
                                       />;

@@ -345,7 +345,7 @@ class ElasticSearchQuerier extends Component {
                     onResultClick={this.props.onResultClick}
                     openDisplaySettings={this.props.openDisplaySettings}
                     toggleLanguage={this.props.toggleLanguage}
-                    close={this.props.closePanel}
+                    close={this.props.close}
                     onQueryChange={this.props.onQueryChange}
                     updateAppliedFilter={this.props.updateAppliedFilter}
                     updateAppliedOptionField={this.props.updateAppliedOptionField}
