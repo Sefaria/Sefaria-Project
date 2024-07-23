@@ -3069,6 +3069,7 @@ def topics_list_api(request):
 @staff_member_required
 def generate_topic_prompts_api(request, slug: str):
     if request.method == "POST":
+        task_ids = []
         from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
         from sefaria.helper.llm.topic_prompt import get_ref_context_hints_by_lang
         topic = Topic.init(slug)
@@ -3076,8 +3077,8 @@ def generate_topic_prompts_api(request, slug: str):
         ref_topic_links = post_body.get('ref_topic_links')
         for lang, ref__context_hints in get_ref_context_hints_by_lang(ref_topic_links).items():
             orefs, context_hints = zip(*ref__context_hints)
-            generate_and_save_topic_prompts(lang, topic, orefs, context_hints)
-        return jsonResponse({"acknowledged": True}, status=202)
+            task_ids.append(generate_and_save_topic_prompts(lang, topic, orefs, context_hints).id)
+        return celeryResponse(task_ids)
     return jsonResponse({"error": "This API only accepts POST requests."})
 
 
