@@ -455,10 +455,11 @@ class ReaderApp extends Component {
             hist.mode  = "navigation";
             break;
           case "sheetsWithRef":
-            const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
-            hist.title = Sefaria._("Sheets with ") + Sefaria.sheetsWithRef[lang] + Sefaria._(" on Sefaria");
+            const encodedSheetsWithRef = Sefaria.sheetsWithRef[shortLang] ? encodeURIComponent(Sefaria.sheetsWithRef[shortLang]) : "";
+            hist.title = Sefaria._("Sheets with ") + Sefaria.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
+            hist.url   = "sheetsWithRef" + (Sefaria.sheetsWithRef[shortLang] ? (`/${encodedSheetsWithRef}` +
+              state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode = "sheetsWithRef";
-            hist.url = `sheetsWithRef/${Sefaria.sheetsWithRef['en']}`;
             break;
           case "text toc":
             var ref    = state.refs.slice(-1)[0];
