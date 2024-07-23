@@ -10,6 +10,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     const [loading, setLoading] = useState(true);
     const [totalResults, setTotalResults] = useState(new SearchTotal());
     const [origAvailableFilters, setOrigAvailableFilters] = useState([]);
+    const [refs, setRefs] = useState(srefs);
     const cloneFilters = (availableFilters, resetDocCounts = true) => {
         return availableFilters.map(availableFilter => {
             let newAvailableFilter = availableFilter.clone();
@@ -25,7 +26,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         const currDocCounts = getDocCounts(searchState.availableFilters);
         if (!newDocCounts.compare(currDocCounts)) {
             availableFilters = availableFilters.sort((a, b) => b.docCount - a.docCount || a.title.localeCompare(b.title));
-            registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics']);
+            registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics_en']);
         }
     }
     const updateDocCounts = (newAvailableFilters, slugs) => {
@@ -36,7 +37,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         })
     }
     const getSheetSlugs = (type, sheet) => {
-        const items = sheet[[type]];
+        const items = type === 'topics_en' ? sheet.topics : sheet.collections;
         return items.map(x => x.slug);
     }
     const applyFiltersToSheets = (sheets) => {
@@ -63,7 +64,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         return sheets;
     }
     const updateNewAvailableFilters = (newAvailableFilters, sheets) => {
-      ['collections', 'topics'].forEach(type => {
+      ['collections', 'topics_en'].forEach(type => {
           let allSlugs = {};
           sheets.forEach(sheet => {
             let slugs = getSheetSlugs(type, sheet);
@@ -178,18 +179,18 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
       // 'collections' won't be present if the related API set _sheetsByRef,
       // but 'collections' will be present if the sheets_by_ref_api has run
       // if the field is not present, we need to call the sheets_by_ref_api
-      const currentSheetsByRef = Sefaria.sheets._sheetsByRef[srefs];
+      const currentSheetsByRef = Sefaria.sheets._sheetsByRef[refs];
       const collectionsInCache = !!currentSheetsByRef && currentSheetsByRef.every(sheet => 'collections' in sheet);
       if (!collectionsInCache) {
-          delete Sefaria.sheets._sheetsByRef[srefs];
-          Sefaria.sheets.getSheetsByRef(srefs, getSheetsByRefCallback).then(sheets => {
+          delete Sefaria.sheets._sheetsByRef[refs];
+          Sefaria.sheets.getSheetsByRef(refs, getSheetsByRefCallback).then(sheets => {
               handleSheetsLoad(sheets);
           })
       }
       else {
-          handleSheetsLoad(Sefaria.sheets._sheetsByRef[srefs]);
+          handleSheetsLoad(Sefaria.sheets._sheetsByRef[refs]);
       }
-    }, []);
+    }, [refs]);
 
     updateOrigAvailableFilters();
     let sortedSheets = [...sheets];
@@ -201,7 +202,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
           isQueryRunning={loading}
           searchTopMsg="Sheets With"
           hits={sortedSheets}
-          query={srefs}
+          query={refs}
           type={'sheet'}
           totalResults={totalResults}
           compare={false}

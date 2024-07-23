@@ -2797,6 +2797,7 @@ _media: {},
           let title, heTitle;
           if (type === 'topics') {
               [title, heTitle] = [item.en, item.he];
+              type = 'topics_en';
           }
           else if (type === 'collections') {
               [title, heTitle] = [item.name, item.name];
