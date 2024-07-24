@@ -18,6 +18,42 @@
   <priority>1.0</priority>
 </url>
 <url>
+  <loc>https://pecha.org/topics</loc>
+  <lastmod>2024-07-15</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>1.0</priority>
+</url>
+<url>
+  <loc>https://pecha.org/community</loc>
+  <lastmod>2024-07-15</lastmod>
+  <changefreq>daily</changefreq>
+  <priority>1.0</priority>
+</url>
+<url>
+  <loc>https://pecha.org/sheets/61?lang=en</loc>
+  <lastmod>2024-07-15</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.9</priority>
+</url>
+<url>
+  <loc>https://pecha.org/sheets/62?lang=en</loc>
+  <lastmod>2024-07-15</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.9</priority>
+</url>
+<url>
+  <loc>https://pecha.org/sheets/63?lang=en</loc>
+  <lastmod>2024-07-15</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.9</priority>
+</url>
+<url>
+  <loc>https://pecha.org/sheets/64?lang=en</loc>
+  <lastmod>2024-07-15</lastmod>
+  <changefreq>weekly</changefreq>
+  <priority>0.9</priority>
+</url>
+<url>
   <loc>https://pecha.org/The_characteristics_of_the_master_and_disciple?tab=contents</loc>
   <lastmod>2024-07-15</lastmod>
   <changefreq>weekly</changefreq>
@@ -28,47 +64,5 @@
   <lastmod>2024-07-15</lastmod>
   <changefreq>weekly</changefreq>
   <priority>0.9</priority>
-</url>
-<url>
-  <loc>https://pecha.org/texts/Encyclopedic%20Works</loc>
-  <lastmod>2024-07-15</lastmod>
-  <changefreq>weekly</changefreq>
-  <priority>0.9</priority>
-</url>
-<url>
-  <loc>https://pecha.org/Prayer_for_the_Future_of_the_Dharma.1.2?lang=he</loc>
-  <lastmod>2024-07-15</lastmod>
-  <changefreq>weekly</changefreq>
-  <priority>0.9</priority>
-</url>
-<url>
-  <loc>https://pecha.org/Prayer_of_Kuntuzangpo.1?lang=en</loc>
-  <lastmod>2024-07-15</lastmod>
-  <changefreq>weekly</changefreq>
-  <priority>0.9</priority>
-</url>
-<url>
-  <loc>https://pecha.org/The_Way_of_the_Boddhisattva.1?lang=en</loc>
-  <lastmod>2024-07-15</lastmod>
-  <changefreq>weekly</changefreq>
-  <priority>0.9</priority>
-</url>
-<url>
-  <loc>https://pecha.org/texts/Madyamika/Commentaries/The%20Way%20of%20the%20Boddhisattva</loc>
-  <lastmod>2024-07-15</lastmod>
-  <changefreq>weekly</changefreq>
-  <priority>0.9</priority>
-</url>
-<url>
-  <loc>https://pecha.org/topics</loc>
-  <lastmod>2024-07-15</lastmod>
-  <changefreq>weekly</changefreq>
-  <priority>0.8</priority>
-</url>
-<url>
-  <loc>https://pecha.org/community</loc>
-  <lastmod>2024-07-15</lastmod>
-  <changefreq>weekly</changefreq>
-  <priority>0.8</priority>
 </url>
 </urlset>

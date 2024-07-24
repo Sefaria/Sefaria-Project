@@ -12795,9 +12795,9 @@ section.SheetSource .SheetOutsideBiText {
     width: 100%;
 }
 
-.interface-hebrew .profile-page .filterable-list {
+/* .interface-hebrew .profile-page .filterable-list {
     margin: -4px -1000px -120px 0;
-}
+} */
 
 .filterable-list .filter-bar {
     border-bottom: 1px solid #E2E2E1;
