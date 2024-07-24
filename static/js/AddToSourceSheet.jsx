@@ -89,7 +89,19 @@ class AddToSourceSheetBox extends Component {
       }, this.confirmAdd);
     }
   }
+
+  longestSuffixPrefixIndex(string1, string2) {
+    let longestSuffixIndex = 0;
+    for (let i = 0; i < string1.length; i++){
+      let suffix = string1.slice(i);
+      if (string2.startsWith(suffix)) {
+        longestSuffixIndex = i;
+      }
+    }
+    return longestSuffixIndex;
+  }
   addToSourceSheet() {
+    console.log("addToSourceSheet");
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     }
@@ -111,6 +123,17 @@ class AddToSourceSheetBox extends Component {
         }
       } else if (this.props.srefs) { //regular use - this is currently the case when the component is loaded in the sidepanel or in the modal component via profiles and notes pages
         source.refs = this.props.srefs;
+        console.log("source.refs", source.refs);
+        console.log("source", source);
+        let segments = []
+        source.refs.forEach((ref) => {
+          Sefaria.getText(ref, {stripItags: 1}).then(text => {
+            segments.concat(Sefaria.makeSegments(text, false))
+          }
+        )});
+        console.log("segments", segments);
+
+
         const { en, he } = this.props.currVersions ? this.props.currVersions : {"en": null, "he": null}; //the text we are adding may be non-default version
         if (he) { source["version-he"] = he; }
         if (en) { source["version-en"] = en; }

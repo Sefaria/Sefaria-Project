@@ -1884,10 +1884,10 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
 }
 
 const shouldIncludeSegmentNums = (text) =>  {
-    if ($.inArray("Talmud", text.categories) != -1) {return false};
-    if (text.indexTitle === "Pesach Haggadah") {return false};
-    if (text.text.length === 1) {return false};
-    return true
+    if ($.inArray("Talmud", text.categories) != -1) {return false}
+    if (text.indexTitle === "Pesach Haggadah") {return false}
+    if (text.text.length === 1) {return false}
+    return true;
 }
 const insertSource = (editor, ref) => {
     const path = editor.selection.anchor.path;
