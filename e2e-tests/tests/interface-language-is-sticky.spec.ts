@@ -2,120 +2,37 @@ import {test, expect} from '@playwright/test';
 import {goToPageWithLang, getPathAndParams} from "../utils";
 import {LANGUAGES} from '../globals'
 
-test('Hebrew Interface Language with English Source', async ({ context }) => {
-    // Navigating to Bereshit
-    const page = await goToPageWithLang(context,'/Genesis.1',LANGUAGES.HE)
+[
+    {interfaceLanguage: 'Hebrew', sourceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.HE, sourceLanguageToggle: 'div.toggleOption.english', expectedSourceText: 'When God began to create', expectedBilingualText: '', expectedInterfaceText: 'מקורות' },
+    {interfaceLanguage: 'Hebrew', sourceLanguage: 'Bilingual', interfaceLanguageToggle: LANGUAGES.HE, sourceLanguageToggle: 'div.toggleOption.bilingual', expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: 'When God began to create', expectedInterfaceText: 'מקורות' },
+    {interfaceLanguage: 'Hebrew', sourceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, sourceLanguageToggle: 'div.toggleOption.hebrew', expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: '', expectedInterfaceText: 'מקורות' },
+    {interfaceLanguage: 'English', sourceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN, sourceLanguageToggle: 'div.toggleOption.english', expectedSourceText: 'When God began to create', expectedBilingualText: '', expectedInterfaceText: 'Texts' },
+    {interfaceLanguage: 'English', sourceLanguage: 'Bilingual', interfaceLanguageToggle: LANGUAGES.EN, sourceLanguageToggle: 'div.toggleOption.bilingual', expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: 'When God began to create', expectedInterfaceText: 'Texts' },
+    {interfaceLanguage: 'English', sourceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.EN, sourceLanguageToggle: 'div.toggleOption.hebrew', expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: '', expectedInterfaceText: 'Texts' }
 
-    // Clicking on the Source Language toggle
-    await page.getByAltText('Toggle Reader Menu Display Settings').click()
+].forEach(({interfaceLanguage, sourceLanguage, interfaceLanguageToggle, sourceLanguageToggle, expectedSourceText, expectedBilingualText, expectedInterfaceText}) => {
+    test(`${interfaceLanguage} Interface Language with ${sourceLanguage} Source`, async ({ context }) => {
 
-    // Selecting English only
-    await page.getByRole('radiogroup', {name: 'Language'}).locator('div.toggleOption.english').click()
+        // Navigating to Bereshit with selected Interface Language, Hebrew or English
+        const page = await goToPageWithLang(context,'/Genesis.1',`${interfaceLanguageToggle}`)
+        
+        // Clicking on the Source Language toggle
+        await page.getByAltText('Toggle Reader Menu Display Settings').click()
 
-    // Locating the first segment, then verifying English-only source translation
-    await expect(page.locator('div.segmentNumber').first().locator('..').locator('p')).toContainText("When God began to create")
-
-    // Validate Hebrew interface language is still toggled
-    await expect(page.locator('a.textLink').first()).toHaveText('מקורות')
-
-});
-
-test('Hebrew Interface Language with Bi-lingual Source', async ({ context }) => {
-    // Navigating to Bereshit
-    const page = await goToPageWithLang(context,'/Genesis.1',LANGUAGES.HE)
-
-    // Clicking on the Source Language toggle
-    await page.getByAltText('Toggle Reader Menu Display Settings').click()
-
-    // Selecting English only
-    await page.getByRole('radiogroup', {name: 'Language'}).locator('div.toggleOption.bilingual').click()
-
-    /* Validate existence of Hebrew and English paragraphs with in segments, with Hebrew being first */
-    // Locating the first segment, then verifying Hebrew source translation
-    await expect(page.locator('div.segmentNumber').first().locator('..').locator('p span').first()).toContainText("רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃")
+        // Selecting Source Language
+        await page.getByRole('radiogroup', {name: 'Language'}).locator(`${sourceLanguageToggle}`).click()
     
-    // Locating English source translation in first segment
-    await expect(page.locator('div.segmentNumber').first().locator('..').locator('p span').last()).toContainText("When God began to create")
+        // Locating the source text segment, then verifying translation
+        await expect(page.locator('div.segmentNumber').first().locator('..').locator('p')).toContainText(`${expectedSourceText}`)
 
-    // Validate Hebrew interface language is still toggled
-    await expect(page.locator('a.textLink').first()).toHaveText('מקורות')
-
-
-});
-
-test('Hebrew Interface Language with Hebrew Source', async ({ context }) => {
-    // Navigating to Bereshit
-    const page = await goToPageWithLang(context,'/Genesis.1',LANGUAGES.HE)
-
-    // Clicking on the Source Language toggle
-    await page.getByAltText('Toggle Reader Menu Display Settings').click()
-
-    // Selecting English only
-    await page.getByRole('radiogroup', {name: 'Language'}).locator('div.toggleOption.hebrew').click()
-
-    // Locating the first segment, then verifying Hebrew-only source translation
-    await expect(page.locator('div.segmentNumber').first().locator('..').locator('p span').first()).toContainText("רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃")
-
-    // Validate Hebrew interface language is still toggled
-    await expect(page.locator('a.textLink').first()).toHaveText('מקורות')
-
-});
-
-test('English Interface Language with English Source', async ({ context }) => {
-    // Navigating to Bereshit
-    const page = await goToPageWithLang(context,'/Genesis.1',LANGUAGES.EN)
-
-    // Clicking on the Source Language toggle
-    await page.getByAltText('Toggle Reader Menu Display Settings').click()
-
-    // Selecting English only
-    await page.getByRole('radiogroup', {name: 'Language'}).locator('div.toggleOption.english').click()
-
-    // Locating the first segment, then verifying English-only source translation
-    await expect(page.locator('div.segmentNumber').first().locator('..').locator('p')).toContainText("When God began to create")
-
-    // Validate English interface language is still toggled
-    await expect(page.locator('a.textLink').first()).toHaveText('Texts')
-
-});
-
-test('English Interface Language with Bi-lingual Source', async ({ context }) => {
-    // Navigating to Bereshit
-    const page = await goToPageWithLang(context,'/Genesis.1',LANGUAGES.EN)
-
-    // Clicking on the Source Language toggle
-    await page.getByAltText('Toggle Reader Menu Display Settings').click()
-
-    // Selecting English only
-    await page.getByRole('radiogroup', {name: 'Language'}).locator('div.toggleOption.bilingual').click()
-
-    /* Validate existence of Hebrew and English paragraphs with in segments, with Hebrew being first */
-    // Locating the first segment, then verifying Hebrew source translation
-    await expect(page.locator('div.segmentNumber').first().locator('..').locator('p span').first()).toContainText("רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃")
+        // Checking out the second part of the text, if 'Bilingual' is selected
+        if(`${sourceLanguage}` === 'Bilingual'){
+            await expect(page.locator('div.segmentNumber').first().locator('..').locator('p span').last()).toContainText(`${expectedBilingualText}`)
+        }
     
-    // Locating English source translation in first segment
-    await expect(page.locator('div.segmentNumber').first().locator('..').locator('p span').last()).toContainText("When God began to create")
+        // Validate Hebrew interface language is still toggled
+        const textLink = page.locator('a.textLink').first()
+        await expect(textLink).toHaveText(`${expectedInterfaceText}`)
 
-    // Validate English interface language is still toggled
-    await expect(page.locator('a.textLink').first()).toHaveText('Texts')
-
-
-});
-
-test('English Interface Language with Hebrew Source', async ({ context }) => {
-    // Navigating to Bereshit
-    const page = await goToPageWithLang(context,'/Genesis.1',LANGUAGES.EN)
-
-    // Clicking on the Source Language toggle
-    await page.getByAltText('Toggle Reader Menu Display Settings').click()
-
-    // Selecting English only
-    await page.getByRole('radiogroup', {name: 'Language'}).locator('div.toggleOption.hebrew').click()
-
-    // Locating the first segment, then verifying Hebrew-only source translation
-    await expect(page.locator('div.segmentNumber').first().locator('..').locator('p span').first()).toContainText("רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃")
-
-    // Validate English interface language is still toggled
-    await expect(page.locator('a.textLink').first()).toHaveText('Texts')
-
-});
+    })
+})
