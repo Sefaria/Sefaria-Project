@@ -13,6 +13,8 @@ Allow: /static/
 Allow: /media/
 Allow: /register/
 Allow: /login/
+Allow: /sheets/
+
 
 Sitemap: https://pecha.org/sitemap.xml
 
