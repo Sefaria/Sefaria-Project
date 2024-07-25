@@ -1,15 +1,40 @@
 import {test, expect} from '@playwright/test';
-import {goToPageWithLang} from "../utils";
-import {LANGUAGES} from '../globals'
+import {goToPageWithLang, changeLanguageOfText} from "../utils";
+import {LANGUAGES, SOURCE_LANGUAGES} from '../globals'
 
 [
-    {interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, translations: 'תרגומים', currentlySelected: 'נוכחי', secondTranslation: 'חומש רש״י, רבי שרגא זילברשטיין', thirdTranslation: '«Да» project'},
-    {interfaceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN, translations: 'Translations', currentlySelected: 'Currently Selected', secondTranslation: 'The Rashi chumash by Rabbi Shraga Silverstein', thirdTranslation: '«Да» project'}
-].forEach(({interfaceLanguage, interfaceLanguageToggle, translations, currentlySelected, secondTranslation, thirdTranslation}) => {
-    test(`${interfaceLanguage} - translation name appears in title`, async ({ context }) => {
+    // Hebrew Interface and Hebrew Source
+    /*
+    {interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, sourceLanguage: SOURCE_LANGUAGES.HE,
+        translations: 'תרגומים', currentlySelected: 'נוכחי', 
+        secondTranslation: 'חומש רש״י, רבי שרגא זילברשטיין', thirdTranslation: '«Да» project'}, 
+    */
+
+    // Hebrew Interface and English Source
+    {interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, sourceLanguage: SOURCE_LANGUAGES.EN,
+        translations: 'תרגומים', currentlySelected: 'נוכחי', 
+        secondTranslation: 'The Schocken Bible, Everett Fox, 1995 ©', thirdTranslation: '«Да» project'}, 
+
+    // English Interface and Hebrew Source
+    /*
+    {interfaceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN, sourceLanguage: SOURCE_LANGUAGES.HE,
+        translations: 'תרגומים', currentlySelected: 'נוכחי', 
+        secondTranslation: 'The Schocken Bible, Everett Fox, 1995 ©', thirdTranslation: '«Да» project'}, 
+    */
+   
+    // English Interface and English Source
+    {interfaceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN, sourceLanguage: SOURCE_LANGUAGES.EN,
+        translations: 'Translations', currentlySelected: 'Currently Selected', 
+        secondTranslation: 'The Schocken Bible, Everett Fox, 1995 ©', thirdTranslation: '«Да» project'}
+
+].forEach(({interfaceLanguage, interfaceLanguageToggle, sourceLanguage, translations, currentlySelected, secondTranslation, thirdTranslation}) => {
+    test(`${interfaceLanguage} - translation name appears in title for ${sourceLanguage} source text`, async ({ context }) => {
 
         // Navigate to Bereshit in specified Interface Language
         const page = await goToPageWithLang(context,'/Genesis.1', `${interfaceLanguageToggle}`)
+
+        // Change the Source Language of the text
+        await changeLanguageOfText(page, `${sourceLanguage}`)
 
         // Retain the translation name locator
         const translationNameInTitle = page.locator('span.readerTextVersion')
