@@ -375,7 +375,7 @@ class TextColumn extends Component {
         return null
       } else {
         return (
-          <div className='ribbon-wrap'><span class="ribbon ">{"In progress"}</span></div>
+          <div className='ribbon-wrap'><span class="ribbon">{"In Progress"}</span></div>
         )
       }
     }
