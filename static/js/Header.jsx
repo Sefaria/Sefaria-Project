@@ -17,6 +17,29 @@ import {
 import {Autocomplete} from './Autocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
 
+
+const ModuleSwitcher = () => {
+  return (
+    <DropdownMenu>
+    <DropdownMenuItem url={'/'}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'//sheets.sefaria.org'}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'//developers.sefaria.org'}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'//sefaria.org/products'}>
+      <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products >'}} />
+    </DropdownMenuItem>
+
+  </DropdownMenu>
+  );
+}
 class Header extends Component {
   constructor(props) {
     super(props)
@@ -71,24 +94,7 @@ class Header extends Component {
           }
 
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <DropdownMenu>
-                <DropdownMenuItem url={'/'}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem url={'//sheets.sefaria.org'}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem url={'//developers.sefaria.org'}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem url={'//sefaria.org/products'}>
-                  <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products >'}} />
-                </DropdownMenuItem>
-
-              </DropdownMenu> : null}
+          <ModuleSwitcher /> : null}
 
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
