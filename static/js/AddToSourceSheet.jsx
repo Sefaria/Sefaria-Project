@@ -89,6 +89,27 @@ class AddToSourceSheetBox extends Component {
       }, this.confirmAdd);
     }
   }
+//   async shouldIncludeSegmentNums (ref) {
+//     if ($.inArray("Talmud", text.categories) != -1) {return false};
+//     if (text.indexTitle === "Pesach Haggadah") {return false};
+//     if (text.text.length === 1) {return false};
+//     return true
+// }
+  placed_segment_mapper(lang, segmented, includeNumbers, s) {
+    if (!s[lang]) {return ""}
+
+    let numStr = "";
+    if (includeNumbers) {
+        const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
+        numStr = "<small>(" + num + ")</small> ";
+    }
+    let str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
+    if (segmented) {
+        str = "<p>" + str + "</p>";
+    }
+    str = str.replace(/(<br\/>)+/g, ' ')
+    return str;
+}
 
   longestSuffixPrefixIndex(string1, string2) {
     let longestSuffixIndex = 0;
@@ -98,9 +119,35 @@ class AddToSourceSheetBox extends Component {
         longestSuffixIndex = i;
       }
     }
+    console.log("longest suffix: ", string1.slice(longestSuffixIndex));
     return longestSuffixIndex;
   }
-  addToSourceSheet() {
+  longestPrefixSuffixIndex(string1, string2) {
+    let longestPrefixIndex = 0;
+    for (let i = 0; i < string1.length; i++) {
+      let prefix = string1.slice(0, i + 1);
+      if (string2.endsWith(prefix)) {
+        longestPrefixIndex = i + 1;
+      }
+    }
+    console.log("longest prefix: ", string1.slice(0, longestPrefixIndex));
+    return longestPrefixIndex;
+  }
+  async getSegmentObjs(refs) {
+    const segments = [];
+
+    for (const ref of refs) {
+      const text = await Sefaria.getText(ref, { stripItags: 1 });
+      const newSegments = Sefaria.makeSegments(text, false);
+      segments.push(...newSegments);
+    }
+    return segments;
+  }
+  async getCategories(ref) {
+    const text = await Sefaria.getText(ref, { stripItags: 1 });
+    return text.categories;
+  }
+  async addToSourceSheet() {
     console.log("addToSourceSheet");
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
@@ -125,13 +172,8 @@ class AddToSourceSheetBox extends Component {
         source.refs = this.props.srefs;
         console.log("source.refs", source.refs);
         console.log("source", source);
-        let segments = []
-        source.refs.forEach((ref) => {
-          Sefaria.getText(ref, {stripItags: 1}).then(text => {
-            segments.concat(Sefaria.makeSegments(text, false))
-          }
-        )});
-        console.log("segments", segments);
+
+
 
 
         const { en, he } = this.props.currVersions ? this.props.currVersions : {"en": null, "he": null}; //the text we are adding may be non-default version
@@ -142,7 +184,37 @@ class AddToSourceSheetBox extends Component {
         // Use passed in language to determine which version this highlight covers.
         var selectedWords = this.props.selectedWords; //if there was highlighted single panel
         if (selectedWords && language != "bilingual") {
-          source[language.slice(0,2)] = selectedWords;
+          selectedWords = selectedWords.replace(/\u2009/g, ' ')
+          let segments = await this.getSegmentObjs(source.refs);
+          let categories = await this.getCategories(source.refs[0])
+          let resultSourceText = '';
+          let lan = language.slice(0,2);
+          const segmented = !(categories[0] in {"Tanakh": 1, "Talmud": 1});
+          for (let iSegment = 0; iSegment < segments.length; iSegment++) {
+              const segment = segments[iSegment];
+              if (iSegment == 0){
+                segment[lan] = segment[lan].replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, '');
+                let criticalIndex = this.longestSuffixPrefixIndex(segment[lan], selectedWords);
+                const ellipse = "" ? criticalIndex == 0 : "...";
+                segment[lan] = ellipse + segment[lan].slice(criticalIndex);
+              }
+              else if (iSegment == segments.length-1){
+                segment[lan] = segment[lan].replace(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, '');
+                console.log("segment[lan]", segment[lan]);
+                console.log("selected", selectedWords);
+                let criticalIndex = this.longestPrefixSuffixIndex(segment[lan], selectedWords);
+                const ellipse = "" ? criticalIndex == segment[lan].length-1 : "...";
+                const chunk = segment[lan].slice(0, criticalIndex)
+                segment[lan] = chunk + ellipse;
+              }
+          }
+          resultSourceText = segments.map(this.placed_segment_mapper.bind(this, lan, segmented, true))
+            .filter(Boolean)
+            .join("");
+          console.log("resultSourceText:", resultSourceText);
+
+          // source[language.slice(0,2)] = selectedWords;
+          source[lan] = resultSourceText;
         }
       }
       if (this.checkContentForImages(source.refs)) {
