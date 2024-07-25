@@ -3,14 +3,37 @@ import {goToPageWithLang, getPathAndParams} from "../utils";
 import {LANGUAGES} from '../globals'
 
 [
-    {interfaceLanguage: 'Hebrew', sourceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.HE, sourceLanguageToggle: 'div.toggleOption.english', expectedSourceText: 'When God began to create', expectedBilingualText: '', expectedInterfaceText: 'מקורות' },
-    {interfaceLanguage: 'Hebrew', sourceLanguage: 'Bilingual', interfaceLanguageToggle: LANGUAGES.HE, sourceLanguageToggle: 'div.toggleOption.bilingual', expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: 'When God began to create', expectedInterfaceText: 'מקורות' },
-    {interfaceLanguage: 'Hebrew', sourceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, sourceLanguageToggle: 'div.toggleOption.hebrew', expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: '', expectedInterfaceText: 'מקורות' },
-    {interfaceLanguage: 'English', sourceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN, sourceLanguageToggle: 'div.toggleOption.english', expectedSourceText: 'When God began to create', expectedBilingualText: '', expectedInterfaceText: 'Texts' },
-    {interfaceLanguage: 'English', sourceLanguage: 'Bilingual', interfaceLanguageToggle: LANGUAGES.EN, sourceLanguageToggle: 'div.toggleOption.bilingual', expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: 'When God began to create', expectedInterfaceText: 'Texts' },
-    {interfaceLanguage: 'English', sourceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.EN, sourceLanguageToggle: 'div.toggleOption.hebrew', expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: '', expectedInterfaceText: 'Texts' }
+    // Hebrew Interface and English Source
+    {interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, 
+        sourceLanguage: 'English', sourceLanguageToggle: 'div.toggleOption.english', 
+        expectedSourceText: 'When God began to create', expectedBilingualText: '', expectedInterfaceText: 'מקורות' },
+    
+    // Hebrew Interface and Bilingual Source
+    {interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, 
+        sourceLanguage: 'Bilingual', sourceLanguageToggle: 'div.toggleOption.bilingual', 
+        expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: 'When God began to create', expectedInterfaceText: 'מקורות' },
+    
+    // Hebrew Interface and Hebrew Source
+    {interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, 
+        sourceLanguage: 'Hebrew', sourceLanguageToggle: 'div.toggleOption.hebrew', 
+        expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: '', expectedInterfaceText: 'מקורות' },
+    
+    // English Interface and English Source
+    {interfaceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN, 
+        sourceLanguage: 'English', sourceLanguageToggle: 'div.toggleOption.english', 
+        expectedSourceText: 'When God began to create', expectedBilingualText: '', expectedInterfaceText: 'Texts' },
 
-].forEach(({interfaceLanguage, sourceLanguage, interfaceLanguageToggle, sourceLanguageToggle, expectedSourceText, expectedBilingualText, expectedInterfaceText}) => {
+    // English Interface and Bilingual Source
+    {interfaceLanguage: 'English', sinterfaceLanguageToggle: LANGUAGES.EN, 
+        sourceLanguage: 'Bilingual', sourceLanguageToggle: 'div.toggleOption.bilingual', 
+        expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: 'When God began to create', expectedInterfaceText: 'Texts' },
+        
+    // English Interface and Hebrew Source
+    {interfaceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN, 
+        sourceLanguage: 'Hebrew', sourceLanguageToggle: 'div.toggleOption.hebrew', 
+        expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: '', expectedInterfaceText: 'Texts' }
+
+].forEach(({interfaceLanguage, interfaceLanguageToggle, sourceLanguage, sourceLanguageToggle, expectedSourceText, expectedBilingualText, expectedInterfaceText}) => {
     test(`${interfaceLanguage} Interface Language with ${sourceLanguage} Source`, async ({ context }) => {
 
         // Navigating to Bereshit with selected Interface Language, Hebrew or English
