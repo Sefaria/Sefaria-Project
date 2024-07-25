@@ -195,7 +195,7 @@ class AddToSourceSheetBox extends Component {
               if (iSegment == 0){
                 segment[lan] = segment[lan].replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, '');
                 let criticalIndex = this.longestSuffixPrefixIndex(segment[lan], selectedWords);
-                const ellipse = "" ? criticalIndex == 0 : "...";
+                const ellipse = criticalIndex == 0 ? "" : "...";
                 segment[lan] = ellipse + segment[lan].slice(criticalIndex);
               }
               else if (iSegment == segments.length-1){
@@ -203,7 +203,7 @@ class AddToSourceSheetBox extends Component {
                 console.log("segment[lan]", segment[lan]);
                 console.log("selected", selectedWords);
                 let criticalIndex = this.longestPrefixSuffixIndex(segment[lan], selectedWords);
-                const ellipse = "" ? criticalIndex == segment[lan].length-1 : "...";
+                const ellipse = criticalIndex == segment[lan].length-1 ? "" : "...";
                 const chunk = segment[lan].slice(0, criticalIndex)
                 segment[lan] = chunk + ellipse;
               }
