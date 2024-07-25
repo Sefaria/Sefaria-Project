@@ -1437,8 +1437,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Donate Now"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/english"
-                heButtonUrl="https://donate.sefaria.org/he"
+                enButtonUrl="https://donate.sefaria.org/english?c_src=waystogive"
+                heButtonUrl="https://donate.sefaria.org/he?c_src=waystogive"
                 borderColor="#004E5F"
             />,
             <FeatureBox
@@ -1448,8 +1448,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Join the Sustainers"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/sustainers"
-                heButtonUrl="https://donate.sefaria.org/sustainershe"
+                enButtonUrl="https://donate.sefaria.org/sustainers?c_src=waystogive"
+                heButtonUrl="https://donate.sefaria.org/sustainershe?c_src=waystogive"
                 borderColor="#97B386"
             />,
             <FeatureBox
@@ -1459,8 +1459,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Sponsor a Day of Learning"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/sponsor"
-                heButtonUrl="https://donate.sefaria.org/sponsorhe"
+                enButtonUrl="https://donate.sefaria.org/sponsor?c_src=waystogive"
+                heButtonUrl="https://donate.sefaria.org/sponsorhe?c_src=waystogive"
                 borderColor="#4B71B7"
             />,
             <FeatureBox
@@ -1470,7 +1470,7 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Join Now or Learn More"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/campaign/giving-circles/c557214"
+                enButtonUrl="https://donate.sefaria.org/campaign/giving-circles/c557214?c_src=waystogive"
                 heButtonUrl=""
                 borderColor="#7C416F"
             />
