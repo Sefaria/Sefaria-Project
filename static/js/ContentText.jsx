@@ -16,7 +16,7 @@ const ContentText = (props) => {
    * order to return the bilingual langauage elements in (as opposed to the unguaranteed order by default).
    */
    const langAndContentItems = _filterContentTextByLang(props);
-   return langAndContentItems.map(item => <ContentSpan lang={item[0]} content={item[1]} isHTML={!!props.html} markdown={props.markdown}/>);
+   return langAndContentItems.map((item, i )=> <ContentSpan key={i} lang={item[0]} content={item[1]} isHTML={!!props.html} markdown={props.markdown}/>);
 };
 
 const VersionContent = (props) => {
@@ -27,12 +27,12 @@ const VersionContent = (props) => {
   * See filterContentTextByLang for more documentation */
   const langAndContentItems = _filterContentTextByLang(props);
   const [languageToFilter, _] = useContentLang(props.defaultToInterfaceOnBilingual, props.overrideLanguage);
-  return langAndContentItems.map((item) => {
+  return langAndContentItems.map((item, i) => {
       const [lang, content] = item;
       if (Sefaria.isFullSegmentImage(content)){
-        return(<VersionImageSpan lang={lang} content={content} languageToFilter={languageToFilter} imageLoadCallback={props.imageLoadCallback}/>);
+        return(<VersionImageSpan key={i} lang={lang} content={content} languageToFilter={languageToFilter} imageLoadCallback={props.imageLoadCallback}/>);
       }
-      return (<ContentSpan lang={lang} content={content} isHTML={true}/>);
+      return (<ContentSpan key={i} lang={lang} content={content} isHTML={true}/>);
   })
 }
 

@@ -1104,6 +1104,7 @@ const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
           <AdminEditorButton
             text={buttonText}
             top={top}
+            key={i}
             bottom={bottom}
             toggleAddingTopics={toggleAddingTopics}
           />
@@ -2004,7 +2005,7 @@ LoginPrompt.propTypes = {
 class SignUpModal extends Component {
   render() {
     let modalContent = !this.props.modalContentKind ? generateContentForModal() : generateContentForModal(this.props.modalContentKind);
-
+    
     const innerContent = modalContent.contentList.map(bullet => (
       <div key={bullet.icon}>
         <img src={`/static/img/${bullet.icon}`} alt={bullet.bulletContent.en} />
@@ -2044,7 +2045,7 @@ class SignUpModal extends Component {
 SignUpModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
-  modalContent: PropTypes.object.isRequired,
+  modalContent: PropTypes.object,
 };
 
 

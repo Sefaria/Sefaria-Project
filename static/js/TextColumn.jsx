@@ -367,7 +367,7 @@ class TextColumn extends Component {
         return null
       } else {
         return (
-          <div className='ribbon-wrap'><span class="ribbon ribbon-padding">{"སྒྲིག་བཞིན་ཡོད།"}</span></div>
+          <div className='ribbon-wrap'><span className="ribbon ribbon-padding">{"སྒྲིག་བཞིན་ཡོད།"}</span></div>
         )
       }
     } else {
@@ -375,7 +375,7 @@ class TextColumn extends Component {
         return null
       } else {
         return (
-          <div className='ribbon-wrap'><span class="ribbon">{"In Progress"}</span></div>
+          <div className='ribbon-wrap'><span className="ribbon">{"In Progress"}</span></div>
         )
       }
     }
@@ -387,12 +387,12 @@ class TextColumn extends Component {
     const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
     const versions = Sefaria.getRefFromCache(this.props.srefs[0])?.versions;
     const isDictionary = (index && index.categories[0] === "Reference");
-    let content =  this.props.srefs.map((sref) => {
+    let content =  this.props.srefs.map((sref, i) => {
       const oref = Sefaria.getRefFromCache(sref);
       
       const isCurrentlyVisible = oref && this.props.currentlyVisibleRef === oref.sectionRef;
       return (
-        <div>
+        <div key={i}>
         <TextRange
         panelPosition ={this.props.panelPosition}
         sref={sref}
