@@ -480,19 +480,19 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <img src="/static/icons/community.svg" />
         <InterfaceText>Community</InterfaceText>
       </a>
-      <a href="/calendars" onClick={close}>
+      {/* <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
         <InterfaceText>Learning Schedules</InterfaceText>
-      </a>
+      </a> */}
       <a href="/collections" onClick={close}>
         <img src="/static/icons/collection.svg"/>
         <InterfaceText>Collections</InterfaceText>
       </a>
 
-      <DonateLink classes={"blue"} source="MobileNavMenu">
+      {/* <DonateLink classes={"blue"} source="MobileNavMenu">
         <img src="/static/img/heart.png" alt="donation icon" />
         <InterfaceText>Donate</InterfaceText>
-      </DonateLink>
+      </DonateLink> */}
 
       <div className="mobileAccountLinks">
         {Sefaria._uid ?
@@ -511,10 +511,10 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           </a>
         </> : null }
 
-        <a href="/about">
+        {/* <a href="/about">
           <img src="/static/icons/info.svg" />
           <InterfaceText>About Sefaria</InterfaceText>
-        </a>
+        </a> */}
 
         {Sefaria._uid ?
         <>
