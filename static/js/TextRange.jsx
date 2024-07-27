@@ -339,7 +339,7 @@ class TextRange extends Component {
                     aliyah: !parashahNames.parashaTitle,
                   });
           parashahHeader = (
-              <div className={pclasses}>
+              <div className={pclasses} key={i}>
                 <ContentText text={{en: parashahNames.en, he:parashahNames.he}} defaultToInterfaceOnBilingual={true}/>
               </div>
           );
@@ -586,15 +586,15 @@ class TextSegment extends Component {
   addHighlights(text) {
     // for adding in highlights to query results in Reader
     if (!!this.props.textHighlights) {
-      const highList = this.props.textHighlights.map(h => this.wrapWordsInGenericHTMLRegex(h));
+      const highList = this.props.textHighlights.map((h , i)=> this.wrapWordsInGenericHTMLRegex(h));
       const reg = new RegExp(`(${highList.join("|")})`, 'g');
-      return text.replace(reg, '<span class="queryTextHighlight">$1</span>');
+      return text.replace(reg, `<span key={${i}} class="queryTextHighlight">$1</span>`);
     }
     return text;
   }
 
   addPoetrySpans(text) {
-    const textArray = text.split("<br>").map(t => (`<span class='poetry indentWhenWrap'>${t}</span>`) ).join("<br>")
+    const textArray = text.split("<br>").map((t, i)=> (`<span key={${i}} class='poetry indentWhenWrap'>${t}</span>`) ).join("<br>")
     return(textArray)
   }
 
