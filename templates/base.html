@@ -6,7 +6,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
+    <!-- <title>{% block title %}{{ title|striptags }}{% endblock %}</title> -->
     <meta charset="utf-8"/>
     <!-- <meta name="description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/> -->
 
@@ -38,14 +38,14 @@
     {% endblock %}
 
     {% block ogimage %}
-        <meta property="og:description" content="{% block fb_description %}{{ desc|striptags }}{% endblock %}"/>
-        <meta property="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=facebook&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
+        <meta property="og:description" content="The largest free library of Buddhist texts available to read online in Tibetan, English, and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more."/>
+        <meta property="og:image" content="https://pecha.org/static/img/pecha-icon.png" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
     {% endblock %}
 
-    <meta property="og:title" content="{{title|striptags}}" />
+    <meta property="og:title" content="Pecha - A Living Library of Buddhist Text"/>
     <meta property="og:url" content="https://{{ request.get_host }}{{ request.get_full_path }}" />
 
     <meta name="twitter:card" content="summary_large_image" />
