@@ -1098,7 +1098,7 @@ class ReaderPanel extends Component {
       <ContentLanguageContext.Provider value={contextContentLang}>
         <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
           {hideReaderControls ? null :
-          <ReaderControls
+          <ReaderControls 
             showBaseText={this.showBaseText}
             hasSidebar={this.state.hasSidebar}
             toggleSheetEditMode={this.toggleSheetEditMode}
@@ -1457,7 +1457,7 @@ ReaderControls.propTypes = {
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,
   multiPanel:              PropTypes.bool,
-  openSidePanel:           PropTypes.func.isRequired,
+  openSidePanel:           PropTypes.func,
   interfaceLang:           PropTypes.string,
   toggleSignUpModal:       PropTypes.func.isRequired,
   historyObject:           PropTypes.object,

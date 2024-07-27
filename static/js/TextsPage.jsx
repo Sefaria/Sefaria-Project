@@ -14,9 +14,9 @@ import {
   ResponsiveNBox,
   LanguageToggleButton,
   InterfaceText,
-  ContentText,
   CategoryHeader
 } from './Misc';
+import {ContentText} from "./ContentText";
 
 
 const TextsPage = ({ categories, settings, setCategories, onCompareBack, openSearch,
@@ -40,17 +40,17 @@ const TextsPage = ({ categories, settings, setCategories, onCompareBack, openSea
   }
 
   // Root Library Menu
-  let categoryListings = Sefaria.toc.map(cat => {
+  let categoryListings = Sefaria.toc.map((cat, i) => {
     const style = { "borderColor": Sefaria.palette.categoryColor(cat.category) };
     const openCat = e => { e.preventDefault(); setCategories([cat.category]) };
 
     return (
-      <div className="navBlock withColorLine" style={style}>
-        <a href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
-          <ContentText text={{ en: cat.category, he: cat.heCategory }} defaultToInterfaceOnBilingual={true} />
+      <div className="navBlock withColorLine" style={style} key={i}>
+        <a  href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
+          <ContentText  key={{ en: cat.category, he: cat.heCategory }} text={{ en: cat.category, he: cat.heCategory }} defaultToInterfaceOnBilingual={true} />
         </a>
         <div className="navBlockDescription">
-          <ContentText text={{ en: cat.enShortDesc, he: cat.heShortDesc }} defaultToInterfaceOnBilingual={true} />
+          <ContentText key={{ en: cat.enShortDesc, he: cat.heShortDesc }}  text={{ en: cat.enShortDesc, he: cat.heShortDesc }} defaultToInterfaceOnBilingual={true} />
         </div>
       </div>
     );
