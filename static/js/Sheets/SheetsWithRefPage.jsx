@@ -8,7 +8,6 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                            registerAvailableFilters}) => {
     const [sheets, setSheets] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [totalResults, setTotalResults] = useState(new SearchTotal());
     const [origAvailableFilters, setOrigAvailableFilters] = useState([]);
     const [refs, setRefs] = useState(srefs);
     const cloneFilters = (availableFilters, resetDocCounts = true) => {
@@ -106,8 +105,6 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                               let aHe, bHe;
                               [aHe, bHe] = [a.title, b.title].map(Sefaria.hebrew.isHebrew);
                               if (aHe !== bHe) { return (bHe ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
-                              // Then by number of views
-                              return b.views - a.views;
                             })
         return sheets;
     }
@@ -150,11 +147,10 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     }
     const handleSheetsLoad = (sheets) => {
       const searchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
-      setSheets(prepSheetsForDisplay(sheets));
+      setSheets(sheets);
       updateSearchState(searchState, 'sheet');
       setOrigAvailableFilters(searchState.availableFilters);
       setLoading(false);
-      setTotalResults(new SearchTotal({value: sheets.length}));
     }
     const getSheetsByRefCallback = (sheets) => {
         // filters out duplicate sheets by sheet ID number and filters so that we don't show sheets as connections to themselves
@@ -196,6 +192,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     let sortedSheets = [...sheets];
     sortedSheets = applyFilters(sortedSheets);
     sortedSheets = applySortOption(sortedSheets);
+    sortedSheets = prepSheetsForDisplay(sortedSheets);
     sortedSheets = normalizeSheetsMetaData(sortedSheets);
     return <SearchPage
           key={"sheetsPage"}
@@ -204,7 +201,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
           hits={sortedSheets}
           query={refs}
           type={'sheet'}
-          totalResults={totalResults}
+          totalResults={new SearchTotal({value: sortedSheets.length})}
           compare={false}
           searchState={searchState}
           panelsOpen={1}
