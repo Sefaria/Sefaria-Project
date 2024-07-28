@@ -12,6 +12,7 @@ import Component from 'react-class';
 import sanitizeHtml  from 'sanitize-html';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import { GDocAdvertBox } from './Promotions';
+import * as sheetsUtils from './sheetsUtils'
 
 
 
@@ -95,21 +96,7 @@ class AddToSourceSheetBox extends Component {
 //     if (text.text.length === 1) {return false};
 //     return true
 // }
-  placed_segment_mapper(lang, segmented, includeNumbers, s) {
-    if (!s[lang]) {return ""}
 
-    let numStr = "";
-    if (includeNumbers) {
-        const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
-        numStr = "<small>(" + num + ")</small> ";
-    }
-    let str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
-    if (segmented) {
-        str = "<p>" + str + "</p>";
-    }
-    str = str.replace(/(<br\/>)+/g, ' ')
-    return str;
-}
 
   longestSuffixPrefixIndex(string1, string2) {
     let longestSuffixIndex = 0;
@@ -132,20 +119,6 @@ class AddToSourceSheetBox extends Component {
     }
     console.log("longest prefix: ", string1.slice(0, longestPrefixIndex));
     return longestPrefixIndex;
-  }
-  async getSegmentObjs(refs) {
-    const segments = [];
-
-    for (const ref of refs) {
-      const text = await Sefaria.getText(ref, { stripItags: 1 });
-      const newSegments = Sefaria.makeSegments(text, false);
-      segments.push(...newSegments);
-    }
-    return segments;
-  }
-  async getCategories(ref) {
-    const text = await Sefaria.getText(ref, { stripItags: 1 });
-    return text.categories;
   }
 
   normalize(text){
@@ -189,15 +162,16 @@ class AddToSourceSheetBox extends Component {
         var selectedWords = this.props.selectedWords; //if there was highlighted single panel
         if (selectedWords && language != "bilingual") {
           let lan = language.slice(0,2);
-          let segments = await this.getSegmentObjs(source.refs);
+          let segments = await sheetsUtils.getSegmentObjs(source.refs);
           selectedWords = this.normalize(selectedWords);
           segments = segments.map(segment => ({
             ...segment,
             [lan]: this.normalize(segment[lan])
           }));
-          let categories = await this.getCategories(source.refs[0]);
+          let categories = await sheetsUtils.getCategories(source.refs[0]);
           let resultSourceText = '';
           const segmented = !(categories[0] in {"Tanakh": 1, "Talmud": 1});
+          const includeNumbers = await sheetsUtils.shouldIncludeSegmentNums(source.refs[0]);
           for (let iSegment = 0; iSegment < segments.length; iSegment++) {
               const segment = segments[iSegment];
               if (iSegment == 0){
@@ -206,20 +180,14 @@ class AddToSourceSheetBox extends Component {
                 segment[lan] = ellipse + segment[lan].slice(criticalIndex);
               }
               else if (iSegment == segments.length-1){
-                console.log("segment[lan]", segment[lan]);
-                console.log("selected", selectedWords);
                 let criticalIndex = this.longestPrefixSuffixIndex(segment[lan], selectedWords);
                 const ellipse = criticalIndex == segment[lan].length-1 ? "" : "...";
                 const chunk = segment[lan].slice(0, criticalIndex)
                 segment[lan] = chunk + ellipse;
               }
           }
-          resultSourceText = segments.map(this.placed_segment_mapper.bind(this, lan, segmented, true))
-            .filter(Boolean)
-            .join("");
-          console.log("resultSourceText:", resultSourceText);
 
-          // source[language.slice(0,2)] = selectedWords;
+          resultSourceText = sheetsUtils.segmentsToSourceText(segments, lan, segmented, includeNumbers);
           source[lan] = resultSourceText;
         }
       }
