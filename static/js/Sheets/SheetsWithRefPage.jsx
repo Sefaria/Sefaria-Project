@@ -146,7 +146,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         })
     }
     const handleSheetsLoad = (sheets) => {
-      const searchState = Sefaria.sheets.sheetsWithRefSearchState(sheets);
+      searchState.availableFilters = Sefaria.sheets.sheetsWithRefFilterNodes(sheets);
       setSheets(sheets);
       updateSearchState(searchState, 'sheet');
       setOrigAvailableFilters(searchState.availableFilters);
