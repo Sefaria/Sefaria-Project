@@ -147,6 +147,10 @@ class AddToSourceSheetBox extends Component {
     const text = await Sefaria.getText(ref, { stripItags: 1 });
     return text.categories;
   }
+
+  normalize(text){
+    return(text.replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, '').replace(/\u2009/g, ' '));
+  }
   async addToSourceSheet() {
     console.log("addToSourceSheet");
     if (!Sefaria._uid) {
@@ -184,22 +188,24 @@ class AddToSourceSheetBox extends Component {
         // Use passed in language to determine which version this highlight covers.
         var selectedWords = this.props.selectedWords; //if there was highlighted single panel
         if (selectedWords && language != "bilingual") {
-          selectedWords = selectedWords.replace(/\u2009/g, ' ')
-          let segments = await this.getSegmentObjs(source.refs);
-          let categories = await this.getCategories(source.refs[0])
-          let resultSourceText = '';
           let lan = language.slice(0,2);
+          let segments = await this.getSegmentObjs(source.refs);
+          selectedWords = this.normalize(selectedWords);
+          segments = segments.map(segment => ({
+            ...segment,
+            [lan]: this.normalize(segment[lan])
+          }));
+          let categories = await this.getCategories(source.refs[0]);
+          let resultSourceText = '';
           const segmented = !(categories[0] in {"Tanakh": 1, "Talmud": 1});
           for (let iSegment = 0; iSegment < segments.length; iSegment++) {
               const segment = segments[iSegment];
               if (iSegment == 0){
-                segment[lan] = segment[lan].replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, '');
                 let criticalIndex = this.longestSuffixPrefixIndex(segment[lan], selectedWords);
                 const ellipse = criticalIndex == 0 ? "" : "...";
                 segment[lan] = ellipse + segment[lan].slice(criticalIndex);
               }
               else if (iSegment == segments.length-1){
-                segment[lan] = segment[lan].replace(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, '');
                 console.log("segment[lan]", segment[lan]);
                 console.log("selected", selectedWords);
                 let criticalIndex = this.longestPrefixSuffixIndex(segment[lan], selectedWords);
