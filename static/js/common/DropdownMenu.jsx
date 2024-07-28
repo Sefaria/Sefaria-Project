@@ -17,7 +17,7 @@ const DropdownMenuSeparator = () => {
 const DropdownMenuItem = ({url, children}) => {
   return (
 
-    <a className={`interfaceLinks-option int-bi int-en dropdownItem`} href={url} target="_blank">
+    <a className={`interfaceLinks-option int-bi dropdownItem`} href={url} target="_blank">
       {children}
     </a>
 
@@ -72,10 +72,10 @@ const DropdownMenu = ({children}) => {
     }, []);
   
     return (
-        <div className="interfaceLinks" ref={wrapperRef}>
-          <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/module_switcher_icon.svg" alt={Sefaria._('Toggle Module Switcher')}/></a>
-          <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
-            <div className="interfaceLinks-options">
+        <div className="dropdownLinks" ref={wrapperRef}>
+          <a className="dropdownLinks-button" onClick={handleClick}><img src="/static/icons/module_switcher_icon.svg" alt={Sefaria._('Toggle Module Switcher')}/></a>
+          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
+            <div className="dropdownLinks-options">
               {children}
             </div>
           </div>

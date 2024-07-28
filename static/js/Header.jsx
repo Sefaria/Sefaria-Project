@@ -34,7 +34,7 @@ const ModuleSwitcher = () => {
     </DropdownMenuItem>
     <DropdownMenuSeparator />
     <DropdownMenuItem url={'//sefaria.org/products'}>
-      <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products >'}} />
+      <InterfaceText text={{'he':'‹ לכל המוצרים שלנו', 'en': 'See all products ›'}} />
     </DropdownMenuItem>
 
   </DropdownMenu>
