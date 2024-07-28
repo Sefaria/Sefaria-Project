@@ -898,6 +898,7 @@ class ReaderPanel extends Component {
                     query={this.state.searchQuery}
                     searchState={this.state['searchState']}
                     type={this.searchType}
+                    resetSearchFilters={this.props.resetSearchFilters}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
@@ -1650,6 +1651,7 @@ ReaderDisplayOptionsMenu.propTypes = {
   multiPanel:    PropTypes.bool.isRequired,
   width:         PropTypes.number.isRequired,
   settings:      PropTypes.object.isRequired,
+  resetSearchFilters: PropTypes.func,
 };
 
 
