@@ -36,7 +36,7 @@ from sefaria.model.collection import Collection, CollectionSet, process_sheet_de
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
-from reader.views import render_template, catchall
+from reader.views import render_template, catchall, get_search_params
 from sefaria.sheets import clean_source, bleach_text
 from bs4 import BeautifulSoup
 
@@ -1026,11 +1026,22 @@ def sheets_by_ref_api(request, ref):
     include_first_comment = bool(int(request.GET.get("include_first_comment", 0)))
     return jsonResponse(get_sheets_for_ref(ref, include_collections=include_collections,
                                            include_first_comment=include_first_comment))
-
 def sheets_with_ref(request, tref):
     """
     Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
     """
+    search_params = get_search_params(request.GET)
+
+    props={
+        "initialSearchType": "sheet",
+        "initialTextSearchFilters": search_params["textFilters"],
+        "initialTextSearchFilterAggTypes": search_params["textFilterAggTypes"],
+        "initialTextSearchField": search_params["textField"],
+        "initialTextSearchSortType": search_params["textSort"],
+        "initialSheetSearchFilters": search_params["sheetFilters"],
+        "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
+        "initialSheetSearchSortType": search_params["sheetSort"]
+    }
     is_range = bool(int(request.GET.get('range', 0)))
     if is_range:
         refs = [Ref(r) for r in tref.split(",")]
@@ -1038,20 +1049,8 @@ def sheets_with_ref(request, tref):
     he_tref = Ref(tref).he_normal()
     normal_ref = tref if request.interfaceLang == "english" else he_tref
     title = _(f"Sheets with ")+normal_ref+_(" on Sefaria")
-    return menu_page(request, page="sheetsWithRef", title=title, props={"sheetsWithRef": {"en": tref, "he": he_tref}})
-
-def sheets_with_ref(request, tref):
-    """
-    Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
-    """
-    is_range = bool(int(request.GET.get('range', 0)))
-    if is_range:
-        refs = [Ref(r) for r in tref.split(",")]
-        tref = refs[0].to(refs[-1]).normal()
-    he_tref = Ref(tref).he_normal()
-    normal_ref = tref if request.interfaceLang == "english" else he_tref
-    title = _(f"Sheets with ")+normal_ref+_(" on Sefaria")
-    return menu_page(request, page="sheetsWithRef", title=title, props={"sheetsWithRef": {"en": tref, "he": he_tref}})
+    props["sheetsWithRef"] = {"en": tref, "he": he_tref}
+    return menu_page(request, page="sheetsWithRef", title=title, props=props)
 
 def get_aliyot_by_parasha_api(request, parasha):
     response = {"ref":[]};

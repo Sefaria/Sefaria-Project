@@ -11,6 +11,7 @@ import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
 import SearchState from "./searchState";
+import FilterNode from "./FilterNode";
 
 
 let Sefaria = Sefaria || {
@@ -2788,7 +2789,7 @@ _media: {},
           processor: callback
         });
       },
-    sheetsWithRefSearchState(sheets) {
+    sheetsWithRefFilterNodes(sheets) {
       /*
       This function is used to generate the SearchState with its relevant
       FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
@@ -2797,6 +2798,7 @@ _media: {},
           let title, heTitle;
           if (type === 'topics') {
               [title, heTitle] = [item.en, item.he];
+              type = 'topics_en';
           }
           else if (type === 'collections') {
               [title, heTitle] = [item.name, item.name];
@@ -2826,7 +2828,7 @@ _media: {},
             })
         })
       })
-      return new SearchState({ type: 'sheet', availableFilters: [...filters.collections, ...filters.topics] });
+      return [...filters.collections, ...filters.topics].map(f => new FilterNode(f));;
     },
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {

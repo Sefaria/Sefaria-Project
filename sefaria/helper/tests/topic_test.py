@@ -67,6 +67,17 @@ def author_root():
 	yield {"topic": t, "link": l}
 	t.delete()
 
+@pytest.fixture(autouse=True, scope='module')
+def some_topic():
+	t = Topic({'slug': "abcd_test", "data_source": "sefaria", "numSources": 0})
+	title = "title in English"
+	he_title = "כותרת בעברית"
+	t.add_primary_titles(title, he_title)
+	t.set_slug_to_primary_title()
+	t.save()
+	yield t
+	t.delete()
+
 
 @pytest.fixture(autouse=True, scope='module')
 def actual_author(author_root):
@@ -178,3 +189,19 @@ def test_calculate_approved_review_state(current, requested, was_ai_generated, m
 ])
 def test_get_merged_descriptions(current, requested, merged):
 	assert topic._get_merged_descriptions(current, requested) == merged
+
+
+def test_update_topic(some_topic):
+	topic.update_topic(some_topic, titles=[{"text": "Tamar", "lang": "en", "primary": True},
+							 {"text": "תמר", "lang": "he", "primary": True, "disambiguation": "יהודה"}])
+	assert some_topic.titles == [{"text": "Tamar", "lang": "en", "primary": True},
+						 {"text": "תמר", "lang": "he", "primary": True, "disambiguation": "יהודה"}]
+
+	topic.update_topic(some_topic, description={"en": "abcdefg"})
+	assert some_topic.description == {"en": "abcdefg"}
+
+	with pytest.raises(Exception):
+		topic.update_topic(some_topic, titles=[{"a": "Tamar", "b": "en"},
+								 {"c": "תמר", "lang": "d", "disambiguation": "יהודה"}])
+	with pytest.raises(Exception):
+		topic.update_topic(some_topic, slug='abc')
