@@ -63,8 +63,9 @@ class ElasticSearchQuerier extends Component {
       if (this.props.query !== newProps.query) {
         this.setState(state, () => {
             this._executeAllQueries(newProps);
-            this.props.resetSearchFilters('sheet');
-            this.props.resetSearchFilters('text');
+            if (!this.props.searchInBook) {
+                this.props.resetSearchFilters();
+            }
         });
       } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
           this.setState(state, () => {
@@ -361,7 +362,6 @@ class ElasticSearchQuerier extends Component {
 
 ElasticSearchQuerier.propTypes = {
     query: PropTypes.string,
-    type: PropTypes.oneOf(["text", "sheet"]),
     searchState: PropTypes.object,
     onResultClick: PropTypes.func,
     registerAvailableFilters: PropTypes.func,

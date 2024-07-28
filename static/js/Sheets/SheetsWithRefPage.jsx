@@ -25,7 +25,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         const currDocCounts = getDocCounts(searchState.availableFilters);
         if (!newDocCounts.compare(currDocCounts)) {
             availableFilters = availableFilters.sort((a, b) => b.docCount - a.docCount || a.title.localeCompare(b.title));
-            registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics_en']);
+            registerAvailableFilters(availableFilters, {}, [], ['collections', 'topics_en']);
         }
     }
     const updateDocCounts = (newAvailableFilters, slugs) => {

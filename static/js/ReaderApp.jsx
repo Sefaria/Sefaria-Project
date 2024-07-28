@@ -443,7 +443,7 @@ class ReaderApp extends Component {
             const encodedSheetsWithRef = Sefaria.sheetsWithRef[shortLang] ? encodeURIComponent(Sefaria.sheetsWithRef[shortLang]) : "";
             hist.title = Sefaria._("Sheets with ") + Sefaria.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
             hist.url   = "sheetsWithRef" + (Sefaria.sheetsWithRef[shortLang] ? (`/${encodedSheetsWithRef}` +
-              state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
+              state.searchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode = "sheetsWithRef";
             break;
           case "text toc":
@@ -1199,18 +1199,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       })
     });
   }
-  resetSearchFilters(n, type) {
-    // reset both availableFilters and appliedFilters
+  resetSearchFilters(n) {
     const state = this.state.panels[n];
-    const searchState = this._getSearchState(state, type);
-    const searchStateName = this._getSearchStateName(type);
+    const searchState = this._getSearchState(state);
     searchState.availableFilters.forEach(filterNode => {
       if (!filterNode.isUnselected()) {
         filterNode.setUnselected(true);
       }
     })
     this.setPanelState(n, {
-      [searchStateName]: searchState.update({appliedFilters: [], appliedFilterAggTypes: [], filterRegistry: {},
+      searchState: searchState.update({appliedFilters: [], appliedFilterAggTypes: [], filterRegistry: {},
                                             filtersValid: false}),
     });
   }
