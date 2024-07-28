@@ -1171,14 +1171,21 @@ class AbstractTextRecord(object):
 
     @staticmethod
     def remove_html(t):
+
+        def conditional_replace(match):
+            tag = match.group()
+            if tag in ["<br/>", "<br>"]:
+                return " "
+            return ""
+
         if isinstance(t, list):
             for i, v in enumerate(t):
                 if isinstance(v, str):
-                    t[i] = re.sub('<[^>]+>', " ", v)
+                    t[i] = re.sub('<[^>]+>', conditional_replace, v)
                 else:
                     t[i] = AbstractTextRecord.remove_html(v)
         elif isinstance(t, str):
-            t = re.sub('<[^>]+>', " ", t)
+            t = re.sub('<[^>]+>', conditional_replace, t)
         else:
             return False
         return t

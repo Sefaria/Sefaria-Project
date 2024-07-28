@@ -792,6 +792,17 @@ p.registration-links a:hover{
   width: 200px;
   content: "";
 }
+
+@media (max-width: 450px) {
+  #teamPage .team-members {
+    justify-content: center;
+  }
+  
+  #teamPage .team-members::after {
+   width:  auto !important; 
+  }
+}
+
 #teamPage .teamMember {
   flex: 0 0 30%;
 }
