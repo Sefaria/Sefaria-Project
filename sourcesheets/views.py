@@ -1039,10 +1039,6 @@ def sheets_with_ref(request, tref):
         "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
         "initialSheetSearchSortType": search_params["sheetSort"]
     }
-    is_range = bool(int(request.GET.get('range', 0)))
-    if is_range:
-        refs = [Ref(r) for r in tref.split(",")]
-        tref = refs[0].to(refs[-1]).normal()
     he_tref = Ref(tref).he_normal()
     normal_ref = tref if request.interfaceLang == "english" else he_tref
     title = _(f"Sheets with ")+normal_ref+_(" on Sefaria")
