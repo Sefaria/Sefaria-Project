@@ -2438,10 +2438,7 @@ def category_api(request, path=None):
         else:
             return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
 
-        if "json" in request.POST:
-            j = request.POST.get("json")
-        else:
-            j = request.body
+        j = request.body
         if not j:
             return jsonResponse({"error": "Missing data in POST request."})
         j = json.loads(j)
