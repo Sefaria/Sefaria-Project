@@ -1897,8 +1897,8 @@ const insertSource = async (editor, ref) => {
 
     let segments = await sheetsUtils.getSegmentObjs([ref])
 
-    let includeNumbers = await sheetsUtils.shouldIncludeSegmentNums(ref);
-    const segmented = await sheetsUtils.shouldBeSegmented(ref);
+    let includeNumbers = sheetsUtils.shouldIncludeSegmentNums(ref);
+    const segmented = sheetsUtils.shouldBeSegmented(ref);
 
     const enText = sheetsUtils.segmentsToSourceText(segments, 'en', segmented, includeNumbers);
 

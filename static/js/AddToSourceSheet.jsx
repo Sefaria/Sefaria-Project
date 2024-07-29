@@ -90,13 +90,6 @@ class AddToSourceSheetBox extends Component {
       }, this.confirmAdd);
     }
   }
-//   async shouldIncludeSegmentNums (ref) {
-//     if ($.inArray("Talmud", text.categories) != -1) {return false};
-//     if (text.indexTitle === "Pesach Haggadah") {return false};
-//     if (text.text.length === 1) {return false};
-//     return true
-// }
-
 
   longestSuffixPrefixIndex(string1, string2) {
     let longestSuffixIndex = 0;
@@ -106,7 +99,6 @@ class AddToSourceSheetBox extends Component {
         longestSuffixIndex = i;
       }
     }
-    console.log("longest suffix: ", string1.slice(longestSuffixIndex));
     return longestSuffixIndex;
   }
   longestPrefixSuffixIndex(string1, string2) {
@@ -117,7 +109,6 @@ class AddToSourceSheetBox extends Component {
         longestPrefixIndex = i + 1;
       }
     }
-    console.log("longest prefix: ", string1.slice(0, longestPrefixIndex));
     return longestPrefixIndex;
   }
 
@@ -125,7 +116,6 @@ class AddToSourceSheetBox extends Component {
     return(text.replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, '').replace(/\u2009/g, ' '));
   }
   async addToSourceSheet() {
-    console.log("addToSourceSheet");
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     }
@@ -147,9 +137,6 @@ class AddToSourceSheetBox extends Component {
         }
       } else if (this.props.srefs) { //regular use - this is currently the case when the component is loaded in the sidepanel or in the modal component via profiles and notes pages
         source.refs = this.props.srefs;
-        console.log("source.refs", source.refs);
-        console.log("source", source);
-
 
 
 
@@ -168,9 +155,8 @@ class AddToSourceSheetBox extends Component {
             ...segment,
             [lan]: this.normalize(segment[lan])
           }));
-          let categories = await sheetsUtils.getCategories(source.refs[0]);
-          const segmented = await sheetsUtils.shouldBeSegmented(source.refs[0])
-          const includeNumbers = await sheetsUtils.shouldIncludeSegmentNums(source.refs[0]);
+          const segmented = sheetsUtils.shouldBeSegmented(source.refs[0])
+          const includeNumbers = sheetsUtils.shouldIncludeSegmentNums(source.refs[0]);
           for (let iSegment = 0; iSegment < segments.length; iSegment++) {
               const segment = segments[iSegment];
               if (iSegment == 0){
@@ -186,7 +172,7 @@ class AddToSourceSheetBox extends Component {
               }
           }
 
-          source[lan] = sheetsUtils.segmentsToSourceText(segments, lan, segmented, includeNumbers);;
+          source[lan] = sheetsUtils.segmentsToSourceText(segments, lan, segmented, includeNumbers);
         }
       }
       if (this.checkContentForImages(source.refs)) {

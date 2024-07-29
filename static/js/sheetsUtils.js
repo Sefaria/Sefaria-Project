@@ -11,10 +11,6 @@ export async function getSegmentObjs(refs) {
     return segments;
   }
 
-export async function getCategories(ref) {
-    const text = await Sefaria.getText(ref, { stripItags: 1 });
-    return text.categories;
-}
 export async function getNormalEnRef(ref) {
     const text = await Sefaria.getText(ref, { stripItags: 1 });
     return text.ref;
@@ -24,10 +20,6 @@ export async function getNormalHeRef(ref) {
     return text.heRef;
 }
 
-export async function getIndexTitle(ref) {
-    const text = await Sefaria.getText(ref, { stripItags: 1 });
-    return text.indexTitle;
-}
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     if (!s[lang]) {return ""}
 
@@ -48,15 +40,15 @@ export function segmentsToSourceText(segments, lan, segmented, includeNumbers){
     .filter(Boolean)
     .join(""));
 }
-export async function shouldIncludeSegmentNums(ref){
-    const indexTitle = await getIndexTitle(ref);
-    const categories =  await getCategories(ref);
+export function shouldIncludeSegmentNums(ref){
+    const indexTitle = Sefaria.refIndexTitle(ref);
+    const categories =  Sefaria.refCategories(ref);
     if (categories.indexOf("Talmud") !== -1) {return false}
     if (indexTitle === "Pesach Haggadah") {return false}
     if (categories === 1) {return false}
     return true;
 }
-export async function shouldBeSegmented(ref){
-    const categories =  await getCategories(ref);
+export function shouldBeSegmented(ref){
+    const categories =  Sefaria.refCategories(ref);
     return !(categories[0] in {"Tanakh": 1, "Talmud": 1});
 }
