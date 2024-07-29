@@ -1085,11 +1085,11 @@ def update_properties(topic_obj, dataSource, k, v):
 
 def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwargs):
     for k in ["birthYear", "deathYear"]:
-        if k in kwargs.keys():   # only change property value if key exists, otherwise it indicates no change
+        if k in kwargs.keys() and kwargs[k]:   # only change property value if key exists, otherwise it indicates no change
             year = kwargs[k]
             update_properties(topic_obj, dataSource, k, year)
 
-    if 'era' in kwargs.keys():    # only change property value if key is in data, otherwise it indicates no change
+    if 'era' in kwargs.keys() and kwargs['era']:    # only change property value if key is in data, otherwise it indicates no change
         prev_era = topic_obj.properties.get('era', {}).get('value')
         era = kwargs['era']
         update_properties(topic_obj, dataSource, 'era', era)
@@ -1098,7 +1098,9 @@ def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwar
     return topic_obj
 
 
-def update_topic(topic, **kwargs):
+def update_topic(topic, titles=None, category=None, origCategory=None, categoryDescritpion=None, description=None,
+                 birthPlace=None, deathPlace=None, birthYear=None, era=None,
+                 rebuild_toc=True, manual=False, image=None):
     """
     Can update topic object's titles, category, description, and categoryDescription fields
     :param topic: (Topic) The topic to update
@@ -1109,37 +1111,36 @@ def update_topic(topic, **kwargs):
     """
     old_category = ""
     orig_slug = topic.slug
-    new_titles = kwargs.get('titles')
-    if new_titles:
-        topic.set_titles(new_titles)
-    if kwargs.get('category') == 'authors':
-        topic = update_authors_place_and_time(topic, **kwargs)
 
-    if 'category' in kwargs and kwargs['category'] != kwargs.get('origCategory', kwargs['category']):
+    if titles:
+        topic.set_titles(titles)
+    if category == 'authors':
+        topic = update_authors_place_and_time(topic, birthPlace=birthPlace, birthYear=birthYear, deathPlace=deathPlace, era=era)
+
+    if category and origCategory and origCategory != category:
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic.slug, "toTopic": {"$ne": topic.slug}})
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
-        if old_category != kwargs['category']:
-            topic = topic_change_category(topic, kwargs["category"], old_category=old_category)  # can change topic and intratopiclinks
+        if old_category != category:
+            topic = topic_change_category(topic, category, old_category=old_category)  # can change topic and intratopiclinks
 
-    if kwargs.get('manual', False):
+    if manual:
         topic.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         topic.description_published = True
 
-    if "description" in kwargs or "categoryDescription" in kwargs:
-        topic.change_description(kwargs.get("description", None), kwargs.get("categoryDescription", None))
+    if description or categoryDescritpion:
+        topic.change_description(description, categoryDescritpion)
 
-    if "image" in kwargs:
-        image_dict = kwargs["image"]
-        if image_dict["image_uri"] != "":
-            topic.image = kwargs["image"]
+    if image:
+        if image["image_uri"] != "":
+            topic.image = image
         elif hasattr(topic, 'image'):
             # we don't want captions without image_uris, so if the image_uri is blank, get rid of the caption too
             del topic.image
 
     topic.save()
 
-    if kwargs.get('rebuild_topic_toc', True):
-        rebuild_topic_toc(topic, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
+    if rebuild_toc:
+        rebuild_topic_toc(topic, orig_slug=orig_slug, category_changed=(old_category != category))
     return topic
 
 
