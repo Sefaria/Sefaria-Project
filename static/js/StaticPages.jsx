@@ -4,6 +4,8 @@ import {
     TwoOrThreeBox,
     ResponsiveNBox,
     NBox, InterfaceText,
+    LoadingMessage,
+    LoadingRing,
 } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
@@ -3021,6 +3023,7 @@ const NoJobsNotice = () => {
 const JobsPage = memo(() => {
     const [groupedJobPostings, setGroupedJobPostings] = useState({});
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const fetchJobsJSON = async () => {
         const currentDateTime = new Date().toISOString();
@@ -3069,6 +3072,7 @@ const JobsPage = memo(() => {
     };
     
     const loadJobPostings = async () => {
+        setLoading(true);
         if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
             try {
                 const jobsData = await fetchJobsJSON();
@@ -3102,20 +3106,27 @@ const JobsPage = memo(() => {
         } else {
             setError("Error: Sefaria's CMS cannot be reached");
         }
+        setLoading(false);
     };
 
     useEffect(() => {
         loadJobPostings();
     }, []);
 
+    const jobsAvailable = Object.keys(groupedJobPostings)?.length;
     return (
         <div>
             {error ? (
                 <h1>{error}</h1>
+            ) : loading ? (
+                <>
+                    <LoadingMessage />
+                    <LoadingRing />
+                </>
             ) : (
                 <>
-                    <JobsPageHeader jobsAreAvailable={Object.keys(groupedJobPostings)?.length} />
-                    {Object.keys(groupedJobPostings)?.length ? (
+                    <JobsPageHeader jobsAreAvailable={jobsAvailable} />
+                    {jobsAvailable ? (
                         <GroupedJobPostings groupedJobPostings={groupedJobPostings} />
                     ) : (
                         <NoJobsNotice />
