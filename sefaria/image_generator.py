@@ -1,6 +1,10 @@
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
-from bidi import get_display
+try:
+    from bidi import get_display
+except:
+    from bidi.algorithm import get_display
+
 import re
 from django.http import HttpResponse
 import io
