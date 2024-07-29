@@ -106,9 +106,10 @@ def test_title_and_desc(author_root, actual_author, root_with_self_link, child_o
 		assert t["topic"].get_titles('en') == [title["text"] for title in new_values['titles'] if title["lang"] == 'en']
 
 def test_author_root(author_root, actual_author):
-	new_values = {"category": "authors", "title": actual_author["topic"].get_primary_title('en'),
-				  "heTitle": actual_author["topic"].get_primary_title('he'),
-				  "birthPlace": "Kyoto, Japan", "birthYear": 1300}
+	new_values = {"category": "authors", "titles": [
+		{'text': actual_author["topic"].get_primary_title('en'), "lang": 'en', 'primary': True},
+		{"text": actual_author["topic"].get_primary_title('he'), "lang": 'he', 'primary': True}],
+	  	"birthPlace": "Kyoto, Japan", "birthYear": 1300}
 	assert Place().load({'key': new_values["birthPlace"]}) is None
 	topic.update_topic(actual_author["topic"], **new_values)
 	assert Place().load({'key': new_values["birthPlace"]})
@@ -122,18 +123,19 @@ def test_change_categories_and_titles(author_root, root_with_self_link):
 	orig_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
 	orig_trees = [orig_tree_from_normal_root, orig_tree_from_root_with_self_link]
 	roots = [author_root["topic"], root_with_self_link["topic"]]
-	orig_titles = [roots[0].get_primary_title('en'), roots[1].get_primary_title('en')]
-	orig_he_titles = [roots[0].get_primary_title('he'), roots[1].get_primary_title('he')]
+	orig_titles = [{'text': roots[0].get_primary_title('en'), 'lang':'en', 'primary': True}, {'text': roots[1].get_primary_title('en'), 'lang':'en', 'primary': True}]
+	orig_he_titles = [{'text': roots[0].get_primary_title('he'), 'lang':'he', 'primary': True}, {'text': roots[1].get_primary_title('he'), 'lang':'he', 'primary': True}]
 	for i, root in enumerate(roots):
 		other_root = roots[1 - i]
-		topic.update_topic(root, title=f"fake new title {i+1}", heTitle=f"fake new he title {i+1}", category=other_root.slug)  # move root to be child of other root
+		topic.update_topic(root, titles=[{'text': f"fake new title {i+1}", 'lang': 'he', 'primary': True},
+										 {'text': f"fake new he title {i+1}", 'lang': 'he', 'primary': True}], category=other_root.slug)  # move root to be child of other root
 		new_tree = library.get_topic_toc_json_recursive(other_root)
 		assert new_tree != orig_trees[i]  # assert that the changes in the tree have occurred
-		assert root.get_titles('en') != [orig_titles[i]]
-		assert root.get_titles('he') != [orig_he_titles[i]]
-		topic.update_topic(root, title=orig_titles[i], heTitle=orig_he_titles[i], category=Topic.ROOT)  # move it back to the main menu
-		assert root.get_titles('en') == [orig_titles[i]]
-		assert root.get_titles('he') == [orig_he_titles[i]]
+		assert root.get_titles('en') != [orig_titles[i]['text']]
+		assert root.get_titles('he') != [orig_he_titles[i]['text']]
+		topic.update_topic(root, titles=[orig_titles[i], orig_he_titles[i]], category=Topic.ROOT)  # move it back to the main menu
+		assert root.get_titles('en') == [orig_titles[i]['text']]
+		assert root.get_titles('he') == [orig_he_titles[i]['text']]
 
 
 	final_tree_from_normal_root = library.get_topic_toc_json_recursive(roots[0])
