@@ -159,7 +159,7 @@ class AddToSourceSheetBox extends Component {
 
         // If something is highlighted and main panel language is not bilingual:
         // Use passed in language to determine which version this highlight covers.
-        var selectedWords = this.props.selectedWords; //if there was highlighted single panel
+        let selectedWords = this.props.selectedWords; //if there was highlighted single panel
         if (selectedWords && language != "bilingual") {
           let lan = language.slice(0,2);
           let segments = await sheetsUtils.getSegmentObjs(source.refs);
@@ -169,8 +169,7 @@ class AddToSourceSheetBox extends Component {
             [lan]: this.normalize(segment[lan])
           }));
           let categories = await sheetsUtils.getCategories(source.refs[0]);
-          let resultSourceText = '';
-          const segmented = !(categories[0] in {"Tanakh": 1, "Talmud": 1});
+          const segmented = await sheetsUtils.shouldBeSegmented(source.refs[0])
           const includeNumbers = await sheetsUtils.shouldIncludeSegmentNums(source.refs[0]);
           for (let iSegment = 0; iSegment < segments.length; iSegment++) {
               const segment = segments[iSegment];
@@ -187,8 +186,7 @@ class AddToSourceSheetBox extends Component {
               }
           }
 
-          resultSourceText = sheetsUtils.segmentsToSourceText(segments, lan, segmented, includeNumbers);
-          source[lan] = resultSourceText;
+          source[lan] = sheetsUtils.segmentsToSourceText(segments, lan, segmented, includeNumbers);;
         }
       }
       if (this.checkContentForImages(source.refs)) {

@@ -1896,10 +1896,9 @@ const insertSource = async (editor, ref) => {
     const normalHeRef = await sheetsUtils.getNormalHeRef(ref);
 
     let segments = await sheetsUtils.getSegmentObjs([ref])
-    let categories = await sheetsUtils.getCategories(ref);
 
-    let includeNumbers = sheetsUtils.shouldIncludeSegmentNums(ref);
-    const segmented = !(categories[0] in {"Tanakh": 1, "Talmud": 1});
+    let includeNumbers = await sheetsUtils.shouldIncludeSegmentNums(ref);
+    const segmented = await sheetsUtils.shouldBeSegmented(ref);
 
     const enText = sheetsUtils.segmentsToSourceText(segments, 'en', segmented, includeNumbers);
 
@@ -1930,7 +1929,6 @@ const insertSource = async (editor, ref) => {
 
 
     Transforms.move(editor, { unit: 'block', distance: 1 })
-    // });
 };
 
 

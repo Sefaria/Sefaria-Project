@@ -1,7 +1,5 @@
 import Sefaria from "./sefaria/sefaria";
 
-//TODO textObjs cache
-
 export async function getSegmentObjs(refs) {
     const segments = [];
 
@@ -57,4 +55,8 @@ export async function shouldIncludeSegmentNums(ref){
     if (indexTitle === "Pesach Haggadah") {return false}
     if (categories === 1) {return false}
     return true;
+}
+export async function shouldBeSegmented(ref){
+    const categories =  await getCategories(ref);
+    return !(categories[0] in {"Tanakh": 1, "Talmud": 1});
 }
