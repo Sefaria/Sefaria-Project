@@ -49,11 +49,11 @@ p929==0.6.1
 pathos==0.2.6
 pillow==10.0.1; sys_platform != 'linux'
 pillow==8.0.1; sys_platform == 'linux'
-#psycopg2==2.8.6 #for dev: psycopg2-binary
+psycopg2==2.8.6 #for dev: psycopg2-binary==2.8.6
 py2-py3-django-email-as-username==1.7.1
 pymongo==3.12.*
 pytest==6.1.1
-python-bidi
+python-bidi #for devs on intel devices:python-bidi==0.4.2
 pytz
 pyyaml==6.0.1
 rauth==0.7.3
