@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import {InterfaceText, EnglishText, HebrewText} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import SearchState from './sefaria/searchState';
-import SearchResultList  from './SearchResultList';
+import {SearchResultList}  from './SearchResultList';
 import DictionarySearch  from './DictionarySearch';
 import classNames from 'classnames';
 
 import {
   SearchButton,
 } from './Misc';
+import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
 
 
 const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarSearchQuery, setSidebarSearchQuery, onSidebarSearchClick }) => {
@@ -111,23 +112,18 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
     </div>
 
 
-      {query ?
-        <SearchResultList
-          query={query}
-          compare={false}
-          searchInBook={true}
-          tab="text"
-          types={["text"]}
-          textSearchState={searchState}
-          updateTotalResults={n => console.log(n)}
-          registerAvailableFilters={n => console.log(n)}
-          updateAppliedOptionSort={updateAppliedOptionSort}
-          onResultClick={onSidebarSearchClick}
-        /> :
-
-        null
-
-    }
+      {query &&
+          <ElasticSearchQuerier
+              query={query}
+              compare={false}
+              searchInBook={true}
+              type={"text"}
+              searchState={searchState}
+              updateTotalResults={n => console.log(n)}
+              registerAvailableFilters={n => console.log(n)}
+              updateAppliedOptionSort={updateAppliedOptionSort}
+              onResultClick={onSidebarSearchClick}
+              />}
 
 
     </div>

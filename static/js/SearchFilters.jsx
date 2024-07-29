@@ -200,7 +200,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     if (item.selected) {
       return -1;
     } else {
-      return 1;
+      return 0;
     }
   }
 

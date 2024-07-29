@@ -6,7 +6,6 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
-import SearchResultList  from './SearchResultList';
 import SearchFilters from './SearchFilters';
 import Component from 'react-class';
 import {
@@ -14,6 +13,7 @@ import {
   InterfaceText,
   LoadingMessage,
 } from './Misc';
+import {SearchResultList} from "./SearchResultList";
 
 class SearchPage extends Component {
   constructor(props) {
@@ -23,9 +23,28 @@ class SearchPage extends Component {
       mobileFiltersOpen: false,
     };
   }
+
   render () {
     const classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
+    const searchResultList = <SearchResultList
+                                        query={this.props.query}
+                                        hits={this.props.hits}
+                                        type={this.props.type}
+                                        compare={this.props.compare}
+                                        searchState={this.props.searchState}
+                                        onResultClick={this.props.onResultClick}
+                                        updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+                                        registerAvailableFilters={this.props.registerAvailableFilters}
+                                        openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                                        loadNextPage={this.props.loadNextPage}
+                                        isQueryRunning={this.props.isQueryRunning}
+                                        moreToLoad={this.props.moreToLoad}
+                                        topics={this.props.topics}
+                                      />;
+    if (this.props.searchInBook) {
+      return searchResultList;
+    }
     return (
       <div className={classes} key={this.props.query}>
         {this.props.compare ?
@@ -41,46 +60,34 @@ class SearchPage extends Component {
               
               <div className="searchTopLine">
                 <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
-                  <InterfaceText>Results for</InterfaceText>&nbsp;
+                  <InterfaceText>{this.props.searchTopMsg}</InterfaceText>&nbsp;
                   <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}} />
                   { this.props.query }
                   <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
                 </h1>
-                {this.state.totalResults?.getValue() > 0 ?
+                {this.props.totalResults?.getValue() > 0 ?
                 <div className="searchResultCount sans-serif">
-                  <InterfaceText>{this.state.totalResults.asString()}</InterfaceText>&nbsp;
+                  <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
                   <InterfaceText>Results</InterfaceText>
                 </div>
                 : null }
               </div>
 
-              <SearchResultList
-                query={this.props.query}
-                tab={this.props.tab}
-                compare={this.props.compare}
-                textSearchState={this.props.textSearchState}
-                sheetSearchState={this.props.sheetSearchState}
-                onResultClick={this.props.onResultClick}
-                updateTab={this.props.updateTab}
-                updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                registerAvailableFilters={this.props.registerAvailableFilters}
-                updateTotalResults={n => this.setState({totalResults: n})}
-                openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-              />
+              {searchResultList}
             </div>
 
             {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
             <div className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
-              {this.state.totalResults?.getValue() > 0 ?
+              {this.props.totalResults?.getValue() > 0 ?
               <SearchFilters
                 query={this.props.query}
-                searchState={this.props[`${this.props.tab}SearchState`]}
-                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.tab, this.props[`${this.props.tab}SearchState`])}
-                updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.tab)}
-                updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.tab)}
+                searchState={this.props.searchState}
+                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
+                updateAppliedOptionField={this.props.updateAppliedOptionField}
+                updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                 closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
                 compare={this.props.compare}
-                type={this.props.tab} />
+                type={this.props.type} />
               : null }
             </div>
             : null }
@@ -92,21 +99,22 @@ class SearchPage extends Component {
   }
 }
 SearchPage.propTypes = {
-  interfaceLang:            PropTypes.oneOf(["english", "hebrew"]),
   query:                    PropTypes.string,
-  tab:                      PropTypes.oneOf(["text", "sheet"]),
-  textSearchState:          PropTypes.object,
-  sheetSearchState:         PropTypes.object,
+  type:                      PropTypes.oneOf(["text", "sheet"]),
+  searchState:              PropTypes.object,
   settings:                 PropTypes.object,
   panelsOpen:               PropTypes.number,
   close:                    PropTypes.func,
   onResultClick:            PropTypes.func,
   onQueryChange:            PropTypes.func,
-  updateTab:                PropTypes.func,
   updateAppliedFilter:      PropTypes.func,
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func,
+  loadNextPage:             PropTypes.func,
+  moreToLoad:               PropTypes.bool,
+  topics:                   PropTypes.array,
+  totalResults:             PropTypes.object
 };
 
 
