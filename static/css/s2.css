@@ -15031,6 +15031,7 @@ span.ref-link-color-3 {
     --r: .4em; /* control the ribbon shape (the radius) */
     --c: var(--pecha-red);
     padding-top: calc(var(--r));
+    padding-bottom: 2*calc(var(--r));
   }
 
 
