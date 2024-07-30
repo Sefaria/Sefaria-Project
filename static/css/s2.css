@@ -13194,8 +13194,16 @@ span.ref-link-color-3 {color: blue}
   height: 18px;
   width: 18px;
   vertical-align: middle;
+}
+
+.interface-english .header .dropdownLinks img {
   margin-inline-end: 2px;
 }
+
+.interface-hebrew .header .dropdownLinks img {
+  margin-inline-end: 6px;
+}
+
 .header .dropdownLinks a.dropdownLinks-button::after {
   display: inline-block;
   background: no-repeat url("/static/icons/chevron-down.svg");
