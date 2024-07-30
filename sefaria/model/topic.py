@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
@@ -13,6 +14,11 @@ from sefaria.model.place import Place
 import regex as re
 from typing import Type
 logger = structlog.get_logger(__name__)
+
+
+class Pool(Enum):
+    TEXTUAL = "textual"
+    SHEETS = "sheets"
 
 
 class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
@@ -52,7 +58,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'pools',  # list of strings, any of them represents a pool that this topic is member of
     ]
 
-    optional_pools = {'sheets', 'textual', 'torahtab'}
+    optional_pools = {pool.value for pool in Pool} | {'torahtab'}
 
     attr_schemas = {
         "image": {
@@ -459,7 +465,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         updating the pools 'sheets' or 'textual' according to the existence of links and the numSources
         :param pool: 'sheets' or 'textual'
         """
-        links = self.get_ref_links(pool == 'sheets')
+        links = self.get_ref_links(pool == Pool.SHEETS.value)
         if self.has_pool(pool) and not links:
             self.remove_pool(pool)
         elif not self.has_pool(pool) and links:
@@ -857,7 +863,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
         return self
 
     def get_related_pool(self):
-        return 'sheets' if self.is_sheet else 'textual'
+        return Pool.SHEETS.value if self.is_sheet else Pool.TEXTUAL.value
 
     def get_topic(self):
         return Topic().load({'slug': self.toTopic})
