@@ -1085,11 +1085,11 @@ def update_properties(topic_obj, dataSource, k, v):
 
 def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwargs):
     for k in ["birthYear", "deathYear"]:
-        if k in kwargs.keys() and kwargs[k]:   # only change property value if key exists, otherwise it indicates no change
+        if kwargs.get(k, False):   # only change property value if key exists, otherwise it indicates no change
             year = kwargs[k]
             update_properties(topic_obj, dataSource, k, year)
 
-    if 'era' in kwargs.keys() and kwargs['era']:    # only change property value if key is in data, otherwise it indicates no change
+    if kwargs.get('era', False):    # only change property value if key is in data, otherwise it indicates no change
         prev_era = topic_obj.properties.get('era', {}).get('value')
         era = kwargs['era']
         update_properties(topic_obj, dataSource, 'era', era)
