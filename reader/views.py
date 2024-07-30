@@ -15,6 +15,7 @@ import redis
 import os
 import re
 import uuid
+from dataclasses import asdict
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -44,6 +45,7 @@ from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
+from sefaria.sefaria_tasks_interace.history_change import LinkChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
@@ -80,7 +82,7 @@ from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic, update_topic_titles
 from sefaria.helper.category import update_order_of_category_children, check_term
-from sefaria.helper.texts.tasks import defer_save_link
+from sefaria.helper.texts.tasks import save_link, PossiblyCeleryJSONResponse
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -1923,7 +1925,7 @@ def links_api(request, link_id_or_ref=None):
     """
 
     def _internal_do_post(request, obj, uid, method, skip_check, override_preciselink):
-        task_ids = []
+        responses = []
         if isinstance(obj, dict):
             obj = [obj]
         for link in obj:
@@ -1931,8 +1933,9 @@ def links_api(request, link_id_or_ref=None):
                 link["_skip_lang_check"] = True
             if override_preciselink:
                 link["_override_preciselink"] = True
-            task_ids.append(defer_save_link(uid, link, method).id)
-        return task_ids
+            link_change = LinkChange(raw_link=link, uid=uid, method=method)
+            responses.append(save_link(asdict(link_change)))
+        return responses
 
     def _internal_do_delete(request, link_id_or_ref, uid):
         obj = tracker.delete(uid, Link, link_id_or_ref, callback=revarnish_link)
@@ -1975,8 +1978,9 @@ def links_api(request, link_id_or_ref=None):
         j = json.loads(j)
         skip_check = request.GET.get("skip_lang_check", 0)
         override_preciselink = request.GET.get("override_preciselink", 0)
-        task_ids = _internal_do_post(request, j, uid, method, skip_check, override_preciselink)
-        return celeryResponse(task_ids)
+        responses = _internal_do_post(request, j, uid, method, skip_check, override_preciselink)
+        response = PossiblyCeleryJSONResponse(responses, method)
+        return response()
 
     if request.method == "DELETE":
         if not link_id_or_ref:

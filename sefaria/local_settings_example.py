@@ -268,6 +268,7 @@ SENTINEL_TRANSPORT_OPTS = {}
 CELERY_REDIS_BROKER_DB_NUM = 2
 CELERY_REDIS_RESULT_BACKEND_DB_NUM = 3
 CELERY_QUEUES = {}
+CELERY_ENABLED = False
 # END Celery
 
 # Key which identifies the Sefaria app as opposed to a user
