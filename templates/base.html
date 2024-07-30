@@ -6,7 +6,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!-- <title>{% block title %}{{ title|striptags }}{% endblock %}</title> -->
+    <title> Pecha - A Living Library of Buddhist Text </title>
     <meta charset="utf-8"/>
     <!-- <meta name="description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/> -->
 
@@ -22,12 +22,12 @@
         <meta name="robots" content="index, follow">
     {% endif %}
 
-    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" />
+    <!-- <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" /> -->
 
-    {% if SITE_SETTINGS.TORAH_SPECIFIC %}
+    <!-- {% if SITE_SETTINGS.TORAH_SPECIFIC %}
     <link rel="alternate" href="https://www.pecha.org{{ request.path }}" hreflang="en" />
-    <link rel="alternate" href="https://www.pecha.org.il{{ request.path }}" hreflang="he" />
-    {% endif %}
+    <link rel="alternate" href="https://www.pecha.org{{ request.path }}" hreflang="he" />
+    {% endif %} -->
 
     {% if canonical_url %}
     <link rel="canonical" href="{{canonical_url}}" />
@@ -46,13 +46,13 @@
     {% endblock %}
 
     <meta property="og:title" content="Pecha - A Living Library of Buddhist Text"/>
-    <meta property="og:url" content="https://{{ request.get_host }}{{ request.get_full_path }}" />
+    <meta property="og:url" content="https://pecha.org"/>
 
-    <meta name="twitter:card" content="summary_large_image" />
+    <!-- <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@sefariaproject" />
     <meta name="twitter:title" content="{{title|striptags}}" />
     <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
-    <meta name="twitter:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=twitter&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
+    <meta name="twitter:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=twitter&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" /> -->
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
@@ -62,8 +62,8 @@
     <link rel="favicon-pecha" sizes="180x180" href="{% static 'icons/favicon-pecha.png' %}?v=xQzLlLp7oR">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-pecha.png' %}?v=xQzLlLp7oR">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/favicon-pecha.png' %}?v=xQzLlLp7oR">
-    <link rel="manifest" href="{% static 'icons/manifest.json' %}?v=xQzLlLp7oR">
-    <link rel="mask-icon" href="{% static 'icons/safari-pinned-tab.svg' %}?v=xQzLlLp7oR" color="#273557">
+    <!-- <link rel="manifest" href="{% static 'icons/manifest.json' %}?v=xQzLlLp7oR"> -->
+    <!-- <link rel="mask-icon" href="{% static 'icons/safari-pinned-tab.svg' %}?v=xQzLlLp7oR" color="#273557"> -->
     <link rel="shortcut icon" href="{% static 'icons/favicon-pecha.png'%}?v=xQzLlLp7oR">
     <link rel="stylesheet" href="{% static 'css/feedbucketStyle.css' %}">
     <meta name="theme-color" content="#273557">
@@ -145,8 +145,8 @@
     {% endif %}
 
 
-    {% if HOTJAR_ID %}
-    <!-- Hotjar Tracking Code for https://www.sefaria.org -->
+    <!-- {% if HOTJAR_ID %}
+    Hotjar Tracking Code for https://www.sefaria.org
     <script>
         (function(h,o,t,j,a,r){
             h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
@@ -157,7 +157,7 @@
             a.appendChild(r);
         })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
     </script>
-    {% endif %}
+    {% endif %} -->
 
     <meta name="google-site-verification" content="IQIF71Vtc74ylIZ1EWMuaQTsk6CyjXLosHkyDNIASic" />
 
