@@ -460,8 +460,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         :param pool: 'sheets' or 'textual'
         """
         links = self.get_ref_links(pool == 'sheets')
-        if bool(links) != pool in self.get_pools():
-            self.remove_pool(pool) if pool in self.get_pools() else self.add_pool(pool)
+        if self.has_pool(pool) and not links:
+            self.remove_pool(pool)
+        elif not self.has_pool(pool) and links:
+            self.add_pool(pool)
         self.numSources = self.link_set('refTopic').count()
         self.save()
 
