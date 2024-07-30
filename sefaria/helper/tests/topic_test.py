@@ -97,13 +97,18 @@ def actual_author(author_root):
 
 def test_title_and_desc(author_root, actual_author, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
 	for count, t in enumerate([author_root, actual_author, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link]):
-		new_values = {"titles": [{"text": f"new title {count+1}", "primary": True, "lang": 'en'},
-					  {"lang": "en",  "text": f"New Alt title {count+1}"}, {"lang": "he", "text": f"New He Alt Title {count+1}"},
-					  {"lang": "he", "text": f"new hebrew title {count+1}", "primary": True}], "description": {"en": f"new desc", "he": "new hebrew desc"}}
+		en_primary_title = {"text": f"new title {count+1}", "primary": True, "lang": 'en'}
+		he_primary_title = {"lang": "he", "text": f"new hebrew title {count+1}", "primary": True}
+
+		en_alt_title = {"lang": "en",  "text": f"New Alt title {count+1}"}
+		he_alt_title = {"lang": "he", "text": f"New He Alt Title {count+1}"}
+
+		new_values = {"titles": [en_primary_title, en_alt_title, he_alt_title, he_primary_title],
+					  "description": {"en": f"new desc", "he": "new hebrew desc"}}
 		topic.update_topic(t["topic"], **new_values)
 		assert t["topic"].description == new_values["description"]
-		assert t["topic"].get_primary_title('he') == [title['text'] for title in new_values["titles"] if title["lang"]=='he' and title.get('primary', None)][0]
-		assert t["topic"].get_titles('en') == [title["text"] for title in new_values['titles'] if title["lang"] == 'en']
+		assert t["topic"].get_primary_title('he') == he_primary_title['text']
+		assert t["topic"].get_titles('en') == [en_primary_title['text'], en_alt_title['text']]
 
 def test_author_root(author_root, actual_author):
 	new_values = {"category": "authors", "titles": [
