@@ -48,7 +48,7 @@ def defer_to_celery_conditionally(queue):
     return decorator
 
 
-@should_defer_to_celery(queue=CELERY_QUEUES['tasks'])
+@defer_to_celery_conditionally(queue=CELERY_QUEUES['tasks'])
 @app.task(name="web.save_link")
 def save_link(raw_link_change: dict):
     link = raw_link_change['raw_link']
