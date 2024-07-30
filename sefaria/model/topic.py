@@ -385,8 +385,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             return TopicLinkSetHelper.find(intra_link_query, **kwargs)
 
     def get_ref_links(self, is_sheet, query_kwargs=None, **kwargs):
-        if query_kwargs is None:
-            query_kwargs = {}
+        query_kwargs = query_kwargs or {}
         query_kwargs['is_sheet'] = is_sheet
         return self.link_set('refTopic', query_kwargs, **kwargs)
 
