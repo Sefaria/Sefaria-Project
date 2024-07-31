@@ -10052,6 +10052,7 @@ span.purim-emoji img{
 .overlayTextOnSheetsHero #title {
   position: absolute;
   font-size: 50px;
+  font-weight: 500;
   top: 145px;
   line-height: 62.65px;
 }
