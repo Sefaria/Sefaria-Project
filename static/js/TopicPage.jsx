@@ -344,7 +344,7 @@ const generatePrompts = async(topicSlug, linksToGenerate) => {
     });
     const payload = {ref_topic_links: linksToGenerate};
     try {
-        await Sefaria.postToApi(`/api/topics/generate-prompts/${topicSlug}`, {}, payload);
+        await Sefaria.apiRequestWithBody(`/api/topics/generate-prompts/${topicSlug}`, {}, payload);
         const refValues = linksToGenerate.map(item => item.ref).join(", ");
         alert("The following prompts are generating: " + refValues);
     } catch (error) {
@@ -359,7 +359,7 @@ const publishPrompts = async (topicSlug, linksToPublish) => {
         ref.descriptions[lang]["published"] = true;
     });
     try {
-        const response = await Sefaria.postToApi(`/api/ref-topic-links/bulk`, {}, linksToPublish);
+        const response = await Sefaria.apiRequestWithBody(`/api/ref-topic-links/bulk`, {}, linksToPublish);
         const refValues = response.map(item => item.anchorRef).join(", ");
         const shouldRefresh = confirm("The following prompts have been published: " + refValues + ". Refresh page to see results?");
         if (shouldRefresh) {

@@ -150,7 +150,7 @@ class YerushalmiCatcher:
         version = Version().load({"title": title, "language": self.lang, "versionTitle": self.vtitle})
         version.walk_thru_contents(self.collect_resolver_input)
         context_refs, input_text = zip(*self.resolver_input)
-        all_resolved_refs = self.resolver.bulk_resolve_refs(self.lang, context_refs, input_text, with_failures=True, verbose=True)
+        all_resolved_refs = self.resolver.bulk_resolve(self.lang, context_refs, input_text, with_failures=True, verbose=True)
         self.resolved_refs_by_context = {}
         for context_ref, resolved_refs in zip(context_refs, all_resolved_refs):
             self.resolved_refs_by_context[context_ref.normal()] = resolved_refs
@@ -168,7 +168,7 @@ class YerushalmiCatcher:
         resolved_refs = self.post_process_resolved_refs(resolved_refs, context_ref)
         norm_indices = [r.raw_ref.char_indices for r in resolved_refs]
         mapping = self.normalizer.get_mapping_after_normalization(st)
-        orig_indices = self.normalizer.convert_normalized_indices_to_unnormalized_indices(norm_indices, mapping)
+        orig_indices = self.normalizer.norm_to_unnorm_indices_with_mapping(norm_indices, mapping, )
 
         for resolved_ref, (start_char, end_char) in zip(resolved_refs, orig_indices):
             before_context, after_context = get_window_around_match(start_char, end_char, st)
@@ -292,7 +292,7 @@ class YerushalmiCatcher:
                     if span_end is not None:
                         subspan_slice = slice(0, span_end)
                         subspan = raw_ref.subspan(subspan_slice)
-                        new_raw_ref = RawRef('en', raw_ref.raw_ref_parts[subspan_slice], subspan)
+                        new_raw_ref = RawRef(subspan, 'en', raw_ref.raw_ref_parts[subspan_slice])
                         temp_resolved_refs = self.resolver.resolve_raw_ref('en', context_ref, new_raw_ref)
                         for temp_resolved_ref in temp_resolved_refs:
                             temp_ref = temp_resolved_ref.ref

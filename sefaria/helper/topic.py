@@ -715,7 +715,7 @@ def calculate_other_ref_scores(ref_topic_map):
             try:
                 tp = oref.index.best_time_period()
                 year = int(tp.start) if tp else 3000
-            except ValueError:
+            except (ValueError, AttributeError):
                 year = 3000
             comp_date_map[(topic, tref)] = year
             order_id_map[(topic, tref)] = oref.order_id()
@@ -1070,18 +1070,6 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
-def update_topic_titles(topic, title="", heTitle="", **kwargs):
-    new_primary = {"en": title, "he": heTitle}
-    for lang in ['en', 'he']:   # first remove all titles and add new primary and then alt titles
-        for title in topic.get_titles(lang):
-            topic.remove_title(title, lang)
-        topic.add_title(new_primary[lang], lang, True, False)
-        if 'altTitles' in kwargs:
-            for title in kwargs['altTitles'][lang]:
-                topic.add_title(title, lang)
-    return topic
-
-
 def update_authors_place_and_time(topic, dataSource='learning-team-editing-tool', **kwargs):
     # update place info added to author, then update year and era info
     if not hasattr(topic, 'properties'):
@@ -1112,16 +1100,18 @@ def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwar
 
 def update_topic(topic, **kwargs):
     """
-    Can update topic object's title, hebrew title, category, description, and categoryDescription fields
+    Can update topic object's titles, category, description, and categoryDescription fields
     :param topic: (Topic) The topic to update
-    :param **kwargs can be title, heTitle, category, description, categoryDescription, and rebuild_toc where `title`, `heTitle`,
-         and `category` are strings. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
+    :param **kwargs can be titles, category, description, categoryDescription, and rebuild_toc where `titles` is a list
+     of title objects as they are represented in the database, and `category` is a string. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
          The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """
     old_category = ""
     orig_slug = topic.slug
-    update_topic_titles(topic, **kwargs)
+    new_titles = kwargs.get('titles')
+    if new_titles:
+        topic.set_titles(new_titles)
     if kwargs.get('category') == 'authors':
         topic = update_authors_place_and_time(topic, **kwargs)
 
@@ -1216,12 +1206,11 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     topic_obj = Topic.init(slug)
     if topic_obj is None:
         return {"error": "Topic does not exist."}
-    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref}
-    # we don't know what link is being targeted b/c we don't know the dataSource.
-    # we'll guess that the most likely candidate is the link with the highest curatedPrimacy
-    link_set = RefTopicLinkSet(ref_topic_dict, sort=[["order.curatedPrimacy", -1]]).array()
-    link_already_existed = len(link_set) > 0
-    link = link_set[0] if link_already_existed else RefTopicLink(ref_topic_dict)
+    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref, "dataSource": "learning-team"}
+    link = RefTopicLink().load(ref_topic_dict)
+    link_already_existed = link is not None
+    if not link_already_existed:
+        link = RefTopicLink(ref_topic_dict)
 
     if not hasattr(link, 'order'):
         link.order = {}
@@ -1283,15 +1272,19 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
              Ref(s['ref']).normal()
         except InputError as e:
             return {"error": f"Invalid ref {s['ref']}"}
-        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": s['ref']})
+        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": s['ref'], "dataSource": "learning-team"})
         if link is None:
-            return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
+            # for now, we are focusing on learning team links and the lack of existence isn't considered an error
+            continue
+            # return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
         order = getattr(link, 'order', {})
         ref_to_link[s['ref']] = link
 
     # now update curatedPrimacy data
     for display_order, s in enumerate(sources[::-1]):
-        link = ref_to_link[s['ref']]
+        link = ref_to_link.get(s['ref'])
+        if not link:
+            continue
         order = getattr(link, 'order', {})
         curatedPrimacy = order.get('curatedPrimacy', {})
         curatedPrimacy[lang] = display_order
@@ -1312,17 +1305,18 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if Topic.init(to_topic) is None:
         return {"error": f"Topic {to_topic} doesn't exist."}
 
-    topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref}
+    topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref, "dataSource": "learning-team"}
     link = RefTopicLink().load(topic_link)
     if link is None:
-        return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
+        return {"error": f"A learning-team link between {tref} and {to_topic} doesn't exist. If you are trying to delete a non-learning-team link, reach out to the engineering team."}
 
-    if lang in link.order.get('availableLangs', []):
-        link.order['availableLangs'].remove(lang)
     if lang in link.order.get('curatedPrimacy', []):
         link.order['curatedPrimacy'].pop(lang)
+    if lang in getattr(link, 'descriptions', {}):
+        link.descriptions.pop(lang)
 
-    if len(link.order.get('availableLangs', [])) > 0:
+    # Note, using curatedPrimacy as a proxy here since we are currently only allowing deletion of learning-team links.
+    if len(link.order.get('curatedPrimacy', [])) > 0:
         link.save()
         return {"status": "ok"}
     else:   # deleted in both hebrew and english so delete link object

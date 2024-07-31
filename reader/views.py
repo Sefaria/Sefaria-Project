@@ -78,7 +78,7 @@ from io import BytesIO
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
-from sefaria.helper.topic import update_topic, update_topic_titles
+from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
 
 if USE_VARNISH:
@@ -114,7 +114,7 @@ if not DISABLE_AUTOCOMPLETER:
 
 if ENABLE_LINKER:
     logger.info("Initializing Linker")
-    library.build_ref_resolver()
+    library.build_linker('he')
 
 if server_coordinator:
     server_coordinator.connect()
@@ -1242,6 +1242,7 @@ def edit_text(request, ref=None, lang=None, version=None):
     })
 
 @ensure_csrf_cookie
+@staff_member_required
 @sanitize_get_params
 def edit_text_info(request, title=None, new_title=None):
     """
@@ -3133,7 +3134,9 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
-        update_topic_titles(t, **data)
+        titles = data.get('titles')
+        if titles:
+            t.set_titles(titles)
         t.set_slug_to_primary_title()
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
@@ -3295,7 +3298,7 @@ def topic_ref_api(request, tref):
 
 @staff_member_required
 def reorder_sources(request):
-    sources = json.loads(request.POST["json"]).get("sources", [])
+    sources = json.loads(request.body).get("sources", [])
     slug = request.GET.get('topic')
     lang = 'en' if request.GET.get('lang') == 'english' else 'he'
     return jsonResponse(update_order_of_topic_sources(slug, sources, request.user.id, lang=lang))

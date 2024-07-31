@@ -55,9 +55,26 @@ class ReusableTermManager:
                 term.title_group.add_title(kwargs.get(lang), lang, primary=True)
             for title in kwargs.get(f"alt_{lang}", []):
                 term.title_group.add_title(title, lang)
+
+        if kwargs.get('delete_if_existing'):
+            slug = NonUniqueTerm.normalize_slug(term.slug)
+            existing_term = NonUniqueTerm.init(slug)
+            if existing_term:
+                existing_term.delete()
         term.save()
         self.context_and_primary_title_to_term[(kwargs.get('context'), term.get_primary_title('en'))] = term
         return term
+
+    def get_or_create_term_for_titled_obj(self, obj, context=None, new_alt_titles=None, title_modifier=None, title_adder=None):
+        term = self.get_existing_term_for_titled_obj(obj, new_alt_titles, title_modifier, title_adder)
+        if not term:
+            return self.create_term_from_titled_obj(obj, context, new_alt_titles, title_modifier, title_adder)
+        return term
+
+    def get_existing_term_for_titled_obj(self, obj, new_alt_titles=None, title_modifier=None, title_adder=None):
+        en_title, he_title, alt_en_titles, alt_he_titles = self._make_titles_for_term(obj, new_alt_titles,
+                                                                                      title_modifier, title_adder)
+        return NonUniqueTerm().load({"titles.text": {"$all": [en_title, he_title] + alt_en_titles + alt_he_titles}})
 
     def create_term_from_titled_obj(self, obj, context=None, new_alt_titles=None, title_modifier=None, title_adder=None):
         """
@@ -97,6 +114,15 @@ class ReusableTermManager:
         ...
 
         """
+        en_title, he_title, alt_en_titles, alt_he_titles = self._make_titles_for_term(obj, new_alt_titles,
+                                                                                      title_modifier, title_adder)
+        term = self.create_term(en=en_title, he=he_title, context=context, alt_en=alt_en_titles, alt_he=alt_he_titles)
+        if isinstance(obj, Term):
+            self.old_term_map[obj.name] = term
+        return term
+
+    @staticmethod
+    def _make_titles_for_term(obj, new_alt_titles=None, title_modifier=None, title_adder=None):
         new_alt_titles = new_alt_titles or []
         title_group = obj if isinstance(obj, TitleGroup) else obj.title_group
         en_title = title_group.primary_title('en')
@@ -122,10 +148,7 @@ class ReusableTermManager:
         # make unique
         alt_en_titles = list(set(alt_en_titles))
         alt_he_titles = list(set(alt_he_titles))
-        term = self.create_term(en=en_title, he=he_title, context=context, alt_en=alt_en_titles, alt_he=alt_he_titles)
-        if isinstance(obj, Term):
-            self.old_term_map[obj.name] = term
-        return term
+        return en_title, he_title, alt_en_titles, alt_he_titles
 
 
 class LinkerCategoryConverter:
@@ -369,6 +392,18 @@ class LinkerIndexConverter:
                     outer_shape = base_outer_shape
         self.index.nodes.lengths = [outer_shape] + ac[1:]
 
+    @staticmethod
+    def get_all_alt_struct_nodes(index):
+        def alt_struct_nodes_helper(node, nodes):
+            nodes.append(node)
+            for child in node.children:
+                alt_struct_nodes_helper(child, nodes)
+
+        nodes = []
+        for node in index.get_alt_struct_roots():
+            alt_struct_nodes_helper(node, nodes)
+        return nodes
+
     def convert(self):
         if self.get_alt_structs:
             alt_struct_dict = self.get_alt_structs(self.index)
@@ -376,7 +411,7 @@ class LinkerIndexConverter:
                 for name, root in alt_struct_dict.items():
                     self.index.set_alt_structure(name, root)
         self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
-        alt_nodes = self.index.get_alt_struct_leaves()
+        alt_nodes = self.get_all_alt_struct_nodes(self.index)
         for inode, node in enumerate(alt_nodes):
             self.node_visitor(node, 1, inode, len(alt_nodes), True)
         self._update_lengths()  # update lengths for good measure
@@ -419,4 +454,7 @@ class LinkerIndexConverter:
             if other_fields_dict is not None:
                 for key, val in other_fields_dict.items():
                     if val is None: continue
-                    setattr(node, key, val)
+                    if val == "DELETE!":
+                        delattr(node, key)
+                    else:
+                        setattr(node, key, val)

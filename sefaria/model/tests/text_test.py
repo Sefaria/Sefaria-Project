@@ -327,15 +327,6 @@ def test_merge():
 
 
 def test_text_helpers():
-    res = model.library.get_dependant_indices()
-    assert 'Rashbam on Genesis' in res
-    assert 'Rashi on Bava Batra' in res
-    assert 'Bartenura on Mishnah Oholot' in res
-    assert 'Onkelos Leviticus' in res
-    assert 'Chizkuni' in res
-    assert 'Akeidat Yitzchak' not in res
-    assert 'Berakhot' not in res
-
     res = model.library.get_indices_by_collective_title("Rashi")
     assert 'Rashi on Bava Batra' in res
     assert 'Rashi on Genesis' in res
@@ -346,45 +337,60 @@ def test_text_helpers():
     assert 'Bartenura on Mishnah Oholot' in res
     assert 'Rashbam on Genesis' not in res
 
-    res = model.library.get_dependant_indices(book_title="Exodus")
-    assert 'Ibn Ezra on Exodus' in res
-    assert 'Ramban on Exodus' in res
-    assert 'Meshekh Chokhmah' in res
-    assert 'Abarbanel on Torah' in res
-    assert 'Targum Jonathan on Exodus' in res
-    assert 'Onkelos Exodus' in res
-    assert 'Harchev Davar on Exodus' in res
-
-    assert 'Exodus' not in res
-    assert 'Rashi on Genesis' not in res
-
-    res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary')
-    assert 'Ibn Ezra on Exodus' in res
-    assert 'Ramban on Exodus' in res
-    assert 'Meshekh Chokhmah' in res
-    assert 'Abarbanel on Torah' in res
-    assert 'Harchev Davar on Exodus' in res
-
-    assert 'Targum Jonathan on Exodus' not in res
-    assert 'Onkelos Exodus' not in res
-    assert 'Exodus' not in res
-    assert 'Rashi on Genesis' not in res
-
-    res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary', structure_match=True)
-    assert 'Ibn Ezra on Exodus' in res
-    assert 'Ramban on Exodus' in res
-
-    assert 'Harchev Davar on Exodus' not in res
-    assert 'Meshekh Chokhmah' not in res
-    assert 'Abarbanel on Torah' not in res
-    assert 'Exodus' not in res
-    assert 'Rashi on Genesis' not in res
-
     cats = model.library.get_text_categories()
     assert 'Tanakh' in cats
     assert 'Torah' in cats
     assert 'Prophets' in cats
     assert 'Commentary' in cats
+
+@pytest.mark.parametrize(('book_title', 'dependence_type', 'structure_match', 'expected_titles', 'not_expected_titles'), [
+    [None, None, False, [
+        'Rashbam on Genesis',
+        'Rashi on Bava Batra',
+        'Bartenura on Mishnah Oholot',
+        'Onkelos Leviticus',
+        'Chizkuni',
+    ], [
+        'Akeidat Yitzchak',
+        'Berakhot']
+     ],
+    ['Exodus', None, False, ['Ibn Ezra on Exodus; Perush HaArokh',
+                             'Ramban on Exodus',
+                             'Abarbanel on Torah',
+                             'Meshekh Chokhmah',
+                             'Targum Jonathan on Exodus',
+                             'Onkelos Exodus',
+                             'Harchev Davar on Exodus'
+                             ], ['Exodus',
+                                 'Rashi on Genesis']
+     ],
+    ['Exodus', 'Commentary', False, ['Ibn Ezra on Exodus; Perush HaArokh',
+                             'Ramban on Exodus',
+                             'Abarbanel on Torah',
+                             'Meshekh Chokhmah',
+                             'Harchev Davar on Exodus'
+                             ], ['Targum Jonathan on Exodus',
+                                 'Onkelos Exodus',
+                                 'Exodus',
+                                 'Rashi on Genesis']
+     ],
+    ['Exodus', 'Commentary', True, ['Ibn Ezra on Exodus; Perush HaArokh',
+                                    'Ramban on Exodus'
+                                    ], ['Abarbanel on Torah',
+                                        'Meshekh Chokhmah',
+                                        'Targum Jonathan on Exodus',
+                                        'Onkelos Exodus',
+                                        'Harchev Davar on Exodus',
+                                        'Exodus',
+                                        'Rashi on Genesis']
+     ],
+])
+def test_get_dependent_indices(book_title, dependence_type, structure_match, expected_titles, not_expected_titles):
+    res = model.library.get_dependant_indices(book_title=book_title, dependence_type=dependence_type, structure_match=structure_match)
+    for title in expected_titles:
+        assert title in res
+    for title in not_expected_titles:
+        assert title not in res
 
 
 def test_index_update():
@@ -743,53 +749,85 @@ class TestVersionActualLanguage:
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }).save()
-        cls.versionWithTranslation = model.Version(
+        cls.firstTranslationVersion = model.Version(
             {
-                "chapter": cls.myIndex.nodes.create_skeleton(),
+                "chapter": [['1'], ['2'], ["original text", "2nd"]],
                 "versionTitle": "Version 1 TEST [fr]",
                 "versionSource": "blabla",
-                "language": "he",
+                "language": "en",
                 "title": cls.myIndexTitle
             }
-        )
-        cls.versionWithTranslation.chapter = [['1'], ['2'], ["original text", "2nd"]]
-        cls.versionWithTranslation.save()
-        cls.versionWithoutTranslation = model.Version(
+        ).save()
+        cls.sourceVersion = model.Version(
             {
-                "chapter": cls.myIndex.nodes.create_skeleton(),
+                "chapter":cls.myIndex.nodes.create_skeleton(),
                 "versionTitle": "Version 1 TEST",
                 "versionSource": "blabla",
                 "language": "he",
                 "title": cls.myIndexTitle
             }
         )
-        cls.versionWithoutTranslation.chapter = [['1'], ['2'], ["original text", "2nd"]]
-        cls.versionWithoutTranslation.save()
+        cls.sourceVersion.chapter = [['1'], ['2'], ["original text", "2nd"]]
+        cls.sourceVersion.save()
         cls.versionWithLangCodeMismatch = model.Version(
             {
                 "chapter": cls.myIndex.nodes.create_skeleton(),
                 "versionTitle": "Version 1 TEST [ar]",
                 "versionSource": "blabla",
-                "language": "he",
-                "actualLanguage": "fr",
+                "language": "en",
+                'actualLanguage': 'fr',
                 "title": cls.myIndexTitle
             }
         )
         
     @classmethod
     def teardown_class(cls):
-        for c in [cls.myIndex, cls.versionWithTranslation, cls.versionWithoutTranslation, cls.versionWithLangCodeMismatch]:
+        for c in [cls.myIndex, cls.sourceVersion, cls.firstTranslationVersion, cls.versionWithLangCodeMismatch]:
             try:
                 c.delete()
             except Exception:
                 pass
     
-    def test_normalizes_actualLanguage_from_brackets(self):
-        assert self.versionWithTranslation.actualLanguage == "fr"
-    
-    def test_normalizes_language_from_language(self):
-        assert self.versionWithoutTranslation.actualLanguage == "he"
+    def test_normalize(self):
+        expected_attrs = {
+            'firstTranslationVersion': {
+                'actualLanguage': 'fr',
+                'direction': 'ltr',
+                'languageFamilyName': 'french',
+                'isPrimary': True,
+                'isSource': False,
+            },
+            'sourceVersion': {
+                'actualLanguage': 'he',
+                'direction': 'rtl',
+                'languageFamilyName': 'hebrew',
+                'isPrimary': True,
+                'isSource': True,
+            },
+            'versionWithLangCodeMismatch': {
+                'actualLanguage': 'fr',
+                'direction': 'ltr',
+                'languageFamilyName': 'french',
+                'isPrimary': False,
+                'isSource': False,
+            },
+        }
+        self.versionWithLangCodeMismatch._normalize()
+        for version_key in expected_attrs:
+            version = getattr(self, version_key)
+            for attr in expected_attrs[version_key]:
+                assert getattr(version, attr) == expected_attrs[version_key][attr]
 
-    def test_save_when_language_mismatch(self):
-        self.versionWithLangCodeMismatch.save()
-        assert self.versionWithLangCodeMismatch.actualLanguage == "ar"
+@pytest.mark.parametrize(('text_with_html', 'text_without_html'),
+                         [
+                         ["</big>בּ<big>ְרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ",
+                          "בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ"],
+                         [
+                             "Happy is the <big>man</big> who has not followed the counsel of the wicked,<br/>or taken the path of sinners,<br>or joined the company of the insolent;",
+                             "Happy is the man who has not followed the counsel of the wicked, or taken the path of sinners, or joined the company of the insolent;"]
+                         ])
+
+def test_remove_html(text_with_html, text_without_html):
+    assert model.TextChunk.remove_html(text_with_html) == text_without_html
+
+

@@ -1045,29 +1045,6 @@ class ToggleOption extends Component {
   }
 }
 
-         //style={this.props.style}
-
-const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}, redirect_params}) => {
-    let ajaxPayload = {url, type};
-    if (type === "POST") {
-      ajaxPayload.data = {json: JSON.stringify(data)};
-    }
-    $.ajax({
-      ...ajaxPayload,
-      success: function(result) {
-        if ("error" in result) {
-          if (setSavingStatus) {
-            setSavingStatus(false);
-          }
-          alert(result.error);
-        } else {
-          redirect();
-        }
-      }
-    }).fail(function() {
-      alert(Sefaria._("Something went wrong. Sorry!"));
-    });
-}
 
  const TopicToCategorySlug = function(topic, category=null) {
    //helper function for AdminEditor
@@ -1216,7 +1193,10 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
 
 const EditorForExistingTopic = ({ toggle, data }) => {
   const prepAltTitles = (lang) => { // necessary for use with TitleVariants component
-    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({["name"]: item.text, ["id"]: i}))
+    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({
+      name: item.disambiguation ? `${item.text} (${item.disambiguation})` : item.text,
+      id: i
+  }))
   }
   const initCatSlug = TopicToCategorySlug(data);
   const origData = {
@@ -1676,7 +1656,7 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
     const deleteImage = () => {
         const old_filename_wout_url = old_filename.split("/").slice(-1);
         const url = `${Sefaria.apiHost}/api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
-        requestWithCallBack({url, type: "DELETE", redirect: () => alert("Deleted image.")});
+        Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => alert("Deleted image."));
         callback("");
         fileInput.current.value = "";
     }
@@ -3385,7 +3365,6 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  requestWithCallBack,
   OnInView,
   TopicPictureUploader,
   ImageWithCaption
