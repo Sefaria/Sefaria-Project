@@ -220,6 +220,45 @@ body, .sans-serif {
     --is-serif: initial; /* false */
 }
 
+/* edited to yakpotibetanUni from wujin */
+
+.navSidebarModule > h1 > .int-he{
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.navSidebarModule > .int-he{
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.headerNavSection > a > .int-he{
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.navSidebarModule > h3 > .int-he {
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.navSidebarModule > .downloadTextModule > .button {
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.connectionsHeaderTitle > .int-he{
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.connectionPanelSectionHeaderInner > .int-he{
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+/* TILL HERE | edited to yakpotibetanUni from wujin */
+
 .serif {
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
