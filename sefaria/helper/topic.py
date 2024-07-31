@@ -1099,7 +1099,7 @@ def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwar
 
 
 def update_topic(topic, titles=None, category=None, origCategory=None, categoryDescritpion=None, description=None,
-                 birthPlace=None, deathPlace=None, birthYear=None, era=None,
+                 birthPlace=None, deathPlace=None, birthYear=None, deathYear=None, era=None,
                  rebuild_toc=True, manual=False, image=None, **kwargs):
     """
     Can update topic object's titles, category, description, and categoryDescription fields
@@ -1115,7 +1115,7 @@ def update_topic(topic, titles=None, category=None, origCategory=None, categoryD
     if titles:
         topic.set_titles(titles)
     if category == 'authors':
-        topic = update_authors_place_and_time(topic, birthPlace=birthPlace, birthYear=birthYear, deathPlace=deathPlace, era=era)
+        topic = update_authors_place_and_time(topic, birthPlace=birthPlace, birthYear=birthYear, deathPlace=deathPlace, deathYear=deathYear, era=era)
 
     if category and origCategory and origCategory != category:
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic.slug, "toTopic": {"$ne": topic.slug}})
