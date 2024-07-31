@@ -1100,7 +1100,7 @@ def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwar
 
 def update_topic(topic, titles=None, category=None, origCategory=None, categoryDescritpion=None, description=None,
                  birthPlace=None, deathPlace=None, birthYear=None, era=None,
-                 rebuild_toc=True, manual=False, image=None):
+                 rebuild_toc=True, manual=False, image=None, **kwargs):
     """
     Can update topic object's titles, category, description, and categoryDescription fields
     :param topic: (Topic) The topic to update
