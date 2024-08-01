@@ -524,7 +524,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <MobileInterfaceLanguageToggle />
 
-        <a href="/products?source=Footer">
+        <a href="/products">
           <img src="/static/icons/products.svg" />
           <InterfaceText text={{en: "Products", he: "מוצרים"}} />
         </a>
