@@ -92,6 +92,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.63.8-possible-fixes-for-migrate.1.tgz
     version: 0.63.8-possible-fixes-for-migrate.1
   - apiVersion: v2
+    appVersion: v5.106.9
+    created: "2024-08-01T09:30:57.285557392Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 6571c4c123c1525b90234f44969a2adaef4f5066c14c96b62841d34035ae22e0
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.63.8-master.1.tgz
+    version: 0.63.8-master.1
+  - apiVersion: v2
     appVersion: v5.99.6
     created: "2024-04-15T08:50:11.631864987Z"
     description: Chart to deploy complete Sefaria environment
@@ -6540,4 +6555,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2024-07-29T13:27:08.363316858Z"
+generated: "2024-08-01T09:30:57.282873681Z"
