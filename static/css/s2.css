@@ -142,9 +142,9 @@ a, a:hover {
 }
 
 @font-face {
-    /*Tibetan | YagpoTibetanUni */
-    font-family: 'YagpoTibetanUni';
-    src: url('/static/fonts/YagpoTibetanUni.ttf');
+    /*Tibetan | Jomolhari */
+    font-family: 'jomolhari';
+    src: url('/static/fonts/jomolhari.ttf');
     unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
 }
 
@@ -161,7 +161,7 @@ a, a:hover {
     --hebrew-sans-serif-font-family: "wujin+gangbi", "Heebo", "Roboto", sans-serif;
 
     --english-serif-font-family: "IndUni-P-Regular", "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-    --hebrew-serif-font-family: "YagpoTibetanUni", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+    --hebrew-serif-font-family: "jomolhari", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
     --serif-h1-font-size: 48px;
     --serif-h2-font-size: 30px;
@@ -255,6 +255,15 @@ body, .sans-serif {
 .connectionPanelSectionHeaderInner > .int-he{
     font-family: var(--hebrew-serif-font-family) !important;
     color: var(--selected-option) !important;
+}
+
+.interfaceLinks-row > a {
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.textColumn > .ribbon-wrap > .ribbon {
+    font-family: var(--hebrew-serif-font-family) !important;
 }
 
 /* TILL HERE | edited to yakpotibetanUni from wujin */
@@ -8269,7 +8278,7 @@ But not to use a display block directive that might break continuous mode for ot
 
 .toolsButton.systemTypeface .toolsButtonText span.int-he,
 .toolsButton.systemTypeface .toolsButtonText span.he {
-    font-family: "JhomoLangma Sarchen", "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "wujin+gangbi", "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .toolsButton.textTypeface .toolsButtonText span.int-he,
