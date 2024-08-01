@@ -3177,7 +3177,7 @@ const ProductTitle = ({product}) => {
 };
 
 // Generalized function for catching products page analytics - to be revisited
-const productsAnalytics = (rank, product, cta, label, link_type, event) => {
+const productsAnalytics = (rank, product, cta, label, link_type, event) => {    
     gtag("event", `products_${event}`, {
         area: 'Products',
         panel_type: "strapi-static",

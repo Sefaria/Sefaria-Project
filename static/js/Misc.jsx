@@ -3315,6 +3315,8 @@ const AppStoreButton = ({ platform, href, altText }) => {
 
 const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_type, analytics_event) => {
 
+  // e.preventDefault() 
+
   // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
   // Get the <a> element.
 
@@ -3323,10 +3325,12 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
   let linkTarget = null;
   let parent = target;
   let outmost = e.currentTarget;
+  let text = "";
   
   while (parent) {
     if(parent.nodeName === 'A'){
       linkTarget = parent;
+      text = linkTarget.text
       break;
     }
     else if (parent.parentNode === outmost) {
@@ -3344,7 +3348,7 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
     return;
   }
   else {
-    gtag_fxn(rank, product, cta, label, link_type, analytics_event);
+    gtag_fxn(rank, product, href, label, link_type, analytics_event);
   }
 }
 
