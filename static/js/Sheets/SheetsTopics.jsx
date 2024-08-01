@@ -25,7 +25,10 @@ const SheetsWrapper = ({title, children}) => {
 }
 
 const SheetsParashah = ({handleClick}) => {
-    const parashah = getParashah();
+    const [parashah, setParashah] = useState({});
+    useEffect(() => {
+        Sefaria.getCurrentParasha().then(setParashah);
+    }, []);
     const parashahTitle = parashah.displayValue;
     const parashahDesc = parashah.description;
     return <Card    cardTitleHref={`/topics/${parashah.topic}`}

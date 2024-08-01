@@ -2628,6 +2628,14 @@ _media: {},
       store: this._parashaNextRead,
     });
   },
+  _currentParasha: {},
+  getCurrentParasha: function(parasha) {
+    return this._cachedApiPromise({
+       url:  `${this.apiHost}/api/calendars/this-parasha`,
+       key:  parasha,
+       store: this._currentParasha,
+    });
+  },
   _bookSearchPathFilter: {},
   bookSearchPathFilterAPI: title => {
     return Sefaria._cachedApiPromise({
