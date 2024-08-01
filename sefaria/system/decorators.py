@@ -42,10 +42,7 @@ def catch_error_as_json(func):
         except exps.InputError as e:
             logger.warning("An exception occurred processing request for '{}' while running {}. Caught as JSON".format(args[0].path, func.__name__), exc_info=True)
             request = args[0]
-            if str(e) == "Can not get TextRange at this level, please provide a more precise reference":
-                return jsonResponse({'error': "Please pass a more specific ref for this book, and try again. The ref you passed is a \'complex\' book-level ref. We only support book-level refs in cases of texts with a 'simple' structure. To learn more about the structure of a text on Sefaria, see: https://developers.sefaria.org/docs/the-schema-of-a-simple-text"}, status=400)
-            else:
-                return jsonResponse({"error": str(e)}, callback=request.GET.get("callback", None))
+            return jsonResponse({"error": str(e)}, callback=request.GET.get("callback", None))
         return result
     return wrapper
 
