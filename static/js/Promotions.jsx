@@ -11,7 +11,8 @@ const Promotions = () => {
   const context = useContext(AdContext);
   const strapi = useContext(StrapiDataContext);
   useEffect(() => {
-    if (strapi.dataFromStrapiHasBeenReceived) {
+    // Disable Strapi for Sidebar Ads during Unbounce trial
+    if (false && strapi.dataFromStrapiHasBeenReceived) {
       Sefaria._inAppAds = [];
 
       const sidebarAds = strapi.strapiData?.sidebarAds?.data;
