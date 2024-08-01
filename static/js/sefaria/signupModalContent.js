@@ -49,33 +49,33 @@ const signUpModalContent = {
   [SignUpModalKind.AddToSheet]: {
     h2: {
       en: "Want to make your own source sheet?",
-      he: "רוצים ליצור דף מקורות משלכם?",
+      he: "ཁྱེད་རང་ཉིད་ཀྱི་ཤོག་ངོས་བཟོ་འདོད་དམ།",
     },
     h3: {
       en: "Create a free account to join the conversation",
-      he: "פתחו חשבון משתמש בחינם כדי להוסיף דפי מקורות משלכם - ועוד:",
+      he: "རིན་མེད་ཁ་བྱང་ཞིག་བཟོས་ཏེ་གླེང་མོལ་ནང་མཉམ་གཞུགས་བྱོས།",
     },
     contentList: [
       {
         icon: "sheetsplus-white.svg",
         bulletContent: {
           en: "Build & share source sheets",
-          he: "בנו ושתפו דפי מקורות",
+          he: "ཤོག་ངོས་བཟོས་ཏེ་བརྒྱུད་སྐུར་བྱོས།",
         },
       },
       {
         icon: "star-white.png",
-        bulletContent: { en: "Save texts", he: "שמרו טקסטים" },
+        bulletContent: { en: "Save texts", he: "ཟིན་བྲིས་ཉར་ཚགས།"},
       },
       {
         icon: "note-white.svg",
-        bulletContent: { en: "Take notes", he: "רשמו הערות" },
+        bulletContent: { en: "Take notes", he: "མཆན་བཀོད།" },
       },
       {
         icon: "share-icon-white.svg",
         bulletContent: {
           en: "Connect with other users",
-          he: "התחברו עם משתמשי ספריא אחרים",
+          he: "གཞན་དང་མཉམ་དུ་སྦྲེལ་མཐུད་བྱེད།",
         },
       },
     ],
