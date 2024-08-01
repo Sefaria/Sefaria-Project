@@ -250,6 +250,7 @@ class SearchBar extends Component {
     }
   }
   focusSearch(e) {
+    console.log("helll")
     const parent = document.getElementById('searchBox');
     this.setState({searchFocused: true});
     this.showVirtualKeyboardIcon(true);
@@ -353,12 +354,21 @@ class SearchBar extends Component {
     this.submitSearch(query);
   }
   handleSearchButtonClick(event) {
+    
     const query = $(ReactDOM.findDOMNode(this)).find(".search").val();
     if (query) {
       this.submitSearch(query);
     } else {
       $(ReactDOM.findDOMNode(this)).find(".search").focus();
     }
+  }
+  handleMongoSearchBtn(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const query = $(e.target).val();
+      Sefaria.mongoSearch(query)
+    } 
+    
   }
   render() {
     const inputClasses = classNames({
@@ -377,6 +387,7 @@ class SearchBar extends Component {
           placeholder={Sefaria._("Search")}
           onKeyUp={this.handleSearchKeyUp}
           onFocus={this.focusSearch}
+          onKeyDown={this.handleMongoSearchBtn}
           onBlur={this.blurSearch}
           maxLength={75}
           title={Sefaria._("Search for Texts or Keywords Here")} />

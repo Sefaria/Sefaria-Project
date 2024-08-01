@@ -4418,9 +4418,85 @@ def dummy_search_api(request):
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
+def mongo_search_api():
+    query = [
+        {
+            '$search': {
+                'index': 'text', 
+                'text': {
+                    'query': 'ཧོ་', 
+                    'path': [
+                        'chapter'
+                    ]
+                }
+            }
+        }, {
+            '$unwind': {
+                'path': '$chapter', 
+                'includeArrayIndex': 'outerIndex'
+            }
+        }, {
+            '$unwind': {
+                'path': '$chapter', 
+                'includeArrayIndex': 'innerIndex'
+            }
+        }, {
+            '$match': {
+                'chapter': {
+                    '$regex': 'ཧོ'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$_id', 
+                'language': {
+                    '$first': '$language'
+                }, 
+                'title': {
+                    '$first': '$title'
+                }, 
+                'versionSource': {
+                    '$first': '$versionSource'
+                }, 
+                'versionTitle': {
+                    '$first': '$versionTitle'
+                }, 
+                'iscompleted': {
+                    '$first': '$iscompleted'
+                }, 
+                'actualLanguage': {
+                    '$first': '$actualLanguage'
+                }, 
+                'languageFamilyName': {
+                    '$first': '$languageFamilyName'
+                }, 
+                'direction': {
+                    '$first': '$direction'
+                }, 
+                'matchingChapters': {
+                    '$push': {
+                        'chapter': '$chapter', 
+                        'index': {
+                            '$concat': [
+                                {
+                                    '$toString': '$outerIndex'
+                                }, '.', {
+                                    '$toString': '$innerIndex'
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    ]
+    result = list(db.texts.aggregate(query))
+    print("agricate: >>>>>>>>>>>>>>>>> ", result)
+
 
 @csrf_exempt
 def search_wrapper_api(request, es6_compat=False):
+    mongo_search_api()
     """
     @param request:
     @param es6_compat: True to return API response that's compatible with an Elasticsearch 6 compatible client

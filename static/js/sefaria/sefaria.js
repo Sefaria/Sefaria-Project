@@ -1145,7 +1145,9 @@ Sefaria = extend(Sefaria, {
       return textLanguage !== "hebrew" && applicableCorpora.indexOf(currCorpus) !== -1;
   },
   _lookups: {},
-
+  mongoSearch(args){
+    console.log("mongoSearch ", args)
+  },
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, refOnly = false, limit = undefined) {
     const trimmed_name = name.trim();

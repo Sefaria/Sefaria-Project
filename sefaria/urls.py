@@ -248,6 +248,7 @@ urlpatterns += [
     url(r'^api/search-wrapper/es8$', reader_views.search_wrapper_api),
     url(r'^api/search-wrapper$', reader_views.search_wrapper_api, {'es6_compat': True}),
     url(r'^api/search-path-filter/(?P<book_title>.+)$', reader_views.search_path_filter),
+    url(r'^api/mongo-search$', reader_views.mongo_search_api),
 ]
 
 # Following API
