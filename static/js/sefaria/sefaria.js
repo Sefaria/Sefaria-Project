@@ -2880,6 +2880,7 @@ _media: {},
     // Returns a string translating `name` into Hebrew.
     const categories = {
       "Quoting Commentary":   "פרשנות מצטטת",
+      "Commentary": "འགྲེལ་བ།",
       "Modern Commentary":    "פרשנות מודרנית",
       "Sheets":               "דפי מקורות",
       "Notes":                "הערות",
