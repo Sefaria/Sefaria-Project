@@ -135,6 +135,20 @@ a, a:hover {
 }
 
 @font-face {
+    /*Tibetan | wujin+gangbi*/
+    font-family: 'wujin+gangbi';
+    src: url('/static/fonts/wujin+gangbi.ttf');
+    unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
+}
+
+@font-face {
+    /*Tibetan | Jomolhari */
+    font-family: 'jomolhari';
+    src: url('/static/fonts/jomolhari.ttf');
+    unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
+}
+
+@font-face {
     /*English | Arial regular*/
     font-family: 'IndUni-P-Regular';
     src: url('/static/fonts/IndUni-P-Regular.otf');
@@ -144,10 +158,10 @@ a, a:hover {
 :root {
     /* font stacks */
     --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    --hebrew-sans-serif-font-family: "JhomoLangma Sarchen", "Heebo", "Roboto", sans-serif;
+    --hebrew-sans-serif-font-family: "wujin+gangbi", "Heebo", "Roboto", sans-serif;
 
     --english-serif-font-family: "IndUni-P-Regular", "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-    --hebrew-serif-font-family: "Snow Lotus", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+    --hebrew-serif-font-family: "jomolhari", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
     --serif-h1-font-size: 48px;
     --serif-h2-font-size: 30px;
@@ -205,6 +219,54 @@ body, .sans-serif {
     --hebrew-font: var(--hebrew-sans-serif-font-family);
     --is-serif: initial; /* false */
 }
+
+/* edited to yakpotibetanUni from wujin */
+
+.navSidebarModule > h1 > .int-he{
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.navSidebarModule > .int-he{
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.headerNavSection > a > .int-he{
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.navSidebarModule > h3 > .int-he {
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.navSidebarModule > .downloadTextModule > .button {
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.connectionsHeaderTitle > .int-he{
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.connectionPanelSectionHeaderInner > .int-he{
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.interfaceLinks-row > a {
+    font-family: var(--hebrew-serif-font-family) !important;
+    color: var(--selected-option) !important;
+}
+
+.textColumn > .ribbon-wrap > .ribbon {
+    font-family: var(--hebrew-serif-font-family) !important;
+}
+
+/* TILL HERE | edited to yakpotibetanUni from wujin */
 
 .serif {
     --english-font: var(--english-serif-font-family);
@@ -8216,7 +8278,7 @@ But not to use a display block directive that might break continuous mode for ot
 
 .toolsButton.systemTypeface .toolsButtonText span.int-he,
 .toolsButton.systemTypeface .toolsButtonText span.he {
-    font-family: "JhomoLangma Sarchen", "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "wujin+gangbi", "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .toolsButton.textTypeface .toolsButtonText span.int-he,

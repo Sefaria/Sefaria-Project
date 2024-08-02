@@ -246,6 +246,7 @@ const Strings = {
         "Buy in Print": "པར་འདེབས་བྱས་པ་ཞིག་ཉོ།",
         "Buy Now": "ད་ལྟ་རང་ཉོ།",
         "Read More": "འདི་ལས་མང་བ་ཀློག",
+        "Commentary": "འགྲེལ་བ།",
         "Web Pages": "དྲ་ཚིགས་ཀྱི་ཤོག་ངོས།",
         "Members": "ཁོངས་མི།",
         "Send": "གཏོང་།",
@@ -640,7 +641,6 @@ const Strings = {
         "AddConnectionBox": {
             "Select Type": "རིགས་ཤིག་འདེམ།",
             "None": "མི་འདུག",
-            "Commentary": "འགྲེལ་བ།",
             "Quotation": "ལུང་ཚིག",
             "Midrash": "འགྲེལ་རྙིང་།",
             "Ein Mishpat / Ner Mitsvah": "Ein Mishpat / Ner Mitsvah",
