@@ -282,8 +282,14 @@ class ReaderApp extends Component {
       } else {
         state.panels = [];
       }
-      this.setState(state, () => {
-        if (state.scrollPosition) {
+
+      // need to clone state and panels; if we don't clone them, when we run setState, it will make it so that
+      // this.state.panels refers to the same object as history.state.panels, which cause back button bugs
+      const newState = {...state};
+      newState.panels = newState.panels.map(panel => this.clonePanel(panel));
+
+      this.setState(newState, () => {
+        if (newState.scrollPosition) {
           $(".content").scrollTop(event.state.scrollPosition)
             .trigger("scroll");
         }
@@ -2242,23 +2248,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
 
     return (
-      // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
-      // InterruptingMessage modals and Banners will always render if available but stay hidden initially
-      <StrapiDataProvider>
-        <AdContext.Provider value={this.getUserContext()}>
-          <div id="readerAppWrap">
-            <InterruptingMessage />
-            <Banner onClose={this.setContainerMode} />
-            <div className={classes} onClick={this.handleInAppLinkClick}>
-              {header}
-              {panels}
-              {signUpModal}
-              {communityPagePreviewControls}
-              <CookiesNotification />
-            </div>
+      <AdContext.Provider value={this.getUserContext()}>
+        <div id="readerAppWrap">
+          <div className={classes} onClick={this.handleInAppLinkClick}>
+            {header}
+            {panels}
+            {signUpModal}
+            {communityPagePreviewControls}
+            <CookiesNotification />
           </div>
-        </AdContext.Provider>
-      </StrapiDataProvider>
+        </div>
+      </AdContext.Provider>
     );
   }
 }

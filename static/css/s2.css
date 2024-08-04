@@ -5153,6 +5153,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerOptions .int-he img {
     height: 18px;
 }
+.rightButtons .readerOptionsTooltip.tooltip-toggle::before {
+    top: 47px;
+    left: -50px;
+}
 .rightButtons .readerOptions {
   vertical-align: middle;
 }

@@ -472,7 +472,7 @@ def truncate_string(string, min_length, max_length):
         while min_length <= pos:
             while pos in html_element_indices:
                 pos = html_element_indices[pos] - 1
-            if string[pos] == break_char:
+            if string[pos] == break_char and pos <= max_length:
                 return string[:pos] + "…"
             pos -= 1
     return string

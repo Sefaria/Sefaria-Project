@@ -124,10 +124,8 @@ def mock_webpage() -> WebPage:
 
 class TestFindRefsHelperClasses:
 
-    @patch('sefaria.utils.hebrew.is_hebrew', return_value=False)
-    def test_find_refs_text(self, mock_is_hebrew: Mock):
-        find_refs_text = linker._FindRefsText('title', 'body')
-        mock_is_hebrew.assert_called_once_with('body')
+    def test_find_refs_text(self):
+        find_refs_text = linker._FindRefsText('title', 'body', 'en')
         assert find_refs_text.lang == 'en'
 
     def test_find_refs_text_options(self):
@@ -194,16 +192,16 @@ class TestAddWebpageHitForUrl:
 class TestFindRefsResponseLinkerV3:
 
     @pytest.fixture
-    def mock_get_ref_resolver(self, spacy_model: spacy.Language):
+    def mock_get_linker(self, spacy_model: spacy.Language):
         from sefaria.model.text import library
-        with patch.object(library, 'get_ref_resolver') as mock_get_ref_resolver:
-            mock_ref_resolver = Mock()
-            mock_ref_resolver._raw_ref_model_by_lang = {"en": spacy_model}
-            mock_get_ref_resolver.return_value = mock_ref_resolver
-            mock_ref_resolver.bulk_resolve_refs.return_value = [[]]
-            yield mock_get_ref_resolver
+        from sefaria.model.linker.linker import LinkedDoc
+        with patch.object(library, 'get_linker') as mock_get_linker:
+            mock_linker = Mock()
+            mock_get_linker.return_value = mock_linker
+            mock_linker.link.return_value = LinkedDoc('', [], [])
+            yield mock_get_linker
 
-    def test_make_find_refs_response_linker_v3(self, mock_get_ref_resolver: WSGIRequest,
+    def test_make_find_refs_response_linker_v3(self, mock_get_linker: WSGIRequest,
                                                mock_find_refs_text: linker._FindRefsText,
                                                mock_find_refs_options: linker._FindRefsTextOptions):
         response = linker._make_find_refs_response_linker_v3(mock_find_refs_text, mock_find_refs_options)
@@ -214,7 +212,7 @@ class TestFindRefsResponseLinkerV3:
 class TestFindRefsResponseInner:
     @pytest.fixture
     def mock_resolved(self):
-        return [[]]
+        return []
 
     def test_make_find_refs_response_inner(self, mock_resolved: Mock, mock_find_refs_options: linker._FindRefsTextOptions):
         response = linker._make_find_refs_response_inner(mock_resolved, mock_find_refs_options)
