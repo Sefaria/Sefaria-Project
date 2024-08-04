@@ -3179,15 +3179,15 @@ const ProductTitle = ({product}) => {
 // Generalized function for catching products page analytics - to be revisited
 const productsAnalytics = (rank, product, cta, label, link_type, event) => {    
     gtag("event", `products_${event}`, {
-        area: 'Products',
+        project: 'Products',
         panel_type: "strapi-static",
         panel_number: 1,   
         panel_name: "Products",
         position: rank,
-        text: cta,
+        link_text: cta,
         experiment: label === 'Experiment' ?  1 : 0,
         feature_name: product,  
-        action: link_type,
+        link_classes: link_type,
         engagement_type: "navigation",
         engagement_value: 0
     });
