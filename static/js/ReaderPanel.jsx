@@ -47,7 +47,6 @@ import {ContentText} from "./ContentText";
 class ReaderPanel extends Component {
   constructor(props) {
     super(props);
-
     let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
     state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel
@@ -56,6 +55,9 @@ class ReaderPanel extends Component {
     this.readerContentRef = React.createRef();
   }
   componentDidMount() {
+    // this.props.mongoSearchText.then(data => {
+    //   console.log("datat: ", data)
+    // })
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
@@ -893,6 +895,7 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<SearchPage
+                    mongoSearchText= {this.props.mongoSearchText}
                     key={"searchPage"}
                     interfaceLang={this.props.interfaceLang}
                     query={this.state.searchQuery}
@@ -1164,6 +1167,7 @@ class ReaderPanel extends Component {
   }
 }
 ReaderPanel.propTypes = {
+  mongoSearchText: PropTypes.object,
   initialState:                PropTypes.object,
   interfaceLang:               PropTypes.string,
   setCentralState:             PropTypes.func,

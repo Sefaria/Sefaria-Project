@@ -19,6 +19,7 @@ let Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
+  mongoSearchedText: null,
   apiHost: "" // Defaults to localhost, override to talk another server
 };
 
@@ -1145,7 +1146,38 @@ Sefaria = extend(Sefaria, {
       return textLanguage !== "hebrew" && applicableCorpora.indexOf(currCorpus) !== -1;
   },
   _lookups: {},
+  async mongoSearch(chapterQuery, titleQuery){
+    
+    return await $.ajax({
+      url: `${Sefaria.apiHost}/api/mongo-search`,
+      type: 'GET', // Ensure the request type is GET
+      data: {
+        chapterQuery,
+        titleQuery
+       },
+      dataType: 'json'
+    });
+    
 
+    // const result = new Promise((resolve, reject) => {
+      
+
+    //   // $.ajax({
+    //   //   url: `${Sefaria.apiHost}/api/mongo-search`,
+    //   //   type: 'POST',
+    //   //   data: JSON.stringify({ query }), 
+    //   //   contentType: "application/json; charset=utf-8",
+    //   //   crossDomain: true,
+    //   //   processData: false,
+    //   //   dataType: 'json',
+    //   //   success: data => {
+    //   //       resolve(data)
+    //   //   },
+    //   //   error: reject
+
+    //   // })
+    // })
+  },
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, refOnly = false, limit = undefined) {
     const trimmed_name = name.trim();

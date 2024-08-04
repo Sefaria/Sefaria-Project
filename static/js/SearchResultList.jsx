@@ -116,7 +116,7 @@ class SearchResultList extends Component {
         pagesLoaded:    this._typeObjDefault(0),
         hits:           this._typeObjDefault([]),
         error:          false,
-        topics:         []
+        topics:         [],
       }
 
       // Load search results from cache so they are available for immediate render
@@ -171,6 +171,7 @@ class SearchResultList extends Component {
         });
       }
     }
+    
     async addRefTopic(topic) {
         const book = await Sefaria.getIndexDetails(topic.key);
         return {
@@ -398,7 +399,7 @@ class SearchResultList extends Component {
       const request_applied = filtersValid && appliedFilters;
       const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[type];
       const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type);
-
+      
       return {
         query: props.query,
         type,
@@ -455,29 +456,62 @@ class SearchResultList extends Component {
         const { tab }     = this.props;
         const searchState = this._getSearchState(tab);
         let results       = [];
+        let textResults = []
 
         if (tab === "text") {
-          results = Sefaria.search.mergeTextResultsVersions(this.state.hits.text);
-          results = results.filter(result => !!result._source.version).map(result =>
-            <SearchTextResult
-              data={result}
-              query={this.props.query}
-              key={result._id}
-              searchInBook={this.props.searchInBook}
-              onResultClick={this.props.onResultClick} />
-          );
+          // results = Sefaria.search.mergeTextResultsVersions(this.state.hits.text);
+          if(this.props.mongoSearchText && this.props.mongoSearchText.status == "success"){
+            results = this.props.mongoSearchText.result.map(result => 
+              result.matchingChapters.map((chapter, i) =>  {
+                
+                const data = {
+                  title: result.title,
+                  ref: `${result.title}.${chapter.index}`,
+                  heRef: `${result.versionTitle}.${chapter.index}`,
+                  lang: result.language,
+                  chapter: chapter.chapter,
+                  version: result.versionTitle,
+                  
+                }
+                return (
+                  <SearchTextResult
+                    key={i}
+                    data={data}
+                    query={this.props.query}
+                    searchInBook={this.props.searchInBook}
+                    onResultClick={this.props.onResultClick} 
+                  />
+                )
+              })
+            );
+          }
+        
+          // results = results.filter(result => !!result._source.version).map(result =>
+          //   <SearchTextResult
+          //     data={mongoSearchedText}
+          //     query={this.props.query}
+          //     searchInBook={this.props.searchInBook}
+          //     onResultClick={this.props.onResultClick} />
+          // );
+          // mongoSearchedText.result.map(text => {
+          //   <SearchTextResult
+          //     data={text}
+          //     query={this.props.query}
+          //     searchInBook={this.props.searchInBook}
+          //     onResultClick={this.props.onResultClick} />
+          // } )
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
                   Sefaria.track.event("Search", "topic in search display", t.analyticCat+"|"+t.title);
                   return <SearchTopic topic={t}/>
               });
-              if (results.length > 0) {
-                  topics = <div id="searchTopics">{topics}</div>
-                  results.splice(2, 0, topics);
-              }
-              else {
-                  results = topics;
-              }
+              // if (results.length > 0) {
+              //     topics = <div id="searchTopics">{topics}</div>
+              //     results.splice(2, 0, topics);
+              // }
+              // else {
+              //     results = topics;
+              // }
           }
 
 
@@ -520,8 +554,10 @@ class SearchResultList extends Component {
                 nFilters={searchState.appliedFilters.length} />}
             </div>
             <div className="searchResultList">
-              { queryFullyLoaded || haveResults ? results : null }
-              { this.state.isQueryRunning[tab] ? loadingMessage : null }
+              {/* { queryFullyLoaded || haveResults ? results : null } */}
+              { results.length > 0 ? results : null }
+              {/* { this.state.isQueryRunning[tab] ? loadingMessage : null } */}
+              { results.length == 0 ? loadingMessage : null }
             </div>
           </div>
         );

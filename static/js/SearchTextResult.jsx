@@ -48,9 +48,9 @@ class SearchTextResult extends Component {
     async handleResultClick(event) {
         if (this.props.onResultClick) {
             event.preventDefault();
-            const s = this.props.data._source;
+            // const s = this.props.data._source;
+            const s = this.props.data;
             const textHighlights = this.getHighlights();
-            //console.log(textHighlights);
             // in case a change to a title was made and ElasticSearch cronjob hasn't run,
             // there won't be an index, so normalize "Bereishit Rabbah 3" => "Bereshit Rabbah 3" by calling API
             let parsedRef = Sefaria.parseRef(s.ref);
@@ -60,9 +60,11 @@ class SearchTextResult extends Component {
             }
 
             if (this.props.searchInBook) {
-                Sefaria.track.event("Search", "Sidebar Search Result Click", `${this.props.query} - ${parsedRef.ref}/${s.version}/${s.lang}`);
+                // Sefaria.track.event("Search", "Sidebar Search Result Click", `${this.props.query} - ${parsedRef.ref}/${s.version}/${s.lang}`);
+                Sefaria.track.event("Search", "Sidebar Search Result Click", `${this.props.query} - ${parsedRef.ref}/${s.title}/${s.lang}`);
             } else {
-                Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${parsedRef.ref}/${s.version}/${s.lang}`);
+                // Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${parsedRef.ref}/${s.version}/${s.lang}`);
+                Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${parsedRef.ref}/${s.title}/${s.lang}`);
             }
             this.props.onResultClick(parsedRef.ref, {[s.lang]: s.version}, {textHighlights});
         }
@@ -88,40 +90,42 @@ class SearchTextResult extends Component {
     }
     render() {
         var data = this.props.data;
-        var s = this.props.data._source;
-        const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`;
+        var s = this.props.data;
+        // const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`;
+        const href = `/${Sefaria.normRef(s.ref)}`;
 
-        const more_results_caret =
-            (this.state.duplicatesShown)
-                ? <i className="fa fa-caret-down fa-angle-down"></i>
-                : <i className="fa fa-caret-down"></i>;
 
-        const more_results_indicator = (!(data.duplicates)) ? "" :
-            <div className='similar-trigger-box' onClick={this.toggleDuplicates}>
-                    <span className='similar-title int-he'>
-                        {data.duplicates.length} {(data.duplicates.length > 1) ? Sefaria._("moreResults")  : Sefaria._("anotherResult")}
-                    </span>
-                <span className='similar-title int-en'>
-                        {data.duplicates.length} more version{(data.duplicates.length > 1) ? "s" : null}
-                    </span>
-                {more_results_caret}
-            </div>;
+        // const more_results_caret =
+        //     (this.state.duplicatesShown)
+        //         ? <i className="fa fa-caret-down fa-angle-down"></i>
+        //         : <i className="fa fa-caret-down"></i>;
 
-        const shown_duplicates = (data.duplicates && this.state.duplicatesShown) ?
-            (<div className='similar-results'>
-                {data.duplicates.filter(result => !!result._source.version).map(function (result) {
-                    var key = result._source.ref + "-" + result._source.version;
-                    return <SearchTextResult
-                        data={result}
-                        key={key}
-                        query={this.props.query}
-                        onResultClick={this.props.onResultClick}
-                    />;
-                }.bind(this))}
-            </div>) : null;
+        // const more_results_indicator = (!(data.duplicates)) ? "" :
+        //     <div className='similar-trigger-box' onClick={this.toggleDuplicates}>
+        //             <span className='similar-title int-he'>
+        //                 {data.duplicates.length} {(data.duplicates.length > 1) ? Sefaria._("moreResults")  : Sefaria._("anotherResult")}
+        //             </span>
+        //         <span className='similar-title int-en'>
+        //                 {data.duplicates.length} more version{(data.duplicates.length > 1) ? "s" : null}
+        //             </span>
+        //         {more_results_caret}
+        //     </div>;
 
-        const snippetMarkup = this.get_snippet_markup(data);
-        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang === "en", he: snippetMarkup.lang === "he"});
+        // const shown_duplicates = (data.duplicates && this.state.duplicatesShown) ?
+        //     (<div className='similar-results'>
+        //         {data.duplicates.filter(result => !!result._source.version).map(function (result) {
+        //             var key = result._source.ref + "-" + result._source.version;
+        //             return <SearchTextResult
+        //                 data={result}
+        //                 key={key}
+        //                 query={this.props.query}
+        //                 onResultClick={this.props.onResultClick}
+        //             />;
+        //         }.bind(this))}
+        //     </div>) : null;
+
+        // const snippetMarkup = this.get_snippet_markup(s.chapter);
+        // const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang === "en", he: snippetMarkup.lang === "he"});
         return (
             <div className="result textResult">
                 <a href={href} onClick={this.handleResultClick}>
@@ -130,14 +134,15 @@ class SearchTextResult extends Component {
                     </div>
                 </a>
                 <ColorBarBox tref={s.ref}>
-                    <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div>
+                    {/* <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div> */}
+                    <div dangerouslySetInnerHTML={{__html: s.chapter}}></div>
                 </ColorBarBox>
                 <div className="version">
-                    {Sefaria.interfaceLang === 'hebrew' && s.hebrew_version_title || s.version}
+                    {Sefaria.interfaceLang === 'hebrew' && s.version || s.title}
                 </div>
 
-                {more_results_indicator}
-                {shown_duplicates}
+                {/* {more_results_indicator}
+                {shown_duplicates} */}
             </div>
         );
     }
@@ -145,7 +150,8 @@ class SearchTextResult extends Component {
 SearchTextResult.propTypes = {
     query: PropTypes.string,
     data: PropTypes.object,
-    onResultClick: PropTypes.func
+    onResultClick: PropTypes.func,
+    mongoSearchText: PropTypes.array
 };
 
 
