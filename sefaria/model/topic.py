@@ -58,7 +58,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'pools',  # list of strings, any of them represents a pool that this topic is member of
     ]
 
-    optional_pools = {pool.value for pool in Pool} | {'torahtab'}
+    allowed_pools = {pool.value for pool in Pool} | {'torahtab'}
 
     attr_schemas = {
         "image": {
@@ -80,6 +80,13 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                             "required": True
                         }
                     }
+                }
+            },
+        'pools': {
+                'type': 'list',
+                'schema': {
+                    'type': 'string',
+                    'allowed': allowed_pools
                 }
             }
         }
@@ -112,7 +119,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if getattr(self, "image", False):
             img_url = self.image.get("image_uri")
             if img_url: validate_url(img_url)
-        assert all(pool in self.optional_pools for pool in self.get_pools()), f'Pools {[pool for pool in self.get_pools() if pool not in self.optional_pools]} is not an optional pool'
 
     def _normalize(self):
         super()._normalize()
