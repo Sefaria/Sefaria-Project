@@ -9,12 +9,14 @@ import classNames from 'classnames';
 import {
   SearchButton,
 } from './Misc';
+import { sefariaSetup } from "./ReaderApp";
 
 
 const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarSearchQuery, setSidebarSearchQuery, onSidebarSearchClick }) => {
   const [lexiconName, setLexiconName] = useState(Sefaria.getIndexDetailsFromCache(title)?.lexiconName)
   const [searchFilterPathForBook, setSearchFilterPathForBook] = useState('');
   const [query, setQuery] = useState(sidebarSearchQuery || '');
+  const [mongoSearchedText, setMongoSearchedText] = useState({});
   const isDictionary = !!lexiconName;
   const [searchState, setSearchState] = useState(
           new SearchState({
@@ -39,6 +41,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
         setSearchFilterPathForBook(path)
       })
       setSidebarSearchQuery(query)
+      searchmongoText()
   }, [query])
 
   useEffect(() => {
@@ -61,7 +64,10 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
       }
     }
 
-
+    const searchmongoText = async () => {
+      const data = await Sefaria.mongoSearch(query, title)
+      setMongoSearchedText(data)
+    }
   const inputClasses = classNames({
     search: 1,
     serif: 1,
@@ -74,6 +80,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
   const handleSearchButtonClick = () => {
     const searchBoxValue = document.getElementById('searchQueryInput').value
     if (searchBoxValue !== query) {
+      searchmongoText()
       setSearchFilterPathForBook('')
       setQuery(document.getElementById('searchQueryInput').value)
     }
@@ -111,8 +118,9 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
     </div>
 
 
-      {query ?
+      {query && mongoSearchedText?
         <SearchResultList
+          mongoSearchText={mongoSearchedText}
           query={query}
           compare={false}
           searchInBook={true}

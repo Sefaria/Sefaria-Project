@@ -44,7 +44,7 @@ class ReaderApp extends Component {
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];
-
+    
     if (props.initialMenu) {
       // If a menu is specified in `initialMenu`, make a panel for it
       panels[0] = {
@@ -120,6 +120,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      mongoSearchText: null
     };
   }
   makePanelState(state) {
@@ -922,6 +923,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 }
   
   handleNavigationClick(ref, currVersions, options) {
+    console.log("reeee ref ", ref, currVersions, options)
     this.openPanel(ref, currVersions, options);
   }
   handleSegmentClick(n, ref, sheetNode) {
@@ -1659,13 +1661,20 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     this.setSinglePanelState(state);
   }
-  showSearch(searchQuery) {
+  async searchmongoText(chapterQuery, titleQuery="" ) {
+    this.setState({
+      mongoSearchText: await Sefaria.mongoSearch(chapterQuery, titleQuery)
+    })
+
+  }
+  async showSearch(searchQuery) {
     let panel;
     const textSearchState =  (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].textSearchState)  ? this.state.panels[0].textSearchState.update({ filtersValid: false })  : new SearchState({ type: 'text' });
     const sheetSearchState = (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].sheetSearchState) ? this.state.panels[0].sheetSearchState.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
 
     const searchTab = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchTab : "text";
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchTab, textSearchState, sheetSearchState });
+    await this.searchmongoText(searchQuery)
   }
   searchInCollection(searchQuery, collection) {
     let panel;
@@ -2107,6 +2116,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
+                      mongoSearchText={this.state.mongoSearchText}
                       panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
