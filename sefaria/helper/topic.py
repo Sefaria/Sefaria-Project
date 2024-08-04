@@ -281,6 +281,10 @@ def sort_refs_by_relevance(a, b, lang="english"):
 
 
 def get_random_topic(pool=None) -> Optional[Topic]:
+    """
+    :param pool: name of th requested pool
+    :return: Returns a random topic from the database. If you provide pool, then the selection is limited to topics in that pool.
+    """
     query = {"pools": pool} if pool else {}
     random_topic_dict = list(db.topics.aggregate([
         {"$match": query},
