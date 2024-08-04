@@ -1070,18 +1070,6 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
-def update_topic_titles(topic, title="", heTitle="", **kwargs):
-    new_primary = {"en": title, "he": heTitle}
-    for lang in ['en', 'he']:   # first remove all titles and add new primary and then alt titles
-        for title in topic.get_titles(lang):
-            topic.remove_title(title, lang)
-        topic.add_title(new_primary[lang], lang, True, False)
-        if 'altTitles' in kwargs:
-            for title in kwargs['altTitles'][lang]:
-                topic.add_title(title, lang)
-    return topic
-
-
 def update_authors_place_and_time(topic, dataSource='learning-team-editing-tool', **kwargs):
     # update place info added to author, then update year and era info
     if not hasattr(topic, 'properties'):
@@ -1097,11 +1085,11 @@ def update_properties(topic_obj, dataSource, k, v):
 
 def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwargs):
     for k in ["birthYear", "deathYear"]:
-        if k in kwargs.keys():   # only change property value if key exists, otherwise it indicates no change
+        if kwargs.get(k, False):   # only change property value if key exists, otherwise it indicates no change
             year = kwargs[k]
             update_properties(topic_obj, dataSource, k, year)
 
-    if 'era' in kwargs.keys():    # only change property value if key is in data, otherwise it indicates no change
+    if kwargs.get('era', False):    # only change property value if key is in data, otherwise it indicates no change
         prev_era = topic_obj.properties.get('era', {}).get('value')
         era = kwargs['era']
         update_properties(topic_obj, dataSource, 'era', era)
@@ -1110,46 +1098,49 @@ def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwar
     return topic_obj
 
 
-def update_topic(topic, **kwargs):
+def update_topic(topic, titles=None, category=None, origCategory=None, categoryDescritpion=None, description=None,
+                 birthPlace=None, deathPlace=None, birthYear=None, deathYear=None, era=None,
+                 rebuild_toc=True, manual=False, image=None, **kwargs):
     """
-    Can update topic object's title, hebrew title, category, description, and categoryDescription fields
+    Can update topic object's titles, category, description, and categoryDescription fields
     :param topic: (Topic) The topic to update
-    :param **kwargs can be title, heTitle, category, description, categoryDescription, and rebuild_toc where `title`, `heTitle`,
-         and `category` are strings. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
+    :param **kwargs can be titles, category, description, categoryDescription, and rebuild_toc where `titles` is a list
+     of title objects as they are represented in the database, and `category` is a string. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
          The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """
     old_category = ""
     orig_slug = topic.slug
-    update_topic_titles(topic, **kwargs)
-    if kwargs.get('category') == 'authors':
-        topic = update_authors_place_and_time(topic, **kwargs)
 
-    if 'category' in kwargs and kwargs['category'] != kwargs.get('origCategory', kwargs['category']):
+    if titles:
+        topic.set_titles(titles)
+    if category == 'authors':
+        topic = update_authors_place_and_time(topic, birthPlace=birthPlace, birthYear=birthYear, deathPlace=deathPlace, deathYear=deathYear, era=era)
+
+    if category and origCategory and origCategory != category:
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic.slug, "toTopic": {"$ne": topic.slug}})
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
-        if old_category != kwargs['category']:
-            topic = topic_change_category(topic, kwargs["category"], old_category=old_category)  # can change topic and intratopiclinks
+        if old_category != category:
+            topic = topic_change_category(topic, category, old_category=old_category)  # can change topic and intratopiclinks
 
-    if kwargs.get('manual', False):
+    if manual:
         topic.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         topic.description_published = True
 
-    if "description" in kwargs or "categoryDescription" in kwargs:
-        topic.change_description(kwargs.get("description", None), kwargs.get("categoryDescription", None))
+    if description or categoryDescritpion:
+        topic.change_description(description, categoryDescritpion)
 
-    if "image" in kwargs:
-        image_dict = kwargs["image"]
-        if image_dict["image_uri"] != "":
-            topic.image = kwargs["image"]
+    if image:
+        if image["image_uri"] != "":
+            topic.image = image
         elif hasattr(topic, 'image'):
             # we don't want captions without image_uris, so if the image_uri is blank, get rid of the caption too
             del topic.image
 
     topic.save()
 
-    if kwargs.get('rebuild_topic_toc', True):
-        rebuild_topic_toc(topic, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
+    if rebuild_toc:
+        rebuild_topic_toc(topic, orig_slug=orig_slug, category_changed=(old_category != category))
     return topic
 
 
@@ -1320,12 +1311,13 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if link is None:
         return {"error": f"A learning-team link between {tref} and {to_topic} doesn't exist. If you are trying to delete a non-learning-team link, reach out to the engineering team."}
 
-    if lang in link.order.get('availableLangs', []):
-        link.order['availableLangs'].remove(lang)
     if lang in link.order.get('curatedPrimacy', []):
         link.order['curatedPrimacy'].pop(lang)
+    if lang in getattr(link, 'descriptions', {}):
+        link.descriptions.pop(lang)
 
-    if len(link.order.get('availableLangs', [])) > 0:
+    # Note, using curatedPrimacy as a proxy here since we are currently only allowing deletion of learning-team links.
+    if len(link.order.get('curatedPrimacy', [])) > 0:
         link.save()
         return {"status": "ok"}
     else:   # deleted in both hebrew and english so delete link object
