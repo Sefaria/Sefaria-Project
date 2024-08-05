@@ -112,7 +112,7 @@ def process_index_place_change(indx, **kwargs):
 def process_topic_place_change(topic_obj, **kwargs):
     keys = ["birthPlace", "deathPlace"]
     for key in keys:
-        if key in kwargs.keys():  # only change property value if key is in data, otherwise it indicates no change
+        if kwargs.get(key, False):  # only change property value if key is in data, otherwise it indicates no change
             new_val = kwargs[key]
             if new_val != '':
                 he_key = get_he_key(key)
