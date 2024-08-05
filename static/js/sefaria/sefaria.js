@@ -2615,7 +2615,7 @@ _media: {},
   _holidays: {},
   getNextHoliday: function() {
       return this._cachedApiPromise({
-          url:   `${this.apiHost}/next-holiday`,
+          url:   `${this.apiHost}/api/calendars/topics/holiday`,
           key:   'next',
           store: this._holidays,
     });
@@ -2631,7 +2631,7 @@ _media: {},
   _currentParasha: {},
   getCurrentParasha: function(parasha) {
     return this._cachedApiPromise({
-       url:  `${this.apiHost}/api/calendars/this-parasha`,
+       url:  `${this.apiHost}/api/calendars/topics/parasha`,
        key:  parasha,
        store: this._currentParasha,
     });
