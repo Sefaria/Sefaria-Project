@@ -1,7 +1,7 @@
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {requestWithCallBack, Autocompleter, InterfaceText} from "./Misc";
+import {Autocompleter, InterfaceText} from "./Misc";
 import React, {useState} from "react";
 import {useRef} from "react";
 
@@ -46,10 +46,16 @@ const SourceEditor = ({topic, close, origData={}}) => {
     const save = async function () {
         setSavingStatus(true);
         let refInUrl = isNew ? displayRef : origData.ref;
-        let url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
-        let postData = {"topic": topic, "is_new": isNew, 'new_ref': displayRef, 'interface_lang': Sefaria.interfaceLang};
-        postData['description'] = {"title": data.enTitle, "prompt": data.prompt, "ai_context": data.ai_context, "review_state": "edited"};
-        requestWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
+        const payload = {
+            new_ref: displayRef,
+            topic,
+            is_new: isNew,
+            interface_lang: Sefaria.interfaceLang,
+            description: {"title": data.enTitle, "prompt": data.prompt, "ai_context": data.ai_context, "review_state": "edited"},
+        }
+        Sefaria.postRefTopicLink(refInUrl, payload)
+            .then(() => window.location.href = `/topics/${topic}`)
+            .finally(() => setSavingStatus(false));
     }
 
     const handleChange = (x) => {
@@ -86,8 +92,9 @@ const SourceEditor = ({topic, close, origData={}}) => {
     }
 
     const deleteTopicSource = function() {
-        const url = `/api/ref-topic-links/${origData.ref}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
-        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/topics/${topic}`});
+        const url = `/api/ref-topic-links/${Sefaria.normRef(origData.ref)}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
+        Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
+            .then(() => window.location.href = `/topics/${topic}`);
     }
     const previousTitleItemRef = useRef(data.enTitle ? "Previous Title" : null); //use useRef to make value null even if component re-renders
     const previousPromptItemRef = useRef(data.prompt ? "Previous Prompt" : null);

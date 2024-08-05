@@ -44,7 +44,7 @@ monitor:
     tag: 
 secrets:
   localSettings: 
-    ref: local-settings-secrets-dev
+    ref: local-settings-secrets
   backupManager: 
     ref: backup-manager
   slackWebhook: 

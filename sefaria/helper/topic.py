@@ -3,7 +3,7 @@ from tqdm import tqdm
 from pymongo import UpdateOne, InsertOne
 from typing import Optional, Union
 from collections import defaultdict
-from functools import cmp_to_key
+from functools import cmp_to_key, partial
 from sefaria.model import *
 from sefaria.model.place import process_topic_place_change
 from sefaria.system.exceptions import InputError
@@ -16,7 +16,23 @@ from sefaria import tracker
 from sefaria.helper.descriptions import create_era_link
 logger = structlog.get_logger(__name__)
 
-def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
+def get_topic(v2, topic, lang, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
+    """
+    Helper function for api/topics/<slug>
+    TODO fill in rest of parameters
+    @param v2:
+    @param topic: slug of topic to get data for
+    @param lang: the language of the user to sort the ref links by
+    @param with_html: True if description should be returned with HTML. If false, HTML is stripped.
+    @param with_links: Should intra-topic links be returned. If true, return dict has a `links` key
+    @param annotate_links:
+    @param with_refs:
+    @param group_related:
+    @param annotate_time_period:
+    @param ref_link_type_filters:
+    @param with_indexes:
+    @return:
+    """
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         return {}
@@ -45,7 +61,7 @@ def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, w
     if with_links:
         response['links'] = group_links_by_type('intraTopic', intra_links, annotate_links, group_related)
     if with_refs:
-        ref_links = sort_and_group_similar_refs(ref_links)
+        ref_links = sort_and_group_similar_refs(ref_links, lang)
         if v2:
             ref_links = group_links_by_type('refTopic', ref_links, False, False)
         response['refs'] = ref_links
@@ -169,8 +185,8 @@ def iterate_and_merge(new_ref_links, new_link, subset_ref_map, temp_subset_refs)
                 new_ref_links[index] = merge_props_for_similar_refs(new_ref_links[index], new_link)
     return new_ref_links
 
-def sort_and_group_similar_refs(ref_links):
-    ref_links.sort(key=cmp_to_key(sort_refs_by_relevance))
+def sort_and_group_similar_refs(ref_links, lang):
+    ref_links.sort(key=cmp_to_key(partial(sort_refs_by_relevance, lang=lang)))
     subset_ref_map = defaultdict(list)
     new_ref_links = []
     for link in ref_links:
@@ -233,15 +249,32 @@ def get_topic_by_parasha(parasha:str) -> Topic:
     return Topic().load({"parasha": parasha})
 
 
-def sort_refs_by_relevance(a, b):
+def sort_refs_by_relevance(a, b, lang="english"):
+    """
+    This function should mimic behavior of `refSort` in TopicPage.jsx.
+    It is a comparison function that takes two items from the list and returns the corresponding integer to indicate which should go first. To be used with `cmp_to_key`.
+    It considers the following criteria in order:
+    - If one object has an `order` key and another doesn't, the one with the `order` key comes first
+    - curatedPrimacy, higher comes first
+    - pagerank, higher comes first
+    - numDatasource (how many distinct links have this ref/topic pair) multiplied by tfidf (a bit complex, in short how "central" to this topic is the vocab used in this ref), higher comes first
+    @param lang: language to sort by. Defaults to "english".
+    @return:
+    """
     aord = a.get('order', {})
     bord = b.get('order', {})
+    def curated_primacy(order_dict, lang):
+        return order_dict.get("curatedPrimacy", {}).get(lang, 0)
+
     if not aord and not bord:
         return 0
     if bool(aord) != bool(bord):
-        return len(bord) - len(aord)
-    if aord.get("curatedPrimacy") or bord.get("curatedPrimacy"):
-        return len(bord.get("curatedPrimacy", {})) - len(aord.get("curatedPrimacy", {}))
+        return int(bool(bord)) - int(bool(aord))
+    short_lang = lang[:2]
+    aprimacy = curated_primacy(aord, short_lang)
+    bprimacy = curated_primacy(bord, short_lang)
+    if aprimacy > 0 or bprimacy > 0:
+        return bprimacy - aprimacy
     if aord.get('pr', 0) != bord.get('pr', 0):
         return bord.get('pr', 0) - aord.get('pr', 0)
     return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
@@ -318,7 +351,7 @@ def ref_topic_link_prep(link):
         link['dataSource']['slug'] = data_source_slug
     return link
 
-def get_topics_for_ref(tref, annotate=False):
+def get_topics_for_ref(tref, lang="english", annotate=False):
     serialized = [l.contents() for l in Ref(tref).topiclinkset()]
     if annotate:
         if len(serialized) > 0:
@@ -329,7 +362,7 @@ def get_topics_for_ref(tref, annotate=False):
     for link in serialized:
         ref_topic_link_prep(link)
 
-    serialized.sort(key=cmp_to_key(sort_refs_by_relevance))
+    serialized.sort(key=cmp_to_key(partial(sort_refs_by_relevance, lang=lang)))
     return serialized
 
 
@@ -682,7 +715,7 @@ def calculate_other_ref_scores(ref_topic_map):
             try:
                 tp = oref.index.best_time_period()
                 year = int(tp.start) if tp else 3000
-            except ValueError:
+            except (ValueError, AttributeError):
                 year = 3000
             comp_date_map[(topic, tref)] = year
             order_id_map[(topic, tref)] = oref.order_id()
@@ -1037,18 +1070,6 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
-def update_topic_titles(topic, title="", heTitle="", **kwargs):
-    new_primary = {"en": title, "he": heTitle}
-    for lang in ['en', 'he']:   # first remove all titles and add new primary and then alt titles
-        for title in topic.get_titles(lang):
-            topic.remove_title(title, lang)
-        topic.add_title(new_primary[lang], lang, True, False)
-        if 'altTitles' in kwargs:
-            for title in kwargs['altTitles'][lang]:
-                topic.add_title(title, lang)
-    return topic
-
-
 def update_authors_place_and_time(topic, dataSource='learning-team-editing-tool', **kwargs):
     # update place info added to author, then update year and era info
     if not hasattr(topic, 'properties'):
@@ -1064,11 +1085,11 @@ def update_properties(topic_obj, dataSource, k, v):
 
 def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwargs):
     for k in ["birthYear", "deathYear"]:
-        if k in kwargs.keys():   # only change property value if key exists, otherwise it indicates no change
+        if kwargs.get(k, False):   # only change property value if key exists, otherwise it indicates no change
             year = kwargs[k]
             update_properties(topic_obj, dataSource, k, year)
 
-    if 'era' in kwargs.keys():    # only change property value if key is in data, otherwise it indicates no change
+    if kwargs.get('era', False):    # only change property value if key is in data, otherwise it indicates no change
         prev_era = topic_obj.properties.get('era', {}).get('value')
         era = kwargs['era']
         update_properties(topic_obj, dataSource, 'era', era)
@@ -1077,46 +1098,49 @@ def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwar
     return topic_obj
 
 
-def update_topic(topic, **kwargs):
+def update_topic(topic, titles=None, category=None, origCategory=None, categoryDescritpion=None, description=None,
+                 birthPlace=None, deathPlace=None, birthYear=None, deathYear=None, era=None,
+                 rebuild_toc=True, manual=False, image=None, **kwargs):
     """
-    Can update topic object's title, hebrew title, category, description, and categoryDescription fields
+    Can update topic object's titles, category, description, and categoryDescription fields
     :param topic: (Topic) The topic to update
-    :param **kwargs can be title, heTitle, category, description, categoryDescription, and rebuild_toc where `title`, `heTitle`,
-         and `category` are strings. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
+    :param **kwargs can be titles, category, description, categoryDescription, and rebuild_toc where `titles` is a list
+     of title objects as they are represented in the database, and `category` is a string. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
          The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """
     old_category = ""
     orig_slug = topic.slug
-    update_topic_titles(topic, **kwargs)
-    if kwargs.get('category') == 'authors':
-        topic = update_authors_place_and_time(topic, **kwargs)
 
-    if 'category' in kwargs and kwargs['category'] != kwargs.get('origCategory', kwargs['category']):
+    if titles:
+        topic.set_titles(titles)
+    if category == 'authors':
+        topic = update_authors_place_and_time(topic, birthPlace=birthPlace, birthYear=birthYear, deathPlace=deathPlace, deathYear=deathYear, era=era)
+
+    if category and origCategory and origCategory != category:
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic.slug, "toTopic": {"$ne": topic.slug}})
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
-        if old_category != kwargs['category']:
-            topic = topic_change_category(topic, kwargs["category"], old_category=old_category)  # can change topic and intratopiclinks
+        if old_category != category:
+            topic = topic_change_category(topic, category, old_category=old_category)  # can change topic and intratopiclinks
 
-    if kwargs.get('manual', False):
+    if manual:
         topic.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         topic.description_published = True
 
-    if "description" in kwargs or "categoryDescription" in kwargs:
-        topic.change_description(kwargs.get("description", None), kwargs.get("categoryDescription", None))
+    if description or categoryDescritpion:
+        topic.change_description(description, categoryDescritpion)
 
-    if "image" in kwargs:
-        image_dict = kwargs["image"]
-        if image_dict["image_uri"] != "":
-            topic.image = kwargs["image"]
+    if image:
+        if image["image_uri"] != "":
+            topic.image = image
         elif hasattr(topic, 'image'):
             # we don't want captions without image_uris, so if the image_uri is blank, get rid of the caption too
             del topic.image
 
     topic.save()
 
-    if kwargs.get('rebuild_topic_toc', True):
-        rebuild_topic_toc(topic, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
+    if rebuild_toc:
+        rebuild_topic_toc(topic, orig_slug=orig_slug, category_changed=(old_category != category))
     return topic
 
 
@@ -1183,7 +1207,7 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     topic_obj = Topic.init(slug)
     if topic_obj is None:
         return {"error": "Topic does not exist."}
-    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref}
+    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref, "dataSource": "learning-team"}
     link = RefTopicLink().load(ref_topic_dict)
     link_already_existed = link is not None
     if not link_already_existed:
@@ -1246,20 +1270,22 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
     # first validate data
     for s in sources:
         try:
-             ref = Ref(s['ref']).normal()
+             Ref(s['ref']).normal()
         except InputError as e:
             return {"error": f"Invalid ref {s['ref']}"}
-        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": ref})
+        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": s['ref'], "dataSource": "learning-team"})
         if link is None:
-            return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
+            # for now, we are focusing on learning team links and the lack of existence isn't considered an error
+            continue
+            # return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
         order = getattr(link, 'order', {})
-        if lang not in order.get('availableLangs', []) :
-            return {"error": f"Link between {topic} and {s['ref']} does not exist in '{lang}'."}
         ref_to_link[s['ref']] = link
 
     # now update curatedPrimacy data
     for display_order, s in enumerate(sources[::-1]):
-        link = ref_to_link[s['ref']]
+        link = ref_to_link.get(s['ref'])
+        if not link:
+            continue
         order = getattr(link, 'order', {})
         curatedPrimacy = order.get('curatedPrimacy', {})
         curatedPrimacy[lang] = display_order
@@ -1280,17 +1306,18 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if Topic.init(to_topic) is None:
         return {"error": f"Topic {to_topic} doesn't exist."}
 
-    topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref}
+    topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref, "dataSource": "learning-team"}
     link = RefTopicLink().load(topic_link)
     if link is None:
-        return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
+        return {"error": f"A learning-team link between {tref} and {to_topic} doesn't exist. If you are trying to delete a non-learning-team link, reach out to the engineering team."}
 
-    if lang in link.order.get('availableLangs', []):
-        link.order['availableLangs'].remove(lang)
     if lang in link.order.get('curatedPrimacy', []):
         link.order['curatedPrimacy'].pop(lang)
+    if lang in getattr(link, 'descriptions', {}):
+        link.descriptions.pop(lang)
 
-    if len(link.order.get('availableLangs', [])) > 0:
+    # Note, using curatedPrimacy as a proxy here since we are currently only allowing deletion of learning-team links.
+    if len(link.order.get('curatedPrimacy', [])) > 0:
         link.save()
         return {"status": "ok"}
     else:   # deleted in both hebrew and english so delete link object

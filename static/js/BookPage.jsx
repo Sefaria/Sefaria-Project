@@ -11,7 +11,7 @@ import {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  CategoryHeader, requestWithCallBack
+  CategoryHeader
 } from './Misc';
 import {ContentText} from "./ContentText";
 import {validateMarkdownLinks} from "./AdminEditor";
@@ -31,6 +31,7 @@ import {ContentLanguageContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
 
 import ReactTags from 'react-tag-autocomplete';
+import Cookies from "js-cookie";
 
 
 
@@ -802,8 +803,8 @@ class JaggedArrayNodeSection extends Component {
       if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
       let [section, heSection] = Sefaria.getSectionStringByAddressType(this.props.addressTypes[0], i, this.props.offset);
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
-      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref); //the second clause is for depth 1 texts
-      const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
+      let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || (Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref) && this.props.depth > 1); //the second clause is for depth 1 texts
+      const linkClasses = classNames({"sectionLink": 1, "current": currentPlace});
       let link = (
         <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
           <ContentText text={{en:section, he:heSection}}/>
@@ -1065,11 +1066,16 @@ const EditTextInfo = function({initTitle, close}) {
   const [heDesc, setHeDesc] = useState(index.current?.heDesc || "");
   const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
   const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
+  const [dependence, setDependence] = useState(index.current?.dependence || "");
   const [pubDate, setPubDate] = useState(index.current?.pubDate);
   const [pubPlace, setPubPlace] = useState(index.current?.pubPlaceString?.en);
   const [hePubPlace, setHePubPlace] = useState(index.current?.pubPlaceString?.he);
   const [compPlace, setCompPlace] = useState(index.current?.compPlaceString?.en);
   const [heCompPlace, setHeCompPlace] = useState(index.current?.compPlaceString?.he);
+  const [collectiveTitle, setCollectiveTitle] = useState(index.current?.collective_title?.en || "");
+  const [heCollectiveTitle, setHeCollectiveTitle] = useState(index.current?.collective_title?.he || "");
+  const [creatingCollectiveTitle, setCreatingCollectiveTitle] = useState(false);
+  const [baseTextTitles, setBaseTextTitles] = useState(index.current.base_text_titles?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || [])
   const getYearAsStr = (init) => {
     if (typeof init === 'undefined' || init.length === 0) {
       return "";
@@ -1130,6 +1136,9 @@ const EditTextInfo = function({initTitle, close}) {
         return false;
       }
     }
+    if (collectiveTitle.length > 0 && !await validateCollectiveTitle()) {
+      return false;
+    }
     return true;
   }
   const validateCompDate = (newValue, setter) => {
@@ -1165,9 +1174,11 @@ const EditTextInfo = function({initTitle, close}) {
     const enTitleVariantNames = titleVariants.map(i => i.name);
     const heTitleVariantNames = heTitleVariants.map(i => i.name);
     const authorSlugs = authors.map(i => i.slug);
-    let postIndex = {title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
-                    heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace
-                    }
+    let postIndex = {
+      title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
+      heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace, dependence,
+      collective_title: collectiveTitle, base_text_titles: baseTextTitles.map(i => i.name)
+    }
     if (sections && sections.length > 0) {
       postIndex.sectionNames = sections;
     }
@@ -1221,6 +1232,59 @@ const EditTextInfo = function({initTitle, close}) {
       }
     });
   }
+  const fetchTerm = async () => {
+    try {
+      const response = await fetch(`/api/terms/${collectiveTitle}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
+  }
+  const createCollectiveTitle = async () => {
+    const term = {
+      "name": collectiveTitle,
+      "titles": [{"primary": true, "lang": "en", "text": collectiveTitle},
+        {"primary": true, "lang": "he", "text": heCollectiveTitle}]
+    }
+    try {
+      const request = new Request(
+        `/api/terms/${collectiveTitle}`,
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+      );
+      const response = await fetch(request, {
+        method: 'POST',
+        mode: 'same-origin',
+        credentials: 'same-origin',
+        body: JSON.stringify(term),
+      });
+
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
+  }
+  const validateCollectiveTitle = async (newVal) => {
+    let term;
+    if (creatingCollectiveTitle) {
+      // term should not exist already, creating new one
+      term = await createCollectiveTitle();
+    } else {
+      // GET request to confirm that the term already exists
+      term = await fetchTerm();
+    }
+    if (term?.error) {
+      alert(term.error);
+      return false;
+    }
+    return true;
+  }
 
   const removeAuthor = function (authorIDtoRemove) {
     let newAuthors = authors.filter(author => author.id !== authorIDtoRemove);
@@ -1229,7 +1293,64 @@ const EditTextInfo = function({initTitle, close}) {
   const deleteObj = () => {
     setSavingStatus(true);
     const url = `/api/v2/index/${enTitle}`;
-    requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
+    Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
+        .then(() => window.location.href = '/texts');
+  }
+  const renderCollectiveTitle = () => {
+     if (!creatingCollectiveTitle) {
+       return <div className="section">
+                <div><InterfaceText>English Collective Title</InterfaceText></div>
+                <label><div className="optional"><InterfaceText>Optional. For example, for "Rashi on Genesis", the English Collective Title is "Rashi".
+                You should create a new collective title if the collective title has never been created before and is not used by any texts in our system.)</InterfaceText></div></label>
+                <div className="collectiveTitle">
+                <input id="collectiveTitle" onChange={(e) => setCollectiveTitle(e.target.value)} defaultValue={collectiveTitle}/>
+                <div onClick={() => setCreatingCollectiveTitle(true)}
+                     id="createCollectiveTitle"
+                     className="button small"
+                     tabIndex="0"
+                     role="button">
+                    <InterfaceText>Create New Collective Title</InterfaceText>
+                </div>
+                </div>
+              </div>
+     }
+     else {
+       return <div>
+                    <div className="section">
+                      <div><InterfaceText>New English Collective Title</InterfaceText></div>
+                      <input id="collectiveTitle"
+                         onChange={(e) => setCollectiveTitle(e.target.value)}
+                         defaultValue={collectiveTitle}/>
+                    </div>
+                    <div className="section">
+                      <div><InterfaceText>New Hebrew Collective Title</InterfaceText></div>
+                      <input id="heCollectiveTitle"
+                         onChange={(e) => setHeCollectiveTitle(e.target.value)}
+                         defaultValue={heCollectiveTitle}/>
+                    </div>
+                </div>
+     }
+  }
+  const renderBaseTextTitles = () => {
+    return <div className="section">
+            <div><InterfaceText>Base Text Titles</InterfaceText></div><label><span className="optional">
+            <InterfaceText>Optional.  What text(s) is this book dependent on?  For example, for "Rashi on Genesis", the value for this field is "Genesis".</InterfaceText></span></label>
+            <TitleVariants titles={baseTextTitles} update={setBaseTextTitles} options={{'onTitleValidate': validateBaseTextTitle}}/>
+          </div>
+  }
+  const validateBaseTextTitle = (newVal) => {
+    if (!Sefaria.index(newVal.name)) {
+      alert(`${newVal.name} is not a book in the Sefaria library.`);
+      return false;
+    }
+    return true;
+  }
+  const handleDependenceChange = (e) => {
+    if (e.target.value === "") {
+      setCollectiveTitle("");
+      setBaseTextTitles([]);
+    }
+    setDependence(e.target.value);
   }
   return (
       <div className="editTextInfo">
@@ -1316,6 +1437,19 @@ const EditTextInfo = function({initTitle, close}) {
                   <label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
                   <input id="hePubPlace" onChange={(e) => setHePubPlace(e.target.value)} defaultValue={hePubPlace}/>
                 </div>}
+            <div className="section">
+                <div><InterfaceText>Dependence</InterfaceText></div>
+                <label><div className="optional"><InterfaceText>Optional</InterfaceText></div></label>
+                <div className="categoryChooserMenu"><select value={dependence} onChange={handleDependenceChange}>
+                  <option value="">--Not a dependent text--</option>
+                  <option value="Commentary">Commentary</option>
+                  <option value="Targum">Targum</option>
+                  <option value="Midrash">Midrash</option>
+                  <option value="Guides">Guides</option>
+                </select></div>
+            </div>
+            {dependence.length > 0 && renderBaseTextTitles()}
+            {dependence.length > 0 && renderCollectiveTitle()}
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">
                 <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
