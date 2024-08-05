@@ -41,6 +41,7 @@ import {
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import SheetsHomePage from "./Sheets/SheetsHomePage";
 
 
 class ReaderPanel extends Component {
@@ -1029,17 +1030,19 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history") {
       menu = (
-        <UserHistoryPanel
-          multiPanel={this.props.multiPanel}
-          menuOpen={this.state.menuOpen}
-          openMenu={this.openMenu}
-          openNav={this.openMenu.bind(null, "navigation")}
-          openDisplaySettings={this.openDisplaySettings}
-          toggleLanguage={this.toggleLanguage}
-          compare={this.state.compare}
-          toggleSignUpModal={this.props.toggleSignUpModal} />
+          <UserHistoryPanel
+              multiPanel={this.props.multiPanel}
+              menuOpen={this.state.menuOpen}
+              openMenu={this.openMenu}
+              openNav={this.openMenu.bind(null, "navigation")}
+              openDisplaySettings={this.openDisplaySettings}
+              toggleLanguage={this.toggleLanguage}
+              compare={this.state.compare}
+              toggleSignUpModal={this.props.toggleSignUpModal}/>
       );
 
+    } else if (this.state.menuOpen === "sheets") {
+      menu = (<SheetsHomePage/>);
     } else if (this.state.menuOpen === "profile") {
       menu = (
         <UserProfile

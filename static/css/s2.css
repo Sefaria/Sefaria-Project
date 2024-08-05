@@ -10043,7 +10043,68 @@ span.purim-emoji img{
   border-bottom: 4px solid var(--lighter-grey);
 }
 
-
+#aboutCover {
+  margin-top: -90px;
+  height: 240px;
+  padding: 180px 0;
+  background-color: #ADA99B;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+#aboutVideo {
+  position: absolute;
+  top: -90px;
+  left: 0;
+  min-width: 1200px;
+  z-index: 0;
+  width: 100%;
+}
+@media (max-width: 450px) {
+  #aboutCover {
+    height: 270px;
+    padding: 180px 0;
+  }
+  #aboutVideo {
+    min-width: 900px;
+  }
+}
+.overlayTextOnSheetsHero {
+  color: white;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-weight: 400;
+  margin-inline-start: 10%;
+}
+.overlayTextOnSheetsHero #title {
+  position: absolute;
+  font-size: 50px;
+  font-weight: 500;
+  top: 145px;
+  line-height: 62.65px;
+}
+.overlayTextOnSheetsHero #message {
+  position: absolute;
+  font-size: 24px;
+  line-height: 18px;
+  top: 227px;
+}
+@media screen and (max-width: 600px) {
+  .overlayTextOnSheetsHero #title {
+    font-size: 24px;
+    top: 115px;
+  }
+  .overlayTextOnSheetsHero #message {
+    font-size: 16px;
+    top: 175px;
+  }
+  #aboutCover {
+    height: 150px;
+    padding: 130px 0;
+  }
+}
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }

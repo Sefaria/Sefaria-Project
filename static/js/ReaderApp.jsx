@@ -13,7 +13,6 @@ import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent,
 import {
   ContestLandingPage,
   RemoteLearningPage,
-  SheetsLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
@@ -547,6 +546,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("Learning Schedules") + " | " + Sefaria._(siteName);
             hist.url = "calendars";
             hist.mode = "calendars";
+            break;
+          case "sheets":
+            hist.url = "sheets";
+            hist.mode = "sheets";
+            hist.title = Sefaria._("Sheets on Sefaria");
             break;
           case "updates":
             hist.title = Sefaria._("New Additions to the " + siteName + " Library");
@@ -2311,7 +2315,6 @@ export {
   loadServerData,
   EditCollectionPage,
   RemoteLearningPage,
-  SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
