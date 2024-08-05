@@ -210,7 +210,7 @@ class VersionBlock extends Component {
       // Editing View
       let close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
 
-      let licenses = Object.keys(Sefaria.getLicenseMap());
+      let licenses = [...Object.keys(Sefaria.getLicenseMap()), ""];
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
 
       return (
