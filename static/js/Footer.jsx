@@ -45,6 +45,7 @@ class Footer extends Component {
                 <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
                 <Link href="/help" en="Help" he="עזרה" />
                 <Link href="/team" en="Team" he="צוות" />
+                <Link href="/products" en="Products" he="מוצרים" />
                 <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
                 <Link href="/metrics" en="Metrics" he="מדדים" />
                 <Link href="/annualreport" en="Annual Report" he='דו"ח שנתי' />

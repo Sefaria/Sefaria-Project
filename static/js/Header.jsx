@@ -265,6 +265,12 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <MobileInterfaceLanguageToggle />
 
+        <a href="/products">
+          <img src="/static/icons/products.svg" />
+          <InterfaceText text={{en: "Products", he: "מוצרים"}} />
+        </a>
+
+
         <a href="/help">
           <img src="/static/icons/help.svg" />
           <InterfaceText>Get Help</InterfaceText>
