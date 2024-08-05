@@ -3997,8 +3997,10 @@ class Ref(object, metaclass=RefCacheType):
             except AttributeError:  # This is a schema node, try to get a default child
                 if self.has_default_child():
                     return self.default_child_ref().padded_ref()
+                elif self.is_book_level():
+                    raise InputError("Can not get TextRange at this level, please provide a more precise reference")
                 else:
-                    raise InputError("Can not pad a schema node ref")
+                    raise InputError("Cannot pad a schema node ref.")
 
             d = self._core_dict()
             if self.is_talmud():
