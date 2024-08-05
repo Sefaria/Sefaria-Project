@@ -58,29 +58,18 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'pools',  # list of strings, any of them represents a pool that this topic is member of
     ]
 
-    allowed_pools = {pool.value for pool in Pool} | {'torahtab'}
+    allowed_pools = [pool.value for pool in Pool] + ['torahtab']
 
     attr_schemas = {
         "image": {
-                "image_uri": {
-                    "type": "string",
-                    "required": True,
-                    "regex": "^https://storage\.googleapis\.com/img\.sefaria\.org/topics/.*?"
-                },
-                "image_caption": {
-                    "type": "dict",
-                    "required": True,
-                    "schema": {
-                        "en": {
-                            "type": "string",
-                            "required": True
-                        },
-                        "he": {
-                            "type": "string",
-                            "required": True
-                        }
-                    }
-                }
+            'type': 'dict',
+            'schema': {'image_uri': {'type': 'string',
+                                     'required': True,
+                                     'regex': '^https://storage\\.googleapis\\.com/img\\.sefaria\\.org/topics/.*?'},
+                       'image_caption': {'type': 'dict',
+                                         'required': True,
+                                         'schema': {'en': {'type': 'string', 'required': True},
+                                                    'he': {'type': 'string', 'required': True}}}}
             },
         'pools': {
                 'type': 'list',
