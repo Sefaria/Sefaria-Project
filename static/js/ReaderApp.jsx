@@ -13,7 +13,6 @@ import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent,
 import {
   ContestLandingPage,
   RemoteLearningPage,
-  SheetsLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
@@ -52,7 +51,7 @@ class ReaderApp extends Component {
         mode:                    "Menu",
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
-        searchTab:               props.initialSearchTab,
+        searchType:               props.initialSearchType,
         tab:                     props.initialTab,
         topicSort:               props.initialTopicSort,
         textSearchState: new SearchState({
@@ -154,7 +153,7 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
       searchQuery:             state.searchQuery             || null,
-      searchTab:               state.searchTab               || 'text',
+      searchType:               state.searchType               || 'text',
       showHighlight:           state.showHighlight           || null,
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
@@ -282,8 +281,14 @@ class ReaderApp extends Component {
       } else {
         state.panels = [];
       }
-      this.setState(state, () => {
-        if (state.scrollPosition) {
+
+      // need to clone state and panels; if we don't clone them, when we run setState, it will make it so that
+      // this.state.panels refers to the same object as history.state.panels, which cause back button bugs
+      const newState = {...state};
+      newState.panels = newState.panels.map(panel => this.clonePanel(panel));
+
+      this.setState(newState, () => {
+        if (newState.scrollPosition) {
           $(".content").scrollTop(event.state.scrollPosition)
             .trigger("scroll");
         }
@@ -390,7 +395,7 @@ class ReaderApp extends Component {
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
-          (prev.searchTab != next.searchTab) ||
+          (prev.searchType != next.searchType) ||
           (prev.tab !== next.tab) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
@@ -478,7 +483,7 @@ class ReaderApp extends Component {
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery.stripHtml() + " | " : "";
             hist.title += Sefaria._(siteName + " Search");
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchTab}` +
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchType}` +
               state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
               state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode  = "search";
@@ -541,6 +546,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("Learning Schedules") + " | " + Sefaria._(siteName);
             hist.url = "calendars";
             hist.mode = "calendars";
+            break;
+          case "sheets":
+            hist.url = "sheets";
+            hist.mode = "sheets";
+            hist.title = Sefaria._("Sheets on Sefaria");
             break;
           case "updates":
             hist.title = Sefaria._("New Additions to the " + siteName + " Library");
@@ -1181,9 +1191,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     };
     this.setPanelState(n, updates);
   }
-  updateSearchTab(n, searchTab) {
-    this.setPanelState(n, { searchTab });
-  }
   updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     const state = this.state.panels[n];
     const searchState = this._getSearchState(state, type);
@@ -1713,15 +1720,15 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const textSearchState =  (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].textSearchState)  ? this.state.panels[0].textSearchState.update({ filtersValid: false })  : new SearchState({ type: 'text' });
     const sheetSearchState = (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].sheetSearchState) ? this.state.panels[0].sheetSearchState.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
 
-    const searchTab = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchTab : "text";
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchTab, textSearchState, sheetSearchState });
+    const searchType = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchType : "text";
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchType, textSearchState, sheetSearchState });
   }
   searchInCollection(searchQuery, collection) {
     let panel;
     const textSearchState =  new SearchState({ type: 'text' });
     const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [collection], appliedFilterAggTypes: ['collections']});
 
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchType": "sheet", searchQuery, textSearchState, sheetSearchState });
   }
   showCommunity() {
     this.setSinglePanelState({menuOpen: "community"});
@@ -2125,7 +2132,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var onSidebarSearchClick           = this.handleSidebarSearchClick.bind(null, i);
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
-      var updateSearchTab                = this.updateSearchTab.bind(null, i);
       var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
@@ -2183,7 +2189,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDefaultOption={this.setDefaultOption}
                       unsetTextHighlight={unsetTextHighlight}
                       onQueryChange={updateQuery}
-                      updateSearchTab={updateSearchTab}
                       updateSearchFilter={updateSearchFilter}
                       updateSearchOptionField={updateSearchOptionField}
                       updateSearchOptionSort={updateSearchOptionSort}
@@ -2242,23 +2247,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
 
     return (
-      // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
-      // InterruptingMessage modals and Banners will always render if available but stay hidden initially
-      <StrapiDataProvider>
-        <AdContext.Provider value={this.getUserContext()}>
-          <div id="readerAppWrap">
-            <InterruptingMessage />
-            <Banner onClose={this.setContainerMode} />
-            <div className={classes} onClick={this.handleInAppLinkClick}>
-              {header}
-              {panels}
-              {signUpModal}
-              {communityPagePreviewControls}
-              <CookiesNotification />
-            </div>
+      <AdContext.Provider value={this.getUserContext()}>
+        <div id="readerAppWrap">
+          <div className={classes} onClick={this.handleInAppLinkClick}>
+            {header}
+            {panels}
+            {signUpModal}
+            {communityPagePreviewControls}
+            <CookiesNotification />
           </div>
-        </AdContext.Provider>
-      </StrapiDataProvider>
+        </div>
+      </AdContext.Provider>
     );
   }
 }
@@ -2316,7 +2315,6 @@ export {
   loadServerData,
   EditCollectionPage,
   RemoteLearningPage,
-  SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,

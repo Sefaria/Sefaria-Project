@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
-from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
+from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
 import reader.views as reader_views
 import sefaria.views as sefaria_views
@@ -73,6 +73,7 @@ urlpatterns += [
 
 # Source Sheet Builder
 urlpatterns += [
+    url(r'^sheets$', sheets_views.sheets_home_page),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
@@ -171,6 +172,8 @@ urlpatterns += [
     url(r'^api/terms/(?P<name>.+)$', reader_views.terms_api),
     url(r'^api/calendars/next-read/(?P<parasha>.+)$', reader_views.parasha_next_read_api),
     url(r'^api/calendars/?$', reader_views.calendars_api),
+    url(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
+    url(r'^api/calendars/topics/holiday/?$', reader_views.next_holiday),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     url(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
@@ -438,7 +441,7 @@ urlpatterns += [
     url(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
     url(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     url(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
-    url(r'^admin/?', include(admin.site.urls)),
+    url(fr'^{ADMIN_PATH}/?', include(admin.site.urls)),
 ]
 
 # Stats API - return CSV
