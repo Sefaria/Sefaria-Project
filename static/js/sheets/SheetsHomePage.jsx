@@ -1,6 +1,7 @@
 import React  from 'react';
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
+import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsTopics";
 import {Button} from "../shared/GenericComponents";
 
 const GetStartedButton = ({href}) => {
@@ -39,7 +40,12 @@ const SheetsSidebar = () => {
 
 
 
-const SheetsHomePage = () => {
+const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
+  const handleClick = (func) => (e, slug, en, he) => {
+      e.preventDefault();
+      func(slug, {en, he});  // setTopic or setNavTopic
+  }
+  const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={handleClick(setNavTopic)}/>;
   return <div className="readerNavMenu sheets" key="0">
             <div className="content">
                 <SheetsHeroBanner title="Join the Torah Conversation"
@@ -48,9 +54,12 @@ const SheetsHomePage = () => {
                                   posterImg="/static/img/home-video.jpg"
                 />
                 <div className="sidebarLayout">
-                    <div className="contentInner">
-                        <SheetsSidebar/>
+                    <div className="sheetsTopics">
+                        <SheetsTopicsCalendar handleClick={handleClick(setTopic)}/>
+                        {multiPanel && sheetsTopicsTOC}
                     </div>
+                    <SheetsSidebar/>
+                    {!multiPanel && sheetsTopicsTOC}
                 </div>
                 <Footer/>
             </div>
