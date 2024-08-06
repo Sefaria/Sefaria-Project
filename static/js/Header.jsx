@@ -18,22 +18,61 @@ import {Autocomplete} from './Autocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
 
 
+const LoggedOutMenu = () => {
+  const [isClient, setIsClient] = useState(false);
+  const [next, setNext] = useState("/");
+  const [loginLink, setLoginLink] = useState("/login?next=/");
+  const [registerLink, setRegisterLink] = useState("/register?next=/");
+  useEffect(()=>{
+    setIsClient(true);
+  }, []);
+  useEffect(()=> {
+    if(isClient){
+      setNext(encodeURIComponent(Sefaria.util.currentPath()));
+      setLoginLink("/login?next="+next);
+      setRegisterLink("/register?next="+next);
+    }
+  })
+  return (
+    <DropdownMenu menu_icon={'/static/icons/logged_out.svg'}>
+    <DropdownMenuItem url={loginLink}>
+      Log in
+    </DropdownMenuItem>
+    <DropdownMenuItem url={registerLink}>
+      Sign up
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'/'}>
+      Site language goes here - check with Mickey what the design is
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'/updates'}>
+      New additions
+    </DropdownMenuItem>
+    <DropdownMenuItem url={'/help'}>
+      Help
+    </DropdownMenuItem>
+  </DropdownMenu>
+  );
+}
+
+
 const ModuleSwitcher = () => {
   return (
-    <DropdownMenu>
-    <DropdownMenuItem url={'/'}>
+    <DropdownMenu menu_icon={'/static/icons/module_switcher_icon.svg'}>
+    <DropdownMenuItem url={'/'} newTab={true}>
       <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
     </DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//sheets.sefaria.org'}>
+    <DropdownMenuItem url={'//sheets.sefaria.org'} newTab={true}>
       <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
     </DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//developers.sefaria.org'}>
+    <DropdownMenuItem url={'//developers.sefaria.org'} newTab={true}>
       <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
     </DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//sefaria.org/products'}>
+    <DropdownMenuItem url={'//sefaria.org/products'} newTab={true}>
       <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products ›'}} />
     </DropdownMenuItem>
 
@@ -90,11 +129,11 @@ class Header extends Component {
 
           { Sefaria._uid ?
             <LoggedInButtons headerMode={this.props.headerMode}/>
-            : <LoggedOutButtons headerMode={this.props.headerMode}/>
+            : <LoggedOutMenu />
           }
 
-          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <ModuleSwitcher /> : null}
+          
+          <ModuleSwitcher /> 
 
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
