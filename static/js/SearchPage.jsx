@@ -58,7 +58,7 @@ class SearchPage extends Component {
                 query={this.props.query}
                 tab={this.props.tab}
                 compare={this.props.compare}
-                mongoSearchText={this.props.mongoSearchText}
+                mongoSearch={this.props.mongoSearch}
                 textSearchState={this.props.textSearchState}
                 sheetSearchState={this.props.sheetSearchState}
                 onResultClick={this.props.onResultClick}

@@ -4418,77 +4418,187 @@ def dummy_search_api(request):
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
+def search_sheet(query):
+    result = []
+    if query:
+        query = [
+            {
+                '$match': {
+                    '$or': [
+                        {
+                            'sources.outsideBiText.en': {
+                                '$regex': query, 
+                                '$options': 'i'
+                            }
+                        }, {
+                            'sources.outsideBiText.he': {
+                                '$regex': query, 
+                                '$options': 'i'
+                            }
+                        }
+                    ]
+                }
+            }, {
+                '$project': {
+                    'owner': '$owner', 
+                    'id': '$id', 
+                    'title': '$title', 
+                    'sources': {
+                        '$map': {
+                            'input': '$sources', 
+                            'as': 'source', 
+                            'in': {
+                                '$cond': [
+                                    {
+                                        '$or': [
+                                            {
+                                                '$regexMatch': {
+                                                    'input': '$$source.outsideBiText.en', 
+                                                    'regex': query, 
+                                                    'options': 'i'
+                                                }
+                                            }, {
+                                                '$regexMatch': {
+                                                    'input': '$$source.outsideBiText.he', 
+                                                    'regex': query, 
+                                                    'options': 'i'
+                                                }
+                                            }
+                                        ]
+                                    }, {
+                                        'outsideBiText': {
+                                            '$cond': [
+                                                {
+                                                    '$regexMatch': {
+                                                        'input': '$$source.outsideBiText.en', 
+                                                        'regex': query, 
+                                                        'options': 'i'
+                                                    }
+                                                }, {
+                                                    'en': '$$source.outsideBiText.en'
+                                                }, {
+                                                    'he': '$$source.outsideBiText.he'
+                                                }
+                                            ]
+                                        }, 
+                                        'node': '$$source.node'
+                                    }, '$$REMOVE'
+                                ]
+                            }
+                        }
+                    }
+                }
+            }, {
+                '$project': {
+                    'sheet_id': '$id', 
+                    'title': '$title', 
+                    'owner_id': '$owner', 
+                    'sources': {
+                        '$filter': {
+                            'input': '$sources', 
+                            'as': 'source', 
+                            'cond': {
+                                '$or': {
+                                    '$ne': [
+                                        '$$source', None
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+        result = list(db.sheets.aggregate(query))
+        
+        for item in result:
+            item.pop('_id', None)
+    return result
+
+def search_text(chapter_query,title_query):
+    result = []
+    if chapter_query:
+        # data = json.loads(request.body)
+        # query = data.get('query', '')
+        print("query: ", chapter_query, "title", title_query)
+        query = [
+          {
+            "$unwind": {
+              "path": "$chapter",
+              "includeArrayIndex": "outerIndex"
+            }
+          },
+          {
+            "$unwind": {
+              "path": "$chapter",
+              "includeArrayIndex": "innerIndex"
+            }
+          },
+          {
+            "$addFields": {
+              "outerIndex": { "$add": ["$outerIndex", 1] },
+              "innerIndex": { "$add": ["$innerIndex", 1] }
+            }
+          },
+          {
+            "$match": {
+                "$and": [
+                  { "title": { "$regex": title_query, "$options": "i" } },
+                  { "chapter": { "$regex": chapter_query, "$options": "i" } }
+                ]
+            }
+          },
+          {
+            "$group": {
+              "_id": "$_id",
+              "language": { "$first": "$language" },
+              "title": { "$first": "$title" },
+              "versionSource": { "$first": "$versionSource" },
+              "versionTitle": { "$first": "$versionTitle" },
+              "iscompleted": { "$first": "$iscompleted" },
+              "actualLanguage": { "$first": "$actualLanguage" },
+              "languageFamilyName": { "$first": "$languageFamilyName" },
+              "direction": { "$first": "$direction" },
+              "matchingChapters": {
+                "$push": {
+                  "chapter": "$chapter",
+                  "index": {
+                    "$concat": [
+                      { "$toString": "$outerIndex" },
+                      ".",
+                      { "$toString": "$innerIndex" }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+        result = list(db.texts.aggregate(query))
+        for item in result:
+            item.pop('_id', None)
+    return result
+
 @csrf_exempt
 def mongo_search_api(request):
-
-    print(">>>>>>>>>>>>>>>>>>>>>request>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",request.method)
+    print(">>>>>>>>>>>>>>>>>>>>>text and sheet search from mongo>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",request.method)
+    result = {
+        "text": "",
+        "sheet": "",
+    }
     if(request.method == "GET"):
         try:
             chapter_query = urllib.parse.unquote(request.GET.get('chapterQuery', ''))
             title_query =  urllib.parse.unquote(request.GET.get('titleQuery', ''))
-            
-            if chapter_query:
-                # data = json.loads(request.body)
-                # query = data.get('query', '')
-                print("query: ", chapter_query, "title", title_query)
-                query = [
-                  {
-                    "$unwind": {
-                      "path": "$chapter",
-                      "includeArrayIndex": "outerIndex"
-                    }
-                  },
-                  {
-                    "$unwind": {
-                      "path": "$chapter",
-                      "includeArrayIndex": "innerIndex"
-                    }
-                  },
-                  {
-                    "$addFields": {
-                      "outerIndex": { "$add": ["$outerIndex", 1] },
-                      "innerIndex": { "$add": ["$innerIndex", 1] }
-                    }
-                  },
-                  {
-                    "$match": {
-                        "$and": [
-                          { "title": { "$regex": title_query, "$options": "i" } },
-                          { "chapter": { "$regex": chapter_query, "$options": "i" } }
-                        ]
-                    }
-                  },
-                  {
-                    "$group": {
-                      "_id": "$_id",
-                      "language": { "$first": "$language" },
-                      "title": { "$first": "$title" },
-                      "versionSource": { "$first": "$versionSource" },
-                      "versionTitle": { "$first": "$versionTitle" },
-                      "iscompleted": { "$first": "$iscompleted" },
-                      "actualLanguage": { "$first": "$actualLanguage" },
-                      "languageFamilyName": { "$first": "$languageFamilyName" },
-                      "direction": { "$first": "$direction" },
-                      "matchingChapters": {
-                        "$push": {
-                          "chapter": "$chapter",
-                          "index": {
-                            "$concat": [
-                              { "$toString": "$outerIndex" },
-                              ".",
-                              { "$toString": "$innerIndex" }
-                            ]
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
 
-                result = list(db.texts.aggregate(query))
-                for item in result:
-                    item.pop('_id', None)
-                return jsonResponse({'status': 'success', 'result': result})
+            text = search_text(chapter_query,title_query)
+            sheet = search_sheet(chapter_query)
+
+            result["text"] = text
+            result["sheet"] = sheet
+
+            return jsonResponse({'status': 'success', 'result': result})
+        
         except Exception as e:
             print({'status': 'error', 'message': str(e)})
             return jsonResponse({'status': 'error', 'message': str(e)}, status=500)

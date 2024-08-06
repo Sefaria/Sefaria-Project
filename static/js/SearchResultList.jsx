@@ -460,8 +460,8 @@ class SearchResultList extends Component {
 
         if (tab === "text") {
           // results = Sefaria.search.mergeTextResultsVersions(this.state.hits.text);
-          if(this.props.mongoSearchText && this.props.mongoSearchText.status == "success"){
-            results = this.props.mongoSearchText.result.map(result => 
+          if(this.props.mongoSearch && this.props.mongoSearch.status == "success"){
+            results = this.props.mongoSearch.result.text.map(result => 
               result.matchingChapters.map((chapter, i) =>  {
                 
                 const data = {
@@ -505,23 +505,42 @@ class SearchResultList extends Component {
                   Sefaria.track.event("Search", "topic in search display", t.analyticCat+"|"+t.title);
                   return <SearchTopic topic={t}/>
               });
-              // if (results.length > 0) {
-              //     topics = <div id="searchTopics">{topics}</div>
-              //     results.splice(2, 0, topics);
-              // }
-              // else {
-              //     results = topics;
-              // }
+              if (results.length > 0) {
+                  topics = <div id="searchTopics">{topics}</div>
+                  results.splice(2, 0, topics);
+              }
+              else {
+                  results = topics;
+              }
           }
 
 
         } else if (tab === "sheet") {
-          results = this.state.hits.sheet.map(result =>
-            <SearchSheetResult
-              data={result}
-              query={this.props.query}
-              key={result._id}
-              onResultClick={this.props.onResultClick} />
+          // results = this.state.hits.sheet.map(result =>
+          //   <SearchSheetResult
+          //     data={result}
+          //     query={this.props.query}
+          //     key={result._id}
+          //     onResultClick={this.props.onResultClick} />
+          // );
+          results = this.props.mongoSearch.result.sheet.map((result, i) =>
+            result.sources.map((source, i) => {
+              const data = {
+                title: result.title,
+                sheetId: result.sheet_id,
+                ownerId: result.owner_id,
+                sources: source.outsideBiText
+              }
+              return (
+              <SearchSheetResult
+                data={data}
+                query={this.props.query}
+                key={result.sheet_id}
+                onResultClick={this.props.onResultClick} />
+              )
+            })
+            
+            
           );
         }
 
@@ -590,7 +609,7 @@ const SearchTab = ({label, total, onClick, active}) => {
     <div className={classes} onClick={onClick} onKeyPress={e => {e.charCode === 13 ? onClick(e) : null}} role="button" tabIndex="0">
       <div className="type-button-title">
         <InterfaceText>{label}</InterfaceText>&nbsp;
-        <InterfaceText>{`(${total.asString()})`}</InterfaceText>
+        {/* <InterfaceText>{`(${total.asString()})`}</InterfaceText> */}
       </div>
     </div>
   );

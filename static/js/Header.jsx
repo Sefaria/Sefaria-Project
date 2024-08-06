@@ -359,16 +359,9 @@ class SearchBar extends Component {
       this.submitSearch(query);
     } else {
       $(ReactDOM.findDOMNode(this)).find(".search").focus();
-    // }
+    }
   }
-  // handleMongoSearchBtn(e) {
-  //   if (e.key === 'Enter') {
-  //     e.preventDefault()
-  //     const query = $(e.target).val();
-  //     Sefaria.mongoSearch(query)
-  //   } 
-    
-  }
+  
   render() {
     const inputClasses = classNames({
       search: 1,
