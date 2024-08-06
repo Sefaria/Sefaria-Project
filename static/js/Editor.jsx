@@ -1062,6 +1062,8 @@ const AddInterface = ({ attributes, children, element }) => {
 
 const Element = (props) => {
     const { attributes, children, element } = props;
+    console.log("new element of type ", element.type);
+    const editor = useSlate();
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
@@ -1103,13 +1105,37 @@ const Element = (props) => {
             );
         case 'SheetOutsideText':
                 const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
+                const active = false;
+                const addInterfaceClasses = {
+                 active: active,
+                editorAddInterface: 1,
+                };
+                const enterEvent = new KeyboardEvent('keyup', {
+                    key: 'Enter',
+                    code: 'Enter',
+                    keyCode: 13,
+                    charCode: 13,
+                    which: 13,
+                    bubbles: true // Ensures the event bubbles up through the DOM
+                });
+                const simulateEnter = function (){
+                    // event.currentTarget.dispatchEvent(enterEvent);
+                    // Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]});
+                    // editor.insertBreak();
+                    // const curHeaderPath = getClosestSheetElement(editor, editor.selection.focus.path, "header")[1]
+                    // Transforms.insertNodes(editor, {type: 'SheetOutsideText', children: [{text: ""}]}, {at: editor.selection.focus.path});
+                    Transforms.setNodes(editor, {type: 'SheetOutsideText', children: [{text: ""}]}, {at: editor.selection.focus.path});
+
+                }
                 return (
+                <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={simulateEnter}>
                   <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                     <div className={SheetOutsideTextClasses} {...attributes}>
                         {children}
                     </div>
                     <div className="clearFix"></div>
                   </div>
+                </div>
             );
 
 
@@ -2488,7 +2514,7 @@ const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
-    const renderElement = useCallback(props => <Element {...props} />, []);
+    const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
@@ -2947,7 +2973,6 @@ const SefariaEditor = (props) => {
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
     );
-
 
     return (
         <div ref={editorContainer} onClick={props.handleClick}>
