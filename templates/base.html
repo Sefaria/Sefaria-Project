@@ -38,15 +38,17 @@
     {% endblock %}
 
     {% block ogimage %}
+        <meta property="og:title" content="Pecha - A Living Library of Buddhist Text"/>
         <meta property="og:description" content="The largest free library of Buddhist texts available to read online in Tibetan, English, and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more."/>
         <meta property="og:image" content="https://pecha.org/static/img/pecha-icon.png" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta property="og:url" content="https://pecha.org"/>
     {% endblock %}
 
-    <meta property="og:title" content="Pecha - A Living Library of Buddhist Text"/>
-    <meta property="og:url" content="https://pecha.org"/>
+    
+
 
     <!-- <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@sefariaproject" />
@@ -69,9 +71,18 @@
     <meta name="theme-color" content="#273557">
 
 
-    {% if ldBreadcrumbs %}{% autoescape off %}
+    <!-- {% if ldBreadcrumbs %}{% autoescape off %}
     <script type="application/ld+json">{{ ldBreadcrumbs }}</script>
-    {% endautoescape %}{% endif %}
+    {% endautoescape %}{% endif %} -->
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "url": "https://pecha.org",
+        "logo": "https://pecha.org/static/img/pecha-icon.png"
+      }
+      </script>
 
     {% block head %}{% endblock %}
 

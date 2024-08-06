@@ -21,6 +21,7 @@ class CategoryFilter extends Component {
     }
   }
   render() {
+    
     const filterSuffix = this.props.category  === "Quoting Commentary" ? "Quoting" : null;
     const textMissingDescription = null; //"missing description"
     const textFilters = this.props.showBooks ? this.props.books.map(function(book, i) {
