@@ -79,39 +79,37 @@ const SearchTopic = (props) => {
 class SearchResultList extends Component {
     constructor(props) {
       super(props);
-      this.types = this.props.types || ['text', 'sheet'];
       this.querySize = {"text": 50, "sheet": 20};
       this.state = {
-        runningQueries: this._typeObjDefault(null),
-        isQueryRunning: this._typeObjDefault(false),
-        moreToLoad:     this._typeObjDefault(true),
-        totals:         this._typeObjDefault(new SearchTotal()),
-        pagesLoaded:    this._typeObjDefault(0),
-        hits:           this._typeObjDefault([]),
+        runningQueries: null,
+        isQueryRunning: false,
+        moreToLoad:     true,
+        totals:         new SearchTotal(),
+        pagesLoaded:    0,
+        hits:           [],
         error:          false,
         topics:         []
       }
 
       // Load search results from cache so they are available for immediate render
-      this.types.map(t => {
-        const args = this._getQueryArgs(props, t);
-        let cachedQuery = Sefaria.search.getCachedQuery(args);
-        while (cachedQuery) {
+
+      const args = this._getQueryArgs(props);
+      let cachedQuery = Sefaria.search.getCachedQuery(args);
+      while (cachedQuery) {
           // Load all pages of results that are available in cache, so if page X was
           // previously loaded it will be returned.
           //console.log("Loaded cached query for")
           //console.log(args);
-          this.state.hits[t] = this.state.hits[t].concat(cachedQuery.hits.hits);
-          this.state.totals[t] = cachedQuery.hits.total;
-          this.state.pagesLoaded[t] += 1;
-          args.start = this.state.pagesLoaded[t] * this.querySize[t];
-          if (t === "text") {
+          this.state.hits = this.state.hits.concat(cachedQuery.hits.hits);
+          this.state.totals = cachedQuery.hits.total;
+          this.state.pagesLoaded += 1;
+          args.start = this.state.pagesLoaded * this.querySize[this.props.type];
+          if (this.props.type === "text") {
             // Since texts only have one filter type, aggregations are only requested once on first page
             args.aggregationsToUpdate = [];
           }
           cachedQuery = Sefaria.search.getCachedQuery(args);
-        }
-      });
+      }
       this.updateTotalResults();
     }
     componentDidMount() {
@@ -119,29 +117,26 @@ class SearchResultList extends Component {
         $(ReactDOM.findDOMNode(this)).closest(".content").on("scroll.infiteScroll", this.handleScroll);
     }
     componentWillUnmount() {
-        this._abortRunningQueries();  // todo: make this work w/ promises
+        this._abortRunningQuery();  // todo: make this work w/ promises
         $(ReactDOM.findDOMNode(this)).closest(".content").off("scroll.infiniteScroll", this.handleScroll);
     }
     componentWillReceiveProps(newProps) {
       if(this.props.query !== newProps.query) {
         this.setState({
-          totals: this._typeObjDefault(new SearchTotal()),
-          hits: this._typeObjDefault([]),
-          moreToLoad: this._typeObjDefault(true),
+          totals: new SearchTotal(),
+          hits: [],
+          moreToLoad: true,
         });
         this._executeAllQueries(newProps);
-      } else {
-        this.types.forEach(t => {
-          if (this._shouldUpdateQuery(this.props, newProps, t)) {
-            let state = {
-              hits: extend(this.state.hits, {[t]: []}),
-              pagesLoaded: extend(this.state.pagesLoaded, {[t]: 0}),
-              moreToLoad: extend(this.state.moreToLoad, {[t]: true})
-            };
-            this.setState(state);
-            this._executeQuery(newProps, t);
-          }
-        });
+      } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
+              let state = {
+                  hits: [],
+                  pagesLoaded: 0,
+                  moreToLoad: true
+              };
+              this.setState(state, () => {
+                  this._executeQuery(newProps, this.props.type);
+              })
       }
     }
     async addRefTopic(topic) {
@@ -237,58 +232,49 @@ class SearchResultList extends Component {
         }));
         this.setState({topics: searchTopics});
     }
-    updateRunningQuery(type, ajax) {
-      this.state.runningQueries[type] = ajax;
-      this.state.isQueryRunning[type] = !!ajax;
+    updateRunningQuery(ajax) {
+      this.state.runningQueries = ajax;
+      this.state.isQueryRunning = !!ajax;
       this.setState(this.state);
     }
     totalResults() {
-      return this.types.reduce((accum, type) => (this.state.totals[type].combine(accum)), new SearchTotal());
+      return this.state.totals;
     }
     updateTotalResults() {
       this.props.updateTotalResults(this.totalResults());
     }
-    _typeObjDefault(defaultValue) {
-      // es6 version of dict comprehension...
-      return this.types.reduce((obj, k) => { obj[k] = defaultValue; return obj; }, {});
-    }
-    _abortRunningQueries() {
-      this.types.forEach(t => this._abortRunningQuery(t));
-    }
-    _abortRunningQuery(type) {
-      if(this.state.runningQueries[type]) {
-          this.state.runningQueries[type].abort();  //todo: make work with promises
+    _abortRunningQuery() {
+      if(this.state.runningQueries) {
+          this.state.runningQueries.abort();  //todo: make work with promises
       }
-      this.updateRunningQuery(type, null);
+      this.updateRunningQuery(null);
     }
     handleScroll() {
-      var tab = this.props.tab;
-
-      if (!this.state.moreToLoad[tab]) { return; }
-      if (this.state.runningQueries[tab]) { return; }
+      if (!this.state.moreToLoad) { return; }
+      if (this.state.runningQueries) { return; }
 
       var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
       var margin = 300;
       if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
-        this._loadNextPage(tab);
+        this._loadNextPage();
       }
     }
-    _shouldUpdateQuery(oldProps, newProps, type) {
-      const oldSearchState = this._getSearchState(type, oldProps);
-      const newSearchState = this._getSearchState(type, newProps);
+    _shouldUpdateQuery(oldProps, newProps) {
+      const oldSearchState = this._getSearchState(oldProps);
+      const newSearchState = this._getSearchState(newProps);
       return !oldSearchState.isEqual({ other: newSearchState, fields: ['appliedFilters', 'field', 'sortType'] }) ||
         ((oldSearchState.filtersValid !== newSearchState.filtersValid) && oldSearchState.appliedFilters.length > 0);  // Execute a second query to apply filters after an initial query which got available filters
     }
-    _getSearchState(type, props) {
+    _getSearchState(props) {
       props = props || this.props;
       if (!props.query) {
           return;
       }
-      return props[`${type}SearchState`];
+      return props['searchState'];
     }
     _executeAllQueries(props) {
       this._executeTopicQuery();
-      this.types.forEach(t => this._executeQuery(props, t));
+      this._executeQuery(props, this.props.type);
     }
     _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type) {
       // Returns a list of aggregations type which we should request from the server.
@@ -300,34 +286,34 @@ class SearchResultList extends Component {
         .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
         .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[Sefaria.interfaceLang] : ''}`); // add suffix based on interfaceLang to filter, if present in suffix_map
     }
-    _executeQuery(props, type) {
+    _executeQuery(props) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
       props = props || this.props;
       if (!props.query) {
           return;
       }
-      this._abortRunningQuery(type);
+      this._abortRunningQuery();
 
-      let args = this._getQueryArgs(props, type);
+      let args = this._getQueryArgs(props);
 
       // If there are no available filters yet, don't apply filters.  Split into two queries:
       // 1) Get all potential filters and counts
       // 2) Apply filters (Triggered from componentWillReceiveProps)
 
       const request_applied = args.applied_filters;
-      const searchState = this._getSearchState(type, props);
+      const searchState = this._getSearchState(props);
       const { appliedFilters, appliedFilterAggTypes } = searchState;
-      const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[type];
+      const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[this.props.type];
 
       args.success = data => {
-              this.updateRunningQuery(type, null);
-              if (this.state.pagesLoaded[type] === 0) { // Skip if pages have already been loaded from cache, but let aggregation processing below occur
+              this.updateRunningQuery(null);
+              if (this.state.pagesLoaded === 0) { // Skip if pages have already been loaded from cache, but let aggregation processing below occur
                 const currTotal = data.hits.total;
                 let state = {
-                  hits: extend(this.state.hits, {[type]: data.hits.hits}),
-                  totals: extend(this.state.totals, {[type]: currTotal}),
-                  pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
-                  moreToLoad: extend(this.state.moreToLoad, {[type]: currTotal.getValue() > this.querySize[type]})
+                  hits: data.hits.hits,
+                  totals: currTotal,
+                  pagesLoaded: 1,
+                  moreToLoad: currTotal.getValue() > this.querySize[this.props.type]
                 };
                 this.setState(state, () => {
                   this.updateTotalResults();
@@ -335,7 +321,7 @@ class SearchResultList extends Component {
                 });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
-                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, data.hits.total.getValue());
+                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${this.props.type}`, query_label, data.hits.total.getValue());
               }
 
               if (data.aggregations) {
@@ -355,55 +341,55 @@ class SearchResultList extends Component {
                     orphans.push(...tempOrphans);
                   }
                 }
-                this.props.registerAvailableFilters(type, availableFilters, registry, orphans, args.aggregationsToUpdate);
+                this.props.registerAvailableFilters(this.props.type, availableFilters, registry, orphans, args.aggregationsToUpdate);
               }
             };
       args.error = this._handleError;
 
       const runningQuery = Sefaria.search.execute_query(args);
-      this.updateRunningQuery(type, runningQuery);
+      this.updateRunningQuery(runningQuery);
     }
-    _getQueryArgs(props, type) {
+    _getQueryArgs(props) {
       props = props || this.props;
 
-      const searchState = this._getSearchState(type, props);
+      const searchState = this._getSearchState(props);
       const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
-      const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[type];
-      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type);
+      const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[this.props.type];
+      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, this.props.type);
 
       return {
         query: props.query,
-        type,
+        type: this.props.type,
         applied_filters: request_applied,
         appliedFilterAggTypes,
         aggregationsToUpdate,
-        size: this.querySize[type],
+        size: this.querySize[this.props.type],
         field,
         sort_type: sortType,
         exact: fieldExact === field,
       };
     }
-    _loadNextPage(type) {
+    _loadNextPage() {
       console.log("load next page")
-      const args = this._getQueryArgs(this.props, type);
-      args.start = this.state.pagesLoaded[type] * this.querySize[type];
+      const args = this._getQueryArgs(this.props);
+      args.start = this.state.pagesLoaded * this.querySize[this.props.type];
       args.error = () => console.log("Failure in SearchResultList._loadNextPage");
       args.success =  data => {
-          var nextHits = this.state.hits[type].concat(data.hits.hits);
+          let nextHits = this.state.hits.concat(data.hits.hits);
 
-          this.state.hits[type] = nextHits;
-          this.state.pagesLoaded[type] += 1;
-          if (this.state.pagesLoaded[type] * this.querySize[type] >= this.state.totals[type].getValue() ) {
-            this.state.moreToLoad[type] = false;
+          this.state.hits = nextHits;
+          this.state.pagesLoaded += 1;
+          if (this.state.pagesLoaded * this.querySize[this.props.type] >= this.state.totals.getValue() ) {
+            this.state.moreToLoad = false;
           }
 
           this.setState(this.state);
-          this.updateRunningQuery(type, null);
+          this.updateRunningQuery(null);
         };
 
       const runningNextPageQuery = Sefaria.search.execute_query(args);
-      this.updateRunningQuery(type, runningNextPageQuery, false);
+      this.updateRunningQuery(runningNextPageQuery, false);
     }
     _handleError(jqXHR, textStatus, errorThrown) {
       if (textStatus == "abort") {
@@ -412,25 +398,19 @@ class SearchResultList extends Component {
         return;
       }
       this.setState({error: true});
-      this.updateRunningQuery(null, null);
-    }
-    showSheets() {
-      this.props.updateTab('sheet');
-    }
-    showTexts() {
-      this.props.updateTab('text');
+      this.updateRunningQuery(null);
     }
     render () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
         }
 
-        const { tab }     = this.props;
-        const searchState = this._getSearchState(tab);
+        const { type }     = this.props;
+        const searchState = this._getSearchState();
         let results       = [];
 
-        if (tab == "text") {
-          results = Sefaria.search.mergeTextResultsVersions(this.state.hits.text);
+        if (type === "text") {
+          results = Sefaria.search.mergeTextResultsVersions(this.state.hits);
           results = results.filter(result => !!result._source.version).map(result =>
             <SearchTextResult
               data={result}
@@ -454,10 +434,11 @@ class SearchResultList extends Component {
           }
 
 
-        } else if (tab == "sheet") {
-          results = this.state.hits.sheet.map(result =>
+        } else if (type === "sheet") {
+          results = this.state.hits.map(result =>
             <SearchSheetResult
-              data={result}
+              metadata={result._source}
+              snippet={result.highlight.content.join("...")}
               query={this.props.query}
               key={result._id}
               onResultClick={this.props.onResultClick} />
@@ -467,24 +448,16 @@ class SearchResultList extends Component {
         const loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
         const noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
 
-        const queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
+        const queryFullyLoaded = !this.state.moreToLoad && !this.state.isQueryRunning;
         const haveResults      = !!results.length;
         results                = haveResults ? results : noResultsMessage;
 
         return (
           <div>
             <div className="searchTopMatter">
-              {!this.props.searchInBook ?
-              <SearchTabs
-                clickTextButton={this.showTexts}
-                clickSheetButton={this.showSheets}
-                textTotal={this.state.totals["text"]}
-                sheetTotal={this.state.totals["sheet"]}
-                currentTab={tab} /> : null
-              }
               {Sefaria.multiPanel && !this.props.compare ?
               <SearchSortBox
-                type={tab}
+                type={this.props.type}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                 sortType={searchState.sortType} />
               :
@@ -494,7 +467,7 @@ class SearchResultList extends Component {
             </div>
             <div className="searchResultList">
               { queryFullyLoaded || haveResults ? results : null }
-              { this.state.isQueryRunning[tab] ? loadingMessage : null }
+              { this.state.isQueryRunning ? loadingMessage : null }
             </div>
           </div>
         );
@@ -502,37 +475,12 @@ class SearchResultList extends Component {
 }
 SearchResultList.propTypes = {
   query:                    PropTypes.string,
-  tab:                      PropTypes.oneOf(["text", "sheet"]),
-  textSearchState:          PropTypes.object,
-  sheetSearchState:         PropTypes.object,
+  type:                      PropTypes.oneOf(["text", "sheet"]),
+  searchState:              PropTypes.object,
   onResultClick:            PropTypes.func,
-  updateTab:                PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func,
 };
-
-
-const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, currentTab}) => (
-  <div className="type-buttons sans-serif">
-    <SearchTab label={"Sources"} total={textTotal} onClick={clickTextButton} active={currentTab === "text"} />
-    <SearchTab label={"Sheets"} total={sheetTotal} onClick={clickSheetButton} active={currentTab === "sheet"} />
-  </div>
-);
-
-
-const SearchTab = ({label, total, onClick, active}) => {
-  const classes = classNames({"search-dropdown-button": 1, active});
-
-  return (
-    <div className={classes} onClick={onClick} onKeyPress={e => {e.charCode === 13 ? onClick(e) : null}} role="button" tabIndex="0">
-      <div className="type-button-title">
-        <InterfaceText>{label}</InterfaceText>&nbsp;
-        <InterfaceText>{`(${total.asString()})`}</InterfaceText>
-      </div>
-    </div>
-  );
-};
-
 
 const SearchSortBox = ({type, updateAppliedOptionSort, sortType}) => {
   const [isOpen, setIsOpen] = useState(false);
