@@ -5,6 +5,9 @@
   display: flex;
   flex-direction: row;
 }
+#sheetsButton {
+  display: none;
+}
 .inApp #staticContentWrapper {
   display: none;
 }
