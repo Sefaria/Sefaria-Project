@@ -795,14 +795,13 @@ def get_collections_with_sheets(sheet_ids):
 			sheet_id_to_collections[sheet_id].append({'name': collection.name, 'slug': collection.slug})
 	return sheet_id_to_collections
 
-def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=None, include_first_comment=None):
+def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
 	If `in_collection` (list of slugs) is present, only return sheets in one of the listed collections.
 	If `include_collections` is present, given the list of sheets that include tref, return all public collections that have at least one of those sheets
-	If `include_first_comment` is present, return first comment in all sheets.
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
@@ -821,8 +820,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=N
 	projection = {"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1,
 		 "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1,
 		 "displayedCollection":1, "options":1}
-	if include_first_comment:
-		projection['sources'] = 1
 	sheetsObj = db.sheets.find(query, projection).sort([["views", -1]])
 	sheetsObj.hint("expandedRefs_1")
 	sheets = [s for s in sheetsObj]
@@ -897,8 +894,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=N
 			}
 			if include_collections:
 				sheet_data["collections"] = sheet_id_to_collection[sheet["id"]]
-			if include_first_comment and len(sheet["sources"]) > 0:
-				sheet_data["firstSource"] =	sheet["sources"][0]
 
 			results.append(sheet_data)
 	return results

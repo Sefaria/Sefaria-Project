@@ -1023,9 +1023,7 @@ def sheets_by_ref_api(request, ref):
     API to get public sheets by ref.
     """
     include_collections = bool(int(request.GET.get("include_collections", 0)))
-    include_first_comment = bool(int(request.GET.get("include_first_comment", 0)))
-    return jsonResponse(get_sheets_for_ref(ref, include_collections=include_collections,
-                                           include_first_comment=include_first_comment))
+    return jsonResponse(get_sheets_for_ref(ref, include_collections=include_collections))
 def sheets_with_ref(request, tref):
     """
     Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
