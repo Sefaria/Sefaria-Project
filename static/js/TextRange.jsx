@@ -585,11 +585,11 @@ class TextSegment extends Component {
   }
   addHighlights(text) {
     // for adding in highlights to query results in Reader
-    if (!!this.props.textHighlights) {
-      const highList = this.props.textHighlights.map((h , i)=> this.wrapWordsInGenericHTMLRegex(h));
-      const reg = new RegExp(`(${highList.join("|")})`, 'g');
-      return text.replace(reg, `<span key={${i}} class="queryTextHighlight">$1</span>`);
-    }
+    // if (!!this.props.textHighlights) {
+    //   const highList = this.props.textHighlights.map((h , i)=> this.wrapWordsInGenericHTMLRegex(h));
+    //   const reg = new RegExp(`(${highList.join("|")})`, 'g');
+    //   return text.replace(reg, `<span key={${i}} class="queryTextHighlight">$1</span>`);
+    // }
     return text;
   }
 
