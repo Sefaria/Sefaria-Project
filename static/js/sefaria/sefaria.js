@@ -2612,13 +2612,17 @@ _media: {},
     stories: [],
     page: 0
   },
-  _holidays: {},
-  getNextHoliday: function() {
+  _upcomingDay: {},  // for example, possible keys are 'parasha' and 'holiday'
+  getUpcomingDay: function(day) {
+      // currently `day` can be 'holiday' or 'parasha'
+      if (day !== 'holiday' && day !== 'parasha') {
+        throw new Error('Invalid day. Expected "holiday" or "parasha".');
+      }
       return this._cachedApiPromise({
-          url:   `${this.apiHost}/api/calendars/topics/holiday`,
-          key:   'next',
-          store: this._holidays,
-    });
+          url:   `${this.apiHost}/api/calendars/topics/${day}`,
+          key:   day,
+          store: this._upcomingDay,
+     });
   },
   _parashaNextRead: {},
   getParashaNextRead: function(parasha) {
@@ -2626,14 +2630,6 @@ _media: {},
       url:   `${this.apiHost}/api/calendars/next-read/${parasha}`,
       key:   parasha,
       store: this._parashaNextRead,
-    });
-  },
-  _currentParasha: {},
-  getCurrentParasha: function(parasha) {
-    return this._cachedApiPromise({
-       url:  `${this.apiHost}/api/calendars/topics/parasha`,
-       key:  parasha,
-       store: this._currentParasha,
     });
   },
   _bookSearchPathFilter: {},

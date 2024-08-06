@@ -2,7 +2,6 @@ import {InterfaceText} from "../Misc";
 import React, {useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
 import {Card} from "../shared/GenericComponents";
-const getParashah = () => { return Sefaria.calendars.find(element => element.title && element.title.en === "Parashat Hashavua"); }
 const SheetsTopicsTOC = ({handleClick}) => {
     const categoryListings = Sefaria.topic_toc.map(cat => {
         return <Card cardTitleHref={`/topics/category/${cat.slug}`}
@@ -27,7 +26,7 @@ const SheetsWrapper = ({title, children}) => {
 const SheetsParashah = ({handleClick}) => {
     const [parashah, setParashah] = useState({});
     useEffect(() => {
-        Sefaria.getCurrentParasha().then(setParashah);
+        Sefaria.getUpcomingDay('parasha').then(setParashah);
     }, []);
     const parashahTitle = parashah.displayValue;
     const parashahDesc = parashah.description;
@@ -40,12 +39,7 @@ const SheetsParashah = ({handleClick}) => {
 const SheetsHoliday = ({handleClick}) => {
     const [holiday, setHoliday] = useState({});
     useEffect( () => {
-        async function fetchData() {
-            await Sefaria.getNextHoliday();
-            const holiday = Sefaria._holidays['next'];
-            setHoliday({...holiday});
-        }
-        fetchData();
+        Sefaria.getUpcomingDay('holiday').then(setHoliday);
     }, []);
     if (Object.keys(holiday).length === 0) {
         return <div className="navBlock">Loading...</div>
