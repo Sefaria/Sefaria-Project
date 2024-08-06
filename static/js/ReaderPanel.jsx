@@ -55,9 +55,6 @@ class ReaderPanel extends Component {
     this.readerContentRef = React.createRef();
   }
   componentDidMount() {
-    // this.props.mongoSearchText.then(data => {
-    //   console.log("datat: ", data)
-    // })
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
@@ -895,7 +892,7 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<SearchPage
-                    mongoSearchText= {this.props.mongoSearchText}
+                    mongoSearch= {this.props.mongoSearch}
                     key={"searchPage"}
                     interfaceLang={this.props.interfaceLang}
                     query={this.state.searchQuery}
@@ -1167,7 +1164,7 @@ class ReaderPanel extends Component {
   }
 }
 ReaderPanel.propTypes = {
-  mongoSearchText: PropTypes.object,
+  mongoSearch: PropTypes.object,
   initialState:                PropTypes.object,
   interfaceLang:               PropTypes.string,
   setCentralState:             PropTypes.func,
