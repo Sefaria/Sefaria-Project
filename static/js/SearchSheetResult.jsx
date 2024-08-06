@@ -33,7 +33,6 @@ class SearchSheetResult extends Component {
     highight(data, query) {
 
       let lang = Object.keys(data)[0] // he or en
-      console.log(data[lang], lang)
       
       return { markup: {__html: data[lang].replace(query, `<b>${query}</b>`)}, lang: lang };
     }
@@ -46,7 +45,6 @@ class SearchSheetResult extends Component {
         const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang === "en", he: snippetMarkup.lang === "he"});
         // const ownerIsHe = Sefaria.hebrew.isHebrew(s.owner_name);
         const titleIsHe = Sefaria.hebrew.isHebrew(clean_title);
-        console.log(titleIsHe)
         const tags = s.tags && s.tags.length ? Sefaria.util.zip(s.tags, s.topic_slugs, s.topics_he) : [];
         return (
             <div className='result sheetResult'>
