@@ -20,100 +20,51 @@ class Portal(abst.SluggedAbstractMongoRecord):
         "organization"
     ]
     attr_schemas = {
-        "about": {
-            "title": {
-                "type": "dict",
-                "required": True,
-                "schema": {
-                    "en": {"type": "string", "required": True},
-                    "he": {"type": "string", "required": True}
-                }
-            },
-            "title_url": {"type": "string"},
-            "image_uri": {"type": "string"},
-            "image_caption": {
-                "type": "dict",
-                "schema": {
-                    "en": {"type": "string"},
-                    "he": {"type": "string"}
-                }
-            },
-            "description": {
-                "type": "dict",
-                "schema": {
-                    "en": {"type": "string", "required": True},
-                    "he": {"type": "string", "required": True}
-                }
-            },
-        },
-        "mobile": {
-            "title": {
-                "type": "dict",
-                "required": True,
-                "schema": {
-                    "en": {"type": "string", "required": True},
-                    "he": {"type": "string", "required": True}
-                }
-            },
-            "description": {
-                "type": "dict",
-                "schema": {
-                    "en": {"type": "string"},
-                    "he": {"type": "string"}
-                }
-            },
-            "android_link": {"type": "string"},
-            "ios_link": {"type": "string"}
-        },
-        "organization": {
-            "title": {
-                "type": "dict",
-                "required": True,
-                "schema": {
-                    "en": {"type": "string", "required": True},
-                    "he": {"type": "string", "required": True}
-                }
-            },
-            "description": {
-                "type": "dict",
-                "schema": {
-                    "en": {"type": "string", "required": True},
-                    "he": {"type": "string", "required": True}
-                }
-            },
-        },
-        "newsletter": {
-            "title": {
-                "type": "dict",
-                "required": True,
-                "schema": {
-                    "en": {"type": "string", "required": True},
-                    "he": {"type": "string", "required": True}
-                }
-            },
-            "description": {
-                "type": "dict",
-                "schema": {
-                    "en": {"type": "string", "required": True},
-                    "he": {"type": "string", "required": True}
-                }
-            },
-            "title_url": {"type": "string"},
-            "api_schema": {
-                "type": "dict",
-                "schema": {
-                    "http_method": {"type": "string", "required": True},
-                    "payload": {
-                        "type": "dict",
-                        "schema": {
-                            "first_name_key": {"type": "string"},
-                            "last_name_key": {"type": "string"},
-                            "email_key": {"type": "string"}
-                        }
-                    },
-                }
-            }
-        }
+        'about': {'type': 'dict',
+                   'schema': {'title': {'type': 'dict',
+                                        'required': True,
+                                        'schema': {'en': {'type': 'string', 'required': True},
+                                                   'he': {'type': 'string', 'required': True}}},
+                              'title_url': {'type': 'string'},
+                              'image_uri': {'type': 'string'},
+                              'image_caption': {'type': 'dict',
+                                                'schema': {'en': {'type': 'string'}, 'he': {'type': 'string'}}},
+                              'description': {'type': 'dict',
+                                              'schema': {'en': {'type': 'string', 'required': True},
+                                                         'he': {'type': 'string', 'required': True}}}}},
+         'mobile': {'type': 'dict',
+                    'schema': {'title': {'type': 'dict',
+                                         'required': True,
+                                         'schema': {'en': {'type': 'string', 'required': True},
+                                                    'he': {'type': 'string', 'required': True}}},
+                               'description': {'type': 'dict',
+                                               'schema': {'en': {'type': 'string'}, 'he': {'type': 'string'}}},
+                               'android_link': {'type': 'string'},
+                               'ios_link': {'type': 'string'}}},
+         'organization': {'type': 'dict',
+                          'schema': {'title': {'type': 'dict',
+                                               'required': True,
+                                               'schema': {'en': {'type': 'string', 'required': True},
+                                                          'he': {'type': 'string', 'required': True}}},
+                                     'description': {'type': 'dict',
+                                                     'schema': {'en': {'type': 'string', 'required': True},
+                                                                'he': {'type': 'string', 'required': True}}}}},
+         'newsletter': {'type': 'dict',
+                        'schema': {'title': {'type': 'dict',
+                                             'required': True,
+                                             'schema': {'en': {'type': 'string', 'required': True},
+                                                        'he': {'type': 'string', 'required': True}}},
+                                   'description': {'type': 'dict',
+                                                   'schema': {'en': {'type': 'string', 'required': True},
+                                                              'he': {'type': 'string', 'required': True}}},
+                                   'title_url': {'type': 'string'},
+                                   'api_schema': {'type': 'dict',
+                                                  'schema': {'http_method': {'type': 'string', 'required': True},
+                                                             'payload': {'type': 'dict',
+                                                                         'schema': {
+                                                                             'first_name_key': {'type': 'string'},
+                                                                             'last_name_key': {'type': 'string'},
+                                                                             'email_key': {'type': 'string'}}}}}}}
     }
 
     def _validate(self):

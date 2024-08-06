@@ -4187,7 +4187,6 @@
                       },
                       "categoryDescription": {},
                       "numSources": 1767,
-                      "good_to_promote": true,
                       "description_published": true,
                       "data_source": "sefaria",
                       "primaryTitle": {
@@ -4591,7 +4590,6 @@
                         "isTopLevelDisplay": true,
                         "displayOrder": 30,
                         "numSources": 2937,
-                        "good_to_promote": true,
                         "primaryTitle": {
                           "en": "Prayer",
                           "he": "תפילה"
@@ -4623,7 +4621,6 @@
                           "_temp_id": "תורה"
                         },
                         "numSources": 2333,
-                        "good_to_promote": true,
                         "primaryTitle": {
                           "en": "Torah",
                           "he": "תורה"
@@ -4766,7 +4763,6 @@
                         },
                         "categoryDescription": {},
                         "numSources": 1967,
-                        "good_to_promote": true,
                         "description_published": true,
                         "data_source": "sefaria",
                         "primaryTitle": {
@@ -4869,7 +4865,6 @@
                           "categoryDescription": {},
                           "displayOrder": 0,
                           "numSources": 1662,
-                          "good_to_promote": true,
                           "description_published": true,
                           "data_source": "sefaria",
                           "image": {
@@ -5162,7 +5157,6 @@
                           }
                         },
                         "numSources": 7,
-                        "good_to_promote": true,
                         "primaryTitle": {
                           "en": "Metushelach",
                           "he": "מתושלח"
@@ -9761,7 +9755,6 @@
               "categoryDescription": {},
               "displayOrder": 0,
               "numSources": 1662,
-              "good_to_promote": true,
               "description_published": true,
               "data_source": "sefaria",
               "image": {
@@ -10071,9 +10064,6 @@
                 "format": "int32",
                 "type": "integer"
               },
-              "good_to_promote": {
-                "type": "boolean"
-              },
               "description_published": {
                 "type": "boolean"
               },
@@ -10089,7 +10079,7 @@
                 }
               }
             },
-            "example": "{\n\"slug\": \"metushelach\",\n\"titles\": [\n{\n\"text\": \"Metushelach\",\n\"lang\": \"en\",\n\"primary\": true,\n\"transliteration\": true\n},\n{\n\"text\": \"מתושלח\",\n\"lang\": \"he\",\n\"primary\": true\n},\n{\n\"text\": \"Methuselah\",\n\"lang\": \"en\"\n},\n{\n\"text\": \"Methushelach\",\n\"lang\": \"en\"\n}\n],\n\"subclass\": \"person\",\n\"alt_ids\": {\n\"_temp_id\": \"מתושלח\",\n\"wikidata\": \"Q156290\"\n},\n\"properties\": {\n\"enWikiLink\": {\n\"value\": \"https://en.wikipedia.org/wiki/Methuselah\",\n\"dataSource\": \"wikidata\"\n},\n\"heWikiLink\": {\n\"value\": \"https://he.wikipedia.org/wiki/מתושלח\",\n\"dataSource\": \"wikidata\"\n},\n\"deWikiLink\": {\n\"value\": \"https://de.wikipedia.org/wiki/Methusalem\",\n\"dataSource\": \"wikidata\"\n},\n\"esWikiLink\": {\n\"value\": \"https://es.wikipedia.org/wiki/Matusalén\",\n\"dataSource\": \"wikidata\"\n},\n\"frWikiLink\": {\n\"value\": \"https://fr.wikipedia.org/wiki/Mathusalem\",\n\"dataSource\": \"wikidata\"\n},\n\"ruWikiLink\": {\n\"value\": \"https://ru.wikipedia.org/wiki/Мафусал_(потомок_Сифа)\",\n\"dataSource\": \"wikidata\"\n}\n},\n\"numSources\": 7,\n\"good_to_promote\": true,\n\"primaryTitle\": {\n\"en\": \"Metushelach\",\n\"he\": \"מתושלח\"\n}\n}"
+            "example": "{\n\"slug\": \"metushelach\",\n\"titles\": [\n{\n\"text\": \"Metushelach\",\n\"lang\": \"en\",\n\"primary\": true,\n\"transliteration\": true\n},\n{\n\"text\": \"מתושלח\",\n\"lang\": \"he\",\n\"primary\": true\n},\n{\n\"text\": \"Methuselah\",\n\"lang\": \"en\"\n},\n{\n\"text\": \"Methushelach\",\n\"lang\": \"en\"\n}\n],\n\"subclass\": \"person\",\n\"alt_ids\": {\n\"_temp_id\": \"מתושלח\",\n\"wikidata\": \"Q156290\"\n},\n\"properties\": {\n\"enWikiLink\": {\n\"value\": \"https://en.wikipedia.org/wiki/Methuselah\",\n\"dataSource\": \"wikidata\"\n},\n\"heWikiLink\": {\n\"value\": \"https://he.wikipedia.org/wiki/מתושלח\",\n\"dataSource\": \"wikidata\"\n},\n\"deWikiLink\": {\n\"value\": \"https://de.wikipedia.org/wiki/Methusalem\",\n\"dataSource\": \"wikidata\"\n},\n\"esWikiLink\": {\n\"value\": \"https://es.wikipedia.org/wiki/Matusalén\",\n\"dataSource\": \"wikidata\"\n},\n\"frWikiLink\": {\n\"value\": \"https://fr.wikipedia.org/wiki/Mathusalem\",\n\"dataSource\": \"wikidata\"\n},\n\"ruWikiLink\": {\n\"value\": \"https://ru.wikipedia.org/wiki/Мафусал_(потомок_Сифа)\",\n\"dataSource\": \"wikidata\"\n}\n},\n\"numSources\": 7,\n\"primaryTitle\": {\n\"en\": \"Metushelach\",\n\"he\": \"מתושלח\"\n}\n}"
           },
           "url": {
             "description": "The `Ref` in a format appropriate for a URL, with spaces replaced with `.` etc. ",
@@ -10135,7 +10125,6 @@
             },
             "categoryDescription": {},
             "numSources": 217,
-            "good_to_promote": true,
             "description_published": true,
             "primaryTitle": {
               "en": "Hillel",
@@ -10169,10 +10158,6 @@
           "categoryDescription": {
             "description": "A description of the category of this topic",
             "type": "string"
-          },
-          "good_to_promote": {
-            "description": "A topic which will be included in our results from the `random-by-topic` endpoint. ",
-            "type": "boolean"
           },
           "numSources": {
             "description": "The number of text sources associated with a topic. ",
@@ -10222,7 +10207,6 @@
           },
           "categoryDescription": {},
           "numSources": 120,
-          "good_to_promote": true,
           "description_published": true,
           "data_source": "sefaria",
           "primaryTitle": {
