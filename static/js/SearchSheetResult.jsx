@@ -34,7 +34,7 @@ class SearchSheetResult extends Component {
 
       let lang = Object.keys(data)[0] // he or en
       
-      return { markup: {__html: data[lang].replace(query, `<b>${query}</b>`)}, lang: lang };
+      return { markup: {__html: data[lang].split(query).join(` <b>${query}</b> `)}, lang: lang };
     }
     render() {
         const data = this.props.data;

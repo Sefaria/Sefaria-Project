@@ -72,10 +72,11 @@ class SearchTextResult extends Component {
     highight(data, query) {
         let boldData
         if (Array.isArray(data)) {
-            boldData = data[0].replace(query, ` <b>${query}</b> `)
+            boldData = data[0].split(query).join(` <b>${query}</b> `)
             return { markup: {__html: boldData}, lang: "en" };
         } else {
-            boldData = data.replace(query, ` <b>${query}</b> `)
+            
+            boldData = data.split(query).join(` <b>${query}</b> `)
             return { markup: {__html: boldData}, lang: "en" };
         }
         
