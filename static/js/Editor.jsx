@@ -1062,7 +1062,7 @@ const AddInterface = ({ attributes, children, element }) => {
 
 const Element = (props) => {
     const { attributes, children, element } = props;
-    console.log("new element of type ", element.type);
+    // console.log("new element ", element.children, "is of type: " ,element.type);
     const editor = useSlate();
     const sheetItemClasses = {
         sheetItem: 1,
@@ -1110,32 +1110,25 @@ const Element = (props) => {
                  active: active,
                 editorAddInterface: 1,
                 };
-                const enterEvent = new KeyboardEvent('keyup', {
-                    key: 'Enter',
-                    code: 'Enter',
-                    keyCode: 13,
-                    charCode: 13,
-                    which: 13,
-                    bubbles: true // Ensures the event bubbles up through the DOM
-                });
+
                 const simulateEnter = function (){
                     // event.currentTarget.dispatchEvent(enterEvent);
                     // Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]});
                     // editor.insertBreak();
                     // const curHeaderPath = getClosestSheetElement(editor, editor.selection.focus.path, "header")[1]
                     // Transforms.insertNodes(editor, {type: 'SheetOutsideText', children: [{text: ""}]}, {at: editor.selection.focus.path});
-                    Transforms.setNodes(editor, {type: 'SheetOutsideText', children: [{text: ""}]}, {at: editor.selection.focus.path});
+                    Transforms.setNodes(editor, {type: 'spacer'}, {at: editor.selection.focus.path});
 
                 }
                 return (
-                <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={simulateEnter}>
+                // <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={simulateEnter}>
                   <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                     <div className={SheetOutsideTextClasses} {...attributes}>
                         {children}
                     </div>
                     <div className="clearFix"></div>
                   </div>
-                </div>
+                // </div>
             );
 
 
@@ -1206,11 +1199,38 @@ const Element = (props) => {
               <div className="sourceContentText">{children}</div>
             )
         case 'paragraph':
+            const focused = useFocused();
+            const selected = useSelected();
+            // console.log(focused);
+            const simulateEnterp = function (){
+                    const { selection } = editor;
+                    const currentNodePath = Editor.path(editor, selection);
+                    const nextLinePath = Editor.after(editor, currentNodePath);
+                    Transforms.insertNodes(
+                      editor,
+                      { type: 'spacer', children: [{ text: "" }] },
+                      { at: nextLinePath }
+                    );
+                      const newSelection = {
+                            anchor: Editor.point(editor, nextLinePath),
+                            focus: Editor.point(editor, nextLinePath),
+                          };
+                      Transforms.select(editor, newSelection);
+                }
+
+                const activep = false;
+                const addInterfaceClassesp = {
+                 active: active,
+                hidden: !selected,
+                editorAddInterface: 1,
+                };
             const pClasses = {center: element["text-align"] == "center" };
             return (
+                <div role="button" title={activep ? "Close menu" : "paragraph"} contentEditable={!activep} suppressContentEditableWarning={true} aria-label={activep ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClassesp)} onClick={simulateEnterp}>
                 <div className={classNames(pClasses)} {...attributes}>
                     {element.loading ? <div className="sourceLoader"></div> : null}
                     {children}
+                </div>
                 </div>
             );
         case 'bulleted-list':

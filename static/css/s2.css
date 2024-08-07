@@ -10247,6 +10247,10 @@ background-color: white;
   pointer-events: none;
   display: inline-block;
 }
+.hidden.editorAddInterface::before {
+    display: none;
+}
+
 
 .addInterfaceInput .textPreview {
   border-inline-start: 4px solid;
