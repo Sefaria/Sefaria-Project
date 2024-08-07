@@ -13,7 +13,6 @@ import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent,
 import {
   ContestLandingPage,
   RemoteLearningPage,
-  SheetsLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
@@ -539,6 +538,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("Learning Schedules") + " | " + Sefaria._(siteName);
             hist.url = "calendars";
             hist.mode = "calendars";
+            break;
+          case "sheets":
+            hist.url = "sheets";
+            hist.mode = "sheets";
+            hist.title = Sefaria._("Sheets on Sefaria");
             break;
           case "updates":
             hist.title = Sefaria._("New Additions to the " + siteName + " Library");
@@ -2245,23 +2249,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
 
     return (
-      // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
-      // InterruptingMessage modals and Banners will always render if available but stay hidden initially
-      <StrapiDataProvider>
-        <AdContext.Provider value={this.getUserContext()}>
-          <div id="readerAppWrap">
-            <InterruptingMessage />
-            <Banner onClose={this.setContainerMode} />
-            <div className={classes} onClick={this.handleInAppLinkClick}>
-              {header}
-              {panels}
-              {signUpModal}
-              {communityPagePreviewControls}
-              <CookiesNotification />
-            </div>
+      <AdContext.Provider value={this.getUserContext()}>
+        <div id="readerAppWrap">
+          <div className={classes} onClick={this.handleInAppLinkClick}>
+            {header}
+            {panels}
+            {signUpModal}
+            {communityPagePreviewControls}
+            <CookiesNotification />
           </div>
-        </AdContext.Provider>
-      </StrapiDataProvider>
+        </div>
+      </AdContext.Provider>
     );
   }
 }
@@ -2318,7 +2316,6 @@ export {
   loadServerData,
   EditCollectionPage,
   RemoteLearningPage,
-  SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,

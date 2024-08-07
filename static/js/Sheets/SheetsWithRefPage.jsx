@@ -108,31 +108,8 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                             })
         return sheets;
     }
-    const getFirstSource150Chars = (firstSource) => {
-        const lang = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
-        let comment = ""
-        if (firstSource) {
-            if ('text' in firstSource) {
-                comment = firstSource.text[lang];
-            }
-            else if ('outsideBiText' in firstSource) {
-                comment = firstSource.outsideBiText[lang];
-            }
-            else if ('outsideText' in firstSource) {
-                comment = firstSource.outsideText;
-            }
-            else if ('comment' in firstSource) {
-                comment = firstSource.comment;
-            }
-        }
-        return comment.length <= 150 ? comment : comment.substring(0, 150)+"...";
-    }
     const normalizeSheetsMetaData = (sheets) => {
         return sheets.map(sheet => {
-            let summary = sheet.summary;
-            if (!summary) {
-                summary = getFirstSource150Chars(sheet?.firstSource);
-            }
             return {
                         sheetId: sheet.id,
                         title: sheet.title,
@@ -141,7 +118,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                         profile_url: sheet.ownerProfileUrl,
                         dateCreated: sheet.dateCreated,
                         _id: sheet.id,
-                        snippet: summary
+                        snippet: sheet.summary || "",
                     }
         })
     }

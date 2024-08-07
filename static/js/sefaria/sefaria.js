@@ -481,16 +481,16 @@ Sefaria = extend(Sefaria, {
     let refStrs = [""];
     refs.map(ref => {
       let last = refStrs[refStrs.length-1];
-      const encodedRef = encodeURIComponent(ref)
-      if (`${hostStr}${last}|${encodedRef}${paramStr}`.length > MAX_URL_LENGTH) {
-        refStrs.push(encodedRef)
+      const encodedFullURL = encodeURI(`${hostStr}${last}|${ref}${paramStr}`);
+      if (encodedFullURL.length > MAX_URL_LENGTH) {
+        refStrs.push(ref)
       } else {
-        refStrs[refStrs.length-1] += last.length ? `|${encodedRef}` : encodedRef;
+        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
       }
     });
 
     let promises = refStrs.map(refStr => this._cachedApiPromise({
-      url: `${hostStr}${refStr}${paramStr}`,
+      url: `${hostStr}${encodeURIComponent(refStr)}${paramStr}`,
       key: refStr + paramStr,
       store: this._bulkTexts
     }));
@@ -2810,25 +2810,26 @@ _media: {},
           };
       }
 
-      let filters = {'topics': [], 'collections': []};
+      let filters = {};
       sheets.forEach(sheet => {
-        Object.keys(filters).forEach(itemsType => {
-            let slugsFound = [];  // keep track of topic slugs or collection slugs in this sheet
-            sheet[[itemsType]]?.forEach(item => {
-              if (!slugsFound.includes(item.slug)) { // we don't want to increase docCount when one sheet already
-                                                    // has a topic/collection with the same slug as the current topic/collection
-                let filter = filters[[itemsType]].find(f => f.aggKey === item.slug);
+        let slugsFound = new Set();  // keep track of slugs in this sheet\n
+        ['topics', 'collections'].forEach(itemsType => {
+            sheet[itemsType]?.forEach(item => {
+              const key = `${item.slug}|${itemsType}`;
+              if (!slugsFound.has(key)) { // we don't want to increase docCount when one sheet already
+                                              // has a topic/collection with the same slug as the current topic/collection
+                let filter = filters[key];
                 if (!filter) {
                   filter = newFilter(item, itemsType);
-                  filters[[itemsType]].push(filter);
+                  filters[key] = filter;
                 }
-                slugsFound.push(item.slug);
+                slugsFound.add(key);
                 filter.docCount += 1;
               }
             })
         })
       })
-      return [...filters.collections, ...filters.topics].map(f => new FilterNode(f));;
+      return Object.values(filters).map(f => new FilterNode(f));;
     },
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {

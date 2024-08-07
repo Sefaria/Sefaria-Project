@@ -60,6 +60,13 @@ def annotate_user_links(sources):
 
     return sources
 
+from django.utils.translation import ugettext as _
+from reader.views import menu_page
+def sheets_home_page(request):
+    title = _("Sheets on Sefaria")
+    desc  = _("Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos.")
+    return menu_page(request, page="sheets", title=title, desc=desc)
+
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
@@ -1023,9 +1030,10 @@ def sheets_by_ref_api(request, ref):
     API to get public sheets by ref.
     """
     include_collections = bool(int(request.GET.get("include_collections", 0)))
-    include_first_comment = bool(int(request.GET.get("include_first_comment", 0)))
-    return jsonResponse(get_sheets_for_ref(ref, include_collections=include_collections,
-                                           include_first_comment=include_first_comment))
+    sheets = get_sheets_for_ref(ref)
+    if include_collections:
+        sheets = get_collections_for_sheets(sheets)
+    return jsonResponse(sheets)
 def sheets_with_ref(request, tref):
     """
     Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
