@@ -453,6 +453,13 @@ class ReaderApp extends Component {
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
+          case "sheetsWithRef":
+            const encodedSheetsWithRef = Sefaria.sheetsWithRef[shortLang] ? encodeURIComponent(Sefaria.sheetsWithRef[shortLang]) : "";
+            hist.title = Sefaria._("Sheets with ") + Sefaria.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
+            hist.url   = "sheetsWithRef" + (Sefaria.sheetsWithRef[shortLang] ? (`/${encodedSheetsWithRef}` +
+              state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
+            hist.mode = "sheetsWithRef";
+            break;
           case "text toc":
             var ref    = state.refs.slice(-1)[0];
             var bookTitle  = ref ? Sefaria.parseRef(ref).index : "404";
@@ -1190,6 +1197,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       sheetSearchState: state.sheetSearchState.update({ filtersValid: false }),
     };
     this.setPanelState(n, updates);
+  }
+  updateSearchState(n, searchState, type) {
+    const searchStateName = this._getSearchStateName(type);
+    this.setPanelState(n,{[searchStateName]: searchState});
   }
   updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     const state = this.state.panels[n];
@@ -2133,6 +2144,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
       var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
+      let updateSearchState              = this.updateSearchState.bind(null, i);
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
@@ -2163,6 +2175,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
                       openPanelAt={this.openPanelAt}
+                      updateSearchState={updateSearchState}
                       panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}

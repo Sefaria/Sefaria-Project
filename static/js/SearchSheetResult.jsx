@@ -78,8 +78,7 @@ class SearchSheetResult extends Component {
 
 SearchSheetResult.propTypes = {
     query: PropTypes.string,
-    metadata: PropTypes.object,
-    snippet: PropTypes.string,
+    hit: PropTypes.object,
     onResultClick: PropTypes.func
 };
 

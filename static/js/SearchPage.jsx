@@ -6,7 +6,6 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
-import SearchResultList  from './SearchResultList';
 import SearchFilters from './SearchFilters';
 import Component from 'react-class';
 import {
@@ -14,6 +13,7 @@ import {
   InterfaceText,
   LoadingMessage,
 } from './Misc';
+import {SearchResultList} from "./SearchResultList";
 
 class SearchPage extends Component {
   constructor(props) {
@@ -26,6 +26,24 @@ class SearchPage extends Component {
   render () {
     const classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
+    const searchResultList = <SearchResultList
+                                        query={this.props.query}
+                                        hits={this.props.hits}
+                                        type={this.props.type}
+                                        compare={this.props.compare}
+                                        searchState={this.props.searchState}
+                                        onResultClick={this.props.onResultClick}
+                                        updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+                                        registerAvailableFilters={this.props.registerAvailableFilters}
+                                        openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                                        loadNextPage={this.props.loadNextPage}
+                                        isQueryRunning={this.props.isQueryRunning}
+                                        moreToLoad={this.props.moreToLoad}
+                                        topics={this.props.topics}
+                                      />;
+    if (this.props.searchInBook) {
+      return searchResultList;
+    }
     return (
       <div className={classes} key={this.props.query}>
         {this.props.compare ?
@@ -41,35 +59,25 @@ class SearchPage extends Component {
               
               <div className="searchTopLine">
                 <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
-                  <InterfaceText>Results for</InterfaceText>&nbsp;
+                  <InterfaceText>{this.props.searchTopMsg}</InterfaceText>&nbsp;
                   <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}} />
                   { this.props.query }
                   <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
                 </h1>
-                {this.state.totalResults?.getValue() > 0 ?
+                {this.props.totalResults?.getValue() > 0 ?
                 <div className="searchResultCount sans-serif">
-                  <InterfaceText>{this.state.totalResults.asString()}</InterfaceText>&nbsp;
+                  <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
                   <InterfaceText>Results</InterfaceText>
                 </div>
                 : null }
               </div>
 
-              <SearchResultList
-                query={this.props.query}
-                type={this.props.type}
-                compare={this.props.compare}
-                searchState={this.props.searchState}
-                onResultClick={this.props.onResultClick}
-                updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                registerAvailableFilters={this.props.registerAvailableFilters}
-                updateTotalResults={n => this.setState({totalResults: n})}
-                openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-              />
+              {searchResultList}
             </div>
 
             {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
             <div className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
-              {this.state.totalResults?.getValue() > 0 ?
+              {this.props.totalResults?.getValue() > 0 ?
               <SearchFilters
                 query={this.props.query}
                 searchState={this.props.searchState}
@@ -90,7 +98,6 @@ class SearchPage extends Component {
   }
 }
 SearchPage.propTypes = {
-  interfaceLang:            PropTypes.oneOf(["english", "hebrew"]),
   query:                    PropTypes.string,
   type:                      PropTypes.oneOf(["text", "sheet"]),
   searchState:              PropTypes.object,
@@ -103,6 +110,10 @@ SearchPage.propTypes = {
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func,
+  loadNextPage:             PropTypes.func,
+  moreToLoad:               PropTypes.bool,
+  topics:                   PropTypes.array,
+  totalResults:             PropTypes.object,
 };
 
 
