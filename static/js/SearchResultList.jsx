@@ -500,6 +500,7 @@ class SearchResultList extends Component {
           //     searchInBook={this.props.searchInBook}
           //     onResultClick={this.props.onResultClick} />
           // } )
+          
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
                   Sefaria.track.event("Search", "topic in search display", t.analyticCat+"|"+t.title);
@@ -523,25 +524,27 @@ class SearchResultList extends Component {
           //     key={result._id}
           //     onResultClick={this.props.onResultClick} />
           // );
-          results = this.props.mongoSearch.result.sheet.map((result, i) =>
-            result.sources.map((source, i) => {
-              const data = {
-                title: result.title,
-                sheetId: result.sheet_id,
-                ownerId: result.owner_id,
-                sources: source.outsideBiText
-              }
-              return (
-              <SearchSheetResult
-                data={data}
-                query={this.props.query}
-                key={result.sheet_id}
-                onResultClick={this.props.onResultClick} />
-              )
-            })
-            
-            
-          );
+          if(this.props.mongoSearch && this.props.mongoSearch.status == "success"){
+            results = this.props.mongoSearch.result.sheet.map((result, i) =>
+              result.sources.map((source, i) => {
+                const data = {
+                  title: result.title,
+                  sheetId: result.sheet_id,
+                  ownerId: result.owner_id,
+                  sources: source.outsideBiText
+                }
+                return (
+                <SearchSheetResult
+                  data={data}
+                  query={this.props.query}
+                  key={result.sheet_id}
+                  onResultClick={this.props.onResultClick} />
+                )
+              })
+
+
+            );
+          }
         }
 
         const loadingMessage   = (<LoadingMessage message={Sefaria._("Searching...")} heMessage={Sefaria._("Searching...")}/>);
