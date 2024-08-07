@@ -1030,7 +1030,10 @@ def sheets_by_ref_api(request, ref):
     API to get public sheets by ref.
     """
     include_collections = bool(int(request.GET.get("include_collections", 0)))
-    return jsonResponse(get_sheets_for_ref(ref, include_collections=include_collections))
+    sheets = get_sheets_for_ref(ref)
+    if include_collections:
+        sheets = get_collections_for_sheets(sheets)
+    return jsonResponse(sheets)
 def sheets_with_ref(request, tref):
     """
     Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
