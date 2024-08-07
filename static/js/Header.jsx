@@ -18,14 +18,16 @@ import {Autocomplete} from './Autocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
 
 
-const LoggedOutMenu = (curLang, transLangPreference, setTransLangPreference) => {
+const LoggedOutMenu = (currentLang) => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
   const [registerLink, setRegisterLink] = useState("/register?next=/");
+
   useEffect(()=>{
     setIsClient(true);
   }, []);
+
   useEffect(()=> {
     if(isClient){
       setNext(encodeURIComponent(Sefaria.util.currentPath()));
@@ -33,29 +35,36 @@ const LoggedOutMenu = (curLang, transLangPreference, setTransLangPreference) => 
       setRegisterLink("/register?next="+next);
     }
   })
+
+  const getCurrentPage = () => {
+    return encodeURIComponent(Sefaria.util.currentPath());
+  }
   return (
     <DropdownMenu menu_icon={'/static/icons/logged_out.svg'}>
-    <DropdownMenuItem url={loginLink}>
-      Log in
-    </DropdownMenuItem>
-    <DropdownMenuItem url={registerLink}>
-      Sign up
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem>
-      Language toggle goes here
-    </DropdownMenuItem>
-    {/* <InterfaceLanguageMenu
-                currentLang={curLang}
-                translationLanguagePreference={transLangPreference}
-                setTranslationLanguagePreference={setTransLangPreference} /> */}
-    <DropdownMenuSeparator />
-    <DropdownMenuItem url={'/updates'}>
-      New additions
-    </DropdownMenuItem>
-    <DropdownMenuItem url={'/help'}>
-      Help
-    </DropdownMenuItem>
+      <DropdownMenuItem url={loginLink}>
+        Log in
+      </DropdownMenuItem>
+      <DropdownMenuItem url={registerLink}>
+        Sign up
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <div className="interfaceLinks-header">
+          <InterfaceText>Site Language</InterfaceText>
+      </div>
+      <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
+      עברית    
+      </DropdownMenuItem>
+      <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
+      English
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem url={'/updates'}>
+        New additions
+      </DropdownMenuItem>
+      <DropdownMenuItem url={'/help'}>
+        Help
+      </DropdownMenuItem>
+
   </DropdownMenu>
   );
 }
@@ -141,9 +150,7 @@ class Header extends Component {
 
           { Sefaria._uid ?
             <LoggedInButtons headerMode={this.props.headerMode}/>
-            : <LoggedOutMenu curLang={Sefaria.interfaceLang} 
-                             transLangPreference={this.props.translationLanguagePreference}
-                             setTransLangPreference={this.props.setTranslationLanguagePreference}/>
+            : <LoggedOutMenu currentLang={Sefaria.interfaceLang}/>
           }
 
         </div>
