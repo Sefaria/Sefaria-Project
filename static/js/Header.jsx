@@ -18,7 +18,7 @@ import {Autocomplete} from './Autocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
 
 
-const LoggedOutMenu = () => {
+const LoggedOutMenu = (curLang, transLangPreference, setTransLangPreference) => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
@@ -42,9 +42,13 @@ const LoggedOutMenu = () => {
       Sign up
     </DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem url={'/'}>
-      Site language goes here - check with Mickey what the design is
+    <DropdownMenuItem>
+      Language toggle goes here
     </DropdownMenuItem>
+    {/* <InterfaceLanguageMenu
+                currentLang={curLang}
+                translationLanguagePreference={transLangPreference}
+                setTranslationLanguagePreference={setTransLangPreference} /> */}
     <DropdownMenuSeparator />
     <DropdownMenuItem url={'/updates'}>
       New additions
@@ -126,21 +130,22 @@ class Header extends Component {
             openURL={this.props.openURL}
         />
 
-
-          { Sefaria._uid ?
-            <LoggedInButtons headerMode={this.props.headerMode}/>
-            : <LoggedOutMenu />
-          }
-
-          
-          <ModuleSwitcher /> 
-
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
-        
+
+
+          <ModuleSwitcher /> 
+
+          { Sefaria._uid ?
+            <LoggedInButtons headerMode={this.props.headerMode}/>
+            : <LoggedOutMenu curLang={Sefaria.interfaceLang} 
+                             transLangPreference={this.props.translationLanguagePreference}
+                             setTransLangPreference={this.props.setTranslationLanguagePreference}/>
+          }
+
         </div>
       </>
     );

@@ -1426,7 +1426,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
                     <InterfaceText>Reset</InterfaceText>
                   </span>
                 </a>
-              </div>
+              </div> 
             </>
           ) : null}
         </div>
