@@ -481,16 +481,16 @@ Sefaria = extend(Sefaria, {
     let refStrs = [""];
     refs.map(ref => {
       let last = refStrs[refStrs.length-1];
-      const encodedRef = encodeURIComponent(ref)
-      if (`${hostStr}${last}|${encodedRef}${paramStr}`.length > MAX_URL_LENGTH) {
-        refStrs.push(encodedRef)
+      const encodedFullURL = encodeURI(`${hostStr}${last}|${ref}${paramStr}`);
+      if (encodedFullURL.length > MAX_URL_LENGTH) {
+        refStrs.push(ref)
       } else {
-        refStrs[refStrs.length-1] += last.length ? `|${encodedRef}` : encodedRef;
+        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
       }
     });
 
     let promises = refStrs.map(refStr => this._cachedApiPromise({
-      url: `${hostStr}${refStr}${paramStr}`,
+      url: `${hostStr}${encodeURIComponent(refStr)}${paramStr}`,
       key: refStr + paramStr,
       store: this._bulkTexts
     }));

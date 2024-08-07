@@ -1594,7 +1594,37 @@ def parashat_hashavua_api(request):
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
+def find_holiday_in_hebcal_results(response):
+    for hebcal_holiday in json.loads(response.text)['items']:
+        if hebcal_holiday['category'] != 'holiday':
+            continue
+        for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
+            if result['type'] == 'Topic':
+                topic = Topic.init(result['key'])
+                if topic:
+                    return topic.contents()
+    return null
 
+@catch_error_as_json
+def next_holiday(request):
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    import requests
+    current_date = datetime.now().date()
+    date_in_three_months = current_date + relativedelta(months=+3)
+
+    # Format the date as YYYY-MM-DD
+    current_date = current_date.strftime('%Y-%m-%d')
+    date_in_three_months = date_in_three_months.strftime("%Y-%m-%d")
+    response = requests.get(f"https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&start={current_date}&end={date_in_three_months}")
+    if response.status_code == 200:
+        topic = find_holiday_in_hebcal_results(response)
+        if topic:
+            return jsonResponse(topic)
+        else:
+            return jsonResponse({"error": "Couldn't find any topics corresponding to HebCal results"})
+    else:
+        return jsonResponse({"error": "Couldn't establish connection with HebCal API"})
 @catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
@@ -2438,9 +2468,9 @@ def category_api(request, path=None):
         else:
             return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
 
-        j = request.POST.get("json")
+        j = request.body
         if not j:
-            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+            return jsonResponse({"error": "Missing data in POST request."})
         j = json.loads(j)
         update = int(request.GET.get("update", False))
         new_category = Category().load({"path": j["path"]})
@@ -2486,6 +2516,18 @@ def category_api(request, path=None):
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+@catch_error_as_json
+@csrf_exempt
+def parasha_data_api(request):
+    from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+    diaspora = request.GET.get("diaspora", "1")
+    datetime_obj = timezone.localtime(timezone.now())
+    if diaspora not in ["0", "1"]:
+        return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
+    else:
+        diaspora = True if diaspora == "1" else False
+        db_parasha = get_parasha(datetime_obj, diaspora=diaspora)
+        return jsonResponse(make_parashah_response_from_calendar_entry(db_parasha, include_topic_slug=True)[0])
 
 @catch_error_as_json
 @csrf_exempt
@@ -4029,14 +4071,12 @@ def digitized_by_sefaria(request):
         "texts": texts,
     })
 
-
 def parashat_hashavua_redirect(request):
     """ Redirects to this week's Parashah"""
     diaspora = request.GET.get("diaspora", "1")
     calendars = get_keyed_calendar_items()  # TODO Support israel / customs
     parashah = calendars["Parashat Hashavua"]
     return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
-
 
 def daf_yomi_redirect(request):
     """ Redirects to today's Daf Yomi"""

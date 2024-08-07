@@ -60,6 +60,13 @@ def annotate_user_links(sources):
 
     return sources
 
+from django.utils.translation import ugettext as _
+from reader.views import menu_page
+def sheets_home_page(request):
+    title = _("Sheets on Sefaria")
+    desc  = _("Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos.")
+    return menu_page(request, page="sheets", title=title, desc=desc)
+
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
