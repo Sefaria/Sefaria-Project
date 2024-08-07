@@ -122,7 +122,7 @@ const Notifications = ({type, props}) => {
 
 
 const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
-  
+  console.log("data: ", date)
   let image = imageUrl ? <img src={imageUrl} /> : null
   image     = imageLink ? <a href={imageLink}>{image}</a> : image;
 
@@ -136,7 +136,7 @@ const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
         <div className="topLine">
           <div className="topLineText">{topLine}</div>
           <div className="date">
-            <InterfaceText text={{en: `${Sefaria.util.naturalTime(date)} ago`, he: `לפני ${Sefaria.util.naturalTime(date)}`}} />
+            <InterfaceText text={{en: `${Sefaria.util.naturalTime(date)} ago`, he: `${Sefaria.util.naturalTime(date, {lang: "he", short: "shortBo"})}`}} />
           </div>
         </div>
         
