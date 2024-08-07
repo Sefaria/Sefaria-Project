@@ -130,23 +130,24 @@ class ElasticSearchQuerier extends Component {
         this._abortRunningQuery();  // todo: make this work w/ promises
     }
     componentWillReceiveProps(newProps) {
-      let state = {
-              hits: [],
-              pagesLoaded: 0,
-              moreToLoad: true
-          };
-      if (this.props.query !== newProps.query) {
-        this.setState(state, () => {
-            this._executeAllQueries(newProps);
-            if (!this.props.searchInBook) {
-                this.props.resetSearchFilters();
-            }
-        });
-      } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
-          this.setState(state, () => {
-              this._executeQuery(newProps, this.props.searchState.type);
-          })
-      }
+        let state = {
+            hits: [],
+            pagesLoaded: 0,
+            moreToLoad: true
+        };
+        if (this.props.query !== newProps.query) {
+            this.setState(state, () => {
+                this._executeAllQueries(newProps);
+                if (!this.props.searchInBook) {
+                    this.props.resetSearchFilters();
+                }
+            });
+        } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
+            this.setState(state, () => {
+                this._executeQuery(newProps, this.props.searchState.type);
+            })
+        }
+    }
     async _executeTopicQuery() {
         const topicQuerier = new TopicQuerier();
         const d = await Sefaria.getName(this.props.query)
