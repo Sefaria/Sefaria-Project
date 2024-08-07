@@ -19,6 +19,11 @@ import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItem
 
 
 const LoggedInDropdown = () => {
+
+  const getCurrentPage = () => {
+    return encodeURIComponent(Sefaria.util.currentPath());
+  }
+  
   return (
     <DropdownMenu menu_icon={Sefaria.profile_pic_url ? Sefaria.profile_pic_url : '/static/icons/logged_out.svg'}>
       <DropdownMenuItem>
@@ -32,9 +37,14 @@ const LoggedInDropdown = () => {
         Torah Tracker
       </DropdownMenuItem>
       <DropdownMenuSeparator />
-      <DropdownMenuItem>
-        Language toggle goes Here
-        {/* <InterfaceLanguageMenu /> */}
+      <div className="interfaceLinks-header">
+          <InterfaceText>Site Language</InterfaceText>
+      </div>
+      <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
+      עברית    
+      </DropdownMenuItem>
+      <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
+      English
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem url={'/notifications'}>
