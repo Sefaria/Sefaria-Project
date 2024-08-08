@@ -45,7 +45,7 @@ from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
-from sefaria.sefaria_tasks_interace.history_change import LinkChange
+from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
@@ -82,7 +82,7 @@ from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic, update_topic_titles
 from sefaria.helper.category import update_order_of_category_children, check_term
-from sefaria.helper.texts.tasks import save_link, PossiblyCeleryJSONResponse
+from sefaria.helper.texts.tasks import save_link, PossiblyCeleryJSONResponse, save_version
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -1540,6 +1540,56 @@ def texts_api(request, tref):
         return jsonResponse({"status": "ok"})
 
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+@csrf_exempt
+def complete_version_api(request):
+
+    def internal_do_post():
+        skip_links = bool(int(request.POST.get("skip_links", 0)))
+        count_after = int(request.POST.get("count_after", 0))
+        version_change = VersionChange(raw_version=data, uid=request.user.id, method=method, patch=patch, count_after=count_after, skip_links=skip_links)
+        return save_version(asdict(version_change))
+
+    if request.method == "POST":
+        patch = False
+    elif request.method == 'PATCH':
+        patch = True
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+
+    body_unicode = request.body.decode('utf-8')
+    body_data = urllib.parse.parse_qs(body_unicode)
+    json_data = body_data.get('json')[0]
+    if not json_data:
+        return jsonResponse({"error": "Missing 'json' parameter in post data."})
+    data = json.loads(json_data)
+
+    title = data.get('title')
+    if not title:
+        return jsonResponse({"error": "Missing title in 'json' parameter."})
+
+    try:
+        index = library.get_index(title.replace('_', ' '))
+    except BookNameError:
+        return jsonResponse({"error": f"No index named: {title}"})
+
+    if not request.user.is_authenticated:
+        key = body_data.get('apikey')[0]
+        if not key:
+            return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
+        apikey = db.apikeys.find_one({"key": key})
+        method = 'API'
+        if not apikey:
+            return jsonResponse({"error": "Unrecognized API key."})
+    else:
+        method = None
+        internal_do_post = csrf_protect(internal_do_post())
+
+    response = PossiblyCeleryJSONResponse([internal_do_post()], method)
+    return response()
+
 
 @catch_error_as_json
 @csrf_exempt

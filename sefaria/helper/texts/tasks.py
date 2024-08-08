@@ -66,3 +66,12 @@ def save_link(raw_link_change: dict):
     except Exception as e:
         logger.error(e)
     return format_object_for_client(obj)
+
+@defer_to_celery_conditionally(queue=CELERY_QUEUES['tasks'])
+@app.task(name="web.save_version")
+def save_version(raw_version_change: dict):
+    version = raw_version_change['raw_version']
+    uid = raw_version_change['uid']
+    patch = raw_version_change['patch']
+    kwargs = {'skip_links': raw_version_change['skip_links'], 'count_after': raw_version_change['count_after']}
+    tracker.modify_version(uid, version, patch, **kwargs)
