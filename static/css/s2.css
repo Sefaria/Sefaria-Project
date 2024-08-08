@@ -695,6 +695,7 @@ input.noselect {
 .headerInner .headerNavSection {
     display: flex;
     justify-content: flex-start;
+    white-space: nowrap;
 }
 
 .headerInner .headerNavSection a {
@@ -4453,6 +4454,7 @@ details .open-details::before {
 
 .versionDetails .status {
     display: initial;
+    white-space: nowrap; /* Prevents text from wrapping */
     margin-inline-start: auto;
     font-style: normal;
     font-weight: normal;
@@ -8430,31 +8432,38 @@ But not to use a display block directive that might break continuous mode for ot
 .interface-hebrew .addToSourceSheetBox .button.small {
     width: 50%;
     float: left;
+    white-space: nowrap;
 }
 
 .addToSourceSheetBox .newSheet {
     border-top: 1px solid #E9E9E9;
     padding: 14px 22px;
+
 }
 
 .addToSourceSheetBox .newSheet input::placeholder { /* eventual spec? */
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    white-space: nowrap;
 }
 
 .addToSourceSheetBox .newSheet input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    white-space: nowrap;
 }
 
 .addToSourceSheetBox .newSheet input::-moz-placeholder { /* Firefox 19+ */
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    white-space: nowrap;
 }
 
 .addToSourceSheetBox .newSheet input:-ms-input-placeholder { /* IE 10+ */
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    white-space: nowrap;
 }
 
 .addToSourceSheetBox .newSheet input:-moz-placeholder { /* Firefox 18- */
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    white-space: nowrap;
 }
 
 .confirmAddToSheet {
@@ -10217,6 +10226,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 
 .topicFilterBox {
+    
+    white-space: nowrap;
     display: flex;
     align-items: center;
     margin-bottom: 30px;
@@ -10240,7 +10251,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .topicFilterInput {
     padding: 0px 10px;
-    line-height: 30px;
+    line-height: 25px;
     flex: 1;
     box-sizing: border-box;
     border: none;
@@ -13223,6 +13234,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .largeFollowButton {
+    white-space: nowrap; /* Prevents text from wrapping */
     display: inline-flex;
     min-height: 46px;
     height: 46px;
@@ -13247,6 +13259,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .smallFollowButton {
+    white-space: nowrap; /* Prevents text from wrapping */
     height: 20px;
     line-height: 18px;
     width: min-content;
@@ -13619,7 +13632,11 @@ body .homeFeedWrapper .content {
 
 .authorByLine .authorOrganization,
 .authorByLine .authorName {
-    display: block;
+    display: flex;
+    flex-grow: 0;     /* Prevents the div from growing */
+    flex-shrink: 0;   /* Prevents the div from shrinking */
+    flex-basis: auto; /* The div's width will be based on its content */
+
 }
 
 .saveLine .authorByLine + .saveButton {
