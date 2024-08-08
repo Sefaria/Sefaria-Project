@@ -1202,33 +1202,27 @@ const Element = (props) => {
             const focused = useFocused();
             const selected = useSelected();
             // console.log(focused);
+            const moveAnchorToEndOfCurrentNode = () => {
+                const { selection } = editor;
+
+                  if (selection && Range.isCollapsed(selection)) {
+                    const { anchor } = selection;
+                    const node = Editor.node(editor, anchor);
+
+                    if (node) {
+                      const [, path] = node;
+                      const endPoint = Editor.end(editor, path);
+
+                      Transforms.select(editor, {
+                        anchor: endPoint,
+                        focus: endPoint
+                      });
+                    }
+                  }
+        };
             const insertNewLine = function (){
-                  // Get the current selection
-              const { selection } = editor;
-              if (!selection) return;
-
-              // Get the current node
-              const [currentNode] = Editor.node(editor, selection);
-
-              // Create a new empty paragraph node
-              const newNode = {
-                type: 'SheetOutsideText',
-                children: [{ text: '' }],
-              };
-
-              // Get the current path
-              const currentPath = Editor.path(editor, selection);
-
-              // Insert the new node after the current node
-              Transforms.insertNodes(editor, newNode, {
-                at: Editor.after(editor, currentPath),
-              });
-
-              // Get the path to the new node
-              const newPath = Editor.after(editor, currentPath);
-
-              // Move the selection to the new node
-              Transforms.select(editor, newPath);
+              moveAnchorToEndOfCurrentNode();
+              editor.insertBreak();
             }
 
                 const addNewLineClasses = {
