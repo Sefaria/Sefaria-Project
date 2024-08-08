@@ -1201,7 +1201,6 @@ const Element = (props) => {
         case 'paragraph':
             const focused = useFocused();
             const selected = useSelected();
-            // console.log(focused);
             const moveAnchorToEndOfCurrentNode = () => {
                 const { selection } = editor;
 
@@ -1226,7 +1225,6 @@ const Element = (props) => {
             }
 
                 const addNewLineClasses = {
-                 // active: active,
                 hidden: !selected,
                 editorAddInterface: 1,
                 };
