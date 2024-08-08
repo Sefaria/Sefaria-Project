@@ -1062,6 +1062,8 @@ const AddInterface = ({ attributes, children, element }) => {
 
 const Element = (props) => {
     const { attributes, children, element } = props;
+    // console.log("new element ", element.children, "is of type: " ,element.type);
+    const editor = useSlate();
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
@@ -1103,13 +1105,30 @@ const Element = (props) => {
             );
         case 'SheetOutsideText':
                 const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
+                const active = false;
+                const addInterfaceClasses = {
+                 active: active,
+                editorAddInterface: 1,
+                };
+
+                const simulateEnter = function (){
+                    // event.currentTarget.dispatchEvent(enterEvent);
+                    // Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]});
+                    // editor.insertBreak();
+                    // const curHeaderPath = getClosestSheetElement(editor, editor.selection.focus.path, "header")[1]
+                    // Transforms.insertNodes(editor, {type: 'SheetOutsideText', children: [{text: ""}]}, {at: editor.selection.focus.path});
+                    Transforms.setNodes(editor, {type: 'spacer'}, {at: editor.selection.focus.path});
+
+                }
                 return (
+                // <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={simulateEnter}>
                   <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                     <div className={SheetOutsideTextClasses} {...attributes}>
                         {children}
                     </div>
                     <div className="clearFix"></div>
                   </div>
+                // </div>
             );
 
 
@@ -1180,11 +1199,42 @@ const Element = (props) => {
               <div className="sourceContentText">{children}</div>
             )
         case 'paragraph':
+            const focused = useFocused();
+            const selected = useSelected();
+            const moveAnchorToEndOfCurrentNode = () => {
+                const { selection } = editor;
+
+                  if (selection && Range.isCollapsed(selection)) {
+                    const { anchor } = selection;
+                    const node = Editor.node(editor, anchor);
+
+                    if (node) {
+                      const [, path] = node;
+                      const endPoint = Editor.end(editor, path);
+
+                      Transforms.select(editor, {
+                        anchor: endPoint,
+                        focus: endPoint
+                      });
+                    }
+                  }
+        };
+            const insertNewLine = function (){
+              moveAnchorToEndOfCurrentNode();
+              editor.insertBreak();
+            }
+
+                const addNewLineClasses = {
+                hidden: !selected,
+                editorAddInterface: 1,
+                };
             const pClasses = {center: element["text-align"] == "center" };
             return (
+                <div role="button" title={"paragraph"} contentEditable={true} suppressContentEditableWarning={true} aria-label={"Add new line"} className={classNames(addNewLineClasses)} onClick={insertNewLine}>
                 <div className={classNames(pClasses)} {...attributes}>
                     {element.loading ? <div className="sourceLoader"></div> : null}
                     {children}
+                </div>
                 </div>
             );
         case 'bulleted-list':
@@ -2488,7 +2538,7 @@ const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
-    const renderElement = useCallback(props => <Element {...props} />, []);
+    const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
@@ -2947,7 +2997,6 @@ const SefariaEditor = (props) => {
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
     );
-
 
     return (
         <div ref={editorContainer} onClick={props.handleClick}>
