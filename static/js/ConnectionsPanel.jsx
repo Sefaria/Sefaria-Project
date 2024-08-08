@@ -756,7 +756,7 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
       {openComparePanel ? <ToolsButton en={Sefaria._("Compare Text")} he={Sefaria._("Compare Text")} image="compare-panel.svg" onClick={openComparePanel} /> : null}
       <ToolsButton en={Sefaria._("Notes")} he={Sefaria._("Notes")} image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />
       {masterPanelMode !== "Sheet" ? <ToolsButton en={Sefaria._("Share")} he={Sefaria._("Share")} image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
-      <ToolsButton en={Sefaria._("Feedback")}  he={Sefaria._("Feedback")} image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
+      {/* <ToolsButton en={Sefaria._("Feedback")}  he={Sefaria._("Feedback")} image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} /> */}
       <ToolsButton en={Sefaria._("Advanced")} he={Sefaria._("Advanced")} image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
     </div>
   );
