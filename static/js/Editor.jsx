@@ -1202,31 +1202,43 @@ const Element = (props) => {
             const focused = useFocused();
             const selected = useSelected();
             // console.log(focused);
-            const simulateEnterp = function (){
-                    const { selection } = editor;
-                    const currentNodePath = Editor.path(editor, selection);
-                    const nextLinePath = Editor.after(editor, currentNodePath);
-                    Transforms.insertNodes(
-                      editor,
-                      { type: 'spacer', children: [{ text: "" }] },
-                      { at: nextLinePath }
-                    );
-                      const newSelection = {
-                            anchor: Editor.point(editor, nextLinePath),
-                            focus: Editor.point(editor, nextLinePath),
-                          };
-                      Transforms.select(editor, newSelection);
-                }
+            const insertNewLine = function (){
+                  // Get the current selection
+              const { selection } = editor;
+              if (!selection) return;
 
-                const activep = false;
-                const addInterfaceClassesp = {
-                 active: active,
+              // Get the current node
+              const [currentNode] = Editor.node(editor, selection);
+
+              // Create a new empty paragraph node
+              const newNode = {
+                type: 'SheetOutsideText',
+                children: [{ text: '' }],
+              };
+
+              // Get the current path
+              const currentPath = Editor.path(editor, selection);
+
+              // Insert the new node after the current node
+              Transforms.insertNodes(editor, newNode, {
+                at: Editor.after(editor, currentPath),
+              });
+
+              // Get the path to the new node
+              const newPath = Editor.after(editor, currentPath);
+
+              // Move the selection to the new node
+              Transforms.select(editor, newPath);
+            }
+
+                const addNewLineClasses = {
+                 // active: active,
                 hidden: !selected,
                 editorAddInterface: 1,
                 };
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div role="button" title={activep ? "Close menu" : "paragraph"} contentEditable={!activep} suppressContentEditableWarning={true} aria-label={activep ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClassesp)} onClick={simulateEnterp}>
+                <div role="button" title={"paragraph"} contentEditable={true} suppressContentEditableWarning={true} aria-label={"Add new line"} className={classNames(addNewLineClasses)} onClick={insertNewLine}>
                 <div className={classNames(pClasses)} {...attributes}>
                     {element.loading ? <div className="sourceLoader"></div> : null}
                     {children}

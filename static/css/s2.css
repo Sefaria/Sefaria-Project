@@ -10193,11 +10193,13 @@ span.purim-emoji img{
 .interface-english .spacer:only-of-type.empty:before,
 .interface-english .spacer:only-of-type.empty:before {
   content: "Write something... ";
+  margin-inline-start: 50px;
 }
 .interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-hebrew .spacer:only-of-type.empty:before,
 .interface-hebrew .spacer:only-of-type.empty:before {
   content: "לכתוב משהו...";
+  margin-inline-start: 50px;
 }
 .editorAddInterface {
   position: relative;
