@@ -20,6 +20,8 @@ const NavSidebar = ({modules}) => {
 
 const Modules = ({type, props}) => {
   // Choose the appropriate module component to render by `type`
+  
+  //removed ("SponsorADay":            SponsorADay,) from moduleTypes
   const moduleTypes = {
     "AboutSefaria":           AboutSefaria,
     "Promo":                  Promo,
@@ -28,7 +30,6 @@ const Modules = ({type, props}) => {
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
     "SupportSefaria":         SupportSefaria,
-    "SponsorADay":            SponsorADay,
     "LearningSchedules":      LearningSchedules,
     "Translations":           Translations,
     "WeeklyTorahPortion":     WeeklyTorahPortion,
