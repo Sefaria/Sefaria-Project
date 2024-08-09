@@ -8,6 +8,7 @@ export const LANGUAGES = {
 export const SOURCE_LANGUAGES = {
     'EN': 'div.toggleOption.english',
     'HE': 'div.toggleOption.hebrew',
+    'BI': 'div.toggleOption.bilingual'
 }
 
 export const cookieObject = {
