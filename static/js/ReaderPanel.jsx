@@ -1225,6 +1225,7 @@ class ReaderControls extends Component {
     super(props);
     this.state = {
       displayVersionTitle: {},  // lang codes as keys and version title to display in header as values. prefers shortVersionTitle when available but falls back on versionTitle
+      status: ""
     };
   }
   openTextConnectionsPanel(e) {
@@ -1304,14 +1305,44 @@ class ReaderControls extends Component {
   stopPropagation(e){
     e.stopPropagation();
   }
+  setTextCompletionStatus(status){
+    if (Sefaria.interfaceLang == "hebrew") {
+      
+      if (status == "done") {
+        return null
+      } else {
+        return (
+          <div className='ribbon-wrap ribbon-padding'>{"སྒྲིག་བཞིན་ཡོད།"}</div>
+        )
+      }
+    } else {
+      if (status == "done") {
+        return null
+      } else {
+        return (
+          <div className='ribbon-wrap'>{"In Progress"}</div>
+        )
+      }
+    }
+     
+  }
   render() {
     let title = this.props.currentRef || "";
     let heTitle = "";
     let sectionString = "";
     let heSectionString = "";
     let categoryAttribution = null;
+    let status = ""
     const oref = Sefaria.getRefFromCache(this.props.currentRef);
-
+    if(oref) {
+      oref?.versions.forEach(version => {
+        if(version.languageFamilyName == "hebrew"){
+          status = version.iscompleted
+        }
+  
+      }) 
+    }
+    
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
         title = heTitle = Sefaria._("Loading...");
@@ -1366,12 +1397,17 @@ class ReaderControls extends Component {
                   {title}
                 </h1>
                 :
-                <h1>
-                  <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
-                  <span className="sectionString">
-                    <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
-                  </span>
-                </h1>
+                
+                <div className='bookTitle'> 
+                  {this.setTextCompletionStatus(status)}
+                  <h1>
+                    <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
+                    <span className="sectionString">
+                      <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
+                    </span>
+                  </h1>
+                  
+                </div>
                 }
               </div>
               <div className="readerTextVersion">
@@ -1396,6 +1432,7 @@ class ReaderControls extends Component {
         </div>);
 
     let rightControls = hideHeader || connectionsHeader ? null :
+    
       (<div className="rightButtons">
           <SaveButton
             historyObject={this.props.historyObject}
