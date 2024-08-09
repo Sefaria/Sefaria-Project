@@ -5,6 +5,11 @@ export const LANGUAGES = {
     'HE': 'hebrew',
 }
 
+export const SOURCE_LANGUAGES = {
+    'EN': 'div.toggleOption.english',
+    'HE': 'div.toggleOption.hebrew',
+}
+
 export const cookieObject = {
     "name": "interfaceLang",
     "value": DEFAULT_LANGUAGE,

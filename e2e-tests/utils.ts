@@ -1,4 +1,4 @@
-import {DEFAULT_LANGUAGE, LANGUAGES, testUser} from './globals'
+import {DEFAULT_LANGUAGE, LANGUAGES, SOURCE_LANGUAGES, testUser} from './globals'
 import {BrowserContext}  from 'playwright-core';
 import type { Page } from 'playwright-core';
 
@@ -65,4 +65,13 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
 export const getPathAndParams = (url: string) => {
     const urlObj = new URL(url);
     return urlObj.pathname + urlObj.search;
+}
+
+export const changeLanguageOfText = async (page: Page, sourceLanguage: string) => {
+    // Clicking on the Source Language toggle
+    await page.getByAltText('Toggle Reader Menu Display Settings').click()
+
+    // Selecting Source Language
+    await page.getByRole('radiogroup', {name: 'Language'}).locator(sourceLanguage).click()
+
 }
