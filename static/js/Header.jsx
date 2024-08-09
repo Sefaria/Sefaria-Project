@@ -252,7 +252,7 @@ class SearchBar extends Component {
   focusSearch(e) {
     const parent = document.getElementById('searchBox');
     this.setState({searchFocused: true});
-    this.showVirtualKeyboardIcon(true);
+    // this.showVirtualKeyboardIcon(true);
   }
   blurSearch(e) {
     // check that you're actually focusing in on element outside of searchBox

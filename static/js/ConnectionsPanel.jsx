@@ -753,11 +753,11 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
     <div className="toolButtonsList">
       <ToolsButton en={Sefaria._("Add to Sheet")} he={Sefaria._("Add to Sheet")} image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddToSheet) : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
       {/* <ToolsButton en={Sefaria._("Dictionaries")} he={Sefaria._("Dictionaries")} image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} /> */}
-      {openComparePanel ? <ToolsButton en={Sefaria._("Compare Text")} he={Sefaria._("Compare Text")} image="compare-panel.svg" onClick={openComparePanel} /> : null}
+      {/* {openComparePanel ? <ToolsButton en={Sefaria._("Compare Text")} he={Sefaria._("Compare Text")} image="compare-panel.svg" onClick={openComparePanel} /> : null} */}
       <ToolsButton en={Sefaria._("Notes")} he={Sefaria._("Notes")} image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />
-      {masterPanelMode !== "Sheet" ? <ToolsButton en={Sefaria._("Share")} he={Sefaria._("Share")} image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
-      <ToolsButton en={Sefaria._("Feedback")}  he={Sefaria._("Feedback")} image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
-      <ToolsButton en={Sefaria._("Advanced")} he={Sefaria._("Advanced")} image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
+      {/* {masterPanelMode !== "Sheet" ? <ToolsButton en={Sefaria._("Share")} he={Sefaria._("Share")} image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null} */}
+      {/* <ToolsButton en={Sefaria._("Feedback")}  he={Sefaria._("Feedback")} image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} /> */}
+      {/* <ToolsButton en={Sefaria._("Advanced")} he={Sefaria._("Advanced")} image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} /> */}
     </div>
   );
 }
