@@ -1686,7 +1686,9 @@ body.hasBannerMessage .sheetsEditNavTop {
 	margin-bottom: 40px;
 }
 #addsourceDiv .buttonContainer{
-	float:right;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 #addcommentDiv .contentToAdd {
 	margin-bottom:40px;
