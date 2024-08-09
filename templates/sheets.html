@@ -42,13 +42,13 @@
                             </div>
                             {% endif %}
                             {% if user.email %}
-                            <div class="optionItem" id="exportToDrive" role="menuitem" tabindex="0">
+                            {% comment %} <div class="optionItem" id="exportToDrive" role="menuitem" tabindex="0">
                                 <i class="fa fa-google"></i>
                                 <span class="optionItemText">
                                     <span class="int-en">{% trans "Export to Google Drive" %}</span>
                                     <span class="int-he">{% trans "Export to Google Drive" %}</span>
                                 </span>
-                            </div>
+                            </div> {% endcomment %}
                             {% endif %}
                             <div class="optionItem" id="embedSheet" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/embed.png' %}" alt="Embed Sheet Icon">
