@@ -1,36 +1,36 @@
 import {test, expect} from '@playwright/test';
-import {goToPageWithLang, getPathAndParams} from "../utils";
-import {LANGUAGES} from '../globals'
+import {goToPageWithLang, changeLanguageOfText} from "../utils";
+import {LANGUAGES, SOURCE_LANGUAGES} from '../globals'
 
 [
     // Hebrew Interface and English Source
     {interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, 
-        sourceLanguage: 'English', sourceLanguageToggle: 'div.toggleOption.english', 
+        sourceLanguage: 'English', sourceLanguageToggle: SOURCE_LANGUAGES.EN, 
         expectedSourceText: 'When God began to create', expectedBilingualText: '', expectedInterfaceText: 'מקורות' },
     
     // Hebrew Interface and Bilingual Source
     {interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, 
-        sourceLanguage: 'Bilingual', sourceLanguageToggle: 'div.toggleOption.bilingual', 
+        sourceLanguage: 'Bilingual', sourceLanguageToggle: SOURCE_LANGUAGES.BI, 
         expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: 'When God began to create', expectedInterfaceText: 'מקורות' },
     
     // Hebrew Interface and Hebrew Source
     {interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, 
-        sourceLanguage: 'Hebrew', sourceLanguageToggle: 'div.toggleOption.hebrew', 
+        sourceLanguage: 'Hebrew', sourceLanguageToggle: SOURCE_LANGUAGES.HE, 
         expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: '', expectedInterfaceText: 'מקורות' },
     
     // English Interface and English Source
     {interfaceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN, 
-        sourceLanguage: 'English', sourceLanguageToggle: 'div.toggleOption.english', 
+        sourceLanguage: 'English', sourceLanguageToggle: SOURCE_LANGUAGES.EN, 
         expectedSourceText: 'When God began to create', expectedBilingualText: '', expectedInterfaceText: 'Texts' },
 
     // English Interface and Bilingual Source
     {interfaceLanguage: 'English', sinterfaceLanguageToggle: LANGUAGES.EN, 
-        sourceLanguage: 'Bilingual', sourceLanguageToggle: 'div.toggleOption.bilingual', 
+        sourceLanguage: 'Bilingual', sourceLanguageToggle: SOURCE_LANGUAGES.BI, 
         expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: 'When God began to create', expectedInterfaceText: 'Texts' },
         
     // English Interface and Hebrew Source
     {interfaceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN, 
-        sourceLanguage: 'Hebrew', sourceLanguageToggle: 'div.toggleOption.hebrew', 
+        sourceLanguage: 'Hebrew', sourceLanguageToggle: SOURCE_LANGUAGES.HE, 
         expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: '', expectedInterfaceText: 'Texts' }
 
 ].forEach(({interfaceLanguage, interfaceLanguageToggle, sourceLanguage, sourceLanguageToggle, expectedSourceText, expectedBilingualText, expectedInterfaceText}) => {
