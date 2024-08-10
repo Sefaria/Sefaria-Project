@@ -3495,7 +3495,7 @@ function copySheet() {
 
 function exportToDrive() {
 	$("#overlay").show();
-	sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
+	sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">Google Docs དང་ཟླ་སྒྲིལ་བྱེད་པ།</span>');
 	Sefaria.track.sheets("Export to Google Drive");
 
 	$.ajax({
@@ -3597,7 +3597,7 @@ function deleteSheet() {
 					"<a href='/my/profile'>" +
 						"<div class='ok btn'>" +
 							"<span class='int-en'>OK</span>" +
-							"<span class='int-he'>המשך</span>" +
+							"<span class='int-he'>འགྲིག</span>" +
 						"</div>" +
 					"</a>"
 				);
