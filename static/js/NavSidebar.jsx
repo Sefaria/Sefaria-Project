@@ -632,7 +632,7 @@ const AboutCollections = ({hideTitle}) => (
     <ModuleTitle h1={true}>About Collections</ModuleTitle>}
     <InterfaceText>
         <EnglishText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Pecha.</EnglishText>
-        <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
+        <HebrewText>དཔེ་ཆ་དྲ་བའི་ཆེད་བསྒྲིགས་རྣམས་ནི་དྲ་བ་འདིའི་ཀློག་མཁན་རྣམས་ཀྱིས་བཟོས་པ་ཡིན་ལ། འདི་དག་བེད་སྤྱོད་བྱེད་སྟངས་གསུམ་ཡོད་དེ། ཁྱེད་རང་གཅིག་པུས་སྤྱོད་པ་དང་། གྲོགས་པོ་གཞན་དང་མཉམ་སྤྱོད་བྱེད་པ། ཡང་ན། ཀློག་མཁན་ཡོངས་ཀྱི་བགོ་སྐལ་དུ་ཕུལ་ཀྱང་ཆོག་པ་ཡིན།</HebrewText>
     </InterfaceText>
     {hideTitle ? null :
     <div>
