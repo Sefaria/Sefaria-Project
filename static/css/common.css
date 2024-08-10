@@ -550,7 +550,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   color: #FFFFFF;
 }
 .interface-hebrew .onoffswitch-inner:before{
-  content: "לא";
+  content: "འགྲིག";
   padding-right: 10px;
 }
 .onoffswitch-inner:after {
