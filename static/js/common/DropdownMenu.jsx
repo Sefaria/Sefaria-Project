@@ -78,7 +78,13 @@ const DropdownMenu = ({children, menu_icon}) => {
   
     return (
         <div className="dropdownLinks" ref={wrapperRef}>
-          <a className="dropdownLinks-button" onClick={handleClick}><img src={menu_icon} alt={Sefaria._('Dropdown menu')}/></a>
+           <a className="dropdownLinks-button" onClick={handleClick}>
+              {typeof menu_icon === 'string' ? (
+                  <img src={menu_icon} alt="Dropdown menu" />
+              ) : (
+                  <menu_icon/>
+              )} 
+          </a>         
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
             <div className="dropdownLinks-options">
               {children}

@@ -13264,7 +13264,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownItem {
-  padding: 10px 0px 5px 10px !important;
+  padding: 10px 5px 10px 5px !important;
   flex-direction: column;
 }
 
@@ -13349,6 +13349,29 @@ span.ref-link-color-3 {color: blue}
   color: #666666;
 }
 
+.languageHeader {
+  padding-right: 10px;
+  padding-left: 10px;
+  padding-top: 4px;
+  padding-bottom: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: left;
+  color: var(--medium-grey);
+
+}
+
+.languageTogglerFlexContainer{
+  display: flex;
+  flex-direction: row-reverse;
+  padding: 10px 0px;
+}
+
+.languageDot{
+  font-size: 25px;
+  padding: 10px 2px;
+}
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
