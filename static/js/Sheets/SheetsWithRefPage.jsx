@@ -3,6 +3,7 @@ import Sefaria from "../sefaria/sefaria";
 import {useEffect, useState} from "react";
 import {SearchTotal} from "../sefaria/searchTotal";
 import {Children as availableFilters} from "../lib/react";
+import SearchState from "../sefaria/searchState";
 const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateAppliedFilter,
                            updateAppliedOptionField, updateAppliedOptionSort, onResultClick,
                            registerAvailableFilters}) => {
@@ -10,6 +11,8 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     const [loading, setLoading] = useState(true);
     const [origAvailableFilters, setOrigAvailableFilters] = useState([]);
     const [refs, setRefs] = useState(srefs);
+    const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray.filter(sortType => sortType.type !== 'relevance');
+
     const cloneFilters = (availableFilters, resetDocCounts = true) => {
         return availableFilters.map(availableFilter => {
             let newAvailableFilter = availableFilter.clone();
@@ -124,6 +127,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     }
     const handleSheetsLoad = (sheets) => {
       searchState.availableFilters = Sefaria.sheets.sheetsWithRefFilterNodes(sheets);
+      searchState.sortType = "views";
       setSheets(sheets);
       updateSearchState(searchState, 'sheet');
       setOrigAvailableFilters(searchState.availableFilters);
@@ -174,6 +178,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     return <SearchPage
           key={"sheetsPage"}
           isQueryRunning={loading}
+          sortTypeArray={sortTypeArray}
           searchTopMsg="Sheets With"
           hits={sortedSheets}
           query={refs}
