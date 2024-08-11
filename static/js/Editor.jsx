@@ -1218,14 +1218,15 @@ const Element = (props) => {
                       });
                     }
                   }
-        };
+            };
+
             const insertNewLine = function (){
               moveAnchorToEndOfCurrentNode();
               editor.insertBreak();
             }
 
                 const addNewLineClasses = {
-                hidden: !selected,
+                hidden: !(focused && selected),
                 editorAddInterface: 1,
                 };
             const pClasses = {center: element["text-align"] == "center" };
