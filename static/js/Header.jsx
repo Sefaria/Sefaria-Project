@@ -48,15 +48,19 @@ const LoggedOutMenu = () => {
         Sign up
       </DropdownMenuItem>
       <DropdownMenuSeparator />
-      <div className="interfaceLinks-header">
+      <div className="languageHeader">
           <InterfaceText>Site Language</InterfaceText>
       </div>
-      <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
-      עברית    
-      </DropdownMenuItem>
-      <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
-      English
-      </DropdownMenuItem>
+      <div className='languageToggleFlexContainer'>
+        <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
+          English
+        </DropdownMenuItem>
+          <span className="languageDot">&#183;</span>
+        <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
+        עברית    
+        </DropdownMenuItem>
+
+      </div>
       <DropdownMenuSeparator />
       <DropdownMenuItem url={'/updates'}>
         New additions
