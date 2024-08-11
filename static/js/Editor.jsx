@@ -2382,7 +2382,6 @@ const HoverMenu = (opt) => {
 
         if (
             !selection ||
-            isMultiNodeSelection(editor) ||
             !ReactEditor.isFocused(editor) ||
             Range.isCollapsed(selection) ||
             Editor.string(editor, selection) === '' ||
