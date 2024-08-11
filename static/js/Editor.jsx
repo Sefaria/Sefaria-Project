@@ -1201,6 +1201,18 @@ const Element = (props) => {
         case 'paragraph':
             const focused = useFocused();
             const selected = useSelected();
+            const isMultiNodeSelection = () => {
+              if (!editor.selection) return false;
+
+              const [start, end] = Range.edges(editor.selection);
+
+              // Get the path to the start and end of the selection
+              const startPath = start.path;
+              const endPath = end.path;
+
+              // If the start and end paths are different, it means multiple nodes are selected
+              return !Path.equals(startPath, endPath);
+            };
             const moveAnchorToEndOfCurrentNode = () => {
                 const { selection } = editor;
 
@@ -1225,10 +1237,10 @@ const Element = (props) => {
               editor.insertBreak();
             }
 
-                const addNewLineClasses = {
-                hidden: !(focused && selected),
-                editorAddInterface: 1,
-                };
+            const addNewLineClasses = {
+            hidden: isMultiNodeSelection() || !selected,
+            editorAddInterface: 1,
+            };
             const pClasses = {center: element["text-align"] == "center" };
             return (
                 <div role="button" title={"paragraph"} contentEditable={true} suppressContentEditableWarning={true} aria-label={"Add new line"} className={classNames(addNewLineClasses)} onClick={insertNewLine}>
