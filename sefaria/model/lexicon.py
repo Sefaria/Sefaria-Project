@@ -61,7 +61,8 @@ class Lexicon(abst.AbstractMongoRecord):
         'index_title',          # The title of the Index record that corresponds to this Lexicon
         'version_title',        # The title of the Version record that corresponds to this Lexicon
         'version_lang',         # The language of the Version record that corresponds to this Lexicon
-        'should_autocomplete'   # enables search box
+        'should_autocomplete',   # enables search box
+        'needsRefsWrapping'
     ]
 
     def word_count(self):
