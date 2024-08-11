@@ -117,6 +117,8 @@ class SearchResultList extends Component {
         hits:           this._typeObjDefault([]),
         error:          false,
         topics:         [],
+        totalText: 0,
+        totalSheet: 0
       }
 
       // Load search results from cache so they are available for immediate render
@@ -457,35 +459,26 @@ class SearchResultList extends Component {
         const searchState = this._getSearchState(tab);
         let results       = [];
         let textResults = []
+        let rr = []
+        let mongoloading = true
 
         if (tab === "text") {
+          results = []
           // results = Sefaria.search.mergeTextResultsVersions(this.state.hits.text);
+         
           if(this.props.mongoSearch && this.props.mongoSearch.status == "success"){
-            results = this.props.mongoSearch.result.text.map(result => 
-              result.matchingChapters.map((chapter, i) =>  {
-                
-                const data = {
-                  title: result.title,
-                  ref: `${result.title}.${chapter.index}`,
-                  heRef: `${result.versionTitle}.${chapter.index}`,
-                  lang: result.language,
-                  chapter: chapter.chapter,
-                  version: result.versionTitle,
-                  
-                }
-                return (
-                  <SearchTextResult
-                    key={i}
-                    data={data}
-                    query={this.props.query}
-                    searchInBook={this.props.searchInBook}
-                    onResultClick={this.props.onResultClick} 
-                  />
-                )
-              })
-            );
+            results = Sefaria.search.mongoSearchText(this.props.mongoSearch.result.text)
+            results = results.map((result, i) => 
+              <SearchTextResult
+                key={i}
+                data={result}
+                query={this.props.query}
+                searchInBook={this.props.searchInBook}
+                onResultClick={this.props.onResultClick} 
+              />
+            )
           }
-        
+          results ? mongoloading = false : mongoloading = true
           // results = results.filter(result => !!result._source.version).map(result =>
           //   <SearchTextResult
           //     data={mongoSearchedText}
@@ -493,13 +486,6 @@ class SearchResultList extends Component {
           //     searchInBook={this.props.searchInBook}
           //     onResultClick={this.props.onResultClick} />
           // );
-          // mongoSearchedText.result.map(text => {
-          //   <SearchTextResult
-          //     data={text}
-          //     query={this.props.query}
-          //     searchInBook={this.props.searchInBook}
-          //     onResultClick={this.props.onResultClick} />
-          // } )
           
           if (this.state.topics.length > 0) {
               let topics = this.state.topics.map(t => {
@@ -517,6 +503,7 @@ class SearchResultList extends Component {
 
 
         } else if (tab === "sheet") {
+          results = []
           // results = this.state.hits.sheet.map(result =>
           //   <SearchSheetResult
           //     data={result}
@@ -525,25 +512,16 @@ class SearchResultList extends Component {
           //     onResultClick={this.props.onResultClick} />
           // );
           if(this.props.mongoSearch && this.props.mongoSearch.status == "success"){
-            results = this.props.mongoSearch.result.sheet.map((result, i) =>
-              result.sources.map((source, i) => {
-                const data = {
-                  title: result.title,
-                  sheetId: result.sheet_id,
-                  ownerId: result.owner_id,
-                  sources: source.outsideBiText
-                }
-                return (
-                <SearchSheetResult
-                  data={data}
-                  query={this.props.query}
-                  key={result.sheet_id}
-                  onResultClick={this.props.onResultClick} />
-                )
-              })
+            results = Sefaria.search.mongoSearchSheet(this.props.mongoSearch.result.sheet)
+            results = results.map((result) =>
+              <SearchSheetResult
+                data={result}
+                query={this.props.query}
+                key={result.sheetId}
+                onResultClick={this.props.onResultClick} 
+              />
 
-
-            );
+            )
           }
         }
 
@@ -552,8 +530,15 @@ class SearchResultList extends Component {
 
         const queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
         const haveResults      = !!results.length;
-        results                = haveResults ? results : noResultsMessage;
-
+        let total            = 0
+        if (haveResults) {
+          total = results.length
+          results = results
+        } else {
+          total = 0
+          results = null
+        }
+        
         return (
           <div>
             <div className="searchTopMatter">
@@ -561,7 +546,7 @@ class SearchResultList extends Component {
               <SearchTabs
                 clickTextButton={this.showTexts}
                 clickSheetButton={this.showSheets}
-                textTotal={this.state.totals["text"]}
+                textTotal={total}
                 sheetTotal={this.state.totals["sheet"]}
                 currentTab={tab} /> : null
               }
@@ -576,10 +561,8 @@ class SearchResultList extends Component {
                 nFilters={searchState.appliedFilters.length} />}
             </div>
             <div className="searchResultList">
-              {/* { queryFullyLoaded || haveResults ? results : null } */}
-              { results.length > 0 ? results : null }
-              {/* { this.state.isQueryRunning[tab] ? loadingMessage : null } */}
-              { results.length == 0 ? loadingMessage : null }
+              {results ? <h1><InterfaceText>{`Total : (${total})`}</InterfaceText></h1>: null}
+              { !results ? !mongoloading ? loadingMessage : noResultsMessage : results }
             </div>
           </div>
         );
@@ -612,7 +595,7 @@ const SearchTab = ({label, total, onClick, active}) => {
     <div className={classes} onClick={onClick} onKeyPress={e => {e.charCode === 13 ? onClick(e) : null}} role="button" tabIndex="0">
       <div className="type-button-title">
         <InterfaceText>{label}</InterfaceText>&nbsp;
-        {/* <InterfaceText>{`(${total.asString()})`}</InterfaceText> */}
+        {/* <InterfaceText>{`(${total})`}</InterfaceText>  */}
       </div>
     </div>
   );

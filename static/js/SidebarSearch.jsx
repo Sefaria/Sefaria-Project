@@ -120,7 +120,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
 
       {query && mongoSearchedText?
         <SearchResultList
-          mongoSearchText={mongoSearchedText}
+          mongoSearch={mongoSearchedText}
           query={query}
           compare={false}
           searchInBook={true}
