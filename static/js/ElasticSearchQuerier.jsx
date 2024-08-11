@@ -142,7 +142,7 @@ class ElasticSearchQuerier extends Component {
                     this.props.resetSearchFilters();
                 }
             });
-        } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
+        } else if (this._shouldUpdateQuery(this.props, newProps, this.props.searchState.type)) {
             this.setState(state, () => {
                 this._executeQuery(newProps, this.props.searchState.type);
             })
@@ -340,7 +340,7 @@ class ElasticSearchQuerier extends Component {
                     isQueryRunning={this.state.isQueryRunning}
                     searchTopMsg="Results for"
                     query={this.props.query}
-                    sortTypeArray={SearchState.metadataByType[this.props.type].sortTypeArray}
+                    sortTypeArray={SearchState.metadataByType[this.props.searchState.type].sortTypeArray}
                     hits={this.normalizeHitsMetaData()}
                     totalResults={this.state.totals}
                     type={this.props.searchState.type}
