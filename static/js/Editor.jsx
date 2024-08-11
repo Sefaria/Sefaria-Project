@@ -147,6 +147,18 @@ const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
    return {node: bottom, path: bottomPath}
  };
 
+const isMultiNodeSelection = (editor) => {
+  if (!editor.selection) return false;
+
+  const [start, end] = Range.edges(editor.selection);
+
+  // Get the path to the start and end of the selection
+  const startPath = start.path;
+  const endPath = end.path;
+
+  // If the start and end paths are different, it means multiple nodes are selected
+  return !Path.equals(startPath, endPath);
+    };
 
 export const deserialize = el => {
     if (el.nodeType === 3) {
@@ -1064,6 +1076,8 @@ const Element = (props) => {
     const { attributes, children, element } = props;
     // console.log("new element ", element.children, "is of type: " ,element.type);
     const editor = useSlate();
+
+
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
@@ -1111,15 +1125,6 @@ const Element = (props) => {
                 editorAddInterface: 1,
                 };
 
-                const simulateEnter = function (){
-                    // event.currentTarget.dispatchEvent(enterEvent);
-                    // Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]});
-                    // editor.insertBreak();
-                    // const curHeaderPath = getClosestSheetElement(editor, editor.selection.focus.path, "header")[1]
-                    // Transforms.insertNodes(editor, {type: 'SheetOutsideText', children: [{text: ""}]}, {at: editor.selection.focus.path});
-                    Transforms.setNodes(editor, {type: 'spacer'}, {at: editor.selection.focus.path});
-
-                }
                 return (
                 // <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={simulateEnter}>
                   <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
@@ -1201,18 +1206,7 @@ const Element = (props) => {
         case 'paragraph':
             const focused = useFocused();
             const selected = useSelected();
-            const isMultiNodeSelection = () => {
-              if (!editor.selection) return false;
 
-              const [start, end] = Range.edges(editor.selection);
-
-              // Get the path to the start and end of the selection
-              const startPath = start.path;
-              const endPath = end.path;
-
-              // If the start and end paths are different, it means multiple nodes are selected
-              return !Path.equals(startPath, endPath);
-            };
             const moveAnchorToEndOfCurrentNode = () => {
                 const { selection } = editor;
 
@@ -1238,7 +1232,7 @@ const Element = (props) => {
             }
 
             const addNewLineClasses = {
-            hidden: isMultiNodeSelection() || !selected,
+            hidden: isMultiNodeSelection(editor) || !selected,
             editorAddInterface: 1,
             };
             const pClasses = {center: element["text-align"] == "center" };
@@ -2388,6 +2382,7 @@ const HoverMenu = (opt) => {
 
         if (
             !selection ||
+            isMultiNodeSelection(editor) ||
             !ReactEditor.isFocused(editor) ||
             Range.isCollapsed(selection) ||
             Editor.string(editor, selection) === '' ||
