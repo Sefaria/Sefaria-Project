@@ -8,9 +8,7 @@ import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
-import SearchFilters from './SearchFilters';
 import SearchState from './sefaria/searchState';
-import Strings from "./sefaria/strings.js"
 import {
   DropdownModal,
   DropdownButton,
@@ -147,17 +145,6 @@ class SearchResultList extends Component {
 
         return (
           <div>
-              <div className="searchTopMatter">
-                  {Sefaria.multiPanel && !this.props.compare ?
-                      <SearchSortBox
-                          type={type}
-                          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                          sortType={this.props.searchState.sortType}/>
-                      :
-                      <SearchFilterButton
-                          openMobileFilters={this.props.openMobileFilters}
-                          nFilters={this.props.searchState.appliedFilters.length}/>}
-              </div>
               <div className="searchResultList">
                   {queryFullyLoaded || haveResults ? results : null}
                   {this.props.isQueryRunning ? loadingMessage : null}
@@ -180,7 +167,7 @@ SearchResultList.propTypes = {
     topics:           PropTypes.array
 };
 
-const SearchSortBox = ({type, updateAppliedOptionSort, sortType}) => {
+const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray}) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleClick = (newSortType) => {
@@ -204,7 +191,7 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType}) => {
       />
       <DropdownOptionList
         isOpen={isOpen}
-        options={SearchState.metadataByType[type].sortTypeArray}
+        options={sortTypeArray}
         currOptionSelected={sortType}
         handleClick={handleClick}
       />
@@ -226,4 +213,4 @@ const SearchFilterButton = ({openMobileFilters, nFilters}) => (
 );
 
 
-export { SearchResultList };
+export { SearchResultList, SearchFilterButton, SearchSortBox };

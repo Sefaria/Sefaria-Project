@@ -336,6 +336,7 @@ class ElasticSearchQuerier extends Component {
                     isQueryRunning={this.state.isQueryRunning}
                     searchTopMsg="Results for"
                     query={this.props.query}
+                    sortTypeArray={SearchState.metadataByType[this.props.type].sortTypeArray}
                     hits={this.normalizeHitsMetaData()}
                     totalResults={this.state.totals}
                     type={this.props.type}
