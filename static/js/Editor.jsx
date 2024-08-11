@@ -158,7 +158,27 @@ const isMultiNodeSelection = (editor) => {
 
   // If the start and end paths are different, it means multiple nodes are selected
   return !Path.equals(startPath, endPath);
-    };
+};
+
+const moveAnchorToEndOfCurrentNode = (editor) => {
+    const { selection } = editor;
+
+      if (selection && Range.isCollapsed(selection)) {
+        const { anchor } = selection;
+        const node = Editor.node(editor, anchor);
+
+        if (node) {
+          const [, path] = node;
+          const endPoint = Editor.end(editor, path);
+
+          Transforms.select(editor, {
+            anchor: endPoint,
+            focus: endPoint
+          });
+        }
+      }
+};
+
 
 export const deserialize = el => {
     if (el.nodeType === 3) {
@@ -1074,7 +1094,6 @@ const AddInterface = ({ attributes, children, element }) => {
 
 const Element = (props) => {
     const { attributes, children, element } = props;
-    // console.log("new element ", element.children, "is of type: " ,element.type);
     const editor = useSlate();
 
 
@@ -1126,14 +1145,12 @@ const Element = (props) => {
                 };
 
                 return (
-                // <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={simulateEnter}>
                   <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                     <div className={SheetOutsideTextClasses} {...attributes}>
                         {children}
                     </div>
                     <div className="clearFix"></div>
                   </div>
-                // </div>
             );
 
 
@@ -1204,30 +1221,9 @@ const Element = (props) => {
               <div className="sourceContentText">{children}</div>
             )
         case 'paragraph':
-            const focused = useFocused();
             const selected = useSelected();
-
-            const moveAnchorToEndOfCurrentNode = () => {
-                const { selection } = editor;
-
-                  if (selection && Range.isCollapsed(selection)) {
-                    const { anchor } = selection;
-                    const node = Editor.node(editor, anchor);
-
-                    if (node) {
-                      const [, path] = node;
-                      const endPoint = Editor.end(editor, path);
-
-                      Transforms.select(editor, {
-                        anchor: endPoint,
-                        focus: endPoint
-                      });
-                    }
-                  }
-            };
-
             const insertNewLine = function (){
-              moveAnchorToEndOfCurrentNode();
+              moveAnchorToEndOfCurrentNode(editor);
               editor.insertBreak();
             }
 
