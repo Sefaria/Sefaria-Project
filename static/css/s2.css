@@ -4654,7 +4654,9 @@ select {
     border-color: #ccc;
     border-radius: 3px;
     color: #333;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    --english-font: var(--english-sans-serif-font-family);
+    --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --is-serif: initial;
 }
 
 .modTools .dlVersionSelect option,
@@ -5603,7 +5605,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     position: relative;
     width: 760px;
     margin: 0 auto;
-    padding: 0 30px;
+    padding: 3px 30px;
     display: flex;
     justify-content: space-between;
     max-width: 100%;
@@ -5724,6 +5726,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: 2px;
 }
 
 .readerControls.connectionsHeader .readerTextToc {
@@ -15067,8 +15070,17 @@ span.ref-link-color-3 {
 }
 
 /*text completion status*/
-
+.bookTitle .titleHepadding {
+    margin-top: 100px;
+}
 .bookTitle {
+    display: flex;
+    margin-right: 5px;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+}
+.leftButtons .textStatus {
     display: flex;
     margin-right: 5px;
     justify-content: center;
@@ -15083,8 +15095,8 @@ span.ref-link-color-3 {
   color: #fff;
 }
 
-.bookTitle .ribbon-wrap {
-    margin-right: 5px;
+.textStatus .ribbon-wrap {
+    margin-left: 10px;
     display: initial;
     margin-inline-start: auto;
     font-style: normal;
@@ -15094,8 +15106,6 @@ span.ref-link-color-3 {
     border-radius: 25px;
     padding: 5px 10px;
     background: var(--pecha-red);
-
-    
 }
 /* HTML: <div class="ribbon">Your text content</div> */
 
@@ -15122,7 +15132,7 @@ span.ref-link-color-3 {
     /* Create a pointy right side */
 }
 
-.bookTitle .ribbon-padding {
+.leftButtons .textStatus .ribbon-padding {
     padding-top: 10px;
   }
 
