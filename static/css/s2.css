@@ -13362,9 +13362,9 @@ span.ref-link-color-3 {color: blue}
 
 }
 
-.languageTogglerFlexContainer{
+.languageToggleFlexContainer{
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
   padding: 10px 0px;
 }
 
@@ -13373,6 +13373,10 @@ span.ref-link-color-3 {color: blue}
   padding: 10px 2px;
 }
 
+.englishLanguageButton::after {
+  content: "•";
+  padding: 0px 4px;
+}
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
