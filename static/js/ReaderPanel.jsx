@@ -810,6 +810,7 @@ class ReaderPanel extends Component {
                                  updateAppliedOptionField={this.props.updateSearchOptionField}
                                  updateAppliedOptionSort={this.props.updateSearchOptionSort}
                                  registerAvailableFilters={this.props.registerAvailableFilters}
+                                 resetSearchFilters={this.props.resetSearchFilters}
                                  onResultClick={this.props.onSearchResultClick}/>);
     } else if (this.state.menuOpen === "sheet meta") {
       menu = (<SheetMetadata

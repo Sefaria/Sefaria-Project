@@ -6,7 +6,7 @@ import {Children as availableFilters} from "../lib/react";
 import SearchState from "../sefaria/searchState";
 const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateAppliedFilter,
                            updateAppliedOptionField, updateAppliedOptionSort, onResultClick,
-                           registerAvailableFilters}) => {
+                           registerAvailableFilters, resetSearchFilters}) => {
     const [sheets, setSheets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [origAvailableFilters, setOrigAvailableFilters] = useState([]);
@@ -168,6 +168,10 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
           handleSheetsLoad(Sefaria.sheets._sheetsByRef[refs]);
       }
     }, [refs]);
+
+    useEffect(() => { // when component unmounts, reset searchState
+        return () => resetSearchFilters();
+    }, []);
 
     updateOrigAvailableFilters();
     let sortedSheets = [...sheets];
