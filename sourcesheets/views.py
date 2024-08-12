@@ -1032,7 +1032,7 @@ def sheets_by_ref_api(request, ref):
     include_collections = bool(int(request.GET.get("include_collections", 0)))
     sheets = get_sheets_for_ref(ref)
     if include_collections:
-        sheets = get_collections_for_sheets(sheets)
+        sheets = annotate_sheets_with_collections(sheets)
     return jsonResponse(sheets)
 def sheets_with_ref(request, tref):
     """

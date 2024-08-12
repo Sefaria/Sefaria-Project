@@ -9,11 +9,21 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                            registerAvailableFilters}) => {
     const [sheets, setSheets] = useState([]);
     const [loading, setLoading] = useState(true);
+
     const [origAvailableFilters, setOrigAvailableFilters] = useState([]);
+    // storing original available filters is crucial so that we have access to the full list of filters.
+    // by contrast, in the searchState, the available filters length changes based on filtering.
+    // by having access to the original available filters list, if the searchState's applied filters are turned off,
+    // we can return the searchState's available filters to the original list.
+
     const [refs, setRefs] = useState(srefs);
     const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray.filter(sortType => sortType.type !== 'relevance');
 
     const cloneFilters = (availableFilters, resetDocCounts = true) => {
+        // clone filters so that we can update the available filters docCounts
+        // without modifying the original available filters (origAvailableFilters) docCounts
+        // we don't want to modify the origAvailableFilters docCounts so that we have the accurate number when checking
+        // in checkForRegisteringAvailableFilters
         return availableFilters.map(availableFilter => {
             let newAvailableFilter = availableFilter.clone();
             if (resetDocCounts) newAvailableFilter.docCount = 0;
@@ -26,18 +36,13 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     const checkForRegisteringAvailableFilters = (availableFilters) => {
         const newDocCounts = getDocCounts(availableFilters);
         const currDocCounts = getDocCounts(searchState.availableFilters);
-        if (!newDocCounts.compare(currDocCounts)) {
+        if (!newDocCounts.compare(currDocCounts)) { // if previously the appliedFilters were different,
+                                                    // then the doccounts will be different, so register
             availableFilters = availableFilters.sort((a, b) => b.docCount - a.docCount || a.title.localeCompare(b.title));
             registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics_en']);
         }
     }
-    const updateDocCounts = (newAvailableFilters, slugs) => {
-        newAvailableFilters.forEach((newFilter, i) => {
-            if (newFilter.aggKey in slugs) {
-                newAvailableFilters[i].docCount = slugs[newFilter.aggKey];
-            }
-        })
-    }
+
     const getSheetSlugs = (type, sheet) => {
         const items = type === 'topics_en' ? sheet.topics : sheet.collections;
         return items.map(x => x.slug);
@@ -60,12 +65,30 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         else {
             let newAvailableFilters = cloneFilters(origAvailableFilters);
             sheets = applyFiltersToSheets(sheets);
-            newAvailableFilters = updateNewAvailableFilters(newAvailableFilters, sheets);
+            newAvailableFilters = updateFilterDocCounts(newAvailableFilters, sheets);
+            newAvailableFilters = removeEmptyFilters(newAvailableFilters);
+            newAvailableFilters = updateFilterSelectedValues(newAvailableFilters);
             checkForRegisteringAvailableFilters(newAvailableFilters);
         }
         return sheets;
     }
-    const updateNewAvailableFilters = (newAvailableFilters, sheets) => {
+    const updateFilterSelectedValues = (availableFilters) => {
+        availableFilters.forEach((availableFilter) => {
+            const selected = searchState.appliedFilters.includes(availableFilter.aggKey);
+            if (selected !== Boolean(availableFilter.selected)) {
+                if (selected) {
+                    availableFilter.setSelected(true);
+                } else {
+                    availableFilter.setUnselected(true);
+                }
+            }
+        })
+        return availableFilters;
+    }
+    const removeEmptyFilters = (availableFilters) => {
+        return availableFilters.filter(availableFilter => availableFilter.docCount > 0);
+    }
+    const updateFilterDocCounts = (availableFilters, sheets) => {
       ['collections', 'topics_en'].forEach(type => {
           let allSlugs = {};
           sheets.forEach(sheet => {
@@ -78,16 +101,18 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                 allSlugs[slug] += 1;
             })
           })
-          updateDocCounts(newAvailableFilters, allSlugs);
+          availableFilters.forEach((filter, i) => {
+            if (filter.aggKey in allSlugs) {
+                availableFilters[i].docCount = allSlugs[filter.aggKey];
+            }
         })
-        return newAvailableFilters.filter(availableFilter => availableFilter.docCount > 0);
+        })
+        return availableFilters;
     }
     const applySortOption = (sheets) => {
         switch(searchState.sortType) {
             case 'views':
                 sheets = sheets.sort((a, b) => b.views - a.views);
-            break;
-            case 'relevance':
             break;
             case 'dateCreated':
                 sheets = sheets.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
@@ -133,43 +158,33 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
       setOrigAvailableFilters(searchState.availableFilters);
       setLoading(false);
     }
-    const getSheetsByRefCallback = (sheets) => {
-        // filters out duplicate sheets by sheet ID number and filters so that we don't show sheets as connections to themselves
+    const makeSheetsUnique = (sheets) => {
+        // if a sheet ID occurs in multiple sheet items, only keep the first sheet found so that there are not duplicates
         return sheets.filter((sheet, index, self) =>
                           index === self.findIndex((s) => (
                             s.id === sheet.id)
                         ))
     }
-    const updateOrigAvailableFilters = () => {
-        // update component prop 'origAvailableFilters' based on changes to availableFilters in 'searchState'
-        origAvailableFilters.forEach(availableFilter => {
-            const selected = searchState.appliedFilters.includes(availableFilter.aggKey);
-            if (selected && selected !== Boolean(availableFilter.selected)) {
-                availableFilter.setSelected(true);
-            } else if (selected !== Boolean(availableFilter.selected)) {
-                availableFilter.setUnselected(true);
-            }
-        })
-    }
+    // const updateOrigAvailableFilters = () => {
+    //     // update component prop 'origAvailableFilters' based on changes to availableFilters in 'searchState'
+    //     origAvailableFilters.forEach(availableFilter => {
+    //         const selected = searchState.appliedFilters.includes(availableFilter.aggKey);
+    //         if (selected !== Boolean(availableFilter.selected)) {
+    //            if (selected) {
+    //              availableFilter.setSelected(true);
+    //            }
+    //            else {
+    //              availableFilter.setUnselected(true);
+    //            }
+    //         }
+    //     })
+    // }
 
     useEffect(() => {
-      // 'collections' won't be present if the related API set _sheetsByRef,
-      // but 'collections' will be present if the sheets_by_ref_api has run
-      // if the field is not present, we need to call the sheets_by_ref_api
-      const currentSheetsByRef = Sefaria.sheets._sheetsByRef[refs];
-      const collectionsInCache = !!currentSheetsByRef && currentSheetsByRef.every(sheet => 'collections' in sheet);
-      if (!collectionsInCache) {
-          delete Sefaria.sheets._sheetsByRef[refs];
-          Sefaria.sheets.getSheetsByRef(refs, getSheetsByRefCallback).then(sheets => {
-              handleSheetsLoad(sheets);
-          })
-      }
-      else {
-          handleSheetsLoad(Sefaria.sheets._sheetsByRef[refs]);
-      }
+      Sefaria.sheets.getSheetsByRef(refs, makeSheetsUnique).then(sheets => {handleSheetsLoad(sheets);})
     }, [refs]);
 
-    updateOrigAvailableFilters();
+    // updateOrigAvailableFilters();
     let sortedSheets = [...sheets];
     sortedSheets = applyFilters(sortedSheets);
     sortedSheets = applySortOption(sortedSheets);
