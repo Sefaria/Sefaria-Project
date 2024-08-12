@@ -278,7 +278,7 @@ Sefaria = extend(Sefaria, {
     let pRef = Sefaria.parseRef(ref);
     if ("error" in pRef) { return null; }
     let index = Sefaria.index(pRef.index);
-    return index && index.title ? index.title : null;
+    return index?.title
   },
   sectionRef: function(ref, deriveIfNotFound=false) {
     // Returns the section level ref for `ref` or null if no data is available

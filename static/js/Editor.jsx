@@ -5,7 +5,7 @@ import {Editor, createEditor, Range, Node, Transforms, Path, Text, Point, Elemen
 import {Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocused} from 'slate-react'
 import isHotkey from 'is-hotkey'
 import Sefaria from './sefaria/sefaria';
-import * as sheetsUtils from './sheetsUtils'
+import * as sheetsUtils from '../../sefaria/sheetsUtils'
 
 
 import {
@@ -1868,23 +1868,6 @@ const insertMedia = (editor, mediaUrl) => {
   Transforms.move(editor);
 }
 
-
-function placed_segment_mapper(lang, segmented, includeNumbers, s) {
-    if (!s[lang]) {return ""}
-
-    let numStr = "";
-    if (includeNumbers) {
-        const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
-        numStr = "<small>(" + num + ")</small> ";
-    }
-    let str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
-    if (segmented) {
-        str = "<p>" + str + "</p>";
-    }
-    str = str.replace(/(<br\/>)+/g, ' ')
-    return str;
-}
-
 const insertSource = async (editor, ref) => {
     const path = editor.selection.anchor.path;
 
@@ -1892,17 +1875,14 @@ const insertSource = async (editor, ref) => {
 
     const nodeAbove = getNodeAbove(path, editor)
     const nodeBelow = getNodeBelow(path, editor)
-    const normalEnRef = await sheetsUtils.getNormalEnRef(ref);
-    const normalHeRef = await sheetsUtils.getNormalHeRef(ref);
+
+    const {en: normalEnRef, he: normalHeRef} = await sheetsUtils.getNormalRef(ref);
 
     let segments = await sheetsUtils.getSegmentObjs([ref])
 
-    let includeNumbers = sheetsUtils.shouldIncludeSegmentNums(ref);
-    const segmented = sheetsUtils.shouldBeSegmented(ref);
+    const enText = sheetsUtils.segmentsToSourceText(segments, 'en');
 
-    const enText = sheetsUtils.segmentsToSourceText(segments, 'en', segmented, includeNumbers);
-
-    const heText = sheetsUtils.segmentsToSourceText(segments, 'he', segmented, includeNumbers);
+    const heText = sheetsUtils.segmentsToSourceText(segments, 'he');
 
     let fragment = [{
             type: "SheetSource",

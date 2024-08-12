@@ -12,7 +12,7 @@ import Component from 'react-class';
 import sanitizeHtml  from 'sanitize-html';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import { GDocAdvertBox } from './Promotions';
-import * as sheetsUtils from './sheetsUtils'
+import * as sheetsUtils from '../../sefaria/sheetsUtils'
 
 
 
@@ -91,6 +91,7 @@ class AddToSourceSheetBox extends Component {
     }
   }
 
+  //return the initial index of the suffix of string1 which also constitutes a prefix for string2
   longestSuffixPrefixIndex(string1, string2) {
     let longestSuffixIndex = 0;
     for (let i = 0; i < string1.length; i++){
@@ -101,6 +102,7 @@ class AddToSourceSheetBox extends Component {
     }
     return longestSuffixIndex;
   }
+  //return the final index of the prefix of string1 which also constitutes a suffix for string2
   longestPrefixSuffixIndex(string1, string2) {
     let longestPrefixIndex = 0;
     for (let i = 0; i < string1.length; i++) {
@@ -113,7 +115,7 @@ class AddToSourceSheetBox extends Component {
   }
 
   normalize(text){
-    return(text.replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, '').replace(/\u2009/g, ' '));
+    return(text.replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, ''));
   }
   async addToSourceSheet() {
     if (!Sefaria._uid) {
@@ -155,8 +157,6 @@ class AddToSourceSheetBox extends Component {
             ...segment,
             [lan]: this.normalize(segment[lan])
           }));
-          const segmented = sheetsUtils.shouldBeSegmented(source.refs[0])
-          const includeNumbers = sheetsUtils.shouldIncludeSegmentNums(source.refs[0]);
           for (let iSegment = 0; iSegment < segments.length; iSegment++) {
               const segment = segments[iSegment];
               if (iSegment == 0){
@@ -172,7 +172,7 @@ class AddToSourceSheetBox extends Component {
               }
           }
 
-          source[lan] = sheetsUtils.segmentsToSourceText(segments, lan, segmented, includeNumbers);
+          source[lan] = sheetsUtils.segmentsToSourceText(segments, lan);
         }
       }
       if (this.checkContentForImages(source.refs)) {
