@@ -148,11 +148,10 @@ const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
  };
 
 const isMultiNodeSelection = (editor) => {
-  if (!editor.selection) return false;
+  if (!editor.selection) {return false}
 
   const [start, end] = Range.edges(editor.selection);
 
-  // Get the path to the start and end of the selection
   const startPath = start.path;
   const endPath = end.path;
 
@@ -160,23 +159,27 @@ const isMultiNodeSelection = (editor) => {
   return !Path.equals(startPath, endPath);
 };
 
+const insertNewLine = (editor) => {
+  moveAnchorToEndOfCurrentNode(editor);
+  editor.insertBreak();
+}
 const moveAnchorToEndOfCurrentNode = (editor) => {
-    const { selection } = editor;
+  const { selection } = editor;
 
-      if (selection && Range.isCollapsed(selection)) {
-        const { anchor } = selection;
-        const node = Editor.node(editor, anchor);
+  if (selection && Range.isCollapsed(selection)) {
+    const { anchor } = selection;
+    const node = Editor.node(editor, anchor);
 
-        if (node) {
-          const [, path] = node;
-          const endPoint = Editor.end(editor, path);
+    if (node) {
+      const [, path] = node;
+      const endPoint = Editor.end(editor, path);
 
-          Transforms.select(editor, {
-            anchor: endPoint,
-            focus: endPoint
-          });
-        }
-      }
+      Transforms.select(editor, {
+        anchor: endPoint,
+        focus: endPoint
+      });
+    }
+  }
 };
 
 
@@ -1138,12 +1141,6 @@ const Element = (props) => {
             );
         case 'SheetOutsideText':
                 const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
-                const active = false;
-                const addInterfaceClasses = {
-                 active: active,
-                editorAddInterface: 1,
-                };
-
                 return (
                   <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                     <div className={SheetOutsideTextClasses} {...attributes}>
@@ -1222,10 +1219,6 @@ const Element = (props) => {
             )
         case 'paragraph':
             const selected = useSelected();
-            const insertNewLine = function (){
-              moveAnchorToEndOfCurrentNode(editor);
-              editor.insertBreak();
-            }
 
             const addNewLineClasses = {
             hidden: isMultiNodeSelection(editor) || !selected,
@@ -1233,11 +1226,11 @@ const Element = (props) => {
             };
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div role="button" title={"paragraph"} contentEditable={true} suppressContentEditableWarning={true} aria-label={"Add new line"} className={classNames(addNewLineClasses)} onClick={insertNewLine}>
-                <div className={classNames(pClasses)} {...attributes}>
-                    {element.loading ? <div className="sourceLoader"></div> : null}
-                    {children}
-                </div>
+                <div role="button" title={"paragraph"} contentEditable suppressContentEditableWarning aria-label={"Add new line"} className={classNames(addNewLineClasses)} onClick={() => insertNewLine(editor)}>
+                    <div className={classNames(pClasses)} {...attributes}>
+                        {element.loading ? <div className="sourceLoader"></div> : null}
+                        {children}
+                    </div>
                 </div>
             );
         case 'bulleted-list':

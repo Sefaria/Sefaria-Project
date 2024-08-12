@@ -10205,7 +10205,7 @@ span.purim-emoji img{
   position: relative;
   pointer-events:none;
   background-color: transparent;
-  margin-left: 50px;
+  margin-inline-start: 50px;
 }
 .editorAddInterface:before {
   content: "";
