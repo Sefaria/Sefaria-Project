@@ -784,7 +784,7 @@ def get_top_sheets(limit=3):
 	query = {"status": "public", "views": {"$gte": 100}}
 	return sheet_list(query=query, limit=limit)
 
-def get_collections_for_sheets(sheets):
+def annotate_sheets_with_collections(sheets):
 	"""
 	Annotate a list of `sheets` with a list of public collections that the sheet appears in.
 	"""
