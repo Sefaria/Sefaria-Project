@@ -1399,7 +1399,7 @@ class ReaderControls extends Component {
                 :
                 
                 <div className='bookTitle'> 
-                  {this.setTextCompletionStatus(status)}
+                  
                   <h1 className='titleHepadding'>
                     <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
                     <span className="sectionString">
@@ -1425,10 +1425,15 @@ class ReaderControls extends Component {
       </div>;
 
     let leftControls = hideHeader || connectionsHeader ? null :
-      (<div className="leftButtons">
+      (<div className="leftButtons"> 
+          
           {this.props.multiPanel ? (<CloseButton onClick={this.props.closePanel} />) : null}
           {this.props.multiPanel ? null : (<MenuButton onClick={this.props.openMobileNavMenu}/>)}
-          <SaveButton placeholder={true}/>
+          <div className='textStatus'>
+            {this.setTextCompletionStatus(status)}
+          </div>
+          
+          <SaveButton placeholder={true}/>  
         </div>);
 
     let rightControls = hideHeader || connectionsHeader ? null :

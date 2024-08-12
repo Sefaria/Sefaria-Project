@@ -4654,7 +4654,9 @@ select {
     border-color: #ccc;
     border-radius: 3px;
     color: #333;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    --english-font: var(--english-sans-serif-font-family);
+    --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --is-serif: initial;
 }
 
 .modTools .dlVersionSelect option,
@@ -15078,6 +15080,13 @@ span.ref-link-color-3 {
     align-items: center;
     font-size: 18px;
 }
+.leftButtons .textStatus {
+    display: flex;
+    margin-right: 5px;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+}
 
   /* HTML: <div class="ribbon">Your text content</div> */
 .ribbon {
@@ -15086,8 +15095,8 @@ span.ref-link-color-3 {
   color: #fff;
 }
 
-.bookTitle .ribbon-wrap {
-    margin-right: 5px;
+.textStatus .ribbon-wrap {
+    margin-left: 10px;
     display: initial;
     margin-inline-start: auto;
     font-style: normal;
@@ -15097,8 +15106,6 @@ span.ref-link-color-3 {
     border-radius: 25px;
     padding: 5px 10px;
     background: var(--pecha-red);
-
-    
 }
 /* HTML: <div class="ribbon">Your text content</div> */
 
@@ -15125,7 +15132,7 @@ span.ref-link-color-3 {
     /* Create a pointy right side */
 }
 
-.bookTitle .ribbon-padding {
+.leftButtons .textStatus .ribbon-padding {
     padding-top: 10px;
   }
 
