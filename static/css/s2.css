@@ -15096,6 +15096,7 @@ span.ref-link-color-3 {
 }
 
 .textStatus .ribbon-wrap {
+    white-space: nowrap;
     margin-left: 10px;
     display: initial;
     margin-inline-start: auto;
