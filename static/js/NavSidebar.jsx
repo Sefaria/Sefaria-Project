@@ -21,8 +21,8 @@ const NavSidebar = ({modules}) => {
 const Modules = ({type, props}) => {
   // Choose the appropriate module component to render by `type`
   
-  //removed ("SponsorADay":            SponsorADay,) from moduleTypes
   const moduleTypes = {
+    "SponsorADay":            SponsorADay,
     "AboutSefaria":           AboutSefaria,
     "Promo":                  Promo,
     "Resources":              Resources,
@@ -190,13 +190,13 @@ const SupportSefaria = ({white}) => (
 
 const SponsorADay = () => (
   <Module>
-    <ModuleTitle>Sponsor A Day of Learning</ModuleTitle>
+    {/* <ModuleTitle>Sponsor A Day of Learning</ModuleTitle>
     <InterfaceText>With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.</InterfaceText>
     <br />
     <DonateLink classes={"button small"} link={"dayOfLearning"} source={"NavSidebar-SponsorADay"}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Sponsor A Day</InterfaceText>
-    </DonateLink>
+    </DonateLink> */}
   </Module>
 );
 
