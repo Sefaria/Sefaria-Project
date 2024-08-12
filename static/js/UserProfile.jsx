@@ -36,7 +36,7 @@ class UserProfile extends Component {
       { id: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
       { id: "followers", text: "Followers", invisible: true },
       { id: "following", text: "Following", invisible: true },
-      // { id: "torah-tracker", text: "Buddhist Text Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { id: "torah-tracker", text: "Buddhist Text Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
       tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/icons/note.svg" });
