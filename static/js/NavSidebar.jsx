@@ -20,7 +20,9 @@ const NavSidebar = ({modules}) => {
 
 const Modules = ({type, props}) => {
   // Choose the appropriate module component to render by `type`
+  
   const moduleTypes = {
+    "SponsorADay":            SponsorADay,
     "AboutSefaria":           AboutSefaria,
     "Promo":                  Promo,
     "Resources":              Resources,
@@ -28,7 +30,6 @@ const Modules = ({type, props}) => {
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
     "SupportSefaria":         SupportSefaria,
-    "SponsorADay":            SponsorADay,
     "LearningSchedules":      LearningSchedules,
     "Translations":           Translations,
     "WeeklyTorahPortion":     WeeklyTorahPortion,
@@ -189,13 +190,13 @@ const SupportSefaria = ({white}) => (
 
 const SponsorADay = () => (
   <Module>
-    <ModuleTitle>Sponsor A Day of Learning</ModuleTitle>
+    {/* <ModuleTitle>Sponsor A Day of Learning</ModuleTitle>
     <InterfaceText>With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.</InterfaceText>
     <br />
     <DonateLink classes={"button small"} link={"dayOfLearning"} source={"NavSidebar-SponsorADay"}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Sponsor A Day</InterfaceText>
-    </DonateLink>
+    </DonateLink> */}
   </Module>
 );
 
@@ -631,7 +632,7 @@ const AboutCollections = ({hideTitle}) => (
     <ModuleTitle h1={true}>About Collections</ModuleTitle>}
     <InterfaceText>
         <EnglishText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Pecha.</EnglishText>
-        <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
+        <HebrewText>དཔེ་ཆ་དྲ་བའི་ཆེད་བསྒྲིགས་རྣམས་ནི་དྲ་བ་འདིའི་ཀློག་མཁན་རྣམས་ཀྱིས་བཟོས་པ་ཡིན་ལ། འདི་དག་བེད་སྤྱོད་བྱེད་སྟངས་གསུམ་ཡོད་དེ། ཁྱེད་རང་གཅིག་པུས་སྤྱོད་པ་དང་། གྲོགས་པོ་གཞན་དང་མཉམ་སྤྱོད་བྱེད་པ། ཡང་ན། ཀློག་མཁན་ཡོངས་ཀྱི་བགོ་སྐལ་དུ་ཕུལ་ཀྱང་ཆོག་པ་ཡིན།</HebrewText>
     </InterfaceText>
     {hideTitle ? null :
     <div>

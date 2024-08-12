@@ -110,9 +110,9 @@ const SiteDataBlock = ({site_data}) => (
                 <span className="int-en">What People are Reading</span>
                 <span className="int-he">מה אנשים קוראים</span>
             </h2>
-            <div className="chartRow centered">
+            {/* <div className="chartRow centered">
                 <CategoriesDonut title="Average Sefaria User" heTitle="משתמש ממוצע בספריא" cats={site_data.categoriesRead}/>
-            </div>
+            </div> */}
         </div>
         <div>
             <h2>
@@ -160,25 +160,25 @@ const StatCard = ({icon_file, name, number}) => (
 
 const UserDonutsBlock = ({user_data, site_data}) => (
         <div>
-            <h2>
+            {/* <h2>
                 <span className="int-en">Your Reading by Category</span>
                 <span className="int-he">לימוד לפי סוגה</span>
             </h2>
             <div className="chartRow">
                 <CategoriesDonut title="Your Reading" heTitle="הלימוד שלך" cats={user_data.categoriesRead}/>
                 <CategoriesDonut title="Average Sefaria User" heTitle="משתמש ממוצע בספריא" cats={site_data.categoriesRead}/>
-            </div>
+            </div> */}
         </div>
 );
 const UserCategoryBarchartBlock = ({user_data, site_data}) => (
         <div>
-            <h2>
+            {/* <h2>
                 <span className="int-en">Your Top Categories</span>
                 <span className="int-he">מצעד סוגות הלימוד</span>
             </h2>
             <div className="chartRow">
                 <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
-            </div>
+            </div> */}
         </div>
 );
 const YourFavoriteTextsBlock = ({user_data}) => (

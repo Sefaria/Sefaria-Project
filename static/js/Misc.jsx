@@ -3255,8 +3255,8 @@ const ImageWithCaption = ({photoLink, caption }) => {
   
   return (
     <div>
-        <img class="imageWithCaptionPhoto" src={photoLink}/>
-        <div class="imageCaption"> 
+        <img className="imageWithCaptionPhoto" src={photoLink}/>
+        <div className="imageCaption"> 
           <InterfaceText text={caption} />
         </div>
       </div>);

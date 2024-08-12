@@ -252,7 +252,7 @@ class SearchBar extends Component {
   focusSearch(e) {
     const parent = document.getElementById('searchBox');
     this.setState({searchFocused: true});
-    this.showVirtualKeyboardIcon(true);
+    // this.showVirtualKeyboardIcon(true);
   }
   blurSearch(e) {
     // check that you're actually focusing in on element outside of searchBox
@@ -359,16 +359,9 @@ class SearchBar extends Component {
       this.submitSearch(query);
     } else {
       $(ReactDOM.findDOMNode(this)).find(".search").focus();
-    // }
+    }
   }
-  // handleMongoSearchBtn(e) {
-  //   if (e.key === 'Enter') {
-  //     e.preventDefault()
-  //     const query = $(e.target).val();
-  //     Sefaria.mongoSearch(query)
-  //   } 
-    
-  }
+  
   render() {
     const inputClasses = classNames({
       search: 1,
@@ -429,12 +422,35 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
       <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
          {mobile ? <img src="/static/icons/register.svg" /> : null }
          <InterfaceText>Sign up</InterfaceText>
-      </a> }
+      </a> } 
       { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
     </div>
   );
 }
+const loadFeedBucket = (e) => {
+  const s = document.createElement('script');
+      s.module = true;
+      s.defer = true;
+      s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
+      s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
+      document.head.appendChild(s);
+      const crossImage =document.querySelector("#crossImage");
+      crossImage.classList.toggle('hidden');
 
+      const feedbucket = document.querySelector("feedbucket-app");
+      if (feedbucket) {
+        // Remove the event listener so the script isn't loaded multiple times
+        feedbucket.classList.toggle('hidden');
+        if(feedbucket.classList.toggle('hidden')){
+          feedbucket.classList.remove('hidden');
+          crossImage.classList.remove('hidden');
+        }else{
+          feedbucket.classList.add('hidden');
+          crossImage.classList.add('hidden');
+        }
+      }
+      
+};
 
 const LoggedInButtons = ({headerMode}) => {
   const [isClient, setIsClient] = useState(false);
@@ -449,6 +465,9 @@ const LoggedInButtons = ({headerMode}) => {
     <div className="loggedIn accountLinks">
       <a href="/texts/saved" aria-label="See My Saved Texts">
         <img src="/static/icons/bookmarks.svg" />
+      </a>
+      <a aria-label="feedback" onClick={loadFeedBucket}>
+        <img src="/static/icons/feedback.svg" />
       </a>
       <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
         <img src="/static/icons/notification.svg" />
@@ -588,28 +607,7 @@ const ProfilePicMenu = ({len, url, name}) => {
     }
   };
 
-  const loadFeedBucket = (e) => {
-    const s = document.createElement('script');
-        s.module = true;
-        s.defer = true;
-        s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
-        s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
-        document.head.appendChild(s);
-        const crossImage =document.querySelector("#crossImage");
-        crossImage.classList.toggle('hidden');
 
-        const feedbucket = document.querySelector("feedbucket-app");
-        console.log(feedbucket.classList)
-        // Remove the event listener so the script isn't loaded multiple times
-        feedbucket.classList.toggle('hidden');
-        if(feedbucket.classList.toggle('hidden')){
-          feedbucket.classList.remove('hidden');
-          crossImage.classList.remove('hidden');
-        }else{
-          feedbucket.classList.add('hidden');
-          crossImage.classList.add('hidden');
-        }
-  };
   useEffect(() => {
     document.addEventListener('keydown', handleHideDropdown, true);
     document.addEventListener('click', handleClickOutside, true);
@@ -644,9 +642,6 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">བོད་ཡིག</a>
                 <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
               </div>
-              <div><a className="interfaceLinks-row" id="help-link" onClick={loadFeedBucket}>
-                <InterfaceText>Feedback Tool</InterfaceText>
-              </a></div>
             </div>
             <hr className="interfaceLinks-hr"/>
             <div><a className="interfaceLinks-row logout" id="logout-link" href="/logout">

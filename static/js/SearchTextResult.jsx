@@ -69,6 +69,18 @@ class SearchTextResult extends Component {
             this.props.onResultClick(parsedRef.ref, {[s.lang]: s.version}, {textHighlights});
         }
     }
+    highight(data, query) {
+        let boldData
+        if (Array.isArray(data)) {
+            boldData = data[0].split(query).join(` <b>${query}</b> `)
+            return { markup: {__html: boldData}, lang: "en" };
+        } else {
+            
+            boldData = data.split(query).join(` <b>${query}</b> `)
+            return { markup: {__html: boldData}, lang: "en" };
+        }
+        
+    }
     get_snippet_markup(data) {
         var snippet;
         var field;
@@ -124,8 +136,8 @@ class SearchTextResult extends Component {
         //         }.bind(this))}
         //     </div>) : null;
 
-        // const snippetMarkup = this.get_snippet_markup(s.chapter);
-        // const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang === "en", he: snippetMarkup.lang === "he"});
+        const snippetMarkup = this.highight(s.chapter, this.props.query);
+        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang === "en", he: snippetMarkup.lang === "he"});
         return (
             <div className="result textResult">
                 <a href={href} onClick={this.handleResultClick}>
@@ -133,9 +145,8 @@ class SearchTextResult extends Component {
                         <InterfaceText text={{en: s.ref, he: s.heRef}}/>
                     </div>
                 </a>
-                <ColorBarBox tref={s.ref}>
-                    {/* <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div> */}
-                    <div dangerouslySetInnerHTML={{__html: s.chapter}}></div>
+                <ColorBarBox >
+                    <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div>
                 </ColorBarBox>
                 <div className="version">
                     {Sefaria.interfaceLang === 'hebrew' && s.version || s.title}

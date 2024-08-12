@@ -265,6 +265,9 @@ body, .sans-serif {
 .textColumn > .ribbon-wrap > .ribbon {
     font-family: var(--hebrew-serif-font-family) !important;
 }
+.ribbon-wrap > .ribbon {
+    font-family: var(--hebrew-serif-font-family) !important;
+}
 
 /* TILL HERE | edited to yakpotibetanUni from wujin */
 
@@ -695,6 +698,7 @@ input.noselect {
 .headerInner .headerNavSection {
     display: flex;
     justify-content: flex-start;
+    white-space: nowrap;
 }
 
 .headerInner .headerNavSection a {
@@ -4453,6 +4457,7 @@ details .open-details::before {
 
 .versionDetails .status {
     display: initial;
+    white-space: nowrap; /* Prevents text from wrapping */
     margin-inline-start: auto;
     font-style: normal;
     font-weight: normal;
@@ -4649,7 +4654,9 @@ select {
     border-color: #ccc;
     border-radius: 3px;
     color: #333;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    --english-font: var(--english-sans-serif-font-family);
+    --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --is-serif: initial;
 }
 
 .modTools .dlVersionSelect option,
@@ -5528,6 +5535,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .readerControls {
+    min-height: 0;
     position: relative;
     top: 0;
     left: 0;
@@ -5535,7 +5543,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     box-sizing: border-box;
     text-align: center;
     z-index: 100;
-    height: 60px;
+    height: 65px;
     line-height: 60px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     background-color: #FBFBFA;
@@ -5597,7 +5605,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     position: relative;
     width: 760px;
     margin: 0 auto;
-    padding: 0 30px;
+    padding: 3px 30px;
     display: flex;
     justify-content: space-between;
     max-width: 100%;
@@ -5718,6 +5726,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: 2px;
 }
 
 .readerControls.connectionsHeader .readerTextToc {
@@ -8430,31 +8439,38 @@ But not to use a display block directive that might break continuous mode for ot
 .interface-hebrew .addToSourceSheetBox .button.small {
     width: 50%;
     float: left;
+    white-space: nowrap;
 }
 
 .addToSourceSheetBox .newSheet {
     border-top: 1px solid #E9E9E9;
     padding: 14px 22px;
+
 }
 
 .addToSourceSheetBox .newSheet input::placeholder { /* eventual spec? */
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    white-space: nowrap;
 }
 
 .addToSourceSheetBox .newSheet input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    white-space: nowrap;
 }
 
 .addToSourceSheetBox .newSheet input::-moz-placeholder { /* Firefox 19+ */
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    white-space: nowrap;
 }
 
 .addToSourceSheetBox .newSheet input:-ms-input-placeholder { /* IE 10+ */
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    white-space: nowrap;
 }
 
 .addToSourceSheetBox .newSheet input:-moz-placeholder { /* Firefox 18- */
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    white-space: nowrap;
 }
 
 .confirmAddToSheet {
@@ -10217,6 +10233,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 
 .topicFilterBox {
+    
+    white-space: nowrap;
     display: flex;
     align-items: center;
     margin-bottom: 30px;
@@ -10240,7 +10258,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .topicFilterInput {
     padding: 0px 10px;
-    line-height: 30px;
+    line-height: 25px;
     flex: 1;
     box-sizing: border-box;
     border: none;
@@ -13223,6 +13241,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .largeFollowButton {
+    white-space: nowrap; /* Prevents text from wrapping */
     display: inline-flex;
     min-height: 46px;
     height: 46px;
@@ -13247,6 +13266,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .smallFollowButton {
+    white-space: nowrap; /* Prevents text from wrapping */
     height: 20px;
     line-height: 18px;
     width: min-content;
@@ -13619,7 +13639,11 @@ body .homeFeedWrapper .content {
 
 .authorByLine .authorOrganization,
 .authorByLine .authorName {
-    display: block;
+    display: flex;
+    flex-grow: 0;     /* Prevents the div from growing */
+    flex-shrink: 0;   /* Prevents the div from shrinking */
+    flex-basis: auto; /* The div's width will be based on its content */
+
 }
 
 .saveLine .authorByLine + .saveButton {
@@ -15046,8 +15070,23 @@ span.ref-link-color-3 {
 }
 
 /*text completion status*/
-
-
+.bookTitle .titleHepadding {
+    margin-top: 100px;
+}
+.bookTitle {
+    display: flex;
+    margin-right: 5px;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+}
+.leftButtons .textStatus {
+    display: flex;
+    margin-right: 5px;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+}
 
   /* HTML: <div class="ribbon">Your text content</div> */
 .ribbon {
@@ -15056,13 +15095,18 @@ span.ref-link-color-3 {
   color: #fff;
 }
 
-.ribbon-wrap {
-    position: sticky;
-    top: 40px;
-    left: 0;
-    margin-left: 0;
-    filter: drop-shadow(0px 10px 5px rgba(0,0,0,0.2));
-    
+.textStatus .ribbon-wrap {
+    white-space: nowrap;
+    margin-left: 10px;
+    display: initial;
+    margin-inline-start: auto;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 20px;
+    color: white;
+    border-radius: 25px;
+    padding: 5px 10px;
+    background: var(--pecha-red);
 }
 /* HTML: <div class="ribbon">Your text content</div> */
 
@@ -15089,22 +15133,20 @@ span.ref-link-color-3 {
     /* Create a pointy right side */
 }
 
-.ribbon-padding {
-    --r: .4em; /* control the ribbon shape (the radius) */
-    --c: var(--pecha-red);
-    padding-top: calc(var(--r));
+.leftButtons .textStatus .ribbon-padding {
+    padding-top: 10px;
   }
 
   @media (max-width: 850px) {
 
-    .ribbon-wrap {
+    /* .ribbon-wrap {
         position: absolute;
         left: 50%;
         top: 10px;
         filter: drop-shadow(0px 10px 5px rgba(0,0,0,0.2));
         transform: translateX(-40%);
         
-    }
+    } */
 
     .ribbon {
         --r: .1em; /* control the ribbon shape (the radius) */

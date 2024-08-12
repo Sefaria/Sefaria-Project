@@ -407,6 +407,38 @@ class Search {
         sort_score_missing: score_missing,
       };
     }
+    mongoSearchText(source){
+        const results = source.flatMap((result) => 
+            result.matchingChapters.map((chapter) => {
+              const data = {
+                title: result.title,
+                ref: `${result.title}.${chapter.index}`,
+                heRef: `${result.versionTitle}.${chapter.index}`,
+                lang: result.language,
+                chapter: chapter.chapter,
+                version: result.versionTitle,
+              };
+              return data;
+            })
+        );
+        return results;
+          
+    }
+    mongoSearchSheet(source){
+        const results = source.flatMap((result, i) =>
+            result.sources.map((source, i) => {
+              const data = {
+                title: result.title,
+                sheetId: result.sheet_id,
+                ownerId: result.owner_id,
+                sources: source.outsideBiText
+              }
+              return data
+            })
+          );
+        return results;
+          
+    }
     mergeTextResultsVersions(hits) {
       var newHits = [];
       var newHitsObj = {};  // map ref -> index in newHits
