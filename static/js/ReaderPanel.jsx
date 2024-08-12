@@ -1400,7 +1400,7 @@ class ReaderControls extends Component {
                 
                 <div className='bookTitle'> 
                   {this.setTextCompletionStatus(status)}
-                  <h1>
+                  <h1 className='titleHepadding'>
                     <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
                     <span className="sectionString">
                       <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />

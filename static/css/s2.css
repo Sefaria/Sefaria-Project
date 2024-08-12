@@ -5603,7 +5603,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     position: relative;
     width: 760px;
     margin: 0 auto;
-    padding: 0 30px;
+    padding: 3px 30px;
     display: flex;
     justify-content: space-between;
     max-width: 100%;
@@ -5724,6 +5724,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: 2px;
 }
 
 .readerControls.connectionsHeader .readerTextToc {
@@ -15067,7 +15068,9 @@ span.ref-link-color-3 {
 }
 
 /*text completion status*/
-
+.bookTitle .titleHepadding {
+    margin-top: 100px;
+}
 .bookTitle {
     display: flex;
     margin-right: 5px;
