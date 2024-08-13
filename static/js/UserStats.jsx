@@ -83,7 +83,7 @@ const UserChooser = ({setter}) => (
     <div style={{textAlign: "center"}}>
       <label>
         <span className="int-en"> User ID: </span>
-        <span className="int-he"> מספר משתמש: </span>
+        <span className="int-he"> སྤྱོད་མཁན་གྱི་ངོས་འཛིན།: </span>
         <input type="text" onChange={e => setter(parseInt(e.target.value))}/>
       </label>
     </div>
@@ -140,7 +140,7 @@ const OverallActivityBlock = ({user_data}) => (
         <div>
             <h2>
                 <span className="int-en">Your Overall Activity</span>
-                <span className="int-he">הפעילות שלך במבט</span>
+                <span className="int-he">གང་བྱས་ཚང་མ།</span>
             </h2>
             <div className="statcardRow">
                 <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="Texts Read"/>
@@ -186,7 +186,7 @@ const YourFavoriteTextsBlock = ({user_data}) => (
         <div className="yourFavoriteTextsBlock">
             <h2>
                 <span className="int-en">Your Favorite Texts</span>
-                <span className="int-he">טקסטים מועדפים</span>
+                <span className="int-he">ཁྱེད་རང་དགའ་ཤོས་ཀྱི་ཡིག་ཆ།</span>
             </h2>
             <NBox n={3} content={user_data.mostViewedRefs.map((r,i) =>
                 <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book} intlang={true}/>)}/>
