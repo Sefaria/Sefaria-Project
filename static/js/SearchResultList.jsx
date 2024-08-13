@@ -118,7 +118,9 @@ class SearchResultList extends Component {
         error:          false,
         topics:         [],
         totalText: 0,
-        totalSheet: 0
+        totalSheet: 0,
+        isSearchedEmpty: true,
+        mongoloading: true
       }
 
       // Load search results from cache so they are available for immediate render
@@ -171,6 +173,16 @@ class SearchResultList extends Component {
             this._executeQuery(newProps, t);
           }
         });
+      }
+      if (this.props.query !== newProps.query){
+        console.log(this.props.query, newProps.query)
+      }
+      
+      if(this.props.mongoSearch !== newProps.mongoSearch){
+        this.setState({
+          isSearchedEmpty: true,
+          mongoloading: true
+        })
       }
     }
     
@@ -461,12 +473,12 @@ class SearchResultList extends Component {
         let textResults = []
         let rr = []
         let mongoloading = true
-
         if (tab === "text") {
           results = []
           // results = Sefaria.search.mergeTextResultsVersions(this.state.hits.text);
-         
+          
           if(this.props.mongoSearch && this.props.mongoSearch.status == "success"){
+            mongoloading = false
             results = Sefaria.search.mongoSearchText(this.props.mongoSearch.result.text)
             results = results.map((result, i) => 
               <SearchTextResult
@@ -477,8 +489,10 @@ class SearchResultList extends Component {
                 onResultClick={this.props.onResultClick} 
               />
             )
+          } else {
+            results = []
           }
-          results ? mongoloading = false : mongoloading = true
+          
           // results = results.filter(result => !!result._source.version).map(result =>
           //   <SearchTextResult
           //     data={mongoSearchedText}
@@ -512,6 +526,7 @@ class SearchResultList extends Component {
           //     onResultClick={this.props.onResultClick} />
           // );
           if(this.props.mongoSearch && this.props.mongoSearch.status == "success"){
+            mongoloading = false
             results = Sefaria.search.mongoSearchSheet(this.props.mongoSearch.result.sheet)
             results = results.map((result) =>
               <SearchSheetResult
@@ -522,6 +537,8 @@ class SearchResultList extends Component {
               />
 
             )
+          } else {
+            results = []
           }
         }
 
@@ -562,7 +579,9 @@ class SearchResultList extends Component {
             </div>
             <div className="searchResultList">
               {results ? <h1><InterfaceText>{`Total : (${total})`}</InterfaceText></h1>: null}
-              { !results ? !mongoloading ? loadingMessage : noResultsMessage : results }
+              {mongoloading ? loadingMessage  : null}
+              {!haveResults && !mongoloading ? noResultsMessage: null}
+              { haveResults ? results : null}
             </div>
           </div>
         );
