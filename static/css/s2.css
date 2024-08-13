@@ -14181,7 +14181,7 @@ body .homeFeedWrapper.userStats {
 }
 
 .userStatModeChooser {
-    padding: 0;
+    padding: 10px;
     display: flex;
     justify-content: center;
     width: 240px;
