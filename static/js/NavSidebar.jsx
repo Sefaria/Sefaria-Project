@@ -98,13 +98,16 @@ const AboutSefaria = ({hideTitle}) => (
     <ModuleTitle h1={true}>A Living Library of Buddhist Text</ModuleTitle> : null }
     <InterfaceText>
       <EnglishText>
-          Pecha is home to 2500 years of Buddhist texts. We are offering free access to texts, translations,
-          and commentaries so that everyone can participate in the ongoing process of studying, interpreting,
-           and creating Buddhist text library.
+        The Pecha platform provides access to Buddhist scriptures in a variety of languages and styles to accommodate everyone's needs. 
+        By searching for a single verse, users can discover its origins, various interpretations, translations into different languages, 
+        commentaries, annotations, sub-commentaries, and references in other scriptures—all in one place. Whether casually exploring various 
+        scriptures or engaging in deep study, users can share insights or personal experiences related to the subject through notes or comments 
+        with other Dharma friends. Additionally, users can gain from the fresh insights shared by fellow readers in their notes.
         </EnglishText>
         <HebrewText>
-          དཔེ་ཆ་དྲ་ཚིགས་ནི་ལོ་ངོ་ཉིས་སྟོང་ལྔ་བརྒྱ་ལྷག་གི་ལོ་རྒྱུས་ལྡན་པའི་ནང་བསྟན་གསུང་རབ་རྣམས་ཀྱི་མཛོད་ཁང་ལྟ་བུ་ཞིག་ཡིན། ང་ཚོས་ཆ་རྐྱེན་གང་ཡང་མི་དགོས་པར་ནང་པའི་གསུང་རབ་ཁག་དང་འགྱུར་མ། གཞུང་འགྲེལ་བཅས་ལ་ཐུན་མོང་གིས་མཇལ་ཐུབ་པའི་གོ་སྐབས་སྤྲོད་ཀྱི་ཡོད། 
-          བྱེད་ཐབས་འདི་བརྒྱུད་ནས་སྐྱེས་བུ་སུ་ཞིག་ཡིན་རུང་ནང་བསྟན་གསུང་རབ་ལ་སློབ་གཉེར་དང་གཞུང་འགྲེལ་བྱེད་པ། ནང་བསྟན་གྱི་དཔེ་ཚོགས་ཀུན་འཛོམས་ཀྱི་དཔེ་མཛོད་འདི་ཇེ་ལེགས་ཇེ་རྒྱས་སུ་གཏོང་བའི་ལས་རིམ་ལ་ཞུགས་ཐུབ་ཀྱི་ཡོད།
+          དཔེ་ཆ་དྲ་བའི་ནང་དུ་ཁྱེད་རང་གི་དགོས་མཁོ་དང་འཚམ་པའི་ནང་པའི་གསུང་རབ་སྣ་ཚོགས་བཞུགས་ཡོད།  དྲ་རྒྱ་འདིའི་ཁྱད་ཆོས་ནི། ཀློག་མཁན་རྣམས་ཀྱིས་སྟབས་བདེ་བོའི་ངང་ནས་གཞུང་ལུགས་ཆེན་པོ་རྣམས་ལ་སློབ་སྦྱོང་བྱེད་ཐུབ་ཀྱི་ཡོད། དཔེར་ན། རྩ་ཚིག་གཅིག་ཙམ་བཙལ་བས། ཚིག་དེ་གང་ནས་འབྱུང་བའི་ཁུངས་དང་། 
+          ཚིག་སྦྱོར་དང་འགྱུར་མི་འདྲ་བ། སྐད་ཡིག་གཞན་པའི་ནང་དུ་འགྱུར་བ་གང་ཡོད། རྩ་ཚིག་དེའི་འགྲེལ་བ་དང་། མཆན་འགྲེལ། ཡང་འགྲེལ། བསྟན་བཅོས་གཞན་པའི་ནང་དུ་ཚིག་དེ་ལུང་དྲངས་པ་སོགས་དེ་དང་འབྲེལ་ཡོད་ཕལ་ཆེ་བ་སྟབས་གཅིག་ཏུ་ཀློག་ཐུབ། ཀློག་མཁན་ཁྱེད་ཀྱིས་ཐུགས་ལྷོད་ལྷོད་ངང་གསུང་རབ་སྣ་ཚོགས་ལ་རགས་བལྟ་དང་། ཞིབ་ཀློག་བྱེད་པའི་ཞོར་དུ། 
+          སྐབས་བབ་བརྗོད་བྱ་དང་འབྲེལ་བའི་གོ་རྟོགས་གསར་པའམ། ཡང་ན་རང་གི་མི་ཚེའི་ནང་བྱུང་བའི་སྐྱིད་སྡུག་གི་ཉམས་མྱོང་རྣམས་ཟིན་བྲིས་དང་། མཆན་དུ་བྲིས་ཏེ་ཆོས་གྲོགས་གཞན་གྱི་ལོངས་སྤྱོད་དུ་སྤེལ་ཆོག་ལ་། ཆོས་གྲོགས་གཞན་གྱི་མྱོང་རྟོགས་གསར་པ་རྣམས་ཀྱང་རང་ཉིད་ཀྱིས་ལོངས་སྤྱོད་བྱེད་ཐུབ་ཀྱི་ཡོད། 
         </HebrewText>
     </InterfaceText>
   </Module>
@@ -477,11 +480,12 @@ const AboutTopics = ({hideTitle}) => (
     <ModuleTitle>About Topics</ModuleTitle> }
     <InterfaceText>
         <HebrewText>
-        བརྗོད་གཞིའི་ཤོག་ངོས་ཀྱིས་གཙོ་བོ་ཆེད་འདེམ་བྱས་པའི་བརྗོད་གཞི་སྟོང་ཕྲག་མང་པོའི་རྒྱུ་ཆ་རྣམས་བརྗོད་བྱའི་སྒོ་ནས་རིགས་སོ་སོར་དབྱེ་བའི་སྡེ་ཚན་གསལ་སྟོན་བྱེད་པ་ཡིན། དེའི་ཕྱིར་ཁྱེད་ཀྱིས་སྡེ་ཚན་རེ་རེ་བྱས་ཏེ་གཟིགས་ཐུབ་ཅིང་། བྱེ་བྲག་གིས་འཚོལ་ཞིབ་བྱེད་པ་ཡང་ན་བརྗོད་གཞི་རྒྱུགས་ཆེ་ཤོས་རྣམས་དང་དེ་འབྲེལ་གྱི་རྒྱུ་ཆ་ཁག་གཟིགས་ཞིབ་ཀྱང་བྱེད་ཆོག་པ་ཡིན།
+          ཤོག་ངོས་འདིའི་ནང་དུ། དོན་དག་སྣ་ཚོགས་དང་འབྲེལ་བའི་ལུང་དང་། འབྲེལ་ཡོད་ཀྱི་བསྟན་བཅོས། ཀློག་མཁན་གྱིས་སྤེལ་བའི་ཟིན་བྲིས་སོགས་བརྗོད་གཞི་ལྟར་ལྟ་ཀློག་བྱེད་པའམ། ཡང་ན། ཁྱེད་རང་གིས་ལྟ་འདོད་པའི་དམིགས་བསལ་གྱི་བརྗོད་གཞི་གང་རུང་འཚོལ་བཤེར་བྱེད་ཆོག། 
+          ད་དུང་དྲ་བའི་ཟུར་ངོས་སུ་མི་མང་པོས་དོ་སྣང་བྱེད་སའི་བརྗོད་གཞི་ཚ་ཤོས་གང་ཡིན་གོ་རིམ་ལྟར་གསལ་བ་ལས་ཀྱང་རང་འདོད་ལྟར་བཀླག་ཆོག། མདོར་ན། ཤོག་ངོས་འདིའི་ནང་ལྟ་ཀློག་མང་ཙམ་གྱིས་དང་། ཁྱེད་རང་ལ་སྤྲོ་སྣང་འདྲེན་པའི་བརྗོད་གཞི་མང་པོ་ཡོད།
         </HebrewText>
         <EnglishText>
-        Topics Pages present a curated selection of various genres of sources on thousands of chosen subjects. You can browse by category, search for something specific, or view the most popular topics — and related topics — on the sidebar. Explore and click through to learn more.
-        </EnglishText>
+          Topics Pages present a curated selection of various genres of sources on thousands of chosen subjects. You can browse by category, 
+          search for something specific, or view the most popular topics — and related topics — on the sidebar. Explore and click through to learn more.        </EnglishText>
     </InterfaceText>
   </Module>
 );
