@@ -145,38 +145,38 @@ const signUpModalContent = {
     ],
   },
   [SignUpModalKind.Notes]: {
-    h2: { en: "Don’t lose that thought!", he: "אל תשכחו את המחשבה שעלתה בכם!" },
+    h2: { en: "Don’t lose that thought!", he: "ཁྱེད་ཀྱི་གོ་རྟོགས་གསར་པ་དེ་མ་བརླགས་པར་བྱེད་དགོས།" },
     h3: {
       en: "Create a free account to do more on Sefaria",
-      he: "פתחו חשבון משתמש בחינם כדי לעשות יותר עם ספריא",
+      he: "དཔེ་ཆ་དྲ་བའི་ཆ་རྐྱེན་ཚང་མ་སྤྱོད་པ་ལ། རིན་མེད་ཐོག་ནས་ཐོ་འགོད་གྱིས།",
     },
     contentList: [
       {
         icon: "note-white.svg",
         bulletContent: {
           en: "Take notes on this text",
-          he: "רשמו הערות על הטקסט שאתם לומדים",
+          he: "ཡིག་ཆ་འདི་ལ་མཆན་རྒྱོབས།",
         },
       },
       {
         icon: "sheetsplus-white.svg",
         bulletContent: {
-          en: "Build & create source sheets",
-          he: "בנו ושתפו דפי מקורות",
+          en: "Build & share source sheets",
+          he: "ཟིན་བྲིས་གསར་བཟོ་དང་འགྲེམས་སྤེལ།",
         },
       },
       {
         icon: "share-icon-white.svg",
         bulletContent: {
           en: "Connect with other users",
-          he: "התחברו עם משתמשים אחרים באתר",
+          he: "དཔེ་ཀློག་པ་གཞན་དང་གྲོགས་འབྲེལ་བཟོ་བ།",
         },
       },
       {
         icon: "email-white.png",
         bulletContent: {
           en: "Get updates on new features",
-          he: "קבלו עדכונים טכנולוגיים על תכונות חדשות בספריא",
+          he: "ཁྱད་ཆོས་ཁ་སྣོན་བྱས་པ་སོགས་ལ་ལྟོས།",
         },
       },
     ],

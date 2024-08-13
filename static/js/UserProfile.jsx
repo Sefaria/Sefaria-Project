@@ -201,7 +201,7 @@ class UserProfile extends Component {
            {Sefaria._(" You can use sheets to save and organize sources, write new texts, create lessons, lectures, articles, and more.")}
           </span>
           <span className="int-he">
-            {Sefaria._(" You can use sheets to save and organize sources, write new texts, create lessons, lectures, articles, and more.")}
+            {Sefaria._(" ཟིན་བྲིས་བེད་སྤྱོད་བཏང་ནས། ལུང་འདྲེན་ཕྱོགས་བསྡུ་དང་། དེའི་སྐོར་ལ་རྩོམ་འབྲི་བ། སློབ་ཚན་སྒྲིག་པ། དཔྱད་རྩོམ་འབྲི་བ་ལ་སོགས་པ་གནང་ཐུབ་པ་ཡིན།")}
           </span>
         </div>
         <a href="/sheets/new" className="resourcesLink sans-serif">
