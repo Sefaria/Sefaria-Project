@@ -471,7 +471,7 @@
                         {% if can_edit or can_add %}
                             <span class="lastSavedStamp">
                                 <span class="int-en">{% trans "Last Saved" %} {{sheet.dateModified|date_string_to_date|naturaltime}}</span>
-                                <span class="int-he">{% trans "Last Saved" %} {{sheet.dateModified|date_string_to_date}}</span>
+                                <span class="int-he">{% trans "Last Saved" %} {{sheet.dateModified|date_string_to_tibetan_date}}</span>
                             </span>
                             <span class="lastSavedConfirmed">
                                 <span class="int-en">{% trans "All changes saved in Pecha" %}</span>
@@ -626,7 +626,7 @@
                         class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}{% trans "Views" %}
                 {% endif %}</span>{% if can_edit %}<span
                         class="editButton">{% trans "Edit" %}</span>{% endif %}</span>
-                    <span class="int-he">{% trans "Created" %} <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span
+                    <span class="int-he">{% trans "Created" %} <span class="date">{{ sheet.dateCreated|date_string_to_tibetan_date }}</span> · <span
                             class="views">{% if sheet.views == 1%}{% trans "View" %} {% else %}{{ sheet.views }}
                 {% endif %}{% trans "Views" %}</span>{% if can_edit %}<span class="editButton">{% trans "Edit" %}</span>{% endif %}</span>
                 </div>
