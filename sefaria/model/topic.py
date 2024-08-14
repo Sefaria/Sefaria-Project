@@ -1,7 +1,7 @@
 from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
-from .text import Ref, IndexSet, AbstractTextRecord
+from .text import Ref, IndexSet, AbstractTextRecord, Index
 from .category import Category
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
@@ -13,6 +13,10 @@ from sefaria.model.place import Place
 import regex as re
 from typing import Type
 logger = structlog.get_logger(__name__)
+from dataclasses import dataclass, field
+from typing import Tuple, List
+
+
 
 
 class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
@@ -588,6 +592,30 @@ class AuthorTopic(PersonTopic):
         from .schema import Term
         from collections import defaultdict
 
+        @dataclass
+        class SubCatBookSet:
+            depth: int
+            sub_cat_path: Tuple[str, ...]
+            books: List[Index] = field(default_factory=list)
+
+            def __eq__(self, other):
+                if not isinstance(other, SubCatBookSet):
+                    return False
+                return self.sub_cat_path == other.sub_cat_path
+
+        @dataclass
+        class Aggregation:
+            base_cat_path: Tuple[str, ...]
+            collective_title: str
+            sub_cat_book_sets: List[SubCatBookSet] = field(default_factory=list)
+
+            def __eq__(self, other):
+                if not isinstance(other, Aggregation):
+                    return False
+                return self.base_cat_path == other.base_cat_path and self.collective_title == other.collective_title
+
+
+
         def index_is_commentary(index):
             return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(
                 index, 'collective_title', None) is not None
@@ -595,19 +623,43 @@ class AuthorTopic(PersonTopic):
         indexes = self.get_authored_indexes()
 
         index_or_cat_list = []  # [(index_or_cat, collective_title_term, base_category)]
-        cat_aggregator = defaultdict(
-            lambda: defaultdict(list))  # of shape {(collective_title, top_cat): {(icat, category): [index_object]}}
+
+        aggregations = []
+
         MAX_ICAT_FROM_END_TO_CONSIDER = 2
         for index in indexes:
             is_comm = index_is_commentary(index)
             base = library.get_index(index.base_text_titles[0]) if is_comm else index
             collective_title = index.collective_title if is_comm else None
             base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER + 1])
+            aggregation = Aggregation(base_cat_path=base_cat_path, collective_title=collective_title)
+            if aggregation not in aggregations:
+                aggregations.append(aggregation)
+            else:
+                for agg in aggregations:
+                    if agg == aggregation:
+                        aggregation = agg
+
+
             for icat in range(len(base.categories) - MAX_ICAT_FROM_END_TO_CONSIDER, len(base.categories)):
-                cat_aggregator[(collective_title, base_cat_path)][(icat, tuple(base.categories[:icat + 1]))] += [index]
-        for (collective_title, _), cat_choice_dict in cat_aggregator.items():
-            cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
-            (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
+                new_sub_cat_book_set = SubCatBookSet(depth=icat+1, sub_cat_path=tuple(base.categories[:icat + 1]))
+                if new_sub_cat_book_set not in aggregation.sub_cat_book_sets:
+                    new_sub_cat_book_set.books.append(index)
+                    aggregation.sub_cat_book_sets.append(new_sub_cat_book_set)
+                else:
+                    exising_sub_cat_book_set = None
+                    for book_set in aggregation.sub_cat_book_sets:
+                        if book_set == new_sub_cat_book_set:
+                            exising_sub_cat_book_set = book_set
+                            break
+                    exising_sub_cat_book_set.books += [index]
+
+
+        for aggregation in aggregations:
+            cat_choices_sorted = sorted(aggregation.sub_cat_book_sets, key=lambda book_set: (len(book_set.books), book_set.depth), reverse=True)
+            collective_title = aggregation.collective_title
+            best_base_cat_path = cat_choices_sorted[0].sub_cat_path
+            temp_indexes = cat_choices_sorted[0].books
             if len(temp_indexes) == 1:
                 index_or_cat_list += [(temp_indexes[0], None, None)]
                 continue
