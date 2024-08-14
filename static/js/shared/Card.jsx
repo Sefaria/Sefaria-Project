@@ -1,6 +1,5 @@
 import {InterfaceText} from "../Misc";
 import React from "react";
-import classNames from "classnames";
 const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText}) => {
     return <div className="navBlock">
                 <a href={cardTitleHref} className="navBlockTitle" onClick={oncardTitleClick}>
