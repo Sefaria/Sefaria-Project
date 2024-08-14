@@ -2,7 +2,6 @@ import SearchPage from "../SearchPage";
 import Sefaria from "../sefaria/sefaria";
 import {useEffect, useState} from "react";
 import {SearchTotal} from "../sefaria/searchTotal";
-import {Children as availableFilters} from "../lib/react";
 import SearchState from "../sefaria/searchState";
 const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateAppliedFilter,
                            updateAppliedOptionField, updateAppliedOptionSort, onResultClick,
@@ -14,7 +13,8 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     // storing original available filters is crucial so that we have access to the full list of filters.
     // by contrast, in the searchState, the available filters length changes based on filtering.
     // by having access to the original available filters list, if the searchState's applied filters are turned off,
-    // we can return the searchState's available filters to the original list.
+    // we can return the searchState's available filters to the original list.  Once origAvailableFilters are loaded,
+    // they are never changed.
 
     const [refs, setRefs] = useState(srefs);
     const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray.filter(sortType => sortType.type !== 'relevance');
@@ -102,7 +102,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
             })
           })
           availableFilters.forEach((filter, i) => {
-            if (filter.aggKey in allSlugs) {
+            if (filter.aggKey in allSlugs && filter.aggType === type) {
                 availableFilters[i].docCount = allSlugs[filter.aggKey];
             }
         })
