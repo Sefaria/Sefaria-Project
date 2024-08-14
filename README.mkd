@@ -1,24 +1,20 @@
 ## New Interfaces for Buddhist Texts
 
-[Pecha](https://pecha.org) is creating interfaces, apps (like a source sheet builder), and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning.
+[Pecha](https://pecha.org) is an instance of Sefaria project and we are creating interfaces, apps (like a source sheet builder), and infrastructure (like an API and a structured dataset) for Buddhist texts and textual learning.
 
-You can find outputs of our entire database in [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export).
+For general discussion questions about the project, please email [hello@pecha.org](mailto:hello@pecha.org).
 
-Interested developers should join the [sefaria-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+If you find textual problems in our library, please email [corrections@pecha.org](mailto:corrections@pecha.org).
 
-For general discussion questions about the project, please email [hello@sefaria.org](mailto:hello@sefaria.org).
+You can post bugs or request/discuss features on [GitHub Issues](https://github.com/OpenPecha/Pecha.org//issues?direction=desc&page=1&sort=created&state=open). 
 
-If you find textual problems in our library, please email [corrections@sefaria.org](mailto:corrections@sefaria.org).
-
-You can post bugs or request/discuss features on [GitHub Issues](https://github.com/sefaria/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open). Tackling an issue marked as a "Starter Project" is a good way to sink your teeth into Sefaria.
-
-If you're interested in working on a project you see listed here, please email the [sefaria-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+If you're interested in working on a project you see listed here, please email the [pecha-dev mailing list](https://groups.google.com/forum/#!forum/pecha-dev).
 
 
 ***
 
 ### Getting Started
-First clone the Sefaria-Project repository to a directory on your computer, then follow the instructions:
+First clone the Pecha-Project repository to a directory on your computer, then follow the instructions:
 
 *Note: if you are a developer that might want to contribute code to Sefaria, we suggest first making a fork of this repository by clicking the "Fork" button above when logged in to GitHub.*
 
@@ -27,7 +23,7 @@ First clone the Sefaria-Project repository to a directory on your computer, then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
 
-There are two methods with which you can run the Sefaria-Project, docker-compose and local install
+There are two methods with which you can run the Pecha-Project, docker-compose and local install
 
 #### Run with docker-compose
 ##### 1) Install Docker and Docker Compose
