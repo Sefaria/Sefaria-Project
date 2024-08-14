@@ -361,7 +361,7 @@ class TextColumn extends Component {
   }
 
   setTextCompletionStatus(versions){
-    if (this.props.interfaceLang == "hebrew") {
+    if (this.props.interfaceLang == "hebrew") { 
       
       if (versions[0].iscompleted == "done") {
         return null
@@ -441,7 +441,7 @@ class TextColumn extends Component {
         <div className="bookMetaDataBox" key="bookTitle">
           <div className="title" role="heading" aria-level="1">
             <ContentText text={{en: this.props.bookTitle, he: this.props.heBookTitle}} defaultToInterfaceOnBilingual={true} />
-          </div>
+          </div>   
         </div> : null;
 
       pre = this.state.showScrollPlaceholders ?
@@ -457,8 +457,6 @@ class TextColumn extends Component {
     }
 
     return (<div className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
-      
-      {textStatus}
       {pre}
       {content}
       {post}

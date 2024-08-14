@@ -760,7 +760,7 @@ const TopicSideSection = ({ title, children, hasMore }) => {
 const TopicImage = ({photoLink, caption }) => {
   
   return (
-    <div class="topicImage">
+    <div className="topicImage">
       <ImageWithCaption photoLink={photoLink} caption={caption} />
     </div>);
 }

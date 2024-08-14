@@ -29,7 +29,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
       )
 
   useEffect(() => {
-      attachKeyboard();
+      // attachKeyboard();
       const searchInput = document.getElementById('searchQueryInput')
       if (searchInput) {
           searchInput.value = query
@@ -120,7 +120,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
 
       {query && mongoSearchedText?
         <SearchResultList
-          mongoSearchText={mongoSearchedText}
+          mongoSearch={mongoSearchedText}
           query={query}
           compare={false}
           searchInBook={true}

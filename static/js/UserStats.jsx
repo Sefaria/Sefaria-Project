@@ -83,7 +83,7 @@ const UserChooser = ({setter}) => (
     <div style={{textAlign: "center"}}>
       <label>
         <span className="int-en"> User ID: </span>
-        <span className="int-he"> מספר משתמש: </span>
+        <span className="int-he"> སྤྱོད་མཁན་གྱི་ངོས་འཛིན།: </span>
         <input type="text" onChange={e => setter(parseInt(e.target.value))}/>
       </label>
     </div>
@@ -110,9 +110,9 @@ const SiteDataBlock = ({site_data}) => (
                 <span className="int-en">What People are Reading</span>
                 <span className="int-he">מה אנשים קוראים</span>
             </h2>
-            <div className="chartRow centered">
+            {/* <div className="chartRow centered">
                 <CategoriesDonut title="Average Sefaria User" heTitle="משתמש ממוצע בספריא" cats={site_data.categoriesRead}/>
-            </div>
+            </div> */}
         </div>
         <div>
             <h2>
@@ -140,7 +140,7 @@ const OverallActivityBlock = ({user_data}) => (
         <div>
             <h2>
                 <span className="int-en">Your Overall Activity</span>
-                <span className="int-he">הפעילות שלך במבט</span>
+                <span className="int-he">གང་བྱས་ཚང་མ།</span>
             </h2>
             <div className="statcardRow">
                 <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="Texts Read"/>
@@ -160,25 +160,25 @@ const StatCard = ({icon_file, name, number}) => (
 
 const UserDonutsBlock = ({user_data, site_data}) => (
         <div>
-            <h2>
+            {/* <h2>
                 <span className="int-en">Your Reading by Category</span>
                 <span className="int-he">לימוד לפי סוגה</span>
             </h2>
             <div className="chartRow">
                 <CategoriesDonut title="Your Reading" heTitle="הלימוד שלך" cats={user_data.categoriesRead}/>
                 <CategoriesDonut title="Average Sefaria User" heTitle="משתמש ממוצע בספריא" cats={site_data.categoriesRead}/>
-            </div>
+            </div> */}
         </div>
 );
 const UserCategoryBarchartBlock = ({user_data, site_data}) => (
         <div>
-            <h2>
+            {/* <h2>
                 <span className="int-en">Your Top Categories</span>
                 <span className="int-he">מצעד סוגות הלימוד</span>
             </h2>
             <div className="chartRow">
                 <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
-            </div>
+            </div> */}
         </div>
 );
 const YourFavoriteTextsBlock = ({user_data}) => (
@@ -186,7 +186,7 @@ const YourFavoriteTextsBlock = ({user_data}) => (
         <div className="yourFavoriteTextsBlock">
             <h2>
                 <span className="int-en">Your Favorite Texts</span>
-                <span className="int-he">טקסטים מועדפים</span>
+                <span className="int-he">ཁྱེད་རང་དགའ་ཤོས་ཀྱི་ཡིག་ཆ།</span>
             </h2>
             <NBox n={3} content={user_data.mostViewedRefs.map((r,i) =>
                 <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book} intlang={true}/>)}/>

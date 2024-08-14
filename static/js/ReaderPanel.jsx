@@ -55,9 +55,6 @@ class ReaderPanel extends Component {
     this.readerContentRef = React.createRef();
   }
   componentDidMount() {
-    // this.props.mongoSearchText.then(data => {
-    //   console.log("datat: ", data)
-    // })
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
@@ -895,7 +892,7 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<SearchPage
-                    mongoSearchText= {this.props.mongoSearchText}
+                    mongoSearch= {this.props.mongoSearch}
                     key={"searchPage"}
                     interfaceLang={this.props.interfaceLang}
                     query={this.state.searchQuery}
@@ -1167,7 +1164,7 @@ class ReaderPanel extends Component {
   }
 }
 ReaderPanel.propTypes = {
-  mongoSearchText: PropTypes.object,
+  mongoSearch: PropTypes.object,
   initialState:                PropTypes.object,
   interfaceLang:               PropTypes.string,
   setCentralState:             PropTypes.func,
@@ -1228,6 +1225,7 @@ class ReaderControls extends Component {
     super(props);
     this.state = {
       displayVersionTitle: {},  // lang codes as keys and version title to display in header as values. prefers shortVersionTitle when available but falls back on versionTitle
+      status: ""
     };
   }
   openTextConnectionsPanel(e) {
@@ -1307,14 +1305,44 @@ class ReaderControls extends Component {
   stopPropagation(e){
     e.stopPropagation();
   }
+  setTextCompletionStatus(status){
+    if (Sefaria.interfaceLang == "hebrew") {
+      
+      if (status == "done") {
+        return null
+      } else {
+        return (
+          <div className='ribbon-wrap ribbon-padding'>{"སྒྲིག་བཞིན་ཡོད།"}</div>
+        )
+      }
+    } else {
+      if (status == "done") {
+        return null
+      } else {
+        return (
+          <div className='ribbon-wrap'>{"In Progress"}</div>
+        )
+      }
+    }
+     
+  }
   render() {
     let title = this.props.currentRef || "";
     let heTitle = "";
     let sectionString = "";
     let heSectionString = "";
     let categoryAttribution = null;
+    let status = ""
     const oref = Sefaria.getRefFromCache(this.props.currentRef);
-
+    if(oref) {
+      oref?.versions.forEach(version => {
+        if(version.languageFamilyName == "hebrew"){
+          status = version.iscompleted
+        }
+  
+      }) 
+    }
+    
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
         title = heTitle = Sefaria._("Loading...");
@@ -1369,12 +1397,17 @@ class ReaderControls extends Component {
                   {title}
                 </h1>
                 :
-                <h1>
-                  <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
-                  <span className="sectionString">
-                    <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
-                  </span>
-                </h1>
+                
+                <div className='bookTitle'> 
+                  
+                  <h1 className='titleHepadding'>
+                    <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
+                    <span className="sectionString">
+                      <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
+                    </span>
+                  </h1>
+                  
+                </div>
                 }
               </div>
               <div className="readerTextVersion">
@@ -1392,13 +1425,19 @@ class ReaderControls extends Component {
       </div>;
 
     let leftControls = hideHeader || connectionsHeader ? null :
-      (<div className="leftButtons">
+      (<div className="leftButtons"> 
+          
           {this.props.multiPanel ? (<CloseButton onClick={this.props.closePanel} />) : null}
           {this.props.multiPanel ? null : (<MenuButton onClick={this.props.openMobileNavMenu}/>)}
-          <SaveButton placeholder={true}/>
+          <div className='textStatus'>
+            {this.setTextCompletionStatus(status)}
+          </div>
+          
+          <SaveButton placeholder={true}/>  
         </div>);
 
     let rightControls = hideHeader || connectionsHeader ? null :
+    
       (<div className="rightButtons">
           <SaveButton
             historyObject={this.props.historyObject}

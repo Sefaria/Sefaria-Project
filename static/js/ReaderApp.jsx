@@ -120,7 +120,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
-      mongoSearchText: null
+      mongoSearch: null
     };
   }
   makePanelState(state) {
@@ -1661,9 +1661,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     this.setSinglePanelState(state);
   }
-  async searchmongoText(chapterQuery, titleQuery="" ) {
+  async searchmongoText(chapterQuery, titleQuery="",) {
     this.setState({
-      mongoSearchText: await Sefaria.mongoSearch(chapterQuery, titleQuery)
+      mongoSearch: await Sefaria.mongoSearch(chapterQuery, titleQuery)
     })
 
   }
@@ -2116,7 +2116,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
-                      mongoSearchText={this.state.mongoSearchText}
+                      mongoSearch={this.state.mongoSearch}
                       panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}

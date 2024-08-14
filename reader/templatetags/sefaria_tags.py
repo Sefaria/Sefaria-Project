@@ -518,6 +518,23 @@ def date_string_to_date(dateString):
     return(datetime.strptime(dateString, "%Y-%m-%dT%H:%M:%S.%f"))
 
 
+@register.filter
+def date_string_to_tibetan_date(value):
+    if isinstance(value, str):
+        # Parse the date string to a datetime object
+        value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
+
+    # Create the Tibetan date and time format
+    formatted_datetime = (
+        f"སྤྱི་ལོ་{value.year} "
+        f"ཟླ་{value.month} "
+        f"ཚེས་{value.day} "
+        f"ཕྱག་ཚོད་{value.hour} "
+        f"སྐར་མ་{value.minute} "
+    )
+    return formatted_datetime
+
+
 @register.filter(is_safe=True)
 def sheet_via_absolute_link(sheet_id):
     return mark_safe(absolute_link(

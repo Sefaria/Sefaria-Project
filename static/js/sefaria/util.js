@@ -97,7 +97,7 @@ class Util {
             const yearString = getTibetanNumberAsString(year);
             const monthString = getTibetanNumberAsString(month);
             const dateString = getTibetanNumberAsString(date);
-            return yearString.concat("-", monthString, "-", dateString);
+            return `སྤྱི་ལོ ${yearString} ཟླ་བ ${monthString} ཚེས ${dateString}`
         }
 
         function getTibetanNumberAsString(num) {
@@ -202,7 +202,7 @@ class Util {
     static naturalTime(timeStamp, {lang, short} = {}) {
         // given epoch time stamp, return string of time delta between `timeStamp` and now
         const now = Util.epoch_time();
-        let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'bo' : 'en');
+        let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
         let spacer = " ";
         if (short) {
             language = language === "en" ? "shortEn" : "shortBo";

@@ -42,13 +42,13 @@
                             </div>
                             {% endif %}
                             {% if user.email %}
-                            <div class="optionItem" id="exportToDrive" role="menuitem" tabindex="0">
+                            {% comment %} <div class="optionItem" id="exportToDrive" role="menuitem" tabindex="0">
                                 <i class="fa fa-google"></i>
                                 <span class="optionItemText">
                                     <span class="int-en">{% trans "Export to Google Drive" %}</span>
                                     <span class="int-he">{% trans "Export to Google Drive" %}</span>
                                 </span>
-                            </div>
+                            </div> {% endcomment %}
                             {% endif %}
                             <div class="optionItem" id="embedSheet" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/embed.png' %}" alt="Embed Sheet Icon">
@@ -471,7 +471,7 @@
                         {% if can_edit or can_add %}
                             <span class="lastSavedStamp">
                                 <span class="int-en">{% trans "Last Saved" %} {{sheet.dateModified|date_string_to_date|naturaltime}}</span>
-                                <span class="int-he">{% trans "Last Saved" %} {{sheet.dateModified|date_string_to_date}}</span>
+                                <span class="int-he">{% trans "Last Saved" %} {{sheet.dateModified|date_string_to_tibetan_date}}</span>
                             </span>
                             <span class="lastSavedConfirmed">
                                 <span class="int-en">{% trans "All changes saved in Pecha" %}</span>
@@ -626,7 +626,7 @@
                         class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}{% trans "Views" %}
                 {% endif %}</span>{% if can_edit %}<span
                         class="editButton">{% trans "Edit" %}</span>{% endif %}</span>
-                    <span class="int-he">{% trans "Created" %} <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span
+                    <span class="int-he">{% trans "Created" %} <span class="date">{{ sheet.dateCreated|date_string_to_tibetan_date }}</span> · <span
                             class="views">{% if sheet.views == 1%}{% trans "View" %} {% else %}{{ sheet.views }}
                 {% endif %}{% trans "Views" %}</span>{% if can_edit %}<span class="editButton">{% trans "Edit" %}</span>{% endif %}</span>
                 </div>
@@ -726,19 +726,19 @@
                         <span class="int-he">{% trans "Select a text" %}</span>
                     </div>
                     <div class="blockContainer">
-                        <input id="inlineAdd" class="inlineAddTextInput"
-                               placeholder="{% trans " Search for a Text or Commentator" %}"/>
+                        {% comment %} <input id="inlineAdd" class="inlineAddTextInput"
+                               placeholder="{% trans " Search for a Text or Commentator" %}"/> {% endcomment %}
                         <div class="buttonContainer">
-                            <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
+                            {% comment %} <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                                 <div id="inlineAddSourceOK" class='button disabled' role="button" tabIndex="0">
                                     <span class="int-en">{% trans "Add Source" %}</span>
                                     <span class="int-he">{% trans "Add Source" %}</span>
                                 </div>
-                            </div>
-                            <div class="inlineAddOr">
+                            </div> {% endcomment %}
+                            {% comment %} <div class="inlineAddOr">
                                 <span class="int-en">{% trans "or" %}</span>
                                 <span class="int-he">{% trans "or" %}</span>
-                            </div>
+                            </div> {% endcomment %}
                             <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                                 <div id="inlineAddBrowse" class='button' role="button" tabIndex="0">
                                     <span class="int-en">{% trans "Browse Sources" %}</span>
