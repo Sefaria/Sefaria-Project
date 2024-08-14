@@ -710,6 +710,21 @@ const WhatIsASourceSheet = () => (
   </Module>
 );
 
+
+const Button = ({img, href, children, classes={}}) => {
+  classes = {button: 1, ...classes};
+  return <a className={classNames(classes)} href={href}>
+          {img}
+          <InterfaceText>{children}</InterfaceText>
+          </a>
+}
+const GetStartedButton = ({href}) => {
+    return <Button classes={{getStartedSheets: 1}} href={href}>Get Started</Button>
+}
+const CreateSheetsButton = () => {
+  const img = <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" id="sheetsButton"/>;
+  return <Button img={img} classes={{small: 1}} href="/sheets/new">Create</Button>
+}
 const CreateASheet = () => (
   <Module>
     <ModuleTitle h1={true}>Create A Sheet</ModuleTitle>

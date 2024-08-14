@@ -12,12 +12,4 @@ const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText}) => {
             </div>
 }
 
-const Button = ({img, href, children, classes={}}) => {
-  classes = {button: 1, ...classes};
-  return <a className={classNames(classes)} href={href}>
-          {img}
-          <InterfaceText>{children}</InterfaceText>
-          </a>
-}
-
-export { Button, Card }
+export { Card }

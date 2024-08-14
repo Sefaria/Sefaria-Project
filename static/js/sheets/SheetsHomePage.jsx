@@ -1,15 +1,6 @@
 import React  from 'react';
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
-import {Button} from "../shared/GenericComponents";
-
-const GetStartedButton = ({href}) => {
-    return <Button classes={{getStartedSheets: 1}} href={href}>Get Started</Button>
-}
-const CreateSheetsButton = () => {
-  const img = <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" id="sheetsButton"/>;
-  return <Button img={img} classes={{small: 1}} href="/sheets/new">Create</Button>
-}
 
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
