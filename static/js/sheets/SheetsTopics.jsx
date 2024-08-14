@@ -1,7 +1,6 @@
-import {InterfaceText} from "../Misc";
 import React, {useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
-import {Card} from "../shared/GenericComponents";
+import {Card} from "../shared/Card";
 const SheetsTopicsTOC = ({handleClick}) => {
     const categoryListings = Sefaria.topic_toc.map(cat => {
         return <Card cardTitleHref={`/topics/category/${cat.slug}`}
