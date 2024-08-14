@@ -34,7 +34,7 @@ class Footer extends Component {
 
     return (
       <div id='version_number'>
-                <InterfaceText>Version: 1.0.6</InterfaceText>
+                <InterfaceText>Version: 1.1.0</InterfaceText>
       </div>  
     );
   }
