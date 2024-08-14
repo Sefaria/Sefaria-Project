@@ -165,26 +165,11 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
                             s.id === sheet.id)
                         ))
     }
-    // const updateOrigAvailableFilters = () => {
-    //     // update component prop 'origAvailableFilters' based on changes to availableFilters in 'searchState'
-    //     origAvailableFilters.forEach(availableFilter => {
-    //         const selected = searchState.appliedFilters.includes(availableFilter.aggKey);
-    //         if (selected !== Boolean(availableFilter.selected)) {
-    //            if (selected) {
-    //              availableFilter.setSelected(true);
-    //            }
-    //            else {
-    //              availableFilter.setUnselected(true);
-    //            }
-    //         }
-    //     })
-    // }
 
     useEffect(() => {
       Sefaria.sheets.getSheetsByRef(refs, makeSheetsUnique).then(sheets => {handleSheetsLoad(sheets);})
     }, [refs]);
 
-    // updateOrigAvailableFilters();
     let sortedSheets = [...sheets];
     sortedSheets = applyFilters(sortedSheets);
     sortedSheets = applySortOption(sortedSheets);
