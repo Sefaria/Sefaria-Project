@@ -47,4 +47,4 @@ const SheetsHomePage = () => {
             </div>
         </div>
 }
-export { SheetsHomePage, GetStartedButton, CreateSheetsButton };
+export { SheetsHomePage };

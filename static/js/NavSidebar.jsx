@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
-import {GetStartedButton, CreateSheetsButton} from "./Sheets/SheetsHomePage";
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
@@ -82,14 +81,13 @@ const ModuleTitle = ({children, en, he, h1}) => {
     : <h3>{content}</h3>
 };
 
-
-const TitledText = ({enTitle, heTitle, enText, heText}) => {
+const TitledText = ({children, title, text, h1Header}) => {
   return <Module>
-    <ModuleTitle en={enTitle} he={heTitle} />
-    <InterfaceText markdown={{en: enText, he: heText}} />
-  </Module>
+            <ModuleTitle en={title.en} he={title.he} h1={!!h1Header}/>
+            <InterfaceText markdown={{en: text.en, he: text.he}} />
+            {children}
+        </Module>
 };
-
 const RecentlyViewedItem = ({oref}) => {
    const trackItem = () => {
      gtag('event', 'recently_viewed', {link_text: oref.ref, link_type: 'ref'})
@@ -694,23 +692,6 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
   );
 };
 
-const WhatIsASourceSheet = () => (
-  <Module>
-    <ModuleTitle h1={true}>What is a Source Sheet?</ModuleTitle>
-    <InterfaceText>
-        <EnglishText>
-            Lorem ipsum
-            <GetStartedButton href={"/sheets/393695"}/>
-        </EnglishText>
-        <HebrewText>
-            Lorem ipsum
-            <GetStartedButton href={"/sheets/399333"}/>
-        </HebrewText>
-    </InterfaceText>
-  </Module>
-);
-
-
 const Button = ({img, href, children, classes={}}) => {
   classes = {button: 1, ...classes};
   return <a className={classNames(classes)} href={href}>
@@ -718,7 +699,8 @@ const Button = ({img, href, children, classes={}}) => {
           <InterfaceText>{children}</InterfaceText>
           </a>
 }
-const GetStartedButton = ({href}) => {
+const GetStartedButton = () => {
+    const href = Sefaria.interfaceLang === 'english' ? "/sheets/393695" : "/sheets/399333";
     return <Button classes={{getStartedSheets: 1}} href={href}>Get Started</Button>
 }
 const CreateSheetsButton = () => {
@@ -726,19 +708,22 @@ const CreateSheetsButton = () => {
   return <Button img={img} classes={{small: 1}} href="/sheets/new">Create</Button>
 }
 const CreateASheet = () => (
-  <Module>
-    <ModuleTitle h1={true}>Create A Sheet</ModuleTitle>
-    <InterfaceText>
-        <EnglishText>
-            Mix and match sources along with outside sources, comments, images, and videos.
-        </EnglishText>
-        <HebrewText>
-            </HebrewText>
-    </InterfaceText>
-     <CreateSheetsButton/>
-  </Module>
+  <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
+              text={{'en': 'Mix and match sources along with outside sources, comments, images, and videos.',
+                     'he': ''}}
+              h1Header={true}>
+      <CreateSheetsButton/>
+  </TitledText>
 );
 
+const WhatIsASourceSheet = () => (
+    <TitledText title={{'en': 'What is a Source Sheet?', 'he': ''}}
+                text={{'en': '',
+                       'he': ''}}
+                h1Header={true}>
+        <GetStartedButton/>
+    </TitledText>
+);
 const AboutLearningSchedules = () => (
   <Module>
     <ModuleTitle h1={true}>Learning Schedules</ModuleTitle>
