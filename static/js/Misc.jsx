@@ -2030,7 +2030,10 @@ class SignUpModal extends Component {
               { innerContent }
             </div>
             <a className="button white control-elem" href={"/register" + nextParam}>
-              <InterfaceText>Sign Up</InterfaceText>
+              <InterfaceText>
+                <EnglishText>Sign Up</EnglishText>
+                <HebrewText>ཐོ་འགོད་གྱིས།</HebrewText>
+                </InterfaceText>
             </a>
             <div className="sefariaModalBottomContent">
               <InterfaceText>{ Sefaria._("Already have an account?")} </InterfaceText>&nbsp;
