@@ -85,48 +85,12 @@ class ServerTextCopier(object):
             self.post_terms_from_schema()
             self._handle_categories()
             self._make_post_request_to_server(self._prepare_index_api_call(idx_title), idx_contents)
-        content_nodes = self._index_obj.nodes.get_leaf_nodes()
+
         for ver in self._version_objs:
             found_non_empty_content = False
             print(ver.versionTitle.encode('utf-8'))
-            flags = {}
-            for flag in ver.optional_attrs:
-                if hasattr(ver, flag):
-                    flags[flag] = getattr(ver, flag, None)
-            for node_num, node in enumerate(content_nodes,1):
-                print(node.full_title(force_update=True))
-                text = JaggedTextArray(ver.content_node(node)).array()
-                version_payload = {
-                        "versionTitle": ver.versionTitle,
-                        "versionSource": ver.versionSource,
-                        "language": ver.language,
-                        "text": text
-                }
-                if len(text) > 0:
-                    # only bother posting nodes that have content.
-                    found_non_empty_content = True
-                    if node_num == len(content_nodes):
-                        # try:
-                        self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True), count_after=True), version_payload)
-                        # except:
-                        #     pass
-                    else:
-                        self._make_post_request_to_server(self._prepare_text_api_call(
-                            node.full_title(force_update=True)), version_payload)
-            if not found_non_empty_content:
-                # post the last node again with dummy text, to make sure an actual version db object is created
-                # then post again to clear the dummy text
-                dummy_text = "This is a dummy text"
-                empty = ""
-                for _ in range(node.depth):
-                    dummy_text = [dummy_text]
-                    empty = [empty]
-                version_payload['text'] = dummy_text
-                self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
-                version_payload['text'] = empty
-                self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
-            if flags:
-                self._make_post_request_to_server(self._prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
+            self._make_post_request_to_server(self._prepare_text_api_call(), ver, params={'count_after': 1})
+
         if self._post_links and len(self._linkset) > 0:
             if self._post_links_step <= 0 or self._post_links_step > len(self._linkset):
                 self._post_links_step = len(self._linkset)
@@ -168,8 +132,8 @@ class ServerTextCopier(object):
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
 
-    def _prepare_text_api_call(self, terminal_ref, count_after=False):
-        return 'api/texts/{}?count_after={}&index_after=0'.format(urllib.parse.quote(terminal_ref.replace(" ", "_").encode('utf-8')), int(count_after))
+    def _prepare_text_api_call(self):
+        return 'api/version'
 
     def _prepare_version_attrs_api_call(self, title, lang, vtitle):
         return "api/version/flags/{}/{}/{}".format(urllib.parse.quote(title), urllib.parse.quote(lang), urllib.parse.quote(vtitle))
@@ -177,8 +141,9 @@ class ServerTextCopier(object):
     def _prepare_links_api_call(self):
         return "api/links/"
 
-    def _make_post_request_to_server(self, url, payload):
-        full_url = "{}/{}".format(self._dest_server, url)
+    def _make_post_request_to_server(self, url, payload, params=None):
+        params = params or {}
+        full_url = f"{self._dest_server}/{url}?{urllib.parse.urlencode(params)}"
         jpayload = json.dumps(payload)
         values = {'json': jpayload, 'apikey': self._apikey}
         data = urllib.parse.urlencode(values).encode('utf-8')
