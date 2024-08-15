@@ -14,7 +14,7 @@ import regex as re
 from typing import Type
 logger = structlog.get_logger(__name__)
 from dataclasses import dataclass, field
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 
 
 
@@ -603,16 +603,28 @@ class AuthorTopic(PersonTopic):
                     return False
                 return self.sub_cat_path == other.sub_cat_path
 
+            def __repr__(self):
+                return f"Sub Path: {self.sub_cat_path}"
+
+            def __hash__(self):
+                return hash(self.sub_cat_path)
+
         @dataclass
-        class Aggregation:
+        class DisjointBlock:
             base_cat_path: Tuple[str, ...]
             collective_title: str
-            sub_cat_book_sets: List[SubCatBookSet] = field(default_factory=list)
+            sub_cat_book_sets: Dict[Tuple[str, ...], SubCatBookSet] = field(default_factory=dict)
 
             def __eq__(self, other):
-                if not isinstance(other, Aggregation):
+                if not isinstance(other, DisjointBlock):
                     return False
                 return self.base_cat_path == other.base_cat_path and self.collective_title == other.collective_title
+
+            def __repr__(self):
+                return f"Collective Title: {self.collective_title}, Path: {self.base_cat_path}"
+
+            def __hash__(self):
+                return hash((self.collective_title, self.base_cat_path))
 
 
 
@@ -624,7 +636,7 @@ class AuthorTopic(PersonTopic):
 
         index_or_cat_list = []  # [(index_or_cat, collective_title_term, base_category)]
 
-        aggregations = []
+        blocks = {}
 
         MAX_ICAT_FROM_END_TO_CONSIDER = 2
         for index in indexes:
@@ -632,32 +644,25 @@ class AuthorTopic(PersonTopic):
             base = library.get_index(index.base_text_titles[0]) if is_comm else index
             collective_title = index.collective_title if is_comm else None
             base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER + 1])
-            aggregation = Aggregation(base_cat_path=base_cat_path, collective_title=collective_title)
-            if aggregation not in aggregations:
-                aggregations.append(aggregation)
-            else:
-                for agg in aggregations:
-                    if agg == aggregation:
-                        aggregation = agg
 
+            new_empty_block = DisjointBlock(base_cat_path=base_cat_path, collective_title=collective_title)
+            if new_empty_block in blocks:
+                block = blocks[new_empty_block]
+            else:
+                blocks[new_empty_block] = new_empty_block
+                block = new_empty_block
 
             for icat in range(len(base.categories) - MAX_ICAT_FROM_END_TO_CONSIDER, len(base.categories)):
-                new_sub_cat_book_set = SubCatBookSet(depth=icat+1, sub_cat_path=tuple(base.categories[:icat + 1]))
-                if new_sub_cat_book_set not in aggregation.sub_cat_book_sets:
-                    new_sub_cat_book_set.books.append(index)
-                    aggregation.sub_cat_book_sets.append(new_sub_cat_book_set)
-                else:
-                    exising_sub_cat_book_set = None
-                    for book_set in aggregation.sub_cat_book_sets:
-                        if book_set == new_sub_cat_book_set:
-                            exising_sub_cat_book_set = book_set
-                            break
-                    exising_sub_cat_book_set.books += [index]
+                sub_cat_book_set = SubCatBookSet(depth=icat+1, sub_cat_path=tuple(base.categories[:icat + 1]))
+                if sub_cat_book_set not in block.sub_cat_book_sets:
+                    block.sub_cat_book_sets[sub_cat_book_set] = sub_cat_book_set
+
+                block.sub_cat_book_sets[sub_cat_book_set].books.append(index)
 
 
-        for aggregation in aggregations:
-            cat_choices_sorted = sorted(aggregation.sub_cat_book_sets, key=lambda book_set: (len(book_set.books), book_set.depth), reverse=True)
-            collective_title = aggregation.collective_title
+        for block in blocks:
+            cat_choices_sorted = sorted(block.sub_cat_book_sets.values(), key=lambda book_set: (len(book_set.books), book_set.depth), reverse=True)
+            collective_title = block.collective_title
             best_base_cat_path = cat_choices_sorted[0].sub_cat_path
             temp_indexes = cat_choices_sorted[0].books
             if len(temp_indexes) == 1:
