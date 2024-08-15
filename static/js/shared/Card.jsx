@@ -2,11 +2,11 @@ import {InterfaceText} from "../Misc";
 import React from "react";
 
 const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText}) => {
-    return <div className="navBlock">
-                <a href={cardTitleHref} className="navBlockTitle" onClick={oncardTitleClick}>
+    return <div className="card">
+                <a href={cardTitleHref} className="cardTitle" onClick={oncardTitleClick}>
                     <InterfaceText text={cardTitle}/>
                 </a>
-                <div className="navBlockDescription">
+                <div className="cardDescription">
                     <InterfaceText text={cardText}/>
                 </div>
             </div>
