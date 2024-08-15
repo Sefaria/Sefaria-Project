@@ -52,11 +52,11 @@ const LoggedOutMenu = () => {
           <InterfaceText>Site Language</InterfaceText>
       </div>
       <div className='languageToggleFlexContainer'>
-        <div className='englishLanguageButton'>
+        <span className='englishLanguageButton'>
           <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
             English
           </DropdownMenuItem>
-        </div>
+        </span>
         <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
         עברית    
         </DropdownMenuItem>

@@ -13365,7 +13365,11 @@ span.ref-link-color-3 {color: blue}
 .languageToggleFlexContainer{
   display: flex;
   flex-direction: row;
-  padding: 10px 0px;
+  /* padding: 10px 0px; */
+  align-items: baseline;
+  line-height: 18px;
+  height: 23px;
+  padding-bottom: 15px;
 }
 
 .languageDot{
