@@ -144,6 +144,7 @@ class ReaderApp extends Component {
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
       sheetNodes:              state.sheetNodes              || null,
+      sheetsWithRef:           state.sheetsWithRef           || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
       navigationTopicTitle:    state.navigationTopicTitle    || null,
@@ -456,8 +457,8 @@ class ReaderApp extends Component {
             break;
           case "sheetsWithRef":
             hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
-            const encodedSheetsWithRef = state.sheetsWithRef[shortLang] ? encodeURIComponent(state.sheetsWithRef[shortLang]) : "";
-            hist.url   = "sheets/sheets-with-ref" + (state.sheetsWithRef[shortLang] ? (`/${encodedSheetsWithRef}` +
+            const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
+            hist.url   = "sheets/sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
                           state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode = "sheetsWithRef";
             break;
@@ -2232,7 +2233,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       divineNameReplacement={this.state.divineNameReplacement}
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
-                      sheetsWithRef={this.props.sheetsWithRef}
                     />
                   </div>);
     }
