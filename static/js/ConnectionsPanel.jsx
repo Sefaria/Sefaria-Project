@@ -732,7 +732,7 @@ ConnectionsPanel.propTypes = {
 
 const createSheetsWithRefURL = (srefs) => {
   const normalizedRef = Sefaria.normRef(srefs);
-  window.open(`${Sefaria.apiHost}/sheetsWithRef/${normalizedRef}`);
+  window.open(`${Sefaria.apiHost}/sheets/sheets-with-ref/${normalizedRef}`);
 }
 
 const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {

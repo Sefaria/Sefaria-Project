@@ -54,6 +54,7 @@ class ReaderApp extends Component {
         searchType:               props.initialSearchType,
         tab:                     props.initialTab,
         topicSort:               props.initialTopicSort,
+        sheetsWithRef:           props.sheetsWithRef,
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters:        props.initialTextSearchFilters,
@@ -454,10 +455,10 @@ class ReaderApp extends Component {
             hist.mode  = "navigation";
             break;
           case "sheetsWithRef":
-            const encodedSheetsWithRef = Sefaria.sheetsWithRef[shortLang] ? encodeURIComponent(Sefaria.sheetsWithRef[shortLang]) : "";
-            hist.title = Sefaria._("Sheets with ") + Sefaria.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
-            hist.url   = "sheetsWithRef" + (Sefaria.sheetsWithRef[shortLang] ? (`/${encodedSheetsWithRef}` +
-              state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
+            hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
+            const encodedSheetsWithRef = state.sheetsWithRef[shortLang] ? encodeURIComponent(state.sheetsWithRef[shortLang]) : "";
+            hist.url   = "sheets/sheets-with-ref" + (state.sheetsWithRef[shortLang] ? (`/${encodedSheetsWithRef}` +
+                          state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode = "sheetsWithRef";
             break;
           case "text toc":
@@ -2231,6 +2232,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       divineNameReplacement={this.state.divineNameReplacement}
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
+                      sheetsWithRef={this.props.sheetsWithRef}
                     />
                   </div>);
     }
@@ -2297,7 +2299,8 @@ ReaderApp.propTypes = {
   initialDefaultVersions:      PropTypes.object,
   initialPath:                 PropTypes.string,
   initialPanelCap:             PropTypes.number,
-  topicTestVersion:          PropTypes.string,
+  topicTestVersion:            PropTypes.string,
+  sheetsWithRef:               PropTypes.object //properties 'he' and 'en' for english and hebrew spelling of ref
 };
 ReaderApp.defaultProps = {
   multiPanel:                  true,

@@ -3315,7 +3315,6 @@ Sefaria.unpackBaseProps = function(props){
       "interfaceLang",
       "multiPanel",
       "community",
-      "sheetsWithRef",
       "followRecommendations",
       "trendingTopics",
       "_siteSettings",
