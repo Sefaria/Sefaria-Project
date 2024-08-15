@@ -627,6 +627,8 @@ class AuthorTopic(PersonTopic):
                 return hash((self.collective_title, self.base_cat_path))
 
         def sort_SubCatBookSets(book_sets: List[SubCatBookSet]):
+            # a subcategory which cover more books is preferable,
+            # if parent and child cover the same amount of  books (i.e the parent contains the child only), prefer child
             return sorted(book_sets, key=lambda book_set: (len(book_set.books), book_set.depth), reverse=True)
 
 
