@@ -626,6 +626,9 @@ class AuthorTopic(PersonTopic):
             def __hash__(self):
                 return hash((self.collective_title, self.base_cat_path))
 
+        def sort_SubCatBookSets(book_sets: List[SubCatBookSet]):
+            return sorted(book_sets, key=lambda book_set: (len(book_set.books), book_set.depth), reverse=True)
+
 
 
         def index_is_commentary(index):
@@ -661,7 +664,7 @@ class AuthorTopic(PersonTopic):
 
 
         for block in blocks:
-            cat_choices_sorted = sorted(block.sub_cat_book_sets.values(), key=lambda book_set: (len(book_set.books), book_set.depth), reverse=True)
+            cat_choices_sorted = sort_SubCatBookSets(book_sets=block.sub_cat_book_sets.values())
             collective_title = block.collective_title
             best_base_cat_path = cat_choices_sorted[0].sub_cat_path
             temp_indexes = cat_choices_sorted[0].books

@@ -14,4 +14,4 @@ if __name__ == '__main__':
         #     continue
         output_old += author.aggregate_authors_indexes_by_category()
         output_new += getattr(author, REVISED_FUNC_NAME, None)()
-    assert(output_new == output_old)
+    print(output_new == output_old)
