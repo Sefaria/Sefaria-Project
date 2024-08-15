@@ -2662,12 +2662,12 @@ _media: {},
       for (let refObj of linkTypeObj.refs) {
         let tabKey = linkTypeSlug;
         if (tabKey === 'about') {
-            tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) ? 'key-sources' : 'sources';
+            tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) ? 'notable-sources' : 'sources';
         }
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
-          if (tabKey === 'key-sources') {
-            title = {en: 'Key Sources', he: Sefaria.translation('hebrew', 'Key Sources')};
+          if (tabKey === 'notable-sources') {
+            title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
           }
           if (tabKey === 'sources') {
             title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
@@ -2693,10 +2693,10 @@ _media: {},
       delete tabObj.refMap;
     }
 
-    if (tabs["key-sources"]) {
+    if (tabs["notable-sources"]) {
       tabs["sources"]["title"] = {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')};
     //turn "sources" tab into 'super-set', containing all refs from all tabs:
-      const allRefs = [...tabs["key-sources"].refs, ...tabs["sources"].refs];
+      const allRefs = [...tabs["notable-sources"].refs, ...tabs["sources"].refs];
       tabs["sources"].refs = allRefs;
     }
     if (Sefaria.is_moderator){

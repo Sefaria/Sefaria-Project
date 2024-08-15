@@ -259,7 +259,7 @@ const Strings = {
     'Currently Selected': 'נוכחי',
     "Merged from": "נוצר ממיזוג",
     "Sources": "מקורות",
-    "Key Sources": "מקורות מרכזיים",
+    "Notable Sources": "מקורות מרכזיים",
     "All Sources": "כל המקורות",
     "Source" : "מקור",
     "Translation": "תרגום",

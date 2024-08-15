@@ -160,7 +160,7 @@ const hasPrompts = (description) => {
     return description?.title?.length && (Sefaria.is_moderator || description?.published !== false);
 }
 const adminRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, true, true, false);
-const keySourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, true, true);
+const notableSourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, true, true);
 const allSourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, false, true);
 
 const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin, displayDescription, hideLanguageMissingSources) => item => {
@@ -465,12 +465,12 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: adminRefRenderWrapper,
     },
     {
-      key: 'key-sources',
+      key: 'notable-sources',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
       sortFunc: refSort,
-      renderWrapper: keySourcesRefRenderWrapper,
+      renderWrapper: notableSourcesRefRenderWrapper,
     },
     {
       key: 'sources',
@@ -604,7 +604,7 @@ const TopicPage = ({
         });
       }
     }
-    if (displayTabs.length && tab!="key-sources") {
+    if (displayTabs.length && tab!="notable-sources") {
       displayTabs.push({
         title: {
           en: "",
@@ -625,7 +625,7 @@ const TopicPage = ({
         },
         id: 'langToggle',
         popover: true,
-        justifyright: tab==="key-sources"
+        justifyright: tab==="notable-sources"
       });
       onClickLangToggleIndex = displayTabs.length - 1;
     }
