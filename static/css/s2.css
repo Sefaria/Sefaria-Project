@@ -13264,8 +13264,9 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownItem {
-  padding: 10px 5px 10px 5px !important;
+  padding: 10px 5px !important;
   flex-direction: column;
+  margin-inline-start: 5px;
 }
 
 .dropdownSeparator {
@@ -13362,10 +13363,14 @@ span.ref-link-color-3 {color: blue}
 
 }
 
-.languageTogglerFlexContainer{
+.languageToggleFlexContainer{
   display: flex;
-  flex-direction: row-reverse;
-  padding: 10px 0px;
+  flex-direction: row;
+  /* padding: 10px 0px; */
+  align-items: baseline;
+  line-height: 18px;
+  height: 23px;
+  padding-bottom: 15px;
 }
 
 .languageDot{
