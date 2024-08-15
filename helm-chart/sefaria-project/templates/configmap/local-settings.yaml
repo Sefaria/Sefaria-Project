@@ -38,3 +38,4 @@ data:
   SENTINEL_HEADLESS_URL: {{ .Values.tasks.redis.sentinelURL }}
   SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.redis.transportOptions | toJson | quote }}
   {{- end }}
+  CELERY_ENABLED: "{{ .Values.tasks.enabled }}"
