@@ -13264,8 +13264,9 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownItem {
-  padding: 10px 0px 5px 10px !important;
+  padding: 10px 5px !important;
   flex-direction: column;
+  margin-inline-start: 5px;
 }
 
 .dropdownSeparator {
