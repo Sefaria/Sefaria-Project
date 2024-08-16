@@ -12,7 +12,7 @@ const Strings = {
         "The Sefaria Library": "དཔེ་ཆ་དྲ་ཆིགས་ཀྱི་དྲ་ཐོག་དཔེ་མཛོད།",
         "Sefaria Search": "དཔེ་ཆ་དྲ་ཆིགས་འཚོལ་ཞིབ།",
         "Sefaria Account": "དཔེ་ཆ་དྲ་ཆིགས་ཁ་བྱང་།",
-        "Notifcations": "གསར་བརྡ་ཁག",
+        "Notifications": "གསར་བརྡ་ཁག",
         "New Additions to the Sefaria Library": "དཔེ་ཆ་དྲ་ཆིགས་ཀྱི་དཔེ་མཛོད་ནང་གི་པར་གཞི་གསར་པ་ཁག",
         "My Notes on Sefaria": "དཔེ་ཆ་དྲ་ཆིགས་ནང་གི་ངའི་ཟུར་མཆན་རྣམས།",
         "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.": "ཆོས་མཛོད་འདིའི་ནང་གི་དཔེ་ཆ་དང་མ་ཕྱིའི་ཤོག་ངོས་རྣམས།  ནང་བསྟན་དང་འབྲེལ་བའི་ཚན་པ་འདིའི་དཔེ་ཆ་དྲ་ཆིགས་ཀྱི་དཔེ་མཛོད།",
@@ -238,7 +238,7 @@ const Strings = {
         "Select Translation": "འགྱུར་དེབ་འདེམ།",
         "View in Sidebar": "འགྲམ་གྱི་སྟེགས་བུའི་ནང་སྟོན།",
         "Merged from": "ནས་ཟླ་སྒྲིལ་བྱས།",
-        "Source": "ལུང་འདྲེན།",
+        "Source": "ཁུངས།",
         "Sources": "འབྲེལ་ཡོད་ལུང་འདྲེན།",
         "Digitization": "ཨང་བསྒྱུར།",
         "License": "ཆོག་མཆན།",
@@ -710,6 +710,5 @@ const Strings = {
         }
     },
 };
-
 
 export default Strings;
