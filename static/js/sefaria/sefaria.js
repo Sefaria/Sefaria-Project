@@ -2909,6 +2909,7 @@ _media: {},
       Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   hebrewTerm: function(name) {
+    console.log("hello w",name)
     // Returns a string translating `name` into Hebrew.
     const categories = {
       "Quoting Commentary":   "פרשנות מצטטת",
@@ -2934,11 +2935,13 @@ _media: {},
   },
   hebrewTranslation: function(inputStr, context = null){
     let translatedString;
-    if (context && context in Sefaria._i18nInterfaceStringsWithContext){
-      translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
+    
+    if (context && context in Sefaria[Sefaria.interfaceLang]._i18nInterfaceStringsWithContext){
+      
+      translatedString = Sefaria._getStringCaseInsensitive(Sefaria[Sefaria.interfaceLang]._i18nInterfaceStringsWithContext[context], inputStr);
       if (translatedString !== null) return translatedString;
     }
-    if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) !== null ) {
+    if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria[Sefaria.interfaceLang]._i18nInterfaceStrings, inputStr)) !== null ) {
       return translatedString;
     }
     if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
@@ -2952,13 +2955,27 @@ _media: {},
       return inputStr;
     }
   },
+
+  languagesTranstionMetrix: function(language) {
+    
+  } ,
   translation: function(language, inputStr, context=null){
-      const translationMatrix = {
+      let translationMatrix = {}
+      if(language == 'chinese') {
+        translationMatrix = {
+          "ch": Sefaria.hebrewTranslation
+        };
+      } else if(language == 'hebrew') {
+        translationMatrix = {
           "he": Sefaria.hebrewTranslation
-      };
+        };
+      }
+      
       try {
           return translationMatrix[language.slice(0,2)](inputStr, context);
+          
       }catch (e){
+          console.log(language, Sefaria.interfaceLang, inputStr, context)
           console.warn("No transaltion available for " + language)
           return inputStr;
       }
@@ -2998,7 +3015,7 @@ _media: {},
     // Ensure that names set in Site Settings are available for translation in JS.
     if (!Sefaria._siteSettings) { return; }
     ["SITE_NAME", "LIBRARY_NAME"].map(key => {
-      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
+      Sefaria[Sefaria.interfaceLang]._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
     });
   },
   _makeBooksDict: function() {

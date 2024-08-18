@@ -1424,6 +1424,8 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
           <div className="interfaceLinks-options">
             <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>བོད་ཡིག</a>
             <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'chinese') ? 'active' : ''}`} href={`/interface/chinese?next=${getCurrentPage()}`}>Chinese</a>
+
           </div>
           { !!translationLanguagePreference ? (
             <>
