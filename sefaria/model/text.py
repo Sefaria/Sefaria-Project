@@ -2295,6 +2295,9 @@ class VirtualTextChunk(AbstractTextRecord):
     def version_ids(self):
         return [self._versions[0]._id] if self._versions else []
 
+    def has_manually_wrapped_refs(self):
+        return not getattr(self._oref.index_node.parent.lexicon, 'needsRefsWrapping', False)
+
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
 class TextFamily(object):
