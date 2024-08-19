@@ -360,6 +360,7 @@ const Strings = {
         
                 //languages
                 "English": "English",
+                "Tibetan": "藏语",
                 "English": "英语",
                 "Hebrew": "希伯来语",
                 "Yiddish": "意第绪语",
@@ -1080,6 +1081,7 @@ const Strings = {
         
                 //languages
                 "English": "English",
+                "Tibetan": "བོད་ཡིག",
                 "Hebrew": "བོད་ཀྱི་སྐད་ཡིག",
                 "Yiddish": "ཡེས་སྡེ་ཞིའི་སྐད་ཡིག",
                 "Finnish": "ཧྥིན་ལན་ཊེའི་སྐད་ཡིག",
@@ -1799,6 +1801,7 @@ const Strings = {
         
                 //languages
                 "English": "English",
+                "Tibetan": "བོད་ཡིག",
                 "Hebrew": "བོད་ཀྱི་སྐད་ཡིག",
                 "Yiddish": "ཡེས་སྡེ་ཞིའི་སྐད་ཡིག",
                 "Finnish": "ཧྥིན་ལན་ཊེའི་སྐད་ཡིག",

@@ -552,6 +552,7 @@ Sefaria = extend(Sefaria, {
     return null;
   },
   ISOMap: {
+    "he": {"name": "Tibetan", "nativeName": "བོད་ཡིག", "showTranslations": 1, "title": "བོད་ཡིག"},
     "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 1, "title": "نصوص يهودية بالعربية"},
     "cn" :  {"name": "Chinese", "nativeName": "Mandarin", "showTranslations": 1, "title": "佛教文本中文"},
     "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1, "title": "Jüdische Texte in Deutscher Sprache"},
@@ -561,7 +562,7 @@ Sefaria = extend(Sefaria, {
     "fa": {"name": "Persian", "nativeName": "فارسی", "showTranslations": 1, "title": "متون یهودی به زبان فارسی"},
     "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi"},
     "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes juifs en français"},
-    "he": {"name": "Tibetan", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
+    // "he": {"name": "Tibetan", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
     "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
     "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
@@ -572,6 +573,7 @@ Sefaria = extend(Sefaria, {
     "jrb": {"name": "Judeo-Arabic", "nativeName": "Arabia Yehudia", "showTranslations": 0},  // nativeName in English because hard to determine correct native name
   },
   translateISOLanguageCode(code, native = false) {
+    console.log(code , native)
     //takes two-letter ISO 639.2 code and returns full language name
     const lookupVar = native ? "nativeName" : "name";
     return Sefaria.ISOMap?.[code.toLowerCase()]?.[lookupVar] || code;

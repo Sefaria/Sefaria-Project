@@ -302,7 +302,7 @@ class VersionBlock extends Component {
               <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
               {/* {this.props.version.iscompleted !=="done" ? <div className="versionLanguage sans-serif">{this.props.version.iscompleted.toUpperCase()}</div>: null} */}
               
-              <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
+          <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
             
             <div className="versionSelect sans-serif">

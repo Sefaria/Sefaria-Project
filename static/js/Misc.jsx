@@ -1436,7 +1436,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
                 <InterfaceText>Preferred Translation</InterfaceText>
               </div>
               <div className="interfaceLinks-options trans-pref-header-container">
-                <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
+                <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, false)}</InterfaceText>
                 <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
                   <img src="/static/img/circled-x.svg" className="reset-btn" />
                   <span className="smallText">
