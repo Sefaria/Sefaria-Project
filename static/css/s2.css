@@ -1489,7 +1489,7 @@ div.interfaceLinks-row a {
   text-align: right;
   unicode-bidi: initial;
 }
-}
+
 .interface-hebrew .readerPanel .en {
   direction: ltr;
 }
@@ -13148,6 +13148,166 @@ span.ref-link-color-3 {color: blue}
     width: 67%;
   }
 }
+
+.productsFlexWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.product {
+  max-width: 600px;
+}
+
+#productsPageContent {
+  margin-inline-start: 70px;
+  margin-top: 165px;
+  margin-bottom: 165px;
+}
+
+.productInner {
+  display: flex;
+  align-items: right;
+  flex-direction: row;
+}
+
+.productInner img {
+  max-width: 100%; 
+  max-height: 116px;
+  height: auto;
+  display: block;
+  margin-inline-end: 3%;
+  padding-bottom: 20px;
+}
+
+.productInner .productsDesc {
+  font: var(--english-sans-serif-font-family); 
+  color: var(--dark-grey);
+  font-size: 16px;
+}
+
+.productImgWrapper {
+  flex: 0 0 auto;
+}
+
+.productDescWrapper {
+  flex: 1 1 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.productsDesc p {
+  margin-top: 0;
+}
+
+.productsHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10%;
+  margin-bottom: 2%;
+  padding-bottom: 2%;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.productsTitleAndLabel {
+  flex: auto;
+}
+
+.productsHeader .productsTitle {
+  font: var(--english-sans-serif-font-family); 
+  color: var(--dark-grey);
+  font-size: 22px;
+  font-weight: 500px;
+}
+
+.productsHeader .productsTypeLabel {
+  font: var(--english-sans-serif-font-family); 
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  background-color: var(--lighter-grey); 
+  border-radius: 6px; 
+  padding: 0.01px 5px;
+  color: var(--dark-grey); 
+  margin-inline-start: 3%;
+}
+
+.productsHeader .cta {
+  display: flex;
+  align-items: center;
+}
+
+.productsHeader .cta .productsCTA {
+  color: var(--commentary-blue); 
+  border-width: 10px;
+  margin-inline-end: 10px;
+}
+
+
+.productsHeader .cta .productsCTAIcon {
+  height: 12px;
+  top: 646px;
+  left: 610px;
+  margin: 0 5px;
+  vertical-align: baseline;
+  /** This uses the filter to recolor SVGs in a single line to commentary blue. 
+  To determine the appropriate parameters, see a filter color picker such as https://angel-rs.github.io/css-color-filter-generator/ */
+  filter: brightness(0) saturate(100%) invert(52%) sepia(17%) saturate(6763%) hue-rotate(200deg) brightness(78%) contrast(77%);
+
+}
+
+.productsTitle {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  text-align: left;
+  color: var(--dark-grey);
+}
+
+.productsCTA::after {
+    content: " ›";
+    color: var(--commentary-blue);
+}
+
+.productsDevBox {
+    background: var(--lighter-grey);
+    color: var(--dark-grey);
+    font-family: var(--english-sans-serif-font-family);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 18.75px;
+    display: flex;
+    align-items: flex-start; 
+    flex-direction: column;
+    padding: 3%;
+    margin-top: 10%;
+    max-width: 600px;
+}
+
+.productsDevBox .productsDevHeader {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  padding-bottom: 2%;
+
+}
+
+.productsDevBox a {
+  color: var(--commentary-blue) !important; 
+
+}
+
+.productsDevBox p {
+  margin-top: 0;
+}
+
+.productsDevBox a::after {
+  content: " ›";
+  color: var(--commentary-blue);
+}
+
+
 .image-in-text-title {
     margin: auto; /* English System Small */
     margin-top: 15px;
@@ -13158,6 +13318,60 @@ span.ref-link-color-3 {color: blue}
     font-size: 14px;
     line-height: 18px;
     color: #666666;
+}
+
+@media (max-width: 480px) {
+
+  .productImgWrapper {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  } 
+
+  #productsPageContent {
+    margin: 100px 10px 0px 10px;;
+  }
+
+  .productsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .productsTitleAndLabel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .productsTypeLabel {
+    padding: 1px 5px !important;
+    margin-top: 3px;
+    margin-left: 0px !important;
+  }
+
+  .cta {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .cta a {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  .productInner {
+    flex-direction: column;
+  }
+
+  .productDescWrapper{
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+}
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
