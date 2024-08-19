@@ -2909,24 +2909,18 @@ _media: {},
       Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   hebrewTerm: function(name) {
-    console.log("hello w",name)
+    
     // Returns a string translating `name` into Hebrew.
-    const categories = {
-      "Quoting Commentary":   "פרשנות מצטטת",
-      "Commentary": "འགྲེལ་བ།",
-      "Modern Commentary":    "פרשנות מודרנית",
-      "Sheets":               "דפי מקורות",
-      "Notes":                "הערות",
-      "Community":            "קהילה"
-    };
+    const categories = ["Quoting Commentary","Commentary","Modern Commentary","Sheets","Notes","Community"];
     if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
     } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'en')]) {
         return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'en')]["he"];
     } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]) {
         return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]["he"];
-    } else if (name in categories) {
-        return  categories[name];
+    } else if (categories.includes(name)) {
+        console.log("hello yessss",name)
+        return  Sefaria._(name);
     } else if (Sefaria.index(name)) {
         return Sefaria.index(name).heTitle;
     } else {
@@ -2936,12 +2930,12 @@ _media: {},
   hebrewTranslation: function(inputStr, context = null){
     let translatedString;
     
-    if (context && context in Sefaria[Sefaria.interfaceLang]._i18nInterfaceStringsWithContext){
+    if (context && context in Sefaria['localizationStrings'][Sefaria.interfaceLang]._i18nInterfaceStringsWithContext){
       
-      translatedString = Sefaria._getStringCaseInsensitive(Sefaria[Sefaria.interfaceLang]._i18nInterfaceStringsWithContext[context], inputStr);
+      translatedString = Sefaria._getStringCaseInsensitive(Sefaria['localizationStrings'][Sefaria.interfaceLang]._i18nInterfaceStringsWithContext[context], inputStr);
       if (translatedString !== null) return translatedString;
     }
-    if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria[Sefaria.interfaceLang]._i18nInterfaceStrings, inputStr)) !== null ) {
+    if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria['localizationStrings'][Sefaria.interfaceLang]._i18nInterfaceStrings, inputStr)) !== null ) {
       return translatedString;
     }
     if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
@@ -3015,7 +3009,7 @@ _media: {},
     // Ensure that names set in Site Settings are available for translation in JS.
     if (!Sefaria._siteSettings) { return; }
     ["SITE_NAME", "LIBRARY_NAME"].map(key => {
-      Sefaria[Sefaria.interfaceLang]._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
+      Sefaria['localizationStrings'][Sefaria.interfaceLang]._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
     });
   },
   _makeBooksDict: function() {
