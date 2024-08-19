@@ -1398,8 +1398,7 @@ class ReadMoreText extends Component {
       {this.state.expanded ? null :
         <span className="readMoreLink" onClick={() => this.setState({expanded: true})}>
           <InterfaceText>
-            <EnglishText className="int-en">Read More ›</EnglishText>
-            <HebrewText className="int-he">קרא עוד ›</HebrewText>
+            {Sefaria._('Read More')} ›
           </InterfaceText>
 
         </span>

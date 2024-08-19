@@ -2919,7 +2919,6 @@ _media: {},
     } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]) {
         return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]["he"];
     } else if (categories.includes(name)) {
-        console.log("hello yessss",name)
         return  Sefaria._(name);
     } else if (Sefaria.index(name)) {
         return Sefaria.index(name).heTitle;

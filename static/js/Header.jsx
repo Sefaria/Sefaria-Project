@@ -640,6 +640,7 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
               <hr className="interfaceLinks-hr"/>
+              <hr className="interfaceLinks-hr"/>
               <div className="interfaceLinks-options">
                 <a className={`interfaceLinks-option int-bi int-he ${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>བོད་ཡིག</a>
                 <a className={`interfaceLinks-option int-bi int-en ${(Sefaria.interfaceLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
@@ -647,6 +648,7 @@ const ProfilePicMenu = ({len, url, name}) => {
 
               </div>
             </div>
+            <hr className="interfaceLinks-hr"/>
             <hr className="interfaceLinks-hr"/>
             <div><a className="interfaceLinks-row logout" id="logout-link" href="/logout">
               <InterfaceText>Logout</InterfaceText>
