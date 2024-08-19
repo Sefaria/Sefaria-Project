@@ -53,6 +53,8 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
 ADMINS = (
      ('Your Name', 'you@example.com'),
 )
+ADMIN_PATH = 'somethingsomething' #This will be the path to the admin site, locally it can also be 'admin'
+
 PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
 
 MONGO_REPLICASET_NAME = None # If the below is a list, this should be set to something other than None. 

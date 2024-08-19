@@ -47,6 +47,7 @@ data:
     ADMINS = (
         ('Sefaria Developers', 'dev@sefaria.org'),
     )
+    ADMIN_PATH = os.getenv("SEFARIA_ADMIN_PATH")
 
     MANAGERS = ADMINS
 

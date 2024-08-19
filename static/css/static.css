@@ -3460,7 +3460,8 @@ form.globalUpdateForm + div.notificationsList {
   display: none;
 }
 #about.selected, #team.selected, #jobs.selected, #updates.selected, #testimonials.selected,
-#supporters.selected, #metrics.selected, #annualreport.selected, #terms.selected, #privacy.selected {
+#supporters.selected, #metrics.selected, #annualreport.selected, #terms.selected, 
+#privacy.selected, #products.selected {
   background-color: var(--lighter-grey);
   color: var(--selected-option);
   border-radius: 6px;
