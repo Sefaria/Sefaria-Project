@@ -45,7 +45,6 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
     true, 500, 600,
     translationLanguagePreference
   ).then(outRefs => {
-    const refs = inRefs.map(x => {if (x.ref.includes("Mishneh Torah")){console.log(x.ref)}})
     for (let tempRef of inRefs) {
       // annotate outRefs with `order` and `dataSources` from `topicRefs`
       if (outRefs[tempRef.ref]) {
@@ -637,7 +636,6 @@ const TopicPage = ({
                               const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
                               const displayTab = displayTabs.find(x => x.id === key);
                               if (!displayTab) { return null; }
-                              loadedData[key] && loadedData[key].map(x => {if(x[0] && x[0].includes("Mishneh Torah")){console.log(x)}});
                               return (
                                 <TopicPageTab
                                   key={key}

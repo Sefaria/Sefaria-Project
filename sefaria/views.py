@@ -430,8 +430,6 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
                         kwargs['min_char'] = min_char
                     if max_char:
                         kwargs['max_char'] = max_char
-                        if "Mishneh Torah, The Chosen Temple 1" in tref:
-                            print(tref)
                     he_text = he_tc.as_sized_string(**kwargs)
                     en_text = en_tc.as_sized_string(**kwargs)
                 else:
