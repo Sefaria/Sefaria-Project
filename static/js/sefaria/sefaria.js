@@ -488,9 +488,8 @@ Sefaria = extend(Sefaria, {
         refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
       }
     });
-
     let promises = refStrs.map(refStr => this._cachedApiPromise({
-      url: `${hostStr}${encodeURIComponent(refStr)}${paramStr}`,
+      url: encodeURI(`${hostStr}${refStr}${paramStr}`),
       key: refStr + paramStr,
       store: this._bulkTexts
     }));
@@ -3315,7 +3314,6 @@ Sefaria.unpackBaseProps = function(props){
       "interfaceLang",
       "multiPanel",
       "community",
-      "sheetsWithRef",
       "followRecommendations",
       "trendingTopics",
       "_siteSettings",

@@ -23,6 +23,7 @@ import {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  ProductsPage
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -58,6 +59,7 @@ class ReaderApp extends Component {
           field:                 props.initialSearchField,
           appliedFilterAggTypes: props.initialSearchFilterAggTypes,
           sortType:              props.initialSearchSortType,
+          sheetsWithRef:         props.sheetsWithRef,
         }),
         navigationCategories:    props.initialNavigationCategories,
         navigationTopicCategory: props.initialNavigationTopicCategory,
@@ -135,6 +137,7 @@ class ReaderApp extends Component {
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
       sheetNodes:              state.sheetNodes              || null,
+      sheetsWithRef:           state.sheetsWithRef           || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
       navigationTopicTitle:    state.navigationTopicTitle    || null,
@@ -439,10 +442,10 @@ class ReaderApp extends Component {
             hist.mode  = "navigation";
             break;
           case "sheetsWithRef":
-            const encodedSheetsWithRef = Sefaria.sheetsWithRef[shortLang] ? encodeURIComponent(Sefaria.sheetsWithRef[shortLang]) : "";
-            hist.title = Sefaria._("Sheets with ") + Sefaria.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
-            hist.url   = "sheetsWithRef" + (Sefaria.sheetsWithRef[shortLang] ? (`/${encodedSheetsWithRef}` +
-              state.searchState.makeURL({ prefix: 's', isStart: false })) : "");
+            hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
+            const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
+            hist.url   = "sheets/sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
+                          state.searchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode = "sheetsWithRef";
             break;
           case "text toc":
@@ -2285,7 +2288,8 @@ ReaderApp.propTypes = {
   initialDefaultVersions:      PropTypes.object,
   initialPath:                 PropTypes.string,
   initialPanelCap:             PropTypes.number,
-  topicTestVersion:          PropTypes.string,
+  topicTestVersion:            PropTypes.string,
+  sheetsWithRef:               PropTypes.object //properties 'he' and 'en' for english and hebrew spelling of ref
 };
 ReaderApp.defaultProps = {
   multiPanel:                  true,
@@ -2327,5 +2331,6 @@ export {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  ProductsPage,
   UpdatesPanel
 };
