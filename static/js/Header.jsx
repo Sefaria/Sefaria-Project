@@ -639,10 +639,11 @@ const ProfilePicMenu = ({len, url, name}) => {
               <div><a className="interfaceLinks-row" id="account-settings-link" href="/settings/account">
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
-              <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">བོད་ཡིག</a>
-                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
-                <a className={`${(Sefaria.interfaceLang == 'chinese') ? 'active':''}`} href={`/interface/chinese?next=${getCurrentPage()}`} id="select-english-interface-link">Chinese</a>
+              <hr className="interfaceLinks-hr"/>
+              <div className="interfaceLinks-options">
+                <a className={`interfaceLinks-option int-bi int-he ${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>བོད་ཡིག</a>
+                <a className={`interfaceLinks-option int-bi int-en ${(Sefaria.interfaceLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+                <a className={`interfaceLinks-option int-bi int-en ${(Sefaria.interfaceLang == 'chinese') ? 'active' : ''}`} href={`/interface/chinese?next=${getCurrentPage()}`}>中文</a>
 
               </div>
             </div>
