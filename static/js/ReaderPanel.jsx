@@ -1306,25 +1306,15 @@ class ReaderControls extends Component {
     e.stopPropagation();
   }
   setTextCompletionStatus(status){
-    if (Sefaria.interfaceLang == "hebrew") {
-      
-      if (status == "done") {
-        return null
-      } else {
-        return (
-          <div className='ribbon-wrap ribbon-padding'>{"སྒྲིག་བཞིན་ཡོད།"}</div>
-        )
-      }
+    let ribbonStyle
+    Sefaria.interfaceLang == "hebrew" ? ribbonStyle = 'ribbon-wrap ribbon-padding' : ribbonStyle = 'ribbon-wrap'
+    if (status == "done") {
+      return null
     } else {
-      if (status == "done") {
-        return null
-      } else {
-        return (
-          <div className='ribbon-wrap'>{"In Progress"}</div>
-        )
-      }
-    }
-     
+      return (
+        <div className={ribbonStyle}>{Sefaria._("In Progress")}</div>
+      )
+    } 
   }
   render() {
     let title = this.props.currentRef || "";

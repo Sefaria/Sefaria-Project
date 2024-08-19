@@ -196,25 +196,13 @@ class VersionBlock extends Component {
     return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
   }
   setTextCompletionStatus(){
-    if (Sefaria.interfaceLang == "hebrew") {
-      
-      if (this.props.version.iscompleted == "done") {
-        return null
-      } else {
-        return (
-          <div className="status sans-serif danger">{"སྒྲིག་བཞིན་ཡོད།"}</div>
-        )
-      }
+    if (status == "done") {
+      return null
     } else {
-      if (this.props.version.iscompleted == "done") {
-        return null
-      } else {
-        return (
-          <div className="status sans-serif danger">{"In progress"}</div>
-        )
-      }
-    }
-     
+      return (
+        <div className="status sans-serif danger">{Sefaria._("In Progress")}</div>
+      )
+    } 
   }
 
   render() {

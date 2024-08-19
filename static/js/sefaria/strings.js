@@ -54,6 +54,7 @@ const Strings = {
                 "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "在您的帮助下，我们可以为图书馆添加更多文本和翻译，开发新的学习工具，并确保随时随地可以访问塞法里亚进行托拉学习。",
                 "Sponsor A Day": "赞助一天",
                 "Buddhist Text Interface": "佛教文本界面",
+                "In Progress": "进行中",
         
                 // Text Category Pages
                 "All Portions": "所有部分",
@@ -774,6 +775,7 @@ const Strings = {
                 "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "ཁྱེད་ཀྱི་རོགས་རམ་ལ་བརྟེན་ནས། ང་ཚོས་ས་གནས་དང་དུས་ཚོད་གང་ཡིན་ལ་ལྟོས་མི་དགོས་པར་ནང་ཆོས་སློབ་གཉེར་བྱ་སའི་དཔེ་མཛོད་འདིའི་ནང་འགྱུར་མང་པོ་བསྣན་ཐུབ་ཡོད་ཅིང་། སློབ་སྦྱོང་གི་ཡོ་བྱད་གསར་པ་མང་པོ་ཡང་གསར་སྣོན་བྱེད་ཐུབ་ཡོད། མདོར་ན་རང་ཅག་ཐུན་མོང་གི་ལོངས་སྤྱོད་དུ་གྱུར་བའི་དཔེ་མཛོད་འདི་གསོན་གནས་ཐུབ་ཡོད།",
                 "Sponsor A Day": "ཉིན་གཅིག་གི་སྦྱིན་བདག",
                 "Buddhist Text Interface": "དཔེ་ཆ་དྲ་ཚིགས།",
+                "In Progress": "སྒྲིག་བཞིན་ཡོད།",
         
                 // Text Category Pages
                 "All Portions": "ཆ་ཤས་ཡོངས་རྫོགས།",
@@ -1492,6 +1494,7 @@ const Strings = {
                 "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "ཁྱེད་ཀྱི་རོགས་རམ་ལ་བརྟེན་ནས། ང་ཚོས་ས་གནས་དང་དུས་ཚོད་གང་ཡིན་ལ་ལྟོས་མི་དགོས་པར་ནང་ཆོས་སློབ་གཉེར་བྱ་སའི་དཔེ་མཛོད་འདིའི་ནང་འགྱུར་མང་པོ་བསྣན་ཐུབ་ཡོད་ཅིང་། སློབ་སྦྱོང་གི་ཡོ་བྱད་གསར་པ་མང་པོ་ཡང་གསར་སྣོན་བྱེད་ཐུབ་ཡོད། མདོར་ན་རང་ཅག་ཐུན་མོང་གི་ལོངས་སྤྱོད་དུ་གྱུར་བའི་དཔེ་མཛོད་འདི་གསོན་གནས་ཐུབ་ཡོད།",
                 "Sponsor A Day": "ཉིན་གཅིག་གི་སྦྱིན་བདག",
                 "Buddhist Text Interface": "དཔེ་ཆ་དྲ་ཚིགས།",
+                "In Progress": "སྒྲིག་བཞིན་ཡོད།",
         
                 // Text Category Pages
                 "All Portions": "ཆ་ཤས་ཡོངས་རྫོགས།",
