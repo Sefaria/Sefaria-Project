@@ -516,15 +516,6 @@ Sefaria = extend(Sefaria, {
     const refsSubArrays = this.partitionArrayForURL(MAX_URL_LENGTH-(hostStr+paramStr).length, refs, '|');
     const refStrs = refsSubArrays.map(refsSubArray => refsSubArray.join('|'));
 
-    // refs.map(ref => {
-    //   let last = refStrs[refStrs.length-1];
-    //   const encodedFullURL = encodeURI(`${hostStr}${last}|${ref}${paramStr}`);
-    //   if (encodedFullURL.length > MAX_URL_LENGTH) {
-    //     refStrs.push(ref)
-    //   } else {
-    //     refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
-    //   }
-    // });
     let promises = refStrs.map(refStr => this._cachedApiPromise({
       url: `${hostStr}${encodeURIComponent(refStr)}${paramStr}`,
       key: refStr + paramStr,
