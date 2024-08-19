@@ -104,22 +104,6 @@ class SearchPage extends Component {
                   </div>
                   : null}
             </div>
-
-            {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
-            <div className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
-              {this.props.totalResults?.getValue() > 0 ?
-              <SearchFilters
-                query={this.props.query}
-                searchState={this.props.searchState}
-                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
-                updateAppliedOptionField={this.props.updateAppliedOptionField}
-                updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
-                compare={this.props.compare}
-                type={this.props.type} />
-              : null }
-            </div>
-            : null }
             {this.props.panelsOpen === 1 ? <Footer/> : null}
           </div>
         </div>
