@@ -573,7 +573,6 @@ Sefaria = extend(Sefaria, {
     "jrb": {"name": "Judeo-Arabic", "nativeName": "Arabia Yehudia", "showTranslations": 0},  // nativeName in English because hard to determine correct native name
   },
   translateISOLanguageCode(code, native = false) {
-    console.log(code , native)
     //takes two-letter ISO 639.2 code and returns full language name
     const lookupVar = native ? "nativeName" : "name";
     return Sefaria.ISOMap?.[code.toLowerCase()]?.[lookupVar] || code;
