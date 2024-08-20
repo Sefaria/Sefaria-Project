@@ -471,7 +471,7 @@ Sefaria = extend(Sefaria, {
   _bulkTexts: {},
   partitionArrayForURL: function(urlMaxLength, arr, dividerToken) {
     const result = [];
-    const dividerTokenLength = encodeURIComponent(dividerToken);
+    const dividerTokenLength = encodeURIComponent(dividerToken).length;
     let currentPartition = [];
     let currentLength = 0;
 
@@ -489,6 +489,8 @@ Sefaria = extend(Sefaria, {
             result.push(currentPartition);
             currentPartition = [];
             currentLength = 0;
+            currentPartition.push(item);
+            continue
         }
 
         // Add the item to the current partition
