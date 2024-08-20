@@ -500,7 +500,6 @@ Sefaria = extend(Sefaria, {
 
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
-    if (refs.length < 70){console.log("Smaller than 70!!!!!!!!!!!!")}
 
     const MAX_URL_LENGTH = 3800;
     const hostStr = encodeURI(`${Sefaria.apiHost}/api/bulktext/`);
