@@ -1506,9 +1506,9 @@ const AiInfoTooltip = () => {
         <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
               <div className="ai-info-first-message">
               <InterfaceText>
-                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a></EnglishText>
+                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/583824?lang=bi"}>Learn more.</a></EnglishText>
                   <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית ועברו הגהה על ידי צוות העורכים שלנו.&nbsp;
-                       <a href={"/sheets/541399?lang=en"}>לפרטים נוספים</a></HebrewText>
+                       <a href={"/sheets/583824?lang=bi"}>לפרטים נוספים</a></HebrewText>
               </InterfaceText>
 
           </div>
