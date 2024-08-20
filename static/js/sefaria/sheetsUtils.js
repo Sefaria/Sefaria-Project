@@ -1,4 +1,4 @@
-import Sefaria from "../static/js/sefaria/sefaria";
+import Sefaria from "./sefaria";
 
 export async function getSegmentObjs(refs) {
     /*
