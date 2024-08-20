@@ -149,6 +149,41 @@ const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
    return {node: bottom, path: bottomPath}
  };
 
+const isMultiNodeSelection = (editor) => {
+  if (!editor.selection) {return false}
+
+  const [start, end] = Range.edges(editor.selection);
+
+  const startPath = start.path;
+  const endPath = end.path;
+
+  // If the start and end paths are different, it means multiple nodes are selected
+  return !Path.equals(startPath, endPath);
+};
+
+const insertNewLine = (editor) => {
+  moveAnchorToEndOfCurrentNode(editor);
+  editor.insertBreak();
+}
+const moveAnchorToEndOfCurrentNode = (editor) => {
+  const { selection } = editor;
+
+  if (selection && Range.isCollapsed(selection)) {
+    const { anchor } = selection;
+    const node = Editor.node(editor, anchor);
+
+    if (node) {
+      const [, path] = node;
+      const endPoint = Editor.end(editor, path);
+
+      Transforms.select(editor, {
+        anchor: endPoint,
+        focus: endPoint
+      });
+    }
+  }
+};
+
 
 export const deserialize = el => {
     if (el.nodeType === 3) {
@@ -1064,6 +1099,9 @@ const AddInterface = ({ attributes, children, element }) => {
 
 const Element = (props) => {
     const { attributes, children, element } = props;
+    const editor = useSlate();
+
+
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
@@ -1182,11 +1220,19 @@ const Element = (props) => {
               <div className="sourceContentText">{children}</div>
             )
         case 'paragraph':
+            const selected = useSelected();
+
+            const addNewLineClasses = {
+            hidden: isMultiNodeSelection(editor) || !selected,
+            editorAddInterface: 1,
+            };
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div className={classNames(pClasses)} {...attributes}>
-                    {element.loading ? <div className="sourceLoader"></div> : null}
-                    {children}
+                <div role="button" title={"paragraph"} contentEditable suppressContentEditableWarning aria-label={"Add new line"} className={classNames(addNewLineClasses)} onClick={() => insertNewLine(editor)}>
+                    <div className={classNames(pClasses)} {...attributes}>
+                        {element.loading ? <div className="sourceLoader"></div> : null}
+                        {children}
+                    </div>
                 </div>
             );
         case 'bulleted-list':
@@ -2464,7 +2510,7 @@ const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
-    const renderElement = useCallback(props => <Element {...props} />, []);
+    const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
@@ -2923,7 +2969,6 @@ const SefariaEditor = (props) => {
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
     );
-
 
     return (
         <div ref={editorContainer} onClick={props.handleClick}>
