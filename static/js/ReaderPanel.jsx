@@ -9,6 +9,7 @@ import {ContentLanguageContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
 import TextsPage  from './TextsPage';
+import {SearchResultList} from "./SearchResultList";
 import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
@@ -41,6 +42,8 @@ import {
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import SheetsWithRefPage from "./Sheets/SheetsWithRefPage";
+import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
 import SheetsHomePage from "./Sheets/SheetsHomePage";
 
 
@@ -781,25 +784,33 @@ class ReaderPanel extends Component {
 
     if (this.state.menuOpen === "navigation") {
 
-      const openNav     = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
+      const openNav = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
       const openTextTOC = this.state.compare ? this.openCompareTextTOC : null;
 
       menu = (<TextsPage
-                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
-                    compare={this.state.compare}
-                    multiPanel={this.props.multiPanel}
-                    categories={this.state.navigationCategories || []}
-                    settings={this.state.settings}
-                    setCategories={this.setNavigationCategories}
-                    openTextTOC={openTextTOC}
-                    setOption={this.setOption}
-                    toggleLanguage={this.toggleLanguage}
-                    onCompareBack={this.props.closePanel}
-                    openSearch={this.openSearch}
-                    openDisplaySettings={this.openDisplaySettings}
-                    initialWidth={this.state.width}
-                    toggleSignUpModal={this.props.toggleSignUpModal} />);
-
+          key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory : "navHome"}
+          compare={this.state.compare}
+          multiPanel={this.props.multiPanel}
+          categories={this.state.navigationCategories || []}
+          settings={this.state.settings}
+          setCategories={this.setNavigationCategories}
+          openTextTOC={openTextTOC}
+          setOption={this.setOption}
+          toggleLanguage={this.toggleLanguage}
+          onCompareBack={this.props.closePanel}
+          openSearch={this.openSearch}
+          openDisplaySettings={this.openDisplaySettings}
+          initialWidth={this.state.width}
+          toggleSignUpModal={this.props.toggleSignUpModal}/>);
+    } else if (this.state.menuOpen === "sheetsWithRef") {
+      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef.en}
+                                 searchState={this.state['sheetSearchState']}
+                                 updateSearchState={this.props.updateSearchState}
+                                 updateAppliedFilter={this.props.updateSearchFilter}
+                                 updateAppliedOptionField={this.props.updateSearchOptionField}
+                                 updateAppliedOptionSort={this.props.updateSearchOptionSort}
+                                 registerAvailableFilters={this.props.registerAvailableFilters}
+                                 onResultClick={this.props.onSearchResultClick}/>);
     } else if (this.state.menuOpen === "sheet meta") {
       menu = (<SheetMetadata
                     mode={this.state.menuOpen}
@@ -884,26 +895,22 @@ class ReaderPanel extends Component {
                     }/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
-      menu = (<SearchPage
-                  key={"searchPage"}
-                  interfaceLang={this.props.interfaceLang}
-                  query={this.state.searchQuery}
-                  type={this.state.searchType}
-                  searchState={this.state[`${this.state.searchType}SearchState`]}
-                  settings={Sefaria.util.clone(this.state.settings)}
-                  panelsOpen={this.props.panelsOpen}
-                  onResultClick={this.props.onSearchResultClick}
-                  openDisplaySettings={this.openDisplaySettings}
-                  toggleLanguage={this.toggleLanguage}
-                  close={this.props.closePanel}
-                  onQueryChange={this.props.onQueryChange}
-                  updateAppliedFilter={this.props.updateSearchFilter}
-                  updateAppliedOptionField={this.props.updateSearchOptionField}
-                  updateAppliedOptionSort={this.props.updateSearchOptionSort}
-                  registerAvailableFilters={this.props.registerAvailableFilters}
-                  compare={this.state.compare}
-              />);
-
+      menu = (<ElasticSearchQuerier
+                    query={this.state.searchQuery}
+                    type={this.state.searchType}
+                    searchState={this.state[`${this.state.searchType}SearchState`]}
+                    settings={Sefaria.util.clone(this.state.settings)}
+                    panelsOpen={this.props.panelsOpen}
+                    onResultClick={this.props.onSearchResultClick}
+                    openDisplaySettings={this.openDisplaySettings}
+                    toggleLanguage={this.toggleLanguage}
+                    close={this.props.closePanel}
+                    onQueryChange={this.props.onQueryChange}
+                    updateAppliedFilter={this.props.updateSearchFilter}
+                    updateAppliedOptionField={this.props.updateSearchOptionField}
+                    updateAppliedOptionSort={this.props.updateSearchOptionSort}
+                    registerAvailableFilters={this.props.registerAvailableFilters}
+                    compare={this.state.compare}/>);
     } else if (this.state.menuOpen === "topics") {
       if (this.state.navigationTopicCategory) {
         menu = (

@@ -6,6 +6,8 @@ from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
+
+import sourcesheets
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
@@ -32,6 +34,7 @@ urlpatterns = [
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
+    url(r'sheets/sheets-with-ref/(?P<tref>.+)$', sourcesheets.views.sheets_with_ref),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^calendars/?$', reader_views.calendars),
     url(r'^collections/?$', reader_views.public_collections),
