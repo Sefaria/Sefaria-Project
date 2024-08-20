@@ -3303,12 +3303,8 @@ const AppStoreButton = ({ platform, href, altText }) => {
 
 const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_type, analytics_event) => {
 
-  // e.preventDefault() 
 
-  // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
-  // Get the <a> element.
-
-  //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
+  // get the lowest level parent element of an event target that is an HTML link tag. Or Null.
   let target = e.target;
   let linkTarget = null;
   let parent = target;
@@ -3336,7 +3332,7 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
     return;
   }
   else {
-    gtag_fxn(rank, product, href, label, link_type, analytics_event);
+    gtag_fxn(rank, product, text, label, link_type, analytics_event);
   }
 }
 
