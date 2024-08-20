@@ -3,7 +3,7 @@ import VersionPreferences from "./VersionPreferences";
 var extend     = require('extend'),
     param      = require('querystring').stringify;
 import Search from './search';
-import Strings from './strings';
+import Strings from './localizationLanguage/strings';
 import palette from './palette';
 import Track from './track';
 import Hebrew from './hebrew';
