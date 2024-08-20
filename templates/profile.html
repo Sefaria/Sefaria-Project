@@ -70,8 +70,7 @@
 			<div id="buttons">
 				{% if profile.id != request.user.id %}
 					<div id="messageMe" class="button white control-elem">
-						<span class="int-en">{% trans "Message" %}</span>
-						<span class="int-he">{% trans "Message" %}</span>
+						<span>{% trans "Message" %}</span>
 					</div>
 					<div id="followMe" class="{% if following %}following{% else %}follow{% endif %} button blue control-elem">
 						<span class="int-en">

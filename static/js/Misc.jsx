@@ -2790,13 +2790,9 @@ class CookiesNotification extends Component {
     return (
       <div className="cookiesNotification">
 
-          <span className="int-en">
+          <span>
             <span>{ Sefaria._("We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.") }<a href="/privacy-policy">{ Sefaria._("Learn More") }</a>.</span>
             <span className='int-en button small white' onClick={this.setCookie}>{ Sefaria._("OK") }</span>
-          </span>
-          <span className="int-he">
-            <span>{ Sefaria._("We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.") }<a href="/privacy-policy">{ Sefaria._("Learn More") }</a></span>
-            <span className='int-he button small white' onClick={this.setCookie}>{ Sefaria._("OK") }</span>
           </span>
 
        </div>
