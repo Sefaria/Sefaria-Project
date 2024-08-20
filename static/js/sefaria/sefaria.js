@@ -469,7 +469,7 @@ Sefaria = extend(Sefaria, {
         });
   },
   _bulkTexts: {},
-  partitionArrayForURL: function(urlMaxLength, arr, dividerToken) {
+  partitionArrayForURL: function(arr, urlMaxLength, dividerToken) {
     const result = [];
     const dividerTokenLength = encodeURIComponent(dividerToken).length;
     let currentPartition = [];
@@ -522,7 +522,7 @@ Sefaria = extend(Sefaria, {
 
     // Split into multiple requests if URL length goes above limit
     const limit = MAX_URL_LENGTH-(hostStr+paramStr).length-ASSUMED_HOSTNAME_LENGTH_BOUND
-    const refsSubArrays = this.partitionArrayForURL(limit, refs, '|');
+    const refsSubArrays = this.partitionArrayForURL( refs, limit, '|');
     const refStrs = refsSubArrays.map(refsSubArray => refsSubArray.join('|'));
 
     let promises = refStrs.map(refStr => this._cachedApiPromise({
