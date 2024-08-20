@@ -274,6 +274,12 @@ Sefaria = extend(Sefaria, {
     let index = Sefaria.index(pRef.index);
     return index && index.categories ? index.categories : [];
   },
+  refIndexTitle: function(ref) {
+    let pRef = Sefaria.parseRef(ref);
+    if ("error" in pRef) { return null; }
+    let index = Sefaria.index(pRef.index);
+    return index?.title
+  },
   sectionRef: function(ref, deriveIfNotFound=false) {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);

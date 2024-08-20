@@ -10193,16 +10193,19 @@ span.purim-emoji img{
 .interface-english .spacer:only-of-type.empty:before,
 .interface-english .spacer:only-of-type.empty:before {
   content: "Write something... ";
+  margin-inline-start: 50px;
 }
 .interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-hebrew .spacer:only-of-type.empty:before,
 .interface-hebrew .spacer:only-of-type.empty:before {
   content: "לכתוב משהו...";
+  margin-inline-start: 50px;
 }
 .editorAddInterface {
   position: relative;
   pointer-events:none;
   background-color: transparent;
+  margin-inline-start: 50px;
 }
 .editorAddInterface:before {
   content: "";
@@ -10246,6 +10249,10 @@ background-color: white;
   pointer-events: none;
   display: inline-block;
 }
+.hidden.editorAddInterface::before {
+    display: none;
+}
+
 
 .addInterfaceInput .textPreview {
   border-inline-start: 4px solid;
