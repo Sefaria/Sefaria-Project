@@ -5,7 +5,7 @@ import {Editor, createEditor, Range, Node, Transforms, Path, Text, Point, Elemen
 import {Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocused} from 'slate-react'
 import isHotkey from 'is-hotkey'
 import Sefaria from './sefaria/sefaria';
-import * as sheetsUtils from '../../sefaria/sheetsUtils'
+import * as sheetsUtils from './sefaria/sheetsUtils'
 
 
 import {
