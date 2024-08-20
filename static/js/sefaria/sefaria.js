@@ -510,6 +510,7 @@ Sefaria = extend(Sefaria, {
     if (refs.length === 0) { return Promise.resolve({}); }
 
     const MAX_URL_LENGTH = 3800;
+    const ASSUMED_HOSTNAME_LENGTH_BOUND = 50;
     const hostStr = encodeURI(`${Sefaria.apiHost}/api/bulktext/`);
 
     let paramStr = '';
@@ -520,7 +521,8 @@ Sefaria = extend(Sefaria, {
     paramStr = encodeURI(paramStr);
 
     // Split into multiple requests if URL length goes above limit
-    const refsSubArrays = this.partitionArrayForURL(MAX_URL_LENGTH-(hostStr+paramStr).length, refs, '|');
+    const limit = MAX_URL_LENGTH-(hostStr+paramStr).length-ASSUMED_HOSTNAME_LENGTH_BOUND
+    const refsSubArrays = this.partitionArrayForURL(limit, refs, '|');
     const refStrs = refsSubArrays.map(refsSubArray => refsSubArray.join('|'));
 
     let promises = refStrs.map(refStr => this._cachedApiPromise({
