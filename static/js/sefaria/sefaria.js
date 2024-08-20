@@ -463,7 +463,7 @@ Sefaria = extend(Sefaria, {
         });
   },
   _bulkTexts: {},
-  partitionArray: function partitionArrayForURL(urlMaxLength, arr, dividerToken) {
+  partitionArrayForURL: function(urlMaxLength, arr, dividerToken) {
     const result = [];
     const dividerTokenLength = encodeURIComponent(dividerToken);
     let currentPartition = [];
