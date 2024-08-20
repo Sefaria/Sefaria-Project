@@ -12,7 +12,7 @@ import Component from 'react-class';
 import sanitizeHtml  from 'sanitize-html';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import { GDocAdvertBox } from './Promotions';
-import * as sheetsUtils from '../../sefaria/sheetsUtils'
+import * as sheetsUtils from './sefaria/sheetsUtils'
 
 
 
