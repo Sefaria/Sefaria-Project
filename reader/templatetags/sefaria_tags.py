@@ -16,6 +16,11 @@ from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
+from django.utils import translation
+from django.conf import settings
+from django.utils.dateformat import format as date_format
+
+
 
 from sefaria.sheets import get_sheet
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
@@ -533,6 +538,19 @@ def date_string_to_tibetan_date(value):
         f"སྐར་མ་{value.minute} "
     )
     return formatted_datetime
+
+@register.filter
+def format_date_by_language(value):
+	language = {
+		'en': 'en',
+		'he': 'bo',
+		'ch': 'zh',
+	}
+	print("+++++++++++++++++++++++++", value)
+	current_language = translation.get_language()
+	date_obj = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
+	date_format_string = settings.DATE_FORMATS.get(current_language, settings.DATE_FORMATS['en'])
+	return date_format(date_obj, date_format_string)
 
 
 @register.filter(is_safe=True)
