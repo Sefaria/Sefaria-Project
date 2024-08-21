@@ -88,7 +88,7 @@ class Util {
     static localeDate(dateString) {
         // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
 
-        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'bo';
+        const locale = Sefaria.interfaceLang === 'hebrew' ? 'bo': 'en-US'
 
         function tibetanData(dateInString) {
             const currentDate = new Date(dateInString);

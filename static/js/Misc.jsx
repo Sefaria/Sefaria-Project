@@ -1424,9 +1424,9 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
             <InterfaceText>Site Language</InterfaceText>
           </div>
           <div className="interfaceLinks-options">
-            <a className={`interfaceLinks-option int-bi ${Sefaria.languageClassFont()} ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>བོད་ཡིག</a>
-            <a className={`interfaceLinks-option int-bi ${Sefaria.languageClassFont()} ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
-            <a className={`interfaceLinks-option int-bi ${Sefaria.languageClassFont()} ${(currentLang == 'chinese') ? 'active' : ''}`} href={`/interface/chinese?next=${getCurrentPage()}`}>中文</a>
+            <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>བོད་ཡིག</a>
+            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+            <a className={`interfaceLinks-option int-bi int-zh ${(currentLang == 'chinese') ? 'active' : ''}`} href={`/interface/chinese?next=${getCurrentPage()}`}>中文</a>
 
           </div>
           { !!translationLanguagePreference ? (
