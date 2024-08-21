@@ -1434,7 +1434,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true, replaceHistory=false, saveLastPlace=true) {
+  openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true,
+              replaceHistory=false, saveLastPlace=true, openCommentarySidePanel=false) {
     /* Open a new panel or replace existing panel. If book level, Open book toc
     * @param {int} n: Open new panel after `n` with the new ref
     * @param {string} ref: ref to use for new panel.  `ref` can refer to book, actual ref, or sheet.
@@ -1444,6 +1445,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     * @param {bool} convertCommentaryRefToBaseRef: if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
     * @param {bool} replaceHistory: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
     * @param {bool} saveLastPlace: whether to save user history.
+    * @param {bool} openCommentarySidePanel: if false, commentary ref will only open in side panel if depth of ref is 3. see `Sefaria.isCommentaryRefWithBaseText()`
     */
     this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
@@ -1463,7 +1465,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else {  // Text
       let filter = [];
       let filterRef;
-      if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
+      if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref, openCommentarySidePanel)) {
         // getBaseRefAndFilter breaks up the ref "Rashi on Genesis 1:1:4" into filter "Rashi" and ref "Genesis 1:1",
         // so `filterRef` is needed to store the entire "Rashi on Genesis 1:1:4"
         filterRef = Sefaria.humanRef(ref);
