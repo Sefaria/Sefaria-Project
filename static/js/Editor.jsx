@@ -160,9 +160,29 @@ const isMultiNodeSelection = (editor) => {
   // If the start and end paths are different, it means multiple nodes are selected
   return !Path.equals(startPath, endPath);
 };
+const moveAnchorToEndOfClosestParagraph = (editor) => {
+  const { selection } = editor;
 
+  if (selection && Range.isCollapsed(selection)) {
+    const { anchor } = selection;
+    const [closestParagraphNode, closestParagraphPath] = Editor.above(editor, {
+      at: anchor.path,
+      match: (n) => n.type === 'paragraph',
+    }) || [];
+
+    if (closestParagraphNode) {
+      const endPoint = Editor.end(editor, closestParagraphPath);
+
+      Transforms.select(editor, {
+        anchor: endPoint,
+        focus: endPoint,
+      });
+    }
+  }
+};
 const insertNewLine = (editor) => {
-  moveAnchorToEndOfCurrentNode(editor);
+  // moveAnchorToEndOfCurrentNode(editor);
+  moveAnchorToEndOfClosestParagraph(editor);
   editor.insertBreak();
 }
 const moveAnchorToEndOfCurrentNode = (editor) => {
@@ -1224,11 +1244,24 @@ const Element = (props) => {
 
             const addNewLineClasses = {
             hidden: isMultiNodeSelection(editor) || !selected,
-            editorAddInterface: 1,
+            editorAddLineButton: 1,
+            };
+            const handleClick = (event, editor) => {
+                 if (event.target.matches('.editorAddLineButton')) {
+                    insertNewLine(editor);
+                  } else {
+                    return;
+                  }
+
+                // If the attribute is present, proceed with your logic
+                // insertNewLine(editor);
             };
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div role="button" title={"paragraph"} contentEditable suppressContentEditableWarning aria-label={"Add new line"} className={classNames(addNewLineClasses)} onClick={() => insertNewLine(editor)}>
+                <div role="button" title={"paragraph"} contentEditable suppressContentEditableWarning
+                     aria-label={"Add new line"} data-trigger="true" className={classNames(addNewLineClasses)}
+                     onClick={(event) => handleClick(event, editor)}
+                >
                     <div className={classNames(pClasses)} {...attributes}>
                         {element.loading ? <div className="sourceLoader"></div> : null}
                         {children}
@@ -2116,6 +2149,7 @@ const Link = ({ attributes, children, element }) => {
         className="element-link"
         onMouseEnter={(e) => onHover(e, element.url)}
         onMouseLeave={(e) => onBlur(e, element.url)}
+        style={{ position: 'relative', zIndex: 2 }}
     >
         <a
             href={element.url}
