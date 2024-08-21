@@ -731,12 +731,8 @@ ConnectionsPanel.propTypes = {
 };
 
 const createSheetsWithRefURL = (srefs) => {
-  if (Array.isArray(srefs)) {
-    window.open(`${Sefaria.apiHost}/sheetsWithRef/${srefs}?range=1`);
-  }
-  else if (typeof srefs === "string") {
-    window.open(`${Sefaria.apiHost}/sheetsWithRef/${srefs}`);
-  }
+  const normalizedRef = Sefaria.normRef(srefs);
+  window.open(`${Sefaria.apiHost}/sheets/sheets-with-ref/${normalizedRef}`);
 }
 
 const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {

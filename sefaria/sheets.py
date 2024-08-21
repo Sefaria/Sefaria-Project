@@ -784,25 +784,29 @@ def get_top_sheets(limit=3):
 	query = {"status": "public", "views": {"$gte": 100}}
 	return sheet_list(query=query, limit=limit)
 
-def get_collections_with_sheets(sheet_ids):
+def annotate_sheets_with_collections(sheets):
 	"""
-	Return every public collection that has a sheet in `sheet_ids`
+	Annotate a list of `sheets` with a list of public collections that the sheet appears in.
 	"""
-	collections = CollectionSet({'sheets': {'$in': sheet_ids }, 'listed': True}, hint="sheets_listed")
+	ids = list({int(s['id']) for s in sheets})
+	collections = CollectionSet({'sheets': {'$in': ids}, 'listed': True}, hint="sheets_listed") #Return every public collection that has a sheet in `ids`
+
 	sheet_id_to_collections = defaultdict(list)
 	for collection in collections:
 		for sheet_id in collection.sheets:
-			sheet_id_to_collections[sheet_id].append({'name': collection.name, 'slug': collection.slug})
-	return sheet_id_to_collections
+			sheet_id_to_collections[sheet_id].append(collection)
 
-def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=None, include_first_comment=None):
+	for sheet in sheets:
+		collections = sheet_id_to_collections[int(sheet["id"])]
+		sheet["collections"] = [{'name': collection.name, 'slug': collection.slug} for collection in collections]
+	return sheets
+
+def get_sheets_for_ref(tref, uid=None, in_collection=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
 	If `in_collection` (list of slugs) is present, only return sheets in one of the listed collections.
-	If `include_collections` is present, given the list of sheets that include tref, return all public collections that have at least one of those sheets
-	If `include_first_comment` is present, return first comment in all sheets.
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
@@ -821,8 +825,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=N
 	projection = {"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1,
 		 "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1,
 		 "displayedCollection":1, "options":1}
-	if include_first_comment:
-		projection['sources'] = 1
 	sheetsObj = db.sheets.find(query, projection).sort([["views", -1]])
 	sheetsObj.hint("expandedRefs_1")
 	sheets = [s for s in sheetsObj]
@@ -843,10 +845,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=N
 			user_profiles[profile]["profile_pic_url_small"] = ""
 
 	results = []
-	sheet_id_to_collection = {}
-	if include_collections:
-		sheet_id_to_collection = get_collections_with_sheets([s['id'] for s in sheets])
-
 	for sheet in sheets:
 		anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", []))
 		ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
@@ -895,11 +893,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None, include_collections=N
 				"type":            "sheet", # ditto
 				"dateCreated":	   sheet.get("dateCreated", None)
 			}
-			if include_collections:
-				sheet_data["collections"] = sheet_id_to_collection[sheet["id"]]
-			if include_first_comment and len(sheet["sources"]) > 0:
-				sheet_data["firstSource"] =	sheet["sources"][0]
-
 			results.append(sheet_data)
 	return results
 

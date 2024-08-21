@@ -13,64 +13,20 @@ import React from "react";
 import {SearchResultList} from "./SearchResultList";
 import SearchPage from "./SearchPage";
 
-class ElasticSearchQuerier extends Component {
-    constructor(props) {
-      super(props);
-      this.querySize = {"text": 50, "sheet": 20};
-      this.state = {
-        runningQueries: null,
-        isQueryRunning: false,
-        moreToLoad:     true,
-        totals:         new SearchTotal(),
-        pagesLoaded:    0,
-        hits:           [],
-        error:          false,
-        topics:         []
-      }
-
-      // Load search results from cache so they are available for immediate render
-
-      const args = this._getQueryArgs(props);
-      let cachedQuery = Sefaria.search.getCachedQuery(args);
-      while (cachedQuery) {
-          // Load all pages of results that are available in cache, so if page X was
-          // previously loaded it will be returned.
-          //console.log("Loaded cached query for")
-          //console.log(args);
-          this.state.hits = this.state.hits.concat(cachedQuery.hits.hits);
-          this.state.totals = cachedQuery.hits.total;
-          this.state.pagesLoaded += 1;
-          args.start = this.state.pagesLoaded * this.querySize[this.props.type];
-          if (this.props.type === "text") {
-            // Since texts only have one filter type, aggregations are only requested once on first page
-            args.aggregationsToUpdate = [];
-          }
-          cachedQuery = Sefaria.search.getCachedQuery(args);
-      }
-    }
-    componentDidMount() {
-        this._executeAllQueries();
-    }
-    componentWillUnmount() {
-        this._abortRunningQuery();  // todo: make this work w/ promises
-    }
-    componentWillReceiveProps(newProps) {
-      let state = {
-              hits: [],
-              pagesLoaded: 0,
-              moreToLoad: true
-          };
-      if (this.props.query !== newProps.query) {
-        this.setState(state, () => {
-            this._executeAllQueries(newProps);
-            this.props.resetSearchFilters('sheet');
-            this.props.resetSearchFilters('text');
-        });
-      } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
-          this.setState(state, () => {
-              this._executeQuery(newProps, this.props.type);
-          })
-      }
+class TopicQuerier {
+    async addCollection(collection) {
+        const d = await Sefaria.getCollection(collection.key);
+        return {
+            analyticCat: "Collection",
+            title: d.name,
+            heTitle: d.name,
+            url: "/collections/" + collection.key,
+            topicCat: "Collections",
+            heTopicCat: Sefaria.hebrewTranslation("Collections"),
+            enDesc: d.description,
+            heDesc: d.description,
+            numSheets: d.sheets.length
+        }
     }
     async addRefTopic(topic) {
         const book = await Sefaria.getIndexDetails(topic.key);
@@ -131,21 +87,65 @@ class ElasticSearchQuerier extends Component {
         }
         return searchTopic;
     }
-    async addCollection(collection) {
-        const d = await Sefaria.getCollection(collection.key);
-        return {
-            analyticCat: "Collection",
-            title: d.name,
-            heTitle: d.name,
-            url: "/collections/" + collection.key,
-            topicCat: "Collections",
-            heTopicCat: Sefaria.hebrewTranslation("Collections"),
-            enDesc: d.description,
-            heDesc: d.description,
-            numSheets: d.sheets.length
-        }
+}
+class ElasticSearchQuerier extends Component {
+    constructor(props) {
+      super(props);
+      this.querySize = {"text": 50, "sheet": 20};
+      this.state = {
+        runningQueries: null,
+        isQueryRunning: false,
+        moreToLoad:     true,
+        totals:         new SearchTotal(),
+        pagesLoaded:    0,
+        hits:           [],
+        error:          false,
+        topics:         []
+      }
+
+      // Load search results from cache so they are available for immediate render
+
+      const args = this._getQueryArgs(props);
+      let cachedQuery = Sefaria.search.getCachedQuery(args);
+      while (cachedQuery) {
+          // Load all pages of results that are available in cache, so if page X was
+          // previously loaded it will be returned.
+          //console.log("Loaded cached query for")
+          //console.log(args);
+          this.state.hits = this.state.hits.concat(cachedQuery.hits.hits);
+          this.state.totals = cachedQuery.hits.total;
+          this.state.pagesLoaded += 1;
+          args.start = this.state.pagesLoaded * this.querySize[this.props.type];
+          if (this.props.type === "text") {
+            // Since texts only have one filter type, aggregations are only requested once on first page
+            args.aggregationsToUpdate = [];
+          }
+          cachedQuery = Sefaria.search.getCachedQuery(args);
+      }
     }
+    componentDidMount() {
+        this._executeAllQueries();
+    }
+    componentWillUnmount() {
+        this._abortRunningQuery();  // todo: make this work w/ promises
+    }
+    componentWillReceiveProps(newProps) {
+      let state = {
+              hits: [],
+              pagesLoaded: 0,
+              moreToLoad: true
+          };
+      if (this.props.query !== newProps.query) {
+        this.setState(state, () => this._executeAllQueries(newProps));
+      } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
+          this.setState(state, () => {
+              this._executeQuery(newProps, this.props.type);
+          })
+      }
+    }
+
     async _executeTopicQuery() {
+        const topicQuerier = new TopicQuerier();
         const d = await Sefaria.getName(this.props.query)
         let topics = d.completion_objects.filter(obj => obj.title.toUpperCase() === this.props.query.toUpperCase());
         const hasAuthor = topics.some(obj => obj.type === "AuthorTopic");
@@ -154,13 +154,13 @@ class ElasticSearchQuerier extends Component {
         }
         let searchTopics = await Promise.all(topics.map(async t => {
             if (t.type === 'ref') {
-                return await this.addRefTopic(t);
+                return await topicQuerier.addRefTopic(t);
             } else if (t.type === 'TocCategory') {
-                return this.addTOCCategoryTopic(t);
+                return topicQuerier.addTOCCategoryTopic(t);
             } else if (t.type === 'Collection') {
-                return await this.addCollection(t);
+                return await topicQuerier.addCollection(t);
             } else {
-                return await this.addGeneralTopic(t);
+                return await topicQuerier.addGeneralTopic(t);
             }
         }));
         this.setState({topics: searchTopics});
@@ -336,6 +336,7 @@ class ElasticSearchQuerier extends Component {
                     isQueryRunning={this.state.isQueryRunning}
                     searchTopMsg="Results for"
                     query={this.props.query}
+                    sortTypeArray={SearchState.metadataByType[this.props.type].sortTypeArray}
                     hits={this.normalizeHitsMetaData()}
                     totalResults={this.state.totals}
                     type={this.props.type}

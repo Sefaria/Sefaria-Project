@@ -13,7 +13,6 @@ import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent,
 import {
   ContestLandingPage,
   RemoteLearningPage,
-  SheetsLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
@@ -24,6 +23,7 @@ import {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  ProductsPage
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -55,6 +55,7 @@ class ReaderApp extends Component {
         searchType:               props.initialSearchType,
         tab:                     props.initialTab,
         topicSort:               props.initialTopicSort,
+        sheetsWithRef:           props.sheetsWithRef,
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters:        props.initialTextSearchFilters,
@@ -144,6 +145,7 @@ class ReaderApp extends Component {
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
       sheetNodes:              state.sheetNodes              || null,
+      sheetsWithRef:           state.sheetsWithRef           || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
       navigationTopicTitle:    state.navigationTopicTitle    || null,
@@ -455,10 +457,10 @@ class ReaderApp extends Component {
             hist.mode  = "navigation";
             break;
           case "sheetsWithRef":
-            const encodedSheetsWithRef = Sefaria.sheetsWithRef[shortLang] ? encodeURIComponent(Sefaria.sheetsWithRef[shortLang]) : "";
-            hist.title = Sefaria._("Sheets with ") + Sefaria.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
-            hist.url   = "sheetsWithRef" + (Sefaria.sheetsWithRef[shortLang] ? (`/${encodedSheetsWithRef}` +
-              state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
+            hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
+            const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
+            hist.url   = "sheets/sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
+                          state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode = "sheetsWithRef";
             break;
           case "text toc":
@@ -554,6 +556,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("Learning Schedules") + " | " + Sefaria._(siteName);
             hist.url = "calendars";
             hist.mode = "calendars";
+            break;
+          case "sheets":
+            hist.url = "sheets";
+            hist.mode = "sheets";
+            hist.title = Sefaria._("Sheets on Sefaria");
             break;
           case "updates":
             hist.title = Sefaria._("New Additions to the " + siteName + " Library");
@@ -2273,23 +2280,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
 
     return (
-      // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
-      // InterruptingMessage modals and Banners will always render if available but stay hidden initially
-      <StrapiDataProvider>
-        <AdContext.Provider value={this.getUserContext()}>
-          <div id="readerAppWrap">
-            <InterruptingMessage />
-            <Banner onClose={this.setContainerMode} />
-            <div className={classes} onClick={this.handleInAppLinkClick}>
-              {header}
-              {panels}
-              {signUpModal}
-              {communityPagePreviewControls}
-              <CookiesNotification />
-            </div>
+      <AdContext.Provider value={this.getUserContext()}>
+        <div id="readerAppWrap">
+          <div className={classes} onClick={this.handleInAppLinkClick}>
+            {header}
+            {panels}
+            {signUpModal}
+            {communityPagePreviewControls}
+            <CookiesNotification />
           </div>
-        </AdContext.Provider>
-      </StrapiDataProvider>
+        </div>
+      </AdContext.Provider>
     );
   }
 }
@@ -2316,7 +2317,8 @@ ReaderApp.propTypes = {
   initialDefaultVersions:      PropTypes.object,
   initialPath:                 PropTypes.string,
   initialPanelCap:             PropTypes.number,
-  topicTestVersion:          PropTypes.string,
+  topicTestVersion:            PropTypes.string,
+  sheetsWithRef:               PropTypes.object //properties 'he' and 'en' for english and hebrew spelling of ref
 };
 ReaderApp.defaultProps = {
   multiPanel:                  true,
@@ -2347,7 +2349,6 @@ export {
   loadServerData,
   EditCollectionPage,
   RemoteLearningPage,
-  SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
@@ -2359,5 +2360,6 @@ export {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  ProductsPage,
   UpdatesPanel
 };

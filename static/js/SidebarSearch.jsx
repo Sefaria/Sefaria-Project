@@ -1,15 +1,12 @@
 import { useState, useEffect } from "react";
-import {InterfaceText, EnglishText, HebrewText} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import SearchState from './sefaria/searchState';
-import {SearchResultList}  from './SearchResultList';
 import DictionarySearch  from './DictionarySearch';
 import classNames from 'classnames';
-
+import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
 import {
   SearchButton,
 } from './Misc';
-import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
 
 
 const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarSearchQuery, setSidebarSearchQuery, onSidebarSearchClick }) => {

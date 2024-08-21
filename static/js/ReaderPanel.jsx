@@ -44,6 +44,7 @@ import {
 import {ContentText} from "./ContentText";
 import SheetsWithRefPage from "./Sheets/SheetsWithRefPage";
 import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
+import SheetsHomePage from "./Sheets/SheetsHomePage";
 
 
 class ReaderPanel extends Component {
@@ -802,7 +803,7 @@ class ReaderPanel extends Component {
           initialWidth={this.state.width}
           toggleSignUpModal={this.props.toggleSignUpModal}/>);
     } else if (this.state.menuOpen === "sheetsWithRef") {
-      menu = (<SheetsWithRefPage srefs={Sefaria.sheetsWithRef['en']}
+      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef.en}
                                  searchState={this.state['sheetSearchState']}
                                  updateSearchState={this.props.updateSearchState}
                                  updateAppliedFilter={this.props.updateSearchFilter}
@@ -1037,17 +1038,19 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history") {
       menu = (
-        <UserHistoryPanel
-          multiPanel={this.props.multiPanel}
-          menuOpen={this.state.menuOpen}
-          openMenu={this.openMenu}
-          openNav={this.openMenu.bind(null, "navigation")}
-          openDisplaySettings={this.openDisplaySettings}
-          toggleLanguage={this.toggleLanguage}
-          compare={this.state.compare}
-          toggleSignUpModal={this.props.toggleSignUpModal} />
+          <UserHistoryPanel
+              multiPanel={this.props.multiPanel}
+              menuOpen={this.state.menuOpen}
+              openMenu={this.openMenu}
+              openNav={this.openMenu.bind(null, "navigation")}
+              openDisplaySettings={this.openDisplaySettings}
+              toggleLanguage={this.toggleLanguage}
+              compare={this.state.compare}
+              toggleSignUpModal={this.props.toggleSignUpModal}/>
       );
 
+    } else if (this.state.menuOpen === "sheets") {
+      menu = (<SheetsHomePage/>);
     } else if (this.state.menuOpen === "profile") {
       menu = (
         <UserProfile
