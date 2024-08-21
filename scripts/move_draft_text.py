@@ -89,7 +89,7 @@ class ServerTextCopier(object):
         for ver in self._version_objs:
             found_non_empty_content = False
             print(ver.versionTitle.encode('utf-8'))
-            self._make_post_request_to_server(self._prepare_text_api_call(), ver, params={'count_after': 1})
+            self._make_post_request_to_server(self._prepare_text_api_call(), ver.contents(), params={'count_after': 1})
 
         if self._post_links and len(self._linkset) > 0:
             if self._post_links_step <= 0 or self._post_links_step > len(self._linkset):
