@@ -242,19 +242,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText>Topics</InterfaceText>
-      </a>
-      <a href="/community" onClick={close}>
-        <img src="/static/icons/community.svg" />
-        <InterfaceText>Community</InterfaceText>
+        <InterfaceText>Explore</InterfaceText>
       </a>
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
         <InterfaceText>Learning Schedules</InterfaceText>
-      </a>
-      <a href="/collections" onClick={close}>
-        <img src="/static/icons/collection.svg"/>
-        <InterfaceText>Collections</InterfaceText>
       </a>
 
       <DonateLink classes={"blue"} source="MobileNavMenu">
@@ -265,24 +257,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       <div className="mobileAccountLinks">
         {Sefaria._uid ?
         <>
-          <a href="/my/profile" onClick={close}>
-            <ProfilePic len={22} url={Sefaria.profile_pic_url} name={Sefaria.full_name} />
-            <InterfaceText>Profile</InterfaceText>
-          </a>
           <a href="/texts/saved" onClick={close}>
             <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
-            <InterfaceText>Saved & History</InterfaceText>
-          </a>
-          <a href="/notifications" onClick={close}>
-            <img src="/static/icons/notification.svg" alt={Sefaria._('Notifications')} />
-            <InterfaceText>Notifications</InterfaceText>
+            <InterfaceText>Saved, History & Notes</InterfaceText>
           </a>
         </> : null }
-
-        <a href="/mobile-about-menu">
-          <img src="/static/icons/info.svg" />
-          <InterfaceText>About Sefaria</InterfaceText>
-        </a>
 
         {Sefaria._uid ?
         <>
@@ -297,6 +276,21 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <a href="/help">
           <img src="/static/icons/help.svg" />
           <InterfaceText>Get Help</InterfaceText>
+        </a>
+
+        <a href="/mobile-about-menu">
+          <img src="/static/icons/info.svg" />
+          <InterfaceText>About Sefaria</InterfaceText>
+        </a>
+
+        <a href="sheets.sefaria.org" target="_blank">
+          <img src="/static/icons/sheets-mobile-icon.svg" />
+          <InterfaceText>Sheets</InterfaceText>
+        </a>
+
+        <a href="developers.sefaria.org" target="_blank">
+          <img src="/static/icons/dev-portal-mobile-icon.svg" />
+          <InterfaceText>Developers</InterfaceText>
         </a>
 
         {Sefaria._uid ?
