@@ -298,13 +298,12 @@ const VersionNotification = ({date, content}) => {
   const heTitle = Sefaria.index(title).heTitle;
   const url = "/" + Sefaria.normRef(title);
 
+
+
   const topLine = (
     <>
-      <span className="int-en">
+      <span className={`${Sefaria.languageClassFont()}`}>
         New { content.language == "en"?"English":"Hebrew"} version of <a href={url}>{title}</a>: {content.version}
-      </span>
-      <span className="int-he">
-        גרסה חדשה של <a href={url}>{heTitle}</a> ב{ content.language == "en"?"אנגלית":"עברית"} : {content.version}
       </span>
     </>
   );

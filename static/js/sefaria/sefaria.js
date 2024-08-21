@@ -2927,6 +2927,14 @@ _media: {},
         return name;
     }
   },
+  languageClassFont: function() { // change fontstyle for each language
+    const languages = {
+      english: 'int-en',
+      hebrew: 'int-he',
+      chinese: 'int-zh',
+    }
+    return languages[Sefaria.interfaceLang]
+  },
   hebrewTranslation: function(inputStr, context = null){
     let translatedString;
     

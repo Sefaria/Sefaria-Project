@@ -52,7 +52,7 @@ export function NewsletterSignUpForm({
             onChange={e => setEmail(e.target.value)}
             onKeyUp={handleSubscribeKeyUp}/>
       </span>
-            <span className="int-he">
+        <span className="int-he">
         <input
             className="newsletterInput"
             placeholder={emailPlaceholder.he}
@@ -125,7 +125,7 @@ const EducatorCheckbox = ({educatorCheck, setEducatorCheck}) => {
                 className="educatorNewsletterInput"
                 checked={educatorCheck}
                 onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span> מורים/ אנשי הוראה</span>
+            <span>ང་སློབ་གསོ་བ་ཞིག་ཡིན།</span>
           </span>
         </div>
     );

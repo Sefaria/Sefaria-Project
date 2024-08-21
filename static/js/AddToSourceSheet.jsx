@@ -211,16 +211,14 @@ class AddToSourceSheetBox extends Component {
     return (
       <div className="addToSourceSheetBox noselect">
         <div className="addToSourceSheetBoxTitle sans-serif">
-          <span className="int-en">{ Sefaria._("Selected Citation")}</span>
-          <span className="int-he">{ Sefaria._("Selected Citation")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Selected Citation")}</span>
         </div>
         <div className="selectedRef">
           <span className="en">{titleRef["en"]}</span>
           <span className="he">{titleRef["he"]}</span>
         </div>
         <div className="addToSourceSheetBoxTitle sans-serif">
-          <span className="int-en">{ Sefaria._("Add to")} </span>
-          <span className="int-he">{ Sefaria._("Add to")} </span>
+          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Add to")} </span>
         </div>
         <div className="dropdown">
           <div className={`dropdownMain noselect ${this.state.sheetListOpen ? "open" : ""}`} onClick={this.toggleSheetList}>
@@ -233,16 +231,14 @@ class AddToSourceSheetBox extends Component {
             <div className="newSheet noselect">
               <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")}/>
               <div className="button small noselect" onClick={this.createSheet} >
-                <span className="int-en">{ Sefaria._("Create")} </span>
-                <span className="int-he">{ Sefaria._("Create")}</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Create")}</span>
               </div>
              </div>
           </div>
           : null}
         </div>
         <div className="button noselect fillWidth" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet}>
-          <span className="int-en noselect">{ Sefaria._("Add to Sheet")}</span>
-          <span className="int-he noselect">{ Sefaria._("Add to Sheet")}</span>
+          <span className={`${Sefaria.languageClassFont()} noselect`}>{ Sefaria._("Add to Sheet")}</span>
         </div>
       </div>);
   }
@@ -279,12 +275,7 @@ class ConfirmAddToSheet extends Component {
     }
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
-                <span className="int-en">
-                  <a href={sref}>{srefTitles["en"]}</a>
-                  &nbsp;{Sefaria._("has been added to")}&nbsp;
-                   <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
-                </span>
-                <span className="int-he">
+                <span className={`${Sefaria.languageClassFont()}`}>
                   <a href={sref}>{srefTitles["he"]}</a>
                    &nbsp;{Sefaria._("has been added to")}&nbsp;
                   <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.

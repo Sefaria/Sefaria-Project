@@ -631,11 +631,9 @@ class ReaderPanel extends Component {
         ref={this.readerContentRef}
         className="readerContent">
           <div className="readerError">
-            <span className="int-en">Something went wrong! Please use the back button or the menus above to get back on track.</span>
-            <span className="int-he">ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.</span>
+            <span className={`${Sefaria.languageClassFont()}`}>Something went wrong! Please use the back button or the menus above to get back on track.</span>
             <div className="readerErrorText">
-              <span className="int-en">Error Message: </span>
-              <span className="int-he">שגיאה: </span>
+              <span className={`${Sefaria.languageClassFont()}`}>Error Message: </span>
               {this.state.error}
             </div>
           </div>

@@ -23,6 +23,7 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+import { languages } from 'humanize-duration';
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -44,6 +45,7 @@ const ChineseText = ({children}) => (
 const EnglishText = ({children}) => (
     <>{children}</>
 );
+
 
 const AvailableLanguages = () => {
   return {"english" : EnglishText, "hebrew": HebrewText, "chinese": ChineseText};
@@ -74,8 +76,9 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
    */
   const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
- // let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
-  let elemclasses = classNames({});
+  let language = {}
+  language[`${Sefaria.languageClassFont()}`] = true
+  let elemclasses = classNames(language);
   let textResponse = null; 
   if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case.
     let {he, en} = contentVariable;
@@ -306,7 +309,7 @@ class ProfilePic extends Component {
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
-                <span >{ showDefault ? Sefaria._("Add Picture") : Sefaria._("Upload New") }</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{ showDefault ? Sefaria._("Add Picture") : Sefaria._("Upload New") }</span>
               </label>
             </div>) : null
           }
@@ -1421,9 +1424,9 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
             <InterfaceText>Site Language</InterfaceText>
           </div>
           <div className="interfaceLinks-options">
-            <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>བོད་ཡིག</a>
-            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
-            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'chinese') ? 'active' : ''}`} href={`/interface/chinese?next=${getCurrentPage()}`}>中文</a>
+            <a className={`interfaceLinks-option int-bi ${Sefaria.languageClassFont()} ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>བོད་ཡིག</a>
+            <a className={`interfaceLinks-option int-bi ${Sefaria.languageClassFont()} ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+            <a className={`interfaceLinks-option int-bi ${Sefaria.languageClassFont()} ${(currentLang == 'chinese') ? 'active' : ''}`} href={`/interface/chinese?next=${getCurrentPage()}`}>中文</a>
 
           </div>
           { !!translationLanguagePreference ? (
@@ -2229,7 +2232,7 @@ const InterruptingMessage = ({
                     <h1 >{strapi.modal.modalHeader.en}</h1>
                   )}
                   {strapi.modal.modalHeader.he && (
-                    <h1 className="int-he">{strapi.modal.modalHeader.he}</h1>
+                    <h1 className={`${Sefaria.languageClassFont()}`}>{strapi.modal.modalHeader.he}</h1>
                   )}
                   <div id="defaultModalBody" className="line-break">
                     <InterfaceText
@@ -2252,14 +2255,14 @@ const InterruptingMessage = ({
                       </span>
                     </a>
                     <a
-                      className="button int-he"
+                      className={`${Sefaria.languageClassFont()} button`}
                       target="_blank"
                       href={strapi.modal.buttonURL.he}
                       onClick={() => {
                         closeModal("modal_button_clicked");
                       }}
                     >
-                      <span className="int-he">
+                      <span className={`${Sefaria.languageClassFont()}`}>
                         {strapi.modal.buttonText.he}
                       </span>
                     </a>
@@ -2395,16 +2398,7 @@ const Banner = ({ onClose }) => {
             </div>
             <div id="bannerButtonBox">
               <a
-                className="button white int-en"
-                href={strapi.banner.buttonURL.en}
-                onClick={() => {
-                  closeBanner("banner_button_clicked");
-                }}
-              >
-                <span>{strapi.banner.buttonText.en}</span>
-              </a>
-              <a
-                className="button white int-he"
+                className={`button white ${Sefaria.languageClassFont()}`}
                 href={strapi.banner.buttonURL.he}
                 onClick={() => {
                   closeBanner("banner_button_clicked");

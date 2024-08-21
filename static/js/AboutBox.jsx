@@ -77,8 +77,7 @@ class AboutBox extends Component {
       if (d) {
           detailSection = (<div className="detailsSection">
                   <h2 className="aboutHeader">
-                      <span className="int-en">{ Sefaria._("About This Text")}</span>
-                      <span className="int-he">{ Sefaria._("About This Text")}</span>
+                      <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("About This Text")}</span>
                   </h2>
                   <div className="aboutTitle">
                       {d.title.stripHtml()}

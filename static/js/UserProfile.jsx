@@ -142,7 +142,7 @@ class UserProfile extends Component {
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <span className="">{Sefaria._("0 Notes")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("0 Notes")}</span>
         </div>
       </div>
     );
@@ -189,23 +189,20 @@ class UserProfile extends Component {
           <div className="emptyListText">
             <InterfaceText>{this.props.profile.full_name}</InterfaceText>
             <InterfaceText> hasn't shared any sheets yet.</InterfaceText>
-          </div>
+          </div> 
         </div>
       );
     }
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <span className="int-en">
+          <span className={`${Sefaria.languageClassFont()}`}>
            {Sefaria._(" You can use sheets to save and organize sources, write new texts, create lessons, lectures, articles, and more.")}
-          </span>
-          <span className="">
-            {Sefaria._(" ཟིན་བྲིས་བེད་སྤྱོད་བཏང་ནས། ལུང་འདྲེན་ཕྱོགས་བསྡུ་དང་། དེའི་སྐོར་ལ་རྩོམ་འབྲི་བ། སློབ་ཚན་སྒྲིག་པ། དཔྱད་རྩོམ་འབྲི་བ་ལ་སོགས་པ་གནང་ཐུབ་པ་ཡིན།")}
           </span>
         </div>
         <a href="/sheets/new" className="resourcesLink sans-serif">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className="">{Sefaria._("Create a New Sheet")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Create a New Sheet")}</span>
         </a>
       </div>
     );
@@ -241,7 +238,7 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/sheets/new" className="resourcesLink sans-serif">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className="">{Sefaria._("Create a New Sheet")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Create a New Sheet")}</span>
         </a>
       </div>
     );
@@ -290,14 +287,14 @@ class UserProfile extends Component {
   renderEmptyFollowerList() {
     return (
       <div>
-        <span className="">{Sefaria._("0 followers")}</span>
+        <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("0 followers")}</span>
       </div>
     );
   }
   renderEmptyFollowingList() {
     return (
       <div>
-        <span className="">{Sefaria._("0 following")}</span>
+        <span className={`${Sefaria.languageClassFont}`}>{Sefaria._("0 following")}</span>
       </div>
     );
   }
@@ -572,7 +569,7 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
     <div className="profile-summary sans-serif">
       <div className="summary-column profile-summary-content start">
         <div className="title pageTitle">
-          <span className="">{p.full_name}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{p.full_name}</span>
         </div>
         { p.position || p.organization ?
           <div className="title sub-title">
@@ -597,14 +594,14 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
           Sefaria._uid === p.id ? (
           <div className="profile-actions">
             <a href="/settings/profile" className="resourcesLink sans-serif">
-              <span className="">{Sefaria._("Edit Profile")}</span>
+              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Edit Profile")}</span>
             </a>
             <a href="/settings/account" className="resourcesLink sans-serif profile-settings">
               <img src="/static/icons/settings.svg" alt="Profile Settings" />
-              <span className="">{Sefaria._("Settings")}</span>
+              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Settings")}</span>
             </a>
             <a href="/logout" className="button transparent logoutLink">
-              <span className="">{Sefaria._("Log Out")}</span>
+              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Log Out")}</span>
             </a>
           </div>) : (
           <div className="profile-actions">
