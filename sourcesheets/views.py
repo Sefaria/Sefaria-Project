@@ -1043,10 +1043,7 @@ def sheets_with_ref(request, tref):
 
     props={
         "initialSearchType": "sheet",
-        "initialTextSearchFilters": search_params["textFilters"],
-        "initialTextSearchFilterAggTypes": search_params["textFilterAggTypes"],
         "initialTextSearchField": search_params["textField"],
-        "initialTextSearchSortType": search_params["textSort"],
         "initialSheetSearchFilters": search_params["sheetFilters"],
         "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
         "initialSheetSearchSortType": search_params["sheetSort"]
