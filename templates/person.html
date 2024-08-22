@@ -83,8 +83,7 @@
         <div class="section">
             <div id="external_links">
                 <h3>
-                    <span class="int-en">{% trans "Learn More" %}</span>
-                    <span class="int-he">{% trans "Learn More" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "Learn More" %}</span>
                 </h3>
                 {% if enWikiLink and heWikiLink %}
                     <p>
@@ -127,8 +126,7 @@
             {% if indexes|length %}
             <div id="indexes">
                 <h3>
-                     <span class="int-en">{% trans "Works" %}</span>
-                     <span class="int-he">{% trans "Works" %}</span>
+                     <span class="{{ language_font_class }}">{% trans "Works" %}</span>
                 </h3>
                 {% for indx in indexes %}
                     <p>
@@ -140,8 +138,7 @@
             {% if places %}
             <div id="person-graphic-column">
                 <h3>
-                    <span class="int-en">{% trans "Map" %}</span>
-                    <span class="int-he">{% trans "Map" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "Map" %}</span>
                 </h3>
                     <div id="place-map"></div>
             </div>

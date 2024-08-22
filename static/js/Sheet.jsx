@@ -374,8 +374,7 @@ class SheetContent extends Component {
         </div>
 
         <div id="printFooter" style={{display:"none"}}>
-          <span className="int-en">{Sefaria._("Created with")} <img src="/static/img/logo.svg" /></span>
-          <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" /></span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Created with")} <img src="/static/img/logo.svg" /></span>
         </div>
       </div>
     )

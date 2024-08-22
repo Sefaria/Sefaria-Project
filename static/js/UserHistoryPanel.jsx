@@ -105,8 +105,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
   if (menuOpen === 'history' && !Sefaria.is_history_enabled) {
     return (
       <div className="savedHistoryMessage">
-        <span className="int-en">Reading history is currently disabled. You can re-enable this feature in your <a href="/settings/account">account settings</a>.</span>
-        <span className="int-he">היסטורית קריאה כבויה כרגע. ניתן להפעילה מחדש במסך <a href="/settings/account">ההגדרות</a>.</span>
+        <span className={`${Sefaria.languageClassFont()}`}>Reading history is currently disabled. You can re-enable this feature in your <a href="/settings/account">account settings</a>.</span>
       </div>
     );
   } else if (!items) {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
+import {AppStoreButton, DonateLink, EnglishText, HebrewText, ChineseText, ImageWithCaption} from './Misc'
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
@@ -109,6 +109,9 @@ const AboutSefaria = ({hideTitle}) => (
           ཚིག་སྦྱོར་དང་འགྱུར་མི་འདྲ་བ། སྐད་ཡིག་གཞན་པའི་ནང་དུ་འགྱུར་བ་གང་ཡོད། རྩ་ཚིག་དེའི་འགྲེལ་བ་དང་། མཆན་འགྲེལ། ཡང་འགྲེལ། བསྟན་བཅོས་གཞན་པའི་ནང་དུ་ཚིག་དེ་ལུང་དྲངས་པ་སོགས་དེ་དང་འབྲེལ་ཡོད་ཕལ་ཆེ་བ་སྟབས་གཅིག་ཏུ་ཀློག་ཐུབ། ཀློག་མཁན་ཁྱེད་ཀྱིས་ཐུགས་ལྷོད་ལྷོད་ངང་གསུང་རབ་སྣ་ཚོགས་ལ་རགས་བལྟ་དང་། ཞིབ་ཀློག་བྱེད་པའི་ཞོར་དུ། 
           སྐབས་བབ་བརྗོད་བྱ་དང་འབྲེལ་བའི་གོ་རྟོགས་གསར་པའམ། ཡང་ན་རང་གི་མི་ཚེའི་ནང་བྱུང་བའི་སྐྱིད་སྡུག་གི་ཉམས་མྱོང་རྣམས་ཟིན་བྲིས་དང་། མཆན་དུ་བྲིས་ཏེ་ཆོས་གྲོགས་གཞན་གྱི་ལོངས་སྤྱོད་དུ་སྤེལ་ཆོག་ལ་། ཆོས་གྲོགས་གཞན་གྱི་མྱོང་རྟོགས་གསར་པ་རྣམས་ཀྱང་རང་ཉིད་ཀྱིས་ལོངས་སྤྱོད་བྱེད་ཐུབ་ཀྱི་ཡོད། 
         </HebrewText>
+        <ChineseText>
+        Pecha平台提供多种语言和风格的佛教经典的访问，以满足每个人的需求。通过搜索一节经文，用户可以在一个地方找到它的起源、各种解释、不同语言的翻译、注释、注释、子注释和其他经文的参考。无论是随意探索各种经典，还是进行深入研究，用户都可以通过笔记或评论与其他佛友分享与该主题相关的见解或个人经历。此外，用户还可以从其他读者在笔记中分享的新鲜见解中获益。
+        </ChineseText>
     </InterfaceText>
   </Module>
 );
@@ -131,24 +134,27 @@ const AboutTranslatedText = ({translationsSlug}) => {
     "yi": {title: "א לעבעדיקע ביבליאטעק פון תורה", body: "אין ספֿריאַ איז אַ היים פֿון 3,000 יאָר ייִדישע טעקסטן. מיר זענען אַ נאַן-נוץ אָרגאַניזאַציע וואָס אָפפערס פריי אַקסעס צו טעקסטן, איבערזעצונגען און קאָמענטאַרן אַזוי אַז אַלעמען קענען אָנטייל נעמען אין די אָנגאָינג פּראָצעס פון לערנען, ינטערפּריטיישאַן און שאפן תורה."}
   }
   return (
-  <Module>
-    <ModuleTitle h1={true}>{translationLookup[translationsSlug] ?
-          translationLookup[translationsSlug]["title"] : "A Living Library of Buddhist Text"}</ModuleTitle>
-        { translationLookup[translationsSlug] ?
-          translationLookup[translationsSlug]["body"] :
-          <InterfaceText>
-          <EnglishText>
-          Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
-          and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
-        </EnglishText>
-        <HebrewText>
-          ספריא היא ביתם של 3,000 שנות ספרות יהודית.
-          אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות,
-          ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.
-        </HebrewText>
-        </InterfaceText>
-        }
-  </Module>
+    <Module>
+      <InterfaceText></InterfaceText>
+    </Module>
+  // <Module>
+  //   <ModuleTitle h1={true}>{translationLookup[translationsSlug] ?
+  //         translationLookup[translationsSlug]["title"] : "A Living Library of Buddhist Text"}</ModuleTitle>
+  //       { translationLookup[translationsSlug] ?
+  //         translationLookup[translationsSlug]["body"] :
+  //         <InterfaceText>
+  //         <EnglishText>
+  //         Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
+  //         and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
+  //       </EnglishText>
+  //       <HebrewText>
+  //         ספריא היא ביתם של 3,000 שנות ספרות יהודית.
+  //         אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות,
+  //         ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.
+  //       </HebrewText>
+  //       </InterfaceText>
+  //       }
+  // </Module>
 );
 }
 

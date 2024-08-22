@@ -87,7 +87,8 @@ class Util {
 
     static localeDate(dateString) {
         // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
-        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'bo';
+
+        const locale = Sefaria.interfaceLang === 'hebrew' ? 'bo': 'en-US'
 
         function tibetanData(dateInString) {
             const currentDate = new Date(dateInString);
@@ -139,11 +140,11 @@ class Util {
             }
         }
 
-        if (locale === 'en-US') {
+        if (locale !== 'en-US') {
+            return tibetanData(dateString)
+        } else {
             const dateOptions = {year: 'numeric', month: 'long', day: 'numeric'};
             return (new Date(dateString)).toLocaleDateString(locale, dateOptions);  // remove comma from english date
-        } else {
-            return tibetanData(dateString)
         }
 
     }

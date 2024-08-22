@@ -122,8 +122,7 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 		<div className="media"  key={anchor+"_"+"audio"}>
 			  <div className="title en">{source}</div>
 				<div className="title he">{source_he}</div>
-			  <div className="description int-en">{description}</div>
-				<div className="description int-he">{description_he}</div>
+				<div className={`${Sefaria.languageClassFont()} description`}>{description_he}</div>
 			  <div className="panel">
           <div className="playTimeContainer">
             <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} alt={playing ? "Pause Audio" : "Play Audio"} onClick={() => setPlaying(!playing)} id="pause"/>
@@ -135,11 +134,9 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 				 <source src={audioUrlWithTime} type="audio/mpeg"/>
 			  </audio>
 			  <div className="meta">
-				<span className="int-en">License: {license}</span>
-				<span className="int-he">עסק רשיון: {license}</span>
+				<span className={`${Sefaria.languageClassFont()}`}>License: {license}</span>
         <br/>
-				<span className="int-en">Source: <a href={source_site} target="_blank">{source}</a></span>
-				<span className="int-he">מקור: <a href={source_site} target="_blank">{source_he}</a></span>
+				<span className={`${Sefaria.languageClassFont()}`}>Source: <a href={source_site} target="_blank">{source}</a></span>
 			  </div>
 
 		</div>

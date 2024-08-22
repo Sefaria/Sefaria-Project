@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-01 19:57+0530\n"
+"POT-Creation-Date: 2024-08-21 16:12-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,40 +16,36 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: reader/templatetags/sefaria_tags.py:221 sefaria/settings.py:24
+#: reader/templatetags/sefaria_tags.py:226 sefaria/settings.py:24
 #: templates/edit_text.html:185 templates/elements/notification.html:15
-#: templates/elements/notification.html:17 templates/sheets.html:209
-#: templates/sheets.html:210 templates/sheets.html:301
-#: templates/sheets.html:302
+#: templates/elements/notification.html:17 templates/sheets.html:191
+#: templates/sheets.html:273
 msgid "English"
 msgstr "English"
 
-#: reader/templatetags/sefaria_tags.py:222 sefaria/settings.py:25
+#: reader/templatetags/sefaria_tags.py:227 sefaria/settings.py:25
 #: templates/edit_text.html:186 templates/elements/notification.html:15
-#: templates/elements/notification.html:17 templates/sheets.html:308
-#: templates/sheets.html:309
+#: templates/elements/notification.html:17 templates/sheets.html:279
 msgid "Hebrew"
-msgstr "བོད་སྐད།"
+msgstr ""
 
-#: reader/templatetags/sefaria_tags.py:223 templates/sheets.html:223
-#: templates/sheets.html:224 templates/sheets.html:315
-#: templates/sheets.html:316
+#: reader/templatetags/sefaria_tags.py:228 templates/sheets.html:203
+#: templates/sheets.html:285
 msgid "Bilingual"
 msgstr "སྐད་གཉིས་ཤན་སྦྱར།"
 
-#: reader/views.py:681
+#: reader/views.py:702
 #, python-format
 msgid "Read the text of %(book)s online with commentaries and connections."
-msgstr "དྲ་ཐོག་ནས་དཔེ་ཆ་ %(book)s འདི་དང་འདིའི་འགྲེལ་བ་དང་འབྲེལ་ཡོད་བཅས་པ་མཉམ་དུ་ཀློག"
+msgstr ""
 
-#: reader/views.py:703
+#: reader/views.py:724
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
-"ལོ་ངོ་གཉིས་སྟོང་ལྷག་རིང་གི་ནང་བསྟན་དཔེ་ཆ་རྣམས་བོད་སྐད་དང་དབྱིན་སྐད་ནང་བསྒྱུར་བ་རྣམས་འཚོལ་ཞིབ་དང་བལྟ་"
-"ཀློག་བྱ་ཐུབ།"
 
-#: reader/views.py:708 reader/views.py:3140 templates/delete-sheet.html:4
+#: reader/views.py:729 reader/views.py:3161 templates/delete-sheet.html:4
 #: templates/person.html:6 templates/person.html:8
 #: templates/registration/delete_user_account.html:4
 #: templates/registration/password_reset_complete.html:3
@@ -57,206 +53,191 @@ msgstr ""
 #: templates/registration/password_reset_done.html:3
 #: templates/registration/password_reset_form.html:4
 #: templates/registration/register.html:4 templates/sheets.html:7
-#: templates/static/home.html:18 templates/static/home.html:32
 #: templates/static/linker.html:4 templates/static/newsletter.html:4
 #: templates/static/privacy-policy.html:4 templates/static/terms.html:4
 #: templates/static/visualizations.html:4
 msgid "Sefaria"
-msgstr "Pecha"
+msgstr ""
 
-#: reader/views.py:710
+#: reader/views.py:731
 msgid "A source sheet created with Sefaria's Source Sheet Builder"
-msgstr "Pecha ཡི་མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས་སྤྱད་ནས་བཟོས་པའི་མ་ཕྱིའི་ཤོག་ངོས་ཤིག"
+msgstr ""
 
-#: reader/views.py:747
+#: reader/views.py:768
 msgid "Recently Viewed"
-msgstr "ཉེ་བའི་ཆར་བལྟས་པ།"
+msgstr ""
 
-#: reader/views.py:748
+#: reader/views.py:769
 msgid "Texts that you've recently viewed on Sefaria."
-msgstr "ཁྱེད་ཀྱིས་ཉེ་བའི་ཆར་Pechaབརྒྱུད་ནས་བལྟས་པའི་དཔེ་ཆ་རྣམས།"
+msgstr ""
 
-#: reader/views.py:760
+#: reader/views.py:781
 #, python-format
 msgid "Read %(categories)s texts online with commentaries and connections."
 msgstr ""
-"དྲ་ཐོག་ཏུ་སྤེལ་བའི་དཔེ་ཆ་རྣམས་ལ་འགྲེལ་བ་དང་འབྲེལ་ཡོད་མཉམ་འཇོག་བྱས་པ་རྣམས་ %(categories)s ཀློག"
 
-#: reader/views.py:762
+#: reader/views.py:783
 msgid " | Sefaria"
-msgstr " | Pecha"
+msgstr ""
 
-#: reader/views.py:796 reader/views.py:3180
+#: reader/views.py:817 reader/views.py:3201
 msgid ""
 "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish "
 "sources."
-msgstr "ཆོས་དཔེ་འདིའི་ནང་གི་དཔེ་ཆ་དང་མ་ཕྱིའི་ཤོག་ངོས་རྣམས།  ནང་བསྟན་དང་འབྲེལ་བའི་Pecha དཔེ་མཛོད།"
+msgstr ""
 
-#: reader/views.py:798 reader/views.py:3182
+#: reader/views.py:819 reader/views.py:3203
 #, python-format
 msgid ""
 "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other "
 "sources in Sefaria's library."
 msgstr ""
-"ཆོས་དཔེ་ %(topic)s འདིའི་སྐོར་གྱི་དཔེ་དེབ་ཁག་དང་མ་ཕྱིའི་ཤོག་ངོས། Pecha དྲ་ཐོག་དཔེ་མཛོད་ནང་གི་མ་ཕྱི་"
-"གཞན་དག"
 
-#: reader/views.py:816
+#: reader/views.py:837
 msgid "Explore Jewish Texts by Topic"
-msgstr "བརྗོད་གཞི་ལྟར་ནང་པའི་དཔེ་ཆ་སྔོགས།"
+msgstr ""
 
-#: reader/views.py:818
+#: reader/views.py:839
 msgid ""
 "Explore Jewish texts related to traditional and contemporary topics, coming "
 "from Torah, Talmud, and more."
 msgstr ""
-"ཐོ་རཱ་དང་ཐལ་མུས་ཊི་དེ་བཞིན་གཞན་གང་མང་ཞིག་ནས་ཡོང་བའི་སྲོལ་རྒྱུན་དང་གནས་སྐབས་ཀྱི་བརྗོད་གཞི་གཉིས་དང་"
-"འབྲེལ་བའི་ནང་བསྟན་དཔེ་དེབ་ཁག་སྔོགས།"
 
-#: reader/views.py:898
+#: reader/views.py:919
 msgid "Sefaria Search"
-msgstr "Pecha འཚོལ་ཞིབ།"
+msgstr ""
 
-#: reader/views.py:899
+#: reader/views.py:920
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
-"ལོ་ངོ་གཉིས་སྟོང་ལྷག་རིང་གི་ནང་བསྟན་དཔེ་ཆ་རྣམས་དབྱིན་ཡིག་དང་བོད་ཡིག་གཉིས་ཀྱི་ནང་འཚོལ་ཞིབ་དང་བལྟ་ཀློག་"
-"བྱ་ཐུབ།"
 
-#: reader/views.py:925 reader/views.py:986
+#: reader/views.py:946 reader/views.py:1007
 msgid "Sefaria Collections"
-msgstr "Pecha ཡི་ཕྱོགས་བསྒྲིགས།"
+msgstr ""
 
-#: reader/views.py:1103
+#: reader/views.py:1124
 msgid "Pecha - Buddhism in your own words"
 msgstr "དཔེ་ཆ་དྲ་བ།"
 
-#: reader/views.py:1104
+#: reader/views.py:1125
 msgid ""
 "The largest free library of Buddhist texts available to read online in "
-"Tibetan, English and Chinese"
+"Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, "
+"commentaries and more."
 msgstr ""
-"བོད་སྐད་དང་དབྱིན་སྐད་གཉིས་ཀྱི་ནང་ཡོད་པའི་ནང་པའི་གཞུང་ལུགས་དཔེ་ཀློག་བྱ་སའི་རིན་མེད་དྲ་ཐོག་དཔེ་མཛོད་ཆེ་"
-"ཤོས། འདིའི་ནང་འཚོ་བའི་ཁྲོད་ངེས་པར་མཁོ་བའི་ནང་པའི་ཆོས་གཞུང་རྩ་འགྲེལ་སྣ་ཚོགས་བཞུགས་ཡོད།"
 
-#: reader/views.py:1109
+#: reader/views.py:1130
 msgid "Learning Schedules"
-msgstr "སློབ་གཉེར་བྱེད་པའི་དུས་བཅད་རྣམས།"
+msgstr ""
 
-#: reader/views.py:1110
+#: reader/views.py:1131
 msgid ""
 "Weekly Torah portions, Daf Yomi, and other schedules for Torah learning."
-msgstr "ཐོ་རཱ་སློབ་གཉེར་བྱ་ཕྱིར་བདུན་རེའི་ཐོ་རཱའི་ཆ་ཤས་ཁག་དང་། Daf Yomi, དུས་བཅད་གཞན་བཅས་སོ།།"
+msgstr ""
 
-#: reader/views.py:1116
+#: reader/views.py:1137
 msgid "My Saved Content"
-msgstr "ངའི་གསོག་ཉར་བྱས་པའི་ནང་དོན།"
+msgstr ""
 
-#: reader/views.py:1117
+#: reader/views.py:1138
 msgid "See your saved content on Sefaria"
-msgstr "Pecha ནང་གི་ཁྱེད་ཀྱི་གསོག་ཉར་ནང་དོན་ལ་གཟིགས།"
+msgstr ""
 
-#: reader/views.py:1133
+#: reader/views.py:1154
 msgid "My User History"
-msgstr "ངའི་བཀོལ་སྤྱོད་ཀྱི་ལོ་རྒྱུས།"
+msgstr ""
 
-#: reader/views.py:1134
+#: reader/views.py:1155
 msgid "See your user history on Sefaria"
-msgstr "Pecha ནང་གི་ཁྱེད་ཀྱི་བཀོལ་སྤྱོད་ཀྱི་ལོ་རྒྱུས་ལ་གཟིགས།"
+msgstr ""
 
-#: reader/views.py:1139
-msgid "New Additions to the Sefaria Library"
-msgstr "Pecha དཔེ་མཛོད་ནང་གི་པར་གཞི་གསར་པ་ཁག"
+#: reader/views.py:1160
+msgid "New Additions to the Pecha Library"
+msgstr ""
 
-#: reader/views.py:1140
+#: reader/views.py:1161
 msgid ""
 "See texts, translations and connections that have been recently added to "
-"Sefaria."
+"Pecha."
 msgstr ""
-"Pecha དྲ་ཐོག་དཔེ་མཛོད་ནང་ཉེ་ཆར་གསར་སྣོན་བྱས་པའི་དཔེ་ཆ་དང་འགྱུར་དེབ། དེ་བཞིན་འབྲེལ་ཡོད་རྣམས་ལ་"
-"གཟིགས།"
 
-#: reader/views.py:1146
+#: reader/views.py:1167
 msgid "User Stats"
-msgstr "སྤྱོད་མཁན་གྱི་གནས་བབས།"
+msgstr ""
 
-#: reader/views.py:1153
+#: reader/views.py:1174
 msgid "Sefaria Notifications"
-msgstr "Pecha ཡི་གསར་བརྡ་ཁག"
+msgstr ""
 
-#: reader/views.py:1163
+#: reader/views.py:1184
 msgid "Moderator Tools"
-msgstr "སྟངས་འཛིན་ལག་ཆ་རྣམས།"
+msgstr ""
 
-#: reader/views.py:1208 reader/views.py:3140
+#: reader/views.py:1229 reader/views.py:3161
 msgid "Topics"
 msgstr "བརྗོད་གཞི་"
 
-#: reader/views.py:1210
+#: reader/views.py:1231
 msgid "Source Sheet"
-msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
+msgstr ""
 
-#: reader/views.py:1240
+#: reader/views.py:1261
 msgid "Texts"
 msgstr "ཡིག་མཛོད།"
 
-#: reader/views.py:3141
+#: reader/views.py:3162
 msgid "Explore Jewish Texts by Topic on Sefaria"
-msgstr "Pecha དཔེ་མཛོད་ནང་ནས་བརྗོད་གཞི་ལྟར་ནང་པའི་ཆོས་དཔེ་རྣམས་སྔོགས།"
+msgstr ""
 
-#: reader/views.py:3599
+#: reader/views.py:3620
 #, python-format
 msgid "%(full_name)s on Sefaria"
-msgstr "Pecha ནང་གི་ %(full_name)s"
+msgstr ""
 
-#: reader/views.py:3600
+#: reader/views.py:3621
 #, python-format
 msgid ""
 "%(full_name)s is on Sefaria. Follow to view their public source sheets, "
 "notes and translations."
 msgstr ""
-"%(full_name)s ཁོང་ནི་ Pecha དྲ་ཐོག་དཔེ་མཛོད་ནང་གནས་འདུག ཁོང་ཚོའི་མ་ཕྱིའི་ཤོག་ངོས་དང་མཆན་བྲིས་"
-"པ། ཡིག་བསྒྱུར་བཅས་ལ་གཟིགས་ན་རྗེས་འཇུག་བྱ་དགོས།"
 
-#: reader/views.py:3614 reader/views.py:3642 reader/views.py:3776
+#: reader/views.py:3635 reader/views.py:3663 reader/views.py:3797
 msgid "You must be logged in to update your profile."
-msgstr "ཁྱེད་ཀྱི་སྙིང་བསྡུས་ཁ་གསབ་བྱེད་པར་ངེས་པར་དུ་ནང་འཛུལ་བྱ་དགོས།"
+msgstr ""
 
-#: reader/views.py:3652
+#: reader/views.py:3673
 msgid "Email fields did not match"
-msgstr "གློག་འཕྲིན་དེ་དག་མཐུན་གྱི་མི་འདུག"
+msgstr ""
 
-#: reader/views.py:3654
+#: reader/views.py:3675
 msgid "Incorrect account password for this account"
-msgstr "ཁ་བྱང་འདིའི་ནང་འཇུག་རྒྱུའི་ཁ་བྱང་གི་གསང་ཚིག་ནོར་འདུག"
+msgstr ""
 
-#: reader/views.py:3735
+#: reader/views.py:3756
 msgid "You must be logged in to update your profile photo."
-msgstr "ཁྱེད་ཀྱི་སྙིང་བསྡུས་ནང་འདྲ་པར་ནང་འཇུག་བྱེད་པར་ངེས་པར་དུ་ནང་འཛུལ་བྱ་དགོས།"
+msgstr ""
 
-#: reader/views.py:3860
+#: reader/views.py:3881
 msgid "You must be logged in to delete your account."
-msgstr "ཁྱེད་ཀྱི་ཁ་བྱང་བསུབ་པ་ལ་ངེས་པར་དུ་ནང་འཛུལ་བྱ་དགོས།"
+msgstr ""
 
-#: reader/views.py:4011
+#: reader/views.py:4032
 msgid "From the Community: Today on Sefaria"
-msgstr "Pecha ནང་གི་ཚོགས་སྡེ་དེའི་ དེ་རིང་གི་རྣམ་པ།"
+msgstr ""
 
-#: reader/views.py:4013
+#: reader/views.py:4034
 msgid ""
 "New and featured source sheets, divrei torah, articles, sermons and more "
 "created by members of the Sefaria community."
 msgstr ""
-"Pecha ཡི་ཚོགས་སྡེའི་ཁོངས་མིས་བཟོས་པའི་ཐོན་གསར་དང་ཁྱད་ཆོས་ལྡན་པའི་མ་ཕྱིའི་ཤོག་ངོས་ཁག དེ་བཞིན་"
-"divrei torah, རྩོམ་ཡིག་ཁག བཀའ་ཆོས་དང་གཞན་འདི་ལས་མང་བ་བཅས་ཡོད།"
 
 #: sefaria/forms.py:30
 msgid "Email Address to delete"
-msgstr "སུབ་པ་ལ་གློག་འཕྲིན་ཁ་བྱང་སྤྲོད།"
+msgstr ""
 
 #: sefaria/forms.py:31 sefaria/forms.py:35
 msgid "Admin Password"
-msgstr "འཛིན་སྐྱོང་གསང་ཚིག"
+msgstr ""
 
 #: sefaria/forms.py:34
 msgid "Sheet ID to delete"
@@ -269,36 +250,29 @@ msgstr ""
 msgid "Email Address"
 msgstr "གློག་འཕྲིན།"
 
-#: sefaria/forms.py:40 sefaria/forms.py:48 templates/account_settings.html:110
+#: sefaria/forms.py:40 sefaria/forms.py:48 templates/account_settings.html:96
 msgid "Password"
 msgstr "གསང་ཚིག"
 
-#: sefaria/forms.py:46 templates/edit_profile.html:30
-#: templates/edit_profile.html:31
+#: sefaria/forms.py:46 templates/edit_profile.html:27
 msgid "First Name"
 msgstr "མིང་སྔ་མ།"
 
-#: sefaria/forms.py:47 templates/edit_profile.html:37
-#: templates/edit_profile.html:38
+#: sefaria/forms.py:47 templates/edit_profile.html:33
 msgid "Last Name"
 msgstr "མིང་ཕྱི་མ།"
 
-#: sefaria/forms.py:49
-msgid "I am an educator"
-msgstr "ང་སློབ་གསོ་བ་ཞིག་ཡིན།"
-
 #: sefaria/forms.py:78
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:106
 msgid "A user with that email already exists."
-msgstr "གློག་འཕྲིན་འདི་བཀོལ་སྤྱོད་བྱེད་མཁན་ཞིག་ད་སྔ་ནས་འདུག"
+msgstr ""
 
 #: sefaria/forms.py:121
 msgid "Incorrect mobile_app_key provided"
-msgstr "ཁ་པར་_མཉེན་ཆས་_ཀྱི་ལྡེ་མིག་ནོར་བ་ཞིག་མཁོ་སྤྲོད་བྱས་སོང་།"
+msgstr ""
 
 #: sefaria/forms.py:135
 msgid "New password"
-msgstr "གསང་ཚིག་གསར་པ།"
+msgstr ""
 
 #: sefaria/forms.py:136
 msgid "Enter New Password"
@@ -306,7 +280,7 @@ msgstr "གསང་ཚིག་གསར་པ།"
 
 #: sefaria/forms.py:141
 msgid "New password confirmation"
-msgstr "གཏན་འཁེལ་བའི་གསང་ཚིག་གསར་པ།"
+msgstr ""
 
 #: sefaria/forms.py:143
 msgid "Repeat New Password"
@@ -314,45 +288,40 @@ msgstr "ཡང་བསྐྱར།"
 
 #: sefaria/model/collection.py:93
 msgid "Please set a name for your collection."
-msgstr "ཁྱེད་ཀྱི་ཕྱོགས་བསྒྲིགས་ལ་མིང་སྤྲོད་རོགས།"
+msgstr ""
 
 #: sefaria/model/collection.py:117
 msgid ""
 "A public collection with this name already exists. Please choose a different "
 "name before publishing."
 msgstr ""
-"མང་ཚོགས་ཀྱི་ཕྱོགས་བསྒྲིགས་མིང་འདི་ཡོད་ས་ཞིག་སྔ་མོ་ནས་གནས་འདུག མ་སྤེལ་སྔོན་ལ་མིང་མ་འདྲ་བ་ཞིག་འདེམ་"
-"རོགས།"
 
 #: sefaria/model/collection.py:119
 msgid ""
 "Public Collections are required to include a collection image (a square "
 "image will work best)."
 msgstr ""
-"མང་ཚོགས་ཀྱི་ཕྱོགས་བསྒྲིགས་རྣམས་ལ་འདྲ་པར་གྱི་ཕྱོགས་བསྒྲིགས་ཤིག་ཀྱང་འདུ་དགོས་པའི་ཆ་རྐྱེན་བཏོན་འདུག (འདྲ་པར་"
-"གྲུ་བཞི་ཁ་གང་མ་ཡིན་ན་ཪབ།)"
 
 #: sefaria/model/collection.py:121
 msgid "Public Collections are required to have at least 3 public sheets."
 msgstr "ཁྱེད་ཀྱི་ཆེད་བསྒྲིགས་འདི་ཚང་མས་མཐོང་སར་སྤེལ་བ་ལ། སྔོན་དུ་ཟིན་བྲིས་གསུམ་ཆེད་བསྒྲིགས་སུ་བསྣན་ཟིན་པ་ཞིག་དགོས།"
-"མང་ཚོགས་ཀྱི་ཕྱོགས་བསྒྲིགས་རྣམས་ལ་ཉུང་མཐར་ཡང་མང་ཚོགས་ཀྱི་ཤོག་ངོས་གསུམ་ཡོད་དགོས་པའི་ཆ་རྐྱེན་བཏོན་འདུག"
 
 #: sefaria/model/collection.py:284
 #, python-format
 msgid "%(name)s invited you to a collection on Sefaria"
-msgstr "%(name)s ཡིས་Sefaria ནང་གི་ཕྱོགས་བསྒྲིགས་དེར་ཁྱེད་རང་གདན་འདྲེན་བྱས་འདུག"
+msgstr ""
 
 #: sefaria/model/user_profile.py:283
 msgid "A user with that email already exists"
-msgstr "གློག་འཕྲིན་འདི་བཀོལ་སྤྱོད་བྱེད་མཁན་ཞིག་ད་སྔ་ནས་འདུག"
+msgstr ""
 
 #: sefaria/model/user_profile.py:288
 msgid "The email address is not valid."
-msgstr "གློག་འཕྲིན་དེ་ཚུལ་མཐུན་ཞིག་མ་རེད།"
+msgstr ""
 
-#: sefaria/settings.py:26 templates/sheets.html:216 templates/sheets.html:217
-msgid "Tibetan"
-msgstr "བོད་སྐད།"
+#: sefaria/settings.py:26
+msgid "Chinese"
+msgstr ""
 
 #: sefaria/views.py:196 sefaria/views.py:199 sefaria/views.py:283
 #: templates/static/app.html:383
@@ -360,243 +329,229 @@ msgstr "བོད་སྐད།"
 #: templates/static/home.html:392 templates/static/mobile.html:388
 #: templates/static/newsletter.html:56
 msgid "Sorry, there was an error."
-msgstr "དགོངས་དག གནད་དོན་ཞིག་བྱུང་སོང་།"
+msgstr ""
 
 #: sourcesheets/views.py:402
 msgid "You must be logged in to create a new collection."
-msgstr "ཁྱེད་ཀྱིས་ཕྱོགས་བསྒྲིགས་གསར་བཟོ་བྱེད་པར་ཐོག་མར་ངེས་པར་དུ་ནང་འཛུལ་བྱ་དགོས།"
+msgstr ""
 
 #: sourcesheets/views.py:565
 msgid ""
 "Leaving this collection would leave it without any owners. Please appoint "
 "another owner before leaving, or delete the collection."
 msgstr ""
-"ཕྱོགས་བསྒྲིགས་འདི་ནས་ཐོན་ན་འདིའི་བདག་པོ་མེད་པར་ལུས་འགྲོ་བས། མ་ཐོན་སྔོན་ལ་བདག་པོ་གཞན་ཞིག་བསྐོ་རོགས། "
-"ཡང་ན་ཐོག་མར་ཕྱོགས་བསྒྲིགས་འདི་སུབ་རོགས།"
 
 #: sourcesheets/views.py:1160
 msgid "You must be logged in to access this api."
-msgstr "API འདི་སྔོག་པ་ལ་ངེས་པར་དུ་ནང་འཛུལ་བྱ་དགོས།"
+msgstr ""
 
 #: templates/404.html:4
 msgid "Page Not Found | Sefaria"
-msgstr "| Pecha ཤོག་ངོས་རྙེད་མ་སོང་།"
+msgstr ""
 
-#: templates/404.html:11 templates/404.html:12
+#: templates/404.html:11
 msgid "Page Not Found"
-msgstr "| Pecha ཤོག་ངོས་རྙེད་མ་སོང་།"
+msgstr ""
 
-#: templates/404.html:16 templates/404.html:19
+#: templates/404.html:15
 msgid ""
 "The requested URL couldn't be found.If you've arrived here from a link on "
 "another site,you may want to let them know their link isn't working."
 msgstr ""
 
-#: templates/500.html:4 templates/500.html:10 templates/500.html:11
+#: templates/500.html:4 templates/500.html:10
 msgid "Internal Server Error"
-msgstr "གསོག་མཛོད་ནང་མའི་གནད་དོན།"
+msgstr ""
 
-#: templates/500.html:16 templates/500.html:19
+#: templates/500.html:15
 msgid ""
 "Unfortunately, we've encountered an error.An email has been sent "
 "automatically to our developers.If you have any questions about the problem,"
 "or think you can help us figure out what went wrong,please email our "
 msgstr ""
 
-#: templates/500.html:16 templates/500.html:19
+#: templates/500.html:15
 msgid "development team"
 msgstr ""
 
-#: templates/account_settings.html:12 templates/account_settings.html:13
+#: templates/account_settings.html:12
 msgid "Account Settings"
 msgstr "ཁ་བྱང་སྒྲིག་འགོད།"
 
-#: templates/account_settings.html:17 templates/account_settings.html:18
-#: templates/account_settings.html:148 templates/account_settings.html:149
-#: templates/edit_profile.html:18 templates/edit_profile.html:19
-#: templates/edit_text.html:69 templates/edit_text.html:97
-#: templates/edit_text.html:150 templates/elements/login_prompt.html:8
-#: templates/profile.html:188 templates/sheets.html:1104
-#: templates/sheets.html:1105 templates/sheets.html:1130
-#: templates/sheets.html:1131
+#: templates/account_settings.html:16 templates/account_settings.html:128
+#: templates/edit_profile.html:17 templates/edit_text.html:69
+#: templates/edit_text.html:97 templates/edit_text.html:150
+#: templates/elements/login_prompt.html:8 templates/profile.html:181
+#: templates/sheets.html:1000 templates/sheets.html:1022
 msgid "Cancel"
 msgstr "ཕྱིར་འཐེན།"
 
-#: templates/account_settings.html:21 templates/account_settings.html:22
-#: templates/account_settings.html:144 templates/account_settings.html:145
-#: templates/edit_profile.html:22 templates/edit_profile.html:23
-#: templates/edit_text.html:96 templates/edit_text.html:149
-#: templates/sheets.html:506 templates/sheets.html:507
-#: templates/sheets.html:920 templates/sheets.html:921
-#: templates/sheets.html:1083 templates/sheets.html:1084
+#: templates/account_settings.html:19 templates/account_settings.html:125
+#: templates/edit_profile.html:20 templates/edit_text.html:96
+#: templates/edit_text.html:149 templates/sheets.html:454
+#: templates/sheets.html:831 templates/sheets.html:982
 msgid "Save"
 msgstr "ཉར་ཚགས།"
 
-#: templates/account_settings.html:28 templates/account_settings.html:29
+#: templates/account_settings.html:25
 msgid "Notification Frequency (Maximum)"
 msgstr "དཔེ་ཆ་དྲ་བས་གསལ་བརྡ་གཏོང་ཐེངས།"
 
-#: templates/account_settings.html:33 templates/account_settings.html:34
+#: templates/account_settings.html:29
 msgid "Daily"
 msgstr "ཉིན་རེ་བཞིན།"
 
-#: templates/account_settings.html:37 templates/account_settings.html:38
+#: templates/account_settings.html:32
 msgid "Weekly"
 msgstr "བདུན་རེ་བཞིན།"
 
-#: templates/account_settings.html:41 templates/account_settings.html:42
+#: templates/account_settings.html:35
 msgid "Never"
 msgstr "གསལ་བརྡ་མི་དགོས།"
 
-#: templates/account_settings.html:49 templates/account_settings.html:50
+#: templates/account_settings.html:42
 msgid "Site Language"
 msgstr "དྲ་བའི་སྐད་ཡིག།"
 
-#: templates/account_settings.html:54 templates/sheets.html:780
+#: templates/account_settings.html:46 templates/sheets.html:704
 msgid "english"
-msgstr "English"
+msgstr ""
 
-#: templates/account_settings.html:57 templates/sheets.html:781
+#: templates/account_settings.html:49 templates/sheets.html:705
 msgid "tibetan"
-msgstr "བོད་ཡིག"
+msgstr ""
 
-#: templates/account_settings.html:64 templates/account_settings.html:65
+#: templates/account_settings.html:56
 msgid "Preferred Translation Language"
 msgstr "འགྱུར་མའི་སྐད་ཡིག་གཙོ་བོ།"
 
-#: templates/account_settings.html:78 templates/account_settings.html:79
+#: templates/account_settings.html:69
 msgid "Reading History"
 msgstr "བཀླགས་ཟིན་པའི་ཐོ།"
 
-#: templates/account_settings.html:83 templates/account_settings.html:84
+#: templates/account_settings.html:73
 msgid "On"
 msgstr "ཉར།"
 
-#: templates/account_settings.html:87 templates/account_settings.html:88
+#: templates/account_settings.html:76
 msgid "Off"
 msgstr "མི་ཉར།"
 
-#: templates/account_settings.html:96 templates/account_settings.html:97
+#: templates/account_settings.html:84
 msgid "Account Email (This is used for login)"
 msgstr "གློག་འཕྲིན་ཁ་བྱང་། ༑ནང་འཛུལ་བྱེད་པར་བེད་སྤྱོད་གཏོང་དགོས།༑"
 
-#: templates/account_settings.html:102 templates/account_settings.html:103
+#: templates/account_settings.html:89
 msgid "Change Email"
 msgstr "གློག་འཕྲིན་གཞན་པ་བེད་སྤྱོད་བྱེད།"
 
-#: templates/account_settings.html:108
+#: templates/account_settings.html:94
 msgid "New Email"
-msgstr "གློག་འཕྲིན་གསར་པ།"
+msgstr ""
 
-#: templates/account_settings.html:109
+#: templates/account_settings.html:95
 msgid "Confirm New Email"
-msgstr "གློག་འཕྲིན་གསར་པ་གཏན་འཁེལ་བྱོས།"
+msgstr ""
 
-#: templates/account_settings.html:112 templates/account_settings.html:113
+#: templates/account_settings.html:98
 msgid "Update Email"
-msgstr "གློག་འཕྲིན་གསར་པ།"
+msgstr ""
 
-#: templates/account_settings.html:120 templates/account_settings.html:121
+#: templates/account_settings.html:105
 msgid "Google Account (Allows for exporting sheets to Google Drive)"
 msgstr ""
 
-#: templates/account_settings.html:126 templates/account_settings.html:127
+#: templates/account_settings.html:110
 msgid "Disconnect"
-msgstr "འབྲེལ་མཐུད་བཅད་ཟིན།"
+msgstr ""
 
-#: templates/account_settings.html:134 templates/account_settings.html:135
+#: templates/account_settings.html:117
 msgid "Your Google Account has been disconnected"
 msgstr "ཁ་བྱང་འདི་དགོས་དགུ་ལ་སྦྲེལ་མི་འདུག།"
 
-#: templates/account_settings.html:138 templates/account_settings.html:139
+#: templates/account_settings.html:120
 msgid "You can link to a new Google Account the next time you export a sheet"
 msgstr "ཟིན་བྲིས་ཞིག་དགོས་དགུ་ལ་འདྲེན་སྐབས་ཁ་བྱང་གཞན་པ་གང་རུང་བརྒྱུད་ནས་དགོས་དགུ་ལ་སྦྲེལ་ཆོག།"
-"ཐེངས་རྗེས་མར་ཁྱེད་ཀྱི་ཤོག་ངོས་ཕྱིར་འདྲེན་བྱེད་སྐབས་ཁྱེད་ཀྱིས་དགོས་དགུའི་ཁ་བྱང་གསར་པ་ཞིག་ལ་མཐུད་ཆོག"
 
 #: templates/activity.html:7 templates/activity.html:36
-#: templates/activity.html:37
 msgid "Revision History of"
-msgstr "ཡི་བཟོ་བཅོས་ཀྱི་ལོ་རྒྱུས།"
+msgstr ""
 
 #: templates/activity.html:9 templates/activity.html:11
 msgid "Sefaria Activity"
-msgstr "Pecha ཡི་བྱེད་སྒོ།"
+msgstr ""
 
 #: templates/activity.html:17
 msgid "View the complete revision hisotry of this text on Sefaria."
-msgstr "Pecha ནང་གི་དཔེ་ཆ་འདིའི་བཟོ་བཅོས་ཡོངས་རྫོགས་ཀྱི་ལོ་རྒྱུས་ལ་གཟིགས།"
+msgstr ""
 
 #: templates/activity.html:19
 msgid ""
 "View a user's acitvitiy history on Sefaria, including published source "
 "sheets, and text translations, edits or additions."
 msgstr ""
-"Pecha ནང་གི་སྤྱོད་མཁན་ཞིག་གི་བྱེད་སྒོའི་ལོ་རྒྱུས་ཤིག་ལ་གཟིགས། འདིའི་ནང་སྤེལ་ཟིན་པའི་མ་ཕྱིའི་ཤོག་ངོས་དང་"
-"ཡིག་བསྒྱུར་དཔེ་དེབ། རྩོམ་སྒྲིག་དང་ཡང་ན་དཔར་གཞི་བཅས་ཚུད་ཡོད།"
 
 #: templates/activity.html:21
 msgid ""
 "View the complete log of public activity on Sefaria, including published "
 "source sheets, and text translations, edits or additions. "
 msgstr ""
-"Pecha ནང་གི་མང་ཚོགས་ཀྱི་བྱེད་སྒོའི་རེའུ་མིག་ཡོངས་རྫོགས་ལ་གཟིགས། འདིའི་ནང་སྤེལ་ཟིན་པའི་མ་ཕྱིའི་ཤོག་ངོས་"
-"དང་ཡིག་བསྒྱུར་དཔེ་དེབ། རྩོམ་སྒྲིག་དང་ཡང་ན་དཔར་གཞི་བཅས་ཚུད་ཡོད།"
 
-#: templates/activity.html:45 templates/activity.html:46
+#: templates/activity.html:43
 msgid "Public Activity"
-msgstr "བྱེད་སྒོ་ཡོངས་རྫོགས།"
+msgstr ""
 
-#: templates/activity.html:51 templates/activity.html:52
+#: templates/activity.html:47
 msgid "Recent Activity on Sefaria"
-msgstr "Pecha ནང་གི་ཤོག་ངོས།"
+msgstr ""
 
-#: templates/activity.html:57
+#: templates/activity.html:52
 msgid "All Activity"
-msgstr "བྱེད་སྒོ་ཡོངས་རྫོགས།"
+msgstr ""
 
-#: templates/activity.html:58
+#: templates/activity.html:53
 msgid "Translations"
 msgstr "འགྱུར་མ།"
 
-#: templates/activity.html:59 templates/metrics.html:50
-#: templates/profile.html:106
+#: templates/activity.html:54 templates/metrics.html:49
+#: templates/profile.html:99
 msgid "Source Sheets"
-msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
+msgstr ""
 
-#: templates/activity.html:60
+#: templates/activity.html:55
 msgid "New Texts"
-msgstr "དཔེ་ཆ་གསར་པ།"
+msgstr ""
 
-#: templates/activity.html:61
+#: templates/activity.html:56
 msgid "Edits"
-msgstr "རྩོམ་སྒྲིག"
+msgstr ""
 
-#: templates/activity.html:62 templates/profile.html:126
+#: templates/activity.html:57 templates/profile.html:119
 msgid "Notes"
 msgstr "མཆན་འགོད་ས།"
 
-#: templates/activity.html:63
+#: templates/activity.html:58
 msgid "Reviews"
-msgstr "བསྐྱར་ཞིབ།"
+msgstr ""
 
-#: templates/activity.html:64
+#: templates/activity.html:59
 msgid "Text Info"
-msgstr "དཔེ་ཆའི་གནས་ཚུལ།"
+msgstr ""
 
-#: templates/activity.html:65
+#: templates/activity.html:60
 msgid "Reversions"
-msgstr "བསྐྱར་འཇོག་བྱས་པ་ཁག"
+msgstr ""
 
-#: templates/activity.html:66
+#: templates/activity.html:61
 msgid "Flagged"
-msgstr "དར་རྟགས་བརྒྱབ་པ།"
+msgstr ""
 
 #: templates/delete-sheet.html:4
 msgid "Admin: Delete a Sheet"
-msgstr "འཛིན་སྐྱོང་། སྤྱོད་མཁན་གཙང་སུབ།"
+msgstr ""
 
 #: templates/delete-sheet.html:11 templates/delete-sheet.html:19
-#: templates/sheets.html:65 templates/sheets.html:66
+#: templates/sheets.html:62
 msgid "Delete Sheet"
 msgstr "ཟིན་བྲིས་འདི་བསུབ།"
 
@@ -610,7 +565,7 @@ msgstr ""
 
 #: templates/discussions.html:6 templates/discussions.html:14
 msgid "Discuss a Text on Sefaria"
-msgstr "Pecha ནང་གི་ཤོག་ངོས།"
+msgstr ""
 
 #: templates/discussions.html:18
 msgid "This is an <b>EXPERIMENTAL"
@@ -630,7 +585,7 @@ msgstr ""
 
 #: templates/discussions.html:18
 msgid "frustrating"
-msgstr "འགྱུར་དེབ་ཁག"
+msgstr ""
 
 #: templates/discussions.html:18
 msgid " about it!"
@@ -658,100 +613,97 @@ msgstr ""
 
 #: templates/edit_collection.html:9
 msgid "Edit Collection on Sefaria"
-msgstr "Pecha ནང་གི་ཕྱོགས་བསྒྲིགས་རྩོམ་སྒྲིག་བྱེད།"
+msgstr ""
 
 #: templates/edit_collection.html:20 templates/edit_term.html:40
-#: templates/elements/loading.html:13 templates/elements/loading.html:14
-#: templates/metrics.html:17 templates/sheets.html:581
-#: templates/sheets.html:834 templates/sheets.html:835
+#: templates/elements/loading.html:12 templates/metrics.html:16
+#: templates/sheets.html:520 templates/sheets.html:752
 msgid "Loading..."
 msgstr "ལེན་བཞིན་པ་་་"
 
 #: templates/edit_profile.html:5
 msgid "Edit Your Profile on Sefaria"
-msgstr "Pecha ནང་གི་ཁྱེད་ཀྱི་སྙིང་བསྡུས་རྩོམ་སྒྲིག་བྱེད།"
+msgstr ""
 
-#: templates/edit_profile.html:13 templates/edit_profile.html:14
+#: templates/edit_profile.html:13
 msgid "Edit Your Profile"
 msgstr "ངོ་སྤྲོད་རྩོམ་སྒྲིག་བྱེད་ས།"
 
-#: templates/edit_profile.html:44 templates/edit_profile.html:45
+#: templates/edit_profile.html:39
 msgid "Title"
 msgstr "མཚན་གནས།"
 
-#: templates/edit_profile.html:51 templates/edit_profile.html:52
+#: templates/edit_profile.html:45
 msgid "Organization"
 msgstr "ཁོངས་གཏོགས།"
 
-#: templates/edit_profile.html:58 templates/edit_profile.html:59
+#: templates/edit_profile.html:51
 msgid "Website"
 msgstr "དྲ་ཚིགས།"
 
-#: templates/edit_profile.html:65 templates/edit_profile.html:66
+#: templates/edit_profile.html:57
 msgid "Location"
 msgstr "གནས་ཡུལ།"
 
-#: templates/edit_profile.html:72 templates/edit_profile.html:73
+#: templates/edit_profile.html:63
 msgid "Education"
 msgstr "ཤེས་ཚད།"
 
-#: templates/edit_profile.html:72 templates/edit_profile.html:73
+#: templates/edit_profile.html:63
 msgid "where have you learned"
 msgstr "སློབ་སྦྱོང་བྱེད་ས།"
 
-#: templates/edit_profile.html:82
+#: templates/edit_profile.html:72
 msgid "Add a line"
 msgstr "ཚན་པ་གསར་སྣོན།"
 
-#: templates/edit_profile.html:87 templates/edit_profile.html:88
+#: templates/edit_profile.html:77
 msgid "About Me"
 msgstr "ངའི་ངོ་སྤྲོད།"
 
-#: templates/edit_profile.html:98 templates/edit_profile.html:99
+#: templates/edit_profile.html:87
 msgid "Public Sheets"
-msgstr "སྤྱི་སྤྱོད་ཀྱི་ཤོག་ངོས།"
+msgstr ""
 
-#: templates/edit_profile.html:103 templates/edit_profile.html:104
+#: templates/edit_profile.html:91
 msgid ""
 "You can drag and order source sheets that you want to pin to the top of your "
 "profile."
-msgstr "རང་གི་སྙིང་བསྡུས་ཀྱི་སྒང་ལ་འཛེར་རྒྱུའི་མ་ཕྱིའི་ཤོག་ངོས་དེ་ཁྱེད་ཀྱིས་ཐད་ཀར་ཕབ་སྟེ་དེའི་གོ་རིམ་སྒྲིག་ཆོག"
+msgstr ""
 
-#: templates/edit_profile.html:108 templates/edit_profile.html:109
+#: templates/edit_profile.html:95
 msgid "Pinned Sheets"
 msgstr "ཟུར་བཀོད་ཟིན་བྲིས།"
 
-#: templates/edit_profile.html:119 templates/edit_profile.html:120
+#: templates/edit_profile.html:105
 msgid "All Sheets"
 msgstr "ཟིན་བྲིས་ཡོངས་རྫོགས།"
 
-#: templates/edit_profile.html:134 templates/edit_profile.html:135
+#: templates/edit_profile.html:119
 msgid "Contact"
-msgstr "འབྲེལ་གཏུག་བྱེད་དགོས།"
+msgstr ""
 
-#: templates/edit_profile.html:140 templates/edit_profile.html:141
+#: templates/edit_profile.html:124
 msgid "Email (will be public)"
 msgstr "གློག་འཕྲིན། ཚང་མས་མཐོང་ཐུབ།"
 
-#: templates/edit_profile.html:147 templates/edit_profile.html:148
+#: templates/edit_profile.html:130
 msgid "Profile URL"
 msgstr "ངོ་སྤྲོད་ཀྱི་དྲ་ཐག"
 
-#: templates/edit_profile.html:154 templates/edit_profile.html:155
+#: templates/edit_profile.html:136
 msgid "Twitter Handle"
-msgstr "Twitter"
+msgstr ""
 
-#: templates/edit_profile.html:161 templates/edit_profile.html:162
-#: templates/profile.html:64
+#: templates/edit_profile.html:142 templates/profile.html:64
 msgid "LinkedIn"
 msgstr "LinkedIn ཁ་བྱང་།"
 
-#: templates/edit_profile.html:168 templates/edit_profile.html:169
-#: templates/profile.html:52
+#: templates/edit_profile.html:148 templates/profile.html:52
 msgid "Facebook"
 msgstr "ངོ་དེབ་ཁ་བྱང་།"
 
-#: templates/edit_profile.html:175 templates/edit_profile.html:176
+#: templates/edit_profile.html:154
 msgid "YouTube Channel"
 msgstr "YouTube བརྙན་ལམ།"
 
@@ -761,20 +713,20 @@ msgstr ""
 
 #: templates/edit_text.html:64
 msgid "Add a New Text"
-msgstr "དཔེ་ཆ་གསར་པ།"
+msgstr ""
 
 #: templates/edit_text.html:65
 msgid "Text or commentator name:"
-msgstr "དཔེ་ཆ་དང་ཡང་ན་འགྲེལ་བཤད་པ་འཚོལ་ཞིབ།"
+msgstr ""
 
-#: templates/edit_text.html:68 templates/sheets.html:1076
-#: templates/sheets.html:1100 templates/sheets.html:1101
+#: templates/edit_text.html:68 templates/sheets.html:975
+#: templates/sheets.html:997
 msgid "Add"
 msgstr "སྣོན་པ་བཏབ་ཆོག།"
 
 #: templates/edit_text.html:86
 msgid "Your Review:"
-msgstr "བསྐྱར་ཞིབ།"
+msgstr ""
 
 #: templates/edit_text.html:88
 msgid "How should I write a review?"
@@ -788,18 +740,14 @@ msgstr ""
 msgid "log in"
 msgstr ""
 
-#: templates/edit_text.html:101 templates/sheets.html:739
-#: templates/sheets.html:740 templates/sheets.html:804
-#: templates/sheets.html:805 templates/sheets.html:882
-#: templates/sheets.html:884
-#: venv/lib/python3.9/site-packages/django/utils/text.py:251
+#: templates/edit_text.html:101 templates/sheets.html:726
+#: templates/sheets.html:794
 msgid "or"
 msgstr "ཡང་ན།"
 
-#: templates/edit_text.html:101 templates/sheets.html:883
-#: templates/sheets.html:885
+#: templates/edit_text.html:101 templates/sheets.html:795
 msgid "register"
-msgstr "ཐོ་འགོད་བྱོས།"
+msgstr ""
 
 #: templates/edit_text.html:104
 msgid "Close"
@@ -833,7 +781,7 @@ msgstr ""
 
 #: templates/edit_text.html:117
 msgid "For original translations:"
-msgstr "འགྱུར་དེབ་ནང་གི་མིང་ཚིག"
+msgstr ""
 
 #: templates/edit_text.html:117
 msgid ""
@@ -843,7 +791,7 @@ msgstr ""
 
 #: templates/edit_text.html:117
 msgid "translation guidelines"
-msgstr "འགྱུར་དེབ་ཁག"
+msgstr ""
 
 #: templates/edit_text.html:119
 msgid "This translation seems accurate to me."
@@ -881,15 +829,14 @@ msgstr ""
 msgid " Found serious problems that need to be addressed."
 msgstr ""
 
-#: templates/edit_text.html:142 templates/sheets.html:1155
-#: templates/sheets.html:1199 templates/sheets.html:1200
-#: templates/sheets.html:1221 templates/sheets.html:1222
+#: templates/edit_text.html:142 templates/sheets.html:1046
+#: templates/sheets.html:1082 templates/sheets.html:1098
 msgid "OK"
 msgstr "འགྲིག"
 
 #: templates/edit_text.html:156
 msgid "Source "
-msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
+msgstr ""
 
 #: templates/edit_text.html:163
 msgid "Original Translation"
@@ -940,19 +887,19 @@ msgstr ""
 
 #: templates/edit_text.html:178
 msgid "Version Title:"
-msgstr "ཐོན་རིམ།"
+msgstr ""
 
 #: templates/edit_text.html:179
 msgid "Copied from:"
-msgstr "Copied from"
+msgstr ""
 
 #: templates/elements/activity_feed.html:7
 msgid "deleted the text"
-msgstr "དཔེ་ཆ་དེ་བསུབ་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:12
 msgid "deleted a text version of"
-msgstr "ཡི་དཔེ་ཆའི་རྣམ་ཅན་ཞིག་བསུབ་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:14
 #: templates/elements/activity_feed.html:37
@@ -962,111 +909,111 @@ msgstr "ཐོན་རིམ།"
 
 #: templates/elements/activity_feed.html:20
 msgid "translated"
-msgstr "ཡིག་བསྒྱུར་བྱས་ཟིན་པ།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:22
 msgid "added"
-msgstr "བསྣན་ཡོད།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:24
 msgid "edited"
-msgstr "རྩོམ་སྒྲིག་བྱས་ཡོད།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:26
 msgid "reverted"
-msgstr "སོར་འཇོག་བྱས་པ།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:31
 #: templates/elements/activity_feed.html:59
 msgid "and "
-msgstr "དང་"
+msgstr ""
 
 #: templates/elements/activity_feed.html:31
 msgid "others"
-msgstr "གཞན་དག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:34
 #: templates/elements/activity_feed.html:138
 msgid "history"
-msgstr "ལོ་རྒྱུས།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:46
 msgid "added a connection"
-msgstr "འབྲེལ་ཡོད་ཅིག་བསྣན་ཡོད།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:48
 msgid "edited a connection"
-msgstr "འབྲེལ་ཡོད་ཅིག་རྩོམ་སྒྲིག་བྱས་ཡོད།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:50
 msgid "deleted a connection"
-msgstr "འབྲེལ་ཡོད་ཅིག་བསུབ་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:53
 msgid "between"
-msgstr "བར་"
+msgstr ""
 
 #: templates/elements/activity_feed.html:68
 msgid "automatic commentary link"
-msgstr "རང་འགུལ་གྱི་འགྲེལ་བའི་དྲ་ཐག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:69
 msgid "automatic citation link"
-msgstr "རང་འགུལ་གྱི་ལུང་ཚིག་གི་དྲ་ཐག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:76
 msgid "added a note to "
-msgstr "ལ་མཆན་ཞིག་བཞག་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:78
 msgid "edited a note on "
-msgstr "ཡི་མཆན་ཞིག་རྩོམ་སྒྲིག་བྱས་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:80
 msgid "deleted a note on "
-msgstr "ཡི་མཆན་ཞིག་བསུབ་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:97
 msgid "added text info for the text"
-msgstr "དཔེ་ཆ་དེའི་གནས་ཚུལ་བསྣན་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:99
 msgid "edited the text info of"
-msgstr "ཡི་དཔེ་ཆ་དེའི་གནས་ཚུལ་རྩོམ་སྒྲུག་བྱས་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:103
 #: templates/elements/activity_feed.html:124
 msgid "details"
-msgstr "ཞིབ་ཕྲ།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:116
 msgid "added a term"
-msgstr "ཐ་སྙད་ཅིག་བསྣན་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:118
 msgid "edited the term"
-msgstr "ཐ་སྙད་དེ་རྩོམ་སྒྲིག་བྱས་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:120
 msgid "deleted the term"
-msgstr "ཐ་སྙད་དེ་བསུབ་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:136
 msgid "reviewed"
-msgstr "བསྐྱར་ཞིབ་བྱས་ཡོད་པ།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:148
 #: templates/email/notification.html:20
 msgid "published a new Source Sheet"
-msgstr "མ་ཕྱིའི་ཤོག་ངོས་གསར་པ་ཞིག་སྤེལ་ཡོད།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:158
 msgid "related"
-msgstr "འབྲེལ་བ་ཡོད་པ།"
+msgstr ""
 
 #: templates/elements/activity_feed.html:166
 msgid "No matching public activity yet."
-msgstr "མང་ཚོགས་ཀྱི་བྱེད་སྒོ་མཚུངས་པ་ཞིག་ད་དུང་མི་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:168
 msgid "No public activity yet."
@@ -1078,17 +1025,15 @@ msgstr ""
 
 #: templates/elements/activity_feed.html:174
 msgid "No public history items."
-msgstr "མང་ཚོགས་ཀྱི་ལོ་རྒྱུས་མི་འདུག"
+msgstr ""
 
 #: templates/elements/activity_feed.html:180
 msgid "Older Activity"
-msgstr "བྱེད་སྒོ་མངགས།"
+msgstr ""
 
 #: templates/elements/login_prompt.html:6
 #: templates/registration/register.html:13
-#: templates/registration/register.html:14
-#: templates/registration/register.html:23
-#: templates/registration/register.html:24
+#: templates/registration/register.html:22
 msgid "Sign Up"
 msgstr "ཐོ་འགོད།"
 
@@ -1100,44 +1045,36 @@ msgstr ""
 #: templates/elements/notification.html:15
 #: templates/elements/notification.html:17
 msgid "version of"
-msgstr "ཐོན་རིམ།"
+msgstr ""
 
 #: templates/elements/notification.html:27
-#: templates/elements/notification.html:28
 msgid "New Text:"
-msgstr "དཔེ་ཆ་གསར་པ།"
+msgstr ""
 
-#: templates/elements/notification.html:37
-#: templates/elements/notification.html:38
+#: templates/elements/notification.html:36
 msgid "likes your sheet,"
-msgstr "ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་ལ་དགའ་རྟགས་བཀོད་པ།"
+msgstr ""
 
-#: templates/elements/notification.html:43
-#: templates/elements/notification.html:44
+#: templates/elements/notification.html:41
 msgid "published a new sheet"
-msgstr "མ་ཕྱིའི་ཤོག་ངོས་གསར་པ་ཞིག་སྤེལ་ཡོད།"
+msgstr ""
 
-#: templates/elements/notification.html:49
-#: templates/elements/notification.html:50
+#: templates/elements/notification.html:46
 msgid "is now following you."
-msgstr "ཁོང་གིས་ཁྱེད་ལ་རྗེས་འཇུག་བྱས་འདུག"
+msgstr ""
 
-#: templates/elements/notification.html:56
-#: templates/elements/notification.html:57
-#: templates/elements/notification.html:62
-#: templates/elements/notification.html:63 templates/email/notification.html:26
+#: templates/elements/notification.html:52
+#: templates/elements/notification.html:57 templates/email/notification.html:26
 msgid "added you to the collection"
-msgstr "ཁྱེད་རང་ཕྱོགས་བསྒྲིགས་དེའི་ནང་བསྣན་འདུག"
+msgstr ""
 
-#: templates/elements/notification.html:68
-#: templates/elements/notification.html:69 templates/email/notification.html:29
+#: templates/elements/notification.html:62 templates/email/notification.html:29
 msgid "added a note to a"
-msgstr "དེར་མཆན་ཞིག་བཀོད་འདུག"
+msgstr ""
 
-#: templates/elements/notification.html:68
-#: templates/elements/notification.html:69 templates/email/notification.html:31
+#: templates/elements/notification.html:62 templates/email/notification.html:31
 msgid "discussion you follow"
-msgstr "ཁྱེད་རང་རྗེས་འཇུག་བྱེད་སའི་བགྲོ་གླེང་།"
+msgstr ""
 
 #: templates/email/base.html:17
 msgid ""
@@ -1145,9 +1082,6 @@ msgid ""
 "            You're receiving this message because you have an account on\n"
 "        "
 msgstr ""
-"\n"
-"            ཁྱེད་ལ་འཕྲིན་ཐུང་འདི་འབྱོར་བཞིན་ཡོད། རྒྱུ་མཚན་ཁྱེད་ཀྱིས་འདིའི་ནང་ཁ་བྱང་ཞིག་བཟོས་འདུག\n"
-"        "
 
 #: templates/email/base.html:22
 #, python-format
@@ -1157,10 +1091,6 @@ msgid ""
 "href=\"%(settings_url)s\">here</a>\n"
 "        "
 msgstr ""
-"\n"
-"            ཁྱེད་ཀྱི་གློག་འཕྲིན་གྱི་སྒྲིག་འགོད་འགྱུར་བ་གཏོང་བ་ལ་འདིར་ <a "
-"href=\"%(settings_url)s\">སྣུན།</a>\n"
-"        "
 
 #: templates/email/base.html:26
 #, python-format
@@ -1170,10 +1100,6 @@ msgid ""
 "href=\"%(hello_email)s\">email</a>.\n"
 "        "
 msgstr ""
-"\n"
-"            ཁྱེད་ཀྱིས་བསམ་འཆར་གནང་ན་དགའ་བསུ་ཞུ། འཛེམ་དོགས་མེད་པར་ང་ཚོར་འབྲེལ་བ་གནང་རོགས། "
-"<a href=\"%(hello_email)s\">email</a>.\n"
-"        "
 
 #: templates/email/collection_signup_invitation_email.html:8
 #, python-format
@@ -1183,10 +1109,6 @@ msgid ""
 "on Sefaria.\n"
 "\t\t"
 msgstr ""
-"\n"
-"\t\t%(inviter)s ལགས་ཀྱིས་ཁྱེད་རང་ Pecha ནང་ཡོད་པའི་ཕྱོགས་བསྒྲིགས་དེར་ཕྱག་ལས་གནང་མཁན་ལ་གདན་"
-"འདྲེན་ %(collection)s བྱས་སོང་།\n"
-"\t\t"
 
 #: templates/email/collection_signup_invitation_email.html:14
 #, python-format
@@ -1196,10 +1118,6 @@ msgid ""
 "Sefaria account</a>.\n"
 "\t\t"
 msgstr ""
-"\n"
-"\tམགྲོན་ཤོག་འདི་ངོས་ལེན་བྱེད་པར་ <a href=\"%(register)s\">Pecha ནང་རིན་མེད་ཀྱི་ཁ་བྱང་ཞིག་"
-"བཟོ་དགོས།</a>\n"
-"\t\t"
 
 #: templates/email/collection_signup_invitation_email.html:24
 msgid ""
@@ -1211,47 +1129,40 @@ msgid ""
 "org\">email</a>.\n"
 "\t\t"
 msgstr ""
-"\n"
-"\t\tPecha ནི་རིན་འབབ་སྤྲོད་མི་དགོས་པའི་ནང་བསྟན་གྱི་དྲ་ཐོག་དཔེ་མཛོད་ཅིག་ཡིན། འདིའི་ཐོག་ནས་རང་ཉིད་"
-"ཀྱིས་གསར་བཟོ་བྱས་པ་དང་ཡང་ན་མ་གཞི་ནས་ཡོད་པའི་ཕྱོགས་བསྒྲིགས་རྣམས་སྟབས་བདེའི་ངང་བརྒྱུད་སྐུར་དང་གསར་"
-"བསྐྲུན་བྱེད་ཐུབ་པའི་ཁྱད་ཆོས་ཡོད།<br>.\n"
-"\t\tདོགས་འདྲི་ཅི་འདྲ་ཡོད་རུང་དོགས་འཛེམ་མེད་པར་འབྲེལ་བ་གནང་རོགས། <a href=\"mailto:"
-"hello@sefaria.org\">email</a>.\n"
-"\t\t"
 
 #: templates/email/notification.html:8
 msgid "sent you a message:"
-msgstr "ཁྱེད་ལ་འཕྲིན་ཐུང་ཞིག་བཏང་ཡོད།"
+msgstr ""
 
 #: templates/email/notification.html:13
 msgid "Reply to"
-msgstr "ལ་ལན་འདེབས།"
+msgstr ""
 
 #: templates/email/notification.html:17
 msgid "likes your Source Sheet"
-msgstr "ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་ལ་དགའ་རྟགས་བཀོད་པ།"
+msgstr ""
 
 #: templates/email/notification.html:23
 msgid "is now following you"
-msgstr "ཁོང་གིས་ཁྱེད་ལ་རྗེས་འཇུག་བྱས་འདུག"
+msgstr ""
 
 #: templates/email/notification.html:35
 msgid "This is a notification without a type, it shouldn't exist."
-msgstr "འདི་ནི་རིགས་དབྱེ་མེད་པའི་གསར་བརྡ་ཞིག་རེད། ཕལ་ཆེར་མེད་པ་འདྲ།"
+msgstr ""
 
 #: templates/email/notifications_email.html:5
 #, python-format
 msgid " Hello %(recipient)s, "
-msgstr " བཀྲ་ཤིས་བདེ་ལེགས། %(recipient)s"
+msgstr ""
 
 #: templates/email/notifications_email.html:9
 msgid " Here's some new activity on Sefaria that you may have missed."
-msgstr "Pecha ནང་ཕལ་ཆེར་ཁྱེད་ཀྱིས་མཐོང་མེད་པའི་བྱེད་སྒོ་གསར་པ་འགའ་འདུག"
+msgstr ""
 
 #: templates/explore.html:4
 msgid ""
 "Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria"
-msgstr "| Pecha ནང་གི་ཐལ་མུས་ཊི་དང་ཐ་ན་ཁའི་བར་གྱི་སྦྲེལ་ཐག་རི་མོའི་རྣམ་པ་ཅན། "
+msgstr ""
 
 #: templates/explore.html:4
 #, python-format
@@ -1259,17 +1170,12 @@ msgid ""
 "Link Explorer - Visualized Connections Between %(bottomCatTitle)s and "
 "%(topCatTitle)s | Sefaria"
 msgstr ""
-"| Pecha ནང་གི་%(bottomCatTitle)s དང་ %(topCatTitle)s གཉིས་བར་གྱི་འབྲེལ་ལམ་རི་མོའི་རྣམ་"
-"པ་ཅན།"
 
 #: templates/explore.html:6
 msgid ""
 "Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom "
 "in to particular books either above or below to explore deeper."
 msgstr ""
-"རང་ཅག་གི་འཚོ་བའི་ཁྲོད་ངེས་པར་མཁོ་བའི་ནང་བསྟན་གྱི་བསླབ་བྱ་ཁག་དང་གཞུང་ཆེན་རྩ་འགྲེལ་འདྲ་མིན་གྲངས་ལས་"
-"འདས་པ་ཞིག་འདི་ནས་འཚོལ་ཞིབ་དང་དཔེ་ཀློག་བྱ་ཐུབ། དམིགས་བསལ་གྱི་དཔེ་ཆ་རྣམས་ཀྱི་འགོ་གཞུག་གཉིས་ནས་ཞིབ་"
-"ཕྲར་གཟིགས་སླད་ཤོག་ངོས་དེའི་ཐད་ཕྲ་མཐོང་མེ་ཤེལ་བཀོལ་ཆོག"
 
 #: templates/explore.html:6
 #, python-format
@@ -1278,192 +1184,181 @@ msgid ""
 "%(topCatTitle)s. Zoom in to particular books either above or below to "
 "explore deeper."
 msgstr ""
-"འདི་ %(bottomCatTitle)s དང་ %(topCatTitle)s འདི་གཉིས་བར་གྱི་ལུང་འདྲེན་དང་འབྲེལ་ལམ་རྣམས་"
-"མཐོང་ཐུབ་པའི་རི་མོ་ཐིག་སྐུད་ལམ་ནས་སྔོག་ཆོག དམིགས་བསལ་གྱི་དཔེ་ཆ་རྣམས་ཀྱི་འགོ་གཞུག་གཉིས་ནས་ཞིབ་ཕྲར་"
-"གཟིགས་སླད་ཤོག་ངོས་དེའི་ཐད་ཕྲ་མཐོང་མེ་ཤེལ་བཀོལ་ཆོག"
 
 #: templates/leaderboard.html:4
 msgid "Top Contributors | Sefaria"
-msgstr "| Pecha ཞབས་འདེགས་ཞུ་མཁན་རྩེ་ཕུད་རྣམས།"
+msgstr ""
 
 #: templates/leaderboard.html:6
 msgid ""
 "See who has been contributing most to Sefaria in terms of texts, "
 "translations, and source sheet."
 msgstr ""
-"Pecha དྲ་ཐོག་དཔེ་མཛོད་ནང་དཔེ་དེབ་དང་ཡིག་བསྒྱུར། མ་ཕྱིའི་ཤོག་ངོས་བཅས་པ་ཆེས་མང་ཤོས་འབུལ་མཁན་སུ་ཡིན་"
-"ལ་གཟིགས།"
 
-#: templates/leaderboard.html:30 templates/leaderboard.html:31
+#: templates/leaderboard.html:30
 msgid "Top Contributors"
-msgstr "ཞབས་འདེགས་པ།"
+msgstr ""
 
 #: templates/metrics.html:4
 msgid "Sefaria Metrics"
-msgstr "Pecha རྩིས་གཞི།"
+msgstr ""
 
 #: templates/metrics.html:6
 msgid ""
 "See graphs charting Sefaria's progress since 2013 across metrics including "
 "word counts, number of links and number of source sheets."
 msgstr ""
-"ཕྱི་ལོ་༢༠༡༣ ལོ་ནས་བཟུང་ཚད་གཞི་ཁག་སྟེ་མིང་ཚིག་གི་གྲངས་ཀ་བརྩིས་པ་དང་དྲ་ཐག་གི་གྲངས་འབོར། མ་ཕྱི་ཤོག་"
-"ངོས་ཀྱི་གྲངས་འབོར་བཅས་ཚུད་པའི་ Pecha ཡི་འཕེལ་རྒྱས་ཀྱི་ཐིག་རིས་ལ་གཟིགས།"
 
-#: templates/metrics.html:13 templates/metrics.html:14
+#: templates/metrics.html:13
 msgid "Metrics"
-msgstr "རྩིས་གཞི།"
+msgstr ""
+
+#: templates/metrics.html:33
+msgid "Total Words in Library"
+msgstr ""
 
 #: templates/metrics.html:34
-msgid "Total Words in Library"
-msgstr "དཔེ་མཛོད་ནང་གི་ཚིག་ཧྲིལ་བོའི་བསྡོམས་གྲངས།"
+msgid "Words in Hebrew & Aramaic"
+msgstr ""
 
 #: templates/metrics.html:35
-msgid "Words in Hebrew & Aramaic"
-msgstr "བོད་ཡིགདང་ཨ་རའ་མཡེ་ཁིའི་སྐད་ཡིག་ནང་གི་ཚིག"
+msgid "Words in Translation"
+msgstr ""
 
 #: templates/metrics.html:36
-msgid "Words in Translation"
-msgstr "འགྱུར་དེབ་ནང་གི་མིང་ཚིག"
+msgid "Words of Original Translation created by Sefaria Volunteers"
+msgstr ""
 
 #: templates/metrics.html:37
-msgid "Words of Original Translation created by Sefaria Volunteers"
-msgstr "Pecha ནང་གི་དང་བླངས་པ་རྣམས་ཀྱིས་བཟོས་པའི་མ་ཕྱིའི་ཡིག་བསྒྱུར་གྱི་མིང་ཚིག"
+msgid "Number of Public Contributors"
+msgstr ""
 
 #: templates/metrics.html:38
-msgid "Number of Public Contributors"
-msgstr "མང་ཚོགས་ཞབས་འདེགས་པའི་གྲངས་འབོར།"
+msgid "Number of Intertextual Links"
+msgstr ""
 
 #: templates/metrics.html:39
-msgid "Number of Intertextual Links"
-msgstr "ཕན་ཚུན་འབྲེལ་བའི་དྲ་ཐག་གི་གྲངས་འབོར།"
-
-#: templates/metrics.html:40
 msgid "Number of Source Sheets"
-msgstr "མ་ཕྱིའི་ཤོག་ངོས་ཀྱི་གྲངས་འབོར།"
+msgstr ""
 
-#: templates/metrics.html:44 templates/metrics.html:45
-#: templates/metrics.html:46 templates/metrics.html:47
+#: templates/metrics.html:43 templates/metrics.html:44
+#: templates/metrics.html:45 templates/metrics.html:46
 msgid "Words"
-msgstr "མིང་ཚིག"
+msgstr ""
+
+#: templates/metrics.html:47
+msgid "Contributors"
+msgstr ""
 
 #: templates/metrics.html:48
-msgid "Contributors"
-msgstr "ཞབས་འདེགས་པ།"
-
-#: templates/metrics.html:49
 msgid "Links"
-msgstr "དྲ་ཐག"
+msgstr ""
 
 #: templates/people.html:5
 msgid "Authors on Sefaria"
-msgstr "Pecha ནང་གི་རྩོམ་པ་པོ་རྣམས།"
+msgstr ""
 
 #: templates/people.html:7
 msgid ""
 "Biographies and information about the authors of Jewish texts on Sefaria, "
 "together with links to their available texts."
 msgstr ""
-"Pecha ནང་གི་ནང་པའི་གཞུང་ལུགས་རྩོམ་པ་པོ་དག་གི་སྐོར་གྱི་གནས་ཚུལ་དང་རྣམ་ཐར་ཁག ཁོང་ཚོ་དང་ད་སྔ་ཡོད་"
-"བསྡད་པའི་ཁོང་ཚོའི་གཞུང་ལུགས་བར་གྱི་དྲ་ཐག"
 
-#: templates/people.html:23 templates/people.html:24 templates/person.html:38
+#: templates/people.html:23 templates/person.html:38
 msgid "Authors"
-msgstr "རྩོམ་པ་པོ་རྣམས།"
+msgstr ""
 
-#: templates/people.html:29 templates/people.html:30 templates/person.html:41
+#: templates/people.html:28 templates/person.html:41
 #: templates/talmud_people.html:6
 msgid "People in the Talmud"
-msgstr "ཐལ་མ་ཊིའི་ནང་གི་མི་སྣ།"
+msgstr ""
 
-#: templates/person.html:86 templates/person.html:87
+#: templates/person.html:86
 msgid "Learn More"
 msgstr ""
 
-#: templates/person.html:91 templates/person.html:92 templates/person.html:97
-#: templates/person.html:98
+#: templates/person.html:90 templates/person.html:91 templates/person.html:96
+#: templates/person.html:97
 msgid "Wikipedia"
 msgstr ""
 
-#: templates/person.html:102 templates/person.html:103
+#: templates/person.html:101 templates/person.html:102
 msgid "Wikipedia (Hebrew)"
 msgstr ""
 
-#: templates/person.html:109 templates/person.html:110
+#: templates/person.html:108 templates/person.html:109
 msgid "Jewish Encyclopedia"
 msgstr ""
 
-#: templates/person.html:130 templates/person.html:131
+#: templates/person.html:129
 msgid "Works"
 msgstr ""
 
-#: templates/person.html:143 templates/person.html:144
+#: templates/person.html:141
 msgid "Map"
 msgstr ""
 
 #: templates/profile.html:4
 msgid "on Sefaria"
-msgstr "Pecha ནང་"
+msgstr ""
 
 #: templates/profile.html:6
 msgid ""
 "is on Sefaria. Follow to view their public source sheets, notes and "
 "translations."
 msgstr ""
-"Pecha ནང་ལ་འདུག ཁོང་ཚོའི་སྤྱི་སྤྱོད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་དང་མཆན་བྲིས་པ། དེ་བཞིན་ཡིག་བསྒྱུར་བཅས་ལ་གཟིགས་"
-"ན་ཐོག་མར་རྗེས་འཇུག་བྱ་དགོས།"
 
 #: templates/profile.html:20
 msgid "at "
-msgstr "ལ་"
+msgstr ""
 
 #: templates/profile.html:58
 msgid "Twitter"
 msgstr ""
 
-#: templates/profile.html:73 templates/profile.html:74
+#: templates/profile.html:73
 msgid "Message"
 msgstr ""
 
-#: templates/profile.html:78 templates/profile.html:83
+#: templates/profile.html:77
 msgid "Follow"
-msgstr "རྗེས་འཇུག་བྱོས།"
+msgstr ""
 
-#: templates/profile.html:79 templates/profile.html:84
+#: templates/profile.html:78
 msgid "Following"
-msgstr "རྗེས་འཇུག་བྱེད་པ།"
+msgstr ""
 
-#: templates/profile.html:80 templates/profile.html:85
+#: templates/profile.html:79
 msgid "Unfollow"
-msgstr "རྗེས་འཇུག་ཕྱིར་འཐེན།"
+msgstr ""
 
-#: templates/profile.html:90 templates/profile.html:91
+#: templates/profile.html:84
 msgid "Edit Profile"
 msgstr "ངོ་སྤྲོད་རྩོམ་སྒྲིག"
 
-#: templates/profile.html:133
+#: templates/profile.html:126
 msgid "Activity"
-msgstr "བྱེད་སྒོ།"
+msgstr ""
 
-#: templates/profile.html:135
+#: templates/profile.html:128
 msgid "More Activity"
-msgstr "བྱེད་སྒོ་འདི་ལས་མང་བ།"
+msgstr ""
 
-#: templates/profile.html:185
+#: templates/profile.html:178
 msgid "Send a message to "
-msgstr "ལ་འཕྲིན་ཐུང་ཞིག་ཐོངས།"
+msgstr ""
 
-#: templates/profile.html:187
+#: templates/profile.html:180
 msgid "Send"
-msgstr "གཏོང་།"
+msgstr ""
 
 #: templates/random.html:7
 msgid "Random Text | Sefaria.org"
-msgstr "Daf Yomi | Pecha"
+msgstr ""
 
 #: templates/random.html:14
 msgid "A Random Text on Sefaria"
-msgstr "Pecha ནང་གི་ཤོག་ངོས།"
+msgstr ""
 
 #: templates/random.html:18
 msgid "Get Random"
@@ -1471,69 +1366,62 @@ msgstr ""
 
 #: templates/registration/delete_user_account.html:4
 msgid "Admin: Delete a User"
-msgstr "འཛིན་སྐྱོང་། སྤྱོད་མཁན་གཙང་སུབ།"
+msgstr ""
 
 #: templates/registration/delete_user_account.html:11
 #: templates/registration/delete_user_account.html:17
 msgid "Delete User"
-msgstr "འཛིན་སྐྱོང་། སྤྱོད་མཁན་གཙང་སུབ།"
+msgstr ""
 
 #: templates/registration/logged_out.html:4
 msgid "Logged Out | Sefaria"
-msgstr "| དཔེ་ཆ་དྲ་ཚིགས་ནས་ཕྱིར་ཐོན།"
+msgstr ""
 
 #: templates/registration/logged_out.html:13
 msgid "You are now logged out."
-msgstr "ཁྱེད་རང་གིས་ཐོ་འགོད་བྱས་ཟིན།"
+msgstr ""
 
 #: templates/registration/logged_out.html:13
 msgid "Log back in"
-msgstr "དཔེ་ཆ་དྲ་ཚིགས་ནང་ནང་འཛུལ་བྱོས།"
-
-#: templates/registration/login.html:4
-msgid "Log in to Sefaria"
 msgstr ""
 
-#: templates/registration/login.html:6
-msgid ""
-"Log in to your Sefaria account to make source sheets, write notes, and "
-"follow other Sefaria users."
-msgstr ""
-"མ་ཕྱིའི་ཤོག་ངོས་གསར་བཟོ་བྱེད་པ་དང་མཆན་འབྲི་བ་དང་ དཔེ་ཆ་དྲ་ཚིགས་སྤྱོད་མཁན་གཞན་ལ་རྗེས་འཇུག་བྱེད་པ་"
-"ལ། ཐོག་མར་དཔེ་ཆ་དྲ་ཚིགས་ནང་ནང་འཛུལ་བྱོས།"
-
-#: templates/registration/login.html:14 templates/registration/login.html:15
-msgid "You are already logged in as"
-msgstr "ཁྱེད་རང་གིས་ཐོ་འགོད་བྱས་ཟིན།"
-
-#: templates/registration/login.html:18 templates/registration/login.html:19
-msgid "Logout."
-msgstr "ཕྱིར་ཐོན།"
-
-#: templates/registration/login.html:31 templates/registration/login.html:32
+#: templates/registration/login.html:4 templates/registration/login.html:31
 msgid "Log in to Pecha"
 msgstr "ནང་དུ་འཛུལ་ས།"
 
-#: templates/registration/login.html:36 templates/registration/login.html:37
-msgid "Your username and password didn't match. Please try again."
-msgstr "ཁྱེད་རང་གི་སྤྱོད་མཁན་གྱི་མིང་དང་གསང་གྲངས་ཆ་མི་མཚུངས། ཡང་བསྐྱར་ཚོད་ལྟ་ཐེངས་གཅིག་གནང་རོགས།"
+#: templates/registration/login.html:6
+msgid ""
+"Log in to your Pecha account to make source sheets, write notes, and follow "
+"other Pecha users."
+msgstr ""
 
-#: templates/registration/login.html:54 templates/registration/login.html:55
-#: templates/sheets.html:556 templates/sheets.html:560
+#: templates/registration/login.html:14 templates/registration/login.html:15
+msgid "You are already logged in as"
+msgstr ""
+
+#: templates/registration/login.html:18 templates/registration/login.html:19
+msgid "Logout."
+msgstr ""
+
+#: templates/registration/login.html:35
+msgid "Your username and password didn't match. Please try again."
+msgstr ""
+
+#: templates/registration/login.html:52 templates/sheets.html:499
 msgid "Login"
 msgstr "ནང་འཛུལ་གྱིས།"
 
-#: templates/registration/login.html:58 templates/registration/login.html:59
+#: templates/registration/login.html:55
 msgid "Forgot your password?"
 msgstr "གསང་ཚིག་བརྗེད་སོང་ན། འདིར་སྣུན།"
 
-#: templates/registration/login.html:64 templates/registration/login.html:65
+#: templates/registration/login.html:60
 msgid "Create a new account"
 msgstr "ཁ་བྱང་གསར་པ་ཞིག་བཟོས།"
 
 #: templates/registration/password_reset_complete.html:3
 msgid "Password Reset"
-msgstr "གསང་ཚིག་བསྐྱར་སྒྲིག"
+msgstr ""
 
 #: templates/registration/password_reset_complete.html:10
 #: templates/registration/password_reset_complete.html:11
@@ -1563,7 +1451,7 @@ msgstr "གསང་ཚིག་ཉར་ཚགས་གྱིས།"
 
 #: templates/registration/password_reset_done.html:3
 msgid "Password Reset Link Sent"
-msgstr "གསང་ཚིག་བསྐྱར་སྒྲིག་གི་དྲ་ཐག་བཏང་ཟིན།"
+msgstr ""
 
 #: templates/registration/password_reset_done.html:10
 #: templates/registration/password_reset_done.html:11
@@ -1575,29 +1463,25 @@ msgstr ""
 msgid ""
 "A request has been made to reset the password for this email address on "
 "Pecha.org."
-msgstr "Pecha འདིའི་ནང་གི་གློག་འཕྲིན་གྱི་གསང་ཚིག་བསྐྱར་སྒྲིག་གི་སྙན་ཞུ་ཞིག་ཕུལ་ཟིན།"
+msgstr ""
 
 #: templates/registration/password_reset_email.html:6
 #: templates/registration/password_reset_email.txt:5
 msgid "Click this link, or copy it to your browser, to choose a new password:"
 msgstr ""
-"གསང་ཚིག་གསར་པ་ཞིག་འདེམ་པ་ལ་འདིར་ཐད་ཀར་བསྣུན་པ་དང་ཡང་ན་འདི་ངོ་བཤུ་བྱས་ཏེ་རང་གི་བཤེར་ལྟའི་དྲ་"
-"ཚིགས་ནས་གཟིགས།"
 
 #: templates/registration/password_reset_email.html:12
 #: templates/registration/password_reset_email.txt:9
 msgid "If you did not request this reset, you can safely ignore this email."
 msgstr "གལ་སྲིད་བསྐྱར་སྒྲིག་གི་རེ་ཞུ་འདི་ཕུལ་མཁན་ཁྱེད་མིན་ན། སྣང་མེད་བྱས་ན་འགྲིག།"
-"གལ་སྲིད་ཁྱེད་ཀྱིས་བསྐྱར་སྒྲིག་བྱེད་པར་སྙན་ཞུ་འདི་ཕུལ་མེད་ན། བདེ་འཇགས་ཆེད་གློག་འཕྲིན་འདི་སྣང་མེད་ལ་བཞག་ཆོག"
 
 #: templates/registration/password_reset_form.html:4
 msgid "Forgot your Password"
-msgstr "ཁྱེད་ཀྱི་གསང་ཚིག་བརྗེད་སོང་ངམ།"
+msgstr ""
 
 #: templates/registration/password_reset_form.html:6
 msgid "Request a link to change your Sefaria password if you've forgotten it."
 msgstr ""
-"གལ་སྲིད་ཁྱེད་ཀྱིས་རང་གི་ Pecha ཡི་གསང་ཚིག་བརྗེད་སོང་ན་དེ་བསྐྱར་བརྗེ་བྱ་སའི་དྲ་ཐག་ཅིག་ལ་སྙན་ཞུ་ཕུལ།"
 
 #: templates/registration/password_reset_form.html:13
 #: templates/registration/password_reset_form.html:14
@@ -1615,592 +1499,524 @@ msgstr "དཔེ་ཆ་དྲ་བའི་གསང་ཚིག་བསྐ
 
 #: templates/registration/register.html:4
 msgid "Create an Account"
-msgstr "ཁ་བྱང་ཞིག་བཟོས།"
+msgstr ""
 
 #: templates/registration/register.html:6
 msgid ""
 "Create an account on Sefaria to make source sheets, take notes and follow "
 "other people."
 msgstr ""
-"མ་ཕྱིའི་ཤོག་ངོས་གསར་བཟོ་བྱེད་པ་དང་མཆན་འབྲི་བ། མི་གཞན་ལ་རྗེས་འཇུག་བཅས་བྱེད་པ་ལ་ཐོག་མར་དཔེ་ཆ་དྲ་"
-"ཚིགས་ཀྱི་ནང་ཁ་བྱང་གསར་པ་ཞིག་བཟོ་དགོས"
 
-#: templates/registration/register.html:28
-#: templates/registration/register.html:29
+#: templates/registration/register.html:26
 msgid "Already have an account? Log in"
 msgstr "ཁ་བྱང་བཟོས་ཡོད་ན། ནང་འཛུལ་བྱེད་ས་འདིར་སྣུན།"
 
-#: templates/registration/register.html:32
-#: templates/registration/register.html:33
-msgid "By clicking Sign Up you agree to our"
-msgstr "ཐོ་འགོད་བྱ་རྒྱུ་དེ་ཁྱེད་ཀྱིས་ང་ཚོར་མོས་མཐུན་བྱས་པ་མཚོན་གྱི་ཡོད།"
-
-#: templates/registration/register.html:32
-#: templates/registration/register.html:33 templates/static/terms.html:4
-msgid "Terms of Use"
-msgstr "བཀོལ་སྤྱོད་སྒྲིག་གཞི།"
-
-#: templates/registration/register.html:32
-#: templates/registration/register.html:33
-#: templates/static/privacy-policy.html:4
-msgid "Privacy Policy"
-msgstr "བེད་སྤྱོད་དབང་ཆ།"
-
 #: templates/sefer_hachinukh_mitzvot.html:7
 msgid "Sefer HaChinukh Visualization"
-msgstr "Sefer HaChinukh ཡི་མཐོང་ཐུབ་པའི་རི་མོའི་རྣམ་པ་ཅན།"
+msgstr ""
 
 #: templates/sefer_hachinukh_mitzvot.html:9
 msgid ""
 "Explore how different categories of Mitzvot connect to one another through "
 "this parallel sets chart."
 msgstr ""
-"ཤན་སྦྱར་བྱས་ནས་བསྒྲིགས་པའི་དཔེ་རིས་འདི་བརྒྱུད་ནས་ Mitzvot ཡི་སྡེ་ཚན་རིགས་དབྱེ་མ་འདྲ་བ་རྣམས་ཕན་ཚུན་"
-"སྦྲེལ་མཐུད་ཇི་ལྟར་བྱས་ཡོད་མེད་ལ་གཟིགས།"
 
 #: templates/sheets.html:7 templates/sheets_visual.html:4
 msgid "Start a New Sheet - Sefaria Source Sheet Builder"
-msgstr "ཤོག་ངོས་གསར་པ་ཞིག་འགོ་ཚུགས། དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས།"
+msgstr ""
 
 #: templates/sheets.html:9 templates/sheets.html:10
 msgid "A source sheet created with Sefaria's Source Sheet Builder."
-msgstr "དཔེ་ཆ་དྲ་ཚིགས་ ཡི་མ་ཕྱིའི་ཤོག་ངོས་གསར་པ་བཟོ་ཆས་སྤྱད་ནས་མ་ཕྱིའི་ཤོག་ངོས་ཤིག་བཟོས་ཡོད།"
+msgstr ""
 
 #: templates/sheets.html:9 templates/sheets.html:10
 #: templates/sheets_visual.html:6
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
-msgstr "དཔེ་ཆ་དྲ་ཚིགས་ ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་གསར་པ་བཟོ་ཆས་སྤྱད་ནས་ཁྱེད་རང་ཉིད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་བཟོས།"
+msgstr ""
 
-#: templates/sheets.html:31 templates/sheets.html:32
-#: venv/lib/python3.9/site-packages/django/db/models/fields/files.py:228
+#: templates/sheets.html:31
 msgid "File"
 msgstr "ཡིག་ཆ།"
 
-#: templates/sheets.html:39 templates/sheets.html:40
+#: templates/sheets.html:38
 msgid "Copy Sheet"
 msgstr "ཟིན་བྲིས་ངོ་བཤུ།"
 
-#: templates/sheets.html:48 templates/sheets.html:49
-msgid "Export to Google Drive"
-msgstr "དགོས་དགུའི་གསོག་མཛོད་ནང་འཇོག།"
-
-#: templates/sheets.html:56 templates/sheets.html:57 templates/sheets.html:1113
-#: templates/sheets.html:1114
+#: templates/sheets.html:54 templates/sheets.html:1008
 msgid "Embed Sheet"
 msgstr "རྣམ་པ་གཅིག་མཚུངས་གཞན་ལ་འགོད།"
 
-#: templates/sheets.html:77 templates/sheets.html:78
+#: templates/sheets.html:73
 msgid "Tags"
 msgstr "ཚིག་གནད།"
 
-#: templates/sheets.html:90 templates/sheets.html:91 templates/sheets.html:951
-#: templates/sheets.html:952
+#: templates/sheets.html:85 templates/sheets.html:859
 msgid "Assignments"
 msgstr "སྦྱོང་ཚན།"
 
-#: templates/sheets.html:105 templates/sheets.html:106
-#: templates/sheets.html:871 templates/sheets.html:872
+#: templates/sheets.html:99 templates/sheets.html:785
 msgid "Print"
 msgstr "དཔར་སྐྲུན།"
 
-#: templates/sheets.html:114 templates/sheets.html:115
+#: templates/sheets.html:107
 msgid "Visualize"
-msgstr "མཐོང་ཐུབ་པའི་རི་མོའི་རྣམ་པ་ཅན།"
+msgstr ""
 
-#: templates/sheets.html:123 templates/sheets.html:124
+#: templates/sheets.html:115
 msgid "Highlight Mode"
-msgstr "ནན་རྟགས་ཀྱི་རྣམ་ཅན།"
+msgstr ""
 
-#: templates/sheets.html:127 templates/sheets.html:128
+#: templates/sheets.html:118
 msgid "Exit Highlight Mode"
-msgstr "ནན་རྟགས་ཀྱི་རྣམ་ཅན།"
+msgstr ""
 
-#: templates/sheets.html:136 templates/sheets.html:137
+#: templates/sheets.html:126
 msgid "Format"
 msgstr "རྣམ་པ།"
 
-#: templates/sheets.html:142 templates/sheets.html:143
+#: templates/sheets.html:131
 msgid "Number Sources"
 msgstr "ཚན་པའི་གྲངས་ཀ།"
 
-#: templates/sheets.html:149 templates/sheets.html:150
+#: templates/sheets.html:137
 msgid "Box Sources"
 msgstr "གསར་རྩོམ་དཔེ་སྒྲོམ།"
 
-#: templates/sheets.html:163 templates/sheets.html:164
+#: templates/sheets.html:150
 msgid "Reset Source Text"
-msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
+msgstr ""
 
-#: templates/sheets.html:171 templates/sheets.html:172
+#: templates/sheets.html:157
 msgid "Auto-Segment Text"
-msgstr "རང་འགུལ་གྱིས་དཔེ་ཆའི་ཚན་པ་བགོ་ཆས།"
+msgstr ""
 
-#: templates/sheets.html:180 templates/sheets.html:181
+#: templates/sheets.html:165
 msgid "Remove Vowel Points"
-msgstr "དབྱངས་རྟགས་རྣམས་སུབ།"
+msgstr ""
 
-#: templates/sheets.html:188 templates/sheets.html:189
+#: templates/sheets.html:172
 msgid "Add Source Title"
-msgstr "མ་ཕྱིའི་མཚན་བྱང་ཕྲིས།"
+msgstr ""
 
-#: templates/sheets.html:200 templates/sheets.html:201
+#: templates/sheets.html:183
 msgid "Sheet Language"
 msgstr "སྐད་ཡིག"
 
-#: templates/sheets.html:235 templates/sheets.html:236
+#: templates/sheets.html:197
+msgid "Tibetan"
+msgstr "བོད་སྐད།"
+
+#: templates/sheets.html:214
 msgid "Sheet Layout"
 msgstr "ཟིན་བྲིས་ཀྱི་རྣམ་པ།"
 
-#: templates/sheets.html:244 templates/sheets.html:245
-#: templates/sheets.html:336 templates/sheets.html:337
+#: templates/sheets.html:222 templates/sheets.html:304
 msgid "Stacked"
 msgstr "གོང་འོག།"
 
-#: templates/sheets.html:251 templates/sheets.html:252
-#: templates/sheets.html:343 templates/sheets.html:344
+#: templates/sheets.html:228 templates/sheets.html:310
 msgid "Side-by-Side"
 msgstr "གཡས་གཡོན།"
 
-#: templates/sheets.html:263 templates/sheets.html:264
-#: templates/sheets.html:355 templates/sheets.html:356
+#: templates/sheets.html:239 templates/sheets.html:321
 msgid "Side-by-Side Layout"
 msgstr "གཡས་གཡོན་སྒྲིག་འགོད།"
 
-#: templates/sheets.html:272 templates/sheets.html:273
-#: templates/sheets.html:364 templates/sheets.html:365
+#: templates/sheets.html:247 templates/sheets.html:329
 msgid "Tibetan Left"
 msgstr "བོད་ཡིག་གཡོན་ཕྱོགས།"
 
-#: templates/sheets.html:279 templates/sheets.html:280
-#: templates/sheets.html:371 templates/sheets.html:372
+#: templates/sheets.html:253 templates/sheets.html:335
 msgid "Tibetan Right"
 msgstr "བོད་ཡིག་གཡས་ཕྱོགས།"
 
-#: templates/sheets.html:292 templates/sheets.html:293
+#: templates/sheets.html:265
 msgid "Source Language"
-msgstr "མ་ཕྱིའི་སྐད་ཡིག"
+msgstr ""
 
-#: templates/sheets.html:327 templates/sheets.html:328
+#: templates/sheets.html:296
 msgid "Source Layout"
-msgstr "མ་ཕྱིའི་ཤོག་ངོས།"
+msgstr ""
 
-#: templates/sheets.html:382 templates/sheets.html:383
+#: templates/sheets.html:345
 msgid "Reset to Sheet Default"
-msgstr "རྨང་གཞིའི་ཤོག་ངོས་ལྟར་སྒྲིག"
+msgstr ""
 
-#: templates/sheets.html:396 templates/sheets.html:397
+#: templates/sheets.html:358
 msgid "Insert"
 msgstr "ཁ་སྣོན།"
 
-#: templates/sheets.html:402 templates/sheets.html:403
-#: templates/sheets.html:694 templates/sheets.html:695
+#: templates/sheets.html:363 templates/sheets.html:627
 msgid "Source"
 msgstr "ལུང་འདྲེན།"
 
-#: templates/sheets.html:409 templates/sheets.html:410
-#: templates/sheets.html:706 templates/sheets.html:707
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2137
+#: templates/sheets.html:369 templates/sheets.html:637
 msgid "Text"
 msgstr "གསར་རྩོམ།"
 
-#: templates/sheets.html:416 templates/sheets.html:417
-#: templates/sheets.html:718 templates/sheets.html:719
+#: templates/sheets.html:375 templates/sheets.html:647
 msgid "Comment"
 msgstr "མཆན།"
 
-#: templates/sheets.html:423 templates/sheets.html:424
-#: templates/sheets.html:712 templates/sheets.html:713
+#: templates/sheets.html:381 templates/sheets.html:642
 msgid "Media"
 msgstr "གཟུགས་སྒྲ།"
 
-#: templates/sheets.html:431 templates/sheets.html:432
+#: templates/sheets.html:388 templates/sheets.html:389
 msgid "Highlight Tools"
-msgstr "ནན་རྟགས་ལག་ཆ་རྣམས།"
+msgstr ""
 
-#: templates/sheets.html:437 templates/sheets.html:438
+#: templates/sheets.html:394
 msgid "Paragraph View"
-msgstr "ཚན་པ་སྟོན།"
+msgstr ""
 
-#: templates/sheets.html:441 templates/sheets.html:442
+#: templates/sheets.html:397
 msgid "Line-by-line View"
-msgstr "ཡིག་ཕྲེང་རེ་རེ་བཞིན་སྟོན།"
+msgstr ""
 
-#: templates/sheets.html:449 templates/sheets.html:450
+#: templates/sheets.html:404
 msgid "Reset"
-msgstr "བསྐྱར་སྒྲིག"
+msgstr ""
 
-#: templates/sheets.html:456 templates/sheets.html:457
+#: templates/sheets.html:410
 msgid "Filter"
 msgstr "གོ་རིམ།"
 
-#: templates/sheets.html:473 templates/sheets.html:474
+#: templates/sheets.html:426
 msgid "Last Saved"
-msgstr "རུས་མིང་།"
+msgstr ""
 
-#: templates/sheets.html:477 templates/sheets.html:478
+#: templates/sheets.html:429
 msgid "All changes saved in Pecha"
-msgstr "བཅོས་སྒྲིག་གང་བྱས་རྣམས་དཔེ་ཆ་དྲ་ཚིགས་ནང་ཉར་ཚགས་བྱས་ཡོད།"
+msgstr ""
 
-#: templates/sheets.html:481 templates/sheets.html:482
-#: templates/sheets.html:510 templates/sheets.html:511
+#: templates/sheets.html:432 templates/sheets.html:457
 msgid "Saving..."
-msgstr "ཉར་བཞིན་པ་་་"
+msgstr ""
 
-#: templates/sheets.html:485 templates/sheets.html:486
+#: templates/sheets.html:435
 msgid "Changes Pending..."
-msgstr "བཅོས་སྒྲིག་རྣམས་ད་ལྟ་སྒུག་ཐོའི་ནང་ཡོད་་་"
+msgstr ""
 
-#: templates/sheets.html:495 templates/sheets.html:496
+#: templates/sheets.html:444
 msgid "Highlight Mode is On"
-msgstr "ནན་རྟགས་ཀྱི་རྣམ་པ་སྒོ་ཕྱེ་ཡོད།"
+msgstr ""
 
-#: templates/sheets.html:517 templates/sheets.html:518
-#: templates/sheets.html:871 templates/sheets.html:872
-#: templates/sheets.html:1212 templates/sheets.html:1216
+#: templates/sheets.html:463 templates/sheets.html:785
+#: templates/sheets.html:1093
 msgid "Share"
 msgstr "བརྒྱུད་སྐུར་གྱིས།"
 
-#: templates/sheets.html:521 templates/sheets.html:522
-#: templates/sheets.html:526 templates/sheets.html:527
+#: templates/sheets.html:466 templates/sheets.html:470
 msgid "View in Library"
-msgstr "དཔེ་མཛོད་ནང་སྟོན།"
+msgstr ""
 
-#: templates/sheets.html:556 templates/sheets.html:560
+#: templates/sheets.html:499
 msgid "Like this?"
-msgstr "འདི་ལ་སྤྲོ་བ་འདུག་གམ།"
+msgstr ""
 
-#: templates/sheets.html:557 templates/sheets.html:561
+#: templates/sheets.html:500
 msgid "create an account"
-msgstr "ཁྱེད་རངསྒེར་གྱི་ཤོག་ངོས་བཟོ་བ་ལ་"
+msgstr ""
 
-#: templates/sheets.html:557 templates/sheets.html:561
+#: templates/sheets.html:500
 msgid "to build your own source sheet."
-msgstr "འདིའི་ནང་ཁ་བྱང་གསར་བཟོ་བྱ་དགོས།"
+msgstr ""
 
-#: templates/sheets.html:568
+#: templates/sheets.html:507
 msgid "Header Title"
 msgstr ""
 
-#: templates/sheets.html:595 templates/sheets.html:603
+#: templates/sheets.html:534 templates/sheets.html:542
 #, python-format
 msgid ""
 "\n"
 "            Assignment Completed by %(owner)s\n"
 "            "
 msgstr ""
-"\n"
-"                %(owner)s ཁོང་གིས་ལས་འགན་ཆ་ཚང་གྲུབ་པ་བྱས་སོང་།\n"
-"            "
 
-#: templates/sheets.html:610
+#: templates/sheets.html:549
 #, python-format
 msgid ""
 "\n"
 "            Source Sheet by %(owner)s\n"
 "            "
 msgstr ""
-"\n"
-"          %(owner)s  ཁོང་གིས་བཟོས་པའི་མ་ཕྱིའི་ཤོག་ངོས།\n"
-"        "
 
-#: templates/sheets.html:620 templates/sheets.html:621
+#: templates/sheets.html:559
 msgid "More info"
-msgstr "གནས་ཚུལ་རྒྱས་པ།"
+msgstr ""
 
-#: templates/sheets.html:625 templates/sheets.html:629
-msgid "Created"
-msgstr "འབྲེལ་བ་ཡོད་པ།"
-
-#: templates/sheets.html:626 templates/sheets.html:631
-msgid "Views"
-msgstr "ཀློག་མང་ཤོས།"
-
-#: templates/sheets.html:628 templates/sheets.html:631
-#: templates/sheets.html:1079
+#: templates/sheets.html:564 templates/sheets.html:978
 msgid "Edit"
 msgstr "རྩོམ་སྒྲིག"
 
-#: templates/sheets.html:630 templates/sheets.html:1073
+#: templates/sheets.html:565
+msgid "Created"
+msgstr ""
+
+#: templates/sheets.html:566 templates/sheets.html:972
 msgid "View"
 msgstr "ཀློག་ཆོག།"
 
-#: templates/sheets.html:635 templates/sheets.html:637
+#: templates/sheets.html:567
+msgid "Views"
+msgstr "ཀློག་མང་ཤོས།"
+
+#: templates/sheets.html:571
 msgid "Based on"
-msgstr "གཞིར་བཞག་ཡོད།"
+msgstr ""
 
-#: templates/sheets.html:636 templates/sheets.html:638
-#: templates/sheets.html:938 templates/sheets.html:939
+#: templates/sheets.html:572 templates/sheets.html:847
 msgid "a sheet"
-msgstr "ཤོག་ངོས་ཤིག"
+msgstr ""
 
-#: templates/sheets.html:636 templates/sheets.html:638
-#: templates/sheets.html:938 templates/sheets.html:939
+#: templates/sheets.html:572 templates/sheets.html:847
 msgid "by"
-msgstr "ནས་"
+msgstr ""
 
-#: templates/sheets.html:643 templates/sheets.html:644
-#: templates/sheets.html:650 templates/sheets.html:651
+#: templates/sheets.html:578 templates/sheets.html:584
 msgid "Assigned by"
-msgstr "ལས་བགོ་བྱས།"
+msgstr ""
 
-#: templates/sheets.html:700 templates/sheets.html:701
+#: templates/sheets.html:632
 msgid "Connection"
-msgstr "འབྲེལ་ཡོད་ཅིག་བསྣན་ཡོད།"
+msgstr ""
 
-#: templates/sheets.html:725 templates/sheets.html:726
+#: templates/sheets.html:653
 msgid "Select a text"
-msgstr "དཔེ་ཆ་ཞིག་འདེམ།"
+msgstr ""
 
-#: templates/sheets.html:730
-msgid " Search for a Text or Commentator"
-msgstr "དཔེ་ཆ་དང་ཡང་ན་འགྲེལ་བཤད་པ་འཚོལ་ཞིབ།"
-
-#: templates/sheets.html:734 templates/sheets.html:735
-msgid "Add Source"
-msgstr "རྒྱུ་ཆ་ཞོག"
-
-#: templates/sheets.html:744 templates/sheets.html:745
+#: templates/sheets.html:672
 msgid "Browse Sources"
 msgstr "ལུང་ཚིག་འཚོལ་ལམ།"
 
-#: templates/sheets.html:754 templates/sheets.html:755
+#: templates/sheets.html:681
 msgid "Select connected texts"
-msgstr "སྦྲེལ་མཐུད་བྱས་ཡོད་པའི་དཔེ་ཆ་རྣམས་འདེམ།"
+msgstr ""
 
-#: templates/sheets.html:759 templates/sheets.html:760
-#: templates/sheets.html:784 templates/sheets.html:785
-#: templates/sheets.html:799 templates/sheets.html:800
-#: templates/sheets.html:825 templates/sheets.html:826
+#: templates/sheets.html:685 templates/sheets.html:708
+#: templates/sheets.html:722 templates/sheets.html:744
 msgid "Add to Sheet"
 msgstr "ཟིན་བྲིས་ལ་ཉར།"
 
-#: templates/sheets.html:765 templates/sheets.html:766
+#: templates/sheets.html:690
 msgid "Write or paste text"
-msgstr "འབྲི་བ་དང་ཡང་ན་ངོ་བཤུ་ཞོག"
+msgstr ""
 
-#: templates/sheets.html:790 templates/sheets.html:791
+#: templates/sheets.html:713
 msgid "Add Image, Youtube Video, SoundCloud link, or MP3"
-msgstr "འདྲ་པར་དང་ཡུས་ཁྲུབ་ཀྱི་བརྙན། SoundCloud ཡི་དྲ་ཐག་དང་ཡང་ན་MP3 བཅས་ཀྱི་གང་རུང་ཞིག་ཞོག"
+msgstr ""
 
-#: templates/sheets.html:795
+#: templates/sheets.html:718
 msgid "Paste URL"
 msgstr "དྲ་ཐག་བཤུ་ས།"
 
-#: templates/sheets.html:810 templates/sheets.html:811
+#: templates/sheets.html:731
 msgid "Upload an Image"
 msgstr "འདྲ་པར་ནང་འཇུག་གྱིས།"
 
-#: templates/sheets.html:820 templates/sheets.html:821
+#: templates/sheets.html:740
 msgid "Comment on this section"
-msgstr "ཚན་པ་འདིའི་སྒང་ལ་མཆན་ཕྲིས།"
+msgstr ""
 
-#: templates/sheets.html:846 templates/sheets.html:847
+#: templates/sheets.html:763
 msgid "Watch a 2 minute intro video or "
-msgstr "སྐར་མ་གསུམ་ཅན་གྱི་ངོ་སྤྲོད་བརྙན་ཞིག་ལ་གཟིགས་སམ་ཡང་ན་"
+msgstr ""
 
-#: templates/sheets.html:846 templates/sheets.html:847
+#: templates/sheets.html:763
 msgid "read more"
-msgstr "འདི་ལས་མང་ཙམ་ཀློག"
+msgstr ""
 
-#: templates/sheets.html:851 templates/sheets.html:852
+#: templates/sheets.html:767
 msgid "Source Sheet Builder: How it Works"
-msgstr "མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས། འདིས་ལས་ཀ་བྱེད་སྟངས་ག་འདྲ་འདུག"
+msgstr ""
 
-#: templates/sheets.html:858 templates/sheets.html:862
+#: templates/sheets.html:773 templates/sheets.html:777
 msgid "Add Sources"
-msgstr "རྒྱུ་ཆ་ཞོག"
+msgstr ""
 
-#: templates/sheets.html:858 templates/sheets.html:862
+#: templates/sheets.html:773 templates/sheets.html:777
 msgid "by typing a citation like:"
-msgstr "རང་འགུལ་གྱི་ལུང་ཚིག་གི་དྲ་ཐག"
+msgstr ""
 
-#: templates/sheets.html:867 templates/sheets.html:868
+#: templates/sheets.html:782
 msgid "Reorder Sources"
-msgstr "མ་ཕྱིའི་གོ་རིམ་བསྐྱར་སྒྲིག"
+msgstr ""
 
-#: templates/sheets.html:867 templates/sheets.html:868
+#: templates/sheets.html:782
 msgid "by dragging and dropping."
-msgstr "drag དང་ drop བཀོལ་སྤྱོད།"
+msgstr ""
 
-#: templates/sheets.html:871 templates/sheets.html:872
+#: templates/sheets.html:785
 msgid "your sheets to paper or PDF, or just"
-msgstr "པར་འདེབས་བྱེད་པ་དང་ཡང་ན་ PDF ཡང་ན་དེའི་དྲ་ཐག་"
+msgstr ""
 
-#: templates/sheets.html:871 templates/sheets.html:872
+#: templates/sheets.html:785
 msgid " the link."
-msgstr " ཙམ་བྱ་རྒྱུ་ཡིན།"
+msgstr ""
 
-#: templates/sheets.html:875 templates/sheets.html:876
+#: templates/sheets.html:788
 msgid "More Options"
-msgstr " འདི་ལས་མང་བ་ཡོད།"
+msgstr ""
 
-#: templates/sheets.html:875 templates/sheets.html:876
+#: templates/sheets.html:788
 msgid "are available in the icons that appear when you hover over a source."
-msgstr "ཁྱེད་ཀྱིས་མ་ཕྱི་ཞིག་གི་སྒང་ལ་བཞག་དུས་འཆར་ཡོང་བའི་འདྲ་པར་icon དེའི་ནང་འདེམ་གསེས་"
+msgstr ""
 
-#: templates/sheets.html:882
+#: templates/sheets.html:794
 msgid "Take a spin! But you'll need to "
 msgstr ""
 
-#: templates/sheets.html:882 templates/sheets.html:884
+#: templates/sheets.html:794
 msgid "login"
-msgstr "ནང་འཛུལ།"
+msgstr ""
 
-#: templates/sheets.html:883 templates/sheets.html:885
+#: templates/sheets.html:795
 msgid "to save your work."
-msgstr "ཁྱེད་ཀྱི་ལས་ཀ་ཉར་ཚགས་བྱེད་པ་ལ་"
+msgstr ""
 
-#: templates/sheets.html:894
+#: templates/sheets.html:806
 msgid "Made with the Sefaria Source Sheet Builder"
-msgstr "དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས་ཀྱིས་བཟོས་པ།"
+msgstr ""
 
-#: templates/sheets.html:905 templates/sheets.html:906
+#: templates/sheets.html:817
 msgid "Add Highlight"
-msgstr "ནན་རྟགས་ཞོག"
+msgstr ""
 
-#: templates/sheets.html:917
+#: templates/sheets.html:828
 msgid "Create New"
-msgstr "གསར་པ་བཟོས།"
+msgstr ""
 
-#: templates/sheets.html:933 templates/sheets.html:934
+#: templates/sheets.html:843
 msgid "Source Sheet created on Pecha by "
-msgstr "དཔེ་ཆ་དྲ་ཚིག་ཐོག་ནང་མ་ཕྱིའི་ཤོག་ངོས་བཟོས་འདུག "
+msgstr ""
 
-#: templates/sheets.html:938 templates/sheets.html:939
+#: templates/sheets.html:847
 msgid "Based on "
-msgstr "གཞིར་བཞག་ཡོད། "
+msgstr ""
 
-#: templates/sheets.html:955 templates/sheets.html:956
+#: templates/sheets.html:862
 msgid ""
 "Assignments allow you to create a template that your students can fill out "
 "on their own."
 msgstr ""
-"ལས་བགོ་བྱས་པ་དེས་ཁྱེད་ལ་རང་ཉིད་ཀྱི་སློབ་ཕྲུག་རྣམས་ཀྱིས་འགེངས་ཆོག་པའི་མ་དཔེ་གསར་བཟོ་བྱེད་པའི་ཆོག་མཆན་"
-"སྤྲོད་ཡོང་།"
 
-#: templates/sheets.html:960 templates/sheets.html:961
+#: templates/sheets.html:866
 msgid "Assign this Sheet"
 msgstr "ཟིན་བྲིས་འདི་སྦྱོང་ཚན་ལ་སྒྱུར།"
 
-#: templates/sheets.html:964 templates/sheets.html:965
+#: templates/sheets.html:869
 msgid "Stop Collecting Assignments"
 msgstr "སྦྱོང་ཚན་ལ་ལྟ་མི་ཐུབ་པ་བཟོ།"
 
-#: templates/sheets.html:972 templates/sheets.html:973
+#: templates/sheets.html:876
 msgid "Saved Assignments"
 msgstr "ནང་སྦྱོང་འབྱོར་ཟིན་པ།"
 
-#: templates/sheets.html:982 templates/sheets.html:983
+#: templates/sheets.html:885
 msgid "Your student's saved assignments will be viewable here."
-msgstr "ཁྱེད་ཀྱི་སློབ་ཕྲུག་གིས་ཉར་ཚགས་བྱས་པའི་ལས་བགོ་རྣམས་འདི་ནས་བལྟ་ཆོག"
+msgstr ""
 
-#: templates/sheets.html:993
+#: templates/sheets.html:895
 msgid "Write a summary to help others understand your sheet..."
 msgstr "ཀློག་པ་པོའི་ཆེད་དུ་ཟིན་བྲིས་འདི་ལ་ངོ་སྤྲོད་སྙིང་བསྡུས་ཤིག་ཕྲིས།"
 
-#: templates/sheets.html:999
+#: templates/sheets.html:901
 msgid "Add Tags..."
 msgstr "ཚིག་གནད་སྣོན།"
 
-#: templates/sheets.html:1009 templates/sheets.html:1010
+#: templates/sheets.html:911
 msgid "List on Pecha"
 msgstr "ཚང་མས་མཐོང་སར་སྤེལ།"
 
-#: templates/sheets.html:1026 templates/sheets.html:1027
+#: templates/sheets.html:927
 msgid "Display Collection"
-msgstr "ཕྱོགས་བསྒྲིགས་འཆར་སྟོན།"
+msgstr ""
 
-#: templates/sheets.html:1033
+#: templates/sheets.html:933
 msgid "None"
-msgstr "མི་འདུག"
+msgstr ""
 
-#: templates/sheets.html:1046 templates/sheets.html:1047
+#: templates/sheets.html:946
 msgid "To manage the collections this sheet appears in, visit your profile."
-msgstr "ཤོག་ངོས་འདིའི་ནང་འཆར་རྒྱུའི་ཕྱོགས་བསྒྲིགས་འདི་དོ་དམ་བྱེད་པ་ལ་ཁྱེད་ཀྱི་སྙིང་བསྡུས་ཤོག་ངོས་སུ་གཟིགས།"
+msgstr ""
 
-#: templates/sheets.html:1056 templates/sheets.html:1057
+#: templates/sheets.html:955
 msgid "Share a link"
 msgstr "བརྒྱུད་སྐུར་དྲ་ཐག་འདི་ཡིན།"
 
-#: templates/sheets.html:1068 templates/sheets.html:1069
+#: templates/sheets.html:968
 msgid "Anyone with access can"
 msgstr "དྲ་ཐག་བརྒྱུད་ནས་ཀློག་མཁན་གྱིས་ཟིན་བྲིས་འདི།"
 
-#: templates/sheets.html:1092
+#: templates/sheets.html:989
 msgid ""
 "\n"
 "            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
 "            "
 msgstr ""
-"\n"
-"         <span class=\"sourceName\"></span>  མ་ཕྱིའི་ཤོག་ངོས་ཤིག་གི་ནང་སྣོན།\n"
-"        "
 
-#: templates/sheets.html:1117 templates/sheets.html:1118
+#: templates/sheets.html:1011
 msgid ""
 "Copy and paste the embed code below. Adjust the values of width and height "
 "to best fit your design."
 msgstr ""
-"ཨང་བརྡ་ངོ་བཤུ་བྱས་ཏེ་གཤམ་ལ་བཤུས། ཁྱེད་ཀྱི་ཇུས་འགོད་འོས་འཚམ་ཡོང་ཕྱིར་འཕྲེད་དང་ཞེང་ཁའི་ཚད་གཞི་སྙོམས་"
-"སྒྲིག་བྱོས།"
 
-#: templates/sheets.html:1125 templates/sheets.html:1126
+#: templates/sheets.html:1018
 msgid "Add a Parasha to a Source Sheet"
-msgstr "མ་ཕྱིའི་ཤོག་ངོས་ནང་ཚན་པ་ཞོག"
+msgstr ""
 
-#: templates/sheets.html:1139
+#: templates/sheets.html:1030
 msgid "Change this source's layout"
 msgstr ""
 
-#: templates/sheets.html:1156
+#: templates/sheets.html:1047
 msgid "Reset to sheet defaults"
 msgstr ""
 
-#: templates/sheets.html:1165 templates/sheets.html:1166
+#: templates/sheets.html:1056
 msgid "Would you like to make your Source Sheet public?"
 msgstr "ཟིན་བྲིས་འདི་ཚང་མས་མཐོང་སར་སྤེལ་རྒྱུ་ཡིན་ནམ།"
 
-#: templates/sheets.html:1171 templates/sheets.html:1174
+#: templates/sheets.html:1061
 msgid ""
 "Your Source Sheet is looking great! You can share it with other members of "
 "the Pecha Community by making it public."
 msgstr ""
-"ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་ཀྱི་རྣམ་པ་ལེགས་པོ་འདུག ཁྱེད་ཀྱིས་དེ་མི་ཚང་མས་མཐོང་ཐུབ་པ་བཟོས་ཏེ། དཔེ་ཆ་དྲ་ཚིག་གི་"
-"ཚོགས་སྡེའི་ནང་གི་ཁོངས་མི་རྣམས་དང་མཉམ་སྤྱོད་བྱ་ཆོག"
 
-#: templates/sheets.html:1179 templates/sheets.html:1180
+#: templates/sheets.html:1066
 msgid "Make Public"
 msgstr "ཡོངས་ལ་སྤེལ།"
 
-#: templates/sheets.html:1183 templates/sheets.html:1184
+#: templates/sheets.html:1069
 msgid "Maybe Later"
 msgstr "རྗེས་མར་སྤེལ།"
 
-#: templates/sheets.html:1189 templates/sheets.html:1190
+#: templates/sheets.html:1074
 msgid "Your Sheet is now Public!"
-msgstr "ད་ལྟ་ཁྱེད་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་ཚང་མས་མཐོང་ཐུབ་པ་བཟོས་ཡོད།"
+msgstr ""
 
-#: templates/sheets.html:1194 templates/sheets.html:1195
+#: templates/sheets.html:1078
 msgid ""
 "Thank you for contributing to a free, growing resource for Jewish learning."
 msgstr ""
-"ནང་ཆོས་སློབ་གཉེར་གྱི་ཆེད་དུ་རིན་འབབ་སྤྲོད་མི་དགོས་པའི་རྒྱུ་ཆ་ཁ་སྣོན་དང་མཁོ་སྤྲོད་བྱས་པར་བཀའ་དྲིན་ཆེ་ཞུ།"
 
-#: templates/sheets.html:1205 templates/sheets.html:1206
+#: templates/sheets.html:1087
 msgid "No problem, this sheet is still not listed on Sefaria."
-msgstr "གནད་དོན་མི་འདུག ཤོག་ངོས་འདི་ད་དུང་དཔེ་ཆ་དྲ་ཚིག་གི་དཔེ་མཛོད་ནང་ཐོ་རུ་བཀོད་མི་འདུག"
+msgstr ""
 
-#: templates/sheets.html:1211 templates/sheets.html:1215
+#: templates/sheets.html:1092
 msgid "You can make your sheet public in the future from the"
-msgstr "ཁྱེད་ཀྱིས་གཞུག་ཕྱོགས་རང་ཉིད་ཀྱི་ཤོག་ངོས་མི་ཚང་མས་མཐོང་ཐུབ་པ་བཟོ་ཆོག"
+msgstr ""
 
 #: templates/sheets_visual.html:4
 msgid "Visualized"
-msgstr "མཐོང་ཐུབ་པའི་རི་མོའི་རྣམ་པ་ཅན།"
+msgstr ""
 
 #: templates/sheets_visual.html:4
 msgid "Sefaria Source Sheet Builder"
-msgstr "དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས།"
+msgstr ""
 
 #: templates/sheets_visual.html:6
 #, python-format
@@ -2208,10 +2024,8 @@ msgid ""
 "Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
 "Sefaria's Source Sheet Builder."
 msgstr ""
-"དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་མ་ཕྱིའི་ཤོག་ངོས་བཟོ་ཆས་སྤྱད་ནས་བཟོས་པ %(sheet.owner|user_name)s འི་མ་ཕྱིའི་"
-"ཤོག་ངོས་ཀྱི་མཐོང་ཐུབ་པའི་རི་མོའི་རྣམ་པ་ཅན།"
 
-#: templates/sheets_visual.html:30 templates/sheets_visual.html:31
+#: templates/sheets_visual.html:30
 msgid "Back to Sheet"
 msgstr ""
 
@@ -2221,71 +2035,65 @@ msgstr ""
 
 #: templates/static/app.html:4
 msgid "Sefaria App"
-msgstr "དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་མཉེན་ཆས།"
+msgstr ""
 
 #: templates/static/app.html:6
 msgid "Download the free Sefaria App for iOS and Android."
-msgstr "iOS དང་ Android ནང་རིན་མེད་དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་མཉེན་ཆས་ཕབ་ལེན་བྱོས།"
+msgstr ""
 
 #: templates/static/app.html:314 templates/static/mobile.html:319
 msgid "Sign up for our Newsletter"
-msgstr "ང་ཚོའི་གསར་འཕྲིན་ལ་ཞུགས་ཐོ་གསར་འགོད་བྱོས།"
+msgstr ""
 
 #: templates/static/app.html:374
 #: templates/static/aramaic-translation-contest.html:180
 #: templates/static/home.html:383 templates/static/mobile.html:379
 #: templates/static/newsletter.html:47
 msgid "<i>Subscribing...</i>"
-msgstr "<i>སྔོན་མངགས་བྱེད་བཞིན་པ་...</i>"
+msgstr ""
 
 #: templates/static/app.html:380
 #: templates/static/aramaic-translation-contest.html:186
 #: templates/static/home.html:389 templates/static/mobile.html:385
 #: templates/static/newsletter.html:53
 msgid "Subscribed! Welcome to our list."
-msgstr "སྔོན་མངགས་བྱས་ཟིན། ང་ཚོའི་ཐོ་གཞུང་ལ་ཚུད་པར་དགའ་བསུ་ཞུ།"
+msgstr ""
 
 #: templates/static/app.html:386
 #: templates/static/aramaic-translation-contest.html:192
 #: templates/static/home.html:395 templates/static/mobile.html:391
 #: templates/static/newsletter.html:59
 msgid "Please enter a valid email address."
-msgstr "གློག་འཕྲིན་ཚུལ་མཐུན་ཞིག་ནང་འཇུག་བྱེད་རོགས།"
+msgstr ""
 
 #: templates/static/aramaic-translation-contest.html:4
-#: templates/static/home.html:5
 msgid "Sefaria: a Living Library of Jewish Texts Online"
-msgstr "Pecha ནི་དྲ་ཐོག་གི་ནང་བསྟན་གསུང་རབ་ཀྱི་དཔེ་མཛོད་ཅིག་ཡིན།"
+msgstr ""
 
 #: templates/static/aramaic-translation-contest.html:6
-#: templates/static/home.html:7
 msgid ""
 "The largest free library of Jewish texts available to read online in Hebrew "
 "and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries "
 "and more."
 msgstr ""
-"བོད་སྐད་དང་དབྱིན་སྐད་གཉིས་ཀྱི་ནང་ཡོད་པའི་ནང་པའི་གཞུང་ལུགས་དཔེ་ཀློག་བྱ་སའི་རིན་མེད་དྲ་ཐོག་དཔེ་མཛོད་ཆེ་"
-"ཤོས། འདིའི་ནང་འཚོ་བའི་ཁྲོད་ངེས་པར་མཁོ་བའི་ནང་པའི་ཆོས་གཞུང་རྩ་འགྲེལ་སྣ་ཚོགས་བཞུགས་ཡོད།"
 
 #: templates/static/connect.html:4
 msgid "Sefaria Newsletter, Social Media and More"
-msgstr "དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་གསར་འཕྲིན། སྤྱི་ཚོགས་དྲ་རྒྱ་འདི་དག་ལས་མང་བའི་བརྒྱུད་ལམ་གཞན།"
+msgstr ""
 
 #: templates/static/connect.html:6
 msgid ""
 "Get updates on new texts and features on Sefaria by signing up for our "
 "newsletter or following us on social media."
 msgstr ""
-"ང་ཚོའི་འཕྲིན་གསར་ཁག་ལ་ཐོ་འགོད་བྱས་པ་དང་ཡང་ན་སྤྱི་ཚོགས་དྲ་རྒྱ་ཁག་ནས་ང་ཚོར་རྗེས་འཇུག་བྱས་པ་བརྒྱུད་ནས་"
-"དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་ ནང་དཔེ་དེབ་དང་ཁྱད་ཆོས་གསར་པ་ཁ་གསབ་བྱུང་བ།"
 
 #: templates/static/contest.html:4 templates/static/contest.html:6
 msgid "Powered by Sefaria Contest"
-msgstr "དཔེ་ཆ་དྲ་ཚིགས་ཀྱི་འགྲན་བསྡུར་གྱིས་གོ་སྒྲིག་བྱས།"
+msgstr ""
 
 #: templates/static/contributed-to-sefaria.html:4
 msgid "Texts Contributed to Sefaria"
-msgstr "དཔེ་ཆ་དྲ་ཚིགས་ལ་ཕུལ་བའི་དཔེ་དེབ་ཁག"
+msgstr ""
 
 #: templates/static/contributed-to-sefaria.html:6
 msgid ""
@@ -2293,8 +2101,6 @@ msgid ""
 "directly to Sefaria and have not yet been published elsewhere in print or on "
 "the web."
 msgstr ""
-"ཤོག་ངོས་འདི་འབྱུང་ཁུངས་སུ་བཀོད་པའི་Pecha དྲ་ཐོག་དཔེ་མཛོད་ནང་གི་དཔེ་ཆ་རྣམས་ནི་ཐད་ཀར་Pecha ནང་ལ་"
-"བཞག་པ་ཤ་སྟག་ཡིན་པས། གཞན་གང་ལ་ཡང་པར་འདེབས་དང་དྲ་ལམ་སོགས་སུ་སྤེལ་མེད།"
 
 #: templates/static/daf-yomi.html:4
 msgid "Daf Yomi | Sefaria"
@@ -2302,40 +2108,38 @@ msgstr ""
 
 #: templates/static/daf-yomi.html:6
 msgid "Learn the Talmud each day with Daf Yomi on Sefaria."
-msgstr "Pecha ནང་གི་ Daf Yomi བརྒྱུད་ནས་ཉིན་རེ་བཞིན་ཐལ་མུས་ཊ་སློབ་སྦྱོང་བྱེད།"
+msgstr ""
 
 #: templates/static/dicta-thanks.html:4
 msgid "Dicta Thanks"
-msgstr "Dicta ཐུགས་རྗེ་ཆེ།"
+msgstr ""
 
 #: templates/static/dicta-thanks.html:6
 msgid "Sefaria thanks Dicta for all of their help."
-msgstr "Pecha ཡིས་ Dicta ཡིའི་རམ་འདེགས་གང་བྱས་ལ་བཀའ་དྲིན་ཆེ་ཞུ།"
+msgstr ""
 
 #: templates/static/digitized-by-sefaria.html:4
 msgid "Texts Digitized by Sefaria"
-msgstr "Pecha ཡིས་ཨང་བསྒྱུར་བྱས་པའི་དཔེ་ཆ་རྣམས།"
+msgstr ""
 
 #: templates/static/educators.html:4 templates/static/educators.html:6
 msgid "Teach with Sefaria"
-msgstr "Pecha བརྒྱུད་ནས་སློབ་ཁྲིད་བྱེད།"
+msgstr ""
 
 #: templates/static/en/about.html:4 templates/static/he/about.html:4
-msgid "About Sefaria"
-msgstr "Pecha ཡི་སྐོར།"
+msgid "About Pecha"
+msgstr ""
 
 #: templates/static/en/about.html:6 templates/static/he/about.html:6
 msgid ""
-"Sefaria is a nonprofit organization dedicated to building the future of "
-"Jewish learning in an open and participatory way."
+"Pecha is a nonprofit organization dedicated to building the future of "
+"Buddhist learning in an open and participatory way."
 msgstr ""
-"Pecha ནི་ཁེ་མེད་ཚོགས་པ་ཞིག་སྟེ། སྤྱི་སྤྱོད་དང་ཐུན་མོང་མཉམ་ཞུགས་ཀྱི་ཐབས་ལམ་ནས་ནང་བསྟན་སློབ་གཉེར་གྱི་"
-"མདུན་ལམ་ཞིག་འཛུགས་སྐྲུན་བྱེད་པར་འབད་བརྩོན་བྱེད་བཞིན་མཁན་ཞིག་ཡིན།"
 
 #: templates/static/en/ways-to-give.html:4
 #: templates/static/he/ways-to-give.html:5
 msgid "Donate to Sefaria"
-msgstr "Pecha ལ་ཞལ་འདེབས་གནང་རོགས།"
+msgstr ""
 
 #: templates/static/en/ways-to-give.html:6
 #: templates/static/he/ways-to-give.html:7
@@ -2343,54 +2147,61 @@ msgid ""
 "Support Sefaria by making a tax-deductible donation online or by check or "
 "wire transfer."
 msgstr ""
-"Pecha ལ་དྲ་ལམ་གྱི་དཔྱ་ཁྲལ་ཆག་ཡང་གི་ཞལ་འདེབས་དང་། ཡང་ན་check དང་ wire transfer གང་རུང་"
-"བརྒྱུད་ནས་རྒྱབ་སྐྱོར་མཚོན་བྱེད་ཀྱི་ཞལ་འདེབས་རེ་གནང་རོགས།"
+
+#: templates/static/home.html:5
+msgid "Pecha: a Living Library of Buddhist Texts Online"
+msgstr ""
+
+#: templates/static/home.html:7
+msgid ""
+"The largest free library of Buddhist texts available to read online in "
+"Tibetan and English including commentaries and more."
+msgstr ""
+
+#: templates/static/home.html:18 templates/static/home.html:32
+msgid "Pecha"
+msgstr "དཔེ་ཀློག་ཁང་།"
 
 #: templates/static/ios.html:4
 msgid "Sefaria iOS"
 msgstr ""
 
 #: templates/static/jobs.html:4
-msgid "Jobs at Sefaria"
-msgstr "Pecha ཡི་ལས་རིགས།"
+msgid "Jobs at Pecha"
+msgstr ""
 
 #: templates/static/jobs.html:6
 msgid ""
-"Job openings at Sefaria, a nonprofit technology organization dedicated to "
-"building the Jewish future."
+"Job openings at Pecha, a nonprofit technology organization dedicated to "
+"building the Buddhist future."
 msgstr ""
-"Pecha ནང་ལས་ཀའི་ས་མིག་སྐྲུན་བཞིན་ཡོད། འདི་ནི་ཁེ་མེད་འཕྲུལ་རིག་ལག་རྩལ་གྱི་ཚོགས་པ་ཞིག་སྟེ། ནང་བསྟན་གྱི་"
-"མ་འོངས་མདུན་ལམ་ཞིག་བསྐྲུན་པར་འབད་འབུངས་བྱེད་བཞིན་ཡོད།"
 
 #: templates/static/linker.html:4
 msgid "Linker Plugin"
-msgstr "དྲ་ཐག་བཟོ་ཆས་ཀྱི་ Plugin"
+msgstr ""
 
 #: templates/static/linker.html:6
 msgid ""
 "Automatically turn citations on your website into links or dynamic popups "
 "with the full text from Sefaria."
 msgstr ""
-"Pecha ནང་ནས་དཔེ་ཆ་ཧྲིལ་བོ་དེའི་དྲ་ཐག་དང་ཡང་ན་འཆར་སྟེགས་སྒེའུ་ཁུང་ཞིག་བརྒྱུད་ནས་ལུང་ཚིག་རྣམས་ཁྱེད་ཀྱི་"
-"དྲ་ཚིགས་ནང་རང་འགུལ་གྱིས་སྒོ་ཕྱེ་ཡོང་བ་ཡིན།"
 
 #: templates/static/mobile.html:4
-msgid "Sefaria Mobile Apps"
-msgstr "Pecha ཡི་ཁ་པར་མཉེན་ཆས།"
+msgid "Pecha Mobile Apps"
+msgstr ""
 
 #: templates/static/mobile.html:6
 msgid "Download the free Sefaria Apps for iOS and Android."
 msgstr ""
-"ཀུ་ཤུ་རྟགས་ཅན་ iOS དང་ཨན་ཊོ་མ་ལག་ཅན་ Android གཉིས་ཀྱི་Sefaria ཡི་རིན་མེད་མཉེན་ཆས་ཕབ་ལེན།"
 
 #: templates/static/newsletter.html:4 templates/static/newsletter.html:6
 msgid "Sign up for Sefaria's Newsletter"
-msgstr "Pecha ཡི་གསར་འཕྲིན་ལ་ཐོ་འགོད་བྱོས།"
+msgstr ""
 
 #: templates/static/powered-by-sefaria-contest-2020.html:4
 #: templates/static/powered-by-sefaria-contest-2020.html:6
 msgid "Powered by Sefaria Contest 2020"
-msgstr "༢༠༢༠ ལོའི་ Pecha ཡི་འགྲན་བསྡུར་གྱིས་གོ་སྒྲིག་བྱས།"
+msgstr ""
 
 #: templates/static/powered-by-sefaria-contest-2021.html:4
 #: templates/static/powered-by-sefaria-contest-2021.html:6
@@ -2399,129 +2210,124 @@ msgstr ""
 
 #: templates/static/powered-by.html:4
 msgid "Powered by Sefaria"
-msgstr "Pecha ཡིས་གོ་སྒྲིག་བྱས།"
+msgstr ""
 
 #: templates/static/powered-by.html:6
 msgid ""
 "Sefaria’s open data and API can be used by anyone.  You can find it all for "
 "free in our GitHub repository!"
 msgstr ""
-"Pecha ཡི་སྤྱི་སྤྱོད་ཀྱི་གཞི་གྲངས་དང་ API གཉིས་ནི་མི་སུས་ཀྱང་ལོངས་སུ་སྤྱོད་ཆོག་སྟེ། དེ་དག་དགོས་ཚེ་རིན་འབབ་"
-"གང་ཡང་སྤྲོད་མི་དགོས་པར་ང་ཚོའི་གྷི་ཐབ་གསོག་མཛོད་ནང་ནས་ཐད་ཀར་བཀོལ་སྤྱོད་བྱ་ཆོག"
+
+#: templates/static/privacy-policy.html:4
+msgid "Privacy Policy"
+msgstr "བེད་སྤྱོད་དབང་ཆ།"
 
 #: templates/static/ramban-sponsorships.html:4
 #: templates/static/ramban-sponsorships.html:6
 msgid "Ramban on Torah - Thank you to our Sponsors"
-msgstr "Torah  ནང་གི་Ramban. ང་ཚོར་སྦྱིན་བདག་གནང་བར་བཀའ་དྲིན་ཆེ།"
+msgstr ""
 
 #: templates/static/remote-learning.html:4
 msgid "Remote Learning | Sefaria"
-msgstr "| Pecha ནང་ཕྱོགས་སོ་སོ་ནས་མཉམ་ཞུགས་ཀྱིས་སློབ་གཉེར་བྱེད་པ།"
+msgstr ""
 
 #: templates/static/remote-learning.html:6
 msgid "Resources for teaching and learning virtually."
-msgstr "དྲ་ལམ་ནས་སློབ་ཁྲིད་དང་སློབ་གཉེར་བྱེད་པའི་རྒྱུ་ཆ་ཁག"
+msgstr ""
 
 #: templates/static/sefaria-community-translation.html:4
 msgid "About Sefaria Community Translations"
-msgstr "Pecha ཡི་ཚོགས་སྡེའི་འགྱུར་དེབ་ཀྱི་སྐོར།"
+msgstr ""
 
 #: templates/static/sefaria-community-translation.html:6
 msgid ""
 "Sefaria Community Translations are open, crowd-sourced translations of texts "
 "available in the Sefaria Library."
 msgstr ""
-"Pecha ཡི་ཚོགས་སྡེའི་ཡིག་བསྒྱུར་རྣམས་ནི་Sefaria དྲ་ཐོག་དཔེ་མཛོད་ནང་ཐུན་མོང་གིས་ཡིག་བསྒྱུར་བྱས་པའི་དཔེ་"
-"ཚོགས་ཤིག་ཡིན་པ་གང་ཞིག ཐུན་མོང་གིས་ལོངས་སྤྱོད་བྱས་ཆོག་པ་ཞིག་ཀྱང་ཡིན།"
 
 #: templates/static/sefaria-edition.html:4
 msgid "About Sefaria Editions"
-msgstr "Pecha ཡི་དཔར་གཞིའི་སྐོར།"
+msgstr ""
 
 #: templates/static/sefaria-edition.html:6
 msgid ""
 "The Sefaria Edition is a Sefaria commissioned translation created by "
 "professional translators."
 msgstr ""
-"Pecha དཔར་གཞི་ཟེར་བ་ནི་Pecha ཡིས་ཆེད་མངགས་བྱས་ཏེ་ཆེད་ལས་ལོ་ཙཱ་བ་རྣམས་ཀྱིས་ཡིག་བསྒྱུར་བྱས་པ་ཞིག་"
-"ཡིན།"
 
 #: templates/static/sheets.html:4
-msgid "Sheets on Sefaria"
-msgstr "Pecha ནང་གི་ཤོག་ངོས།"
+msgid "Sheets on Pecha"
+msgstr ""
 
 #: templates/static/sheets.html:6
 msgid ""
 "Mix and match sources from Sefaria’s library of Jewish texts, and add your "
 "comments, images and videos."
 msgstr ""
-"ནང་བསྟན་དྲ་ཐོག་དཔེ་མཛོད་ Pecha ནང་གི་རྒྱུ་ཆ་བསྲེས་མ་དང་ཡོངས་སུ་མཐུན་པ། ཁྱེད་ཀྱི་མཆན་འགོད་པ། འདྲ་"
-"པར་དང་བརྙན།"
 
 #: templates/static/shraga-silverstein.html:4
 msgid "In Memory of Rabbi Shraga Silverstein"
-msgstr "Rabbi Shraga Silverstein ཡི་དྲན་རྟེན་ནང་"
+msgstr ""
 
 #: templates/static/strategy.html:4
 msgid "Sefaria Strategy"
-msgstr "Pecha ཡི་ཐབས་བྱུས།"
+msgstr ""
 
 #: templates/static/supporters.html:4
 msgid "Sefaria's Supporters"
-msgstr "Pecha ཡི་རྒྱབ་སྐྱོར་བ།"
+msgstr ""
 
 #: templates/static/supporters.html:6
 msgid ""
 "Sefaria gratefully acknowledges the following donors whose generosity and "
 "leadership are making Sefaria possible."
 msgstr ""
-"Pecha ཡིས་གཤམ་གསལ་གྱི་གཏོང་ཕོད་ཆེ་བའི་ཞལ་འདེབས་ཕུལ་མཁན་ཡོངས་ལ་བཀའ་དྲིན་ཆེ་ཞུ། ཁྱེད་ཅག་གིས་གཏོང་"
-"ཕོད་དང་དབུ་ཁྲིད་བྱས་པ་ལ་བརྟེན་ནས་Sefaria མུ་མཐུད་ནས་རེ་བས་གསོན་ཡོད།"
 
 #: templates/static/team.html:5
 msgid "The Sefaria Team"
-msgstr "Pecha ཡི་ཚོགས་ཆུང་།"
+msgstr ""
 
 #: templates/static/team.html:7
 msgid "Sefaria's team is working to create the Jewish future."
 msgstr ""
-"Pecha ཡི་ཚོགས་ཆུང་གིས་ནང་བསྟན་གྱི་་མ་འོངས་མདུན་ལས་ཞིག་གསར་བསྐྲུན་བྱེད་པར་འབད་བརྩོན་བྱེད་བཞིན་ཡོད།"
+
+#: templates/static/terms.html:4
+msgid "Terms of Use"
+msgstr "བཀོལ་སྤྱོད་སྒྲིག་གཞི།"
 
 #: templates/static/testimonials.html:4
 msgid "Sefaria Testimonials"
-msgstr "Pecha ཡི་དྲིན་གཟོའི་ཡིག་ཆ།"
+msgstr ""
 
 #: templates/static/testimonials.html:6
 msgid "Sefaria’s Impact – Reflections and Insights from Users"
-msgstr "བཀོལ་སྤྱོད་མཁན་ཀྱིས་སྤྲད་པའི་Pecha ཡི་ཤུགས་རྐྱེན་གྱི་ཕན་གནོད་དང་ཤེས་རྟོགས།"
+msgstr ""
 
 #: templates/static/the-sefaria-story.html:4
 msgid "The Sefaria Story"
-msgstr "Pecha ཡི་ལོ་རྒྱུས།"
+msgstr ""
 
 #: templates/static/the-sefaria-story.html:6
 msgid "Watch a video about the story of Sefaria."
-msgstr "Pecha ཡི་ལོ་རྒྱུས་ཀྱི་བརྙན་ཞིག་ལ་གཟིགས།"
+msgstr ""
 
 #: templates/static/torah-tab.html:5
 msgid "Sefaria Torah Tab"
-msgstr "Pecha Torah ཐེབས།"
+msgstr ""
 
 #: templates/static/torah-tab.html:7
 msgid "Install the free Sefaria Torah Tab for your web browser."
-msgstr "ཁྱེད་ཀྱི་དྲ་ཚིགས་བཤེར་ལྟའི་ནང་རིན་མེད་ཀྱི་ Pecha Torah ཡི་ཐེབས་ཕབ་ལེན་བྱོས།"
+msgstr ""
 
 #: templates/static/visualizations.html:4
 msgid "Visualizations"
-msgstr "མཐོང་ཐུབ་པའི་རྣམ་པ་ཅན།"
+msgstr ""
 
 #: templates/static/visualizations.html:6
 msgid ""
 "Projects which have been created to make interactive visualizations of the "
 "texts and connections in the Sefaria Library of Torah texts."
 msgstr ""
-"Pecha ནང་བསྟན་དྲ་ཐོག་དཔེ་མཛོད་ནང་གི་དཔེ་དེབ་དང་འབྲེལ་ཡོད་རྣམས་ཕན་ཚུན་རྟེན་འབྲེལ་ཀྱི་རྣམ་པ་མཐོང་ཐུབ་"
-"པའི་རྣམ་པ་ཅན་ཞིག་བཟོ་པ་ལ་ཆེད་དུ་བསྐྲུན་པའི་ལས་གཞི་ཁག"
 
 #: templates/static/william-davidson-talmud.html:4
 #: templates/static/william-davidson-talmud.html:84
@@ -2534,45 +2340,45 @@ msgid ""
 "Talmud with parallel translations, interlinked to major commentaries, "
 "biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish "
 "texts."
-msgstr "འདི་ནི་མ་ཕྱི་དང་འགྱུར་མ་ཤན་སྦྱར་བྱས་ནས་བཞག་ཡོད་པའི་ཆོས་གཞུང་སྐོར་ཞིག་ཡིན།"
+msgstr ""
 
 #: templates/static/word-by-word.html:4
 msgid "Word by Word: A Jewish Women's Writing Circle"
-msgstr "མིང་ཚིག་དང་མིང་ཚིག་རེ་རེ་བཞིན་གཏུགས་པ། ནང་པའི་བུད་མེད་ཀྱི་རྩོམ་འབྲིའི་དཀྱིལ་འཁོར།"
+msgstr ""
 
 #: templates/static/word-by-word.html:6
 msgid ""
 "Word by Word: A Jewish Women's Writing Circle will provide up to 20 Jewish "
 "women writers engaged in serious torah scholarship the support and guidance "
 "to produce publishable books."
-msgstr "འདི་ནི་དཔེ་དེབ་དཔར་བསྐྲུན་བྱ་ཕྱོགས་ཀྱི་རྒྱབ་སྐྱོར་དང་ལམ་སྟོན་ཞིག་ཡིན།"
+msgstr ""
 
 #: templates/talmud_people.html:8
 msgid ""
 "An index of the sages of the Talmud (Chazal) ordered by generation, "
 "including relationships to one another, time periods and links to learn more."
-msgstr "དམིགས་བསལ་རྩོམ་པ་པོ་སྐོར་ཞིག་གི་ཕན་ཚུན་བར་གྱི་འབྲེལ་ལམ་དང་བྱུང་དུས་དྲ་ཐག་སོགས་འདུས་ཡོད།"
+msgstr ""
 
 #: templates/talmudic_relationships.html:24
 #: templates/talmudic_relationships.html:26
 msgid "Student-Teacher Relationships in the Talmud"
-msgstr "ནང་པའི་བླ་སློབ་བར་གྱི་འབྲེལ་ལམ།"
+msgstr ""
 
 #: templates/timeline.html:4 templates/timeline.html:6
 msgid "Timeline"
-msgstr "དུས་སྐབས།"
+msgstr ""
 
 #: templates/unique_words_viz.html:7
 msgid "Unique Words used by Biblical Commentators"
-msgstr "བཀའ་འགྱུར་འགྲེལ་བརྗོད་པ་ཚོས་བཀོལ་སྤྱོད་བྱས་པའི་ཐུན་མོང་མ་ཡིན་པའི་མིང་ཚིག"
+msgstr ""
 
 #: templates/unique_words_viz.html:9
 msgid "Explore how unique and verbose biblical commentators were."
-msgstr "བཀའ་བསྟན་འགྲེལ་བརྗོད་པ་རྣམས་ཅི་ཙམ་ཐུན་མོང་མ་ཡིན་པ་དང་ཞིབ་ཕྲ་ཇི་ལྟར་ཡིན་མིན་ལ་གཟིགས།"
+msgstr ""
 
 #: templates/visual_library.html:4
 msgid "Visualizing the Sefaria Library"
-msgstr "Pecha དྲ་ཐོག་དཔེ་མཛོད་དེ་མཐོང་ཐུབ་པའི་དཔེ་རིས་རྣམ་པ་ཅན།"
+msgstr ""
 
 #: templates/visual_library.html:6
 msgid ""
@@ -2580,1326 +2386,17 @@ msgid ""
 "number of words in the texts and categories of Sefaria's library (which is "
 "growing every day!)."
 msgstr ""
-"ཐོ་རཱ་ཐལ་མུས་ཊ་དང་བསྡུར་ན་ཅི་ཙམ་ཆེ་འམ། ཉི་ཟེར་འཕྲོས་པ་ལྟ་བའི་ཐིག་རིས་འདིས་ཁྱེད་ལ་དཔེ་དེབ་དེའི་ནང་"
-"མིང་ཚིག་ག་ཚོད་ཡོད་མེད་ཀྱི་གྲངས་འབོར་དང་Pecha དྲ་ཐོག་དཔེ་མཛོད་ནང་གི་སྡེ་ཚན་རྣམས་ཀྱི་གྲངས་འབོར་བཅས་"
-"སྟོན་ཡོང་བ་ཡིན། (which is growing every day!)"
 
 #: templates/visual_parasha_colors.html:6
 msgid "Visualizing the Parshiot"
-msgstr "Parshiot དེ་མཐོང་ཐུབ་པའི་དཔེ་རིས་རྣམ་པ་ཅན།"
+msgstr ""
 
 #: templates/visualize_links_through_rashi.html:6
 msgid "Visualizing Torah Connections through Rashi's Commentary"
-msgstr "རཱ་ཞེ་སའི་འགྲེལ་བ་བརྒྱུད་ནས་ཐོ་རཱ་དང་འབྲེལ་ཡོད་རྣམས་མཐོང་ཐུབ་པའི་དཔེ་རིས་རྣམ་པ་ཅན།"
+msgstr ""
 
 #: templates/visualize_links_through_rashi.html:8
 msgid ""
 "Explore how Rashi connects verses of Torah to one another when he quotes one "
 "verse in his commentary on another."
-msgstr "རྩ་བ་དང་འགྲེལ་བ་ཕན་ཚུན་འབྲེལ་ལམ་ཇི་ལྟར་ཡོད་མེད་ལ་གཟིགས།"
-
-#: venv/lib/python3.9/site-packages/_pytest/config/argparsing.py:442
-#, python-format
-msgid "ambiguous option: %(option)s could match %(matches)s"
 msgstr ""
-
-#: venv/lib/python3.9/site-packages/captcha/fields.py:26
-#: venv/lib/python3.9/site-packages/captcha/fields.py:27
-msgid "Error verifying reCAPTCHA, please try again."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/contrib/messages/apps.py:7
-msgid "Messages"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/contrib/sitemaps/apps.py:7
-msgid "Site Maps"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/contrib/staticfiles/apps.py:7
-msgid "Static Files"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/contrib/syndication/apps.py:7
-msgid "Syndication"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/paginator.py:43
-msgid "That page number is not an integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/paginator.py:45
-msgid "That page number is less than 1"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/paginator.py:50
-msgid "That page contains no results"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:34
-msgid "Enter a valid value."
-msgstr "གློག་འཕྲིན་ཚུལ་མཐུན་ཞིག་ནང་འཇུག་བྱེད་རོགས།"
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:107
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:671
-msgid "Enter a valid URL."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:160
-msgid "Enter a valid integer."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:171
-msgid "Enter a valid email address."
-msgstr "གློག་འཕྲིན་ཚུལ་མཐུན་ཞིག་ནང་འཇུག་བྱེད་རོགས།"
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:245
-msgid ""
-"Enter a valid 'slug' consisting of letters, numbers, underscores or hyphens."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:252
-msgid ""
-"Enter a valid 'slug' consisting of Unicode letters, numbers, underscores, or "
-"hyphens."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:257
-#: venv/lib/python3.9/site-packages/django/core/validators.py:277
-msgid "Enter a valid IPv4 address."
-msgstr "གློག་འཕྲིན་ཚུལ་མཐུན་ཞིག་ནང་འཇུག་བྱེད་རོགས།"
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:262
-#: venv/lib/python3.9/site-packages/django/core/validators.py:278
-msgid "Enter a valid IPv6 address."
-msgstr "གློག་འཕྲིན་ཚུལ་མཐུན་ཞིག་ནང་འཇུག་བྱེད་རོགས།"
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:272
-#: venv/lib/python3.9/site-packages/django/core/validators.py:276
-msgid "Enter a valid IPv4 or IPv6 address."
-msgstr "གློག་འཕྲིན་ཚུལ་མཐུན་ཞིག་ནང་འཇུག་བྱེད་རོགས།"
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:308
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1131
-msgid "Enter only digits separated by commas."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:314
-#, python-format
-msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:345
-#, python-format
-msgid "Ensure this value is less than or equal to %(limit_value)s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:354
-#, python-format
-msgid "Ensure this value is greater than or equal to %(limit_value)s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:364
-#, python-format
-msgid ""
-"Ensure this value has at least %(limit_value)d character (it has "
-"%(show_value)d)."
-msgid_plural ""
-"Ensure this value has at least %(limit_value)d characters (it has "
-"%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:379
-#, python-format
-msgid ""
-"Ensure this value has at most %(limit_value)d character (it has "
-"%(show_value)d)."
-msgid_plural ""
-"Ensure this value has at most %(limit_value)d characters (it has "
-"%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:399
-#, python-format
-msgid "Ensure that there are no more than %(max)s digit in total."
-msgid_plural "Ensure that there are no more than %(max)s digits in total."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:404
-#, python-format
-msgid "Ensure that there are no more than %(max)s decimal place."
-msgid_plural "Ensure that there are no more than %(max)s decimal places."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:409
-#, python-format
-msgid ""
-"Ensure that there are no more than %(max)s digit before the decimal point."
-msgid_plural ""
-"Ensure that there are no more than %(max)s digits before the decimal point."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:463
-#, python-format
-msgid ""
-"File extension '%(extension)s' is not allowed. Allowed extensions are: "
-"'%(allowed_extensions)s'."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/base.py:1209
-#: venv/lib/python3.9/site-packages/django/forms/models.py:749
-msgid "and"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/base.py:1211
-#, python-format
-msgid "%(model_name)s with this %(field_labels)s already exists."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:116
-#, python-format
-msgid "Value %(value)r is not a valid choice."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:117
-msgid "This field cannot be null."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:118
-msgid "This field cannot be blank."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:119
-#, python-format
-msgid "%(model_name)s with this %(field_label)s already exists."
-msgstr ""
-
-#. Translators: The 'lookup_type' is one of 'date', 'year' or 'month'.
-#. Eg: "Title must be unique for pub_date year"
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:123
-#, python-format
-msgid ""
-"%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:140
-#, python-format
-msgid "Field of type: %(field_type)s"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:901
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1809
-msgid "Integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:905
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1807
-#, python-format
-msgid "'%(value)s' value must be an integer."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:978
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1878
-msgid "Big (8 byte) integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:990
-#, python-format
-msgid "'%(value)s' value must be either True or False."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:992
-msgid "Boolean (Either True or False)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1058
-#, python-format
-msgid "String (up to %(max_length)s)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1115
-msgid "Comma-separated integers"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1172
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid date format. It must be in YYYY-MM-DD "
-"format."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1174
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1319
-#, python-format
-msgid ""
-"'%(value)s' value has the correct format (YYYY-MM-DD) but it is an invalid "
-"date."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1177
-msgid "Date (without time)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1317
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid format. It must be in YYYY-MM-DD HH:MM[:ss[."
-"uuuuuu]][TZ] format."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1321
-#, python-format
-msgid ""
-"'%(value)s' value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]]"
-"[TZ]) but it is an invalid date/time."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1325
-msgid "Date (with time)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1475
-#, python-format
-msgid "'%(value)s' value must be a decimal number."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1477
-msgid "Decimal number"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1628
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid format. It must be in [DD] [HH:[MM:]]ss[."
-"uuuuuu] format."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1631
-msgid "Duration"
-msgstr "འགྱུར་དེབ་ཁག"
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1683
-msgid "Email address"
-msgstr "གློག་འཕྲིན།"
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1707
-msgid "File path"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1773
-#, python-format
-msgid "'%(value)s' value must be a float."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1775
-msgid "Floating point number"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1893
-msgid "IPv4 address"
-msgstr "གློག་འཕྲིན།"
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1924
-msgid "IP address"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2006
-#, python-format
-msgid "'%(value)s' value must be either None, True or False."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2008
-msgid "Boolean (Either True, False or None)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2071
-msgid "Positive integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2083
-msgid "Positive small integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2096
-#, python-format
-msgid "Slug (up to %(max_length)s)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2130
-msgid "Small integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2163
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
-"format."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2165
-#, python-format
-msgid ""
-"'%(value)s' value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
-"invalid time."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2168
-msgid "Time"
-msgstr "དུས་སྐབས།"
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2296
-msgid "URL"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2319
-msgid "Raw binary data"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2366
-#, python-format
-msgid "'%(value)s' is not a valid UUID."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/files.py:391
-msgid "Image"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:788
-#, python-format
-msgid "%(model)s instance with %(field)s %(value)r does not exist."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:790
-msgid "Foreign Key (type determined by related field)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1029
-msgid "One-to-one relationship"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1104
-#, python-format
-msgid "%(from)s-%(to)s relationship"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1105
-#, python-format
-msgid "%(from)s-%(to)s relationships"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1147
-msgid "Many-to-many relationship"
-msgstr ""
-
-#. Translators: If found as last label character, these punctuation
-#. characters will prevent the default label_suffix to be appended to the label
-#: venv/lib/python3.9/site-packages/django/forms/boundfield.py:181
-msgid ":?.!"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:56
-msgid "This field is required."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:258
-msgid "Enter a whole number."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:303
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:340
-msgid "Enter a number."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:418
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:1149
-msgid "Enter a valid date."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:442
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:1150
-msgid "Enter a valid time."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:464
-msgid "Enter a valid date/time."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:493
-msgid "Enter a valid duration."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:547
-msgid "No file was submitted. Check the encoding type on the form."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:548
-msgid "No file was submitted."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:549
-msgid "The submitted file is empty."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:551
-#, python-format
-msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
-msgid_plural ""
-"Ensure this filename has at most %(max)d characters (it has %(length)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:554
-msgid "Please either submit a file or check the clear checkbox, not both."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:619
-msgid ""
-"Upload a valid image. The file you uploaded was either not an image or a "
-"corrupted image."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:776
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:872
-#: venv/lib/python3.9/site-packages/django/forms/models.py:1265
-#, python-format
-msgid "Select a valid choice. %(value)s is not one of the available choices."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:873
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:990
-#: venv/lib/python3.9/site-packages/django/forms/models.py:1264
-msgid "Enter a list of values."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:991
-msgid "Enter a complete value."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:1208
-msgid "Enter a valid UUID."
-msgstr ""
-
-#. Translators: This is the default suffix added to form field labels
-#: venv/lib/python3.9/site-packages/django/forms/forms.py:87
-msgid ":"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/forms.py:213
-#, python-format
-msgid "(Hidden field %(name)s) %(error)s"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:97
-msgid "ManagementForm data is missing or has been tampered with"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:355
-#, python-format
-msgid "Please submit %d or fewer forms."
-msgid_plural "Please submit %d or fewer forms."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:362
-#, python-format
-msgid "Please submit %d or more forms."
-msgid_plural "Please submit %d or more forms."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:390
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:392
-msgid "Order"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:394
-msgid "Delete"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:744
-#, python-format
-msgid "Please correct the duplicate data for %(field)s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:748
-#, python-format
-msgid "Please correct the duplicate data for %(field)s, which must be unique."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:754
-#, python-format
-msgid ""
-"Please correct the duplicate data for %(field_name)s which must be unique "
-"for the %(lookup)s in %(date_field)s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:763
-msgid "Please correct the duplicate values below."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:1093
-msgid "The inline foreign key did not match the parent instance primary key."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:1154
-msgid "Select a valid choice. That choice is not one of the available choices."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:1267
-#, python-format
-msgid "\"%(pk)s\" is not a valid value for a primary key."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/utils.py:172
-#, python-format
-msgid ""
-"%(datetime)s couldn't be interpreted in time zone %(current_timezone)s; it "
-"may be ambiguous or it may not exist."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:377
-msgid "Clear"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:378
-msgid "Currently"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:379
-msgid "Change"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:703
-msgid "Unknown"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:704
-msgid "Yes"
-msgstr "འགྲིག"
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:705
-msgid "No"
-msgstr "མི་འདུག"
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:851
-msgid "yes,no,maybe"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:880
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:897
-#, python-format
-msgid "%(size)d byte"
-msgid_plural "%(size)d bytes"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:899
-#, python-format
-msgid "%s KB"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:901
-#, python-format
-msgid "%s MB"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:903
-#, python-format
-msgid "%s GB"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:905
-#, python-format
-msgid "%s TB"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:907
-#, python-format
-msgid "%s PB"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:66
-msgid "p.m."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:67
-msgid "a.m."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:72
-msgid "PM"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:73
-msgid "AM"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:158
-msgid "midnight"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:160
-msgid "noon"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:6
-msgid "Monday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:6
-msgid "Tuesday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:6
-msgid "Wednesday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:6
-msgid "Thursday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:6
-msgid "Friday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:7
-msgid "Saturday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:7
-msgid "Sunday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
-msgid "Mon"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
-msgid "Tue"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
-msgid "Wed"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
-msgid "Thu"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
-msgid "Fri"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:11
-msgid "Sat"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:11
-msgid "Sun"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "January"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "February"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "May"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
-msgid "August"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
-msgid "September"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
-msgid "October"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
-msgid "November"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:20
-msgid "December"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "jan"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "feb"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "mar"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "apr"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "may"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "jun"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "jul"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "aug"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "sep"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "oct"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "nov"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "dec"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:31
-msgctxt "abbrev. month"
-msgid "Jan."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:32
-msgctxt "abbrev. month"
-msgid "Feb."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:33
-msgctxt "abbrev. month"
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:34
-msgctxt "abbrev. month"
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:35
-msgctxt "abbrev. month"
-msgid "May"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:36
-msgctxt "abbrev. month"
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:37
-msgctxt "abbrev. month"
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:38
-msgctxt "abbrev. month"
-msgid "Aug."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:39
-msgctxt "abbrev. month"
-msgid "Sept."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:40
-msgctxt "abbrev. month"
-msgid "Oct."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:41
-msgctxt "abbrev. month"
-msgid "Nov."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:42
-msgctxt "abbrev. month"
-msgid "Dec."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:45
-msgctxt "alt. month"
-msgid "January"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:46
-msgctxt "alt. month"
-msgid "February"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:47
-msgctxt "alt. month"
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:48
-msgctxt "alt. month"
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:49
-msgctxt "alt. month"
-msgid "May"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:50
-msgctxt "alt. month"
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:51
-msgctxt "alt. month"
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:52
-msgctxt "alt. month"
-msgid "August"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:53
-msgctxt "alt. month"
-msgid "September"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:54
-msgctxt "alt. month"
-msgid "October"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:55
-msgctxt "alt. month"
-msgid "November"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:56
-msgctxt "alt. month"
-msgid "December"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/ipv6.py:12
-msgid "This is not a valid IPv6 address."
-msgstr "གློག་འཕྲིན་ཚུལ་མཐུན་ཞིག་ནང་འཇུག་བྱེད་རོགས།"
-
-#: venv/lib/python3.9/site-packages/django/utils/text.py:81
-#, python-format
-msgctxt "String to return when truncating text"
-msgid "%(truncated_text)s..."
-msgstr ""
-
-#. Translators: This string is used as a separator between list elements
-#: venv/lib/python3.9/site-packages/django/utils/text.py:270
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:71
-msgid ", "
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:11
-#, python-format
-msgid "%d year"
-msgid_plural "%d years"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:12
-#, python-format
-msgid "%d month"
-msgid_plural "%d months"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:13
-#, python-format
-msgid "%d week"
-msgid_plural "%d weeks"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:14
-#, python-format
-msgid "%d day"
-msgid_plural "%d days"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:15
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:16
-#, python-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:60
-msgid "0 minutes"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:109
-msgid "Forbidden"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:110
-msgid "CSRF verification failed. Request aborted."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:114
-msgid ""
-"You are seeing this message because this HTTPS site requires a 'Referer "
-"header' to be sent by your Web browser, but none was sent. This header is "
-"required for security reasons, to ensure that your browser is not being "
-"hijacked by third parties."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:119
-msgid ""
-"If you have configured your browser to disable 'Referer' headers, please re-"
-"enable them, at least for this site, or for HTTPS connections, or for 'same-"
-"origin' requests."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:124
-msgid ""
-"You are seeing this message because this site requires a CSRF cookie when "
-"submitting forms. This cookie is required for security reasons, to ensure "
-"that your browser is not being hijacked by third parties."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:129
-msgid ""
-"If you have configured your browser to disable cookies, please re-enable "
-"them, at least for this site, or for 'same-origin' requests."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:134
-msgid "More information is available with DEBUG=True."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/debug.py:520
-msgid "Welcome to Django"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/debug.py:521
-msgid "It worked!"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/debug.py:522
-msgid "Congratulations on your first Django-powered page."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/debug.py:524
-msgid ""
-"Next, start your first app by running <code>python manage.py startapp "
-"[app_label]</code>."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/debug.py:527
-msgid ""
-"You're seeing this message because you have <code>DEBUG = True</code> in "
-"your Django settings file and you haven't configured any URLs. Get to work!"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:48
-msgid "No year specified"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:72
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:132
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:249
-msgid "Date out of range"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:107
-msgid "No month specified"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:169
-msgid "No day specified"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:225
-msgid "No week specified"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:387
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:415
-#, python-format
-msgid "No %(verbose_name_plural)s available"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:669
-#, python-format
-msgid ""
-"Future %(verbose_name_plural)s not available because %(class_name)s."
-"allow_future is False."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:703
-#, python-format
-msgid "Invalid date string '%(datestr)s' given format '%(format)s'"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/detail.py:55
-#, python-format
-msgid "No %(verbose_name)s found matching the query"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/list.py:77
-msgid "Page is not 'last', nor can it be converted to an int."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/list.py:82
-#, python-format
-msgid "Invalid page (%(page_number)s): %(message)s"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/list.py:172
-#, python-format
-msgid "Empty list and '%(class_name)s.allow_empty' is False."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/static.py:44
-msgid "Directory indexes are not allowed here."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/static.py:46
-#, python-format
-msgid "\"%(path)s\" does not exist"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/static.py:86
-#, python-format
-msgid "Index of %(directory)s"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/admin.py:23
-msgid "Personal info"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/admin.py:24
-msgid "Permissions"
-msgstr "བསྐྱར་འཇོག་བྱས་པ་ཁག"
-
-#: venv/lib/python3.9/site-packages/emailusernames/admin.py:25
-msgid "Important dates"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/admin.py:26
-msgid "Groups"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:10
-msgid "Please enter a correct email and password. "
-msgstr "གློག་འཕྲིན་ཚུལ་མཐུན་ཞིག་ནང་འཇུག་བྱེད་རོགས།"
-
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:11
-msgid "You do not have permission to access the admin."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:12
-msgid "This account is inactive."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:19
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:60
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:92
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:120
-msgid "Email"
-msgstr "གློག་འཕྲིན་གསར་པ།"
-
-#: venv/lib/python3.9/site-packages/emailusernames/management/commands/createsuperuser.py:26
-msgid "Enter a valid e-mail address."
-msgstr "གློག་འཕྲིན་ཚུལ་མཐུན་ཞིག་ནང་འཇུག་བྱེད་རོགས།"
-
-#: venv/lib/python3.9/site-packages/emailusernames/templates/email_usernames/login.html:15
-msgid "Please correct the error below."
-msgid_plural "Please correct the errors below."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/templates/email_usernames/login.html:31
-msgid "Email:"
-msgstr "གློག་འཕྲིན་གསར་པ།"
-
-#: venv/lib/python3.9/site-packages/emailusernames/templates/email_usernames/login.html:35
-msgid "Password:"
-msgstr "གསང་ཚིག"
-
-#: venv/lib/python3.9/site-packages/emailusernames/templates/email_usernames/login.html:42
-msgid "Forgotten your password or username?"
-msgstr "ཁྱེད་ཀྱི་གསང་ཚིག་བརྗེད་སོང་ངམ།"
-
-#: venv/lib/python3.9/site-packages/emailusernames/templates/email_usernames/login.html:46
-msgid "Log in"
-msgstr "ནང་འཛུལ།"
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:470
-#, python-format
-msgid "Content purported to be compressed with %s but failed to decompress."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:656
-#, python-format
-msgid "Unsupported value for qop: %s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:661
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:755
-#, python-format
-msgid "Unsupported value for algorithm: %s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:750
-msgid "The challenge doesn't contain a server nonce, or this one is empty."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:761
-#, python-format
-msgid "Unsupported value for pw-algorithm: %s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:1687
-msgid "Redirected but the response is missing a Location: header."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/ipware/apps.py:10
-msgid "ipware app"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:75
-msgid "Authorization header must contain two space-delimited values"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:96
-msgid "Given token not valid for any token type"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:107
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:129
-msgid "Token contained no recognizable user identification"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:112
-msgid "User not found"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:115
-msgid "User is inactive"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/backends.py:23
-msgid "Unrecognized algorithm type '{}'"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/backends.py:50
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/exceptions.py:40
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:48
-msgid "Token is invalid or expired"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/serializers.py:47
-msgid "No active account found with the given credentials"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/settings.py:55
-msgid ""
-"The '{}' setting has been removed. Please refer to '{}' for available "
-"settings."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:73
-msgid "jti"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:78
-msgid "user"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:83
-msgid "created at"
-msgstr "འབྲེལ་བ་ཡོད་པ།"
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:88
-msgid "expires at"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/token_blacklist/apps.py:9
-msgid "Token Blacklist"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:34
-msgid "Cannot create token with no type or lifetime"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:102
-msgid "Token has no id"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:113
-msgid "Token has no type"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:116
-msgid "Token has wrong type"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:153
-msgid "Token has no '{}' claim"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:157
-msgid "Token '{}' claim has expired"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:196
-msgid "Token is blacklisted"
-msgstr ""
-
-#~ msgid "Preferred Custom (Weekly Haftarot)"
-#~ msgstr "བདམས་ཟིན་པའི་ལུགས་སྲོལ། (བདུན་རེའི་བསླབ་བྱ།)"

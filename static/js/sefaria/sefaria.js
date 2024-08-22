@@ -3,7 +3,7 @@ import VersionPreferences from "./VersionPreferences";
 var extend     = require('extend'),
     param      = require('querystring').stringify;
 import Search from './search';
-import Strings from './strings';
+import Strings from './localizationLanguage/strings';
 import palette from './palette';
 import Track from './track';
 import Hebrew from './hebrew';
@@ -552,6 +552,7 @@ Sefaria = extend(Sefaria, {
     return null;
   },
   ISOMap: {
+    "he": {"name": "Tibetan", "nativeName": "བོད་ཡིག", "showTranslations": 1, "title": "བོད་ཡིག"},
     "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 1, "title": "نصوص يهودية بالعربية"},
     "cn" :  {"name": "Chinese", "nativeName": "Mandarin", "showTranslations": 1, "title": "佛教文本中文"},
     "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1, "title": "Jüdische Texte in Deutscher Sprache"},
@@ -561,7 +562,7 @@ Sefaria = extend(Sefaria, {
     "fa": {"name": "Persian", "nativeName": "فارسی", "showTranslations": 1, "title": "متون یهودی به زبان فارسی"},
     "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi"},
     "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes juifs en français"},
-    "he": {"name": "Tibetan", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
+    // "he": {"name": "Tibetan", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
     "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
     "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
@@ -2909,36 +2910,40 @@ _media: {},
       Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   hebrewTerm: function(name) {
+    
     // Returns a string translating `name` into Hebrew.
-    const categories = {
-      "Quoting Commentary":   "פרשנות מצטטת",
-      "Commentary": "འགྲེལ་བ།",
-      "Modern Commentary":    "פרשנות מודרנית",
-      "Sheets":               "דפי מקורות",
-      "Notes":                "הערות",
-      "Community":            "קהילה"
-    };
+    const categories = ["Quoting Commentary","Commentary","Modern Commentary","Sheets","Notes","Community"];
     if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
     } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'en')]) {
         return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'en')]["he"];
     } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]) {
         return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]["he"];
-    } else if (name in categories) {
-        return  categories[name];
+    } else if (categories.includes(name)) {
+        return  Sefaria._(name);
     } else if (Sefaria.index(name)) {
         return Sefaria.index(name).heTitle;
     } else {
         return name;
     }
   },
+  languageClassFont: function() { // change fontstyle for each language
+    const languages = {
+      english: 'int-en',
+      hebrew: 'int-he',
+      chinese: 'int-zh',
+    }
+    return languages[Sefaria.interfaceLang]
+  },
   hebrewTranslation: function(inputStr, context = null){
     let translatedString;
-    if (context && context in Sefaria._i18nInterfaceStringsWithContext){
-      translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
+    
+    if (context && context in Sefaria['localizationStrings'][Sefaria.interfaceLang]._i18nInterfaceStringsWithContext){
+      
+      translatedString = Sefaria._getStringCaseInsensitive(Sefaria['localizationStrings'][Sefaria.interfaceLang]._i18nInterfaceStringsWithContext[context], inputStr);
       if (translatedString !== null) return translatedString;
     }
-    if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) !== null ) {
+    if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria['localizationStrings'][Sefaria.interfaceLang]._i18nInterfaceStrings, inputStr)) !== null ) {
       return translatedString;
     }
     if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
@@ -2952,13 +2957,27 @@ _media: {},
       return inputStr;
     }
   },
+
+  languagesTranstionMetrix: function(language) {
+    
+  } ,
   translation: function(language, inputStr, context=null){
-      const translationMatrix = {
+      let translationMatrix = {}
+      if(language == 'chinese') {
+        translationMatrix = {
+          "ch": Sefaria.hebrewTranslation
+        };
+      } else if(language == 'hebrew') {
+        translationMatrix = {
           "he": Sefaria.hebrewTranslation
-      };
+        };
+      }
+      
       try {
           return translationMatrix[language.slice(0,2)](inputStr, context);
+          
       }catch (e){
+          console.log(language, Sefaria.interfaceLang, inputStr, context)
           console.warn("No transaltion available for " + language)
           return inputStr;
       }
@@ -2998,7 +3017,7 @@ _media: {},
     // Ensure that names set in Site Settings are available for translation in JS.
     if (!Sefaria._siteSettings) { return; }
     ["SITE_NAME", "LIBRARY_NAME"].map(key => {
-      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
+      Sefaria['localizationStrings'][Sefaria.interfaceLang]._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
     });
   },
   _makeBooksDict: function() {

@@ -82,8 +82,7 @@ const UserStatModeButton = ({thisMode, activeMode, setMode}) => (
 const UserChooser = ({setter}) => (
     <div style={{textAlign: "center"}}>
       <label>
-        <span className="int-en"> User ID: </span>
-        <span className="int-he"> སྤྱོད་མཁན་གྱི་ངོས་འཛིན།: </span>
+        <span className={`${Sefaria.languageClassFont()}`}> User ID: </span>
         <input type="text" onChange={e => setter(parseInt(e.target.value))}/>
       </label>
     </div>
@@ -93,12 +92,7 @@ const SiteDataBlock = ({site_data}) => (
     <div>
         <div className="chartRow centered">
             <div className="systemText statHeader">
-                <span className="int-he">
-                    מזמן לא התראינו!
-                    <br/>
-                    בואו ונראה מה משתמשים אחרים בספריא לומדים
-                </span>
-                <span className="int-en">
+                <span className={`${Sefaria.languageClassFont()}`}>
                     Looks like we haven’t seen you in a while!<br/>
                     Discover what other people are doing on Sefaria...
                 </span>
@@ -107,8 +101,7 @@ const SiteDataBlock = ({site_data}) => (
 
         <div>
             <h2>
-                <span className="int-en">What People are Reading</span>
-                <span className="int-he">מה אנשים קוראים</span>
+                <span className={`${Sefaria.languageClassFont()}`}>What People are Reading</span>
             </h2>
             {/* <div className="chartRow centered">
                 <CategoriesDonut title="Average Sefaria User" heTitle="משתמש ממוצע בספריא" cats={site_data.categoriesRead}/>
@@ -116,8 +109,7 @@ const SiteDataBlock = ({site_data}) => (
         </div>
         <div>
             <h2>
-                <span className="int-en">Top Categories</span>
-                <span className="int-he">קטגוריות פופולריות</span>
+                <span className={`${Sefaria.languageClassFont()}`}>Top Categories</span>
             </h2>
             <div className="chartRow">
                 <CategoryBars user_cats={site_data.categoriesRead} site_cats={site_data.categoriesRead}/>
@@ -139,8 +131,8 @@ const UserDataBlock = ({user_data, site_data}) => (
 const OverallActivityBlock = ({user_data}) => (
         <div>
             <h2>
-                <span className="int-en">Your Overall Activity</span>
-                <span className="int-he">གང་བྱས་ཚང་མ།</span>
+                <span className={`${Sefaria.languageClassFont()}`}>Your Overall Activity</span>
+                <span className={`${Sefaria.languageClassFont()}`}>གང་བྱས་ཚང་མ།</span>
             </h2>
             <div className="statcardRow">
                 <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="Texts Read"/>

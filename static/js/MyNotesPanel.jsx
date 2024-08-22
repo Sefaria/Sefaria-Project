@@ -67,8 +67,7 @@ class MyNotesPanel extends Component {
             {this.props.hideNavHeader ?
               <h1>
                 { this.props.multiPanel && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
-                <span className="int-en">My Notes</span>
-                <span className="int-he">הרשומות שלי</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("My Notes")}</span>
               </h1>
               : null }
             <div className="noteList">
@@ -127,11 +126,10 @@ class NoteListing extends Component {
 
     return (<div className="noteListing">
               <div className="addToSheetButton sans-serif he" onClick={this.showSheetModal}>
-                <span className="int-en">Add to Sheet</span>
-                <span className="int-he">הוסף לדף מקורות</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Add to Sheet")}</span>
               </div>
               <div className="addToSheetButton sans-serif en" onClick={this.showSheetModal}>
-                <span className="int-en">Add to Sheet</span>
+                <span className={`${Sefaria.languageClassFont()}`}>Add to Sheet</span>
                 <span className="int-he">הוסף לדף מקורות</span>
               </div>
               <a href={url}>

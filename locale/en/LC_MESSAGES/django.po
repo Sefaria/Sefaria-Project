@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-01 19:57+0530\n"
+"POT-Creation-Date: 2024-08-21 16:12-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,37 +17,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: reader/templatetags/sefaria_tags.py:221 sefaria/settings.py:24
+#: reader/templatetags/sefaria_tags.py:226 sefaria/settings.py:24
 #: templates/edit_text.html:185 templates/elements/notification.html:15
-#: templates/elements/notification.html:17 templates/sheets.html:209
-#: templates/sheets.html:210 templates/sheets.html:301
-#: templates/sheets.html:302
+#: templates/elements/notification.html:17 templates/sheets.html:191
+#: templates/sheets.html:273
 msgid "English"
 msgstr ""
 
-#: reader/templatetags/sefaria_tags.py:222 sefaria/settings.py:25
+#: reader/templatetags/sefaria_tags.py:227 sefaria/settings.py:25
 #: templates/edit_text.html:186 templates/elements/notification.html:15
-#: templates/elements/notification.html:17 templates/sheets.html:308
-#: templates/sheets.html:309
+#: templates/elements/notification.html:17 templates/sheets.html:279
 msgid "Hebrew"
 msgstr ""
 
-#: reader/templatetags/sefaria_tags.py:223 templates/sheets.html:223
-#: templates/sheets.html:224 templates/sheets.html:315
-#: templates/sheets.html:316
+#: reader/templatetags/sefaria_tags.py:228 templates/sheets.html:203
+#: templates/sheets.html:285
 msgid "Bilingual"
 msgstr ""
 
-#: reader/views.py:681
+#: reader/views.py:702
 #, python-format
 msgid "Read the text of %(book)s online with commentaries and connections."
 msgstr ""
 
-#: reader/views.py:703
+#: reader/views.py:724
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:708 reader/views.py:3140 templates/delete-sheet.html:4
+#: reader/views.py:729 reader/views.py:3161 templates/delete-sheet.html:4
 #: templates/person.html:6 templates/person.html:8
 #: templates/registration/delete_user_account.html:4
 #: templates/registration/password_reset_complete.html:3
@@ -55,41 +52,40 @@ msgstr ""
 #: templates/registration/password_reset_done.html:3
 #: templates/registration/password_reset_form.html:4
 #: templates/registration/register.html:4 templates/sheets.html:7
-#: templates/static/home.html:18 templates/static/home.html:32
 #: templates/static/linker.html:4 templates/static/newsletter.html:4
 #: templates/static/privacy-policy.html:4 templates/static/terms.html:4
 #: templates/static/visualizations.html:4
 msgid "Sefaria"
 msgstr "Pecha"
 
-#: reader/views.py:710
+#: reader/views.py:731
 msgid "A source sheet created with Sefaria's Source Sheet Builder"
 msgstr "A source sheet created with Pecha's Source Sheet Builder"
 
-#: reader/views.py:747
+#: reader/views.py:768
 msgid "Recently Viewed"
 msgstr ""
 
-#: reader/views.py:748
+#: reader/views.py:769
 msgid "Texts that you've recently viewed on Sefaria."
 msgstr "Texts that you've recently viewed on Pecha."
 
-#: reader/views.py:760
+#: reader/views.py:781
 #, python-format
 msgid "Read %(categories)s texts online with commentaries and connections."
 msgstr ""
 
-#: reader/views.py:762
+#: reader/views.py:783
 msgid " | Sefaria"
 msgstr " | Pecha"
 
-#: reader/views.py:796 reader/views.py:3180
+#: reader/views.py:817 reader/views.py:3201
 msgid ""
 "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish "
 "sources."
 msgstr "Texts & Source Sheets from Pecha's library of Buddhist sources."
 
-#: reader/views.py:798 reader/views.py:3182
+#: reader/views.py:819 reader/views.py:3203
 #, python-format
 msgid ""
 "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other "
@@ -98,109 +94,116 @@ msgstr ""
 "Buddhist texts and source sheets about %(topic)s from sources in Pecha's "
 "library."
 
-#: reader/views.py:816
+#: reader/views.py:837
 msgid "Explore Jewish Texts by Topic"
 msgstr ""
 
-#: reader/views.py:818
+#: reader/views.py:839
 msgid ""
 "Explore Jewish texts related to traditional and contemporary topics, coming "
 "from Torah, Talmud, and more."
 msgstr ""
 
-#: reader/views.py:898
+#: reader/views.py:919
 msgid "Sefaria Search"
 msgstr "Pecha Search"
 
-#: reader/views.py:899
+#: reader/views.py:920
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:925 reader/views.py:986
+#: reader/views.py:946 reader/views.py:1007
 msgid "Sefaria Collections"
 msgstr "Pecha Collections"
 
-#: reader/views.py:1103
+#: reader/views.py:1124
 msgid "Pecha - Buddhism in your own words"
 msgstr ""
 
-#: reader/views.py:1104
+#: reader/views.py:1125
 msgid ""
 "The largest free library of Buddhist texts available to read online in "
-"Tibetan, English and Chinese"
+"Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, "
+"commentaries and more."
 msgstr ""
 
-#: reader/views.py:1109
+#: reader/views.py:1130
 msgid "Learning Schedules"
 msgstr ""
 
-#: reader/views.py:1110
+#: reader/views.py:1131
 msgid ""
 "Weekly Torah portions, Daf Yomi, and other schedules for Torah learning."
 msgstr ""
 
-#: reader/views.py:1116
+#: reader/views.py:1137
 msgid "My Saved Content"
 msgstr ""
 
-#: reader/views.py:1117
+#: reader/views.py:1138
 msgid "See your saved content on Sefaria"
 msgstr "See your saved content on Pecha"
 
-#: reader/views.py:1133
+#: reader/views.py:1154
 msgid "My User History"
 msgstr ""
 
-#: reader/views.py:1134
+#: reader/views.py:1155
 msgid "See your user history on Sefaria"
 msgstr "See your user history on Pecha"
 
-#: reader/views.py:1139
-msgid "New Additions to the Sefaria Library"
+#: reader/views.py:1160
+#, fuzzy
+#| msgid "New Additions to the Sefaria Library"
+msgid "New Additions to the Pecha Library"
 msgstr "New Additions to the Pecha Library"
 
-#: reader/views.py:1140
+#: reader/views.py:1161
+#, fuzzy
+#| msgid ""
+#| "See texts, translations and connections that have been recently added to "
+#| "Sefaria."
 msgid ""
 "See texts, translations and connections that have been recently added to "
-"Sefaria."
+"Pecha."
 msgstr ""
 "See texts, translations and connections that have been recently added to "
 "Pecha."
 
-#: reader/views.py:1146
+#: reader/views.py:1167
 msgid "User Stats"
 msgstr ""
 
-#: reader/views.py:1153
+#: reader/views.py:1174
 msgid "Sefaria Notifications"
 msgstr "Pecha Notifications"
 
-#: reader/views.py:1163
+#: reader/views.py:1184
 msgid "Moderator Tools"
 msgstr ""
 
-#: reader/views.py:1208 reader/views.py:3140
+#: reader/views.py:1229 reader/views.py:3161
 msgid "Topics"
 msgstr ""
 
-#: reader/views.py:1210
+#: reader/views.py:1231
 msgid "Source Sheet"
 msgstr ""
 
-#: reader/views.py:1240
+#: reader/views.py:1261
 msgid "Texts"
 msgstr ""
 
-#: reader/views.py:3141
+#: reader/views.py:3162
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr "Explore Buddhist Texts by Topic on Pecha"
 
-#: reader/views.py:3599
+#: reader/views.py:3620
 #, python-format
 msgid "%(full_name)s on Sefaria"
 msgstr "%(full_name)s on Pecha"
 
-#: reader/views.py:3600
+#: reader/views.py:3621
 #, python-format
 msgid ""
 "%(full_name)s is on Sefaria. Follow to view their public source sheets, "
@@ -209,31 +212,31 @@ msgstr ""
 "%(full_name)s is on Pecha. Follow to view their public source sheets, notes "
 "and translations."
 
-#: reader/views.py:3614 reader/views.py:3642 reader/views.py:3776
+#: reader/views.py:3635 reader/views.py:3663 reader/views.py:3797
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3652
+#: reader/views.py:3673
 msgid "Email fields did not match"
 msgstr ""
 
-#: reader/views.py:3654
+#: reader/views.py:3675
 msgid "Incorrect account password for this account"
 msgstr ""
 
-#: reader/views.py:3735
+#: reader/views.py:3756
 msgid "You must be logged in to update your profile photo."
 msgstr ""
 
-#: reader/views.py:3860
+#: reader/views.py:3881
 msgid "You must be logged in to delete your account."
 msgstr ""
 
-#: reader/views.py:4011
+#: reader/views.py:4032
 msgid "From the Community: Today on Sefaria"
 msgstr "From the Community: Today on Pecha"
 
-#: reader/views.py:4013
+#: reader/views.py:4034
 msgid ""
 "New and featured source sheets, divrei torah, articles, sermons and more "
 "created by members of the Sefaria community."
@@ -260,26 +263,19 @@ msgstr ""
 msgid "Email Address"
 msgstr ""
 
-#: sefaria/forms.py:40 sefaria/forms.py:48 templates/account_settings.html:110
+#: sefaria/forms.py:40 sefaria/forms.py:48 templates/account_settings.html:96
 msgid "Password"
 msgstr ""
 
-#: sefaria/forms.py:46 templates/edit_profile.html:30
-#: templates/edit_profile.html:31
+#: sefaria/forms.py:46 templates/edit_profile.html:27
 msgid "First Name"
 msgstr ""
 
-#: sefaria/forms.py:47 templates/edit_profile.html:37
-#: templates/edit_profile.html:38
+#: sefaria/forms.py:47 templates/edit_profile.html:33
 msgid "Last Name"
 msgstr ""
 
-#: sefaria/forms.py:49
-msgid "I am an educator"
-msgstr ""
-
 #: sefaria/forms.py:78
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:106
 msgid "A user with that email already exists."
 msgstr ""
 
@@ -336,8 +332,8 @@ msgstr ""
 msgid "The email address is not valid."
 msgstr ""
 
-#: sefaria/settings.py:26 templates/sheets.html:216 templates/sheets.html:217
-msgid "Tibetan"
+#: sefaria/settings.py:26
+msgid "Chinese"
 msgstr ""
 
 #: sefaria/views.py:196 sefaria/views.py:199 sefaria/views.py:283
@@ -366,138 +362,131 @@ msgstr ""
 msgid "Page Not Found | Sefaria"
 msgstr "Page Not Found | Pecha"
 
-#: templates/404.html:11 templates/404.html:12
+#: templates/404.html:11
 msgid "Page Not Found"
 msgstr ""
 
-#: templates/404.html:16 templates/404.html:19
+#: templates/404.html:15
 msgid ""
 "The requested URL couldn't be found.If you've arrived here from a link on "
 "another site,you may want to let them know their link isn't working."
 msgstr ""
 
-#: templates/500.html:4 templates/500.html:10 templates/500.html:11
+#: templates/500.html:4 templates/500.html:10
 msgid "Internal Server Error"
 msgstr ""
 
-#: templates/500.html:16 templates/500.html:19
+#: templates/500.html:15
 msgid ""
 "Unfortunately, we've encountered an error.An email has been sent "
 "automatically to our developers.If you have any questions about the problem,"
 "or think you can help us figure out what went wrong,please email our "
 msgstr ""
 
-#: templates/500.html:16 templates/500.html:19
+#: templates/500.html:15
 msgid "development team"
 msgstr ""
 
-#: templates/account_settings.html:12 templates/account_settings.html:13
+#: templates/account_settings.html:12
 msgid "Account Settings"
 msgstr ""
 
-#: templates/account_settings.html:17 templates/account_settings.html:18
-#: templates/account_settings.html:148 templates/account_settings.html:149
-#: templates/edit_profile.html:18 templates/edit_profile.html:19
-#: templates/edit_text.html:69 templates/edit_text.html:97
-#: templates/edit_text.html:150 templates/elements/login_prompt.html:8
-#: templates/profile.html:188 templates/sheets.html:1104
-#: templates/sheets.html:1105 templates/sheets.html:1130
-#: templates/sheets.html:1131
+#: templates/account_settings.html:16 templates/account_settings.html:128
+#: templates/edit_profile.html:17 templates/edit_text.html:69
+#: templates/edit_text.html:97 templates/edit_text.html:150
+#: templates/elements/login_prompt.html:8 templates/profile.html:181
+#: templates/sheets.html:1000 templates/sheets.html:1022
 msgid "Cancel"
 msgstr ""
 
-#: templates/account_settings.html:21 templates/account_settings.html:22
-#: templates/account_settings.html:144 templates/account_settings.html:145
-#: templates/edit_profile.html:22 templates/edit_profile.html:23
-#: templates/edit_text.html:96 templates/edit_text.html:149
-#: templates/sheets.html:506 templates/sheets.html:507
-#: templates/sheets.html:920 templates/sheets.html:921
-#: templates/sheets.html:1083 templates/sheets.html:1084
+#: templates/account_settings.html:19 templates/account_settings.html:125
+#: templates/edit_profile.html:20 templates/edit_text.html:96
+#: templates/edit_text.html:149 templates/sheets.html:454
+#: templates/sheets.html:831 templates/sheets.html:982
 msgid "Save"
 msgstr ""
 
-#: templates/account_settings.html:28 templates/account_settings.html:29
+#: templates/account_settings.html:25
 msgid "Notification Frequency (Maximum)"
 msgstr ""
 
-#: templates/account_settings.html:33 templates/account_settings.html:34
+#: templates/account_settings.html:29
 msgid "Daily"
 msgstr ""
 
-#: templates/account_settings.html:37 templates/account_settings.html:38
+#: templates/account_settings.html:32
 msgid "Weekly"
 msgstr ""
 
-#: templates/account_settings.html:41 templates/account_settings.html:42
+#: templates/account_settings.html:35
 msgid "Never"
 msgstr ""
 
-#: templates/account_settings.html:49 templates/account_settings.html:50
+#: templates/account_settings.html:42
 msgid "Site Language"
 msgstr ""
 
-#: templates/account_settings.html:54 templates/sheets.html:780
+#: templates/account_settings.html:46 templates/sheets.html:704
 msgid "english"
 msgstr "English"
 
-#: templates/account_settings.html:57 templates/sheets.html:781
+#: templates/account_settings.html:49 templates/sheets.html:705
 msgid "tibetan"
 msgstr "བོད་ཡིག"
 
-#: templates/account_settings.html:64 templates/account_settings.html:65
+#: templates/account_settings.html:56
 msgid "Preferred Translation Language"
 msgstr ""
 
-#: templates/account_settings.html:78 templates/account_settings.html:79
+#: templates/account_settings.html:69
 msgid "Reading History"
 msgstr ""
 
-#: templates/account_settings.html:83 templates/account_settings.html:84
+#: templates/account_settings.html:73
 msgid "On"
 msgstr ""
 
-#: templates/account_settings.html:87 templates/account_settings.html:88
+#: templates/account_settings.html:76
 msgid "Off"
 msgstr ""
 
-#: templates/account_settings.html:96 templates/account_settings.html:97
+#: templates/account_settings.html:84
 msgid "Account Email (This is used for login)"
 msgstr ""
 
-#: templates/account_settings.html:102 templates/account_settings.html:103
+#: templates/account_settings.html:89
 msgid "Change Email"
 msgstr ""
 
-#: templates/account_settings.html:108
+#: templates/account_settings.html:94
 msgid "New Email"
 msgstr ""
 
-#: templates/account_settings.html:109
+#: templates/account_settings.html:95
 msgid "Confirm New Email"
 msgstr ""
 
-#: templates/account_settings.html:112 templates/account_settings.html:113
+#: templates/account_settings.html:98
 msgid "Update Email"
 msgstr ""
 
-#: templates/account_settings.html:120 templates/account_settings.html:121
+#: templates/account_settings.html:105
 msgid "Google Account (Allows for exporting sheets to Google Drive)"
 msgstr ""
 
-#: templates/account_settings.html:126 templates/account_settings.html:127
+#: templates/account_settings.html:110
 msgid "Disconnect"
 msgstr ""
 
-#: templates/account_settings.html:134 templates/account_settings.html:135
+#: templates/account_settings.html:117
 msgid "Your Google Account has been disconnected"
 msgstr ""
 
-#: templates/account_settings.html:138 templates/account_settings.html:139
+#: templates/account_settings.html:120
 msgid "You can link to a new Google Account the next time you export a sheet"
 msgstr ""
 
 #: templates/activity.html:7 templates/activity.html:36
-#: templates/activity.html:37
 msgid "Revision History of"
 msgstr ""
 
@@ -525,52 +514,52 @@ msgstr ""
 "View the complete log of public activity on Pecha, including published "
 "source sheets, and text translations, edits or additions. "
 
-#: templates/activity.html:45 templates/activity.html:46
+#: templates/activity.html:43
 msgid "Public Activity"
 msgstr ""
 
-#: templates/activity.html:51 templates/activity.html:52
+#: templates/activity.html:47
 msgid "Recent Activity on Sefaria"
 msgstr "Recent Activity on Pecha"
 
-#: templates/activity.html:57
+#: templates/activity.html:52
 msgid "All Activity"
 msgstr ""
 
-#: templates/activity.html:58
+#: templates/activity.html:53
 msgid "Translations"
 msgstr ""
 
-#: templates/activity.html:59 templates/metrics.html:50
-#: templates/profile.html:106
+#: templates/activity.html:54 templates/metrics.html:49
+#: templates/profile.html:99
 msgid "Source Sheets"
 msgstr ""
 
-#: templates/activity.html:60
+#: templates/activity.html:55
 msgid "New Texts"
 msgstr ""
 
-#: templates/activity.html:61
+#: templates/activity.html:56
 msgid "Edits"
 msgstr ""
 
-#: templates/activity.html:62 templates/profile.html:126
+#: templates/activity.html:57 templates/profile.html:119
 msgid "Notes"
 msgstr ""
 
-#: templates/activity.html:63
+#: templates/activity.html:58
 msgid "Reviews"
 msgstr ""
 
-#: templates/activity.html:64
+#: templates/activity.html:59
 msgid "Text Info"
 msgstr ""
 
-#: templates/activity.html:65
+#: templates/activity.html:60
 msgid "Reversions"
 msgstr ""
 
-#: templates/activity.html:66
+#: templates/activity.html:61
 msgid "Flagged"
 msgstr ""
 
@@ -579,7 +568,7 @@ msgid "Admin: Delete a Sheet"
 msgstr ""
 
 #: templates/delete-sheet.html:11 templates/delete-sheet.html:19
-#: templates/sheets.html:65 templates/sheets.html:66
+#: templates/sheets.html:62
 msgid "Delete Sheet"
 msgstr ""
 
@@ -644,9 +633,8 @@ msgid "Edit Collection on Sefaria"
 msgstr "Edit Collection on Pecha"
 
 #: templates/edit_collection.html:20 templates/edit_term.html:40
-#: templates/elements/loading.html:13 templates/elements/loading.html:14
-#: templates/metrics.html:17 templates/sheets.html:581
-#: templates/sheets.html:834 templates/sheets.html:835
+#: templates/elements/loading.html:12 templates/metrics.html:16
+#: templates/sheets.html:520 templates/sheets.html:752
 msgid "Loading..."
 msgstr ""
 
@@ -654,87 +642,85 @@ msgstr ""
 msgid "Edit Your Profile on Sefaria"
 msgstr "Edit Your Profile on Pecha"
 
-#: templates/edit_profile.html:13 templates/edit_profile.html:14
+#: templates/edit_profile.html:13
 msgid "Edit Your Profile"
 msgstr ""
 
-#: templates/edit_profile.html:44 templates/edit_profile.html:45
+#: templates/edit_profile.html:39
 msgid "Title"
 msgstr ""
 
-#: templates/edit_profile.html:51 templates/edit_profile.html:52
+#: templates/edit_profile.html:45
 msgid "Organization"
 msgstr ""
 
-#: templates/edit_profile.html:58 templates/edit_profile.html:59
+#: templates/edit_profile.html:51
 msgid "Website"
 msgstr ""
 
-#: templates/edit_profile.html:65 templates/edit_profile.html:66
+#: templates/edit_profile.html:57
 msgid "Location"
 msgstr ""
 
-#: templates/edit_profile.html:72 templates/edit_profile.html:73
+#: templates/edit_profile.html:63
 msgid "Education"
 msgstr ""
 
-#: templates/edit_profile.html:72 templates/edit_profile.html:73
+#: templates/edit_profile.html:63
 msgid "where have you learned"
 msgstr ""
 
-#: templates/edit_profile.html:82
+#: templates/edit_profile.html:72
 msgid "Add a line"
 msgstr ""
 
-#: templates/edit_profile.html:87 templates/edit_profile.html:88
+#: templates/edit_profile.html:77
 msgid "About Me"
 msgstr ""
 
-#: templates/edit_profile.html:98 templates/edit_profile.html:99
+#: templates/edit_profile.html:87
 msgid "Public Sheets"
 msgstr ""
 
-#: templates/edit_profile.html:103 templates/edit_profile.html:104
+#: templates/edit_profile.html:91
 msgid ""
 "You can drag and order source sheets that you want to pin to the top of your "
 "profile."
 msgstr ""
 
-#: templates/edit_profile.html:108 templates/edit_profile.html:109
+#: templates/edit_profile.html:95
 msgid "Pinned Sheets"
 msgstr ""
 
-#: templates/edit_profile.html:119 templates/edit_profile.html:120
+#: templates/edit_profile.html:105
 msgid "All Sheets"
 msgstr ""
 
-#: templates/edit_profile.html:134 templates/edit_profile.html:135
+#: templates/edit_profile.html:119
 msgid "Contact"
 msgstr ""
 
-#: templates/edit_profile.html:140 templates/edit_profile.html:141
+#: templates/edit_profile.html:124
 msgid "Email (will be public)"
 msgstr ""
 
-#: templates/edit_profile.html:147 templates/edit_profile.html:148
+#: templates/edit_profile.html:130
 msgid "Profile URL"
 msgstr ""
 
-#: templates/edit_profile.html:154 templates/edit_profile.html:155
+#: templates/edit_profile.html:136
 msgid "Twitter Handle"
 msgstr ""
 
-#: templates/edit_profile.html:161 templates/edit_profile.html:162
-#: templates/profile.html:64
+#: templates/edit_profile.html:142 templates/profile.html:64
 msgid "LinkedIn"
 msgstr ""
 
-#: templates/edit_profile.html:168 templates/edit_profile.html:169
-#: templates/profile.html:52
+#: templates/edit_profile.html:148 templates/profile.html:52
 msgid "Facebook"
 msgstr ""
 
-#: templates/edit_profile.html:175 templates/edit_profile.html:176
+#: templates/edit_profile.html:154
 msgid "YouTube Channel"
 msgstr ""
 
@@ -750,8 +736,8 @@ msgstr ""
 msgid "Text or commentator name:"
 msgstr ""
 
-#: templates/edit_text.html:68 templates/sheets.html:1076
-#: templates/sheets.html:1100 templates/sheets.html:1101
+#: templates/edit_text.html:68 templates/sheets.html:975
+#: templates/sheets.html:997
 msgid "Add"
 msgstr ""
 
@@ -771,16 +757,12 @@ msgstr ""
 msgid "log in"
 msgstr ""
 
-#: templates/edit_text.html:101 templates/sheets.html:739
-#: templates/sheets.html:740 templates/sheets.html:804
-#: templates/sheets.html:805 templates/sheets.html:882
-#: templates/sheets.html:884
-#: venv/lib/python3.9/site-packages/django/utils/text.py:251
+#: templates/edit_text.html:101 templates/sheets.html:726
+#: templates/sheets.html:794
 msgid "or"
 msgstr ""
 
-#: templates/edit_text.html:101 templates/sheets.html:883
-#: templates/sheets.html:885
+#: templates/edit_text.html:101 templates/sheets.html:795
 msgid "register"
 msgstr ""
 
@@ -864,9 +846,8 @@ msgstr ""
 msgid " Found serious problems that need to be addressed."
 msgstr ""
 
-#: templates/edit_text.html:142 templates/sheets.html:1155
-#: templates/sheets.html:1199 templates/sheets.html:1200
-#: templates/sheets.html:1221 templates/sheets.html:1222
+#: templates/edit_text.html:142 templates/sheets.html:1046
+#: templates/sheets.html:1082 templates/sheets.html:1098
 msgid "OK"
 msgstr ""
 
@@ -1069,9 +1050,7 @@ msgstr ""
 
 #: templates/elements/login_prompt.html:6
 #: templates/registration/register.html:13
-#: templates/registration/register.html:14
-#: templates/registration/register.html:23
-#: templates/registration/register.html:24
+#: templates/registration/register.html:22
 msgid "Sign Up"
 msgstr ""
 
@@ -1086,39 +1065,31 @@ msgid "version of"
 msgstr ""
 
 #: templates/elements/notification.html:27
-#: templates/elements/notification.html:28
 msgid "New Text:"
 msgstr ""
 
-#: templates/elements/notification.html:37
-#: templates/elements/notification.html:38
+#: templates/elements/notification.html:36
 msgid "likes your sheet,"
 msgstr ""
 
-#: templates/elements/notification.html:43
-#: templates/elements/notification.html:44
+#: templates/elements/notification.html:41
 msgid "published a new sheet"
 msgstr ""
 
-#: templates/elements/notification.html:49
-#: templates/elements/notification.html:50
+#: templates/elements/notification.html:46
 msgid "is now following you."
 msgstr ""
 
-#: templates/elements/notification.html:56
-#: templates/elements/notification.html:57
-#: templates/elements/notification.html:62
-#: templates/elements/notification.html:63 templates/email/notification.html:26
+#: templates/elements/notification.html:52
+#: templates/elements/notification.html:57 templates/email/notification.html:26
 msgid "added you to the collection"
 msgstr ""
 
-#: templates/elements/notification.html:68
-#: templates/elements/notification.html:69 templates/email/notification.html:29
+#: templates/elements/notification.html:62 templates/email/notification.html:29
 msgid "added a note to a"
 msgstr ""
 
-#: templates/elements/notification.html:68
-#: templates/elements/notification.html:69 templates/email/notification.html:31
+#: templates/elements/notification.html:62 templates/email/notification.html:31
 msgid "discussion you follow"
 msgstr ""
 
@@ -1264,7 +1235,7 @@ msgstr ""
 "See who has been contributing most to Pecha in terms of texts, translations, "
 "and source sheet."
 
-#: templates/leaderboard.html:30 templates/leaderboard.html:31
+#: templates/leaderboard.html:30
 msgid "Top Contributors"
 msgstr ""
 
@@ -1280,48 +1251,48 @@ msgstr ""
 "See graphs charting Pecha's progress since 2013 across metrics including "
 "word counts, number of links and number of source sheets."
 
-#: templates/metrics.html:13 templates/metrics.html:14
+#: templates/metrics.html:13
 msgid "Metrics"
 msgstr ""
 
-#: templates/metrics.html:34
+#: templates/metrics.html:33
 msgid "Total Words in Library"
 msgstr ""
 
-#: templates/metrics.html:35
+#: templates/metrics.html:34
 msgid "Words in Hebrew & Aramaic"
 msgstr ""
 
-#: templates/metrics.html:36
+#: templates/metrics.html:35
 msgid "Words in Translation"
 msgstr ""
 
-#: templates/metrics.html:37
+#: templates/metrics.html:36
 msgid "Words of Original Translation created by Sefaria Volunteers"
 msgstr "Words of Original Translation created by Pecha Volunteers"
 
-#: templates/metrics.html:38
+#: templates/metrics.html:37
 msgid "Number of Public Contributors"
 msgstr ""
 
-#: templates/metrics.html:39
+#: templates/metrics.html:38
 msgid "Number of Intertextual Links"
 msgstr ""
 
-#: templates/metrics.html:40
+#: templates/metrics.html:39
 msgid "Number of Source Sheets"
 msgstr ""
 
-#: templates/metrics.html:44 templates/metrics.html:45
-#: templates/metrics.html:46 templates/metrics.html:47
+#: templates/metrics.html:43 templates/metrics.html:44
+#: templates/metrics.html:45 templates/metrics.html:46
 msgid "Words"
 msgstr ""
 
-#: templates/metrics.html:48
+#: templates/metrics.html:47
 msgid "Contributors"
 msgstr ""
 
-#: templates/metrics.html:49
+#: templates/metrics.html:48
 msgid "Links"
 msgstr ""
 
@@ -1337,37 +1308,37 @@ msgstr ""
 "Biographies and information about the authors of Jewish texts on Pecha, "
 "together with links to their available texts."
 
-#: templates/people.html:23 templates/people.html:24 templates/person.html:38
+#: templates/people.html:23 templates/person.html:38
 msgid "Authors"
 msgstr ""
 
-#: templates/people.html:29 templates/people.html:30 templates/person.html:41
+#: templates/people.html:28 templates/person.html:41
 #: templates/talmud_people.html:6
 msgid "People in the Talmud"
 msgstr ""
 
-#: templates/person.html:86 templates/person.html:87
+#: templates/person.html:86
 msgid "Learn More"
 msgstr ""
 
-#: templates/person.html:91 templates/person.html:92 templates/person.html:97
-#: templates/person.html:98
+#: templates/person.html:90 templates/person.html:91 templates/person.html:96
+#: templates/person.html:97
 msgid "Wikipedia"
 msgstr ""
 
-#: templates/person.html:102 templates/person.html:103
+#: templates/person.html:101 templates/person.html:102
 msgid "Wikipedia (Hebrew)"
 msgstr ""
 
-#: templates/person.html:109 templates/person.html:110
+#: templates/person.html:108 templates/person.html:109
 msgid "Jewish Encyclopedia"
 msgstr ""
 
-#: templates/person.html:130 templates/person.html:131
+#: templates/person.html:129
 msgid "Works"
 msgstr ""
 
-#: templates/person.html:143 templates/person.html:144
+#: templates/person.html:141
 msgid "Map"
 msgstr ""
 
@@ -1391,39 +1362,39 @@ msgstr ""
 msgid "Twitter"
 msgstr ""
 
-#: templates/profile.html:73 templates/profile.html:74
+#: templates/profile.html:73
 msgid "Message"
 msgstr ""
 
-#: templates/profile.html:78 templates/profile.html:83
+#: templates/profile.html:77
 msgid "Follow"
 msgstr ""
 
-#: templates/profile.html:79 templates/profile.html:84
+#: templates/profile.html:78
 msgid "Following"
 msgstr ""
 
-#: templates/profile.html:80 templates/profile.html:85
+#: templates/profile.html:79
 msgid "Unfollow"
 msgstr ""
 
-#: templates/profile.html:90 templates/profile.html:91
+#: templates/profile.html:84
 msgid "Edit Profile"
 msgstr ""
 
-#: templates/profile.html:133
+#: templates/profile.html:126
 msgid "Activity"
 msgstr ""
 
-#: templates/profile.html:135
+#: templates/profile.html:128
 msgid "More Activity"
 msgstr ""
 
-#: templates/profile.html:185
+#: templates/profile.html:178
 msgid "Send a message to "
 msgstr ""
 
-#: templates/profile.html:187
+#: templates/profile.html:180
 msgid "Send"
 msgstr ""
 
@@ -1460,14 +1431,18 @@ msgstr ""
 msgid "Log back in"
 msgstr ""
 
-#: templates/registration/login.html:4
-msgid "Log in to Sefaria"
-msgstr "Log in to Pecha"
+#: templates/registration/login.html:4 templates/registration/login.html:31
+msgid "Log in to Pecha"
+msgstr ""
 
 #: templates/registration/login.html:6
+#, fuzzy
+#| msgid ""
+#| "Log in to your Sefaria account to make source sheets, write notes, and "
+#| "follow other Sefaria users."
 msgid ""
-"Log in to your Sefaria account to make source sheets, write notes, and "
-"follow other Sefaria users."
+"Log in to your Pecha account to make source sheets, write notes, and follow "
+"other Pecha users."
 msgstr ""
 "Log in to your Pecha account to make source sheets, write notes, and follow "
 "other Pecha users."
@@ -1480,24 +1455,19 @@ msgstr ""
 msgid "Logout."
 msgstr ""
 
-#: templates/registration/login.html:31 templates/registration/login.html:32
-msgid "Log in to Pecha"
-msgstr ""
-
-#: templates/registration/login.html:36 templates/registration/login.html:37
+#: templates/registration/login.html:35
 msgid "Your username and password didn't match. Please try again."
 msgstr ""
 
-#: templates/registration/login.html:54 templates/registration/login.html:55
-#: templates/sheets.html:556 templates/sheets.html:560
+#: templates/registration/login.html:52 templates/sheets.html:499
 msgid "Login"
 msgstr ""
 
-#: templates/registration/login.html:58 templates/registration/login.html:59
+#: templates/registration/login.html:55
 msgid "Forgot your password?"
 msgstr ""
 
-#: templates/registration/login.html:64 templates/registration/login.html:65
+#: templates/registration/login.html:60
 msgid "Create a new account"
 msgstr ""
 
@@ -1591,25 +1561,8 @@ msgstr ""
 "Create an account on Pecha to make source sheets, take notes and follow "
 "other people."
 
-#: templates/registration/register.html:28
-#: templates/registration/register.html:29
+#: templates/registration/register.html:26
 msgid "Already have an account? Log in"
-msgstr ""
-
-#: templates/registration/register.html:32
-#: templates/registration/register.html:33
-msgid "By clicking Sign Up you agree to our"
-msgstr ""
-
-#: templates/registration/register.html:32
-#: templates/registration/register.html:33 templates/static/terms.html:4
-msgid "Terms of Use"
-msgstr ""
-
-#: templates/registration/register.html:32
-#: templates/registration/register.html:33
-#: templates/static/privacy-policy.html:4
-msgid "Privacy Policy"
 msgstr ""
 
 #: templates/sefer_hachinukh_mitzvot.html:7
@@ -1635,217 +1588,200 @@ msgstr "A source sheet created with Pecha's Source Sheet Builder."
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr "Create your own source sheet with Pecha's Source Sheet Builder."
 
-#: templates/sheets.html:31 templates/sheets.html:32
-#: venv/lib/python3.9/site-packages/django/db/models/fields/files.py:228
+#: templates/sheets.html:31
 msgid "File"
 msgstr ""
 
-#: templates/sheets.html:39 templates/sheets.html:40
+#: templates/sheets.html:38
 msgid "Copy Sheet"
 msgstr ""
 
-#: templates/sheets.html:48 templates/sheets.html:49
-msgid "Export to Google Drive"
-msgstr ""
-
-#: templates/sheets.html:56 templates/sheets.html:57 templates/sheets.html:1113
-#: templates/sheets.html:1114
+#: templates/sheets.html:54 templates/sheets.html:1008
 msgid "Embed Sheet"
 msgstr ""
 
-#: templates/sheets.html:77 templates/sheets.html:78
+#: templates/sheets.html:73
 msgid "Tags"
 msgstr ""
 
-#: templates/sheets.html:90 templates/sheets.html:91 templates/sheets.html:951
-#: templates/sheets.html:952
+#: templates/sheets.html:85 templates/sheets.html:859
 msgid "Assignments"
 msgstr ""
 
-#: templates/sheets.html:105 templates/sheets.html:106
-#: templates/sheets.html:871 templates/sheets.html:872
+#: templates/sheets.html:99 templates/sheets.html:785
 msgid "Print"
 msgstr ""
 
-#: templates/sheets.html:114 templates/sheets.html:115
+#: templates/sheets.html:107
 msgid "Visualize"
 msgstr ""
 
-#: templates/sheets.html:123 templates/sheets.html:124
+#: templates/sheets.html:115
 msgid "Highlight Mode"
 msgstr ""
 
-#: templates/sheets.html:127 templates/sheets.html:128
+#: templates/sheets.html:118
 msgid "Exit Highlight Mode"
 msgstr ""
 
-#: templates/sheets.html:136 templates/sheets.html:137
+#: templates/sheets.html:126
 msgid "Format"
 msgstr ""
 
-#: templates/sheets.html:142 templates/sheets.html:143
+#: templates/sheets.html:131
 msgid "Number Sources"
 msgstr ""
 
-#: templates/sheets.html:149 templates/sheets.html:150
+#: templates/sheets.html:137
 msgid "Box Sources"
 msgstr ""
 
-#: templates/sheets.html:163 templates/sheets.html:164
+#: templates/sheets.html:150
 msgid "Reset Source Text"
 msgstr ""
 
-#: templates/sheets.html:171 templates/sheets.html:172
+#: templates/sheets.html:157
 msgid "Auto-Segment Text"
 msgstr ""
 
-#: templates/sheets.html:180 templates/sheets.html:181
+#: templates/sheets.html:165
 msgid "Remove Vowel Points"
 msgstr ""
 
-#: templates/sheets.html:188 templates/sheets.html:189
+#: templates/sheets.html:172
 msgid "Add Source Title"
 msgstr ""
 
-#: templates/sheets.html:200 templates/sheets.html:201
+#: templates/sheets.html:183
 msgid "Sheet Language"
 msgstr ""
 
-#: templates/sheets.html:235 templates/sheets.html:236
+#: templates/sheets.html:197
+msgid "Tibetan"
+msgstr ""
+
+#: templates/sheets.html:214
 msgid "Sheet Layout"
 msgstr ""
 
-#: templates/sheets.html:244 templates/sheets.html:245
-#: templates/sheets.html:336 templates/sheets.html:337
+#: templates/sheets.html:222 templates/sheets.html:304
 msgid "Stacked"
 msgstr ""
 
-#: templates/sheets.html:251 templates/sheets.html:252
-#: templates/sheets.html:343 templates/sheets.html:344
+#: templates/sheets.html:228 templates/sheets.html:310
 msgid "Side-by-Side"
 msgstr ""
 
-#: templates/sheets.html:263 templates/sheets.html:264
-#: templates/sheets.html:355 templates/sheets.html:356
+#: templates/sheets.html:239 templates/sheets.html:321
 msgid "Side-by-Side Layout"
 msgstr ""
 
-#: templates/sheets.html:272 templates/sheets.html:273
-#: templates/sheets.html:364 templates/sheets.html:365
+#: templates/sheets.html:247 templates/sheets.html:329
 msgid "Tibetan Left"
 msgstr ""
 
-#: templates/sheets.html:279 templates/sheets.html:280
-#: templates/sheets.html:371 templates/sheets.html:372
+#: templates/sheets.html:253 templates/sheets.html:335
 msgid "Tibetan Right"
 msgstr ""
 
-#: templates/sheets.html:292 templates/sheets.html:293
+#: templates/sheets.html:265
 msgid "Source Language"
 msgstr ""
 
-#: templates/sheets.html:327 templates/sheets.html:328
+#: templates/sheets.html:296
 msgid "Source Layout"
 msgstr ""
 
-#: templates/sheets.html:382 templates/sheets.html:383
+#: templates/sheets.html:345
 msgid "Reset to Sheet Default"
 msgstr ""
 
-#: templates/sheets.html:396 templates/sheets.html:397
+#: templates/sheets.html:358
 msgid "Insert"
 msgstr ""
 
-#: templates/sheets.html:402 templates/sheets.html:403
-#: templates/sheets.html:694 templates/sheets.html:695
+#: templates/sheets.html:363 templates/sheets.html:627
 msgid "Source"
 msgstr ""
 
-#: templates/sheets.html:409 templates/sheets.html:410
-#: templates/sheets.html:706 templates/sheets.html:707
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2137
+#: templates/sheets.html:369 templates/sheets.html:637
 msgid "Text"
 msgstr ""
 
-#: templates/sheets.html:416 templates/sheets.html:417
-#: templates/sheets.html:718 templates/sheets.html:719
+#: templates/sheets.html:375 templates/sheets.html:647
 msgid "Comment"
 msgstr ""
 
-#: templates/sheets.html:423 templates/sheets.html:424
-#: templates/sheets.html:712 templates/sheets.html:713
+#: templates/sheets.html:381 templates/sheets.html:642
 msgid "Media"
 msgstr ""
 
-#: templates/sheets.html:431 templates/sheets.html:432
+#: templates/sheets.html:388 templates/sheets.html:389
 msgid "Highlight Tools"
 msgstr ""
 
-#: templates/sheets.html:437 templates/sheets.html:438
+#: templates/sheets.html:394
 msgid "Paragraph View"
 msgstr ""
 
-#: templates/sheets.html:441 templates/sheets.html:442
+#: templates/sheets.html:397
 msgid "Line-by-line View"
 msgstr ""
 
-#: templates/sheets.html:449 templates/sheets.html:450
+#: templates/sheets.html:404
 msgid "Reset"
 msgstr ""
 
-#: templates/sheets.html:456 templates/sheets.html:457
+#: templates/sheets.html:410
 msgid "Filter"
 msgstr ""
 
-#: templates/sheets.html:473 templates/sheets.html:474
+#: templates/sheets.html:426
 msgid "Last Saved"
 msgstr ""
 
-#: templates/sheets.html:477 templates/sheets.html:478
+#: templates/sheets.html:429
 msgid "All changes saved in Pecha"
 msgstr ""
 
-#: templates/sheets.html:481 templates/sheets.html:482
-#: templates/sheets.html:510 templates/sheets.html:511
+#: templates/sheets.html:432 templates/sheets.html:457
 msgid "Saving..."
 msgstr ""
 
-#: templates/sheets.html:485 templates/sheets.html:486
+#: templates/sheets.html:435
 msgid "Changes Pending..."
 msgstr ""
 
-#: templates/sheets.html:495 templates/sheets.html:496
+#: templates/sheets.html:444
 msgid "Highlight Mode is On"
 msgstr ""
 
-#: templates/sheets.html:517 templates/sheets.html:518
-#: templates/sheets.html:871 templates/sheets.html:872
-#: templates/sheets.html:1212 templates/sheets.html:1216
+#: templates/sheets.html:463 templates/sheets.html:785
+#: templates/sheets.html:1093
 msgid "Share"
 msgstr ""
 
-#: templates/sheets.html:521 templates/sheets.html:522
-#: templates/sheets.html:526 templates/sheets.html:527
+#: templates/sheets.html:466 templates/sheets.html:470
 msgid "View in Library"
 msgstr ""
 
-#: templates/sheets.html:556 templates/sheets.html:560
+#: templates/sheets.html:499
 msgid "Like this?"
 msgstr ""
 
-#: templates/sheets.html:557 templates/sheets.html:561
+#: templates/sheets.html:500
 msgid "create an account"
 msgstr ""
 
-#: templates/sheets.html:557 templates/sheets.html:561
+#: templates/sheets.html:500
 msgid "to build your own source sheet."
 msgstr ""
 
-#: templates/sheets.html:568
+#: templates/sheets.html:507
 msgid "Header Title"
 msgstr ""
 
-#: templates/sheets.html:595 templates/sheets.html:603
+#: templates/sheets.html:534 templates/sheets.html:542
 #, python-format
 msgid ""
 "\n"
@@ -1853,7 +1789,7 @@ msgid ""
 "            "
 msgstr ""
 
-#: templates/sheets.html:610
+#: templates/sheets.html:549
 #, python-format
 msgid ""
 "\n"
@@ -1861,284 +1797,270 @@ msgid ""
 "            "
 msgstr ""
 
-#: templates/sheets.html:620 templates/sheets.html:621
+#: templates/sheets.html:559
 msgid "More info"
 msgstr ""
 
-#: templates/sheets.html:625 templates/sheets.html:629
-msgid "Created"
-msgstr ""
-
-#: templates/sheets.html:626 templates/sheets.html:631
-msgid "Views"
-msgstr ""
-
-#: templates/sheets.html:628 templates/sheets.html:631
-#: templates/sheets.html:1079
+#: templates/sheets.html:564 templates/sheets.html:978
 msgid "Edit"
 msgstr ""
 
-#: templates/sheets.html:630 templates/sheets.html:1073
+#: templates/sheets.html:565
+msgid "Created"
+msgstr ""
+
+#: templates/sheets.html:566 templates/sheets.html:972
 msgid "View"
 msgstr ""
 
-#: templates/sheets.html:635 templates/sheets.html:637
+#: templates/sheets.html:567
+msgid "Views"
+msgstr ""
+
+#: templates/sheets.html:571
 msgid "Based on"
 msgstr ""
 
-#: templates/sheets.html:636 templates/sheets.html:638
-#: templates/sheets.html:938 templates/sheets.html:939
+#: templates/sheets.html:572 templates/sheets.html:847
 msgid "a sheet"
 msgstr ""
 
-#: templates/sheets.html:636 templates/sheets.html:638
-#: templates/sheets.html:938 templates/sheets.html:939
+#: templates/sheets.html:572 templates/sheets.html:847
 msgid "by"
 msgstr ""
 
-#: templates/sheets.html:643 templates/sheets.html:644
-#: templates/sheets.html:650 templates/sheets.html:651
+#: templates/sheets.html:578 templates/sheets.html:584
 msgid "Assigned by"
 msgstr ""
 
-#: templates/sheets.html:700 templates/sheets.html:701
+#: templates/sheets.html:632
 msgid "Connection"
 msgstr ""
 
-#: templates/sheets.html:725 templates/sheets.html:726
+#: templates/sheets.html:653
 msgid "Select a text"
 msgstr ""
 
-#: templates/sheets.html:730
-msgid " Search for a Text or Commentator"
-msgstr ""
-
-#: templates/sheets.html:734 templates/sheets.html:735
-msgid "Add Source"
-msgstr ""
-
-#: templates/sheets.html:744 templates/sheets.html:745
+#: templates/sheets.html:672
 msgid "Browse Sources"
 msgstr ""
 
-#: templates/sheets.html:754 templates/sheets.html:755
+#: templates/sheets.html:681
 msgid "Select connected texts"
 msgstr ""
 
-#: templates/sheets.html:759 templates/sheets.html:760
-#: templates/sheets.html:784 templates/sheets.html:785
-#: templates/sheets.html:799 templates/sheets.html:800
-#: templates/sheets.html:825 templates/sheets.html:826
+#: templates/sheets.html:685 templates/sheets.html:708
+#: templates/sheets.html:722 templates/sheets.html:744
 msgid "Add to Sheet"
 msgstr ""
 
-#: templates/sheets.html:765 templates/sheets.html:766
+#: templates/sheets.html:690
 msgid "Write or paste text"
 msgstr ""
 
-#: templates/sheets.html:790 templates/sheets.html:791
+#: templates/sheets.html:713
 msgid "Add Image, Youtube Video, SoundCloud link, or MP3"
 msgstr ""
 
-#: templates/sheets.html:795
+#: templates/sheets.html:718
 msgid "Paste URL"
 msgstr ""
 
-#: templates/sheets.html:810 templates/sheets.html:811
+#: templates/sheets.html:731
 msgid "Upload an Image"
 msgstr ""
 
-#: templates/sheets.html:820 templates/sheets.html:821
+#: templates/sheets.html:740
 msgid "Comment on this section"
 msgstr ""
 
-#: templates/sheets.html:846 templates/sheets.html:847
+#: templates/sheets.html:763
 msgid "Watch a 2 minute intro video or "
 msgstr ""
 
-#: templates/sheets.html:846 templates/sheets.html:847
+#: templates/sheets.html:763
 msgid "read more"
 msgstr ""
 
-#: templates/sheets.html:851 templates/sheets.html:852
+#: templates/sheets.html:767
 msgid "Source Sheet Builder: How it Works"
 msgstr ""
 
-#: templates/sheets.html:858 templates/sheets.html:862
+#: templates/sheets.html:773 templates/sheets.html:777
 msgid "Add Sources"
 msgstr ""
 
-#: templates/sheets.html:858 templates/sheets.html:862
+#: templates/sheets.html:773 templates/sheets.html:777
 msgid "by typing a citation like:"
 msgstr ""
 
-#: templates/sheets.html:867 templates/sheets.html:868
+#: templates/sheets.html:782
 msgid "Reorder Sources"
 msgstr ""
 
-#: templates/sheets.html:867 templates/sheets.html:868
+#: templates/sheets.html:782
 msgid "by dragging and dropping."
 msgstr ""
 
-#: templates/sheets.html:871 templates/sheets.html:872
+#: templates/sheets.html:785
 msgid "your sheets to paper or PDF, or just"
 msgstr ""
 
-#: templates/sheets.html:871 templates/sheets.html:872
+#: templates/sheets.html:785
 msgid " the link."
 msgstr ""
 
-#: templates/sheets.html:875 templates/sheets.html:876
+#: templates/sheets.html:788
 msgid "More Options"
 msgstr ""
 
-#: templates/sheets.html:875 templates/sheets.html:876
+#: templates/sheets.html:788
 msgid "are available in the icons that appear when you hover over a source."
 msgstr ""
 
-#: templates/sheets.html:882
+#: templates/sheets.html:794
 msgid "Take a spin! But you'll need to "
 msgstr ""
 
-#: templates/sheets.html:882 templates/sheets.html:884
+#: templates/sheets.html:794
 msgid "login"
 msgstr ""
 
-#: templates/sheets.html:883 templates/sheets.html:885
+#: templates/sheets.html:795
 msgid "to save your work."
 msgstr ""
 
-#: templates/sheets.html:894
+#: templates/sheets.html:806
 msgid "Made with the Sefaria Source Sheet Builder"
 msgstr "Made with the Pecha Source Sheet Builder"
 
-#: templates/sheets.html:905 templates/sheets.html:906
+#: templates/sheets.html:817
 msgid "Add Highlight"
 msgstr ""
 
-#: templates/sheets.html:917
+#: templates/sheets.html:828
 msgid "Create New"
 msgstr ""
 
-#: templates/sheets.html:933 templates/sheets.html:934
+#: templates/sheets.html:843
 msgid "Source Sheet created on Pecha by "
 msgstr ""
 
-#: templates/sheets.html:938 templates/sheets.html:939
+#: templates/sheets.html:847
 msgid "Based on "
 msgstr ""
 
-#: templates/sheets.html:955 templates/sheets.html:956
+#: templates/sheets.html:862
 msgid ""
 "Assignments allow you to create a template that your students can fill out "
 "on their own."
 msgstr ""
 
-#: templates/sheets.html:960 templates/sheets.html:961
+#: templates/sheets.html:866
 msgid "Assign this Sheet"
 msgstr ""
 
-#: templates/sheets.html:964 templates/sheets.html:965
+#: templates/sheets.html:869
 msgid "Stop Collecting Assignments"
 msgstr ""
 
-#: templates/sheets.html:972 templates/sheets.html:973
+#: templates/sheets.html:876
 msgid "Saved Assignments"
 msgstr ""
 
-#: templates/sheets.html:982 templates/sheets.html:983
+#: templates/sheets.html:885
 msgid "Your student's saved assignments will be viewable here."
 msgstr ""
 
-#: templates/sheets.html:993
+#: templates/sheets.html:895
 msgid "Write a summary to help others understand your sheet..."
 msgstr ""
 
-#: templates/sheets.html:999
+#: templates/sheets.html:901
 msgid "Add Tags..."
 msgstr ""
 
-#: templates/sheets.html:1009 templates/sheets.html:1010
+#: templates/sheets.html:911
 msgid "List on Pecha"
 msgstr ""
 
-#: templates/sheets.html:1026 templates/sheets.html:1027
+#: templates/sheets.html:927
 msgid "Display Collection"
 msgstr ""
 
-#: templates/sheets.html:1033
+#: templates/sheets.html:933
 msgid "None"
 msgstr ""
 
-#: templates/sheets.html:1046 templates/sheets.html:1047
+#: templates/sheets.html:946
 msgid "To manage the collections this sheet appears in, visit your profile."
 msgstr ""
 
-#: templates/sheets.html:1056 templates/sheets.html:1057
+#: templates/sheets.html:955
 msgid "Share a link"
 msgstr ""
 
-#: templates/sheets.html:1068 templates/sheets.html:1069
+#: templates/sheets.html:968
 msgid "Anyone with access can"
 msgstr ""
 
-#: templates/sheets.html:1092
+#: templates/sheets.html:989
 msgid ""
 "\n"
 "            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
 "            "
 msgstr ""
 
-#: templates/sheets.html:1117 templates/sheets.html:1118
+#: templates/sheets.html:1011
 msgid ""
 "Copy and paste the embed code below. Adjust the values of width and height "
 "to best fit your design."
 msgstr ""
 
-#: templates/sheets.html:1125 templates/sheets.html:1126
+#: templates/sheets.html:1018
 msgid "Add a Parasha to a Source Sheet"
 msgstr ""
 
-#: templates/sheets.html:1139
+#: templates/sheets.html:1030
 msgid "Change this source's layout"
 msgstr ""
 
-#: templates/sheets.html:1156
+#: templates/sheets.html:1047
 msgid "Reset to sheet defaults"
 msgstr ""
 
-#: templates/sheets.html:1165 templates/sheets.html:1166
+#: templates/sheets.html:1056
 msgid "Would you like to make your Source Sheet public?"
 msgstr ""
 
-#: templates/sheets.html:1171 templates/sheets.html:1174
+#: templates/sheets.html:1061
 msgid ""
 "Your Source Sheet is looking great! You can share it with other members of "
 "the Pecha Community by making it public."
 msgstr ""
 
-#: templates/sheets.html:1179 templates/sheets.html:1180
+#: templates/sheets.html:1066
 msgid "Make Public"
 msgstr ""
 
-#: templates/sheets.html:1183 templates/sheets.html:1184
+#: templates/sheets.html:1069
 msgid "Maybe Later"
 msgstr ""
 
-#: templates/sheets.html:1189 templates/sheets.html:1190
+#: templates/sheets.html:1074
 msgid "Your Sheet is now Public!"
 msgstr ""
 
-#: templates/sheets.html:1194 templates/sheets.html:1195
+#: templates/sheets.html:1078
 msgid ""
 "Thank you for contributing to a free, growing resource for Jewish learning."
 msgstr ""
 
-#: templates/sheets.html:1205 templates/sheets.html:1206
+#: templates/sheets.html:1087
 msgid "No problem, this sheet is still not listed on Sefaria."
 msgstr "No problem, this sheet is still not listed on Pecha."
 
-#: templates/sheets.html:1211 templates/sheets.html:1215
+#: templates/sheets.html:1092
 msgid "You can make your sheet public in the future from the"
 msgstr ""
 
@@ -2159,7 +2081,7 @@ msgstr ""
 "Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
 "Pecha's Source Sheet Builder."
 
-#: templates/sheets_visual.html:30 templates/sheets_visual.html:31
+#: templates/sheets_visual.html:30
 msgid "Back to Sheet"
 msgstr ""
 
@@ -2201,12 +2123,10 @@ msgid "Please enter a valid email address."
 msgstr ""
 
 #: templates/static/aramaic-translation-contest.html:4
-#: templates/static/home.html:5
 msgid "Sefaria: a Living Library of Jewish Texts Online"
 msgstr "Pecha: a Living Library of Buddhist Texts Online"
 
 #: templates/static/aramaic-translation-contest.html:6
-#: templates/static/home.html:7
 msgid ""
 "The largest free library of Jewish texts available to read online in Hebrew "
 "and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries "
@@ -2267,13 +2187,19 @@ msgid "Teach with Sefaria"
 msgstr "Teach with Pecha"
 
 #: templates/static/en/about.html:4 templates/static/he/about.html:4
-msgid "About Sefaria"
+#, fuzzy
+#| msgid "About Sefaria"
+msgid "About Pecha"
 msgstr "About Pecha"
 
 #: templates/static/en/about.html:6 templates/static/he/about.html:6
+#, fuzzy
+#| msgid ""
+#| "Sefaria is a nonprofit organization dedicated to building the future of "
+#| "Jewish learning in an open and participatory way."
 msgid ""
-"Sefaria is a nonprofit organization dedicated to building the future of "
-"Jewish learning in an open and participatory way."
+"Pecha is a nonprofit organization dedicated to building the future of "
+"Buddhist learning in an open and participatory way."
 msgstr ""
 "Pecha is a nonprofit organization dedicated to building the future of "
 "Buddhist learning in an open and participatory way."
@@ -2292,18 +2218,40 @@ msgstr ""
 "Support Pecha by making a tax-deductible donation online or by check or wire "
 "transfer."
 
+#: templates/static/home.html:5
+#, fuzzy
+#| msgid "Sefaria: a Living Library of Jewish Texts Online"
+msgid "Pecha: a Living Library of Buddhist Texts Online"
+msgstr "Pecha: a Living Library of Buddhist Texts Online"
+
+#: templates/static/home.html:7
+msgid ""
+"The largest free library of Buddhist texts available to read online in "
+"Tibetan and English including commentaries and more."
+msgstr ""
+
+#: templates/static/home.html:18 templates/static/home.html:32
+msgid "Pecha"
+msgstr ""
+
 #: templates/static/ios.html:4
 msgid "Sefaria iOS"
 msgstr "Pecha iOS"
 
 #: templates/static/jobs.html:4
-msgid "Jobs at Sefaria"
+#, fuzzy
+#| msgid "Jobs at Sefaria"
+msgid "Jobs at Pecha"
 msgstr "Jobs at Pecha"
 
 #: templates/static/jobs.html:6
+#, fuzzy
+#| msgid ""
+#| "Job openings at Sefaria, a nonprofit technology organization dedicated to "
+#| "building the Jewish future."
 msgid ""
-"Job openings at Sefaria, a nonprofit technology organization dedicated to "
-"building the Jewish future."
+"Job openings at Pecha, a nonprofit technology organization dedicated to "
+"building the Buddhist future."
 msgstr ""
 "Job openings at Pecha, a nonprofit technology organization dedicated to "
 "building the Buddhist future."
@@ -2321,7 +2269,9 @@ msgstr ""
 "with the full text from Pecha."
 
 #: templates/static/mobile.html:4
-msgid "Sefaria Mobile Apps"
+#, fuzzy
+#| msgid "Sefaria Mobile Apps"
+msgid "Pecha Mobile Apps"
 msgstr "Pecha Mobile Apps"
 
 #: templates/static/mobile.html:6
@@ -2353,6 +2303,10 @@ msgid ""
 msgstr ""
 "Pecha’s open data and API can be used by anyone.  You can find it all for "
 "free in our GitHub repository!"
+
+#: templates/static/privacy-policy.html:4
+msgid "Privacy Policy"
+msgstr ""
 
 #: templates/static/ramban-sponsorships.html:4
 #: templates/static/ramban-sponsorships.html:6
@@ -2392,7 +2346,9 @@ msgstr ""
 "professional translators."
 
 #: templates/static/sheets.html:4
-msgid "Sheets on Sefaria"
+#, fuzzy
+#| msgid "Sheets on Sefaria"
+msgid "Sheets on Pecha"
 msgstr "Sheets on Pecha"
 
 #: templates/static/sheets.html:6
@@ -2430,6 +2386,10 @@ msgstr "The Pecha Team"
 #: templates/static/team.html:7
 msgid "Sefaria's team is working to create the Jewish future."
 msgstr "Pecha's team is working to create the Jewish future."
+
+#: templates/static/terms.html:4
+msgid "Terms of Use"
+msgstr ""
 
 #: templates/static/testimonials.html:4
 msgid "Sefaria Testimonials"
@@ -2542,1305 +2502,5 @@ msgid ""
 "verse in his commentary on another."
 msgstr ""
 
-#: venv/lib/python3.9/site-packages/_pytest/config/argparsing.py:442
-#, python-format
-msgid "ambiguous option: %(option)s could match %(matches)s"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/captcha/fields.py:26
-#: venv/lib/python3.9/site-packages/captcha/fields.py:27
-msgid "Error verifying reCAPTCHA, please try again."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/contrib/messages/apps.py:7
-msgid "Messages"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/contrib/sitemaps/apps.py:7
-msgid "Site Maps"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/contrib/staticfiles/apps.py:7
-msgid "Static Files"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/contrib/syndication/apps.py:7
-msgid "Syndication"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/paginator.py:43
-msgid "That page number is not an integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/paginator.py:45
-msgid "That page number is less than 1"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/paginator.py:50
-msgid "That page contains no results"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:34
-msgid "Enter a valid value."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:107
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:671
-msgid "Enter a valid URL."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:160
-msgid "Enter a valid integer."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:171
-msgid "Enter a valid email address."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:245
-msgid ""
-"Enter a valid 'slug' consisting of letters, numbers, underscores or hyphens."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:252
-msgid ""
-"Enter a valid 'slug' consisting of Unicode letters, numbers, underscores, or "
-"hyphens."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:257
-#: venv/lib/python3.9/site-packages/django/core/validators.py:277
-msgid "Enter a valid IPv4 address."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:262
-#: venv/lib/python3.9/site-packages/django/core/validators.py:278
-msgid "Enter a valid IPv6 address."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:272
-#: venv/lib/python3.9/site-packages/django/core/validators.py:276
-msgid "Enter a valid IPv4 or IPv6 address."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:308
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1131
-msgid "Enter only digits separated by commas."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:314
-#, python-format
-msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:345
-#, python-format
-msgid "Ensure this value is less than or equal to %(limit_value)s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:354
-#, python-format
-msgid "Ensure this value is greater than or equal to %(limit_value)s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:364
-#, python-format
-msgid ""
-"Ensure this value has at least %(limit_value)d character (it has "
-"%(show_value)d)."
-msgid_plural ""
-"Ensure this value has at least %(limit_value)d characters (it has "
-"%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:379
-#, python-format
-msgid ""
-"Ensure this value has at most %(limit_value)d character (it has "
-"%(show_value)d)."
-msgid_plural ""
-"Ensure this value has at most %(limit_value)d characters (it has "
-"%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:399
-#, python-format
-msgid "Ensure that there are no more than %(max)s digit in total."
-msgid_plural "Ensure that there are no more than %(max)s digits in total."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:404
-#, python-format
-msgid "Ensure that there are no more than %(max)s decimal place."
-msgid_plural "Ensure that there are no more than %(max)s decimal places."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:409
-#, python-format
-msgid ""
-"Ensure that there are no more than %(max)s digit before the decimal point."
-msgid_plural ""
-"Ensure that there are no more than %(max)s digits before the decimal point."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/core/validators.py:463
-#, python-format
-msgid ""
-"File extension '%(extension)s' is not allowed. Allowed extensions are: "
-"'%(allowed_extensions)s'."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/base.py:1209
-#: venv/lib/python3.9/site-packages/django/forms/models.py:749
-msgid "and"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/base.py:1211
-#, python-format
-msgid "%(model_name)s with this %(field_labels)s already exists."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:116
-#, python-format
-msgid "Value %(value)r is not a valid choice."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:117
-msgid "This field cannot be null."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:118
-msgid "This field cannot be blank."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:119
-#, python-format
-msgid "%(model_name)s with this %(field_label)s already exists."
-msgstr ""
-
-#. Translators: The 'lookup_type' is one of 'date', 'year' or 'month'.
-#. Eg: "Title must be unique for pub_date year"
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:123
-#, python-format
-msgid ""
-"%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:140
-#, python-format
-msgid "Field of type: %(field_type)s"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:901
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1809
-msgid "Integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:905
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1807
-#, python-format
-msgid "'%(value)s' value must be an integer."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:978
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1878
-msgid "Big (8 byte) integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:990
-#, python-format
-msgid "'%(value)s' value must be either True or False."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:992
-msgid "Boolean (Either True or False)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1058
-#, python-format
-msgid "String (up to %(max_length)s)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1115
-msgid "Comma-separated integers"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1172
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid date format. It must be in YYYY-MM-DD "
-"format."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1174
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1319
-#, python-format
-msgid ""
-"'%(value)s' value has the correct format (YYYY-MM-DD) but it is an invalid "
-"date."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1177
-msgid "Date (without time)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1317
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid format. It must be in YYYY-MM-DD HH:MM[:ss[."
-"uuuuuu]][TZ] format."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1321
-#, python-format
-msgid ""
-"'%(value)s' value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]]"
-"[TZ]) but it is an invalid date/time."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1325
-msgid "Date (with time)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1475
-#, python-format
-msgid "'%(value)s' value must be a decimal number."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1477
-msgid "Decimal number"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1628
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid format. It must be in [DD] [HH:[MM:]]ss[."
-"uuuuuu] format."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1631
-msgid "Duration"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1683
-msgid "Email address"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1707
-msgid "File path"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1773
-#, python-format
-msgid "'%(value)s' value must be a float."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1775
-msgid "Floating point number"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1893
-msgid "IPv4 address"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1924
-msgid "IP address"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2006
-#, python-format
-msgid "'%(value)s' value must be either None, True or False."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2008
-msgid "Boolean (Either True, False or None)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2071
-msgid "Positive integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2083
-msgid "Positive small integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2096
-#, python-format
-msgid "Slug (up to %(max_length)s)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2130
-msgid "Small integer"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2163
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
-"format."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2165
-#, python-format
-msgid ""
-"'%(value)s' value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
-"invalid time."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2168
-msgid "Time"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2296
-msgid "URL"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2319
-msgid "Raw binary data"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2366
-#, python-format
-msgid "'%(value)s' is not a valid UUID."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/files.py:391
-msgid "Image"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:788
-#, python-format
-msgid "%(model)s instance with %(field)s %(value)r does not exist."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:790
-msgid "Foreign Key (type determined by related field)"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1029
-msgid "One-to-one relationship"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1104
-#, python-format
-msgid "%(from)s-%(to)s relationship"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1105
-#, python-format
-msgid "%(from)s-%(to)s relationships"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1147
-msgid "Many-to-many relationship"
-msgstr ""
-
-#. Translators: If found as last label character, these punctuation
-#. characters will prevent the default label_suffix to be appended to the label
-#: venv/lib/python3.9/site-packages/django/forms/boundfield.py:181
-msgid ":?.!"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:56
-msgid "This field is required."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:258
-msgid "Enter a whole number."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:303
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:340
-msgid "Enter a number."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:418
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:1149
-msgid "Enter a valid date."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:442
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:1150
-msgid "Enter a valid time."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:464
-msgid "Enter a valid date/time."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:493
-msgid "Enter a valid duration."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:547
-msgid "No file was submitted. Check the encoding type on the form."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:548
-msgid "No file was submitted."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:549
-msgid "The submitted file is empty."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:551
-#, python-format
-msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
-msgid_plural ""
-"Ensure this filename has at most %(max)d characters (it has %(length)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:554
-msgid "Please either submit a file or check the clear checkbox, not both."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:619
-msgid ""
-"Upload a valid image. The file you uploaded was either not an image or a "
-"corrupted image."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:776
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:872
-#: venv/lib/python3.9/site-packages/django/forms/models.py:1265
-#, python-format
-msgid "Select a valid choice. %(value)s is not one of the available choices."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:873
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:990
-#: venv/lib/python3.9/site-packages/django/forms/models.py:1264
-msgid "Enter a list of values."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:991
-msgid "Enter a complete value."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/fields.py:1208
-msgid "Enter a valid UUID."
-msgstr ""
-
-#. Translators: This is the default suffix added to form field labels
-#: venv/lib/python3.9/site-packages/django/forms/forms.py:87
-msgid ":"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/forms.py:213
-#, python-format
-msgid "(Hidden field %(name)s) %(error)s"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:97
-msgid "ManagementForm data is missing or has been tampered with"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:355
-#, python-format
-msgid "Please submit %d or fewer forms."
-msgid_plural "Please submit %d or fewer forms."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:362
-#, python-format
-msgid "Please submit %d or more forms."
-msgid_plural "Please submit %d or more forms."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:390
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:392
-msgid "Order"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/formsets.py:394
-msgid "Delete"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:744
-#, python-format
-msgid "Please correct the duplicate data for %(field)s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:748
-#, python-format
-msgid "Please correct the duplicate data for %(field)s, which must be unique."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:754
-#, python-format
-msgid ""
-"Please correct the duplicate data for %(field_name)s which must be unique "
-"for the %(lookup)s in %(date_field)s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:763
-msgid "Please correct the duplicate values below."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:1093
-msgid "The inline foreign key did not match the parent instance primary key."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:1154
-msgid "Select a valid choice. That choice is not one of the available choices."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/models.py:1267
-#, python-format
-msgid "\"%(pk)s\" is not a valid value for a primary key."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/utils.py:172
-#, python-format
-msgid ""
-"%(datetime)s couldn't be interpreted in time zone %(current_timezone)s; it "
-"may be ambiguous or it may not exist."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:377
-msgid "Clear"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:378
-msgid "Currently"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:379
-msgid "Change"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:703
-msgid "Unknown"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:704
-msgid "Yes"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/forms/widgets.py:705
-msgid "No"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:851
-msgid "yes,no,maybe"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:880
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:897
-#, python-format
-msgid "%(size)d byte"
-msgid_plural "%(size)d bytes"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:899
-#, python-format
-msgid "%s KB"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:901
-#, python-format
-msgid "%s MB"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:903
-#, python-format
-msgid "%s GB"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:905
-#, python-format
-msgid "%s TB"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:907
-#, python-format
-msgid "%s PB"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:66
-msgid "p.m."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:67
-msgid "a.m."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:72
-msgid "PM"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:73
-msgid "AM"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:158
-msgid "midnight"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dateformat.py:160
-msgid "noon"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:6
-msgid "Monday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:6
-msgid "Tuesday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:6
-msgid "Wednesday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:6
-msgid "Thursday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:6
-msgid "Friday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:7
-msgid "Saturday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:7
-msgid "Sunday"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
-msgid "Mon"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
-msgid "Tue"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
-msgid "Wed"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
-msgid "Thu"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:10
-msgid "Fri"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:11
-msgid "Sat"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:11
-msgid "Sun"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "January"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "February"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "May"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:18
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
-msgid "August"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
-msgid "September"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
-msgid "October"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:19
-msgid "November"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:20
-msgid "December"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "jan"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "feb"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "mar"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "apr"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "may"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:23
-msgid "jun"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "jul"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "aug"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "sep"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "oct"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "nov"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:24
-msgid "dec"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:31
-msgctxt "abbrev. month"
-msgid "Jan."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:32
-msgctxt "abbrev. month"
-msgid "Feb."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:33
-msgctxt "abbrev. month"
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:34
-msgctxt "abbrev. month"
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:35
-msgctxt "abbrev. month"
-msgid "May"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:36
-msgctxt "abbrev. month"
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:37
-msgctxt "abbrev. month"
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:38
-msgctxt "abbrev. month"
-msgid "Aug."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:39
-msgctxt "abbrev. month"
-msgid "Sept."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:40
-msgctxt "abbrev. month"
-msgid "Oct."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:41
-msgctxt "abbrev. month"
-msgid "Nov."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:42
-msgctxt "abbrev. month"
-msgid "Dec."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:45
-msgctxt "alt. month"
-msgid "January"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:46
-msgctxt "alt. month"
-msgid "February"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:47
-msgctxt "alt. month"
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:48
-msgctxt "alt. month"
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:49
-msgctxt "alt. month"
-msgid "May"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:50
-msgctxt "alt. month"
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:51
-msgctxt "alt. month"
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:52
-msgctxt "alt. month"
-msgid "August"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:53
-msgctxt "alt. month"
-msgid "September"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:54
-msgctxt "alt. month"
-msgid "October"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:55
-msgctxt "alt. month"
-msgid "November"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/dates.py:56
-msgctxt "alt. month"
-msgid "December"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/ipv6.py:12
-msgid "This is not a valid IPv6 address."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/text.py:81
-#, python-format
-msgctxt "String to return when truncating text"
-msgid "%(truncated_text)s..."
-msgstr ""
-
-#. Translators: This string is used as a separator between list elements
-#: venv/lib/python3.9/site-packages/django/utils/text.py:270
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:71
-msgid ", "
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:11
-#, python-format
-msgid "%d year"
-msgid_plural "%d years"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:12
-#, python-format
-msgid "%d month"
-msgid_plural "%d months"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:13
-#, python-format
-msgid "%d week"
-msgid_plural "%d weeks"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:14
-#, python-format
-msgid "%d day"
-msgid_plural "%d days"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:15
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:16
-#, python-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/django/utils/timesince.py:60
-msgid "0 minutes"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:109
-msgid "Forbidden"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:110
-msgid "CSRF verification failed. Request aborted."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:114
-msgid ""
-"You are seeing this message because this HTTPS site requires a 'Referer "
-"header' to be sent by your Web browser, but none was sent. This header is "
-"required for security reasons, to ensure that your browser is not being "
-"hijacked by third parties."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:119
-msgid ""
-"If you have configured your browser to disable 'Referer' headers, please re-"
-"enable them, at least for this site, or for HTTPS connections, or for 'same-"
-"origin' requests."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:124
-msgid ""
-"You are seeing this message because this site requires a CSRF cookie when "
-"submitting forms. This cookie is required for security reasons, to ensure "
-"that your browser is not being hijacked by third parties."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:129
-msgid ""
-"If you have configured your browser to disable cookies, please re-enable "
-"them, at least for this site, or for 'same-origin' requests."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/csrf.py:134
-msgid "More information is available with DEBUG=True."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/debug.py:520
-msgid "Welcome to Django"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/debug.py:521
-msgid "It worked!"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/debug.py:522
-msgid "Congratulations on your first Django-powered page."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/debug.py:524
-msgid ""
-"Next, start your first app by running <code>python manage.py startapp "
-"[app_label]</code>."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/debug.py:527
-msgid ""
-"You're seeing this message because you have <code>DEBUG = True</code> in "
-"your Django settings file and you haven't configured any URLs. Get to work!"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:48
-msgid "No year specified"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:72
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:132
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:249
-msgid "Date out of range"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:107
-msgid "No month specified"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:169
-msgid "No day specified"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:225
-msgid "No week specified"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:387
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:415
-#, python-format
-msgid "No %(verbose_name_plural)s available"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:669
-#, python-format
-msgid ""
-"Future %(verbose_name_plural)s not available because %(class_name)s."
-"allow_future is False."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/dates.py:703
-#, python-format
-msgid "Invalid date string '%(datestr)s' given format '%(format)s'"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/detail.py:55
-#, python-format
-msgid "No %(verbose_name)s found matching the query"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/list.py:77
-msgid "Page is not 'last', nor can it be converted to an int."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/list.py:82
-#, python-format
-msgid "Invalid page (%(page_number)s): %(message)s"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/generic/list.py:172
-#, python-format
-msgid "Empty list and '%(class_name)s.allow_empty' is False."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/static.py:44
-msgid "Directory indexes are not allowed here."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/static.py:46
-#, python-format
-msgid "\"%(path)s\" does not exist"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/django/views/static.py:86
-#, python-format
-msgid "Index of %(directory)s"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/admin.py:23
-msgid "Personal info"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/admin.py:24
-msgid "Permissions"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/admin.py:25
-msgid "Important dates"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/admin.py:26
-msgid "Groups"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:10
-msgid "Please enter a correct email and password. "
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:11
-msgid "You do not have permission to access the admin."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:12
-msgid "This account is inactive."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:19
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:60
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:92
-#: venv/lib/python3.9/site-packages/emailusernames/forms.py:120
-msgid "Email"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/management/commands/createsuperuser.py:26
-msgid "Enter a valid e-mail address."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/templates/email_usernames/login.html:15
-msgid "Please correct the error below."
-msgid_plural "Please correct the errors below."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/templates/email_usernames/login.html:31
-msgid "Email:"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/templates/email_usernames/login.html:35
-msgid "Password:"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/templates/email_usernames/login.html:42
-msgid "Forgotten your password or username?"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/emailusernames/templates/email_usernames/login.html:46
-msgid "Log in"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:470
-#, python-format
-msgid "Content purported to be compressed with %s but failed to decompress."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:656
-#, python-format
-msgid "Unsupported value for qop: %s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:661
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:755
-#, python-format
-msgid "Unsupported value for algorithm: %s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:750
-msgid "The challenge doesn't contain a server nonce, or this one is empty."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:761
-#, python-format
-msgid "Unsupported value for pw-algorithm: %s."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/httplib2/__init__.py:1687
-msgid "Redirected but the response is missing a Location: header."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/ipware/apps.py:10
-msgid "ipware app"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:75
-msgid "Authorization header must contain two space-delimited values"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:96
-msgid "Given token not valid for any token type"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:107
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:129
-msgid "Token contained no recognizable user identification"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:112
-msgid "User not found"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/authentication.py:115
-msgid "User is inactive"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/backends.py:23
-msgid "Unrecognized algorithm type '{}'"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/backends.py:50
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/exceptions.py:40
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:48
-msgid "Token is invalid or expired"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/serializers.py:47
-msgid "No active account found with the given credentials"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/settings.py:55
-msgid ""
-"The '{}' setting has been removed. Please refer to '{}' for available "
-"settings."
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:73
-msgid "jti"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:78
-msgid "user"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:83
-msgid "created at"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:88
-msgid "expires at"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/token_blacklist/apps.py:9
-msgid "Token Blacklist"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:34
-msgid "Cannot create token with no type or lifetime"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:102
-msgid "Token has no id"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:113
-msgid "Token has no type"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:116
-msgid "Token has wrong type"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:153
-msgid "Token has no '{}' claim"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:157
-msgid "Token '{}' claim has expired"
-msgstr ""
-
-#: venv/lib/python3.9/site-packages/rest_framework_simplejwt/tokens.py:196
-msgid "Token is blacklisted"
-msgstr ""
+#~ msgid "Log in to Sefaria"
+#~ msgstr "Log in to Pecha"

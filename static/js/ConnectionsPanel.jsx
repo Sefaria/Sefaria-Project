@@ -504,8 +504,7 @@ class ConnectionsPanel extends Component {
         {Sefaria._uid ?
           <div>
             <a href="/my/profile?tab=notes" className="allNotesLink button white transparent bordered fillWidth">
-              <span className="int-en">{Sefaria._("Go to My Notes")}</span>
-              <span className="int-he">{Sefaria._("Go to My Notes")}</span>
+              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Go to My Notes")}</span>
             </a>
             <MyNotes
               srefs={this.props.srefs}
@@ -1539,18 +1538,15 @@ class AddNoteBox extends Component {
       <div className="addNoteBox">
         <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
         <div className="button fillWidth" onClick={this.saveNote}>
-          <span className="int-en">{this.props.noteId ? Sefaria._("Save") : Sefaria._("Add Note")}</span>
-          <span className="int-he">{this.props.noteId ? Sefaria._("Save") : Sefaria._("Add Note")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{this.props.noteId ? Sefaria._("Save") : Sefaria._("Add Note")}</span>
         </div>
         {this.props.noteId ?
           <div className="button white fillWidth" onClick={this.props.onCancel}>
-            <span className="int-en">{ Sefaria._("Cancel")}</span>
-            <span className="int-he">{ Sefaria._("Cancel")}</span>
+            <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Cancel")}</span>
           </div> : null}
         {this.props.noteId ?
           (<div className="deleteNote" onClick={this.deleteNote}>
-            <span className="int-en">{ Sefaria._("Delete Note")}</span>
-            <span className="int-he">{ Sefaria._("Delete Note")}</span>
+            <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Delete Note")}</span>
           </div>) : null}
       </div>);
   }
@@ -1699,20 +1695,17 @@ class AddConnectionBox extends Component {
 
       {this.props.srefs.length === 1 ?
         <div>
-          <span className="int-en">{ Sefaria._("Choose a text to connect")}</span>
-          <span className="int-he">{ Sefaria._("Choose a text to connect")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Choose a text to connect")}</span>
 
           <div className="button fillWidth" onClick={this.props.openComparePanel}>
-            <span className="int-en">{ Sefaria._("Browse")}</span>
-            <span className="int-he">{ Sefaria._("Browse")}</span>
+            <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Browse")}</span>
           </div>
         </div>
         : null}
 
       {this.props.srefs.length > 2 ?
         <div>
-          <span className="int-en">{ Sefaria._("We currently only understand connections between two texts")}</span>
-          <span className="int-he">{ Sefaria._("We currently only understand connections between two texts")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("We currently only understand connections between two texts")}</span>
         </div>
         : null}
 
@@ -1740,8 +1733,7 @@ class AddConnectionBox extends Component {
             onChange={this.setType} />
 
           <div className="button fillWidth" onClick={this.addConnection}>
-            <span className="int-en">{Sefaria._("Add Connection")} </span>
-            <span className="int-he">{Sefaria._("Add Connection")}</span>
+            <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Add Connection")}</span>
           </div>
 
         </div>

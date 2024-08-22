@@ -17,6 +17,7 @@ from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
 from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component, _get_user_calendar_params
+from django.utils import translation
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -48,6 +49,16 @@ def data_only(view):
             return {}
     return wrapper
 
+def language_font_class(request):
+    languages = {
+      'english': 'int-en',
+      'hebrew': 'int-he',
+      'chinese': 'int-zh'
+    }
+    current_language = translation.get_language()
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> from sefaria",current_language)
+    language_font_class = languages[request.interfaceLang]
+    return {'language_font_class': language_font_class}
 
 def user_only(view):
     """

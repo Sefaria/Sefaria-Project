@@ -1131,7 +1131,7 @@ sjs.textBrowser = {
 	_setInitialMessage: function() {
     	sjs.textBrowser._setPreview("<div class='empty'>" +
     									"<span class='int-en'>Browse texts with the menu on the left.</span>" +
-    									"<span class='int-he'>གཡོན་ངོས་ཀྱི་ཐོ་གཞུང་འདིའི་ནང་གི་དཔེ་ཆར་མིག་བཤེར་བྱོས།</span>" +
+    									"<span class='int-he'>གཡོན་ངོས་ཀྱི་ཐོ་གཞུང་འདིའི་ནང་གི་དཔེ་ཆར་མིག་བཤེར་བྱོསd།</span>" +
     								"</div>");
 	},
 	_handleNavClick: function() {

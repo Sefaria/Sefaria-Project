@@ -70,25 +70,18 @@
 			<div id="buttons">
 				{% if profile.id != request.user.id %}
 					<div id="messageMe" class="button white control-elem">
-						<span class="int-en">{% trans "Message" %}</span>
-						<span class="int-he">{% trans "Message" %}</span>
+						<span>{% trans "Message" %}</span>
 					</div>
 					<div id="followMe" class="{% if following %}following{% else %}follow{% endif %} button blue control-elem">
-						<span class="int-en">
-                            <span class="en follow">{% trans "Follow" %}</span>
-                            <span class="en state following">{% trans "Following" %}</span>
-                            <span class="en unfollow">{% trans "Unfollow" %}</span>
-                        </span>
-                        <span class="int-he">
-                            <span class="he follow">{% trans "Follow" %}</span>
-                            <span class="he state following">{% trans "Following" %}</span>
-                            <span class="he unfollow">{% trans "Unfollow" %}</span>
+                        <span class="{{ language_font_class }}">
+                            <span class="follow">{% trans "Follow" %}</span>
+                            <span class="state following">{% trans "Following" %}</span>
+                            <span class="unfollow">{% trans "Unfollow" %}</span>
                         </span>
 					</div>
 				{% endif %}
 				{% if profile.id == request.user.id %}
-					<a id="editProfile" href="/settings/profile" class="button int-en">{% trans "Edit Profile" %}</a>
-					<a id="editProfile" href="/settings/profile" class="button int-he">{% trans "Edit Profile" %}</a>
+					<a id="editProfile" href="/settings/profile"class="{{ language_font_class }}">{% trans "Edit Profile" %}</a>
 				{% endif %}
 			</div>
 		</div>

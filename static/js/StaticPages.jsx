@@ -351,8 +351,7 @@ const RambanLandingPage = () => {
         <div className="staticPageCallToActionFooter">
             <div className="staticPageBlockInner flexContainer">
                 <div className="callToActionText noButton">
-                    <span className="int-en">Interested in sponsoring a parashah? Please email {emailLink} for more information.</span>
-                    <span className="int-he">Interested in sponsoring a parashah? Please email {emailLink} for more information.</span>
+                    <span className={`${Sefaria.languageClassFont()}`}>Interested in sponsoring a parashah? Please email {emailLink} for more information.</span>
                 </div>
             </div>
         </div>
@@ -2239,7 +2238,7 @@ const PBSC2021LandingPage = () => (
 const Accordian = ({enTitle, heTitle, enText, heText, colorBar}) => (
      <details style={{borderColor: colorBar}}>
       <summary>
-          <span className="int-en">{enTitle}</span>
+      <span className="int-en">{enTitle}</span>
           <span className="int-he">{heTitle}</span>
       </summary>
       <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
