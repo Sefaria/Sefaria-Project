@@ -1246,6 +1246,7 @@ const Element = (props) => {
             };
             const handleClick = (event, editor) => {
                  // a way to check if the click was on the 'pseudo' ::before element or on the actual div
+                //this relies on the event bubbling mechanism doing sth iffy, we should findd a more deterministic way to implement this check
                  if (event.target.matches('.editorAddLineButton')) { //if click was on ::before
                     insertNewLine(editor);
                   } else {
