@@ -56,7 +56,6 @@ def language_font_class(request):
       'chinese': 'int-zh'
     }
     current_language = translation.get_language()
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> from sefaria",current_language)
     language_font_class = languages[request.interfaceLang]
     return {'language_font_class': language_font_class}
 
