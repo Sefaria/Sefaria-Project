@@ -2146,7 +2146,6 @@ const Link = ({ attributes, children, element }) => {
         className="element-link"
         onMouseEnter={(e) => onHover(e, element.url)}
         onMouseLeave={(e) => onBlur(e, element.url)}
-        style={{ position: 'relative', zIndex: 2 }}
     >
         <a
             href={element.url}
