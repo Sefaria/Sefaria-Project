@@ -1,0 +1,3625 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-08-22 12:11+0530\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: env/lib/python3.7/site-packages/_pytest/config/argparsing.py:442
+#, python-format
+msgid "ambiguous option: %(option)s could match %(matches)s"
+msgstr "模糊选项：%(option)s 可能匹配 %(matches)s"
+
+#: env/lib/python3.7/site-packages/captcha/fields.py:26
+#: env/lib/python3.7/site-packages/captcha/fields.py:27
+msgid "Error verifying reCAPTCHA, please try again."
+msgstr "验证reCAPTCHA时出错，请重试。"
+
+#: env/lib/python3.7/site-packages/django/contrib/messages/apps.py:7
+msgid "Messages"
+msgstr "消息"
+
+#: env/lib/python3.7/site-packages/django/contrib/sitemaps/apps.py:7
+msgid "Site Maps"
+msgstr "网站地图"
+
+#: env/lib/python3.7/site-packages/django/contrib/staticfiles/apps.py:7
+msgid "Static Files"
+msgstr "静态文件"
+
+#: env/lib/python3.7/site-packages/django/contrib/syndication/apps.py:7
+msgid "Syndication"
+msgstr "联合发布"
+
+#: env/lib/python3.7/site-packages/django/core/paginator.py:43
+msgid "That page number is not an integer"
+msgstr "该页码不是整数"
+
+#: env/lib/python3.7/site-packages/django/core/paginator.py:45
+msgid "That page number is less than 1"
+msgstr "该页码小于1"
+
+#: env/lib/python3.7/site-packages/django/core/paginator.py:50
+msgid "That page contains no results"
+msgstr "该页面没有结果"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:34
+msgid "Enter a valid value."
+msgstr "输入有效的值。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:107
+#: env/lib/python3.7/site-packages/django/forms/fields.py:671
+msgid "Enter a valid URL."
+msgstr "输入有效的URL。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:160
+msgid "Enter a valid integer."
+msgstr "输入有效的整数。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:171
+msgid "Enter a valid email address."
+msgstr "输入有效的电子邮件地址。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:245
+msgid ""
+"Enter a valid 'slug' consisting of letters, numbers, underscores or hyphens."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:252
+msgid ""
+"Enter a valid 'slug' consisting of Unicode letters, numbers, underscores, or"
+" hyphens."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:257
+#: env/lib/python3.7/site-packages/django/core/validators.py:277
+msgid "Enter a valid IPv4 address."
+msgstr "输入有效的IPv4地址。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:262
+#: env/lib/python3.7/site-packages/django/core/validators.py:278
+msgid "Enter a valid IPv6 address."
+msgstr "输入有效的IPv6地址。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:272
+#: env/lib/python3.7/site-packages/django/core/validators.py:276
+msgid "Enter a valid IPv4 or IPv6 address."
+msgstr "输入有效的IPv4或IPv6地址。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:308
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1131
+msgid "Enter only digits separated by commas."
+msgstr "仅输入以逗号分隔的数字。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:314
+#, python-format
+msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
+msgstr "确保此值为 %(limit_value)s（实际为 %(show_value)s）。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:345
+#, python-format
+msgid "Ensure this value is less than or equal to %(limit_value)s."
+msgstr "确保此值小于或等于 %(limit_value)s。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:354
+#, python-format
+msgid "Ensure this value is greater than or equal to %(limit_value)s."
+msgstr "确保此值大于或等于 %(limit_value)s。"
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:364
+#, python-format
+msgid ""
+"Ensure this value has at least %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at least %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:379
+#, python-format
+msgid ""
+"Ensure this value has at most %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at most %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:399
+#, python-format
+msgid "Ensure that there are no more than %(max)s digit in total."
+msgid_plural "Ensure that there are no more than %(max)s digits in total."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:404
+#, python-format
+msgid "Ensure that there are no more than %(max)s decimal place."
+msgid_plural "Ensure that there are no more than %(max)s decimal places."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:409
+#, python-format
+msgid ""
+"Ensure that there are no more than %(max)s digit before the decimal point."
+msgid_plural ""
+"Ensure that there are no more than %(max)s digits before the decimal point."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/core/validators.py:463
+#, python-format
+msgid ""
+"File extension '%(extension)s' is not allowed. Allowed extensions are: "
+"'%(allowed_extensions)s'."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/db/models/base.py:1209
+#: env/lib/python3.7/site-packages/django/forms/models.py:749
+msgid "and"
+msgstr "和"
+
+#: env/lib/python3.7/site-packages/django/db/models/base.py:1211
+#, python-format
+msgid "%(model_name)s with this %(field_labels)s already exists."
+msgstr "具有此 %(field_labels)s 的 %(model_name)s 已经存在。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:116
+#, python-format
+msgid "Value %(value)r is not a valid choice."
+msgstr "值 %(value)r 不是有效的选择。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:117
+msgid "This field cannot be null."
+msgstr "此字段不能为空。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:118
+msgid "This field cannot be blank."
+msgstr "此字段不能为空。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:119
+#, python-format
+msgid "%(model_name)s with this %(field_label)s already exists."
+msgstr "具有此 %(field_label)s 的 %(model_name)s 已经存在。"
+
+#. Translators: The 'lookup_type' is one of 'date', 'year' or 'month'.
+#. Eg: "Title must be unique for pub_date year"
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:123
+#, python-format
+msgid ""
+"%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:140
+#, python-format
+msgid "Field of type: %(field_type)s"
+msgstr "字段类型：%(field_type)s"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:901
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1809
+msgid "Integer"
+msgstr "整数"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:905
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1807
+#, python-format
+msgid "'%(value)s' value must be an integer."
+msgstr "'%(value)s' 的值必须是整数。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:978
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1878
+msgid "Big (8 byte) integer"
+msgstr "大（8字节）整数"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:990
+#, python-format
+msgid "'%(value)s' value must be either True or False."
+msgstr "'%(value)s' 的值必须是 True 或 False。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:992
+msgid "Boolean (Either True or False)"
+msgstr "布尔值（True 或 False）"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1058
+#, python-format
+msgid "String (up to %(max_length)s)"
+msgstr "字符串（最多 %(max_length)s）"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1115
+msgid "Comma-separated integers"
+msgstr "以逗号分隔的整数"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1172
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid date format. It must be in YYYY-MM-DD "
+"format."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1174
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1319
+#, python-format
+msgid ""
+"'%(value)s' value has the correct format (YYYY-MM-DD) but it is an invalid "
+"date."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1177
+msgid "Date (without time)"
+msgstr "日期（不含时间）"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1317
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid format. It must be in YYYY-MM-DD "
+"HH:MM[:ss[.uuuuuu]][TZ] format."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1321
+#, python-format
+msgid ""
+"'%(value)s' value has the correct format (YYYY-MM-DD "
+"HH:MM[:ss[.uuuuuu]][TZ]) but it is an invalid date/time."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1325
+msgid "Date (with time)"
+msgstr "日期（含时间）"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1475
+#, python-format
+msgid "'%(value)s' value must be a decimal number."
+msgstr "'%(value)s' 的值必须是小数。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1477
+msgid "Decimal number"
+msgstr "小数"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1628
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid format. It must be in [DD] "
+"[HH:[MM:]]ss[.uuuuuu] format."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1631
+msgid "Duration"
+msgstr "持续时间"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1683
+msgid "Email address"
+msgstr "电子邮件地址"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1707
+msgid "File path"
+msgstr "文件路径"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1773
+#, python-format
+msgid "'%(value)s' value must be a float."
+msgstr "'%(value)s' 的值必须是浮点数。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1775
+msgid "Floating point number"
+msgstr "浮点数"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1893
+msgid "IPv4 address"
+msgstr "IPv4 地址"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1924
+msgid "IP address"
+msgstr "IP 地址"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2006
+#, python-format
+msgid "'%(value)s' value must be either None, True or False."
+msgstr "'%(value)s' 的值必须是 None、True 或 False。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2008
+msgid "Boolean (Either True, False or None)"
+msgstr "布尔值（True、False 或 None）"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2071
+msgid "Positive integer"
+msgstr "正整数"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2083
+msgid "Positive small integer"
+msgstr "正小整数"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2096
+#, python-format
+msgid "Slug (up to %(max_length)s)"
+msgstr "简短名称（最多 %(max_length)s）"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2130
+msgid "Small integer"
+msgstr "小整数"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2137
+#: templates/sheets.html:369 templates/sheets.html:637
+msgid "Text"
+msgstr "文本"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2163
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
+"format."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2165
+#, python-format
+msgid ""
+"'%(value)s' value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
+"invalid time."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2168
+msgid "Time"
+msgstr "时间"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2296
+msgid "URL"
+msgstr "网址"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2319
+msgid "Raw binary data"
+msgstr "原始二进制数据"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2366
+#, python-format
+msgid "'%(value)s' is not a valid UUID."
+msgstr "'%(value)s' 不是有效的 UUID。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/files.py:228
+#: templates/sheets.html:31
+msgid "File"
+msgstr "文件"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/files.py:391
+msgid "Image"
+msgstr "图像"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:788
+#, python-format
+msgid "%(model)s instance with %(field)s %(value)r does not exist."
+msgstr "具有 %(field)s %(value)r 的 %(model)s 实例不存在。"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:790
+msgid "Foreign Key (type determined by related field)"
+msgstr "外键（由相关字段确定类型）"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:1029
+msgid "One-to-one relationship"
+msgstr "一对一关系"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:1104
+#, python-format
+msgid "%(from)s-%(to)s relationship"
+msgstr "%(from)s-%(to)s 关系"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:1105
+#, python-format
+msgid "%(from)s-%(to)s relationships"
+msgstr "%(from)s-%(to)s 关系"
+
+#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:1147
+msgid "Many-to-many relationship"
+msgstr "多对多关系"
+
+#. Translators: If found as last label character, these punctuation
+#. characters will prevent the default label_suffix to be appended to the
+#. label
+#: env/lib/python3.7/site-packages/django/forms/boundfield.py:181
+msgid ":?.!"
+msgstr ":?.!"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:56
+msgid "This field is required."
+msgstr "此字段是必填的。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:258
+msgid "Enter a whole number."
+msgstr "输入一个整数。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:303
+#: env/lib/python3.7/site-packages/django/forms/fields.py:340
+msgid "Enter a number."
+msgstr "输入一个数字。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:418
+#: env/lib/python3.7/site-packages/django/forms/fields.py:1149
+msgid "Enter a valid date."
+msgstr "输入有效的日期。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:442
+#: env/lib/python3.7/site-packages/django/forms/fields.py:1150
+msgid "Enter a valid time."
+msgstr "输入有效的时间。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:464
+msgid "Enter a valid date/time."
+msgstr "输入有效的日期/时间。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:493
+msgid "Enter a valid duration."
+msgstr "输入有效的持续时间。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:547
+msgid "No file was submitted. Check the encoding type on the form."
+msgstr "没有提交文件。请检查表单上的编码类型。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:548
+msgid "No file was submitted."
+msgstr "没有提交文件。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:549
+msgid "The submitted file is empty."
+msgstr "提交的文件为空。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:551
+#, python-format
+msgid ""
+"Ensure this filename has at most %(max)d character (it has %(length)d)."
+msgid_plural ""
+"Ensure this filename has at most %(max)d characters (it has %(length)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:554
+msgid "Please either submit a file or check the clear checkbox, not both."
+msgstr "请提交文件或选中清除复选框，而不是两者都做。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:619
+msgid ""
+"Upload a valid image. The file you uploaded was either not an image or a "
+"corrupted image."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:776
+#: env/lib/python3.7/site-packages/django/forms/fields.py:872
+#: env/lib/python3.7/site-packages/django/forms/models.py:1265
+#, python-format
+msgid "Select a valid choice. %(value)s is not one of the available choices."
+msgstr "选择一个有效的选项。%(value)s 不是可用选项之一。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:873
+#: env/lib/python3.7/site-packages/django/forms/fields.py:990
+#: env/lib/python3.7/site-packages/django/forms/models.py:1264
+msgid "Enter a list of values."
+msgstr "输入一个值列表。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:991
+msgid "Enter a complete value."
+msgstr "输入完整的值。"
+
+#: env/lib/python3.7/site-packages/django/forms/fields.py:1208
+msgid "Enter a valid UUID."
+msgstr "输入有效的 UUID。"
+
+#. Translators: This is the default suffix added to form field labels
+#: env/lib/python3.7/site-packages/django/forms/forms.py:87
+msgid ":"
+msgstr ":"
+
+#: env/lib/python3.7/site-packages/django/forms/forms.py:213
+#, python-format
+msgid "(Hidden field %(name)s) %(error)s"
+msgstr "(隐藏字段 %(name)s) %(error)s"
+
+#: env/lib/python3.7/site-packages/django/forms/formsets.py:97
+msgid "ManagementForm data is missing or has been tampered with"
+msgstr "ManagementForm 数据丢失或已被篡改"
+
+#: env/lib/python3.7/site-packages/django/forms/formsets.py:355
+#, python-format
+msgid "Please submit %d or fewer forms."
+msgid_plural "Please submit %d or fewer forms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/forms/formsets.py:362
+#, python-format
+msgid "Please submit %d or more forms."
+msgid_plural "Please submit %d or more forms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/forms/formsets.py:390
+#: env/lib/python3.7/site-packages/django/forms/formsets.py:392
+msgid "Order"
+msgstr "排序"
+
+#: env/lib/python3.7/site-packages/django/forms/formsets.py:394
+msgid "Delete"
+msgstr "删除"
+
+#: env/lib/python3.7/site-packages/django/forms/models.py:744
+#, python-format
+msgid "Please correct the duplicate data for %(field)s."
+msgstr "请更正 %(field)s 的重复数据。"
+
+#: env/lib/python3.7/site-packages/django/forms/models.py:748
+#, python-format
+msgid "Please correct the duplicate data for %(field)s, which must be unique."
+msgstr "请更正 %(field)s 的重复数据，该数据必须唯一。"
+
+#: env/lib/python3.7/site-packages/django/forms/models.py:754
+#, python-format
+msgid ""
+"Please correct the duplicate data for %(field_name)s which must be unique "
+"for the %(lookup)s in %(date_field)s."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/forms/models.py:763
+msgid "Please correct the duplicate values below."
+msgstr "请更正下面的重复值。"
+
+#: env/lib/python3.7/site-packages/django/forms/models.py:1093
+msgid "The inline foreign key did not match the parent instance primary key."
+msgstr "内联外键与父实例主键不匹配。"
+
+#: env/lib/python3.7/site-packages/django/forms/models.py:1154
+msgid ""
+"Select a valid choice. That choice is not one of the available choices."
+msgstr "选择一个有效的选项。该选项不是可用选项之一。"
+
+#: env/lib/python3.7/site-packages/django/forms/models.py:1267
+#, python-format
+msgid "\"%(pk)s\" is not a valid value for a primary key."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/forms/utils.py:172
+#, python-format
+msgid ""
+"%(datetime)s couldn't be interpreted in time zone %(current_timezone)s; it "
+"may be ambiguous or it may not exist."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/forms/widgets.py:377
+msgid "Clear"
+msgstr "清除"
+
+#: env/lib/python3.7/site-packages/django/forms/widgets.py:378
+msgid "Currently"
+msgstr "当前"
+
+#: env/lib/python3.7/site-packages/django/forms/widgets.py:379
+msgid "Change"
+msgstr "更改"
+
+#: env/lib/python3.7/site-packages/django/forms/widgets.py:703
+msgid "Unknown"
+msgstr "未知"
+
+#: env/lib/python3.7/site-packages/django/forms/widgets.py:704
+msgid "Yes"
+msgstr "是"
+
+#: env/lib/python3.7/site-packages/django/forms/widgets.py:705
+msgid "No"
+msgstr "否"
+
+#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:851
+msgid "yes,no,maybe"
+msgstr "是，否，也许"
+
+#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:880
+#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:897
+#, python-format
+msgid "%(size)d byte"
+msgid_plural "%(size)d bytes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:899
+#, python-format
+msgid "%s KB"
+msgstr "%s KB"
+
+#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:901
+#, python-format
+msgid "%s MB"
+msgstr "%s MB"
+
+#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:903
+#, python-format
+msgid "%s GB"
+msgstr "%s GB"
+
+#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:905
+#, python-format
+msgid "%s TB"
+msgstr "%s TB"
+
+#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:907
+#, python-format
+msgid "%s PB"
+msgstr "%s PB"
+
+#: env/lib/python3.7/site-packages/django/utils/dateformat.py:66
+msgid "p.m."
+msgstr "下午"
+
+#: env/lib/python3.7/site-packages/django/utils/dateformat.py:67
+msgid "a.m."
+msgstr "上午"
+
+#: env/lib/python3.7/site-packages/django/utils/dateformat.py:72
+msgid "PM"
+msgstr "下午"
+
+#: env/lib/python3.7/site-packages/django/utils/dateformat.py:73
+msgid "AM"
+msgstr "上午"
+
+#: env/lib/python3.7/site-packages/django/utils/dateformat.py:158
+msgid "midnight"
+msgstr "午夜"
+
+#: env/lib/python3.7/site-packages/django/utils/dateformat.py:160
+msgid "noon"
+msgstr "中午"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:6
+msgid "Monday"
+msgstr "星期一"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:6
+msgid "Tuesday"
+msgstr "星期二"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:6
+msgid "Wednesday"
+msgstr "星期三"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:6
+msgid "Thursday"
+msgstr "星期四"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:6
+msgid "Friday"
+msgstr "星期五"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:7
+msgid "Saturday"
+msgstr "星期六"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:7
+msgid "Sunday"
+msgstr "星期日"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:10
+msgid "Mon"
+msgstr "周一"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:10
+msgid "Tue"
+msgstr "周二"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:10
+msgid "Wed"
+msgstr "周三"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:10
+msgid "Thu"
+msgstr "周四"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:10
+msgid "Fri"
+msgstr "周五"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:11
+msgid "Sat"
+msgstr "周六"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:11
+msgid "Sun"
+msgstr "周日"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:18
+msgid "January"
+msgstr "一月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:18
+msgid "February"
+msgstr "二月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:18
+msgid "March"
+msgstr "三月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:18
+msgid "April"
+msgstr "四月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:18
+msgid "May"
+msgstr "五月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:18
+msgid "June"
+msgstr "六月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:19
+msgid "July"
+msgstr "七月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:19
+msgid "August"
+msgstr "八月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:19
+msgid "September"
+msgstr "九月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:19
+msgid "October"
+msgstr "十月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:19
+msgid "November"
+msgstr "十一月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:20
+msgid "December"
+msgstr "十二月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:23
+msgid "jan"
+msgstr "一月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:23
+msgid "feb"
+msgstr "二月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:23
+msgid "mar"
+msgstr "三月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:23
+msgid "apr"
+msgstr "四月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:23
+msgid "may"
+msgstr "五月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:23
+msgid "jun"
+msgstr "六月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:24
+msgid "jul"
+msgstr "七月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:24
+msgid "aug"
+msgstr "八月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:24
+msgid "sep"
+msgstr "九月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:24
+msgid "oct"
+msgstr "十月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:24
+msgid "nov"
+msgstr "十一月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:24
+msgid "dec"
+msgstr "十二月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:31
+msgctxt "abbrev. month"
+msgid "Jan."
+msgstr "1月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:32
+msgctxt "abbrev. month"
+msgid "Feb."
+msgstr "2月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:33
+msgctxt "abbrev. month"
+msgid "March"
+msgstr "三月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:34
+msgctxt "abbrev. month"
+msgid "April"
+msgstr "四月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:35
+msgctxt "abbrev. month"
+msgid "May"
+msgstr "五月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:36
+msgctxt "abbrev. month"
+msgid "June"
+msgstr "六月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:37
+msgctxt "abbrev. month"
+msgid "July"
+msgstr "七月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:38
+msgctxt "abbrev. month"
+msgid "Aug."
+msgstr "8月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:39
+msgctxt "abbrev. month"
+msgid "Sept."
+msgstr "9月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:40
+msgctxt "abbrev. month"
+msgid "Oct."
+msgstr "10月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:41
+msgctxt "abbrev. month"
+msgid "Nov."
+msgstr "11月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:42
+msgctxt "abbrev. month"
+msgid "Dec."
+msgstr "12月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:45
+msgctxt "alt. month"
+msgid "January"
+msgstr "一月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:46
+msgctxt "alt. month"
+msgid "February"
+msgstr "二月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:47
+msgctxt "alt. month"
+msgid "March"
+msgstr "三月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:48
+msgctxt "alt. month"
+msgid "April"
+msgstr "四月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:49
+msgctxt "alt. month"
+msgid "May"
+msgstr "五月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:50
+msgctxt "alt. month"
+msgid "June"
+msgstr "六月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:51
+msgctxt "alt. month"
+msgid "July"
+msgstr "七月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:52
+msgctxt "alt. month"
+msgid "August"
+msgstr "八月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:53
+msgctxt "alt. month"
+msgid "September"
+msgstr "九月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:54
+msgctxt "alt. month"
+msgid "October"
+msgstr "十月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:55
+msgctxt "alt. month"
+msgid "November"
+msgstr "十一月"
+
+#: env/lib/python3.7/site-packages/django/utils/dates.py:56
+msgctxt "alt. month"
+msgid "December"
+msgstr "十二月"
+
+#: env/lib/python3.7/site-packages/django/utils/ipv6.py:12
+msgid "This is not a valid IPv6 address."
+msgstr "这不是有效的IPv6地址。"
+
+#: env/lib/python3.7/site-packages/django/utils/text.py:81
+#, python-format
+msgctxt "String to return when truncating text"
+msgid "%(truncated_text)s..."
+msgstr "%(truncated_text)s..."
+
+#: env/lib/python3.7/site-packages/django/utils/text.py:251
+#: templates/edit_text.html:101 templates/sheets.html:726
+#: templates/sheets.html:794
+msgid "or"
+msgstr "或"
+
+#. Translators: This string is used as a separator between list elements
+#: env/lib/python3.7/site-packages/django/utils/text.py:270
+#: env/lib/python3.7/site-packages/django/utils/timesince.py:71
+msgid ", "
+msgstr ", "
+
+#: env/lib/python3.7/site-packages/django/utils/timesince.py:11
+#, python-format
+msgid "%d year"
+msgid_plural "%d years"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/utils/timesince.py:12
+#, python-format
+msgid "%d month"
+msgid_plural "%d months"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/utils/timesince.py:13
+#, python-format
+msgid "%d week"
+msgid_plural "%d weeks"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/utils/timesince.py:14
+#, python-format
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/utils/timesince.py:15
+#, python-format
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/utils/timesince.py:16
+#, python-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/django/utils/timesince.py:60
+msgid "0 minutes"
+msgstr "0 分钟"
+
+#: env/lib/python3.7/site-packages/django/views/csrf.py:109
+msgid "Forbidden"
+msgstr "禁止"
+
+#: env/lib/python3.7/site-packages/django/views/csrf.py:110
+msgid "CSRF verification failed. Request aborted."
+msgstr "CSRF验证失败。请求被中止。"
+
+#: env/lib/python3.7/site-packages/django/views/csrf.py:114
+msgid ""
+"You are seeing this message because this HTTPS site requires a 'Referer "
+"header' to be sent by your Web browser, but none was sent. This header is "
+"required for security reasons, to ensure that your browser is not being "
+"hijacked by third parties."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/views/csrf.py:119
+msgid ""
+"If you have configured your browser to disable 'Referer' headers, please re-"
+"enable them, at least for this site, or for HTTPS connections, or for 'same-"
+"origin' requests."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/views/csrf.py:124
+msgid ""
+"You are seeing this message because this site requires a CSRF cookie when "
+"submitting forms. This cookie is required for security reasons, to ensure "
+"that your browser is not being hijacked by third parties."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/views/csrf.py:129
+msgid ""
+"If you have configured your browser to disable cookies, please re-enable "
+"them, at least for this site, or for 'same-origin' requests."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/views/csrf.py:134
+msgid "More information is available with DEBUG=True."
+msgstr "更多信息请设置DEBUG=True。"
+
+#: env/lib/python3.7/site-packages/django/views/debug.py:520
+msgid "Welcome to Django"
+msgstr "欢迎来到Django"
+
+#: env/lib/python3.7/site-packages/django/views/debug.py:521
+msgid "It worked!"
+msgstr "成功了！"
+
+#: env/lib/python3.7/site-packages/django/views/debug.py:522
+msgid "Congratulations on your first Django-powered page."
+msgstr "祝贺你创建了第一个Django页面。"
+
+#: env/lib/python3.7/site-packages/django/views/debug.py:524
+msgid ""
+"Next, start your first app by running <code>python manage.py startapp "
+"[app_label]</code>."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/views/debug.py:527
+msgid ""
+"You're seeing this message because you have <code>DEBUG = True</code> in "
+"your Django settings file and you haven't configured any URLs. Get to work!"
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:48
+msgid "No year specified"
+msgstr "未指定年份"
+
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:72
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:132
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:249
+msgid "Date out of range"
+msgstr "日期超出范围"
+
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:107
+msgid "No month specified"
+msgstr "未指定月份"
+
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:169
+msgid "No day specified"
+msgstr "未指定日期"
+
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:225
+msgid "No week specified"
+msgstr "未指定周"
+
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:387
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:415
+#, python-format
+msgid "No %(verbose_name_plural)s available"
+msgstr "没有可用的%(verbose_name_plural)s"
+
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:669
+#, python-format
+msgid ""
+"Future %(verbose_name_plural)s not available because "
+"%(class_name)s.allow_future is False."
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/views/generic/dates.py:703
+#, python-format
+msgid "Invalid date string '%(datestr)s' given format '%(format)s'"
+msgstr "无效的日期字符串 '%(datestr)s'，格式 '%(format)s'"
+
+#: env/lib/python3.7/site-packages/django/views/generic/detail.py:55
+#, python-format
+msgid "No %(verbose_name)s found matching the query"
+msgstr "没有找到匹配查询的%(verbose_name)s"
+
+#: env/lib/python3.7/site-packages/django/views/generic/list.py:77
+msgid "Page is not 'last', nor can it be converted to an int."
+msgstr "页面不是'最后'，也不能转换为整数。"
+
+#: env/lib/python3.7/site-packages/django/views/generic/list.py:82
+#, python-format
+msgid "Invalid page (%(page_number)s): %(message)s"
+msgstr "无效的页面 (%(page_number)s): %(message)s"
+
+#: env/lib/python3.7/site-packages/django/views/generic/list.py:172
+#, python-format
+msgid "Empty list and '%(class_name)s.allow_empty' is False."
+msgstr "空列表且 '%(class_name)s.allow_empty' 为 False。"
+
+#: env/lib/python3.7/site-packages/django/views/static.py:44
+msgid "Directory indexes are not allowed here."
+msgstr "这里不允许目录索引。"
+
+#: env/lib/python3.7/site-packages/django/views/static.py:46
+#, python-format
+msgid "\"%(path)s\" does not exist"
+msgstr ""
+
+#: env/lib/python3.7/site-packages/django/views/static.py:86
+#, python-format
+msgid "Index of %(directory)s"
+msgstr "%(directory)s 的索引"
+
+#: env/lib/python3.7/site-packages/emailusernames/admin.py:23
+msgid "Personal info"
+msgstr "个人信息"
+
+#: env/lib/python3.7/site-packages/emailusernames/admin.py:24
+msgid "Permissions"
+msgstr "权限"
+
+#: env/lib/python3.7/site-packages/emailusernames/admin.py:25
+msgid "Important dates"
+msgstr "重要日期"
+
+#: env/lib/python3.7/site-packages/emailusernames/admin.py:26
+msgid "Groups"
+msgstr "群组"
+
+#: env/lib/python3.7/site-packages/emailusernames/forms.py:10
+msgid "Please enter a correct email and password. "
+msgstr "请输入正确的电子邮件和密码。"
+
+#: env/lib/python3.7/site-packages/emailusernames/forms.py:11
+msgid "You do not have permission to access the admin."
+msgstr "你没有权限访问管理员。"
+
+#: env/lib/python3.7/site-packages/emailusernames/forms.py:12
+msgid "This account is inactive."
+msgstr "此账户已被停用。"
+
+#: env/lib/python3.7/site-packages/emailusernames/forms.py:19
+#: env/lib/python3.7/site-packages/emailusernames/forms.py:60
+#: env/lib/python3.7/site-packages/emailusernames/forms.py:92
+#: env/lib/python3.7/site-packages/emailusernames/forms.py:120
+msgid "Email"
+msgstr "电子邮件"
+
+#: env/lib/python3.7/site-packages/emailusernames/forms.py:106
+#: sefaria/forms.py:78
+msgid "A user with that email already exists."
+msgstr "该电子邮件的用户已存在。"
+
+#: env/lib/python3.7/site-packages/emailusernames/management/commands/createsuperuser.py:26
+msgid "Enter a valid e-mail address."
+msgstr "请输入有效的电子邮件地址。"
+
+#: env/lib/python3.7/site-packages/emailusernames/templates/email_usernames/login.html:15
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.7/site-packages/emailusernames/templates/email_usernames/login.html:31
+msgid "Email:"
+msgstr "电子邮件："
+
+#: env/lib/python3.7/site-packages/emailusernames/templates/email_usernames/login.html:35
+msgid "Password:"
+msgstr "密码："
+
+#: env/lib/python3.7/site-packages/emailusernames/templates/email_usernames/login.html:42
+msgid "Forgotten your password or username?"
+msgstr "忘记了密码或用户名？"
+
+#: env/lib/python3.7/site-packages/emailusernames/templates/email_usernames/login.html:46
+msgid "Log in"
+msgstr "登录"
+
+#: env/lib/python3.7/site-packages/httplib2/__init__.py:470
+#, python-format
+msgid "Content purported to be compressed with %s but failed to decompress."
+msgstr "内容声称使用 %s 压缩，但解压失败。"
+
+#: env/lib/python3.7/site-packages/httplib2/__init__.py:656
+#, python-format
+msgid "Unsupported value for qop: %s."
+msgstr "不支持的 qop 值: %s。"
+
+#: env/lib/python3.7/site-packages/httplib2/__init__.py:661
+#: env/lib/python3.7/site-packages/httplib2/__init__.py:755
+#, python-format
+msgid "Unsupported value for algorithm: %s."
+msgstr "不支持的算法值: %s。"
+
+#: env/lib/python3.7/site-packages/httplib2/__init__.py:750
+msgid "The challenge doesn't contain a server nonce, or this one is empty."
+msgstr "挑战中不包含服务器 nonce，或者该 nonce 为空。"
+
+#: env/lib/python3.7/site-packages/httplib2/__init__.py:761
+#, python-format
+msgid "Unsupported value for pw-algorithm: %s."
+msgstr "不支持的 pw-algorithm 值: %s。"
+
+#: env/lib/python3.7/site-packages/httplib2/__init__.py:1687
+msgid "Redirected but the response is missing a Location: header."
+msgstr "重定向，但响应中缺少 Location: 头。"
+
+#: env/lib/python3.7/site-packages/ipware/apps.py:10
+msgid "ipware app"
+msgstr "ipware 应用"
+
+#: reader/templatetags/sefaria_tags.py:226 sefaria/settings.py:24
+#: templates/edit_text.html:185 templates/elements/notification.html:15
+#: templates/elements/notification.html:17 templates/sheets.html:191
+#: templates/sheets.html:273
+msgid "English"
+msgstr "英语"
+
+#: reader/templatetags/sefaria_tags.py:227 sefaria/settings.py:25
+#: templates/edit_text.html:186 templates/elements/notification.html:15
+#: templates/elements/notification.html:17 templates/sheets.html:279
+msgid "Hebrew"
+msgstr "希伯来语"
+
+#: reader/templatetags/sefaria_tags.py:228 templates/sheets.html:203
+#: templates/sheets.html:285
+msgid "Bilingual"
+msgstr "双语"
+
+#: reader/views.py:702
+#, python-format
+msgid "Read the text of %(book)s online with commentaries and connections."
+msgstr "%(book)s 的文本可以在线阅读，附有注释和关联。"
+
+#: reader/views.py:724
+msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
+msgstr "探索三千年的犹太文本，包括希伯来语和英文翻译。"
+
+#: reader/views.py:729 reader/views.py:3161 templates/delete-sheet.html:4
+#: templates/person.html:6 templates/person.html:8
+#: templates/registration/delete_user_account.html:4
+#: templates/registration/password_reset_complete.html:3
+#: templates/registration/password_reset_confirm.html:4
+#: templates/registration/password_reset_done.html:3
+#: templates/registration/password_reset_form.html:4
+#: templates/registration/register.html:4 templates/sheets.html:7
+#: templates/static/linker.html:4 templates/static/newsletter.html:4
+#: templates/static/privacy-policy.html:4 templates/static/terms.html:4
+#: templates/static/visualizations.html:4
+msgid "Sefaria"
+msgstr "Sefaria"
+
+#: reader/views.py:731
+msgid "A source sheet created with Sefaria's Source Sheet Builder"
+msgstr "使用 Sefaria 的源表生成器创建的源表"
+
+#: reader/views.py:768
+msgid "Recently Viewed"
+msgstr "最近查看"
+
+#: reader/views.py:769
+msgid "Texts that you've recently viewed on Sefaria."
+msgstr "您最近在 Sefaria 上查看的文本。"
+
+#: reader/views.py:781
+#, python-format
+msgid "Read %(categories)s texts online with commentaries and connections."
+msgstr "在线阅读 %(categories)s 文本，附有注释和关联。"
+
+#: reader/views.py:783
+msgid " | Sefaria"
+msgstr " | Sefaria"
+
+#: reader/views.py:817 reader/views.py:3201
+msgid ""
+"Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish "
+"sources."
+msgstr ""
+
+#: reader/views.py:819 reader/views.py:3203
+#, python-format
+msgid ""
+"Jewish texts and source sheets about %(topic)s from Torah, Talmud and other "
+"sources in Sefaria's library."
+msgstr ""
+
+#: reader/views.py:837
+msgid "Explore Jewish Texts by Topic"
+msgstr "按主题探索犹太文本"
+
+#: reader/views.py:839
+msgid ""
+"Explore Jewish texts related to traditional and contemporary topics, coming "
+"from Torah, Talmud, and more."
+msgstr ""
+
+#: reader/views.py:919
+msgid "Sefaria Search"
+msgstr "Sefaria 搜索"
+
+#: reader/views.py:920
+msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
+msgstr "搜索三千年的犹太文本，包括希伯来语和英文翻译。"
+
+#: reader/views.py:946 reader/views.py:1007
+msgid "Sefaria Collections"
+msgstr "Sefaria 收藏"
+
+#: reader/views.py:1124
+msgid "Pecha - Buddhism in your own words"
+msgstr "Pecha - 用你自己的话说佛教"
+
+#: reader/views.py:1125
+msgid ""
+"The largest free library of Buddhist texts available to read online in "
+"Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, "
+"commentaries and more."
+msgstr ""
+
+#: reader/views.py:1130
+msgid "Learning Schedules"
+msgstr "学习计划"
+
+#: reader/views.py:1131
+msgid ""
+"Weekly Torah portions, Daf Yomi, and other schedules for Torah learning."
+msgstr ""
+
+#: reader/views.py:1137
+msgid "My Saved Content"
+msgstr "我的保存内容"
+
+#: reader/views.py:1138
+msgid "See your saved content on Sefaria"
+msgstr "查看您在 Sefaria 上保存的内容"
+
+#: reader/views.py:1154
+msgid "My User History"
+msgstr "我的用户历史"
+
+#: reader/views.py:1155
+msgid "See your user history on Sefaria"
+msgstr "查看您在 Sefaria 上的用户历史"
+
+#: reader/views.py:1160
+msgid "New Additions to the Pecha Library"
+msgstr ""
+
+#: reader/views.py:1161
+msgid ""
+"See texts, translations and connections that have been recently added to "
+"Pecha."
+msgstr ""
+
+#: reader/views.py:1167
+msgid "User Stats"
+msgstr "用户统计"
+
+#: reader/views.py:1174
+msgid "Sefaria Notifications"
+msgstr "Sefaria 通知"
+
+#: reader/views.py:1184
+msgid "Moderator Tools"
+msgstr "主持工具"
+
+#: reader/views.py:1229 reader/views.py:3161
+msgid "Topics"
+msgstr "主题"
+
+#: reader/views.py:1231
+msgid "Source Sheet"
+msgstr "源表"
+
+#: reader/views.py:1261
+msgid "Texts"
+msgstr "文本"
+
+#: reader/views.py:3162
+msgid "Explore Jewish Texts by Topic on Sefaria"
+msgstr "在 Sefaria 上按主题探索犹太文本"
+
+#: reader/views.py:3620
+#, python-format
+msgid "%(full_name)s on Sefaria"
+msgstr "%(full_name)s 在 Sefaria 上"
+
+#: reader/views.py:3621
+#, python-format
+msgid ""
+"%(full_name)s is on Sefaria. Follow to view their public source sheets, "
+"notes and translations."
+msgstr ""
+
+#: reader/views.py:3635 reader/views.py:3663 reader/views.py:3797
+msgid "You must be logged in to update your profile."
+msgstr "您必须登录才能更新您的个人资料。"
+
+#: reader/views.py:3673
+msgid "Email fields did not match"
+msgstr "电子邮件字段不匹配"
+
+#: reader/views.py:3675
+msgid "Incorrect account password for this account"
+msgstr "此账户的密码不正确"
+
+#: reader/views.py:3756
+msgid "You must be logged in to update your profile photo."
+msgstr "您必须登录才能更新您的个人资料照片。"
+
+#: reader/views.py:3881
+msgid "You must be logged in to delete your account."
+msgstr "您必须登录才能删除您的账户。"
+
+#: reader/views.py:4032
+msgid "From the Community: Today on Sefaria"
+msgstr "来自社区：今天在 Sefaria 上"
+
+#: reader/views.py:4034
+msgid ""
+"New and featured source sheets, divrei torah, articles, sermons and more "
+"created by members of the Sefaria community."
+msgstr ""
+
+#: sefaria/forms.py:30
+msgid "Email Address to delete"
+msgstr "要删除的电子邮件地址"
+
+#: sefaria/forms.py:31 sefaria/forms.py:35
+msgid "Admin Password"
+msgstr "管理员密码"
+
+#: sefaria/forms.py:34
+msgid "Sheet ID to delete"
+msgstr "要删除的表单 ID"
+
+#: sefaria/forms.py:39 sefaria/forms.py:45 sefaria/forms.py:130
+#: templates/messages/2022-01-09-user-testing-modal.html:86
+#: templates/static/aramaic-translation-contest.html:140
+#: templates/static/home.html:362 templates/static/newsletter.html:24
+msgid "Email Address"
+msgstr "电子邮件地址"
+
+#: sefaria/forms.py:40 sefaria/forms.py:48 templates/account_settings.html:96
+msgid "Password"
+msgstr "密码"
+
+#: sefaria/forms.py:46 templates/edit_profile.html:27
+msgid "First Name"
+msgstr "名"
+
+#: sefaria/forms.py:47 templates/edit_profile.html:33
+msgid "Last Name"
+msgstr "姓"
+
+#: sefaria/forms.py:121
+msgid "Incorrect mobile_app_key provided"
+msgstr "提供的 mobile_app_key 不正确"
+
+#: sefaria/forms.py:135
+msgid "New password"
+msgstr "新密码"
+
+#: sefaria/forms.py:136
+msgid "Enter New Password"
+msgstr "输入新密码"
+
+#: sefaria/forms.py:141
+msgid "New password confirmation"
+msgstr "新密码确认"
+
+#: sefaria/forms.py:143
+msgid "Repeat New Password"
+msgstr "重复新密码"
+
+#: sefaria/model/collection.py:93
+msgid "Please set a name for your collection."
+msgstr "请为您的收藏设置一个名称。"
+
+#: sefaria/model/collection.py:117
+msgid ""
+"A public collection with this name already exists. Please choose a different"
+" name before publishing."
+msgstr ""
+
+#: sefaria/model/collection.py:119
+msgid ""
+"Public Collections are required to include a collection image (a square "
+"image will work best)."
+msgstr ""
+
+#: sefaria/model/collection.py:121
+msgid "Public Collections are required to have at least 3 public sheets."
+msgstr "公共收藏要求至少有 3 张公开的表单。"
+
+#: sefaria/model/collection.py:284
+#, python-format
+msgid "%(name)s invited you to a collection on Sefaria"
+msgstr "%(name)s 邀请您加入 Sefaria 的收藏"
+
+#: sefaria/model/user_profile.py:283
+msgid "A user with that email already exists"
+msgstr "该电子邮件的用户已存在"
+
+#: sefaria/model/user_profile.py:288
+msgid "The email address is not valid."
+msgstr "电子邮件地址无效。"
+
+#: sefaria/settings.py:26
+msgid "Chinese"
+msgstr ""
+
+#: sefaria/settings.py:27
+msgid "Spanish"
+msgstr ""
+
+#: sefaria/views.py:196 sefaria/views.py:199 sefaria/views.py:283
+#: templates/static/app.html:383
+#: templates/static/aramaic-translation-contest.html:189
+#: templates/static/home.html:392 templates/static/mobile.html:388
+#: templates/static/newsletter.html:56
+msgid "Sorry, there was an error."
+msgstr "对不起，发生了一个错误。"
+
+#: sourcesheets/views.py:402
+msgid "You must be logged in to create a new collection."
+msgstr "您必须登录才能创建新的收藏。"
+
+#: sourcesheets/views.py:565
+msgid ""
+"Leaving this collection would leave it without any owners. Please appoint "
+"another owner before leaving, or delete the collection."
+msgstr ""
+
+#: sourcesheets/views.py:1160
+msgid "You must be logged in to access this api."
+msgstr "您必须登录才能访问此 API。"
+
+#: templates/404.html:4
+msgid "Page Not Found | Sefaria"
+msgstr "页面未找到 | Sefaria"
+
+#: templates/404.html:11
+msgid "Page Not Found"
+msgstr "页面未找到"
+
+#: templates/404.html:15
+msgid ""
+"The requested URL couldn't be found.If you've arrived here from a link on "
+"another site,you may want to let them know their link isn't working."
+msgstr ""
+
+#: templates/500.html:4 templates/500.html:10
+msgid "Internal Server Error"
+msgstr "内部服务器错误"
+
+#: templates/500.html:15
+msgid ""
+"Unfortunately, we've encountered an error.An email has been sent "
+"automatically to our developers.If you have any questions about the "
+"problem,or think you can help us figure out what went wrong,please email our"
+" "
+msgstr ""
+
+#: templates/500.html:15
+msgid "development team"
+msgstr "开发团队"
+
+#: templates/account_settings.html:12
+msgid "Account Settings"
+msgstr "账户设置"
+
+#: templates/account_settings.html:16 templates/account_settings.html:128
+#: templates/edit_profile.html:17 templates/edit_text.html:69
+#: templates/edit_text.html:97 templates/edit_text.html:150
+#: templates/elements/login_prompt.html:8 templates/profile.html:181
+#: templates/sheets.html:1000 templates/sheets.html:1022
+msgid "Cancel"
+msgstr "取消"
+
+#: templates/account_settings.html:19 templates/account_settings.html:125
+#: templates/edit_profile.html:20 templates/edit_text.html:96
+#: templates/edit_text.html:149 templates/sheets.html:454
+#: templates/sheets.html:831 templates/sheets.html:982
+msgid "Save"
+msgstr "保存"
+
+#: templates/account_settings.html:25
+msgid "Notification Frequency (Maximum)"
+msgstr "通知频率（最大）"
+
+#: templates/account_settings.html:29
+msgid "Daily"
+msgstr "每日"
+
+#: templates/account_settings.html:32
+msgid "Weekly"
+msgstr "每周"
+
+#: templates/account_settings.html:35
+msgid "Never"
+msgstr "从不"
+
+#: templates/account_settings.html:42
+msgid "Site Language"
+msgstr "网站语言"
+
+#: templates/account_settings.html:46 templates/sheets.html:704
+msgid "english"
+msgstr "英语"
+
+#: templates/account_settings.html:49 templates/sheets.html:705
+msgid "tibetan"
+msgstr "藏语"
+
+#: templates/account_settings.html:56
+msgid "Preferred Translation Language"
+msgstr "首选翻译语言"
+
+#: templates/account_settings.html:69
+msgid "Reading History"
+msgstr "阅读历史"
+
+#: templates/account_settings.html:73
+msgid "On"
+msgstr "开启"
+
+#: templates/account_settings.html:76
+msgid "Off"
+msgstr "关闭"
+
+#: templates/account_settings.html:84
+msgid "Account Email (This is used for login)"
+msgstr "账户电子邮件（用于登录）"
+
+#: templates/account_settings.html:89
+msgid "Change Email"
+msgstr "更改电子邮件"
+
+#: templates/account_settings.html:94
+msgid "New Email"
+msgstr "新电子邮件"
+
+#: templates/account_settings.html:95
+msgid "Confirm New Email"
+msgstr "确认新电子邮件"
+
+#: templates/account_settings.html:98
+msgid "Update Email"
+msgstr "更新电子邮件"
+
+#: templates/account_settings.html:105
+msgid "Google Account (Allows for exporting sheets to Google Drive)"
+msgstr "Google 账户（允许将表单导出到 Google Drive）"
+
+#: templates/account_settings.html:110
+msgid "Disconnect"
+msgstr "断开连接"
+
+#: templates/account_settings.html:117
+msgid "Your Google Account has been disconnected"
+msgstr "您的 Google 账户已被断开"
+
+#: templates/account_settings.html:120
+msgid "You can link to a new Google Account the next time you export a sheet"
+msgstr "下次导出表单时，您可以链接到新的 Google 账户"
+
+#: templates/activity.html:7 templates/activity.html:36
+msgid "Revision History of"
+msgstr "修订历史"
+
+#: templates/activity.html:9 templates/activity.html:11
+msgid "Sefaria Activity"
+msgstr "Sefaria 活动"
+
+#: templates/activity.html:17
+msgid "View the complete revision hisotry of this text on Sefaria."
+msgstr "查看此文本在 Sefaria 上的完整修订历史。"
+
+#: templates/activity.html:19
+msgid ""
+"View a user's acitvitiy history on Sefaria, including published source "
+"sheets, and text translations, edits or additions."
+msgstr ""
+
+#: templates/activity.html:21
+msgid ""
+"View the complete log of public activity on Sefaria, including published "
+"source sheets, and text translations, edits or additions. "
+msgstr ""
+
+#: templates/activity.html:43
+msgid "Public Activity"
+msgstr "公共活动"
+
+#: templates/activity.html:47
+msgid "Recent Activity on Sefaria"
+msgstr "Sefaria 上的最新活动"
+
+#: templates/activity.html:52
+msgid "All Activity"
+msgstr "所有活动"
+
+#: templates/activity.html:53
+msgid "Translations"
+msgstr "翻译"
+
+#: templates/activity.html:54 templates/metrics.html:49
+#: templates/profile.html:99
+msgid "Source Sheets"
+msgstr "源表"
+
+#: templates/activity.html:55
+msgid "New Texts"
+msgstr "新文本"
+
+#: templates/activity.html:56
+msgid "Edits"
+msgstr "编辑"
+
+#: templates/activity.html:57 templates/profile.html:119
+msgid "Notes"
+msgstr "笔记"
+
+#: templates/activity.html:58
+msgid "Reviews"
+msgstr "评论"
+
+#: templates/activity.html:59
+msgid "Text Info"
+msgstr "文本信息"
+
+#: templates/activity.html:60
+msgid "Reversions"
+msgstr "恢复"
+
+#: templates/activity.html:61
+msgid "Flagged"
+msgstr "标记"
+
+#: templates/delete-sheet.html:4
+msgid "Admin: Delete a Sheet"
+msgstr "管理员：删除一个表单"
+
+#: templates/delete-sheet.html:11 templates/delete-sheet.html:19
+#: templates/sheets.html:62
+msgid "Delete Sheet"
+msgstr "删除表单"
+
+#: templates/delete-sheet.html:13
+msgid "CAUTION THIS WILL DELETE THE SHEET ID YOU INPUT"
+msgstr "注意，这将删除您输入的表单 ID"
+
+#: templates/delete-sheet.html:14
+msgid "IT CANNOT BE UNDONE."
+msgstr "此操作无法撤销。"
+
+#: templates/discussions.html:6 templates/discussions.html:14
+msgid "Discuss a Text on Sefaria"
+msgstr "在 Sefaria 上讨论文本"
+
+#: templates/discussions.html:18
+msgid "This is an <b>EXPERIMENTAL"
+msgstr "这是一个 <b>实验性的"
+
+#: templates/discussions.html:18
+msgid " feature. Please try it out and let us know what is"
+msgstr "功能。请试用并告诉我们"
+
+#: templates/discussions.html:18
+msgid "exciting"
+msgstr "令人兴奋的"
+
+#: templates/discussions.html:18
+msgid " and what is"
+msgstr "以及"
+
+#: templates/discussions.html:18
+msgid "frustrating"
+msgstr "令人沮丧的"
+
+#: templates/discussions.html:18
+msgid " about it!"
+msgstr "点！"
+
+#: templates/discussions.html:26
+msgid "Choose a Text"
+msgstr "选择一个文本"
+
+#: templates/discussions.html:31
+msgid "Start a Discussion"
+msgstr "开始讨论"
+
+#: templates/discussions.html:33
+msgid "Anyone with the link below will be able to view and participate."
+msgstr "任何拥有下面链接的人都可以查看和参与。"
+
+#: templates/discussions.html:37
+msgid "Get Started"
+msgstr "开始"
+
+#: templates/discussions.html:41
+msgid "Your Discussions"
+msgstr "您的讨论"
+
+#: templates/edit_collection.html:9
+msgid "Edit Collection on Sefaria"
+msgstr "编辑 Sefaria 上的收藏"
+
+#: templates/edit_collection.html:20 templates/edit_term.html:40
+#: templates/elements/loading.html:12 templates/metrics.html:16
+#: templates/sheets.html:520 templates/sheets.html:752
+msgid "Loading..."
+msgstr "加载中..."
+
+#: templates/edit_profile.html:5
+msgid "Edit Your Profile on Sefaria"
+msgstr "编辑您的 Sefaria 个人资料"
+
+#: templates/edit_profile.html:13
+msgid "Edit Your Profile"
+msgstr "编辑您的个人资料"
+
+#: templates/edit_profile.html:39
+msgid "Title"
+msgstr "标题"
+
+#: templates/edit_profile.html:45
+msgid "Organization"
+msgstr "组织"
+
+#: templates/edit_profile.html:51
+msgid "Website"
+msgstr "网站"
+
+#: templates/edit_profile.html:57
+msgid "Location"
+msgstr "地点"
+
+#: templates/edit_profile.html:63
+msgid "Education"
+msgstr "教育"
+
+#: templates/edit_profile.html:63
+msgid "where have you learned"
+msgstr "您在哪里学习过"
+
+#: templates/edit_profile.html:72
+msgid "Add a line"
+msgstr "添加一行"
+
+#: templates/edit_profile.html:77
+msgid "About Me"
+msgstr "关于我"
+
+#: templates/edit_profile.html:87
+msgid "Public Sheets"
+msgstr "公开表单"
+
+#: templates/edit_profile.html:91
+msgid ""
+"You can drag and order source sheets that you want to pin to the top of your"
+" profile."
+msgstr ""
+
+#: templates/edit_profile.html:95
+msgid "Pinned Sheets"
+msgstr "固定表单"
+
+#: templates/edit_profile.html:105
+msgid "All Sheets"
+msgstr "所有表单"
+
+#: templates/edit_profile.html:119
+msgid "Contact"
+msgstr "联系方式"
+
+#: templates/edit_profile.html:124
+msgid "Email (will be public)"
+msgstr "电子邮件（将公开）"
+
+#: templates/edit_profile.html:130
+msgid "Profile URL"
+msgstr "个人资料 URL"
+
+#: templates/edit_profile.html:136
+msgid "Twitter Handle"
+msgstr "Twitter 账号"
+
+#: templates/edit_profile.html:142 templates/profile.html:64
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: templates/edit_profile.html:148 templates/profile.html:52
+msgid "Facebook"
+msgstr "Facebook"
+
+#: templates/edit_profile.html:154
+msgid "YouTube Channel"
+msgstr "YouTube 频道"
+
+#: templates/edit_term.html:39
+msgid "Terms Editor"
+msgstr "条款编辑器"
+
+#: templates/edit_text.html:64
+msgid "Add a New Text"
+msgstr "添加新文本"
+
+#: templates/edit_text.html:65
+msgid "Text or commentator name:"
+msgstr "文本或评论者姓名："
+
+#: templates/edit_text.html:68 templates/sheets.html:975
+#: templates/sheets.html:997
+msgid "Add"
+msgstr "添加"
+
+#: templates/edit_text.html:86
+msgid "Your Review:"
+msgstr "您的评论："
+
+#: templates/edit_text.html:88
+msgid "How should I write a review?"
+msgstr "我该如何写评论？"
+
+#: templates/edit_text.html:101
+msgid "To add your review, please "
+msgstr "要添加您的评论，请 "
+
+#: templates/edit_text.html:101
+msgid "log in"
+msgstr "登录"
+
+#: templates/edit_text.html:101 templates/sheets.html:795
+msgid "register"
+msgstr "注册"
+
+#: templates/edit_text.html:104
+msgid "Close"
+msgstr "关闭"
+
+#: templates/edit_text.html:109
+msgid "Writing Helpful Reviews"
+msgstr "撰写有用的评论"
+
+#: templates/edit_text.html:110
+msgid "For primary texts and historical translations:"
+msgstr "对于主要文本和历史翻译："
+
+#: templates/edit_text.html:110
+msgid ""
+" Indicate what outside source (book, web page) was used to compare the text,"
+" or make clear that your review is only looking at the text present."
+msgstr ""
+
+#: templates/edit_text.html:112
+msgid "I compared this text to X printed edition and found no problems."
+msgstr "我将此文本与 X 印刷版进行比较，未发现问题。"
+
+#: templates/edit_text.html:113
+msgid "I checked this text against the edition on X website, all looks good."
+msgstr "我将此文本与 X 网站上的版本进行对比，一切正常。"
+
+#: templates/edit_text.html:114
+msgid "I read this text carefully and don't see anything wrong."
+msgstr "我仔细阅读了此文本，没有发现任何问题。"
+
+#: templates/edit_text.html:117
+msgid "For original translations:"
+msgstr "对于原始翻译："
+
+#: templates/edit_text.html:117
+msgid ""
+" Review the text carefully next to the original, and comment on its accuracy"
+" and style according to our "
+msgstr ""
+
+#: templates/edit_text.html:117
+msgid "translation guidelines"
+msgstr "翻译指南"
+
+#: templates/edit_text.html:119
+msgid "This translation seems accurate to me."
+msgstr "这翻译在我看来很准确。"
+
+#: templates/edit_text.html:120
+msgid "The language could be improved, but the translation seems right."
+msgstr "语言可以改进，但翻译似乎是正确的。"
+
+#: templates/edit_text.html:121
+msgid "This translation misunderstands the term X."
+msgstr "这翻译误解了术语 X。"
+
+#: templates/edit_text.html:125
+msgid "How to Score your Review:"
+msgstr "如何评分您的评论："
+
+#: templates/edit_text.html:127
+msgid " Compared closesly to a source, confident there are no problems."
+msgstr ""
+
+#: templates/edit_text.html:130
+msgid " Compared to a source, didn't notice any problems."
+msgstr "与源文进行比较，未发现问题。"
+
+#: templates/edit_text.html:133
+msgid " Looks problem free, but could be reviewed more closely."
+msgstr "看起来没有问题，但可以更仔细审查。"
+
+#: templates/edit_text.html:136
+msgid " Found some issues that need to be addressed."
+msgstr "发现一些需要解决的问题。"
+
+#: templates/edit_text.html:139
+msgid " Found serious problems that need to be addressed."
+msgstr "发现了需要解决的严重问题。"
+
+#: templates/edit_text.html:142 templates/sheets.html:1046
+#: templates/sheets.html:1082 templates/sheets.html:1098
+msgid "OK"
+msgstr "确定"
+
+#: templates/edit_text.html:156
+msgid "Source "
+msgstr "来源 "
+
+#: templates/edit_text.html:163
+msgid "Original Translation"
+msgstr "原始翻译"
+
+#: templates/edit_text.html:167
+msgid "Copied Text"
+msgstr "复制的文本"
+
+#: templates/edit_text.html:172
+msgid "This text will be published with a "
+msgstr "这文本将以 "
+
+#: templates/edit_text.html:172
+msgid ""
+" licence, effectively donating it to the Public Domain. Only submit texts as"
+" \"Original Translation\" that you have authored."
+msgstr ""
+
+#: templates/edit_text.html:176
+msgid "Copied texts must either be in the "
+msgstr "复制的文本必须在 "
+
+#: templates/edit_text.html:176
+msgid "Public Domain"
+msgstr "公有领域"
+
+#: templates/edit_text.html:176
+msgid " or carry a "
+msgstr "或带有 "
+
+#: templates/edit_text.html:176
+msgid "Creative Commons"
+msgstr "知识共享"
+
+#: templates/edit_text.html:176
+msgid " license such as "
+msgstr " 许可，例如 "
+
+#: templates/edit_text.html:176
+msgid ""
+". You can learn more about when a text passes into the Public Domain on this"
+msgstr ""
+
+#: templates/edit_text.html:176
+msgid "summary of Copyright Terms"
+msgstr "版权条款摘要"
+
+#: templates/edit_text.html:178
+msgid "Version Title:"
+msgstr "版本标题："
+
+#: templates/edit_text.html:179
+msgid "Copied from:"
+msgstr "复制自："
+
+#: templates/elements/activity_feed.html:7
+msgid "deleted the text"
+msgstr "删除了文本"
+
+#: templates/elements/activity_feed.html:12
+msgid "deleted a text version of"
+msgstr "删除了一个文本版本"
+
+#: templates/elements/activity_feed.html:14
+#: templates/elements/activity_feed.html:37
+#: templates/elements/activity_feed.html:140
+msgid "Version"
+msgstr "版本"
+
+#: templates/elements/activity_feed.html:20
+msgid "translated"
+msgstr "翻译"
+
+#: templates/elements/activity_feed.html:22
+msgid "added"
+msgstr "添加"
+
+#: templates/elements/activity_feed.html:24
+msgid "edited"
+msgstr "编辑"
+
+#: templates/elements/activity_feed.html:26
+msgid "reverted"
+msgstr "恢复"
+
+#: templates/elements/activity_feed.html:31
+#: templates/elements/activity_feed.html:59
+msgid "and "
+msgstr "和 "
+
+#: templates/elements/activity_feed.html:31
+msgid "others"
+msgstr "其他"
+
+#: templates/elements/activity_feed.html:34
+#: templates/elements/activity_feed.html:138
+msgid "history"
+msgstr "历史"
+
+#: templates/elements/activity_feed.html:46
+msgid "added a connection"
+msgstr "添加了一个连接"
+
+#: templates/elements/activity_feed.html:48
+msgid "edited a connection"
+msgstr "编辑了一个连接"
+
+#: templates/elements/activity_feed.html:50
+msgid "deleted a connection"
+msgstr "删除了一个连接"
+
+#: templates/elements/activity_feed.html:53
+msgid "between"
+msgstr "之间"
+
+#: templates/elements/activity_feed.html:68
+msgid "automatic commentary link"
+msgstr "自动注释链接"
+
+#: templates/elements/activity_feed.html:69
+msgid "automatic citation link"
+msgstr "自动引用链接"
+
+#: templates/elements/activity_feed.html:76
+msgid "added a note to "
+msgstr "添加了一个注释到 "
+
+#: templates/elements/activity_feed.html:78
+msgid "edited a note on "
+msgstr "编辑了一个注释在 "
+
+#: templates/elements/activity_feed.html:80
+msgid "deleted a note on "
+msgstr "删除了一个注释在 "
+
+#: templates/elements/activity_feed.html:97
+msgid "added text info for the text"
+msgstr "为文本添加了文本信息"
+
+#: templates/elements/activity_feed.html:99
+msgid "edited the text info of"
+msgstr "编辑了文本信息"
+
+#: templates/elements/activity_feed.html:103
+#: templates/elements/activity_feed.html:124
+msgid "details"
+msgstr "详细信息"
+
+#: templates/elements/activity_feed.html:116
+msgid "added a term"
+msgstr "添加了一个术语"
+
+#: templates/elements/activity_feed.html:118
+msgid "edited the term"
+msgstr "编辑了术语"
+
+#: templates/elements/activity_feed.html:120
+msgid "deleted the term"
+msgstr "删除了术语"
+
+#: templates/elements/activity_feed.html:136
+msgid "reviewed"
+msgstr "已审阅"
+
+#: templates/elements/activity_feed.html:148
+#: templates/email/notification.html:20
+msgid "published a new Source Sheet"
+msgstr "发布了新的来源表"
+
+#: templates/elements/activity_feed.html:158
+msgid "related"
+msgstr "相关"
+
+#: templates/elements/activity_feed.html:166
+msgid "No matching public activity yet."
+msgstr "尚无匹配的公开活动。"
+
+#: templates/elements/activity_feed.html:168
+msgid "No public activity yet."
+msgstr "尚无公开活动。"
+
+#: templates/elements/activity_feed.html:172
+msgid "No matching public history items."
+msgstr "没有匹配的公开历史项目。"
+
+#: templates/elements/activity_feed.html:174
+msgid "No public history items."
+msgstr "没有公开历史项目。"
+
+#: templates/elements/activity_feed.html:180
+msgid "Older Activity"
+msgstr "较早的活动"
+
+#: templates/elements/login_prompt.html:6
+#: templates/registration/register.html:13
+#: templates/registration/register.html:22
+msgid "Sign Up"
+msgstr "注册"
+
+#: templates/elements/notification.html:15
+#: templates/elements/notification.html:17
+msgid "New"
+msgstr "新"
+
+#: templates/elements/notification.html:15
+#: templates/elements/notification.html:17
+msgid "version of"
+msgstr "版本"
+
+#: templates/elements/notification.html:27
+msgid "New Text:"
+msgstr "新文本："
+
+#: templates/elements/notification.html:36
+msgid "likes your sheet,"
+msgstr "喜欢你的表格，"
+
+#: templates/elements/notification.html:41
+msgid "published a new sheet"
+msgstr "发布了新表格"
+
+#: templates/elements/notification.html:46
+msgid "is now following you."
+msgstr "现在关注你。"
+
+#: templates/elements/notification.html:52
+#: templates/elements/notification.html:57
+#: templates/email/notification.html:26
+msgid "added you to the collection"
+msgstr "将你添加到收藏中"
+
+#: templates/elements/notification.html:62
+#: templates/email/notification.html:29
+msgid "added a note to a"
+msgstr "在某个"
+
+#: templates/elements/notification.html:62
+#: templates/email/notification.html:31
+msgid "discussion you follow"
+msgstr "讨论中添加了注释"
+
+#: templates/email/base.html:17
+msgid ""
+"\n"
+"            You're receiving this message because you have an account on\n"
+"        "
+msgstr ""
+
+#: templates/email/base.html:22
+#, python-format
+msgid ""
+"\n"
+"            To change your email settings, click <a href=\"%(settings_url)s\">here</a>\n"
+"        "
+msgstr ""
+
+#: templates/email/base.html:26
+#, python-format
+msgid ""
+"\n"
+"            Your feedback is welcome. Feel free to send us an <a href=\"%(hello_email)s\">email</a>.\n"
+"        "
+msgstr ""
+
+#: templates/email/collection_signup_invitation_email.html:8
+#, python-format
+msgid ""
+"\n"
+"\t\t%(inviter)s invited you to contribute to the collection %(collection)s on Sefaria.\n"
+"\t\t"
+msgstr ""
+
+#: templates/email/collection_signup_invitation_email.html:14
+#, python-format
+msgid ""
+"\n"
+"\t\tTo accept this invitation, <a href=\"%(register)s\">create a free Sefaria account</a>.\n"
+"\t\t"
+msgstr ""
+
+#: templates/email/collection_signup_invitation_email.html:24
+msgid ""
+"\n"
+"\t\tSefaria is a free living library of Jewish texts. Collections on Sefaria help you easily build and share collections of source sheets you create or find on Sefaria.<br>.\n"
+"\t\tFeel free to send any questions over <a href=\"mailto:hello@sefaria.org\">email</a>.\n"
+"\t\t"
+msgstr ""
+
+#: templates/email/notification.html:8
+msgid "sent you a message:"
+msgstr "给你发了消息："
+
+#: templates/email/notification.html:13
+msgid "Reply to"
+msgstr "回复"
+
+#: templates/email/notification.html:17
+msgid "likes your Source Sheet"
+msgstr "喜欢你的来源表"
+
+#: templates/email/notification.html:23
+msgid "is now following you"
+msgstr "现在关注你"
+
+#: templates/email/notification.html:35
+msgid "This is a notification without a type, it shouldn't exist."
+msgstr "这是一个没有类型的通知，它不应该存在。"
+
+#: templates/email/notifications_email.html:5
+#, python-format
+msgid " Hello %(recipient)s, "
+msgstr " 你好 %(recipient)s，"
+
+#: templates/email/notifications_email.html:9
+msgid " Here's some new activity on Sefaria that you may have missed."
+msgstr " 这是你可能错过的一些Sefaria的新活动。"
+
+#: templates/explore.html:4
+msgid ""
+"Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria"
+msgstr ""
+
+#: templates/explore.html:4
+#, python-format
+msgid ""
+"Link Explorer - Visualized Connections Between %(bottomCatTitle)s and "
+"%(topCatTitle)s | Sefaria"
+msgstr ""
+
+#: templates/explore.html:6
+msgid ""
+"Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom"
+" in to particular books either above or below to explore deeper."
+msgstr ""
+
+#: templates/explore.html:6
+#, python-format
+msgid ""
+"Visually explore quotations and connections between %(bottomCatTitle)s and "
+"%(topCatTitle)s. Zoom in to particular books either above or below to "
+"explore deeper."
+msgstr ""
+
+#: templates/leaderboard.html:4
+msgid "Top Contributors | Sefaria"
+msgstr "顶级贡献者 | Sefaria"
+
+#: templates/leaderboard.html:6
+msgid ""
+"See who has been contributing most to Sefaria in terms of texts, "
+"translations, and source sheet."
+msgstr ""
+
+#: templates/leaderboard.html:30
+msgid "Top Contributors"
+msgstr "顶级贡献者"
+
+#: templates/metrics.html:4
+msgid "Sefaria Metrics"
+msgstr "Sefaria 统计数据"
+
+#: templates/metrics.html:6
+msgid ""
+"See graphs charting Sefaria's progress since 2013 across metrics including "
+"word counts, number of links and number of source sheets."
+msgstr ""
+
+#: templates/metrics.html:13
+msgid "Metrics"
+msgstr "统计数据"
+
+#: templates/metrics.html:33
+msgid "Total Words in Library"
+msgstr "图书馆中的总字数"
+
+#: templates/metrics.html:34
+msgid "Words in Hebrew & Aramaic"
+msgstr "希伯来语和亚拉姆语中的字数"
+
+#: templates/metrics.html:35
+msgid "Words in Translation"
+msgstr "翻译中的字数"
+
+#: templates/metrics.html:36
+msgid "Words of Original Translation created by Sefaria Volunteers"
+msgstr "由Sefaria志愿者创建的原始翻译的字数"
+
+#: templates/metrics.html:37
+msgid "Number of Public Contributors"
+msgstr "公共贡献者数量"
+
+#: templates/metrics.html:38
+msgid "Number of Intertextual Links"
+msgstr "文本之间链接的数量"
+
+#: templates/metrics.html:39
+msgid "Number of Source Sheets"
+msgstr "来源表的数量"
+
+#: templates/metrics.html:43 templates/metrics.html:44
+#: templates/metrics.html:45 templates/metrics.html:46
+msgid "Words"
+msgstr "字数"
+
+#: templates/metrics.html:47
+msgid "Contributors"
+msgstr "贡献者"
+
+#: templates/metrics.html:48
+msgid "Links"
+msgstr "链接"
+
+#: templates/people.html:5
+msgid "Authors on Sefaria"
+msgstr "Sefaria上的作者"
+
+#: templates/people.html:7
+msgid ""
+"Biographies and information about the authors of Jewish texts on Sefaria, "
+"together with links to their available texts."
+msgstr ""
+
+#: templates/people.html:23 templates/person.html:38
+msgid "Authors"
+msgstr "作者"
+
+#: templates/people.html:28 templates/person.html:41
+#: templates/talmud_people.html:6
+msgid "People in the Talmud"
+msgstr "塔木德中的人物"
+
+#: templates/person.html:86
+msgid "Learn More"
+msgstr "了解更多"
+
+#: templates/person.html:90 templates/person.html:91 templates/person.html:96
+#: templates/person.html:97
+msgid "Wikipedia"
+msgstr "维基百科"
+
+#: templates/person.html:101 templates/person.html:102
+msgid "Wikipedia (Hebrew)"
+msgstr "维基百科（希伯来语）"
+
+#: templates/person.html:108 templates/person.html:109
+msgid "Jewish Encyclopedia"
+msgstr "犹太百科全书"
+
+#: templates/person.html:129
+msgid "Works"
+msgstr "作品"
+
+#: templates/person.html:141
+msgid "Map"
+msgstr "地图"
+
+#: templates/profile.html:4
+msgid "on Sefaria"
+msgstr "在Sefaria上"
+
+#: templates/profile.html:6
+msgid ""
+"is on Sefaria. Follow to view their public source sheets, notes and "
+"translations."
+msgstr ""
+
+#: templates/profile.html:20
+msgid "at "
+msgstr "在"
+
+#: templates/profile.html:58
+msgid "Twitter"
+msgstr "推特"
+
+#: templates/profile.html:73
+msgid "Message"
+msgstr "消息"
+
+#: templates/profile.html:77
+msgid "Follow"
+msgstr "关注"
+
+#: templates/profile.html:78
+msgid "Following"
+msgstr "正在关注"
+
+#: templates/profile.html:79
+msgid "Unfollow"
+msgstr "取消关注"
+
+#: templates/profile.html:84
+msgid "Edit Profile"
+msgstr "编辑个人资料"
+
+#: templates/profile.html:126
+msgid "Activity"
+msgstr "活动"
+
+#: templates/profile.html:128
+msgid "More Activity"
+msgstr "更多活动"
+
+#: templates/profile.html:178
+msgid "Send a message to "
+msgstr "向发送消息"
+
+#: templates/profile.html:180
+msgid "Send"
+msgstr "发送"
+
+#: templates/random.html:7
+msgid "Random Text | Sefaria.org"
+msgstr "随机文本 | Sefaria.org"
+
+#: templates/random.html:14
+msgid "A Random Text on Sefaria"
+msgstr "Sefaria上的随机文本"
+
+#: templates/random.html:18
+msgid "Get Random"
+msgstr "获取随机文本"
+
+#: templates/registration/delete_user_account.html:4
+msgid "Admin: Delete a User"
+msgstr "管理员：删除用户"
+
+#: templates/registration/delete_user_account.html:11
+#: templates/registration/delete_user_account.html:17
+msgid "Delete User"
+msgstr "删除用户"
+
+#: templates/registration/logged_out.html:4
+msgid "Logged Out | Sefaria"
+msgstr "已注销 | Sefaria"
+
+#: templates/registration/logged_out.html:13
+msgid "You are now logged out."
+msgstr "你现在已注销。"
+
+#: templates/registration/logged_out.html:13
+msgid "Log back in"
+msgstr "重新登录"
+
+#: templates/registration/login.html:4 templates/registration/login.html:31
+msgid "Log in to Pecha"
+msgstr "登录Pecha"
+
+#: templates/registration/login.html:6
+msgid ""
+"Log in to your Pecha account to make source sheets, write notes, and follow "
+"other Pecha users."
+msgstr ""
+
+#: templates/registration/login.html:14 templates/registration/login.html:15
+msgid "You are already logged in as"
+msgstr "你已经以身份登录"
+
+#: templates/registration/login.html:18 templates/registration/login.html:19
+msgid "Logout."
+msgstr "注销。"
+
+#: templates/registration/login.html:35
+msgid "Your username and password didn't match. Please try again."
+msgstr "你的用户名和密码不匹配。请再试一次。"
+
+#: templates/registration/login.html:52 templates/sheets.html:499
+msgid "Login"
+msgstr "登录"
+
+#: templates/registration/login.html:55
+msgid "Forgot your password?"
+msgstr "忘记密码？"
+
+#: templates/registration/login.html:60
+msgid "Create a new account"
+msgstr "创建一个新账户"
+
+#: templates/registration/password_reset_complete.html:3
+msgid "Password Reset"
+msgstr "密码重置"
+
+#: templates/registration/password_reset_complete.html:10
+#: templates/registration/password_reset_complete.html:11
+msgid "Your new password has been saved."
+msgstr "你的新密码已保存。"
+
+#: templates/registration/password_reset_complete.html:14
+#: templates/registration/password_reset_complete.html:15
+#: templates/registration/password_reset_form.html:25
+#: templates/registration/password_reset_form.html:26
+msgid "Back to login"
+msgstr "返回登录"
+
+#: templates/registration/password_reset_confirm.html:4
+msgid "Choose a new Password"
+msgstr "选择一个新密码"
+
+#: templates/registration/password_reset_confirm.html:11
+#: templates/registration/password_reset_confirm.html:12
+msgid "Choose a new password"
+msgstr "选择新密码"
+
+#: templates/registration/password_reset_confirm.html:18
+#: templates/registration/password_reset_confirm.html:19
+msgid "Save Password"
+msgstr "保存密码"
+
+#: templates/registration/password_reset_done.html:3
+msgid "Password Reset Link Sent"
+msgstr "密码重置链接已发送"
+
+#: templates/registration/password_reset_done.html:10
+#: templates/registration/password_reset_done.html:11
+msgid "An email has been sent with a link to reset your password."
+msgstr "一封电子邮件已发送，其中包含重置密码的链接。"
+
+#: templates/registration/password_reset_email.html:4
+#: templates/registration/password_reset_email.txt:3
+msgid ""
+"A request has been made to reset the password for this email address on "
+"Pecha.org."
+msgstr ""
+
+#: templates/registration/password_reset_email.html:6
+#: templates/registration/password_reset_email.txt:5
+msgid "Click this link, or copy it to your browser, to choose a new password:"
+msgstr "点击此链接，或将其复制到浏览器中，选择新密码："
+
+#: templates/registration/password_reset_email.html:12
+#: templates/registration/password_reset_email.txt:9
+msgid "If you did not request this reset, you can safely ignore this email."
+msgstr "如果你没有请求此重置，可以安全地忽略这封邮件。"
+
+#: templates/registration/password_reset_form.html:4
+msgid "Forgot your Password"
+msgstr "忘记密码"
+
+#: templates/registration/password_reset_form.html:6
+msgid "Request a link to change your Sefaria password if you've forgotten it."
+msgstr "如果你忘记了Sefaria密码，请请求一个链接来更改密码。"
+
+#: templates/registration/password_reset_form.html:13
+#: templates/registration/password_reset_form.html:14
+msgid "Forgot Your Password"
+msgstr "忘记密码"
+
+#: templates/registration/password_reset_form.html:20
+#: templates/registration/password_reset_form.html:21
+msgid "Send Reset Link"
+msgstr "发送重置链接"
+
+#: templates/registration/password_reset_subject.txt:2
+msgid "Pecha.org Password Reset"
+msgstr "Pecha.org 密码重置"
+
+#: templates/registration/register.html:4
+msgid "Create an Account"
+msgstr "创建账户"
+
+#: templates/registration/register.html:6
+msgid ""
+"Create an account on Sefaria to make source sheets, take notes and follow "
+"other people."
+msgstr ""
+
+#: templates/registration/register.html:26
+msgid "Already have an account? Log in"
+msgstr "已经有账户？登录"
+
+#: templates/sefer_hachinukh_mitzvot.html:7
+msgid "Sefer HaChinukh Visualization"
+msgstr "Sefer HaChinukh 可视化"
+
+#: templates/sefer_hachinukh_mitzvot.html:9
+msgid ""
+"Explore how different categories of Mitzvot connect to one another through "
+"this parallel sets chart."
+msgstr ""
+
+#: templates/sheets.html:7 templates/sheets_visual.html:4
+msgid "Start a New Sheet - Sefaria Source Sheet Builder"
+msgstr "开始一个新的表格 - Sefaria 来源表生成器"
+
+#: templates/sheets.html:9 templates/sheets.html:10
+msgid "A source sheet created with Sefaria's Source Sheet Builder."
+msgstr "使用Sefaria的来源表生成器创建的来源表。"
+
+#: templates/sheets.html:9 templates/sheets.html:10
+#: templates/sheets_visual.html:6
+msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
+msgstr "使用Sefaria的来源表生成器创建你自己的来源表。"
+
+#: templates/sheets.html:38
+msgid "Copy Sheet"
+msgstr "复制表格"
+
+#: templates/sheets.html:54 templates/sheets.html:1008
+msgid "Embed Sheet"
+msgstr "嵌入表格"
+
+#: templates/sheets.html:73
+msgid "Tags"
+msgstr "标签"
+
+#: templates/sheets.html:85 templates/sheets.html:859
+msgid "Assignments"
+msgstr "作业"
+
+#: templates/sheets.html:99 templates/sheets.html:785
+msgid "Print"
+msgstr "打印"
+
+#: templates/sheets.html:107
+msgid "Visualize"
+msgstr "可视化"
+
+#: templates/sheets.html:115
+msgid "Highlight Mode"
+msgstr "高亮模式"
+
+#: templates/sheets.html:118
+msgid "Exit Highlight Mode"
+msgstr "退出高亮模式"
+
+#: templates/sheets.html:126
+msgid "Format"
+msgstr "格式"
+
+#: templates/sheets.html:131
+msgid "Number Sources"
+msgstr "编号来源"
+
+#: templates/sheets.html:137
+msgid "Box Sources"
+msgstr "框来源"
+
+#: templates/sheets.html:150
+msgid "Reset Source Text"
+msgstr "重置源文本"
+
+#: templates/sheets.html:157
+msgid "Auto-Segment Text"
+msgstr "自动分段文本"
+
+#: templates/sheets.html:165
+msgid "Remove Vowel Points"
+msgstr "移除元音标记"
+
+#: templates/sheets.html:172
+msgid "Add Source Title"
+msgstr "添加来源标题"
+
+#: templates/sheets.html:183
+msgid "Sheet Language"
+msgstr "表格语言"
+
+#: templates/sheets.html:197
+msgid "Tibetan"
+msgstr "藏语"
+
+#: templates/sheets.html:214
+msgid "Sheet Layout"
+msgstr "表格布局"
+
+#: templates/sheets.html:222 templates/sheets.html:304
+msgid "Stacked"
+msgstr "堆叠"
+
+#: templates/sheets.html:228 templates/sheets.html:310
+msgid "Side-by-Side"
+msgstr "并排"
+
+#: templates/sheets.html:239 templates/sheets.html:321
+msgid "Side-by-Side Layout"
+msgstr "并排布局"
+
+#: templates/sheets.html:247 templates/sheets.html:329
+msgid "Tibetan Left"
+msgstr "藏文左侧"
+
+#: templates/sheets.html:253 templates/sheets.html:335
+msgid "Tibetan Right"
+msgstr "藏文右侧"
+
+#: templates/sheets.html:265
+msgid "Source Language"
+msgstr "来源语言"
+
+#: templates/sheets.html:296
+msgid "Source Layout"
+msgstr "来源布局"
+
+#: templates/sheets.html:345
+msgid "Reset to Sheet Default"
+msgstr "重置为表格默认设置"
+
+#: templates/sheets.html:358
+msgid "Insert"
+msgstr "插入"
+
+#: templates/sheets.html:363 templates/sheets.html:627
+msgid "Source"
+msgstr "来源"
+
+#: templates/sheets.html:375 templates/sheets.html:647
+msgid "Comment"
+msgstr "评论"
+
+#: templates/sheets.html:381 templates/sheets.html:642
+msgid "Media"
+msgstr "媒体"
+
+#: templates/sheets.html:388 templates/sheets.html:389
+msgid "Highlight Tools"
+msgstr "高亮工具"
+
+#: templates/sheets.html:394
+msgid "Paragraph View"
+msgstr "段落视图"
+
+#: templates/sheets.html:397
+msgid "Line-by-line View"
+msgstr "逐行视图"
+
+#: templates/sheets.html:404
+msgid "Reset"
+msgstr "重置"
+
+#: templates/sheets.html:410
+msgid "Filter"
+msgstr "筛选"
+
+#: templates/sheets.html:426
+msgid "Last Saved"
+msgstr "最后保存"
+
+#: templates/sheets.html:429
+msgid "All changes saved in Pecha"
+msgstr "所有更改已保存在Pecha中"
+
+#: templates/sheets.html:432 templates/sheets.html:457
+msgid "Saving..."
+msgstr "保存中..."
+
+#: templates/sheets.html:435
+msgid "Changes Pending..."
+msgstr "更改待处理..."
+
+#: templates/sheets.html:444
+msgid "Highlight Mode is On"
+msgstr "高亮模式已开启"
+
+#: templates/sheets.html:463 templates/sheets.html:785
+#: templates/sheets.html:1093
+msgid "Share"
+msgstr "分享"
+
+#: templates/sheets.html:466 templates/sheets.html:470
+msgid "View in Library"
+msgstr "在图书馆查看"
+
+#: templates/sheets.html:499
+msgid "Like this?"
+msgstr "喜欢这个？"
+
+#: templates/sheets.html:500
+msgid "create an account"
+msgstr "创建一个账户"
+
+#: templates/sheets.html:500
+msgid "to build your own source sheet."
+msgstr "以创建你自己的来源表。"
+
+#: templates/sheets.html:507
+msgid "Header Title"
+msgstr "标题"
+
+#: templates/sheets.html:534 templates/sheets.html:542
+#, python-format
+msgid ""
+"\n"
+"            Assignment Completed by %(owner)s\n"
+"            "
+msgstr ""
+
+#: templates/sheets.html:549
+#, python-format
+msgid ""
+"\n"
+"            Source Sheet by %(owner)s\n"
+"            "
+msgstr ""
+
+#: templates/sheets.html:559
+msgid "More info"
+msgstr "更多信息"
+
+#: templates/sheets.html:564 templates/sheets.html:978
+msgid "Edit"
+msgstr "编辑"
+
+#: templates/sheets.html:565
+msgid "Created"
+msgstr "创建于"
+
+#: templates/sheets.html:566 templates/sheets.html:972
+msgid "View"
+msgstr "查看"
+
+#: templates/sheets.html:567
+msgid "Views"
+msgstr "查看次数"
+
+#: templates/sheets.html:571
+msgid "Based on"
+msgstr "基于"
+
+#: templates/sheets.html:572 templates/sheets.html:847
+msgid "a sheet"
+msgstr "一个表格"
+
+#: templates/sheets.html:572 templates/sheets.html:847
+msgid "by"
+msgstr "由"
+
+#: templates/sheets.html:578 templates/sheets.html:584
+msgid "Assigned by"
+msgstr "分配者"
+
+#: templates/sheets.html:632
+msgid "Connection"
+msgstr "连接"
+
+#: templates/sheets.html:653
+msgid "Select a text"
+msgstr "选择文本"
+
+#: templates/sheets.html:672
+msgid "Browse Sources"
+msgstr "浏览来源"
+
+#: templates/sheets.html:681
+msgid "Select connected texts"
+msgstr "选择连接的文本"
+
+#: templates/sheets.html:685 templates/sheets.html:708
+#: templates/sheets.html:722 templates/sheets.html:744
+msgid "Add to Sheet"
+msgstr "添加到表格"
+
+#: templates/sheets.html:690
+msgid "Write or paste text"
+msgstr "编写或粘贴文本"
+
+#: templates/sheets.html:713
+msgid "Add Image, Youtube Video, SoundCloud link, or MP3"
+msgstr "添加图片、YouTube视频、SoundCloud链接或MP3"
+
+#: templates/sheets.html:718
+msgid "Paste URL"
+msgstr "粘贴URL"
+
+#: templates/sheets.html:731
+msgid "Upload an Image"
+msgstr "上传图片"
+
+#: templates/sheets.html:740
+msgid "Comment on this section"
+msgstr "对这个部分发表评论"
+
+#: templates/sheets.html:763
+msgid "Watch a 2 minute intro video or "
+msgstr "观看2分钟的介绍视频或 "
+
+#: templates/sheets.html:763
+msgid "read more"
+msgstr "阅读更多"
+
+#: templates/sheets.html:767
+msgid "Source Sheet Builder: How it Works"
+msgstr "来源表生成器：如何工作"
+
+#: templates/sheets.html:773 templates/sheets.html:777
+msgid "Add Sources"
+msgstr "添加来源"
+
+#: templates/sheets.html:773 templates/sheets.html:777
+msgid "by typing a citation like:"
+msgstr "通过输入引用，例如："
+
+#: templates/sheets.html:782
+msgid "Reorder Sources"
+msgstr "重新排序来源"
+
+#: templates/sheets.html:782
+msgid "by dragging and dropping."
+msgstr "通过拖放。"
+
+#: templates/sheets.html:785
+msgid "your sheets to paper or PDF, or just"
+msgstr "将你的表格导出为纸质或PDF格式，或者只是"
+
+#: templates/sheets.html:785
+msgid " the link."
+msgstr " 链接。"
+
+#: templates/sheets.html:788
+msgid "More Options"
+msgstr "更多选项"
+
+#: templates/sheets.html:788
+msgid "are available in the icons that appear when you hover over a source."
+msgstr "可以在悬停在来源上时出现的图标中找到。"
+
+#: templates/sheets.html:794
+msgid "Take a spin! But you'll need to "
+msgstr "试试吧！但你需要 "
+
+#: templates/sheets.html:794
+msgid "login"
+msgstr "登录"
+
+#: templates/sheets.html:795
+msgid "to save your work."
+msgstr "以保存你的工作。"
+
+#: templates/sheets.html:806
+msgid "Made with the Sefaria Source Sheet Builder"
+msgstr "使用Sefaria来源表生成器制作"
+
+#: templates/sheets.html:817
+msgid "Add Highlight"
+msgstr "添加高亮"
+
+#: templates/sheets.html:828
+msgid "Create New"
+msgstr "创建新表格"
+
+#: templates/sheets.html:843
+msgid "Source Sheet created on Pecha by "
+msgstr "在Pecha上创建的来源表，由 "
+
+#: templates/sheets.html:847
+msgid "Based on "
+msgstr "基于 "
+
+#: templates/sheets.html:862
+msgid ""
+"Assignments allow you to create a template that your students can fill out "
+"on their own."
+msgstr ""
+
+#: templates/sheets.html:866
+msgid "Assign this Sheet"
+msgstr "分配此表格"
+
+#: templates/sheets.html:869
+msgid "Stop Collecting Assignments"
+msgstr "停止收集作业"
+
+#: templates/sheets.html:876
+msgid "Saved Assignments"
+msgstr "保存的作业"
+
+#: templates/sheets.html:885
+msgid "Your student's saved assignments will be viewable here."
+msgstr "你学生保存的作业将在此处查看。"
+
+#: templates/sheets.html:895
+msgid "Write a summary to help others understand your sheet..."
+msgstr "编写摘要以帮助其他人理解你的表格..."
+
+#: templates/sheets.html:901
+msgid "Add Tags..."
+msgstr "添加标签..."
+
+#: templates/sheets.html:911
+msgid "List on Pecha"
+msgstr "在Pecha上列出"
+
+#: templates/sheets.html:927
+msgid "Display Collection"
+msgstr "显示集合"
+
+#: templates/sheets.html:933
+msgid "None"
+msgstr "无"
+
+#: templates/sheets.html:946
+msgid "To manage the collections this sheet appears in, visit your profile."
+msgstr "要管理此表单出现的集合，请访问您的个人资料。"
+
+#: templates/sheets.html:955
+msgid "Share a link"
+msgstr "分享链接"
+
+#: templates/sheets.html:968
+msgid "Anyone with access can"
+msgstr "任何有权限的人可以"
+
+#: templates/sheets.html:989
+msgid ""
+"\n"
+"            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
+"            "
+msgstr ""
+
+#: templates/sheets.html:1011
+msgid ""
+"Copy and paste the embed code below. Adjust the values of width and height "
+"to best fit your design."
+msgstr ""
+
+#: templates/sheets.html:1018
+msgid "Add a Parasha to a Source Sheet"
+msgstr "将经文添加到源表单"
+
+#: templates/sheets.html:1030
+msgid "Change this source's layout"
+msgstr "更改此来源的布局"
+
+#: templates/sheets.html:1047
+msgid "Reset to sheet defaults"
+msgstr "重置为表单默认设置"
+
+#: templates/sheets.html:1056
+msgid "Would you like to make your Source Sheet public?"
+msgstr "您是否希望将您的源表单设为公开？"
+
+#: templates/sheets.html:1061
+msgid ""
+"Your Source Sheet is looking great! You can share it with other members of "
+"the Pecha Community by making it public."
+msgstr ""
+
+#: templates/sheets.html:1066
+msgid "Make Public"
+msgstr "设为公开"
+
+#: templates/sheets.html:1069
+msgid "Maybe Later"
+msgstr "稍后再说"
+
+#: templates/sheets.html:1074
+msgid "Your Sheet is now Public!"
+msgstr "您的表单现在已公开！"
+
+#: templates/sheets.html:1078
+msgid ""
+"Thank you for contributing to a free, growing resource for Jewish learning."
+msgstr ""
+
+#: templates/sheets.html:1087
+msgid "No problem, this sheet is still not listed on Sefaria."
+msgstr "没问题，此表单仍未列在Sefaria上。"
+
+#: templates/sheets.html:1092
+msgid "You can make your sheet public in the future from the"
+msgstr "您可以在将来从中将您的表单设为公开"
+
+#: templates/sheets_visual.html:4
+msgid "Visualized"
+msgstr "可视化"
+
+#: templates/sheets_visual.html:4
+msgid "Sefaria Source Sheet Builder"
+msgstr "Sefaria源表单构建器"
+
+#: templates/sheets_visual.html:6
+#, python-format
+msgid ""
+"Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
+"Sefaria's Source Sheet Builder."
+msgstr ""
+
+#: templates/sheets_visual.html:30
+msgid "Back to Sheet"
+msgstr "返回表单"
+
+#: templates/static/all_home.html:4 templates/static/all_home.html:6
+msgid "TBD"
+msgstr "待定"
+
+#: templates/static/app.html:4
+msgid "Sefaria App"
+msgstr "Sefaria应用"
+
+#: templates/static/app.html:6
+msgid "Download the free Sefaria App for iOS and Android."
+msgstr "下载免费的Sefaria应用程序，适用于iOS和Android。"
+
+#: templates/static/app.html:314 templates/static/mobile.html:319
+msgid "Sign up for our Newsletter"
+msgstr "注册我们的通讯"
+
+#: templates/static/app.html:374
+#: templates/static/aramaic-translation-contest.html:180
+#: templates/static/home.html:383 templates/static/mobile.html:379
+#: templates/static/newsletter.html:47
+msgid "<i>Subscribing...</i>"
+msgstr "<i>正在订阅...</i>"
+
+#: templates/static/app.html:380
+#: templates/static/aramaic-translation-contest.html:186
+#: templates/static/home.html:389 templates/static/mobile.html:385
+#: templates/static/newsletter.html:53
+msgid "Subscribed! Welcome to our list."
+msgstr "已订阅！欢迎加入我们的名单。"
+
+#: templates/static/app.html:386
+#: templates/static/aramaic-translation-contest.html:192
+#: templates/static/home.html:395 templates/static/mobile.html:391
+#: templates/static/newsletter.html:59
+msgid "Please enter a valid email address."
+msgstr "请输入有效的电子邮件地址。"
+
+#: templates/static/aramaic-translation-contest.html:4
+msgid "Sefaria: a Living Library of Jewish Texts Online"
+msgstr "Sefaria：在线犹太文本的活库"
+
+#: templates/static/aramaic-translation-contest.html:6
+msgid ""
+"The largest free library of Jewish texts available to read online in Hebrew "
+"and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries "
+"and more."
+msgstr ""
+
+#: templates/static/connect.html:4
+msgid "Sefaria Newsletter, Social Media and More"
+msgstr "Sefaria通讯、社交媒体等"
+
+#: templates/static/connect.html:6
+msgid ""
+"Get updates on new texts and features on Sefaria by signing up for our "
+"newsletter or following us on social media."
+msgstr ""
+
+#: templates/static/contest.html:4 templates/static/contest.html:6
+msgid "Powered by Sefaria Contest"
+msgstr "由Sefaria竞赛提供支持"
+
+#: templates/static/contributed-to-sefaria.html:4
+msgid "Texts Contributed to Sefaria"
+msgstr "贡献给Sefaria的文本"
+
+#: templates/static/contributed-to-sefaria.html:6
+msgid ""
+"Texts on Sefaria that list this page as their source were contributed "
+"directly to Sefaria and have not yet been published elsewhere in print or on"
+" the web."
+msgstr ""
+
+#: templates/static/daf-yomi.html:4
+msgid "Daf Yomi | Sefaria"
+msgstr "Daf Yomi | Sefaria"
+
+#: templates/static/daf-yomi.html:6
+msgid "Learn the Talmud each day with Daf Yomi on Sefaria."
+msgstr "通过Sefaria上的Daf Yomi每天学习塔木德。"
+
+#: templates/static/dicta-thanks.html:4
+msgid "Dicta Thanks"
+msgstr "Dicta感谢"
+
+#: templates/static/dicta-thanks.html:6
+msgid "Sefaria thanks Dicta for all of their help."
+msgstr "Sefaria感谢Dicta的所有帮助。"
+
+#: templates/static/digitized-by-sefaria.html:4
+msgid "Texts Digitized by Sefaria"
+msgstr "由Sefaria数字化的文本"
+
+#: templates/static/educators.html:4 templates/static/educators.html:6
+msgid "Teach with Sefaria"
+msgstr "使用Sefaria进行教学"
+
+#: templates/static/en/about.html:4 templates/static/he/about.html:4
+msgid "About Pecha"
+msgstr ""
+
+#: templates/static/en/about.html:6 templates/static/he/about.html:6
+msgid ""
+"Pecha is a nonprofit organization dedicated to building the future of "
+"Buddhist learning in an open and participatory way."
+msgstr ""
+
+#: templates/static/en/ways-to-give.html:4
+#: templates/static/he/ways-to-give.html:5
+msgid "Donate to Sefaria"
+msgstr "捐赠给Sefaria"
+
+#: templates/static/en/ways-to-give.html:6
+#: templates/static/he/ways-to-give.html:7
+msgid ""
+"Support Sefaria by making a tax-deductible donation online or by check or "
+"wire transfer."
+msgstr ""
+
+#: templates/static/home.html:5
+msgid "Pecha: a Living Library of Buddhist Texts Online"
+msgstr ""
+
+#: templates/static/home.html:7
+msgid ""
+"The largest free library of Buddhist texts available to read online in "
+"Tibetan and English including commentaries and more."
+msgstr ""
+
+#: templates/static/home.html:18 templates/static/home.html:32
+msgid "Pecha"
+msgstr ""
+
+#: templates/static/ios.html:4
+msgid "Sefaria iOS"
+msgstr "Sefaria iOS"
+
+#: templates/static/jobs.html:4
+msgid "Jobs at Pecha"
+msgstr ""
+
+#: templates/static/jobs.html:6
+msgid ""
+"Job openings at Pecha, a nonprofit technology organization dedicated to "
+"building the Buddhist future."
+msgstr ""
+
+#: templates/static/linker.html:4
+msgid "Linker Plugin"
+msgstr "Linker插件"
+
+#: templates/static/linker.html:6
+msgid ""
+"Automatically turn citations on your website into links or dynamic popups "
+"with the full text from Sefaria."
+msgstr ""
+
+#: templates/static/mobile.html:4
+msgid "Pecha Mobile Apps"
+msgstr ""
+
+#: templates/static/mobile.html:6
+msgid "Download the free Sefaria Apps for iOS and Android."
+msgstr "下载免费的Sefaria应用程序，适用于iOS和Android。"
+
+#: templates/static/newsletter.html:4 templates/static/newsletter.html:6
+msgid "Sign up for Sefaria's Newsletter"
+msgstr "注册Sefaria的通讯"
+
+#: templates/static/powered-by-sefaria-contest-2020.html:4
+#: templates/static/powered-by-sefaria-contest-2020.html:6
+msgid "Powered by Sefaria Contest 2020"
+msgstr "由Sefaria竞赛2020提供支持"
+
+#: templates/static/powered-by-sefaria-contest-2021.html:4
+#: templates/static/powered-by-sefaria-contest-2021.html:6
+msgid "Powered by Sefaria Contest 2021"
+msgstr "由Sefaria竞赛2021提供支持"
+
+#: templates/static/powered-by.html:4
+msgid "Powered by Sefaria"
+msgstr "由Sefaria提供支持"
+
+#: templates/static/powered-by.html:6
+msgid ""
+"Sefaria’s open data and API can be used by anyone.  You can find it all for "
+"free in our GitHub repository!"
+msgstr ""
+
+#: templates/static/privacy-policy.html:4
+msgid "Privacy Policy"
+msgstr "隐私政策"
+
+#: templates/static/ramban-sponsorships.html:4
+#: templates/static/ramban-sponsorships.html:6
+msgid "Ramban on Torah - Thank you to our Sponsors"
+msgstr "Ramban on Torah - 感谢我们的赞助商"
+
+#: templates/static/remote-learning.html:4
+msgid "Remote Learning | Sefaria"
+msgstr "远程学习 | Sefaria"
+
+#: templates/static/remote-learning.html:6
+msgid "Resources for teaching and learning virtually."
+msgstr "用于虚拟教学和学习的资源。"
+
+#: templates/static/sefaria-community-translation.html:4
+msgid "About Sefaria Community Translations"
+msgstr "关于Sefaria社区翻译"
+
+#: templates/static/sefaria-community-translation.html:6
+msgid ""
+"Sefaria Community Translations are open, crowd-sourced translations of texts"
+" available in the Sefaria Library."
+msgstr ""
+
+#: templates/static/sefaria-edition.html:4
+msgid "About Sefaria Editions"
+msgstr "关于Sefaria版本"
+
+#: templates/static/sefaria-edition.html:6
+msgid ""
+"The Sefaria Edition is a Sefaria commissioned translation created by "
+"professional translators."
+msgstr ""
+
+#: templates/static/sheets.html:4
+msgid "Sheets on Pecha"
+msgstr ""
+
+#: templates/static/sheets.html:6
+msgid ""
+"Mix and match sources from Sefaria’s library of Jewish texts, and add your "
+"comments, images and videos."
+msgstr ""
+
+#: templates/static/shraga-silverstein.html:4
+msgid "In Memory of Rabbi Shraga Silverstein"
+msgstr "纪念Rabbi Shraga Silverstein"
+
+#: templates/static/strategy.html:4
+msgid "Sefaria Strategy"
+msgstr "Sefaria战略"
+
+#: templates/static/supporters.html:4
+msgid "Sefaria's Supporters"
+msgstr "Sefaria的支持者"
+
+#: templates/static/supporters.html:6
+msgid ""
+"Sefaria gratefully acknowledges the following donors whose generosity and "
+"leadership are making Sefaria possible."
+msgstr ""
+
+#: templates/static/team.html:5
+msgid "The Sefaria Team"
+msgstr "Sefaria团队"
+
+#: templates/static/team.html:7
+msgid "Sefaria's team is working to create the Jewish future."
+msgstr "Sefaria的团队正在努力创造犹太人的未来。"
+
+#: templates/static/terms.html:4
+msgid "Terms of Use"
+msgstr "使用条款"
+
+#: templates/static/testimonials.html:4
+msgid "Sefaria Testimonials"
+msgstr "Sefaria的评价"
+
+#: templates/static/testimonials.html:6
+msgid "Sefaria’s Impact – Reflections and Insights from Users"
+msgstr "Sefaria的影响 - 用户的反思和见解"
+
+#: templates/static/the-sefaria-story.html:4
+msgid "The Sefaria Story"
+msgstr "Sefaria的故事"
+
+#: templates/static/the-sefaria-story.html:6
+msgid "Watch a video about the story of Sefaria."
+msgstr "观看有关Sefaria故事的视频。"
+
+#: templates/static/torah-tab.html:5
+msgid "Sefaria Torah Tab"
+msgstr "Sefaria Torah选项卡"
+
+#: templates/static/torah-tab.html:7
+msgid "Install the free Sefaria Torah Tab for your web browser."
+msgstr "为您的网络浏览器安装免费的Sefaria Torah选项卡。"
+
+#: templates/static/visualizations.html:4
+msgid "Visualizations"
+msgstr "可视化"
+
+#: templates/static/visualizations.html:6
+msgid ""
+"Projects which have been created to make interactive visualizations of the "
+"texts and connections in the Sefaria Library of Torah texts."
+msgstr ""
+
+#: templates/static/william-davidson-talmud.html:4
+#: templates/static/william-davidson-talmud.html:84
+msgid "The William Davidson Talmud"
+msgstr "William Davidson塔木德"
+
+#: templates/static/william-davidson-talmud.html:6
+msgid ""
+"The William Davidson Talmud is a free digital edition of the Babylonian "
+"Talmud with parallel translations, interlinked to major commentaries, "
+"biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish"
+" texts."
+msgstr ""
+
+#: templates/static/word-by-word.html:4
+msgid "Word by Word: A Jewish Women's Writing Circle"
+msgstr "逐字逐句：犹太女性写作圈"
+
+#: templates/static/word-by-word.html:6
+msgid ""
+"Word by Word: A Jewish Women's Writing Circle will provide up to 20 Jewish "
+"women writers engaged in serious torah scholarship the support and guidance "
+"to produce publishable books."
+msgstr ""
+
+#: templates/talmud_people.html:8
+msgid ""
+"An index of the sages of the Talmud (Chazal) ordered by generation, "
+"including relationships to one another, time periods and links to learn "
+"more."
+msgstr ""
+
+#: templates/talmudic_relationships.html:24
+#: templates/talmudic_relationships.html:26
+msgid "Student-Teacher Relationships in the Talmud"
+msgstr "塔木德中的师生关系"
+
+#: templates/timeline.html:4 templates/timeline.html:6
+msgid "Timeline"
+msgstr "时间轴"
+
+#: templates/unique_words_viz.html:7
+msgid "Unique Words used by Biblical Commentators"
+msgstr "圣经评论者使用的独特词汇"
+
+#: templates/unique_words_viz.html:9
+msgid "Explore how unique and verbose biblical commentators were."
+msgstr "探索圣经评论者有多么独特和冗长。"
+
+#: templates/visual_library.html:4
+msgid "Visualizing the Sefaria Library"
+msgstr "可视化Sefaria图书馆"
+
+#: templates/visual_library.html:6
+msgid ""
+"How big is Torah compared to Talmud? This sunburst diagram lets you see the "
+"number of words in the texts and categories of Sefaria's library (which is "
+"growing every day!)."
+msgstr ""
+
+#: templates/visual_parasha_colors.html:6
+msgid "Visualizing the Parshiot"
+msgstr "可视化Parshiot"
+
+#: templates/visualize_links_through_rashi.html:6
+msgid "Visualizing Torah Connections through Rashi's Commentary"
+msgstr "通过拉希的评论可视化托拉连接"
+
+#: templates/visualize_links_through_rashi.html:8
+msgid ""
+"Explore how Rashi connects verses of Torah to one another when he quotes one"
+" verse in his commentary on another."
+msgstr ""

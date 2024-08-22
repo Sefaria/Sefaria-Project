@@ -18,18 +18,20 @@ TIME_ZONE = 'America/Halifax'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en'
+LANGUAGE_CODE = 'es'
 
 LANGUAGES = (
     ('en', _("English")),
     ('he', _("Hebrew")),
     ('zh', _("Chinese")),
+    ('es', _("Spanish")),
 )
 
 DATE_FORMATS = {
     'en': 'N j, Y g:i A',  # English: January 5, 2024 2:30 PM
     'he': 'སྤྱི་ལོ།Y ཟླ་m ཚེས།j ཆུ་ཚོད།g',  # Tibetan: སྤྱི་ལོ་2024 ཟླ་1 ཚེས་5 ཆུ་2 སྐར་30 སྔོན་PM
     'ch': 'Y年 m月 j日 g:i A',  # Chinese: 2024年1月5日 2:30 PM
+    'es': 'Y年 m月 j日 g:i A',  # Spanish: 2024年1月5日 2:30 PM
 }
 
 SITE_ID = 1
