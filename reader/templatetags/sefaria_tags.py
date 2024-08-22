@@ -546,7 +546,6 @@ def format_date_by_language(value):
 		'he': 'bo',
 		'ch': 'zh',
 	}
-	print("+++++++++++++++++++++++++", value)
 	current_language = translation.get_language()
 	date_obj = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
 	date_format_string = settings.DATE_FORMATS.get(current_language, settings.DATE_FORMATS['en'])

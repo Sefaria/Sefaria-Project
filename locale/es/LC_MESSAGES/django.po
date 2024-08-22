@@ -2953,7 +2953,7 @@ msgstr "标题"
 #, python-format
 msgid ""
 "\n"
-"            Assignment Completed by %(owner)s\n"
+"Assignment Completed by %(owner)s\n"
 "            "
 msgstr ""
 
@@ -2961,7 +2961,7 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"            Source Sheet by %(owner)s\n"
+"Source Sheet by %(owner)s\n"
 "            "
 msgstr ""
 

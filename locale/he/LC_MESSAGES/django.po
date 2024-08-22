@@ -419,7 +419,7 @@ msgstr ""
 
 #: templates/account_settings.html:49 templates/sheets.html:705
 msgid "tibetan"
-msgstr ""
+msgstr "བོད་ཡིག"
 
 #: templates/account_settings.html:56
 msgid "Preferred Translation Language"
@@ -1688,11 +1688,11 @@ msgstr ""
 
 #: templates/sheets.html:429
 msgid "All changes saved in Pecha"
-msgstr ""
+msgstr "All changes saved in Pecha"
 
 #: templates/sheets.html:432 templates/sheets.html:457
 msgid "Saving..."
-msgstr ""
+msgstr "ཉར་བཞིན་པ།"
 
 #: templates/sheets.html:435
 msgid "Changes Pending..."
@@ -1709,7 +1709,7 @@ msgstr "བརྒྱུད་སྐུར་གྱིས།"
 
 #: templates/sheets.html:466 templates/sheets.html:470
 msgid "View in Library"
-msgstr ""
+msgstr "View in Library"
 
 #: templates/sheets.html:499
 msgid "Like this?"
@@ -1745,7 +1745,7 @@ msgstr ""
 
 #: templates/sheets.html:559
 msgid "More info"
-msgstr ""
+msgstr "More info"
 
 #: templates/sheets.html:564 templates/sheets.html:978
 msgid "Edit"
@@ -1773,7 +1773,7 @@ msgstr ""
 
 #: templates/sheets.html:572 templates/sheets.html:847
 msgid "by"
-msgstr ""
+msgstr "བརྩམས་མཁན།"
 
 #: templates/sheets.html:578 templates/sheets.html:584
 msgid "Assigned by"
@@ -1785,7 +1785,7 @@ msgstr ""
 
 #: templates/sheets.html:653
 msgid "Select a text"
-msgstr ""
+msgstr "ཡིག་ཆ་ཞིག་འདེམ།"
 
 #: templates/sheets.html:672
 msgid "Browse Sources"
@@ -1802,11 +1802,11 @@ msgstr "ཟིན་བྲིས་ལ་ཉར།"
 
 #: templates/sheets.html:690
 msgid "Write or paste text"
-msgstr ""
+msgstr "རྩོམ་གསར་འབྲི་ས།"
 
 #: templates/sheets.html:713
 msgid "Add Image, Youtube Video, SoundCloud link, or MP3"
-msgstr ""
+msgstr "འདྲ་པར་དང་ MP3 YouTube SoundCloud གང་རུང་ཞིག་གི་དྲ་ཐག་སྣོན།"
 
 #: templates/sheets.html:718
 msgid "Paste URL"
@@ -1818,7 +1818,7 @@ msgstr "འདྲ་པར་ནང་འཇུག་གྱིས།"
 
 #: templates/sheets.html:740
 msgid "Comment on this section"
-msgstr ""
+msgstr "ཚན་པ་འདི་ལ་མཆན་འབྲི་ས།"
 
 #: templates/sheets.html:763
 msgid "Watch a 2 minute intro video or "
@@ -1890,7 +1890,7 @@ msgstr ""
 
 #: templates/sheets.html:843
 msgid "Source Sheet created on Pecha by "
-msgstr ""
+msgstr "Source Sheet created on Pecha by"
 
 #: templates/sheets.html:847
 msgid "Based on "
