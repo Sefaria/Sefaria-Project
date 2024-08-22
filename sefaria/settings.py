@@ -104,7 +104,7 @@ TEMPLATES = [
                     "sefaria.system.context_processors.header_html",
                     "sefaria.system.context_processors.footer_html",
                     "sefaria.system.context_processors.base_props",
-                    "django.template.context_processors.language_font_class"
+                    "sefaria.system.context_processors.language_font_class"
             ],
             'loaders': [
                 #'django_mobile.loader.Loader',
