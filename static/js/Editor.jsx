@@ -180,11 +180,6 @@ const moveAnchorToEndOfClosestParagraph = (editor) => {
     }
   }
 };
-const insertNewLine = (editor) => {
-  // moveAnchorToEndOfCurrentNode(editor);
-  moveAnchorToEndOfClosestParagraph(editor);
-  editor.insertBreak();
-}
 const moveAnchorToEndOfCurrentNode = (editor) => {
   const { selection } = editor;
 
@@ -203,7 +198,10 @@ const moveAnchorToEndOfCurrentNode = (editor) => {
     }
   }
 };
-
+const insertNewLine = (editor) => {
+  moveAnchorToEndOfClosestParagraph(editor);
+  editor.insertBreak();
+}
 
 export const deserialize = el => {
     if (el.nodeType === 3) {
@@ -1247,15 +1245,14 @@ const Element = (props) => {
             editorAddLineButton: 1,
             };
             const handleClick = (event, editor) => {
-                 if (event.target.matches('.editorAddLineButton')) {
+                 // a way to check if the click was on the 'pseudo' ::before element or on the actual div
+                 if (event.target.matches('.editorAddLineButton')) { //if click was on ::before
                     insertNewLine(editor);
                   } else {
                     return;
                   }
-
-                // If the attribute is present, proceed with your logic
-                // insertNewLine(editor);
             };
+
             const pClasses = {center: element["text-align"] == "center" };
             return (
                 <div role="button" title={"paragraph"} contentEditable suppressContentEditableWarning
