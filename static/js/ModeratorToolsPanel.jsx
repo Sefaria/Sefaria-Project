@@ -99,15 +99,13 @@ class ModeratorToolsPanel extends Component {
     const dlReady = (this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern));
     const downloadButton = <div className="modtoolsButton">
         <div className="modtoolsButtonInner">
-          <span className="int-en">Download</span>
-          <span className="int-he">הורדה</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._('Download')}</span>
         </div>
       </div>;
     const downloadSection = (
       <div className="modToolsSection dlSection">
         <div className="dlSectionTitle">
-          <span className="int-en">Bulk Download Text</span>
-          <span className="int-he">הורדת הטקסט</span>
+          <span className={`${Sefaria.languageClassFont()}`}>Bulk Download Text</span>
         </div>
         <input className="dlVersionSelect" type="text" placeholder="Index Title Pattern" onChange={this.onDlTitleChange} />
         <input className="dlVersionSelect" type="text" placeholder="Version Title Pattern" onChange={this.onDlVersionChange}/>
@@ -130,14 +128,12 @@ class ModeratorToolsPanel extends Component {
     // Uploading
     const ulReady = (!this.state.uploading) && this.state.files.length > 0;
     const uploadButton = <a><div className="modtoolsButton" onClick={this.uploadFiles}><div className="modtoolsButtonInner">
-       <span className="int-en">Upload</span>
-       <span className="int-he">העלאה</span>
+       <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._('Upload')}</span>
       </div></div></a>;
     const uploadForm = (
       <div className="modToolsSection">
         <div className="dlSectionTitle">
-          <span className="int-en">Bulk Upload CSV</span>
-          <span className="int-he">הורדת הטקסט</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._('Bulk Upload CSV')}</span>
         </div>
          <form id="file-form">
            <input className="dlVersionSelect" type="file" id="file-select"  multiple onChange={this.handleFiles}/>
@@ -242,8 +238,7 @@ class WorkflowyModeratorTool extends Component{
     return(
         <div className="workflowy-tool">
         <div className="dlSectionTitle">
-          <span className="int-en">Workflowy Outline Upload</span>
-          <span className="int-he">העלאת קובץ - workflowy</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._('Workflowy Outline Upload')}</span>
         </div>
         <form id="wf-file-form" className="workflowy-tool-form" onSubmit={this.handleWfSubmit}>
            <label>
@@ -285,8 +280,7 @@ class WorkflowyModeratorTool extends Component{
                 onChange={this.handleInputChange} />
             </label>
              <button className="modtoolsButton" name="wf-submit" type="submit">
-                <span className="int-en">Upload</span>
-                <span className="int-he">Upload</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Upload")}</span>
              </button>
          </form>
         <div id="wf-upl-msg" className="wf-upl-msg">{this.state.uploadMessage || ""}</div>

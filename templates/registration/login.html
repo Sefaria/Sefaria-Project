@@ -28,13 +28,11 @@
         <div class="inner">
             {% if message %}<p id="message">{{ message }}</p>{% endif %}
             <h1>
-                <span class="int-en">{% trans "Log in to Pecha" %}</span>
-                <span class="int-he">{% trans "Log in to Pecha" %}</span>
+                <span>{% trans "Log in to Pecha" %}</span>
             </h1>
             {% if form.errors %}
             <p class="error">
-                <span class="int-en">{% trans "Your username and password didn't match. Please try again." %}</span>
-                <span class="int-he">{% trans "Your username and password didn't match. Please try again." %}</span>
+                <span>{% trans "Your username and password didn't match. Please try again." %}</span>
             </p>
             {% endif %}
 
@@ -51,18 +49,15 @@
                 </p>
 
                 <button type="submit" class="button control-elem" id="login-submit-button">
-                    <span class="int-en">{% trans "Login" %}</span>
-                    <span class="int-he">{% trans "Login" %}</span>
+                    <span>{% trans "Login" %}</span>
                 </button>
                 <a class="registration-links control-elem" href="{% url "password_reset" %}" id="resetLink">
-                    <span class="int-en">{% trans "Forgot your password?" %}</span>
-                    <span class="int-he">{% trans "Forgot your password?" %}</span>
+                    <span>{% trans "Forgot your password?" %}</span>
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
             <a class="registration-links control-elem" href="{% url "register" %}{% if next %}?next={{ next }}{% endif %}">
-                <span class="int-en">{% trans "Create a new account" %}</span>
-                <span class="int-he">{% trans "Create a new account" %}</span>
+                <span>{% trans "Create a new account" %}</span>
 
             </a>
 	    </div>

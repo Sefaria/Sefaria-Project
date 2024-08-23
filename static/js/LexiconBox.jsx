@@ -97,7 +97,7 @@ class LexiconBox extends Component {
     if (!this.props.selectedWords) {
       return (
         <div className="lexicon-instructions">
-          <span className="int-en">Highlight words to look up definitions.</span>
+          <span className={`${Sefaria.languageClassFont()}`}>Highlight words to look up definitions.</span>
           <span className="int-he">סמן מילים כדי לחפש הגדרות</span>
         </div>);
     }
@@ -135,12 +135,10 @@ class LexiconBox extends Component {
               ne.timePeriod ? (
                 <div className="named-entity-time-period">
                   <div className="smallText">
-                    <span className="int-en">{ne.timePeriod.name.en}</span>
-                    <span className="int-he">{ne.timePeriod.name.he}</span>
+                    <span className={`${Sefaria.languageClassFont()}`}>{ne.timePeriod.name.he}</span>
                   </div>
                   <div className="smallText">
-                    <span className="int-en">{ne.timePeriod.yearRange.en}</span>
-                    <span className="int-he">{ne.timePeriod.yearRange.he}</span>
+                    <span className={`${Sefaria.languageClassFont()}`}>{ne.timePeriod.yearRange.he}</span>
                   </div>
                 </div>
               ) : null
@@ -154,8 +152,7 @@ class LexiconBox extends Component {
             <div>
               <div className="named-entity-ambiguous">
                 <i className="systemText">
-                  <span className="int-en">{`"${this.props.selectedNamedEntityText}" could refer to one of the following rabbis:`}</span>
-                  <span className="int-he">{`ייתכן ש-"${this.props.selectedNamedEntityText}" מתייחס לאחד הרבנים הבאים:`}</span>
+                  <span className={`${Sefaria.languageClassFont()}`}>{`"${this.props.selectedNamedEntityText}" could refer to one of the following rabbis:`}</span>
                 </i>
               </div>
               { namedEntityContent }
@@ -306,14 +303,12 @@ class LexiconEntry extends Component {
     var lexicon_dtls = entry['parent_lexicon_details'];
 
     var sourceContent = <div>
-      <span className="int-en">Source: </span>
-      <span className="int-he">מקור: </span>
+      <span className={`${Sefaria.languageClassFont()}`}>Source: </span>
       {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
     </div>;
 
     var attributionContent = <div>
-      <span className="int-en">Creator: </span>
-      <span className="int-he">יוצר: </span>
+      <span className={`${Sefaria.languageClassFont()}`}>Creator: </span>
       {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
     </div>;
 

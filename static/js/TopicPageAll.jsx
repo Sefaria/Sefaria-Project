@@ -114,7 +114,7 @@ class TopicPageAll extends Component {
                     <div>
                       <ResponsiveNBox content={topicList} initialWidth={this.props.initialWidth} />
                     </div>
-                    : <LoadingMessage message="There are no topics here." heMessage="" />)
+                    : <LoadingMessage message="There are no topics here." heMessage="འདི་ལ་བརྗོད་གཞི་མི་འདུག།" />)
                   : <LoadingMessage />
                 }
               </div>

@@ -2472,7 +2472,7 @@ if (sjs.is_owner) {
 	if (sjs.current.status == "unlisted" && sheet["status"] == "public" ) {
 			Sefaria.track.sheets("Sheet Published");
 	}
-
+	
 	switch ($("#sourceSheetShareSelect").val()) {
 		case 'view':
 			sheet.options.collaboration = "none";

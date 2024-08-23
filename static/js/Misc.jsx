@@ -23,6 +23,7 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+import { languages } from 'humanize-duration';
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -38,12 +39,16 @@ import TrackG4 from "./sefaria/trackG4";
 const HebrewText = ({children}) => (
     <>{children}</>
 );
+const ChineseText = ({children}) => (
+  <>{children}</>
+);
 const EnglishText = ({children}) => (
     <>{children}</>
 );
 
+
 const AvailableLanguages = () => {
-  return {"english" : EnglishText, "hebrew": HebrewText};
+  return {"english" : EnglishText, "hebrew": HebrewText, "chinese": ChineseText};
 };
 const AvailableLanguagesValidator = (children, key, componentName, location, propFullName) => {
     if (!(children[key].type && (Object.values(AvailableLanguages()).indexOf(children[key].type) != -1) )) {
@@ -71,8 +76,10 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
    */
   const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
-  let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
-  let textResponse = null;
+  let language = {}
+  language[`${Sefaria.languageClassFont()}`] = true
+  let elemclasses = classNames(language);
+  let textResponse = null; 
   if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case.
     let {he, en} = contentVariable;
     textResponse = isHebrew ? (he || en) : (en || he);
@@ -302,8 +309,7 @@ class ProfilePic extends Component {
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
-                <span className="int-en">{ showDefault ? Sefaria._("Add Picture") : Sefaria._("Upload New") }</span>
-                <span className="int-he">{ showDefault ? Sefaria._("Add Picture") : Sefaria._("Upload New") }</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{ showDefault ? Sefaria._("Add Picture") : Sefaria._("Upload New") }</span>
               </label>
             </div>) : null
           }
@@ -327,17 +333,14 @@ class ProfilePic extends Component {
               { (uploading || isFirstCropChange) ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
                 <div>
                   <div className="smallText profile-pic-cropper-desc">
-                    <span className="int-en">{ Sefaria._("Drag corners to crop image") }</span>
-                    <span className="int-he">{ Sefaria._("Drag corners to crop image") }</span>
+                    <span >{ Sefaria._("Drag corners to crop image") }</span>
                   </div>
                   <div className="profile-pic-cropper-button-row">
                     <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
-                      <span className="int-en">{ Sefaria._("Cancel") }</span>
-                      <span className="int-he">{ Sefaria._("Cancel") }</span>
+                      <span >{ Sefaria._("Cancel") }</span>
                     </a>
                     <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
-                      <span className="int-en">{ Sefaria._("Save") }</span>
-                      <span className="int-he">{ Sefaria._("Save") }</span>
+                      <span >{ Sefaria._("Save") }</span>
                     </a>
                   </div>
                 </div>
@@ -636,8 +639,7 @@ class DropdownOptionList extends Component {
                       <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`}/>
                     </td>
                     <td className="dropdown-option-list-label" style={{padding:"15px 15px 15px 0"}}>
-                      <span className="int-en">{option.name}</span>
-                      <span className="int-he" dir="ltr">{option.heName}</span>
+                      <span >{option.name}</span>
                     </td>
                   </tr>
                 );
@@ -1424,6 +1426,8 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
           <div className="interfaceLinks-options">
             <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>བོད་ཡིག</a>
             <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+            <a className={`interfaceLinks-option int-bi int-zh ${(currentLang == 'chinese') ? 'active' : ''}`} href={`/interface/chinese?next=${getCurrentPage()}`}>中文</a>
+
           </div>
           { !!translationLanguagePreference ? (
             <>
@@ -1431,7 +1435,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
                 <InterfaceText>Preferred Translation</InterfaceText>
               </div>
               <div className="interfaceLinks-options trans-pref-header-container">
-                <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
+                <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, false)}</InterfaceText>
                 <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
                   <img src="/static/img/circled-x.svg" className="reset-btn" />
                   <span className="smallText">
@@ -1984,16 +1988,13 @@ class LoginPrompt extends Component {
     return (
       <div className="loginPrompt">
         <div className="loginPromptMessage">
-          <span className="int-en">{ Sefaria._("Please log in to use this feature.")}</span>
-          <span className="int-he">{ Sefaria._("Please log in to use this feature.")}</span>
+          <span >{ Sefaria._("Please log in to use this feature.")}</span>
         </div>
         <a className="button" href={"/login" + nextParam}>
-          <span className="int-en">{ Sefaria._("Log In")}</span>
-          <span className="int-he">{ Sefaria._("Log In")}</span>
+          <span >{ Sefaria._("Log In")}</span>
         </a>
         <a className="button" href={"/register" + nextParam}>
-          <span className="int-en">{ Sefaria._("Sign Up")}</span>
-          <span className="int-he">{ Sefaria._("Sign Up")}</span>
+          <span >{ Sefaria._("Sign Up")}</span>
         </a>
       </div>);
   }
@@ -2228,10 +2229,10 @@ const InterruptingMessage = ({
               <div id="interruptingMessageContent">
                 <div id="defaultModal">
                   {strapi.modal.modalHeader.en && (
-                    <h1 className="int-en">{strapi.modal.modalHeader.en}</h1>
+                    <h1 >{strapi.modal.modalHeader.en}</h1>
                   )}
                   {strapi.modal.modalHeader.he && (
-                    <h1 className="int-he">{strapi.modal.modalHeader.he}</h1>
+                    <h1 className={`${Sefaria.languageClassFont()}`}>{strapi.modal.modalHeader.he}</h1>
                   )}
                   <div id="defaultModalBody" className="line-break">
                     <InterfaceText
@@ -2249,19 +2250,19 @@ const InterruptingMessage = ({
                         closeModal("modal_button_clicked");
                       }}
                     >
-                      <span className="int-en">
+                      <span >
                         {strapi.modal.buttonText.en}
                       </span>
                     </a>
                     <a
-                      className="button int-he"
+                      className={`${Sefaria.languageClassFont()} button`}
                       target="_blank"
                       href={strapi.modal.buttonURL.he}
                       onClick={() => {
                         closeModal("modal_button_clicked");
                       }}
                     >
-                      <span className="int-he">
+                      <span className={`${Sefaria.languageClassFont()}`}>
                         {strapi.modal.buttonText.he}
                       </span>
                     </a>
@@ -2397,16 +2398,7 @@ const Banner = ({ onClose }) => {
             </div>
             <div id="bannerButtonBox">
               <a
-                className="button white int-en"
-                href={strapi.banner.buttonURL.en}
-                onClick={() => {
-                  closeBanner("banner_button_clicked");
-                }}
-              >
-                <span>{strapi.banner.buttonText.en}</span>
-              </a>
-              <a
-                className="button white int-he"
+                className={`button white ${Sefaria.languageClassFont()}`}
                 href={strapi.banner.buttonURL.he}
                 onClick={() => {
                   closeBanner("banner_button_clicked");
@@ -2688,20 +2680,17 @@ class FeedbackBox extends Component {
     if (this.state.feedbackSent) {
         return (
             <div className="feedbackBox sans-serif">
-                <p className="int-en">{ Sefaria._("Feedback sent")}</p>
-                <p className="int-he">{ Sefaria._("Feedback sent")} </p>
+                <p >{ Sefaria._("Feedback sent")}</p>
             </div>
         )
     }
     return (
         <div className="feedbackBox sans-serif">
-            <p className="int-en">{ Sefaria._("Have some feedback? We would love to hear it.") }  </p>
-            <p className="int-he">{ Sefaria._("Have some feedback? We would love to hear it.") } </p>
+            <p >{ Sefaria._("Have some feedback? We would love to hear it.") }  </p>
 
             {this.state.alertmsg ?
                 <div>
-                    <p className="int-en">{this.state.alertmsg}</p>
-                    <p className="int-he">{this.state.alertmsg}</p>
+                    <p >{this.state.alertmsg}</p>
                 </div>
                 : null
             }
@@ -2728,8 +2717,7 @@ class FeedbackBox extends Component {
                 : null }
 
              <div className="button" role="button" onClick={() => this.sendFeedback()}>
-                 <span className="int-en"> {Sefaria._("Submit")}</span>
-                 <span className="int-he">{Sefaria._("Submit")}</span>
+                 <span > {Sefaria._("Submit")}</span>
              </div>
         </div>
     );
@@ -2754,7 +2742,7 @@ class ReaderMessage extends Component {
     return (
       <div className="readerMessageBox">
         <div className="readerMessage">
-          <div className="int-en">{this.props.message}</div>
+          <div >{this.props.message}</div>
           <div className="button small" role="button" onClick={() => this.setFeedback('Like')}>{this.props.buttonLikeText}</div>
           <div className="button small" role="button" onClick={() => this.setFeedback('Dislike')}>{this.props.buttonDislikeText}</div>
         </div>
@@ -2785,12 +2773,9 @@ class CookiesNotification extends Component {
     return (
       <div className="cookiesNotification">
 
-          <span className="int-en">
-            <span>{ Sefaria._("We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.") }<a href="/privacy-policy">{ Sefaria._("Learn More") }</a>.</span>
-            <span className='int-en button small white' onClick={this.setCookie}>{ Sefaria._("OK") }</span>
-          </span>
-          <span className="int-he">
-            <span>{ Sefaria._("We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.") }<a href="/privacy-policy">{ Sefaria._("Learn More") }</a></span>
+
+          <span className={`${Sefaria.languageClassFont()}`}>
+            <span>{ Sefaria._("We use cookies to give you the best experience possible on our site. Click OK to continue using Pecha.") }<a href="/privacy-policy">{ Sefaria._("Learn More") }</a></span>
             <span className='int-he button small white' onClick={this.setCookie}>{ Sefaria._("OK") }</span>
           </span>
 
@@ -3307,6 +3292,7 @@ export {
   InterfaceText,
   EnglishText,
   HebrewText,
+  ChineseText,
   CommunityPagePreviewControls,
   LanguageToggleButton,
   Link,
