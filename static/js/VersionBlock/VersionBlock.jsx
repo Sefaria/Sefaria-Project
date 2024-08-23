@@ -196,25 +196,13 @@ class VersionBlock extends Component {
     return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
   }
   setTextCompletionStatus(){
-    if (Sefaria.interfaceLang == "hebrew") {
-      
-      if (this.props.version.iscompleted == "done") {
-        return null
-      } else {
-        return (
-          <div className="status sans-serif danger">{"སྒྲིག་བཞིན་ཡོད།"}</div>
-        )
-      }
+    if (status == "done") {
+      return null
     } else {
-      if (this.props.version.iscompleted == "done") {
-        return null
-      } else {
-        return (
-          <div className="status sans-serif danger">{"In progress"}</div>
-        )
-      }
-    }
-     
+      return (
+        <div className="status sans-serif danger">{Sefaria._("In Progress")}</div>
+      )
+    } 
   }
 
   render() {
@@ -314,7 +302,7 @@ class VersionBlock extends Component {
               <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
               {/* {this.props.version.iscompleted !=="done" ? <div className="versionLanguage sans-serif">{this.props.version.iscompleted.toUpperCase()}</div>: null} */}
               
-              <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
+          <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
             
             <div className="versionSelect sans-serif">

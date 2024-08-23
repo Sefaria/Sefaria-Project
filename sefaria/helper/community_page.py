@@ -40,6 +40,12 @@ def get_community_page_data(language="english", refresh=False):
       "discover": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=2070604890&single=true&output=csv',
       "featured": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=1926549189&single=true&output=csv',
     },
+    "chinese": {
+      "parashah": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=0&single=true&output=csv',
+      "calendar": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=1789079733&single=true&output=csv',
+      "discover": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=2070604890&single=true&output=csv',
+      "featured": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=1926549189&single=true&output=csv',
+    },
   }
 
   data = {

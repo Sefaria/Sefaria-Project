@@ -327,8 +327,7 @@ class SheetMetadata extends Component {
                   </div>
                   <div className="readerTextToc readerTextTocHeader">
                     <div className="readerTextTocBox">
-                      <span className="int-en">{Sefaria._("Table of Contents")} </span>
-                      <span className="int-he">{Sefaria._("Table of Contents")}</span>
+                      <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Table of Contents")} </span>
                     </div>
                   </div>
                   <div className="rightButtons">
@@ -413,14 +412,12 @@ class SheetMetadata extends Component {
 
                       {this.state.sheetCopyStatus === "Copied" ?
                       <div><a href={"/sheets/"+this.state.copiedSheetId}>
-                          <span className="int-en">{ Sefaria._("View Copy")} &raquo;</span>
-                          <span className="int-he">{ Sefaria._("View Copy")}&raquo;</span>
+                          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("View Copy")} &raquo;</span>
                       </a></div> : null }
 
                       {Sefaria._uses_new_editor ?
                       <a className="smallText" href={"/sheets/"+sheet.id+"?editor=1"}>
-                        <span className="int-en">{ Sefaria._("View in the old sheets experience")}</span>
-                        <span className="int-he">{ Sefaria._("View in the old sheets experience")}</span>
+                        <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("View in the old sheets experience")}</span>
                       </a> : null }
 
                       {this.state.showCollectionsModal ?

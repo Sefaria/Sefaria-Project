@@ -1046,6 +1046,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 
 .header .interfaceLinks .interfaceLinks-menu.profile-menu {
+    right: 0px;
     top: 10px;
     display: block;
 }
@@ -1120,6 +1121,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 
 .header .interfaceLinks .interfaceLinks-menu.open {
+    right: 0px;
     display: block;
 }
 

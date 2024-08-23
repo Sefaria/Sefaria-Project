@@ -361,24 +361,15 @@ class TextColumn extends Component {
   }
 
   setTextCompletionStatus(versions){
-    if (this.props.interfaceLang == "hebrew") { 
-      
-      if (versions[0].iscompleted == "done") {
-        return null
-      } else {
-        return (
-          <div className='ribbon-wrap'><span className="ribbon ribbon-padding">{"སྒྲིག་བཞིན་ཡོད།"}</span></div>
-        )
-      }
+    let ribbonStyle
+    Sefaria.interfaceLang == "hebrew" ? ribbonStyle = 'ribbon-wrap ribbon-padding' : ribbonStyle = 'ribbon-wrap'
+    if (status == "done") {
+      return null
     } else {
-      if (versions[0].iscompleted == "done") {
-        return null
-      } else {
-        return (
-          <div className='ribbon-wrap'><span className="ribbon">{"In Progress"}</span></div>
-        )
-      }
-    }
+      return (
+        <div className={ribbonStyle}>{Sefaria._("In Progress")}</div>
+      )
+    } 
      
   }
 

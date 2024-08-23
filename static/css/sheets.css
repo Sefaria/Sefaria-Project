@@ -277,7 +277,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-left:-30px;
 	margin-top: 30px;
 	margin-bottom: 30px;
-	width: 540px;
+	width: 540px;	
 }
 .optionsMenu .fa {
 	/*margin-right: 8px;*/
@@ -1774,13 +1774,92 @@ a.userLink{
 	flex: 1;
 }
 label[for="sourceSheetShareSelect"] {
-	width: 40%;
+	width: 100%;
     display: inline-block;
+	padding: 10px 0;
+	
 }
 #shareWithOthers #sourceSheetShareSelect {
 	margin-bottom:0;
-	width: 25%;
+	width: 100%;
+	display: none;
 }
+
+/*the container must be positioned relative:*/
+.custom-select {
+	position:absolute;
+	font-family: Arial;
+	width: 60%;
+	margin: 0px;
+	border:rgba(0, 0, 0, 0.075)
+
+  }
+  
+  .custom-select select {
+	display: none; /*hide original SELECT element:*/
+  }
+  
+  .select-selected {
+	background-color: #FBFBFA;
+	color: #3c3c3c;
+	padding: 8px 16px;
+	border: 1px solid transparent;
+	border-color: rgba(47, 46, 46, .3);
+	cursor: pointer;
+	user-select: none;
+	border-radius: 5px;
+  }
+  
+  /*style the arrow inside the select element:*/
+  .select-selected:after {
+	position: absolute;
+	content: "";
+	top: 14px;
+	right: 10px;
+	width: 0;
+	height: 0;
+	border: 6px solid transparent;
+	border-color: #4b4b4b transparent transparent transparent;
+  }
+  
+  /*point the arrow upwards when the select box is open (active):*/
+  
+  .select-selected.select-arrow-active:after {
+	border-color: transparent transparent #3e3e3e transparent;
+	top: 14px;
+  }
+  
+  /*style the items (options), including the selected item:*/
+  .select-items div {
+	color: #3c3c3c;
+	padding: 8px 16px;
+	border: 1px solid transparent;
+	border-color: rgba(47, 46, 46, 0.1);
+	cursor: pointer;
+	user-select: none;
+  }
+
+  
+  /*style items (options):*/
+  .select-items {
+	position: absolute;
+	background-color: #ffffff;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: 99;
+  }
+  
+  /*hide the items when the select box is closed:*/
+  .select-hide {
+	display: none;
+  }
+  
+  .select-items div:hover, .same-as-selected {
+	background-color: rgba(0, 0, 0, 0.1);
+  }
+
+
 #shareWithOthers .ok.button {
     margin-top: -5px;
     float: right;
@@ -1843,6 +1922,8 @@ label[for="sourceSheetShareSelect"] {
 	border: 1px solid #999;
 	border-radius: 6px;
 	width: 400px;
+	height: 100%;
+	overflow-y: auto;
 }
 .interface-hebrew .s2Modal, .interface-hebrew.s2Modal{
 	direction: ltr;
