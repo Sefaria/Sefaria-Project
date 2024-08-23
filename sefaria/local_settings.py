@@ -57,7 +57,7 @@ DOMAIN_LANGUAGES = {}
 
 
 ################ These are things you can change! ###########################################################################
-SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+SILENCED_SYSTEM_CHECKS = ['']
 
 ADMINS = (
     ('Your Name', 'you@example.com'),

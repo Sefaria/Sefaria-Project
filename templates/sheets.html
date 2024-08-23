@@ -903,7 +903,7 @@
 
 
         <div class="content sideLabeled">
-            <label class="labelforOnOffSwitch">
+            <label class="labelforOnOffSwitch {{ language_font_class }}">
                 <span>{% trans "List on Pecha" %}</span>
             </label>
             <div>
@@ -922,22 +922,25 @@
             <label for="sourceSheetGroupSelect">
                 <span class="{{ language_font_class }}">{% trans "Display Collection" %}</span>
             </label>
-
+            
             <div>
-                <select id="sourceSheetGroupSelect">
-                    <option value="">
-                        {% trans 'None' %}
-                    </option>
-
-                    {% for collection in sheet_collections %}
-                    <option
-                            value="{{ collection.slug }}"
-                            data-name="{{ collection.name }}"
-                            data-image="{{ collection.headerUrl|default:'' }}">
-                        {{ collection.name }}
-                    </option>
-                    {% endfor %}
-                </select>
+                <div class="custom-select {{ language_font_class }}">
+                    <select id="sourceSheetShareSelect">
+                        <option class="{{ language_font_class }}" value="">
+                            {% trans 'None' %}
+                        </option>
+    
+                        {% for collection in sheet_collections %}
+                        <option 
+                                class="{{ language_font_class }}"
+                                value="{{ collection.slug }}"
+                                data-name="{{ collection.name }}"
+                                data-image="{{ collection.headerUrl|default:'' }}">
+                            {{ collection.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div id="collectionsMessage">
                     <span class="{{ language_font_class }}">{% trans "To manage the collections this sheet appears in, visit your profile." %}</span>
                 </div>
@@ -947,7 +950,7 @@
 
 
         <div class="content sideLabeled">
-            <label for="shareURL">
+            <label class="{{ language_font_class }}" for="shareURL">
                 <span>{% trans "Share a link" %}</span>
             </label>
             <div>
@@ -958,10 +961,10 @@
         <div class="line"></div>
 
         <div class="content">
-            <label for="sourceSheetShareSelect">
+            <label class="{{ language_font_class }}" for="sourceSheetShareSelect">
                 <span>{% trans "Anyone with access can" %}</span>
             </label>
-            <div class="custom-select">
+            <div class="custom-select {{ language_font_class }}">
                 <select id="sourceSheetShareSelect">
                     <option value="view">
                         {% trans "View" %}
@@ -974,7 +977,7 @@
                     </option>
                 </select>
             </div>
-            <div class="ok button">{% trans "Save" %}</div>
+            <div class="ok button {{ language_font_class }}">{% trans "Save" %}</div>
         </div>
 
     </div>

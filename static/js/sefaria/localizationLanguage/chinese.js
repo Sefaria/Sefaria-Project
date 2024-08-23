@@ -539,7 +539,7 @@ const ChineseStrings = {
             "Feedback sent": "反馈已发送",
             "Have some feedback? We would love to hear it.": "有反馈意见吗？我们很乐意听取。",
             "Submit": "提交",
-            "We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.": "我们使用 cookies 以提供您最佳的使用体验。点击“确定”继续使用 Sefaria。",
+            "We use cookies to give you the best experience possible on our site. Click OK to continue using Pecha.": "我们使用 cookies 以提供您最佳的使用体验。点击“确定”继续使用 Pecha。",
             "OK": "确定",
             "You are previewing the Community page for": "您正在预览的社区页面是",
             " already exists.": " 已经存在。",
