@@ -1791,6 +1791,7 @@ label[for="sourceSheetShareSelect"] {
 	font-family: Arial;
 	width: 60%;
 	margin: 0px;
+	border:rgba(0, 0, 0, 0.075)
 
   }
   
@@ -1799,7 +1800,14 @@ label[for="sourceSheetShareSelect"] {
   }
   
   .select-selected {
-	background-color: #fff;
+	background-color: #FBFBFA;
+	color: #3c3c3c;
+	padding: 8px 16px;
+	border: 1px solid transparent;
+	border-color: rgba(47, 46, 46, .3);
+	cursor: pointer;
+	user-select: none;
+	border-radius: 5px;
   }
   
   /*style the arrow inside the select element:*/
@@ -1822,14 +1830,15 @@ label[for="sourceSheetShareSelect"] {
   }
   
   /*style the items (options), including the selected item:*/
-  .select-items div,.select-selected {
+  .select-items div {
 	color: #3c3c3c;
 	padding: 8px 16px;
 	border: 1px solid transparent;
-	border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+	border-color: rgba(47, 46, 46, 0.1);
 	cursor: pointer;
 	user-select: none;
   }
+
   
   /*style items (options):*/
   .select-items {

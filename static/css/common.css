@@ -544,19 +544,18 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   box-sizing: border-box;
 }
 .onoffswitch-inner:before {
-  content: "Yes";
+  content: "";
   padding-left: 10px;
-  background-color: #212D4F;
+  background-color: #b94a48;
   color: #FFFFFF;
 }
 .interface-hebrew .onoffswitch-inner:before{
-  content: "འགྲིག";
   padding-right: 10px;
 }
 .onoffswitch-inner:after {
-  content: "No";
+  content: "";
   padding-right: 10px;
-  background-color: #212D4F;
+  background-color: #926767;
   color: #fff;
   text-align: left;
 }
@@ -565,7 +564,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   padding-left: 10px;
 }
 .interface-hebrew .onoffswitch-inner:after{
-    content: "כן";
+    content: "";
 }
 .onoffswitch-switch {
   display: block;
