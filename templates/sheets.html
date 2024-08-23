@@ -922,22 +922,25 @@
             <label for="sourceSheetGroupSelect">
                 <span class="{{ language_font_class }}">{% trans "Display Collection" %}</span>
             </label>
-
+            
             <div>
-                <select id="sourceSheetGroupSelect">
-                    <option value="">
-                        {% trans 'None' %}
-                    </option>
-
-                    {% for collection in sheet_collections %}
-                    <option
-                            value="{{ collection.slug }}"
-                            data-name="{{ collection.name }}"
-                            data-image="{{ collection.headerUrl|default:'' }}">
-                        {{ collection.name }}
-                    </option>
-                    {% endfor %}
-                </select>
+                <div class="custom-select {{ language_font_class }}">
+                    <select id="sourceSheetShareSelect">
+                        <option class="{{ language_font_class }}" value="">
+                            {% trans 'None' %}
+                        </option>
+    
+                        {% for collection in sheet_collections %}
+                        <option 
+                                class="{{ language_font_class }}"
+                                value="{{ collection.slug }}"
+                                data-name="{{ collection.name }}"
+                                data-image="{{ collection.headerUrl|default:'' }}">
+                            {{ collection.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div id="collectionsMessage">
                     <span class="{{ language_font_class }}">{% trans "To manage the collections this sheet appears in, visit your profile." %}</span>
                 </div>

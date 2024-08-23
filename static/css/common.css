@@ -30,6 +30,9 @@
 .wf-active {
   visibility: visible;
 }
+:root {
+  --pecha-red: #b5343c;
+}
 .modal {
   display: none;
   position: absolute;
@@ -546,7 +549,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 .onoffswitch-inner:before {
   content: "";
   padding-left: 10px;
-  background-color: #b94a48;
+  background-color: var(--pecha-red);
   color: #FFFFFF;
 }
 .interface-hebrew .onoffswitch-inner:before{
@@ -555,7 +558,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 .onoffswitch-inner:after {
   content: "";
   padding-right: 10px;
-  background-color: #926767;
+  background-color: #c2c2c2;
   color: #fff;
   text-align: left;
 }
