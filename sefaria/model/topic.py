@@ -1,7 +1,7 @@
 from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
-from .text import Ref, IndexSet, AbstractTextRecord, Index
+from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
 from .category import Category
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
@@ -16,6 +16,71 @@ logger = structlog.get_logger(__name__)
 from dataclasses import dataclass, field
 from typing import Tuple, List, Dict
 
+
+@dataclass
+class SubCatBookSet:
+    depth: int
+    sub_cat_path: Tuple[str, ...]
+    books: List[Index] = field(default_factory=list)
+
+    def __eq__(self, other):
+        if not isinstance(other, SubCatBookSet):
+            return False
+        return self.sub_cat_path == other.sub_cat_path
+
+    def __repr__(self):
+        return f"Sub Path: {self.sub_cat_path}"
+
+    def __hash__(self):
+        return hash(self.sub_cat_path)
+
+class Aggregation:
+    def __init__(self, index_category=None, index=None, collective_term=None, base_category=None):
+        self.index_category: Category = index_category
+        self.index: Index = index
+        self.collective_title_term: Term = collective_term
+        self.base_category: Category = base_category
+
+    def get_description(self, lan):
+        index_or_category = self.index if self.index else self.index_category
+        desc = getattr(index_or_category, f'{lan}ShortDesc', None)
+        return desc
+
+    def get_title(self, lan):
+        if self.index:
+            return self.index.get_title(lan)
+        else:
+            if self.collective_title_term is None:
+                cat_term = Term().load({"name": self.index_category.sharedTitle})
+                return cat_term.get_primary_title(lan)
+            else:
+                preposition = 'on' if lan != 'he' else 'על'
+                return f'{self.collective_title_term.get_primary_title(lan)} {preposition} {self.base_category.get_primary_title(lan)}'
+
+    def get_url(self):
+        if self.index:
+            return f'/{self.index.title.replace(" ", "_")}'
+        else:
+            return f'/texts/{"/".join(self.index_category.path)}'
+
+
+
+@dataclass
+class DisjointBlock:
+    base_cat_path: Tuple[str, ...]
+    collective_title: str
+    sub_cat_book_sets: Dict[Tuple[str, ...], SubCatBookSet] = field(default_factory=dict)
+
+    def __eq__(self, other):
+        if not isinstance(other, DisjointBlock):
+            return False
+        return self.base_cat_path == other.base_cat_path and self.collective_title == other.collective_title
+
+    def __repr__(self):
+        return f"Collective Title: {self.collective_title}, Path: {self.base_cat_path}"
+
+    def __hash__(self):
+        return hash((self.collective_title, self.base_cat_path))
 
 
 
@@ -587,51 +652,16 @@ class AuthorTopic(PersonTopic):
             index_or_cat_list += [(index_category, collective_title_term, base_category)]
         return index_or_cat_list
 
+
+
     def aggregate_authors_indexes_by_category2(self):
         from .text import library
         from .schema import Term
-        from collections import defaultdict
-
-        @dataclass
-        class SubCatBookSet:
-            depth: int
-            sub_cat_path: Tuple[str, ...]
-            books: List[Index] = field(default_factory=list)
-
-            def __eq__(self, other):
-                if not isinstance(other, SubCatBookSet):
-                    return False
-                return self.sub_cat_path == other.sub_cat_path
-
-            def __repr__(self):
-                return f"Sub Path: {self.sub_cat_path}"
-
-            def __hash__(self):
-                return hash(self.sub_cat_path)
-
-        @dataclass
-        class DisjointBlock:
-            base_cat_path: Tuple[str, ...]
-            collective_title: str
-            sub_cat_book_sets: Dict[Tuple[str, ...], SubCatBookSet] = field(default_factory=dict)
-
-            def __eq__(self, other):
-                if not isinstance(other, DisjointBlock):
-                    return False
-                return self.base_cat_path == other.base_cat_path and self.collective_title == other.collective_title
-
-            def __repr__(self):
-                return f"Collective Title: {self.collective_title}, Path: {self.base_cat_path}"
-
-            def __hash__(self):
-                return hash((self.collective_title, self.base_cat_path))
 
         def sort_SubCatBookSets(book_sets: List[SubCatBookSet]):
             # a subcategory which covers more books is preferable,
             # if parent and child cover the same amount of  books (i.e the parent contains the child only), prefer child
             return sorted(book_sets, key=lambda book_set: (len(book_set.books), book_set.depth), reverse=True)
-
-
 
         def index_is_commentary(index):
             return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(
@@ -640,6 +670,7 @@ class AuthorTopic(PersonTopic):
         indexes = self.get_authored_indexes()
 
         index_or_cat_list = []  # [(index_or_cat, collective_title_term, base_category)]
+        final_aggregations = []
 
         blocks = {}
 
@@ -664,7 +695,6 @@ class AuthorTopic(PersonTopic):
 
                 block.sub_cat_book_sets[sub_cat_book_set].books.append(index)
 
-
         for block in blocks:
             cat_choices_sorted = sort_SubCatBookSets(book_sets=block.sub_cat_book_sets.values())
             collective_title = block.collective_title
@@ -672,6 +702,7 @@ class AuthorTopic(PersonTopic):
             temp_indexes = cat_choices_sorted[0].books
             if len(temp_indexes) == 1:
                 index_or_cat_list += [(temp_indexes[0], None, None)]
+                final_aggregations += [Aggregation(index=temp_indexes[0])]
                 continue
             if best_base_cat_path == ('Talmud', 'Bavli'):
                 best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
@@ -688,9 +719,11 @@ class AuthorTopic(PersonTopic):
                     collective_title is None and self._category_matches_author(index_category)):
                 for temp_index in temp_indexes:
                     index_or_cat_list += [(temp_index, None, None)]
+                    final_aggregations += [Aggregation(index=temp_index)]
                 continue
             index_or_cat_list += [(index_category, collective_title_term, base_category)]
-        return index_or_cat_list
+            final_aggregations += [Aggregation(index_category=index_category, collective_term=collective_title_term, base_category=base_category)]
+        return final_aggregations
 
     def get_aggregated_urls_for_authors_indexes(self) -> list:
         """
@@ -722,6 +755,25 @@ class AuthorTopic(PersonTopic):
                 unique_urls.append({"url": f'/texts/{"/".join(index_or_cat.path)}',
                                     "title": {"en": en_text, "he": he_text},
                                     "description":{"en": en_desc, "he": he_desc}})
+        return unique_urls
+
+    def get_aggregated_urls_for_authors_indexes2(self) -> list:
+        #todo
+        #introduce new object with the following methods:
+        #    -get_title
+        #    -get_url
+        #    -get_description
+        """
+        Aggregates author's works by category when possible and
+        returns a dictionary. Each dictionary is of shape {"url": str, "title": {"en": str, "he": str}, "description": {"en": str, "he": str}}
+        corresponding to an index or category of indexes of this author's works.
+        """
+        aggregations = self.aggregate_authors_indexes_by_category2()
+        unique_urls = []
+        for agg in aggregations:
+            unique_urls.append({"url": agg.get_url(),
+                                "title": {"en": agg.get_title('en'), "he": agg.get_title('he')},
+                                "description": {"en": agg.get_description('en'), "he": agg.get_description('he')}})
         return unique_urls
 
     @staticmethod
