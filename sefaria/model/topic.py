@@ -612,51 +612,6 @@ class AuthorTopic(PersonTopic):
     def aggregate_authors_indexes_by_category(self):
         from .text import library
         from .schema import Term
-        from collections import defaultdict
-
-        def index_is_commentary(index):
-            return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None) is not None
-
-        indexes = self.get_authored_indexes()
-        
-        index_or_cat_list = [] # [(index_or_cat, collective_title_term, base_category)]
-        cat_aggregator = defaultdict(lambda: defaultdict(list))  # of shape {(collective_title, top_cat): {(icat, category): [index_object]}}
-        MAX_ICAT_FROM_END_TO_CONSIDER = 2
-        for index in indexes:
-            is_comm = index_is_commentary(index)
-            base = library.get_index(index.base_text_titles[0]) if is_comm else index
-            collective_title = index.collective_title if is_comm else None
-            base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER+1])
-            for icat in range(len(base.categories) - MAX_ICAT_FROM_END_TO_CONSIDER, len(base.categories)):
-                cat_aggregator[(collective_title, base_cat_path)][(icat, tuple(base.categories[:icat+1]))] += [index]
-        for (collective_title, _), cat_choice_dict in cat_aggregator.items():
-            cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
-            (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
-            if len(temp_indexes) == 1:
-                index_or_cat_list += [(temp_indexes[0], None, None)]
-                continue
-            if best_base_cat_path == ('Talmud', 'Bavli'):
-                best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
-            
-            base_category = Category().load({"path": list(best_base_cat_path)})
-            if collective_title is None:
-                index_category = base_category
-                collective_title_term = None
-            else:
-                index_category = Category.get_shared_category(temp_indexes)
-                collective_title_term = Term().load({"name": collective_title})
-            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or (collective_title is None and self._category_matches_author(index_category)):
-                for temp_index in temp_indexes:
-                    index_or_cat_list += [(temp_index, None, None)]
-                continue
-            index_or_cat_list += [(index_category, collective_title_term, base_category)]
-        return index_or_cat_list
-
-
-
-    def aggregate_authors_indexes_by_category2(self):
-        from .text import library
-        from .schema import Term
 
         def sort_SubCatBookSets(book_sets: List[SubCatBookSet]):
             # a subcategory which covers more books is preferable,
@@ -669,7 +624,6 @@ class AuthorTopic(PersonTopic):
 
         indexes = self.get_authored_indexes()
 
-        index_or_cat_list = []  # [(index_or_cat, collective_title_term, base_category)]
         final_aggregations = []
 
         blocks = {}
@@ -701,7 +655,6 @@ class AuthorTopic(PersonTopic):
             best_base_cat_path = cat_choices_sorted[0].sub_cat_path
             temp_indexes = cat_choices_sorted[0].books
             if len(temp_indexes) == 1:
-                index_or_cat_list += [(temp_indexes[0], None, None)]
                 final_aggregations += [Aggregation(index=temp_indexes[0])]
                 continue
             if best_base_cat_path == ('Talmud', 'Bavli'):
@@ -718,12 +671,11 @@ class AuthorTopic(PersonTopic):
                                                                                  collective_title is not None) or (
                     collective_title is None and self._category_matches_author(index_category)):
                 for temp_index in temp_indexes:
-                    index_or_cat_list += [(temp_index, None, None)]
                     final_aggregations += [Aggregation(index=temp_index)]
                 continue
-            index_or_cat_list += [(index_category, collective_title_term, base_category)]
             final_aggregations += [Aggregation(index_category=index_category, collective_term=collective_title_term, base_category=base_category)]
         return final_aggregations
+
 
     def get_aggregated_urls_for_authors_indexes(self) -> list:
         """
@@ -731,44 +683,7 @@ class AuthorTopic(PersonTopic):
         returns a dictionary. Each dictionary is of shape {"url": str, "title": {"en": str, "he": str}, "description": {"en": str, "he": str}}
         corresponding to an index or category of indexes of this author's works.
         """
-        from .schema import Term
-        from .text import Index
-
-        index_or_cat_list = self.aggregate_authors_indexes_by_category()
-        unique_urls = []
-        for index_or_cat, collective_title_term, base_category in index_or_cat_list:
-            en_desc = getattr(index_or_cat, 'enShortDesc', None)
-            he_desc = getattr(index_or_cat, 'heShortDesc', None)
-            if isinstance(index_or_cat, Index):
-                unique_urls.append({"url":f'/{index_or_cat.title.replace(" ", "_")}',
-                    "title": {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')},
-                    "description":{"en": en_desc, "he": he_desc}})
-            else:
-                if collective_title_term is None:
-                    cat_term = Term().load({"name": index_or_cat.sharedTitle})
-                    en_text = cat_term.get_primary_title('en')
-                    he_text = cat_term.get_primary_title('he')
-                else:
-                    base_category_term = Term().load({"name": base_category.sharedTitle})
-                    en_text = f'{collective_title_term.get_primary_title("en")} on {base_category_term.get_primary_title("en")}'
-                    he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
-                unique_urls.append({"url": f'/texts/{"/".join(index_or_cat.path)}',
-                                    "title": {"en": en_text, "he": he_text},
-                                    "description":{"en": en_desc, "he": he_desc}})
-        return unique_urls
-
-    def get_aggregated_urls_for_authors_indexes2(self) -> list:
-        #todo
-        #introduce new object with the following methods:
-        #    -get_title
-        #    -get_url
-        #    -get_description
-        """
-        Aggregates author's works by category when possible and
-        returns a dictionary. Each dictionary is of shape {"url": str, "title": {"en": str, "he": str}, "description": {"en": str, "he": str}}
-        corresponding to an index or category of indexes of this author's works.
-        """
-        aggregations = self.aggregate_authors_indexes_by_category2()
+        aggregations = self.aggregate_authors_indexes_by_category()
         unique_urls = []
         for agg in aggregations:
             unique_urls.append({"url": agg.get_url(),
