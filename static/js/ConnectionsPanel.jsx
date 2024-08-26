@@ -756,7 +756,7 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddToSheet) : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
+      {Sefaria._uid && <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />}
       <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} />
       {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null}
       <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />

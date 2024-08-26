@@ -1,7 +1,6 @@
 export const SignUpModalKind = {
   AddConnection: Symbol("Add Connection"),
   ViewHistory: Symbol("View History"),
-  AddToSheet: Symbol("Add to Sheet"),
   AddTranslation: Symbol("Add Translation"),
   Follow: Symbol("Follow"),
   Notes: Symbol("Notes"),
@@ -77,40 +76,6 @@ const signUpModalContent = {
         bulletContent: {
           en: "Get updates on new texts",
           he: "התעדכנו בטקסטים חדשים הנוספים לספרייה",
-        },
-      },
-    ],
-  },
-  [SignUpModalKind.AddToSheet]: {
-    h2: {
-      en: "Want to make your own source sheet?",
-      he: "רוצים ליצור דף מקורות משלכם?",
-    },
-    h3: {
-      en: "Create a free account to join the conversation",
-      he: "פתחו חשבון משתמש בחינם כדי להוסיף דפי מקורות משלכם - ועוד:",
-    },
-    contentList: [
-      {
-        icon: "sheetsplus-white.svg",
-        bulletContent: {
-          en: "Build & share source sheets",
-          he: "בנו ושתפו דפי מקורות",
-        },
-      },
-      {
-        icon: "star-white.png",
-        bulletContent: { en: "Save texts", he: "שמרו טקסטים" },
-      },
-      {
-        icon: "note-white.svg",
-        bulletContent: { en: "Take notes", he: "רשמו הערות" },
-      },
-      {
-        icon: "share-icon-white.svg",
-        bulletContent: {
-          en: "Connect with other users",
-          he: "התחברו עם משתמשי ספריא אחרים",
         },
       },
     ],
