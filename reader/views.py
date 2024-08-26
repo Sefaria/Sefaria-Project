@@ -3516,23 +3516,19 @@ def user_profile(request, username):
 
 
 @catch_error_as_json
-def profile_get_api(request, slug):
+def profile_api(request, slug=None):
+    """
+    API for user profiles.
+    """
     if request.method == "GET":
         profile = UserProfile(slug=slug)
         owner_of_profile = request.user.is_authenticated and request.user.id == profile.id
         return jsonResponse(profile.to_api_dict(basic = not owner_of_profile))
-    return jsonResponse({"error": "Unsupported HTTP method."})
 
+    elif request.method == "POST": # The POST only works for the logged in user, which is not very API'ish but thats for another day
+        if not request.user.is_authenticated:
+            return jsonResponse({"error": _("You must be logged in to update your profile.")})
 
-@catch_error_as_json
-def profile_api(request):
-    """
-    API for user profiles.
-    """
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": _("You must be logged in to update your profile.")})
-
-    if request.method == "POST":
         profileJSON = request.POST.get("json")
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
@@ -3548,6 +3544,7 @@ def profile_api(request):
         else:
             profile.save()
             return jsonResponse(profile.to_mongo_dict())
+
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
