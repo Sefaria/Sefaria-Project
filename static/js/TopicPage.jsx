@@ -684,7 +684,7 @@ const TopicPage = ({
 
     const currentLang = getCurrentLang()
 
-    return <div className={classStr}>
+    return <div className={classStr} data-anl-topicSlug={topic}>
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
@@ -804,12 +804,14 @@ const TopicPageTab = ({
 
 
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
-  <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
-    onClick={onClick.bind(null, topic, topicTitle)} key={topic}
-    title={topicTitle.en}
-  >
-    <InterfaceText text={{en:topicTitle.en, he:topicTitle.he}}/>
-  </Link>
+    <div data-anl-event={"click"} data-anl-topicLink={topic}>
+        <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
+              onClick={onClick.bind(null, topic, topicTitle)} key={topic}
+              title={topicTitle.en}
+        >
+            <InterfaceText text={{en:topicTitle.en, he:topicTitle.he}}/>
+        </Link>
+    </div>
 );
 TopicLink.propTypes = {
   topic: PropTypes.string.isRequired,

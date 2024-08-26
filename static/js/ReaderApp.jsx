@@ -1014,11 +1014,20 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 }
   getHTMLLinkParentOfEventTarget(event){
     //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
-    let target = event.target,
-    parent = target,
-    outmost = event.currentTarget;
+    return this.getEventTargetByCondition(event, element => element.nodeName === "A");
+  }
+  getEventTargetByCondition(event, condition, eventTarget=null) {
+    /**
+     * Searches the parents of an event target for an element to meets a certain condition
+     * `condition` is a function of form condition(element) => bool.
+     * If `eventTarget` is passed, it will be used as the starting point of the search instead of `event.target`
+     * Returns the first element in parent hierarchy where `condition` returns true
+     * If no element returns true, returns null.
+     */
+    let parent = eventTarget || event.target;
+    const outmost = event.currentTarget;
     while (parent) {
-      if(parent.nodeName === 'A'){
+      if(condition(parent)){
         return parent
       }
       else if (parent.parentNode === outmost) {
@@ -1039,18 +1048,59 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
     }
   }
-  handleInAppLinkClick(e) {
-    //Allow global navigation handling in app via link elements
-    // If a default has been prevented, assume a custom handler is already in place
-    if (e.isDefaultPrevented()) {
-      return;
-    }
+  handleAppClick(event) {
     // Don't trigger from v1 Sheet Builder which has conflicting CSS
     if (typeof sjs !== "undefined") {
       return;
     }
     // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
     // Get the <a> element.
+    const linkTarget = this.getHTMLLinkParentOfEventTarget(event);
+    if (linkTarget) {
+      this.handleInAppLinkClick(event);
+    }
+    if (this.eventIsAnalyticsEvent(event)) {
+      this.handleAnalyticsEvent(event);
+    }
+  }
+  eventIsAnalyticsEvent(event) {
+    /**
+     * Return true if this JS event should be treated as an analytics event
+     * Looks for a parent of e.target that has the attribute `data-anl-event`
+     */
+    return !!this.getEventTargetByCondition(
+        event,
+        element => element.getAttribute('data-anl-event') === event.type
+    );
+  }
+  handleAnalyticsEvent(event) {
+    const getAnlDataFromElement = (element) => {
+      return Array.from(element.attributes).reduce((attrsAggregated, currAttr) => {
+        const attrName = currAttr.name;
+        if (attrName !== 'data-anl-event' && attrName.startsWith('data-anl-')) {
+          const anlFieldName = attrName.replace('data-anl-', '');
+          attrsAggregated[anlFieldName] = currAttr.value;
+        }
+        return attrsAggregated;
+      }, {});
+    }
+    let anlEventData = {};
+    let currElem = null;
+    do {
+      currElem = this.getEventTargetByCondition(
+          event,
+          element => Object.keys(getAnlDataFromElement(element)).length > 0,
+          currElem?.parentNode
+      );
+      anlEventData = {...anlEventData, ...getAnlDataFromElement(currElem)};
+    } while (currElem?.parentNode);
+  }
+  handleInAppLinkClick(e) {
+    //Allow global navigation handling in app via link elements
+    // If a default has been prevented, assume a custom handler is already in place
+    if (e.isDefaultPrevented()) {
+      return;
+    }
     const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
     // Ignore clicks from non-a elements.
     if (!linkTarget) {
@@ -2251,7 +2301,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     return (
       <AdContext.Provider value={this.getUserContext()}>
         <div id="readerAppWrap">
-          <div className={classes} onClick={this.handleInAppLinkClick}>
+          <div className={classes} onClick={this.handleAppClick}>
             {header}
             {panels}
             {signUpModal}
