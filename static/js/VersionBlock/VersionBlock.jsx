@@ -195,8 +195,8 @@ class VersionBlock extends Component {
   hasExtendedNotes(){
     return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
   }
-  setTextCompletionStatus(version){
-    if (version.iscompleted == "done") {
+  setTextCompletionStatus( version ){
+    if (version.iscompleted=="done") {
       return null
     } else {
       return (
