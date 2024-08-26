@@ -613,7 +613,7 @@ class AuthorTopic(PersonTopic):
         from .text import library
         from .schema import Term
 
-        def sort_SubCatBookSets(book_sets: List[SubCatBookSet]):
+        def sort_sub_cat_book_sets(book_sets: List[SubCatBookSet]):
             # a subcategory which covers more books is preferable,
             # if parent and child cover the same amount of  books (i.e the parent contains the child only), prefer child
             return sorted(book_sets, key=lambda book_set: (len(book_set.books), book_set.depth), reverse=True)
@@ -650,7 +650,7 @@ class AuthorTopic(PersonTopic):
                 block.sub_cat_book_sets[sub_cat_book_set].books.append(index)
 
         for block in blocks:
-            cat_choices_sorted = sort_SubCatBookSets(book_sets=block.sub_cat_book_sets.values())
+            cat_choices_sorted = sort_sub_cat_book_sets(book_sets=block.sub_cat_book_sets.values())
             collective_title = block.collective_title
             best_base_cat_path = cat_choices_sorted[0].sub_cat_path
             temp_indexes = cat_choices_sorted[0].books
