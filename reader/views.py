@@ -3589,7 +3589,8 @@ def account_user_update(request):
 def profile_get_api(request, slug):
     if request.method == "GET":
         profile = UserProfile(slug=slug)
-        return jsonResponse(profile.to_api_dict())
+        owner_of_profile = request.user.is_authenticated and request.user.id == profile.id
+        return jsonResponse(profile.to_api_dict(basic = not owner_of_profile))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
