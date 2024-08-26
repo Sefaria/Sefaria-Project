@@ -3516,6 +3516,15 @@ def user_profile(request, username):
 
 
 @catch_error_as_json
+def profile_get_api(request, slug):
+    if request.method == "GET":
+        profile = UserProfile(slug=slug)
+        owner_of_profile = request.user.is_authenticated and request.user.id == profile.id
+        return jsonResponse(profile.to_api_dict(basic = not owner_of_profile))
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
 def profile_api(request):
     """
     API for user profiles.
