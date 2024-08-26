@@ -804,7 +804,7 @@ const TopicPageTab = ({
 
 
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
-    <div data-anl-event={"click"} data-anl-topicLink={topic}>
+    <div data-anl-event={"click"} data-anl-topicLink={topic} data-anl-batch={JSON.stringify({yo: 1, sup: 2})}>
         <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
               onClick={onClick.bind(null, topic, topicTitle)} key={topic}
               title={topicTitle.en}

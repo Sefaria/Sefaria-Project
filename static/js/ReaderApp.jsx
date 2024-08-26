@@ -1075,11 +1075,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   handleAnalyticsEvent(event) {
     const getAnlDataFromElement = (element) => {
+      if (!element) { return {}; }
       return Array.from(element.attributes).reduce((attrsAggregated, currAttr) => {
         const attrName = currAttr.name;
         if (attrName !== 'data-anl-event' && attrName.startsWith('data-anl-')) {
-          const anlFieldName = attrName.replace('data-anl-', '');
-          attrsAggregated[anlFieldName] = currAttr.value;
+          if (attrName === 'data-anl-batch') {
+            attrsAggregated = {...attrsAggregated, ...JSON.parse(currAttr.value)};
+          } else {
+            const anlFieldName = attrName.replace('data-anl-', '');
+            attrsAggregated[anlFieldName] = currAttr.value;
+          }
         }
         return attrsAggregated;
       }, {});
@@ -1094,6 +1099,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       );
       anlEventData = {...anlEventData, ...getAnlDataFromElement(currElem)};
     } while (currElem?.parentNode);
+    console.log("ANALY", anlEventData);
   }
   handleInAppLinkClick(e) {
     //Allow global navigation handling in app via link elements
