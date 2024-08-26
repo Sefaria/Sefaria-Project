@@ -215,7 +215,7 @@ class VersionBlock extends Component {
         this.props.currObjectVersions, this.props.openVersionInSidebar);
     const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, this.props.currentRef,
         this.props.version, this.props.currObjectVersions, this.props.rendermode, this.props.firstSectionRef, this.props.openVersionInReader);
-    let textStatus = this.setTextCompletionStatus(this.props.version)
+    let textStatus = this.setTextCompletionStatus( this.props.version )
  
     if (this.state.editing && Sefaria.is_moderator) {
       // Editing View
