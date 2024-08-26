@@ -39,7 +39,6 @@ const Modules = ({type, props}) => {
     "RelatedTopics":          RelatedTopics,
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
-    "JoinTheConversation":    JoinTheConversation,
     "JoinTheCommunity":       JoinTheCommunity,
     "GetTheApp":              GetTheApp,
     "StayConnected":          StayConnected,
@@ -608,27 +607,6 @@ const RelatedTopics = ({title}) => {
     </Module> : null
   );
 };
-
-
-const JoinTheConversation = ({wide}) => {
-  if (!Sefaria.multiPanel) { return null; } // Don't advertise create sheets on mobile (yet)
-
-  return (
-    <Module wide={wide}>
-      <div>
-        <ModuleTitle>Join the Conversation</ModuleTitle>
-        <InterfaceText>Combine sources from our library with your own comments, questions, images, and videos.</InterfaceText>
-      </div>
-      <div>
-        <a className="button small" href="/sheets/new">
-          <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" />
-          <InterfaceText>Make a Sheet</InterfaceText>
-        </a>
-      </div>
-    </Module>
-  );
-};
-
 
 const JoinTheCommunity = ({wide}) => {
   return (
