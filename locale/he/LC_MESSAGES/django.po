@@ -1822,11 +1822,11 @@ msgstr "ཚན་པ་འདི་ལ་མཆན་འབྲི་ས།"
 
 #: templates/sheets.html:763
 msgid "Watch a 2 minute intro video or "
-msgstr ""
+msgstr "སྐར་མ་གཉིས་ཅན་གྱི་ངོ་སྤྲོད་བརྙན་ཞིག་ལ་གཟིགས་སམ་ཡང་ན་"
 
 #: templates/sheets.html:763
 msgid "read more"
-msgstr ""
+msgstr "འདི་ལས་མང་ཙམ་ཀློག"
 
 #: templates/sheets.html:767
 msgid "Source Sheet Builder: How it Works"
@@ -1834,7 +1834,7 @@ msgstr ""
 
 #: templates/sheets.html:773 templates/sheets.html:777
 msgid "Add Sources"
-msgstr ""
+msgstr "ཁུངས་ཞོག"
 
 #: templates/sheets.html:773 templates/sheets.html:777
 msgid "by typing a citation like:"
@@ -1842,11 +1842,11 @@ msgstr ""
 
 #: templates/sheets.html:782
 msgid "Reorder Sources"
-msgstr ""
+msgstr "ཁུངས་ཀྱི་གོ་རིམ་བསྐྱར་སྒྲིག"
 
 #: templates/sheets.html:782
 msgid "by dragging and dropping."
-msgstr ""
+msgstr "drag དང་ drop བཀོལ་སྤྱོད།"
 
 #: templates/sheets.html:785
 msgid "your sheets to paper or PDF, or just"

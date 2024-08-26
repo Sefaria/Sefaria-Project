@@ -539,7 +539,7 @@ const TibetanStrings = {
             "Feedback sent": "བསམ་འཆར་བསྐུར་ཡོད།",
             "Have some feedback? We would love to hear it.": "བསམ་འཆར་ཡོད་ན་གསུང་རྐྱང་གནང་རོགས། ང་ཚོར་ཕན་ངེས་ཡིན།",
             "Submit": "བསམ་འཆར་བསྐུར་གནང་།",
-            "We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.": "ང་ཚོས་ཁྱེད་ལ་ང་ཚོའི་དྲྭ་ཚིགས་སྟེང་གི་མྱོང་ཚོར་ལེགས་ཤོས་དེ་སྤྲོད་ཆེད། ཀུ་སི་བེད་སྤྱོད་གཏོང་གི་ཡོད། འགྲིག་སོང་། ཞེས་པ་འི་སྟེང་དུ་མུ་མཐུད་བཀླགས།",
+            "We use cookies to give you the best experience possible on our site. Click OK to continue using Pecha.": "ང་ཚོས་ཁྱེད་ལ་ང་ཚོའི་དྲྭ་ཚིགས་སྟེང་གི་མྱོང་ཚོར་ལེགས་ཤོས་དེ་སྤྲོད་ཆེད། ཀུ་སི་བེད་སྤྱོད་གཏོང་གི་ཡོད། འགྲིག་སོང་། ཞེས་པ་འི་སྟེང་དུ་མུ་མཐུད་བཀླགས།",
             "OK": "འགྲིག",
             "You are previewing the Community page for": "ཁྱེད་ཀྱིས་འདི་ལ་ཚོགས་སྡེའི་ཤོག་ལྷེ་སྔོན་མཐོང་བྱེད་བཞིན་ཡོད།",
             " already exists.": "སྔོན་གྱི་མཐའ་ནི་རྣམ་པར་སྤངས།།",
