@@ -195,8 +195,10 @@ class VersionBlock extends Component {
   hasExtendedNotes(){
     return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
   }
+
   setTextCompletionStatus( version ){
     if (version.iscompleted=="done") {
+
       return null
     } else {
       return (
@@ -215,7 +217,9 @@ class VersionBlock extends Component {
         this.props.currObjectVersions, this.props.openVersionInSidebar);
     const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, this.props.currentRef,
         this.props.version, this.props.currObjectVersions, this.props.rendermode, this.props.firstSectionRef, this.props.openVersionInReader);
+
     let textStatus = this.setTextCompletionStatus( this.props.version )
+
  
     if (this.state.editing && Sefaria.is_moderator) {
       // Editing View
