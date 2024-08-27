@@ -1049,13 +1049,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   handleAppClick(event) {
-    // Don't trigger from v1 Sheet Builder which has conflicting CSS
-    if (typeof sjs !== "undefined") {
-      return;
-    }
-    // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
-    // Get the <a> element.
-    const linkTarget = this.getHTMLLinkParentOfEventTarget(event);
     if (linkTarget) {
       this.handleInAppLinkClick(event);
     }
@@ -1063,50 +1056,18 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.handleAnalyticsEvent(event);
     }
   }
-  eventIsAnalyticsEvent(event) {
-    /**
-     * Return true if this JS event should be treated as an analytics event
-     * Looks for a parent of e.target that has the attribute `data-anl-event`
-     */
-    return !!this.getEventTargetByCondition(
-        event,
-        element => element.getAttribute('data-anl-event') === event.type
-    );
-  }
-  handleAnalyticsEvent(event) {
-    const getAnlDataFromElement = (element) => {
-      if (!element) { return {}; }
-      return Array.from(element.attributes).reduce((attrsAggregated, currAttr) => {
-        const attrName = currAttr.name;
-        if (attrName !== 'data-anl-event' && attrName.startsWith('data-anl-')) {
-          if (attrName === 'data-anl-batch') {
-            attrsAggregated = {...attrsAggregated, ...JSON.parse(currAttr.value)};
-          } else {
-            const anlFieldName = attrName.replace('data-anl-', '');
-            attrsAggregated[anlFieldName] = currAttr.value;
-          }
-        }
-        return attrsAggregated;
-      }, {});
-    }
-    let anlEventData = {};
-    let currElem = null;
-    do {
-      currElem = this.getEventTargetByCondition(
-          event,
-          element => Object.keys(getAnlDataFromElement(element)).length > 0,
-          currElem?.parentNode
-      );
-      anlEventData = {...anlEventData, ...getAnlDataFromElement(currElem)};
-    } while (currElem?.parentNode);
-    console.log("ANALY", anlEventData);
-  }
   handleInAppLinkClick(e) {
     //Allow global navigation handling in app via link elements
     // If a default has been prevented, assume a custom handler is already in place
     if (e.isDefaultPrevented()) {
       return;
     }
+    // Don't trigger from v1 Sheet Builder which has conflicting CSS
+    if (typeof sjs !== "undefined") {
+      return;
+    }
+    // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
+    // Get the <a> element.
     const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
     // Ignore clicks from non-a elements.
     if (!linkTarget) {
@@ -2307,7 +2268,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     return (
       <AdContext.Provider value={this.getUserContext()}>
         <div id="readerAppWrap">
-          <div className={classes} onClick={this.handleAppClick}>
+          <div className={classes} onClick={this.handleInAppLinkClick}>
             {header}
             {panels}
             {signUpModal}
