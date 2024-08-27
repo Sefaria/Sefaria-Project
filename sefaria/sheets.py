@@ -393,7 +393,19 @@ def trending_topics(days=7, ntags=14):
 		return[]
 		#return trending_topics(days=180, ntags=ntags)
 
-	return results[:ntags]
+	return filter_topics_with_min_source_count(results, 0)
+
+def filter_topics_with_min_source_count(topics, minCount, numTags=5):
+	# helper function for `trending_topics`
+	# only return `topics` that have more sources than `minCount`.  only return `numTags` number of topics
+	results = []
+	for t, topic in enumerate(topics):
+		if RefTopicLinkSet({"toTopic": topic['slug']}).count() > minCount:
+			results.append(topic)
+			if len(results) >= numTags:
+				break
+	return results
+
 
 
 def rebuild_sheet_nodes(sheet):
