@@ -3521,9 +3521,9 @@ def profile_api(request, slug=None):
     API for user profiles.
     """
     if request.method == "GET":
-        if not slug:
-            raise Http404("Please Supply a valid user identification")
         profile = UserProfile(slug=slug)
+        if not slug or profile.id is None:
+            raise Http404("Please Supply a valid user identification")
         owner_of_profile = request.user.is_authenticated and request.user.id == profile.id
         return jsonResponse(profile.to_api_dict(basic = not owner_of_profile))
 
