@@ -108,6 +108,19 @@ const AnalyticsEventTracker = (function() {
         return b;
     }
 
+    function _getDerivedData(event) {
+        /**
+         * Return data that can be derived directly from `event`
+         */
+        if (event.type === "toggle") {
+            return {
+                from: event.target.open ? "closed" : "open",
+                to: event.target.open ? "open" : "closed"
+            };
+        }
+        return {};
+    }
+
     function _handleAnalyticsEvent(event) {
         const anlEvent = _getAnalyticsEvent(event);
         if (!anlEvent) { return; }
@@ -123,6 +136,7 @@ const AnalyticsEventTracker = (function() {
             // make sure that analytics fields that are defined lower down aren't overwritten by ones defined higher in the DOM tree
             anlEventData = _mergeObjectsWithoutOverwrite(currAnlEventData, anlEventData);
         } while (currElem?.parentNode);
+        anlEventData = {...anlEventData, ..._getDerivedData(event)};
 
         if (!_isValidAnalyticsObject(anlEventData)) { return; }
 
