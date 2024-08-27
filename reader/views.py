@@ -3525,7 +3525,10 @@ def profile_api(request, slug=None):
         owner_of_profile = request.user.is_authenticated and request.user.id == profile.id
         return jsonResponse(profile.to_api_dict(basic = not owner_of_profile))
 
-    elif request.method == "POST": # The POST only works for the logged in user, which is not very API'ish but thats for another day
+    elif request.method == "POST":
+        # The POST only works for the logged in user, which is more common for a website view rather than API.
+        # If the API were to be consistent, we might need to add ability to post updates for any user,
+        # and of course limit authorization on who can do that
         if not request.user.is_authenticated:
             return jsonResponse({"error": _("You must be logged in to update your profile.")})
 
