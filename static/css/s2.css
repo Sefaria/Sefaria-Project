@@ -299,10 +299,6 @@ body, .sans-serif {
     font-family: var(--hebrew-serif-font-family);
 }
 
-#staticContentWrapper > #content > #textBrowser > #browserPreview > #browserNav > #browserNavItem > .ui-icon {
-    font-family: var(--hebrew-serif-font-family);
-}
-
 #sources > .commentWrapper > .comment {
     font-family: var(--hebrew-serif-font-family);
 }
@@ -315,13 +311,26 @@ body, .sans-serif {
     font-family: var(--hebrew-serif-font-family);
 }
 
-/* #readerAppWrap > .readerApp > #panelWrapBox > .readerPanelBox > .readerPanel > .categoryColorLine > .readerControls > .readerControlsInner > .readerTextToc > .readerTextTocBox > .a > .readerControlsTitle > .sheetTocIcon > h1 {
-    font-family: var(--hebrew-serif-font-family);
-} */
-
 #readerAppWrap > .readerApp > #panelWrapBox > .readerPanelBox > .readerPanel > .readerContent > .sheetsInPanel > .sheetContent > .text > .textInner > .SheetOutsideText > .sheetItem > .en > .sourceContentText{
     font-family: var(--hebrew-serif-font-family);
 }
+
+#readerAppWrap > .readerApp > #panelWrapBox > .readerPanelBox > .readerPanel > .readerNavMenu > .content > .sidebarLayout > .contentInner > .recentlyPublished > .gridBox > .gridBoxRow > .gridBoxItem > .featuredSheet > .featuredSheetBottom > .featuredSheetDate {
+    font-family: var(--hebrew-serif-font-family);
+}
+
+#readerAppWrap > .readerApp > #panelWrapBox > .readerPanelBox > .readerPanel > .profile-page > .content > .contentInner > .profile-summary > .tab-view > .filterable-list > .filter-content > .sheet > .sheetLeft > a > .sheetTitleText {
+    font-family: 'jomolhari';
+}
+
+#ui-id-1 .ui-menu-item {
+    font-family: var(--hebrew-serif-font-family);
+}
+
+
+
+
+
 
 
 .serif {
@@ -822,6 +831,7 @@ input.noselect {
     border-radius: 250px;
     width: 140px;
     height: 30px;
+    font-size: xx-large;
 }
 
 .header .searchBox.searchFocused {
@@ -993,7 +1003,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 
 .ui-autocomplete .ui-menu-item.hebrew-result a {
-    direction: ltr;
+    direction: rtl;
 }
 
 .ui-autocomplete .ui-menu-item.english-result a {
@@ -1731,6 +1741,7 @@ div.interfaceLinks-row a {
 }
 
 .ui-autocomplete .ui-menu-item {
+    font-size: xx-large;
     display: flex;
     padding: 6px 12px;
 }
@@ -3142,6 +3153,7 @@ input.resourcesLink {
 }
 
 .savedHistoryList .timeStamp {
+    font-family: var(--hebrew-sans-serif-font-family);
     color: var(--medium-grey);
     font-size: 14px;
     margin-inline-start: 10px;
@@ -5784,6 +5796,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     margin-top: 2px;
 }
 
+.readerControls .readerTextToc .readerTextTocBox a .readerControlsTitle h1 {
+    font-family: var(--hebrew-sans-serif-font-family);   
+}
+
 .readerControls.connectionsHeader .readerTextToc {
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
     text-transform: uppercase;
@@ -7627,6 +7643,10 @@ But not to use a display block directive that might break continuous mode for ot
 
 .textList .sheet .sheetTitle .sheetTitleText {
     margin: auto 6px;
+}
+
+.sheet .sheetTitle .sheetTitleText {
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .textList .sheet .sheetTags {
@@ -9669,6 +9689,10 @@ a .button:hover {
     margin-inline-end: 10px;
     overflow: hidden;
     flex-shrink: 0;
+}
+
+.profile-page .collectionListingName {
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .sheetMetaDataBox .collectionListingImageBox,
@@ -13014,6 +13038,10 @@ section.SheetSource .SheetOutsideBiText {
 .filterable-list .filter-bar .filter-bar-inner {
     display: flex;
     align-items: center;
+}
+
+.filterable-list .filter-bar .filter-bar-inner input::placeholder {
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .filterable-list .readerNavMenuSearchButton {
