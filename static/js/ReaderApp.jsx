@@ -407,6 +407,7 @@ class ReaderApp extends Component {
           (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.navigationTopicCategory !== next.navigationTopicCategory) ||
+          (prev.highlightedNode !== next.highlightedNode) ||
           (prev.settings.aliyotTorah != next.settings.aliyotTorah) ||
            prev.navigationTopic != next.navigationTopic) {
         return true;
@@ -950,28 +951,22 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.openPanel(ref, currVersions, options);
   }
   handleSegmentClick(n, ref, sheetNode) {
-    // Handle a click on a text segment `ref` in from panel in position `n`
-    // Update or add panel after this one to be a TextList
-    const refs = typeof ref == "string" ? [ref] : ref;
-
     if (sheetNode) {
       this.setSheetHighlight(n, sheetNode);
     }
     else {
+      // Handle a click on a text segment `ref` in from panel in position `n`
+      // Update or add panel after this one to be a TextList
+      const refs = typeof ref == "string" ? [ref] : ref;
       this.setTextListHighlight(n, refs);
-    }
-
-    const nodeRef = sheetNode ? this.state.panels[n].sheetID + "." + sheetNode : null;
-
-    if (this.currentlyConnecting()) { return }
-
-    this.openTextListAt(n+1, refs, nodeRef);
-
-    if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed && window.getSelection().anchorNode.nodeType !== 3) {
-      //Focus on the first focusable element of the newly loaded panel if text not selected and not actively typing
-      // in editor. Exists for a11y
-      var curPanel = $(".readerPanel")[n+1];
-      $(curPanel).find(':focusable').first().focus();
+      if (this.currentlyConnecting()) { return }
+      this.openTextListAt(n+1, refs);
+      if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed && window.getSelection().anchorNode.nodeType !== 3) {
+        //Focus on the first focusable element of the newly loaded panel if text not selected and not actively typing
+        // in editor. Exists for a11y
+        var curPanel = $(".readerPanel")[n+1];
+        $(curPanel).find(':focusable').first().focus();
+      }
     }
   }
   closeConnectionPanel(n) {

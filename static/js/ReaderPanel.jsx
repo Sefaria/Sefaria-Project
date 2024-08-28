@@ -701,7 +701,6 @@ class ReaderPanel extends Component {
           onSegmentClick={this.handleSheetSegmentClick}
           onCitationClick={this.handleCitationClick}
           openSheet={this.openSheet}
-          hasSidebar={this.props.hasSidebar}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
