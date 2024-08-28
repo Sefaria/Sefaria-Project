@@ -11,6 +11,7 @@ const AnalyticsEventTracker = (function() {
     const NON_BUBBLING_EVENT_DELEGATES = {
         'bubblingToggle': 'toggle',
     }
+    let scrollIntoViewObserver = null;
 
     function _isValidAnalyticsObject(obj) {
         const invalid_keys = Object.keys(obj).filter(
@@ -85,7 +86,7 @@ const AnalyticsEventTracker = (function() {
             }
         );
         if (!element) { return null; }
-        return _parseEventAttr(element.getAttribute(EVENT_ATTR));
+        return _parseEventAttr(element.getAttribute(EVENT_ATTR)).filter(({ type }) => type === eventType);
     }
 
     function _getAnlDataFromElement(element) {
@@ -154,7 +155,7 @@ const AnalyticsEventTracker = (function() {
 
         if (!_isValidAnalyticsObject(anlEventData)) { return; }
 
-        anlEventArray.forEach(anlEvent => console.log("event", anlEvent.name, anlEventData));
+        anlEventArray.forEach(anlEvent => gtag("event", anlEvent.name, anlEventData));
     }
 
     function _delegateToggleEvents(selector) {
@@ -176,20 +177,33 @@ const AnalyticsEventTracker = (function() {
             });
         }
 
-        // Attach listeners to existing <details> elements
-        const existingElements = document.querySelectorAll('details');
-        existingElements.forEach(addToggleListener);
+        // Attach listeners to existing elements
+        const existingDetails = document.querySelectorAll('details');
+        existingDetails.forEach(addToggleListener);
+        const existingScrollIntoViewElements = document.querySelectorAll('[data-anl-event*=":scrollIntoView"]');
+        existingScrollIntoViewElements.forEach(scrollIntoViewObserver.observe);
 
         // Use a MutationObserver to detect newly added <details> elements
         const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
                 mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === 1 && node.tagName.toLowerCase() === 'details') {
-                        addToggleListener(node);
-                    } else if (node.nodeType === 1) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        if (node.tagName.toLowerCase() === 'details') {
+                            addToggleListener(node);
+                        }
                         // If a new element contains <details> elements within it
                         const nestedDetails = node.querySelectorAll('details');
                         nestedDetails.forEach(addToggleListener);
+
+                        // Check if the element or any of its children have the data-anl-event attribute
+                        if (node.hasAttribute('data-anl-event') && node.getAttribute('data-anl-event').includes(':scrollIntoView')) {
+                            // Handle the element with the "scrollIntoView" event
+                            scrollIntoViewObserver.observe(node);
+                        }
+
+                        // Also check within all descendants of the added node
+                        const descendants = node.querySelectorAll('[data-anl-event*=":scrollIntoView"]');
+                        descendants.forEach(descendant => scrollIntoViewObserver.observe(descendant));
                     }
                 });
             });
@@ -201,6 +215,21 @@ const AnalyticsEventTracker = (function() {
         })
 
         return delegatedEventType;
+    }
+
+    function _observeScrollIntoViewEvent(selector) {
+        const eventType = 'scrollIntoView';
+
+        scrollIntoViewObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const scrollIntoViewEvent = new CustomEvent(eventType, {bubbles: true});
+                    entry.target.dispatchEvent(scrollIntoViewEvent);
+                }
+            });
+        });
+
+        return eventType;
     }
 
     /**
@@ -224,6 +253,8 @@ const AnalyticsEventTracker = (function() {
             for (let eventType of eventTypes) {
                 if (eventType === 'toggle') {
                     eventType = _delegateToggleEvents(selector);
+                } else if (eventType === 'scrollIntoView') {
+                    eventType = _observeScrollIntoViewEvent(selector);
                 }
                 elements.forEach(element => {
                     element.addEventListener(eventType, _handleAnalyticsEvent);
