@@ -86,7 +86,7 @@ StoryFrame.propTypes = {
 const SummarizedStoryFrame = ({cls, cardColor, collapsibleSummary, children}) => {
 return (
     <StoryFrame cls={cls}>
-        <details data-anl-event="package_toggle:toggle"><summary>{collapsibleSummary}</summary>{children}</details>
+        <details data-anl-event="package_toggle:toggle|package_viewed:scrollIntoView"><summary>{collapsibleSummary}</summary>{children}</details>
     </StoryFrame>
 )};
 SummarizedStoryFrame.propTypes = {
