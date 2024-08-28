@@ -804,12 +804,14 @@ const TopicPageTab = ({
 
 
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
-    <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
-          onClick={onClick.bind(null, topic, topicTitle)} key={topic}
-          title={topicTitle.en}
-    >
-        <InterfaceText text={{en:topicTitle.en, he:topicTitle.he}}/>
-    </Link>
+    <div data-anl-event="related_click:click">
+        <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
+              onClick={onClick.bind(null, topic, topicTitle)} key={topic}
+              title={topicTitle.en}
+        >
+            <InterfaceText text={{en:topicTitle.en, he:topicTitle.he}}/>
+        </Link>
+    </div>
 );
 TopicLink.propTypes = {
   topic: PropTypes.string.isRequired,
