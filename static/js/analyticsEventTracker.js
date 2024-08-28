@@ -27,12 +27,18 @@ const AnalyticsEventTracker = (function() {
 
     function _parseEventAttr(value) {
         /**
-         * the value of `data-anl-event` is of the form `<event name>:<event type>`
-         * Returns this data parsed into an object
+         * the value of `data-anl-event` is of the form `<event_name1>:<event_type1>|<event_name2>:<event_type2>...`
+         * Returns this data parsed into a list of objects with each object having keys `name` and `type`.
          */
-        if (!value) {
-            return {name: "", type: ""};
-        }
+        if (!value) { return [{name: "", type: ""}]; }
+        return value.split("|").map(_parseSingleEventAttr);
+    }
+
+    function _parseSingleEventAttr(value) {
+        /**
+         * the value of a single event in `data-anl-event` is of the form `<event name>:<event type>`
+         * Returns this data parsed into an object with keys `name` and `type`.
+         */
         const [eventName, eventType] = value.split(':');
         if (!eventName?.length) {
             console.warn("Event name is invalid for `data-anl-event` value:", value);
@@ -64,9 +70,9 @@ const AnalyticsEventTracker = (function() {
         }
     }
 
-    function _getAnalyticsEvent(event) {
+    function _getAnalyticsEventArray(event) {
         /**
-         * Return an object of form {name, type} if this JS event should be treated as an analytics event
+         * Return an array of objects of form {name, type} if this JS event should be treated as an analytics event
          * Looks for a parent of e.target that has the attribute `data-anl-event`
          * If this JS event doesn't match a registered analytics event, return `null`
          */
@@ -75,7 +81,7 @@ const AnalyticsEventTracker = (function() {
             event,
             element => {
                 const value = element.getAttribute(EVENT_ATTR);
-                return _parseEventAttr(value).type === eventType;
+                return _parseEventAttr(value).some(({ type }) => type === eventType);
             }
         );
         if (!element) { return null; }
@@ -130,8 +136,8 @@ const AnalyticsEventTracker = (function() {
     }
 
     function _handleAnalyticsEvent(event) {
-        const anlEvent = _getAnalyticsEvent(event);
-        if (!anlEvent) { return; }
+        const anlEventArray = _getAnalyticsEventArray(event);
+        if (!anlEventArray) { return; }
         let anlEventData = {};
         let currElem = null;
         do {
@@ -148,7 +154,7 @@ const AnalyticsEventTracker = (function() {
 
         if (!_isValidAnalyticsObject(anlEventData)) { return; }
 
-        gtag("event", anlEvent.name, anlEventData);
+        anlEventArray.forEach(anlEvent => console.log("event", anlEvent.name, anlEventData));
     }
 
     function _delegateToggleEvents(selector) {
@@ -158,7 +164,7 @@ const AnalyticsEventTracker = (function() {
          * non-bubbling events in case this needs arises
          * however, we can delegate these events to a custom event that does bubble and listen for that
          */
-        const delegatedEventType = NON_BUBBLING_EVENT_DELEGATES.toggle;
+        const delegatedEventType = Object.keys(NON_BUBBLING_EVENT_DELEGATES)[0];  // hard-coded since this only works for toggle currently
 
         function addToggleListener(element) {
             element.addEventListener('toggle', function(event) {
@@ -169,6 +175,10 @@ const AnalyticsEventTracker = (function() {
                 event.target.dispatchEvent(bubblingToggle);
             });
         }
+
+        // Attach listeners to existing <details> elements
+        const existingElements = document.querySelectorAll('details');
+        existingElements.forEach(addToggleListener);
 
         // Use a MutationObserver to detect newly added <details> elements
         const observer = new MutationObserver(mutations => {
