@@ -624,12 +624,14 @@ class ReaderPanel extends Component {
   getPanelName() {
     const {menuOpen, navigationTopicTitle} = this.state;
     if (menuOpen === "topics") {
-      return navigationTopicTitle.en || navigationTopicTitle.he;
+      if (navigationTopicTitle) {
+        return navigationTopicTitle.en || navigationTopicTitle.he;
+      }
     }
   }
   getPanelNumber() {
     // TODO update for commentary panels
-    return this.state.panelPosition+1;
+    return this.props.panelPosition+1;
   }
   getAnalyticsData() {
     return {
