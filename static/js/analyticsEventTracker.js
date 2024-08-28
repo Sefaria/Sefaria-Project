@@ -8,6 +8,9 @@ const AnalyticsEventTracker = (function() {
     const EVENT_ATTR = 'data-anl-event';
     const FIELD_ATTR_PREFIX = 'data-anl-';
     const BATCH_ATTR = 'data-anl-batch';
+    const NON_BUBBLING_EVENT_DELEGATES = {
+        'bubblingToggle': 'toggle',
+    }
 
     function _isValidAnalyticsObject(obj) {
         const invalid_keys = Object.keys(obj).filter(
@@ -67,11 +70,12 @@ const AnalyticsEventTracker = (function() {
          * Looks for a parent of e.target that has the attribute `data-anl-event`
          * If this JS event doesn't match a registered analytics event, return `null`
          */
+        const eventType = _delegatedEventTypeToOriginal(event.type);
         const element = _getEventTargetByCondition(
             event,
             element => {
                 const value = element.getAttribute(EVENT_ATTR);
-                return _parseEventAttr(value).type === event.type;
+                return _parseEventAttr(value).type === eventType;
             }
         );
         if (!element) { return null; }
@@ -108,11 +112,15 @@ const AnalyticsEventTracker = (function() {
         return b;
     }
 
+    function _delegatedEventTypeToOriginal(eventType) {
+        return NON_BUBBLING_EVENT_DELEGATES?.[eventType] || eventType;
+    }
+
     function _getDerivedData(event) {
         /**
          * Return data that can be derived directly from `event`
          */
-        if (event.type === "toggle") {
+        if (_delegatedEventTypeToOriginal(event.type) === "toggle") {
             return {
                 from: event.target.open ? "closed" : "open",
                 to: event.target.open ? "open" : "closed"
@@ -143,6 +151,48 @@ const AnalyticsEventTracker = (function() {
         gtag("event", anlEvent.name, anlEventData);
     }
 
+    function _delegateToggleEvents(selector) {
+        /**
+         * this module can't detect non-bubbling events (e.g. toggle)
+         * this function is mostly hard-coded for the toggle event. need to consider how to generalize to other
+         * non-bubbling events in case this needs arises
+         * however, we can delegate these events to a custom event that does bubble and listen for that
+         */
+        const delegatedEventType = NON_BUBBLING_EVENT_DELEGATES.toggle;
+
+        function addToggleListener(element) {
+            element.addEventListener('toggle', function(event) {
+                const bubblingToggle = new CustomEvent(delegatedEventType, {
+                    bubbles: true,
+                    detail: { originalEvent: event }
+                });
+                event.target.dispatchEvent(bubblingToggle);
+            });
+        }
+
+        // Use a MutationObserver to detect newly added <details> elements
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1 && node.tagName.toLowerCase() === 'details') {
+                        addToggleListener(node);
+                    } else if (node.nodeType === 1) {
+                        // If a new element contains <details> elements within it
+                        const nestedDetails = node.querySelectorAll('details');
+                        nestedDetails.forEach(addToggleListener);
+                    }
+                });
+            });
+        });
+
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+            observer.observe(element, { childList: true, subtree: true });
+        })
+
+        return delegatedEventType;
+    }
+
     /**
      * Public interface is in return value
      */
@@ -162,6 +212,9 @@ const AnalyticsEventTracker = (function() {
             const elements = document.querySelectorAll(selector);
 
             for (let eventType of eventTypes) {
+                if (eventType === 'toggle') {
+                    eventType = _delegateToggleEvents(selector);
+                }
                 elements.forEach(element => {
                     element.addEventListener(eventType, _handleAnalyticsEvent);
                 });
