@@ -720,7 +720,7 @@ class ReaderApp extends Component {
         url += "&aliyot=" + histories[0].aliyot;
     }
     hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
-    let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections";
+    let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections";
     for (var i = 1; i < histories.length || (isMobileConnectionsOpen && i===1); i++) {
       let isMultiPanelConnectionsOpen = ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
         (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections"));
@@ -1810,7 +1810,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
     let ref, sheet_owner, sheet_title;
-    if (panel.mode === 'Sheet' || panel.mode === "SheetAndConnections") {
+    if (panel.mode === 'Sheet') {
       const sheet = Sefaria.sheets.loadSheetByID(panel.sheetID);
       if (!sheet) { return null; }
       ref = `Sheet ${sheet.id}${panel.highlightedNode ? `:${panel.highlightedNode}`: ''}`;
@@ -1867,7 +1867,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     return false;
   }
   getDisplayString(mode) {
-    const learningStatus = ["text toc", "book toc", "sheet meta",  "Text", "TextAndConnections", "SheetAndConnections"];
+    const learningStatus = ["text toc", "book toc", "sheet meta",  "Text", "TextAndConnections"];
     const topicStatus = ["topicCat", "topic"]
     if(mode.includes("sheet")) {
       return "learning the Sheet"
@@ -1882,7 +1882,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   generateCurrentlyReading() {
     const currentHistoryState = this.makeHistoryState();
-    const inBeitMidrash = ["navigation", "text toc", "book toc", "sheet meta", "topics", "topic", "topicCat", "Text", "TextAndConnections", "Sheet", "SheetAndConnections"];
+    const inBeitMidrash = ["navigation", "text toc", "book toc", "sheet meta", "topics", "topic", "topicCat", "Text", "TextAndConnections", "Sheet"];
     currentHistoryState.title = currentHistoryState.title.match(/[^|]*/)[0];
     if (inBeitMidrash.includes(currentHistoryState.mode)) {
       return {title: currentHistoryState.title, url: currentHistoryState.url, mode: currentHistoryState.mode, display: this.getDisplayString(currentHistoryState.mode)};
