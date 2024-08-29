@@ -7707,6 +7707,7 @@ But not to use a display block directive that might break continuous mode for ot
     top: 2px;
 }
 
+
 .sheetTag.button,
 .sheetTag.button:hover,
 .sheetTag.button:active {
@@ -8882,7 +8883,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 .profile-page .logoutLink .int-he {
-    font-family: "Heebo", sans-serif;
+    font-family: "jomolhari";
 }
 
 .notificationsTopContainer {
