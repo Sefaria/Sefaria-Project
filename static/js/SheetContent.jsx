@@ -6,9 +6,7 @@ import {
     CollectionStatement,
     InterfaceText,
     ProfilePic,
-    SheetAuthorStatement,
-    SheetMetaDataBox,
-    SheetTitle
+    FollowButton
 } from "./Misc";
 import React from "react";
 import classNames from "classnames";
@@ -196,33 +194,26 @@ class SheetContent extends Component {
 
     return (
       <div className="sheetContent">
-        {this.props.sheetNotice ? <SheetNotice /> : null}
-        <SheetMetaDataBox>
-          <SheetTitle title={this.props.title} />
-
-          <SheetAuthorStatement
-            authorUrl={this.props.authorUrl}
-            authorStatement={this.props.authorStatement} >
-            <ProfilePic
-              url={this.props.authorImage}
-              len={30}
-              name={this.props.authorStatement}
-              outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle"}}
-            />
-            <InterfaceText text={{en: "By", he: "מאת"}}/>
-            <a href={this.props.authorUrl} className="sheetAuthorName">
-              <InterfaceText>{this.props.authorStatement}</InterfaceText>
-            </a>
-          </SheetAuthorStatement>
-
-          <CollectionStatement
-            name={this.props.collectionName}
-            slug={this.props.collectionSlug}
-            image={this.props.collectionImage}
-          />
-
-        </SheetMetaDataBox>
-
+         <FollowButton
+          large={true}
+          uid={this.props.authorID}
+          following={Sefaria.following.indexOf(this.props.authorID) > -1}
+        />
+        <ProfilePic
+          url={this.props.authorImage}
+          len={30}
+          name={this.props.authorStatement}
+          outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle"}}
+        />
+        <InterfaceText text={{en: "By", he: "מאת"}}/>
+        <a href={this.props.authorUrl} className="sheetAuthorName">
+          <InterfaceText>{this.props.authorStatement}</InterfaceText>
+        </a>
+        <CollectionStatement
+          name={this.props.collectionName}
+          slug={this.props.collectionSlug}
+          image={this.props.collectionImage}
+        />
         <div className="text">
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}

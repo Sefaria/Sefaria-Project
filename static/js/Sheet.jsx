@@ -117,6 +117,7 @@ class Sheet extends Component {
           highlightedRefsInSheet={this.props.highlightedRefsInSheet}
           scrollToHighlighted={this.props.scrollToHighlighted}
           authorStatement={sheet.ownerName}
+          authorID={sheet.owner}
           authorUrl={sheet.ownerProfileUrl}
           authorImage={sheet.ownerImageUrl}
           collectionName={sheet.collectionName}
