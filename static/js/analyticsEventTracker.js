@@ -8,6 +8,8 @@ const AnalyticsEventTracker = (function() {
     const EVENT_ATTR = 'data-anl-event';
     const FIELD_ATTR_PREFIX = 'data-anl-';
     const BATCH_ATTR = 'data-anl-batch';
+    const SCROLL_INTO_VIEW_SELECTOR ='[data-anl-event*=":scrollIntoView"]';
+    const TOGGLE_NODE_SELECTOR = 'details';
     const NON_BUBBLING_EVENT_DELEGATES = {
         'bubblingToggle': 'toggle',
     }
@@ -155,56 +157,45 @@ const AnalyticsEventTracker = (function() {
 
         if (!_isValidAnalyticsObject(anlEventData)) { return; }
 
-        anlEventArray.forEach(anlEvent => gtag("event", anlEvent.name, anlEventData));
+        anlEventArray.forEach(anlEvent => console.log("event", anlEvent.name, anlEventData));
     }
 
-    function _delegateToggleEvents(selector) {
-        /**
-         * this module can't detect non-bubbling events (e.g. toggle)
-         * this function is mostly hard-coded for the toggle event. need to consider how to generalize to other
-         * non-bubbling events in case this needs arises
-         * however, we can delegate these events to a custom event that does bubble and listen for that
-         */
-        const delegatedEventType = Object.keys(NON_BUBBLING_EVENT_DELEGATES)[0];  // hard-coded since this only works for toggle currently
-
-        function addToggleListener(element) {
-            element.addEventListener('toggle', function(event) {
-                const bubblingToggle = new CustomEvent(delegatedEventType, {
-                    bubbles: true,
-                    detail: { originalEvent: event }
-                });
-                event.target.dispatchEvent(bubblingToggle);
+    function _addToggleListener(element) {
+        const delegatedToggle = Object.keys(NON_BUBBLING_EVENT_DELEGATES)[0];
+        element.addEventListener('toggle', function(event) {
+            const bubblingToggle = new CustomEvent(delegatedToggle, {
+                bubbles: true,
+                detail: { originalEvent: event }
             });
-        }
+            event.target.dispatchEvent(bubblingToggle);
+        });
+    }
 
-        // Attach listeners to existing elements
-        const existingDetails = document.querySelectorAll('details');
-        existingDetails.forEach(addToggleListener);
-        const existingScrollIntoViewElements = document.querySelectorAll('[data-anl-event*=":scrollIntoView"]');
-        existingScrollIntoViewElements.forEach(scrollIntoViewObserver.observe);
+    function _runFunctionOnSelector(root, selector, fn) {
+        /**
+         * Runs `fn(node)` on any node that matches `selector`.
+         * Search includes `root` and all its children
+         */
+        if (root.matches?.(selector)) { fn(root); }
+        root.querySelectorAll(selector).forEach(fn);
+    }
 
-        // Use a MutationObserver to detect newly added <details> elements
+    function _observeForScrollIntoView(node) {
+        scrollIntoViewObserver.observe(node);
+    }
+
+    function _runFunctionsOnAddedNodes(selector, functions) {
+        /**
+         * Runs `functions` on all nodes added to `selector`
+         */
+        // Run on existing elements
+        functions.forEach(fn => fn(document));
+
         const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
                 mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === Node.ELEMENT_NODE) {
-                        if (node.tagName.toLowerCase() === 'details') {
-                            addToggleListener(node);
-                        }
-                        // If a new element contains <details> elements within it
-                        const nestedDetails = node.querySelectorAll('details');
-                        nestedDetails.forEach(addToggleListener);
-
-                        // Check if the element or any of its children have the data-anl-event attribute
-                        if (node.hasAttribute('data-anl-event') && node.getAttribute('data-anl-event').includes(':scrollIntoView')) {
-                            // Handle the element with the "scrollIntoView" event
-                            scrollIntoViewObserver.observe(node);
-                        }
-
-                        // Also check within all descendants of the added node
-                        const descendants = node.querySelectorAll('[data-anl-event*=":scrollIntoView"]');
-                        descendants.forEach(descendant => scrollIntoViewObserver.observe(descendant));
-                    }
+                    if (node.nodeType !== Node.ELEMENT_NODE) { return; }
+                    functions.forEach(fn => fn(node));
                 });
             });
         });
@@ -213,13 +204,12 @@ const AnalyticsEventTracker = (function() {
         elements.forEach(element => {
             observer.observe(element, { childList: true, subtree: true });
         })
-
-        return delegatedEventType;
     }
 
     function _observeScrollIntoViewEvent(selector) {
         const eventType = 'scrollIntoView';
 
+        // scrollIntoViewObserver is global so that we can add elements that need to be observed as they are created
         scrollIntoViewObserver = new IntersectionObserver((entries, observer) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -250,16 +240,20 @@ const AnalyticsEventTracker = (function() {
              */
             const elements = document.querySelectorAll(selector);
 
+            const onMutationFns = [];
             for (let eventType of eventTypes) {
                 if (eventType === 'toggle') {
-                    eventType = _delegateToggleEvents(selector);
+                    onMutationFns.push(node => _runFunctionOnSelector(node, TOGGLE_NODE_SELECTOR, _addToggleListener));
+                    eventType = Object.keys(NON_BUBBLING_EVENT_DELEGATES)[0];
                 } else if (eventType === 'scrollIntoView') {
+                    onMutationFns.push(node => _runFunctionOnSelector(node, SCROLL_INTO_VIEW_SELECTOR, _observeForScrollIntoView));
                     eventType = _observeScrollIntoViewEvent(selector);
                 }
                 elements.forEach(element => {
                     element.addEventListener(eventType, _handleAnalyticsEvent);
                 });
             }
+            _runFunctionsOnAddedNodes(selector, onMutationFns);
         }
     };
 })();
