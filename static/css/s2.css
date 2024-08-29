@@ -1787,8 +1787,10 @@ div.interfaceLinks-row a {
 }
 
 .interface-hebrew .ui-autocomplete .ui-menu-item a {
+    font-family: var(--hebrew-serif-font-family);
     direction: ltr;
     text-align: left;
+    font-size: 16px;
 }
 
 #globalWarningMessage {
