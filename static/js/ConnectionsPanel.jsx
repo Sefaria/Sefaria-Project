@@ -614,11 +614,6 @@ class ConnectionsPanel extends Component {
         interfaceLang={this.props.interfaceLang}
         contentLang={this.props.contentLang}
       />);
-    } else if (this.props.mode === "AboutSheet") {
-      content = <AboutSheet
-        masterPanelSheetId={this.props.masterPanelSheetId}
-        toggleSignUpModal={this.props.toggleSignUpModal}
-      />
     } else if (this.props.mode === "DivineName") {
       content = <DivineNameReplacer
           setDivineNameReplacement={this.props.setDivineNameReplacement}
