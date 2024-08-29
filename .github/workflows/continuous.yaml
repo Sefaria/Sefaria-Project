@@ -152,6 +152,18 @@ jobs:
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+  check-builds:
+    needs: [ build-generic, build-derived ]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check build jobs status
+        run: |
+          if [ "${{ needs.build-generic.result }}" != "success" ] || \
+             [ "${{ needs.build-derived.result }}" != "success" ]; then
+            echo "One or more build jobs failed"
+            exit 1
+          fi
 #######
 # Below Tests only run if PR is NOT draft
 #######
@@ -180,7 +192,6 @@ jobs:
       cancel-in-progress: false
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    needs: build-derived
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -246,19 +257,37 @@ jobs:
         env:
           WAIT_DURATION: "3000"
           GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
+  check-sandbox:
+    needs: [ check-builds, sandbox-deploy, sandbox-ready ]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check sandbox jobs status
+        run: |
+          if [ "${{ needs.check-builds.result }}" != "success" ] || \
+             [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
+             [ "${{ needs.sandbox-ready.result }}" != "success" ]; then
+            echo "One or more required jobs failed"
+            exit 1
+          fi
   pytest-job:
     name: "Continuous Testing: PyTest"
     concurrency:
       group: dev-mongo
       cancel-in-progress: false
     if: github.event.pull_request.draft == false
-    needs:
-      - sandbox-ready
+    needs: [check-sandbox]
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: ubuntu-latest
     steps:
+      - name: Check Previous Build Steps
+        run: |
+          if [ "${{ needs.check-sandbox.result }}" != "success" ]; then
+            echo "Previous jobs failed, failing pytest-job"
+            exit 1
+          fi
       - name: Checkout
         uses: actions/checkout@v4
       - id: auth
