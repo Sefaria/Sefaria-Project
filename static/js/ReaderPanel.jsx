@@ -151,21 +151,6 @@ class ReaderPanel extends Component {
       source = this.state.highlightedNode ? sheet.sources.find(source => source.node === this.state.highlightedNode) : sheet.sources[0];
     }
     this.conditionalSetState({highlightedNode: source.node});
-    const sheetRef = "Sheet " + this.state.sheetID + ":" + source.node;
-    if (this.state.mode ==="SheetAndConnections") {
-      this.closeSheetConnectionsInPanel();
-    }
-    else if (this.state.mode === "Sheet") {
-      if (this.props.multiPanel) {
-        if (source.ref) {
-          this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
-        } else {
-          this.props.onSegmentClick(sheetRef, source.node)
-        }
-      } else {
-        this.openSheetConnectionsInPanel(source.ref || sheetRef, source.node);
-      }
-    }
   }
   handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
@@ -221,15 +206,6 @@ class ReaderPanel extends Component {
   closeConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
-  }
-  openSheetConnectionsInPanel(ref, node) {
-    let refs = typeof ref == "string" ? [ref] : ref;
-    this.replaceHistory = this.state.mode === "SheetAndConnections"; // Don't push history for change in Connections focus
-    this.conditionalSetState({highlightedNode: node, highlightedRefs: refs, mode: "SheetAndConnections" }, this.replaceHistory);
-  }
-  closeSheetConnectionsInPanel() {
-    // Return to the original text in the ReaderPanel contents
-    this.conditionalSetState({highlightedNode: null, highlightedRefs: [], mode: "Sheet"});
   }
   handleSheetClick(e, sheet, highlightedNode, highlightedRefsInSheet) {
     e.preventDefault();
@@ -685,7 +661,7 @@ class ReaderPanel extends Component {
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
-    if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
+    if (this.state.mode === "Sheet") {
       items.push(
         <Sheet
           nodeRef={this.sheetRef}
@@ -709,7 +685,7 @@ class ReaderPanel extends Component {
       );
     }
 
-    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
+    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
       const langMode = this.props.masterPanelLanguage || this.state.settings.language;
       let data     = this.currentData();
       const canEditText = data &&

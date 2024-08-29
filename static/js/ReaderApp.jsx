@@ -127,7 +127,7 @@ class ReaderApp extends Component {
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
-      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections", "Sheet", "SheetAndConnection", "Menu"
+      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections", "Sheet", "Menu"
       refs:                    state.refs                    || [], // array of ref strings
       filter:                  state.filter                  || [],
       versionFilter:           state.versionFilter           || [],
@@ -671,18 +671,6 @@ class ReaderApp extends Component {
         hist.url = i == 0 ? "sheets/" + sheetURLSlug : "sheet&s=" + sheetURLSlug;
         hist.mode     = "Sheet"
 
-      } else if (state.mode === "SheetAndConnections") {
-        const filter    = state.filter.length ? state.filter :
-                          (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
-        hist.sources  = filter.join("+");
-        if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
-          hist.versionFilter = state.versionFilter[0];
-        }
-        const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
-        const title = sheet ? sheet.title.stripHtml() : "";
-        hist.title  = title + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
-        hist.url    = i == 0 ? "sheets/" + state.sheetID : "sheet&s=" + state.sheetID + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
-        hist.mode   = "SheetAndConnections";
       }
 
       if (!state.settings) { debugger; }
@@ -710,7 +698,7 @@ class ReaderApp extends Component {
 
     var url   = "/" + (histories.length ? histories[0].url : "");
     url += Sefaria.util.getUrlVersionsParams(histories[0].currVersions, 0);
-    if (histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections") {
+    if (histories[0].mode === "TextAndConnections") {
         url += "&with=" + histories[0].sources;
     }
     if(histories[0].lang) {
@@ -950,23 +938,18 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
-  handleSegmentClick(n, ref, sheetNode) {
-    if (sheetNode) {
-      this.setSheetHighlight(n, sheetNode);
-    }
-    else {
-      // Handle a click on a text segment `ref` in from panel in position `n`
-      // Update or add panel after this one to be a TextList
-      const refs = typeof ref == "string" ? [ref] : ref;
-      this.setTextListHighlight(n, refs);
-      if (this.currentlyConnecting()) { return }
-      this.openTextListAt(n+1, refs);
-      if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed && window.getSelection().anchorNode.nodeType !== 3) {
-        //Focus on the first focusable element of the newly loaded panel if text not selected and not actively typing
-        // in editor. Exists for a11y
-        var curPanel = $(".readerPanel")[n+1];
-        $(curPanel).find(':focusable').first().focus();
-      }
+  handleSegmentClick(n, ref) {
+    // Handle a click on a text segment `ref` in from panel in position `n`
+    // Update or add panel after this one to be a TextList
+    const refs = typeof ref == "string" ? [ref] : ref;
+    this.setTextListHighlight(n, refs);
+    if (this.currentlyConnecting()) { return }
+    this.openTextListAt(n+1, refs);
+    if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed && window.getSelection().anchorNode.nodeType !== 3) {
+      //Focus on the first focusable element of the newly loaded panel if text not selected and not actively typing
+      // in editor. Exists for a11y
+      var curPanel = $(".readerPanel")[n+1];
+      $(curPanel).find(':focusable').first().focus();
     }
   }
   closeConnectionPanel(n) {
@@ -1599,13 +1582,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.openTextListAt(n+1, refs);
     }
   }
-  setSheetHighlight(n, node) {
-    // Set the sheetListHighlight for panel `n` to `node`
-    node = typeof node === "string" ? [node] : node;
-    this.state.panels[n].highlightedNode = node;
-    this.state.panels[n].scrollToHighlighted = false;
-    this.setState({panels: this.state.panels});
-    }
   setDivineNameReplacement(mode) {
     this.setState({divineNameReplacement: mode})
   }
