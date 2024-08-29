@@ -765,7 +765,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       segment: 1,
       selected: isActive
   };
-  const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
+  const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false};
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
   const dragStart = (e) => {
       const slateRange = ReactEditor.findEventRange(parentEditor, e)
@@ -809,6 +809,15 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       e.stopPropagation();
       parentEditor.dragging = false;
     }
+    const renderEnglishElement = ({attributes, children}) => {
+    //passed to the English source Editabe, to make it always! be rendered as 'ltr'
+        return (
+            <span {...attributes} dir="ltr">
+                {children}
+            </span>
+        )
+    }
+
 
   return (
       <div
@@ -833,7 +842,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
               onKeyDown={(e) => onKeyDown(e, sheetSourceHeEditor)}
-
             />
           </Slate>
         </div>
@@ -841,12 +849,13 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
         {element.ref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
-          <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
+          <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)} dir={"ltr"}>
           {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
               onKeyDown={(e) => onKeyDown(e, sheetSourceEnEditor)}
+              renderElement={renderEnglishElement}
             />
           </Slate>
         </div>
