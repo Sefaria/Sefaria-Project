@@ -849,7 +849,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
         {element.ref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
-          <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)} dir={"ltr"}>
+          <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
           {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
