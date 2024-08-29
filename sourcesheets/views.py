@@ -17,6 +17,7 @@ from django.http import Http404
 
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
+from django.utils.translation import ugettext as _
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
@@ -35,7 +36,7 @@ from sefaria.model.collection import Collection, CollectionSet, process_sheet_de
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
-from reader.views import render_template, catchall
+from reader.views import render_template, catchall, get_search_params
 from sefaria.sheets import clean_source, bleach_text
 from bs4 import BeautifulSoup
 
@@ -45,6 +46,7 @@ import sefaria.model.dependencies
 
 
 from sefaria.gauth.decorators import gauth_required
+from reader.views import menu_page
 
 def annotate_user_links(sources):
     """
@@ -1027,8 +1029,29 @@ def sheets_by_ref_api(request, ref):
     """
     API to get public sheets by ref.
     """
-    return jsonResponse(get_sheets_for_ref(ref))
+    include_collections = bool(int(request.GET.get("include_collections", 0)))
+    sheets = get_sheets_for_ref(ref)
+    if include_collections:
+        sheets = annotate_sheets_with_collections(sheets)
+    return jsonResponse(sheets)
+def sheets_with_ref(request, tref):
+    """
+    Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
+    """
+    search_params = get_search_params(request.GET)
 
+    props={
+        "initialSearchType": "sheet",
+        "initialTextSearchField": search_params["textField"],
+        "initialSheetSearchFilters": search_params["sheetFilters"],
+        "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
+        "initialSheetSearchSortType": search_params["sheetSort"]
+    }
+    he_tref = Ref(tref).he_normal()
+    normal_ref = tref if request.interfaceLang == "english" else he_tref
+    title = _(f"Sheets with ")+normal_ref+_(" on Sefaria")
+    props["sheetsWithRef"] = {"en": tref, "he": he_tref}
+    return menu_page(request, page="sheetsWithRef", title=title, props=props)
 
 def get_aliyot_by_parasha_api(request, parasha):
     response = {"ref":[]};
