@@ -337,19 +337,13 @@ class ConnectionsPanel extends Component {
       content = (
         <div>
           {this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null}
-          {this.props.masterPanelMode === "Sheet" ?
-            <AboutSheetButtons
-              setConnectionsMode={this.props.setConnectionsMode}
-              masterPanelSheetId={this.props.masterPanelSheetId}
-            /> :
-            <div className="topToolsButtons">
+          <div className="topToolsButtons">
               {resourcesButtonCounts?.guides ? <ToolsButton en="Learning Guide" he="מדריך" image="iconmonstr-school-17.svg" blueBackground={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
               <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
-            </div>
-          }
+          </div>
           {showConnectionSummary ?
             <ConnectionsPanelSection title="Related Texts">
               <ConnectionsSummary
@@ -372,18 +366,6 @@ class ConnectionsPanel extends Component {
           }
           {showResourceButtons ?
             <ConnectionsPanelSection title={"Resources"}>
-              {
-                //ironically we need the masterpanel mode to be sheet to indicate a sheet is loaded, but the
-                // title prop to be something other than "Sheet" to indicate that a real source is being
-                // looked at
-                (this.props.masterPanelMode === "Sheet" && this.props.title !== "Sheet") ?
-                    <>
-                      <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
-                      <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={resourcesButtonCounts["translations"]} urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} />
-                    </>
-                  :
-                  null
-              }
               <ResourcesList
                 srefs={this.props.srefs}
                 setConnectionsMode={this.props.setConnectionsMode}
@@ -395,10 +377,6 @@ class ConnectionsPanel extends Component {
           }
           <ConnectionsPanelSection title={"Tools"}>
 
-            {this.props.masterPanelMode === "Sheet" ? <SheetToolsList
-              toggleSignUpModal={this.props.toggleSignUpModal}
-              setConnectionsMode={this.props.setConnectionsMode}
-              masterPanelSheetId={this.props.masterPanelSheetId} /> : null}
             <ToolsList
               setConnectionsMode={this.props.setConnectionsMode}
               masterPanelMode={this.props.masterPanelMode}
@@ -760,7 +738,7 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
       <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} />
       {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null}
       <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />
-      {masterPanelMode !== "Sheet" ? <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
+      <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
       <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
       <ToolsButton en="Advanced" he="כלים מתקדמים" image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
     </div>

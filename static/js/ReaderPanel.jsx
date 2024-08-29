@@ -739,7 +739,7 @@ class ReaderPanel extends Component {
           clearNamedEntity={this.props.clearNamedEntity}
           setSidebarSearchQuery={this.props.setSidebarSearchQuery}
           masterPanelLanguage={this.props.masterPanelLanguage}
-          masterPanelMode={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? "Sheet" : this.props.masterPanelMode}
+          masterPanelMode={this.props.masterPanelMode}
           masterPanelSheetId={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? this.props.initialState.sheetID : this.props.masterPanelSheetId}
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
