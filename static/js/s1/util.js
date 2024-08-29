@@ -1014,8 +1014,10 @@ sjs.textBrowser = {
 						"<span class='int-he'>དཔེ་ཆ་ཡོངས་རྫོགས།</span>" + 
 					"</span>";
 		for (var i = 0; i < this._path.length; i++) {
-			var name = sjs.interfaceLang === "he" ? Sefaria.hebrewTerm(this._path[i]) : this._path[i]
-			html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + name + "</span>";
+			if(this._path[i] !== this._path[i+1]) {
+				var name = sjs.interfaceLang === "he" ? Sefaria.hebrewTerm(this._path[i]) : this._path[i]
+				html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + name + "</span>";
+			}
 		}
 		$("#browserPath").html(html);
 		this.updateMessage();
