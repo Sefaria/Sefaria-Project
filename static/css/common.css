@@ -416,6 +416,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   border-left: 1px solid #aaa;
 }
 .browserNavItem {
+  font-family: 'jomolhari';
   padding: 8px 4px 8px 10px;
   cursor: pointer;
   -webkit-transform: translateZ(0);
@@ -756,3 +757,16 @@ a:active {
 .static label .int-he .sub{
   margin-right: 4px;
 }
+
+.interface-hebrew > #staticContentWrapper > #content > #textBrowser > #browserPath > .browserPathItem {
+  font-family: 'wujin+gangbi';
+}
+
+.interface-hebrew > #staticContentWrapper > #content > #textBrowser > #browserNav > .browserNavItem {
+  font-family: 'wujin+gangbi';
+}
+
+.interface-hebrew > #staticContentWrapper > #content > #textBrowser > #browserPreview > #browserNav > .browserNavItem > .ui-icon {
+  font-family: 'wujin+gangbi';
+}
+
