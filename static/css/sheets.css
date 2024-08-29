@@ -1571,6 +1571,9 @@ body.hasBannerMessage .sheetsEditNavTop {
 	border: 1px solid #999;
 	color: #333;
 }
+#sheet.hebrew .outsideWrapper .en{
+	font-family: 'jomolhari';
+}
 .addInterfaceButton:first-of-type {
 	/*border-left: 1px solid #cecece;*/
 	border-inline-start: 1px solid #cecece;
