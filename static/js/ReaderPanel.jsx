@@ -681,6 +681,7 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
+          hasSidebar={this.props.hasSidebar}
         />
       );
     }
