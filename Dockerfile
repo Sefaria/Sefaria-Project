@@ -16,7 +16,6 @@ RUN npm install --unsafe-perm
 
 COPY ./node ./node
 COPY ./static/js ./static/js
-COPY /etc /etc
 
 RUN npm run setup
 RUN npm run build-prod
