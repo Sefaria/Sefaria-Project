@@ -3506,10 +3506,10 @@ $.ajax({
 			sjs.alert.message(data.error.message);
 		} else {
 			sjs.alert.message("" +
-				'<span class="int-en">Source Sheet exported to Google Drive.</span><span class="int-he">ייצוא לגוגל דרייב הסתיים.</span>' +
+				'<span class="int-en">Source Sheet exported to Google Drive.</span><span class="int-he">Source Sheet exported to Google Drive.</span>' +
 				"<br><br>" +
 				"<a href='" + data.webViewLink + "' target='_blank'>" +
-				'<span class="int-en">Open in Google Drive &raquo;</span><span class="int-he">לפתיחה בגוגל דרייב</span>' +
+				'<span class="int-en">Open in Google Drive &raquo;</span><span class="int-he">Open in Google Drive &raquo;/span>' +
 				"</a>");
 		}
 	},
