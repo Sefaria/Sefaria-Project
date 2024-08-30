@@ -140,3 +140,4 @@ log/*
 
 .env
 .envrc
+etc

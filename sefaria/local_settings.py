@@ -7,6 +7,7 @@ import os
 
 from decoder import private_key_1
 from dotenv import load_dotenv
+from google_auth_oauthlib.flow import Flow
 
 load_dotenv()
 
@@ -264,7 +265,8 @@ MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
 GOOGLE_OAUTH2_CLIENT_ID = ""
 GOOGLE_OAUTH2_CLIENT_SECRET = ""
 # This is the field that is actually used
-GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
+GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH="/etc/secrets/pecha_auth.json" if os.getenv('isLocale') is None else "etc/secrets/pecha_auth.json"
+
 
 GOOGLE_APPLICATION_CREDENTIALS = {
   "type": "service_account",
