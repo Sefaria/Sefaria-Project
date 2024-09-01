@@ -106,7 +106,7 @@ class Sheet extends Component {
     }
     else {
       content = (
-            <div className="sheetViewer">
+            <div className="sidebarLayout">
               <SheetContent
                   sheetNotice={sheet.sheetNotice}
                   sources={sheet.sources}

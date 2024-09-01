@@ -1,7 +1,6 @@
-import {CollectionStatement, FollowButton, InterfaceText, ProfilePic} from "./Misc";
+import {FollowButton, InterfaceText, ProfilePic} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import React, {useEffect, useState} from "react";
-
 const SheetSidebar = ({authorID, authorImage, authorStatement, authorUrl,
                       collectionImage, collectionSlug, collectionName}) => {
     const [loading, setLoading] = useState(true);
@@ -28,11 +27,7 @@ const SheetSidebar = ({authorID, authorImage, authorStatement, authorUrl,
                     uid={authorID}
                     following={Sefaria.following.indexOf(authorID) > -1}
                 />
-                <CollectionStatement
-                    name={collectionName}
-                    slug={collectionSlug}
-                    image={collectionImage}
-                />
+                {/*<NavSidebar modules={sidebarModules} />*/}
         </div>;
 }
 export default SheetSidebar;

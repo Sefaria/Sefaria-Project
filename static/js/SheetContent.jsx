@@ -215,7 +215,7 @@ class SheetContent extends Component {
 const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage}) => {
   return <SheetMetaDataBox>
     <SheetMetaDataBoxSegment text={title} className="title"/>
-    <SheetMetaDataBoxSegment text={summary} className="summary"/>
+    {summary && <SheetMetaDataBoxSegment text={summary} className="summary"/>}
     <SheetAuthorStatement
         authorUrl={authorUrl}
         authorStatement={authorStatement}>
