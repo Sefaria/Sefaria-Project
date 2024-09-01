@@ -17,7 +17,7 @@ const SheetSidebar = ({authorID, authorImage, authorStatement, authorUrl,
                     url={authorImage}
                     len={100}
                     name={authorStatement}
-                    outerStyle={{display: "block"}}
+                    outerStyle={{"display": "block", "margin-block-end": "20px"}}
                 />
                 <a href={authorUrl} className="sheetAuthorName">
                     <InterfaceText>{authorStatement}</InterfaceText>

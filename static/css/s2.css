@@ -3259,6 +3259,7 @@ display: none;
   font-weight: 400;
   line-height: 18.75px;
   text-align: left;
+  margin-block-end: 20px;
 }
 .sheetViewer {
   display: flex;
