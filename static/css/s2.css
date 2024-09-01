@@ -3252,6 +3252,14 @@ display: none;
   color: var(--midrash-green);
   margin-inline-start: 5px;
 }
+.sheetFollowers {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  text-align: left;
+}
 .sheetViewer {
   display: flex;
 }
