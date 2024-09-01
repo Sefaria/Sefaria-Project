@@ -163,7 +163,16 @@ const adminRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, l
 const notableSourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, true, true);
 const allSourcesRefRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => refRenderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref, false, false, true);
 
-const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin, displayDescription, hideLanguageMissingSources) => item => {
+const _extractAnalyticsDataFromRef = ref => {
+    const title = Sefaria.parseRef(ref).index;
+    return {
+        item_id: ref,
+        content_id: title,
+        content_type: Sefaria.index(title).categories,
+        version: "",
+    };
+};
+const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin, displayDescription, hideLanguageMissingSources) => (item, index) => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
   const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
@@ -180,16 +189,22 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPr
   );
 
   return (
-    <TopicTextPassage
-      key={item[0]}
-      topic={topicData.slug}
-      text={text}
-      bodyTextIsLink= {true}
-      langPref={langPref}
-      isAdmin={isAdmin}
-      displayDescription={displayDescription}
-      hideLanguageMissingSources={hideLanguageMissingSources}
-    />
+      <div data-anl-batch={JSON.stringify({
+          position: index,
+          ai: doesLinkHaveAiContent(langKey, text) ? 'ai' : 'human',
+          ..._extractAnalyticsDataFromRef(text.ref),
+      })}>
+          <TopicTextPassage
+              key={item[0]}
+              topic={topicData.slug}
+              text={text}
+              bodyTextIsLink= {true}
+              langPref={langPref}
+              isAdmin={isAdmin}
+              displayDescription={displayDescription}
+              hideLanguageMissingSources={hideLanguageMissingSources}
+          />
+      </div>
   );
 };
 
@@ -316,13 +331,13 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
-const isLinkPublished = (lang, link) => {return link.descriptions?.[lang]?.published !== false;}
+const isLinkPublished = (lang, link) => link.descriptions?.[lang]?.published !== false;
+
+const doesLinkHaveAiContent = (lang, link) => link.descriptions?.[lang]?.ai_title?.length > 0 && isLinkPublished(lang, link);
 
 const getLinksWithAiContent = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
-    return refTopicLinks.filter(link => {
-        return link.descriptions?.[lang]?.ai_title?.length > 0 && isLinkPublished(lang, link)
-    });
+    return refTopicLinks.filter(link => doesLinkHaveAiContent(lang, link));
 };
 
 const getLinksToGenerate = (refTopicLinks = []) => {
@@ -684,7 +699,7 @@ const TopicPage = ({
 
     const currentLang = getCurrentLang()
 
-    return <div className={classStr} data-anl-project="topics">
+    return <div className={classStr} data-anl-project="topics" data-anl-content_lang={langPref || "bilingual"}>
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
