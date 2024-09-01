@@ -3,7 +3,8 @@ import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "./sefaria/sefaria";
 import {
-  InterfaceText, ProfilePic, SheetAuthorStatement, SheetMetaDataBox, SheetTitle
+  InterfaceText, ProfilePic, SheetAuthorStatement,
+  SheetMetaDataBox, SheetMetaDataBoxSegment
 } from "./Misc";
 import React from "react";
 import classNames from "classnames";
@@ -213,8 +214,8 @@ class SheetContent extends Component {
 
 const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage}) => {
   return <SheetMetaDataBox>
-    <SheetTitle title={title}/>
-    <div className="sheetSummary">{summary}</div>
+    <SheetMetaDataBoxSegment text={title} className="title"/>
+    <SheetMetaDataBoxSegment text={summary} className="summary"/>
     <SheetAuthorStatement
         authorUrl={authorUrl}
         authorStatement={authorStatement}>
@@ -230,7 +231,7 @@ const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, au
             marginInlineEnd: "10px"
           }}
       />
-      <a href={authorUrl}>
+      <a href={authorUrl} className="sheetAuthorName">
         <InterfaceText>{authorStatement}</InterfaceText>
       </a>
     </SheetAuthorStatement>

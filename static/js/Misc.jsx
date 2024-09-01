@@ -2862,7 +2862,7 @@ const CommunityPagePreviewControls = ({date}) => {
 
 
 const SheetTitle = (props) => (
-  <div className="title"
+  <span className="title"
     role="heading"
     aria-level="1"
     contentEditable={props.editable}
@@ -2871,15 +2871,31 @@ const SheetTitle = (props) => (
     style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "rtl" :"ltr"}}
   >
   {props.title ? props.title.stripHtmlConvertLineBreaks() : ""}
-  </div>
+  </span>
 );
 SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
+const SheetMetaDataBoxSegment = (props) => (
+  <div className={props.className}
+    role="heading"
+    aria-level="1"
+    contentEditable={props.editable}
+    suppressContentEditableWarning={true}
+    onBlur={props.editable ? props.blurCallback : null}
+    style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" :"ltr"}}
+  >
+  {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+  </div>
+);
+SheetMetaDataBoxSegment.propTypes = {
+  title: PropTypes.string,
+};
+
 
 const SheetAuthorStatement = (props) => (
-  <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
+  <div contentEditable={false} style={{ userSelect: 'none' }}>
     {props.children}
   </div>
 );
@@ -3398,6 +3414,7 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
+  SheetMetaDataBoxSegment,
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,
