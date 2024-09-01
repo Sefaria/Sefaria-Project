@@ -2862,7 +2862,7 @@ const CommunityPagePreviewControls = ({date}) => {
 
 
 const SheetTitle = (props) => (
-  <span className="title"
+  <div className="title"
     role="heading"
     aria-level="1"
     contentEditable={props.editable}
@@ -2871,7 +2871,7 @@ const SheetTitle = (props) => (
     style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "rtl" :"ltr"}}
   >
   {props.title ? props.title.stripHtmlConvertLineBreaks() : ""}
-  </span>
+  </div>
 );
 SheetTitle.propTypes = {
   title: PropTypes.string,

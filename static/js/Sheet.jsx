@@ -18,7 +18,7 @@ import {
   ProfilePic,
 } from './Misc';
 import SheetContent from "./SheetContent";
-
+import SheetSidebar from "./SheetSidebar";
 
 class Sheet extends Component {
   constructor(props) {
@@ -106,29 +106,38 @@ class Sheet extends Component {
     }
     else {
       content = (
-            <SheetContent
-          sheetNotice={sheet.sheetNotice}
-          sources={sheet.sources}
-          title={sheet.title}
-          onRefClick={this.props.onRefClick}
-          handleClick={this.handleClick}
-          sheetSourceClick={this.props.onSegmentClick}
-          highlightedNode={this.props.highlightedNode}
-          highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-          scrollToHighlighted={this.props.scrollToHighlighted}
-          authorStatement={sheet.ownerName}
-          authorID={sheet.owner}
-          authorUrl={sheet.ownerProfileUrl}
-          authorImage={sheet.ownerImageUrl}
-          collectionName={sheet.collectionName}
-          collectionSlug={sheet.displayedCollection}
-          collectionImage={sheet.collectionImage}
-          editable={Sefaria._uid === sheet.owner}
-          setSelectedWords={this.props.setSelectedWords}
-          sheetNumbered={sheet.options.numbered}
-          hideImages={!!sheet.hideImages}
-          sheetID={sheet.id}
-        />
+            <div className="sheetViewer">
+              <SheetContent
+                  sheetNotice={sheet.sheetNotice}
+                  sources={sheet.sources}
+                  title={sheet.title}
+                  onRefClick={this.props.onRefClick}
+                  handleClick={this.handleClick}
+                  sheetSourceClick={this.props.onSegmentClick}
+                  highlightedNode={this.props.highlightedNode}
+                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                  scrollToHighlighted={this.props.scrollToHighlighted}
+                  editable={Sefaria._uid === sheet.owner}
+                  setSelectedWords={this.props.setSelectedWords}
+                  sheetNumbered={sheet.options.numbered}
+                  hideImages={!!sheet.hideImages}
+                  sheetID={sheet.id}
+                  authorStatement={sheet.ownerName}
+                  authorID={sheet.owner}
+                  authorUrl={sheet.ownerProfileUrl}
+                  authorImage={sheet.ownerImageUrl}
+                  summary={sheet.summary}
+            />
+              <SheetSidebar
+                  authorStatement={sheet.ownerName}
+                  authorID={sheet.owner}
+                  authorUrl={sheet.ownerProfileUrl}
+                  authorImage={sheet.ownerImageUrl}
+                  collectionName={sheet.collectionName}
+                  collectionSlug={sheet.displayedCollection}
+                  collectionImage={sheet.collectionImage}
+              />
+          </div>
       );
     }
     return (
@@ -153,7 +162,6 @@ class Sheet extends Component {
     );
   }
 }
-
 
 class OldSheetContent extends Component {
   componentDidMount() {
