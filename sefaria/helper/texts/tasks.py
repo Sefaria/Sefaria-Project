@@ -1,7 +1,6 @@
 import traceback
 import uuid
 import structlog
-from functools import wraps
 import django
 from celery import chord
 from collections import Counter
@@ -15,6 +14,7 @@ from sefaria.client.wrapper import format_object_for_client
 from sefaria.settings import CELERY_QUEUES, CELERY_ENABLED
 from sefaria.celery_setup.app import app
 from sefaria.settings import USE_VARNISH
+from sefaria.helper.slack.send_message import send_message
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref
 
@@ -60,7 +60,10 @@ def save_change(func_name, raw_history_change):
 
 @app.task(name="web.inform")
 def inform(results, main_task_id):
-    print(Counter(results))
+    title = f'Results for celery main task with id {main_task_id}'
+    results = '\n'.join([f'{k}: {v}.' for k, v in Counter(results).items()])
+    message = f'{title}\n{results}'
+    send_message(message)
 
 def save_link(raw_link_change: dict):
     link = raw_link_change['raw_link']
