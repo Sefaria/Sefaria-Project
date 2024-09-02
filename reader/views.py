@@ -82,7 +82,7 @@ from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
-from sefaria.helper.texts.tasks import save_link, PossiblyCeleryJSONResponse, save_version
+from sefaria.helper.texts.tasks import save_version, save_changes, save_link
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -1550,7 +1550,7 @@ def complete_version_api(request):
         skip_links = bool(int(request.POST.get("skip_links", 0)))
         count_after = int(request.POST.get("count_after", 0))
         version_change = VersionChange(raw_version=data, uid=request.user.id, method=method, patch=patch, count_after=count_after, skip_links=skip_links)
-        return save_version(asdict(version_change))
+        return save_changes([asdict(version_change)], save_version, method)
 
     if request.method == "POST":
         patch = False
@@ -1587,8 +1587,7 @@ def complete_version_api(request):
         method = None
         internal_do_post = csrf_protect(internal_do_post())
 
-    response = PossiblyCeleryJSONResponse([internal_do_post()], method)
-    return response()
+    return internal_do_post()
 
 
 @catch_error_as_json
@@ -1978,14 +1977,15 @@ def links_api(request, link_id_or_ref=None):
         responses = []
         if isinstance(obj, dict):
             obj = [obj]
-        for link in obj:
+        links = []
+        for l, link in enumerate(obj):
             if skip_check:
                 link["_skip_lang_check"] = True
             if override_preciselink:
                 link["_override_preciselink"] = True
-            link_change = LinkChange(raw_link=link, uid=uid, method=method)
-            responses.append(save_link(asdict(link_change)))
-        return responses
+            links.append(asdict(LinkChange(raw_link=link, uid=uid, method=method)))
+
+        return save_changes(links, save_link, method)
 
     def _internal_do_delete(request, link_id_or_ref, uid):
         obj = tracker.delete(uid, Link, link_id_or_ref, callback=revarnish_link)
@@ -2028,9 +2028,7 @@ def links_api(request, link_id_or_ref=None):
         j = json.loads(j)
         skip_check = request.GET.get("skip_lang_check", 0)
         override_preciselink = request.GET.get("override_preciselink", 0)
-        responses = _internal_do_post(request, j, uid, method, skip_check, override_preciselink)
-        response = PossiblyCeleryJSONResponse(responses, method)
-        return response()
+        return _internal_do_post(request, j, uid, method, skip_check, override_preciselink)
 
     if request.method == "DELETE":
         if not link_id_or_ref:

@@ -15,4 +15,3 @@ class VersionChange(AbstractHistoryChange):
     patch: bool
     skip_links: bool
     count_after: int
-

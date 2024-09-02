@@ -1,12 +1,14 @@
+import traceback
+import uuid
 import structlog
-from dataclasses import asdict
 from functools import wraps
 import django
-
+from celery import chord
+from collections import Counter
 from sefaria.client.util import celeryResponse, jsonResponse
+from sefaria.system.exceptions import DuplicateRecordError
 
 django.setup()
-from sefaria.sefaria_tasks_interace.history_change import LinkChange
 from sefaria.model import *
 import sefaria.tracker as tracker
 from sefaria.client.wrapper import format_object_for_client
@@ -22,34 +24,44 @@ logger = structlog.get_logger(__name__)
 def should_run_with_celery(from_api):
     return CELERY_ENABLED and from_api
 
-
-class PossiblyCeleryJSONResponse:
-    def __init__(self, data, method):
-        self.data = data
-        self.method = method
-
-    def __call__(self, callback=None, status=200):
-        if should_run_with_celery(self.method == 'API'):
-            data = [x.id for x in self.data]
-            return celeryResponse(data)
-        return jsonResponse(self.data, status=status, callback=callback)
-
-
-def defer_to_celery_conditionally(queue):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if should_run_with_celery(args[0]['method'] == 'API'):
-                signature = func.s(*args, **kwargs).set(queue=queue)
-                return signature.delay()
+def save_changes(changes, func, method):
+    if should_run_with_celery(method == 'API'):
+        main_task_id = str(uuid.uuid4())
+        tasks = [save_change.s(func.__name__, c).set(queue=CELERY_QUEUES['tasks']) for c in changes]
+        job = chord(tasks, inform.s(main_task_id=main_task_id).set(queue=CELERY_QUEUES['tasks']))(task_id=main_task_id)
+        tasks_ids = [task.id for task in job.parent.results]
+        return celeryResponse(job.id, tasks_ids)
+    else:
+        results = []
+        for change in changes:
+            try:
+                func(change)
+            except Exception as e:
+                results.append({'error': f'Object: {change}. Error: {e}'})
             else:
-                return func(*args, **kwargs)
-        return wrapper
-    return decorator
+                results.append({'status': 'ok'})
+        return jsonResponse(results)
 
+@app.task(name="web.save_change")
+def save_change(func_name, raw_history_change):
+    function_names = {'save_link': save_link, 'save_version': save_version}
+    func = function_names[func_name]
+    try:
+        func(raw_history_change)
+        return 'Success'
+    except Exception as e:
+        logger.error(f'''Error:
+            change: {raw_history_change}
+            {traceback.format_exc()}''')
+        if isinstance(e, DuplicateRecordError):
+            return 'DuplicateRecordError'
+        else:
+            return repr(e)
 
-@defer_to_celery_conditionally(queue=CELERY_QUEUES['tasks'])
-@app.task(name="web.save_link")
+@app.task(name="web.inform")
+def inform(results, main_task_id):
+    print(Counter(results))
+
 def save_link(raw_link_change: dict):
     link = raw_link_change['raw_link']
     uid = raw_link_change['uid']
@@ -67,8 +79,6 @@ def save_link(raw_link_change: dict):
         logger.error(e)
     return format_object_for_client(obj)
 
-@defer_to_celery_conditionally(queue=CELERY_QUEUES['tasks'])
-@app.task(name="web.save_version")
 def save_version(raw_version_change: dict):
     version = raw_version_change['raw_version']
     uid = raw_version_change['uid']
