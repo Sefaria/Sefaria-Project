@@ -144,7 +144,6 @@ class ServerTextCopier(object):
         jpayload = json.dumps(payload)
         values = {'json': jpayload, 'apikey': self._apikey}
         data = urllib.parse.urlencode(values).encode('utf-8')
-        print(111, full_url)
         req = urllib.request.Request(full_url, data)
         try:
             response = urllib.request.urlopen(req)
