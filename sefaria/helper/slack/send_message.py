@@ -1,20 +1,20 @@
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
-import structlog
-try:
-    from sefaria.settings import TEXT_UPLOAD_SLACK_TOKEN
-    client = WebClient(token=TEXT_UPLOAD_SLACK_TOKEN)
-except ImportError:
-    client = None
-
-logger = structlog.get_logger(__name__)
+import requests
+from sefaria.settings import SLACK_URL
 
 
-def send_message(text, channel='#engineering-signal'):
-    try:
-        if client is not None:
-            client.chat_postMessage(channel=channel, text=text)
-        else:
-            logger.info(text)
-    except SlackApiError as e:
-        logger.error(f"Error sending message: {e.response['error']}")
+def send_message(channel, username, pretext, text, fallback=None, icon_emoji=':robot_face:', color="#a30200"):
+    post_object = {
+            "icon_emoji": icon_emoji,
+            "username": username,
+            "channel": channel,
+            "attachments": [
+                {
+                    "fallback": fallback or pretext,
+                    "color": color,
+                    "pretext": pretext,
+                    "text": text
+                }
+            ]
+        }
+
+    requests.post(SLACK_URL, json=post_object)

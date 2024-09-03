@@ -273,6 +273,9 @@ CELERY_QUEUES = {}
 CELERY_ENABLED = False
 # END Celery
 
+#Slack
+SLACK_URL = ''
+
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"

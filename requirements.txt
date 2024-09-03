@@ -63,7 +63,6 @@ requests
 roman==3.3
 selenium==3.141.0
 sentry-sdk==1.26.0
-slack_sdk==3.31.0
 tqdm==4.51.0
 ua-parser==0.10.0
 undecorated==0.3.0

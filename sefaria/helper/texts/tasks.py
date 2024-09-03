@@ -62,8 +62,7 @@ def save_change(func_name, raw_history_change):
 def inform(results, main_task_id):
     title = f'Results for celery main task with id {main_task_id}'
     results = '\n'.join([f'{k}: {v}.' for k, v in Counter(results).items()])
-    message = f'{title}\n{results}'
-    send_message(message)
+    send_message('#engineering-signal', 'Text Upload', title, results, icon_emoji=':leafy_green:')
 
 def save_link(raw_link_change: dict):
     link = raw_link_change['raw_link']
