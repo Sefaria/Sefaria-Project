@@ -87,12 +87,9 @@ class Sheet extends Component {
       }
 
       else if (Sefaria.isRef(path.slice(1))) {
-        e.preventDefault()
-        const currVersions = {en: params.get("ven"), he: params.get("vhe")};
-        const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
-        this.props.onCitationClick(path.slice(1), `Sheet ${this.props.sheetID}`, true, currVersions)
+        e.preventDefault();
+        window.open(target.href);
       }
-
     }
   }
 
