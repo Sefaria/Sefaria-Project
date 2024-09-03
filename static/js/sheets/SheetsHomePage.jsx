@@ -4,8 +4,8 @@ import Footer from "../Footer";
 import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsTopics";
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
-    `title` and `message` are shown on top of the video. `posterImg` is shown while video is downloaded,
-     and `videoOptions` is an array of videos that the browser selects from.
+     * `title` and `message` are shown on top of the video. `posterImg` is shown while video is downloaded,
+     *  and `videoOptions` is an array of videos that the browser selects from.
      */
     return <div id="aboutCover">
             <video id="aboutVideo" poster={posterImg} preload="auto" autoPlay={true} loop muted>
