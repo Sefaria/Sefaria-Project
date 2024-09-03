@@ -42,9 +42,9 @@ import {
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
-import SheetsWithRefPage from "./Sheets/SheetsWithRefPage";
+import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
 import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
-import SheetsHomePage from "./sheets/SheetsHomePage";
+import {SheetsHomePage} from "./sheets/SheetsHomePage";
 
 
 class ReaderPanel extends Component {
