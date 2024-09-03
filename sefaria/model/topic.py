@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
@@ -13,6 +14,11 @@ from sefaria.model.place import Place
 import regex as re
 from typing import Type
 logger = structlog.get_logger(__name__)
+
+
+class Pool(Enum):
+    TEXTUAL = "textual"
+    SHEETS = "sheets"
 
 
 class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
@@ -39,7 +45,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'categoryDescription',  # dictionary, keys are 2-letter language codes
         'isTopLevelDisplay',
         'displayOrder',
-        'numSources',
+        'numSources',  # total number of refLinks, to texts and sheets.
         'shouldDisplay',
         'parasha',  # name of parsha as it appears in `parshiot` collection
         'ref',  # dictionary for topics with refs associated with them (e.g. parashah) containing strings `en`, `he`, and `url`.
@@ -49,28 +55,27 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
         'image',
         "portal_slug",  # slug to relevant Portal object
+        'pools',  # list of strings, any of them represents a pool that this topic is member of
     ]
+
+    allowed_pools = [pool.value for pool in Pool] + ['torahtab']
 
     attr_schemas = {
         "image": {
-                "image_uri": {
-                    "type": "string",
-                    "required": True,
-                    "regex": "^https://storage\.googleapis\.com/img\.sefaria\.org/topics/.*?"
-                },
-                "image_caption": {
-                    "type": "dict",
-                    "required": True,
-                    "schema": {
-                        "en": {
-                            "type": "string",
-                            "required": True
-                        },
-                        "he": {
-                            "type": "string",
-                            "required": True
-                        }
-                    }
+            'type': 'dict',
+            'schema': {'image_uri': {'type': 'string',
+                                     'required': True,
+                                     'regex': '^https://storage\\.googleapis\\.com/img\\.sefaria\\.org/topics/.*?'},
+                       'image_caption': {'type': 'dict',
+                                         'required': True,
+                                         'schema': {'en': {'type': 'string', 'required': True},
+                                                    'he': {'type': 'string', 'required': True}}}}
+            },
+        'pools': {
+                'type': 'list',
+                'schema': {
+                    'type': 'string',
+                    'allowed': allowed_pools
                 }
             }
         }
@@ -114,6 +119,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         displays_under_link = IntraTopicLink().load({"fromTopic": slug, "linkType": "displays-under"})
         if getattr(displays_under_link, "toTopic", "") == "authors":
             self.subclass = "author"
+        if self.get_pools():
+            self.pools = sorted(set(self.get_pools()))
+        elif hasattr(self, 'pools'):
+            delattr(self, 'pools')
 
     def _sanitize(self):
         super()._sanitize()
@@ -122,6 +131,20 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             for k, v in p.items():
                 p[k] = bleach.clean(v, tags=[], strip=True)
             setattr(self, attr, p)
+
+    def get_pools(self):
+        return getattr(self, 'pools', [])
+
+    def has_pool(self, pool):
+        return pool in self.get_pools()
+
+    def add_pool(self, pool): #does not save!
+        self.pools = self.get_pools()
+        self.pools.append(pool)
+
+    def remove_pool(self, pool): #does not save!
+        pools = self.get_pools()
+        pools.remove(pool)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -362,9 +385,16 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             kwargs['record_kwargs'] = {'context_slug': self.slug}
             return TopicLinkSetHelper.find(intra_link_query, **kwargs)
 
+    def get_ref_links(self, is_sheet, query_kwargs=None, **kwargs):
+        query_kwargs = query_kwargs or {}
+        query_kwargs['is_sheet'] = is_sheet
+        return self.link_set('refTopic', query_kwargs, **kwargs)
+
     def contents(self, **kwargs):
         mini = kwargs.get('minify', False)
         d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
+        if kwargs.get('remove_pools', True):
+            d.pop('pools', None)
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
@@ -424,6 +454,19 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def __repr__(self):
         return "{}.init('{}')".format(self.__class__.__name__, self.slug)
+
+    def update_after_link_change(self, pool):
+        """
+        updating the pools 'sheets' or 'textual' according to the existence of links and the numSources
+        :param pool: 'sheets' or 'textual'
+        """
+        links = self.get_ref_links(pool == Pool.SHEETS.value)
+        if self.has_pool(pool) and not links:
+            self.remove_pool(pool)
+        elif not self.has_pool(pool) and links:
+            self.add_pool(pool)
+        self.numSources = self.link_set('refTopic').count()
+        self.save()
 
 
 class PersonTopic(Topic):
@@ -813,6 +856,24 @@ class RefTopicLink(abst.AbstractMongoRecord):
         }
         self.descriptions = d
         return self
+
+    def get_related_pool(self):
+        return Pool.SHEETS.value if self.is_sheet else Pool.TEXTUAL.value
+
+    def get_topic(self):
+        return Topic().load({'slug': self.toTopic})
+
+    def save(self, override_dependencies=False):
+        super(RefTopicLink, self).save(override_dependencies)
+        topic = self.get_topic()
+        topic.update_after_link_change(self.get_related_pool())
+
+    def delete(self, force=False, override_dependencies=False):
+        topic = self.get_topic()
+        pool = self.get_related_pool()
+        super(RefTopicLink, self).delete(force, override_dependencies)
+        if topic:
+            topic.update_after_link_change(pool)
 
     def _sanitize(self):
         super()._sanitize()

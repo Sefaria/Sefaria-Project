@@ -3,7 +3,10 @@ import {
     SimpleInterfaceBlock,
     TwoOrThreeBox,
     ResponsiveNBox,
-    NBox, InterfaceText,
+    NBox, 
+    InterfaceText, 
+    HebrewText, 
+    EnglishText,
     LoadingMessage,
     LoadingRing,
 } from './Misc';
@@ -11,6 +14,9 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
 import Cookies from 'js-cookie';
+import ReactMarkdown from 'react-markdown';
+import Sefaria from './sefaria/sefaria';
+import { OnInView, handleAnalyticsOnMarkdown } from './Misc';
 
 
 /*  Templates:
@@ -3137,6 +3143,328 @@ const JobsPage = memo(() => {
     );
 });
 
+
+/*
+* Products Page
+*/
+
+// The static content on the page inviting users to browse our "powered-by" products
+const DevBox = () => {
+    return (
+      <div className='productsDevBox'>
+        <p className='productsDevHeader'>
+            <InterfaceText text={{en: "Powered by Sefaria" , he:"פרויקטים מכח ספריא" }} />
+        </p>
+        <p>
+            <InterfaceText>  
+                <HebrewText>   
+                    נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="www.example.com">גלו את הפרויקטים</a>                
+                </HebrewText>  
+                <EnglishText>
+                Check out the products our software developer friends from around the world have been building for you! <a href="www.example.com">Explore</a> 
+                </EnglishText>
+            </InterfaceText>
+        </p>
+      </div>
+    );
+  };
+
+/**
+ * The following are the building block components of an individual product. 
+ */
+ 
+// The title and gray background label for each product
+const ProductTitle = ({product}) => {
+    return (
+        <div className='productsTitleAndLabel'>
+        <span className="productsTitle">
+            <InterfaceText text={{en: product.titles.en , he: product.titles.he }} />
+        </span>
+        {product.type.en ? (<span className="productsTypeLabel"> 
+            <InterfaceText text={{en: product.type.en , he: product.type.he }} />                               
+        </span>) : ''}
+    </div>
+    );
+};
+
+// Generalized function for catching products page analytics - to be revisited
+const productsAnalytics = (rank, product, cta, label, link_type, event) => {    
+    gtag("event", `products_${event}`, {
+        project: 'Products',
+        panel_type: "strapi-static",
+        panel_number: 1,   
+        panel_name: "Products",
+        position: rank,
+        link_text: cta,
+        experiment: label === 'Experiment' ?  1 : 0,
+        feature_name: product,  
+        link_classes: link_type,
+        engagement_type: "navigation",
+        engagement_value: 0
+    });
+}
+
+
+// The call-to-action (link) in the heading of each product
+// For desc link, change cta text to desc and "cta" to desc
+// TODO - uncomment <OnInView /> once analytics is confirmed
+const ProductCTA = ({product, cta}) => {
+    return (
+
+        // <OnInView onVisible={() => productsAnalytics(product?.rank, product?.titles.en, cta.text.en, product?.type.en, "viewed")}>
+        <a href={cta.url} onClick={(e) => productsAnalytics(product.rank, product.titles.en, cta.text.en, product.type.en, "cta", "clicked")}>
+            {cta.icon.url && <img className="productsCTAIcon" 
+                                    src={cta.icon.url}
+                                    alt="Click icon" />}
+                                
+            <span className="productsCTA">
+                <InterfaceText text={{en: cta.text.en , he: cta.text.he }} />
+            </span>
+        </a>
+
+        // </OnInView> 
+
+
+    );
+};
+
+// The main body of each product entry, containing an image and description
+const ProductDesc = ({product}) => {
+    return (
+        <div className="productInner">
+            <div className='productImgWrapper'>
+                <img src={product.rectanglion.url} alt={`Image for product: ${product?.titles?.en}`}/>
+            </div>
+            <div className='productDescWrapper' onClick={(e) => handleAnalyticsOnMarkdown(e, productsAnalytics, product.rank, product.titles.en, null, null, "product_desc", "clicked")}>
+                <InterfaceText markdown={{en: product.desc?.en, he: product.desc?.he }} />
+            </div>            
+        </div>
+    );
+};
+
+// The main product component, comprised of the building block sub-components
+const Product = ({product}) => {
+    return (
+        <div className="product">
+            <div className="productsHeader">
+                <ProductTitle product={product} />
+                <div className="cta">
+                    {product.ctaLabels?.map(cta => (
+                        <ProductCTA key={cta.id} product={product} cta={cta} />
+                    ))}
+                </div>       
+            </div>
+            <ProductDesc product={product} />
+        </div>
+    );
+};
+
+
+
+
+const ProductsPage = memo(() => {
+    const [products, setProducts] = useState([]);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        loadProducts();
+    }, []);
+
+    // GraphQL query to Strapi
+    const fetchProductsJSON = async () => {
+
+        // If the viewer is an admin, edit the query to retrieve the drafts as well
+        var includeDrafts = '';
+        if (Sefaria.is_moderator){
+            includeDrafts = 'publicationState:PREVIEW,';
+        }
+        
+        const query = `query {
+            products (
+                pagination: { limit: -1 },
+                ${includeDrafts}
+                sort: "rank:asc"
+            )
+            {
+              data {
+                id
+                attributes {
+                  title
+                  rank
+                  url
+                  type
+                  description
+                  rectanglion {
+                    data {
+                      attributes {
+                        url
+                        alternativeText
+                      }
+                    }
+                  }
+                  createdAt
+                  updatedAt
+                  locale
+                  call_to_actions {
+                    data {
+                      id
+                      attributes {
+                        text
+                        url
+                        icon {
+                          data {
+                            id
+                            attributes {
+                              url
+                              alternativeText
+                            }
+                          }
+                        }
+                        locale
+                        localizations {
+                          data {
+                            id
+                            attributes {
+                              text
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  localizations {
+                    data {
+                      attributes {
+                        locale
+                        title
+                        type
+                        description
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        }`;
+        
+        try {
+            const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "omit",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify({ query }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
+    
+    // Loading Products data, and setting the state ordering the products by their `rank`
+    const loadProducts = async () => {
+        if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+            try {
+                const productsData = await fetchProductsJSON();
+
+                const productsFromStrapi = productsData.data?.products?.data?.map((productsData) => {
+
+                    const heLocalization = productsData.attributes?.localizations?.data[0]?.attributes;
+                    const ctaLabels = productsData.attributes?.call_to_actions?.data;
+
+                    const ctaLabelsLocalized = ctaLabels.map((cta) => {
+                        return {
+                            text: {
+                                en: cta.attributes?.text,
+                                he: cta.attributes?.localizations?.data[0]?.attributes.text
+                            },
+                            url: cta.attributes?.url,
+                            icon: {
+                                url: cta.attributes?.icon?.data?.attributes?.url,
+                            },
+                            id: cta.id
+                        };
+                    });
+
+                    return {
+                        id: productsData.id,
+                        titles: {
+                            en: productsData.attributes?.title,
+                            he: heLocalization?.title
+                        },
+                        rank: productsData.attributes?.rank,
+                        type: {
+                            en: productsData.attributes?.type,
+                            he: productsData.attributes?.localizations?.data[0]?.attributes?.type,
+                        },
+                        url: productsData.attributes?.url,
+                        desc:
+                        {
+                            en: productsData.attributes?.description,
+                            he: heLocalization?.description
+                        },
+                        rectanglion: {
+                            url: productsData.attributes?.rectanglion?.data?.attributes?.url,
+                        },
+                        ctaLabels: ctaLabelsLocalized,
+
+                    };
+                }, {});
+                setProducts(productsFromStrapi);   
+            } catch (error) {
+                console.error("Fetch error:", error);
+                setError("Error: Sefaria's CMS cannot be reached");
+            }
+        } else {
+            setError("Error: Sefaria's CMS cannot be reached");
+        }
+    };
+
+
+    // In order to inject the static 'DevBox' in a fixed position on the page, we 
+    // create an array of <Product /> components, and then slice the list into two sub-lists at the 
+    // desired insertion position for the 'DevBox'.  When rendering, we render the 
+    // first sub-list, the <DevBox />, and finally the second sub-list. 
+    const ProductList = [];
+    if (products) {
+        for (const product of products) {
+            ProductList.push(<Product key={product.id} product={product} />)
+        }
+    }
+
+    const devBoxPosition = 2;
+    const initialProducts = ProductList.slice(0, devBoxPosition);
+    const remainingProducts = ProductList.slice(devBoxPosition);
+
+    return (
+        <>
+                <h1 className="mobileAboutHeader">
+                    <span className="int-en">Sefaria's Products</span>
+                    <span className="int-he">מוצרים של בספריא</span>
+                </h1>
+            <div className='productsFlexWrapper'>
+                {products && products.length > 0  ? (
+                    <>
+                    {initialProducts}
+                    {/* <DevBox /> */}
+                    {remainingProducts}
+                    </>
+                ) : null}
+            </div>
+        </>
+    );
+});
+
+
 export {
     RemoteLearningPage,
     SheetsLandingPage,
@@ -3150,5 +3478,6 @@ export {
     DonatePage,
     WordByWordPage,
     JobsPage,
-    TeamMembersPage
+    TeamMembersPage,
+    ProductsPage,
 };
