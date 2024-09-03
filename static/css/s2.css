@@ -13408,8 +13408,6 @@ span.ref-link-color-3 {color: blue}
   }
 }
 
-
-
 @media screen and (min-aspect-ratio: 2/1) {
   .image-in-text {
     max-height: calc(4/3 * 2/3 * 100vw);
