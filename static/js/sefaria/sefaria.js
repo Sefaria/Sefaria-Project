@@ -10,6 +10,8 @@ import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
+import SearchState from "./searchState";
+import FilterNode from "./FilterNode";
 
 
 let Sefaria = Sefaria || {
@@ -274,6 +276,12 @@ Sefaria = extend(Sefaria, {
     let index = Sefaria.index(pRef.index);
     return index && index.categories ? index.categories : [];
   },
+  refIndexTitle: function(ref) {
+    let pRef = Sefaria.parseRef(ref);
+    if ("error" in pRef) { return null; }
+    let index = Sefaria.index(pRef.index);
+    return index?.title
+  },
   sectionRef: function(ref, deriveIfNotFound=false) {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);
@@ -463,29 +471,61 @@ Sefaria = extend(Sefaria, {
         });
   },
   _bulkTexts: {},
+  partitionArrayForURL: function(arr, urlMaxLength, dividerToken) {
+    const result = [];
+    const dividerTokenLength = encodeURIComponent(dividerToken).length;
+    let currentPartition = [];
+    let currentLength = 0;
+
+    for (let i = 0; i < arr.length; i++) {
+        // Calculate the length of the new item when added to the partition
+        const item = arr[i];
+        const encodedItem = encodeURIComponent(item);
+        const newLength = currentPartition.length === 0
+            ? encodedItem.length
+            : currentLength + encodedItem.length + dividerTokenLength; // consider dividerToken length
+
+        // Check if adding this item exceeds the max length
+        if (newLength > urlMaxLength) {
+            // If it does, push the current partition to the result and start a new one
+            result.push(currentPartition);
+            currentPartition = [];
+            currentLength = 0;
+            currentPartition.push(item);
+            continue
+        }
+
+        // Add the item to the current partition
+        currentPartition.push(item);
+        currentLength = newLength;
+    }
+
+    // Add the last partition to the result
+    if (currentPartition.length > 0) {
+        result.push(currentPartition);
+    }
+
+    return result;
+},
+
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
 
     const MAX_URL_LENGTH = 3800;
-    const hostStr = `${Sefaria.apiHost}/api/bulktext/`;
+    const ASSUMED_HOSTNAME_LENGTH_BOUND = 50;
+    const hostStr = encodeURI(`${Sefaria.apiHost}/api/bulktext/`);
 
     let paramStr = '';
     for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar, transLangPref})) {
       paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
     }
     paramStr = paramStr.replace(/&/,'?');
+    paramStr = encodeURI(paramStr);
 
     // Split into multiple requests if URL length goes above limit
-    let refStrs = [""];
-    refs.map(ref => {
-      let last = refStrs[refStrs.length-1];
-      const encodedFullURL = encodeURI(`${hostStr}${last}|${ref}${paramStr}`);
-      if (encodedFullURL.length > MAX_URL_LENGTH) {
-        refStrs.push(ref)
-      } else {
-        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
-      }
-    });
+    const limit = MAX_URL_LENGTH-(hostStr+paramStr).length-ASSUMED_HOSTNAME_LENGTH_BOUND
+    const refsSubArrays = this.partitionArrayForURL( refs, limit, '|');
+    const refStrs = refsSubArrays.map(refsSubArray => refsSubArray.join('|'));
 
     let promises = refStrs.map(refStr => this._cachedApiPromise({
       url: `${hostStr}${encodeURIComponent(refStr)}${paramStr}`,
@@ -2779,6 +2819,56 @@ _media: {},
     return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
+    getSheetsByRef: function(srefs, callback) {
+        return Sefaria._cachedApiPromise({
+          url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}?include_collections=1`,
+          key: `include_collections|${srefs}`,
+          store: Sefaria.sheets._sheetsByRef,
+          processor: callback
+        });
+      },
+    sheetsWithRefFilterNodes(sheets) {
+      /*
+      This function is used to generate the SearchState with its relevant
+      FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
+       */
+      const newFilter = (item, type) => {
+          let title, heTitle;
+          if (type === 'topics') {
+              [title, heTitle] = [item.en, item.he];
+              type = 'topics_en';
+          }
+          else if (type === 'collections') {
+              [title, heTitle] = [item.name, item.name];
+          }
+          return {
+              title, heTitle,
+              docCount: 0, aggKey: item.slug,
+              selected: 0, aggType: type,
+          };
+      }
+
+      let filters = {};
+      sheets.forEach(sheet => {
+        let slugsFound = new Set();  // keep track of slugs in this sheet\n
+        ['topics', 'collections'].forEach(itemsType => {
+            sheet[itemsType]?.forEach(item => {
+              const key = `${item.slug}|${itemsType}`;
+              if (!slugsFound.has(key)) { // we don't want to increase docCount when one sheet already
+                                              // has a topic/collection with the same slug as the current topic/collection
+                let filter = filters[key];
+                if (!filter) {
+                  filter = newFilter(item, itemsType);
+                  filters[key] = filter;
+                }
+                slugsFound.add(key);
+                filter.docCount += 1;
+              }
+            })
+        })
+      })
+      return Object.values(filters).map(f => new FilterNode(f));;
+    },
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {
       if (reset) {
@@ -2943,10 +3033,10 @@ _media: {},
     },
     sheetsTotalCount: function(refs) {
       // Returns the total number of private and public sheets on `refs` without double counting my public sheets.
-      var sheets = Sefaria.sheets.sheetsByRef(refs) || [];
+      let sheets = Sefaria.sheets.sheetsByRef(refs) || [];
       if (Sefaria._uid) {
-        var mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
-        sheets = sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }).concat(mySheets);
+        const mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
+        sheets = mySheets.concat(sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }));
       }
       return sheets.length;
     },

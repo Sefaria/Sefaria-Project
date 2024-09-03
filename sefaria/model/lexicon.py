@@ -61,7 +61,8 @@ class Lexicon(abst.AbstractMongoRecord):
         'index_title',          # The title of the Index record that corresponds to this Lexicon
         'version_title',        # The title of the Version record that corresponds to this Lexicon
         'version_lang',         # The language of the Version record that corresponds to this Lexicon
-        'should_autocomplete'   # enables search box
+        'should_autocomplete',   # enables search box
+        'needsRefsWrapping'
     ]
 
     def word_count(self):
@@ -357,6 +358,23 @@ class BDBEntry(DictionaryEntry):
         return ['<br>'.join(strings)]
 
 
+class KovetzYesodotEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+
+    def headword_string(self):
+        return f'<big><b>{self.headword}</b></big>'
+
+    def as_strings(self, with_headword=True):
+        strings = []
+        if with_headword:
+            strings.append(self.headword_string())
+        for key, value in self.content.items():
+            if key != 'reference':
+                strings.append(f'<br><small>{key}</small>')
+            strings += value
+        return ['<br>'.join(strings)]
+
+
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
         'BDB Augmented Strong': StrongsDictionaryEntry,
@@ -367,7 +385,8 @@ class LexiconEntrySubClassMapping(object):
         'Sefer HaShorashim': HebrewDictionaryEntry,
         'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry,
         'BDB Dictionary': BDBEntry,
-        'BDB Aramaic Dictionary': BDBEntry
+        'BDB Aramaic Dictionary': BDBEntry,
+        'Kovetz Yesodot VaChakirot': KovetzYesodotEntry,
     }
 
     @classmethod

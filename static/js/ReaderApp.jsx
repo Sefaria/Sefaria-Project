@@ -23,6 +23,7 @@ import {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  ProductsPage
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -54,6 +55,7 @@ class ReaderApp extends Component {
         searchType:               props.initialSearchType,
         tab:                     props.initialTab,
         topicSort:               props.initialTopicSort,
+        sheetsWithRef:           props.sheetsWithRef,
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters:        props.initialTextSearchFilters,
@@ -143,6 +145,7 @@ class ReaderApp extends Component {
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
       sheetNodes:              state.sheetNodes              || null,
+      sheetsWithRef:           state.sheetsWithRef           || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
       navigationTopicTitle:    state.navigationTopicTitle    || null,
@@ -452,6 +455,13 @@ class ReaderApp extends Component {
             hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("Sefaria: a Living Library of Jewish Texts Online");
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
+            break;
+          case "sheetsWithRef":
+            hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
+            const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
+            hist.url   = "sheets/sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
+                          state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
+            hist.mode = "sheetsWithRef";
             break;
           case "text toc":
             var ref    = state.refs.slice(-1)[0];
@@ -1190,6 +1200,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       sheetSearchState: state.sheetSearchState.update({ filtersValid: false }),
     };
     this.setPanelState(n, updates);
+  }
+  updateSearchState(n, searchState, type) {
+    const searchStateName = this._getSearchStateName(type);
+    this.setPanelState(n,{[searchStateName]: searchState});
   }
   updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     const state = this.state.panels[n];
@@ -2133,6 +2147,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
       var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
+      let updateSearchState              = this.updateSearchState.bind(null, i);
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
@@ -2163,6 +2178,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
                       openPanelAt={this.openPanelAt}
+                      updateSearchState={updateSearchState}
                       panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
@@ -2284,7 +2300,8 @@ ReaderApp.propTypes = {
   initialDefaultVersions:      PropTypes.object,
   initialPath:                 PropTypes.string,
   initialPanelCap:             PropTypes.number,
-  topicTestVersion:          PropTypes.string,
+  topicTestVersion:            PropTypes.string,
+  sheetsWithRef:               PropTypes.object //properties 'he' and 'en' for english and hebrew spelling of ref
 };
 ReaderApp.defaultProps = {
   multiPanel:                  true,
@@ -2326,5 +2343,6 @@ export {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  ProductsPage,
   UpdatesPanel
 };
