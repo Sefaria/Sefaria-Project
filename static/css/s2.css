@@ -10283,17 +10283,21 @@ span.purim-emoji img{
 .interface-english .spacer:only-of-type.empty:before,
 .interface-english .spacer:only-of-type.empty:before {
   content: "Write something... ";
+  margin-inline-start: 50px;
 }
 .interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-hebrew .spacer:only-of-type.empty:before,
 .interface-hebrew .spacer:only-of-type.empty:before {
   content: "לכתוב משהו...";
+  margin-inline-start: 50px;
 }
 .editorAddInterface {
   position: relative;
   pointer-events:none;
   background-color: transparent;
+  margin-inline-start: 50px;
 }
+
 .editorAddInterface:before {
   content: "";
   margin-inline-start:-46px;
@@ -10307,6 +10311,34 @@ span.purim-emoji img{
   background-size: 14px;
   border-radius: 50%;
   pointer-events:auto;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 3px 0px #00000040;
+}
+.editorAddLineButton {
+  position: relative;
+  background-color: transparent;
+  margin-inline-start: 50px;
+}
+.hidden.editorAddLineButton::before {
+    display: none;
+}
+
+.editorAddLineButton:before {
+  content: "";
+  margin-inline-start:-46px;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  transform: rotate(45deg);
+  background-color: white;
+  background-image: url("/static/icons/heavy-x-dark.svg");
+  border: 1px solid var(--light-grey);
+  background-size: 14px;
+  border-radius: 50%;
+  /*pointer-events:auto;*/
   cursor: pointer;
   background-repeat: no-repeat;
   background-position: center;
@@ -10336,6 +10368,10 @@ background-color: white;
   pointer-events: none;
   display: inline-block;
 }
+.hidden.editorAddInterface::before {
+    display: none;
+}
+
 
 .addInterfaceInput .textPreview {
   border-inline-start: 4px solid;

@@ -12,6 +12,7 @@ import Component from 'react-class';
 import sanitizeHtml  from 'sanitize-html';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import { GDocAdvertBox } from './Promotions';
+import * as sheetsUtils from './sefaria/sheetsUtils'
 
 
 
@@ -89,7 +90,34 @@ class AddToSourceSheetBox extends Component {
       }, this.confirmAdd);
     }
   }
-  addToSourceSheet() {
+
+  //return the initial index of the suffix of string1 which also constitutes a prefix for string2
+  longestSuffixPrefixIndex(string1, string2) {
+    let longestSuffixIndex = 0;
+    for (let i = 0; i < string1.length; i++){
+      let suffix = string1.slice(i);
+      if (string2.startsWith(suffix)) {
+        longestSuffixIndex = i;
+      }
+    }
+    return longestSuffixIndex;
+  }
+  //return the final index of the prefix of string1 which also constitutes a suffix for string2
+  longestPrefixSuffixIndex(string1, string2) {
+    let longestPrefixIndex = 0;
+    for (let i = 0; i < string1.length; i++) {
+      let prefix = string1.slice(0, i + 1);
+      if (string2.endsWith(prefix)) {
+        longestPrefixIndex = i + 1;
+      }
+    }
+    return longestPrefixIndex;
+  }
+
+  normalize(text){
+    return(text.replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, ''));
+  }
+  async addToSourceSheet() {
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     }
@@ -111,15 +139,40 @@ class AddToSourceSheetBox extends Component {
         }
       } else if (this.props.srefs) { //regular use - this is currently the case when the component is loaded in the sidepanel or in the modal component via profiles and notes pages
         source.refs = this.props.srefs;
+
+
+
         const { en, he } = this.props.currVersions ? this.props.currVersions : {"en": null, "he": null}; //the text we are adding may be non-default version
         if (he) { source["version-he"] = he; }
         if (en) { source["version-en"] = en; }
 
         // If something is highlighted and main panel language is not bilingual:
         // Use passed in language to determine which version this highlight covers.
-        var selectedWords = this.props.selectedWords; //if there was highlighted single panel
+        let selectedWords = this.props.selectedWords; //if there was highlighted single panel
         if (selectedWords && language != "bilingual") {
-          source[language.slice(0,2)] = selectedWords;
+          let lan = language.slice(0,2);
+          let segments = await sheetsUtils.getSegmentObjs(source.refs);
+          selectedWords = this.normalize(selectedWords);
+          segments = segments.map(segment => ({
+            ...segment,
+            [lan]: this.normalize(segment[lan])
+          }));
+          for (let iSegment = 0; iSegment < segments.length; iSegment++) {
+              const segment = segments[iSegment];
+              if (iSegment == 0){
+                let criticalIndex = this.longestSuffixPrefixIndex(segment[lan], selectedWords);
+                const ellipse = criticalIndex == 0 ? "" : "...";
+                segment[lan] = ellipse + segment[lan].slice(criticalIndex);
+              }
+              else if (iSegment == segments.length-1){
+                let criticalIndex = this.longestPrefixSuffixIndex(segment[lan], selectedWords);
+                const ellipse = criticalIndex == segment[lan].length-1 ? "" : "...";
+                const chunk = segment[lan].slice(0, criticalIndex)
+                segment[lan] = chunk + ellipse;
+              }
+          }
+
+          source[lan] = sheetsUtils.segmentsToSourceText(segments, lan);
         }
       }
       if (this.checkContentForImages(source.refs)) {
