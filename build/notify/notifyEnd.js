@@ -21,7 +21,7 @@ console.log(`
 
 const jobKeys = [
     "Jest",
-    "PyTest",
+    "Continuous Testing: PyTest",
     "Playwright",
 ];
 
