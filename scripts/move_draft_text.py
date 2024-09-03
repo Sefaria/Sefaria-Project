@@ -133,10 +133,7 @@ class ServerTextCopier(object):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
 
     def _prepare_text_api_call(self):
-        return 'api/version'
-
-    def _prepare_version_attrs_api_call(self, title, lang, vtitle):
-        return "api/version/flags/{}/{}/{}".format(urllib.parse.quote(title), urllib.parse.quote(lang), urllib.parse.quote(vtitle))
+        return 'api/versions/'
 
     def _prepare_links_api_call(self):
         return "api/links/"
@@ -147,6 +144,7 @@ class ServerTextCopier(object):
         jpayload = json.dumps(payload)
         values = {'json': jpayload, 'apikey': self._apikey}
         data = urllib.parse.urlencode(values).encode('utf-8')
+        print(111, full_url)
         req = urllib.request.Request(full_url, data)
         try:
             response = urllib.request.urlopen(req)
@@ -169,7 +167,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--versionlist", help="pipe separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
     parser.add_argument("-k", "--apikey", help="non default api key", default=SEFARIA_BOT_API_KEY)
     parser.add_argument("-d", "--destination_server", help="override destination server", default='http://eph.sefaria.org')
-    parser.add_argument("-l", "--links", default=0, type=int, help="Enter '1' to move manual links on this text as well, '2' to move auto links")
+    parser.add_argument("-l", "--links", default=0, type=int, help="Enter '1' to move only manual links, '2' to move auto links on this text as well")
     parser.add_argument("-s", "--step", default=-1, type=int, help="Enter step size for link posting.  Size of 400 means links are posted 400 at a time.")
     args = parser.parse_args()
     print(args)
