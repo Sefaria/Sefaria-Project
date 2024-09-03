@@ -13314,9 +13314,21 @@ span.ref-link-color-3 {color: blue}
 .dropdownSeparator {
   border: 1px solid var(--light-grey);
 }
-.header .dropdownLinks, .sheetsInPanel .dropdownLinks {
+.header .dropdownLinks {
   display: block;
   align-items: center;
+  margin-top: 2px;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  -webkit-margin-start: 20px;
+  -moz-margin-start: 20px;
+  margin-inline-start: 10px;
+}
+.sheetsInPanel .dropdownLinks {
+  display: flex;
+  min-width: 50%;
+  justify-content: space-between;
   margin-top: 2px;
   color: #666;
   cursor: pointer;
