@@ -35,34 +35,6 @@ class SubCatBookSet:
     def __hash__(self):
         return hash(self.sub_cat_path)
 
-class Aggregation:
-    def __init__(self, index_category=None, index=None, collective_term=None, base_category=None):
-        self.index_category: Category = index_category
-        self.index: Index = index
-        self.collective_title_term: Term = collective_term
-        self.base_category: Category = base_category
-
-    def get_description(self, lan):
-        index_or_category = self.index if self.index else self.index_category
-        desc = getattr(index_or_category, f'{lan}ShortDesc', None)
-        return desc
-
-    def get_title(self, lan):
-        if self.index:
-            return self.index.get_title(lan)
-        else:
-            if self.collective_title_term is None:
-                cat_term = Term().load({"name": self.index_category.sharedTitle})
-                return cat_term.get_primary_title(lan)
-            else:
-                preposition = 'on' if lan != 'he' else 'על'
-                return f'{self.collective_title_term.get_primary_title(lan)} {preposition} {self.base_category.get_primary_title(lan)}'
-
-    def get_url(self):
-        if self.index:
-            return f'/{self.index.title.replace(" ", "_")}'
-        else:
-            return f'/texts/{"/".join(self.index_category.path)}'
 class AuthorWorksAggregation(ABC):
     @abstractmethod
     def get_description(self, lang):
