@@ -19,27 +19,29 @@ import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItem
 
 
 const ModuleSwitcher = () => {
+  const toggle = <img src="/static/icons/module_switcher_icon.svg" alt={Sefaria._('Toggle Module Switcher')}/>;
   return (
-    <DropdownMenu>
-    <DropdownMenuItem url={'/'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//sheets.sefaria.org'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//developers.sefaria.org'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//sefaria.org/products'}>
-      <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products ›'}} />
-    </DropdownMenuItem>
+      <DropdownMenu toggle={toggle}>
+        <DropdownMenuItem url={'/'}>
+          <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'}/>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator/>
+        <DropdownMenuItem url={'//sheets.sefaria.org'}>
+          <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator/>
+        <DropdownMenuItem url={'//developers.sefaria.org'}>
+          <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator/>
+        <DropdownMenuItem url={'//sefaria.org/products'}>
+          <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
+        </DropdownMenuItem>
 
-  </DropdownMenu>
+      </DropdownMenu>
   );
 }
+
 class Header extends Component {
   constructor(props) {
     super(props)

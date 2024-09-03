@@ -8,6 +8,7 @@ import {
 } from "./Misc";
 import React from "react";
 import classNames from "classnames";
+import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
 
 class SheetContent extends Component {
   componentDidMount() {
@@ -196,8 +197,11 @@ class SheetContent extends Component {
     return (
       <div className="sheetContent">
         <div className="text">
+          <div className="sidebarLayout">
           <SheetContentMetaDataBox authorStatement={this.props.authorStatement} authorUrl={this.props.authorUrl}
                                    authorImage={this.props.authorImage} title={this.props.title} summary={this.props.summary} />
+          <SheetContentOptions/>
+          </div>
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
           </div>
@@ -210,6 +214,29 @@ class SheetContent extends Component {
       </div>
     )
   }
+}
+
+const SheetContentOptions = () => {
+  return (
+    <DropdownMenu toggle={"..."}>
+    <DropdownMenuItem url={'/'}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'//sheets.sefaria.org'}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'//developers.sefaria.org'}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'//sefaria.org/products'}>
+      <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products ›'}} />
+    </DropdownMenuItem>
+
+  </DropdownMenu>
+  );
 }
 
 const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage}) => {
