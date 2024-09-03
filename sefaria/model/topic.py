@@ -15,6 +15,7 @@ from typing import Type
 logger = structlog.get_logger(__name__)
 from dataclasses import dataclass, field
 from typing import Tuple, List, Dict
+from abc import ABC, abstractmethod
 
 
 @dataclass
@@ -62,17 +63,73 @@ class Aggregation:
             return f'/{self.index.title.replace(" ", "_")}'
         else:
             return f'/texts/{"/".join(self.index_category.path)}'
+class AuthorWorksAggregation(ABC):
+    @abstractmethod
+    def get_description(self, lang):
+        pass
+
+    @abstractmethod
+    def get_title(self, lang):
+        pass
+    @abstractmethod
+    def get_url(self):
+        pass
+
+class AuthorIndexAggregation(AuthorWorksAggregation):
+    def __init__(self, index):
+        self._index: Index = index
+    def get_description(self, lang):
+        desc = getattr(self._index, f'{lang}ShortDesc', None)
+        return desc
+
+    def get_title(self, lang):
+        return self._index.get_title(lang)
+
+    def get_url(self):
+        return f'/{self._index.title.replace(" ", "_")}'
 
 
+class AuthorCategoryAggregation(AuthorWorksAggregation):
+    def __init__(self, index_category, collective_term, base_category):
+        self._index_category: Category = index_category
+        self._collective_title_term: Term = collective_term
+        self._base_category: Category = base_category
 
+    def get_description(self, lang):
+        desc = getattr(self._index_category, f'{lang}ShortDesc', None)
+        return desc
+
+    def get_title(self, lang):
+        if self._collective_title_term is None:
+            cat_term = Term().load({"name": self.index_category.sharedTitle})
+            return cat_term.get_primary_title(lang)
+        else:
+            preposition = 'on' if lang != 'he' else 'על'
+            return f'{self._collective_title_term.get_primary_title(lang)} {preposition} {self._base_category.get_primary_title(lang)}'
+
+    def get_url(self):
+        return f'/texts/{"/".join(self._index_category.path)}'
+class AuthorAggregationFactory:
+    @staticmethod
+    def create(index=None, index_category=None, collective_term=None, base_category=None):
+        if index:
+            return AuthorIndexAggregation(index)
+        elif index_category:
+            return AuthorCategoryAggregation(
+                index_category,
+                collective_term,
+                base_category
+            )
+        else:
+            raise ValueError("Invalid parameters for aggregation creation")
 @dataclass
-class DisjointBlock:
+class DisjointBookSet:
     base_cat_path: Tuple[str, ...]
     collective_title: str
     sub_cat_book_sets: Dict[Tuple[str, ...], SubCatBookSet] = field(default_factory=dict)
 
     def __eq__(self, other):
-        if not isinstance(other, DisjointBlock):
+        if not isinstance(other, DisjointBookSet):
             return False
         return self.base_cat_path == other.base_cat_path and self.collective_title == other.collective_title
 
@@ -635,7 +692,7 @@ class AuthorTopic(PersonTopic):
             collective_title = index.collective_title if is_comm else None
             base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER + 1])
 
-            new_empty_block = DisjointBlock(base_cat_path=base_cat_path, collective_title=collective_title)
+            new_empty_block = DisjointBookSet(base_cat_path=base_cat_path, collective_title=collective_title)
             if new_empty_block in blocks:
                 block = blocks[new_empty_block]
             else:
@@ -655,7 +712,7 @@ class AuthorTopic(PersonTopic):
             best_base_cat_path = cat_choices_sorted[0].sub_cat_path
             temp_indexes = cat_choices_sorted[0].books
             if len(temp_indexes) == 1:
-                final_aggregations += [Aggregation(index=temp_indexes[0])]
+                final_aggregations += [AuthorAggregationFactory.create(index=temp_indexes[0])]
                 continue
             if best_base_cat_path == ('Talmud', 'Bavli'):
                 best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
@@ -671,9 +728,9 @@ class AuthorTopic(PersonTopic):
                                                                                  collective_title is not None) or (
                     collective_title is None and self._category_matches_author(index_category)):
                 for temp_index in temp_indexes:
-                    final_aggregations += [Aggregation(index=temp_index)]
+                    final_aggregations += [AuthorAggregationFactory.create(index=temp_index)]
                 continue
-            final_aggregations += [Aggregation(index_category=index_category, collective_term=collective_title_term, base_category=base_category)]
+            final_aggregations += [AuthorAggregationFactory.create(index_category=index_category, collective_term=collective_title_term, base_category=base_category)]
         return final_aggregations
 
 
