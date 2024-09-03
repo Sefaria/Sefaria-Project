@@ -144,12 +144,6 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
-    if(source === 0){
-      //the click may be coming from the sheet reader controls, and so we need to find
-      // the first node or the node thats in the url
-      const sheet = Sefaria.sheets.loadSheetByID(this.state.sheetID); // Should already be loaded and in cache
-      source = this.state.highlightedNode ? sheet.sources.find(source => source.node === this.state.highlightedNode) : sheet.sources[0];
-    }
     this.conditionalSetState({highlightedNode: source.node});
   }
   handleCitationClick(citationRef, textRef, replace, currVersions) {
