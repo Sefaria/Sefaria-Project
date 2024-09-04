@@ -30,8 +30,7 @@ class RedisConfig:
     port: str
     broker_db_num: str
     result_backend_db_num: str
-    worker_concurrency: str
-    worker_max_tasks_per_child: str
+
 
 def add_db_num_to_url(url, port, db_num):
     return url.replace(f':{port}', f':{port}/{db_num}')
