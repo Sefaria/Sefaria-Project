@@ -13297,7 +13297,7 @@ span.ref-link-color-3 {color: blue}
   margin-inline-end: 6px;
 }
 
-.header .dropdownLinks a.dropdownLinks-button::after {
+/* .header .dropdownLinks a.dropdownLinks-button::after {
   display: inline-block;
   background: no-repeat url("/static/icons/chevron-down.svg");
   height: 10px;
@@ -13305,7 +13305,7 @@ span.ref-link-color-3 {color: blue}
   vertical-align: middle;
   content: "";
   transform: scale(0.75);
-}
+} */
 .header .dropdownLinks .dropdownLinks-menu {
   top: 35px;
   position: absolute;
