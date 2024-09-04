@@ -29,22 +29,22 @@ def get_community_page_data(language="english", refresh=False):
 
   urls = {
     "english": {
-      "parashah": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?output=csv',
-      "calendar": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?gid=1789079733&single=true&output=csv',
-      "discover": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?gid=2070604890&single=true&output=csv',
-      "featured": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?gid=1926549189&single=true&output=csv',
+      "parashah": 'https://docs.google.com/spreadsheets/d/1Zaaa1TMGu3G3tiI3PRCKL1LssZVLtHUCd9MKS8fN-Ps/pub?gid=0&single=true&output=csv',
+      "calendar": 'https://docs.google.com/spreadsheets/d/1jIDo1Iz8jpmozl-3UZ6bZDyE0Q8Rc0Vp-4DAVM-FOoE/pub?gid=999061792&single=true&output=csv',
+      "discover": 'https://docs.google.com/spreadsheets/d/1C1ia7sFmZARZtGZx5WxX95nl3NHo0BwsIxkj3hbFJ1I/pub?gid=1865340931&single=true&output=csv',
+      "featured": 'https://docs.google.com/spreadsheets/d/1tV_XZAuH9ZZSQlUtHs-o0wNMHTgm7JQ6eGAU_jPotm8/pub?gid=261076981&single=true&output=csv',
     },
     "hebrew": {
-      "parashah": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=0&single=true&output=csv',
-      "calendar": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=1789079733&single=true&output=csv',
-      "discover": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=2070604890&single=true&output=csv',
-      "featured": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=1926549189&single=true&output=csv',
+      "parashah": 'https://docs.google.com/spreadsheets/d/1Zaaa1TMGu3G3tiI3PRCKL1LssZVLtHUCd9MKS8fN-Ps/pub?gid=271466206&single=true&output=csv',
+      "calendar": 'https://docs.google.com/spreadsheets/d/1jIDo1Iz8jpmozl-3UZ6bZDyE0Q8Rc0Vp-4DAVM-FOoE/pub?gid=0&single=true&output=csv',
+      "discover": 'https://docs.google.com/spreadsheets/d/1C1ia7sFmZARZtGZx5WxX95nl3NHo0BwsIxkj3hbFJ1I/pub?gid=0&single=true&output=csv',
+      "featured": 'https://docs.google.com/spreadsheets/d/1tV_XZAuH9ZZSQlUtHs-o0wNMHTgm7JQ6eGAU_jPotm8/pub?gid=0&single=true&output=csv',
     },
     "chinese": {
-      "parashah": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=0&single=true&output=csv',
-      "calendar": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=1789079733&single=true&output=csv',
-      "discover": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=2070604890&single=true&output=csv',
-      "featured": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=1926549189&single=true&output=csv',
+      "parashah": 'https://docs.google.com/spreadsheets/d/1Zaaa1TMGu3G3tiI3PRCKL1LssZVLtHUCd9MKS8fN-Ps/pub?gid=1623720371&single=true&output=csv',
+      "calendar": 'https://docs.google.com/spreadsheets/d/1jIDo1Iz8jpmozl-3UZ6bZDyE0Q8Rc0Vp-4DAVM-FOoE/pub?gid=205934703&single=true&output=csv',
+      "discover": 'https://docs.google.com/spreadsheets/d/1C1ia7sFmZARZtGZx5WxX95nl3NHo0BwsIxkj3hbFJ1I/pub?gid=1672289050&single=true&output=csv',
+      "featured": 'https://docs.google.com/spreadsheets/d/1tV_XZAuH9ZZSQlUtHs-o0wNMHTgm7JQ6eGAU_jPotm8/pub?gid=316551886&single=true&output=csv',
     },
   }
 
