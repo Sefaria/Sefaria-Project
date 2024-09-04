@@ -36,14 +36,14 @@ const LoggedInDropdown = () => {
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem url={'/settings/account'}>
-        Account settings
+        <InterfaceText>Account Settings</InterfaceText>
       </DropdownMenuItem>
       <DropdownMenuItem url={'/torahtracker'}>
-        Torah Tracker
+        <InterfaceText text={{'en': 'Torah Tracker', 'he': 'לימוד במספרים'}} />
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <div className="languageHeader">
-          <InterfaceText>Site Language</InterfaceText>
+        <InterfaceText>Site Language</InterfaceText>
       </div>
       <div className='languageToggleFlexContainer'>
         <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
@@ -53,19 +53,17 @@ const LoggedInDropdown = () => {
         <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
         עברית    
         </DropdownMenuItem>
-       
-
       </div>
       <DropdownMenuSeparator />
       <DropdownMenuItem url={'/notifications'}>
-        New Additions
+        <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}} />
       </DropdownMenuItem>
       <DropdownMenuItem url={'/help'}>
-        Help
+        <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}} />
       </DropdownMenuItem>
       <DropdownMenuSeparator/>
       <DropdownMenuItem url={'/logout'}>
-        Log Out
+        <InterfaceText text={{'en': 'Log Out', 'he': 'ניתוק'}} />
       </DropdownMenuItem>
     </DropdownMenu>
   );

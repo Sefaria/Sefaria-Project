@@ -13358,7 +13358,7 @@ span.ref-link-color-3 {color: blue}
   font-size: 12px;
   font-weight: 400;
   line-height: 18px;
-  text-align: left;
+  /* text-align: left; */
   color: var(--medium-grey);
 
 }
