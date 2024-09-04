@@ -1,15 +1,15 @@
 name: Continuous
 on:
   pull_request:
-  merge_group:
-  push:
-    branches:
-      - master
     types:
       - opened
       - reopened
       - synchronize
       - ready_for_review
+  merge_group:
+  push:
+    branches:
+      - master
 
 concurrency:
   group: ${{ github.ref }}
