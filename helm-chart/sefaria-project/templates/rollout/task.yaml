@@ -118,6 +118,9 @@ spec:
         - name: elastic-cert
           mountPath: /etc/ssl/certs/elastic
           readOnly: true
+        - mountPath: /varnish-secret
+          name: varnish-secret
+          readOnly: true
       volumes:
         - name:  local-settings
           configMap:
@@ -129,6 +132,9 @@ spec:
           secret:
             secretName: {{ template "sefaria.secrets.elasticCertificate" . }}
             optional: true
+        - name: varnish-secret
+          secret:
+            secretName: {{ template "sefaria.secrets.varnish" . }}
         - name: client-secret
           secret:
             secretName: {{ template "sefaria.secrets.googleClient" . }} # needs to be checked if it's a reference object or the data object we created.
