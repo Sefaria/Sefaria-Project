@@ -220,21 +220,24 @@ const SheetContentOptions = () => {
   return (
     <DropdownMenu toggle={"..."}>
     <DropdownMenuItem url={'/'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
+      <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Save'} textHe={''} />
     </DropdownMenuItem>
     <DropdownMenuSeparator />
     <DropdownMenuItem url={'//sheets.sefaria.org'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
+      <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Copy Sheet'} textHe={''}/>
     </DropdownMenuItem>
     <DropdownMenuSeparator />
     <DropdownMenuItem url={'//developers.sefaria.org'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
+      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Add to Collection'} textHe={''}/>
     </DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//sefaria.org/products'}>
-      <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products ›'}} />
+    <DropdownMenuItem url={'//developers.sefaria.org'}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Export to Google Docs'} textHe={''}/>
     </DropdownMenuItem>
-
+    <DropdownMenuItem url={'//developers.sefaria.org'}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Share'} textHe={''}/>
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
   </DropdownMenu>
   );
 }
