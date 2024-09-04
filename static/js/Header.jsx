@@ -25,11 +25,11 @@ const LoggedInDropdown = () => {
   }
 
   return (
-    <DropdownMenu menu_icon={Sefaria.profile_pic_url ? Sefaria.profile_pic_url : <ProfilePic
-                                                                                    url={Sefaria.profile_pic_url}
-                                                                                    name={Sefaria.full_name}
-                                                                                    len={40}
-                                                                                  />
+    <DropdownMenu menuIconComponent={<ProfilePic
+                                          url={Sefaria.profile_pic_url}
+                                          name={Sefaria.full_name}
+                                          len={25}
+                              />
     }>
       <DropdownMenuItem>
         <strong>{Sefaria.full_name}</strong>
@@ -74,7 +74,7 @@ const LoggedInDropdown = () => {
 
 const ModuleSwitcher = () => {
   return (
-    <DropdownMenu menu_icon={'/static/icons/module_switcher_icon.svg'}>
+    <DropdownMenu menuIconComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
     <DropdownMenuItem url={'/'} newTab={true}>
       <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
     </DropdownMenuItem>

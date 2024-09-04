@@ -45,7 +45,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
   );
 }
 
-const DropdownMenu = ({children, menu_icon}) => {
+const DropdownMenu = ({children, menuIconComponent}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
   
@@ -79,11 +79,7 @@ const DropdownMenu = ({children, menu_icon}) => {
     return (
         <div className="dropdownLinks" ref={wrapperRef}>
            <a className="dropdownLinks-button" onClick={handleClick}>
-              {typeof menu_icon === 'string' ? (
-                  <img src={menu_icon} alt="Dropdown menu" />
-              ) : (
-                  <menu_icon/>
-              )} 
+              {menuIconComponent} 
           </a>         
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
             <div className="dropdownLinks-options">
