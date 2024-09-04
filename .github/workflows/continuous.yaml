@@ -152,18 +152,6 @@ jobs:
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-  check-builds:
-    needs: [ build-generic, build-derived ]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Check build jobs status
-        run: |
-          if [ "${{ needs.build-generic.result }}" != "success" ] || \
-             [ "${{ needs.build-derived.result }}" != "success" ]; then
-            echo "One or more build jobs failed"
-            exit 1
-          fi
 #######
 # Below Tests only run if PR is NOT draft
 #######
@@ -257,37 +245,17 @@ jobs:
         env:
           WAIT_DURATION: "3000"
           GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
-  check-sandbox:
-    needs: [ check-builds, sandbox-deploy, sandbox-ready ]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Check sandbox jobs status
-        run: |
-          if [ "${{ needs.check-builds.result }}" != "success" ] || \
-             [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
-             [ "${{ needs.sandbox-ready.result }}" != "success" ]; then
-            echo "One or more required jobs failed"
-            exit 1
-          fi
   pytest-job:
     name: "Continuous Testing: PyTest"
     concurrency:
       group: dev-mongo
       cancel-in-progress: false
     if: github.event.pull_request.draft == false
-    needs: [check-sandbox]
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: ubuntu-latest
     steps:
-      - name: Check Previous Build Steps
-        run: |
-          if [ "${{ needs.check-sandbox.result }}" != "success" ]; then
-            echo "Previous jobs failed, failing pytest-job"
-            exit 1
-          fi
       - name: Checkout
         uses: actions/checkout@v4
       - id: auth
@@ -400,3 +368,26 @@ jobs:
       - name: Uninstall
         run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
         if: steps.get-helm.outputs.count > 0
+  continuous-branch-protection:
+    needs: [ build-generic, build-derived, sandbox-deploy, sandbox-ready, pytest-job ]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: 
+        run: |
+          if [ "${{ github.event_name }}" == "merge_group" ]; then
+            exit 0
+          fi
+          if [ "${{ needs.build-generic.result }}" != "success" ] || \
+             [ "${{ needs.build-derived.result }}" != "success" ]; then
+            echo "One or more build jobs failed"
+            exit 1
+          fi
+          if [ "${{ github.event.pull_request.draft }}" == "false" ]; then
+            if [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
+               [ "${{ needs.sandbox-ready.result }}" != "success" ] || \
+               [ "${{ needs.pytest-job.result }}" != "success" ]; then
+              echo "One or more test jobs failed"
+              exit 1
+            fi
+          fi
