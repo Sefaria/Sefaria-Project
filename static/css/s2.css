@@ -345,7 +345,7 @@ body, .sans-serif {
 }
 
 body, .en, .int-en {
-    --is-hebrew: initial; /* false */
+    --is-hebrew: ; /* false */
 }
 
 .he, .int-he {
@@ -3203,6 +3203,7 @@ input.resourcesLink {
 }
 
 a.navBlockTitle {
+    --is-hebrew: ;
     color: #000;
     margin-inline-end: 20px;
 }
@@ -12922,6 +12923,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .sheetList .sheet .sheetTags {
+    --is-hebrew: ;
     color: #999;
 }
 
