@@ -42,7 +42,7 @@ def save_changes(changes, func, method):
                 results.append({'status': 'ok'})
         return jsonResponse(results)
 
-@app.task(name="web.save_change")
+@app.task(name="web.save_change", acks_late=True)
 def save_change(func_name, raw_history_change):
     function_names = {'save_link': save_link, 'save_version': save_version}
     func = function_names[func_name]
@@ -58,7 +58,7 @@ def save_change(func_name, raw_history_change):
         else:
             return repr(e)
 
-@app.task(name="web.inform")
+@app.task(name="web.inform", acks_late=True)
 def inform(results, main_task_id):
     title = f'Results for celery main task with id {main_task_id}'
     results = '\n'.join([f'{k}: {v}.' for k, v in Counter(results).items()])
