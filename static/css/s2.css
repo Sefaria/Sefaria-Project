@@ -468,7 +468,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 
 .smallText .int-en,
 .smallText .int-he.enInHe {
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "jomolhari";
     font-size: 14px;
     font-weight: normal;
     color: #999;
