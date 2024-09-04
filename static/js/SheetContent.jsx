@@ -6,9 +6,11 @@ import {
   InterfaceText, ProfilePic, SaveButton, SheetAuthorStatement,
   SheetMetaDataBox, SheetMetaDataBoxSegment
 } from "./Misc";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import classNames from "classnames";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
+import {SignUpModalKind} from "./sefaria/signupModalContent";
+import {ToolsButton} from "./ConnectionsPanel";
 
 class SheetContent extends Component {
   componentDidMount() {
@@ -200,7 +202,9 @@ class SheetContent extends Component {
           <div className="sidebarLayout">
           <SheetContentMetaDataBox authorStatement={this.props.authorStatement} authorUrl={this.props.authorUrl}
                                    authorImage={this.props.authorImage} title={this.props.title} summary={this.props.summary} />
-          <SheetContentOptions toggleSignUpModal={this.props.toggleSignUpModal} historyObject={this.props.historyObject}/>
+          <SheetContentOptions toggleSignUpModal={this.props.toggleSignUpModal}
+                               sheetID={this.props.sheetID}
+                               historyObject={this.props.historyObject}/>
           </div>
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
@@ -216,37 +220,137 @@ class SheetContent extends Component {
   }
 }
 
-const SheetContentOptions = ({historyObject, toggleSignUpModal}) => {
+const SheetContentOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   return (
     <DropdownMenu toggle={"..."}>
-    <DropdownMenuItem>
-    <SaveButton
+      <DropdownMenuItem>
+        <SaveButton
             historyObject={historyObject}
             tooltip={true}
             toggleSignUpModal={toggleSignUpModal}
             shouldDisplayText={true}
-    />
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//sheets.sefaria.org'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Copy Sheet'} textHe={''}/>
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//developers.sefaria.org'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Add to Collection'} textHe={''}/>
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//developers.sefaria.org'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Export to Google Docs'} textHe={''}/>
-    </DropdownMenuItem>
-    <DropdownMenuItem url={'//developers.sefaria.org'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Share'} textHe={''}/>
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-  </DropdownMenu>
+        />
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem>
+        <GoogleDocExportButton sheetID={sheetID} toggleSignUpModal={toggleSignUpModal}/>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem>
+        <CopyButton toggleSignUpModal={toggleSignUpModal} sheetID={sheetID}/>
+      </DropdownMenuItem>
+    </DropdownMenu>
   );
 }
+const CopyButton = ({toggleSignUpModal, sheetID}) => {
+  const copyState = {
+    copy: { en: "Copy", he: "העתקה" },
+    copying: { en: "Copying...", he: "מעתיק..."},
+    copied: { he: "צפייה בדף המקורות", en: "View Copy"},
+    error: { en: "Sorry, there was an error.", he: "סליחה, ארעה שגיאה" }
+  }
+  const [copyText, setCopyText] = useState(copyState.copy);
+  const [copiedSheetId, setCopiedSheetId] = useState(0);
+  const sheet = Sefaria.sheets.loadSheetByID(sheetID);
+  const filterAndSaveCopiedSheetData = (data) => {
+    let newSheet = Sefaria.util.clone(data);
+    newSheet.status = "unlisted";
+    newSheet.title = newSheet.title + " (Copy)";
 
+    if (Sefaria._uid !== newSheet.owner) {
+      newSheet.via = newSheet.id;
+      newSheet.viaOwner = newSheet.owner;
+      newSheet.owner = Sefaria._uid
+    }
+    delete newSheet.id;
+    delete newSheet.ownerName;
+    delete newSheet.views;
+    delete newSheet.dateCreated;
+    delete newSheet.dateModified;
+    delete newSheet.displayedCollection;
+    delete newSheet.collectionName;
+    delete newSheet.collectionImage;
+    delete newSheet.likes;
+    delete newSheet.promptedToPublish;
+    delete newSheet._id;
+
+    const postJSON = JSON.stringify(newSheet);
+    $.post("/api/sheets/", { "json": postJSON }, (data) => {
+      if (data.id) {
+        setCopiedSheetId(data.id);
+        setCopyText(copyState.copied);
+      } else if ("error" in data) {
+        setCopyText(copyState.error);
+        console.log(data.error);
+      }
+    })
+  }
+
+  const copySheet = () => {
+    if (!Sefaria._uid) {
+      toggleSignUpModal(SignUpModalKind.AddToSheet);
+    } else if (copyText.en === copyState.copy.en) {
+      setCopyText(copyState.copying);
+      filterAndSaveCopiedSheetData(sheet);
+    } else if (copyText.en === copyState.copied.en) {
+      window.location.href = `/sheets/${copiedSheetId}`
+      // TODO: open copied sheet
+    }
+  }
+  return <ToolsButton en={copyText.en} he={copyText.he} image="copy.png" greyColor={!!copyText.secondaryEn || copyText.greyColor} onClick={() => copySheet()} />;
+}
+const GoogleDocExportButton = ({ toggleSignUpModal, sheetID }) => {
+  const googleDriveState = {
+    export: { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" },
+    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס...", greyColor: true},
+    exportComplete: { en: "Export Complete", he: "ייצוא הסתיים", secondaryEn: "Open in Google", secondaryHe: "לפתיחה בגוגל דוקס", greyColor: true}
+  }
+  const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
+  const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState(googleDriveState.exporting) : useState(googleDriveState.export);
+  const [googleDriveLink, setGoogleDriveLink] = useState("");
+  const sheet = Sefaria.sheets.loadSheetByID(sheetID);
+
+  useEffect(() => {
+    if (googleDriveText.en === googleDriveState.exporting.en) {
+      history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
+      $.ajax({
+        type: "POST",
+        url: "/api/sheets/" + sheet.id + "/export_to_drive",
+        success: function (data) {
+          if ("error" in data) {
+            console.log(data.error.message);
+            // Export Failed
+          } else {
+            // Export succeeded
+            setGoogleDriveLink(data.webViewLink);
+            setGoogleDriveText(googleDriveState.exportComplete)
+          }
+        },
+        statusCode: {
+          401: function () {
+            window.location.href = "/gauth?next=" + encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive");
+          }
+        }
+      });
+    }
+  }, [googleDriveText])
+  const googleDriveExport = () => {
+    // $("#overlay").show();
+    // sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
+    if (!Sefaria._uid) {
+      toggleSignUpModal();
+    }
+    else if (googleDriveText.en === googleDriveState.exportComplete.en) {
+      Sefaria.util.openInNewTab(googleDriveLink);
+    } else {
+      Sefaria.track.sheets("Export to Google Docs");
+      setGoogleDriveText(googleDriveState.exporting);
+    }
+  }
+  return <div>
+            <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
+          </div>;
+}
 const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage}) => {
   return <SheetMetaDataBox>
     <SheetMetaDataBoxSegment text={title} className="title"/>

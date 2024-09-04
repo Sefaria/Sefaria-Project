@@ -13325,13 +13325,20 @@ span.ref-link-color-3 {color: blue}
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
 }
+.dropdownLinks .toolsButtonContainer {
+  margin: revert;
+}
 .dropdownLinks #saveButtonText {
-  padding-inline-start: 10px;
-  margin-bottom: 10px;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 18.75px;
-  color: var(--selected-option);
+  padding-inline-start: 15px;
+}
+.dropdownLinks .toolsButton.systemTypeface .toolsButtonText span,
+.dropdownLinks #saveButtonText {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+  color: #666666;
 }
 .sheetsInPanel .dropdownLinks {
   display: flex;
