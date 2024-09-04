@@ -13325,6 +13325,14 @@ span.ref-link-color-3 {color: blue}
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
 }
+.dropdownLinks #saveButtonText {
+  padding-inline-start: 10px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  color: var(--selected-option);
+}
 .sheetsInPanel .dropdownLinks {
   display: flex;
   min-width: 50%;

@@ -3,7 +3,7 @@ import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "./sefaria/sefaria";
 import {
-  InterfaceText, ProfilePic, SheetAuthorStatement,
+  InterfaceText, ProfilePic, SaveButton, SheetAuthorStatement,
   SheetMetaDataBox, SheetMetaDataBoxSegment
 } from "./Misc";
 import React from "react";
@@ -200,7 +200,7 @@ class SheetContent extends Component {
           <div className="sidebarLayout">
           <SheetContentMetaDataBox authorStatement={this.props.authorStatement} authorUrl={this.props.authorUrl}
                                    authorImage={this.props.authorImage} title={this.props.title} summary={this.props.summary} />
-          <SheetContentOptions/>
+          <SheetContentOptions toggleSignUpModal={this.props.toggleSignUpModal} historyObject={this.props.historyObject}/>
           </div>
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
@@ -216,11 +216,16 @@ class SheetContent extends Component {
   }
 }
 
-const SheetContentOptions = () => {
+const SheetContentOptions = ({historyObject, toggleSignUpModal}) => {
   return (
     <DropdownMenu toggle={"..."}>
-    <DropdownMenuItem url={'/'}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Save'} textHe={''} />
+    <DropdownMenuItem>
+    <SaveButton
+            historyObject={historyObject}
+            tooltip={true}
+            toggleSignUpModal={toggleSignUpModal}
+            shouldDisplayText={true}
+    />
     </DropdownMenuItem>
     <DropdownMenuSeparator />
     <DropdownMenuItem url={'//sheets.sefaria.org'}>

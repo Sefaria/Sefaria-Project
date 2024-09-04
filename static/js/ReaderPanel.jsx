@@ -676,6 +676,8 @@ class ReaderPanel extends Component {
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
           hasSidebar={this.props.hasSidebar}
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
         />
       );
     }

@@ -15,13 +15,25 @@ const DropdownMenuSeparator = () => {
 }
 
 const DropdownMenuItem = ({url, children}) => {
-  return (
+  const dropDownClasses = `interfaceLinks-option int-bi dropdownItem`;
+  if (!url) {
+      return (
 
-    <a className={`interfaceLinks-option int-bi dropdownItem`} href={url} target="_blank">
-      {children}
-    </a>
+          <div className={dropDownClasses}>
+              {children}
+          </div>
 
-  );
+      );
+  }
+  else {
+      return (
+
+          <a className={dropDownClasses} href={url} target="_blank">
+              {children}
+          </a>
+
+      );
+  }
 }
 
 const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {

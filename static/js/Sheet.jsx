@@ -127,6 +127,8 @@ class Sheet extends Component {
                   authorUrl={sheet.ownerProfileUrl}
                   authorImage={sheet.ownerImageUrl}
                   summary={sheet.summary}
+                  toggleSignUpModal={this.props.toggleSignUpModal}
+                  historyObject={this.props.historyObject}
             />
               <SheetSidebar
                   authorStatement={sheet.ownerName}
