@@ -183,6 +183,7 @@ jobs:
     concurrency:
       group: dev-mongo
       cancel-in-progress: false
+    needs: [ build-derived ]
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
@@ -255,6 +256,7 @@ jobs:
     concurrency:
       group: dev-mongo
       cancel-in-progress: false
+    needs: [ sandbox-ready ]
     if: github.event.pull_request.draft == false
     permissions:
       contents: 'read'
