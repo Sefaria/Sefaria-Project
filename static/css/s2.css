@@ -13362,14 +13362,20 @@ span.ref-link-color-3 {color: blue}
 .dropdownLinks #saveButtonText {
   padding-inline-start: 15px;
 }
-.dropdownLinks .toolsButton.systemTypeface .toolsButtonText span,
-.dropdownLinks #saveButtonText {
+.sheetsInPanel .dropdownDesc {
+  display: none;
+}
+.sheetsInPanel .toolsButtonText,
+.sheetsInPanel .dropdownHeaderText,
+.sheetsInPanel #saveButtonText {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 14px;
   font-weight: 600;
   line-height: 18px;
   color: #666666;
+  margin-inline-start: 10px;
+  padding: revert;
 }
 .sheetsInPanel .dropdownLinks {
   display: flex;
@@ -13382,6 +13388,10 @@ span.ref-link-color-3 {color: blue}
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
+  line-height: 0px;
+}
+.sheetsInPanel .dropdownHeader {
+  margin-bottom: revert;
 }
 .header .dropdownLinks img, .sheetsInPanel .dropdownLinks img {
   height: 18px;
@@ -13425,6 +13435,15 @@ span.ref-link-color-3 {color: blue}
   display:none;
   overflow:hidden;
 }
+.sheetsInPanel .dropdownItem {
+  padding: revert;
+}
+
+.sheetsInPanel .dropdownLinks .dropdownLinks-menu {
+  background: white;
+}
+
+
 .interface-english .header .dropdownLinks .dropdownLinks-menu,
 .interface-english .sheetsInPanel .dropdownLinks .dropdownLinks-menu{
   right: 0px;

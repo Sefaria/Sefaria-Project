@@ -240,19 +240,27 @@ const SheetContentOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
             shouldDisplayText={true}
         />
       </DropdownMenuItem>
-      <DropdownMenuSeparator />
       <DropdownMenuItem>
         <GoogleDocExportButton sheetID={sheetID} toggleSignUpModal={toggleSignUpModal}/>
       </DropdownMenuItem>
-      <DropdownMenuSeparator />
       <DropdownMenuItem>
         <CopyButton toggleSignUpModal={toggleSignUpModal} sheetID={sheetID}/>
       </DropdownMenuItem>
       <DropdownMenuItem>
-        <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setSharing(true)} />
+        <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
+                                  textEn={'Share'}
+                                  textHe={'שיתוף'}
+                                  descEn={""}
+                                  descHe={""}
+                                  onClick={() => setSharing(true)}/>
       </DropdownMenuItem>
       <DropdownMenuItem>
-        <ToolsButton en="Add to Collection" he="צירוף לאסופה" image="" onClick={() => setAdding(true)} />
+        <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
+                                  textEn={'Add to Collection'}
+                                  textHe={'צירוף לאסופה'}
+                                  descEn={""}
+                                  descHe={""}
+                                  onClick={() => setAdding(true)} />
       </DropdownMenuItem>
     </DropdownMenu>
   );

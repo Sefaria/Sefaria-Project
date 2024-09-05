@@ -36,17 +36,18 @@ const DropdownMenuItem = ({url, children}) => {
   }
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='Lorem ipsum dolor sit amet, lorem dolor.',
+                                  descHe='לורם איפסום דולור סיט אמט'}) => {
   return (
     <>
-      <div className="dropdownHeader">
+      <div className="dropdownHeader" onClick={() => onClick()}>
         <img src={icon} />
         <span className='dropdownHeaderText'>
           <InterfaceText text={{'en': textEn, 'he': textHe}} />
         </span>
       </div>
       <div className='dropdownDesc'>
-        <InterfaceText text={{'en': 'Lorem ipsum dolor sit amet, lorem dolor.', 'he': 'לורם איפסום דולור סיט אמט'}} />     
+        <InterfaceText text={{'en': descEn, 'he': descHe}} />
       </div>
   </>
   );
