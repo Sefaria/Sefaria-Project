@@ -77,7 +77,7 @@ class AboutBox extends Component {
       if (d) {
           detailSection = (<div className="detailsSection">
                   <h2 className="aboutHeader">
-                      <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("About This Text")}</span>
+                      <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("side_nav.about_text")}</span>
                   </h2>
                   <div className="aboutTitle">
                       {d.title.stripHtml()}
@@ -100,9 +100,9 @@ class AboutBox extends Component {
     const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang !== "he").map(([lang, version])=> version);
     const multiple_translations = translationVersions?.length > 1;
     const no_source_versions = multiple_translations || translationVersions?.length === 1 && !sourceVersion;
-    const sourceVersionSectionTitle = {en: Sefaria._("Current Version"), he:Sefaria._("Current Version")};
-    const translationVersionsSectionTitle = multiple_translations ? {en: Sefaria._("Current Translations"), he:Sefaria._("Current Translations")} : {en: Sefaria._("Current Translation"), he: Sefaria._("Current Translation")};
-    const alternateVersionsSectionTitle = no_source_versions ? {en: Sefaria._("Source Versions"), he: Sefaria._("Source Versions")} : {en: Sefaria._("Alternate Source Versions"), he: Sefaria._("Alternate Source Versions")}
+    const sourceVersionSectionTitle = {en: Sefaria._("text.current_version"), he:Sefaria._("text.current_version")};
+    const translationVersionsSectionTitle = multiple_translations ? {en: Sefaria._("text.current_translation"), he:Sefaria._("text.current_translation")} : {en: Sefaria._("text.current_translation"), he: Sefaria._("text.current_translation")};
+    const alternateVersionsSectionTitle = no_source_versions ? {en: Sefaria._("source_versions"), he: Sefaria._("source_versions")} : {en: Sefaria._("alt_source_versions"), he: Sefaria._("alt_source_versions")}
 
     let detailSection = null;
     if (d) {
@@ -137,7 +137,7 @@ class AboutBox extends Component {
       detailSection = (
         <div className="detailsSection sans-serif">
           <h2 className="aboutHeader">
-            <InterfaceText>{ Sefaria._("About This Text")}</InterfaceText>
+            <InterfaceText>side_nav.about_text</InterfaceText>
           </h2>
           <a href={bookPageUrl} className="aboutTitle serif">
             <ContentText text={{en: d.title, he:d.heTitle}}/>
@@ -163,8 +163,8 @@ class AboutBox extends Component {
 
           { !!placeTextEn || !!dateTextEn ?
             <div className="aboutComposed">
-              <span className="en">{ Sefaria._("Composed")} {`${!!placeTextEn ? placeTextEn : ""} ${!!dateTextEn ? dateTextEn : ""}`}</span>
-              <span className="he">{ Sefaria._("Composed")} {`${!!placeTextHe ? placeTextHe : ""} ${!!dateTextHe ? dateTextHe : ""}`}</span>
+              <span className="en">{ Sefaria._("text.composed")} {`${!!placeTextEn ? placeTextEn : ""} ${!!dateTextEn ? dateTextEn : ""}`}</span>
+              <span className="he">{ Sefaria._("text.composed")} {`${!!placeTextHe ? placeTextHe : ""} ${!!dateTextHe ? dateTextHe : ""}`}</span>
             </div> : null
           }
         </div>

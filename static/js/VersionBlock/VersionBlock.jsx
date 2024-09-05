@@ -15,7 +15,7 @@ import VersionBlockWithPreview from "./VersionBlockWithPreview";
 class VersionBlockUtils {
     static makeVersionTitle(version){
       if (version.merged) {
-        return {"className" : "", "text": Sefaria._("Merged from") + " " + Array.from(new Set(version.sources)).join(", ")};
+        return {"className" : "", "text": Sefaria._("merged_from") + " " + Array.from(new Set(version.sources)).join(", ")};
       } else if (Sefaria.interfaceLang === "english" || !version.versionTitleInHebrew) {
         return {"className" : "", "text" : version.versionTitle};
       } else {
@@ -189,7 +189,7 @@ class VersionBlock extends Component {
   }
   makeSelectVersionLanguage(){
     let voc = this.props.version.isSource ? 'Version' : "Translation";
-    return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
+    return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("select "+ voc);
   }
 
   hasExtendedNotes(){
@@ -201,7 +201,7 @@ class VersionBlock extends Component {
       return null
     } else {
       return (
-        <div className="status sans-serif danger">{Sefaria._("In Progress")}</div>
+        <div className="status sans-serif danger">{Sefaria._("text.versions.in_progress")}</div>
       )
     } 
   }
@@ -245,7 +245,7 @@ class VersionBlock extends Component {
             <label htmlFor="iscompleted">Text completion status</label>
             <select id="iscompleted" name="iscompleted" className="" value={this.state.iscompleted} onChange={this.handleInputChange}>
               <option key="in_progress"  value="in_progress">in_progress</option>
-              <option key="done"  value="done">done</option>
+              <option key="done"  value="done">{Sefaria._("collection.done")}</option>
             </select>
             <br></br>
             <label htmlFor="shortVersionTitleInHebrew" className="">Short Hebrew Version Title</label>

@@ -29,7 +29,7 @@ class NoteListing extends Component {
     $(".addToSourceSheetModal").position({my: "center center-40", at: "center center", of: window});
   }
   deleteNote() {
-    if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
+    if (!confirm(Sefaria._("note_confirm_delete_request"))) { return; }
     const resolve = this.props.onDeleteNote || (()=>{});
     Sefaria.deleteNote(this.props.data._id).then(resolve);
   }

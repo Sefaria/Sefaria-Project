@@ -126,10 +126,7 @@ const TranslationsHeader = () => (
         <HebrewText>དཔེ་ཆ་དྲ་ཚིག་གིས་འགྱུར་མ་ཁག་བཟོས་ཏེ་སྦྱོང་ཡག་ལ་རོག་རམ་བྱེད་ཐུབ་ གཤམ་འོག་ལ་སྐད་ཡིག་གཞན་འདེམ་རོགས་།</HebrewText>
       </InterfaceText>
       <a href="/sheets/36" target="_blank" className="inTextLink">
-        <InterfaceText>
-          <EnglishText>Learn more ›</EnglishText>
-          <HebrewText> མུ་མཐུད་གཟིགས་་ ›</HebrewText>
-        </InterfaceText>
+        <InterfaceText>learn_more</InterfaceText>
       </a>
     </div>
   </div>

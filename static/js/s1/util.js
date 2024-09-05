@@ -376,7 +376,7 @@ sjs.peopleList = function(list, title) {
 	//var modalHtml = `<div id='peopleListModal' class='modal interface-${Sefaria.interfaceLang}'><div id='peopleListTitle'> ${title} </div><div id='peopleList'> ${peopleHtml} </div><div class='btn
 	// closePeople'>${Sefaria._("Close")}</div></div>`;
 
-	var modalHtml = "<div id='peopleListModal' class='modal interface-" + Sefaria.interfaceLang + "'><div id='peopleListTitle'> " + title + " </div><div id='peopleList'> " + peopleHtml + " </div><div class='btn closePeople'>" + Sefaria._("Close") + "</div></div>";
+	var modalHtml = "<div id='peopleListModal' class='modal interface-" + Sefaria.interfaceLang + "'><div id='peopleListTitle'> " + title + " </div><div id='peopleList'> " + peopleHtml + " </div><div class='btn closePeople'>" + Sefaria._("close") + "</div></div>";
 
 	$(modalHtml).appendTo("body").show().position({of: window});
 	$("#overlay").show();
@@ -1303,7 +1303,7 @@ sjs.deleteTextButtonHandler = function(e) {
 			}
 		}
 	}).fail(function() {
-		sjs.alert.message("Something went wrong. Sorry!");
+		sjs.alert.message("topic.admin.something_wrong");
 	});
 
 };

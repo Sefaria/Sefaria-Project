@@ -15,7 +15,7 @@ function VersionImage({version}) {
       <div className="versionDetailsImage">
         <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionBuyImage": 1, "versionDetailsElement": 1} , "purchaseInformationImage"))}>
           <a className="versionDetailsLink versionDetailsImageLink" href={makeImageLink()} target="_blank">
-            <img className="versionImage" src={makeImageSrc()} alt={Sefaria._("Buy Now")} />
+            <img className="versionImage" src={makeImageSrc()} alt={Sefaria._("buy_now")} />
           </a>
         </div>
       </div>

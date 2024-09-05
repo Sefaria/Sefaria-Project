@@ -32,11 +32,11 @@ const SourcesSheetsDiv = (props) => {
     }
 
     if (props?.numSources > 0) {
-        const sourcesDiv = <span><a href={sourcesURL}><InterfaceText>{props.numSources}</InterfaceText> <InterfaceText>Sources</InterfaceText></a></span>;
+        const sourcesDiv = <span><a href={sourcesURL}><InterfaceText>{props.numSources}</InterfaceText> <InterfaceText>sheet.sources</InterfaceText></a></span>;
         sourcesSheetsCounts.push(sourcesDiv);
     }
     if (props?.numSheets > 0) {
-        const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>Sheets</InterfaceText></a></span>;
+        const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>sheets</InterfaceText></a></span>;
         sourcesSheetsCounts.push(sheetsDiv);
     }
 
@@ -542,8 +542,8 @@ class SearchResultList extends Component {
           }
         }
 
-        const loadingMessage   = (<LoadingMessage message={Sefaria._("Searching...")} heMessage={Sefaria._("Searching...")}/>);
-        const noResultsMessage = (<LoadingMessage message={Sefaria._("0 results..")} heMessage={Sefaria._("0 results..")}  />);
+        const loadingMessage   = (<LoadingMessage message={Sefaria._("searching")} heMessage={Sefaria._("searching")}/>);
+        const noResultsMessage = (<LoadingMessage message={Sefaria._("search.zero_result")} heMessage={Sefaria._("search.zero_result")}  />);
 
         const queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
         const haveResults      = !!results.length;
@@ -637,8 +637,8 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType}) => {
       <DropdownButton
         isOpen={isOpen}
         toggle={() => {setIsOpen(!isOpen)}}
-        enText={Sefaria._("Sort") }
-        heText={Sefaria._("Sort") }
+        enText={Sefaria._("profile.tab.dropdown.sort") }
+        heText={Sefaria._("profile.tab.dropdown.sort") }
         buttonStyle={true}
       />
       <DropdownOptionList
@@ -659,7 +659,7 @@ SearchSortBox.propTypes = {
 
 const SearchFilterButton = ({openMobileFilters, nFilters}) => (
   <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters})} onClick={openMobileFilters}>
-    <InterfaceText>Filter</InterfaceText>
+    <InterfaceText>filter</InterfaceText>
     {!!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
   </div>
 );

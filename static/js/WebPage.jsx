@@ -43,7 +43,7 @@ const WebPage = ({authors, isHebrew, favicon, url, domain, title, description, a
     <div className="webpageMetadata">
       <AuthorString authors={authors} isHebrew={isHebrew} />
       {articleSource ? <div className="articleSource">
-        <InterfaceText>Source</InterfaceText>: {articleSource.title}{articleSource.related_parts ? ` ${articleSource.related_parts}`: ''}
+        <InterfaceText>text.versions.source</InterfaceText>: {articleSource.title}{articleSource.related_parts ? ` ${articleSource.related_parts}`: ''}
       </div> : null}
       <div className="citing">
         <InterfaceText>Citing</InterfaceText>: {Sefaria._r(anchorRef)}

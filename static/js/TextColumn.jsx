@@ -367,7 +367,7 @@ class TextColumn extends Component {
       return null
     } else {
       return (
-        <div className={ribbonStyle}>{Sefaria._("In Progress")}</div>
+        <div className={ribbonStyle}>{Sefaria._("text.versions.in_progress")}</div>
       )
     } 
      

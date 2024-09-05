@@ -33,16 +33,16 @@ class UserProfile extends Component {
     const showBio = !!props.profile.bio;
     const tabs = [
       { id: "sheets", text: "Sheets", icon: "/static/icons/sheet.svg" },
-      { id: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
+      { id: "collections", text: Sefaria._("collection"), icon: "/static/icons/collection.svg" },
       { id: "followers", text: "Followers", invisible: true },
       { id: "following", text: "Following", invisible: true },
-      { id: "torah-tracker", text: "Buddhist Text Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { id: "torah-tracker", text: Sefaria._("profile.buddhish_text_tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
-      tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/icons/note.svg" });
+      tabs.splice(2, 0, { id: "notes", text: Sefaria._("notes"), icon: "/static/icons/note.svg" });
     }
     if (showBio) {
-      tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/icons/info.svg" });
+      tabs.push({ id: "about", text: Sefaria._("about"), icon: "/static/icons/info.svg" });
     }
     return {
       showNotes,
@@ -85,7 +85,7 @@ class UserProfile extends Component {
         <div className="emptyList">
           <div className="emptyListText">
             <InterfaceText>{this.props.profile.full_name}</InterfaceText>
-            <InterfaceText> hasn't shared any collections yet.</InterfaceText>
+            <InterfaceText> collection.no_shared_collection</InterfaceText>
           </div>
         </div>);
     }
@@ -142,7 +142,7 @@ class UserProfile extends Component {
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("0 Notes")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("note.zero_notes")}</span>
         </div>
       </div>
     );
@@ -188,7 +188,7 @@ class UserProfile extends Component {
         <div className="emptyList">
           <div className="emptyListText">
             <InterfaceText>{this.props.profile.full_name}</InterfaceText>
-            <InterfaceText> hasn't shared any sheets yet.</InterfaceText>
+            <InterfaceText>sheet.has_not_shared_sheet</InterfaceText>
           </div> 
         </div>
       );
@@ -197,12 +197,12 @@ class UserProfile extends Component {
       <div className="emptyList">
         <div className="emptyListText">
           <span className={`${Sefaria.languageClassFont()}`}>
-           {Sefaria._(" You can use sheets to save and organize sources, write new texts, create lessons, lectures, articles, and more.")}
+           {Sefaria._("profile.sheet_description")}
           </span>
         </div>
         <a href="/sheets/new" className="resourcesLink sans-serif">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Create a New Sheet")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("header.profileMenu.create_New_Sheet")}</span>
         </a>
       </div>
     );
@@ -238,7 +238,7 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/sheets/new" className="resourcesLink sans-serif">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Create a New Sheet")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("header.profileMenu.create_New_Sheet")}</span>
         </a>
       </div>
     );
@@ -257,14 +257,14 @@ class UserProfile extends Component {
   renderFollowerHeader() {
     return (
       <div className="follow-header sans-serif">
-        <InterfaceText>Followers</InterfaceText> <span className="follow-count">{`(${this.props.profile.followers.length})`}</span>
+        <InterfaceText>followers</InterfaceText> <span className="follow-count">{`(${this.props.profile.followers.length})`}</span>
       </div>
     );
   }
   renderFollowingHeader() {
     return (
       <div className="follow-header sans-serif">
-        <InterfaceText>Following</InterfaceText> <span className="follow-count">{`(${this.props.profile.followees.length})`}</span>
+        <InterfaceText>following</InterfaceText> <span className="follow-count">{`(${this.props.profile.followees.length})`}</span>
       </div>
     );
   }
@@ -287,14 +287,14 @@ class UserProfile extends Component {
   renderEmptyFollowerList() {
     return (
       <div>
-        <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("0 followers")}</span>
+        <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("zero_followers")}</span>
       </div>
     );
   }
   renderEmptyFollowingList() {
     return (
       <div>
-        <span className={`${Sefaria.languageClassFont}`}>{Sefaria._("0 following")}</span>
+        <span className={`${Sefaria.languageClassFont}`}>{Sefaria._("zero_following")}</span>
       </div>
     );
   }
@@ -441,7 +441,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
 
  const text = <InterfaceText>{usesneweditor ? "You are currently testing the new Sefaria editor." : "You are currently using the old Sefaria editor."}</InterfaceText>;
- const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
+ const buttonText = <InterfaceText>{usesneweditor ? "back_to_old_version" : "try_new_version"}</InterfaceText>;
 
  const sendFeedback = () => {
 
@@ -470,27 +470,27 @@ const EditorToggleHeader = ({usesneweditor}) => {
 
        }
    }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-       alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+       alert(Sefaria._("feedback.message.error_sending_feedback"));
    });
  }
 
  const disableOverlayContent = (
    <div class="sans-serif-in-hebrew">
-      <h2><InterfaceText>Request for Feedback</InterfaceText></h2>
-      <p><InterfaceText>Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.</InterfaceText></p>
-      <p><InterfaceText>Did you encounter any issues while using the new editor? For example:</InterfaceText></p>
+      <h2><InterfaceText>feedback.request_for_feedback</InterfaceText></h2>
+      <p><InterfaceText>message.new_pecha_editor</InterfaceText></p>
+      <p><InterfaceText>message.encounter_issue</InterfaceText></p>
       <ul>
-        <li><InterfaceText>Technical problems</InterfaceText></li>
-        <li><InterfaceText>Difficulties using the editor</InterfaceText></li>
-        <li><InterfaceText>Missing features</InterfaceText></li>
+        <li><InterfaceText>technical_problem</InterfaceText></li>
+        <li><InterfaceText>editor.difficulties_using_editor</InterfaceText></li>
+        <li><InterfaceText>missing_feature</InterfaceText></li>
       </ul>
 
       <p>
-        <textarea className="feedbackText" placeholder={Sefaria._("Tell us about it...")} id="feedbackText"></textarea>
+        <textarea className="feedbackText" placeholder={Sefaria._("tell_us_about")} id="feedbackText"></textarea>
       </p>
       <p>
         <a href="#" className="button" role="button" onClick={()=>sendFeedback()}>
-            <InterfaceText>Submit Feedback</InterfaceText>
+            <InterfaceText>feedback.submit</InterfaceText>
         </a>
       </p>
 
@@ -498,16 +498,16 @@ const EditorToggleHeader = ({usesneweditor}) => {
  )
  const enableOverlayContent = (
    <div class="sans-serif-in-hebrew">
-      <h2><InterfaceText>Thanks for Trying the New Editor!</InterfaceText></h2>
-      <p><InterfaceText>Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></p>
-      <div className="buttonContainer"><a href="/enable_new_editor" onClick={()=>toggleFeedbackOverlayState()} className="button" role="button"><InterfaceText>Back to Profile</InterfaceText></a></div>
+      <h2><InterfaceText>message.thanks_for_trying_new_editor</InterfaceText></h2>
+      <p><InterfaceText>message.go_to_profile_to_create_new_sheet</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></p>
+      <div className="buttonContainer"><a href="/enable_new_editor" onClick={()=>toggleFeedbackOverlayState()} className="button" role="button"><InterfaceText>back_to_profile</InterfaceText></a></div>
    </div>
  )
  const thankYouContent = (
    <div class="sans-serif-in-hebrew">
-      <h2><InterfaceText>Thank you!</InterfaceText></h2>
-      <p><InterfaceText>Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
-      <div className="buttonContainer"><a href="/disable_new_editor" className="button" role="button"><InterfaceText>Back to Profile</InterfaceText></a></div>
+      <h2><InterfaceText>thank_you</InterfaceText></h2>
+      <p><InterfaceText>feedback.message.response</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
+      <div className="buttonContainer"><a href="/disable_new_editor" className="button" role="button"><InterfaceText>back_to_profile</InterfaceText></a></div>
    </div>
  )
 
@@ -552,7 +552,7 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
   if (p.location) { infoList.push(p.location); }
   infoList = infoList.concat(p.jewish_education);
   if (p.website) {
-    infoList.push(<span><a href={p.website} target="_blank"><InterfaceText>Website</InterfaceText></a></span>);
+    infoList.push(<span><a href={p.website} target="_blank"><InterfaceText>collection._web_site</InterfaceText></a></span>);
   }
   const socialList = social.filter(s => !!p[s]);
   if (socialList.length) {
@@ -573,8 +573,8 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
         </div>
         { p.position || p.organization ?
           <div className="title sub-title">
-            <span>{p.position}</span>
-            { p.position && p.organization ? <span>{ Sefaria._(" at ") }</span> : null }
+            <span>sd fasdfa{p.position}</span>
+            { p.position && p.organization ? <span>{ Sefaria._("profile.at") }</span> : null }
             <span>{p.organization}</span>
           </div> : null
         }
@@ -594,14 +594,14 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
           Sefaria._uid === p.id ? (
           <div className="profile-actions">
             <a href="/settings/profile" className="resourcesLink sans-serif">
-              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Edit Profile")}</span>
+              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("profile.edit_profile")}</span>
             </a>
             <a href="/settings/account" className="resourcesLink sans-serif profile-settings">
               <img src="/static/icons/settings.svg" alt="Profile Settings" />
-              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Settings")}</span>
+              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("profile.setting")}</span>
             </a>
             <a href="/logout" className="button transparent logoutLink">
-              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Log Out")}</span>
+              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("profile.log_out")}</span>
             </a>
           </div>) : (
           <div className="profile-actions">

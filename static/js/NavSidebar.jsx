@@ -95,24 +95,8 @@ const Promo = () =>
 const AboutSefaria = ({hideTitle}) => (
   <Module>
     {!hideTitle ?
-    <ModuleTitle h1={true}>A Living Library of Buddhist Text</ModuleTitle> : null }
-    <InterfaceText>
-      <EnglishText>
-        The Pecha platform provides access to Buddhist scriptures in a variety of languages and styles to accommodate everyone's needs. 
-        By searching for a single verse, users can discover its origins, various interpretations, translations into different languages, 
-        commentaries, annotations, sub-commentaries, and references in other scriptures—all in one place. Whether casually exploring various 
-        scriptures or engaging in deep study, users can share insights or personal experiences related to the subject through notes or comments 
-        with other Dharma friends. Additionally, users can gain from the fresh insights shared by fellow readers in their notes.
-        </EnglishText>
-        <HebrewText>
-          དཔེ་ཆ་དྲ་བའི་ནང་དུ་ཁྱེད་རང་གི་དགོས་མཁོ་དང་འཚམ་པའི་ནང་པའི་གསུང་རབ་སྣ་ཚོགས་བཞུགས་ཡོད།  དྲ་རྒྱ་འདིའི་ཁྱད་ཆོས་ནི། ཀློག་མཁན་རྣམས་ཀྱིས་སྟབས་བདེ་བོའི་ངང་ནས་གཞུང་ལུགས་ཆེན་པོ་རྣམས་ལ་སློབ་སྦྱོང་བྱེད་ཐུབ་ཀྱི་ཡོད། དཔེར་ན། རྩ་ཚིག་གཅིག་ཙམ་བཙལ་བས། ཚིག་དེ་གང་ནས་འབྱུང་བའི་ཁུངས་དང་། 
-          ཚིག་སྦྱོར་དང་འགྱུར་མི་འདྲ་བ། སྐད་ཡིག་གཞན་པའི་ནང་དུ་འགྱུར་བ་གང་ཡོད། རྩ་ཚིག་དེའི་འགྲེལ་བ་དང་། མཆན་འགྲེལ། ཡང་འགྲེལ། བསྟན་བཅོས་གཞན་པའི་ནང་དུ་ཚིག་དེ་ལུང་དྲངས་པ་སོགས་དེ་དང་འབྲེལ་ཡོད་ཕལ་ཆེ་བ་སྟབས་གཅིག་ཏུ་ཀློག་ཐུབ། ཀློག་མཁན་ཁྱེད་ཀྱིས་ཐུགས་ལྷོད་ལྷོད་ངང་གསུང་རབ་སྣ་ཚོགས་ལ་རགས་བལྟ་དང་། ཞིབ་ཀློག་བྱེད་པའི་ཞོར་དུ། 
-          སྐབས་བབ་བརྗོད་བྱ་དང་འབྲེལ་བའི་གོ་རྟོགས་གསར་པའམ། ཡང་ན་རང་གི་མི་ཚེའི་ནང་བྱུང་བའི་སྐྱིད་སྡུག་གི་ཉམས་མྱོང་རྣམས་ཟིན་བྲིས་དང་། མཆན་དུ་བྲིས་ཏེ་ཆོས་གྲོགས་གཞན་གྱི་ལོངས་སྤྱོད་དུ་སྤེལ་ཆོག་ལ་། ཆོས་གྲོགས་གཞན་གྱི་མྱོང་རྟོགས་གསར་པ་རྣམས་ཀྱང་རང་ཉིད་ཀྱིས་ལོངས་སྤྱོད་བྱེད་ཐུབ་ཀྱི་ཡོད། 
-        </HebrewText>
-        <ChineseText>
-        Pecha平台提供多种语言和风格的佛教经典的访问，以满足每个人的需求。通过搜索一节经文，用户可以在一个地方找到它的起源、各种解释、不同语言的翻译、注释、注释、子注释和其他经文的参考。无论是随意探索各种经典，还是进行深入研究，用户都可以通过笔记或评论与其他佛友分享与该主题相关的见解或个人经历。此外，用户还可以从其他读者在笔记中分享的新鲜见解中获益。
-        </ChineseText>
-    </InterfaceText>
+    <ModuleTitle h1={true}>side_nav.about_pecha_title</ModuleTitle> : null }
+    <InterfaceText>side_nav.about_pecha_description</InterfaceText>
   </Module>
 );
 
@@ -161,7 +145,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
 
 const Resources = () => (
   <Module>
-    <h3><InterfaceText context="ResourcesModule">Resources</InterfaceText></h3>
+    {/* <h3><InterfaceText context="ResourcesModule">panel.resources</InterfaceText></h3>
     <div className="linkList">
       <IconLink text="Mobile Apps" url="/mobile" icon="mobile.svg" />
       <IconLink text="Create with Sefaria" url="/sheets" icon="sheet.svg" />
@@ -170,7 +154,7 @@ const Resources = () => (
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
       <IconLink text="Help" url="/help" icon="help.svg" />
-    </div>
+    </div> */}
   </Module>
 );
 
@@ -191,7 +175,7 @@ const SupportSefaria = ({white}) => (
     <br />
     <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar-SupportSefaria"}>
       <img src="/static/img/heart.png" alt="donation icon" />
-      <InterfaceText>Make a Donation</InterfaceText>
+      <InterfaceText>side_nav.make_donation</InterfaceText>
     </DonateLink>*/}
   </Module>
 );
@@ -252,15 +236,15 @@ const AboutText = ({index, hideTitle}) => {
   return (
     <Module>
       {hideTitle ? null :
-          <ModuleTitle>About This Text</ModuleTitle>}
+          <ModuleTitle>side_nav.about_text</ModuleTitle>}
       { composed || authors.length ?
       <div className="aboutTextMetadata">
 
         {authors.length ?
         <div className="aboutTextAuthor">
           {authors.length == 1 ?
-              <span><InterfaceText>Author</InterfaceText>:</span>
-          : <span><InterfaceText>Authors</InterfaceText>:</span>}
+              <span><InterfaceText>text.author</InterfaceText>:</span>
+          : <span><InterfaceText>text.author</InterfaceText>:</span>}
           <span className="aboutTextAuthorText">
             &nbsp;{authors}
           </span>
@@ -268,7 +252,7 @@ const AboutText = ({index, hideTitle}) => {
 
         {composed ?
         <div className="aboutTextComposed">
-          <InterfaceText>Composed</InterfaceText>:
+          <InterfaceText>text.composed</InterfaceText>:
           <span className="aboutTextComposedText">
             &nbsp;<InterfaceText>{composed}</InterfaceText>
           </span>
@@ -339,7 +323,7 @@ const DafLink = () => {
 
 const Translations = () => {
   return (<Module>
-    <ModuleTitle>Translations</ModuleTitle>
+    {/* <ModuleTitle>Translations</ModuleTitle>
     <InterfaceText>
       <EnglishText>
         Access key works from the library in several languages.
@@ -348,7 +332,7 @@ const Translations = () => {
         יצירות נבחרות מהספרייה בתרגומים לשפות שונות.
       </HebrewText>
     </InterfaceText>
-    <TranslationLinks />
+    <TranslationLinks /> */}
   </Module>)
 }
 
@@ -356,10 +340,10 @@ const Translations = () => {
 const LearningSchedules = () => {
   return (
     <Module>
-      <ModuleTitle>Learning Schedules</ModuleTitle>
+      {/* <ModuleTitle>Learning Schedules</ModuleTitle>
       <div className="readingsSection">
         <span className="readingsSectionTitle">
-          <InterfaceText>Weekly Torah Portion</InterfaceText>: <ParashahName />
+          <InterfaceText>weekly_torah_portion</InterfaceText>: <ParashahName />
         </span>
         <ParashahLink />
       </div>
@@ -380,7 +364,7 @@ const LearningSchedules = () => {
         <EnglishText>All Learning Schedules ›</EnglishText>
         <HebrewText>לוחות לימוד נוספים ›</HebrewText>
         </InterfaceText>
-      </a>
+      </a> */}
     </Module>
   );
 };
@@ -483,23 +467,15 @@ const Visualizations = ({categories}) => {
 const AboutTopics = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
-    <ModuleTitle>About Topics</ModuleTitle> }
-    <InterfaceText>
-        <HebrewText>
-          ཤོག་ངོས་འདིའི་ནང་དུ། དོན་དག་སྣ་ཚོགས་དང་འབྲེལ་བའི་ལུང་དང་། འབྲེལ་ཡོད་ཀྱི་བསྟན་བཅོས། ཀློག་མཁན་གྱིས་སྤེལ་བའི་ཟིན་བྲིས་སོགས་བརྗོད་གཞི་ལྟར་ལྟ་ཀློག་བྱེད་པའམ། ཡང་ན། ཁྱེད་རང་གིས་ལྟ་འདོད་པའི་དམིགས་བསལ་གྱི་བརྗོད་གཞི་གང་རུང་འཚོལ་བཤེར་བྱེད་ཆོག། 
-          ད་དུང་དྲ་བའི་ཟུར་ངོས་སུ་མི་མང་པོས་དོ་སྣང་བྱེད་སའི་བརྗོད་གཞི་ཚ་ཤོས་གང་ཡིན་གོ་རིམ་ལྟར་གསལ་བ་ལས་ཀྱང་རང་འདོད་ལྟར་བཀླག་ཆོག། མདོར་ན། ཤོག་ངོས་འདིའི་ནང་ལྟ་ཀློག་མང་ཙམ་གྱིས་དང་། ཁྱེད་རང་ལ་སྤྲོ་སྣང་འདྲེན་པའི་བརྗོད་གཞི་མང་པོ་ཡོད།
-        </HebrewText>
-        <EnglishText>
-          Topics Pages present a curated selection of various genres of sources on thousands of chosen subjects. You can browse by category, 
-          search for something specific, or view the most popular topics — and related topics — on the sidebar. Explore and click through to learn more.        </EnglishText>
-    </InterfaceText>
+    <ModuleTitle>topic.about</ModuleTitle> }
+    <InterfaceText>topic.about_description</InterfaceText>
   </Module>
 );
 
 
 const TrendingTopics = () => (
   <Module>
-    <ModuleTitle>Trending Topics</ModuleTitle>
+    <ModuleTitle>topic.trend</ModuleTitle>
     {Sefaria.trendingTopics.map((topic, i) =>
       <div className="navSidebarLink ref serif" key={i}>
         <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
@@ -519,7 +495,7 @@ const RelatedTopics = ({title}) => {
   },[title]);
   return (topics.length ?
     <Module>
-      <ModuleTitle>Related Topics</ModuleTitle>
+      <ModuleTitle>side_nav.related_topic</ModuleTitle>
       {shownTopics.map((topic, i) =>
         <div className="navSidebarLink ref serif" key={i}>
           <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.title.en, he: topic.title.he}}/></a>
@@ -539,16 +515,16 @@ const JoinTheConversation = ({wide}) => {
 
   return (
     <Module wide={wide}>
-      <div>
-        <ModuleTitle>Join the Conversation</ModuleTitle>
-        <InterfaceText>Combine sources from our library with your own comments, questions, images, and videos.</InterfaceText>
+      {/* <div>
+        <ModuleTitle>side_nav.join_conversation</ModuleTitle>
+        <InterfaceText>topic.combine_source</InterfaceText>
       </div>
       <div>
         <a className="button small" href="/sheets/new">
           <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" />
-          <InterfaceText>Make a Sheet</InterfaceText>
+          <InterfaceText>side_nav.make_sheet</InterfaceText>
         </a>
-      </div>
+      </div> */}
     </Module>
   );
 };
@@ -557,16 +533,16 @@ const JoinTheConversation = ({wide}) => {
 const JoinTheCommunity = ({wide}) => {
   return (
     <Module wide={wide}>
-      <div>
-        <ModuleTitle>Join the Conversation</ModuleTitle>
-        <InterfaceText>People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.</InterfaceText>
+      {/* <div>
+        <ModuleTitle>side_nav.join_conversation</ModuleTitle>
+        <InterfaceText>side_nav.join_conversation.descriptions</InterfaceText>
       </div>
       <div>
         <a className="button small" href="/community">
           <img src="/static/icons/community-black.svg" alt="make a sheet icon" />
-          <InterfaceText>Explore the Community</InterfaceText>
+          <InterfaceText>side_nav.explore_community</InterfaceText>
         </a>
-      </div>
+      </div> */}
     </Module>
   );
 };
@@ -596,8 +572,8 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
 
   return (
     <Module>
-      <ModuleTitle>Stay Connected</ModuleTitle>
-      <InterfaceText>Get updates on new texts, learning resources, features, and more.</InterfaceText>
+      <ModuleTitle>side_nav.stay_connected</ModuleTitle>
+      <InterfaceText>side_nav.stay_connected.decription</InterfaceText>
       <br />
       {/*<NewsletterSignUpForm context="sidebar" />*/}
 
@@ -621,7 +597,7 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
 
 const AboutLearningSchedules = () => (
   <Module>
-    <ModuleTitle h1={true}>Learning Schedules</ModuleTitle>
+    {/* <ModuleTitle h1={true}>Learning Schedules</ModuleTitle>
     <InterfaceText>
         <EnglishText>
             Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar.
@@ -631,7 +607,7 @@ const AboutLearningSchedules = () => (
             מימי קדם חולקה התורה לקטעי קריאה שבועיים שנועדו לסיום הספר כולו במשך תקופת זמן של שנה.
             בעקבות המנהג הזה התפתחו לאורך השנים סדרי לימוד תקופתיים רבים נוספים, ובעזרתם יכולות קהילות וקבוצות של לומדים ללמוד יחד טקסטים שלמים.
         </HebrewText>
-    </InterfaceText>
+    </InterfaceText> */}
   </Module>
 );
 
@@ -639,16 +615,13 @@ const AboutLearningSchedules = () => (
 const AboutCollections = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
-    <ModuleTitle h1={true}>About Collections</ModuleTitle>}
-    <InterfaceText>
-        <EnglishText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Pecha.</EnglishText>
-        <HebrewText>དཔེ་ཆ་དྲ་བའི་ཆེད་བསྒྲིགས་རྣམས་ནི་དྲ་བ་འདིའི་ཀློག་མཁན་རྣམས་ཀྱིས་བཟོས་པ་ཡིན་ལ། འདི་དག་བེད་སྤྱོད་བྱེད་སྟངས་གསུམ་ཡོད་དེ། ཁྱེད་རང་གཅིག་པུས་སྤྱོད་པ་དང་། གྲོགས་པོ་གཞན་དང་མཉམ་སྤྱོད་བྱེད་པ། ཡང་ན། ཀློག་མཁན་ཡོངས་ཀྱི་བགོ་སྐལ་དུ་ཕུལ་ཀྱང་ཆོག་པ་ཡིན།</HebrewText>
-    </InterfaceText>
+    <ModuleTitle h1={true}>collection.about</ModuleTitle>}
+    <InterfaceText>collection.description_detail</InterfaceText>
     {hideTitle ? null :
     <div>
       <a className="button small" href="/collections/new">
         <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
-        <InterfaceText>Create a Collection</InterfaceText>
+        <InterfaceText>collection.create_collection</InterfaceText>
       </a>
     </div>}
   </Module>
@@ -657,12 +630,12 @@ const AboutCollections = ({hideTitle}) => (
 
 const ExploreCollections = () => (
   <Module>
-    <ModuleTitle>Collections</ModuleTitle>
-    <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
+    <ModuleTitle>profile.tab.collection</ModuleTitle>
+    <InterfaceText>side_nav.collection.description</InterfaceText>
     <div>
       <a className="button small white" href="/collections">
         <img src="/static/icons/collection.svg" alt="collection icon" />
-        <InterfaceText>Explore Collections</InterfaceText>
+        <InterfaceText>side_nav.explore_collections</InterfaceText>
       </a>
     </div>
   </Module>
@@ -671,7 +644,7 @@ const ExploreCollections = () => (
 
 const WhoToFollow = ({toggleSignUpModal}) => (
   <Module>
-    <ModuleTitle>Who to Follow</ModuleTitle>
+    <ModuleTitle>side_nav.who_to_follow</ModuleTitle>
     {Sefaria.followRecommendations.map(user =>
     <ProfileListing {...user} key={user.uid} toggleSignUpModal={toggleSignUpModal} />)}
   </Module>
@@ -758,7 +731,7 @@ const DownloadVersions = ({sref}) => {
 
     return(
         <Module>
-          <ModuleTitle>Download Text</ModuleTitle>
+          <ModuleTitle>side_nav.download_text</ModuleTitle>
           <div className="downloadTextModule sans-serif">
           <Dropdown
               name="dlVersionName"
@@ -769,25 +742,25 @@ const DownloadVersions = ({sref}) => {
                 })).concat( // add merged versions for both primary langs "en" and "he" where applicable. (not yet possible for individual actual languages)
                     versions.map(v => v.language).unique().map(lang => ({
                         value: `merged/${lang}`,
-                        label: `${Sefaria._("Merged Version", "DownloadVersions")} (${Sefaria._(Sefaria.translateISOLanguageCode(lang))})`,
+                        label: `${Sefaria._("side_nav.download_text.merged_version")} (${Sefaria._(Sefaria.translateISOLanguageCode(lang))})`,
                     }))
                 )
               }
-              placeholder={Sefaria._( "Select Version", "DownloadVersions")}
+              placeholder={Sefaria._( "side_nav.download_text.select_version")}
               onChange={handleInputChange}
           />
           <Dropdown
               name="dlVersionFormat"
               options={[
-                {value: "txt",       label: Sefaria._( "Text (with Tags)", "DownloadVersions")},
-                {value: "plain.txt", label: Sefaria._( "Text (without Tags)", "DownloadVersions")},
+                {value: "txt",       label: Sefaria._( "side_nav.download_text.text_with_tag")},
+                {value: "plain.txt", label: Sefaria._( "side_nav.download_text.text_without_tag")},
                 {value: "csv",       label: "CSV"},
                 {value: "json",      label: "JSON"},
               ]}
-              placeholder={Sefaria._("Select Format", "DownloadVersions")}
+              placeholder={Sefaria._("side_nav.download_text.select_format")}
               onChange={handleInputChange}
           />
-          <a className={`button fillWidth${isReady ? "" : " disabled"}`} onClick={handleClick} href={versionDlLink()} download>{Sefaria._("Download")}</a>
+          <a className={`button fillWidth${isReady ? "" : " disabled"}`} onClick={handleClick} href={versionDlLink()} download>{Sefaria._("text.download")}</a>
         </div>
         </Module>
     );

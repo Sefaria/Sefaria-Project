@@ -117,7 +117,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
   return <div className="collectionsWidget">
     <div className="collectionsWidgetTop">
       <span className={"collectionsWidgetTitle"}>
-        <InterfaceText>{ Sefaria._("Collections")} </InterfaceText>
+        <InterfaceText>{ Sefaria._("collection")} </InterfaceText>
       </span>
       <div className="collectionsWidgetClose" onClick={onClose}>×</div>
     </div>
@@ -136,14 +136,14 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       {dataLoaded && collections.length === 0 ?
         <span className={"emptyMessage"}>
           <InterfaceText>
-           { Sefaria._("You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.")}
+           { Sefaria._("profile.collection_description")}
           </InterfaceText>
         </span> : null }
     </div>
     <div className="collectionsWidgetCreate">
       <span className="collectionsWidgetPlus">+</span>
       <div className="collectionsWidgetCreateInputBox">
-        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Create new collection")} value={newName} onChange={onNameChange} />
+        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("collection.create_new_collection")} value={newName} onChange={onNameChange} />
       </div>
       {newName.length ?
       <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>
@@ -153,7 +153,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     </div>
     <div className="collectionsWidgetDone">
        <div className="button large fillWidth" onClick={onClose}>
-        <InterfaceText>{Sefaria._("Done")}</InterfaceText>
+        <InterfaceText>collection.done</InterfaceText>
       </div>     
     </div>
   </div>

@@ -35,7 +35,7 @@ const signUpModalContent = {
       },
       {
         icon: "note-white.png",
-        bulletContent: { en: "Take notes", he: "רשמו הערות" },
+        bulletContent: { en: "Take notes", he: "མཆན་བཀོད།" },
       },
       {
         icon: "email-white.png",
@@ -99,11 +99,11 @@ const signUpModalContent = {
       },
       {
         icon: "star-white.png",
-        bulletContent: { en: "Save texts", he: "שמרו טקסטים" },
+        bulletContent: { en: "Save texts", he: "ཟིན་བྲིས་ཉར་ཚགས།" },
       },
       {
         icon: "note-white.svg",
-        bulletContent: { en: "Take notes", he: "רשמו הערות" },
+        bulletContent: { en: "Take notes", he: "མཆན་བཀོད།" },
       },
       {
         icon: "share-icon-white.svg",
@@ -190,11 +190,11 @@ const signUpModalContent = {
     contentList: [
       {
         icon: "star-white.png",
-        bulletContent: { en: "Save texts", he: "שמרו טקסטים" },
+        bulletContent: { en: "Save texts", he: "ཟིན་བྲིས་ཉར་ཚགས།" },
       },
       {
         icon: "note-white.svg",
-        bulletContent: { en: "Take notes", he: "כתבו הערות" },
+        bulletContent: { en: "Take notes", he: "མཆན་བཀོད།" },
       },
       {
         icon: "clock-white.svg",
@@ -213,15 +213,15 @@ const signUpModalContent = {
     ],
   },
   [SignUpModalKind.Default]: {
-    h2: { en: "Love Learning?", he: "אוהבים ללמוד?" },
+    h2: { en: "Love Learning?", he: "སློབ་གཉེར་ལ་དགའ་བོ་ཡོད་དམ།" },
     h3: {
       en: "Sign up to get more from Sefaria",
-      he: "הרשמו כדי לקבל יותר מספריא",
+      he: "དཔེ་ཆ་དྲ་ཐོག་དཔེ་མཛོད་ནས་འདི་ལས་མང་བ་ཐོབ་པ་ལ་ཞུགས་ཐོ་གསར་འགོད་བྱོས།",
     },
     contentList: [
       {
         icon: "star-white.png",
-        bulletContent: { en: "Save texts", he: "שמרו טקסטים לקריאה חוזרת" },
+        bulletContent: { en: "Save texts", he: "ཟིན་བྲིས་ཉར་ཚགས།" },
       },
       {
         icon: "sheet-white.png",
@@ -229,11 +229,11 @@ const signUpModalContent = {
       },
       {
         icon: "note-white.png",
-        bulletContent: { en: "Take notes", he: "שמרו הערות" },
+        bulletContent: { en: "Take notes", he: "མཆན་འགོད་པ།" },
       },
       {
         icon: "email-white.png",
-        bulletContent: { en: "Stay in the know", he: "השארו מעודכנים" },
+        bulletContent: { en: "Stay in the know", he: "ཤེས་བཞིན་དུ་ནི་གནས་པར་གྱིས།" },
       },
     ],
   },

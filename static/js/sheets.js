@@ -1,3 +1,5 @@
+import Sefaria from "./sefaria/sefaria";
+
 sjs.flags = {
 	saving:  false,
 	sorting: false,
@@ -45,10 +47,10 @@ isHebrew = Sefaria.hebrew.isHebrew;
 $(window).on("beforeunload", function() {
 if (!($("#save").data("mode") == "saving")) {
 	if (Sefaria._uid && !(sjs.current.id) && $("#empty").length === 0) {
-		return _("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
+		return _("sheet.source_sheet_not_save_warning");
 	}
 	else if ($("#lastSaved").text() == "Saving...") {
-		return _("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
+		return _("sheet.source_sheet_has_unsaved_changes_auto_save");
 	}
 }
 });
@@ -66,8 +68,7 @@ fixedBottom.css("display", "block");
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 if (sjs.can_edit || sjs.can_add) {
-	sjs.alert.message(_("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
-	" your work is properly saved."))
+	sjs.alert.message(_("text.edit.error_occurred"))
 }
 }
 
@@ -314,7 +315,7 @@ $("#makeSheetAssignableButton").click(function(){
 	$(this).hide();
 	$("#StopCollectingAssignmentsButton").show();
 	$("#sheet").addClass('assignable');
-	$("#assignmentDirections").html(_('Students can complete their assignment at this link:'));
+	$("#assignmentDirections").html(_('sheet.student_assignment_link'));
 	$("#assignmentURLLink").show();
 	$("#assignedSheets").show();
 	autoSave();
@@ -651,7 +652,7 @@ if (sjs.can_edit || sjs.can_add ) {
 			if (!text.length) {
 				// Title
 				if ($el.prop("id") === "title") {
-					$el.text(_("Untitled Source Sheet"));
+					$el.text(_("sheet.untitled_sourc_sheet"));
 
 				// Comment
 				} else if ($el.hasClass("comment")) {
@@ -855,13 +856,13 @@ $("#likeButton").click(function(e) {
 
 	var likeCount = parseInt($("#likeCount").text());
 	if ($(this).hasClass("liked")) {
-		$(this).removeClass("liked").text(_("Like"));
+		$(this).removeClass("liked").text(_("like"));
 		likeCount -= 1;
 		$("#likeCount").text(likeCount);
 		$.post("/api/sheets/" + sjs.current.id + "/unlike");
 		Sefaria.track.sheets("Unlike", sjs.current.id);
 	} else {
-		$(this).addClass("liked").text(_("Unlike"));
+		$(this).addClass("liked").text(_("unlike"));
 		$.post("/api/sheets/" + sjs.current.id + "/like");
 		likeCount += 1;
 		$("#likeCount").text(likeCount);
@@ -871,11 +872,11 @@ $("#likeButton").click(function(e) {
 $(".likes").click(function(e) {
 	$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
 		if (data.likers.length == 0) {
-			var title = _("No one has liked this sheet yet. Will you be the first?");
+			var title = _("sheet.no_one_like_this_sheet");
 		} else if (data.likers.length == 1) {
-			var title = _("1 Person Likes This Sheet");
+			var title = _("sheet.one_person_like_this_sheet");
 		} else {
-			var title = data.likers.length + _(" People Like This Sheet");
+			var title = data.likers.length + _("sheet.people_like_this.sheet");
 		}
 		sjs.peopleList(data.likers, title);
 	});
@@ -899,7 +900,7 @@ if (sjs.current.id) {
 	buildSheet(sjs.current);
 	afterAction();
 } else {
-	$("#title").html(Sefaria._("New Source Sheet"));
+	$("#title").html(Sefaria._("sheet.new_source_sheet"));
 	$("#bilingual, #enLeft, #sideBySide").trigger("click");
 	$("#viewButtons").show();
 	$("#empty").show();
@@ -994,30 +995,30 @@ var outdent_img = (sjs.interfaceLang === "en") ? '/static/img/outdent.png' : '/s
 var indent_img = (sjs.interfaceLang === "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
 
 var ownerControls = "<div id='sourceControls' class='sideControls'>" +
-		  "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+		  "<div class='copySource' title='"+_('sheet.copy_to_sheet')+"'><img src='/static/img/copy.png'></div>" +
 		  "<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
-		  "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
-		  "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
-		  "<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
-		  "<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
+		  "<div class='moveSourceRight' title='"+_('sheet.indent_source')+"'><img src='"+indent_img+"'></div>" +
+		  "<div class='moveSourceLeft' title='"+_('sheet.outdent_source')+"'><img src='"+outdent_img+"'></div>" +
+		  "<div class='moveSourceUp' title='"+_('sheet.move_up_source')+"'><img src='/static/img/triangle-up.svg'></div>" +
+		  "<div class='moveSourceDown' title='"+_('sheet.move_down_source')+"'><img src='/static/img/triangle-down.svg'></div>" +
 		"</div>";
 
 var adderControls = "<div id='sourceControls' class='sideControls'>" +
-		  "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
-		  "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
-		  "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
+		  "<div class='copySource' title='"+_('sheet.copy_to_sheet')+"'><img src='/static/img/copy.png'></div>" +
+		  "<div class='moveSourceRight' title='"+_('sheet.indent_source')+"'><img src='"+indent_img+"'></div>" +
+		  "<div class='moveSourceLeft' title='"+_('sheet.outdent_source')+"'><img src='"+outdent_img+"'></div>" +
 		"</div>";
 var viewerControls = "<div id='sourceControls' class='sideControls'>" +
-		  "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+		  "<div class='copySource' title='"+_('sheet.copy_to_sheet')+"'><img src='/static/img/copy.png'></div>" +
 		"</div>";
 
 var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
-		  "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+		  "<div class='copySource' title='"+_('sheet.copy_to_sheet')+"'><img src='/static/img/copy.png'></div>" +
 		  "<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
-		  "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
-		  "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
-		  "<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
-		  "<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
+		  "<div class='moveSourceRight' title='"+_('sheet.indent_source')+"'><img src='"+indent_img+"'></div>" +
+		  "<div class='moveSourceLeft' title='"+_('sheet.outdent_source')+"'><img src='"+outdent_img+"'></div>" +
+		  "<div class='moveSourceUp' title='"+_('sheet.move_up_source')+"'><img src='/static/img/triangle-up.svg'></div>" +
+		  "<div class='moveSourceDown' title='"+_('sheet.move_down_source')+"'><img src='/static/img/triangle-down.svg'></div>" +
 		"</div>";
 
 
@@ -1118,14 +1119,14 @@ $("#addMediaMenu").click(function() {
 $("#addInterface").on("click", "#connectionButton", function(e) {
 
   var ref = $("#addInterface").prev(".source").attr("data-ref");
-  $("#connectionsToAdd").text(_("Looking up Connections..."));
+  $("#connectionsToAdd").text(_("sheet.looking_up_connection"));
 
   $.getJSON("/api/texts/" + ref + "?context=0&commentary=1&pad=0", function(data) {
 	sjs.alert.clear();
 	if ("error" in data) {
 	  $("#connectionsToAdd").text(data.error)
 	} else if (data.commentary.length == 0) {
-	  $("#connectionsToAdd").text(_("No connections known for this source."));
+	  $("#connectionsToAdd").text(_("sheet.no_connection_found"));
 	} else {
 	  data.commentary = [].concat.apply([], data.commentary);
 
@@ -1541,7 +1542,7 @@ $("#sheet").on( "mouseenter", ".sheetItem", function(e) {
 	// Remove Source
 	$(".removeSource").on("click", function() {
 		var $item = $(this).closest(".sheetItem"); // Firefox triggers mouseout when opening confirm
-		if (confirm(_("Are you sure you want to remove this?"))) {
+		if (confirm(Sefaria._("sheet.remove_request"))) {
 			$item.remove();
 			autoSave();
 			setSourceNumbers();
@@ -1589,7 +1590,7 @@ $(".editTitle").on("click", function(e) {
 // Reset Source Text
 $(".resetSource").on("click", function() {
 	var options = {
-		message: _("Reset text of Hebrew, English or both?")+"<br><small>"+_("Any edits you have made to this source will be lost")+".</small>",
+		message: _("sheet.reset_language_sheet")+"<br><small>"+_("sheet.sheet_lost_warning")+".</small>",
 		options: ["Hebrew", "English", "Both"]
 	};
 	var $target = $(this).closest(".source");
@@ -1706,7 +1707,7 @@ $("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', funct
 $(".highlighterTagWindow").on('click','.close-button', function() {closeHighlighterTagWindow()});
 
 function saveNewlyCreatedTag(newTagName,newTagColor) {
-	if (newTagName !== _('Create New') && newTagName !== "") {
+	if (newTagName !== _("create_new") && newTagName !== "") {
 		$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
 		$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 		resetSplitHighlighterSegment();
@@ -1714,18 +1715,18 @@ function saveNewlyCreatedTag(newTagName,newTagColor) {
 		autoSave();
 	}
 
-	$(".createNewHighlighterTag .tagName").text(_('Create New'))
+	$(".createNewHighlighterTag .tagName").text(_("create_new"))
 }
 
 function applyNewlyCreatedTag(newTagName,newTagColor) {
-	if (newTagName !== _('Create New') && newTagName !== "") {
+	if (newTagName !== _("create_new") && newTagName !== "") {
 		$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment active" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
 		$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 		resetSplitHighlighterSegment();
 		resetHighlighterFilterTags();
 		if (sjs.selection.startOffset !== sjs.selection.endOffset) {
 	$(".highlighterTagWindow .save").click();
-			$(".createNewHighlighterTag .tagName").text(_('Create New'))
+			$(".createNewHighlighterTag .tagName").text(_("create_new"))
   }
   else {
 			$(".createNewHighlighterTag .tagName").text("")
@@ -1741,7 +1742,7 @@ $(".createNewHighlighterTag .tagName").keydown(function(e){
 });
 
 $(".createNewHighlighterTag .tagName").focus(function(e){
-	if ($(this).text()==_('Create New')) {
+	if ($(this).text()==_("create_new")) {
 		$(this).text('');
 	}
 });
@@ -1939,7 +1940,7 @@ var autoAddConnetions =  function() {
 
 	var type = $(this).hasClass("addCommentary") ? "Commentary": null;
 
-	sjs.alert.saving("Looking up Connections...");
+	sjs.alert.saving("sheet.looking_up_connection");
 
 	$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function(data) {
 		sjs.alert.clear();
@@ -2742,7 +2743,7 @@ if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
 	var sheet = readSheet();
 	if (sheet.sources.length > 2) {
 		setTimeout(function() {
-			var save = confirm(_("Would you like to save this sheet? You only need to save once, after that changes are saved automatically."));
+			var save = confirm(Sefaria._("sheet.sheet_save_request"));
 			if (save) {
 				handleSave();
 			}
@@ -2799,7 +2800,7 @@ if (data.title) {
 		$("#title").addClass("heTitle");
 	}
 } else {
-	$("#title").html(_("Untitled Source Sheet"));
+	$("#title").html(_("sheet.untitled_sourc_sheet"));
 }
 $("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
 
@@ -3379,14 +3380,14 @@ sjs.copySource = source;
 
 // Get sheet list if necessary
 if (!$("#sheetList .sheet").length) {
-	$("#sheetList").html(Sefaria._("Loading..."));
+	$("#sheetList").html(Sefaria._("loading..."));
 	$.getJSON("/api/sheets/user/" + Sefaria._uid, function(data) {
 		$("#sheetList").empty();
 		var sheets = "";
-		sheets += '<li class="sheet new"><i>'+Sefaria._("Start a New Source Sheet")+'</i></li>';
+		sheets += '<li class="sheet new"><i>'+Sefaria._("sheet.start_new_source_sheet")+'</i></li>';
 		for (i = 0; i < data.sheets.length; i++) {
 			sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-				(data.sheets[i].title === null ? Sefaria._("Untitled Source Sheet"): data.sheets[i].title.stripHtml()) +
+				(data.sheets[i].title === null ? Sefaria._("sheet.untitled_sourc_sheet"): data.sheets[i].title.stripHtml()) +
 				"</li>";
 		}
 		$("#sheetList").html(sheets);
@@ -3399,7 +3400,7 @@ if (!$("#sheetList .sheet").length) {
 	})
 }
 var name = source.ref ? source.ref :
-			(source.comment ? Sefaria._("this comment") : Sefaria._("this source"));
+			(source.comment ? Sefaria._("this_comment") : Sefaria._("sheet.this_source"));
 
 $("#addToSheetModal .sourceName").text(name);
 
@@ -3420,12 +3421,12 @@ $("#addToSheetModal .ok").click(function(){
 if (sjs.flags.saving === true) { return false; }
 var selected = $(".sheet.selected");
 if (!selected.length) {
-	sjs.alert.message(Sefaria._("Please select a source sheet."));
+	sjs.alert.message(Sefaria._("sheet.select_source"));
 	return false;
 }
 
 if (selected.hasClass("new")) {
-	var title = prompt(Sefaria._("New Source Sheet Name:"), "");
+	var title = prompt(Sefaria._("sheet.new_source_sheet_name"), "");
 	var sheet = {
 		title: title,
 		options: {numbered: 0},
@@ -3457,9 +3458,9 @@ function addToSheetCallback(data) {
 		sjs.alert.message(data.error)
 	} else {
 		var name = data.ref ? data.ref :
-			(data.comment ? Sefaria._("This comment") : Sefaria._("This source"));
-		//sjs.alert.message(`${name} ${Sefaria._("was added to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("View sheet")}</a>`);
-		sjs.alert.message(name + " " + Sefaria._("was added to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("View sheet") + "</a>");
+			(data.comment ? Sefaria._("this_comment") : Sefaria._("sheet.this_source"));
+		//sjs.alert.message(`${name} ${Sefaria._("sheet.was_added_to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("sheet.view_sheet")}</a>`);
+		sjs.alert.message(name + " " + Sefaria._("sheet.was_added_to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("sheet.view_sheet") + "</a>");
 		Sefaria.track.sheets("Source Copied");
 	}
 }
@@ -3585,7 +3586,7 @@ sjs.sheetTagger.suggestTags();
 
 
 function deleteSheet() {
-if (confirm(_("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+if (confirm(_("sheet.delete_warning_msg"))) {
 	$.post("/api/sheets/" + sjs.current.id + "/delete", function (data){
 		if ("error" in data) {
 			sjs.alert.message(data.error);
@@ -3732,7 +3733,7 @@ reader.addEventListener("onerror", function() {
 
 reader.readAsDataURL(file);
 } else {
-  sjs.alert.message("Could not add image. Please make sure that the file you attempted to upload is a JPEG, PNG, or GIF");
+  sjs.alert.message(`${Sefaria._("sheet.upload_image_failed_msg")}`);
 }
 };
 

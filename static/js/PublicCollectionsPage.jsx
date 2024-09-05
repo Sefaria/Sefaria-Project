@@ -66,7 +66,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner">
             <h1>
-              <InterfaceText>Collections</InterfaceText>
+              <InterfaceText>collections</InterfaceText>
             </h1>
 
             {multiPanel ? null :
@@ -85,7 +85,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
                   <div className="enCollections">{enCollBox}</div>
                   <div className="heCollections">{heCollBox}</div>
                 </>)
-                : <InterfaceText>There are no public collections yet.</InterfaceText>)
+                : <InterfaceText>collection.message.no_public_collection</InterfaceText>)
               : <LoadingMessage /> }
             </div>
           </div>

@@ -92,7 +92,7 @@ const TransLangPrefAskBanner = ({ setAccepted, setTranslationLanguagePreference 
  */
 const OpenTransBanner = ({ openTranslations }) => {
     const buttons = [{
-        text: "Go to translations",
+        text: Sefaria._("go_to_translation"),
         onClick: () => { openTranslations(); },
         sideEffect: "close",
     }];

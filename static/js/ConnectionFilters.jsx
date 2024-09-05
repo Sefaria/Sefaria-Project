@@ -59,7 +59,7 @@ class CategoryFilter extends Component {
           <div className={innerClasses} data-name={this.props.category}>
             <span className="filterInner">
               <span className="filterText">
-                <ContentText text={{en:this.props.showBooks ? `${Sefaria._("All")} ${this.props.category}` : this.props.category, he:this.props.showBooks ? `${Sefaria._("All")} ${this.props.heCategory}` : this.props.heCategory}} />
+                <ContentText text={{en:this.props.showBooks ? `${Sefaria._("all")} ${this.props.category}` : this.props.category, he:this.props.showBooks ? `${Sefaria._("all")} ${this.props.heCategory}` : this.props.heCategory}} />
                 <span className="connectionsCount"> ({this.props.count})</span>
               </span>
               <span className="en">

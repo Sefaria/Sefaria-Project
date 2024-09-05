@@ -233,7 +233,7 @@ class SidebarOpens(SefariaTest):
             self.click_sidebar_entry(section)
             self.click_resources_on_sidebar()
 
-        self.click_sidebar_button("Compare Text")
+        self.click_sidebar_button("panel.compare_text")
         self.driver.find_element_by_css_selector('.readerNavMenuMenuButton').click()
 
         self.click_sidebar_button("Sheets")

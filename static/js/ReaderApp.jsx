@@ -527,7 +527,7 @@ class ReaderApp extends Component {
             hist.mode  = "collection";
             break;
           case "collectionsPublic":
-            hist.title = Sefaria._("Collections") + " | " + Sefaria._(siteName);
+            hist.title = Sefaria._("collection") + " | " + Sefaria._(siteName);
             hist.url = "collections";
             hist.mode = "collcetionsPublic";
             break;
@@ -547,7 +547,7 @@ class ReaderApp extends Component {
             hist.mode = "updates";
             break;
           case "modtools":
-            hist.title = Sefaria._("Moderator Tools");
+            hist.title = Sefaria._("moderator_tools");
             hist.url = "modtools";
             hist.mode = "modtools";
             break;

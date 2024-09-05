@@ -51,11 +51,11 @@ class AddToSourceSheetBox extends Component {
   setDefaultSheet() {
     if (this.state.selectedSheet) { return; }
     if (!Sefaria._uid) {
-        this.setState({selectedSheet: {title: Sefaria._( "Your Sheet")}});
+        this.setState({selectedSheet: {title: Sefaria._( "sheet.your_sheet")}});
     } else {
       var sheets = Sefaria.sheets.userSheets(Sefaria._uid);
       if (!sheets.length) {
-        this.setState({selectedSheet: {title: Sefaria._( "Create a New Sheet")}});
+        this.setState({selectedSheet: {title: Sefaria._( "header.profileMenu.create_New_Sheet")}});
       } else {
         this.setState({selectedSheet: sheets[0]});
       }
@@ -133,7 +133,7 @@ class AddToSourceSheetBox extends Component {
     for (let i = 0; i < refs.length; i++) {
       let ref = Sefaria.getRefFromCache(refs[i]);
       if (ref && (Sefaria.isFullSegmentImage(ref.he) || Sefaria.isFullSegmentImage(ref.text))) {
-        alert(Sefaria._( "We do not currently support adding images to source sheets."));
+        alert(Sefaria._( "sheet.message.do_not_support_adding_images_to_source_sheets"));
         return false;
       }
     }
@@ -178,8 +178,8 @@ class AddToSourceSheetBox extends Component {
         disallowedTagsMode: 'discard',
       });
       let titleRetval = {
-        "en": `${sheetTitle} ${Sefaria._("Section")}${nodeID}`,
-        "he": `${sheetTitle} ${Sefaria._("Section")}${nodeID}`
+        "en": `${sheetTitle} ${Sefaria._("section")}${nodeID}`,
+        "he": `${sheetTitle} ${Sefaria._("section")}${nodeID}`
       }
       if (refTitles){ //show the refs also of a source, just to be nice
         titleRetval["en"] += `(${refTitles["en"]})`;
@@ -202,7 +202,7 @@ class AddToSourceSheetBox extends Component {
     const sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     let sheetsList = Sefaria._uid && sheets ? sheets.map((sheet) => {
       let classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id === sheet.id});
-      let title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled Source Sheet");
+      let title = sheet.title ? sheet.title.stripHtml() : Sefaria._("sheet.untitled_sourc_sheet");
       let selectSheet = this.selectSheet.bind(this, sheet);
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
     }) : (Sefaria._uid ? <LoadingMessage /> : null);
@@ -218,11 +218,11 @@ class AddToSourceSheetBox extends Component {
           <span className="he">{titleRef["he"]}</span>
         </div>
         <div className="addToSourceSheetBoxTitle sans-serif">
-          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Add to")} </span>
+          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("sheet.add_to")} </span>
         </div>
         <div className="dropdown">
           <div className={`dropdownMain noselect ${this.state.sheetListOpen ? "open" : ""}`} onClick={this.toggleSheetList}>
-            {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("Untitled Source Sheet") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage={Sefaria._("Loading your sheets")}  heMessage={Sefaria._("Loading your sheets")}/>}          </div>
+            {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("sheet.untitled_sourc_sheet") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage={Sefaria._("sheet.loading_sheet")}  heMessage={Sefaria._("sheet.loading_sheet")}/>}          </div>
           {this.state.sheetListOpen ?
           <div className="dropdownListBox noselect">
             <div className="dropdownList noselect">
@@ -238,7 +238,7 @@ class AddToSourceSheetBox extends Component {
           : null}
         </div>
         <div className="button noselect fillWidth" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet}>
-          <span className={`${Sefaria.languageClassFont()} noselect`}>{ Sefaria._("Add to Sheet")}</span>
+          <span className={`${Sefaria.languageClassFont()} noselect`}>{ Sefaria._("sheet.add_to_sheet")}</span>
         </div>
       </div>);
   }
@@ -269,15 +269,15 @@ class ConfirmAddToSheet extends Component {
         disallowedTagsMode: 'discard',
       });
       srefTitles = {
-        "en": `${Sefaria._("Section from")} "${sheetTitle}"`,
-        "he": `${Sefaria._("Section from")} "${sheetTitle}"`,
+        "en": `${Sefaria._("sheet.section_from")} "${sheetTitle}"`,
+        "he": `${Sefaria._("sheet.section_from")} "${sheetTitle}"`,
       };
     }
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
                 <span className={`${Sefaria.languageClassFont()}`}>
                   <a href={sref}>{srefTitles["he"]}</a>
-                   &nbsp;{Sefaria._("has been added to")}&nbsp;
+                   &nbsp;{Sefaria._("sheet.has_been_added_to")}&nbsp;
                   <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
                 </span>
               </div>
@@ -304,7 +304,7 @@ class AddToSourceSheetWindow extends Component {
       <div className="sourceSheetBoxTitle">
         <img src="/static/icons/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
         {Sefaria._uid ? null : <span>
-           {Sefaria._("In order to add this source to a sheet, please ")} <a href={"/login" + nextParam}> {Sefaria._("log in")} </a>
+           {Sefaria._("sheet.message.login_before_add_source_sheet")} <a href={"/login" + nextParam}> {Sefaria._("log_in")} </a>
         </span>}
         <div className="clearFix"></div>
       </div>
