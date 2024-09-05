@@ -345,7 +345,7 @@ body, .sans-serif {
 }
 
 body, .en, .int-en {
-    --is-hebrew: initial; /* false */
+    --is-hebrew: ; /* false */
 }
 
 .he, .int-he {
@@ -468,7 +468,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 
 .smallText .int-en,
 .smallText .int-he.enInHe {
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "jomolhari";
     font-size: 14px;
     font-weight: normal;
     color: #999;
@@ -3203,6 +3203,7 @@ input.resourcesLink {
 }
 
 a.navBlockTitle {
+    --is-hebrew: ;
     color: #000;
     margin-inline-end: 20px;
 }
@@ -12922,6 +12923,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .sheetList .sheet .sheetTags {
+    --is-hebrew: ;
     color: #999;
 }
 

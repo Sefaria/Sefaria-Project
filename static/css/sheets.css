@@ -1433,6 +1433,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 	color: #333;
 }
 #sheet p {
+	font-family: "jomolhari" !important;
 	font-size: inherit;
 	line-height: inherit;
 	margin: inherit;
