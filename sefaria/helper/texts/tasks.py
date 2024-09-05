@@ -42,7 +42,7 @@ def save_changes(changes, func, method):
                 results.append({'status': 'ok'})
         return jsonResponse(results)
 
-@app.task(name="web.save_change", acks_late=True)
+@app.task(name="web.save_change", acks_late=True, ignore_result=True)
 def save_change(func_name, raw_history_change):
     function_names = {'save_link': save_link, 'save_version': save_version}
     func = function_names[func_name]
