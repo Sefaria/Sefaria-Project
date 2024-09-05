@@ -10,8 +10,8 @@ import React, {useEffect, useState} from "react";
 import classNames from "classnames";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
 import {SignUpModalKind} from "./sefaria/signupModalContent";
-import {ToolsButton} from "./ConnectionsPanel";
-import Modal from "./shared/modal.jsx";
+import {ShareBox, ToolsButton} from "./ConnectionsPanel";
+import Modal from "./shared/Modal.jsx";
 
 class SheetContent extends Component {
   componentDidMount() {
@@ -225,7 +225,10 @@ const SheetContentOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isAdding, setAdding] = useState(false);  // Add to Collection Modal open or closed
   if (isSharing) {
-    return <ShareModal/>;
+    return <ShareModal sheetID={sheetID} isOpen={isSharing}/>;
+  }
+  else if (isAdding) {
+    return <AddToCollectionsModal isOpen={isAdding}/>;
   }
   return (
     <DropdownMenu toggle={"..."}>
@@ -246,16 +249,26 @@ const SheetContentOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
         <CopyButton toggleSignUpModal={toggleSignUpModal} sheetID={sheetID}/>
       </DropdownMenuItem>
       <DropdownMenuItem>
-        <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={} />
+        <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setSharing(true)} />
+      </DropdownMenuItem>
+      <DropdownMenuItem>
+        <ToolsButton en="Add to Collection" he="צירוף לאסופה" image="" onClick={() => setAdding(true)} />
       </DropdownMenuItem>
     </DropdownMenu>
   );
 }
-const ShareModal = () => {
+const ShareModal = ({sheetID, isOpen}) => {
+  return <Modal isOpen={true}>
+          <ShareBox
+              sheetID={sheetID}
+              url={window.location.href}
+          />
+        </Modal>;
+}
+const AddToCollectionsModal = ({isOpen}) => {
   return <Modal isOpen={true}/>;
 
 }
-
 const CopyButton = ({toggleSignUpModal, sheetID}) => {
   const copyState = {
     copy: { en: "Copy", he: "העתקה" },

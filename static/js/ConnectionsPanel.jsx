@@ -529,7 +529,6 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "Share") {
       content = (<ShareBox
-        masterPanelSheetId={this.props.masterPanelSheetId}
         url={window.location.href}
         fullPanel={this.props.fullPanel}
         closePanel={this.props.closePanel}
@@ -688,7 +687,6 @@ ConnectionsPanel.propTypes = {
   contentLang: PropTypes.string,
   masterPanelLanguage: PropTypes.oneOf(["english", "bilingual", "hebrew"]),
   masterPanelMode: PropTypes.string,
-  masterPanelSheetId: PropTypes.number,
   versionFilter: PropTypes.array,
   recentVersionFilters: PropTypes.array,
   setVersionFilter: PropTypes.func.isRequired,
@@ -1210,12 +1208,11 @@ ToolsButton.propTypes = {
   secondaryHe: PropTypes.string
 };
 
-
 class ShareBox extends Component {
   constructor(props) {
     super(props);
-    if (this.props.masterPanelSheetId) {
-      const sheet = Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId);
+    if (this.props.sheetID) {
+      const sheet = Sefaria.sheets.loadSheetByID(this.props.sheetID);
       this.state = {
         sheet: sheet,
         shareValue: sheet.options.collaboration ? sheet.options.collaboration : "none"
@@ -1231,7 +1228,7 @@ class ShareBox extends Component {
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.state.shareValue != prevState.shareValue) {
-      new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId, sheet => resolve(sheet))).then(updatedSheet => {
+      new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.sheetID, sheet => resolve(sheet))).then(updatedSheet => {
         updatedSheet.options.collaboration = this.state.shareValue;
         updatedSheet.lastModified = updatedSheet.dateModified
         delete updatedSheet._id;
@@ -1286,8 +1283,8 @@ class ShareBox extends Component {
       <div>
         <ConnectionsPanelSection title="Share Link">
           <div className="shareInputBox">
-            <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
-            <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
+            <button tabIndex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
+            <input tabIndex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>
           {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
             <div className="shareSettingsBox">
@@ -1313,12 +1310,9 @@ class ShareBox extends Component {
 }
 ShareBox.propTypes = {
   url: PropTypes.string.isRequired,
-  setConnectionsMode: PropTypes.func.isRequired,
-  closePanel: PropTypes.func.isRequired,
   fullPanel: PropTypes.bool,
-  masterPanelSheetId: PropTypes.number
+  sheetID: PropTypes.number
 };
-
 
 class AddNoteBox extends Component {
   constructor(props) {
@@ -1701,5 +1695,6 @@ const ConnectionsPanelSection = ({ title, children }) => {
 export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
-  ToolsButton
+  ToolsButton,
+  ShareBox
 };
