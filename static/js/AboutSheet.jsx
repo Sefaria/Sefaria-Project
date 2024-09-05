@@ -331,6 +331,7 @@ const CollectionsEditor = ({ sheetId }) => {
     const [dataLoaded, setDataLoaded] = useState(!!collections && !!collectionsSelected);
     const [newName, setNewName] = useState("");
     const [changed, setChanged] = useState(false);
+    const [highlightedCollection, setHighlightedCollection] = useState(null);
 
     // Make sure we have loaded the user's list of collections, 
     // and which collections this sheet belongs to for this user
@@ -398,22 +399,30 @@ const CollectionsEditor = ({ sheetId }) => {
             onCheckChange(data.collection, true);
         });
     };
+    const createCollectionItem = ({collection, i}) => {
+
+        return <div className="collectionItem"
+                    key={i + collection.name}
+                    onClick={() => onClick(collection.name)}
+                    onMouseEnter={() => setHighlightedCollection(i)}>
+
+               </div>
+        // return <label className="checkmarkLabel" key={i + collection.name}>
+        //                     <input
+        //                         type="checkbox"
+        //                         onChange={event => onCheckChange(collection, event.target.checked)}
+        //                         checked={collectionsSelected.filter(x => x.slug === collection.slug).length ? "checked" : ""} />
+        //                     <span className="checkmark"></span>
+        //                     {collection.name}
+        //         </label>;
+    }
 
     return <div>      <div className="collectionsEditorTop">
         <h3 className="aboutSheetHeader"><InterfaceText>My Collections</InterfaceText></h3>
     </div><div className="collectionsWidget">
             <div className="collectionsWidgetList serif">
                 {!dataLoaded ? null :
-                    collections.map((collection, i) => {
-                        return <label className="checkmarkLabel" key={i + collection.name}>
-                            <input
-                                type="checkbox"
-                                onChange={event => onCheckChange(collection, event.target.checked)}
-                                checked={collectionsSelected.filter(x => x.slug === collection.slug).length ? "checked" : ""} />
-                            <span className="checkmark"></span>
-                            {collection.name}
-                        </label>
-                    })}
+                    collections.map((collection, i) => createCollectionItem(collection, i))}
                 {dataLoaded && collections.length == 0 ?
                     <span className={"emptyMessage"}>
                         <InterfaceText>
