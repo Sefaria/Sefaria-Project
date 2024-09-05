@@ -13,7 +13,7 @@ from . import abstract
 
 # not sure why we have to do this now - it wasn't previously required
 from . import history, schema, text, link, note, layer, notification, queue, lock, following, blocking, user_profile, \
-    version_state, lexicon, place, timeperiod, garden, collection, topic, manuscript
+    version_state, lexicon, place, timeperiod, garden, collection, topic, manuscript, guide
 
 from .history import History, HistorySet, log_add, log_delete, log_update, log_text
 from .schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, \
@@ -40,11 +40,12 @@ from .passage import Passage, PassageSet
 from .ref_data import RefData, RefDataSet
 from .webpage import WebPage, WebPageSet
 from .media import Media, MediaSet
+from .guide import Guide, GuideSet
 from .topic import Topic, PersonTopic, AuthorTopic, TopicLinkType, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource, TopicSet, PersonTopicSet, AuthorTopicSet, TopicLinkTypeSet, RefTopicLinkSet, IntraTopicLinkSet, TopicLinkSetHelper
 from .portal import Portal
 from .manuscript import Manuscript, ManuscriptSet, ManuscriptPage, ManuscriptPageSet
 from .linker.ref_part import RawRef
-from .linker.ref_resolver import RefResolver
+from .linker.linker import Linker
 from . import dependencies
 
 library._build_index_maps()

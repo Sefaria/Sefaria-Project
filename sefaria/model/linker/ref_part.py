@@ -34,6 +34,18 @@ LABEL_TO_REF_PART_TYPE_ATTR = {
     "non-cts": "NON_CTS",
 }
 
+
+# keys correspond named entity labels in spacy models
+# values are properties in NamedEntityType
+LABEL_TO_NAMED_ENTITY_TYPE_ATTR = {
+    # HE
+    "מקור": "CITATION",
+    # EN
+    "Person": "PERSON",
+    "Group": "GROUP",
+    "Citation": "CITATION",
+}
+
 SpanOrToken = Union[Span, Token]  # convenience type since Spans and Tokens are very similar
 
 
@@ -74,6 +86,19 @@ def span_char_inds(span: SpanOrToken) -> Tuple[int, int]:
     elif isinstance(span, Token):
         idx = span.idx
         return idx, idx + len(span)
+
+
+class NamedEntityType(Enum):
+    PERSON = "person"
+    GROUP = "group"
+    CITATION = "citation"
+
+    @classmethod
+    def span_label_to_enum(cls, span_label: str) -> 'NamedEntityType':
+        """
+        Convert span label from spacy named entity to NamedEntityType
+        """
+        return getattr(cls, LABEL_TO_NAMED_ENTITY_TYPE_ATTR[span_label])
 
 
 class RefPartType(Enum):
@@ -282,12 +307,55 @@ class RangedRawRefParts(RawRefPart):
         return start_span.doc[start_token_i:end_token_i]
 
 
-class RawRef(abst.Cloneable):
+class RawNamedEntity(abst.Cloneable):
+    """
+    Span of text which represents a named entity before it has been identified with an object in Sefaria's DB
+    """
+
+    def __init__(self, span: SpanOrToken, type: NamedEntityType, **cloneable_kwargs) -> None:
+        self.span = span
+        self.type = type
+
+    def map_new_char_indices(self, new_doc: Doc, new_char_indices: Tuple[int, int]) -> None:
+        """
+        Remap self.span to new indices
+        """
+        self.span = new_doc.char_span(*new_char_indices, alignment_mode='expand')
+        if self.span is None: raise InputError(f"${new_char_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
+
+    def align_to_new_doc(self, new_doc: Doc, offset: int) -> None:
+        """
+        Aligns underlying span to `new_doc`'s tokens. Assumption is `new_doc` has some token offset from the original
+        doc of `self.span`
+
+        @param new_doc: new Doc to align to
+        @param offset: token offset that aligns tokens in `self.span` to `new_doc
+        """
+        curr_start, curr_end = span_inds(self.span)
+        new_start, new_end = curr_start+offset, curr_end+offset
+        self.span = new_doc[new_start:new_end]
+
+    @property
+    def text(self):
+        """
+        Return text of underlying span
+        """
+        return self.span.text
+
+    @property
+    def char_indices(self) -> Tuple[int, int]:
+        """
+        Return start and end char indices of underlying text
+        """
+        return span_char_inds(self.span)
+
+
+class RawRef(RawNamedEntity):
     """
     Span of text which may represent one or more Refs
     Contains RawRefParts
     """
-    def __init__(self, lang: str, raw_ref_parts: list, span: SpanOrToken, **clonable_kwargs) -> None:
+    def __init__(self, span: SpanOrToken, lang: str, raw_ref_parts: list, **clonable_kwargs) -> None:
         """
 
         @param lang:
@@ -295,6 +363,7 @@ class RawRef(abst.Cloneable):
         @param span:
         @param clonable_kwargs: kwargs when running Clonable.clone()
         """
+        super().__init__(span, NamedEntityType.CITATION)
         self.lang = lang
         self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
         self.parts_to_match = self.raw_ref_parts  # actual parts that will be matched. different when their are context swaps
@@ -374,7 +443,7 @@ class RawRef(abst.Cloneable):
         """
         start_char, end_char = span_char_inds(part.span)
         pivot = len(part.text) - len(str_end) + start_char
-        aspan = part.span.doc.char_span(0, pivot, alignment_mode='contract')
+        aspan = part.span.doc.char_span(start_char, pivot, alignment_mode='contract')
         bspan = part.span.doc.char_span(pivot, end_char, alignment_mode='contract')
         if aspan is None or bspan is None:
             raise InputError(f"Couldn't break on token boundaries for strings '{self.text[0:pivot]}' and '{self.text[pivot:end_char]}'")
@@ -397,27 +466,25 @@ class RawRef(abst.Cloneable):
             new_parts_to_match = self.parts_to_match
         return self.clone(raw_ref_parts=new_parts, parts_to_match=new_parts_to_match), apart, bpart
 
-    @property
-    def text(self):
-        """
-        Return text of underlying span
-        """
-        return self.span.text
-
-    @property
-    def char_indices(self) -> Tuple[int, int]:
-        """
-        Return start and end char indices of underlying text
-        """
-        return span_char_inds(self.span)
-
-    def map_new_indices(self, new_doc: Doc, new_indices: Tuple[int, int], new_part_indices: List[Tuple[int, int]]) -> None:
+    def map_new_part_char_indices(self, new_part_char_indices: List[Tuple[int, int]]) -> None:
         """
         Remap self.span and all spans of parts to new indices
         """
-        self.span = new_doc.char_span(*new_indices)
-        if self.span is None: raise InputError(f"${new_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
+        start_char, _ = self.char_indices
         doc_span = self.span.as_doc()
-        for part, temp_part_indices in zip(self.raw_ref_parts, new_part_indices):
-            part.span = doc_span.char_span(*[i-new_indices[0] for i in temp_part_indices])
-            if part.span is None: raise InputError(f"{temp_part_indices} doesn't match token boundaries for part {part}. Using 'expand' alignment mode text is '{new_doc.char_span(*temp_part_indices, alignment_mode='expand')}'")
+        for part, temp_part_indices in zip(self.raw_ref_parts, new_part_char_indices):
+            part.span = doc_span.char_span(*[i-start_char for i in temp_part_indices], alignment_mode='expand')
+            if part.span is None:
+                raise InputError(f"{temp_part_indices} doesn't match token boundaries for part {part}.")
+
+    def align_parts_to_new_doc(self, new_doc: Doc, offset: int) -> None:
+        """
+        See `RawNamedEntity.align_to_new_doc`
+        @param new_doc:
+        @param offset:
+        @return:
+        """
+        for part in self.raw_ref_parts:
+            curr_start, curr_end = span_inds(part.span)
+            new_start, new_end = curr_start+offset, curr_end+offset
+            part.span = new_doc[new_start:new_end]

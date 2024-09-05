@@ -276,6 +276,12 @@ Sefaria = extend(Sefaria, {
     let index = Sefaria.index(pRef.index);
     return index && index.categories ? index.categories : [];
   },
+  refIndexTitle: function(ref) {
+    let pRef = Sefaria.parseRef(ref);
+    if ("error" in pRef) { return null; }
+    let index = Sefaria.index(pRef.index);
+    return index?.title
+  },
   sectionRef: function(ref, deriveIfNotFound=false) {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);
@@ -465,31 +471,64 @@ Sefaria = extend(Sefaria, {
         });
   },
   _bulkTexts: {},
+  partitionArrayForURL: function(arr, urlMaxLength, dividerToken) {
+    const result = [];
+    const dividerTokenLength = encodeURIComponent(dividerToken).length;
+    let currentPartition = [];
+    let currentLength = 0;
+
+    for (let i = 0; i < arr.length; i++) {
+        // Calculate the length of the new item when added to the partition
+        const item = arr[i];
+        const encodedItem = encodeURIComponent(item);
+        const newLength = currentPartition.length === 0
+            ? encodedItem.length
+            : currentLength + encodedItem.length + dividerTokenLength; // consider dividerToken length
+
+        // Check if adding this item exceeds the max length
+        if (newLength > urlMaxLength) {
+            // If it does, push the current partition to the result and start a new one
+            result.push(currentPartition);
+            currentPartition = [];
+            currentLength = 0;
+            currentPartition.push(item);
+            continue
+        }
+
+        // Add the item to the current partition
+        currentPartition.push(item);
+        currentLength = newLength;
+    }
+
+    // Add the last partition to the result
+    if (currentPartition.length > 0) {
+        result.push(currentPartition);
+    }
+
+    return result;
+},
+
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
 
     const MAX_URL_LENGTH = 3800;
-    const hostStr = `${Sefaria.apiHost}/api/bulktext/`;
+    const ASSUMED_HOSTNAME_LENGTH_BOUND = 50;
+    const hostStr = encodeURI(`${Sefaria.apiHost}/api/bulktext/`);
 
     let paramStr = '';
     for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar, transLangPref})) {
       paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
     }
     paramStr = paramStr.replace(/&/,'?');
+    paramStr = encodeURI(paramStr);
 
     // Split into multiple requests if URL length goes above limit
-    let refStrs = [""];
-    refs.map(ref => {
-      let last = refStrs[refStrs.length-1];
-      if (encodeURI(`${hostStr}${last}|${ref}${paramStr}`).length > MAX_URL_LENGTH) {
-        refStrs.push(ref)
-      } else {
-        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
-      }
-    });
+    const limit = MAX_URL_LENGTH-(hostStr+paramStr).length-ASSUMED_HOSTNAME_LENGTH_BOUND
+    const refsSubArrays = this.partitionArrayForURL( refs, limit, '|');
+    const refStrs = refsSubArrays.map(refsSubArray => refsSubArray.join('|'));
 
     let promises = refStrs.map(refStr => this._cachedApiPromise({
-      url: `${hostStr}${refStr}${paramStr}`,
+      url: `${hostStr}${encodeURIComponent(refStr)}${paramStr}`,
       key: refStr + paramStr,
       store: this._bulkTexts
     }));
@@ -666,27 +705,52 @@ Sefaria = extend(Sefaria, {
         firstName: firstName,
         lastName: lastName,
       };
-      return await Sefaria.postToApi(`/api/subscribe/${email}`, null, payload);
+      return await Sefaria.apiRequestWithBody(`/api/subscribe/${email}`, null, payload);
   },
   subscribeSteinsaltzNewsletter: async function(firstName, lastName, email) {
       const payload = {firstName, lastName};
-      return await Sefaria.postToApi(`/api/subscribe/steinsaltz/${email}`, null, payload);
+      return await Sefaria.apiRequestWithBody(`/api/subscribe/steinsaltz/${email}`, null, payload);
   },
-
-    postToApi: async function(url, urlParams, payload) {
+  postRefTopicLink: function(refInUrl, payload) {
+      const url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
+      // payload will need to be refactored once /api/ref-topic-links takes a more standard input
+      return Sefaria.adminEditorApiRequest(url, null, payload);
+  },
+  adminEditorApiRequest: async function(url, urlParams, payload, method="POST") {
+      /**
+       * Wraps apiRequestWithBody() with basic alerting if response has an error
+       */
+      let result;
+      try {
+          result = await Sefaria.apiRequestWithBody(url, urlParams, payload, method);
+      } catch (e) {
+          alert(Sefaria._("Something went wrong. Sorry!"));
+          throw e;
+      }
+      if (result.error) {
+          alert(result.error);
+          throw result.error;
+      } else {
+          return result;
+      }
+  },
+  apiRequestWithBody: async function(url, urlParams, payload, method="POST") {
+    /**
+     * Generic function for performing an API request with a payload. Payload and urlParams are optional and will not be used if falsy.
+     */
     let apiUrl = this.apiHost + url;
     if (urlParams) {
         apiUrl += '?' + new URLSearchParams(urlParams).toString();
     }
     const response = await fetch(apiUrl, {
-        method: "POST",
+        method,
         mode: 'same-origin',
         headers: {
             'X-CSRFToken': Cookies.get('csrftoken'),
             'Content-Type': 'application/json'
         },
         credentials: 'same-origin',
-        body: JSON.stringify(payload)
+        body: payload && JSON.stringify(payload)
     });
 
     if (!response.ok) {
@@ -1978,6 +2042,17 @@ _media: {},
     })
     return manuscriptPages
   },
+  _guides: {},
+ guidesByRef: function(refs) {
+    refs = typeof refs === "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    let guides = [];
+    refs.forEach(r => {
+      if (this._guides[r]) {
+        guides = guides.concat(this._guides[r]);
+      }
+    })
+    return guides
+  },
   relatedApi: function(ref, callback) {
     var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
     return this._api(url, data => {
@@ -1993,16 +2068,17 @@ _media: {},
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
-		      media: this._saveItemsByRef(data.media, this._media),
-          manuscripts: this._saveItemsByRef(data.manuscripts, this._manuscripts)
+          media: this._saveItemsByRef(data.media, this._media),
+          manuscripts: this._saveItemsByRef(data.manuscripts, this._manuscripts),
+          guides: this._saveItemsByRef(data.guides, this._guides)
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "webpages", "media"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages", "media", "guides"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: [], guides: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }

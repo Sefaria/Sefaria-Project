@@ -23,6 +23,7 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+import { ReaderApp } from './ReaderApp'; 
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1045,29 +1046,6 @@ class ToggleOption extends Component {
   }
 }
 
-         //style={this.props.style}
-
-const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}, redirect_params}) => {
-    let ajaxPayload = {url, type};
-    if (type === "POST") {
-      ajaxPayload.data = {json: JSON.stringify(data)};
-    }
-    $.ajax({
-      ...ajaxPayload,
-      success: function(result) {
-        if ("error" in result) {
-          if (setSavingStatus) {
-            setSavingStatus(false);
-          }
-          alert(result.error);
-        } else {
-          redirect();
-        }
-      }
-    }).fail(function() {
-      alert(Sefaria._("Something went wrong. Sorry!"));
-    });
-}
 
  const TopicToCategorySlug = function(topic, category=null) {
    //helper function for AdminEditor
@@ -1177,7 +1155,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
             return [];
         }
         // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
-        refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+        refs = refs.filter((x) => !x.is_sheet);
         // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
         return refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
     }
@@ -1186,7 +1164,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
         return {
           url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
           redirect: `/topics/${data.slug}`,
-          origItems: _filterAndSortRefs(data.refs?.about?.refs) || [],
+          origItems: _filterAndSortRefs(data.tabs?.sources?.refs) || [],
         }
       }
       switch (type) {  // at /texts or /topics
@@ -1216,7 +1194,10 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
 
 const EditorForExistingTopic = ({ toggle, data }) => {
   const prepAltTitles = (lang) => { // necessary for use with TitleVariants component
-    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({["name"]: item.text, ["id"]: i}))
+    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({
+      name: item.disambiguation ? `${item.text} (${item.disambiguation})` : item.text,
+      id: i
+  }))
   }
   const initCatSlug = TopicToCategorySlug(data);
   const origData = {
@@ -1349,6 +1330,8 @@ class DisplaySettingsButton extends Component {
   render() {
     let style = this.props.placeholder ? {visibility: "hidden"} : {};
     let icon;
+    const altText = Sefaria._('Text display options')
+    const classes = "readerOptionsTooltip tooltip-toggle";
 
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
@@ -1359,17 +1342,21 @@ class DisplaySettingsButton extends Component {
     } else {
       icon = <span className="textIcon">Aa</span>;
     }
-    return (<a
-              className="readerOptions"
-              tabIndex="0"
-              role="button"
-              aria-haspopup="true"
-              aria-label="Toggle Reader Menu Display Settings"
-              style={style}
-              onClick={this.props.onClick}
-              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
-              {icon}
-            </a>);
+    return (
+            <ToolTipped {...{ altText, classes}}>
+                <a
+                className="readerOptions"
+                tabIndex="0"
+                role="button"
+                aria-haspopup="true"
+                aria-label="Toggle Reader Menu Display Settings"
+                style={style}
+                onClick={this.props.onClick}
+                onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+                {icon}
+              </a>
+            </ToolTipped>
+            );
   }
 }
 DisplaySettingsButton.propTypes = {
@@ -1519,9 +1506,9 @@ const AiInfoTooltip = () => {
         <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
               <div className="ai-info-first-message">
               <InterfaceText>
-                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a></EnglishText>
+                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/583824?lang=bi"}>Learn more.</a></EnglishText>
                   <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית ועברו הגהה על ידי צוות העורכים שלנו.&nbsp;
-                       <a href={"/sheets/541399?lang=en"}>לפרטים נוספים</a></HebrewText>
+                       <a href={"/sheets/583824?lang=bi"}>לפרטים נוספים</a></HebrewText>
               </InterfaceText>
 
           </div>
@@ -1670,7 +1657,7 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
     const deleteImage = () => {
         const old_filename_wout_url = old_filename.split("/").slice(-1);
         const url = `${Sefaria.apiHost}/api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
-        requestWithCallBack({url, type: "DELETE", redirect: () => alert("Deleted image.")});
+        Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => alert("Deleted image."));
         callback("");
         fileInput.current.value = "";
     }
@@ -3031,7 +3018,7 @@ const TitleVariants = function({titles, update, options}) {
                     allowNew={true}
                     tags={titles}
                     onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
-                    placeholderText={Sefaria._("Add a title...")}
+                    placeholderText={Sefaria._("Add a title and press 'enter' or 'tab'.")}
                     delimiters={["Enter", "Tab"]}
                     onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
                     onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
@@ -3288,11 +3275,13 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+const getImgAltText = (caption) => {
+return Sefaria._v(caption) || Sefaria._('Illustrative image');
+}
 const ImageWithCaption = ({photoLink, caption }) => {
-  
   return (
     <div>
-        <img class="imageWithCaptionPhoto" src={photoLink}/>
+        <img class="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
         <div class="imageCaption"> 
           <InterfaceText text={caption} />
         </div>
@@ -3311,6 +3300,41 @@ const AppStoreButton = ({ platform, href, altText }) => {
       </a>
   );
 };
+
+const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_type, analytics_event) => {
+
+
+  // get the lowest level parent element of an event target that is an HTML link tag. Or Null.
+  let target = e.target;
+  let linkTarget = null;
+  let parent = target;
+  let outmost = e.currentTarget;
+  let text = "";
+  
+  while (parent) {
+    if(parent.nodeName === 'A'){
+      linkTarget = parent;
+      text = linkTarget.text
+      break;
+    }
+    else if (parent.parentNode === outmost) {
+      return null;
+    }
+    parent = parent.parentNode;
+  }
+
+  // Ignore clicks from non-a elements.
+  if (!linkTarget) {
+    return;
+  }
+  const href = linkTarget.getAttribute('href');
+  if (!href) {
+    return;
+  }
+  else {
+    gtag_fxn(rank, product, text, label, link_type, analytics_event);
+  }
+}
 
 
 export {
@@ -3377,8 +3401,8 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  requestWithCallBack,
   OnInView,
   TopicPictureUploader,
-  ImageWithCaption
+  ImageWithCaption, 
+  handleAnalyticsOnMarkdown
 };

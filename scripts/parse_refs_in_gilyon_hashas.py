@@ -22,7 +22,7 @@ def parse_book(title: str, resolver: RefResolver) -> Iterable:
 
     version = VersionSet({"title": title, "language": "he"}).array()[0]
     version.walk_thru_contents(collect_input)
-    resolved = resolver.bulk_resolve_refs('he', input_context_refs, input_text, with_failures=True, verbose=True)
+    resolved = resolver.bulk_resolve('he', input_context_refs, input_text, with_failures=True, verbose=True)
     return resolved, input_text, input_context_refs
 
 
@@ -64,7 +64,7 @@ def parse_string(resolver):
 זהו ג"כ הוי כמו חזקה). וכן מצאתי להדיא שכ"כ בתורת השלמים ר"ס קפ"ה ע"ש. וראיתי להנו"ב (מ"ק ביו"ד סי' נ"ז) שהקשה להרשב"א דס"ל דבס"ס נמי היכא דאיכא לברורי מבררינן דא"כ אמאי סמכינן על סתם כלים של נכרים אינן ב"י דהוא מטעם ס"ס אף דאפשר לברר ע"י קפילא וכמ"ש הרא"ש בפ"ב דע"ז דמשום ס"ס לא הטריחוהו להטעימו לקפילא. והרשב"א גופי' פסק כן דסומכין ע"ז דסתם כלים של נכרים אינן ב"י, ותירץ הנו"ב דכיון דאין אנו דנים על הכלי דאפי' ודאי אינו ב"י אסור לבשל בו לכתחלה רק אנו דנים על התבשיל והתבשיל יש לו חזקת היתר ולכן בצירוף חזקת היתר עם הס"ס א"צ לעמוד על הבירור בזה עכ"ד הנו"ב. ואף שיש לפקפק על דבריו במה דפשיטא ליה שהתבשיל יש לו חזקת היתר. די"ל דאיתרע חזקתו כשבישלו בכלי שהוא ספק ב"י. ובכעין זה נחלקו הט"ז והנקה"כ ביו"ד ר"ס ק"ה לענין ספק כבוש, דהט"ז ס"ל שם דיש לאוקמי ההיתר בחזקת כשרות, והנה"כ ושאר
 """
     context_refs = [Ref("Job 1")]
-    resolved = resolver.bulk_resolve_refs('he', context_refs, [s], with_failures=True)
+    resolved = resolver.bulk_resolve('he', context_refs, [s], with_failures=True)
     make_html(resolved, "../data/toratchesed-018__output.html", 'he')
     save_resolved_refs(zip(context_refs, resolved), 'toratchesed-018__output.csv')
 

@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
-from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
+from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
 import reader.views as reader_views
 import sefaria.views as sefaria_views
@@ -41,7 +41,6 @@ urlpatterns = [
     url(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
-    url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^modtools/links$', sefaria_views.links_upload_api),
@@ -439,7 +438,7 @@ urlpatterns += [
     url(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
     url(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     url(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
-    url(r'^admin/?', include(admin.site.urls)),
+    url(fr'^{ADMIN_PATH}/?', include(admin.site.urls)),
 ]
 
 # Stats API - return CSV

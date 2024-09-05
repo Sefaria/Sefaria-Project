@@ -1,0 +1,55 @@
+{% load i18n %}
+
+    <nav id="aboutSidebar">
+        <h1 class="int-en">{{title}}</h1>
+        <h1 class="int-he">{{heTitle}}</h1>
+        <ul>
+            <li><a id="about" href="/about">
+                    <span class="int-en">What is Sefaria?<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">מהי ספריא<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="team" href="/team">
+                    <span class="int-en">Team<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">צוות ספריא<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="jobs" href="/jobs">
+                    <span class="int-en">Jobs at Sefaria<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">משרות פנויות בספריא<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="products" href="/products">
+                    <span class="int-en">Sefaria's Products<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">מוצרים של ספריא<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="supporters" href="/supporters">
+                    <span class="int-en">Our Supporters<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">התומכים שלנו<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="testimonials" href="/testimonials">
+                    <span class="int-en">Testimonials<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">המלצות על ספריא<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="metrics" href="/metrics">
+                    <span class="int-en">Metrics<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">מדדים<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="updates" href="/updates">
+                    <span class="int-en">New Additions<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">עדכונים<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="annualreport" href="/link-to-annual-report">
+                    <span class="int-en">Annual Report<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">דו"ח שנתי<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="terms" href="/terms">
+                    <span class="int-en">Terms of Use<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">תנאי שימוש<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="privacy" href="/privacy-policy">
+                    <span class="int-en">Privacy Policy<i class="fa fa-chevron-right"></i></span>
+                    <span class="int-he">מדיניות פרטיות<i class="fa fa-chevron-left"></i></span></a></li>
+        </ul>
+    </nav>
+<script>
+  const mobile = "{{mobile}}" === "1";
+  if (!mobile) {
+      const whichPage = "{{whichPage}}";
+      const item = document.getElementById(whichPage);
+      item.className = 'selected';
+      const aboutSidebar = document.getElementById("aboutSidebar");
+      aboutSidebar.className = `${whichPage}`;
+  }
+  else {
+      const aboutSidebar = document.getElementById("aboutSidebar");
+      aboutSidebar.className = 'mobileAbout';
+  }
+</script>

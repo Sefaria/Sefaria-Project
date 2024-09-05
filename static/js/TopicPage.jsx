@@ -104,8 +104,6 @@ const refSort = (currSortOption, a, b) => {
     return a.order.comp_date - b.order.comp_date;
   }
   else {
-    const aAvailLangs = a.order.availableLangs;
-    const bAvailLangs = b.order.availableLangs;
     if ((Sefaria.interfaceLang === 'english') &&
       (a.order.curatedPrimacy.en > 0 || b.order.curatedPrimacy.en > 0)) {
       return b.order.curatedPrimacy.en - a.order.curatedPrimacy.en; }
@@ -113,12 +111,13 @@ const refSort = (currSortOption, a, b) => {
       (a.order.curatedPrimacy.he > 0 || b.order.curatedPrimacy.he > 0)) {
       return b.order.curatedPrimacy.he - a.order.curatedPrimacy.he;
     }
+    const aAvailLangs = a.order.availableLangs;
+    const bAvailLangs = b.order.availableLangs;
     if (Sefaria.interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
       if (aAvailLangs.indexOf('en') > -1) { return -1; }
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
       return 0;
     }
-    else if (a.order.custom_order !== b.order.custom_order) { return b.order.custom_order - a.order.custom_order; }  // custom_order, when present, should trump other data
     else if (a.order.pr !== b.order.pr) {
         return b.order.pr - a.order.pr;
     }
@@ -345,7 +344,7 @@ const generatePrompts = async(topicSlug, linksToGenerate) => {
     });
     const payload = {ref_topic_links: linksToGenerate};
     try {
-        await Sefaria.postToApi(`/api/topics/generate-prompts/${topicSlug}`, {}, payload);
+        await Sefaria.apiRequestWithBody(`/api/topics/generate-prompts/${topicSlug}`, {}, payload);
         const refValues = linksToGenerate.map(item => item.ref).join(", ");
         alert("The following prompts are generating: " + refValues);
     } catch (error) {
@@ -360,7 +359,7 @@ const publishPrompts = async (topicSlug, linksToPublish) => {
         ref.descriptions[lang]["published"] = true;
     });
     try {
-        const response = await Sefaria.postToApi(`/api/ref-topic-links/bulk`, {}, linksToPublish);
+        const response = await Sefaria.apiRequestWithBody(`/api/ref-topic-links/bulk`, {}, linksToPublish);
         const refValues = response.map(item => item.anchorRef).join(", ");
         const shouldRefresh = confirm("The following prompts have been published: " + refValues + ". Refresh page to see results?");
         if (shouldRefresh) {

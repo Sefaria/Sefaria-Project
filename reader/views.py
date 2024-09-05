@@ -79,7 +79,7 @@ from io import BytesIO
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
-from sefaria.helper.topic import update_topic, update_topic_titles
+from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
 
 if USE_VARNISH:
@@ -115,7 +115,7 @@ if not DISABLE_AUTOCOMPLETER:
 
 if ENABLE_LINKER:
     logger.info("Initializing Linker")
-    library.build_ref_resolver()
+    library.build_linker('he')
 
 if server_coordinator:
     server_coordinator.connect()
@@ -337,7 +337,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide")
     if filter[0] in sidebarModes:
         return filter[0], True
     elif filter[0].endswith(" ConnectionsList"):
@@ -1058,7 +1058,6 @@ def texts_list(request):
     props = get_user_history_props(request)
     return menu_page(request, page="navigation", title=title, desc=desc, props=props)
 
-
 def calendars(request):
     title = _("Learning Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Weekly Torah portions, Daf Yomi, and other schedules for Torah learning.")
@@ -1087,12 +1086,6 @@ def user_history(request):
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)
-
-
-def updates(request):
-    title = _("New Additions to the Sefaria Library")
-    desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
-    return menu_page(request, page="updates", title=title, desc=desc)
 
 
 @login_required
@@ -1268,6 +1261,7 @@ def edit_text(request, ref=None, lang=None, version=None):
     })
 
 @ensure_csrf_cookie
+@staff_member_required
 @sanitize_get_params
 def edit_text_info(request, title=None, new_title=None):
     """
@@ -2193,9 +2187,10 @@ def related_api(request, tref):
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
-            "topics": get_topics_for_ref(tref, annotate=True),
+            "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),
+            "guides": GuideSet.load_set_for_client(tref)
         }
         for value in response.values():
             for item in value:
@@ -2462,9 +2457,9 @@ def category_api(request, path=None):
         else:
             return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
 
-        j = request.POST.get("json")
+        j = request.body
         if not j:
-            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+            return jsonResponse({"error": "Missing data in POST request."})
         j = json.loads(j)
         update = int(request.GET.get("update", False))
         new_category = Category().load({"path": j["path"]})
@@ -2577,9 +2572,10 @@ def terms_api(request, name):
         def _internal_do_post(request, uid):
             t = Term().load({'name': name}) or Term().load_by_title(name)
             if request.method == "POST":
-                term = request.POST.get("json")
-                if not term:
-                    return {"error": "Missing 'json' parameter in POST data."}
+                if "json" in request.POST:
+                    term = request.POST.get("json")
+                else:
+                    term = request.body
                 term = json.loads(term)
                 if t and not request.GET.get("update"):
                     return {"error": "Term already exists."}
@@ -3081,7 +3077,7 @@ def topic_page(request, topic, test_version=None):
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         },
-        "topicData": _topic_page_data(topic),
+        "topicData": _topic_page_data(topic, request.interfaceLang),
     }
 
     if test_version is not None:
@@ -3132,7 +3128,9 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
-        update_topic_titles(t, **data)
+        titles = data.get('titles')
+        if titles:
+            t.set_titles(titles)
         t.set_slug_to_primary_title()
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
@@ -3191,7 +3189,7 @@ def topics_api(request, topic, v2=False):
         annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
         with_indexes = bool(int(request.GET.get("with_indexes", False)))
         ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-        response = get_topic(v2, topic, with_html=with_html, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
+        response = get_topic(v2, topic, request.interfaceLang, with_html=with_html, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -3277,7 +3275,7 @@ def topic_ref_api(request, tref):
     annotate = bool(int(data.get("annotate", False)))
 
     if request.method == "GET":
-        response = get_topics_for_ref(tref, annotate)
+        response = get_topics_for_ref(tref, request.interfaceLang, annotate)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     else:
         if not request.user.is_staff:
@@ -3294,7 +3292,7 @@ def topic_ref_api(request, tref):
 
 @staff_member_required
 def reorder_sources(request):
-    sources = json.loads(request.POST["json"]).get("sources", [])
+    sources = json.loads(request.body).get("sources", [])
     slug = request.GET.get('topic')
     lang = 'en' if request.GET.get('lang') == 'english' else 'he'
     return jsonResponse(update_order_of_topic_sources(slug, sources, request.user.id, lang=lang))
@@ -3303,8 +3301,8 @@ _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],
 }
 
-def _topic_page_data(topic):
-    _topic_data(topic=topic, annotate_time_period=True)
+def _topic_page_data(topic, lang):
+    _topic_data(topic=topic, lang=lang, annotate_time_period=True)
 
 
 def _topic_data(**kwargs):

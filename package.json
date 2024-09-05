@@ -54,6 +54,7 @@
     "deep-merge": "^1.0.0",
     "diff-match-patch": "^1.0.0",
     "dompurify": "^2.3.6",
+    "downshift": "^9.0.0",
     "draggabilly": "^3.0.0",
     "express": "4.x",
     "express-winston": "^4.1.0",

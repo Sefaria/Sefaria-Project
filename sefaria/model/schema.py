@@ -1125,6 +1125,19 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return getattr(self, 'isSegmentLevelDiburHamatchil', False)
 
 
+class AltStructNode(TitledTreeNode):
+    """
+    Structural node for alt structs
+    Allows additional attributes for referencing these nodes with the linker
+    Note, these nodes can't be the end of a reference since they themselves don't map to a `Ref`. But they are helpful
+    being intermediate nodes in a longer reference.
+    """
+    optional_param_keys = ["match_templates", "numeric_equivalent", 'referenceable']
+
+    def ref(self):
+        return None
+
+
 class ArrayMapNode(NumberedTitledTreeNode):
     """
     A :class:`TreeNode` that contains jagged arrays of references.
@@ -1132,7 +1145,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'referenceable', "addresses", "skipped_addresses"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'referenceable', "addresses", "skipped_addresses", "isMapReferenceable"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -2633,7 +2646,7 @@ class AddressPerek(AddressInteger):
     }
     section_patterns = {
         "en": r"""(?:(?:[Cc]h(apters?|\.)|[Pp]erek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": fr"""(?:\u05d1?{AddressType.reish_samekh_reg}\u05e4((?:"|\u05f4|''|'\s)|(?=[\u05d0-\u05ea]+(?:"|\u05f4|''|'\s)))   # Peh (for 'perek') maybe followed by a quote of some sort OR lookahead for some letters followed by a quote (e.g. פי״א for chapter 11)
+        "he": fr"""(?:\u05d1?{AddressType.reish_samekh_reg}\u05e4((?:"|\u05f4|''|'\s|\s)|(?=[\u05d0-\u05ea]+(?:"|\u05f4|''|'\s)))   # Peh (for 'perek') maybe followed by a quote of some sort OR lookahead for some letters followed by a quote (e.g. פי״א for chapter 11)
         |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
