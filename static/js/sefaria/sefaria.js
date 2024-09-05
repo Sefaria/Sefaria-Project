@@ -514,12 +514,14 @@ Sefaria = extend(Sefaria, {
     const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}${return_format_string}`;
     return url;
   },
+  _textsStore: {},
   getTextsFromAPIV3: async function(ref, requiredVersions, mergeText, return_format) {
     // ref is segment ref or bottom level section ref
     // requiredVersions is array of objects that can have language and versionTitle
     const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
     //TODO here's the place for getting it from cache
-    const apiObject = await Sefaria._ApiPromise(url);
+    const apiObject = await Sefaria._cachedApiPromise({url: url, key: url, store: Sefaria._textsStore});
+    this._textsStore[ref] = apiObject;
     //TODO here's the place for all changes we want to add, and saving in cache
     return apiObject;
   },
@@ -1163,6 +1165,9 @@ Sefaria = extend(Sefaria, {
     if (versionedKey) { return this._getOrBuildTextData(versionedKey); }
     return null;
   },
+  getRefFromCacheV3: function(ref) {
+    return this._textsStore[ref];
+  },
   getRef: function(ref) {
     // Returns Promise for parsed ref info
     if (!ref) { return Promise.reject(new Error("No Ref!")); }
@@ -1188,7 +1193,7 @@ Sefaria = extend(Sefaria, {
       if (callback) {
           throw new Error("Use of Sefaria.ref() with a callback has been deprecated in favor of Sefaria.getRef()");
       }
-      return ref ? this.getRefFromCache(ref) : null;
+      return ref ? this.getRefFromCache(ref) || this.getRefFromCacheV3(ref) : null;
   },
   openTransBannerApplies: (book, textLanguage) => {
       /**
