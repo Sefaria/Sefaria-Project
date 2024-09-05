@@ -11,6 +11,7 @@ import classNames from "classnames";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
 import {SignUpModalKind} from "./sefaria/signupModalContent";
 import {ToolsButton} from "./ConnectionsPanel";
+import Modal from "./shared/modal.jsx";
 
 class SheetContent extends Component {
   componentDidMount() {
@@ -221,6 +222,11 @@ class SheetContent extends Component {
 }
 
 const SheetContentOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
+  const [isSharing, setSharing] = useState(false); // Share Modal open or closed
+  const [isAdding, setAdding] = useState(false);  // Add to Collection Modal open or closed
+  if (isSharing) {
+    return <ShareModal/>;
+  }
   return (
     <DropdownMenu toggle={"..."}>
       <DropdownMenuItem>
@@ -239,9 +245,17 @@ const SheetContentOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
       <DropdownMenuItem>
         <CopyButton toggleSignUpModal={toggleSignUpModal} sheetID={sheetID}/>
       </DropdownMenuItem>
+      <DropdownMenuItem>
+        <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={} />
+      </DropdownMenuItem>
     </DropdownMenu>
   );
 }
+const ShareModal = () => {
+  return <Modal isOpen={true}/>;
+
+}
+
 const CopyButton = ({toggleSignUpModal, sheetID}) => {
   const copyState = {
     copy: { en: "Copy", he: "העתקה" },
