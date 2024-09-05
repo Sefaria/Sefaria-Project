@@ -52,7 +52,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         const newSummary = event.target.value
         if (event.target.value.length > 280) {
             setValidation({
-                validationMsg: Sefaria._("The summary description is limited to 280 characters."),
+                validationMsg: Sefaria._("summary_limit"),
                 validationFailed: "summary"
             });
         }
@@ -111,14 +111,14 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     const isFormValidated = () => {
         if ((!summary || summary.trim() == '') && tags.length == 0) {
             setValidation({
-                validationMsg: Sefaria._("Please add a description and topics to publish your sheet."),
+                validationMsg: Sefaria._("topic.add_desription"),
                 validationFailed: "both"
             });
             return false
         }
         else if (!summary || summary.trim() == '') {
             setValidation({
-                validationMsg: Sefaria._("Please add a description to publish your sheet."),
+                validationMsg: Sefaria._("sheet.add_description"),
                 validationFailed: "summary"
             });
             return false
@@ -126,7 +126,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
         else if (tags.length == 0) {
             setValidation({
-                validationMsg: Sefaria._("Please add topics to publish your sheet."),
+                validationMsg: Sefaria._("topic.add_topic_to_sheet"),
                 validationFailed: "topics"
             });
             return false
@@ -206,7 +206,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
         {sheet.topics && sheet.topics.length > 0 ?
             <div className="readings">
-                <h3 className="aboutSheetHeader"><InterfaceText>{ Sefaria._("Topics")}</InterfaceText></h3>
+                <h3 className="aboutSheetHeader"><InterfaceText>header.topic</InterfaceText></h3>
                 <div>
                     <ul className="aboutSheetLinks">
                         {sheet.topics.map((topic, i) => (
@@ -224,15 +224,15 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     </div>;
 
     const publishSettingsEditMode = <div className="publishSettingsEditMode"><div className={isPublished ? "publishBox transparentBackground sans-serif" : "publishBox sans-serif"}>
-        {!isPublished ? <p><InterfaceText> { Sefaria._("Publish your sheet on Sefaria for others to discover.")}</InterfaceText></p> : null}
-        <h3 className="aboutSheetHeader"><InterfaceText> { Sefaria._("Summary")}</InterfaceText></h3>
+        {!isPublished ? <p><InterfaceText>sheet.publish_sheet_on_pecha</InterfaceText></p> : null}
+        <h3 className="aboutSheetHeader"><InterfaceText>summary</InterfaceText></h3>
         <textarea
             className={validation.validationFailed === "both" || validation.validationFailed === "summary" ? "error" : ""}
             rows="3"
             maxLength="281"
-            placeholder={Sefaria._("Write a short description of your sheet...")}
+            placeholder={Sefaria._("write_short_description")}
             value={summary} onChange={handleSummaryChange}></textarea>
-        <h3 className="aboutSheetHeader"><InterfaceText>Topics</InterfaceText></h3>
+        <h3 className="aboutSheetHeader"><InterfaceText>header.topic</InterfaceText></h3>
         <div className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
             <ReactTags
                 ref={reactTags}
@@ -240,7 +240,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                 tags={tags}
                 suggestions={suggestions}
                 onDelete={onTagDelete}
-                placeholderText={Sefaria._("Add a topic...")}
+                placeholderText={Sefaria._("add_topic")}
                 delimiters={["Enter", "Tab", ","]}
                 onAddition={onTagAddition}
                 onValidate={onTagValidate}
@@ -251,7 +251,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
         {!isPublished ? <div className={"publishButton"}>
             <button className="button notPublished" onClick={togglePublish}>
-                <InterfaceText>{ Sefaria._("Publish")} </InterfaceText>
+                <InterfaceText>publish</InterfaceText>
             </button>
         </div> : null}
 
@@ -261,12 +261,11 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             <div className={"publishButton"}>
                 <div className="publishedText">
                     <InterfaceText>
-                        <EnglishText>{Sefaria._("Your Sheet is")}<span className="publishedTextBold">{ Sefaria._("published")} </span> { Sefaria._("on Sefaria and visible to others through search and topics.")} </EnglishText>
-                        <HebrewText>{Sefaria._("Your Sheet is")} <span className="publishedTextBold">{ Sefaria._("published")}</span>  { Sefaria._("on Sefaria and visible to others through search and topics.")}</HebrewText>
+                        {Sefaria._("sheet.your_sheet_is")}<span className="publishedTextBold">{ Sefaria._("published")} </span> { Sefaria._("topic.visible_to_other")}
                     </InterfaceText>
                 </div>
                 <button className="button published" onClick={togglePublish}>
-                    <InterfaceText>{Sefaria._("Unpublish")}</InterfaceText>
+                    <InterfaceText>unpublish</InterfaceText>
                 </button>
             </div>
             : null
@@ -295,10 +294,10 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         <div className="aboutSheetMetadata">
             <div>
                 <span>{Sefaria.util.localeDate(sheet.dateCreated)}</span>
-                <span>{sheet.views} {Sefaria._("Views")}</span>
+                <span>{sheet.views} {Sefaria._("profile.tab.sheet.tag.views")}</span>
                 <span>{sheetSaves.length} {Sefaria._("Saves")}</span>
             </div>
-            {/* {sheet.status !== 'public' ? (<div><span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span></div>) : undefined} */}
+            {/* {sheet.status !== 'public' ? (<div><span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span></div>) : undefined} */}
         </div>
         {
             canEdit ? publishSettingsEditMode : publishSettingsReadOnly
@@ -417,14 +416,14 @@ const CollectionsEditor = ({ sheetId }) => {
                 {dataLoaded && collections.length === 0 ?
                     <span className={"emptyMessage"}>
                         <InterfaceText>
-                           {Sefaria._("You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.")}
+                           {Sefaria._("profile.collection_description")}
                         </InterfaceText>
                     </span> : null}
             </div>
             <div className="collectionsEditorCreate">
                 <span className="collectionsWidgetPlus">+</span>
                 <div className="collectionsWidgetCreateInputBox">
-                    <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Create new collection")} value={newName} onChange={onNameChange} />
+                    <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("collection.create_new_collection")} value={newName} onChange={onNameChange} />
                 </div>
                 {newName.length ?
                     <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>

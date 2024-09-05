@@ -115,7 +115,7 @@ class SearchTextResult extends Component {
         // const more_results_indicator = (!(data.duplicates)) ? "" :
         //     <div className='similar-trigger-box' onClick={this.toggleDuplicates}>
         //             <span className='similar-title int-he'>
-        //                 {data.duplicates.length} {(data.duplicates.length > 1) ? Sefaria._("moreResults")  : Sefaria._("anotherResult")}
+        //                 {data.duplicates.length} {(data.duplicates.length > 1) ? Sefaria._("search.more_results")  : Sefaria._("search.another_result")}
         //             </span>
         //         <span className='similar-title int-en'>
         //                 {data.duplicates.length} more version{(data.duplicates.length > 1) ? "s" : null}

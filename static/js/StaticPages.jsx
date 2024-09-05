@@ -9,6 +9,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
 import Cookies from 'js-cookie';
+import Sefaria from './sefaria/sefaria';
 
 
 
@@ -366,7 +367,7 @@ const SheetsLandingPage = () => (
             enImg="/static/img/sheets-landing-page/sheetspage_headerimage.png"
             enImgAlt="Sefaria Sheets"
             enActionURL="/sheets/new?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
-            enActionText="Make a Sheet"
+            enActionText={Sefaria._("side_nav.make_sheet")}
             heTitle="דפי מקורות"
             heText="בחרו לכם מקורות מארון הספרים היהודי של ספריא והוסיפו הערות, תמונות או סרטונים משלכם."
             heImg="/static/img/sheets-landing-page/sheetspage_headerimage_HEB.png"
@@ -859,7 +860,7 @@ const EducatorsPage = () => (
         <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="קבלו עדכונים והפניות למקורות מעניינים" />
         <SubscribeButton
                      enAction={"Sign up to get updates"}
-                     heAction={"הירשמו לקבלת הניוזלטר"}
+                     heAction={"རིམ་སྤར་ཐོབ་པ་ལ་ཞུགས་ཐོ་གསར་འགོད་བྱོས།"}
                      heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
                      enLists={"Announcements_General|Announcements_Edu"}
                      redirectURL={"/register?educator=true&next=/educators"}
@@ -2331,7 +2332,7 @@ const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) =>
               } else {
                   response.json().then(resp_json => {
                       if (resp_json.hasOwnProperty("status") && resp_json["status"] == "ok") {
-                          setMessage("Subscribed! Welcome to our list.");
+                          setMessage("message.subscribed");
                           setMessageStyle("");
                       } else if (resp_json.hasOwnProperty("error")) {
                           setMessage(resp_json["error"]);
@@ -2374,7 +2375,7 @@ const HeaderForEducatorsPage = () => {
         <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
         <SubscribeButton
              enAction={"Sign up to get updates"}
-             heAction={"הירשמו לקבלת הניוזלטר"}
+             heAction={"རིམ་སྤར་ཐོབ་པ་ལ་ཞུགས་ཐོ་གསར་འགོད་བྱོས།"}
              heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
              enLists={"Announcements_General|Announcements_Edu"}
              redirectURL={"/register?educator=true&next=/educators"}

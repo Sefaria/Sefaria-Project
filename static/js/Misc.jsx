@@ -178,7 +178,7 @@ class ProfilePic extends Component {
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
       if (!e.target.files[0].type.startsWith('image/')) {
-        this.setState({ error: Sefaria._("file_error_message")});
+        this.setState({ error: Sefaria._("file.message.error")});
         return;
       }
       const reader = new FileReader();
@@ -309,7 +309,7 @@ class ProfilePic extends Component {
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
-                <span className={`${Sefaria.languageClassFont()}`}>{ showDefault ? Sefaria._("Add Picture") : Sefaria._("Upload New") }</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{ showDefault ? Sefaria._("add_picture") : Sefaria._("upload_new") }</span>
               </label>
             </div>) : null
           }
@@ -333,14 +333,14 @@ class ProfilePic extends Component {
               { (uploading || isFirstCropChange) ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
                 <div>
                   <div className="smallText profile-pic-cropper-desc">
-                    <span >{ Sefaria._("Drag corners to crop image") }</span>
+                    <span >{ Sefaria._("drag_corners_to_crop_images") }</span>
                   </div>
                   <div className="profile-pic-cropper-button-row">
                     <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
-                      <span >{ Sefaria._("Cancel") }</span>
+                      <span >{ Sefaria._("button.cancel") }</span>
                     </a>
                     <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
-                      <span >{ Sefaria._("Save") }</span>
+                      <span >{ Sefaria._("button.save") }</span>
                     </a>
                   </div>
                 </div>
@@ -464,7 +464,7 @@ const FilterableList = ({
           <SearchButton />
           <input
             type="text"
-            placeholder={Sefaria._("Search")}
+            placeholder={Sefaria._("search")}
             name="filterableListInput"
             value={filter}
             onChange={e => setFilter(e.target.value)}
@@ -476,8 +476,8 @@ const FilterableList = ({
               <DropdownButton
                 isOpen={displaySort}
                 toggle={()=>setDisplaySort(prev => !prev)}
-                enText={ Sefaria._("Sort") }
-                heText={ Sefaria._("Sort") }
+                enText={ Sefaria._("profile.tab.dropdown.sort") }
+                heText={ Sefaria._("profile.tab.dropdown.sort") }
               />
               <DropdownOptionList
                 isOpen={displaySort}
@@ -496,7 +496,7 @@ const FilterableList = ({
             <SearchButton />
             <input
               type="text"
-              placeholder={Sefaria._("Search")}
+              placeholder={Sefaria._("search")}
               name="filterableListInput"
               value={filter}
               onChange={e => setFilter(e.target.value)}
@@ -504,7 +504,7 @@ const FilterableList = ({
           </div>
           <div className="filter-sort-wrapper">
             <span className="systemText">
-              <InterfaceText>Sort by</InterfaceText>
+              <InterfaceText>profile.tab.dropdown.sort_by</InterfaceText>
             </span>
             { sortOptions.map(option =>(
               <span
@@ -1065,7 +1065,7 @@ const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data=
         }
       }
     }).fail(function() {
-      alert(Sefaria._("Something went wrong. Sorry!"));
+      alert(Sefaria._("topic.admin.something_wrong"));
     });
 }
 
@@ -1421,7 +1421,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
         <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg"/></a>
         <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
           <div className="interfaceLinks-header">
-            <InterfaceText>Site Language</InterfaceText>
+            <InterfaceText>setting.site_language</InterfaceText>
           </div>
           <div className="interfaceLinks-options">
             <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>བོད་ཡིག</a>
@@ -1432,14 +1432,14 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
           { !!translationLanguagePreference ? (
             <>
               <div className="interfaceLinks-header">
-                <InterfaceText>Preferred Translation</InterfaceText>
+                <InterfaceText>text.admin.prefferred_translation</InterfaceText>
               </div>
               <div className="interfaceLinks-options trans-pref-header-container">
                 <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, false)}</InterfaceText>
                 <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
                   <img src="/static/img/circled-x.svg" className="reset-btn" />
                   <span className="smallText">
-                    <InterfaceText>Reset</InterfaceText>
+                    <InterfaceText>topic.reset</InterfaceText>
                   </span>
                 </a>
               </div>
@@ -1749,7 +1749,7 @@ const SheetListing = ({
   };
 
   const handleSheetDeleteClick = () => {
-    if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+    if (confirm(Sefaria._("sheet.delete_warning_msg"))) {
       Sefaria.sheets.deleteSheetById(sheet.id).then(handleSheetDelete);
     }
   };
@@ -1762,7 +1762,7 @@ const SheetListing = ({
     }
   };
 
-  const title = sheet.title ? sheet.title.stripHtmlConvertLineBreaks() : Sefaria._("Untitled Source Sheet");
+  const title = sheet.title ? sheet.title.stripHtmlConvertLineBreaks() : Sefaria._("sheet.untitled_sourc_sheet");
 
   const viewsIcon = sheet.public ?
     <div className="sheetViews sans-serif"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
@@ -1770,7 +1770,7 @@ const SheetListing = ({
 
   const views = (
     <>
-      {sheet.views}&nbsp;<InterfaceText>Views</InterfaceText>
+      {sheet.views}&nbsp;<InterfaceText>profile.tab.sheet.tag.views</InterfaceText>
     </>
   );
 
@@ -1827,7 +1827,7 @@ const SheetListing = ({
   });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
-      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
@@ -1837,8 +1837,8 @@ const SheetListing = ({
 
 
   const pinButtonClasses = classNames({sheetListingPinButton: 1, pinned: pinned, active: pinnable});
-  const pinMessage = pinned && pinnable ? Sefaria._("Pinned Sheet - click to unpin") :
-                    pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
+  const pinMessage = pinned && pinnable ? Sefaria._("collection.unpin_sheet") :
+                    pinned ? Sefaria._("collection.pinned_sheet") : Sefaria._("collection.pin_sheet");
   const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} />
 
   return (
@@ -1864,17 +1864,17 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           editable && !Sefaria._uses_new_editor ?
-            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
+            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("collection.edit")}/></a>
             : null
         }
         {
           collectable ?
-            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
+            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("collection.add_to_collection")} />
             : null
         }
         {
           deletable ?
-            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
+            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("delete")} />
             : null
         }
         {
@@ -1924,7 +1924,7 @@ const CollectionListing = ({data}) => {
 
             <span className="collectionListingDetail collectionListingSheetCount">
               <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
-              <InterfaceText>Sheets</InterfaceText>
+              <InterfaceText>sheets</InterfaceText>
             </span>
 
             {data.memberCount > 1 ?
@@ -1933,7 +1933,7 @@ const CollectionListing = ({data}) => {
             {data.memberCount > 1 ?
             <span className="collectionListingDetail collectionListingMemberCount">
               <InterfaceText>{`${data.memberCount} `}</InterfaceText>
-              <InterfaceText>Editors</InterfaceText>
+              <InterfaceText>collection.editor</InterfaceText>
             </span> : null }
           </div>
         </div>
@@ -1988,13 +1988,13 @@ class LoginPrompt extends Component {
     return (
       <div className="loginPrompt">
         <div className="loginPromptMessage">
-          <span >{ Sefaria._("Please log in to use this feature.")}</span>
+          <span >{ Sefaria._("message.login_to_use_feature")}</span>
         </div>
         <a className="button" href={"/login" + nextParam}>
-          <span >{ Sefaria._("Log In")}</span>
+          <span >{ Sefaria._("log_in")}</span>
         </a>
         <a className="button" href={"/register" + nextParam}>
-          <span >{ Sefaria._("Sign Up")}</span>
+          <span >{ Sefaria._("sign_up")}</span>
         </a>
       </div>);
   }
@@ -2037,7 +2037,7 @@ class SignUpModal extends Component {
                 </InterfaceText>
             </a>
             <div className="sefariaModalBottomContent">
-              <InterfaceText>{ Sefaria._("Already have an account?")} </InterfaceText>&nbsp;
+              <InterfaceText>{ Sefaria._("sign_up.already_have_account")} </InterfaceText>&nbsp;
               <a href={"/login" + nextParam}><InterfaceText>{ Sefaria._("Sign in")}</InterfaceText></a>
             </div>
           </div>
@@ -2553,8 +2553,8 @@ Dropdown.propTypes = {
 
 class LoadingMessage extends Component {
   render() {
-    var message = this.props.message ||  Sefaria._("Loading...") ;
-    var heMessage = this.props.heMessage || Sefaria._("Loading...");
+    var message = this.props.message ||  Sefaria._("loading...") ;
+    var heMessage = this.props.heMessage || Sefaria._("loading...");
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
     return (<div className={classes}>
               <InterfaceText>
@@ -2634,12 +2634,12 @@ class FeedbackBox extends Component {
   }
   sendFeedback() {
     if (!this.state.type) {
-      this.setState({alertmsg: Sefaria._("Please select a feedback type")});
+      this.setState({alertmsg: Sefaria._("feedback.please_select_type")});
       return
     }
 
     if (!Sefaria._uid && !this.validateEmail($("#feedbackEmail").val())) {
-      this.setState({alertmsg: Sefaria._("Please enter a valid email address")});
+      this.setState({alertmsg: Sefaria._("message.enter_valid_email")});
       return
     }
 
@@ -2665,7 +2665,7 @@ class FeedbackBox extends Component {
             Sefaria.track.event("Tools", "Send Feedback", this.props.url);
         }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-        alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+        alert(Sefaria._("feedback.message.error_sending_feedback"));
         this.setState({feedbackSent: true});
     });
   }
@@ -2680,13 +2680,13 @@ class FeedbackBox extends Component {
     if (this.state.feedbackSent) {
         return (
             <div className="feedbackBox sans-serif">
-                <p >{ Sefaria._("Feedback sent")}</p>
+                <p >{ Sefaria._("text.feedback.feedback_send")}</p>
             </div>
         )
     }
     return (
         <div className="feedbackBox sans-serif">
-            <p >{ Sefaria._("Have some feedback? We would love to hear it.") }  </p>
+            <p >{ Sefaria._("text.feedback.have_feedback?") }  </p>
 
             {this.state.alertmsg ?
                 <div>
@@ -2698,26 +2698,26 @@ class FeedbackBox extends Component {
             <Dropdown
               name="feedbackType"
               options={[
-                        {value: "content_issue",   label: Sefaria._("Report an issue with the text")},
-                        {value: "translation_request",   label: Sefaria._("Request translation")},
-                        {value: "bug_report",      label: Sefaria._("Report a bug")},
-                        {value: "help_request",    label: Sefaria._("Get help")},
-                        {value: "feature_request", label: Sefaria._("Request a feature")},
-                        {value: "good_vibes",      label: Sefaria._("Give thanks")},
-                        {value: "other",           label: Sefaria._("Other")},
+                        {value: "content_issue",   label: Sefaria._("report_issue")},
+                        {value: "translation_request",   label: Sefaria._("request_translation")},
+                        {value: "bug_report",      label: Sefaria._("report_bug")},
+                        {value: "help_request",    label: Sefaria._("get_help")},
+                        {value: "feature_request", label: Sefaria._("request_feature")},
+                        {value: "good_vibes",      label: Sefaria._("give_thanks")},
+                        {value: "other",           label: Sefaria._("other")},
                       ]}
-              placeholder={Sefaria._("Select Type")}
+              placeholder={Sefaria._("select_type")}
               onChange={this.setType}
             />
 
-            <textarea className="feedbackText" placeholder={Sefaria._("Describe the issue...")} id="feedbackText"></textarea>
+            <textarea className="feedbackText" placeholder={Sefaria._("describe_issue")} id="feedbackText"></textarea>
 
             {!Sefaria._uid ?
-                <div><input className="sidebarInput noselect" placeholder={Sefaria._("Email Address")} id="feedbackEmail" /></div>
+                <div><input className="sidebarInput noselect" placeholder={Sefaria._("email")} id="feedbackEmail" /></div>
                 : null }
 
              <div className="button" role="button" onClick={() => this.sendFeedback()}>
-                 <span > {Sefaria._("Submit")}</span>
+                 <span > {Sefaria._("button.submit")}</span>
              </div>
         </div>
     );
@@ -2775,8 +2775,8 @@ class CookiesNotification extends Component {
 
 
           <span className={`${Sefaria.languageClassFont()}`}>
-            <span>{ Sefaria._("We use cookies to give you the best experience possible on our site. Click OK to continue using Pecha.") }<a href="/privacy-policy">{ Sefaria._("Learn More") }</a></span>
-            <span className='int-he button small white' onClick={this.setCookie}>{ Sefaria._("OK") }</span>
+            <span>{ Sefaria._("message.cookies_msg") }<a href="/privacy-policy">{ Sefaria._("learn_more") }</a></span>
+            <span className='int-he button small white' onClick={this.setCookie}>{ Sefaria._("ok") }</span>
           </span>
 
        </div>
@@ -2803,7 +2803,7 @@ const CommunityPagePreviewControls = ({date}) => {
 
   return (
     <div id="communityPagePreviewControls">
-      <InterfaceText> { Sefaria._("You are previewing the Community page for")} </InterfaceText>
+      <InterfaceText> { Sefaria._("community.message.previewing")} </InterfaceText>
       <a className="date" href={"/admin/community-preview?date=" + date}>
         <InterfaceText>{date}</InterfaceText>
       </a>
@@ -2880,10 +2880,10 @@ const AdminToolHeader = function({title, validate, close}) {
               </h1>
               <div className="end">
                 <a onClick={close} id="cancel" className="button small transparent control-elem">
-                  <InterfaceText>{ Sefaria._("Cancel")}</InterfaceText>
+                  <InterfaceText>{ Sefaria._("button.cancel")}</InterfaceText>
                 </a>
                 <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
-                  <InterfaceText>{ Sefaria._("Save")}</InterfaceText>
+                  <InterfaceText>{ Sefaria._("button.save")}</InterfaceText>
                 </div>
               </div>
             </div>
@@ -2942,7 +2942,7 @@ const CategoryChooser = function({categories, update}) {
           {menus.map((menu, index) =>
             <div className="categoryChooserMenu">
               <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
-              <option key="chooseCategory" value="Choose a category">{ Sefaria._("Table of Contents")} </option>
+              <option key="chooseCategory" value="Choose a category">{ Sefaria._("text.table_of_contents")} </option>
               {menu}
               </select>
             </div>)}
@@ -3009,7 +3009,7 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
                         {value: "h",      label:'ה׳'},
                         {value: "ykvk",    label: 'יקוק'},
                       ]}
-              placeholder={Sefaria._("Select Type")}
+              placeholder={Sefaria._("select_type")}
               onChange={(e) => setDivineNameReplacement((e.target.value))}
               preselected={divineNameReplacement}
             />

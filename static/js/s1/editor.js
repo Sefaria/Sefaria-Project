@@ -1008,7 +1008,7 @@ $(function() {
 			$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
 				$("#sheets").empty();
 				var sheets = "";
-				sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
+				sheets += '<li class="sheet new"><i>'+Sefaria._("sheet.start_new_source_sheet")+'</i></li>';
 				for (i = 0; i < data.sheets.length; i++) {
 					sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
 						$("<div/>").html(data.sheets[i].title).text() + "</li>";
@@ -1045,12 +1045,12 @@ $(function() {
 		var selectedRef = sjs.selected;
 		var selected = $(".sheet.selected");
 		if (!selected.length) {
-			sjs.alert.message("Please select a source sheet.");
+			sjs.alert.message("sheet.select_source");
 			return false;
 		}
 
 		if (selected.hasClass("new")) {
-			var title = prompt("New Source Sheet Name:", "");
+			var title = prompt("sheet.new_source_sheet_name", "");
 			var sheet = {
 				title: title,
 				options: {numbered: 0},
@@ -1240,7 +1240,7 @@ $(function() {
 				location.reload();
 			}
 		}).fail(function() {
-			sjs.alert.message("Something went wrong. Sorry!");
+			sjs.alert.message(Sefaria._("topic.admin.something_wrong"));
 		});
 
 	};
@@ -1281,7 +1281,7 @@ $(function() {
 				}
 			}
 		}).fail(function() {
-			sjs.alert.message("Something went wrong. Sorry!");
+			sjs.alert.message(Sefaria._("topic.admin.something_wrong"));
 		});
 
 	};
@@ -3865,7 +3865,7 @@ function handleDeleteSource(e) {
 				sjs.alert.message("Source deleted.");
 			},
 			error: function () {
-				sjs.alert.message("Something went wrong (that's all I know).");
+				sjs.alert.message("something_went_wrong");
 			}
 		});
 	}
@@ -4023,10 +4023,10 @@ sjs.saveNote = function() {
 		} else if (data) {
 			updateSources(data);
 		} else {
-			sjs.alert.message("Sorry, there was a problem saving your note.");
+			sjs.alert.message(Sefaria._("note_save_warning"));
 		}
 	}).fail( function(xhr, textStatus, errorThrown) {
-        sjs.alert.message("Unfortunately, there was an error saving this note. Please try again or try reloading this page.")
+        sjs.alert.message(Sefaria._("note_save_error_try_again"))
     });
 	sjs.hideNote();
 };

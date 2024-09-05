@@ -57,7 +57,7 @@ class MyNotesPanel extends Component {
       <div className={classStr}>
         {this.props.hideNavHeader ? null :
           <SinglePanelNavHeader
-            title="My Notes"
+            title= {_("my_note")}
             navHome={this.props.navHome}
             showDisplaySettings={true}
             openDisplaySettings={this.props.openDisplaySettings}/>
@@ -126,11 +126,10 @@ class NoteListing extends Component {
 
     return (<div className="noteListing">
               <div className="addToSheetButton sans-serif he" onClick={this.showSheetModal}>
-                <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Add to Sheet")}</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("sheet.add_to_sheet")}</span>
               </div>
               <div className="addToSheetButton sans-serif en" onClick={this.showSheetModal}>
-                <span className={`${Sefaria.languageClassFont()}`}>Add to Sheet</span>
-                <span className="int-he">הוסף לדף מקורות</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("sheet.add_to_sheet")}</span>
               </div>
               <a href={url}>
                 {this.props.showText ?

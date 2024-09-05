@@ -92,15 +92,15 @@ class TopicPageAll extends Component {
           <div className="sidebarLayout">
             <div className="contentInner">
               <h1>
-                <InterfaceText>All Topics</InterfaceText>
+                <InterfaceText>topic.all_topics</InterfaceText>
               </h1>
 
               <div className="topicFilterBox">
                 <img className="searchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" />
-                <input className={inputClasses} placeholder={Sefaria._("Search Topics")} onChange={this.handleFilterChange} />
+                <input className={inputClasses} placeholder={Sefaria._("search_topic")} onChange={this.handleFilterChange} />
                 { this.state.filter.length ?
                 <div className="topicsFilterReset sans-serif" onClick={this.resetFilter}>
-                  <InterfaceText>Reset</InterfaceText>
+                  <InterfaceText>topic.reset</InterfaceText>
                   <img className="topicsFilterResetIcon" src="/static/icons/circled-x.svg" />
                 </div>
                 : null }

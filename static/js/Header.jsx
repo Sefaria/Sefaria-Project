@@ -48,10 +48,10 @@ class Header extends Component {
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
-          <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
-          <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
-          <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
-          {/*<DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>*/}
+          <a href="/texts" className="textLink"><InterfaceText >header.text</InterfaceText></a>
+          <a href="/topics" className="textLink"><InterfaceText>header.topic</InterfaceText></a>
+          <a href="/community" className="textLink"><InterfaceText>header.community</InterfaceText></a>
+          {/*<DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>*/}
         </div>
 
         <div className="headerLinksSection">
@@ -139,7 +139,7 @@ class SearchBar extends Component {
     this.state = {
       searchFocused: false
     };
-    this._searchOverridePre = Sefaria._('Search for') +': "';
+    this._searchOverridePre = Sefaria._("search_for") +': "';
     this._searchOverridePost = '"';
     this._type_icon_map = {
       "Collection": "collection.svg",
@@ -376,12 +376,12 @@ class SearchBar extends Component {
         <SearchButton onClick={this.handleSearchButtonClick} />
         <input className={inputClasses}
           id="searchInput"
-          placeholder={Sefaria._("Search")}
+          placeholder={Sefaria._("search")}
           onKeyUp={this.handleSearchKeyUp}
           onFocus={this.focusSearch}
           onBlur={this.blurSearch}
           maxLength={75}
-          title={Sefaria._("Search for Texts or Keywords Here")} />
+          title={Sefaria._("search_text_or_keywords")} />
       </div>
     );
   }
@@ -515,7 +515,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a> */}
       <a href="/collections" onClick={close}>
         <img src="/static/icons/collection.svg"/>
-        <InterfaceText>Collections</InterfaceText>
+        <InterfaceText>profile.tab.collection</InterfaceText>
       </a>
 
       {/* <DonateLink classes={"blue"} source="MobileNavMenu">
@@ -528,15 +528,15 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <>
           <a href="/my/profile" onClick={close}>
             <ProfilePic len={22} url={Sefaria.profile_pic_url} name={Sefaria.full_name} />
-            <InterfaceText>Profile</InterfaceText>
+            <InterfaceText>header.profileMenu.profile</InterfaceText>
           </a>
           <a href="/texts/saved" onClick={close}>
             <img src="/static/icons/bookmarks.svg" />
-            <InterfaceText>Saved & History</InterfaceText>
+            <InterfaceText>save_and_history</InterfaceText>
           </a>
           <a href="/notifications" onClick={close}>
             <img src="/static/icons/notification.svg" />
-            <InterfaceText>Notifications</InterfaceText>
+            <InterfaceText>notifications</InterfaceText>
           </a>
         </> : null }
 
@@ -549,7 +549,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <>
           <a href="/settings/account">
           <img src="/static/icons/settings.svg" />
-          <InterfaceText>Account Settings</InterfaceText>
+          <InterfaceText>header.profileMenu.account_settings</InterfaceText>
         </a>
         </> : null }
 
@@ -557,13 +557,13 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <a href="/help">
           <img src="/static/icons/help.svg" />
-          <InterfaceText>Get Help</InterfaceText>
+          <InterfaceText>get_help</InterfaceText>
         </a>
 
         {Sefaria._uid ?
         <a href="/logout" className="logout">
           <img src="/static/icons/logout.svg" />
-          <InterfaceText>Logout</InterfaceText>
+          <InterfaceText>header.profileMenu.log_out</InterfaceText>
         </a>
         :
         <LoggedOutButtons mobile={true} loginOnly={true}/> }
@@ -634,10 +634,10 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <InterfaceText>Profile</InterfaceText>
               </a></div>
               <div><a className="interfaceLinks-row" id="new-sheet-link" href="/sheets/new">
-                <InterfaceText>Create a New Sheet</InterfaceText>
+                <InterfaceText>header.profileMenu.create_New_Sheet</InterfaceText>
               </a></div>
               <div><a className="interfaceLinks-row" id="account-settings-link" href="/settings/account">
-                <InterfaceText>Account Settings</InterfaceText>
+                <InterfaceText>header.profileMenu.account_settings</InterfaceText>
               </a></div>
               <hr className="interfaceLinks-hr"/>
               <hr className="interfaceLinks-hr"/>
@@ -651,7 +651,7 @@ const ProfilePicMenu = ({len, url, name}) => {
             <hr className="interfaceLinks-hr"/>
             <hr className="interfaceLinks-hr"/>
             <div><a className="interfaceLinks-row logout" id="logout-link" href="/logout">
-              <InterfaceText>Logout</InterfaceText>
+              <InterfaceText>header.profileMenu.log_out</InterfaceText>
             </a></div>
           </div> : null}
         </div>
@@ -695,7 +695,7 @@ const HelpButton = () => {
   return (
     <div className="help">
       <a href={url}>
-        <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
+        <img src="/static/img/help.svg" alt={Sefaria._("help")}/>
       </a>
     </div>
   );

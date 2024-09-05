@@ -28,7 +28,7 @@ const TranslationsPage = ({translationsSlug}) => {
                 return uncategorized;
             },{}) : {})
     }, [translations])
-    const tabs = [{id: "texts", title: {en: "Texts", he: Sefaria._("Texts", "Header")}}];
+    const tabs = [{id: "texts", title: {en: "Texts", he: Sefaria._("header.text")}}];
     const sortFx = (a, b) => {
       if(a["order"] && b["order"]) {
         return a['order'][0] - b['order'][0];

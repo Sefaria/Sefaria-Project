@@ -29,7 +29,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     <span className="sans-serif">
       <a href="/texts/saved" className={"navTitleTab" + (menuOpen === "saved" ? " current" : "")}>
         <img src="/static/icons/bookmark.svg" />
-        <InterfaceText>Saved</InterfaceText>
+        <InterfaceText>save</InterfaceText>
       </a>
       <a href="/texts/history" className={"navTitleTab" + (menuOpen === "history" ? " current" : "")}>
         <img src="/static/icons/clock.svg" />
@@ -105,7 +105,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
   if (menuOpen === 'history' && !Sefaria.is_history_enabled) {
     return (
       <div className="savedHistoryMessage">
-        <span className={`${Sefaria.languageClassFont()}`}>Reading history is currently disabled. You can re-enable this feature in your <a href="/settings/account">account settings</a>.</span>
+        <span className={`${Sefaria.languageClassFont()}`}>Reading history is currently disabled. You can re-enable this feature in your <a href="/settings/account">{Sefaria._("header.profileMenu.account_settings")}</a>.</span>
       </div>
     );
   } else if (!items) {
@@ -114,8 +114,8 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
     return (
       <div className="savedHistoryMessage sans-serif">
         {menuOpen === "history" ?
-        <InterfaceText>Texts and sheets that you read will be available for you to see here.</InterfaceText>
-        : <InterfaceText>Click the bookmark icon on texts or sheets to save them here.</InterfaceText>}
+        <InterfaceText>text_sheet_available_here</InterfaceText>
+        : <InterfaceText>{Sefaria._("bookmark.icon_description")}</InterfaceText>}
       </div>
     );
   }

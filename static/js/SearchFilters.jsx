@@ -67,7 +67,7 @@ class SearchFilters extends Component {
       name: data.type,
       content: <InterfaceText>{data.name}</InterfaceText>,
       role: "radio",
-      ariaLabel: Sefaria._("Sort by") + " " + Sefaria._(data.name),
+      ariaLabel: Sefaria._("profile.tab.dropdown.sort_by") + " " + Sefaria._(data.name),
     }));
 
     return Sefaria.multiPanel && !this.props.compare ? (
@@ -78,13 +78,13 @@ class SearchFilters extends Component {
       <>
         <div className="mobileSearchFiltersHeader sans-serif">
           <CloseButton onClick={this.props.closeMobileFilters} />
-          <InterfaceText>Filters</InterfaceText>
+          <InterfaceText>filter</InterfaceText>
           <div></div>
         </div>
         <div className="searchFilters navSidebarModule">
           <div className="searchFilterGroup">
             <h2>
-              <InterfaceText>Sort by</InterfaceText>
+              <InterfaceText>profile.tab.dropdown.sort_by</InterfaceText>
             </h2>
             <ToggleSet
               ariaLabel="Sort by"
@@ -255,7 +255,7 @@ class SearchFilterExactBox extends Component {
           <label tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}><span></span></label>
         
          <span className={"filter-title"}>
-            <InterfaceText>Exact Matches Only</InterfaceText>
+            <InterfaceText>{_("exact_matches_only")}</InterfaceText>
           </span>
         </div>
       </li>
@@ -321,8 +321,8 @@ class SearchFilter extends Component {
   }
   render() {
     const { filter, expandable } = this.props;
-    const toggleMessage = Sefaria._("Press enter to toggle search filter for ") + filter.title + ".";
-    const expandMessage = filter.title + Sefaria._("Press enter to toggle the list of specific books within ");
+    const toggleMessage = Sefaria._("search.message.toggle_filter") + filter.title + ".";
+    const expandMessage = filter.title + Sefaria._("search.message.toggle_list_of_books");
 
     return (
       <>

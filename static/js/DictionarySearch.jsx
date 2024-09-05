@@ -102,7 +102,7 @@ class DictionarySearch extends Component {
 
       source: function(request, response) {
         if (Sefaria.hebrew.containsEnglish(request.term)) {
-          response([{label: Sefaria._("Invalid entry.  Please type a Hebrew word.") , value: "__invalid"}]);
+          response([{label: Sefaria._("message.error_invalid_entry") , value: "__invalid"}]);
           return
         }
         Sefaria.lexiconCompletion(
@@ -179,12 +179,12 @@ class DictionarySearch extends Component {
           <img className="dictionarySearchButton" src="/static/icons/magnifier.svg" onClick={this.handleSearchButtonClick} role="button" alt="image of maginfying glass"/>
           <input className={inputClasses}
             id="searchInput"
-            placeholder={Sefaria._("Search Dictionary")}
+            placeholder={Sefaria._("search_dictionary")}
             onKeyUp={this.handleSearchKeyUp}
             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
             maxLength={75}
-            title={Sefaria._("Search for Texts or Keywords Here")}
+            title={Sefaria._("search_text_or_keywords")}
           />
         </div>
     );
