@@ -197,16 +197,16 @@ class SheetContent extends Component {
   }
   render() {
     const sources = this.getSources();
+    const sheetContentOptions = <SheetContentOptions toggleSignUpModal={this.props.toggleSignUpModal}
+                                                             sheetID={this.props.sheetID}
+                                                             historyObject={this.props.historyObject}/>;
     return (
       <div className="sheetContent">
         <div className="text">
-          <div className="sidebarLayout">
           <SheetContentMetaDataBox authorStatement={this.props.authorStatement} authorUrl={this.props.authorUrl}
-                                   authorImage={this.props.authorImage} title={this.props.title} summary={this.props.summary} />
-          <SheetContentOptions toggleSignUpModal={this.props.toggleSignUpModal}
-                               sheetID={this.props.sheetID}
-                               historyObject={this.props.historyObject}/>
-          </div>
+                                   authorImage={this.props.authorImage} title={this.props.title}
+                                   summary={this.props.summary}
+                                   sheetContentOptions={sheetContentOptions}/>
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
           </div>
@@ -386,9 +386,12 @@ const GoogleDocExportButton = ({ toggleSignUpModal, sheetID }) => {
             <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
           </div>;
 }
-const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage}) => {
+const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, sheetContentOptions}) => {
   return <SheetMetaDataBox>
-    <SheetMetaDataBoxSegment text={title} className="title"/>
+    <div className="sidebarLayout">
+      <SheetMetaDataBoxSegment text={title} className="title"/>
+      {sheetContentOptions}
+    </div>
     {summary && <SheetMetaDataBoxSegment text={summary} className="summary"/>}
     <SheetAuthorStatement
         authorUrl={authorUrl}

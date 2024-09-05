@@ -8429,6 +8429,7 @@ a .button:hover {
   font-weight: 500;
   line-height: 35.16px;
   margin-block-end: 15px;
+  flex: 1 0 95%;
 }
 .sheetMetaDataBox .title br { /* hide the line breaks that are stripped before saving */
     display: none;
@@ -13377,10 +13378,11 @@ span.ref-link-color-3 {color: blue}
   margin-inline-start: 10px;
   padding: revert;
 }
-.sheetsInPanel .dropdownLinks {
-  display: flex;
-  min-width: 50%;
+.sheetsInPanel .sidebarLayout {
   justify-content: space-between;
+}
+.sheetsInPanel .dropdownLinks {
+  min-width: 50%;
   margin-top: 2px;
   color: #666;
   cursor: pointer;
@@ -13444,15 +13446,21 @@ span.ref-link-color-3 {color: blue}
 }
 
 
-.interface-english .header .dropdownLinks .dropdownLinks-menu,
-.interface-english .sheetsInPanel .dropdownLinks .dropdownLinks-menu{
+.interface-english .header .dropdownLinks .dropdownLinks-menu {
   right: 0px;
   min-width: 150px;
   width: max-content;
 }
-.interface-hebrew .header .dropdownLinks .dropdownLinks-menu,
-.interface-hebrew .sheetsInPanel .dropdownLinks .dropdownLinks-menu {
+.interface-english .sheetsInPanel .dropdownLinks .dropdownLinks-menu {
+  min-width: 150px;
+  width: max-content;
+}
+.interface-hebrew .header .dropdownLinks .dropdownLinks-menu {
   left: 0px;
+  min-width: 150px;
+  width: max-content;
+}
+.interface-hebrew .sheetsInPanel .dropdownLinks .dropdownLinks-menu  {
   min-width: 150px;
   width: max-content;
 }

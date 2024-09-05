@@ -1476,7 +1476,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal, sho
     else {
       text = isSelected() ? "Saved" : "Save";
     }
-    return <span id="saveButtonText">{text}</span>;
+    return <span id="saveButtonText">{Sefaria._(text)}</span>;
   }
   const selectedIcon = selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
                           <img src="/static/icons/bookmark.svg" alt={altText}/>;
