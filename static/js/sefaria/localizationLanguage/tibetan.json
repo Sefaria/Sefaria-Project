@@ -298,6 +298,7 @@
     "side_nav.download_text.text_without_tag":"ཡིག་རྐྱང་།",
     "side_nav.download_text.merged_version":"དཔེ་རྒྱུན་མཉམ་བསྒྲིགས་བྱས་པ།",
     "side_nav.join_conversation":  "ཁ་བརྡ་ནང་ཞུགས།",
+    "side_nav.join_conversation.button.make_sheet": "ཤོག་ངོས་ཤིག་བཟོས",
     "side_nav.join_conversation.descriptions": "ཡིག་མཛོད་ནང་ལ་ཡོད་པའི་ལུང་ཚིག་གཞི་ལ་བཞག་ནས། ཁྱེད་རང་ཉིད་ཀྱི་བསམ་ཚུལ་དང་དྲི་བ། འདྲ་པར། བརྙན་ལ་སོགས་པ་བསྣན་ནས་མཉམ་སྡེབ་བྱེད་ཆོག།",
     "side_nav.explore_community": "ཚོགས་སྡེ་དེ་སྔོགས།",
     "side_nav.who_to_follow": "གཤམ་གྱི་ཟིན་བྲིས་པ་ཚོར་རྒྱུན་ལྟ་གྱིས།",

@@ -297,6 +297,7 @@
         "side_nav.download_text.text_without_tag": "无标签的文本",
         "side_nav.download_text.merged_version": "合并版本",
         "side_nav.join_conversation": "加入对话",
+        "side_nav.join_conversation.button.make_sheet": "",
         "side_nav.join_conversation.descriptions": "通过笔记或评论与其他法友分享见解。",
         "side_nav.explore_community": "探索社区",
         "side_nav.who_to_follow": "关注谁",

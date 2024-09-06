@@ -300,6 +300,7 @@
     "side_nav.download_text.text_without_tag":"Text (without Tags)",
     "side_nav.download_text.merged_version":"Merged Version",
     "side_nav.join_conversation": "Join the Conversation",
+    "side_nav.join_conversation.button.make_sheet": "Make a Sheet",
     "side_nav.join_conversation.descriptions": "Combine sources from our library with your own comments, questions, images, and videos.",
     "side_nav.explore_community": "Explore the Community",
     "side_nav.who_to_follow": "Who to Follow",

@@ -631,7 +631,7 @@ const ProfilePicMenu = ({len, url, name}) => {
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div className="profile-menu-middle">
               <div><a className="interfaceLinks-row" id="my-profile-link" href="/my/profile">
-                <InterfaceText>Profile</InterfaceText>
+                <InterfaceText>header.profileMenu.profile</InterfaceText>
               </a></div>
               <div><a className="interfaceLinks-row" id="new-sheet-link" href="/sheets/new">
                 <InterfaceText>header.profileMenu.create_New_Sheet</InterfaceText>

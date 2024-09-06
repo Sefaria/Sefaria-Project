@@ -3482,7 +3482,7 @@ sjs.showNewText = function () {
 	$(".modal, #overlay").hide();
 	$(".open, .verseControls").remove();
 	$("#viewButtons, #prev, #next, #breadcrumbs").hide();
-	$("#editButtons").show();
+	$("#editButton").show();
 	$("body").addClass("newText");
 	sjs._$commentaryBox.hide();
 	sjs._$basetext.hide();
