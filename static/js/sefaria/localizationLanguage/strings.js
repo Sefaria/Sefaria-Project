@@ -1,16 +1,17 @@
 
-import TibetanStrings from "./tibetan";
-import ChineseStrings from "./chinese";
-import EnglishStrings from "./english";
+import tibetanStrings from "./tibetan.json";
+import chineseStrings from "./chinese.json";
+import englishStrings from "./english.json";
 
 
 // combine all languages string 
 const Strings = {
     localizationStrings: {
-        ...TibetanStrings,
-        ...ChineseStrings,
-        ...EnglishStrings
+        hebrew:tibetanStrings,
+        chinese:chineseStrings,
+        english:englishStrings
     }     
 };
+
 
 export default Strings;
