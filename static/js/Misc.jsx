@@ -2776,7 +2776,7 @@ class CookiesNotification extends Component {
 
           <span className={`${Sefaria.languageClassFont()}`}>
             <span>{ Sefaria._("message.cookies_msg") }<a href="/privacy-policy">{ Sefaria._("learn_more") }</a></span>
-            <span className='int-he button small white' onClick={this.setCookie}>{ Sefaria._("ok") }</span>
+            <span className={`${Sefaria.languageClassFont()} button small white`} onClick={this.setCookie}>{ Sefaria._("ok") }</span>
           </span>
 
        </div>

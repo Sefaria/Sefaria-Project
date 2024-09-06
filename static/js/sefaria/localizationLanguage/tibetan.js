@@ -690,7 +690,7 @@ const TibetanStrings = {
             "message.login_to_use_feature":"ཁྱད་ཆོས་འདི་བེད་སྤྱོད་གཏོང་ཆེད་ནང་འཛུལ་བྱེད་རོགས།",
             "feedback.feedback_sent":"བསམ་འཆར་བསྐུར་ཡོད།",
             "feedback.message.have_some_feeback":"བསམ་འཆར་ཡོད་ན་གསུང་རྐྱང་གནང་རོགས། ང་ཚོར་ཕན་ངེས་ཡིན།",
-            "message.cookies_msg":"We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria.",
+            "message.cookies_msg":"ང་ཚོས་ཁྱེད་ལ་ང་ཚོའི་དྲྭ་ཚིགས་སྟེང་གི་མྱོང་ཚོར་ལེགས་ཤོས་དེ་སྤྲོད་ཆེད། ཀུ་སི་བེད་སྤྱོད་གཏོང་གི་ཡོད། འགྲིག་སོང་། ཞེས་པ་འི་སྟེང་དུ་མུ་མཐུད་བཀླགས།",
             "ok":"འགྲིག",
             "community.message.previewing":"ཁྱེད་ཀྱིས་འདི་ལ་ཚོགས་སྡེའི་ཤོག་ལྷེ་སྔོན་མཐོང་བྱེད་བཞིན་ཡོད།",
             "all_ready_exists":"སྔོན་གྱི་མཐའ་ནི་རྣམ་པར་སྤངས།།",
