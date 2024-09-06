@@ -1,5 +1,4 @@
-const ChineseStrings = {
-    chinese: {
+{
         "layout": "布局",
         "loading": "加载中...",
         "version": "版本",
@@ -22,7 +21,6 @@ const ChineseStrings = {
         "recently_published": "最近发布",
         "weekly_torah_portion": "每周托拉部分",
         "mobile_apps": "移动应用",
-        "help": "帮助",
         " & ": " 和 ",
         "or": "或",
         "on": "开",
@@ -324,7 +322,6 @@ const ChineseStrings = {
         "sheet.add_to_sheet": "添加到表单",
         "sheet.add_to": "添加到",
         "sheet.this_source_was_added_to": "此资源已添加到",
-        "sheet.view_sheet": "查看表单",
         "sheet.ok": "确定",
         "sheet.write_or_past_text": "写入或粘贴文本",
         "sheet.add_media_link": "添加图像、YouTube 视频、SoundCloud 链接或 MP3",
@@ -345,7 +342,6 @@ const ChineseStrings = {
         "sheet.untitled": "未命名",
         "sheet.delete_warning_msg": "您确定要删除此表单吗？此操作无法撤销。",
         "sheet.add_sheet_by": "资源表单由",
-        "sheet.edit": "编辑",
         "sheet.sheet_public_request": "要将您的资源表单公开吗？",
         "sheet.share_msg": "您的资源表单看起来很棒！您可以通过公开分享给其他 Pecha 社区成员。",
         "sheet.make_public": "公开",
@@ -359,7 +355,6 @@ const ChineseStrings = {
         "sheet.file": "文件",
         "sheet.copy_sheet": "复制表单",
         "sheet.export_to_google": "导出到 Google Drive",
-        "sheet.embed_sheet": "嵌入表单",
         "sheet.delete_sheet": "删除表单",
         "sheet.tags": "标签",
         "sheet.assignment": "作业",
@@ -374,7 +369,6 @@ const ChineseStrings = {
         "sheet.side_by_side": "并排",
         "sheet.side_by_side_layout": "并排布局",
         "sheet.source_sheet_copied": "资源表单已复制。",
-        "sheet.view_copy": "查看复制内容 »",
         "sheet.embed_sheet": "嵌入表单",
         "sheet.embed_sheet_description": "复制并粘贴以下嵌入代码。调整宽度和高度值以适应您的设计。",
         "sheet.assignments": "作业",
@@ -471,7 +465,7 @@ const ChineseStrings = {
         "topic_search": "搜索主题",
         "topic.admin.en_short_description": "英文目录简短描述",
         "topic.admin.bo_short_description": "藏文目录简短描述",
-        "topic.admin.chose_category": "选择类别",
+        "topic.admin.choose_category": "选择类别",
         "topic.admin.main_menu": "主菜单",
         "topic.admin.save_information": "保存主题信息。",
         "topic.admin.change_processing_time_msg": "处理标题更改可能需要一些时间。",
@@ -485,6 +479,7 @@ const ChineseStrings = {
         "topic.admin.bo_description": "藏文描述",
         "topic.admin.delete_topicc": "主题已删除",
         "topic.admin.topic_editor": "主题编辑器",
+        "topic.admin.choose_a_category": "选择类别",
         "topic.admin.error_msg": "保存主题信息时可能发生错误。",
         "topic.admin.something_wrong": "出了点问题。抱歉！",
         "note_save_warning": "保存笔记时出现问题。",
@@ -514,7 +509,7 @@ const ChineseStrings = {
         "sheet.list_your_sheet": "将您的表单列在 Sefaria 以便他人发现。",
         "summary": "摘要",
         "write_short_description": "为您的表单编写简短的描述...",
-        "add_topic": "添加主题...",
+        "add_a_topic": "添加主题...",
         "publish": "发布",
         "unpublish": "取消发布",
         "topic.add_desription": "请添加描述和主题以发布您的表单。",
@@ -646,5 +641,4 @@ const ChineseStrings = {
         "zero_followers": "0 粉丝",
         "zero_following": "0 关注"
     }
-};
-export default ChineseStrings;
+
