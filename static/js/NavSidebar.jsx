@@ -515,7 +515,7 @@ const JoinTheConversation = ({wide}) => {
 
   return (
     <Module wide={wide}>
-      {/* <div>
+      <div>
         <ModuleTitle>side_nav.join_conversation</ModuleTitle>
         <InterfaceText>topic.combine_source</InterfaceText>
       </div>
@@ -524,7 +524,7 @@ const JoinTheConversation = ({wide}) => {
           <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" />
           <InterfaceText>side_nav.make_sheet</InterfaceText>
         </a>
-      </div> */}
+      </div>
     </Module>
   );
 };

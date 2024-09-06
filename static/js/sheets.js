@@ -1,5 +1,3 @@
-import Sefaria from "./sefaria/sefaria";
-
 sjs.flags = {
 	saving:  false,
 	sorting: false,
@@ -1126,7 +1124,7 @@ $("#addInterface").on("click", "#connectionButton", function(e) {
 	if ("error" in data) {
 	  $("#connectionsToAdd").text(data.error)
 	} else if (data.commentary.length == 0) {
-	  $("#connectionsToAdd").text(_("sheet.no_connection_found"));
+	  $("#connectionsToAdd").text(_("No connections known for this source."));
 	} else {
 	  data.commentary = [].concat.apply([], data.commentary);
 
