@@ -138,6 +138,8 @@ class Sheet extends Component {
                   collectionName={sheet.collectionName}
                   collectionSlug={sheet.displayedCollection}
                   collectionImage={sheet.collectionImage}
+                  collections={sheet.collections}
+                  summary={sheet.summary}
               />
           </div>
       );
