@@ -4984,6 +4984,14 @@
           "required": true
         },
         {
+          "examples": {
+            "is-a": {
+              "value": "is-a"
+            },
+            "child-of": {
+              "value": "child-of"
+            }
+          },
           "name": "link_type",
           "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented [here](https://developers.sefaria.org/docs/topic-ontology#overview-of-sefaria-link-types). \nSome examples include `child-of`, `parent-of`, `sibling-of` etc.",
           "schema": {
