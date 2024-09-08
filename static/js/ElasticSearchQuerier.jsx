@@ -375,7 +375,8 @@ ElasticSearchQuerier.propTypes = {
     onQueryChange: PropTypes.func,
     updateAppliedFilter: PropTypes.func,
     updateAppliedOptionSort: PropTypes.func,
-    updateAppliedOptionField: PropTypes.func
+    updateAppliedOptionField: PropTypes.func,
+    resetSearchFilters:       PropTypes.func
 };
 
 export { ElasticSearchQuerier };
