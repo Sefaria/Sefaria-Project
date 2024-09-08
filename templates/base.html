@@ -153,18 +153,6 @@
 
     <!-- Unbounce Embed Code -->
     <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script>
-
-    <script type="text/javascript">
-      document.addEventListener('DOMContentLoaded', () => {
-        window.addEventListener('message', (event) => {
-          if (event.data.type == 'unbounceFrameLoaded') {
-            document.getElementById('s2').style.top = 'auto';
-          }
-        });
-      });
-
-      
-    </script>
 </head>
 
 <body class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
