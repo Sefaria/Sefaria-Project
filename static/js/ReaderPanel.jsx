@@ -115,6 +115,7 @@ class ReaderPanel extends Component {
     const [data, prevData] = [this.state.data, prevState.data];
     return this.getContentLanguageOverride() === 'bilingual' &&
         this.state.settings.biLayout !== 'stacked' &&
+        data !== null &&
         (data?.primaryDirection !== prevData?.primaryDirection || data?.translationDirection !== prevData?.translationDirection) &&
         data?.primaryDirection === data?.translationDirection;
   }
