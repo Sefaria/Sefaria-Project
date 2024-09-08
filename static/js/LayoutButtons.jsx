@@ -12,13 +12,13 @@ const calculateLayoutState = (language, primaryDir, translationDir) => {
 
 const LayoutButtons = () => {
     const {language, textsData, setOption, layout} = useContext(ReaderPanelContext);
-    const layoutState = calculateLayoutState(language, textsData.primaryDirection, textsData.translationDirection);
+    const layoutState = calculateLayoutState(language, textsData?.primaryDirection, textsData?.translationDirection);
 
     const getPath = (layoutOption) => {
         if (layoutState === 'mixed') {
-            const translationDirection = textsData.translationDirection || textsData.primaryDirection.split('').reverse().join(''); //when there is an empty translation it has no direction. we will show the button as opposite layouts.
-            const directions = (layoutOption === 'heLeft') ? `${textsData.primaryDirection}${translationDirection}`  //heLeft means primary in left
-                : `${translationDirection}${textsData.primaryDirection}`;
+            const translationDirection = textsData?.translationDirection || textsData?.primaryDirection.split('').reverse().join(''); //when there is an empty translation it has no direction. we will show the button as opposite layouts.
+            const directions = (layoutOption === 'heLeft') ? `${textsData?.primaryDirection}${translationDirection}`  //heLeft means primary in left
+                : `${translationDirection}${textsData?.primaryDirection}`;
             if (layoutOption !== 'stacked') {
                 layoutOption = 'beside';
             }

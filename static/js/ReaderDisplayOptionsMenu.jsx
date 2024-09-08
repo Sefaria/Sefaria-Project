@@ -14,7 +14,7 @@ const ReaderDisplayOptionsMenu = () => {
     const showLangaugeToggle = () => {
       if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
-      if (!textsData) return true
+      if (!textsData) return true;
 
       const hasHebrew = !!textsData.he.length;
       const hasEnglish = !!textsData.text.length;
@@ -47,7 +47,7 @@ const ReaderDisplayOptionsMenu = () => {
     };
 
     const sampleHas = (regex, textOrHe) => {
-        let sample = textsData[textOrHe];
+        let sample = textsData?.[textOrHe];
         while (Array.isArray(sample)) {
             sample = sample[0];
         }
