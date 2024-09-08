@@ -121,7 +121,6 @@ class ConnectionsPanelHeader extends Component {
           <PopoverMenu buttonContent={<DisplaySettingsButton/>} menu={<ReaderDisplayOptionsMenu/>} context={ReaderPanelContext}/> :
             (Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC) ?
                 <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} /> : null;
-      console.log(0, toggleButton)
       return (<div className="connectionsPanelHeader">
                 {title}
                 <div className="rightButtons">
