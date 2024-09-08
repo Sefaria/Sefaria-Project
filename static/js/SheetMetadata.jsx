@@ -406,7 +406,7 @@ class SheetMetadata extends Component {
 
                         {Sefaria._uid !== sheet.owner && !Sefaria._uses_new_editor ?
                         <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
-                          <InterfaceText>{ Sefaria._("view_in_editor")}</InterfaceText>
+                          <InterfaceText>{ Sefaria._("sheet.editor.view_in_editor")}</InterfaceText>
                         </a> : null }
                       </div>
 

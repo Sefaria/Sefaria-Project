@@ -116,7 +116,7 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
   }
   return (
     <div className="recentlyPublished">            
-      <h2><InterfaceText>{ Sefaria._("recently_published")}</InterfaceText></h2>
+      <h2><InterfaceText>{ Sefaria._("community.sheets.recently_published")}</InterfaceText></h2>
       <NBox content={recentSheetsContent} n={1} />
     </div>
   );

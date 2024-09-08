@@ -348,8 +348,8 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
        {topicData && topicData.ref ?
          <a href={`/${topicData.ref.url}`} className="resourcesLink button blue">
            <img src="/static/icons/book-icon-black.svg" alt="Book Icon" />
-           <span className="int-en">{ topicData.parasha ? Sefaria._('read_the_portion') : topicData.ref.en }</span>
-           <span className="int-he">{ topicData.parasha ? Sefaria._('read_the_portion') : norm_hebrew_ref(topicData.ref.he) }</span>
+           <span className="int-en">{ topicData.parasha ? Sefaria._('topic.read_the_portion') : topicData.ref.en }</span>
+           <span className="int-he">{ topicData.parasha ? Sefaria._('topic.read_the_portion') : norm_hebrew_ref(topicData.ref.he) }</span>
          </a>
        : null}
        {topicData?.indexes?.length ?
@@ -497,8 +497,8 @@ const TopicPage = ({
     if (displayTabs.length) {
       displayTabs.push({
         title: {
-          en: "Filter",
-          he: Sefaria._("filter")
+          en: Sefaria._("dropdown.filter"),
+          he: Sefaria._("dropdown.filter")
         },
         id: 'filter',
         icon: `/static/icons/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`,

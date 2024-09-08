@@ -1916,7 +1916,7 @@ const CollectionListing = ({data}) => {
             {data.listed ? null :
               (<span className="unlisted">
                 <img src="/static/img/eye-slash.svg"/>
-                <InterfaceText>Unlisted</InterfaceText>
+                <InterfaceText>collection_list.unlisted</InterfaceText>
               </span>) }
 
             {data.listed ? null :
@@ -2698,10 +2698,10 @@ class FeedbackBox extends Component {
             <Dropdown
               name="feedbackType"
               options={[
-                        {value: "content_issue",   label: Sefaria._("report_issue")},
-                        {value: "translation_request",   label: Sefaria._("request_translation")},
-                        {value: "bug_report",      label: Sefaria._("report_bug")},
-                        {value: "help_request",    label: Sefaria._("get_help")},
+                        {value: "content_issue",   label: Sefaria._("feedback.report_issue")},
+                        {value: "translation_request",   label: Sefaria._("feedback.request_translation")},
+                        {value: "bug_report",      label: Sefaria._("feedback.report_bug")},
+                        {value: "help_request",    label: Sefaria._("feedback.get_help")},
                         {value: "feature_request", label: Sefaria._("request_feature")},
                         {value: "good_vibes",      label: Sefaria._("give_thanks")},
                         {value: "other",           label: Sefaria._("other")},
@@ -2710,7 +2710,7 @@ class FeedbackBox extends Component {
               onChange={this.setType}
             />
 
-            <textarea className="feedbackText" placeholder={Sefaria._("describe_issue")} id="feedbackText"></textarea>
+            <textarea className="feedbackText" placeholder={Sefaria._("feedback.describe_issue")} id="feedbackText"></textarea>
 
             {!Sefaria._uid ?
                 <div><input className="sidebarInput noselect" placeholder={Sefaria._("email")} id="feedbackEmail" /></div>

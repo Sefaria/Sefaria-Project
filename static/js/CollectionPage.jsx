@@ -231,7 +231,7 @@ class CollectionPage extends Component {
         {id: "sheets", title: {en: Sefaria._("profile.tab.sheets"), he: Sefaria._("profile.tab.sheets")}},
         {
           id: 'filter',
-          title: {en: Sefaria._("filter"), he: Sefaria._("filter")},
+          title: {en: Sefaria._("dropdown.filter"), he: Sefaria._("dropdown.filter")},
           icon: `/static/icons/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
           justifyright: true,
           clickTabOverride: () => {
@@ -272,7 +272,7 @@ class CollectionPage extends Component {
               renderItem={this.renderSheet}
               renderEmptyList={this.renderEmptyList}
               renderFooter={this.renderSearchLink}
-              sortOptions={["Recent", "Alphabetical", "Views"]}
+              sortOptions={[Sefaria._("filter_list.recent"),Sefaria._("filter_list.alphabetical") , Sefaria._("profile.tab.sheet.tag.views") ]}
               data={sheets}
               containerClass={"sheetList"}
               scrollableElement={this.scrollableRef}
@@ -332,7 +332,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
     </div> }
 
     <a className="collectionLabel" href="/collections">
-      <InterfaceText>{ Sefaria._("Collection")}</InterfaceText>
+      <InterfaceText>{ Sefaria._("collection")}</InterfaceText>
     </a>
 
     {collection.toc ?
@@ -340,7 +340,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
         <ContentText html={{en: collection.toc.description, he: collection.toc.heDescription}} />
       </div>
     : collection.description ?
-      <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: collection.description_detail} }></div>
+      <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: Sefaria._("collection.description_detail")} }></div>
     : null }
 
     {collection.websiteUrl ?

@@ -536,7 +536,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           </a>
           <a href="/notifications" onClick={close}>
             <img src="/static/icons/notification.svg" />
-            <InterfaceText>notifications</InterfaceText>
+            <InterfaceText>header.notifications</InterfaceText>
           </a>
         </> : null }
 
