@@ -359,8 +359,14 @@ div#s2:has(~ div.ub-emb-container) {
   top: unset;
 }
 
+/* Adjust margin on footer when banner is shown */
 div#s2:has(~ div.ub-emb-container):not(:has(~ div#staticContentWrapper)) #footer {
   margin-bottom: 120px;
+}
+
+/* Remove adjustment margin when banner is removed */
+div#s2:has(~ div.ub-emb-container div:only-child:empty):not(:has(~ div#staticContentWrapper)) #footer {
+  margin-bottom: 0;
 }
 
 /* Make some style changes on the static pages where the React node is in header only mode */
