@@ -1,6 +1,6 @@
 import {useRef} from "react";
 
-const Modal = ({ isOpen, children }) => {
+const Modal = ({ isOpen, children, close }) => {
   const dialogRef = useRef(null);
 
   if (isOpen) {
@@ -10,7 +10,7 @@ const Modal = ({ isOpen, children }) => {
   }
 
   return (
-    <div className="overlayDialogModal">
+    <div className="overlayDialogModal" onClick={() => close()}>
       <dialog ref={dialogRef} className="dialogModal">
         <div className="modal-content">
           {children}

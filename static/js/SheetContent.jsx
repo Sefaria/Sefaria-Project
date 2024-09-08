@@ -225,10 +225,10 @@ const SheetContentOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isAdding, setAdding] = useState(false);  // Add to Collection Modal open or closed
   if (isSharing) {
-    return <ShareModal sheetID={sheetID} isOpen={isSharing}/>;
+    return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
   else if (isAdding) {
-    return <AddToCollectionsModal isOpen={isAdding}/>;
+    return <AddToCollectionsModal isOpen={isAdding} close={() => setAdding(false)}/>;
   }
   return (
     <DropdownMenu toggle={"..."}>
@@ -265,16 +265,16 @@ const SheetContentOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
     </DropdownMenu>
   );
 }
-const ShareModal = ({sheetID, isOpen}) => {
-  return <Modal isOpen={true}>
+const ShareModal = ({sheetID, isOpen, close}) => {
+  return <Modal isOpen={true} close={close}>
           <ShareBox
               sheetID={sheetID}
               url={window.location.href}
           />
         </Modal>;
 }
-const AddToCollectionsModal = ({isOpen}) => {
-  return <Modal isOpen={true}/>;
+const AddToCollectionsModal = ({isOpen, close}) => {
+  return <Modal isOpen={true} close={close}/>;
 
 }
 const CopyButton = ({toggleSignUpModal, sheetID}) => {
