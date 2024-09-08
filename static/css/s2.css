@@ -3283,7 +3283,15 @@ display: none;
   font-size: 16px;
   font-weight: 400;
   line-height: 18.75px;
-  text-align: left;
+  margin-block-end: 20px;
+  color: #666666;
+}
+.sheetSidebar .summary {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
   margin-block-end: 20px;
 }
 .sheetViewer {
@@ -3299,6 +3307,8 @@ display: none;
   font-weight: 600;
   line-height: 18.75px;
   color: var(--midrash-green);
+  display: block;
+  margin-block-end: 10px;
 }
 .sheetAuthorName:hover {
   text-decoration: none;
@@ -9116,12 +9126,12 @@ h3.aboutSheetHeader {
   border: 1px solid var(--light-grey);
 }
 
-.aboutSheetPanel div.description {
-  color: var(--dark-grey);
+.sheetSidebar div.description {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  font-size: var(--sans-serif-body-font-size);
-  margin: 20px 0px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
 }
 
 .aboutSheetPanel h2 {
