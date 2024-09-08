@@ -1520,9 +1520,9 @@ const AiInfoTooltip = () => {
         <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
               <div className="ai-info-first-message">
               <InterfaceText>
-                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a></EnglishText>
+                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/583824?lang=bi"}>Learn more.</a></EnglishText>
                   <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית ועברו הגהה על ידי צוות העורכים שלנו.&nbsp;
-                       <a href={"/sheets/541399?lang=en"}>לפרטים נוספים</a></HebrewText>
+                       <a href={"/sheets/583824?lang=bi"}>לפרטים נוספים</a></HebrewText>
               </InterfaceText>
 
           </div>
@@ -3333,12 +3333,8 @@ const AppStoreButton = ({ platform, href, altText }) => {
 
 const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_type, analytics_event) => {
 
-  // e.preventDefault() 
 
-  // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
-  // Get the <a> element.
-
-  //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
+  // get the lowest level parent element of an event target that is an HTML link tag. Or Null.
   let target = e.target;
   let linkTarget = null;
   let parent = target;
@@ -3366,7 +3362,7 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
     return;
   }
   else {
-    gtag_fxn(rank, product, href, label, link_type, analytics_event);
+    gtag_fxn(rank, product, text, label, link_type, analytics_event);
   }
 }
 
