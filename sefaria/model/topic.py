@@ -35,6 +35,7 @@ class SubCatBookSet:
     def __hash__(self):
         return hash(self.sub_cat_path)
 
+
 class AuthorWorksAggregation(ABC):
     @abstractmethod
     def get_description(self, lang):
@@ -43,13 +44,16 @@ class AuthorWorksAggregation(ABC):
     @abstractmethod
     def get_title(self, lang):
         pass
+
     @abstractmethod
     def get_url(self):
         pass
 
+
 class AuthorIndexAggregation(AuthorWorksAggregation):
     def __init__(self, index):
         self._index: Index = index
+
     def get_description(self, lang):
         desc = getattr(self._index, f'{lang}ShortDesc', None)
         return desc
@@ -81,6 +85,8 @@ class AuthorCategoryAggregation(AuthorWorksAggregation):
 
     def get_url(self):
         return f'/texts/{"/".join(self._index_category.path)}'
+
+
 class AuthorAggregationFactory:
     @staticmethod
     def create(index=None, index_category=None, collective_term=None, base_category=None):
@@ -94,6 +100,8 @@ class AuthorAggregationFactory:
             )
         else:
             raise ValueError("Invalid parameters for aggregation creation")
+
+
 @dataclass
 class DisjointBookSet:
     base_cat_path: Tuple[str, ...]
@@ -110,7 +118,6 @@ class DisjointBookSet:
 
     def __hash__(self):
         return hash((self.collective_title, self.base_cat_path))
-
 
 
 class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
