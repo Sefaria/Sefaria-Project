@@ -4985,7 +4985,7 @@
         },
         {
           "name": "link_type",
-          "description": "Default is `is-a`, but you can pass any link type.",
+          "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented [here](https://developers.sefaria.org/docs/topic-ontology#overview-of-sefaria-link-types). \nSome examples include `child-of`, `parent-of`, `sibling-of` etc.",
           "schema": {
             "type": "string"
           },
@@ -9826,7 +9826,7 @@
             "type": "string"
           },
           "linkType": {
-            "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented  [here](https://developers.sefaria.org/docs/topic-ontology#overview-of-sefaria-link-types). \n\nSome examples include `child-of`, `parent-of`, `sibling-of` etc. ",
+            "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented [here](https://developers.sefaria.org/docs/topic-ontology#overview-of-sefaria-link-types). \n\nSome examples include `child-of`, `parent-of`, `sibling-of` etc. ",
             "type": "string"
           },
           "class": {
