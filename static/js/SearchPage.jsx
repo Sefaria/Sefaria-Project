@@ -24,6 +24,7 @@ class SearchPage extends Component {
       mobileFiltersOpen: false,
     };
   }
+
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
