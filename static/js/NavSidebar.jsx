@@ -68,14 +68,11 @@ const Module = ({children, blue, wide}) => {
 };
 
 
-const ModuleTitle = ({children, en, he, h1}) => {
+const ModuleTitle = ({children, en, he}) => {
   const content = children ?
     <InterfaceText>{children}</InterfaceText>
     : <InterfaceText text={{en, he}} />;
-
-  return h1 ?
-    <h1>{content}</h1>
-    : <h3>{content}</h3>
+  return <h1>{content}</h1>;
 };
 
 
@@ -137,7 +134,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
    return <Module>
             <div className="recentlyViewed">
                 <div id="header">
-                  <ModuleTitle h1={true}>Recently Viewed</ModuleTitle>
+                  <ModuleTitle>Recently Viewed</ModuleTitle>
                   {!mobile && recentlyViewedList}
                   <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>{allHistoryPhrase}</InterfaceText></a>
                 </div>
@@ -155,7 +152,7 @@ const Promo = () =>
 const AboutSefaria = ({hideTitle}) => (
   <Module>
     {!hideTitle ?
-    <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
+    <ModuleTitle>A Living Library of Torah</ModuleTitle> : null }
     <InterfaceText>
       <EnglishText>
           Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
@@ -214,7 +211,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
   }
   return (
   <Module>
-    <ModuleTitle h1={true}>{translationLookup[translationsSlug] ?
+    <ModuleTitle>{translationLookup[translationsSlug] ?
           translationLookup[translationsSlug]["title"] : "A Living Library of Torah"}</ModuleTitle>
         { translationLookup[translationsSlug] ?
           translationLookup[translationsSlug]["body"] :
@@ -298,7 +295,7 @@ const AboutTextCategory = ({cats}) => {
 
   return (
     <Module>
-      <h3><InterfaceText text={{en: enTitle, he: heTitle}} /></h3>
+      <ModuleTitle><InterfaceText text={{en: enTitle, he: heTitle}} /></ModuleTitle>
       <InterfaceText markdown={{en: tocObject.enDesc, he: tocObject.heDesc}} />
     </Module>
   );
@@ -672,7 +669,7 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
 
 const AboutLearningSchedules = () => (
   <Module>
-    <ModuleTitle h1={true}>Learning Schedules</ModuleTitle>
+    <ModuleTitle>Learning Schedules</ModuleTitle>
     <InterfaceText>
         <EnglishText>
             Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar.
@@ -690,7 +687,7 @@ const AboutLearningSchedules = () => (
 const AboutCollections = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
-    <ModuleTitle h1={true}>About Collections</ModuleTitle>}
+    <ModuleTitle>About Collections</ModuleTitle>}
     <InterfaceText>
         <EnglishText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</EnglishText>
         <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
