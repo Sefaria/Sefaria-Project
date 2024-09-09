@@ -259,7 +259,7 @@ class VersionBlock extends Component {
               {licenses.map(v => <option key={v} value={v}>{v?v:"(None Listed)"}</option>)}
             </select>
             <br></br>
-            <label id="digitzedBySefaria_label" htmlFor="digitzedBySefaria">Digitized by Sefaria</label>
+            <label id="digitzedBySefaria_label" htmlFor="digitzedBySefaria">{Sefaria._("text.verion_block.digitized_by_pecha")}</label>
             <input type="checkbox" id="digitzedBySefaria" name="digitizedBySefaria" checked={this.state.digitizedBySefaria} onChange={this.handleInputChange}/>
             <br></br>
             <label id="priority_label" htmlFor="priority">Priority</label>

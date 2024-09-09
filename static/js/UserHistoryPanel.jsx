@@ -33,7 +33,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
       </a>
       <a href="/texts/history" className={"navTitleTab" + (menuOpen === "history" ? " current" : "")}>
         <img src="/static/icons/clock.svg" />
-        <InterfaceText>History</InterfaceText>
+        <InterfaceText>user.history</InterfaceText>
       </a>
     </span>
   );

@@ -1053,11 +1053,11 @@ class ConnectionsSummary extends Component {
       if (this.props.collapsed) {
         connectionsSummary = connectionsSummary.slice(0, collapsedTopLevelLimit) //get the first x items
         summaryToggle = (
-          <ToolsButton en={Sefaria._("more")} he={Sefaria._("more")} image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
+          <ToolsButton en={Sefaria._("connection_pannel.tool_btn.more")} he={Sefaria._("connection_pannel.tool_btn.more")} image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
         );
       } else {
         summaryToggle = (
-          <ToolsButton en={Sefaria._("see_less")} he={Sefaria._("see_less")}  image="less.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
+          <ToolsButton en={Sefaria._("connection_pannel.tool_btn.see_less")} he={Sefaria._("connection_pannel.tool_btn.see_less")}  image="less.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
         )
       }
     }
@@ -1769,7 +1769,7 @@ function ManuscriptImage(props) {
         : <p className={"english manuscriptCaption"}>{manuscript.manuscript.title}</p>
     }
     <div className="meta">
-      <InterfaceText>{Sefaria._("location")} </InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br />
+      <InterfaceText>{Sefaria._("connection_pannel.menuscript_image.location.location")} </InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br />
       {
         manuscript.manuscript[description]
           ? <span>

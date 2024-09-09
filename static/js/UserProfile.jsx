@@ -359,7 +359,7 @@ class UserProfile extends Component {
                     renderItem={this.renderSheet}
                     renderEmptyList={this.renderEmptySheetList}
                     renderHeader={this.renderSheetHeader}
-                    sortOptions={["Recent", "Views"]}
+                    sortOptions={[Sefaria._("filter_list.recent"), Sefaria._("profile.tab.sheet.tag.views")]}
                     containerClass={"sheetList"}
                     getData={this.getSheets}
                     data={this.getSheetsFromCache()}

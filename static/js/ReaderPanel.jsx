@@ -1564,7 +1564,7 @@ class ReaderDisplayOptionsMenu extends Component {
       this.props.parentPanel === "Sheet" ? null :
       (<ToggleSet
           ariaLabel="text layout toggle"
-          label={Sefaria._("layout")}
+          label={Sefaria._("text.reader_option_menu.layout")}
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}

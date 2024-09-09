@@ -57,7 +57,7 @@ class MyNotesPanel extends Component {
       <div className={classStr}>
         {this.props.hideNavHeader ? null :
           <SinglePanelNavHeader
-            title= {_("my_note")}
+            title= {_("note.my_note")}
             navHome={this.props.navHome}
             showDisplaySettings={true}
             openDisplaySettings={this.props.openDisplaySettings}/>

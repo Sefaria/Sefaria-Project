@@ -2,6 +2,8 @@
 // It ought to be rewritten entirely, short of that the reader related code out to be stripped
 // so that only editing code remains.
 
+import Sefaria from "../sefaria/sefaria";
+
 var sjs = sjs || {};
 
 $.extend(sjs,  {
@@ -2524,7 +2526,7 @@ function aboutHtml(data) {
 						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div> ⋄ ') +
 						'<div class="credits"></div> ⋄ ' +
 						'<a class="historyLink" href="/activity/'+data.sectionRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
-						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
+						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>"+Sefaria._("text.verion_block.digitized_by_pecha")+"</a>.</div>" : "" ) +
 						(version.notes ? "<div class='versionNotes'>" + version.notes + "</div>" : "" ) +
 						(version.status === "locked" ? 
 							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know <a href="https://github.com/Sefaria/Sefaria-Project/wiki/How-to-Report-a-Mistake" target="_blank">here</a>.</div>' : "") +
