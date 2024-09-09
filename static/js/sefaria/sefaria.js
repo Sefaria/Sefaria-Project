@@ -469,31 +469,64 @@ Sefaria = extend(Sefaria, {
         });
   },
   _bulkTexts: {},
+  partitionArrayForURL: function(arr, urlMaxLength, dividerToken) {
+    const result = [];
+    const dividerTokenLength = encodeURIComponent(dividerToken).length;
+    let currentPartition = [];
+    let currentLength = 0;
+
+    for (let i = 0; i < arr.length; i++) {
+        // Calculate the length of the new item when added to the partition
+        const item = arr[i];
+        const encodedItem = encodeURIComponent(item);
+        const newLength = currentPartition.length === 0
+            ? encodedItem.length
+            : currentLength + encodedItem.length + dividerTokenLength; // consider dividerToken length
+
+        // Check if adding this item exceeds the max length
+        if (newLength > urlMaxLength) {
+            // If it does, push the current partition to the result and start a new one
+            result.push(currentPartition);
+            currentPartition = [];
+            currentLength = 0;
+            currentPartition.push(item);
+            continue
+        }
+
+        // Add the item to the current partition
+        currentPartition.push(item);
+        currentLength = newLength;
+    }
+
+    // Add the last partition to the result
+    if (currentPartition.length > 0) {
+        result.push(currentPartition);
+    }
+
+    return result;
+},
+
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
 
     const MAX_URL_LENGTH = 3800;
-    const hostStr = `${Sefaria.apiHost}/api/bulktext/`;
+    const ASSUMED_HOSTNAME_LENGTH_BOUND = 50;
+    const hostStr = encodeURI(`${Sefaria.apiHost}/api/bulktext/`);
 
     let paramStr = '';
     for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar, transLangPref})) {
       paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
     }
     paramStr = paramStr.replace(/&/,'?');
+    paramStr = encodeURI(paramStr);
 
     // Split into multiple requests if URL length goes above limit
-    let refStrs = [""];
-    refs.map(ref => {
-      let last = refStrs[refStrs.length-1];
-      const encodedFullURL = encodeURI(`${hostStr}${last}|${ref}${paramStr}`);
-      if (encodedFullURL.length > MAX_URL_LENGTH) {
-        refStrs.push(ref)
-      } else {
-        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
-      }
-    });
+    const limit = MAX_URL_LENGTH-(hostStr+paramStr).length-ASSUMED_HOSTNAME_LENGTH_BOUND
+    const refsSubArrays = this.partitionArrayForURL( refs, limit, '|');
+    const refStrs = refsSubArrays.map(refsSubArray => refsSubArray.join('|'));
+
     let promises = refStrs.map(refStr => this._cachedApiPromise({
-      url: encodeURI(`${hostStr}${refStr}${paramStr}`),
+      url: `${hostStr}${encodeURIComponent(refStr)}${paramStr}`,
       key: refStr + paramStr,
       store: this._bulkTexts
     }));
