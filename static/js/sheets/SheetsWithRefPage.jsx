@@ -5,7 +5,7 @@ import {SearchTotal} from "../sefaria/searchTotal";
 import SearchState from "../sefaria/searchState";
 const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateAppliedFilter,
                            updateAppliedOptionField, updateAppliedOptionSort, onResultClick,
-                           registerAvailableFilters}) => {
+                           registerAvailableFilters, resetSearchFilters}) => {
     const [sheets, setSheets] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -39,7 +39,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         if (!newDocCounts.compare(currDocCounts)) { // if previously the appliedFilters were different,
                                                     // then the doccounts will be different, so register
             availableFilters = availableFilters.sort((a, b) => b.docCount - a.docCount || a.title.localeCompare(b.title));
-            registerAvailableFilters('sheet', availableFilters, {}, [], ['collections', 'topics_en']);
+            registerAvailableFilters(availableFilters, {}, [], ['collections', 'topics_en']);
         }
     }
 
@@ -72,6 +72,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         }
         return sheets;
     }
+
     const updateFilterSelectedValues = (availableFilters) => {
         availableFilters.forEach((availableFilter) => {
             const selected = searchState.appliedFilters.includes(availableFilter.aggKey);
@@ -169,6 +170,10 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     useEffect(() => {
       Sefaria.sheets.getSheetsByRef(refs, makeSheetsUnique).then(sheets => {handleSheetsLoad(sheets);})
     }, [refs]);
+
+    useEffect(() => { // when component unmounts, reset searchState
+        return () => resetSearchFilters();
+    }, []);
 
     let sortedSheets = [...sheets];
     sortedSheets = applyFilters(sortedSheets);

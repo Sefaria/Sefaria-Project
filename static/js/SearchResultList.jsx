@@ -174,7 +174,7 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray})
         if (sortType === newSortType) {
             return;
         }
-        updateAppliedOptionSort(type, newSortType);
+        updateAppliedOptionSort(newSortType);
         setIsOpen(false);
     }
     const filterTextClasses = classNames({searchFilterToggle: 1, active: isOpen});
