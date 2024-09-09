@@ -2273,19 +2273,20 @@ _media: {},
        */
       return book?.dependence === "Commentary" && !!book?.base_text_titles && !!book?.base_text_mapping && book?.base_text_titles.length === 1;
   },
-  isCommentaryRefWithBaseText(ref, openCommentarySidePanel) {
+  isCommentaryRefWithBaseText(ref, forceOpenCommentaryPanel) {
       /* This is a helper function for openPanelAt. Determines whether the ref(s) are part of a commentary
        * with a base_text_mapping to one and only one base_text_title.
        * Example: "Ibn Ezra on Genesis 3" returns True because this commentary has a base_text_mapping to one and only one book, Genesis.
        * @param {string/array of strings} ref: if ref is an array, checks the first ref
-       * @param {bool} openCommentarySidePanel: if false, only open the commentary in the side panel if the depth is >= 3.
+       * @param {bool} forceOpenCommentaryPanel: If true, the commentary side panel will open regardless of the ref's depth.
+       *                                        If false, side panel will only open if ref is depth 3 or greater.
        */
       let refToCheck = Array.isArray(ref) ? ref[0] : ref;
       const parsedRef = Sefaria.parseRef(refToCheck);
       const depth = parsedRef.sections.length;
-      if (!openCommentarySidePanel && depth < 3) {
+      if (!forceOpenCommentaryPanel && depth < 3) {
           // This is because in some Talmud commentaries and in complex texts where the node has a depth less than 3,
-          // it can be difficult to know what comments to show in the sidebar
+          // it can be difficult to know what comments to show in the sidebar so we should open the commentary in the main panel.
           return false;
       }
       const book = Sefaria.index(parsedRef.index);
