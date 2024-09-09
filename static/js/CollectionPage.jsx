@@ -628,7 +628,7 @@ class CollectionMemberListingActions extends Component {
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "admin")}>
                 <span className={classNames({role: 1, current: this.props.member.role === "Owner"})}><InterfaceText>collection.owner</InterfaceText></span>
-                - <InterfaceText>collection._can_invite_edit_setting</InterfaceText>
+                - <InterfaceText>collection.can_invite_edit_setting</InterfaceText>
               </div>
               : null }
             {this.props.isAdmin ?

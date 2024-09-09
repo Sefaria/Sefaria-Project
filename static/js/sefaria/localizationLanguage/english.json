@@ -418,7 +418,7 @@
     "collection.unpin_sheet":"Pinned Sheet - click to unpin",
     "collection.pinned_sheet":"Pinned Sheet",
     "collection.pin_sheet":"Pin Sheet",
-    "collection._can_invite_edit_setting":"can invite & edit settings",
+    "collection.can_invite_edit_setting":"can invite & edit settings",
     "collection.add_and_remove_sheets":"can add & remove sheets",
     "collection.leave_collection":"Leave Collection",
     "collection.inviting":"Inviting...",

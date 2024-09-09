@@ -414,7 +414,7 @@
         "collection.unpin_sheet": "固定表单 - 点击取消固定",
         "collection.pinned_sheet": "固定的表单",
         "collection.pin_sheet": "固定表单",
-        "collection._can_invite_edit_setting": "可以邀请并编辑设置",
+        "collection.can_invite_edit_setting": "可以邀请并编辑设置",
         "collection.add_and_remove_sheets": "可以添加和删除表单",
         "collection.leave_collection": "离开收藏",
         "collection.inviting": "邀请中...",

@@ -417,7 +417,7 @@
     "collection.unpin_sheet":"ཤོག་ངོས་འཛེར་ཡོད། - འཛེར་བ་ཕྱིར་ལེན།",
     "collection.pinned_sheet":"འཛེར་ཡོད་པའི་ཤོག་ངོས།",
     "collection.pin_sheet":"ཤོག་ངོས་འཛེར།",
-    "collection._can_invite_edit_setting":"གདན་འདྲེན་བྱེད་ཐུབ། སྒྲིག་འགོད་རྣམས་སྒྲིག",
+    "collection.can_invite_edit_setting":"གདན་འདྲེན་བྱེད་ཐུབ། སྒྲིག་འགོད་རྣམས་སྒྲིག",
     "collection.add_and_remove_sheets":"ཤོག་ངོས་སྣོན་ཐུབ་ལ་བསུབ་ཀྱང་ཐུབ།",
     "collection.leave_collection":"ཕྱོགས་བསྒྲིགས་ནས་ཐོན།",
     "collection.inviting":"གདན་འདྲེན་བྱེད་བཞིན་པ་་་",
