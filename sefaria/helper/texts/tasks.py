@@ -24,11 +24,11 @@ logger = structlog.get_logger(__name__)
 def should_run_with_celery(from_api):
     return CELERY_ENABLED and from_api
 
-def save_changes(changes, func, method):
+def save_changes(changes, func, method, task_title=''):
     if should_run_with_celery(method == 'API'):
         main_task_id = str(uuid.uuid4())
         tasks = [save_change.s(func.__name__, c).set(queue=CELERY_QUEUES['tasks']) for c in changes]
-        job = chord(tasks, inform.s(main_task_id=main_task_id).set(queue=CELERY_QUEUES['tasks']))(task_id=main_task_id)
+        job = chord(tasks, inform.s(main_task_id=main_task_id, task_title=task_title).set(queue=CELERY_QUEUES['tasks']))(task_id=main_task_id)
         tasks_ids = [task.id for task in job.parent.results]
         return celeryResponse(job.id, tasks_ids)
     else:
@@ -59,8 +59,8 @@ def save_change(func_name, raw_history_change):
             return repr(e)
 
 @app.task(name="web.inform", acks_late=True)
-def inform(results, main_task_id):
-    title = f'Results for celery main task with id {main_task_id}'
+def inform(results, main_task_id, task_title):
+    title = f'{task_title} (celery main task id {main_task_id})'
     results = '\n'.join([f'{k}: {v}.' for k, v in Counter(results).items()])
     send_message('#engineering-signal', 'Text Upload', title, results, icon_emoji=':leafy_green:')
 

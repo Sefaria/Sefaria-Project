@@ -1550,7 +1550,8 @@ def complete_version_api(request):
         skip_links = bool(int(request.POST.get("skip_links", 0)))
         count_after = int(request.POST.get("count_after", 0))
         version_change = VersionChange(raw_version=data, uid=request.user.id, method=method, patch=patch, count_after=count_after, skip_links=skip_links)
-        return save_changes([asdict(version_change)], save_version, method)
+        task_title = f'Version Post: {data["title"]} / {data["versionTitle"]} / {data["language"]}'
+        return save_changes([asdict(version_change)], save_version, method, task_title)
 
     if request.method == "POST":
         patch = False
@@ -1985,7 +1986,8 @@ def links_api(request, link_id_or_ref=None):
                 link["_override_preciselink"] = True
             links.append(asdict(LinkChange(raw_link=link, uid=uid, method=method)))
 
-        return save_changes(links, save_link, method)
+        task_title = f'Links Post. First link: {obj[0]["refs"][0]}-{obj[0]["refs"][1]}'
+        return save_changes(links, save_link, method, task_title)
 
     def _internal_do_delete(request, link_id_or_ref, uid):
         obj = tracker.delete(uid, Link, link_id_or_ref, callback=revarnish_link)
