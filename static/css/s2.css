@@ -1817,7 +1817,6 @@ div.interfaceLinks-row a {
   letter-spacing: 0em;
   text-decoration: underline;
 }
-.readerPanel .navSidebarModule h3,
 .readerPanel .navSidebarModule h1,
 .readerPanel .bookPage h3{
   margin: 0 0 20px;
@@ -1837,7 +1836,7 @@ div.interfaceLinks-row a {
 .singlePanel .navSidebarModule.blue {
   padding: 34px 15px 45px;
 }
-.readerPanel .navSidebarModule.blue h3 {
+.readerPanel .navSidebarModule.blue h1 {
   color: white;
 }
 .navSidebarIcon {
@@ -2784,8 +2783,46 @@ display: none;
 .sidebarDescription.lowlight{
   color: var(--light-grey);
 }
-
-.navBlockTitle .int-he, .navBlockDescription .int-he{
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 95%;
+  border-top: 1px solid #EDEDEC;
+}
+.card {
+  flex: 1 1 50%;
+  position: relative;
+  padding-bottom: 12px;
+}
+.cardTitle {
+  text-align: start;
+  font-size: 24px;
+  padding: 15px 0 8px;
+  margin: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  line-height: 1.3;
+  flex: 1;
+  font-weight: 400;
+}
+a.cardTitle:hover {
+  text-decoration: none;
+  color: var(--dark-grey);
+}
+.cardDescription {
+  font-size: 14px;
+  line-height: 18px;
+  color: #666;
+  margin-inline-end: 20px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.hebrew .cardDescription {
+  line-height: 24px;
+}
+.navBlockTitle .int-he, .navBlockDescription .int-he, .cardTitle .int-he, .cardDescription .int-he{
   font-size: 122%;
 }
 .interface-english .navBlockDescription.clamped .int-en,
@@ -3033,7 +3070,7 @@ display: none;
 .readerNavMenu.readerNavCategoryMenu .navTitle {
   margin-bottom: 40px;
 }
-.readerNavMenu.readerNavCategoryMenu h1 {
+.readerNavMenu.readerNavCategoryMenu .navTitle h1 {
   color: #000;
   text-transform: uppercase;
   font-size: 30px;
@@ -13315,6 +13352,8 @@ span.ref-link-color-3 {color: blue}
     height: auto;
   }
 }
+
+
 
 @media screen and (min-aspect-ratio: 2/1) {
   .image-in-text {
