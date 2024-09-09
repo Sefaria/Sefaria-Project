@@ -273,6 +273,8 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <MobileInterfaceLanguageToggle />
 
+        <hr/>
+
         <a href="/help">
           <img src="/static/icons/help.svg" />
           <InterfaceText>Get Help</InterfaceText>
@@ -282,6 +284,8 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <img src="/static/icons/info.svg" />
           <InterfaceText>About Sefaria</InterfaceText>
         </a>
+
+        <hr/>
 
         <a href="sheets.sefaria.org" target="_blank">
           <img src="/static/icons/sheets-mobile-icon.svg" />
@@ -293,6 +297,8 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <InterfaceText>Developers</InterfaceText>
         </a>
 
+        <hr />
+
         {Sefaria._uid ?
         <a href="/logout" className="logout">
           <img src="/static/icons/logout.svg" />
@@ -301,6 +307,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         :
         <LoggedOutButtons mobile={true} loginOnly={true}/> }
 
+        <hr />
       </div>
     </div>
   );
