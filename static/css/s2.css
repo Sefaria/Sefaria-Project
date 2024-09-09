@@ -354,30 +354,6 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   z-index: 1000;
 }
 
-/* Change styling when Unbounce banner is going to be placed on the page */
-div#s2:has(~ div.ub-emb-container) {
-  top: unset;
-}
-
-/* Adjust margin on footer when banner is shown */
-div#s2:has(~ div.ub-emb-container):not(:has(~ div#staticContentWrapper)) #footer {
-  margin-bottom: 120px;
-}
-
-/* Remove adjustment margin when banner is removed */
-div#s2:has(~ div.ub-emb-container div:only-child:empty):not(:has(~ div#staticContentWrapper)) #footer {
-  margin-bottom: 0;
-}
-
-/* Make some style changes on the static pages where the React node is in header only mode */
-div#staticContentWrapper:has(~ .ub-emb-container):has(.staticPage) {
-  padding-top: 60px;
-}
-
-div#staticContentWrapper:has(~ .ub-emb-container) .staticPage .staticPageHeader {
-  margin-top: unset;
-}
-
 #s2.headerOnly {
   z-index: 1000;
   height: 60px;
