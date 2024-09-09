@@ -788,10 +788,12 @@ def get_search_params(get_dict, i=None):
     filters = []
     agg_types = []
     sort = None
+    field = None
     if get_dict.get('tab') == 'text':
         filters = get_filters("t", "path")
         sort = get_dict.get(get_param("tsort", i), None)
         agg_types = [None for _ in filters] # currently unused. just needs to be equal len as filters
+        field = ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else ""
     else:
         for filter_type in sheet_filters_types:
             filters += get_filters("s", filter_type)
@@ -801,7 +803,7 @@ def get_search_params(get_dict, i=None):
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
-        "field": ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else "",
+        "field": field,
         "sort": sort,
         "filters": filters,
         "filterAggTypes": agg_types,
