@@ -12,6 +12,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import {SearchResultList} from "./SearchResultList";
 import SearchPage from "./SearchPage";
+
 class TopicQuerier {
     async addCollection(collection) {
         const d = await Sefaria.getCollection(collection.key);

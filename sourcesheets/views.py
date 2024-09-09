@@ -1034,6 +1034,7 @@ def sheets_by_ref_api(request, ref):
     if include_collections:
         sheets = annotate_sheets_with_collections(sheets)
     return jsonResponse(sheets)
+
 def sheets_with_ref(request, tref):
     """
     Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.

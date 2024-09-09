@@ -72,6 +72,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         }
         return sheets;
     }
+
     const updateFilterSelectedValues = (availableFilters) => {
         availableFilters.forEach((availableFilter) => {
             const selected = searchState.appliedFilters.includes(availableFilter.aggKey);
