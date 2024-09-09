@@ -244,16 +244,12 @@ class AbstractMongoRecord(object):
                              " not in " + ",".join(self.required_attrs) + " or " + ",".join(self.optional_attrs))
                 return False
         """
-        for attr, schema in self.attr_schemas.items():
-            v = Validator(schema)
-            try:
-                value = getattr(self, attr)
-                if not v.validate(value):
-                    raise InputError(v.errors)
-            except AttributeError:
-                # not checking here if value exists, that is done above.
-                # assumption is if value doesn't exist, it's optional
-                pass
+        schema = self.attr_schemas
+        for key in schema:
+            schema[key]['allow_unknown'] = schema[key].get('allow_unknown', False)  # allow unknowns only in the root
+        v = Validator(schema, allow_unknown=True)
+        if not v.validate(self._saveable_attrs()):
+            raise InputError(v.errors)
         return True
 
     def _normalize(self):
