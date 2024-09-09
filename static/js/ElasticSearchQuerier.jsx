@@ -88,6 +88,7 @@ class TopicQuerier {
         return searchTopic;
     }
 }
+
 class ElasticSearchQuerier extends Component {
     constructor(props) {
       super(props);
@@ -115,8 +116,8 @@ class ElasticSearchQuerier extends Component {
           this.state.hits = this.state.hits.concat(cachedQuery.hits.hits);
           this.state.totals = cachedQuery.hits.total;
           this.state.pagesLoaded += 1;
-          args.start = this.state.pagesLoaded * this.querySize[this.props.type];
-          if (this.props.type === "text") {
+          args.start = this.state.pagesLoaded * this.querySize[this.props.searchState.type];
+          if (this.props.searchState.type === "text") {
             // Since texts only have one filter type, aggregations are only requested once on first page
             args.aggregationsToUpdate = [];
           }
@@ -130,20 +131,24 @@ class ElasticSearchQuerier extends Component {
         this._abortRunningQuery();  // todo: make this work w/ promises
     }
     componentWillReceiveProps(newProps) {
-      let state = {
-              hits: [],
-              pagesLoaded: 0,
-              moreToLoad: true
-          };
-      if (this.props.query !== newProps.query) {
-        this.setState(state, () => this._executeAllQueries(newProps));
-      } else if (this._shouldUpdateQuery(this.props, newProps, this.props.type)) {
-          this.setState(state, () => {
-              this._executeQuery(newProps, this.props.type);
-          })
-      }
+        let state = {
+            hits: [],
+            pagesLoaded: 0,
+            moreToLoad: true
+        };
+        if (this.props.query !== newProps.query) {
+            this.setState(state, () => {
+                this._executeAllQueries(newProps);
+                if (!this.props.searchInBook) {
+                    this.props.resetSearchFilters();
+                }
+            });
+        } else if (this._shouldUpdateQuery(this.props, newProps, this.props.searchState.type)) {
+            this.setState(state, () => {
+                this._executeQuery(newProps, this.props.searchState.type);
+            })
+        }
     }
-
     async _executeTopicQuery() {
         const topicQuerier = new TopicQuerier();
         const d = await Sefaria.getName(this.props.query)
@@ -193,7 +198,7 @@ class ElasticSearchQuerier extends Component {
       if (!this.props.searchInBook) {
         this._executeTopicQuery();
       }
-      this._executeQuery(props, this.props.type);
+      this._executeQuery(props, this.props.searchState.type);
     }
     _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type) {
       // Returns a list of aggregations type which we should request from the server.
@@ -222,7 +227,7 @@ class ElasticSearchQuerier extends Component {
       const request_applied = args.applied_filters;
       const searchState = this._getSearchState(props);
       const { appliedFilters, appliedFilterAggTypes } = searchState;
-      const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[this.props.type];
+      const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[this.props.searchState.type];
 
       args.success = data => {
               this.updateRunningQuery(null);
@@ -232,12 +237,12 @@ class ElasticSearchQuerier extends Component {
                   hits: data.hits.hits,
                   totals: currTotal,
                   pagesLoaded: 1,
-                  moreToLoad: currTotal.getValue() > this.querySize[this.props.type]
+                  moreToLoad: currTotal.getValue() > this.querySize[this.props.searchState.type]
                 };
                 this.setState(state);
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
-                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${this.props.type}`, query_label, data.hits.total.getValue());
+                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${this.props.searchState.type}`, query_label, data.hits.total.getValue());
               }
 
               if (data.aggregations) {
@@ -257,7 +262,7 @@ class ElasticSearchQuerier extends Component {
                     orphans.push(...tempOrphans);
                   }
                 }
-                this.props.registerAvailableFilters(this.props.type, availableFilters, registry, orphans, args.aggregationsToUpdate);
+                this.props.registerAvailableFilters(availableFilters, registry, orphans, args.aggregationsToUpdate);
               }
             };
       args.error = this._handleError;
@@ -271,16 +276,16 @@ class ElasticSearchQuerier extends Component {
       const searchState = this._getSearchState(props);
       const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
-      const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[this.props.type];
-      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, this.props.type);
+      const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[this.props.searchState.type];
+      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, this.props.searchState.type);
 
       return {
         query: props.query,
-        type: this.props.type,
+        type: this.props.searchState.type,
         applied_filters: request_applied,
         appliedFilterAggTypes,
         aggregationsToUpdate,
-        size: this.querySize[this.props.type],
+        size: this.querySize[this.props.searchState.type],
         field,
         sort_type: sortType,
         exact: fieldExact === field,
@@ -289,14 +294,14 @@ class ElasticSearchQuerier extends Component {
     _loadNextPage() {
       console.log("load next page")
       const args = this._getQueryArgs(this.props);
-      args.start = this.state.pagesLoaded * this.querySize[this.props.type];
+      args.start = this.state.pagesLoaded * this.querySize[this.props.searchState.type];
       args.error = () => console.log("Failure in SearchResultList._loadNextPage");
       args.success =  data => {
           let nextHits = this.state.hits.concat(data.hits.hits);
 
           this.state.hits = nextHits;
           this.state.pagesLoaded += 1;
-          if (this.state.pagesLoaded * this.querySize[this.props.type] >= this.state.totals.getValue() ) {
+          if (this.state.pagesLoaded * this.querySize[this.props.searchState.type] >= this.state.totals.getValue() ) {
             this.state.moreToLoad = false;
           }
 
@@ -317,7 +322,7 @@ class ElasticSearchQuerier extends Component {
       this.updateRunningQuery(null);
     }
     normalizeHitsMetaData() {
-        if (this.props.type === 'sheet') {
+        if (this.props.searchState.type === 'sheet') {
             let results = this.state.hits;
             return results.map(result => {
                 let normalizedResult = result._source;
@@ -336,10 +341,10 @@ class ElasticSearchQuerier extends Component {
                     isQueryRunning={this.state.isQueryRunning}
                     searchTopMsg="Results for"
                     query={this.props.query}
-                    sortTypeArray={SearchState.metadataByType[this.props.type].sortTypeArray}
+                    sortTypeArray={SearchState.metadataByType[this.props.searchState.type].sortTypeArray}
                     hits={this.normalizeHitsMetaData()}
                     totalResults={this.state.totals}
-                    type={this.props.type}
+                    type={this.props.searchState.type}
                     searchState={this.props.searchState}
                     settings={this.props.settings}
                     panelsOpen={this.props.panelsOpen}
@@ -362,7 +367,6 @@ class ElasticSearchQuerier extends Component {
 
 ElasticSearchQuerier.propTypes = {
     query: PropTypes.string,
-    type: PropTypes.oneOf(["text", "sheet"]),
     searchState: PropTypes.object,
     onResultClick: PropTypes.func,
     registerAvailableFilters: PropTypes.func,

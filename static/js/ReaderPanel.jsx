@@ -804,12 +804,13 @@ class ReaderPanel extends Component {
           toggleSignUpModal={this.props.toggleSignUpModal}/>);
     } else if (this.state.menuOpen === "sheetsWithRef") {
       menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef.en}
-                                 searchState={this.state['sheetSearchState']}
+                                 searchState={this.state['searchState']}
                                  updateSearchState={this.props.updateSearchState}
                                  updateAppliedFilter={this.props.updateSearchFilter}
                                  updateAppliedOptionField={this.props.updateSearchOptionField}
                                  updateAppliedOptionSort={this.props.updateSearchOptionSort}
                                  registerAvailableFilters={this.props.registerAvailableFilters}
+                                 resetSearchFilters={this.props.resetSearchFilters}
                                  onResultClick={this.props.onSearchResultClick}/>);
     } else if (this.state.menuOpen === "sheet meta") {
       menu = (<SheetMetadata
@@ -897,9 +898,8 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<ElasticSearchQuerier
                     query={this.state.searchQuery}
-                    type={this.state.searchType}
+                    searchState={this.state['searchState']}
                     resetSearchFilters={this.props.resetSearchFilters}
-                    searchState={this.state[`${this.state.searchType}SearchState`]}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
