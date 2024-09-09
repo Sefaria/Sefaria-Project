@@ -77,9 +77,9 @@ const ModuleTitle = ({children, en, he}) => {
   return <h1>{content}</h1>;
 };
 
-const TitledText = ({children, title, text, h1Header}) => {
+const TitledText = ({children, title, text}) => {
   return <Module>
-            <ModuleTitle en={title.en} he={title.he} h1={!!h1Header}/>
+            <ModuleTitle en={title.en} he={title.he}/>
             <InterfaceText markdown={{en: text.en, he: text.he}} />
             {children}
         </Module>
@@ -685,8 +685,7 @@ const CreateSheetsButton = () => {
 const CreateASheet = () => (
   <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
               text={{'en': 'Mix and match sources along with outside sources, comments, images, and videos.',
-                     'he': ''}}
-              h1Header={true}>
+                     'he': ''}}>
       <CreateSheetsButton/>
   </TitledText>
 );
@@ -694,8 +693,7 @@ const CreateASheet = () => (
 const WhatIsASourceSheet = () => (
     <TitledText title={{'en': 'What is a Source Sheet?', 'he': ''}}
                 text={{'en': '',
-                       'he': ''}}
-                h1Header={true}>
+                       'he': ''}}>
         <GetStartedButton/>
     </TitledText>
 );
