@@ -8,6 +8,7 @@ import {
 } from "./Misc";
 import React from "react";
 import classNames from "classnames";
+import {AddToSourceSheetBox} from "./AddToSourceSheet";
 
 class SheetContent extends Component {
   componentDidMount() {
@@ -211,7 +212,8 @@ class SheetContent extends Component {
         sourceComponent = this.renderSheetMedia(source, i);
       }
       if (!sourceComponent) { return null; }
-      return <>{sourceComponent}</>;
+      return <>{sourceComponent}<AddToSheetButton nodeRef={this.props.nodeRef}
+                                                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}/></>;
     });
   }
   render() {
@@ -235,6 +237,12 @@ class SheetContent extends Component {
   }
 }
 
+const AddToSheetButton = ({nodeRef, highlightedRefsInSheet}) => {
+  const handleClick = () => {
+    return <Modal><AddToSourceSheetBox/></Modal>
+  }
+  return <div className="button" onClick={handleClick}>Add to Sheet</div>;
+}
 const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage}) => {
   return <SheetMetaDataBox>
     <SheetMetaDataBoxSegment text={title} className="title"/>
