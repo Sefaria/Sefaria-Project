@@ -312,8 +312,8 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         </a>
 
         <a href="/products">
-          <img src="/static/icons/products.svg" />
-          <InterfaceText text={{en: "Products", he: "מוצרים"}} />
+          <img src="/static/icons/products_icon.svg" />
+          <InterfaceText text={{en: "All Products", he: "מוצרים"}} />
         </a>
 
         <hr />
