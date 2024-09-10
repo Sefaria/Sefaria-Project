@@ -297,6 +297,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <InterfaceText>Developers</InterfaceText>
         </a>
 
+        <a href="sefaria.org/products" target="_blank">
+          <img src="/static/icons/products-icon.svg" />
+          <InterfaceText text={{en: "All Products", he: "מוצרים"}} />
+        </a>
+
         <hr />
 
         {Sefaria._uid ?
