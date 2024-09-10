@@ -4,6 +4,7 @@ import Sefaria from "./sefaria/sefaria";
 import ReactTags from 'react-tag-autocomplete'
 import { useDebounce } from "./Hooks";
 
+
 const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
     const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);

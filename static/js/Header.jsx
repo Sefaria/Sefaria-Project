@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef,} from 'react';
+import { withTranslation } from "react-i18next";
 import PropTypes  from 'prop-types';
 import ReactDOM  from 'react-dom';
 import Component from 'react-class';
@@ -23,6 +24,7 @@ class Header extends Component {
       mobileNavMenuOpen: false,
     };
   }
+  
   componentDidMount() {
     window.addEventListener('keydown', this.handleFirstTab);
   }
@@ -36,6 +38,7 @@ class Header extends Component {
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
   }
   render() {
+    const { t, i18n } = this.props;
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
@@ -48,6 +51,7 @@ class Header extends Component {
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
+          <a href="/texts" className="textLink"><InterfaceText >{t("greeting", {name:'samdup'})}</InterfaceText></a>
           <a href="/texts" className="textLink"><InterfaceText >header.text</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>header.topic</InterfaceText></a>
           <a href="/community" className="textLink"><InterfaceText>header.community</InterfaceText></a>
@@ -702,4 +706,4 @@ const HelpButton = () => {
 };
 
 
-export default Header;
+export default withTranslation()(Header);
