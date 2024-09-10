@@ -144,13 +144,9 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
-    if(source === 0){
-      //the click may be coming from the sheet reader controls, and so we need to find
-      // the first node or the node thats in the url
-      const sheet = Sefaria.sheets.loadSheetByID(this.state.sheetID); // Should already be loaded and in cache
-      source = this.state.highlightedNode ? sheet.sources.find(source => source.node === this.state.highlightedNode) : sheet.sources[0];
-    }
-    this.conditionalSetState({highlightedNode: source.node});
+    const refs = source.ref ? Sefaria.splitRangingRef(source.ref) : `Sheet ${this.state.sheetID}:${source.node}`;
+    const nodeRef = `${this.state.sheetID}.${source.node}`;
+    this.conditionalSetState({highlightedNode: source.node, refs: refs, nodeRef: nodeRef});
   }
   handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
@@ -664,7 +660,6 @@ class ReaderPanel extends Component {
     if (this.state.mode === "Sheet") {
       items.push(
         <Sheet
-          nodeRef={this.sheetRef}
           adjustHighlightedAndVisible={this.adjustSheetHighlightedAndVisible}
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
