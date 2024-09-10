@@ -50,9 +50,13 @@ div#s2:has(~ div.ub-emb-container div:only-child:empty) .singlePanel div.mobileN
 }
 
 div#s2:has(~ div.ub-emb-container) .singlePanel .autocomplete-dropdown {
-  top: 240px
+  top: 45px;
+  left: -10px;
+  position: absolute;
 }
 
-div#s2:has(~ div.ub-emb-container div:only-child:empty) .singlePanel .autocomplete-dropdown {
-  top: 120px;
-}
+/* div#s2:has(~ div.ub-emb-container div:only-child:empty) .singlePanel .autocomplete-dropdown {
+  top: 45px;
+  position: absolute;
+  left: -10px;
+} */
