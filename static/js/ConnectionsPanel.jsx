@@ -165,9 +165,6 @@ class ConnectionsPanel extends Component {
     });
     this._savedHistorySegments.add(ref);
   }
-  isSheet() {
-    return this.props.srefs[0].startsWith("Sheet");
-  }
   isSegmentVisible(segment) {
     const threshold = 100;
     const $segment = $(segment);
@@ -202,16 +199,14 @@ class ConnectionsPanel extends Component {
         linksLoaded: true,
       });
     }
-    if (!this.isSheet()) {
-      Sefaria.getTranslations(ref).then(versions => this.setState({ availableTranslations: Object.values(versions).flat() })); //for counting translations
-      Sefaria.getRef(this.props.currentlyVisibleRef).then(data => { //this does not properly return a secionRef for a spanning/ranged ref
-        const currRef = (typeof data == "string") ? Sefaria.sectionRef(data) : data["sectionRef"]; //this is an annoying consequence of getRef not actually returning a
-        // consistent response. Its either the ref from cache or the entire text api response if async.
-        this.setState({currentlyVisibleSectionRef: currRef});
-      });
-      //this.setState({currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef)});
 
-    }
+    Sefaria.getTranslations(ref).then(versions => this.setState({ availableTranslations: Object.values(versions).flat() })); //for counting translations
+    Sefaria.getRef(this.props.currentlyVisibleRef).then(data => { //this does not properly return a secionRef for a spanning/ranged ref
+      const currRef = (typeof data == "string") ? Sefaria.sectionRef(data) : data["sectionRef"]; //this is an annoying consequence of getRef not actually returning a
+      // consistent response. Its either the ref from cache or the entire text api response if async.
+      this.setState({currentlyVisibleSectionRef: currRef});
+    });
+    //this.setState({currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef)});
   }
   reloadData() {
     this.setState({
@@ -289,16 +284,6 @@ class ConnectionsPanel extends Component {
     }
     return (srefs)
   }
-  showSheetNodeConnectionTools(ref, mode) {
-    const dontShowModes = ["Share", "Feedback", "Sheets"];
-    if (ref.indexOf("Sheet") !== -1 && !dontShowModes.includes(mode)) {
-      return true
-    }
-
-    else {
-      return false
-    }
-  }
   openVersionInSidebar(versionTitle, versionLanguage) {
     this.props.setConnectionsMode("Translation Open");
     this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
@@ -307,16 +292,6 @@ class ConnectionsPanel extends Component {
     let content = null;
     if (!this.state.linksLoaded) {
       content = <LoadingMessage />;
-    } else if (this.showSheetNodeConnectionTools(this.props.srefs, this.props.mode)) {
-      content = (<div>
-        <SheetNodeConnectionTools
-          multiPanel={this.props.multiPanel}
-          setConnectionsMode={this.props.setConnectionsMode}
-          openComparePanel={this.props.openComparePanel}
-          srefs={this.props.srefs}
-          nodeRef={this.props.nodeRef}
-        />
-      </div>);
     } else if (this.props.mode === "Resources") {
       const summary = Sefaria.linkSummary(this.props.srefs, this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null);
       const showConnectionSummary = summary.length > 0 || Sefaria.hasEssayLinks(this.props.srefs);
@@ -742,25 +717,6 @@ ToolsList.propTypes = {
   counts: PropTypes.object.isRequired,
 }
 
-class SheetNodeConnectionTools extends Component {
-  // A list of Resources in addition to connections
-  render() {
-    return (<div className="toolButtonsList">
-      {this.props.multiPanel ?
-        <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
-        : null}
-      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" urlConnectionsMode="Sheets" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-      <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
-    </div>);
-  }
-}
-SheetNodeConnectionTools.propTypes = {
-  multiPanel: PropTypes.bool.isRequired,
-  setConnectionsMode: PropTypes.func.isRequired,
-  openComparePanel: PropTypes.func.isRequired,
-};
-
-
 class ConnectionsSummary extends Component {
   // A summary of available connections on `srefs`.
   // If `category` is present, shows a single category, otherwise all categories.
@@ -769,11 +725,10 @@ class ConnectionsSummary extends Component {
   render() {
     const collapsedTopLevelLimit = 4;
     const refs = this.props.srefs;
-    const excludedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
     const oref = Sefaria.ref(refs[0]);
     const isTopLevel = !this.props.category;
     const baseCat = oref ? oref["categories"][0] : null;
-    let summary = Sefaria.linkSummary(refs, excludedSheet);
+    let summary = Sefaria.linkSummary(refs);
     let essaySummary = [];
 
     if (!summary) { return null; }
@@ -895,58 +850,6 @@ ConnectionsSummary.propTypes = {
   setConnectionsCategory: PropTypes.func.isRequired,
   currObjectVersions: PropTypes.object
 };
-
-
-class MySheetsList extends Component {
-  // List of my sheets for a ref in the Sidebar
-  render() {
-    const sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
-    let content = sheets.length ? sheets.filter(sheet => {
-      // Don't show sheets as connections to themselves
-      return sheet.id !== this.props.connectedSheet;
-    }).filter(
-      // filters out duplicate sheets by sheet ID number
-      (sheet, index, self) =>
-        index === self.findIndex((s) => (
-          s.id === sheet.id
-        ))
-    ).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
-    }, this) : null;
-    return content && content.length ? (<div className="sheetList">{content}</div>) : null;
-  }
-}
-MySheetsList.propTypes = {
-  srefs: PropTypes.array.isRequired,
-  connectedSheet: PropTypes.string,
-};
-
-
-class PublicSheetsList extends Component {
-  // List of public sheets for a ref in the sidebar
-  render() {
-    const sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
-    let content = sheets.length ? sheets.filter(sheet => {
-      // My sheets are shown already in MySheetList
-      return sheet.owner !== Sefaria._uid && sheet.id !== this.props.connectedSheet;
-    }).sort((a, b) => {
-      // First sort by language / interface language
-      let aHe, bHe;
-      [aHe, bHe] = [a.title, b.title].map(Sefaria.hebrew.isHebrew);
-      if (aHe !== bHe) { return (bHe ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
-      // Then by number of views
-      return b.views - a.views;
-    }).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
-    }, this) : null;
-    return content && content.length ? (<div className="sheetList">{content}</div>) : null;
-  }
-}
-PublicSheetsList.propTypes = {
-  srefs: PropTypes.array.isRequired,
-  connectedSheet: PropTypes.string,
-};
-
 
 const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
@@ -1280,7 +1183,7 @@ ShareBox.propTypes = {
   setConnectionsMode: PropTypes.func.isRequired,
   closePanel: PropTypes.func.isRequired,
   fullPanel: PropTypes.bool,
-  masterPanelSheetId: PropTypes.number
+  sheetID: PropTypes.number
 };
 
 
