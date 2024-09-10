@@ -294,6 +294,10 @@ Sefaria = extend(Sefaria, {
     return oref ? oref.sectionRef : null;
 
   },
+  getRefForContext: function(ref, returnContext, currVersions=null) {
+    // Returns Promise
+    return (returnContext) ? Sefaria.getRef(ref, currVersions).then(result => result.sectionRef) : Promise.resolve(ref);
+  },
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
       return ref.split("-");
@@ -1225,39 +1229,20 @@ Sefaria = extend(Sefaria, {
   },
   getRefFromCache: function(ref) {
     if (!ref) return null;
-    const versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
-    if (versionedKey) { return this._getOrBuildTextData(versionedKey); }
-    return null;
-  },
-  getRefFromCacheV3: function(ref) {
     return this._textsStore[ref];
   },
-  getRef: function(ref) {
+  getRef: function(ref, currVersions=null) {
     // Returns Promise for parsed ref info
+    // currVersions is enabling getting text from cache
+    currVersions = currVersions || {en: null, he: null};
     if (!ref) { return Promise.reject(new Error("No Ref!")); }
-
-    const r = this.getRefFromCache(ref);
-    if (r) return Promise.resolve(r);
-
-    // To avoid an extra API call, first look for any open API calls to this ref (regardless of params)
-    // todo: Ugly.  Breaks abstraction.
-    const urlPattern = "/api/texts/" + this.normRef(ref);
-    const openApiCalls = Object.keys(this._ajaxObjects);
-    for (let i = 0; i < openApiCalls.length; i++) {
-      if (openApiCalls[i].startsWith(urlPattern)) {
-        return this._ajaxObjects[openApiCalls[i]];
-      }
-    }
-
-    // If no open calls found, call the texts API.
-    // Called with context:1 because this is our most common mode, maximize change of saving an API Call
-    return Sefaria.getText(ref, {context: 1});
+    return Sefaria.getTextFromCurrVersions(ref, currVersions);
   },
   ref: function(ref, callback) {
       if (callback) {
           throw new Error("Use of Sefaria.ref() with a callback has been deprecated in favor of Sefaria.getRef()");
       }
-      return ref ? this.getRefFromCache(ref) || this.getRefFromCacheV3(ref) : null;
+      return ref ? this.getRefFromCache(ref) || this.getRefFromCache(ref) : null;
   },
   openTransBannerApplies: (book, textLanguage) => {
       /**
