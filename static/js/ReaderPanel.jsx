@@ -144,9 +144,8 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
-    const refs = source.ref ? Sefaria.splitRangingRef(source.ref) : `Sheet ${this.state.sheetID}:${source.node}`;
-    const nodeRef = `${this.state.sheetID}.${source.node}`;
-    this.conditionalSetState({highlightedNode: source.node, highlightedRefsInSheet: refs, nodeRef: nodeRef});
+    const highlightedRefs = source.ref ? Sefaria.splitRangingRef(source.ref) : [`Sheet ${this.state.sheetID}:${source.node}`];
+    this.conditionalSetState({highlightedNode: source.node, highlightedRefs});
   }
   handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
@@ -660,13 +659,13 @@ class ReaderPanel extends Component {
     if (this.state.mode === "Sheet") {
       items.push(
         <Sheet
-          nodeRef={this.state.nodeRef}
           adjustHighlightedAndVisible={this.adjustSheetHighlightedAndVisible}
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
           key={"sheet-"+this.state.sheetID}
           multiPanel={this.props.multiPanel}
           highlightedNode={this.state.highlightedNode}
+          highlightedRefs={this.state.highlightedRefs}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           scrollToHighlighted={this.state.scrollToHighlighted}
           onRefClick={this.handleCitationClick}

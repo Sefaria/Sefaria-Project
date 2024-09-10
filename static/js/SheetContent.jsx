@@ -8,11 +8,11 @@ import {
 } from "./Misc";
 import React, {useEffect, useState} from "react";
 import classNames from "classnames";
-import {AddToSourceSheetBox} from "./AddToSourceSheet";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
 import {SignUpModalKind} from "./sefaria/signupModalContent";
 import {ShareBox, ToolsButton} from "./ConnectionsPanel";
 import Modal from "./shared/Modal.jsx";
+import {AddToSourceSheetBox} from "./AddToSourceSheet";
 
 class SheetContent extends Component {
   componentDidMount() {
@@ -199,6 +199,9 @@ class SheetContent extends Component {
     const { sources } = this.props;
 
     if (!sources.length) return null;
+    const addToSheetButton = <AddToSheetButton sheetID={this.props.sheetID}
+                                                  highlightedRefs={this.props.highlightedRefs}
+                                                  highlightedNode={this.props.highlightedNode}/>;
 
     return sources.map((source, i) => {
       let sourceComponent;
@@ -216,8 +219,8 @@ class SheetContent extends Component {
         sourceComponent = this.renderSheetMedia(source, i);
       }
       if (!sourceComponent) { return null; }
-      return <>{sourceComponent}<AddToSheetButton nodeRef={this.props.nodeRef}
-                                                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}/></>;
+      return <>{sourceComponent}
+               {this.props.highlightedNode === source.node && addToSheetButton}</>;
     });
   }
   render() {
@@ -246,21 +249,23 @@ class SheetContent extends Component {
   }
 }
 
-const AddToSheetButton = ({nodeRef, highlightedRefsInSheet}) => {
-  const handleClick = () => {
-    return <Modal><AddToSourceSheetBox/></Modal>
-  }
-  return <div className="button" onClick={handleClick}>Add to Sheet</div>;
+const AddToSheetButton = ({highlightedNode, sheetID, highlightedRefs}) => {
+  const [showingModal, setShowingModal] = useState(false);
+  const nodeRef = `${sheetID}.${highlightedNode}`;
+  return <>
+           <div className="button" onClick={() => setShowingModal(true)}>Add to Sheet</div>
+           {showingModal && <AddToSourceSheetModal nodeRef={nodeRef} srefs={highlightedRefs} close={() => setShowingModal(false)}/>}
+         </>;
 }
 
 const SheetContentOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isAdding, setAdding] = useState(false);  // Add to Collection Modal open or closed
   if (isSharing) {
-    return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
+    return <ShareModal sheetID={sheetID} close={() => setSharing(false)}/>;
   }
   else if (isAdding) {
-    return <AddToCollectionsModal isOpen={isAdding} close={() => setAdding(false)}/>;
+    return <AddToCollectionsModal close={() => setAdding(false)}/>;
   }
   return (
     <DropdownMenu toggle={"..."}>
@@ -297,7 +302,7 @@ const SheetContentOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
     </DropdownMenu>
   );
 }
-const ShareModal = ({sheetID, isOpen, close}) => {
+const ShareModal = ({sheetID, close}) => {
   return <Modal isOpen={true} close={close}>
           <ShareBox
               sheetID={sheetID}
@@ -305,7 +310,11 @@ const ShareModal = ({sheetID, isOpen, close}) => {
           />
         </Modal>;
 }
-const AddToCollectionsModal = ({isOpen, close}) => {
+
+const AddToSourceSheetModal = ({nodeRef, srefs, close}) => {
+  return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs}/></Modal>
+}
+const AddToCollectionsModal = ({close}) => {
   return <Modal isOpen={true} close={close}><SheetContentCollectionsEditor/></Modal>;
 
 }
