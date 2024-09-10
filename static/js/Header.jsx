@@ -248,7 +248,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText text={{en: "Explore", he: "לחקור"}} />
+        <InterfaceText>Topics</InterfaceText>
       </a>
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
