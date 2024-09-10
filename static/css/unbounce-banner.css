@@ -39,13 +39,13 @@ div#staticContentWrapper:has(~ .ub-emb-container) .staticPage .staticPageHeader 
 /*
   The mobile navigation menu needs to be shifted when displayed and the banner is displaying on mobile
 */
-div#s2:has(~ div.ub-emb-container) div.mobileNavMenu {
+/* div#s2:has(~ div.ub-emb-container) div.mobileNavMenu {
   padding-top: 120px;
 }
 
 div#s2:has(~ div.ub-emb-container div:only-child:empty) div.mobileNavMenu {
   padding-top: 0px;
-}
+} */
 
 /* div#s2:has(~ div.ub-emb-container) .singlePanel .autocomplete-dropdown {
   top: 240px
@@ -54,3 +54,15 @@ div#s2:has(~ div.ub-emb-container div:only-child:empty) div.mobileNavMenu {
 div#s2:has(~ div.ub-emb-container div:only-child:empty) .singlePanel .autocomplete-dropdown {
   top: 120px;
 } */
+
+div#s2:has(~ div.ub-emb-container) .singlePanel div.mobileNavMenu {
+  position: fixed;
+  height: calc(100vh - 180px);
+  top: 180px;
+}
+
+div#s2:has(~ div.ub-emb-container div:only-child:empty) .singlePanel div.mobileNavMenu {
+  position: fixed;
+  height: calc(100vh - 60px);
+  top: 60px;
+}
