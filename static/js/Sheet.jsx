@@ -127,6 +127,7 @@ class Sheet extends Component {
                   authorUrl={sheet.ownerProfileUrl}
                   authorImage={sheet.ownerImageUrl}
                   summary={sheet.summary}
+                  nodeRef={this.props.nodeRef}
             />
               <SheetSidebar
                   authorStatement={sheet.ownerName}
