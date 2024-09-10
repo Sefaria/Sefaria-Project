@@ -23,7 +23,6 @@ import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
-import AboutSheet from './AboutSheet';
 import SidebarSearch from './SidebarSearch';
 import TextList from './TextList'
 import ConnectionsPanelHeader from './ConnectionsPanelHeader';
@@ -743,38 +742,6 @@ ToolsList.propTypes = {
   counts: PropTypes.object.isRequired,
 }
 
-const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
-
-  const [isOwner, setIsOwner] = useState(false);
-  const [showEditButton, setShowEditButton] = useState(false);
-  useEffect(() => {
-    const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
-    setIsOwner(sheet.owner === Sefaria._uid);
-    setShowEditButton(
-        !Sefaria._uses_new_editor && Sefaria._uid && (
-            sheet.owner === Sefaria._uid ||
-            sheet.options.collaboration == "anyone-can-edit" ||
-            sheet.options.collaboration == "anyone-can-add"
-        )
-    )
-    console.log(sheet)
-  }, []);
-
-  return (<div className="topToolsButtons">
-    {isOwner ?
-        <ToolsButton en="Publish Settings" he="הגדרות פרסום" image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
-        :
-        <ToolsButton en="About this Sheet" he="אודות דף המקורות" image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
-    }
-    {showEditButton  ?
-        <ToolsButton en="Edit" he="עריכה" image="note.svg" onClick={() => {
-          window.location = `//${window.location.host}/sheets/${masterPanelSheetId}?editor=1`;
-        }} />
-        : null }
-
-    <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
-  </div>);
-}
 
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
