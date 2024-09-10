@@ -690,12 +690,17 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   content: "•";
   padding: 0px 4px;
 }
-.mobileNavMenu .signupLink {
-  content: "•";
+.interface-english .mobileNavMenu .signupLink {
   padding-right: 0px !important;
 }
-.mobileNavMenu .loginLink {
+.interface-english .mobileNavMenu .loginLink {
   padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .signupLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .loginLink {
+  padding-right: 0px !important;
 }
 .mobileNavMenu .profile-pic {
   display: inline-block;

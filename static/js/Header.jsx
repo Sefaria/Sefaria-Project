@@ -248,7 +248,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText>Explore</InterfaceText>
+        <InterfaceText text={{en: "Explore", he: "לחקור"}} />
       </a>
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
@@ -308,7 +308,8 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <a href="developers.sefaria.org" target="_blank">
           <img src="/static/icons/dev-portal-mobile-icon.svg" />
-          <InterfaceText>Developers</InterfaceText>
+          <InterfaceText text={{en: "Developers", he: "מפתחים"}} />
+
         </a>
 
         <a href="/products">
