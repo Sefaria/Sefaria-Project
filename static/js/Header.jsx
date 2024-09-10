@@ -259,7 +259,8 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <>
           <a href="/texts/saved" onClick={close}>
             <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
-            <InterfaceText>Saved, History & Notes</InterfaceText>
+            <InterfaceText text={{en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות"}} />
+
           </a>
         </> : null }
 
