@@ -686,9 +686,16 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu .mobileAccountLinks .login {
   padding: 15px;
 }
-.mobileNavMenu .mobileAccountLinks .login .dotFollow::after {
+.mobileNavMenu .signupLink::after {
   content: "•";
   padding: 0px 4px;
+}
+.mobileNavMenu .signupLink {
+  content: "•";
+  padding-right: 0px !important;
+}
+.mobileNavMenu .loginLink {
+  padding-left: 0px !important;
 }
 .mobileNavMenu .profile-pic {
   display: inline-block;

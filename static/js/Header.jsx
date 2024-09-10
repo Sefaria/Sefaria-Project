@@ -188,7 +188,7 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
        </a>)}
       {loginOnly ? null :
       <span>
-        <a className="login signupLink dotFollow" href={registerLink} key={`register${isClient}`}>
+        <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
           {mobile ? <img src="/static/icons/login.svg" /> : null }
           <InterfaceText>Sign up</InterfaceText>
         </a> 
