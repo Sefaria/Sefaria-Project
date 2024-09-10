@@ -529,7 +529,6 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "Share") {
       content = (<ShareBox
-        masterPanelSheetId={this.props.masterPanelSheetId}
         url={window.location.href}
         fullPanel={this.props.fullPanel}
         closePanel={this.props.closePanel}
@@ -688,7 +687,6 @@ ConnectionsPanel.propTypes = {
   contentLang: PropTypes.string,
   masterPanelLanguage: PropTypes.oneOf(["english", "bilingual", "hebrew"]),
   masterPanelMode: PropTypes.string,
-  masterPanelSheetId: PropTypes.number,
   versionFilter: PropTypes.array,
   recentVersionFilters: PropTypes.array,
   setVersionFilter: PropTypes.func.isRequired,
@@ -778,138 +776,6 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
   </div>);
 }
 
-const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsMode }) => {
-
-  // const [isOwner, setIsOwner] = useState(false);
-  // const [isPublished, setIsPublished] = useState(false);
-  const googleDriveState = {
-    export: { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" },
-    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס...", greyColor: true},
-    exportComplete: { en: "Export Complete", he: "ייצוא הסתיים", secondaryEn: "Open in Google", secondaryHe: "לפתיחה בגוגל דוקס", greyColor: true}
-  }
-  const copyState = {
-    copy: { en: "Copy", he: "העתקה" },
-    copying: { en: "Copying...", he: "מעתיק...", greyColor: true},
-    copied: { en: "Sheet Copied", he: "הדף מועתק", secondaryHe: "צפייה בדף המקורות", secondaryEn: "View Copy", greyColor: true },
-    error: { en: "Sorry, there was an error.", he: "סליחה, ארעה שגיאה" }
-  }
-  const [copyText, setCopyText] = useState(copyState.copy);
-  const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
-  const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState(googleDriveState.exporting) : useState(googleDriveState.export);
-  const [googleDriveLink, setGoogleDriveLink] = useState("");
-  const [copiedSheetId, setCopiedSheetId] = useState(0);
-  const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);
-  const [showCollectionsModal, setShowCollectionsModal] = useState(false);
-
-  useEffect(() => {
-    if (googleDriveText.en == googleDriveState.exporting.en) {
-      history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
-      $.ajax({
-        type: "POST",
-        url: "/api/sheets/" + sheet.id + "/export_to_drive",
-        success: function (data) {
-          if ("error" in data) {
-            console.log(data.error.message);
-            // Export Failed
-          } else {
-            // Export succeeded
-            setGoogleDriveLink(data.webViewLink);
-            setGoogleDriveText(googleDriveState.exportComplete)
-          }
-        },
-        statusCode: {
-          401: function () {
-            window.location.href = "/gauth?next=" + encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive");
-          }
-        }
-      });
-    }
-  }, [googleDriveText])
-
-  // const toggleCollectionsModal = () => {
-  //   if (!Sefaria._uid) {
-  //     toggleSignUpModal();
-  //   } else {
-  //     setShowCollectionsModal(!showCollectionsModal)
-  //   }
-  // }
-
-
-
-  const filterAndSaveCopiedSheetData = (data) => {
-    let newSheet = Sefaria.util.clone(data);
-    newSheet.status = "unlisted";
-    newSheet.title = newSheet.title + " (Copy)";
-
-    if (Sefaria._uid != newSheet.owner) {
-      newSheet.via = newSheet.id;
-      newSheet.viaOwner = newSheet.owner;
-      newSheet.owner = Sefaria._uid
-    }
-    delete newSheet.id;
-    delete newSheet.ownerName;
-    delete newSheet.views;
-    delete newSheet.dateCreated;
-    delete newSheet.dateModified;
-    delete newSheet.displayedCollection;
-    delete newSheet.collectionName;
-    delete newSheet.collectionImage;
-    delete newSheet.likes;
-    delete newSheet.promptedToPublish;
-    delete newSheet._id;
-
-    const postJSON = JSON.stringify(newSheet);
-    $.post("/api/sheets/", { "json": postJSON }, (data) => {
-      if (data.id) {
-        setCopiedSheetId(data.id);
-        setCopyText(copyState.copied);
-      } else if ("error" in data) {
-        setCopyText(copyState.error);
-        console.log(data.error);
-      }
-    })
-  }
-
-  const copySheet = () => {
-    if (!Sefaria._uid) {
-      toggleSignUpModal(SignUpModalKind.AddToSheet);
-    } else if (copyText.en === copyState.copy.en) {
-      setCopyText(copyState.copying);
-      filterAndSaveCopiedSheetData(sheet);
-    } else if (copyText.en === copyState.copied.en) {
-      window.location.href = `/sheets/${copiedSheetId}`
-      // TODO: open copied sheet
-    }
-  }
-
-  const googleDriveExport = () => {
-    // $("#overlay").show();
-    // sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
-    if (!Sefaria._uid) {
-      toggleSignUpModal();
-    }
-    else if (googleDriveText.en === googleDriveState.exportComplete.en) {
-      Sefaria.util.openInNewTab(googleDriveLink);
-    } else {
-      Sefaria.track.sheets("Export to Google Docs");
-      setGoogleDriveText(googleDriveState.exporting)
-    }
-  }
-  return (<div>
-    <ToolsButton en={copyText.en} he={copyText.he} secondaryEn={copyText.secondaryEn} secondaryHe={copyText.secondaryHe} image="copy.png" greyColor={!!copyText.secondaryEn || copyText.greyColor} onClick={() => copySheet()} />
-    {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
-    <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
-    <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
-    {
-      Sefaria._uses_new_editor && Sefaria._uid && (
-            sheet.owner === Sefaria._uid ||
-            sheet.options.collaboration == "anyone-can-edit"
-        ) ?
-      <ToolsButton en="Divine Name" he="שמות קודש" image="tools-translate.svg" onClick={() => setConnectionsMode("DivineName")} /> : null}
-
-  </div>
-  )
-}
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {
@@ -1342,12 +1208,11 @@ ToolsButton.propTypes = {
   secondaryHe: PropTypes.string
 };
 
-
 class ShareBox extends Component {
   constructor(props) {
     super(props);
-    if (this.props.masterPanelSheetId) {
-      const sheet = Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId);
+    if (this.props.sheetID) {
+      const sheet = Sefaria.sheets.loadSheetByID(this.props.sheetID);
       this.state = {
         sheet: sheet,
         shareValue: sheet.options.collaboration ? sheet.options.collaboration : "none"
@@ -1363,7 +1228,7 @@ class ShareBox extends Component {
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.state.shareValue != prevState.shareValue) {
-      new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId, sheet => resolve(sheet))).then(updatedSheet => {
+      new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.sheetID, sheet => resolve(sheet))).then(updatedSheet => {
         updatedSheet.options.collaboration = this.state.shareValue;
         updatedSheet.lastModified = updatedSheet.dateModified
         delete updatedSheet._id;
@@ -1418,8 +1283,8 @@ class ShareBox extends Component {
       <div>
         <ConnectionsPanelSection title="Share Link">
           <div className="shareInputBox">
-            <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
-            <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
+            <button tabIndex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
+            <input tabIndex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>
           {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
             <div className="shareSettingsBox">
@@ -1445,12 +1310,9 @@ class ShareBox extends Component {
 }
 ShareBox.propTypes = {
   url: PropTypes.string.isRequired,
-  setConnectionsMode: PropTypes.func.isRequired,
-  closePanel: PropTypes.func.isRequired,
   fullPanel: PropTypes.bool,
-  masterPanelSheetId: PropTypes.number
+  sheetID: PropTypes.number
 };
-
 
 class AddNoteBox extends Component {
   constructor(props) {
@@ -1833,4 +1695,6 @@ const ConnectionsPanelSection = ({ title, children }) => {
 export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
+  ToolsButton,
+  ShareBox
 };

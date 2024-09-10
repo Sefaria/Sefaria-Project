@@ -1022,6 +1022,31 @@ div.interfaceLinks-row a {
   position: fixed;
   z-index: 1001;
 }
+.overlayDialogModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  background-color: rgba(1, 1, 1, 0.7);
+}
+.dialogModal {
+  width: 400px;
+  height: 388px;
+  top: 129px;
+  border: none;
+  background: transparent;
+  display: block;
+}
+.dialogModal .modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+}
 .sefariaModalBox {
   transition: none;
 }
@@ -8445,6 +8470,7 @@ a .button:hover {
   font-weight: 500;
   line-height: 35.16px;
   margin-block-end: 15px;
+  flex: 1 0 95%;
 }
 .sheetMetaDataBox .title br { /* hide the line breaks that are stripped before saving */
     display: none;
@@ -13410,7 +13436,45 @@ span.ref-link-color-3 {color: blue}
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
 }
-.header .dropdownLinks img {
+.dropdownLinks .toolsButtonContainer {
+  margin: revert;
+}
+.dropdownLinks #saveButtonText {
+  padding-inline-start: 15px;
+}
+.sheetsInPanel .dropdownDesc {
+  display: none;
+}
+.sheetsInPanel .toolsButtonText,
+.sheetsInPanel .dropdownHeaderText,
+.sheetsInPanel #saveButtonText {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+  color: #666666;
+  margin-inline-start: 10px;
+  padding: revert;
+}
+.sheetsInPanel .sidebarLayout {
+  justify-content: space-between;
+}
+.sheetsInPanel .dropdownLinks {
+  min-width: 50%;
+  margin-top: 2px;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  -webkit-margin-start: 20px;
+  -moz-margin-start: 20px;
+  margin-inline-start: 10px;
+  line-height: 0px;
+}
+.sheetsInPanel .dropdownHeader {
+  margin-bottom: revert;
+}
+.header .dropdownLinks img, .sheetsInPanel .dropdownLinks img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
@@ -13433,7 +13497,15 @@ span.ref-link-color-3 {color: blue}
   content: "";
   transform: scale(0.75);
 }
-.header .dropdownLinks .dropdownLinks-menu {
+.sheetsInPanel .dropdownLinks a.dropdownLinks-button::after {
+  display: inline-block;
+  height: 10px;
+  width: 12px;
+  vertical-align: middle;
+  content: "";
+  transform: scale(0.75);
+}
+.header .dropdownLinks .dropdownLinks-menu, .sheetsInPanel .dropdownLinks .dropdownLinks-menu {
   top: 35px;
   position: absolute;
   z-index: 1;
@@ -13444,13 +13516,30 @@ span.ref-link-color-3 {color: blue}
   display:none;
   overflow:hidden;
 }
+.sheetsInPanel .dropdownItem {
+  padding: revert;
+}
+
+.sheetsInPanel .dropdownLinks .dropdownLinks-menu {
+  background: white;
+}
+
+
 .interface-english .header .dropdownLinks .dropdownLinks-menu {
   right: 0px;
   min-width: 150px;
   width: max-content;
 }
+.interface-english .sheetsInPanel .dropdownLinks .dropdownLinks-menu {
+  min-width: 150px;
+  width: max-content;
+}
 .interface-hebrew .header .dropdownLinks .dropdownLinks-menu {
   left: 0px;
+  min-width: 150px;
+  width: max-content;
+}
+.interface-hebrew .sheetsInPanel .dropdownLinks .dropdownLinks-menu  {
   min-width: 150px;
   width: max-content;
 }
@@ -13460,7 +13549,7 @@ span.ref-link-color-3 {color: blue}
   padding: 4px;
   max-width: 220px;
 }
-.header .dropdownLinks .dropdownLinks-menu.open {
+.header .dropdownLinks .dropdownLinks-menu.open, .sheetsInPanel .dropdownLinks .dropdownLinks-menu.open {
   display: block;
 }
 

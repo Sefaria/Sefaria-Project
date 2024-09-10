@@ -1440,7 +1440,8 @@ InterfaceLanguageMenu.propTypes = {
 };
 
 
-function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
+function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal, shouldDisplayText}) {
+  // `shouldDisplayText` is a bool that indicates that we want to display "Save/Saving/Saved" instead of alt text for the icon
   if (!historyObject) { placeholder = true; }
   const isSelected = () => !!Sefaria.getSavedItem(historyObject);
   const [selected, setSelected] = useState(placeholder || isSelected());
@@ -1453,7 +1454,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
 
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-  const altText = placeholder ? '' :
+  const altText = placeholder || shouldDisplayText ? '' :
       `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
@@ -1467,11 +1468,24 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
         .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
         .finally(() => { setPosting(false); });
   }
-
+  const getTextToDisplay = () => {
+    let text = "";
+    if (isPosting) {
+      text = "Saving...";
+    }
+    else {
+      text = isSelected() ? "Saved" : "Save";
+    }
+    return <span id="saveButtonText">{Sefaria._(text)}</span>;
+  }
+  const selectedIcon = selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
+                          <img src="/static/icons/bookmark.svg" alt={altText}/>;
+  if (shouldDisplayText) {
+    return <span onClick={onClick}>{selectedIcon}{getTextToDisplay()}</span>;
+  }
   return (
     <ToolTipped {...{ altText, classes, style, onClick }}>
-      { selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
-        <img src="/static/icons/bookmark.svg" alt={altText}/> }
+      {selectedIcon}
     </ToolTipped>
   );
 }

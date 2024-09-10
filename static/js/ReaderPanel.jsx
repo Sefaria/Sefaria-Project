@@ -678,6 +678,8 @@ class ReaderPanel extends Component {
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
           hasSidebar={this.props.hasSidebar}
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
         />
       );
     }
@@ -737,7 +739,6 @@ class ReaderPanel extends Component {
           setSidebarSearchQuery={this.props.setSidebarSearchQuery}
           masterPanelLanguage={this.props.masterPanelLanguage}
           masterPanelMode={this.props.masterPanelMode}
-          masterPanelSheetId={this.props.masterPanelSheetId}
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
           setVersionFilter={this.setVersionFilter}

@@ -15,38 +15,51 @@ const DropdownMenuSeparator = () => {
 }
 
 const DropdownMenuItem = ({url, children}) => {
-  return (
+  const dropDownClasses = `interfaceLinks-option int-bi dropdownItem`;
+  if (!url) {
+      return (
 
-    <a className={`interfaceLinks-option int-bi dropdownItem`} href={url} target="_blank">
-      {children}
-    </a>
+          <div className={dropDownClasses}>
+              {children}
+          </div>
 
-  );
+      );
+  }
+  else {
+      return (
+
+          <a className={dropDownClasses} href={url} target="_blank">
+              {children}
+          </a>
+
+      );
+  }
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='Lorem ipsum dolor sit amet, lorem dolor.',
+                                  descHe='לורם איפסום דולור סיט אמט'}) => {
   return (
     <>
-      <div className="dropdownHeader">
+      <div className="dropdownHeader" onClick={() => onClick()}>
         <img src={icon} />
         <span className='dropdownHeaderText'>
           <InterfaceText text={{'en': textEn, 'he': textHe}} />
         </span>
       </div>
       <div className='dropdownDesc'>
-        <InterfaceText text={{'en': 'Lorem ipsum dolor sit amet, lorem dolor.', 'he': 'לורם איפסום דולור סיט אמט'}} />     
+        <InterfaceText text={{'en': descEn, 'he': descHe}} />
       </div>
   </>
   );
 }
 
-const DropdownMenu = ({children}) => {
+const DropdownMenu = ({children, toggle}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
-  
+
     const handleClick = (e) => {
-      e.stopPropagation();
-      setIsOpen(isOpen => !isOpen);
+        e.stopPropagation();
+        setIsOpen(isOpen => !isOpen);
     }
     const handleHideDropdown = (event) => {
         if (event.key === 'Escape') {
@@ -61,7 +74,7 @@ const DropdownMenu = ({children}) => {
             setIsOpen(false);
         }
     };
-  
+
     useEffect(() => {
         document.addEventListener('keydown', handleHideDropdown, true);
         document.addEventListener('click', handleClickOutside, true);
@@ -70,23 +83,23 @@ const DropdownMenu = ({children}) => {
             document.removeEventListener('click', handleClickOutside, true);
         };
     }, []);
-  
+
     return (
         <div className="dropdownLinks" ref={wrapperRef}>
-          <a className="dropdownLinks-button" onClick={handleClick}><img src="/static/icons/module_switcher_icon.svg" alt={Sefaria._('Toggle Module Switcher')}/></a>
-          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
-            <div className="dropdownLinks-options">
-              {children}
+            <a className="dropdownLinks-button" onClick={handleClick}>{toggle}</a>
+            <div className={`dropdownLinks-menu ${isOpen ? "open" : "closed"}`}>
+                <div className="dropdownLinks-options">
+                    {children}
+                </div>
             </div>
-          </div>
         </div>
     );
-  }
+}
 
 
-  export {
-    DropdownMenu, 
-    DropdownMenuSeparator, 
+export {
+    DropdownMenu,
+    DropdownMenuSeparator,
     DropdownMenuItem,
     DropdownMenuItemWithIcon
   };

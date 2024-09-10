@@ -310,7 +310,6 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
 }
 
-
 const CollectionsEditor = ({ sheetId }) => {
     // A box that lets you control which of your collections `sheetId` belongs to
 
@@ -332,7 +331,7 @@ const CollectionsEditor = ({ sheetId }) => {
     const [newName, setNewName] = useState("");
     const [changed, setChanged] = useState(false);
 
-    // Make sure we have loaded the user's list of collections, 
+    // Make sure we have loaded the user's list of collections,
     // and which collections this sheet belongs to for this user
     useEffect(() => {
         if (!dataLoaded) {
