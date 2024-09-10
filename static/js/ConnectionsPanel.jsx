@@ -23,7 +23,6 @@ import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
-import AboutSheet from './AboutSheet';
 import SidebarSearch from './SidebarSearch';
 import TextList from './TextList'
 import ConnectionsPanelHeader from './ConnectionsPanelHeader';
