@@ -49,11 +49,11 @@ div#s2:has(~ div.ub-emb-container div:only-child:empty) .singlePanel div.mobileN
   top: 60px;
 }
 
-/* div#s2:has(~ div.ub-emb-container) .singlePanel .autocomplete-dropdown {
+div#s2:has(~ div.ub-emb-container) .singlePanel .autocomplete-dropdown {
   top: 45px;
   left: -10px;
   position: absolute;
-} */
+}
 
 /* div#s2:has(~ div.ub-emb-container div:only-child:empty) .singlePanel .autocomplete-dropdown {
   top: 45px;
