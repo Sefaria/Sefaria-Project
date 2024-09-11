@@ -19,6 +19,7 @@ import {
 } from './Misc';
 import SheetContent from "./SheetContent";
 import SheetSidebar from "./SheetSidebar";
+import {SheetOptions} from "./sheets/SheetOptions";
 
 class Sheet extends Component {
   constructor(props) {
@@ -100,6 +101,9 @@ class Sheet extends Component {
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
+    const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
+                                                sheetID={sheet.id}
+                                                historyObject={this.props.historyObject}/>;
     let content;
     if (!sheet) {
       content = (<LoadingMessage />);
@@ -108,6 +112,7 @@ class Sheet extends Component {
       content = (
             <div className="sidebarLayout">
               <SheetContent
+                  sheetOptions = {sheetOptions}
                   sheetNotice={sheet.sheetNotice}
                   sources={sheet.sources}
                   title={sheet.title}
