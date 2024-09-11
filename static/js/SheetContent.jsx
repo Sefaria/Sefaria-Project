@@ -100,8 +100,9 @@ class SheetContent extends Component {
     const highlighted = highlightedNode
       ? highlightedNode === source.node
       : highlightedRef ? Sefaria.refContains(source.ref, highlightedRef) : false;
+
     return (
-      <><SheetSource
+      <SheetSource
         key={i}
         source={source}
         sourceNum={i + 1}
@@ -109,7 +110,7 @@ class SheetContent extends Component {
         sheetSourceClick={() => sheetSourceClick(source)}
         highlighted={highlighted}
         sheetNumbered={sheetNumbered}
-      /></>
+      />
     );
   }
 
@@ -191,7 +192,12 @@ class SheetContent extends Component {
 
   getSources = () => {
     const { sources } = this.props;
+
     if (!sources.length) return null;
+    const addToSheetButton = <AddToSheetButton sheetID={this.props.sheetID}
+                                                  highlightedRefs={this.props.highlightedRefs}
+                                                  highlightedNode={this.props.highlightedNode}/>;
+
     return sources.map((source, i) => {
       let sourceComponent;
       if ("ref" in source) {
@@ -207,7 +213,9 @@ class SheetContent extends Component {
       } else if ("media" in source) {
         sourceComponent = this.renderSheetMedia(source, i);
       }
-      return sourceComponent;
+      if (!sourceComponent) { return null; }
+      return <>{sourceComponent}
+               {this.props.highlightedNode === source.node && addToSheetButton}</>;
     });
   }
   render() {
@@ -287,9 +295,7 @@ class SheetSource extends Component {
       (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() === "...") || (this.props.source.text && (!this.props.source.text.he || !this.props.source.text.he.stripHtml())) ? "enOnly" : null,
       this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
     );
-    const addToSheetButton = this.props.highlighted ? <AddToSheetButton sheetID={this.props.sheetID}
-                                                                    highlightedRefs={this.props.highlightedRefs}
-                                                                    highlightedNode={this.props.highlightedNode}/> : null;
+
     return (
       <section className={sectionClasses} style={{"borderColor": Sefaria.palette.refColor(this.props.source.ref)}}>
         <div className={containerClasses}
@@ -334,7 +340,6 @@ class SheetSource extends Component {
           : null }
 
         </div>
-        {addToSheetButton}
       </section>
     );
   }

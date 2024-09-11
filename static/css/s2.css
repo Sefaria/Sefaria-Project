@@ -1032,6 +1032,8 @@ div.interfaceLinks-row a {
   background-color: rgba(1, 1, 1, 0.7);
 }
 .dialogModal {
+  width: 400px;
+  height: 388px;
   top: 129px;
   border: none;
   background: transparent;
