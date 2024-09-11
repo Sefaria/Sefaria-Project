@@ -416,7 +416,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .systemText .int-he.enInHe {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
-    /* font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif; */
+    font-family: "jomolhari", "Roboto", "Helvetica Neue", "Helvetica", sans-serif; 
     font-size: 16px;
     font-weight: normal;
     color: #000;
@@ -12975,8 +12975,9 @@ section.SheetSource .SheetOutsideBiText {
 
 .filterable-list input {
     border: 0;
+    padding: 7px;
     font-size: 18px;
-    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+    font-family: "jomolhari", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
     background-color: transparent;
 }
 
