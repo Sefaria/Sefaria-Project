@@ -6,15 +6,16 @@ import {ShareBox, ToolsButton} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
 import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
+import {CollectionsModal, CollectionsWidget} from "../CollectionsWidget";
 
 const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
-  const [isAdding, setAdding] = useState(false);  // Add to Collection Modal open or closed
+  const [isAdding, setAdding] = useState(false);  // Edit Collections Modal open or closed
   if (isSharing) {
     return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
   else if (isAdding) {
-    return <AddToCollectionsModal isOpen={isAdding} close={() => setAdding(false)}/>;
+    return <EditCollectionsModal isOpen={isAdding} close={() => setAdding(false)} sheetID={sheetID}/>;
   }
   return (
     <DropdownMenu toggle={"..."}>
@@ -42,7 +43,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
       </DropdownMenuItem>
       <DropdownMenuItem>
         <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
-                                  textEn={'Add to Collection'}
+                                  textEn={'Edit Collections'}
                                   textHe={'צירוף לאסופה'}
                                   descEn={""}
                                   descHe={""}
@@ -59,9 +60,10 @@ const ShareModal = ({sheetID, isOpen, close}) => {
           />
         </Modal>;
 }
-const AddToCollectionsModal = ({isOpen, close}) => {
-  return <Modal isOpen={true} close={close}><SheetContentCollectionsEditor/></Modal>;
-
+const EditCollectionsModal = ({close, sheetID}) => {
+  return <Modal isOpen={true} close={close}>
+            <CollectionsWidget sheetID={sheetID} close={close} />
+        </Modal>;
 }
 
 const CopyButton = ({toggleSignUpModal, sheetID}) => {
