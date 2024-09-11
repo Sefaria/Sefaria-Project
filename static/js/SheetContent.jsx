@@ -94,7 +94,7 @@ class SheetContent extends Component {
       }
     }
   }
-  renderSheetSource = (source, i) => {
+  renderSheetSource = (source, i, addToSheetButton) => {
     const { highlightedNode, cleanHTML, sheetSourceClick, sheetNumbered, highlightedRefsInSheet } = this.props;
     const highlightedRef = highlightedRefsInSheet ? Sefaria.normRefList(highlightedRefsInSheet) : null;
     const highlighted = highlightedNode
@@ -110,11 +110,12 @@ class SheetContent extends Component {
         sheetSourceClick={() => sheetSourceClick(source)}
         highlighted={highlighted}
         sheetNumbered={sheetNumbered}
+        addToSheetButton={addToSheetButton}
       />
     );
   }
 
-  renderSheetComment = (source, i) => {
+  renderSheetComment = (source, i, addToSheetButton) => {
     const { cleanHTML, sheetSourceClick, highlightedNode, sheetNumbered } = this.props;
     return (
       <SheetComment
@@ -125,11 +126,12 @@ class SheetContent extends Component {
         sheetSourceClick={() => sheetSourceClick(source)}
         highlightedNode={highlightedNode}
         sheetNumbered={sheetNumbered}
+        addToSheetButton={addToSheetButton}
       />
     );
   }
 
-  renderSheetHeader = (source, i) => {
+  renderSheetHeader = (source, i, addToSheetButton) => {
     const { sheetSourceClick, highlightedNode, sheetNumbered } = this.props;
     return (
       <SheetHeader
@@ -139,11 +141,12 @@ class SheetContent extends Component {
         sheetSourceClick={() => sheetSourceClick(source)}
         highlightedNode={highlightedNode}
         sheetNumbered={sheetNumbered}
+        addToSheetButton={addToSheetButton}
       />
     );
   }
 
-  renderSheetOutsideText = (source, i) => {
+  renderSheetOutsideText = (source, i, addToSheetButton) => {
     const { cleanHTML, sheetSourceClick, highlightedNode, sheetNumbered } = this.props;
     return (
       <SheetOutsideText
@@ -154,11 +157,12 @@ class SheetContent extends Component {
         sheetSourceClick={() => sheetSourceClick(source)}
         highlightedNode={highlightedNode}
         sheetNumbered={sheetNumbered}
+        addToSheetButton={addToSheetButton}
       />
     );
   }
 
-  renderSheetOutsideBiText = (source, i) => {
+  renderSheetOutsideBiText = (source, i, addToSheetButton) => {
     const { cleanHTML, sheetSourceClick, highlightedNode, sheetNumbered } = this.props;
     return (
       <SheetOutsideBiText
@@ -166,15 +170,16 @@ class SheetContent extends Component {
         sourceNum={i + 1}
         source={source}
         clean
-                HTML={cleanHTML}
+        HTML={cleanHTML}
         sheetSourceClick={() => sheetSourceClick(source)}
         highlightedNode={highlightedNode}
         sheetNumbered={sheetNumbered}
+        addToSheetButton={addToSheetButton}
       />
     );
   }
 
-  renderSheetMedia = (source, i) => {
+  renderSheetMedia = (source, i, addToSheetButton) => {
     const { cleanHTML, sheetSourceClick, highlightedNode, sheetNumbered, hideImages } = this.props;
     return (
       <SheetMedia
@@ -186,6 +191,7 @@ class SheetContent extends Component {
         highlightedNode={highlightedNode}
         sheetNumbered={sheetNumbered}
         hideImages={hideImages}
+        addToSheetButton={addToSheetButton}
       />
     );
   }
@@ -194,28 +200,27 @@ class SheetContent extends Component {
     const { sources } = this.props;
 
     if (!sources.length) return null;
-    const addToSheetButton = <AddToSheetButton sheetID={this.props.sheetID}
-                                                  highlightedRefs={this.props.highlightedRefs}
-                                                  highlightedNode={this.props.highlightedNode}/>;
+    const addToSheetButton = this.props.highlightedNode === source.node ?
+                                              <AddToSheetButton sheetID={this.props.sheetID}
+                                                                highlightedRefs={this.props.highlightedRefs}
+                                                                highlightedNode={this.props.highlightedNode}/> : null;
 
     return sources.map((source, i) => {
       let sourceComponent;
       if ("ref" in source) {
-        sourceComponent = this.renderSheetSource(source, i);
+        sourceComponent = this.renderSheetSource(source, i, addToSheetButton);
       } else if ("comment" in source) {
-        sourceComponent = this.renderSheetComment(source, i);
+        sourceComponent = this.renderSheetComment(source, i, addToSheetButton);
       } else if ("outsideText" in source) {
         sourceComponent = source.outsideText.startsWith("<h1>")
-                              ? this.renderSheetHeader(source, i)
-                              : this.renderSheetOutsideText(source, i);
+                              ? this.renderSheetHeader(source, i, addToSheetButton)
+                              : this.renderSheetOutsideText(source, i, addToSheetButton);
       } else if ("outsideBiText" in source) {
-        sourceComponent = this.renderSheetOutsideBiText(source, i);
+        sourceComponent = this.renderSheetOutsideBiText(source, i, addToSheetButton);
       } else if ("media" in source) {
-        sourceComponent = this.renderSheetMedia(source, i);
+        sourceComponent = this.renderSheetMedia(source, i, addToSheetButton);
       }
-      if (!sourceComponent) { return null; }
-      return <>{sourceComponent}
-               {this.props.highlightedNode === source.node && addToSheetButton}</>;
+      return sourceComponent;
     });
   }
   render() {
@@ -340,6 +345,7 @@ class SheetSource extends Component {
           : null }
 
         </div>
+        {addToSheetButton}
       </section>
     );
   }
@@ -377,6 +383,7 @@ class SheetComment extends Component {
           : null }
 
         </div>
+        {this.props.addToSheetButton}
       </section>
     );
   }
@@ -397,6 +404,7 @@ class SheetHeader extends Component {
           <div className={lang}>
               <div className="sourceContentText"><h1><span>{this.props.source.outsideText.stripHtml()}</span></h1></div>
           </div>
+          {this.props.addToSheetButton}
         </div>
     )
 
@@ -443,6 +451,7 @@ class SheetOutsideText extends Component {
           : null }
 
         </div>
+        {this.props.addToSheetButton}
       </section>
     );
   }
@@ -485,6 +494,7 @@ class SheetOutsideBiText extends Component {
           : null }
 
         </div>
+        {this.props.addToSheetButton}
       </section>
     );
   }
