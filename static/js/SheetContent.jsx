@@ -200,27 +200,25 @@ class SheetContent extends Component {
     const { sources } = this.props;
 
     if (!sources.length) return null;
-    const addToSheetButton = this.props.highlightedNode === source.node ?
+
+    return sources.map((source, i) => {
+      const addToSheetButton = this.props.highlightedNode === source.node ?
                                               <AddToSheetButton sheetID={this.props.sheetID}
                                                                 highlightedRefs={this.props.highlightedRefs}
                                                                 highlightedNode={this.props.highlightedNode}/> : null;
-
-    return sources.map((source, i) => {
-      let sourceComponent;
       if ("ref" in source) {
-        sourceComponent = this.renderSheetSource(source, i, addToSheetButton);
+        return this.renderSheetSource(source, i, addToSheetButton);
       } else if ("comment" in source) {
-        sourceComponent = this.renderSheetComment(source, i, addToSheetButton);
+        return this.renderSheetComment(source, i, addToSheetButton);
       } else if ("outsideText" in source) {
-        sourceComponent = source.outsideText.startsWith("<h1>")
+        return source.outsideText.startsWith("<h1>")
                               ? this.renderSheetHeader(source, i, addToSheetButton)
                               : this.renderSheetOutsideText(source, i, addToSheetButton);
       } else if ("outsideBiText" in source) {
-        sourceComponent = this.renderSheetOutsideBiText(source, i, addToSheetButton);
+        return this.renderSheetOutsideBiText(source, i, addToSheetButton);
       } else if ("media" in source) {
-        sourceComponent = this.renderSheetMedia(source, i, addToSheetButton);
+        return this.renderSheetMedia(source, i, addToSheetButton);
       }
-      return sourceComponent;
     });
   }
   render() {
@@ -345,7 +343,7 @@ class SheetSource extends Component {
           : null }
 
         </div>
-        {addToSheetButton}
+        {this.props.addToSheetButton}
       </section>
     );
   }
