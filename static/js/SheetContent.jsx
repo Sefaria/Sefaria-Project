@@ -288,14 +288,12 @@ class SheetSource extends Component {
 
     const sectionClasses= classNames(
       "SheetSource",
-      this.props.highlighted ? "highlight" : null,
       this.props.source.options ? this.props.source.options.indented : null,
     );
 
     const containerClasses = classNames(
       "sheetItem",
       "segment",
-      this.props.highlighted ? "highlight" : null,
       (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() === "...") || (this.props.source.text && (!this.props.source.text.en || !this.props.source.text.en.stripHtml())) ? "heOnly" : null,
       (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() === "...") || (this.props.source.text && (!this.props.source.text.he || !this.props.source.text.he.stripHtml())) ? "enOnly" : null,
       this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null

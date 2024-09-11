@@ -5854,27 +5854,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #444;
 }
 .basetext .segment.highlight,
-.sheetContent .segment.highlight .en,
-.sheetContent .segment.highlight .he,
-.sheetContent .textPreviewSegment.highlight,
 .editTextInfo .textPreviewSegment.highlight,
-.readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
-.readerPanel.bilingual.heRight .sheetContent .segment.highlight,
 .editorContent .sheetItem.highlight,
 .editorContent .sheetItem.highlight .SheetSource .en,
 .editorContent .sheetItem.highlight .SheetSource::after
 {
   background-color: #F0F7FF;
-}
-.sheetContent .segment.highlight .linkCount .en,
-.sheetContent .segment.highlight .linkCount .he,
-.sheetContent .segment.highlight .segmentNumber .en,
-.sheetContent .segment.highlight .segmentNumber .he {
-  background-color: transparent;
-}
-.sheetContent .segment.highlight .en div,
-.sheetContent .segment.highlight .he div {
-  background-color: inherit;
 }
 .sheetContent .segment a {
   color: #4B71B7;
@@ -5883,21 +5868,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment .sourceContentText a {
   text-decoration: underline;
 }
-.readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
-  padding-bottom: 1px;
-}
 .basetext .segment.highlight .segmentNumber,
-.basetext .segment.highlight .linkCount,
-.sheetContent .segment.highlight .linkCount,
-.sheetContent .segment.highlight .segmentNumber {
+.basetext .segment.highlight .linkCount {
   background-color: transparent;
 }
-.sepia .basetext .segment.highlight,
-.sepia .sheetContent .segment.highlight {
+.sepia .basetext .segment.highlight {
   background-color: #E3E3E1;
 }
-.dark .basetext .segment.highlight,
-.dark .sheetContent .segment.highlight {
+.dark .basetext .segment.highlight {
   background-color: #444;
 }
 .textRange {
@@ -10829,21 +10807,11 @@ section.SheetOutsideBiText {
 .interface-hebrew section.SheetOutsideBiText .sheetItem > .en {
   padding: 15px 16px 15px 20px;
 }
-.readerPanel.bilingual.stacked .sheetContent section.SheetSource .segment.highlight .he,
-.readerPanel.bilingual.stacked .sheetContent section.SheetOutsideBiText .segment.highlight .he {
-  padding-bottom: 15px;
-}
-section.SheetSource.highlight,
-section.SheetOutsideBiText.highlight {
-  background-color: #E9E9E7;
-}
 section.SheetSource .segmentNumber,
 section.SheetSource .SheetOutsideBiText {
   display: none;
 }
-.sheetContent section.SheetSource.highlight .sheetItem.segment.highlight .sourceContentText,
 .sheetContent section.SheetSource .sheetItem.segment .sourceContentText,
-.sheetContent section.SheetOutsideBiText.highlight .sheetItem.segment.highlight .sourceContentText,
 .sheetContent section.SheetOutsideBiText .sheetItem.segment .sourceContentText {
   margin: 0;
 }
