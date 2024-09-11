@@ -101,14 +101,14 @@ class Sheet extends Component {
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
-    const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
-                                                sheetID={sheet.id}
-                                                historyObject={this.props.historyObject}/>;
     let content;
     if (!sheet) {
       content = (<LoadingMessage />);
     }
     else {
+      const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
+                                                 sheetID={sheet.id}
+                                                 historyObject={this.props.historyObject}/>;
       content = (
             <div className="sidebarLayout">
               <SheetContent
