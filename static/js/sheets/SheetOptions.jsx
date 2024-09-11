@@ -6,7 +6,7 @@ import {ShareBox, ToolsButton} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
 import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
-
+import {AddToSourceSheetBox} from "../AddToSourceSheet";
 const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isAdding, setAdding] = useState(false);  // Add to Collection Modal open or closed
@@ -64,6 +64,9 @@ const AddToCollectionsModal = ({isOpen, close}) => {
 
 }
 
+const AddToSourceSheetModal = ({nodeRef, srefs, close}) => {
+  return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs}/></Modal>
+}
 const CopyButton = ({toggleSignUpModal, sheetID}) => {
   const copyState = {
     copy: { en: "Copy", he: "העתקה" },
@@ -175,4 +178,4 @@ const GoogleDocExportButton = ({ toggleSignUpModal, sheetID }) => {
 }
 
 
-export {SheetOptions};
+export {SheetOptions, AddToSourceSheetModal};

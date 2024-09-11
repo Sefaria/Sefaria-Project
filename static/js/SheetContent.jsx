@@ -8,6 +8,7 @@ import {
 } from "./Misc";
 import React, {useEffect, useState} from "react";
 import classNames from "classnames";
+import {AddToSourceSheetModal} from "./sheets/SheetOptions";
 
 class SheetContent extends Component {
   componentDidMount() {
@@ -248,9 +249,10 @@ const AddToSheetButton = ({highlightedNode, sheetID, highlightedRefs}) => {
   const [showingModal, setShowingModal] = useState(false);
   const nodeRef = `${sheetID}.${highlightedNode}`;
   return <>
-           <div className="button" onClick={() => setShowingModal(true)}>Add to Sheet</div>
-           {showingModal && <AddToSourceSheetModal nodeRef={nodeRef} srefs={highlightedRefs} close={() => setShowingModal(false)}/>}
-         </>;
+    <div className="button" onClick={() => setShowingModal(true)}>Add to Sheet</div>
+    {showingModal &&
+        <AddToSourceSheetModal nodeRef={nodeRef} srefs={highlightedRefs} close={() => setShowingModal(false)}/>}
+  </>;
 }
 
 const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, sheetContentOptions}) => {
