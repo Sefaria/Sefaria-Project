@@ -52,7 +52,7 @@ class ConnectionsPanelHeader extends Component {
     if (this.props.connectionsMode === "Resources") {
       // Top Level Menu
       title = <div className="connectionsHeaderTitle sans-serif">
-                    <InterfaceText text={{en: Sefaria._("Resources") , he: Sefaria._("Resources") }} />
+                    <InterfaceText text={{en: Sefaria._("panel.title") , he: Sefaria._("panel.title") }} />
                   </div>;
 
     } else if ((this.props.previousCategory && this.props.connectionsMode === "TextList") || previousMode) {
@@ -83,11 +83,11 @@ class ConnectionsPanelHeader extends Component {
                     <InterfaceText>
                         <EnglishText>
                             <i className="fa fa-chevron-left"></i>
-                            { Sefaria._("Resources") }
+                            { Sefaria._("panel.resources") }
                         </EnglishText>
                         <HebrewText>
                             <i className="fa fa-chevron-left"></i>
-                            { Sefaria._("Resources")}
+                            { Sefaria._("panel.resources")}
                         </HebrewText>
                     </InterfaceText>
                   </a>;

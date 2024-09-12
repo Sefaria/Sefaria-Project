@@ -31,10 +31,10 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   categoryListings.push(
     <div className="navBlock">
       <a href={"/topics/all/" + letter} className="navBlockTitle">
-        <InterfaceText>All Topics A-Z</InterfaceText>
+        <InterfaceText>topic.a_to_z</InterfaceText>
       </a>
       <div className="navBlockDescription">
-        <InterfaceText>Browse or search our complete list of topics.</InterfaceText>
+        <InterfaceText>topic.browse_topic</InterfaceText>
       </div>
     </div>
   );
@@ -63,7 +63,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
           <div className="contentInner">
               <div className="navTitle tight sans-serif">
                   <CategoryHeader type="topics" buttonsToDisplay={["subcategory", "reorder"]}>
-                    <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
+                    <h1><InterfaceText>topic.expore</InterfaceText></h1>
                   </CategoryHeader>
               </div>
               { about }

@@ -1433,6 +1433,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 	color: #333;
 }
 #sheet p {
+	font-family: "jomolhari" !important;
 	font-size: inherit;
 	line-height: inherit;
 	margin: inherit;
@@ -1570,6 +1571,9 @@ body.hasBannerMessage .sheetsEditNavTop {
 .sourceConnection.active {
 	border: 1px solid #999;
 	color: #333;
+}
+#sheet.hebrew .outsideWrapper .en{
+	font-family: 'jomolhari';
 }
 .addInterfaceButton:first-of-type {
 	/*border-left: 1px solid #cecece;*/

@@ -22,7 +22,7 @@ class EditCollectionPage extends Component {
   componentDidMount() {
     $(window).on("beforeunload", function() {
       if (this.changed) {
-        return Sefaria._("You have unsaved changes to your collection.");
+        return Sefaria._("collection.message.unsaved_changes");
       }
     }.bind(this));
   }
@@ -36,7 +36,7 @@ class EditCollectionPage extends Component {
     var field = idToField[e.target.id];
     var file = e.currentTarget.files[0];
     if (file.size > MAX_IMAGE_SIZE) {
-      alert(Sefaria._("Images must be smaller than ") + MAX_IMAGE_MB + "MB.");
+      alert(Sefaria._("collection.message.image_resize ") + MAX_IMAGE_MB + "MB.");
       return;
     }
     var formData = new FormData();
@@ -59,7 +59,7 @@ class EditCollectionPage extends Component {
           }
         }.bind(this),
         fail: function() {
-          alert(Sefaria._("Unfortunately an error occurred uploading your file."))
+          alert(Sefaria._("collection.message_error_upload_image"))
           this.clearUploading(field);
         }
     });
@@ -91,7 +91,7 @@ class EditCollectionPage extends Component {
     this.setState({listed: !!e.target.checked});
   }
   delete() {
-    if (confirm(Sefaria._("Are you sure you want to delete this collection? This cannot be undone."))) {
+    if (confirm(Sefaria._("collection.message.comfirm_delete_collection"))) {
      $.ajax({
         url: "/api/collections/" + this.props.initialData.slug,
         type: "DELETE",
@@ -103,7 +103,7 @@ class EditCollectionPage extends Component {
           }
         },
         fail: function() {
-          alert(Sefaria._("Unfortunately an error occurred deleting your collection."));
+          alert(Sefaria._("collection.message.error_deleting_collection"));
         }
       });
     }
@@ -122,11 +122,11 @@ class EditCollectionPage extends Component {
           window.location = "/collections/" + data.collection.slug;
         }
     }.bind(this)).fail(function() {
-        alert(Sefaria._("Unfortunately an error occurred saving your collection."));
+        alert(Sefaria._("collection.save_error"));
     });
   }
   render() {
-    const title = this.props.initialData ? "Edit Collection" : "Create a Collection";
+    const title = this.props.initialData ? "collection.edit_collection" : "collection.create_collection";
     return (
       <div id="editCollectionPage">
         <div className="headerWithButtons">
@@ -146,28 +146,28 @@ class EditCollectionPage extends Component {
 
         <div className="field halfWidth">
           <label>
-            <InterfaceText>Collection Name</InterfaceText>
+            <InterfaceText>collection.name</InterfaceText>
           </label>
           <input id="collectionName" value={this.state.name||""} onChange={this.handleInputChange}/>
         </div>
 
         <div className="field halfWidth">
           <label>
-            <InterfaceText>Website</InterfaceText>
+            <InterfaceText>collection._web_site</InterfaceText>
           </label>
           <input id="collectionWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
         </div>
 
         <div className="field">
           <label>
-            <InterfaceText>Description</InterfaceText>
+            <InterfaceText>collection.description</InterfaceText>
           </label>
           <textarea id="collectionDescription" onChange={this.handleInputChange} value={this.state.description||""}></textarea>
         </div>
 
         <div className="field">
           <label>
-            <InterfaceText>Collection Image</InterfaceText>
+            <InterfaceText>collection.image</InterfaceText>
           </label>
           {this.state.imageUrl
             ? <img className="collectionImage" src={this.state.imageUrl} alt="Collection Image" />
@@ -175,11 +175,11 @@ class EditCollectionPage extends Component {
           <FileInput
              name="collectionImage"
              accept="image/*"
-             text={Sefaria._("Upload Image")}
+             text={Sefaria._("collection.upload_image")}
              className="button white"
              onChange={this.handleImageChange} />
           <div className="helperText">
-            <InterfaceText>Recommended size: 350px x 350px or larger</InterfaceText>
+            <InterfaceText>collection.image_size</InterfaceText>
           </div>
         </div>
 
@@ -187,7 +187,7 @@ class EditCollectionPage extends Component {
         {this.state.headerUrl ? 
         <div className="field">
           <label>
-            <InterfaceText>Default Sheet Header</InterfaceText>
+            <InterfaceText>collection.default_sheet_header</InterfaceText>
           </label>
           {this.state.headerUrl
             ? <div className="collectionHeaderBox">
@@ -198,11 +198,11 @@ class EditCollectionPage extends Component {
           <FileInput
              name="collectionHeader"
              accept="image/*"
-             text="Upload Image"
+             text={Sefaria._("collection.upload_image")}
              className="button white"
              onChange={this.handleImageChange} />
           <div className="helperText">
-            <InterfaceText>Recommended size: 1000px width to fill sheet, smaller images align right</InterfaceText>
+            <InterfaceText>collection.recommended_size</InterfaceText>
           </div>
         </div>
         : null }
@@ -211,7 +211,7 @@ class EditCollectionPage extends Component {
         {this.props.initialData ?
         <div className="field">
           <label>
-              <InterfaceText>List on Sefaria</InterfaceText>
+              <InterfaceText>collection.list_on_pecha</InterfaceText>
           </label>
           {this.state.moderationStatus !== "nolist" ?
           <div className="onoffswitch">
@@ -226,7 +226,7 @@ class EditCollectionPage extends Component {
                 <span className="onoffswitch-switch"></span>
             </label>
             <div className="helperText">
-              <InterfaceText>Your collection will appear on the public collections page where others can find it.</InterfaceText>
+              <InterfaceText>collection.message._appear_collection_in_public</InterfaceText>
             </div>
           </div>
           : <div>
@@ -237,7 +237,7 @@ class EditCollectionPage extends Component {
 
         {this.props.initialData ?
         <div className="deleteCollection" onClick={this.delete}>
-          <InterfaceText>Delete Collection</InterfaceText>
+          <InterfaceText>collection.delete_collection</InterfaceText>
         </div>
         : null}
 

@@ -88,7 +88,7 @@ class TopicSearch extends Component {
           alert("Topic added.");
         }
       }).fail(function (xhr, status, errorThrown) {
-        alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown);
+        alert(`${Sefaria._("topic.admin.error_msg")}` + errorThrown);
       });
   }
 
@@ -114,7 +114,7 @@ class TopicSearch extends Component {
         else {
             return (<Autocompleter selectedCallback={this.validate}
                  getSuggestions={this.getSuggestions}
-                 inputPlaceholder={Sefaria.translation(this.props.contentLang, "Search for a Topic")}
+                 inputPlaceholder={Sefaria._("searching_for_topic")}
                  buttonTitle={Sefaria.translation(this.props.contentLang, "Add Topic")}
                  inputValue={this.state.value}
                  changeInputValue={this.changeInputValue}

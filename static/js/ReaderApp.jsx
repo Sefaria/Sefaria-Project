@@ -527,7 +527,7 @@ class ReaderApp extends Component {
             hist.mode  = "collection";
             break;
           case "collectionsPublic":
-            hist.title = Sefaria._("Collections") + " | " + Sefaria._(siteName);
+            hist.title = Sefaria._("collection") + " | " + Sefaria._(siteName);
             hist.url = "collections";
             hist.mode = "collcetionsPublic";
             break;
@@ -547,7 +547,7 @@ class ReaderApp extends Component {
             hist.mode = "updates";
             break;
           case "modtools":
-            hist.title = Sefaria._("Moderator Tools");
+            hist.title = Sefaria._("url.param.moderator_tools");
             hist.url = "modtools";
             hist.mode = "modtools";
             break;
@@ -609,7 +609,7 @@ class ReaderApp extends Component {
           if (state.selectedNamedEntity) { hist.selectedNamedEntity = state.selectedNamedEntity; }
           if (state.selectedNamedEntityText) { hist.selectedNamedEntityText = state.selectedNamedEntityText; }
         }
-        hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.title    = Sefaria._r(ref)  + Sefaria._("url.param.with") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections";
 
@@ -628,7 +628,7 @@ class ReaderApp extends Component {
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
-        hist.title    = Sefaria._r(htitle)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.title    = Sefaria._r(htitle)  + Sefaria._("url.paramwith") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(htitle); // + "?with=" + sources;
         hist.currVersions = state.currVersions;
         hist.mode     = "TextAndConnections";
@@ -655,7 +655,7 @@ class ReaderApp extends Component {
         }
         const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
         const title = sheet ? sheet.title.stripHtml() : "";
-        hist.title  = title + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.title  = title + Sefaria._("url.param.with") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url    = i == 0 ? "sheets/" + state.sheetID : "sheet&s=" + state.sheetID + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.mode   = "SheetAndConnections";
       }
@@ -757,14 +757,14 @@ class ReaderApp extends Component {
             hist.url += `&namedEntityText${i}=${encodeURIComponent(histories[i].selectedNamedEntityText)}`;
           }
           hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
-          hist.title += Sefaria._(" & ") + histories[i].title; // TODO this doesn't trim title properly
+          hist.title += Sefaria._("url.param.&") + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
         hist.url += Sefaria.util.getUrlVersionsParams(histories[i].currVersions, i+1);
-        hist.title += Sefaria._(" & ") + histories[i].title;
+        hist.title += Sefaria._("url.param.&") + histories[i].title;
       }
       if (!isMobileConnectionsOpen) {
         if (histories[i].lang) {

@@ -95,7 +95,7 @@ class CollectionPage extends Component {
       }
       this.pinning = false;
     }.bind(this)).fail(function() {
-        alert(Sefaria._("There was an error pinning your sheet."));
+        alert(Sefaria._("collection.message.error"));
         this.pinning = false;
     }.bind(this));
     this.pinning = true;
@@ -155,24 +155,24 @@ class CollectionPage extends Component {
     if (filter) {
       return (
         <div className="emptyMessage sans-serif">
-          <InterfaceText>{Sefaria._("No sheets matching")} </InterfaceText>;
+          <InterfaceText>{Sefaria._("collection.no_sheets_matching")} </InterfaceText>;
           "<InterfaceText text={{en: filter, he: filter}} />".
         </div>
       );
     } else if (this.isMember()) {
       return (
         <div className="emptyMessage sans-serif">
-          <InterfaceText>{Sefaria._( "You can add sheets to this collection on your profile.")}</InterfaceText>
+          <InterfaceText>{Sefaria._( "collection.add_sheet_to_collection")}</InterfaceText>
           <br />
           <a className="button" href="/my/profile">
-            <InterfaceText>{Sefaria._("Open Profile")}</InterfaceText>
+            <InterfaceText>{Sefaria._("collection.open_profile")}</InterfaceText>
           </a>
         </div>
       );
     } else {
       return (
         <div className="emptyMessage sans-serif">
-          <InterfaceText>{ Sefaria._("There are no sheets in this collection yet.")} </InterfaceText>
+          <InterfaceText>{ Sefaria._("collection.message.no_sheet_in_collection")} </InterfaceText>
         </div>
       );
     }
@@ -185,7 +185,7 @@ class CollectionPage extends Component {
           e.preventDefault();
           this.props.searchInCollection(filter, this.state.collectionData.name);
         }}>
-        <InterfaceText>{ Sefaria._("Search the full text of this collection for")}</InterfaceText>&nbsp;
+        <InterfaceText>collection.search_fulltext</InterfaceText>&nbsp;
         "<InterfaceText text={{en: filter, he: filter}} />" &raquo;
       </a>
     );
@@ -228,10 +228,10 @@ class CollectionPage extends Component {
       const tabs = !hasContentsTab ? []
         : [{id: "contents", title: {en: Sefaria._("Contents") , he: Sefaria._("Contents")}}];
       tabs.push(
-        {id: "sheets", title: {en: Sefaria._("Sheets"), he: Sefaria._("Sheets")}},
+        {id: "sheets", title: {en: Sefaria._("profile.tab.sheets"), he: Sefaria._("profile.tab.sheets")}},
         {
           id: 'filter',
-          title: {en: Sefaria._("Filter"), he: Sefaria._("Filter")},
+          title: {en: Sefaria._("dropdown.filter"), he: Sefaria._("dropdown.filter")},
           icon: `/static/icons/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
           justifyright: true,
           clickTabOverride: () => {
@@ -272,7 +272,7 @@ class CollectionPage extends Component {
               renderItem={this.renderSheet}
               renderEmptyList={this.renderEmptyList}
               renderFooter={this.renderSearchLink}
-              sortOptions={["Recent", "Alphabetical", "Views"]}
+              sortOptions={[Sefaria._("filter_list.recent"),Sefaria._("filter_list.alphabetical") , Sefaria._("profile.tab.sheet.tag.views") ]}
               data={sheets}
               containerClass={"sheetList"}
               scrollableElement={this.scrollableRef}
@@ -332,7 +332,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
     </div> }
 
     <a className="collectionLabel" href="/collections">
-      <InterfaceText>{ Sefaria._("Collection")}</InterfaceText>
+      <InterfaceText>{ Sefaria._("collection")}</InterfaceText>
     </a>
 
     {collection.toc ?
@@ -340,7 +340,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
         <ContentText html={{en: collection.toc.description, he: collection.toc.heDescription}} />
       </div>
     : collection.description ?
-      <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: collection.description} }></div>
+      <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: Sefaria._("collection.description_detail")} }></div>
     : null }
 
     {collection.websiteUrl ?
@@ -423,10 +423,10 @@ class CollectionInvitationBox extends Component {
   }
   inviteByEmail(email) {
     if (!this.validateEmail(email)) {
-      this.flashMessage(Sefaria._("Please enter a valid email address."));
+      this.flashMessage(Sefaria._("message.enter_valid_email"));
       return;
     }
-    this.setState({inviting: true, message: Sefaria._("Inviting...")})
+    this.setState({inviting: true, message: Sefaria._("collection.inviting")})
     $.post("/api/collections/" + this.props.slug + "/invite/" + email, function(data) {
       if ("error" in data) {
         alert(data.error);
@@ -439,7 +439,7 @@ class CollectionInvitationBox extends Component {
         this.props.onDataChange();
       }
     }.bind(this)).fail(function() {
-        alert(Sefaria._("There was an error sending your invitation."));
+        alert(Sefaria._("collection.message.error_sending_invitation"));
         this.setState({message: null, inviting: false});
     }.bind(this));
   }
@@ -450,9 +450,9 @@ class CollectionInvitationBox extends Component {
   render() {
     return (<div className="collectionInvitationBox sans-serif">
               <div className="collectionInvitationBoxInner">
-                <input id="collectionInvitationInput" placeholder={Sefaria._("Email Address")} />
+                <input id="collectionInvitationInput" placeholder={Sefaria._("email")} />
                 <div className="button small" onClick={this.onInviteClick}>
-                  <InterfaceText>Invite</InterfaceText>
+                  <InterfaceText>collection.invite</InterfaceText>
                 </div>
               </div>
               {this.state.message ?
@@ -527,7 +527,7 @@ class CollectionInvitationListing extends Component {
             {this.props.member.email}
           </span>
           <div className="collectionMemberListingRole">
-            <InterfaceText>Invited</InterfaceText>
+            <InterfaceText>collection.invited</InterfaceText>
             <CollectionMemberListingActions
               member={this.props.member}
               slug={this.props.slug}
@@ -571,7 +571,7 @@ class CollectionMemberListingActions extends Component {
   }
   setRole(role) {
     if (this.props.isSelf && this.props.isAdmin && role !== "admin") {
-      if (!confirm(Sefaria._("Are you sure you want to change your collection role? You won't be able to undo this action unless another owner restores your permissions."))) {
+      if (!confirm(Sefaria._("collection.message.confirm_collection_change_role"))) {
         return;
       }
     }
@@ -588,7 +588,7 @@ class CollectionMemberListingActions extends Component {
   removeMember() {
     var message = this.props.isSelf ?
       Sefaria._("Are you sure you want to leave this collection?") :
-      Sefaria._("Are you sure you want to remove this person from this collection?");
+      Sefaria._("collection.message.confirm_remove_person");
 
     if (confirm(message)) {
       this.setRole("remove");
@@ -606,7 +606,7 @@ class CollectionMemberListingActions extends Component {
     }.bind(this));
   }
   removeInvitation() {
-    if (confirm(Sefaria._("Are you sure you want to remove this invitation?"))) {
+    if (confirm(Sefaria._("collection.message.confirm.remove_invitation"))) {
       $.post("/api/collections/" + this.props.slug + "/invite/" + this.props.member.email + "/uninvite", function(data) {
         if ("error" in data) {
           alert(data.error)
@@ -627,34 +627,34 @@ class CollectionMemberListingActions extends Component {
           <div className="collectionMemberListingActionsMenu">
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "admin")}>
-                <span className={classNames({role: 1, current: this.props.member.role === "Owner"})}><InterfaceText>{Sefaria._("Owner")}</InterfaceText></span>
-                - <InterfaceText>can invite & edit settings</InterfaceText>
+                <span className={classNames({role: 1, current: this.props.member.role === "Owner"})}><InterfaceText>collection.owner</InterfaceText></span>
+                - <InterfaceText>collection._can_invite_edit_setting</InterfaceText>
               </div>
               : null }
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "member")}>
                 <span className={classNames({role: 1, current: this.props.member.role === "Editor"})}><InterfaceText>{Sefaria._("Editor")} </InterfaceText></span>
-                - <InterfaceText>can add & remove sheets</InterfaceText>
+                - <InterfaceText>collection.add_and_remove_sheets</InterfaceText>
               </div>
               : null}
             {this.props.isAdmin || this.props.isSelf ?
               <div className="action" onClick={this.removeMember}>
-                <span className="role"><InterfaceText>{this.props.isSelf ? Sefaria._("Leave Collection"): Sefaria._("Remove")}</InterfaceText></span>
+                <span className="role"><InterfaceText>{this.props.isSelf ? Sefaria._("collection.leave_collection"): Sefaria._("remove")}</InterfaceText></span>
               </div>
             : null }
             {this.props.isInvitation  && !this.state.invitationResent ?
               <div className="action" onClick={this.resendInvitation}>
-                <span className="role"><InterfaceText>{Sefaria._("Resend Invitation")}</InterfaceText></span>
+                <span className="role"><InterfaceText>{Sefaria._("collection.resend_invitation")}</InterfaceText></span>
               </div>
               : null}
             {this.props.isInvitation  && this.state.invitationResent ?
               <div className="action">
-                <span className="role"><InterfaceText>{Sefaria._("Invitation Resent" )}</InterfaceText></span>
+                <span className="role"><InterfaceText>{Sefaria._("collection.invitation_resent" )}</InterfaceText></span>
               </div>
               : null}
             {this.props.isInvitation ?
               <div className="action" onClick={this.removeInvitation}>
-                <span className="role"><InterfaceText>{ Sefaria._("Remove")} </InterfaceText></span>
+                <span className="role"><InterfaceText>{ Sefaria._("remove")} </InterfaceText></span>
 
               </div>
               : null}

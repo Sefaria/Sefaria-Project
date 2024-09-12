@@ -376,7 +376,7 @@ sjs.peopleList = function(list, title) {
 	//var modalHtml = `<div id='peopleListModal' class='modal interface-${Sefaria.interfaceLang}'><div id='peopleListTitle'> ${title} </div><div id='peopleList'> ${peopleHtml} </div><div class='btn
 	// closePeople'>${Sefaria._("Close")}</div></div>`;
 
-	var modalHtml = "<div id='peopleListModal' class='modal interface-" + Sefaria.interfaceLang + "'><div id='peopleListTitle'> " + title + " </div><div id='peopleList'> " + peopleHtml + " </div><div class='btn closePeople'>" + Sefaria._("Close") + "</div></div>";
+	var modalHtml = "<div id='peopleListModal' class='modal interface-" + Sefaria.interfaceLang + "'><div id='peopleListTitle'> " + title + " </div><div id='peopleList'> " + peopleHtml + " </div><div class='btn closePeople'>" + Sefaria._("close") + "</div></div>";
 
 	$(modalHtml).appendTo("body").show().position({of: window});
 	$("#overlay").show();
@@ -1014,8 +1014,10 @@ sjs.textBrowser = {
 						"<span class='int-he'>དཔེ་ཆ་ཡོངས་རྫོགས།</span>" + 
 					"</span>";
 		for (var i = 0; i < this._path.length; i++) {
-			var name = sjs.interfaceLang === "he" ? Sefaria.hebrewTerm(this._path[i]) : this._path[i]
-			html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + name + "</span>";
+			if(this._path[i] !== this._path[i+1]) {
+				var name = sjs.interfaceLang === "he" ? Sefaria.hebrewTerm(this._path[i]) : this._path[i]
+				html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + name + "</span>";
+			}
 		}
 		$("#browserPath").html(html);
 		this.updateMessage();
@@ -1131,7 +1133,7 @@ sjs.textBrowser = {
 	_setInitialMessage: function() {
     	sjs.textBrowser._setPreview("<div class='empty'>" +
     									"<span class='int-en'>Browse texts with the menu on the left.</span>" +
-    									"<span class='int-he'>གཡོན་ངོས་ཀྱི་ཐོ་གཞུང་འདིའི་ནང་གི་དཔེ་ཆར་མིག་བཤེར་བྱོསd།</span>" +
+    									"<span class='int-he'>གཡོན་ངོས་ཀྱི་ཐོ་གཞུང་འདིའི་ནང་གི་དཔེ་ཆར་མིག་བཤེར་བྱོས།</span>" +
     								"</div>");
 	},
 	_handleNavClick: function() {
@@ -1301,7 +1303,7 @@ sjs.deleteTextButtonHandler = function(e) {
 			}
 		}
 	}).fail(function() {
-		sjs.alert.message("Something went wrong. Sorry!");
+		sjs.alert.message("topic.admin.something_wrong");
 	});
 
 };

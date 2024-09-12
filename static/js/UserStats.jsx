@@ -18,12 +18,12 @@ const UserStats = () => {
     const [uid, setUid] = useState(null);
     const [user_data, setUserData] = useState({});
     const [site_data, setSiteData] = useState({});
-    const [active_mode, setMode] = useState("Previous Year");
+    const [active_mode, setMode] = useState("profile.previous_year");
 
-    const modes = ["Previous Year", "All Time"];
+    const modes = ["profile.previous_year", "profile.all_time"];
     const modekeys = {
-        "Previous Year": "currently",
-        "All Time": "alltime"
+        "profile.previous_year": "currently",
+        "profile.all_time": "alltime"
     };
 
     const debouncedUID = useDebounce(uid, 500);
@@ -135,9 +135,9 @@ const OverallActivityBlock = ({user_data}) => (
                 <span className={`${Sefaria.languageClassFont()}`}>གང་བྱས་ཚང་མ།</span>
             </h2>
             <div className="statcardRow">
-                <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="Texts Read"/>
-                <StatCard icon_file="file-icon-black.svg" number={user_data.sheetsRead} name="Sheets Read"/>
-                <StatCard icon_file="plus-icon-black.svg" number={user_data.sheetsThisPeriod} name="Sheets Created"/>
+                <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name={Sefaria._("profile.text_read")} />
+                <StatCard icon_file="file-icon-black.svg" number={user_data.sheetsRead} name={Sefaria._("profile.sheet_read")} />
+                <StatCard icon_file="plus-icon-black.svg" number={user_data.sheetsThisPeriod} name="profile.sheet_created"/>
             </div>
         </div>
 );
@@ -300,7 +300,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .attr("font-size", 16)
             .attr("fill", "#999")
             .attr("text-anchor", d => x(d.site) > 250 ? "end" : "start")
-            .text(Sefaria._("Average Sefaria User"));
+            .text(Sefaria._("profile.averages_pecha_user"));
 
         return () => {svg.selectAll("*").remove();}
     }, [user_cats, site_cats]);

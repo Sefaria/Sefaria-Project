@@ -416,6 +416,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   border-left: 1px solid #aaa;
 }
 .browserNavItem {
+  font-family: 'jomolhari';
   padding: 8px 4px 8px 10px;
   cursor: pointer;
   -webkit-transform: translateZ(0);
@@ -479,7 +480,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 }
 #browserPreview .segment .he {
   font-size: 130%;
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-family: "jomolhari";
   text-align: left;
   direction: ltr;
 }
@@ -756,3 +757,16 @@ a:active {
 .static label .int-he .sub{
   margin-right: 4px;
 }
+
+.interface-hebrew > #staticContentWrapper > #content > #textBrowser > #browserPath > .browserPathItem {
+  font-family: 'wujin+gangbi';
+}
+
+.interface-hebrew > #staticContentWrapper > #content > #textBrowser > #browserNav > .browserNavItem {
+  font-family: 'wujin+gangbi';
+}
+
+.interface-hebrew > #staticContentWrapper > #content > #textBrowser > #browserPreview > #browserNav > .browserNavItem > .ui-icon {
+  font-family: 'wujin+gangbi';
+}
+

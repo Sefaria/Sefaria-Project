@@ -23,7 +23,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
 
     const validate = async function () {
         if (!changed) {
-            alert("Please change one of the fields before saving.");
+            alert(`${Sefaria._("message.change_field_before_saving")}`);
             return false;
         }
         if (displayRef.length === 0) {
@@ -95,7 +95,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
                 validate={validate} items={["Title", "Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
                 extras={
                     [<div>
-                        <label><InterfaceText>Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')</InterfaceText></label>
+                        <label><InterfaceText>enter_source_ref</InterfaceText></label>
                         <Autocompleter
                             selectedCallback={() => {}}
                             getSuggestions={getSuggestions}

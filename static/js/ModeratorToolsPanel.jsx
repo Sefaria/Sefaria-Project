@@ -99,7 +99,7 @@ class ModeratorToolsPanel extends Component {
     const dlReady = (this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern));
     const downloadButton = <div className="modtoolsButton">
         <div className="modtoolsButtonInner">
-          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._('Download')}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("text.download")}</span>
         </div>
       </div>;
     const downloadSection = (
