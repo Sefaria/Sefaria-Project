@@ -392,7 +392,7 @@ class ReaderApp extends Component {
           (!prevSearchState.isEqual({ other: nextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.navigationTopicCategory !== next.navigationTopicCategory) ||
-          (prev.highlightedNode !== next.highlightedNode) ||
+          (prev.highlightedNode !== next.highlightedNode) || // necessary for Sheets because the Resources Panel was removed. `currentlyVisibleRef` gets set on Resources Panel
           (prev.settings.aliyotTorah != next.settings.aliyotTorah) ||
            prev.navigationTopic != next.navigationTopic) {
         return true;
