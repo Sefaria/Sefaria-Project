@@ -811,9 +811,8 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
     }
     const renderEnglishElement = ({attributes, children}) => {
     //passed to the English source Editable, to make it always! be rendered as 'ltr'
-        attributes = {...attributes, 'dir':'ltr'}
         return (
-            <span {...attributes}>
+            <span {...attributes} dir='ltr'>
                 {children}
             </span>
         )
