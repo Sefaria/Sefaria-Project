@@ -3268,27 +3268,6 @@ a.cardTitle:hover {
   flex-direction: row;
   justify-content: space-between;
 }
-.bookPage .currentSection,
-.bookPage .authorStatement,
-.sheetContent .sheetMetaDataBox .authorStatement,
-.sheetContent .sheetMetaDataBox .collectionStatement {
-  font-size: 17px;
-  color: #999;
-  margin-top: 6px;
-  letter-spacing: 1px;
-}
-.sheetContent .sheetMetaDataBox .authorStatement,
-.sheetContent .sheetMetaDataBox .collectionStatement {
-  margin-top: 16px;
-}
-.sheetContent .sheetMetaDataBox .collectionStatement a {
-  color: #999;
-  margin-inline-start: 5px;
-}
-.sheetContent .sheetMetaDataBox .authorStatement a {
-  color: var(--midrash-green);
-  margin-inline-start: 5px;
-}
 .sheetFollowers {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -8423,10 +8402,36 @@ a .button:hover {
   overflow: hidden;
   flex-shrink: 0;
 }
-.sheetMetaDataBox .collectionListingImageBox,
 .tocTop .collectionListingImageBox {
   background-color: transparent;
   overflow: initial;
+}
+.interface-hebrew .sheetMetaDataBox .authorStatement {
+  direction: rtl;
+}
+.sheetMetaDataBox {
+  margin-block-end: 40px;
+}
+.bookPage .currentSection,
+.bookPage .authorStatement,
+.sheetContent .sheetMetaDataBox .authorStatement,
+.sheetContent .sheetMetaDataBox .collectionStatement {
+  font-size: 17px;
+  color: #999;
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+.sheetContent .sheetMetaDataBox .authorStatement,
+.sheetContent .sheetMetaDataBox .collectionStatement {
+  margin-top: 16px;
+}
+.sheetContent .sheetMetaDataBox .collectionStatement a {
+  color: #999;
+  margin-inline-start: 5px;
+}
+.sheetContent .sheetMetaDataBox .authorStatement a {
+  color: var(--midrash-green);
+  margin-inline-start: 5px;
 }
 .sheetMetaDataBox .summary {
   --english-font: var(--english-sans-serif-font-family);
@@ -8701,9 +8706,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .publishBox .react-tags__suggestions li.is-disabled {
   opacity: 0.5;
   cursor: auto;
-}
-.interface-hebrew .sheetMetaDataBox .authorStatement {
-  direction: rtl;
 }
 .editorSidebarToggle {
   position: fixed;
@@ -10105,9 +10107,6 @@ span.purim-emoji img{
   font-size: 13px;
   margin-bottom: 0;
   padding-bottom: 8px;
-}
-.sheetMetaDataBox {
-  margin-block-end: 40px;
 }
 .bookMetaDataBox {
   margin: 40px auto;
