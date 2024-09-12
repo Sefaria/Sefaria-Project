@@ -3099,8 +3099,8 @@ msgid "to save your work."
 msgstr "以保存你的工作。"
 
 #: templates/sheets.html:806
-msgid "Made with the Sefaria Source Sheet Builder"
-msgstr "使用Sefaria来源表生成器制作"
+msgid "Made with the Pecha Source Sheet Builder"
+msgstr "使用Pecha来源表生成器制作"
 
 #: templates/sheets.html:817
 msgid "Add Highlight"

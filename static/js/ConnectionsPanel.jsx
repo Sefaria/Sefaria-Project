@@ -229,7 +229,7 @@ class ConnectionsPanel extends Component {
   onSave() {
     this.reloadData();
     this.props.setConnectionsMode("Resources");
-    this.flashMessage(Sefaria._("Success! You've created a new connection."));
+    this.flashMessage(Sefaria._("message.success_created_new_connection"));
   }
   getData(cb) {
     // Gets data about this text from cache, which may be null.
@@ -335,14 +335,14 @@ class ConnectionsPanel extends Component {
               masterPanelSheetId={this.props.masterPanelSheetId}
             /> :
             <div className="topToolsButtons">
-              <ToolsButton en={Sefaria._("About this Text")} he={Sefaria._("About this Text")} image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
-              <ToolsButton en={Sefaria._("Table of Contents")} he={Sefaria._("Table of Contents")}image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
-              <ToolsButton en={Sefaria._("Search in this Text")} he={Sefaria._("Search in this Text")} image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
-              <ToolsButton en={Sefaria._("Translations")} he={Sefaria._("Translations")} image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
+              <ToolsButton en={Sefaria._("side_nav.about_text")} he={Sefaria._("side_nav.about_text")} image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
+              <ToolsButton en={Sefaria._("text.table_of_contents")} he={Sefaria._("text.table_of_contents")}image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
+              <ToolsButton en={Sefaria._("search_in_this_text")} he={Sefaria._("search_in_this_text")} image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
+              <ToolsButton en={Sefaria._("translations")} he={Sefaria._("translations")} image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
             </div>
           }
           {showConnectionSummary ?
-            <ConnectionsPanelSection title={Sefaria._("Related Texts")} >
+            <ConnectionsPanelSection title={"text.related_texts"} >
               <ConnectionsSummary
                 currObjectVersions={this.state.currObjectVersions}
                 srefs={this.props.srefs}
@@ -362,15 +362,15 @@ class ConnectionsPanel extends Component {
             null
           }
           {showResourceButtons ?
-            <ConnectionsPanelSection title={"Resources"}>
+            <ConnectionsPanelSection title={"panel.resources"}>
               {
                 //ironically we need the masterpanel mode to be sheet to indicate a sheet is loaded, but the
                 // title prop to be something other than "Sheet" to indicate that a real source is being
                 // looked at
                 (this.props.masterPanelMode === "Sheet" && this.props.title !== "Sheet") ?
                     <>
-                      <ToolsButton en={Sefaria._("About this Source")} he={Sefaria._("About this Source")} image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
-                      <ToolsButton en={Sefaria._("Translations")}  he={Sefaria._("Translations")}  image="translation.svg" count={resourcesButtonCounts["translations"]} urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} />
+                      <ToolsButton en={Sefaria._("about_the_source")} he={Sefaria._("about_the_source")} image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
+                      <ToolsButton en={Sefaria._("translations")}  he={Sefaria._("translations")}  image="translation.svg" count={resourcesButtonCounts["translations"]} urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} />
                     </>
                   :
                   null
@@ -383,7 +383,7 @@ class ConnectionsPanel extends Component {
             :
             null
           }
-          <ConnectionsPanelSection title={"Tools"}>
+          <ConnectionsPanelSection title={"panel.tools"}>
 
             {this.props.masterPanelMode === "Sheet" ? <SheetToolsList
               toggleSignUpModal={this.props.toggleSignUpModal}
@@ -504,7 +504,7 @@ class ConnectionsPanel extends Component {
         {Sefaria._uid ?
           <div>
             <a href="/my/profile?tab=notes" className="allNotesLink button white transparent bordered fillWidth">
-              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Go to My Notes")}</span>
+              <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("text.go_to_my_notes")}</span>
             </a>
             <MyNotes
               srefs={this.props.srefs}
@@ -733,11 +733,11 @@ const ResourcesList = ({ masterPanelMode, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en={Sefaria._("Sheets")} he={Sefaria._("Sheets")}image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => setConnectionsMode("Sheets")} />
-      <ToolsButton en={Sefaria._("Web Pages")} he={Sefaria._("Web Pages")} image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
-      <ToolsButton en={Sefaria._("Topics")} he={Sefaria._("Topics")} image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
-      <ToolsButton en={Sefaria._("Manuscripts")} he={Sefaria._("Manuscripts")}  image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
-      <ToolsButton en={Sefaria._("Pecha Readings")} he={Sefaria._("Pecha Readings")} image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} />
+      <ToolsButton en={Sefaria._("profile.tab.sheets")} he={Sefaria._("profile.tab.sheets")}image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => setConnectionsMode("Sheets")} />
+      <ToolsButton en={Sefaria._("web_pages")} he={Sefaria._("web_pages")} image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
+      <ToolsButton en={Sefaria._("header.topic")} he={Sefaria._("header.topic")} image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
+      <ToolsButton en={Sefaria._("manuscripts")} he={Sefaria._("manuscripts")}  image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
+      <ToolsButton en={Sefaria._("pecha_readings")} he={Sefaria._("pecha_readings")} image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} />
     </div>
   );
 }
@@ -750,13 +750,13 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en={Sefaria._("Add to Sheet")} he={Sefaria._("Add to Sheet")} image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddToSheet) : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
-      {/* <ToolsButton en={Sefaria._("Dictionaries")} he={Sefaria._("Dictionaries")} image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} /> */}
-      {/* {openComparePanel ? <ToolsButton en={Sefaria._("Compare Text")} he={Sefaria._("Compare Text")} image="compare-panel.svg" onClick={openComparePanel} /> : null} */}
-      <ToolsButton en={Sefaria._("Notes")} he={Sefaria._("Notes")} image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />
-      {masterPanelMode !== "Sheet" ? <ToolsButton en={Sefaria._("Share")} he={Sefaria._("Share")} image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
-      {/* <ToolsButton en={Sefaria._("Feedback")}  he={Sefaria._("Feedback")} image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} /> */}
-      {/* <ToolsButton en={Sefaria._("Advanced")} he={Sefaria._("Advanced")} image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} /> */}
+      <ToolsButton en={Sefaria._("sheet.add_to_sheet")} he={Sefaria._("sheet.add_to_sheet")} image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddToSheet) : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
+      {/* <ToolsButton en={Sefaria._("dictionaries")} he={Sefaria._("dictionaries")} image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} /> */}
+      {/* {openComparePanel ? <ToolsButton en={Sefaria._("panel.compare_text")} he={Sefaria._("panel.compare_text")} image="compare-panel.svg" onClick={openComparePanel} /> : null} */}
+      <ToolsButton en={Sefaria._("panel.notes")} he={Sefaria._("panel.notes")} image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />
+      {masterPanelMode !== "Sheet" ? <ToolsButton en={Sefaria._("share")} he={Sefaria._("share")} image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
+      {/* <ToolsButton en={Sefaria._("panel.feed_back")}  he={Sefaria._("panel.feed_back")} image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} /> */}
+      {/* <ToolsButton en={Sefaria._("panel.advance")} he={Sefaria._("panel.advance")} image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} /> */}
     </div>
   );
 }
@@ -785,17 +785,17 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
 
   return (<div className="topToolsButtons">
     {isOwner ?
-        <ToolsButton en={Sefaria._("Publish Settings")} he={Sefaria._("Publish Settings")} image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
+        <ToolsButton en={Sefaria._("publish_setting")} he={Sefaria._("publish_setting")} image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
         :
-        <ToolsButton en={Sefaria._("About this Sheet")} he={Sefaria._("About this Sheet")}  image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
+        <ToolsButton en={Sefaria._("sheet.about_this_sheet")} he={Sefaria._("sheet.about_this_sheet")}  image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
     }
     {showEditButton  ?
-        <ToolsButton en={Sefaria._("Edit")} he={Sefaria._("Edit")} image="note.svg" onClick={() => {
+        <ToolsButton en={Sefaria._("collection.edit")} he={Sefaria._("collection.edit")} image="note.svg" onClick={() => {
           window.location = `//${window.location.host}/sheets/${masterPanelSheetId}?editor=1`;
         }} />
         : null }
 
-    <ToolsButton en={Sefaria._("Share")} he={Sefaria._("Share")} image="share.svg" onClick={() => setConnectionsMode("Share")} />
+    <ToolsButton en={Sefaria._("share")} he={Sefaria._("share")} image="share.svg" onClick={() => setConnectionsMode("Share")} />
   </div>);
 }
 
@@ -804,15 +804,15 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
   // const [isOwner, setIsOwner] = useState(false);
   // const [isPublished, setIsPublished] = useState(false);
   const googleDriveState = {
-    export: { en: Sefaria._("Export to Google Docs") , he: Sefaria._("Export to Google Docs")  },
+    export: { en: Sefaria._("export.google_doc") , he: Sefaria._("export.google_doc")  },
     exporting: {en: Sefaria._("Exporting to Google Docs..."), he: Sefaria._("Exporting to Google Docs..."), greyColor: true},
-    exportComplete: { en: Sefaria._("Export Complete"), he: Sefaria._("Export Complete"), secondaryEn: Sefaria._("Open in Google"), secondaryHe: Sefaria._("Open in Google"), greyColor: true}
+    exportComplete: { en: Sefaria._("export.complete"), he: Sefaria._("export.complete"), secondaryEn: Sefaria._("export.open_google"), secondaryHe: Sefaria._("export.open_google"), greyColor: true}
   }
   const copyState = {
-    copy: { en: Sefaria._("Copy"), he: Sefaria._("Copy") },
-    copying: { en: Sefaria._("Copying..."), he: Sefaria._("Copying..."), greyColor: true},
-    copied: { en: Sefaria._("Sheet Copied"), he: Sefaria._("Sheet Copied"), secondaryHe: Sefaria._("View Copy"), secondaryEn: Sefaria._("View Copy"), greyColor: true },
-    error: { en: Sefaria._("Sorry, there was an error."), he: Sefaria._("Sorry, there was an error.") }
+    copy: { en: Sefaria._("copy"), he: Sefaria._("copy") },
+    copying: { en: Sefaria._("copying"), he: Sefaria._("copying"), greyColor: true},
+    copied: { en: Sefaria._("Sheet Copied"), he: Sefaria._("Sheet Copied"), secondaryHe: Sefaria._("sheet.view_copy"), secondaryEn: Sefaria._("sheet.view_copy"), greyColor: true },
+    error: { en: Sefaria._("message.there_is_error"), he: Sefaria._("message.there_is_error") }
   }
   const [copyText, setCopyText] = useState(copyState.copy);
   const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
@@ -919,14 +919,14 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
   return (<div>
     <ToolsButton en={copyText.en} he={copyText.he} secondaryEn={copyText.secondaryEn} secondaryHe={copyText.secondaryHe} image="copy.png" greyColor={!!copyText.secondaryEn || copyText.greyColor} onClick={() => copySheet()} />
     {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
-    <ToolsButton en={Sefaria._("Print")}  he={Sefaria._("Print")}  image="print.svg" onClick={() => window.print()} />
+    <ToolsButton en={Sefaria._("sheet.print")}  he={Sefaria._("sheet.print")}  image="print.svg" onClick={() => window.print()} />
     <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
     {
       Sefaria._uses_new_editor && Sefaria._uid && (
             sheet.owner === Sefaria._uid ||
             sheet.options.collaboration === "anyone-can-edit"
         ) ?
-      <ToolsButton en={Sefaria._("Divine Name")} he={Sefaria._("Divine Name")} image="tools-translate.svg" onClick={() => setConnectionsMode("DivineName")} /> : null}
+      <ToolsButton en={Sefaria._("divine_name")} he={Sefaria._("divine_name")} image="tools-translate.svg" onClick={() => setConnectionsMode("DivineName")} /> : null}
 
   </div>
   )
@@ -936,10 +936,10 @@ class SheetNodeConnectionTools extends Component {
   render() {
     return (<div className="toolButtonsList">
       {this.props.multiPanel ?
-        <ToolsButton en={Sefaria._("Other Text")} he={Sefaria._("Other Text")}icon="search" onClick={this.props.openComparePanel} />
+        <ToolsButton en={Sefaria._("text.other_text")} he={Sefaria._("text.other_text")}icon="search" onClick={this.props.openComparePanel} />
         : null}
-      <ToolsButton en={Sefaria._("Sheets")} he={Sefaria._("Sheets")} image="sheet.svg" urlConnectionsMode="Sheets" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-      <ToolsButton en={Sefaria._("Feedback")} he={Sefaria._("Feedback")} icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
+      <ToolsButton en={Sefaria._("profile.tab.sheets")} he={Sefaria._("profile.tab.sheets")} image="sheet.svg" urlConnectionsMode="Sheets" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
+      <ToolsButton en={Sefaria._("panel.feed_back")} he={Sefaria._("panel.feed_back")} icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
     </div>);
   }
 }
@@ -1053,11 +1053,11 @@ class ConnectionsSummary extends Component {
       if (this.props.collapsed) {
         connectionsSummary = connectionsSummary.slice(0, collapsedTopLevelLimit) //get the first x items
         summaryToggle = (
-          <ToolsButton en={Sefaria._("More")} he={Sefaria._("More")} image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
+          <ToolsButton en={Sefaria._("connection_pannel.tool_btn.more")} he={Sefaria._("connection_pannel.tool_btn.more")} image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
         );
       } else {
         summaryToggle = (
-          <ToolsButton en={Sefaria._("See Less")} he={Sefaria._("See Less")}  image="less.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
+          <ToolsButton en={Sefaria._("connection_pannel.tool_btn.see_less")} he={Sefaria._("connection_pannel.tool_btn.see_less")}  image="less.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
         )
       }
     }
@@ -1149,12 +1149,12 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
       {Sefaria.is_moderator && masterPanelMode === "Text" ? <TopicSearch contentLang={contentLang} contextSelector=".topicList"
                                                                          srefs={srefs}
                                                                          update={updateTopics}
-                                                                         createNewTopicStr={Sefaria.translation(contentLang, "Create a new topic: ")}/>
+                                                                         createNewTopicStr={Sefaria._("create_new_topic")}/>
                                                                          : null}
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">
-            <ContentText text={{ en: Sefaria._("No known Topics Here."), he: Sefaria._("No known Topics Here.") }} />
+            <ContentText text={{ en: Sefaria._("topic.noknown_topic"), he: Sefaria._("topic.noknown_topic") }} />
           </div>
         </div>
       ) : topics.map(
@@ -1243,8 +1243,8 @@ class WebPagesList extends Component {
 
     if (!content.length) {
       const filterName = this.props.filter !== "all" ? this.props.filter : null;
-      const en = Sefaria._("No web pages known") + (filterName ? Sefaria._("from") + filterName : "") + Sefaria._("here");
-      const he = Sefaria._("No web pages known") + (filterName ? Sefaria._("from") + filterName : "") + Sefaria._("here");
+      const en = Sefaria._("no_web_pages") + (filterName ? Sefaria._("from") + filterName : "") + Sefaria._("here");
+      const he = Sefaria._("no_web_pages") + (filterName ? Sefaria._("from") + filterName : "") + Sefaria._("here");
       return <div className="webpageList empty">
         <LoadingMessage message={en} heMessage={he} />
       </div>;
@@ -1296,9 +1296,9 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
 
     return (
       <div>
-        <ToolsButton en={Sefaria._("Add Translation")} he={Sefaria._("Add Translation")} image="tools-translate.svg" onClick={addTranslation} />
-        <ToolsButton en={Sefaria._("Add Connection")} he={Sefaria._("Add Connection")}  image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddConnection) : setConnectionsMode("Add Connection")} />
-        {editText ? (<ToolsButton en={Sefaria._("Edit Text")} he={Sefaria._("Edit Text")}image="tools-edit-text.svg" onClick={editText} />) : null}
+        <ToolsButton en={Sefaria._("add_translation")} he={Sefaria._("add_translation")} image="tools-translate.svg" onClick={addTranslation} />
+        <ToolsButton en={Sefaria._("add_connection")} he={Sefaria._("add_connection")}  image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddConnection) : setConnectionsMode("Add Connection")} />
+        {editText ? (<ToolsButton en={Sefaria._("text.edit_text")} he={Sefaria._("text.edit_text")}image="tools-edit-text.svg" onClick={editText} />) : null}
       </div>
     );
 }
@@ -1434,29 +1434,29 @@ class ShareBox extends Component {
     const classes = classNames({ textList: 1, fullPanel: this.props.fullPanel });
     return (
       <div>
-        <ConnectionsPanelSection title="Share Link">
+        <ConnectionsPanelSection title="text.share_link">
           <div className="shareInputBox">
             <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
             <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>
           {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
             <div className="shareSettingsBox">
-              <InterfaceText>People with this link can</InterfaceText>
+              <InterfaceText>people_with_link</InterfaceText>
               <select
                 className="shareDropdown"
                 name="Share"
                 onChange={this.updateShareOptions.bind(this)}
                 value={this.state.shareValue}>
-                <option value="none">{Sefaria._("View", "Sheet Share")}</option>
-                <option value="anyone-can-add">{Sefaria._("Add", "Sheet Share")}</option>
-                <option value="anyone-can-edit">{Sefaria._("Edit", "Sheet Share")}</option>
+                <option value="none">{Sefaria._("sheet.view")}</option>
+                <option value="anyone-can-add">{Sefaria._("sheet.add")}</option>
+                <option value="anyone-can-edit">{Sefaria._("sheet.edit")}</option>
               </select>
             </div> : null}
         </ConnectionsPanelSection>
-        <ConnectionsPanelSection title="More Options">
-          <ToolsButton en= {Sefaria._("Share on Facebook")} he={Sefaria._("Share on Facebook")}icon="facebook-official" onClick={shareFacebook} />
-          <ToolsButton en={Sefaria._("Share on Twitter")} he={Sefaria._("Share on Twitter")}  icon="twitter" onClick={shareTwitter} />
-          {/* <ToolsButton en={Sefaria._("Share by Email")} he={Sefaria._("Share by Email")} icon="envelope-o" onClick={shareEmail} /> */}
+        <ConnectionsPanelSection title="panel.more_options">
+          <ToolsButton en= {Sefaria._("share_on_fb")} he={Sefaria._("share_on_fb")}icon="facebook-official" onClick={shareFacebook} />
+          <ToolsButton en={Sefaria._("share_on_x")} he={Sefaria._("share_on_x")}  icon="twitter" onClick={shareTwitter} />
+          {/* <ToolsButton en={Sefaria._("share_by_email")} he={Sefaria._("share_by_email")} icon="envelope-o" onClick={shareEmail} /> */}
         </ConnectionsPanelSection>
       </div>);
   }
@@ -1510,10 +1510,10 @@ class AddNoteBox extends Component {
         $(ReactDOM.findDOMNode(this)).find(".noteText").val("");
         this.props.onSave();
       } else {
-        alert(Sefaria._("Sorry, there was a problem saving your note."));
+        alert(Sefaria._("note_save_warning"));
       }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-      alert(Sefaria._("Unfortunately, there was an error saving this note. Please try again or try reloading this page."));
+      alert(Sefaria._("note_save_error_try_again"));
     });
     this.setState({ saving: true });
   }
@@ -1524,8 +1524,8 @@ class AddNoteBox extends Component {
     this.setState({ isPrivate: false });
   }
   deleteNote() {
-    alert(Sefaria._("Something went wrong (that's all I know)."));
-    if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
+    alert(Sefaria._("something_went_wrong"));
+    if (!confirm(Sefaria._("note_confirm_delete_request"))) { return; }
     Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }
   render() {
@@ -1536,17 +1536,17 @@ class AddNoteBox extends Component {
     //const publicClasses = classNames({ notePublicButton: 1, active: !this.state.isPrivate });
     return (
       <div className="addNoteBox">
-        <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
+        <textarea className="noteText" placeholder={Sefaria._("text.write_note")} defaultValue={this.props.noteText}></textarea>
         <div className="button fillWidth" onClick={this.saveNote}>
-          <span className={`${Sefaria.languageClassFont()}`}>{this.props.noteId ? Sefaria._("Save") : Sefaria._("Add Note")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{this.props.noteId ? Sefaria._("button.save") : Sefaria._("text.add_note")}</span>
         </div>
         {this.props.noteId ?
           <div className="button white fillWidth" onClick={this.props.onCancel}>
-            <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Cancel")}</span>
+            <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("button.cancel")}</span>
           </div> : null}
         {this.props.noteId ?
           (<div className="deleteNote" onClick={this.deleteNote}>
-            <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Delete Note")}</span>
+            <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("note.delete_note")}</span>
           </div>) : null}
       </div>);
   }
@@ -1695,17 +1695,17 @@ class AddConnectionBox extends Component {
 
       {this.props.srefs.length === 1 ?
         <div>
-          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Choose a text to connect")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("connection.choose_text_to_connect")}</span>
 
           <div className="button fillWidth" onClick={this.props.openComparePanel}>
-            <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Browse")}</span>
+            <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("browse")}</span>
           </div>
         </div>
         : null}
 
       {this.props.srefs.length > 2 ?
         <div>
-          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("We currently only understand connections between two texts")}</span>
+          <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("messange.we_only_understand_connection_betweeen_two_texts")}</span>
         </div>
         : null}
 
@@ -1720,20 +1720,17 @@ class AddConnectionBox extends Component {
           <Dropdown
             name="connectionType"
             options={[
-              { value: "", label: Sefaria._("None", "AddConnectionBox") },
-              { value: "commentary", label: Sefaria._("Commentary", "AddConnectionBox") },
-              { value: "quotation", label: Sefaria._("Quotation", "AddConnectionBox") },
-              { value: "midrash", label: Sefaria._("Midrash", "AddConnectionBox") },
-              { value: "ein mishpat", label: Sefaria._("Ein Mishpat / Ner Mitsvah", "AddConnectionBox") },
-              { value: "mesorat hashas", label: Sefaria._("Mesorat HaShas", "AddConnectionBox") },
-              { value: "reference", label: Sefaria._("Reference", "AddConnectionBox") },
-              { value: "related", label: Sefaria._("Related Passage", "AddConnectionBox") }
+              { value: "", label: Sefaria._("text.no_connection") },
+              { value: "commentary", label: Sefaria._("text.commentary") },
+              { value: "quotation", label: Sefaria._("text.quotation") },
+              { value: "reference", label: Sefaria._("text.reference") },
+              { value: "related", label: Sefaria._("text.related Passage") }
             ]}
-            placeholder={Sefaria._("Select Type", "AddConnectionBox")}
+            placeholder={Sefaria._("select_type")}
             onChange={this.setType} />
 
           <div className="button fillWidth" onClick={this.addConnection}>
-            <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Add Connection")}</span>
+            <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("add_connection")}</span>
           </div>
 
         </div>
@@ -1772,11 +1769,11 @@ function ManuscriptImage(props) {
         : <p className={"english manuscriptCaption"}>{manuscript.manuscript.title}</p>
     }
     <div className="meta">
-      <InterfaceText>{Sefaria._("Location")} </InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br />
+      <InterfaceText>{Sefaria._("connection_pannel.menuscript_image.location.location")} </InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br />
       {
         manuscript.manuscript[description]
           ? <span>
-            <InterfaceText text={{ en: Sefaria._("Courtesy of:"), he: Sefaria._("Courtesy of:") }} />
+            <InterfaceText text={{ en: Sefaria._("coutesy_of"), he: Sefaria._("coutesy_of") }} />
             <span className={cls}>{manuscript.manuscript[description]}<br /></span>
           </span>
           : ''
@@ -1792,7 +1789,7 @@ function ManuscriptImage(props) {
           </div>
           : ''
       }
-      <InterfaceText text={{ en: Sefaria._("Source"), he: Sefaria._("Source") }} />
+      <InterfaceText text={{ en: Sefaria._("source"), he: Sefaria._("source") }} />
       <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
         { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
       </a>

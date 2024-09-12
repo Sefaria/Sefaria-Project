@@ -542,7 +542,7 @@ class DiffRow extends Component {
 
   render() {
     if (!this.fullyLoaded()) {
-      return <tr><td>{"Loading..."}</td></tr>
+      return <tr><td>{_("loading...")}</td></tr>
     }
     var cells = ["v1","v2"].map(v => <DiffCell
       key={v}

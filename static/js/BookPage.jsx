@@ -187,19 +187,19 @@ class BookPage extends Component {
     const readButton = !this.state.indexDetails || this.isTextToc() || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ?
         <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
-          <InterfaceText>Continue Reading</InterfaceText>
+          <InterfaceText>text.button.continue_reading</InterfaceText>
         </a>
         :
         <a className="button small readButton" href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}>
-          <InterfaceText>Start Reading</InterfaceText>
+          <InterfaceText>text.start_reading</InterfaceText>
         </a>
     const tabs = []
     if (this.state.isContentVisible) {
-      tabs.push({id: "contents", title: {en: "Contents", he: Sefaria._("Contents")}});
+      tabs.push({id: "contents", title: {en: Sefaria._("text.contents"), he: Sefaria._("text.contents")}});
     }
     
     if (this.isBookToc()){
-      tabs.push({id: "versions", title: {en: "Versions", he: Sefaria._("Versions")}});
+      tabs.push({id: "versions", title: {en: Sefaria._("text.versions"), he: Sefaria._("text.versions")}});
     }
     const renderTab = t => (
       <div className={classNames({tab: 1, noselect: 1})}>
@@ -254,7 +254,7 @@ class BookPage extends Component {
                 </div>
                 :
                 <div className="readerTextTocBox sans-serif">
-                  <InterfaceText>Table of Contents</InterfaceText>
+                  <InterfaceText>text.table_of_contents</InterfaceText>
                 </div>}
               </div>
               <div className="rightButtons">
@@ -1285,11 +1285,11 @@ const EditTextInfo = function({initTitle, close}) {
       <div className="editTextInfo">
       <div className="static">
         <div className="inner">
-          {savingStatus ? <div className="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
+          {savingStatus ? <div className="collectionsWidget">{Sefaria._("topic.admin.save_information")}<br/><br/>{Sefaria._("topic.admin.change_processing_time_msg")}</div> : null}
           <div id="newIndex">
             <AdminToolHeader title={"Index Editor"} close={close} validate={validateThenSave}/>
             <div className="section">
-                <label><InterfaceText>Text Title</InterfaceText></label>
+                <label><InterfaceText>text.admin.text_title</InterfaceText></label>
               <input type="text" id="textTitle" onChange={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
@@ -1327,14 +1327,14 @@ const EditTextInfo = function({initTitle, close}) {
               <TitleVariants titles={authors} options={{'onTitleAddition': addAuthor, 'onTitleDelete': removeAuthor}}/>
             </div>
             <div className="section">
-              <div><InterfaceText>Alternate English Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+              <div><InterfaceText>text.admin.alt_en_title</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
 
               <TitleVariants update={setTitleVariants} titles={titleVariants}/>
             </div>
 
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
                 <div className="section">
-                  <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+                  <div><InterfaceText>text.admin.alt_bo_title</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
                   <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
                 </div> : null}
             <div className="section">
@@ -1368,7 +1368,7 @@ const EditTextInfo = function({initTitle, close}) {
                 </div>}
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">
-                <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
+                <div><label><InterfaceText>text.admin.text_structure</InterfaceText></label></div>
                 <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
               </div> : null}
             <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">

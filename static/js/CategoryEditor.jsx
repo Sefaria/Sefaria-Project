@@ -63,7 +63,7 @@ const ReorderEditor = ({close, type = "", postURL = "", redirect = "", origItems
     }
     const validate = () => {
         if (!isChanged) {
-            alert(Sefaria._("You haven't reordered the categories."))
+            alert(Sefaria._("category.message.no_reordered_categories"))
         } else {
             save();
         }
@@ -122,7 +122,7 @@ const CategoryEditor = ({origData = {}, close, origPath = []}) => {
 
     const populateCatMenu = (update) => (
         <div className="section">
-            <label><InterfaceText>{Sefaria._("Parent Category")} </InterfaceText></label>
+            <label><InterfaceText>{Sefaria._("category.parent_category")} </InterfaceText></label>
             <CategoryChooser categories={path} update={update}/>
         </div>
     )
@@ -143,12 +143,12 @@ const CategoryEditor = ({origData = {}, close, origPath = []}) => {
 
     const validate = async function () {
         if (!changed) {
-            alert(Sefaria._("Please change one of the fields before saving."));
+            alert(Sefaria._("message.change_field_before_saving"));
             return false;
         }
 
         if (data.enTitle.length === 0) {
-            alert(Sefaria._("Title must be provided."));
+            alert(Sefaria._("topic.admin.title_must_be_provided"));
             return false;
         }
         await save();
@@ -200,7 +200,7 @@ const CategoryEditor = ({origData = {}, close, origPath = []}) => {
 
     const deleteObj = function () {
         if (subcategoriesAndBooks.length > 0) {
-            alert(Sefaria._("Cannot delete a category with contents."));
+            alert(Sefaria._("category.message.cannot_delete_content"));
             return;
         }
         const url = `/api/category/${origPath.concat(origData.origEn).join("/")}`;
@@ -210,7 +210,7 @@ const CategoryEditor = ({origData = {}, close, origPath = []}) => {
         {name: "true", content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True")},
         {
             name: "false",
-            content: Sefaria._("False"),
+            content: Sefaria._("false"),
             role: "radio",
             ariaLabel: Sefaria._("Set Primary Status to False")
         },
@@ -218,7 +218,7 @@ const CategoryEditor = ({origData = {}, close, origPath = []}) => {
     const items = ["Title", "Hebrew Title", "English Description", "Hebrew Description",
         "Category Menu", "English Short Description", "Hebrew Short Description"];
     return <div>
-        <AdminEditor title={Sefaria._("Category Editor")} close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
+        <AdminEditor title={Sefaria._("category.admin.editor")} close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
                      validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items}
                      path={path}
                      extras={
@@ -229,11 +229,11 @@ const CategoryEditor = ({origData = {}, close, origPath = []}) => {
                              <div className="section">
                                  <br/>
                                  <label>
-                                     <InterfaceText>{Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}</InterfaceText>
+                                     <InterfaceText>category.admin.editor</InterfaceText>
                                  </label>
                                  <ToggleSet
                                      blueStyle={true}
-                                     ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
+                                     ariaLabel="category.admin.editor"
                                      label=""
                                      name="primary"
                                      separated={false}

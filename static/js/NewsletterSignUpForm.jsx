@@ -38,7 +38,7 @@ export function NewsletterSignUpForm({
             setShowNameInputs(true);
         } else {
             setShowNameInputs(false);
-            setSubscribeMessage("Please enter a valid email address.");
+            setSubscribeMessage("message.enter_valid_email");
         }
     }
 
@@ -65,7 +65,7 @@ export function NewsletterSignUpForm({
                 <><span className="int-en">
         <input
             className="newsletterInput firstNameInput"
-            placeholder="First Name"
+            placeholder={Sefaria._("sign_up.form.first_name")}
             value={firstName}
             autoFocus
             onChange={e => setFirstName(e.target.value)}
@@ -82,7 +82,7 @@ export function NewsletterSignUpForm({
                     <span className="int-en">
         <input
             className="newsletterInput"
-            placeholder="Last Name"
+            placeholder={Sefaria._("sign_up.form.last_name")}
             value={lastName}
             onChange={e => setLastName(e.target.value)}
             onKeyUp={handleSubscribeKeyUp}/>

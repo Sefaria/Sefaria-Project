@@ -12,25 +12,25 @@ const options_for_form = {
     "English Description": {
         label: "English Description",
         field: "enDescription",
-        placeholder: "Add a description.",
+        placeholder: Sefaria._("topic.admin.description"),
         type: 'textarea',
         markdown: true,
     },
     "Hebrew Description": {
         label: "Tibetan Description",
         field: "heDescription",
-        placeholder: "Add a description.",
+        placeholder: Sefaria._("topic.admin.description"),
         type: 'textarea',
         markdown: true
     },
     "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", type: 'textarea'},
     "English Short Description": {
-        label: "English Short Description for Table of Contents", field: "enCategoryDescription",
-        placeholder: "Add a short description.", type: 'input'
+        label: Sefaria._("topic.admin.en_short_description"), field: "enCategoryDescription",
+        placeholder: Sefaria._("topic.admin.short_description"), type: 'input'
     },
     "Hebrew Short Description": {
-        label: "Tibetan Short Description for Table of Contents", field: "heCategoryDescription",
-        placeholder: "Add a short description.", type: 'input'
+        label: Sefaria._("topic.admin.bo_short_description"), field: "heCategoryDescription",
+        placeholder: Sefaria._("topic.admin.short_description"), type: 'input'
     },
     "English Alternate Titles": {
         label: "English Alternate Titles", field: "enAltTitles",

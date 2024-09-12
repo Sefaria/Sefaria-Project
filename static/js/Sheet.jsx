@@ -374,7 +374,7 @@ class SheetContent extends Component {
         </div>
 
         <div id="printFooter" style={{display:"none"}}>
-          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("Created with")} <img src="/static/img/logo.svg" /></span>
+          <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("sheet.created_with")} <img src="/static/img/logo.svg" /></span>
         </div>
       </div>
     )
@@ -405,7 +405,7 @@ class SheetSource extends Component {
         <div className={containerClasses}
           onClick={this.props.sheetSourceClick}
           data-node={this.props.source.node}
-          aria-label={ Sefaria._("Click to see connections to this source") }
+          aria-label={ Sefaria._("sheet.button_connection_to_source") }
           tabIndex="0"
           onKeyPress={function(e) {
             e.charCode === 13 ? this.props.sheetSourceClick(e):null}.bind(this)
@@ -439,7 +439,7 @@ class SheetSource extends Component {
 
           {this.props.source.addedBy ?
           <div className="addedBy">
-            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+            <small><em>{Sefaria._("added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
           </div>
           : null }
 
@@ -463,7 +463,7 @@ class SheetComment extends Component {
 
     return (
       <section className="SheetComment">
-        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={Sefaria._("Click to see") + this.props.linkCount +  Sefaria._("connections to this source")} tabIndex="0" onKeyPress={function(e) {e.charCode === 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={Sefaria._("sheet.button_click_to_see") + this.props.linkCount +  Sefaria._("sheet.connections_to_this_source")} tabIndex="0" onKeyPress={function(e) {e.charCode === 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
 
           <div className={lang}>
               <div
@@ -497,7 +497,7 @@ class SheetHeader extends Component {
     );
 
     return (
-        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={Sefaria._("Click to see") + this.props.linkCount +  Sefaria._("connections to this source")} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={Sefaria._("sheet.button_click_to_see") + this.props.linkCount +  Sefaria._("sheet.connections_to_this_source")} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
           <div className={lang}>
               <div className="sourceContentText"><h1><span>{this.props.source.outsideText.stripHtml()}</span></h1></div>
           </div>
@@ -532,7 +532,7 @@ class SheetOutsideText extends Component {
 
     return (
       <section className="SheetOutsideText">
-        <div className={containerClasses} data-node={this.props.source.node} onClick={(e) => this.shouldPassClick(e)} aria-label={ Sefaria._("Click to see")+ this.props.linkCount +  Sefaria._("connections to this source")} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={(e) => this.shouldPassClick(e)} aria-label={ Sefaria._("sheet.button_click_to_see")+ this.props.linkCount +  Sefaria._("sheet.connections_to_this_source")} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
 
           <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix !== "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
               <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideText)} }></div>
@@ -542,7 +542,7 @@ class SheetOutsideText extends Component {
 
           {this.props.source.addedBy ?
           <div className="addedBy">
-            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+            <small><em>{Sefaria._("added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
           </div>
           : null }
 
@@ -569,7 +569,7 @@ class SheetOutsideBiText extends Component {
 
     return (
       <section className={sectionClasses}>
-        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={ Sefaria._("Click to see") + this.props.linkCount +  Sefaria._("connections to this source")} tabIndex="0" onKeyPress={function(e) {e.charCode === 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={ Sefaria._("sheet.button_click_to_see") + this.props.linkCount +  Sefaria._("sheet.connections_to_this_source")} tabIndex="0" onKeyPress={function(e) {e.charCode === 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
 
           <div className="he">
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix !== "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
@@ -584,7 +584,7 @@ class SheetOutsideBiText extends Component {
 
           {this.props.source.addedBy ?
           <div className="addedBy">
-            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+            <small><em>{Sefaria._("added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
           </div>
           : null }
 
@@ -649,12 +649,12 @@ class SheetMedia extends Component {
     );
     return (
       <section className="SheetMedia">
-        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={ Sefaria._("Click to see")+ this.props.linkCount +  Sefaria._("connections to this source")} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={ Sefaria._("sheet.button_click_to_see")+ this.props.linkCount +  Sefaria._("sheet.connections_to_this_source")} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
 
           <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedContent()} }></div>
           <div className="clearFix"></div>
           {this.props.source.addedBy ?
-            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            <div className="addedBy"><small><em>{Sefaria._("added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
             : null }
         </div>
       </section>

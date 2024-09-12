@@ -1310,7 +1310,7 @@ class ReaderControls extends Component {
       return null
     } else {
       return (
-        <div className={ribbonStyle}>{Sefaria._("In Progress")}</div>
+        <div className={ribbonStyle}>{Sefaria._("text.versions.in_progress")}</div>
       )
     } 
   }
@@ -1333,11 +1333,11 @@ class ReaderControls extends Component {
     
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
-        title = heTitle = Sefaria._("Loading...");
+        title = heTitle = Sefaria._("loading...");
       } else {
         title = heTitle = this.props.sheetTitle;
         if (title === "") {
-          title = heTitle = Sefaria._("Untitled")
+          title = heTitle = Sefaria._("sheet.untitled")
         }
       }
 
@@ -1564,7 +1564,7 @@ class ReaderDisplayOptionsMenu extends Component {
       this.props.parentPanel === "Sheet" ? null :
       (<ToggleSet
           ariaLabel="text layout toggle"
-          label={Sefaria._("Layout")}
+          label={Sefaria._("text.reader_option_menu.layout")}
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
@@ -1572,7 +1572,7 @@ class ReaderDisplayOptionsMenu extends Component {
       (this.props.width > 500 ?
         <ToggleSet
           ariaLabel="bidirectional text layout toggle"
-          label={Sefaria._("Bilingual Layout")}
+          label={Sefaria._("bilingual_layout")}
           name="biLayout"
           options={biLayoutOptions}
           setOption={this.props.setOption}
@@ -1586,7 +1586,7 @@ class ReaderDisplayOptionsMenu extends Component {
     let colorToggle = (
         <ToggleSet
           ariaLabel="Color toggle"
-          label={Sefaria._("Color")}
+          label={Sefaria._("color")}
           name="color"
           separated={true}
           options={colorOptions}
@@ -1595,21 +1595,21 @@ class ReaderDisplayOptionsMenu extends Component {
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
     let sizeOptions = [
-      {name: "smaller", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("Decrease font size") },
-      {name: "larger", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("Increase font size")  }
+      {name: "smaller", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("decrease_font_size") },
+      {name: "larger", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("increase_font_size")  }
     ];
     let sizeToggle = (
         <ToggleSet
           ariaLabel="Increase/Decrease Font Size Buttons"
-          label={Sefaria._("Font Size")}
+          label={Sefaria._("font_size")}
           name="fontSize"
           options={sizeOptions}
           setOption={this.props.setOption}
           currentValue={null} />);
 
     let aliyahOptions = [
-      {name: "aliyotOn",   content: Sefaria._("On"), role: "radio", ariaLabel: Sefaria._("Show Parasha Aliyot") },
-      {name: "aliyotOff", content: Sefaria._("Off"), role: "radio", ariaLabel: Sefaria._("Hide Parasha Aliyot") },
+      {name: "aliyotOn",   content: Sefaria._("on"), role: "radio", ariaLabel: Sefaria._("Show Parasha Aliyot") },
+      {name: "aliyotOff", content: Sefaria._("off"), role: "radio", ariaLabel: Sefaria._("Hide Parasha Aliyot") },
     ];
     let aliyahToggle = this.renderAliyotToggle() ? (
       this.props.parentPanel == "Sheet" ? null :
@@ -1622,14 +1622,14 @@ class ReaderDisplayOptionsMenu extends Component {
           currentValue={this.props.settings.aliyotTorah} />) : null;
 
     let vowelsOptions = [
-      {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("Show Vowels and Cantillation")},
-      {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},
-      {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("Show only consonantal text")}
+      {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("show_vowels")},
+      {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("show_only_vowels")},
+      {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("show_only_consonenetal_text")}
     ];
     let vowelToggle = null;
     if(!this.props.menuOpen){
       let vowelOptionsSlice = this.vowelToggleAvailability();
-      let vowelOptionsTitle = (vowelOptionsSlice == 0) ? Sefaria._("Vocalization") : Sefaria._("Vowels");
+      let vowelOptionsTitle = (vowelOptionsSlice == 0) ? Sefaria._("vocalization") : Sefaria._("vowels");
       vowelsOptions = vowelsOptions.slice(vowelOptionsSlice);
       vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
         this.props.parentPanel == "Sheet" ? null :
@@ -1643,13 +1643,13 @@ class ReaderDisplayOptionsMenu extends Component {
     }
 
     let punctuationOptions = [
-      {name: "punctuationOn", content: Sefaria._("On"), role: "radio", ariaLabel: Sefaria._("Show Punctuation")},
-      {name: "punctuationOff", content: Sefaria._("Off"), role: "radio", ariaLabel: Sefaria._("Hide Punctuation")}
+      {name: "punctuationOn", content: Sefaria._("on"), role: "radio", ariaLabel: Sefaria._("show_punchuation")},
+      {name: "punctuationOff", content: Sefaria._("off"), role: "radio", ariaLabel: Sefaria._("hide_punchuation")}
     ]
     let punctuationToggle = this.shouldPunctuationToggleRender() ? (
         <ToggleSet
           ariaLabel="Punctuation Toggle"
-          label={Sefaria._("Punctuation")}
+          label={Sefaria._("punctuation")}
           name="punctuationTalmud"
           options={punctuationOptions}
           setOption={this.props.setOption}

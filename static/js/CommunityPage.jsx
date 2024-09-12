@@ -55,9 +55,9 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner mainColumn">
             
-            <h1><InterfaceText>{Sefaria._("Today on Pecha")} </InterfaceText></h1>
+            {/* <h1><InterfaceText>{Sefaria._("Today on Pecha")} </InterfaceText></h1>
 
-            {featuredContent}
+            {featuredContent} */}
             
             <RecentlyPublished multiPanel={multiPanel} toggleSignUpModal={toggleSignUpModal} />
 
@@ -110,13 +110,13 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
     recentSheetsContent.splice(6, 0, joinTheConversation);
     recentSheetsContent.push(
       <a className="button small white loadMore" onClick={loadMore}>
-        <InterfaceText context="RecentlyPublished">{ Sefaria._("Load More")}</InterfaceText>
+        <InterfaceText context="RecentlyPublished">{ Sefaria._("load_more")}</InterfaceText>
       </a>
     );
   }
   return (
     <div className="recentlyPublished">            
-      <h2><InterfaceText>{ Sefaria._("Recently Published")}</InterfaceText></h2>
+      <h2><InterfaceText>{ Sefaria._("community.sheets.recently_published")}</InterfaceText></h2>
       <NBox content={recentSheetsContent} n={1} />
     </div>
   );

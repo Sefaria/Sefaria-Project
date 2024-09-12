@@ -2,6 +2,8 @@
 // It ought to be rewritten entirely, short of that the reader related code out to be stripped
 // so that only editing code remains.
 
+import Sefaria from "../sefaria/sefaria";
+
 var sjs = sjs || {};
 
 $.extend(sjs,  {
@@ -1008,7 +1010,7 @@ $(function() {
 			$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
 				$("#sheets").empty();
 				var sheets = "";
-				sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
+				sheets += '<li class="sheet new"><i>'+Sefaria._("sheet.start_new_source_sheet")+'</i></li>';
 				for (i = 0; i < data.sheets.length; i++) {
 					sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
 						$("<div/>").html(data.sheets[i].title).text() + "</li>";
@@ -1045,12 +1047,12 @@ $(function() {
 		var selectedRef = sjs.selected;
 		var selected = $(".sheet.selected");
 		if (!selected.length) {
-			sjs.alert.message("Please select a source sheet.");
+			sjs.alert.message("sheet.select_source");
 			return false;
 		}
 
 		if (selected.hasClass("new")) {
-			var title = prompt("New Source Sheet Name:", "");
+			var title = prompt("sheet.new_source_sheet_name", "");
 			var sheet = {
 				title: title,
 				options: {numbered: 0},
@@ -1240,7 +1242,7 @@ $(function() {
 				location.reload();
 			}
 		}).fail(function() {
-			sjs.alert.message("Something went wrong. Sorry!");
+			sjs.alert.message(Sefaria._("topic.admin.something_wrong"));
 		});
 
 	};
@@ -1281,7 +1283,7 @@ $(function() {
 				}
 			}
 		}).fail(function() {
-			sjs.alert.message("Something went wrong. Sorry!");
+			sjs.alert.message(Sefaria._("topic.admin.something_wrong"));
 		});
 
 	};
@@ -2524,7 +2526,7 @@ function aboutHtml(data) {
 						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div> ⋄ ') +
 						'<div class="credits"></div> ⋄ ' +
 						'<a class="historyLink" href="/activity/'+data.sectionRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
-						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
+						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>"+Sefaria._("text.verion_block.digitized_by_pecha")+"</a>.</div>" : "" ) +
 						(version.notes ? "<div class='versionNotes'>" + version.notes + "</div>" : "" ) +
 						(version.status === "locked" ? 
 							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know <a href="https://github.com/Sefaria/Sefaria-Project/wiki/How-to-Report-a-Mistake" target="_blank">here</a>.</div>' : "") +
@@ -3482,7 +3484,7 @@ sjs.showNewText = function () {
 	$(".modal, #overlay").hide();
 	$(".open, .verseControls").remove();
 	$("#viewButtons, #prev, #next, #breadcrumbs").hide();
-	$("#editButtons").show();
+	$("#editButton").show();
 	$("body").addClass("newText");
 	sjs._$commentaryBox.hide();
 	sjs._$basetext.hide();
@@ -3865,7 +3867,7 @@ function handleDeleteSource(e) {
 				sjs.alert.message("Source deleted.");
 			},
 			error: function () {
-				sjs.alert.message("Something went wrong (that's all I know).");
+				sjs.alert.message("something_went_wrong");
 			}
 		});
 	}
@@ -4023,10 +4025,10 @@ sjs.saveNote = function() {
 		} else if (data) {
 			updateSources(data);
 		} else {
-			sjs.alert.message("Sorry, there was a problem saving your note.");
+			sjs.alert.message(Sefaria._("note_save_warning"));
 		}
 	}).fail( function(xhr, textStatus, errorThrown) {
-        sjs.alert.message("Unfortunately, there was an error saving this note. Please try again or try reloading this page.")
+        sjs.alert.message(Sefaria._("note_save_error_try_again"))
     });
 	sjs.hideNote();
 };

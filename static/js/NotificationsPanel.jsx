@@ -83,7 +83,7 @@ class NotificationsPanel extends Component {
             <div className="notificationsTopContainer">
               <div className="notificationsHeaderBox"><h1>
                 <img className="notificationsTitleIcon" src="/static/icons/notification.svg" />
-                <InterfaceText>Notifications</InterfaceText>
+                <InterfaceText>header.notifications</InterfaceText>
               </h1></div>{ Sefaria.notificationCount > 0 ? <button className="button small white" onClick={this.markAllAsRead}>Mark all as Read</button> : null}
               </div>
               { Sefaria._uid ?
@@ -155,7 +155,7 @@ const SheetPublishNotification = ({date, content}) => {
   const topLine = (
     <>
       <a href={content.profileUrl}>{content.name}</a>&nbsp;
-      <InterfaceText>published a new sheet</InterfaceText>
+      <InterfaceText>sheet.publish_new_sheet</InterfaceText>
     </>
   );
 
@@ -185,7 +185,7 @@ const SheetLikeNotification = ({date, content}) => {
   const topLine = (
     <>
       <a href={content.profileUrl}>{content.name}</a>&nbsp;
-      <InterfaceText>liked your sheet</InterfaceText>
+      <InterfaceText>sheet.liked_your_sheet</InterfaceText>
     </>
   );
 
@@ -211,7 +211,7 @@ const FollowNotification = ({date, content}) => {
   const topLine = (
     <>
       <a href={content.profileUrl}>{content.name}</a>&nbsp;
-      <InterfaceText>is now following you</InterfaceText>
+      <InterfaceText>is_following_you"</InterfaceText>
     </>
   );
 
@@ -240,7 +240,7 @@ const CollectionAddNotification = ({date, content}) => {
   const topLine = (
     <>
       <a href={content.profileUrl}>{content.name}</a>&nbsp;
-      <InterfaceText>added you to a collection</InterfaceText>
+      <InterfaceText>collection.add_you_to_collection</InterfaceText>
     </>
   );
 
@@ -270,7 +270,7 @@ const IndexNotification = ({date, content}) => {
 
   const topLine = (
     <>
-      <InterfaceText>New Text</InterfaceText>:&nbsp;
+      <InterfaceText>text.new_text</InterfaceText>:&nbsp;
       <a href={url}>
         <InterfaceText text={{en: title, he: heTitle}} />
       </a>

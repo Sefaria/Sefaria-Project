@@ -28,7 +28,7 @@ const TranslationsPage = ({translationsSlug}) => {
                 return uncategorized;
             },{}) : {})
     }, [translations])
-    const tabs = [{id: "texts", title: {en: "Texts", he: Sefaria._("Texts", "Header")}}];
+    const tabs = [{id: "texts", title: {en: "Texts", he: Sefaria._("header.text")}}];
     const sortFx = (a, b) => {
       if(a["order"] && b["order"]) {
         return a['order'][0] - b['order'][0];
@@ -75,7 +75,7 @@ const TranslationsPage = ({translationsSlug}) => {
                   })}
                   {
                     uncategorized[corpus] && uncategorized[corpus].length > 0?
-                    <details open={translationsSlug !== "en"}><summary><InterfaceText>Uncategorized</InterfaceText></summary>
+                    <details open={translationsSlug !== "en"}><summary><InterfaceText>text.translation_page.uncategorized</InterfaceText></summary>
                     <ul>
                       {uncategorized[corpus].sort(sortFx).map((y, i) => {
                         return (<li key={i+y.title} className="bullet languageItem"><a href={y.url}>{y.title}</a></li>)
