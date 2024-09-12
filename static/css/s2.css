@@ -8393,6 +8393,13 @@ a .button:hover {
 .sheetContent .sheetMetaDataBox .authorStatement a {
   color: var(--midrash-green);
   margin-inline-start: 5px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+  display: inline;
+  margin-block-end: 10px;
 }
 .sheetMetaDataBox .summary {
   --english-font: var(--english-sans-serif-font-family);
@@ -10054,10 +10061,6 @@ span.purim-emoji img{
   font-size: 13px;
   margin-bottom: 0;
   padding-bottom: 8px;
-}
-.sheetMetaDataBox {
-  margin: 40px auto 0 auto;
-  text-align: center;
 }
 .bookMetaDataBox {
   margin: 40px auto;

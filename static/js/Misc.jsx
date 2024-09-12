@@ -2877,6 +2877,22 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
+const SheetMetaDataBoxSegment = (props) => (
+  <div className={props.className}
+    role="heading"
+    aria-level="1"
+    contentEditable={props.editable}
+    suppressContentEditableWarning={true}
+    onBlur={props.editable ? props.blurCallback : null}
+    style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" :"ltr"}}
+  >
+  {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+  </div>
+);
+SheetMetaDataBoxSegment.propTypes = {
+  title: PropTypes.string,
+};
+
 
 const SheetAuthorStatement = (props) => (
   <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
@@ -3394,6 +3410,7 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
+  SheetMetaDataBoxSegment,
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,
