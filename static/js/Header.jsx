@@ -51,7 +51,6 @@ class Header extends Component {
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
-          <a href="/texts" className="textLink"><InterfaceText >{t("greeting", {name:'samdup'})}</InterfaceText></a>
           <a href="/texts" className="textLink"><InterfaceText >header.text</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>header.topic</InterfaceText></a>
           <a href="/community" className="textLink"><InterfaceText>header.community</InterfaceText></a>
@@ -81,7 +80,7 @@ class Header extends Component {
     const mobileHeaderContent = (
       <>
         <div>
-          <button onClick={this.props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+          <button onClick={this.props.onMobileMenuButtonClick} aria-label={Sefaria._("header.menu")} className="menuButton">
             <i className="fa fa-bars"></i>
           </button>
         </div>
@@ -420,12 +419,12 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
     <div className={classes}>
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
          {mobile ? <img src="/static/icons/login.svg" /> : null }
-         <InterfaceText>Log in</InterfaceText>
+          <InterfaceText>log_in</InterfaceText>
        </a>
       {loginOnly ? null :
       <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
          {mobile ? <img src="/static/icons/register.svg" /> : null }
-         <InterfaceText>Sign up</InterfaceText>
+         <InterfaceText>sign_up</InterfaceText>
       </a> } 
       { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
     </div>
@@ -503,15 +502,15 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </div>
       <a href="/texts" onClick={close} className="textsPageLink">
         <img src="/static/icons/book.svg" />
-        <InterfaceText context="Header">Texts</InterfaceText>
+        <InterfaceText >header.text</InterfaceText>
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText>Topics</InterfaceText>
+        <InterfaceText>header.topic</InterfaceText>
       </a>
       <a href="/community" onClick={close}>
         <img src="/static/icons/community.svg" />
-        <InterfaceText>Community</InterfaceText>
+        <InterfaceText>header.community</InterfaceText>
       </a>
       {/* <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />

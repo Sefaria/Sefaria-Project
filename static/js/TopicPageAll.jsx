@@ -158,7 +158,7 @@ const AlphabeticalTopicsNav = () => {
     <div className="alphabeticalTopicsNav sans-serif">
       {letters.map(letter => (
         <a href={"/topics/all/" + letter.toLowerCase()} key={letter}>
-          <InterfaceText>{letter}</InterfaceText>
+          <span className={`${Sefaria.languageClassFont()}`}>{letter}</span>
         </a>
       ))}
     </div>

@@ -1817,7 +1817,7 @@ const ConnectionsPanelSection = ({ title, children }) => {
     <>
       <div className="connectionPanelSectionHeader sans-serif">
         <span className="connectionPanelSectionHeaderInner">
-          <InterfaceText context="ConnectionPanelSection">{title}</InterfaceText>
+          <InterfaceText >{title}</InterfaceText>
         </span>
       </div>
       {children}
