@@ -353,6 +353,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   height: 100%;
   z-index: 1000;
 }
+
 #s2.headerOnly {
   z-index: 1000;
   height: 60px;
