@@ -13283,41 +13283,40 @@ span.ref-link-color-3 {color: blue}
 .blockButton {
   cursor: pointer;
 }
-.sheets .button {
+.sheetsHomepage .button {
   background-color: var(--midrash-green);
 }
-.sheets .sheetsFont {
+.sheetsHomepage .sheetsHomepageSectionTitle {
   color: var(--midrash-green);
   font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
   margin-bottom: 15px;
+}
+.multiPanel .sheetsHomepage .sheetsTopicTOC .sheetsHomepageSectionTitle {
   flex: 1 1 100%;
 }
-.sheets .sheetsTopicsCalendar .sheetsFont {
-  flex: revert;
-}
-.sheets .sidebarLayout {
+.sheetsHomepage .sidebarLayout {
   display: flex;
   justify-content: space-between;
   margin-top: 50px;
   max-width: revert;
 }
-.sheets .sidebarLayout .sheetsTopics {
+.sheetsHomepage .sidebarLayout .sheetsTopics {
   display: flex;
   flex-direction: column;
   width: 55%;
 }
-.sheets .sidebarLayout .sheetsTopicsCalendar, .sheets .sidebarLayout .sheetsTopicTOC {
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar, .sheetsHomepage .sidebarLayout .sheetsTopicTOC {
   margin-inline-start: 10%;
 }
-.sheets .sheetsTopicTOC .sheetsWrapper {
+.sheetsHomepage .sheetsTopicTOC .sheetsWrapper {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
 }
-.sheets .sheetsTopicsCalendar .sheetsWrapper {
+.sheetsHomepage .sheetsTopicsCalendar .sheetsWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -13332,38 +13331,35 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   justify-content: space-between;
 }
-.singlePanel .sheets .navSidebar {
+.singlePanel .sheetsHomepage .navSidebar {
   margin-block-start: 5px;
   width: revert;
 }
-.singlePanel .sheets .navSidebarModule {
-  padding: 0 35px;
+.singlePanel .sheetsHomepage .navSidebarModule {
+  padding: 0 10%;
 }
-.singlePanel .sheets .sheetsWrapper, .singlePanel .sheets .sheetsTopicsCalendar {
+.singlePanel .sheetsHomepage .sheetsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
   flex-direction: column;
   margin-bottom: 10px;
 }
-.singlePanel .sheets .sidebarLayout {
+.singlePanel .sheetsHomepage .sidebarLayout {
   margin-top: revert;
 }
 
-.singlePanel .sheets .sidebarLayout .sheetsTopics {
+.singlePanel .sheetsHomepage .sidebarLayout .sheetsTopics {
   width: revert;
 }
-.singlePanel .sheets .sheetsFont {
-  flex: revert;
-}
-.singlePanel .sheets .button {
+.singlePanel .sheetsHomepage .button {
   display: block;
 }
 @media screen and (max-width: 800px) {
-  .sheets .sidebarLayout .sheetsTopics {
+  .sheetsHomepage .sidebarLayout .sheetsTopics {
     width: 100%;
   }
-  .sheets .button {
+  .sheetsHomepage .button {
     display: block;
   }
-  .sheets .navSidebar {
+  .sheetsHomepage .navSidebar {
     width: revert;
     border-top: 40px solid #FBFBFA;
     margin-block-start: -40px;

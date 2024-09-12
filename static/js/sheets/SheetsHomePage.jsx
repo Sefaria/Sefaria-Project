@@ -36,7 +36,7 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
       func(slug, {en, he});  // setTopic or setNavTopic
   }
   const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={handleClick(setNavTopic)}/>;
-  return <div className="readerNavMenu sheets" key="0">
+  return <div className="readerNavMenu sheetsHomepage" key="0">
             <div className="content">
                 <SheetsHeroBanner title="Join the Torah Conversation"
                                   message="Create, share, and discover source sheets."

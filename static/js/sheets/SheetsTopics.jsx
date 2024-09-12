@@ -17,7 +17,7 @@ const SheetsTopicsTOC = ({handleClick}) => {
 
 const SheetsWrapper = ({title, children}) => {
     return <div className="sheetsWrapper">
-                <div className="sheetsFont">{title}</div>
+                <div className="sheetsHomepageSectionTitle">{title}</div>
                 {children}
            </div>
 }
