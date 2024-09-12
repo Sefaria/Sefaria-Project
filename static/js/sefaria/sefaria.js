@@ -10,6 +10,7 @@ import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
+import i18n from "i18next";
 
 
 let Sefaria = Sefaria || {
@@ -2986,8 +2987,13 @@ _media: {},
           return inputStr;
       }
   },
-  _: function(inputStr, context=null){
-    return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
+  _: function(inputStr, placeholder=null){
+    const { t } = i18n;
+    if(placeholder){
+      return t(inputStr, placeholder)
+    } else {
+      return t(inputStr)
+    }
     // if(Sefaria.interfaceLang !== "english"){
     //   return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
     // } else {

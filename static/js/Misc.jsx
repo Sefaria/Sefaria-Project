@@ -24,6 +24,8 @@ import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { languages } from 'humanize-duration';
+import { useTranslation } from 'react-i18next';
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -65,14 +67,15 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
+const InterfaceText = ({text, html, markdown, children, placeholder, disallowedMarkdownElements=[]}) => {
+  const {t, i18n} = useTranslation()
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
    *  Otherwise:
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
-   * `context` is passed to Sefaria._ for additional translation context
+   * `placeholder` is passed to i18n for additional translation context variable
    */
   const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
@@ -88,7 +91,13 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   } else { // Also handle composition with children
     const chlCount = React.Children.count(children);
     if (chlCount === 1) { // Same as passing in a `en` key but with children syntax
-      textResponse = Sefaria._(children, context);
+      if (placeholder) {
+        
+        textResponse = t(children, placeholder)
+        console.log(textResponse)
+      } else {
+        textResponse = t(children)
+      }
     } else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
       let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
       textResponse = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
@@ -512,7 +521,7 @@ const FilterableList = ({
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => setSort(option)}
               >
-                <InterfaceText context="FilterableList">{option}</InterfaceText>
+                <InterfaceText>{option}</InterfaceText>
               </span>
             ))}
           </div>
@@ -1133,12 +1142,11 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   const [addSource, toggleAddSource] = useEditToggle();
   const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
-  const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
-                          "source": ["Add a source", toggleAddSource],
-                          "section": ["Add section", toggleAddSection],
-                          "reorder": ["Reorder sources", toggleReorderCategory],
-                          "edit": ["Edit", toggleEditCategory]};
-
+  const buttonOptions = {"subcategory": ["category.add_sub_category", toggleAddCategory],
+                          "source": ["category.add_source", toggleAddSource],
+                          "section": ["category.add_section", toggleAddSection],
+                          "reorder": ["category.reorder_section", toggleReorderCategory],
+                          "edit": ["edit", toggleEditCategory]};
 
   let wrapper = "";
   let adminButtonsSpan = null;
@@ -1567,7 +1575,7 @@ class FollowButton extends Component {
     return (
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
         {this.props.icon ? <img src={`/static/icons/${this.state.following ? this.state.hovering ?  "checkmark" : "checkmark" : "follow"}.svg`} aria-hidden="true"/> : null}
-        <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
+        <InterfaceText>{buttonText}</InterfaceText>
       </div>
     );
   }

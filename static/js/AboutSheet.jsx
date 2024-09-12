@@ -4,6 +4,7 @@ import Sefaria from "./sefaria/sefaria";
 import ReactTags from 'react-tag-autocomplete'
 import { useDebounce } from "./Hooks";
 
+
 const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
     const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId);
@@ -275,7 +276,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     return (<div className="aboutSheetPanel">
         <div className="aboutSheetTopHeaders">
             <h2 className="aboutHeader">{title}</h2>
-            <h3 className="aboutSheetSubtitle"><InterfaceText>{Sefaria._("Sheet")}</InterfaceText></h3>
+            <h3 className="aboutSheetSubtitle"><InterfaceText>profile.tab.sheets</InterfaceText></h3>
         </div>
         <SheetAuthorStatement
             authorUrl={sheet.ownerProfileUrl}
@@ -399,7 +400,7 @@ const CollectionsEditor = ({ sheetId }) => {
     };
 
     return <div>      <div className="collectionsEditorTop">
-        <h3 className="aboutSheetHeader"><InterfaceText>My Collections</InterfaceText></h3>
+        <h3 className="aboutSheetHeader"><InterfaceText>collection.editor.my_collection</InterfaceText></h3>
     </div><div className="collectionsWidget">
             <div className="collectionsWidgetList serif">
                 {!dataLoaded ? null :
@@ -427,7 +428,7 @@ const CollectionsEditor = ({ sheetId }) => {
                 </div>
                 {newName.length ?
                     <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>
-                        <InterfaceText>Create</InterfaceText>
+                        <InterfaceText>create</InterfaceText>
                     </div>
                     : null}
             </div>
