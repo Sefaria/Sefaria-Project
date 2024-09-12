@@ -6,6 +6,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
+import Button from "./shared/Button";
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -667,20 +668,13 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
   );
 };
 
-const Button = ({img, href, children, classes={}}) => {
-  classes = {button: 1, ...classes};
-  return <a className={classNames(classes)} href={href}>
-          {img}
-          <InterfaceText>{children}</InterfaceText>
-          </a>
-}
 const GetStartedButton = () => {
-    const href = Sefaria.interfaceLang === 'english' ? "/sheets/393695" : "/sheets/399333";
-    return <Button classes={{getStartedSheets: 1}} href={href}>Get Started</Button>
+    const href = Sefaria._v({"english": "/sheets/393695", "hebrew": "/sheets/399333"})
+    return <Button className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
 }
 const CreateSheetsButton = () => {
-  const img = <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" id="sheetsButton"/>;
-  return <Button img={img} classes={{small: 1}} href="/sheets/new">Create</Button>
+  // #sheetsButton
+  return <Button icon={"/static/icons/new-sheet-black.svg"} className="small" onClick={() => window.location.href="/sheets/new"}>Create</Button>
 }
 const CreateASheet = () => (
   <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
