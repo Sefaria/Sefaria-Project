@@ -10130,7 +10130,7 @@ span.purim-emoji img{
   line-height: 18px;
   top: 227px;
 }
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 840px) {
   .overlayTextOnSheetsHero {
     margin-inline-start: 15%;
   }
@@ -13352,7 +13352,7 @@ span.ref-link-color-3 {color: blue}
 .singlePanel .sheetsHomepage .button {
   display: block;
 }
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 840px) {
   .sheetsHomepage .sidebarLayout .sheetsTopics {
     width: 100%;
   }
