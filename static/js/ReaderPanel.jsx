@@ -624,11 +624,9 @@ class ReaderPanel extends Component {
     }
   }
   getPanelName() {
-    const {menuOpen, navigationTopicTitle} = this.state;
+    const {menuOpen, navigationTopic, navigationTopicCategory} = this.state;
     if (menuOpen === "topics") {
-      if (navigationTopicTitle) {
-        return navigationTopicTitle.en || navigationTopicTitle.he;
-      }
+      return navigationTopicCategory || navigationTopic;
     }
   }
   getPanelNumber() {
