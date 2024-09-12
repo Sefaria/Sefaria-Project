@@ -2784,7 +2784,8 @@ display: none;
   color: var(--light-grey);
 }
 
-.card::before {
+.sheetsHomepage .card:nth-child(2)::before,
+.sheetsHomepage .card:nth-child(3)::before {
   content: '';
   position: absolute;
   top: 0;
