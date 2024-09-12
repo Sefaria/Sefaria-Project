@@ -235,7 +235,6 @@ localSettings:
   }
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
-  TURN_SERVER: ''
   USE_CLOUDFLARE: false
   FRONT_END_URL:  "http://www.sefaria.org"
   OFFLINE: false

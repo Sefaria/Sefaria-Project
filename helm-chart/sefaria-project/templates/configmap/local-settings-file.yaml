@@ -144,10 +144,6 @@ data:
     SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
     SEARCH_INDEX_NAME_SHEET = 'sheet'
 
-    TURN_SERVER = os.getenv("TURN_SERVER") #coturn.cauldron.sefaria.org
-    TURN_SECRET= os.getenv("TURN_SECRET")
-    TURN_USER = os.getenv("TURN_USER")
-
     USE_NODE = True
     NODE_HOST = "http://{}:3000".format(nodejsHost)
     NODE_TIMEOUT = 5
