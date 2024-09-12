@@ -3499,10 +3499,12 @@ def user_profile(request, username):
     if not requested_profile.user.is_active:
         raise Http404('Profile is inactive.')
 
+    owner_of_profile = request.user.is_authenticated and request.user.id == requested_profile.id
+
     tab = request.GET.get("tab", "sheets")
     props = {
         "initialMenu":  "profile",
-        "initialProfile": requested_profile.to_api_dict(),
+        "initialProfile": requested_profile.to_api_dict(basic=not owner_of_profile),
         "initialTab": tab,
     }
     title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
@@ -3514,14 +3516,24 @@ def user_profile(request, username):
 
 
 @catch_error_as_json
-def profile_api(request):
+def profile_api(request, slug=None):
     """
     API for user profiles.
     """
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+    if request.method == "GET":
+        profile = UserProfile(slug=slug)
+        if not slug or profile.id is None:
+            raise Http404("Please Supply a valid user identification")
+        owner_of_profile = request.user.is_authenticated and request.user.id == profile.id
+        return jsonResponse(profile.to_api_dict(basic = not owner_of_profile))
 
-    if request.method == "POST":
+    elif request.method == "POST":
+        # The POST only works for the logged in user, which is more common for a website view rather than API.
+        # If the API were to be consistent, we might need to add ability to post updates for any user,
+        # and of course limit authorization on who can do that
+        if not request.user.is_authenticated:
+            return jsonResponse({"error": _("You must be logged in to update your profile.")})
+
         profileJSON = request.POST.get("json")
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
@@ -3537,6 +3549,7 @@ def profile_api(request):
         else:
             profile.save()
             return jsonResponse(profile.to_mongo_dict())
+
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
@@ -3582,14 +3595,6 @@ def account_user_update(request):
         else:
             return jsonResponse({"error": error})
 
-    return jsonResponse({"error": "Unsupported HTTP method."})
-
-
-@catch_error_as_json
-def profile_get_api(request, slug):
-    if request.method == "GET":
-        profile = UserProfile(slug=slug)
-        return jsonResponse(profile.to_api_dict())
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 

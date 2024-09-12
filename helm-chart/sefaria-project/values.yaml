@@ -357,8 +357,6 @@ secrets:
     #   SEFARIA_DB_USER:
     #   SEFARIA_DB_PASSWORD:
     #   SEARCH_URL
-    #   TURN_SECRET:
-    #   TURN_USER:
     #   SEFARIA_BOT_API_KEY:
     #   CLOUDFLARE_ZONE:
     #   CLOUDFLARE_EMAIL:
@@ -451,7 +449,6 @@ localSettings:
     # https://www.sefaria.org: english
     # https://www.sefaria.org.il: hebrew
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
-  TURN_SERVER: ''
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"
