@@ -810,9 +810,9 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       parentEditor.dragging = false;
     }
     const renderEnglishElement = ({attributes, children}) => {
-    //passed to the English source Editabe, to make it always! be rendered as 'ltr'
+    //passed to the English source Editable, to make it always! be rendered as 'ltr'
         return (
-            <span {...attributes} dir="ltr">
+            <span className=".int-en">
                 {children}
             </span>
         )
