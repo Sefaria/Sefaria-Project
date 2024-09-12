@@ -3,12 +3,8 @@ import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "./sefaria/sefaria";
 import {
-    CollectionStatement,
-    InterfaceText,
-    ProfilePic,
-    SheetAuthorStatement,
-    SheetMetaDataBox,
-    SheetTitle
+  InterfaceText, ProfilePic, SheetAuthorStatement,
+  SheetMetaDataBox, SheetMetaDataBoxSegment
 } from "./Misc";
 import React from "react";
 import classNames from "classnames";
@@ -98,8 +94,8 @@ class SheetContent extends Component {
       }
     }
   }
-  render() {
-    var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
+  getSources() {
+    const sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
       const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
       if ("ref" in source) {
         const highlighted = this.props.highlightedNode ?
@@ -193,37 +189,15 @@ class SheetContent extends Component {
       }
 
     }, this) : null;
-
+    return sources;
+  }
+  render() {
+    const sources = this.getSources();
     return (
       <div className="sheetContent">
-        {this.props.sheetNotice ? <SheetNotice /> : null}
-        <SheetMetaDataBox>
-          <SheetTitle title={this.props.title} />
-
-          <SheetAuthorStatement
-            authorUrl={this.props.authorUrl}
-            authorStatement={this.props.authorStatement} >
-            <ProfilePic
-              url={this.props.authorImage}
-              len={30}
-              name={this.props.authorStatement}
-              outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle"}}
-            />
-            <InterfaceText text={{en: "By", he: "מאת"}}/>
-            <a href={this.props.authorUrl} className="sheetAuthorName">
-              <InterfaceText>{this.props.authorStatement}</InterfaceText>
-            </a>
-          </SheetAuthorStatement>
-
-          <CollectionStatement
-            name={this.props.collectionName}
-            slug={this.props.collectionSlug}
-            image={this.props.collectionImage}
-          />
-
-        </SheetMetaDataBox>
-
         <div className="text">
+          <SheetContentMetaDataBox authorStatement={this.props.authorStatement} authorUrl={this.props.authorUrl}
+                                   authorImage={this.props.authorImage} title={this.props.title} summary={this.props.summary} />
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
           </div>
@@ -238,6 +212,31 @@ class SheetContent extends Component {
   }
 }
 
+const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage}) => {
+  return <SheetMetaDataBox>
+    <SheetMetaDataBoxSegment text={title} className="title"/>
+    {summary && <SheetMetaDataBoxSegment text={summary} className="summary"/>}
+    <SheetAuthorStatement
+        authorUrl={authorUrl}
+        authorStatement={authorStatement}>
+      <ProfilePic
+          url={authorImage}
+          len={30}
+          name={authorStatement}
+          outerStyle={{
+            width: "30px",
+            height: "30px",
+            display: "inline-block",
+            verticalAlign: "middle",
+            marginInlineEnd: "10px"
+          }}
+      />
+      <a href={authorUrl} className="sheetAuthorName">
+        <InterfaceText>{authorStatement}</InterfaceText>
+      </a>
+    </SheetAuthorStatement>
+  </SheetMetaDataBox>
+}
 class SheetSource extends Component {
   render() {
 
