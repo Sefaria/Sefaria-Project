@@ -10112,7 +10112,6 @@ span.purim-emoji img{
 }
 .overlayTextOnSheetsHero {
   color: white;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-weight: 400;

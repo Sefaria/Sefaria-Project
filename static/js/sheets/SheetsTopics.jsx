@@ -50,7 +50,7 @@ const SheetsHoliday = ({handleClick}) => {
 }
 const SheetsTopicsCalendar = ({handleClick}) => {
     return <div className="sheetsTopicsCalendar">
-                <SheetsWrapper title="Parashat HaShavua"><SheetsParashah handleClick={handleClick}/></SheetsWrapper>
+                <SheetsWrapper title="This Week's Torah Portion"><SheetsParashah handleClick={handleClick}/></SheetsWrapper>
                 <SheetsWrapper title="Upcoming Holiday"><SheetsHoliday handleClick={handleClick}/></SheetsWrapper>
           </div>
 }
