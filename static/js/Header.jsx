@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef,} from 'react';
+import { withTranslation } from "react-i18next";
 import PropTypes  from 'prop-types';
 import ReactDOM  from 'react-dom';
 import Component from 'react-class';
@@ -23,6 +24,7 @@ class Header extends Component {
       mobileNavMenuOpen: false,
     };
   }
+  
   componentDidMount() {
     window.addEventListener('keydown', this.handleFirstTab);
   }
@@ -36,6 +38,7 @@ class Header extends Component {
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
   }
   render() {
+    const { t, i18n } = this.props;
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
@@ -77,7 +80,7 @@ class Header extends Component {
     const mobileHeaderContent = (
       <>
         <div>
-          <button onClick={this.props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+          <button onClick={this.props.onMobileMenuButtonClick} aria-label={Sefaria._("header.menu")} className="menuButton">
             <i className="fa fa-bars"></i>
           </button>
         </div>
@@ -416,12 +419,12 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
     <div className={classes}>
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
          {mobile ? <img src="/static/icons/login.svg" /> : null }
-         <InterfaceText>Log in</InterfaceText>
+          <InterfaceText>log_in</InterfaceText>
        </a>
       {loginOnly ? null :
       <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
          {mobile ? <img src="/static/icons/register.svg" /> : null }
-         <InterfaceText>Sign up</InterfaceText>
+         <InterfaceText>sign_up</InterfaceText>
       </a> } 
       { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
     </div>
@@ -499,15 +502,15 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </div>
       <a href="/texts" onClick={close} className="textsPageLink">
         <img src="/static/icons/book.svg" />
-        <InterfaceText context="Header">Texts</InterfaceText>
+        <InterfaceText >header.text</InterfaceText>
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText>Topics</InterfaceText>
+        <InterfaceText>header.topic</InterfaceText>
       </a>
       <a href="/community" onClick={close}>
         <img src="/static/icons/community.svg" />
-        <InterfaceText>Community</InterfaceText>
+        <InterfaceText>header.community</InterfaceText>
       </a>
       {/* <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
@@ -702,4 +705,4 @@ const HelpButton = () => {
 };
 
 
-export default Header;
+export default withTranslation()(Header);

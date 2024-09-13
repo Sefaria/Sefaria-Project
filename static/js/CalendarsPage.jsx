@@ -73,7 +73,7 @@ const CalendarListing = ({calendar}) => {
         <InterfaceText text={calendar.displayTitle} />
         {calendar.enSubtitle ?
         <span className="subtitle">
-          <InterfaceText context="CalendarListing">{calendar.enSubtitle}</InterfaceText>
+          <InterfaceText>{calendar.enSubtitle}</InterfaceText>
         </span> : null }
       </a>
       <div className="calendarRefs">
