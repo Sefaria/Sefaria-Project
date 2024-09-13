@@ -9,6 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
+import "./sefaria/i18n.js"
 import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
@@ -443,7 +444,7 @@ class ReaderApp extends Component {
         switch (state.menuOpen) {
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("Pecha - Buddhism in your own words");
+            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("url.title_descriptions");
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
@@ -500,7 +501,7 @@ class ReaderApp extends Component {
             break;
           case "allTopics":
               hist.url   = "topics/all/" + state.navigationTopicLetter;
-              hist.title = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
+              hist.title = Sefaria._("url.topic.descriptions", {navigationTopicLetter: state.navigationTopicLetter, siteName: siteName});
               hist.mode  = "topics";
             break;
           case "community":
@@ -757,14 +758,14 @@ class ReaderApp extends Component {
             hist.url += `&namedEntityText${i}=${encodeURIComponent(histories[i].selectedNamedEntityText)}`;
           }
           hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
-          hist.title += Sefaria._("url.param.&") + histories[i].title; // TODO this doesn't trim title properly
+          hist.title += Sefaria._("url.param.history_title", {title: histories[i].title}) // TODO this doesn't trim title properly
         }
       } else {
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
         hist.url += Sefaria.util.getUrlVersionsParams(histories[i].currVersions, i+1);
-        hist.title += Sefaria._("url.param.&") + histories[i].title;
+        hist.title += Sefaria._("url.param.history_title", {title: histories[i].title});
       }
       if (!isMobileConnectionsOpen) {
         if (histories[i].lang) {

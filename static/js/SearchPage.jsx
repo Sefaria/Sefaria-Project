@@ -41,10 +41,7 @@ class SearchPage extends Component {
               
               <div className="searchTopLine">
                 <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
-                  <InterfaceText>{_("results_for")}</InterfaceText>&nbsp;
-                  <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}} />
-                  { this.props.query }
-                  <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
+                  <InterfaceText placeholder={{searchedItem:this.props.query}}>search_page.results_for</InterfaceText>&nbsp;
                 </h1>
                 {this.state.totalResults?.getValue() > 0 ?
                 <div className="searchResultCount sans-serif">

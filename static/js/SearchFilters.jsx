@@ -229,7 +229,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
   return (
     <div className="searchFilterGroup">
       <h2>
-        <InterfaceText context="SearchFilters">{name}</InterfaceText>
+        <InterfaceText >{name}</InterfaceText>
       </h2>
       {search}
       {content}
@@ -409,7 +409,7 @@ const PagedList = ({items, initial=8, pageSize=20}) => {
       {items.slice(0, cutoff)}
       {items.length > cutoff ?
       <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}}>
-        <InterfaceText context="SearchFilters">See More</InterfaceText>
+        <InterfaceText>See More</InterfaceText>
       </button>
       : null}
     </>

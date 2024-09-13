@@ -269,16 +269,16 @@ class ConfirmAddToSheet extends Component {
         disallowedTagsMode: 'discard',
       });
       srefTitles = {
-        "en": `${Sefaria._("sheet.section_from")} "${sheetTitle}"`,
-        "he": `${Sefaria._("sheet.section_from")} "${sheetTitle}"`,
+        "en": `${Sefaria._("sheet.section_from", {sheetTitle: sheetTitle})}`,
+        "he": `${Sefaria._("sheet.section_from",{sheetTitle: sheetTitle})}`,
       };
     }
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
                 <span className={`${Sefaria.languageClassFont()}`}>
                   <a href={sref}>{srefTitles["he"]}</a>
-                   &nbsp;{Sefaria._("sheet.has_been_added_to")}&nbsp;
-                  <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
+                   &nbsp;
+                  <a href={"/sheets/" + this.props.sheet.id} target="_blank">{Sefaria._("sheet.has_been_added_to", {sheetTitle: this.props.sheet.title})}</a>.
                 </span>
               </div>
             </div>);

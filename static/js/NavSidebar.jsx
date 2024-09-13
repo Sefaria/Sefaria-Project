@@ -145,7 +145,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
 
 const Resources = () => (
   <Module>
-    {/* <h3><InterfaceText context="ResourcesModule">panel.resources</InterfaceText></h3>
+    {/* <h3><InterfaceText >panel.resources</InterfaceText></h3>
     <div className="linkList">
       <IconLink text="Mobile Apps" url="/mobile" icon="mobile.svg" />
       <IconLink text="Create with Sefaria" url="/sheets" icon="sheet.svg" />
