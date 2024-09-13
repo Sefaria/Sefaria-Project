@@ -44,6 +44,10 @@ div#s2:has(~ div.ub-emb-container) .singlePanel div.mobileNavMenu {
   top: 180px;
 }
 
+/*
+  Readjust the mobile navigation menu to its previous positioning after the banner is removed
+  Set it back to its previous values
+*/
 div#s2:has(~ div.ub-emb-container div:only-child:empty) .singlePanel div.mobileNavMenu {
   height: calc(100vh - 60px);
   top: 60px;
@@ -55,8 +59,26 @@ div#s2:has(~ div.ub-emb-container) .singlePanel .autocomplete-dropdown {
   position: absolute;
 }
 
-/* div#s2:has(~ div.ub-emb-container div:only-child:empty) .singlePanel .autocomplete-dropdown {
-  top: 45px;
-  position: absolute;
-  left: -10px;
-} */
+/* 
+  Fix problems with the bottom of new sheets editor from being accessible
+  This does not affect the normal textual content view inside a book
+*/
+div#s2:has(~ div.ub-emb-container) .readerContent {
+  height: calc(100% - 180px);
+}
+
+/*
+  Set it back to its previous values
+*/
+div#s2:has(~ div.ub-emb-container div:only-child:empty) .readerContent {
+  height: calc(100% - 60px);
+}
+
+/* Unbounce banners cannot be on the old sheets editor */
+div#s2:has(~ .ub-emb-container):has(~ #staticContentWrapper #content #sheetsContent) {
+  top: 0;
+}
+
+div.ub-emb-container:has(~ #staticContentWrapper #content #sheetsContent) {
+  display: none;
+}
