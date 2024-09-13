@@ -383,7 +383,7 @@ class TextTableOfContents extends Component {
       if(this.props?.close){
         this.props.close();
       }
-      this.props.navigatePanel ? this.props.navigatePanel(ref, this.props.currVersions) : this.props.showBaseText(ref, false, this.props.currVersions);
+      this.props.navigatePanel ? this.props.navigatePanel(ref, this.props.currVersions) : this.props.showBaseText(ref, false, this.props.currVersions, [], true, true);
       e.preventDefault();
     }
   }

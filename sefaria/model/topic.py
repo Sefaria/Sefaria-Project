@@ -77,7 +77,7 @@ class AuthorCategoryAggregation(AuthorWorksAggregation):
 
     def get_title(self, lang):
         if self._collective_title_term is None:
-            cat_term = Term().load({"name": self.index_category.sharedTitle})
+            cat_term = Term().load({"name": self._index_category.sharedTitle})
             return cat_term.get_primary_title(lang)
         else:
             preposition = 'on' if lang != 'he' else 'על'
