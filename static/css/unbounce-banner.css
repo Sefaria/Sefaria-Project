@@ -82,3 +82,11 @@ div#s2:has(~ .ub-emb-container div.ub-emb-bar):has(~ #staticContentWrapper #cont
 div#staticContentWrapper:has(div#content div#sheetsContent) ~ div.ub-emb-container div.ub-emb-bar {
   display: none;
 }
+
+div#s2:has(~ div.ub-emb-container div.ub-emb-bar) #panelWrapBox {
+  height: calc(100% - 180px);
+}
+
+div#s2:has(~ div.ub-emb-container div:only-child:empty) #panelWrapBox {
+  height: calc(100% - 60px);
+}
