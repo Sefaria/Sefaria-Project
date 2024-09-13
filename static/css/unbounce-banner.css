@@ -79,6 +79,6 @@ div#s2:has(~ .ub-emb-container):has(~ #staticContentWrapper #content #sheetsCont
   top: 0;
 }
 
-div.ub-emb-container:has(~ #staticContentWrapper #content #sheetsContent) {
+div#staticContentWrapper:has(div#content div#sheetsContent) ~ div.ub-emb-container {
   display: none;
 }
