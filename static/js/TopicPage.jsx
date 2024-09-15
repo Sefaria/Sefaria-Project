@@ -189,13 +189,12 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPr
   );
 
   return (
-      <div data-anl-batch={JSON.stringify({
+      <div key={item[0]} data-anl-batch={JSON.stringify({
           position: index,
           ai: doesLinkHaveAiContent(langKey, text) ? 'ai' : 'human',
           ..._extractAnalyticsDataFromRef(text.ref),
       })}>
           <TopicTextPassage
-              key={item[0]}
               topic={topicData.slug}
               text={text}
               bodyTextIsLink= {true}
@@ -835,7 +834,6 @@ const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) 
 );
 TopicLink.propTypes = {
   topic: PropTypes.string.isRequired,
-  clearAndSetTopic: PropTypes.func.isRequired,
   isTransliteration: PropTypes.object,
 };
 
@@ -894,12 +892,13 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
                 return b.order.tfidf - a.order.tfidf;
               })
               .map(l =>
-                TopicLink({
-                  topic:l.topic, topicTitle: l.title,
-                  onClick: l.isCategory ? setNavTopic : clearAndSetTopic,
-                  isTransliteration: l.titleIsTransliteration,
-                  isCategory: l.isCategory
-                })
+                  (<TopicLink
+                      key={l.topic}
+                      topic={l.topic} topicTitle={l.title}
+                      onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
+                      isTransliteration={l.titleIsTransliteration}
+                      isCategory={l.isCategory}
+                  />)
               )
             }
           </TopicSideSection>
@@ -979,7 +978,7 @@ const TopicSideSection = ({ title, children, hasMore }) => {
 const TopicImage = ({photoLink, caption }) => {
 
   return (
-    <div class="topicImage">
+    <div className="topicImage">
       <ImageWithCaption photoLink={photoLink} caption={caption} />
     </div>);
 }
@@ -1073,6 +1072,7 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, propert
             const he_text = Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("English")})`);
             return (
                 <div
+                    key={url}
                     data-anl-event="related_click:click"
                     data-anl-batch={JSON.stringify({
                         text: en_text,
@@ -1080,7 +1080,7 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, propert
                     })}
                 >
                     <SimpleLinkedBlock
-                        key={url} en={en_text} he={he_text}
+                        en={en_text} he={he_text}
                         url={url} aclasses={"systemText topicMetaData"} openInNewTab
                     />
                 </div>

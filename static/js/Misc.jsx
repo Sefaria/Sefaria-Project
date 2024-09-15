@@ -1089,6 +1089,7 @@ const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
         const [buttonText, toggleAddingTopics] = buttonOptions[key];
         return (
           <AdminEditorButton
+            key={`${buttonText}|${i}`}
             text={buttonText}
             top={top}
             bottom={bottom}
@@ -3299,8 +3300,8 @@ return Sefaria._v(caption) || Sefaria._('Illustrative image');
 const ImageWithCaption = ({photoLink, caption }) => {
   return (
     <div>
-        <img class="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
-        <div class="imageCaption"> 
+        <img className="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
+        <div className="imageCaption">
           <InterfaceText text={caption} />
         </div>
       </div>);
