@@ -819,7 +819,12 @@ const TopicPageTab = ({
 
 
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
-    <div data-anl-event="related_click:click">
+    <div data-anl-event="related_click:click" data-anl-batch={
+        JSON.stringify({
+            text: topicTitle.en,
+            feature_name: "related topic",
+        })
+    }>
         <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
               onClick={onClick.bind(null, topic, topicTitle)} key={topic}
               title={topicTitle.en}
@@ -940,6 +945,7 @@ TopicSideColumn.propTypes = {
 
 const TopicSideSection = ({ title, children, hasMore }) => {
   const [showMore, setShowMore] = useState(false);
+  const moreText = showMore ? "Less" : "More";
   return (
     <div key={title.en} className="link-section">
       <h2>
@@ -952,8 +958,16 @@ const TopicSideSection = ({ title, children, hasMore }) => {
       {
         hasMore ?
         (
-          <div className="sideColumnMore sans-serif" onClick={() => setShowMore(!showMore)}>
-            <InterfaceText>{ showMore ? "Less" : "More" }</InterfaceText>
+          <div
+              className="sideColumnMore sans-serif"
+              onClick={() => setShowMore(!showMore)}
+              data-anl-event="related_click:click"
+              data-anl-batch={JSON.stringify({
+                  text: moreText,
+                  feature_name: "more",
+              })}
+          >
+            <InterfaceText>{ moreText }</InterfaceText>
           </div>
         )
         : null
@@ -1055,11 +1069,21 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, propert
               url = propObj.url.en || propObj.url.he;
             }
             if (!url) { return null; }
+            const en_text = propObj.title + (urlExists ? "" : " (Hebrew)");
+            const he_text = Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("English")})`);
             return (
-              <SimpleLinkedBlock
-                key={url} en={propObj.title + (urlExists ? "" : " (Hebrew)")} he={Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("English")})`)}
-                url={url} aclasses={"systemText topicMetaData"} openInNewTab
-              />
+                <div
+                    data-anl-event="related_click:click"
+                    data-anl-batch={JSON.stringify({
+                        text: en_text,
+                        feature_name: "description link learn more",
+                    })}
+                >
+                    <SimpleLinkedBlock
+                        key={url} en={en_text} he={he_text}
+                        url={url} aclasses={"systemText topicMetaData"} openInNewTab
+                    />
+                </div>
             );
           })
         }
