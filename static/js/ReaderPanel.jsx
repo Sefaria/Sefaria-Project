@@ -1333,7 +1333,7 @@ class ReaderControls extends Component {
     
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
-        title = heTitle = Sefaria._("loading...");
+        title = heTitle = Sefaria._("loading");
       } else {
         title = heTitle = this.props.sheetTitle;
         if (title === "") {
@@ -1595,8 +1595,8 @@ class ReaderDisplayOptionsMenu extends Component {
     colorToggle = this.props.multiPanel ? null : colorToggle;
 
     let sizeOptions = [
-      {name: "smaller", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("decrease_font_size") },
-      {name: "larger", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("increase_font_size")  }
+      {name: "smaller", content: Sefaria._("text.reader_option_menu.font_size_lable"), role: "button", ariaLabel: Sefaria._("decrease_font_size") },
+      {name: "larger", content: Sefaria._("text.reader_option_menu.font_size_lable"), role: "button", ariaLabel: Sefaria._("increase_font_size")  }
     ];
     let sizeToggle = (
         <ToggleSet
@@ -1643,8 +1643,8 @@ class ReaderDisplayOptionsMenu extends Component {
     }
 
     let punctuationOptions = [
-      {name: "punctuationOn", content: Sefaria._("on"), role: "radio", ariaLabel: Sefaria._("show_punchuation")},
-      {name: "punctuationOff", content: Sefaria._("off"), role: "radio", ariaLabel: Sefaria._("hide_punchuation")}
+      {name: "punctuationOn", content: Sefaria._("on"), role: "radio", ariaLabel: Sefaria._("show_puntuation")},
+      {name: "punctuationOff", content: Sefaria._("off"), role: "radio", ariaLabel: Sefaria._("hide_puntuation")}
     ]
     let punctuationToggle = this.shouldPunctuationToggleRender() ? (
         <ToggleSet

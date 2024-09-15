@@ -2561,8 +2561,8 @@ Dropdown.propTypes = {
 
 class LoadingMessage extends Component {
   render() {
-    var message = this.props.message ||  Sefaria._("loading...") ;
-    var heMessage = this.props.heMessage || Sefaria._("loading...");
+    var message = this.props.message ||  Sefaria._("loading") ;
+    var heMessage = this.props.heMessage || Sefaria._("loading");
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
     return (<div className={classes}>
               <InterfaceText>

@@ -3378,7 +3378,7 @@ sjs.copySource = source;
 
 // Get sheet list if necessary
 if (!$("#sheetList .sheet").length) {
-	$("#sheetList").html(Sefaria._("loading..."));
+	$("#sheetList").html(Sefaria._("loading"));
 	$.getJSON("/api/sheets/user/" + Sefaria._uid, function(data) {
 		$("#sheetList").empty();
 		var sheets = "";
