@@ -815,6 +815,7 @@ sjs.textBrowser = {
 		// Return to the home state
 		this.buildCategoryNav(sjs.toc);
 		this._path = [];
+		this._isFrozen = false;
 		this._currentText = null;
 		this._currentCategories = sjs.toc;
         sjs.textBrowser.previewActive = false;
@@ -822,11 +823,25 @@ sjs.textBrowser = {
 		this._setInitialMessage();
 	},
 	forward: function(to, index) {
+		console.log("hello", to, index)
+		// Check if the function is currently frozen
+		if (this._isFrozen) {
+			return; // Exit the function if it's frozen
+		}
+	
+		// Set the flag to freeze the function
+		this._isFrozen = true;
+	
+		// Unfreeze the function after 3 seconds
+		setTimeout(() => {
+			this._isFrozen = false;
+		}, 3000);
+
 		// navigate forward to "to", a string naming a text, category or section
 		// as it appears in the nav or path
 		//if (to != (this._path[this._path.length-1])) {   //if "to" = the last node in current path, don't go anywhere to prevent rapid clicking on the same item doubling up and throwing error
-		if (index === this._path.length ) {
-
+		if (index === this._path.length) {
+		console.log("frowsetn",this._isFrozen)
 		var next = null;
 		this._path.push(to);
 		this.updatePath();
@@ -1138,6 +1153,7 @@ sjs.textBrowser = {
 	},
 	_handleNavClick: function() {
 		// Move forward on nav click
+		console.log("helloooo")
 		var to = $(this).attr("data-name");
         if (sjs.textBrowser.previewActive == true) {
     		sjs.textBrowser._path.pop();
