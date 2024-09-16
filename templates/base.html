@@ -179,41 +179,43 @@
     </script>
     <!--End Sentry error reporting config-->
 
-    {% if html %}
-    <!-- React will complain about whitespace -->
-    <div id="s2">{{ html }}</div>
-    {% else %}
-    <div id="s2" class="headerOnly">
-        {% if request.user_agent.is_mobile %}
-            {% if request.user.is_authenticated %}
-                {{ logged_in_mobile_header }}
-            {% else %}
-                {{ logged_out_mobile_header }}
-            {% endif %}
-        {% elif request.user.is_authenticated %}
-            {{ logged_in_header }}
-        {% else %}
-            {{ logged_out_header }}
-        {% endif %}
+    <div id="pageWrapper">
+      {% if html %}
+      <!-- React will complain about whitespace -->
+      <div id="s2">{{ html }}</div>
+      {% else %}
+      <div id="s2" class="headerOnly">
+          {% if request.user_agent.is_mobile %}
+              {% if request.user.is_authenticated %}
+                  {{ logged_in_mobile_header }}
+              {% else %}
+                  {{ logged_out_mobile_header }}
+              {% endif %}
+          {% elif request.user.is_authenticated %}
+              {{ logged_in_header }}
+          {% else %}
+              {{ logged_out_header }}
+          {% endif %}
+      </div>
+      {% endif %}
+      {% endautoescape %}
+
+      {% if not html %}
+      <div id="staticContentWrapper">
+          <div id="content" class="interface-{{ request.interfaceLang }}">
+              {% block content %}{% endblock %}
+          </div>
+      </div>
+
+      {% block footer %} <!-- todo: sheets is overwriting this, why? -->
+          {% if SITE_SETTINGS.TORAH_SPECIFIC %}
+              <div id="footerContainer">{% include "elements/footer.html" %}</div>
+          {% endif %}
+      {% endblock %}
+      {% endif %}
+
+      <div id="overlay"></div>
     </div>
-    {% endif %}
-    {% endautoescape %}
-
-    {% if not html %}
-    <div id="staticContentWrapper">
-        <div id="content" class="interface-{{ request.interfaceLang }}">
-            {% block content %}{% endblock %}
-        </div>
-    </div>
-
-    {% block footer %} <!-- todo: sheets is overwriting this, why? -->
-        {% if SITE_SETTINGS.TORAH_SPECIFIC %}
-            <div id="footerContainer">{% include "elements/footer.html" %}</div>
-        {% endif %}
-    {% endblock %}
-    {% endif %}
-
-    <div id="overlay"></div>
 
     <script src="https://unpkg.com/react@16/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
     <script src="https://unpkg.com/react-dom@16/umd/react-dom.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
