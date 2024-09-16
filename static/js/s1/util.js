@@ -834,7 +834,7 @@ sjs.textBrowser = {
 		// Unfreeze the function after 3 seconds
 		setTimeout(() => {
 			this._isFrozen = false;
-		}, 700);
+		}, 1300);
 
 		// navigate forward to "to", a string naming a text, category or section
 		// as it appears in the nav or path
