@@ -1521,7 +1521,7 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   </div>
 )};
 
-const AiLearnMoreLink = (lang) => {
+const AiLearnMoreLink = ({lang}) => {
   const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
   return (
       <a href={"/sheets/583824?lang=bi"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
@@ -1530,7 +1530,7 @@ const AiLearnMoreLink = (lang) => {
   );
 };
 
-const AiFeedbackLink = (lang) => {
+const AiFeedbackLink = ({lang}) => {
   const text = lang === 'english' ? 'Feedback' : 'כתבו לנו';
   return (
       <a href={"https://sefaria.formstack.com/forms/ai_feedback_form"} data-anl-event="feedback_click:click" data-anl-text="feedback">
@@ -1555,7 +1555,7 @@ const AiInfoTooltip = () => {
             <div className="ai-info-first-message">
             <InterfaceText>
                 <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors.
-                  <AiLearnMoreLink lang="english" />
+                  &nbsp;<AiLearnMoreLink lang="english" />
                 </EnglishText>
                 <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית ועברו הגהה על ידי צוות העורכים שלנו.&nbsp;
                   <AiLearnMoreLink lang="hebrew" />
