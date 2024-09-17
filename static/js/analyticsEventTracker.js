@@ -129,10 +129,15 @@ const AnalyticsEventTracker = (function() {
         /**
          * Return data that can be derived directly from `event`
          */
-        if (_delegatedEventTypeToOriginal(event.type) === "toggle") {
+        const eventType = _delegatedEventTypeToOriginal(event.type);
+        if (eventType === "toggle") {
             return {
                 from: event.target.open ? "closed" : "open",
                 to: event.target.open ? "open" : "closed"
+            };
+        } else if (eventType === "input") {
+            return {
+                text: event.target.value,
             };
         }
         return {};

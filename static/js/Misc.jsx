@@ -500,6 +500,8 @@ const FilterableList = ({
               name="filterableListInput"
               value={filter}
               onChange={e => setFilter(e.target.value)}
+              data-anl-event="search:input"
+              data-anl-feature_name="source_filter"
             />
           </div>
           <div className="filter-sort-wrapper">
