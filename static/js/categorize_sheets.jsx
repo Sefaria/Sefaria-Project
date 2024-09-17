@@ -189,7 +189,7 @@ class SheetCategorizer extends React.Component {
               suggestions={this.state.suggestions}
               onDelete={this.onTagDelete.bind(this)}
               onAddition={this.onTagAddition.bind(this)}
-              placeholderText={Sefaria._("add_topic")}
+              placeholderText={Sefaria._("sheet.placeholder.add_topic")}
               delimiters={["Enter", "Tab", ","]}
               onInput={this.updateSuggestedTags.bind(this)}
             />
@@ -206,7 +206,7 @@ class SheetCategorizer extends React.Component {
           </div>
           <div className="categorize-section">
             <fieldset>
-              <h3> {Sefaria._("categories")}</h3>
+              <h3> {Sefaria._("sheet.categories")}</h3>
               {
                 this.state.allCategories.map((category, i) => (
                   <div key={i}>
@@ -226,7 +226,7 @@ class SheetCategorizer extends React.Component {
           </div>
           <button id="save-and-next" onClick={this.saveAndNext.bind(this)}>{Sefaria._("save_and_next")} </button>
           <div className="left-pane-bottom">
-            <h3>{Sefaria._("setting_admin")}</h3>
+            <h3>{Sefaria._("sheet.catagorize.setting_admin")}</h3>
             <h4>Latest sheets without: {this.state.doesNotContain}</h4>
             <div>
             <button onClick={this.toggleSheetSortingMechanism.bind(this)}>{Sefaria._("sheet.switch_finding_sheet")} {this.getOpposite(this.state.doesNotContain)}</button>

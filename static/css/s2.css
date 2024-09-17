@@ -5953,8 +5953,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .readerTextTocBox a div {
     white-space: nowrap;
     text-overflow: ellipsis;
-    overflow: hidden;
     max-width: 100%;
+    padding: 2px 2px;
 }
 
 .readerControls .readerTextToc .readerTextVersion {

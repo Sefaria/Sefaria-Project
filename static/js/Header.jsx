@@ -142,7 +142,7 @@ class SearchBar extends Component {
     this.state = {
       searchFocused: false
     };
-    this._searchOverridePre = Sefaria._("search_for") +': "';
+    this._searchOverridePre = Sefaria._("header.search_bar.search_for") +': "';
     this._searchOverridePost = '"';
     this._type_icon_map = {
       "Collection": "collection.svg",
@@ -379,7 +379,7 @@ class SearchBar extends Component {
         <SearchButton onClick={this.handleSearchButtonClick} />
         <input className={inputClasses}
           id="searchInput"
-          placeholder={Sefaria._("search")}
+          placeholder={Sefaria._("common.placeholder.search")}
           onKeyUp={this.handleSearchKeyUp}
           onFocus={this.focusSearch}
           onBlur={this.blurSearch}
@@ -535,7 +535,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           </a>
           <a href="/texts/saved" onClick={close}>
             <img src="/static/icons/bookmarks.svg" />
-            <InterfaceText>save_and_history</InterfaceText>
+            <InterfaceText>bookmark.save_and_history</InterfaceText>
           </a>
           <a href="/notifications" onClick={close}>
             <img src="/static/icons/notification.svg" />
@@ -545,7 +545,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         {/* <a href="/about">
           <img src="/static/icons/info.svg" />
-          <InterfaceText>About Sefaria</InterfaceText>
+          <InterfaceText>About Pecha</InterfaceText>
         </a> */}
 
         {Sefaria._uid ?
@@ -698,7 +698,7 @@ const HelpButton = () => {
   return (
     <div className="help">
       <a href={url}>
-        <img src="/static/img/help.svg" alt={Sefaria._("help")}/>
+        <img src="/static/img/help.svg" alt={Sefaria._("header.button.help")}/>
       </a>
     </div>
   );

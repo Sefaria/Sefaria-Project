@@ -178,8 +178,8 @@ class AddToSourceSheetBox extends Component {
         disallowedTagsMode: 'discard',
       });
       let titleRetval = {
-        "en": `${sheetTitle} ${Sefaria._("section")}${nodeID}`,
-        "he": `${sheetTitle} ${Sefaria._("section")}${nodeID}`
+        "en": `${sheetTitle} ${Sefaria._("sheet.source_sheet.make_ref.section")}${nodeID}`,
+        "he": `${sheetTitle} ${Sefaria._("sheet.source_sheet.make_ref.section")}${nodeID}`
       }
       if (refTitles){ //show the refs also of a source, just to be nice
         titleRetval["en"] += `(${refTitles["en"]})`;
@@ -231,7 +231,7 @@ class AddToSourceSheetBox extends Component {
             <div className="newSheet noselect">
               <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")}/>
               <div className="button small noselect" onClick={this.createSheet} >
-                <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("Create")}</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("common.create")}</span>
               </div>
              </div>
           </div>
@@ -304,7 +304,7 @@ class AddToSourceSheetWindow extends Component {
       <div className="sourceSheetBoxTitle">
         <img src="/static/icons/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
         {Sefaria._uid ? null : <span>
-           {Sefaria._("sheet.message.login_before_add_source_sheet")} <a href={"/login" + nextParam}> {Sefaria._("log_in")} </a>
+           {Sefaria._("sheet.message.login_before_add_source_sheet")} <a href={"/login" + nextParam}> {Sefaria._("common.log_in")} </a>
         </span>}
         <div className="clearFix"></div>
       </div>

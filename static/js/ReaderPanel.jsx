@@ -1333,7 +1333,7 @@ class ReaderControls extends Component {
     
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
-        title = heTitle = Sefaria._("loading");
+        title = heTitle = Sefaria._("common.loading");
       } else {
         title = heTitle = this.props.sheetTitle;
         if (title === "") {
@@ -1572,7 +1572,7 @@ class ReaderDisplayOptionsMenu extends Component {
       (this.props.width > 500 ?
         <ToggleSet
           ariaLabel="bidirectional text layout toggle"
-          label={Sefaria._("bilingual_layout")}
+          label={Sefaria._("text.reader_option_menu.bilingual_layout")}
           name="biLayout"
           options={biLayoutOptions}
           setOption={this.props.setOption}
@@ -1586,7 +1586,7 @@ class ReaderDisplayOptionsMenu extends Component {
     let colorToggle = (
         <ToggleSet
           ariaLabel="Color toggle"
-          label={Sefaria._("color")}
+          label={Sefaria._("text.reader_option_menu.color")}
           name="color"
           separated={true}
           options={colorOptions}
@@ -1601,15 +1601,15 @@ class ReaderDisplayOptionsMenu extends Component {
     let sizeToggle = (
         <ToggleSet
           ariaLabel="Increase/Decrease Font Size Buttons"
-          label={Sefaria._("font_size")}
+          label={Sefaria._("text.reader_option_menu.font_size")}
           name="fontSize"
           options={sizeOptions}
           setOption={this.props.setOption}
           currentValue={null} />);
 
     let aliyahOptions = [
-      {name: "aliyotOn",   content: Sefaria._("on"), role: "radio", ariaLabel: Sefaria._("Show Parasha Aliyot") },
-      {name: "aliyotOff", content: Sefaria._("off"), role: "radio", ariaLabel: Sefaria._("Hide Parasha Aliyot") },
+      {name: "aliyotOn",   content: Sefaria._("common.on"), role: "radio", ariaLabel: Sefaria._("Show Parasha Aliyot") },
+      {name: "aliyotOff", content: Sefaria._("common.off"), role: "radio", ariaLabel: Sefaria._("Hide Parasha Aliyot") },
     ];
     let aliyahToggle = this.renderAliyotToggle() ? (
       this.props.parentPanel == "Sheet" ? null :
@@ -1622,14 +1622,14 @@ class ReaderDisplayOptionsMenu extends Component {
           currentValue={this.props.settings.aliyotTorah} />) : null;
 
     let vowelsOptions = [
-      {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("show_vowels")},
-      {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("show_only_vowels")},
-      {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("show_only_consonenetal_text")}
+      {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("text.reader_option_menu.show_vowels")},
+      {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("text.reader_option_menu.show_only_vowels")},
+      {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("text.reader_option_menu.show_only_consonenetal_text")}
     ];
     let vowelToggle = null;
     if(!this.props.menuOpen){
       let vowelOptionsSlice = this.vowelToggleAvailability();
-      let vowelOptionsTitle = (vowelOptionsSlice == 0) ? Sefaria._("vocalization") : Sefaria._("vowels");
+      let vowelOptionsTitle = (vowelOptionsSlice == 0) ? Sefaria._("text.reader_option_menu.vocalization") : Sefaria._("text.reader_option_menu.vowels");
       vowelsOptions = vowelsOptions.slice(vowelOptionsSlice);
       vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
         this.props.parentPanel == "Sheet" ? null :
@@ -1643,13 +1643,13 @@ class ReaderDisplayOptionsMenu extends Component {
     }
 
     let punctuationOptions = [
-      {name: "punctuationOn", content: Sefaria._("on"), role: "radio", ariaLabel: Sefaria._("show_puntuation")},
-      {name: "punctuationOff", content: Sefaria._("off"), role: "radio", ariaLabel: Sefaria._("hide_puntuation")}
+      {name: "punctuationOn", content: Sefaria._("common.on"), role: "radio", ariaLabel: Sefaria._("text.reader_option_menu.show_puntuation")},
+      {name: "punctuationOff", content: Sefaria._("common.off"), role: "radio", ariaLabel: Sefaria._("text.reader_option_menu.hide_puntuation")}
     ]
     let punctuationToggle = this.shouldPunctuationToggleRender() ? (
         <ToggleSet
           ariaLabel="Punctuation Toggle"
-          label={Sefaria._("punctuation")}
+          label={Sefaria._("text.reader_option_menu.punctuation")}
           name="punctuationTalmud"
           options={punctuationOptions}
           setOption={this.props.setOption}

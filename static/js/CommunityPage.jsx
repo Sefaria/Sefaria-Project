@@ -110,7 +110,7 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
     recentSheetsContent.splice(6, 0, joinTheConversation);
     recentSheetsContent.push(
       <a className="button small white loadMore" onClick={loadMore}>
-        <InterfaceText>{ Sefaria._("load_more")}</InterfaceText>
+        <InterfaceText>{ Sefaria._("common.load_more")}</InterfaceText>
       </a>
     );
   }

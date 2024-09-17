@@ -248,7 +248,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         type: "TitledText",
         props: {
           enTitle: "About",
-          heTitle: Sefaria._("about"),
+          heTitle: Sefaria._("common.about"),
           enText: topicData.description.en,
           heText: topicData.description.he
         }
@@ -497,8 +497,8 @@ const TopicPage = ({
     if (displayTabs.length) {
       displayTabs.push({
         title: {
-          en: Sefaria._("dropdown.filter"),
-          he: Sefaria._("dropdown.filter")
+          en: Sefaria._("common.dropdown.filter"),
+          he: Sefaria._("common.dropdown.filter")
         },
         id: 'filter',
         icon: `/static/icons/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`,
@@ -852,7 +852,7 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, propert
             if (!url) { return null; }
             return (
               <SimpleLinkedBlock
-                key={url} en={propObj.title + (urlExists ? "" : " (Hebrew)")} he={Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("English")})`)}
+                key={url} en={propObj.title + (urlExists ? "" : " (Hebrew)")} he={Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("english")})`)}
                 url={url} aclasses={"systemText topicMetaData"} openInNewTab
               />
             );
