@@ -7940,7 +7940,7 @@ But not to use a display block directive that might break continuous mode for ot
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border: none;
 }
-.sheets .button {
+.sheetsHomepage .button {
   background-color: var(--midrash-green);
 }
 .button.getStartedSheets {

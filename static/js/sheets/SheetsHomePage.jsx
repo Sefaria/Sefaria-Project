@@ -31,7 +31,7 @@ const SheetsSidebar = () => {
 
 
 const SheetsHomePage = () => {
-  return <div className="readerNavMenu sheets" key="0">
+  return <div className="readerNavMenu sheetsHomepage" key="0">
             <div className="content">
                 <SheetsHeroBanner title="Join the Torah Conversation"
                                   message="Create, share, and discover source sheets."
