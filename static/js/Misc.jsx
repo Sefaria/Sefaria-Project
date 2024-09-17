@@ -3388,7 +3388,12 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
 const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
 
   return (
-      <div className={classNames({ active: lang === buttonId, radioChoice: 1 })}>
+      <div
+          className={classNames({ active: lang === buttonId, radioChoice: 1 })}
+          data-anl-event="lang_toggle_select:click"
+          data-anl-text={buttonId}
+          data-anl-to={buttonId}
+      >
         <label htmlFor={buttonId}>
           <InterfaceText>{buttonTitle}</InterfaceText>
         </label>
@@ -3424,6 +3429,12 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   return (
     <div className="langSelectPopover"
       tabIndex="0"
+      data-anl-event="lang_toggle_click:click"
+      data-anl-batch={JSON.stringify({
+        feature_name: "source lang toggled",
+        text: lang,
+        from: lang,
+      })}
       onClick={(e) => {
           e.stopPropagation();
           e.nativeEvent.stopImmediatePropagation();
