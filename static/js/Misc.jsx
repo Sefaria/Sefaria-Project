@@ -491,7 +491,7 @@ const FilterableList = ({
         </div>
       </div> : null }
       { !oldDesign && showFilterHeader ? (
-        <div className="filter-bar-new">
+        <div className="filter-bar-new" data-anl-feature_name="source_filter">
           <div className="filter-input">
             <SearchButton />
             <input
@@ -501,7 +501,6 @@ const FilterableList = ({
               value={filter}
               onChange={e => setFilter(e.target.value)}
               data-anl-event="search:input"
-              data-anl-feature_name="source_filter"
             />
           </div>
           <div className="filter-sort-wrapper">
@@ -520,6 +519,10 @@ const FilterableList = ({
                     e.target.click();
                   }
                 }}
+                data-anl-event="sort_by:click"
+                data-anl-batch={JSON.stringify({
+                  text: option, from: sortOption, to: option,
+                })}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
