@@ -1,61 +1,65 @@
 div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):not(
-        :has(#staticContentWrapper div#content div#sheetsContent)
-    ) {
-    transform: translateY(120px);
-    height: calc(100vh - 120px);
-    top: -120px;
-    position: relative;
-    display: flow-root;
+    :has(#staticContentWrapper div#content div#sheetsContent)
+  ) {
+  transform: translateY(120px);
+  height: calc(100vh - 120px);
+  top: -120px;
+  position: relative;
+  display: flow-root;
 }
 
 body:not(.inApp)
-    div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(
-        #staticContentWrapper
-    ):not(:has(#staticContentWrapper div#content div#sheetsContent)) {
-    transform: unset;
-    top: 0;
+  div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(#staticContentWrapper):not(
+    :has(#staticContentWrapper div#content div#sheetsContent)
+  ) {
+  transform: unset;
+  top: 0;
 }
 
 body:not(.inApp)
-    div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(
-        #staticContentWrapper
-    ):not(:has(#staticContentWrapper div#content div#sheetsContent))
-    #s2 {
-    top: unset;
+  div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(#staticContentWrapper):not(
+    :has(#staticContentWrapper div#content div#sheetsContent)
+  )
+  #s2 {
+  top: unset;
 }
 
 body:not(.inApp)
-    div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(
-        #staticContentWrapper
-    )
-    .mobileNavMenu {
-    height: calc(100vh - 180px);
-    top: 180px;
+  div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(#staticContentWrapper)
+  .mobileNavMenu {
+  height: calc(100vh - 180px);
+  top: 180px;
 }
 
-div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(
-        #staticContentWrapper
-    )
-    #s2
-    .singlePanel
-    .autocomplete-dropdown {
-    top: 45px;
-    left: -10px;
-    position: absolute;
+div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(#staticContentWrapper)
+  #s2
+  .singlePanel
+  .autocomplete-dropdown {
+  top: 45px;
+  left: -10px;
+  position: absolute;
 }
 
 div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar) .mobileNavMenu {
-    height: calc(100vh - 180px);
+  height: calc(100vh - 180px);
 }
 
-div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar)
-    #s2:has(.mobileNavMenu) {
-    top: unset;
+div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar) #s2:has(.mobileNavMenu) {
+  top: unset;
 }
 
 div#pageWrapper:has(#staticContentWrapper div#content div#sheetsContent)
-    ~ div.ub-emb-container
-    div.ub-emb-bar,
+  ~ div.ub-emb-container
+  div.ub-emb-bar,
 div#pageWrapper:has(div.feedbackOverlay) ~ div.ub-emb-container div.ub-emb-bar {
-    display: none;
+  display: none;
+}
+
+body.inApp
+  div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(#staticContentWrapper):not(
+    :has(#staticContentWrapper div#content div#sheetsContent)
+  ) {
+  transform: none;
+  height: auto;
+  top: auto;
 }
