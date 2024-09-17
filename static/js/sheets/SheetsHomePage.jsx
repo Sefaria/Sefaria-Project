@@ -44,9 +44,11 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
                                   posterImg="/static/img/home-video.jpg"
                 />
                 <div className="sidebarLayout">
-                    <div className="sheetsTopics">
-                        <SheetsTopicsCalendar handleClick={handleClick(setTopic)}/>
-                        {multiPanel && sheetsTopicsTOC}
+                    <div className="contentInner">
+                        <div className="sheetsTopics">
+                            <SheetsTopicsCalendar handleClick={handleClick(setTopic)}/>
+                            {multiPanel && sheetsTopicsTOC}
+                        </div>
                     </div>
                     <SheetsSidebar/>
                     {!multiPanel && sheetsTopicsTOC}

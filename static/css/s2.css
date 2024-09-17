@@ -13298,15 +13298,15 @@ span.ref-link-color-3 {color: blue}
   flex: 1 1 100%;
 }
 .sheetsHomepage .sidebarLayout {
-  display: flex;
   justify-content: space-between;
   margin-top: 50px;
-  max-width: revert;
 }
 .sheetsHomepage .sidebarLayout .sheetsTopics {
   display: flex;
   flex-direction: column;
-  width: 55%;
+}
+.sheetsHomepage .content .contentInner {
+  width: 875px;
 }
 .sheetsHomepage .sidebarLayout .sheetsTopicsCalendar, .sheetsHomepage .sidebarLayout .sheetsTopicTOC {
   margin-inline-start: 10%;
