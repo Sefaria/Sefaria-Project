@@ -669,7 +669,7 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
 };
 
 const GetStartedButton = () => {
-    const href = Sefaria._v({"english": "/sheets/393695", "hebrew": "/sheets/399333"})
+    const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
     return <Button className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
 }
 const CreateSheetsButton = () => {

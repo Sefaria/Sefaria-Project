@@ -4,7 +4,7 @@ const Button = ({ variant = 'primary', icon, children, onClick, className = '' }
       className={`button ${variant} ${className}`}
       onClick={onClick}
     >
-      {icon && <Icon className="button-icon" />}
+      {icon && <img src={icon} className="button-icon" />}
       {children}
     </button>
   );
