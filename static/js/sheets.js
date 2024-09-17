@@ -854,13 +854,13 @@ $("#likeButton").click(function(e) {
 
 	var likeCount = parseInt($("#likeCount").text());
 	if ($(this).hasClass("liked")) {
-		$(this).removeClass("liked").text(_("like"));
+		$(this).removeClass("liked").text(_("common.like"));
 		likeCount -= 1;
 		$("#likeCount").text(likeCount);
 		$.post("/api/sheets/" + sjs.current.id + "/unlike");
 		Sefaria.track.sheets("Unlike", sjs.current.id);
 	} else {
-		$(this).addClass("liked").text(_("unlike"));
+		$(this).addClass("liked").text(_("sheet.unlike"));
 		$.post("/api/sheets/" + sjs.current.id + "/like");
 		likeCount += 1;
 		$("#likeCount").text(likeCount);
@@ -1705,7 +1705,7 @@ $("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', funct
 $(".highlighterTagWindow").on('click','.close-button', function() {closeHighlighterTagWindow()});
 
 function saveNewlyCreatedTag(newTagName,newTagColor) {
-	if (newTagName !== _("create_new") && newTagName !== "") {
+	if (newTagName !== _("sheet.create_new") && newTagName !== "") {
 		$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
 		$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 		resetSplitHighlighterSegment();
@@ -1713,18 +1713,18 @@ function saveNewlyCreatedTag(newTagName,newTagColor) {
 		autoSave();
 	}
 
-	$(".createNewHighlighterTag .tagName").text(_("create_new"))
+	$(".createNewHighlighterTag .tagName").text(_("sheet.create_new"))
 }
 
 function applyNewlyCreatedTag(newTagName,newTagColor) {
-	if (newTagName !== _("create_new") && newTagName !== "") {
+	if (newTagName !== _("sheet.create_new") && newTagName !== "") {
 		$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment active" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
 		$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 		resetSplitHighlighterSegment();
 		resetHighlighterFilterTags();
 		if (sjs.selection.startOffset !== sjs.selection.endOffset) {
 	$(".highlighterTagWindow .save").click();
-			$(".createNewHighlighterTag .tagName").text(_("create_new"))
+			$(".createNewHighlighterTag .tagName").text(_("sheet.create_new"))
   }
   else {
 			$(".createNewHighlighterTag .tagName").text("")
@@ -1740,7 +1740,7 @@ $(".createNewHighlighterTag .tagName").keydown(function(e){
 });
 
 $(".createNewHighlighterTag .tagName").focus(function(e){
-	if ($(this).text()==_("create_new")) {
+	if ($(this).text()==_("sheet.create_new")) {
 		$(this).text('');
 	}
 });
@@ -3378,7 +3378,7 @@ sjs.copySource = source;
 
 // Get sheet list if necessary
 if (!$("#sheetList .sheet").length) {
-	$("#sheetList").html(Sefaria._("loading"));
+	$("#sheetList").html(Sefaria._("common.loading"));
 	$.getJSON("/api/sheets/user/" + Sefaria._uid, function(data) {
 		$("#sheetList").empty();
 		var sheets = "";

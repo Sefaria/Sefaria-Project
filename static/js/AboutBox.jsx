@@ -102,7 +102,7 @@ class AboutBox extends Component {
     const no_source_versions = multiple_translations || translationVersions?.length === 1 && !sourceVersion;
     const sourceVersionSectionTitle = {en: Sefaria._("text.current_version"), he:Sefaria._("text.current_version")};
     const translationVersionsSectionTitle = multiple_translations ? {en: Sefaria._("text.current_translation"), he:Sefaria._("text.current_translation")} : {en: Sefaria._("text.current_translation"), he: Sefaria._("text.current_translation")};
-    const alternateVersionsSectionTitle = no_source_versions ? {en: Sefaria._("source_versions"), he: Sefaria._("source_versions")} : {en: Sefaria._("alt_source_versions"), he: Sefaria._("alt_source_versions")}
+    const alternateVersionsSectionTitle = no_source_versions ? {en: Sefaria._("text.version.source_versions"), he: Sefaria._("text.version.source_versions")} : {en: Sefaria._("text.version.alt_source_versions"), he: Sefaria._("text.version.alt_source_versions")}
 
     let detailSection = null;
     if (d) {

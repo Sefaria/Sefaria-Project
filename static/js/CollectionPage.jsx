@@ -231,7 +231,7 @@ class CollectionPage extends Component {
         {id: "sheets", title: {en: Sefaria._("profile.tab.sheets"), he: Sefaria._("profile.tab.sheets")}},
         {
           id: 'filter',
-          title: {en: Sefaria._("dropdown.filter"), he: Sefaria._("dropdown.filter")},
+          title: {en: Sefaria._("common.dropdown.filter"), he: Sefaria._("common.dropdown.filter")},
           icon: `/static/icons/arrow-${this.state.showFilterHeader ? 'up' : 'down'}-bold.svg`,
           justifyright: true,
           clickTabOverride: () => {
@@ -272,7 +272,7 @@ class CollectionPage extends Component {
               renderItem={this.renderSheet}
               renderEmptyList={this.renderEmptyList}
               renderFooter={this.renderSearchLink}
-              sortOptions={[Sefaria._("filter_list.recent"),Sefaria._("filter_list.alphabetical") , Sefaria._("profile.tab.sheet.tag.views") ]}
+              sortOptions={[Sefaria._("common.filter_list.recent"),Sefaria._("collection.filter_list.alphabetical") , Sefaria._("profile.tab.sheet.tag.views") ]}
               data={sheets}
               containerClass={"sheetList"}
               scrollableElement={this.scrollableRef}
@@ -639,22 +639,22 @@ class CollectionMemberListingActions extends Component {
               : null}
             {this.props.isAdmin || this.props.isSelf ?
               <div className="action" onClick={this.removeMember}>
-                <span className="role"><InterfaceText>{this.props.isSelf ? Sefaria._("collection.leave_collection"): Sefaria._("remove")}</InterfaceText></span>
+                <span className="role"><InterfaceText>{this.props.isSelf ? "collection.leave_collection": "collection.remove"}</InterfaceText></span>
               </div>
             : null }
             {this.props.isInvitation  && !this.state.invitationResent ?
               <div className="action" onClick={this.resendInvitation}>
-                <span className="role"><InterfaceText>{Sefaria._("collection.resend_invitation")}</InterfaceText></span>
+                <span className="role"><InterfaceText>collection.resend_invitation</InterfaceText></span>
               </div>
               : null}
             {this.props.isInvitation  && this.state.invitationResent ?
               <div className="action">
-                <span className="role"><InterfaceText>{Sefaria._("collection.invitation_resent" )}</InterfaceText></span>
+                <span className="role"><InterfaceText>collection.invitation_resent</InterfaceText></span>
               </div>
               : null}
             {this.props.isInvitation ?
               <div className="action" onClick={this.removeInvitation}>
-                <span className="role"><InterfaceText>{ Sefaria._("remove")} </InterfaceText></span>
+                <span className="role"><InterfaceText>collection.remove </InterfaceText></span>
 
               </div>
               : null}

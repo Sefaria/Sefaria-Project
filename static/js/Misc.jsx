@@ -318,7 +318,7 @@ class ProfilePic extends Component {
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
-                <span className={`${Sefaria.languageClassFont()}`}>{ showDefault ? Sefaria._("add_picture") : Sefaria._("upload_new") }</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{ showDefault ? Sefaria._("profile.picture.add_picture") : Sefaria._("profile.picture.upload_new") }</span>
               </label>
             </div>) : null
           }
@@ -342,14 +342,14 @@ class ProfilePic extends Component {
               { (uploading || isFirstCropChange) ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
                 <div>
                   <div className="smallText profile-pic-cropper-desc">
-                    <span >{ Sefaria._("drag_corners_to_crop_images") }</span>
+                    <span >{ Sefaria._("profile.picture.drag_corners_to_crop_images") }</span>
                   </div>
                   <div className="profile-pic-cropper-button-row">
                     <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
                       <span >{ Sefaria._("button.cancel") }</span>
                     </a>
                     <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
-                      <span >{ Sefaria._("button.save") }</span>
+                      <span >{ Sefaria._("common.button.save") }</span>
                     </a>
                   </div>
                 </div>
@@ -1882,7 +1882,7 @@ const SheetListing = ({
         }
         {
           deletable ?
-            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("delete")} />
+            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("sheet.sheet_list.delete")} />
             : null
         }
         {
@@ -1924,7 +1924,7 @@ const CollectionListing = ({data}) => {
             {data.listed ? null :
               (<span className="unlisted">
                 <img src="/static/img/eye-slash.svg"/>
-                <InterfaceText>collection_list.unlisted</InterfaceText>
+                <InterfaceText>collection.collection_list.unlisted</InterfaceText>
               </span>) }
 
             {data.listed ? null :
@@ -1932,7 +1932,7 @@ const CollectionListing = ({data}) => {
 
             <span className="collectionListingDetail collectionListingSheetCount">
               <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
-              <InterfaceText>sheets</InterfaceText>
+              <InterfaceText>common.sheets</InterfaceText>
             </span>
 
             {data.memberCount > 1 ?
@@ -1999,10 +1999,10 @@ class LoginPrompt extends Component {
           <span >{ Sefaria._("message.login_to_use_feature")}</span>
         </div>
         <a className="button" href={"/login" + nextParam}>
-          <span >{ Sefaria._("log_in")}</span>
+          <span >{ Sefaria._("common.log_in")}</span>
         </a>
         <a className="button" href={"/register" + nextParam}>
-          <span >{ Sefaria._("sign_up")}</span>
+          <span >{ Sefaria._("common.sign_up")}</span>
         </a>
       </div>);
   }
@@ -2561,8 +2561,8 @@ Dropdown.propTypes = {
 
 class LoadingMessage extends Component {
   render() {
-    var message = this.props.message ||  Sefaria._("loading") ;
-    var heMessage = this.props.heMessage || Sefaria._("loading");
+    var message = this.props.message ||  Sefaria._("common.loading") ;
+    var heMessage = this.props.heMessage || Sefaria._("common.loading");
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
     return (<div className={classes}>
               <InterfaceText>
@@ -2714,7 +2714,7 @@ class FeedbackBox extends Component {
                         {value: "good_vibes",      label: Sefaria._("give_thanks")},
                         {value: "other",           label: Sefaria._("other")},
                       ]}
-              placeholder={Sefaria._("select_type")}
+              placeholder={Sefaria._("common.select_type")}
               onChange={this.setType}
             />
 
@@ -2725,7 +2725,7 @@ class FeedbackBox extends Component {
                 : null }
 
              <div className="button" role="button" onClick={() => this.sendFeedback()}>
-                 <span > {Sefaria._("button.submit")}</span>
+                 <span > {Sefaria._("common.button.submit")}</span>
              </div>
         </div>
     );
@@ -2783,8 +2783,8 @@ class CookiesNotification extends Component {
 
 
           <span className={`${Sefaria.languageClassFont()}`}>
-            <span>{ Sefaria._("message.cookies_msg") }<a href="/privacy-policy">{ Sefaria._("learn_more") }</a></span>
-            <span className={`${Sefaria.languageClassFont()} button small white`} onClick={this.setCookie}>{ Sefaria._("ok") }</span>
+            <span>{ Sefaria._("message.cookies_msg") }<a href="/privacy-policy">{ Sefaria._("common.learn_more") }</a></span>
+            <span className={`${Sefaria.languageClassFont()} button small white`} onClick={this.setCookie}>{ Sefaria._("common.ok") }</span>
           </span>
 
        </div>
@@ -2891,7 +2891,7 @@ const AdminToolHeader = function({title, validate, close}) {
                   <InterfaceText>{ Sefaria._("button.cancel")}</InterfaceText>
                 </a>
                 <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
-                  <InterfaceText>{ Sefaria._("button.save")}</InterfaceText>
+                  <InterfaceText>{ Sefaria._("common.button.save")}</InterfaceText>
                 </div>
               </div>
             </div>
@@ -2980,7 +2980,7 @@ const TitleVariants = function({titles, update, options}) {
   const onTitleValidate = function (title) {
     const validTitle = titles.every((item) => item.name !== title.name);
     if (!validTitle) {
-      alert(title.name+  Sefaria._(" already exists."))
+      alert(title.name+  Sefaria._("common.all_ready_exists"))
     }
     return validTitle;
   }
@@ -3017,7 +3017,7 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
                         {value: "h",      label:'ה׳'},
                         {value: "ykvk",    label: 'יקוק'},
                       ]}
-              placeholder={Sefaria._("select_type")}
+              placeholder={Sefaria._("common.select_type")}
               onChange={(e) => setDivineNameReplacement((e.target.value))}
               preselected={divineNameReplacement}
             />

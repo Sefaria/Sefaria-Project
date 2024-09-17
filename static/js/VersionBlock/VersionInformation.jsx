@@ -21,7 +21,7 @@ function VersionInformation({currentRef, version}) {
             </div>
             <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "digitizedBySefaria"))}>
               <span className="versionDetailsLabel">
-                {`${Sefaria._("digitization")}: `}
+                {`${Sefaria._("text.version.information.digitization")}: `}
               </span>
               <a className="versionDetailsLink" href="/digitized-by-sefaria" target="_blank">
                 {Sefaria._("Sefaria")}
@@ -29,7 +29,7 @@ function VersionInformation({currentRef, version}) {
             </div>
             <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionLicense": 1, "versionDetailsElement": 1}, "license" ))}>
               <span className="versionDetailsLabel">
-                {`${Sefaria._("License")}: `}
+                {`${Sefaria._("connection_panel.license")}: `}
               </span>
               <a className="versionDetailsLink" href={makeLicenseLink()} target="_blank">
                 {Sefaria._(version?.license)}
@@ -37,12 +37,12 @@ function VersionInformation({currentRef, version}) {
             </div>
             <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionHistoryLink": 1, "versionDetailsElement": 1}, null))}>
                <a className="versionDetailsLink" href={`/activity/${Sefaria.normRef(currentRef)}/${version.language}/${version.versionTitle && version.versionTitle.replace(/\s/g,"_")}`} target="_blank">
-                 {Sefaria._("text.versions.review_history")}
+                 {Sefaria._("text.versions.information.review_history")}
                </a>
             </div>
             <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionBuyLink": 1, "versionDetailsElement": 1}, "purchaseInformationURL"))}>
                <a className="versionDetailsLink" href={version.purchaseInformationURL} target="_blank">
-                {Sefaria._("buy_in_print")}
+                {Sefaria._("text.version.information.buy_in_print")}
                </a>
             </div>
         </div>

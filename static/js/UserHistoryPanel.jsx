@@ -29,7 +29,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     <span className="sans-serif">
       <a href="/texts/saved" className={"navTitleTab" + (menuOpen === "saved" ? " current" : "")}>
         <img src="/static/icons/bookmark.svg" />
-        <InterfaceText>save</InterfaceText>
+        <InterfaceText>common.save</InterfaceText>
       </a>
       <a href="/texts/history" className={"navTitleTab" + (menuOpen === "history" ? " current" : "")}>
         <img src="/static/icons/clock.svg" />
@@ -114,8 +114,8 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
     return (
       <div className="savedHistoryMessage sans-serif">
         {menuOpen === "history" ?
-        <InterfaceText>text_sheet_available_here</InterfaceText>
-        : <InterfaceText>{Sefaria._("bookmark.icon_description")}</InterfaceText>}
+        <InterfaceText>user_history_panel.text_sheet_available_here</InterfaceText>
+        : <InterfaceText>bookmark.icon_description</InterfaceText>}
       </div>
     );
   }
