@@ -2355,7 +2355,7 @@ const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) =>
               method: 'POST',
               mode: 'same-origin',
               credentials: 'same-origin',
-              body: {"lists": lists},
+              body: JSON.stringify({"lists": lists}),
           }).then(response => {
               if (!response.ok) {
                   response.text().then(resp_text => {
@@ -2374,7 +2374,7 @@ const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) =>
                   });
               }
           }).catch(error => {
-              setMessage(error.message);
+              setMessage(`Failed to subscribe ${email}.`);
           });
       }
   }
