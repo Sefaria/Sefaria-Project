@@ -133,9 +133,6 @@ class Sheet extends Component {
                   authorID={sheet.owner}
                   authorUrl={sheet.ownerProfileUrl}
                   authorImage={sheet.ownerImageUrl}
-                  collectionName={sheet.collectionName}
-                  collectionSlug={sheet.displayedCollection}
-                  collectionImage={sheet.collectionImage}
                   collections={sheet.collections}
                   summary={sheet.summary}
               />

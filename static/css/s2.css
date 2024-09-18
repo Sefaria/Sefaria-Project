@@ -3285,12 +3285,19 @@ a.cardTitle:hover {
   line-height: 18px;
   margin-block-end: 20px;
 }
+.sheetSidebar .profile-pic {
+  display: block;
+  margin-block-end: 20px;
+  margin-block-start: 25px;
+  margin-inline-start: -5px;
+}
 .sheetViewer {
   display: flex;
 }
 .sheetSidebar {
   width: 33%;
 }
+
 .sheetAuthorName {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -3299,7 +3306,7 @@ a.cardTitle:hover {
   line-height: 18.75px;
   color: var(--midrash-green);
   display: block;
-  margin-block-end: 10px;
+  margin-block-end: 5px;
 }
 .sheetAuthorName:hover {
   text-decoration: none;
@@ -9096,9 +9103,11 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 ul.aboutSheetLinks {
   list-style-type: none;
   padding-inline-start: 0;
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
-  font-size: var(--serif-body-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
 }
 
 h3.aboutSheetHeader {
