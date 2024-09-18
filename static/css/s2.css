@@ -3255,7 +3255,6 @@ a.cardTitle:hover {
   --english-font: var(--english-sans-serif-font-family);
 }
 .bookPage .tocTitle,
-.sheetContent .title,
 .bookMetaDataBox .title {
   text-align: center;
   font-size: 30px;
@@ -8382,13 +8381,6 @@ a .button:hover {
 }
 .sheetMetaDataBox {
   margin-block-end: 40px;
-}
-.sheetContent .sheetMetaDataBox .authorStatement,
-.sheetContent .sheetMetaDataBox .collectionStatement {
-  font-size: 17px;
-  color: #999;
-  margin-top: 6px;
-  letter-spacing: 1px;
 }
 .sheetContent .sheetMetaDataBox .authorStatement a {
   color: var(--midrash-green);
