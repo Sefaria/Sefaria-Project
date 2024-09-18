@@ -174,7 +174,7 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : langPref;
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage}
                                     bilingualOrder={["he", "en"]}/>;
-    const content = bodyTextIsLink ? <a href={url} style={{textDecoration: 'none'}}>{innerContent}</a> : innerContent;
+    const content = bodyTextIsLink ? <a href={url} style={{textDecoration: 'none'}} data-anl-event="clickto_reader:click">{innerContent}</a> : innerContent;
     const isIntroducedSource = isCurated && displayDescription
     const StoryFrameComp = isIntroducedSource ? SummarizedStoryFrame : StoryFrame
     const hideThisLanguageMissingSource = (heOnly && (langPref == 'english') && hideLanguageMissingSources) || (enOnly && (langPref == 'hebrew') && hideLanguageMissingSources);
@@ -198,13 +198,11 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
                     {content}
                 </StoryBodyBlock>
                 <div className={"headerWithAdminButtonsContainer"}>
-                    <div className={"headerWithAdminButtons"}>
-                <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
-                        </div>
-                    {isAdmin &&
-                        <ReviewStateIndicator topic={topic} topicLink={text}/>}
-                    {isAdmin &&
-                        <PencilSourceEditor topic={topic} text={text} classes={"pencilEditorButton"}/>}
+                    <div className={"headerWithAdminButtons"} data-anl-event="clickto_reader:click">
+                        <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
+                    </div>
+                    {isAdmin && <ReviewStateIndicator topic={topic} topicLink={text}/>}
+                    {isAdmin && <PencilSourceEditor topic={topic} text={text} classes={"pencilEditorButton"}/>}
                 </div>
             </ColorBarBox>
         </StoryFrameComp>
