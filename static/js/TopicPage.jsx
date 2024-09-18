@@ -401,7 +401,7 @@ const getTopicHeaderAdminActionButtons = (topicSlug, refTopicLinks) => {
 
 const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
-  const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
+  const category = !!topicData ? Sefaria.displayTopicTocCategory(topicData.slug) : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
   const hasAiContentLinks = getLinksWithAiContent(topicData.refs?.about?.refs).length != 0;
@@ -524,6 +524,14 @@ const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
     return(
         <NavSidebar modules={modules} />
     )
+};
+
+const getTopicPageAnalyticsData = (slug, langPref) => {
+    return {
+        project: "topics",
+        content_lang: langPref || "bilingual",
+        panel_category: Sefaria.topicTocCategories(slug)?.map(({slug}) => slug)?.join('|'),
+    };
 };
 
 const TopicPage = ({
@@ -698,7 +706,11 @@ const TopicPage = ({
 
     const currentLang = getCurrentLang()
 
-    return <div className={classStr} data-anl-project="topics" data-anl-content_lang={langPref || "bilingual"}>
+    return (
+        <div
+            className={classStr}
+            data-anl-batch={JSON.stringify(getTopicPageAnalyticsData(topic, langPref))}
+        >
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
@@ -761,7 +773,8 @@ const TopicPage = ({
             </div>
             <Footer />
           </div>
-      </div>;
+        </div>
+    );
 };
 TopicPage.propTypes = {
   tab:                 PropTypes.string,
@@ -839,7 +852,7 @@ TopicLink.propTypes = {
 
 
 const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
-  const category = Sefaria.topicTocCategory(slug);
+  const category = Sefaria.displayTopicTocCategory(slug);
   const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
   if (linkTypeArray.length === 0) {
     linkTypeArray.push({
