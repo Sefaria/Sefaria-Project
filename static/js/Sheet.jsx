@@ -107,26 +107,27 @@ class Sheet extends Component {
     else {
       content = (
             <SheetContent
-          sheetNotice={sheet.sheetNotice}
-          sources={sheet.sources}
-          title={sheet.title}
-          onRefClick={this.props.onRefClick}
-          handleClick={this.handleClick}
-          sheetSourceClick={this.props.onSegmentClick}
-          highlightedNode={this.props.highlightedNode}
-          highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-          scrollToHighlighted={this.props.scrollToHighlighted}
-          authorStatement={sheet.ownerName}
-          authorUrl={sheet.ownerProfileUrl}
-          authorImage={sheet.ownerImageUrl}
-          collectionName={sheet.collectionName}
-          collectionSlug={sheet.displayedCollection}
-          collectionImage={sheet.collectionImage}
-          editable={Sefaria._uid === sheet.owner}
-          setSelectedWords={this.props.setSelectedWords}
-          sheetNumbered={sheet.options.numbered}
-          hideImages={!!sheet.hideImages}
-          sheetID={sheet.id}
+                sheetNotice={sheet.sheetNotice}
+                sources={sheet.sources}
+                title={sheet.title}
+                onRefClick={this.props.onRefClick}
+                handleClick={this.handleClick}
+                sheetSourceClick={this.props.onSegmentClick}
+                highlightedNode={this.props.highlightedNode}
+                highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                scrollToHighlighted={this.props.scrollToHighlighted}
+                authorStatement={sheet.ownerName}
+                authorUrl={sheet.ownerProfileUrl}
+                authorImage={sheet.ownerImageUrl}
+                collectionName={sheet.collectionName}
+                collectionSlug={sheet.displayedCollection}
+                collectionImage={sheet.collectionImage}
+                editable={Sefaria._uid === sheet.owner}
+                setSelectedWords={this.props.setSelectedWords}
+                sheetNumbered={sheet.options.numbered}
+                hideImages={!!sheet.hideImages}
+                sheetID={sheet.id}
+                summary={sheet.summary}
         />
       );
     }

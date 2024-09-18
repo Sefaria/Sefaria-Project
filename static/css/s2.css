@@ -8393,13 +8393,15 @@ a .button:hover {
   display: inline;
   margin-block-end: 10px;
 }
+.sheetContent .sheetMetaDataBox .authorStatement a:hover {
+  text-decoration: none;
+}
 .sheetMetaDataBox .summary {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
   font-weight: 500;
   line-height: 18.75px;
-  text-align: left;
   color: #666666;
   margin-block-end: 15px;
 }
