@@ -8379,6 +8379,13 @@ a .button:hover {
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
+.sheetMetaDataBox .profile-pic {
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-end: 10px;
+}
 .sheetMetaDataBox {
   margin-block-end: 40px;
 }
