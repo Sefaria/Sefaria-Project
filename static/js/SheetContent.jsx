@@ -223,15 +223,8 @@ const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, au
           url={authorImage}
           len={30}
           name={authorStatement}
-          outerStyle={{
-            width: "30px",
-            height: "30px",
-            display: "inline-block",
-            verticalAlign: "middle",
-            marginInlineEnd: "10px"
-          }}
       />
-      <a href={authorUrl} className="sheetAuthorName">
+      <a href={authorUrl}>
         <InterfaceText>{authorStatement}</InterfaceText>
       </a>
     </SheetAuthorStatement>
