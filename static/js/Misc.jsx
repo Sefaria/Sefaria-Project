@@ -1062,7 +1062,7 @@ class ToggleOption extends Component {
  const TopicToCategorySlug = function(topic, category=null) {
    //helper function for AdminEditor
    if (!category) {
-     category = Sefaria.topicTocCategory(topic.slug);
+     category = Sefaria.displayTopicTocCategory(topic.slug);
    }
    let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
    // so all category topics initialized to "Main Menu"
