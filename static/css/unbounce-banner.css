@@ -1,84 +1,3 @@
-/*
-html body.interface-english {
-  margin-top: auto !important;
-}
-
-div#s2:has(~ div.ub-emb-container div.ub-emb-bar):not(
-  :has(#staticContentWrapper div#content div#sheetsContent)) {
-    top: 120px;
-    height: calc(100vh - 120px);
-  }
-
-
-div#s2:has(~ div.ub-emb-container div.ub-emb-bar):not(
-    :has(#staticContentWrapper div#content div#sheetsContent)
-  ) {
-  transform: translateY(120px);
-  height: calc(100vh - 120px);
-  top: -120px;
-  position: relative;
-  display: flow-root;
-} 
-*/
-
-/*
-body:not(.inApp)
-  div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(#staticContentWrapper):not(
-    :has(#staticContentWrapper div#content div#sheetsContent)
-  ) {
-  transform: unset;
-  top: 0;
-}
-
-body:not(.inApp)
-  div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(#staticContentWrapper):not(
-    :has(#staticContentWrapper div#content div#sheetsContent)
-  )
-  #s2 {
-  top: unset;
-}
-
-body:not(.inApp)
-  div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(#staticContentWrapper)
-  .mobileNavMenu {
-  height: calc(100vh - 180px);
-  top: 180px;
-}
-
-div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(#staticContentWrapper)
-  #s2
-  .singlePanel
-  .autocomplete-dropdown {
-  top: 45px;
-  left: -10px;
-  position: absolute;
-}
-
-div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar) .mobileNavMenu {
-  height: calc(100vh - 180px);
-}
-
-div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar) #s2:has(.mobileNavMenu) {
-  top: unset;
-}
-
-div#pageWrapper:has(#staticContentWrapper div#content div#sheetsContent)
-  ~ div.ub-emb-container
-  div.ub-emb-bar,
-div#pageWrapper:has(div.feedbackOverlay) ~ div.ub-emb-container div.ub-emb-bar {
-  display: none;
-}
-
-body.inApp
-  div#pageWrapper:has(~ div.ub-emb-container div.ub-emb-bar):has(#staticContentWrapper):not(
-    :has(#staticContentWrapper div#content div#sheetsContent)
-  ) {
-  transform: none;
-  height: auto;
-  top: auto;
-}
-*/
-
 /* 
   Change styling when Unbounce banner is going to be placed on the page
   Unbounce adds a top margin to the body of the main DOM based on the height of the banner
@@ -88,17 +7,12 @@ body.inApp
 */
 div#s2:has(~ div.ub-emb-container div.ub-emb-bar) {
   top: unset;
-  /* transform: translateY(120px); */ /* just keep this instead? */
 }
 
 /* 
   Adjust margin on footer when banner is shown
   The introduction of the banner into the DOM by Unbounce with the top margin causes the footer to be cutoff
 */
-/* div#s2:has(~ div.ub-emb-container div.ub-emb-bar):not(:has(~ div#staticContentWrapper)) #footer {
-  margin-bottom: 120px;
-} */
-
 /* Make some style changes on the static pages where the React node is in header only mode */
 div#staticContentWrapper:has(~ .ub-emb-container div.ub-emb-bar):has(.staticPage) {
   padding-top: 60px;
@@ -126,9 +40,6 @@ div#s2:has(~ div.ub-emb-container div.ub-emb-bar) .singlePanel .autocomplete-dro
   Fix problems with the bottom of new sheets editor from being accessible
   This does not affect the normal textual content view inside a book
 */
-/* div#s2:has(~ div.ub-emb-container div.ub-emb-bar) .readerContent {
-  height: calc(100% - 180px);
-} */
 
 /* Unbounce banners cannot be on the old sheets editor */
 div#s2:has(~ .ub-emb-container div.ub-emb-bar):has(~ #staticContentWrapper #content #sheetsContent) {
@@ -150,10 +61,3 @@ div#s2:has(~ div.ub-emb-container div.ub-emb-bar):not(:has(.singlePanel)) #panel
 div#s2:has(~ div.ub-emb-container div.ub-emb-bar):has(.singlePanel) .connectionsPanel {
   margin-bottom: 120px;
 }
-
-/* Fix editorSidebarToggle in new sheets editor */
-/* What is beitMidrashModal? 
-Use something different than 100vh or calc with 100%
-Have a wrapper node around all of Sefaria app content to properly work with the banner?
-.textColumn .loadingMessage.base.next at the end of Genesis
-*/
