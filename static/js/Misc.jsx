@@ -3434,7 +3434,6 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   return (
     <div className="langSelectPopover"
       tabIndex="0"
-      data-anl-event="lang_toggle_click:click"
       data-anl-batch={JSON.stringify({
         feature_name: "source lang toggled",
         text: lang,
