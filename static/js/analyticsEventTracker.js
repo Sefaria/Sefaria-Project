@@ -135,6 +135,10 @@ const AnalyticsEventTracker = (function() {
                 from: event.target.open ? "closed" : "open",
                 to: event.target.open ? "open" : "closed"
             };
+        } else if (event.target.tagName === 'DETAILS') {
+            return {
+                from: event.target.open ? "open" : "closed",
+            };
         } else if (eventType === "input") {
             return {
                 text: event.target.value,
