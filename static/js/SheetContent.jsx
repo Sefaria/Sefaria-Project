@@ -262,25 +262,16 @@ const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, au
       {sheetContentOptions}
     </div>
     {summary && <SheetMetaDataBoxSegment text={summary} className="summary"/>}
-    <SheetAuthorStatement
-        authorUrl={authorUrl}
-        authorStatement={authorStatement}>
+    <div>
       <ProfilePic
           url={authorImage}
           len={30}
           name={authorStatement}
-          outerStyle={{
-            width: "30px",
-            height: "30px",
-            display: "inline-block",
-            verticalAlign: "middle",
-            marginInlineEnd: "10px"
-          }}
       />
       <a href={authorUrl} className="sheetAuthorName">
         <InterfaceText>{authorStatement}</InterfaceText>
       </a>
-    </SheetAuthorStatement>
+    </div>
   </SheetMetaDataBox>
 }
 class SheetSource extends Component {

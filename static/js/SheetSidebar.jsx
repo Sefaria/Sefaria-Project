@@ -1,8 +1,7 @@
 import {FollowButton, InterfaceText, ProfilePic} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import React, {useEffect, useState} from "react";
-const SheetSidebar = ({authorID, authorImage, authorStatement, authorUrl, summary,
-                      collectionImage, collectionSlug, collectionName, collections}) => {
+const SheetSidebar = ({authorID, authorImage, authorStatement, authorUrl, summary, collections}) => {
     const [loadingFollowers, setLoadingFollowers] = useState(true);
     const [followers, setFollowers] = useState(0);
     useEffect(() => {
@@ -16,7 +15,6 @@ const SheetSidebar = ({authorID, authorImage, authorStatement, authorUrl, summar
             url={authorImage}
             len={100}
             name={authorStatement}
-            outerStyle={{"display": "block", "margin-block-end": "20px"}}
         />
         <a href={authorUrl} className="sheetAuthorName">
             {Sefaria._(authorStatement)}
