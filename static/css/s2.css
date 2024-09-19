@@ -10178,6 +10178,29 @@ span.purim-emoji img{
     padding: 130px 0;
   }
 }
+.sheetContent .addToSheetPlus {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 25px;
+  height: 25px;
+  background-color: green;
+  border-radius: 50%;
+  color: white;
+  font-size: 20px;
+  line-height: 1;
+  margin-inline-start: 15px;
+  margin-block-end: 15px;
+}
+.sheetContent .addToSheetText {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  color: var(--dark-grey);
+  margin-inline-start: 10px;
+}
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }

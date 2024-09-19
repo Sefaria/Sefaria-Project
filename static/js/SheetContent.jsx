@@ -257,7 +257,10 @@ const AddToSheetButton = ({highlightedNode, sheetID, highlightedRefs}) => {
   const [showingModal, setShowingModal] = useState(false);
   const nodeRef = `${sheetID}.${highlightedNode}`;
   return <>
-    <div className="button" onClick={() => setShowingModal(true)}>Add to Sheet</div>
+    <div onClick={() => setShowingModal(true)}>
+      <span className="addToSheetPlus">+</span>
+      <span className="addToSheetText">Add to Sheet</span>
+    </div>
     {showingModal &&
         <AddToSourceSheetModal nodeRef={nodeRef} srefs={highlightedRefs} close={() => setShowingModal(false)}/>}
   </>;
