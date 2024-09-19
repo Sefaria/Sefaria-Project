@@ -68,7 +68,7 @@ const EditCollectionsModal = ({close, sheetID}) => {
 }
 
 const AddToSourceSheetModal = ({nodeRef, srefs, close}) => {
-  return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs}/></Modal>
+  return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs} hideGDocAdvert={true}/></Modal>
 }
 const CopyButton = ({toggleSignUpModal, sheetID}) => {
   const copyState = {
