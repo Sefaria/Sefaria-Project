@@ -643,8 +643,9 @@ class ReaderPanel extends Component {
 
     let items = [];
     let menu = null;
+    let isNarrowColumn = false;
     const contextContentLang = {"language": this.getContentLanguageOverride(this.state.settings.language, this.state.mode, this.state.menuOpen)};
-
+    (this.state.width < 730) ? isNarrowColumn = true  : false;
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       const oref  = Sefaria.parseRef(this.state.refs[0]);
       const showHighlight = this.state.showHighlight || (this.state.highlightedRefs.length > 1);
@@ -822,8 +823,10 @@ class ReaderPanel extends Component {
                     showBaseText={this.showBaseText} />);
 
     } else if (this.state.menuOpen === "text toc") {
+      console.log(this.state.menuOpen)
       menu = (<BookPage
                     tab={this.state.tab}
+                    isNarrowColumn={false}
                     setTab={this.setTab}
                     mode={this.state.menuOpen}
                     multiPanel={this.props.multiPanel}
@@ -848,6 +851,7 @@ class ReaderPanel extends Component {
         });
       };
       menu = (<BookPage
+                    isNarrowColumn={isNarrowColumn}
                     tab={this.state.tab}
                     setTab={this.setTab}
                     mode={this.state.menuOpen}
@@ -870,6 +874,7 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "extended notes" && this.state.mode !== "Connections") {
       menu = (<BookPage
+                    isNarrowColumn={false}
                     tab={this.state.tab}
                     setTab={this.setTab}
                     mode={this.state.menuOpen}

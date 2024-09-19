@@ -10,7 +10,7 @@ i18n
 .init({
     lng: Sefaria.interfaceLang,
     fallbackLng: 'en',
-    debug: true,
+    debug: false,
     resources: { ...LanguagesJson}
 })
 

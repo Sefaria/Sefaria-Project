@@ -125,7 +125,7 @@
     "search_page.results_for": "Results for: ( {{searchedItem}} )",
     "search_page.results": "Results",
     "common.options": "Options",
-    "connection_panel..search_in_this_text": "Search in this Text",
+    "connection_panel.search_in_this_text": "Search in this Text",
     "common.placeholder.search": "Search",
     "search.result_list.searching": "Searching...",
     "topic.search_topics": "Search Topics",
