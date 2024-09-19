@@ -3296,20 +3296,6 @@ a.cardTitle:hover {
 .sheetSidebar {
   width: 33%;
 }
-
-.sheetAuthorName {
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 18.75px;
-  color: var(--midrash-green);
-  display: block;
-  margin-block-end: 5px;
-}
-.sheetAuthorName:hover {
-  text-decoration: none;
-}
 .bookPage .currentSection,
 .bookPage .authorStatement {
   font-size: 17px;
@@ -8431,9 +8417,8 @@ a .button:hover {
 .sheetMetaDataBox {
   margin-block-end: 40px;
 }
-.sheetContent .sheetMetaDataBox a.sheetAuthorName {
+a.sheetAuthorName {
   color: var(--midrash-green);
-  margin-inline-start: 5px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
@@ -8442,8 +8427,11 @@ a .button:hover {
   display: inline;
   margin-block-end: 10px;
 }
-.sheetContent .sheetMetaDataBox a.sheetAuthorName:hover {
+a.sheetAuthorName:hover {
   text-decoration: none;
+}
+.sheetSidebar a.sheetAuthorName {
+  display: block;
 }
 .sheetMetaDataBox .summary {
   --english-font: var(--english-sans-serif-font-family);
