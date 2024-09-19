@@ -10191,6 +10191,7 @@ span.purim-emoji img{
   line-height: 1;
   margin-inline-start: 15px;
   margin-block-end: 15px;
+  cursor: pointer;
 }
 .sheetContent .addToSheetText {
   --english-font: var(--english-sans-serif-font-family);
@@ -10200,6 +10201,7 @@ span.purim-emoji img{
   line-height: 18.75px;
   color: var(--dark-grey);
   margin-inline-start: 10px;
+  cursor: pointer;
 }
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
