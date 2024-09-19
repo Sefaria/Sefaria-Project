@@ -216,18 +216,16 @@ const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, au
   return <SheetMetaDataBox>
     <SheetMetaDataBoxSegment text={title} className="title"/>
     {summary && <SheetMetaDataBoxSegment text={summary} className="summary"/>}
-    <SheetAuthorStatement
-        authorUrl={authorUrl}
-        authorStatement={authorStatement}>
+    <div>
       <ProfilePic
           url={authorImage}
           len={30}
           name={authorStatement}
       />
-      <a href={authorUrl}>
+      <a href={authorUrl} className="sheetAuthorName">
         <InterfaceText>{authorStatement}</InterfaceText>
       </a>
-    </SheetAuthorStatement>
+    </div>
   </SheetMetaDataBox>
 }
 class SheetSource extends Component {
