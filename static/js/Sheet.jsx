@@ -17,7 +17,7 @@ import {
   CollectionStatement,
   ProfilePic,
 } from './Misc';
-import SheetContent from "./SheetContent";
+import SheetContent from "./sheets/SheetContent";
 import SheetSidebar from "./SheetSidebar";
 import {SheetOptions} from "./sheets/SheetOptions";
 

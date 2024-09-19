@@ -13395,6 +13395,12 @@ span.ref-link-color-3 {color: blue}
 .dropdownSeparator {
   border: 1px solid var(--light-grey);
 }
+.sheetMetaDataBox a.dropdownLinks-button {
+  font-weight: bold;
+}
+.sheetMetaDataBox a.dropdownLinks-button:hover {
+  text-decoration: none;
+}
 .header .dropdownLinks {
   display: block;
   align-items: center;
@@ -13432,7 +13438,7 @@ span.ref-link-color-3 {color: blue}
 }
 .sheetsInPanel .dropdownLinks {
   min-width: 50%;
-  margin-top: 2px;
+  margin-top: 10px;
   color: #666;
   cursor: pointer;
   position: relative;
