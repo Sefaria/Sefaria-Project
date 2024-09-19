@@ -10130,13 +10130,14 @@ span.purim-emoji img{
   line-height: 18px;
   top: 227px;
 }
-@media screen and (max-width: 840px) {
+@media screen and (max-width: 800px) {
   .overlayTextOnSheetsHero {
     margin-inline-start: 15%;
   }
   .overlayTextOnSheetsHero #title {
     font-size: 24px;
     top: 115px;
+    line-height: revert;
   }
   .overlayTextOnSheetsHero #message {
     font-size: 16px;
@@ -10145,6 +10146,18 @@ span.purim-emoji img{
   #aboutCover {
     height: 150px;
     padding: 130px 0;
+  }
+}
+@media screen and (min-width: 700px) and (max-width: 900px)  {
+  .sheetsHomepage .sheetsWrapper, .sheetsHomepage .sheetsTopicsCalendar {
+    display: flex;
+    flex-direction: column;
+  }
+}
+@media screen and (max-width: 600px) {
+  .sheetsHomepage .sheetsWrapper, .sheetsHomepage .sheetsTopicsCalendar {
+    display: flex;
+    flex-direction: column;
   }
 }
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
