@@ -89,7 +89,7 @@ class AboutBox extends Component {
                       <span dangerouslySetInnerHTML={ {__html: d.summary} } />
                   </div>
               </div>
-          )
+          ) 
       }
       return <section className="aboutBox">{detailSection}</section>;
     }

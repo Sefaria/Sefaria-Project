@@ -419,12 +419,12 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
     <div className={classes}>
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
          {mobile ? <img src="/static/icons/login.svg" /> : null }
-          <InterfaceText>log_in</InterfaceText>
+          <InterfaceText>common.log_in</InterfaceText>
        </a>
       {loginOnly ? null :
       <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
          {mobile ? <img src="/static/icons/register.svg" /> : null }
-         <InterfaceText>sign_up</InterfaceText>
+         <InterfaceText>common.sign_up</InterfaceText>
       </a> } 
       { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
     </div>

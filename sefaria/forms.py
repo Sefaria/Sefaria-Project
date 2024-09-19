@@ -16,6 +16,8 @@ from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
 from emailusernames.utils import get_user, user_exists
 from captcha.fields import ReCaptchaField
 from captcha.widgets import ReCaptchaV2Checkbox
+from account.models import UserType
+
 
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.settings import DEBUG
@@ -49,6 +51,21 @@ class SefariaNewUserForm(EmailUserCreationForm):
     # subscribe_educator = forms.BooleanField(label=_("I am an educator"), help_text=_("I am an educator"), initial=False,
     #                                         required=False)
 
+    CHOICES = [
+        ('', _('Select an option...')),
+        ('Monastic', _('Monastic')),
+        ('Teacher', _('Teacher')),
+        ('Student', _('Student')),
+        ('Educated* /Dr / Prof', _('Educated* /Dr / Prof')),
+        ('regular user', _('regular user')),
+    ]
+    
+    # Add the select field
+    user_type = forms.ChoiceField(
+        choices=CHOICES,
+        widget=forms.Select(attrs={'placeholder': _("Select an Option")})
+    )
+
     captcha_lang = "iw" if get_language() == 'he' else "en"
     captcha = ReCaptchaField(
         widget=ReCaptchaV2Checkbox(
@@ -67,7 +84,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
-        self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "captcha"]
+        self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "captcha", ]
         self.fields.keyOrder.append("subscribe_educator")
 
     def clean_email(self):
@@ -94,6 +111,10 @@ class SefariaNewUserForm(EmailUserCreationForm):
 
         if commit:
             user.save()
+        
+        # Save user_type in UserType model
+        user_type = self.cleaned_data['user_type']
+        UserType.objects.create(user=user, user_type=user_type)
 
         try:
             crm_mediator = CrmMediator()
@@ -102,6 +123,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
                                      educator=self.cleaned_data["subscribe_educator"])
         except Exception as e:
             logger.error(f"failed to add user to CRM: {e}")
+        
 
         return user
 
