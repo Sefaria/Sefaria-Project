@@ -20,7 +20,7 @@ class SheetSource extends Component {
     );
 
     return (
-      <section className={sectionClasses} style={{"borderColor": Sefaria.palette.refColor(this.props.source.ref)}}>
+      <section className={sectionClasses} style={{"borderInlineStart": `4px solid ${Sefaria.palette.refColor(this.props.source.ref)}`}}>
         <div className={containerClasses}
           onClick={this.props.sheetSourceClick}
           data-node={this.props.source.node}
