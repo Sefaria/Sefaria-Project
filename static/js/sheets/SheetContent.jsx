@@ -6,8 +6,7 @@ import {
   InterfaceText, ProfilePic,
   SheetMetaDataBox, SheetMetaDataBoxSegment
 } from "../Misc";
-import classNames from "classnames";
-import {AddToSourceSheetModal} from "./sheets/SheetOptions";
+import {AddToSourceSheetModal} from "./SheetOptions";
 import {
   SheetComment,
   SheetHeader,
@@ -15,7 +14,8 @@ import {
   SheetOutsideBiText,
   SheetOutsideText,
   SheetSource
-} from "./sheets/SheetContentSegments";
+} from "./SheetContentSegments";
+import { useState } from "react";
 
 class SheetContent extends Component {
   componentDidMount() {
