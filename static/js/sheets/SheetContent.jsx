@@ -1,12 +1,11 @@
 import Component from "react-class";
-import $ from "./sefaria/sefariaJquery";
+import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
-import Sefaria from "./sefaria/sefaria";
+import Sefaria from "../sefaria/sefaria";
 import {
-  InterfaceText, ProfilePic, SaveButton, SheetAuthorStatement,
+  InterfaceText, ProfilePic,
   SheetMetaDataBox, SheetMetaDataBoxSegment
-} from "./Misc";
-import React, {useEffect, useState} from "react";
+} from "../Misc";
 import classNames from "classnames";
 
 
