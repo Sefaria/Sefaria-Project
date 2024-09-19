@@ -555,7 +555,7 @@
         "feedback.feedback_sent": "反馈已发送",
         "feedback.message.have_some_feeback": "有反馈吗？我们很想听听您的意见。",
         "message.cookies_msg": "我们使用 Cookie 为您提供最佳体验。点击确定继续使用 Pecha。",
-        "ok": "确定",
+        "common.ok": "确定",
         "community.message.previewing": "您正在预览社区页面",
         "common.all_ready_exists": "已存在。",
         "text.version.source_versions": "来源版本",
