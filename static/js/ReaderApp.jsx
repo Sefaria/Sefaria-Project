@@ -2252,17 +2252,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
 
     return (
-      <AdContext.Provider value={this.getUserContext()}>
-        <div id="readerAppWrap">
-          <div className={classes} onClick={this.handleInAppLinkClick}>
-            {header}
-            {panels}
-            {signUpModal}
-            {communityPagePreviewControls}
-            <CookiesNotification />
+      // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
+      // InterruptingMessage modals and Banners will always render if available but stay hidden initially
+      <StrapiDataProvider>
+        <AdContext.Provider value={this.getUserContext()}>
+          <div id="readerAppWrap">
+            <InterruptingMessage />
+            <Banner onClose={this.setContainerMode} />
+            <div className={classes} onClick={this.handleInAppLinkClick}>
+              {header}
+              {panels}
+              {signUpModal}
+              {communityPagePreviewControls}
+              <CookiesNotification />
+            </div>
           </div>
-        </div>
-      </AdContext.Provider>
+        </AdContext.Provider>
+      </StrapiDataProvider>
     );
   }
 }
