@@ -16,7 +16,7 @@ import {
   SheetOutsideBiText,
   SheetOutsideText,
   SheetSource
-} from "../sheets/SheetContentSegments";
+} from "./sheets/SheetContentSegments";
 
 class SheetContent extends Component {
   componentDidMount() {

@@ -1,6 +1,6 @@
 import Component from "react-class";
 import classNames from "classnames";
-import Sefaria from "./sefaria/sefaria";
+import Sefaria from "../sefaria/sefaria";
 import React from "react";
 
 class SheetSource extends Component {
