@@ -8431,7 +8431,7 @@ a .button:hover {
 .sheetMetaDataBox {
   margin-block-end: 40px;
 }
-.sheetContent .sheetMetaDataBox .authorStatement a {
+.sheetContent .sheetMetaDataBox a.sheetAuthorName {
   color: var(--midrash-green);
   margin-inline-start: 5px;
   --english-font: var(--english-sans-serif-font-family);
@@ -8442,7 +8442,7 @@ a .button:hover {
   display: inline;
   margin-block-end: 10px;
 }
-.sheetContent .sheetMetaDataBox .authorStatement a:hover {
+.sheetContent .sheetMetaDataBox a.sheetAuthorName:hover {
   text-decoration: none;
 }
 .sheetMetaDataBox .summary {
@@ -9151,11 +9151,6 @@ h3.aboutSheetHeader {
   color: #000000;
   text-transform: none;
   margin: 0px;
-}
-
-div.aboutSheetPanel>div.authorStatement {
-  font-size: 16px;
-  margin: 20px 0px;
 }
 
 .aboutSheetPanel h3.aboutSheetSubtitle {
