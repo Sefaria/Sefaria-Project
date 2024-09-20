@@ -87,6 +87,10 @@ from babel import Locale
 from sefaria.helper.topic import update_topic, update_topic_titles
 from sefaria.helper.category import update_order_of_category_children, check_term
 from redis_clear import clear_redis_cache
+from django.middleware.csrf import get_token
+from django.utils.text import slugify
+import random
+import string
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -3984,6 +3988,11 @@ def edit_profile(request):
     Page for editing a user's profile.
     """
     profile = UserProfile(id=request.user.id)
+    if not profile.slug:
+        profile.slug = slugify(request.user.username) or generate_random_slug()
+        while db.profiles.find_one({"slug": profile.slug, "_id": {"$ne": profile.id}}):
+            profile.slug = generate_random_slug()
+        profile.save()
     sheets = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort(
         [["datePublished", -1]])
     return render_template(request, 'edit_profile.html', None, {
@@ -3992,6 +4001,41 @@ def edit_profile(request):
         'sheets': sheets,
     })
 
+def generate_random_slug(length=8):
+    """
+    Generates a random slug in case the username slug conflicts or is empty.
+    """
+    letters = string.ascii_lowercase + string.digits
+    return ''.join(random.choice(letters) for i in range(length))
+
+
+# @login_required
+# @ensure_csrf_cookie
+# def edit_profile(request):
+#     """
+#     Page for editing a user's profile.
+#     """
+#     # Fetch the user's profile
+#     profile = UserProfile(id=request.user.id)
+    
+#     # Check if slug is empty or None, and generate a default slug if needed
+#     if not profile.slug:
+#         # Generate a default slug using the username
+#         profile.slug = slugify(request.user.username)
+#         # Save the profile with the new slug
+#         profile.save()
+
+#     # Get public sheets owned by the user
+#     sheets = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort(
+#         [["datePublished", -1]])
+
+#     # Render the edit profile page
+#     return render(request, 'edit_profile.html', {
+#         'user': request.user,
+#         'profile': profile,
+#         'sheets': sheets,
+#         'csrf_token': get_token(request),  # ensure CSRF token is available in the context
+#     })
 
 @login_required
 @ensure_csrf_cookie

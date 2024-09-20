@@ -528,7 +528,7 @@ class UserProfile(object):
 
         existing = db.profiles.find_one({"slug": self.slug, "_id": {"$ne": self._id}})
         if existing:
-            return "The Profile URL you have requested is already in use."
+            return "Profile URL cannot be empty."
         # URL Fields: website, facebook, linkedin
         url_val = URLValidator()
         try:

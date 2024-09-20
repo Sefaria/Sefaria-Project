@@ -282,7 +282,7 @@ class SheetMetadata extends Component {
     const newSummary = event.target.value
     if (event.target.value.length > 280) {
       this.setState({
-        validationMsg: Sefaria._("summary_limit"),
+        validationMsg: Sefaria._("sheet.message.summary_limit"),
         validationFailed: "summary"
       });
     }
@@ -377,13 +377,13 @@ class SheetMetadata extends Component {
                     </div> : null }
                     <div className="sheetMeta">
                       <div className="int-en">
-                        {Sefaria._("created")}  {Sefaria.util.naturalTime(timestampCreated, "en")} {Sefaria._("ago")} · {sheet.views} {Sefaria._("profile.tab.sheet.tag.views")} · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} {Sefaria._("Saves")} {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>)}
+                        {Sefaria._("common.created")}  {Sefaria.util.naturalTime(timestampCreated, "en")} {Sefaria._("sheet.created_time.ago")} · {sheet.views} {Sefaria._("profile.tab.sheet.tag.views")} · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} {Sefaria._("common.saves")} {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>)}
 
                       </div>
                       <div className="int-he">
-                          <span> {Sefaria._("created")} {Sefaria.util.naturalTime(timestampCreated, "he")} {Sefaria._("ago")}  · </span>
+                          <span> {Sefaria._("common.created")} {Sefaria.util.naturalTime(timestampCreated, "he")} {Sefaria._("sheet.created_time.ago")}  · </span>
                           <span>{sheet.views} · {Sefaria._("profile.tab.sheet.tag.views")}</span>
-                          <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } {Sefaria._("Saves")} </span> {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>)}                      </div>
+                          <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } {Sefaria._("common.saves")} </span> {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>)}                      </div>
                     </div>
 
                     <div>
@@ -450,13 +450,13 @@ class SheetMetadata extends Component {
 
                     {canEdit ? <div className={"publishBox sans-serif"}>
                       <h3 className={"header"}>
-                        <InterfaceText>{this.state.published ? Sefaria._("publish_setting"): Sefaria._("Publish Sheet")}</InterfaceText>
+                        <InterfaceText>{this.state.published ? Sefaria._("sheet.publish_setting"): Sefaria._("Publish Sheet")}</InterfaceText>
                       </h3>
 
 
 
                       {this.state.published ?
-                        <p><InterfaceText>{ Sefaria._("sheet.your_sheet_is")} </InterfaceText> <strong><InterfaceText>{ Sefaria._("published")}</InterfaceText></strong> <InterfaceText>{ Sefaria._("topic.visible_to_other")}</InterfaceText></p> :
+                        <p><InterfaceText>{ Sefaria._("sheet.your_sheet_is")} </InterfaceText> <strong><InterfaceText>{ Sefaria._("sheet.published")}</InterfaceText></strong> <InterfaceText>{ Sefaria._("topic.visible_to_other")}</InterfaceText></p> :
                         <p><InterfaceText>{ Sefaria._("List your sheet on Sefaria for others to discover.")}</InterfaceText></p>
                       }
 
@@ -478,7 +478,7 @@ class SheetMetadata extends Component {
                         tags={this.state.tags}
                         suggestions={this.state.suggestions}
                         onDelete={this.onTagDelete.bind(this)}
-                        placeholderText={Sefaria._("add_topic")}
+                        placeholderText={Sefaria._("sheet.placeholder.add_topic")}
                         delimiters={["Enter", "Tab", ","]}
                         onAddition={this.onTagAddition.bind(this)}
                         onValidate={this.onTagValidate.bind(this)}

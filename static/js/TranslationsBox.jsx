@@ -118,15 +118,12 @@ TranslationsBox.propTypes = {
 const TranslationsHeader = () => (
   <div className="translationsHeader">
     <h3>
-      <InterfaceText>Translations</InterfaceText>
+      <InterfaceText>connection_pannel.translations</InterfaceText>
     </h3>
     <div className="translationsDesc sans-serif">
-      <InterfaceText>
-        <EnglishText>Pecha acquires translations to enrich your learning experience. Preview or choose a different translation below.</EnglishText>
-        <HebrewText>དཔེ་ཆ་དྲ་ཚིག་གིས་འགྱུར་མ་ཁག་བཟོས་ཏེ་སྦྱོང་ཡག་ལ་རོག་རམ་བྱེད་ཐུབ་ གཤམ་འོག་ལ་སྐད་ཡིག་གཞན་འདེམ་རོགས་།</HebrewText>
-      </InterfaceText>
+      <InterfaceText>connection_pannel.translation.description</InterfaceText>
       <a href="/sheets/36" target="_blank" className="inTextLink">
-        <InterfaceText>learn_more</InterfaceText>
+        <InterfaceText>common.learn_more</InterfaceText>
       </a>
     </div>
   </div>

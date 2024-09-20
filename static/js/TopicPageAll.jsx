@@ -97,7 +97,7 @@ class TopicPageAll extends Component {
 
               <div className="topicFilterBox">
                 <img className="searchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" />
-                <input className={inputClasses} placeholder={Sefaria._("search_topic")} onChange={this.handleFilterChange} />
+                <input className={inputClasses} placeholder={Sefaria._("topic.search_topics")} onChange={this.handleFilterChange} />
                 { this.state.filter.length ?
                 <div className="topicsFilterReset sans-serif" onClick={this.resetFilter}>
                   <InterfaceText>topic.reset</InterfaceText>

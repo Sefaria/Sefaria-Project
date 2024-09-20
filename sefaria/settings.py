@@ -16,6 +16,12 @@ relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
 # system time zone.
 TIME_ZONE = 'America/Halifax'
 
+# ElasticSearch server
+# URL to connect to ES server.
+# Set this to https://sefaria.org/api/search to connect to production search.
+# If ElasticSearch server has a password use the following format: http(s)://{username}:{password}@{base_url}
+SEARCH_URL = "http://localhost:9200"
+
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'es'
@@ -64,7 +70,9 @@ STATIC_ROOT = '/app/static-collected'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -156,6 +164,7 @@ INSTALLED_APPS = (
     'reader',
     'sourcesheets',
     'sefaria.gauth',
+    'account',
     'captcha',
     'django.contrib.admin',
     'anymail',

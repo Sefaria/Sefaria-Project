@@ -815,6 +815,7 @@ sjs.textBrowser = {
 		// Return to the home state
 		this.buildCategoryNav(sjs.toc);
 		this._path = [];
+		this._isFrozen = false;
 		this._currentText = null;
 		this._currentCategories = sjs.toc;
         sjs.textBrowser.previewActive = false;
@@ -822,11 +823,23 @@ sjs.textBrowser = {
 		this._setInitialMessage();
 	},
 	forward: function(to, index) {
+		// Check if the function is currently frozen
+		if (this._isFrozen) {
+			return; // Exit the function if it's frozen
+		}
+	
+		// Set the flag to freeze the function
+		this._isFrozen = true;
+	
+		// Unfreeze the function after 3 seconds
+		setTimeout(() => {
+			this._isFrozen = false;
+		}, 1400);
+
 		// navigate forward to "to", a string naming a text, category or section
 		// as it appears in the nav or path
 		//if (to != (this._path[this._path.length-1])) {   //if "to" = the last node in current path, don't go anywhere to prevent rapid clicking on the same item doubling up and throwing error
-		if (index === this._path.length ) {
-
+		if (index === this._path.length) {
 		var next = null;
 		this._path.push(to);
 		this.updatePath();
@@ -834,6 +847,9 @@ sjs.textBrowser = {
 			for (var i = 0; i < this._currentCategories.length; i++) {
 				if (this._currentCategories[i].category === to || this._currentCategories[i].title === to) {
 					next = this._currentCategories[i];
+					if (next.category === next.contents[0].title) {
+						next = next.contents[0]
+					}
 					if (next.category) { // Click on a Category
 						this._currentCategories = next.contents;
 						this.buildCategoryNav(next.contents);
@@ -867,9 +883,9 @@ sjs.textBrowser = {
 			var node = schema;
 			var sections;
 			var maxDepth;
-
 			if (isComplex) {
-				var titles = this._path.slice(this._currentText.categories.length + 1);
+				var titles = this._path.slice(this._currentText.categories.length);
+
 				var node_and_sections = schema.get_node_and_sections_from_titles(titles);
 				node = node_and_sections.node;
 				sections = node_and_sections.sections;
@@ -923,7 +939,7 @@ sjs.textBrowser = {
 	},
     buildComplexTextNav: function() {
         var schema      = sjs.textBrowser._currentSchema;
-        var titles      = this._path.slice(this._currentText.categories.length + 1);
+        var titles      = this._path.slice(this._currentText.categories.length);
         var node        = schema.get_node_from_titles(titles);
         var children    = node.children();
         var html        = "";
@@ -1014,10 +1030,11 @@ sjs.textBrowser = {
 						"<span class='int-he'>དཔེ་ཆ་ཡོངས་རྫོགས།</span>" + 
 					"</span>";
 		for (var i = 0; i < this._path.length; i++) {
-			if(this._path[i] !== this._path[i+1]) {
-				var name = sjs.interfaceLang === "he" ? Sefaria.hebrewTerm(this._path[i]) : this._path[i]
-				html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + name + "</span>";
-			}
+			var name = sjs.interfaceLang === "he" ? Sefaria.hebrewTerm(this._path[i]) : this._path[i]
+			html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + name + "</span>";
+			// if(this._path[i] !== this._path[i+1]) {
+				
+			// }
 		}
 		$("#browserPath").html(html);
 		this.updateMessage();
@@ -1096,19 +1113,22 @@ sjs.textBrowser = {
 		}
         var schema = sjs.textBrowser._currentSchema;
         var isComplex = schema.has_children();
-		var sections = this._path.slice(this._currentText.categories.length + 1);
         var ref = "";
+		var sections = this._path.slice(this._currentText.categories.length)
 
         if (isComplex) {
             ref = schema.get_node_url_from_titles(sections, true);
         } else {
+			
             sections = sections.map(function(section) {
                 return section.slice(section.lastIndexOf(" ")+1);
             });
             ref = this._currentText.title + " " + sections.join(":");
+			
         }
 
 		var selected = $(".segment.selected");
+		
 		if (selected.length > 0) {
 			ref += ":" + (selected.first().attr("data-section"));
 		}
@@ -1138,6 +1158,7 @@ sjs.textBrowser = {
 	},
 	_handleNavClick: function() {
 		// Move forward on nav click
+		
 		var to = $(this).attr("data-name");
         if (sjs.textBrowser.previewActive == true) {
     		sjs.textBrowser._path.pop();

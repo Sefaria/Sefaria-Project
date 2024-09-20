@@ -32,17 +32,17 @@ class UserProfile extends Component {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
-      { id: "sheets", text: "Sheets", icon: "/static/icons/sheet.svg" },
-      { id: "collections", text: Sefaria._("collection"), icon: "/static/icons/collection.svg" },
-      { id: "followers", text: "Followers", invisible: true },
-      { id: "following", text: "Following", invisible: true },
+      { id: "sheets", text:Sefaria._("profile.tab.sheets"), icon: "/static/icons/sheet.svg" },
+      { id: "collections", text: Sefaria._("profile.tab.collection"), icon: "/static/icons/collection.svg" },
+      { id: "followers", text: Sefaria._("common.followers"), invisible: true },
+      { id: "following", text: Sefaria._("common.following"), invisible: true },
       { id: "torah-tracker", text: Sefaria._("profile.buddhish_text_tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
-      tabs.splice(2, 0, { id: "notes", text: Sefaria._("notes"), icon: "/static/icons/note.svg" });
+      tabs.splice(2, 0, { id: "notes", text: Sefaria._("user_profile.notes"), icon: "/static/icons/note.svg" });
     }
     if (showBio) {
-      tabs.push({ id: "about", text: Sefaria._("about"), icon: "/static/icons/info.svg" });
+      tabs.push({ id: "about", text: Sefaria._("common.about"), icon: "/static/icons/info.svg" });
     }
     return {
       showNotes,
@@ -96,7 +96,7 @@ class UserProfile extends Component {
         </div>
         <a href="/collections/new" className="resourcesLink sans-serif">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <InterfaceText>Create a New Collection</InterfaceText>
+            <InterfaceText>common.collection.btn.create_new_collection</InterfaceText>
         </a>
       </div>);
   }
@@ -111,7 +111,7 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/collections/new" className="resourcesLink sans-serif">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <InterfaceText>Create a New Collection</InterfaceText>
+            <InterfaceText>common.collection.btn.create_new_collection</InterfaceText>
         </a>
       </div>
     );
@@ -257,14 +257,14 @@ class UserProfile extends Component {
   renderFollowerHeader() {
     return (
       <div className="follow-header sans-serif">
-        <InterfaceText>followers</InterfaceText> <span className="follow-count">{`(${this.props.profile.followers.length})`}</span>
+        <InterfaceText>common.followers</InterfaceText> <span className="follow-count">{`(${this.props.profile.followers.length})`}</span>
       </div>
     );
   }
   renderFollowingHeader() {
     return (
       <div className="follow-header sans-serif">
-        <InterfaceText>following</InterfaceText> <span className="follow-count">{`(${this.props.profile.followees.length})`}</span>
+        <InterfaceText>common.following</InterfaceText> <span className="follow-count">{`(${this.props.profile.followees.length})`}</span>
       </div>
     );
   }
@@ -287,14 +287,14 @@ class UserProfile extends Component {
   renderEmptyFollowerList() {
     return (
       <div>
-        <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("zero_followers")}</span>
+        <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("profile.zero_followers")}</span>
       </div>
     );
   }
   renderEmptyFollowingList() {
     return (
       <div>
-        <span className={`${Sefaria.languageClassFont}`}>{Sefaria._("zero_following")}</span>
+        <span className={`${Sefaria.languageClassFont}`}>{Sefaria._("profile.zero_following")}</span>
       </div>
     );
   }
@@ -359,7 +359,7 @@ class UserProfile extends Component {
                     renderItem={this.renderSheet}
                     renderEmptyList={this.renderEmptySheetList}
                     renderHeader={this.renderSheetHeader}
-                    sortOptions={[Sefaria._("filter_list.recent"), Sefaria._("profile.tab.sheet.tag.views")]}
+                    sortOptions={[Sefaria._("common.filter_list.recent"), Sefaria._("profile.tab.sheet.tag.views")]}
                     containerClass={"sheetList"}
                     getData={this.getSheets}
                     data={this.getSheetsFromCache()}
@@ -373,7 +373,7 @@ class UserProfile extends Component {
                     renderItem={this.renderCollection}
                     renderEmptyList={this.renderEmptyCollectionList}
                     renderHeader={this.renderCollectionHeader}
-                    sortOptions={["Recent", "Name", "Sheets"]}
+                    sortOptions={[Sefaria._("common.filter_list.recent"), Sefaria._("common.filter_list.name"), Sefaria._("common.sheets")]}
                     getData={this.getCollections}
                     data={this.getCollectionsFromCache()}
                     refreshData={this.state.refreshCollectionsData}
@@ -441,7 +441,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
 
  const text = <InterfaceText>{usesneweditor ? "You are currently testing the new Sefaria editor." : "You are currently using the old Sefaria editor."}</InterfaceText>;
- const buttonText = <InterfaceText>{usesneweditor ? "back_to_old_version" : "try_new_version"}</InterfaceText>;
+ const buttonText = <InterfaceText>{usesneweditor ? "editor.back_to_old_version" : "editor.message.try_new_version"}</InterfaceText>;
 
  const sendFeedback = () => {
 
@@ -480,9 +480,9 @@ const EditorToggleHeader = ({usesneweditor}) => {
       <p><InterfaceText>message.new_pecha_editor</InterfaceText></p>
       <p><InterfaceText>message.encounter_issue</InterfaceText></p>
       <ul>
-        <li><InterfaceText>technical_problem</InterfaceText></li>
+        <li><InterfaceText>message.technical_problem</InterfaceText></li>
         <li><InterfaceText>editor.difficulties_using_editor</InterfaceText></li>
-        <li><InterfaceText>missing_feature</InterfaceText></li>
+        <li><InterfaceText>message.missing_feature</InterfaceText></li>
       </ul>
 
       <p>
@@ -500,14 +500,14 @@ const EditorToggleHeader = ({usesneweditor}) => {
    <div class="sans-serif-in-hebrew">
       <h2><InterfaceText>message.thanks_for_trying_new_editor</InterfaceText></h2>
       <p><InterfaceText>message.go_to_profile_to_create_new_sheet</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></p>
-      <div className="buttonContainer"><a href="/enable_new_editor" onClick={()=>toggleFeedbackOverlayState()} className="button" role="button"><InterfaceText>back_to_profile</InterfaceText></a></div>
+      <div className="buttonContainer"><a href="/enable_new_editor" onClick={()=>toggleFeedbackOverlayState()} className="button" role="button"><InterfaceText>editor.back_to_profile</InterfaceText></a></div>
    </div>
  )
  const thankYouContent = (
    <div class="sans-serif-in-hebrew">
-      <h2><InterfaceText>thank_you</InterfaceText></h2>
+      <h2><InterfaceText>feedback.message.thank_you</InterfaceText></h2>
       <p><InterfaceText>feedback.message.response</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
-      <div className="buttonContainer"><a href="/disable_new_editor" className="button" role="button"><InterfaceText>back_to_profile</InterfaceText></a></div>
+      <div className="buttonContainer"><a href="/disable_new_editor" className="button" role="button"><InterfaceText>editor.back_to_profile</InterfaceText></a></div>
    </div>
  )
 
@@ -573,7 +573,7 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
         </div>
         { p.position || p.organization ?
           <div className="title sub-title">
-            <span>sd fasdfa{p.position}</span>
+            <span>{p.position}</span>
             { p.position && p.organization ? <span>{ Sefaria._("profile.at") }</span> : null }
             <span>{p.organization}</span>
           </div> : null
@@ -616,12 +616,12 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
         <div className="follow">
           <a href="" onClick={openFollowers}>
             <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
-            <InterfaceText>followers</InterfaceText>
+            <InterfaceText>common.followers</InterfaceText>
           </a>
           <span className="follow-bull">&bull;</span>
           <a href="" onClick={openFollowing}>
             <InterfaceText>{String(p.followees.length)}</InterfaceText>&nbsp;
-            <InterfaceText>following</InterfaceText>
+            <InterfaceText>common.following</InterfaceText>
           </a>
         </div>
       </div>

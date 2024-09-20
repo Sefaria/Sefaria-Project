@@ -147,7 +147,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       </div>
       {newName.length ?
       <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>
-        <InterfaceText>{Sefaria._("Create")} </InterfaceText>
+        <InterfaceText>{Sefaria._("common.create")} </InterfaceText>
       </div>
       : null}
     </div>

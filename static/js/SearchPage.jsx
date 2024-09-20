@@ -46,7 +46,7 @@ class SearchPage extends Component {
                 {this.state.totalResults?.getValue() > 0 ?
                 <div className="searchResultCount sans-serif">
                   <InterfaceText>{this.state.totalResults.asString()}</InterfaceText>&nbsp;
-                  <InterfaceText>{_("results")}</InterfaceText>
+                  <InterfaceText>{_("search_page.results")}</InterfaceText>
                 </div>
                 : null }
               </div>
