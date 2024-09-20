@@ -31,6 +31,7 @@ import {ContentLanguageContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
 
 import ReactTags from 'react-tag-autocomplete';
+import { propTypes } from 'react-markdown';
 
 
 
@@ -194,7 +195,7 @@ class BookPage extends Component {
           <InterfaceText>text.start_reading</InterfaceText>
         </a>
     const tabs = []
-    if (this.state.isContentVisible) {
+    if (this.state.isContentVisible || this.props.isNarrowColumn) {
       tabs.push({id: "contents", title: {en: Sefaria._("text.contents"), he: Sefaria._("text.contents")}});
     }
     
@@ -311,7 +312,7 @@ class BookPage extends Component {
                 setTab={this.props.setTab}
                 renderTab={renderTab}
                 containerClasses={"largeTabs"}>
-                  {this.state.isContentVisible? <TextTableOfContents
+                  {(this.state.isContentVisible || this.props.isNarrowColumn)? <TextTableOfContents
                       narrowPanel={this.props.narrowPanel}
                       title={this.props.title}
                       close={this.props.close}
@@ -344,6 +345,7 @@ class BookPage extends Component {
   }
 }
 BookPage.propTypes = {
+  isNarrowColumn:        PropTypes.bool,
   mode:                  PropTypes.string.isRequired,
   title:                 PropTypes.string.isRequired,
   category:              PropTypes.string.isRequired,

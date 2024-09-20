@@ -32,10 +32,10 @@ class UserProfile extends Component {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
-      { id: "sheets", text: "Sheets", icon: "/static/icons/sheet.svg" },
-      { id: "collections", text: Sefaria._("collection"), icon: "/static/icons/collection.svg" },
-      { id: "followers", text: "Followers", invisible: true },
-      { id: "following", text: "Following", invisible: true },
+      { id: "sheets", text:Sefaria._("profile.tab.sheets"), icon: "/static/icons/sheet.svg" },
+      { id: "collections", text: Sefaria._("profile.tab.collection"), icon: "/static/icons/collection.svg" },
+      { id: "followers", text: Sefaria._("common.followers"), invisible: true },
+      { id: "following", text: Sefaria._("common.following"), invisible: true },
       { id: "torah-tracker", text: Sefaria._("profile.buddhish_text_tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
@@ -96,7 +96,7 @@ class UserProfile extends Component {
         </div>
         <a href="/collections/new" className="resourcesLink sans-serif">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <InterfaceText>Create a New Collection</InterfaceText>
+            <InterfaceText>common.collection.btn.create_new_collection</InterfaceText>
         </a>
       </div>);
   }
@@ -111,7 +111,7 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/collections/new" className="resourcesLink sans-serif">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <InterfaceText>Create a New Collection</InterfaceText>
+            <InterfaceText>common.collection.btn.create_new_collection</InterfaceText>
         </a>
       </div>
     );
@@ -373,7 +373,7 @@ class UserProfile extends Component {
                     renderItem={this.renderCollection}
                     renderEmptyList={this.renderEmptyCollectionList}
                     renderHeader={this.renderCollectionHeader}
-                    sortOptions={["Recent", "Name", "Sheets"]}
+                    sortOptions={[Sefaria._("common.filter_list.recent"), Sefaria._("common.filter_list.name"), Sefaria._("common.sheets")]}
                     getData={this.getCollections}
                     data={this.getCollectionsFromCache()}
                     refreshData={this.state.refreshCollectionsData}
@@ -573,7 +573,7 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
         </div>
         { p.position || p.organization ?
           <div className="title sub-title">
-            <span>sd fasdfa{p.position}</span>
+            <span>{p.position}</span>
             { p.position && p.organization ? <span>{ Sefaria._("profile.at") }</span> : null }
             <span>{p.organization}</span>
           </div> : null

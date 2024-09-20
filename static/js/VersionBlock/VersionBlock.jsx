@@ -321,7 +321,7 @@ class VersionBlock extends Component {
               <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
               <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "n-a"}`}>
                 <a onClick={this.openExtendedNotes} href={`/${this.props.version.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
-                  {Sefaria._("Read More")}
+                  {Sefaria._("common.read_more")}
                 </a>
               </span>
             </div>
