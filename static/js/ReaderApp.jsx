@@ -495,7 +495,7 @@ class ReaderApp extends Component {
               hist.mode  = "topicCat";
             } else {
               hist.url   = "topics";
-              hist.title = Sefaria._("Topics | " + siteName);
+              hist.title = "Topics | " + siteName;
               hist.mode  = "topics";
             }
             break;

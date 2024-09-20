@@ -139,7 +139,7 @@ class EditCollectionPage extends Component {
                   <InterfaceText>Cancel</InterfaceText>
               </a>
               <div id="saveCollection" className="button small blue control-elem" onClick={this.save}>
-                  <InterfaceText>Save</InterfaceText>
+                  <InterfaceText>common.save</InterfaceText>
               </div>
           </div>
         </div>

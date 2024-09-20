@@ -131,7 +131,7 @@ class TextSearchFilters extends Component {
 
         <div className="searchFilterGroup">
           <h2>
-            <InterfaceText>Options</InterfaceText>
+            <InterfaceText>common.options</InterfaceText>
           </h2>
           <SearchFilterExactBox
             selected={this.props.isExactSearch}
@@ -255,7 +255,7 @@ class SearchFilterExactBox extends Component {
           <label tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}><span></span></label>
         
          <span className={"filter-title"}>
-            <InterfaceText>{_("exact_matches_only")}</InterfaceText>
+            <InterfaceText>{_("search_filter.exact_matches_only")}</InterfaceText>
           </span>
         </div>
       </li>

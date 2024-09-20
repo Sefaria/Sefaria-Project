@@ -53,7 +53,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         const newSummary = event.target.value
         if (event.target.value.length > 280) {
             setValidation({
-                validationMsg: Sefaria._("summary_limit"),
+                validationMsg: Sefaria._("sheet.message.summary_limit"),
                 validationFailed: "summary"
             });
         }
@@ -241,7 +241,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                 tags={tags}
                 suggestions={suggestions}
                 onDelete={onTagDelete}
-                placeholderText={Sefaria._("add_topic")}
+                placeholderText={Sefaria._("sheet.placeholder.add_topic")}
                 delimiters={["Enter", "Tab", ","]}
                 onAddition={onTagAddition}
                 onValidate={onTagValidate}
@@ -262,7 +262,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             <div className={"publishButton"}>
                 <div className="publishedText">
                     <InterfaceText>
-                        {Sefaria._("sheet.your_sheet_is")}<span className="publishedTextBold">{ Sefaria._("published")} </span> { Sefaria._("topic.visible_to_other")}
+                        {Sefaria._("sheet.your_sheet_is")}<span className="publishedTextBold">{ Sefaria._("sheet.published")} </span> { Sefaria._("topic.visible_to_other")}
                     </InterfaceText>
                 </div>
                 <button className="button published" onClick={togglePublish}>
@@ -296,7 +296,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             <div>
                 <span>{Sefaria.util.localeDate(sheet.dateCreated)}</span>
                 <span>{sheet.views} {Sefaria._("profile.tab.sheet.tag.views")}</span>
-                <span>{sheetSaves.length} {Sefaria._("Saves")}</span>
+                <span>{sheetSaves.length} {Sefaria._("common.saves")}</span>
             </div>
             {/* {sheet.status !== 'public' ? (<div><span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span></div>) : undefined} */}
         </div>

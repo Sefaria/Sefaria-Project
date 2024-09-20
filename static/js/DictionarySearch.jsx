@@ -179,7 +179,7 @@ class DictionarySearch extends Component {
           <img className="dictionarySearchButton" src="/static/icons/magnifier.svg" onClick={this.handleSearchButtonClick} role="button" alt="image of maginfying glass"/>
           <input className={inputClasses}
             id="searchInput"
-            placeholder={Sefaria._("search_dictionary")}
+            placeholder={Sefaria._("connection_panel.search_dictionary")}
             onKeyUp={this.handleSearchKeyUp}
             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}

@@ -439,7 +439,7 @@ class SheetSource extends Component {
 
           {this.props.source.addedBy ?
           <div className="addedBy">
-            <small><em>{Sefaria._("added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+            <small><em>{Sefaria._("sheet.source_sheet.added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
           </div>
           : null }
 
@@ -542,7 +542,7 @@ class SheetOutsideText extends Component {
 
           {this.props.source.addedBy ?
           <div className="addedBy">
-            <small><em>{Sefaria._("added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+            <small><em>{Sefaria._("sheet.source_sheet.added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
           </div>
           : null }
 
@@ -584,7 +584,7 @@ class SheetOutsideBiText extends Component {
 
           {this.props.source.addedBy ?
           <div className="addedBy">
-            <small><em>{Sefaria._("added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+            <small><em>{Sefaria._("sheet.source_sheet.added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
           </div>
           : null }
 
@@ -654,7 +654,7 @@ class SheetMedia extends Component {
           <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedContent()} }></div>
           <div className="clearFix"></div>
           {this.props.source.addedBy ?
-            <div className="addedBy"><small><em>{Sefaria._("added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            <div className="addedBy"><small><em>{Sefaria._("sheet.source_sheet.added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
             : null }
         </div>
       </section>

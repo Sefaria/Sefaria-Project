@@ -36,7 +36,7 @@ const SourcesSheetsDiv = (props) => {
         sourcesSheetsCounts.push(sourcesDiv);
     }
     if (props?.numSheets > 0) {
-        const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>sheets</InterfaceText></a></span>;
+        const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>common.sheets</InterfaceText></a></span>;
         sourcesSheetsCounts.push(sheetsDiv);
     }
 
@@ -542,7 +542,7 @@ class SearchResultList extends Component {
           }
         }
 
-        const loadingMessage   = (<LoadingMessage message={Sefaria._("searching")} heMessage={Sefaria._("searching")}/>);
+        const loadingMessage   = (<LoadingMessage message={Sefaria._("search.result_list.searching")} heMessage={Sefaria._("search.result_list.searching")}/>);
         const noResultsMessage = (<LoadingMessage message={Sefaria._("search.zero_result")} heMessage={Sefaria._("search.zero_result")}  />);
 
         const queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];

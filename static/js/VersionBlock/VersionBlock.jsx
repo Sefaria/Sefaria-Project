@@ -15,7 +15,7 @@ import VersionBlockWithPreview from "./VersionBlockWithPreview";
 class VersionBlockUtils {
     static makeVersionTitle(version){
       if (version.merged) {
-        return {"className" : "", "text": Sefaria._("merged_from") + " " + Array.from(new Set(version.sources)).join(", ")};
+        return {"className" : "", "text": Sefaria._("text.version.merged_from") + " " + Array.from(new Set(version.sources)).join(", ")};
       } else if (Sefaria.interfaceLang === "english" || !version.versionTitleInHebrew) {
         return {"className" : "", "text" : version.versionTitle};
       } else {
@@ -189,7 +189,7 @@ class VersionBlock extends Component {
   }
   makeSelectVersionLanguage(){
     let voc = this.props.version.isSource ? 'Version' : "Translation";
-    return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("select "+ voc);
+    return this.props.isCurrent ? Sefaria._("Current") : Sefaria._("common.select");
   }
 
   hasExtendedNotes(){
@@ -321,7 +321,7 @@ class VersionBlock extends Component {
               <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
               <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "n-a"}`}>
                 <a onClick={this.openExtendedNotes} href={`/${this.props.version.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
-                  {Sefaria._("Read More")}
+                  {Sefaria._("common.read_more")}
                 </a>
               </span>
             </div>
