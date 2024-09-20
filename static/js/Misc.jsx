@@ -473,7 +473,7 @@ const FilterableList = ({
           <SearchButton />
           <input
             type="text"
-            placeholder={Sefaria._("search")}
+            placeholder={Sefaria._("common.placeholder.search")}
             name="filterableListInput"
             value={filter}
             onChange={e => setFilter(e.target.value)}
@@ -1142,11 +1142,11 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   const [addSource, toggleAddSource] = useEditToggle();
   const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
-  const buttonOptions = {"subcategory": ["category.add_sub_category", toggleAddCategory],
-                          "source": ["category.add_source", toggleAddSource],
-                          "section": ["category.add_section", toggleAddSection],
+  const buttonOptions = {"subcategory": ["category.admin.add_sub_category", toggleAddCategory],
+                          "source": ["category.admin.add_source", toggleAddSource],
+                          "section": ["category.admin.add_section", toggleAddSection],
                           "reorder": ["category.reorder_section", toggleReorderCategory],
-                          "edit": ["edit", toggleEditCategory]};
+                          "edit": ["category.admin.edit", toggleEditCategory]};
 
   let wrapper = "";
   let adminButtonsSpan = null;
