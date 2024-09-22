@@ -62,7 +62,7 @@ class Util {
       }
     }
     static getObjectFromUrlParam(param) {
-      const params = (params) ? param.split('|') : '|';
+      const params = (params) ? param.split('|') : '';
       return {languageFamilyName: params[0], versionTitle: params[1]};
     }
     static decodeVtitle(vtitle) {
