@@ -4132,9 +4132,7 @@ def translations_api(request, lang=None):
         "localField": "title",
         "foreignField": "title",
         "as": "vstate"
-    }}]
-    if lang == "en":
-        aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
+    }}, {"$match": {"vstate.flags.enComplete": True}}]
 
     aggregation_query.extend([{"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1,
                                             "index.title": 1, "index.order": 1,
