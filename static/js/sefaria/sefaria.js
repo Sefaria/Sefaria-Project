@@ -10,11 +10,9 @@ import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
-import {getVersions as getTwoTexts} from './textManager';
 
 
 let Sefaria = Sefaria || {
-    getTwoTexts:getTwoTexts,
   _dataLoaded: false,
   _inBrowser: (typeof document !== "undefined"),
   toc: [],
