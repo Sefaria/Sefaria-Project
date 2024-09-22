@@ -734,9 +734,15 @@ Sefaria = extend(Sefaria, {
        * returns the versionsObj after filtering its version, and filtering languages withno matching versions
        */
     return Object.fromEntries(
-        Object.entries(versionsObj).map(([lang, versions]) =>
-            [lang, versions.filter(version => Object.keys(filterObj).every(key => version?.[key] === filterObj[key]))]
-        ).filter(([lang, versions]) => versions.length)
+        Object.entries(versionsObj).reduce((acc, [lang, versions]) => {
+            const filteredVersions = versions.filter(version =>
+                Object.entries(filterObj).every(([key, value]) => version?.[key] === value)
+            );
+            if (filteredVersions.length) {
+              acc.push([lang, filteredVersions]);
+            }
+            return acc;
+        }, [])
     );
   },
   getSourceVersions: async function(ref) {
