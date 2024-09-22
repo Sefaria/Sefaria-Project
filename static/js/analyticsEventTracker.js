@@ -166,7 +166,10 @@ const AnalyticsEventTracker = (function() {
 
         if (!_isValidAnalyticsObject(anlEventData)) { return; }
 
-        anlEventArray.forEach(anlEvent => gtag("event", anlEvent.name, anlEventData));
+        anlEventArray.forEach(anlEvent => {
+            console.log("event", anlEvent.name, anlEventData);
+            gtag("event", anlEvent.name, anlEventData);
+        });
     }
 
     function _addToggleListener(element) {
