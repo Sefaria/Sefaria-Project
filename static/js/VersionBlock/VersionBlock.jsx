@@ -382,7 +382,7 @@ class VersionsBlocksList extends Component{
   }
   render(){
       const sortedLanguages = this.sortVersions(this.props.sortPrioritizeLanugage);
-      if (this.props.versionsByLanguages === {}) {
+      if (!Object.keys(this.props.versionsByLanguages).length) {
         return (
           <div className="versionsBox">
             <LoadingMessage />
