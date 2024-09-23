@@ -1,7 +1,7 @@
 import Component from "react-class";
-import $ from "./sefaria/sefariaJquery";
+import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
-import Sefaria from "./sefaria/sefaria";
+import Sefaria from "../sefaria/sefaria";
 import {
     CollectionStatement,
     InterfaceText,
@@ -9,7 +9,7 @@ import {
     SheetAuthorStatement,
     SheetMetaDataBox,
     SheetTitle
-} from "./Misc";
+} from "../Misc";
 import React from "react";
 import classNames from "classnames";
 
