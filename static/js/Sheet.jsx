@@ -10,16 +10,10 @@ import SefariaEditor from './Editor';
 import {
   InterfaceText,
   LoadingMessage,
-  ReaderMessage,
-  SheetMetaDataBox,
-  SheetAuthorStatement,
-  SheetTitle,
-  CollectionStatement,
-  ProfilePic,
 } from './Misc';
-import SheetContent from "./sheets/SheetContent";
-import SheetSidebar from "./SheetSidebar";
 import {SheetOptions} from "./sheets/SheetOptions";
+import SheetSidebar from "./sheets/SheetSidebar";
+import SheetContent from "./sheets/SheetContent";
 
 class Sheet extends Component {
   constructor(props) {
