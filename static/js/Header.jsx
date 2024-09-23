@@ -430,94 +430,94 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
     </div>
   );
 }
-// const loadFeedBucket = (e) => {
-//   const s = document.createElement('script');
-//       s.module = true;
-//       s.defer = true;
-//       s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
-//       s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
-//       document.head.appendChild(s);
-//       const crossImage =document.querySelector("#crossImage");
-//       crossImage.classList.toggle('hidden');
-
-//       const feedbucket = document.querySelector("feedbucket-app");
-//       if (feedbucket) {
-//         // Toggle visibility of feedbucket
-//         const isHidden = feedbucket.classList.toggle('hidden');
-        
-//         // Update visibility of crossImage based on feedbucket's visibility
-//         if (isHidden) {
-//             // If feedbucket is hidden, hide crossImage
-//             crossImage.classList.add('hidden');
-//         } else {
-//             // If feedbucket is visible, show crossImage
-//             crossImage.classList.remove('hidden');
-//         }
-//         // Function to check and hide feedbucket if necessary
-//         function checkAndHideFeedbucket() {
-//           if (crossImage.classList.contains('hidden') && !feedbucket.classList.contains('hidden')) {
-//               // Use setTimeout to delay the hiding of feedbucket
-//               setTimeout(() => {
-//                   feedbucket.classList.add('hidden'); // Hide feedbucket after delay
-//               }, 3000); // Adjust the delay as needed (3000 ms = 3 seconds)
-//           }
-//         }
-//         // Example event listener for crossImage click
-//         crossImage.addEventListener('click', function() {
-//           // Toggle the visibility of crossImage
-//           crossImage.classList.toggle('hidden');
-
-//           // Check and hide feedbucket if conditions are met
-//           checkAndHideFeedbucket();
-//         });
-//     }
-      
-// };
-
-
-function loadFeedBucket() {
+const loadFeedBucket = (e) => {
   const s = document.createElement('script');
-  s.module = true;
-  s.defer = true;
-  s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
-  s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
-  document.head.appendChild(s);
+      s.module = true;
+      s.defer = true;
+      s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
+      s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
+      document.head.appendChild(s);
+      const crossImage =document.querySelector("#crossImage");
+      crossImage.classList.toggle('hidden');
 
-  s.onload = function() {
       const feedbucket = document.querySelector("feedbucket-app");
-      const crossImage = document.querySelector("#crossImage");
-      const openImage = document.querySelector("#openImage");
-
-      function toggleFeedbucket() {
-          if (feedbucket.classList.contains('hidden')) {
-              openFeedbucket(feedbucket);
-          } else {
-              closeFeedbucket(feedbucket);
+      if (feedbucket) {
+        // Toggle visibility of feedbucket
+        const isHidden = feedbucket.classList.toggle('hidden');
+        
+        // Update visibility of crossImage based on feedbucket's visibility
+        if (isHidden) {
+            // If feedbucket is hidden, hide crossImage
+            crossImage.classList.add('hidden');
+        } else {
+            // If feedbucket is visible, show crossImage
+            crossImage.classList.remove('hidden');
+        }
+        // Function to check and hide feedbucket if necessary
+        function checkAndHideFeedbucket() {
+          if (crossImage.classList.contains('hidden') && !feedbucket.classList.contains('hidden')) {
+              // Use setTimeout to delay the hiding of feedbucket
+              setTimeout(() => {
+                  feedbucket.classList.add('hidden'); // Hide feedbucket after delay
+              }, 3000); // Adjust the delay as needed (3000 ms = 3 seconds)
           }
-      }
+        }
+        // Example event listener for crossImage click
+        crossImage.addEventListener('click', function() {
+          // Toggle the visibility of crossImage
+          crossImage.classList.toggle('hidden');
 
-      function openFeedbucket(feedbucket) {
-          feedbucket.classList.remove('hidden');
-          feedbucket.style.display = "block";
-          crossImage.classList.remove('hidden');
-          openImage.classList.add('hidden');
-      }
+          // Check and hide feedbucket if conditions are met
+          checkAndHideFeedbucket();
+        });
+    }
+      
+};
 
-      function closeFeedbucket(feedbucket) {
-          feedbucket.classList.add('hidden');
-          feedbucket.style.display = "none";
-          crossImage.classList.add('hidden');
-          openImage.classList.remove('hidden');
-      }
 
-      // Add event listeners to both images to toggle feedbucket
-      crossImage.addEventListener("click", toggleFeedbucket);
-      openImage.addEventListener("click", toggleFeedbucket);
+// function loadFeedBucket() {
+//   const s = document.createElement('script');
+//   s.module = true;
+//   s.defer = true;
+//   s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
+//   s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
+//   document.head.appendChild(s);
 
-      // Initial state
-      feedbucket.classList.add('hidden');  // Initially hide feedbucket
-  };
-}
+//   s.onload = function() {
+//       const feedbucket = document.querySelector("feedbucket-app");
+//       const crossImage = document.querySelector("#crossImage");
+//       const openImage = document.querySelector("#openImage");
+
+//       function toggleFeedbucket() {
+//           if (feedbucket.classList.contains('hidden')) {
+//               openFeedbucket(feedbucket);
+//           } else {
+//               closeFeedbucket(feedbucket);
+//           }
+//       }
+
+//       function openFeedbucket(feedbucket) {
+//           feedbucket.classList.remove('hidden');
+//           feedbucket.style.display = "block";
+//           crossImage.classList.remove('hidden');
+//           openImage.classList.add('hidden');
+//       }
+
+//       function closeFeedbucket(feedbucket) {
+//           feedbucket.classList.add('hidden');
+//           feedbucket.style.display = "none";
+//           crossImage.classList.add('hidden');
+//           openImage.classList.remove('hidden');
+//       }
+
+//       // Add event listeners to both images to toggle feedbucket
+//       crossImage.addEventListener("click", toggleFeedbucket);
+//       openImage.addEventListener("click", toggleFeedbucket);
+
+//       // Initial state
+//       feedbucket.classList.add('hidden');  // Initially hide feedbucket
+//   };
+// }
 
 const LoggedInButtons = ({headerMode}) => {
   const [isClient, setIsClient] = useState(false);
