@@ -13339,8 +13339,9 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownItem {
-  padding: 10px 0px 5px 10px !important;
+  padding: 10px 5px !important;
   flex-direction: column;
+  margin-inline-start: 5px;
 }
 
 .dropdownSeparator {
@@ -13371,7 +13372,7 @@ span.ref-link-color-3 {color: blue}
   margin-inline-end: 6px;
 }
 
-.header .dropdownLinks a.dropdownLinks-button::after {
+/* .header .dropdownLinks a.dropdownLinks-button::after {
   display: inline-block;
   background: no-repeat url("/static/icons/chevron-down.svg");
   height: 10px;
@@ -13379,7 +13380,7 @@ span.ref-link-color-3 {color: blue}
   vertical-align: middle;
   content: "";
   transform: scale(0.75);
-}
+} */
 .header .dropdownLinks .dropdownLinks-menu {
   top: 35px;
   position: absolute;
@@ -13637,6 +13638,37 @@ span.ref-link-color-3 {color: blue}
   color: #666666;
 }
 
+.languageHeader {
+  padding-right: 10px;
+  padding-left: 10px;
+  padding-top: 4px;
+  padding-bottom: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  /* text-align: left; */
+  color: var(--medium-grey);
+
+}
+
+.languageToggleFlexContainer{
+  display: flex;
+  flex-direction: row;
+  /* padding: 10px 0px; */
+  align-items: baseline;
+  line-height: 18px;
+  height: 23px;
+  padding-bottom: 15px;
+}
+
+.languageDot{
+  font-size: 25px;
+  padding: 10px 2px;
+}
+
+.dropdownLinks-button .profile-pic {
+  padding-top: 7px;
+}
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}

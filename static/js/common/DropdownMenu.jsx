@@ -14,10 +14,15 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children}) => {
+const DropdownMenuItem = ({url, children, newTab}) => {
+
+  if (!newTab){
+    newTab = false;
+  }
+
   return (
 
-    <a className={`interfaceLinks-option int-bi dropdownItem`} href={url} target="_blank">
+    <a className={`interfaceLinks-option int-bi dropdownItem`} href={url} target={newTab ? '_blank' : null}>
       {children}
     </a>
 
@@ -40,7 +45,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
   );
 }
 
-const DropdownMenu = ({children}) => {
+const DropdownMenu = ({children, menuIconComponent}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
   
@@ -73,7 +78,9 @@ const DropdownMenu = ({children}) => {
   
     return (
         <div className="dropdownLinks" ref={wrapperRef}>
-          <a className="dropdownLinks-button" onClick={handleClick}><img src="/static/icons/module_switcher_icon.svg" alt={Sefaria._('Toggle Module Switcher')}/></a>
+           <a className="dropdownLinks-button" onClick={handleClick}>
+              {menuIconComponent} 
+          </a>         
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
             <div className="dropdownLinks-options">
               {children}
@@ -87,6 +94,6 @@ const DropdownMenu = ({children}) => {
   export {
     DropdownMenu, 
     DropdownMenuSeparator, 
-    DropdownMenuItem,
-    DropdownMenuItemWithIcon
+    DropdownMenuItemWithIcon,
+    DropdownMenuItem
   };

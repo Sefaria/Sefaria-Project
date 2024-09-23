@@ -18,22 +18,74 @@ import {Autocomplete} from './Autocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
 
 
+const LoggedInDropdown = () => {
+
+  const getCurrentPage = () => {
+    return encodeURIComponent(Sefaria.util.currentPath());
+  }
+
+  return (
+    <DropdownMenu menuIconComponent={<ProfilePic
+                                          url={Sefaria.profile_pic_url}
+                                          name={Sefaria.full_name}
+                                          len={25}
+                              />
+    }>
+      <DropdownMenuItem>
+        <strong>{Sefaria.full_name}</strong>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem url={'/settings/account'}>
+        <InterfaceText>Account Settings</InterfaceText>
+      </DropdownMenuItem>
+      <DropdownMenuItem url={'/torahtracker'}>
+        <InterfaceText text={{'en': 'Torah Tracker', 'he': 'לימוד במספרים'}} />
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <div className="languageHeader">
+        <InterfaceText>Site Language</InterfaceText>
+      </div>
+      <div className='languageToggleFlexContainer'>
+        <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
+          English
+        </DropdownMenuItem>
+          <span className="languageDot">&#183;</span>
+        <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
+        עברית    
+        </DropdownMenuItem>
+      </div>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem url={'/notifications'}>
+        <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}} />
+      </DropdownMenuItem>
+      <DropdownMenuItem url={'/help'}>
+        <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}} />
+      </DropdownMenuItem>
+      <DropdownMenuSeparator/>
+      <DropdownMenuItem url={'/logout'}>
+        <InterfaceText text={{'en': 'Log Out', 'he': 'ניתוק'}} />
+      </DropdownMenuItem>
+    </DropdownMenu>
+  );
+}
+
+
 const ModuleSwitcher = () => {
   return (
-    <DropdownMenu>
-    <DropdownMenuItem url={'/'}>
+    <DropdownMenu menuIconComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
+    <DropdownMenuItem url={'/'} newTab={true}>
       <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
     </DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//sheets.sefaria.org'}>
+    <DropdownMenuItem url={'//sheets.sefaria.org'} newTab={true}>
       <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
     </DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//developers.sefaria.org'}>
+    <DropdownMenuItem url={'//developers.sefaria.org'} newTab={true}>
       <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
     </DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//sefaria.org/products'}>
+    <DropdownMenuItem url={'//sefaria.org/products'} newTab={true}>
       <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products ›'}} />
     </DropdownMenuItem>
 
@@ -87,21 +139,20 @@ class Header extends Component {
             openURL={this.props.openURL}
         />
 
-
-          { Sefaria._uid ?
-            <LoggedInButtons headerMode={this.props.headerMode}/>
-            : <LoggedOutButtons headerMode={this.props.headerMode}/>
-          }
-
-          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <ModuleSwitcher /> : null}
-
-          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
+        { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
-        
+
+
+          <ModuleSwitcher /> 
+
+          { Sefaria._uid ?
+            <LoggedInDropdown />
+            : <LoggedOutButtons headerMode={this.props.headerMode}/>
+          }
+
         </div>
       </>
     );
