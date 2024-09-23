@@ -5648,7 +5648,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   display: block;
   background-color: inherit;
-  margin-bottom: 14px;
 }
 .continuous .segment {
   display: inline;
@@ -10189,9 +10188,12 @@ span.purim-emoji img{
   color: white;
   font-size: 20px;
   line-height: 1;
-  margin-inline-start: 15px;
-  margin-block-end: 15px;
   cursor: pointer;
+}
+.sheetContent .addToSheetButton {
+  margin-inline-start: 15px;
+  padding-block-start: 10px;
+  padding-block-end: 10px;
 }
 .sheetContent .addToSheetText {
   --english-font: var(--english-sans-serif-font-family);
