@@ -16,6 +16,7 @@ import {
   SheetSource
 } from "./SheetContentSegments";
 import { useState } from "react";
+import React from "react";
 
 class SheetContent extends Component {
   componentDidMount() {
