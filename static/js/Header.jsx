@@ -442,16 +442,35 @@ const loadFeedBucket = (e) => {
 
       const feedbucket = document.querySelector("feedbucket-app");
       if (feedbucket) {
-        // Remove the event listener so the script isn't loaded multiple times
-        feedbucket.classList.toggle('hidden');
-        if(feedbucket.classList.toggle('hidden')){
-          feedbucket.classList.remove('hidden');
-          crossImage.classList.remove('hidden');
-        }else{
-          feedbucket.classList.add('hidden');
-          crossImage.classList.add('hidden');
+        // Toggle visibility of feedbucket
+        const isHidden = feedbucket.classList.toggle('hidden');
+        
+        // Update visibility of crossImage based on feedbucket's visibility
+        if (isHidden) {
+            // If feedbucket is hidden, hide crossImage
+            crossImage.classList.add('hidden');
+        } else {
+            // If feedbucket is visible, show crossImage
+            crossImage.classList.remove('hidden');
         }
-      }
+        // Function to check and hide feedbucket if necessary
+        function checkAndHideFeedbucket() {
+          if (crossImage.classList.contains('hidden') && !feedbucket.classList.contains('hidden')) {
+              // Use setTimeout to delay the hiding of feedbucket
+              setTimeout(() => {
+                  feedbucket.classList.add('hidden'); // Hide feedbucket after delay
+              }, 3000); // Adjust the delay as needed (3000 ms = 3 seconds)
+          }
+        }
+        // Example event listener for crossImage click
+        crossImage.addEventListener('click', function() {
+          // Toggle the visibility of crossImage
+          crossImage.classList.toggle('hidden');
+
+          // Check and hide feedbucket if conditions are met
+          checkAndHideFeedbucket();
+        });
+    }
       
 };
 

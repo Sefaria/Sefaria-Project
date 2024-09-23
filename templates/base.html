@@ -357,12 +357,11 @@
         let container=document.getElementById('imageContainer');
         feedbucket.classList.toggle('hidden');
         crossImage.classList.toggle('hidden');
-        if(!crossImage.classList.toggle('hidden')){
-          feedbucket.classList.add('hidden');
-          crossImage.classList.add('hidden');
-        }else{
-          feedbucket.classList.remove('hidden');
-          feedbucket.classList.remove('hidden');
+        if (!crossImage.classList.toggle('hidden')) {
+            feedbucket.classList.add('hidden'); // Hide feedbucket
+            crossImage.classList.add('hidden'); // Hide crossImage
+        } else {
+            feedbucket.classList.remove('hidden'); // Show feedbucket
         }
       }
 
