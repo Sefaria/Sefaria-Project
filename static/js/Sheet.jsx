@@ -11,7 +11,7 @@ import {
   InterfaceText,
   LoadingMessage,
 } from './Misc';
-import SheetSidebar from "../sheets/SheetSidebar";
+import SheetSidebar from "./sheets/SheetSidebar";
 import SheetContent from "./sheets/SheetContent";
 
 class Sheet extends Component {

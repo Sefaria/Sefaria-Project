@@ -1,5 +1,5 @@
-import {FollowButton, InterfaceText, ProfilePic} from "./Misc";
-import Sefaria from "./sefaria/sefaria";
+import {FollowButton, InterfaceText, ProfilePic} from "../Misc";
+import Sefaria from "../sefaria/sefaria";
 import React, {useEffect, useState} from "react";
 const SheetSidebar = ({authorID, authorImage, authorStatement, authorUrl, summary, collections}) => {
     const [loadingFollowers, setLoadingFollowers] = useState(true);
