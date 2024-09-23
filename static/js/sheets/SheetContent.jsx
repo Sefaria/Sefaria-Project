@@ -6,6 +6,7 @@ import {
   InterfaceText, ProfilePic,
   SheetMetaDataBox, SheetMetaDataBoxSegment
 } from "../Misc";
+import React from "react";
 import classNames from "classnames";
 
 
