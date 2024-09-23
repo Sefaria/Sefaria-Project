@@ -10,14 +10,8 @@ import SefariaEditor from './Editor';
 import {
   InterfaceText,
   LoadingMessage,
-  ReaderMessage,
-  SheetMetaDataBox,
-  SheetAuthorStatement,
-  SheetTitle,
-  CollectionStatement,
-  ProfilePic,
 } from './Misc';
-import SheetContent from "./SheetContent";
+import SheetContent from "./sheets/SheetContent";
 
 
 class Sheet extends Component {
