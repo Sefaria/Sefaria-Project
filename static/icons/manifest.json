@@ -10,6 +10,11 @@
             "src": "/favicon-pecha.png?v=xQzLlLp7oR",
             "sizes": "256x256",
             "type": "image/png"
+        },
+        {
+            "src": "/favicon-pecha.png?v=xQzLlLp7oR",
+            "sizes": "512x512",
+            "type": "image/png"
         }
     ],
     "theme_color": "#273557",
