@@ -10190,10 +10190,14 @@ span.purim-emoji img{
   line-height: 1;
   cursor: pointer;
 }
-.sheetContent .addToSheetButton {
+.SheetOutsideBiText .addToSheetButton, .SheetSource .addToSheetButton {
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
+}
+.SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
+  margin-block-start: -10px;
+  margin-block-end: 30px;
 }
 .sheetContent .addToSheetText {
   --english-font: var(--english-sans-serif-font-family);
