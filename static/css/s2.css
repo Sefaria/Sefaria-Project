@@ -149,6 +149,12 @@ a, a:hover {
 }
 
 @font-face {
+    /*Tibetan | Jomolhari */
+    font-family: 'Uchen';
+    src: url('/static/fonts/Uchen-Regular.ttf');
+    unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
+}
+@font-face {
     /*English | Arial regular*/
     font-family: 'IndUni-P-Regular';
     src: url('/static/fonts/IndUni-P-Regular.otf');
@@ -161,7 +167,7 @@ a, a:hover {
     --hebrew-sans-serif-font-family: "wujin+gangbi", "Heebo", "Roboto", sans-serif;
 
     --english-serif-font-family: "IndUni-P-Regular", "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-    --hebrew-serif-font-family: "jomolhari", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+    --hebrew-serif-font-family: "Uchen-Regular", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
     --serif-h1-font-size: 48px;
     --serif-h2-font-size: 30px;
@@ -223,11 +229,13 @@ body, .sans-serif {
 /* edited to yakpotibetanUni from wujin */
 
 .navSidebarModule > h1 > .int-he{
+    font-size: 18px;
     font-family: var(--hebrew-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
 
 .navSidebarModule > .int-he{
+    font-size: 19px;
     font-family: var(--hebrew-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
@@ -243,16 +251,19 @@ body, .sans-serif {
 }
 
 .navSidebarModule > .downloadTextModule > .button {
+    font-size: 20px;
     font-family: var(--hebrew-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
 
 .connectionsHeaderTitle > .int-he{
+    font-size: 18px;
     font-family: var(--hebrew-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
 
 .connectionPanelSectionHeaderInner > .int-he{
+    font-size: 16px;
     font-family: var(--hebrew-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
@@ -283,6 +294,7 @@ body, .sans-serif {
 }
 
 body, .en, .int-en {
+    font-size: 18px;
     --is-hebrew: initial; /* false */
 }
 
@@ -803,7 +815,7 @@ input.noselect {
 }
 
 .header .search.hebrewSearch {
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .mobileNavMenu {
@@ -1144,7 +1156,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
     color: #000000;
     font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
     padding: 5px 17px 5px 17px;
-    font-size: 14px;
+    font-size: 17px;
     text-decoration-color: #666666;
     height: 23px;
 }
@@ -1887,6 +1899,7 @@ div.interfaceLinks-row a {
 }
 
 .readerPanel.hebrew .he {
+    font-size: 16px;
     display: inline;
     text-align: left;
 }
@@ -2044,6 +2057,7 @@ div.interfaceLinks-row a {
 }
 
 .navTitleTab {
+    font-size: 18px;
     margin-inline-end: 26px;
     color: #999;
 }
@@ -2142,7 +2156,7 @@ div.interfaceLinks-row a {
 .readerPanel .navSidebarModule h1,
 .readerPanel .bookPage h3 {
     margin: 0 0 20px;
-    font-size: 22px;
+    font-size: 28px;
     text-transform: none;
     letter-spacing: 0;
     border-bottom: 1px solid var(--light-grey);
@@ -2544,7 +2558,7 @@ span .asterisk {
     text-align: start;
     color: #666;
     position: relative;
-    font-size: 22px;
+    font-size: 17px;
     font-weight: 500;
     margin: 0 0px 30px 0;
     height: auto;
@@ -3136,6 +3150,7 @@ input.resourcesLink {
 }
 
 a.navBlockTitle {
+    font-size: 26px;
     color: #000;
     margin-inline-end: 20px;
 }
@@ -3367,6 +3382,7 @@ a.navBlockTitle:hover {
 }
 
 .featuredSheetDate {
+    font-size: 24px;
     color: var(--medium-grey);
     font-size: 14px;
 }
@@ -3406,7 +3422,7 @@ a.navBlockTitle:hover {
     background-color: white;
     text-align: center;
     color: #000;
-    font-size: 16px;
+    font-size: 18px;
     border-top: 4px solid transparent;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     width: 100%;
@@ -3497,7 +3513,7 @@ a.navBlockTitle:hover {
 }
 
 .readerNavCategoryMenu h2 {
-    font-size: 18px;
+    font-size: 22px;
     color: #666;
     margin: 0 0 20px;
 }
@@ -4437,6 +4453,8 @@ details .open-details::before {
 }
 
 .versionBlock .versionTitle a {
+    font-family: --var(--hebrew-serif-font-family);
+    font-size: 20px;
     color: black;
 }
 
@@ -8289,6 +8307,7 @@ But not to use a display block directive that might break continuous mode for ot
 
 .toolsButton.systemTypeface .toolsButtonText span.int-he,
 .toolsButton.systemTypeface .toolsButtonText span.he {
+    font-size: 18px;
     font-family: "wujin+gangbi", "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
@@ -9083,7 +9102,7 @@ But not to use a display block directive that might break continuous mode for ot
     padding: 16px 30px;
     margin: 0 2px 6px 2px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 18px;
     box-sizing: border-box;
     line-height: 19px;
     text-align: center;
@@ -9108,6 +9127,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 a.button {
+    font-size: 16px;
     color: white;
 }
 
@@ -9446,7 +9466,7 @@ a .button:hover {
 
 .lexicon-instructions,
 .lexicon-content .loadingMessage {
-    font-size: 15px;
+    font-size: 18px;
     font-style: italic;
 }
 
@@ -10304,6 +10324,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 
 .alphabeticalTopicsNav {
+    font-size: 26px;
     color: var(--dark-grey);
     margin-bottom: 5px;
 }
@@ -10429,7 +10450,7 @@ h3.aboutSheetHeader {
 }
 
 .translationsHeader .translationsDesc {
-    font-size: var(--sans-serif-body-font-size);
+    font-size: 20px;
     color: var(--dark-grey);
 }
 
@@ -12536,7 +12557,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .tab-view .tab-list .tab {
-    font-size: 16px;
+    font-size: 20px;
     color: black;
     text-align: center;
     padding: 10px 0;
@@ -12625,7 +12646,8 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .tab-view.largeTabs .tab-list .tab {
-    font-size: 22px;
+    font-size: 14px;
+    font-family: --var(hebrew-sans-serif-font-family);
 }
 
 .tab-view.largeTabs .tab-list .active .tab {
