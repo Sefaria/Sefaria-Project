@@ -225,7 +225,7 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register("{% static 'js/serviceWorker.js' %}")
+          navigator.serviceWorker.register("{% static 'serviceWorker.js' %}")
             .then(function(registration) {
               console.log('Service Worker registered with scope:', registration.scope);
             })
@@ -357,12 +357,11 @@
         let container=document.getElementById('imageContainer');
         feedbucket.classList.toggle('hidden');
         crossImage.classList.toggle('hidden');
-        if(!crossImage.classList.toggle('hidden')){
-          feedbucket.classList.add('hidden');
-          crossImage.classList.add('hidden');
-        }else{
-          feedbucket.classList.remove('hidden');
-          feedbucket.classList.remove('hidden');
+        if (!crossImage.classList.toggle('hidden')) {
+            feedbucket.classList.add('hidden'); // Hide feedbucket
+            crossImage.classList.add('hidden'); // Hide crossImage
+        } else {
+            feedbucket.classList.remove('hidden'); // Show feedbucket
         }
       }
 
