@@ -292,10 +292,6 @@ Sefaria = extend(Sefaria, {
     return oref ? oref.sectionRef : null;
 
   },
-  getRefForContext: function(ref, returnContext, currVersions=null) {
-    // Returns Promise
-    return (returnContext) ? Sefaria.getRef(ref, currVersions).then(result => result.sectionRef) : Promise.resolve(ref);
-  },
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
       return ref.split("-");
@@ -2287,7 +2283,7 @@ _media: {},
     result.en.numbered = sections;
 
     // Hebrew
-    var sections = data.heRef.slice(data.heIndexTitle.length+1);
+    var sections = data.heSectionRef.slice(data.heIndexTitle.length+1);
     var name = ""; // missing he section names // data.sectionNames.length > 1 ? " " + data.sectionNames[0] : "";
     if (data.isComplex) {
       var numberedSections = data.heRef.slice(data.heTitle.length+1);
