@@ -240,13 +240,11 @@ class ConnectionsPanel extends Component {
     //d - data received from this.getData()
     //language - the language of the version
     const currentVersionTitle = (isSource) ? d.heVersionTitle : d.versionTitle;
-    return {
-      ...d.versions.find(v => v.versionTitle === currentVersionTitle && !!v.isSource === isSource),
-      title: d.indexTitle,
-      heTitle: d.heIndexTitle,
-      sources: isSource ? d.heSources : d.sources,
-      merged: isSource ? !!d.heSources : !!d.sources,
-    }
+    let v = d.versions.find(v => v.versionTitle === currentVersionTitle && !!v.isSource === isSource);
+    v.title = d.indexTitle;
+    v.heTitle = d.heIndexTitle;
+    v.merged = isSource && !v.sources?.every(source => source === v.sources[0])
+    return v;
   }
   async setCurrentVersions() {
     const data = await this.getData();
