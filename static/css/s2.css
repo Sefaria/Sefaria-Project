@@ -5560,6 +5560,30 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: relative;
   padding: 0 30px;
 }
+.sheetContent .modalTitle {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  text-align: center;
+  color: var(--dark-grey);
+  padding-block-end: 15px;
+  margin-block-end: 20px;
+  border-bottom: 1px solid var(--lighter-grey);
+}
+.sheetContent .copySuccessMessage {
+  color: var(--inline-link-blue);
+}
+.sheetContent .modalMessage {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  text-align: center;
+  color: black;
+}
 .singlePanel .textRange.basetext,
 .singlePanel .sheetContent {
   padding: 0;
