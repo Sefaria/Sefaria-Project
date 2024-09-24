@@ -598,11 +598,20 @@ Sefaria = extend(Sefaria, {
     Sefaria._adaptApiResponse(versionsResponse);
     return versionsResponse;
   },
-  getTextFromCurrVersions: async function(ref, currVersions) {
+  getTextFromCurrVersions: async function(ref, currVersions, withContext) {
     let {he, en} = currVersions;
     if (!he?.languageFamilyName) {he = {languageFamilyName: 'primary'};}
     if (!en?.languageFamilyName) {en = {languageFamilyName: 'translation'};}
-    const data = await Sefaria._getPrimaryAndTranslationText(ref, he, en);
+    let data = await Sefaria._getPrimaryAndTranslationText(ref, he, en);
+    if (withContext && data.textDepth === data.sections.length) {
+        const {text, he, alts} = await Sefaria.getTextFromCurrVersions(data.sectionRef, currVersions);
+        data = {
+            ...data,
+            text,
+            he,
+            alts,
+        };
+    }
     return data;
   },
   _bulkSheets: {},

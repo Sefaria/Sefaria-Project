@@ -103,22 +103,8 @@ class TextRange extends Component {
     }
   }
   setData() {
-    Sefaria.getTextFromCurrVersions(this.props.sref, this.props.currVersions).then(data => {
-      // if ref is segment and we want context
-      if (this.props.withContext && data.textDepth === data.sections.length) {
-        Sefaria.getTextFromCurrVersions(data.sectionRef, this.props.currVersions).then(newData => {
-          const {text, he, alts} = newData;
-          data = {
-            ...data,
-            text,
-            he,
-            alts,
-          };
-          this.setState({data: data});
-        })
-      } else {
-        this.setState({data: data});
-      }
+    Sefaria.getTextFromCurrVersions(this.props.sref, this.props.currVersions, true).then(data => {
+      this.setState({data: data});
     })
   }
   onTextLoad() {
