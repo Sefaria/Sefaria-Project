@@ -7160,7 +7160,9 @@ But not to use a display block directive that might break continuous mode for ot
 .connection-buttons .add-to-sheet-link::before{
   background-image: url("/static/icons/add-to-sheet.svg");
 }
-
+.sheetContent .toolsButtonContainer {
+  letter-spacing: 0;
+}
 .toolsButtonContainer {
   display: flex;
   justify-content: flex-start;
