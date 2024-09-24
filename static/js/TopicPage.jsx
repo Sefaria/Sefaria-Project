@@ -443,10 +443,10 @@ const AuthorIndexItem = ({url, title, description}) => {
   return (
       <div className="authorIndex" >
       <a href={url} className="navBlockTitle">
-        <ContentText text={title} defaultToInterfaceOnBilingual />
+        <InterfaceText text={title} />
       </a>
       <div className="navBlockDescription">
-        <ContentText text={description} defaultToInterfaceOnBilingual />
+        <InterfaceText text={description} />
       </div>
     </div>
   );
