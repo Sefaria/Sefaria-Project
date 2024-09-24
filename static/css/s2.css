@@ -4958,7 +4958,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls.transLangPrefSuggBann {
   background-color: #EDEDEC;
-  z-index: 99;
+  z-index: 2;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner {
   justify-content: center;
@@ -13156,6 +13156,7 @@ span.ref-link-color-3 {color: blue}
   position: relative;
   display: flex;
   flex-direction: row-reverse;
+  z-index: 3;
 }
 
 .texts-properties-menu {

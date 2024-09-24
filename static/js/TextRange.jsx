@@ -103,14 +103,12 @@ class TextRange extends Component {
     }
   }
   setData() {
-    Sefaria.getRefForContext(this.props.sref, this.props.withContext, this.props.currVersions).then(ref => {
-      Sefaria.getTextFromCurrVersions(ref, this.props.currVersions).then(data => {
-        this.setState({data: data});
-      })
+    Sefaria.getTextFromCurrVersions(this.props.sref, this.props.currVersions, true).then(data => {
+      this.setState({data: data});
     })
   }
   onTextLoad() {
-    const data = this.state.data;
+    let data = this.state.data;
     if (data.error) {
       // If there was an error, don't update the state
       return;
@@ -125,7 +123,7 @@ class TextRange extends Component {
     //   return;
     // } else
 
-    if (this.props.basetext && data.spanning) {
+    if (this.props.basetext && data.isSpanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       this.props.showBaseText(data.spanningRefs, true, this.props.currVersions, [], false);

@@ -10,11 +10,9 @@ import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
-import {getVersions as getTwoTexts} from './textManager';
 
 
 let Sefaria = Sefaria || {
-    getTwoTexts:getTwoTexts,
   _dataLoaded: false,
   _inBrowser: (typeof document !== "undefined"),
   toc: [],
@@ -293,10 +291,6 @@ Sefaria = extend(Sefaria, {
     }
     return oref ? oref.sectionRef : null;
 
-  },
-  getRefForContext: function(ref, returnContext, currVersions=null) {
-    // Returns Promise
-    return (returnContext) ? Sefaria.getRef(ref, currVersions).then(result => result.sectionRef) : Promise.resolve(ref);
   },
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
@@ -604,11 +598,20 @@ Sefaria = extend(Sefaria, {
     Sefaria._adaptApiResponse(versionsResponse);
     return versionsResponse;
   },
-  getTextFromCurrVersions: async function(ref, currVersions) {
+  getTextFromCurrVersions: async function(ref, currVersions, withContext) {
     let {he, en} = currVersions;
     if (!he?.languageFamilyName) {he = {languageFamilyName: 'primary'};}
     if (!en?.languageFamilyName) {en = {languageFamilyName: 'translation'};}
-    const data = await Sefaria._getPrimaryAndTranslationText(ref, he, en);
+    let data = await Sefaria._getPrimaryAndTranslationText(ref, he, en);
+    if (withContext && data.textDepth === data.sections.length) {
+        const {text, he, alts} = await Sefaria.getTextFromCurrVersions(data.sectionRef, currVersions);
+        data = {
+            ...data,
+            text,
+            he,
+            alts,
+        };
+    }
     return data;
   },
   _bulkSheets: {},
@@ -2289,7 +2292,7 @@ _media: {},
     result.en.numbered = sections;
 
     // Hebrew
-    var sections = data.heRef.slice(data.heIndexTitle.length+1);
+    var sections = data.heSectionRef.slice(data.heIndexTitle.length+1);
     var name = ""; // missing he section names // data.sectionNames.length > 1 ? " " + data.sectionNames[0] : "";
     if (data.isComplex) {
       var numberedSections = data.heRef.slice(data.heTitle.length+1);

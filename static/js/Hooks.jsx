@@ -10,7 +10,7 @@ function useContentLang(defaultToInterfaceOnBilingual, overrideLanguage){
     * `defaultToInterfaceOnBilingual` use if you want components not to render all languages in bilingual mode, and default them to what the interface language is*/
     const {language, textsData} = useContext(ReaderPanelContext);
     const hasContent = !!textsData;
-    const shownLanguage = (language === "bilingual") ? language : (language === "english" && textsData?.en?.length) ? textsData?.translationLang : textsData?.primaryLang; //the 'hebrew' of language means source
+    const shownLanguage = (language === "bilingual") ? language : (language === "english" && textsData?.text?.length) ? textsData?.translationLang : textsData?.primaryLang; //the 'hebrew' of language means source
     const isContentLangAmbiguous = !['hebrew', 'english'].includes(shownLanguage);
     let languageToFilter;
     if (defaultToInterfaceOnBilingual && hasContent && isContentLangAmbiguous) {
