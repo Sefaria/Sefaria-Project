@@ -1519,9 +1519,9 @@ div.interfaceLinks-row a {
 .readerPanel.bilingual .readerNavMenu .gridBox {
   direction: ltr;
 }
-.readerPanel.english .primary,
+.readerPanel.english .primary:not(.versionsTextList .primary),
 .readerPanel.english .languageToggle .he,
-.readerPanel.hebrew .translation,
+.readerPanel.hebrew .translation:not(.versionsTextList .translation),
 .readerPanel.hebrew .languageToggle .en {
   display: none;
 }
@@ -1535,9 +1535,6 @@ div.interfaceLinks-row a {
 .readerPanel.hebrew .he {
   display: inline;
   text-align: right;
-}
-.readerPanel.hebrew .translation {
-  display: none;
 }
 .readerPanel.english .heOnly .he,
 .readerPanel.bilingual .heOnly .he {
