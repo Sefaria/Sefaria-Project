@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-25 08:34+0530\n"
+"POT-Creation-Date: 2024-09-25 11:21+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -263,8 +263,8 @@ msgid "Last Name"
 msgstr "མིང་ཕྱི་མ།"
 
 #: sefaria/forms.py:55
-msgid "Select an option..."
-msgstr "ཡིག་ཆ་ཞིག་འདེམ།"
+msgid "Select an option"
+msgstr "ཡིག་ཆ་ཞིག་འདེམས།"
 
 #: sefaria/forms.py:56
 msgid "Monastic"
@@ -2444,3 +2444,6 @@ msgid ""
 "Explore how Rashi connects verses of Torah to one another when he quotes one "
 "verse in his commentary on another."
 msgstr ""
+
+#~ msgid "Select an option..."
+#~ msgstr "ཡིག་ཆ་ཞིག་འདེམ།"
