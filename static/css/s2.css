@@ -164,10 +164,10 @@ a, a:hover {
 :root {
     /* font stacks */
     --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    --hebrew-sans-serif-font-family: "wujin+gangbi", "Heebo", "Roboto", sans-serif;
+    --hebrew-sans-serif-font-family: "Uchen", "Heebo", "Roboto", sans-serif;
 
     --english-serif-font-family: "IndUni-P-Regular", "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-    --hebrew-serif-font-family: "Uchen", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+    --hebrew-serif-font-family: "wujin+gangbi", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
     --serif-h1-font-size: 48px;
     --serif-h2-font-size: 30px;
@@ -236,7 +236,7 @@ body, .sans-serif {
 
 .navSidebarModule > .int-he{
     font-size: 19px;
-    font-family: var(--hebrew-serif-font-family) !important;
+    font-family: var(--hebrew-sans-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
 
@@ -246,13 +246,13 @@ body, .sans-serif {
 }
 
 .navSidebarModule > h3 > .int-he {
-    font-family: var(--hebrew-serif-font-family) !important;
+    font-family: var(--hebrew-sans-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
 
 .navSidebarModule > .downloadTextModule > .button {
     font-size: 20px;
-    font-family: var(--hebrew-serif-font-family) !important;
+    font-family: var(--hebrew-sans-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
 
@@ -3150,7 +3150,7 @@ input.resourcesLink {
 }
 
 a.navBlockTitle {
-    font-size: 26px;
+    font-size: 23px;
     color: #000;
     margin-inline-end: 20px;
 }
@@ -3638,6 +3638,8 @@ a.navBlockTitle:hover {
 }
 
 .readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .he {
+    font-family: "Uchen";
+    font-size: 20px;
     display: inline;
 }
 
@@ -10808,6 +10810,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
 }
 
 .dropdown .dropdownMain {
+    --is-hebrew: ;
     background: white;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     border-radius: 7px;
@@ -10827,6 +10830,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
 }
 
 .dropdown .dropdownList .dropdownOption {
+    --is-hebrew: ;
     font-size: 18px;
     cursor: pointer;
     padding: 0 22px;
