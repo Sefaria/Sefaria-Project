@@ -11,7 +11,6 @@ import {CollectionsModal, CollectionsWidget} from "../CollectionsWidget";
 const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isAdding, setAdding] = useState(false);  // Edit Collections Modal open or closed
-  const [isCopying, setIsCopying] = useState(false);
   if (isSharing) {
     return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
@@ -33,8 +32,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
           </DropdownMenuItem>
           <DropdownMenuItem>
             <CopyButton toggleSignUpModal={toggleSignUpModal}
-                        sheetID={sheetID}
-                        />
+                        sheetID={sheetID}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
