@@ -1620,7 +1620,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const connectionsPanel = this.state.panels[n];
     const basePanel        = this.state.panels[n-1];
     if (filter) {
-      if (Sefaria.util.inArray(filter, connectionsPanel.recentVersionFilters) === -1) {
+      if (prevConnectionsMode !== 'About' && Sefaria.util.inArray(filter, connectionsPanel.recentVersionFilters) === -1) {
         connectionsPanel.recentVersionFilters = [filter].concat(connectionsPanel.recentVersionFilters);
       }
       connectionsPanel.versionFilter = [filter];

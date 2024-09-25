@@ -68,7 +68,7 @@ export const VersionsTextList = ({
                 srefs={srefs}
                 asHeader={false}
                 filter={vFilter}
-                recentFilters={recentVFilters}
+                recentFilters={(recentVFilters.length) ? recentVFilters : vFilter}
                 setFilter={setFilter}
             />
             <TextRange
