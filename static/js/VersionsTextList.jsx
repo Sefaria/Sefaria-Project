@@ -14,7 +14,8 @@ export const VersionsTextList = ({
                                      onRangeClick,
                                      onCitationClick,
                                      translationLanguagePreference,
-                                     setConnectionsMode
+                                     setConnectionsMode,
+                                     versionLangMap,
                                  }) => {
     const [loaded, setLoaded] = useState(false);
 
@@ -44,12 +45,19 @@ export const VersionsTextList = ({
         return Sefaria.sectionRef(ref) || ref;
     };
 
+    const getVersion = () => {
+        return Object.values(versionLangMap).flat().filter(
+            v => Sefaria.getTranslateVersionsKey(v.versionTitle, v.language) === vFilter[0]
+        )[0];
+    };
+
     if (!loaded || !vFilter.length) {
         return <LoadingMessage/>;
     }
 
-    const [vTitle, language] = Sefaria.deconstructVersionsKey(vFilter[0]);
-    const currSelectedVersions = {[language]: {versionTitle: vTitle}};
+    const {languageFamilyName, versionTitle, language, isPrimary} = getVersion()
+    const pseudoLanguage = (isPrimary) ? 'he' : 'en';
+    const currSelectedVersions = {[pseudoLanguage]: {versionTitle, languageFamilyName}};
     const handleRangeClick = (sref) => {
         onRangeClick(sref, false, currSelectedVersions);
     };
@@ -75,8 +83,9 @@ export const VersionsTextList = ({
             />
             <ConnectionButtons>
                 <OpenConnectionTabButton srefs={srefs} openInTabCallback={handleRangeClick}/>
-                <AddConnectionToSheetButton srefs={srefs} versions={{[language]: vTitle}}
+                <AddConnectionToSheetButton srefs={srefs} versions={{[language]: versionTitle}}
                                             addToSheetCallback={setConnectionsMode}/>
+                                            {/*use language for sheets because there language means direction*/}
             </ConnectionButtons>
         </div>
     );
@@ -90,4 +99,5 @@ VersionsTextList.propTypes = {
   onCitationClick: PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
   setConnectionsMode: PropTypes.func.isRequired,
+  versionLangMap: PropTypes.object.isRequired,
 };

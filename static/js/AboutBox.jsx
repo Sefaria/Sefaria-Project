@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import VersionBlock, {VersionsBlocksList} from './VersionBlock/VersionBlock';
 import Component             from 'react-class';
-import {InterfaceText} from "./Misc";
+import {InterfaceText, LoadingMessage} from "./Misc";
 import {ContentText} from "./ContentText";
 import { Modules } from './NavSidebar';
 import {VersionsTextList} from "./VersionsTextList";
@@ -96,6 +96,14 @@ class AboutBox extends Component {
       return <section className="aboutBox">{detailSection}</section>;
     }
 
+  if (!this.state.versionLangMap) {
+    return (
+      <div className="versionsBox">
+        <LoadingMessage />
+      </div>
+    );
+  }
+
     if (this.props.mode === "Version Open") {
       return (
         <VersionsTextList
@@ -106,6 +114,7 @@ class AboutBox extends Component {
             onRangeClick={this.props.onRangeClick}
             setConnectionsMode={this.props.setConnectionsMode}
             onCitationClick={this.props.onCitationClick}
+            versionLangMap={this.state.versionLangMap}
         />
       );
     }

@@ -23,7 +23,7 @@ const TranslationsBox = ({
   });
   const _excludedLangs = ["he"];
   
-  const [versionLangMap, setVersionLangMap] = useState(null);
+  const [versionLangMap, setVersionLangMap] = useState({});
   const [currentVersionsByActualLangs, setCurrentVersionsByActualLangs] = useState(Sefaria.transformVersionObjectsToByActualLanguageKeys(currObjectVersions));
 
   const isSheet = useCallback(() => {
@@ -63,6 +63,14 @@ const TranslationsBox = ({
     );
   }
 
+  if (!Object.keys(versionLangMap).length) {
+    return (
+      <div className="versionsBox">
+        <LoadingMessage />
+      </div>
+    );
+  }
+
   if (mode === "Translation Open") {
     return (
       <VersionsTextList
@@ -74,16 +82,12 @@ const TranslationsBox = ({
         setConnectionsMode={setConnectionsMode}
         onCitationClick={onCitationClick}
         translationLanguagePreference={translationLanguagePreference}
+        versionLangMap={versionLangMap}
       />
     );
-  } else if (mode === "Translations") {
-    if (!versionLangMap) {
-      return (
-        <div className="versionsBox">
-          <LoadingMessage />
-        </div>
-      );
-    }
+  }
+
+  if (mode === "Translations") {
     return (
       <>
         <TranslationsHeader />
