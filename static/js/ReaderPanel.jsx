@@ -44,7 +44,7 @@ import {
 import {ContentText} from "./ContentText";
 import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
 import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
-import SheetsHomePage from "./sheets/SheetsHomePage";
+import {SheetsHomePage} from "./sheets/SheetsHomePage";
 
 
 class ReaderPanel extends Component {

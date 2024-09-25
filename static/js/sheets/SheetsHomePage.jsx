@@ -1,5 +1,4 @@
 import React  from 'react';
-import {InterfaceText, ResponsiveNBox} from "../Misc";
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
 
@@ -21,8 +20,18 @@ const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
         </div>;
 }
 
+const SheetsSidebar = () => {
+    const sidebarModules = [
+    {type: "CreateASheet"},
+    {type: "WhatIsASourceSheet"},
+  ];
+    return <NavSidebar modules={sidebarModules} />
+}
+
+
+
 const SheetsHomePage = () => {
-  return <div className="readerNavMenu" key="0">
+  return <div className="readerNavMenu sheetsHomepage" key="0">
             <div className="content">
                 <SheetsHeroBanner title="Join the Torah Conversation"
                                   message="Create, share, and discover source sheets."
@@ -31,10 +40,11 @@ const SheetsHomePage = () => {
                 />
                 <div className="sidebarLayout">
                     <div className="contentInner">
+                        <SheetsSidebar/>
                     </div>
                 </div>
                 <Footer/>
             </div>
         </div>
 }
-export default SheetsHomePage;
+export { SheetsHomePage };
