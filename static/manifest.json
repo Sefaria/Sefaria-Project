@@ -9,8 +9,18 @@
     
     "icons": [
       {
-        "src": "https://pecha.org/static/img/pecha-icon.png",
-        "type": "image/png", "sizes": "72x72"
+        "src": "icon.png",
+        "sizes": "144x144",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "https://pecha.org/static/screenshots/pecha-icon.png",
+        "type": "image/png", "sizes": "72x74"
+      },
+      {
+        "src": "https://pecha.org/static/screenshots/square-icon.png",
+        "type": "image/png", "sizes": "64x64"
       }
     ],
 
@@ -18,28 +28,28 @@
     {
       "src": "https://dev.pecha.org/static/screenshots/desktop-homepage.png",
       "type": "image/png",
-      "sizes": "1280x720",
+      "sizes": "1921x993",
       "form_factor": "wide"
     },
     {
       "src": "https://dev.pecha.org/static/screenshots/mobile-collection.jpg",
       "type": "image/jpg",
-      "sizes": "720x1280"
+      "sizes": "962x2048"
     },
     {
       "src": "https://dev.pecha.org/static/screenshots/mobile-homepage.jpg",
       "type": "image/jpg",
-      "sizes": "720x1280"
+      "sizes": "967x2048"
     },
     {
       "src": "https://dev.pecha.org/static/screenshots/mobile-menus.jpg",
       "type": "image/jpg",
-      "sizes": "720x1280"
+      "sizes": "966x2048"
     },
     {
-      "src": "shttps://dev.pecha.org/static/screenshots/mobile-sheet.jpg",
+      "src": "https://dev.pecha.org/static/screenshots/mobile-sheet.jpg",
       "type": "image/jpg",
-      "sizes": "720x1280"
+      "sizes": "968x2048"
     }
   ]
   }
