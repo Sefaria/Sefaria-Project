@@ -9,17 +9,17 @@
     
     "icons": [
       {
-        "src": "https://pecha.org/static/screenshots/icon.png",
+        "src": "https://dev.pecha.org/static/screenshots/icon.png",
         "sizes": "144x144",
         "type": "image/png",
         "purpose": "any"
       },
       {
-        "src": "https://pecha.org/static/screenshots/pecha-icon.png",
+        "src": "https://dev.pecha.org/static/screenshots/pecha-icon.png",
         "type": "image/png", "sizes": "72x74"
       },
       {
-        "src": "https://pecha.org/static/screenshots/square-icon.png",
+        "src": "https://dev.pecha.org/static/screenshots/square-icon.png",
         "type": "image/png", "sizes": "64x64"
       }
     ],
