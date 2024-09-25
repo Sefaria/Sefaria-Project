@@ -16,28 +16,28 @@
 
     "screenshots": [
     {
-      "src": "screenshots/desktop-homepage.png",
+      "src": "https://dev.pecha.org/static/screenshots/desktop-homepage.png",
       "type": "image/png",
       "sizes": "1280x720",
       "form_factor": "wide"
     },
     {
-      "src": "screenshots/mobile-collection.png",
+      "src": "https://dev.pecha.org/static/screenshots/mobile-collection.jpg",
       "type": "image/png",
       "sizes": "720x1280"
     },
     {
-      "src": "screenshots/mobile-homepage.png",
+      "src": "https://dev.pecha.org/static/screenshots/mobile-homepage.png",
       "type": "image/png",
       "sizes": "720x1280"
     },
     {
-      "src": "screenshots/mobile-menus.png",
+      "src": "https://dev.pecha.org/static/screenshots/mobile-menus.png",
       "type": "image/png",
       "sizes": "720x1280"
     },
     {
-      "src": "screenshots/mobile-sheet.png",
+      "src": "shttps://dev.pecha.org/static/screenshots/mobile-sheet.png",
       "type": "image/png",
       "sizes": "720x1280"
     }
