@@ -390,7 +390,7 @@ class ReaderApp extends Component {
           (next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs)) ||
           (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) ||
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
-          (next.mode === "Translation Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
+          (["Translation Open", "Version Open"].includes(next.mode) && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef !== prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
@@ -430,7 +430,7 @@ class ReaderApp extends Component {
     const shortLang = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL.
-    const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
+    const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", 'Version Open',
       "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide"]);
     const addTab = (url) => {
       if (state.tab && state.menuOpen !== "search") {
@@ -591,7 +591,7 @@ class ReaderApp extends Component {
         filter = state.connectionsMode === "ConnectionsList" ? filter.map(x => x + " ConnectionsList") : filter ; // "Reflect ConnectionsList
         hist.sources  = filter.join("+");
         }
-        if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
+        if (["Translation Open", "Version Open"].includes(state.connectionsMode) && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
         if (state.connectionsMode ==="SidebarSearch") {
@@ -621,7 +621,7 @@ class ReaderApp extends Component {
         } else {
           var htitle = state.currentlyVisibleRef;
         }
-        if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
+        if (["Translation Open", "Version Open"].includes(state.connectionsMode) && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
         hist.title    = Sefaria._r(htitle)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
@@ -646,7 +646,7 @@ class ReaderApp extends Component {
         const filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
-        if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
+        if (["Translation Open", "Version Open"].includes(state.connectionsMode) && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
         const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
