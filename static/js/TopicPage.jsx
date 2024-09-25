@@ -5,7 +5,6 @@ import Sefaria  from './sefaria/sefaria';
 import { useIncrementalLoad } from './Hooks';
 import { Promotions } from './Promotions';
 import { NavSidebar } from './NavSidebar';
-import Footer from './Footer';
 import {TopicEditor} from './TopicEditor';
 import {AdminEditorButton, useEditToggle} from './AdminEditor';
 import {
@@ -270,7 +269,6 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                   </div>
                   <NavSidebar modules={sidebarModules} />
                 </div>
-                <Footer />
             </div>
         </div>
     );
@@ -662,7 +660,6 @@ const TopicPage = ({
                 </div>
                 {sidebar}
             </div>
-            <Footer />
           </div>
       </div>;
 };

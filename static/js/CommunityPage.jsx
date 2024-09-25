@@ -5,7 +5,6 @@ import Sefaria from './sefaria/sefaria';
 import PropTypes from 'prop-types';
 import classNames  from 'classnames';
 import { NavSidebar, Modules } from './NavSidebar';
-import Footer from'./Footer';
 import {
   InterfaceText,
   LoadingMessage,
@@ -63,7 +62,6 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
           </div>
           <NavSidebar modules={sidebarModules} />
         </div>
-        <Footer />
       </div>
     </div>
   );
