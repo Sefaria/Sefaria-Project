@@ -64,7 +64,8 @@ class VersionBlockUtils {
         console.log(err);
       }
       if (renderMode === 'book-page') {
-          window.location = `/${firstSectionRef}?v${version.language}=${version.versionTitle.replace(/\s/g,'_')}`;
+          let urlVersionTitle = encodeURIComponent(version.versionTitle.replace(/\s/g,'_'));
+          window.location = `/${firstSectionRef}?v${version.language}=${urlVersionTitle}`;
       } else {
           openVersionInReader(version.versionTitle, version.language);
       }
