@@ -140,18 +140,6 @@ const TranslationsHeader = () => (
   </div>
 );
 
-VersionsTextList.propTypes = {
-  srefs: PropTypes.array,
-  vFilter: PropTypes.array,
-  recentVFilters: PropTypes.array,
-  setFilter: PropTypes.func.isRequired,
-  onRangeClick: PropTypes.func.isRequired,
-  onCitationClick: PropTypes.func.isRequired,
-  translationLanguagePreference: PropTypes.string,
-  setConnectionsMode: PropTypes.func.isRequired,
-};
-
-
 const translationBoxStateCompare = (prevProps, nextProps) => {
   // Only update if the vFilter, recentVFilters, or srefs have changed
   return nextProps.vFilter.compare(prevProps.vFilter)

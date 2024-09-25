@@ -4,6 +4,7 @@ import {LoadingMessage} from "./Misc";
 import {RecentFilterSet} from "./ConnectionFilters";
 import TextRange from "./TextRange";
 import {AddConnectionToSheetButton, ConnectionButtons, OpenConnectionTabButton} from "./TextList";
+import PropTypes from "prop-types";
 
 export const VersionsTextList = ({
                                      srefs,
@@ -79,4 +80,14 @@ export const VersionsTextList = ({
             </ConnectionButtons>
         </div>
     );
+};
+VersionsTextList.propTypes = {
+  srefs: PropTypes.array,
+  vFilter: PropTypes.array,
+  recentVFilters: PropTypes.array,
+  setFilter: PropTypes.func.isRequired,
+  onRangeClick: PropTypes.func.isRequired,
+  onCitationClick: PropTypes.func.isRequired,
+  translationLanguagePreference: PropTypes.string,
+  setConnectionsMode: PropTypes.func.isRequired,
 };
