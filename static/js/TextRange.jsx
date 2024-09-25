@@ -567,6 +567,12 @@ class TextSegment extends Component {
     return(textArray)
   }
 
+  isRtl(language) {
+    const rtlOnly = (!this.props.en && this.props?.primaryDirection === 'rtl') || (!this.props.he && this.props?.translationDirection === 'rtl');
+    const ltrOnly = (!this.props.en && this.props?.primaryDirection === 'ltr') || (!this.props.he && this.props?.translationDirection === 'ltr');
+    return rtlOnly || (language === 'hebrew' && !ltrOnly);
+  }
+
   render() {
     const {textsData, language} = this.context;
     let linkCountElement = null;
@@ -585,7 +591,6 @@ class TextSegment extends Component {
 
     const heOnly = !this.props.en && textsData?.primaryDirection === 'rtl';
     const enOnly = !this.props.he && textsData?.primaryDirection === 'ltr';
-    const rtl = heOnly || (language === 'hebrew' && !enOnly);
 
     if (this.props.showLinkCount) {
       const linkCount = this.props.linkCount;
@@ -627,7 +632,7 @@ class TextSegment extends Component {
       heOnly: heOnly,
       enOnly: enOnly,
       showNamedEntityLinks: !!this.props.onNamedEntityClick,
-      rtl: rtl,
+      rtl: this.isRtl(),
     });
     if(!this.props.en && !this.props.he){
         return false;
