@@ -421,9 +421,9 @@ class ReaderPanel extends Component {
     }
 
   }
-  setVersionFilter(filter) {
+  setVersionFilter(filter, prevConnectionsMode) {
     if (this.props.setVersionFilter) {
-      this.props.setVersionFilter(filter);
+      this.props.setVersionFilter(filter, prevConnectionsMode);
     } else {
       const filtInd = Sefaria.util.inArray(filter, this.state.recentVersionFilters);
       if (filtInd === -1) {

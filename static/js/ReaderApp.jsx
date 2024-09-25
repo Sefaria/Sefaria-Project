@@ -1616,7 +1616,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     connectionsPanel.sideScrollPosition = pos;
     this.setState({panels: this.state.panels});
   }
-  setVersionFilter(n, filter) {
+  setVersionFilter(n, filter, prevConnectionsMode) {
     const connectionsPanel = this.state.panels[n];
     const basePanel        = this.state.panels[n-1];
     if (filter) {
@@ -1624,7 +1624,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         connectionsPanel.recentVersionFilters = [filter].concat(connectionsPanel.recentVersionFilters);
       }
       connectionsPanel.versionFilter = [filter];
-      connectionsPanel.connectionsMode = "Translation Open";
+      connectionsPanel.connectionsMode = (prevConnectionsMode === 'About') ? 'Version Open' : "Translation Open";
     } else {
       connectionsPanel.versionFilter = [];
       connectionsPanel.connectionsMode = "Translations";

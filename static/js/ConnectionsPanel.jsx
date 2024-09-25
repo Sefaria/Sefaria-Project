@@ -592,13 +592,17 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Login") {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
 
-    } else if (this.props.mode === "About") {
+    } else if (this.props.mode === "About" || this.props.mode === 'Version Open') {
       content = (<AboutBox
         currObjectVersions={this.state.currObjectVersions}
         masterPanelLanguage={this.props.masterPanelLanguage}
         setConnectionsMode={this.props.setConnectionsMode}
         mode={this.props.mode}
         setFilter={this.props.setVersionFilter}
+        vFilter={this.props.versionFilter}
+        onRangeClick={this.props.onTextClick}
+        onCitationClick={this.props.onCitationClick}
+        recentVFilters={this.props.recentVersionFilters}
         title={this.props.title}
         srefs={this.props.srefs}
         sectionRef={this.state.sectionRef}

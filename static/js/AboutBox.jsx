@@ -6,6 +6,7 @@ import Component             from 'react-class';
 import {InterfaceText} from "./Misc";
 import {ContentText} from "./ContentText";
 import { Modules } from './NavSidebar';
+import {VersionsTextList} from "./VersionsTextList";
 
 
 class AboutBox extends Component {
@@ -64,8 +65,8 @@ class AboutBox extends Component {
     this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
   }
   openVersionInSidebar(versionTitle, versionLanguage) {
-    this.props.setConnectionsMode("Translation Open", {previousMode: "About"});
-    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
+    this.props.setConnectionsMode("Version Open", {previousMode: "About"});
+    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage), 'About');
   }
   isSheet(){
     return this.props.srefs[0].startsWith("Sheet");
@@ -93,6 +94,20 @@ class AboutBox extends Component {
           )
       }
       return <section className="aboutBox">{detailSection}</section>;
+    }
+
+    if (this.props.mode === "Version Open") {
+      return (
+        <VersionsTextList
+            srefs={this.props.srefs}
+            vFilter={this.props.vFilter}
+            recentVFilters={this.props.recentVFilters}
+            setFilter={this.props.setFilter}
+            onRangeClick={this.props.onRangeClick}
+            setConnectionsMode={this.props.setConnectionsMode}
+            onCitationClick={this.props.onCitationClick}
+        />
+      );
     }
 
     const category = Sefaria.index(this.state?.details?.title)?.primary_category;
@@ -244,6 +259,10 @@ AboutBox.propTypes = {
   masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
   title:               PropTypes.string.isRequired,
   srefs:               PropTypes.array.isRequired,
+  vFilter:             PropTypes.array,
+  recentVFilters:      PropTypes.array,
+  onRangeClick:        PropTypes.func,
+  onCitationClick:     PropTypes.func,
 };
 
 
