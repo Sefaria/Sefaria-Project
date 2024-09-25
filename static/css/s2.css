@@ -1519,12 +1519,17 @@ div.interfaceLinks-row a {
 .readerPanel.bilingual .readerNavMenu .gridBox {
   direction: ltr;
 }
-.readerPanel.english .primary:not(.versionsTextList .primary),
+.readerPanel.english .primary,
 .readerPanel.english .languageToggle .he,
-.readerPanel.hebrew .translation:not(.versionsTextList .translation),
+.readerPanel.hebrew .translation,
 .readerPanel.hebrew .languageToggle .en {
   display: none;
 }
+.readerPanel.english .versionsTextList .primary,
+.readerPanel.hebrew .versionsTextList .translation {
+  display: block;
+}
+
 .readerPanel.english .he.heOnly{
   display: inline;
   text-align: right;
