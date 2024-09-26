@@ -602,7 +602,6 @@ class ConnectionsPanel extends Component {
         vFilter={this.props.versionFilter}
         onRangeClick={this.props.onTextClick}
         onCitationClick={this.props.onCitationClick}
-        recentVFilters={this.props.recentVersionFilters}
         title={this.props.title}
         srefs={this.props.srefs}
         sectionRef={this.state.sectionRef}

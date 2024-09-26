@@ -109,7 +109,7 @@ class AboutBox extends Component {
         <VersionsTextList
             srefs={this.props.srefs}
             vFilter={this.props.vFilter}
-            recentVFilters={this.props.recentVFilters}
+            recentVFilters={this.props.vFilter}
             setFilter={this.props.setFilter.bind(null, 'About')}
             onRangeClick={this.props.onRangeClick}
             setConnectionsMode={this.props.setConnectionsMode}
@@ -271,7 +271,6 @@ AboutBox.propTypes = {
   title:               PropTypes.string.isRequired,
   srefs:               PropTypes.array.isRequired,
   vFilter:             PropTypes.array,
-  recentVFilters:      PropTypes.array,
   onRangeClick:        PropTypes.func,
   onCitationClick:     PropTypes.func,
 };
