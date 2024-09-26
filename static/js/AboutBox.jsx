@@ -188,8 +188,10 @@ class AboutBox extends Component {
 
           { !!placeTextEn || !!dateTextEn ?
             <div className="aboutComposed">
-              <span className="en">{`Composed: ${!!placeTextEn ? placeTextEn : ""} ${!!dateTextEn ? dateTextEn : ""}`}</span>
-              <span className="he">{`נוצר/נערך: ${!!placeTextHe ? placeTextHe : ""} ${!!dateTextHe ? dateTextHe : ""}`}</span>
+                <ContentText text={{
+                    en: `Composed: ${placeTextEn ? placeTextEn : ""} ${dateTextEn ? dateTextEn : ""}`,
+                    he: `נוצר/נערך: ${placeTextHe ? placeTextHe : ""} ${dateTextHe ? dateTextHe : ""}`
+                }}/>
             </div> : null
           }
         </div>
