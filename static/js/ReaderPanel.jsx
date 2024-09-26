@@ -1212,7 +1212,6 @@ class ReaderControls extends Component {
     /**
      * Preload translation versions to get shortVersionTitle to display
      */
-    if (!this.shouldShowVersion()) { return; }
     const data = this.props.data;
     if (!data) {return;}
     if (data.sources) {
