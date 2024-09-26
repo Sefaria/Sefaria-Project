@@ -283,7 +283,6 @@ function useOutsideClick(ref, onClickOutside, isActive=true) {
         onClickOutside();
       }
     }
-    debugger
     if (isActive) {
       // Bind the event listener
       document.addEventListener("mouseup", handleClickOutside);
