@@ -5,7 +5,7 @@ import {useOutsideClick} from "../Hooks";
 const PopoverMenu = ({buttonContent, menu, context}) => {
   const {isMenuOpen, setIsMenuOpen} = useContext(context);
   const wrapperRef = useRef(null);
-  useOutsideClick(wrapperRef, () => setIsMenuOpen(false));
+  useOutsideClick(wrapperRef, () => setIsMenuOpen(false), isMenuOpen);
 
   return (
     <div className="popover-menu" ref={wrapperRef}>

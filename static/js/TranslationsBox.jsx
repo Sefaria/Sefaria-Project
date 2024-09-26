@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import {VersionsBlocksList} from './VersionBlock/VersionBlock';
@@ -151,4 +151,4 @@ const translationBoxStateCompare = (prevProps, nextProps) => {
   && nextProps.srefs.compare(prevProps.srefs)
 };
 
-export default memo(TranslationsBox, translationBoxStateCompare);
+export default TranslationsBox;
