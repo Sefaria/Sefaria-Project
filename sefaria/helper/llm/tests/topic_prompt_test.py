@@ -1,4 +1,5 @@
 import pytest
+from dataclasses import asdict
 from sefaria.helper.llm.topic_prompt import *
 from sefaria.helper.llm.topic_prompt import _lang_dict_by_func, _get_commentary_from_link_dict
 
@@ -37,7 +38,12 @@ def test_lang_dict_by_func(fn, expected):
     ]
 ])
 def test_get_commentary_from_link_dict(link_dict, expected):
-    assert _get_commentary_from_link_dict(link_dict) == expected
+    topic_prompt_commentary = _get_commentary_from_link_dict(link_dict)
+    try:
+        asdict(topic_prompt_commentary) == expected
+    except TypeError:
+        # None will fail as input to `asdict`
+        assert topic_prompt_commentary == expected
 
 
 @pytest.mark.parametrize(('ref_topic_links', 'ref__context_hints_by_lang'), [

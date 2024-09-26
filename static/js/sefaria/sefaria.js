@@ -778,54 +778,42 @@ Sefaria = extend(Sefaria, {
       ]);
       return {status: "ok"};
   },
-  filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
+  filterVersionsByAttr: function(versionsObj, filterObj) {
       /**
-       * @versionsObj {object} whode keys are language codes ('he', 'en' etc.) and values are version objects (like the object that getVersions returns)
-       * @langs {array} of string of language codes
-       * @includeFilter {boolean} true for returning the language in the langs param, false for returning other languages
+       * @versionsObj {object} whose keys are language codes ('he', 'en' etc.) and values are version objects (like the object that getVersions returns)
+       * * @filterObj {object} keys are attribute of version objects and values are their values
+       * returns the versionsObj after filtering its version, and filtering languages with no matching versions
        */
-    return Object.keys(versionsObj)
-        .filter(lang => {
-            return includeFilter === langs.includes(lang);
-        })
-        .reduce((obj, lang) => {
-            obj[lang] = versionsObj[lang];
-            return obj;
-          }, {});
-  },
-  filterVersionsArrayByAttr: function(versionsArray, filterObj) {
-      /**
-       * @versionsArray {array} of version objects
-       * @filterObj {object} keys are attribute of version objects and values are their values
-       * returns an array of versions from versionsArray that has all the attributes and their values as in filterObj
-       */
-    return versionsArray.filter(version => {
-        return Object.keys(filterObj).every(key => version?.[key] === filterObj[key])
-    });
+    return Object.fromEntries(
+        Object.entries(versionsObj).reduce((acc, [lang, versions]) => {
+            const filteredVersions = versions.filter(version =>
+                Object.entries(filterObj).every(([key, value]) => version?.[key] === value)
+            );
+            if (filteredVersions.length) {
+              acc.push([lang, filteredVersions]);
+            }
+            return acc;
+        }, [])
+    );
   },
   getSourceVersions: async function(ref) {
     /**
-     * Gets Hebrew versions only
-     * @ref {string} ref
+     * Gets all versions that have isSource true
+     * * @ref {string} ref
      * @returns {string: [versions]} Versions by language
      */
     return Sefaria.getVersions(ref).then(versions => {
-        return Sefaria.filterVersionsObjByLangs(versions, ['he'], true);
+        return Sefaria.filterVersionsByAttr(versions, {isPrimary: true});
     });
   },
   getTranslations: async function(ref) {
     /**
-     * Gets all versions except Hebrew versions that have isSource true
+     * Gets all versions that have isSource false
      * @ref {string} ref
      * @returns {string: [versions]} Versions by language
      */
-    return Sefaria.getVersions(ref).then(result => {
-        let versions = Sefaria.filterVersionsObjByLangs(result, ['he'], false);
-        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isSource: false});
-        if (heVersions.length) {
-            versions.he = heVersions;
-        }
-        return versions;
+    return Sefaria.getVersions(ref).then(versions => {
+        return Sefaria.filterVersionsByAttr(versions, {isSource: false});
     });
   },
   _makeVersions: function(versions, byLang){
@@ -2317,14 +2305,22 @@ _media: {},
        */
       return book?.dependence === "Commentary" && !!book?.base_text_titles && !!book?.base_text_mapping && book?.base_text_titles.length === 1;
   },
-  isCommentaryRefWithBaseText(ref) {
+  isCommentaryRefWithBaseText(ref, forceOpenCommentaryPanel) {
       /* This is a helper function for openPanelAt. Determines whether the ref(s) are part of a commentary
        * with a base_text_mapping to one and only one base_text_title.
        * Example: "Ibn Ezra on Genesis 3" returns True because this commentary has a base_text_mapping to one and only one book, Genesis.
-       * @param {string/array of strings} ref: if array, checks the first ref
+       * @param {string/array of strings} ref: if ref is an array, checks the first ref
+       * @param {bool} forceOpenCommentaryPanel: If true, the commentary side panel will open regardless of the ref's depth.
+       *                                        If false, side panel will only open if ref is depth 3 or greater.
        */
       let refToCheck = Array.isArray(ref) ? ref[0] : ref;
       const parsedRef = Sefaria.parseRef(refToCheck);
+      const depth = parsedRef.sections.length;
+      if (!forceOpenCommentaryPanel && depth < 3) {
+          // This is because in some Talmud commentaries and in complex texts where the node has a depth less than 3,
+          // it can be difficult to know what comments to show in the sidebar so we should open the commentary in the main panel.
+          return false;
+      }
       const book = Sefaria.index(parsedRef.index);
       if (!this.isCommentaryWithBaseText(book)) {
           return false;
