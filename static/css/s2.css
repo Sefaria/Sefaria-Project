@@ -10149,13 +10149,13 @@ span.purim-emoji img{
   }
 }
 @media screen and (min-width: 700px) and (max-width: 900px)  {
-  .sheetsHomepage .sheetsWrapper, .sheetsHomepage .sheetsTopicsCalendar {
+  .contentInner .table {
     display: flex;
     flex-direction: column;
   }
 }
 @media screen and (max-width: 600px) {
-  .sheetsHomepage .sheetsWrapper, .sheetsHomepage .sheetsTopicsCalendar {
+   .contentInner .table {
     display: flex;
     flex-direction: column;
   }

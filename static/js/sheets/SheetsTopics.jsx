@@ -16,7 +16,7 @@ const SheetsTopicsTOC = ({handleClick}) => {
 }
 
 const SheetsWrapper = ({title, children}) => {
-    return <div className="sheetsWrapper">
+    return <div className="sheetsWrapper table">
                 <div className="sheetsHomepageSectionTitle">{title}</div>
                 {children}
            </div>
@@ -49,7 +49,7 @@ const SheetsHoliday = ({handleClick}) => {
                  oncardTitleClick={(e) => handleClick(e, holiday.slug, holiday.primaryTitle.en, holiday.primaryTitle.he)}/>;
 }
 const SheetsTopicsCalendar = ({handleClick}) => {
-    return <div className="sheetsTopicsCalendar">
+    return <div className="sheetsTopicsCalendar table">
                 <SheetsWrapper title="This Week's Torah Portion"><SheetsParashah handleClick={handleClick}/></SheetsWrapper>
                 <SheetsWrapper title="Upcoming Holiday"><SheetsHoliday handleClick={handleClick}/></SheetsWrapper>
           </div>
