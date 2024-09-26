@@ -733,6 +733,7 @@ Sefaria = extend(Sefaria, {
        * * @filterObj {object} keys are attribute of version objects and values are their values
        * returns the versionsObj after filtering its version, and filtering languages with no matching versions
        */
+
     return Object.fromEntries(
         Object.entries(versionsObj).reduce((acc, [lang, versions]) => {
             const filteredVersions = versions.filter(version =>
