@@ -6623,6 +6623,27 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     position: relative;
 }
 
+/* text subche */
+.segment .text-subche-style {
+    color: var(--pecha-red);
+    font-size: 30px;
+    font-style: italic;
+}
+
+/* text citation */
+.segment .text-citation-style {
+    position: relative;
+    background-color: #fff58a;
+    font-style: bold;
+}
+
+/* text quotation */
+.segment .text-quotation-style {
+    position: relative;
+    text-decoration: underline;
+}
+
+
 .textRange.lowlight .text {
     color: #999;
 }
