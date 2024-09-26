@@ -110,7 +110,7 @@ class AboutBox extends Component {
             srefs={this.props.srefs}
             vFilter={this.props.vFilter}
             recentVFilters={this.props.recentVFilters}
-            setFilter={this.props.setFilter}
+            setFilter={this.props.setFilter.bind(null, 'About')}
             onRangeClick={this.props.onRangeClick}
             setConnectionsMode={this.props.setConnectionsMode}
             onCitationClick={this.props.onCitationClick}
