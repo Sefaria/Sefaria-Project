@@ -594,12 +594,10 @@
   padding-top: 10px;
 }
 /* Style the select element */
-.registrationContent #register-form .custom-select-large-margin {
-  padding: 10px;       /* Increase padding for the entire dropdown */
-  font-size: 15px;     /* Optionally increase the font size */
-  border-radius: 8px;
-  box-shadow: 0px 1px 3px rgba(45, 45, 45, 0.25);
-  margin-top: 0.9px;
+.registrationContent #register-form .custom-select-large-margin option {
+  padding: 12px;
+  font-size: 16px;
+  height: 2.5em;   /* Ensures sufficient space */
 }
 /* Style the individual options within the select */
 .registrationContent #register-form .custom-select-large-margin option {

@@ -8,6 +8,7 @@
 <head>
     <title> Pecha - A Living Library of Buddhist Text </title>
     <meta charset="utf-8"/>
+    <meta charset="UTF-8">
     <!-- <meta name="description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/> -->
 
     <!-- SEO Tags -->
@@ -341,28 +342,28 @@
     </div>
 
     <script type="text/javascript">
-      // This function will load the feedbucket script dynamically
-      function loadFeedbucket() {
+      window.addEventListener("load", function(event) {
         const s = document.createElement('script');
         s.module = true;
         s.defer = true;
         s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
         s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
-        document.head.appendChild(s);
-        const crossImage =document.querySelector("#crossImage");
-        const messageImage =document.querySelector("#messageImage");
-
-        const feedbucket = document.querySelector("feedbucket-app");
-        // Remove the event listener so the script isn't loaded multiple times
-        let container=document.getElementById('imageContainer');
-        feedbucket.classList.toggle('hidden');
-        crossImage.classList.toggle('hidden');
-        if (!crossImage.classList.toggle('hidden')) {
-            feedbucket.classList.add('hidden'); // Hide feedbucket
-            crossImage.classList.add('hidden'); // Hide crossImage
-        } else {
-            feedbucket.classList.remove('hidden'); // Show feedbucket
-        }
+        s.onload = function() {
+          // Script has loaded, now try to find the feedbucket-app component
+          const feedbucket = document.querySelector("feedbucket-app");
+          feedbucket.classList.add('hidden');
+          feedbucket.style.display = "none";
+          crossImage.classList.add('hidden');
+      };
+      document.head.appendChild(s);
+      })
+      // This function will load the feedbucket script dynamically
+      function loadFeedbucket() {
+        const feedbucket = document.querySelector("feedbucket-app")
+        const crossImage =document.querySelector("#crossImage")
+        feedbucket.classList.add('hidden');
+        feedbucket.style.display = "none";
+        crossImage.classList.add('hidden');
       }
 
       // Add click event listener to the container
