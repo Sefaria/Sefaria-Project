@@ -13,8 +13,11 @@
           <span>{% trans "Sign Up" %}</span>
         </h1>
         <form id="register-form" action="{% url "register" %}" method="post" autocomplete="false">
-        {% csrf_token %}
-        {{ form.as_p }}
+        <div style="overflow: visible;">
+          {% csrf_token %}
+          {{ form.user_type }}
+      </div>
+      
         {% if next %}
             <input type="hidden" name="next" value="{{ next }}" />
         {% endif %}
