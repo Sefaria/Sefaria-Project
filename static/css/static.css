@@ -590,8 +590,19 @@
   padding-top: 10px;
   padding-bottom: 10px;
 }
-.registrationContent #register-form p:nth-of-type(5){
+.registrationContent #register-form p:nth-of-type(6){
   padding-top: 10px;
+}
+/* Style the select element */
+.registrationContent #register-form .custom-select-large-margin option {
+  padding: 12px;
+  font-size: 16px;
+  height: 2.5em;   /* Ensures sufficient space */
+}
+/* Style the individual options within the select */
+.registrationContent #register-form .custom-select-large-margin option {
+  padding: 15px 20px;  /* Increase padding inside each option to simulate margin */
+  color:rgba(0, 0, 0, 0.572);
 }
 input#id_email::placeholder {
   text-align: left;
@@ -618,6 +629,8 @@ input#id_email{
 .registrationContent a.registration-links:hover{
   color: #666;
 }
+
+
 p.registration-links a{
   color: #999;
   text-decoration: none;
