@@ -601,7 +601,7 @@ class ScheduleManager(object):
         """
         self.name = name
         self.segmentHits = segmentHits
-        if dateRangeEnd == None:
+        if dateRangeEnd is None:
             self.dateRangeEnd = datetime.today()
         else:
             self.dateRangeEnd = dateRangeEnd
@@ -628,7 +628,7 @@ class ScheduleManager(object):
             refsInRangeCount = 0
             for history in user["history"]:
                 keepCheckingRefAgainstBuckets = True
-                while(index < dateRefRangesTotal and keepCheckingRefAgainstBuckets == True):
+                while index < dateRefRangesTotal and keepCheckingRefAgainstBuckets:
                     inRange, keepCheckingRefAgainstBuckets = self.dateRefRanges[index].refIsInRange(history["ref"], history["datetime"])
                     if inRange:
                         refsInRangeCount += 1

@@ -607,7 +607,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         self.nodes.add_title(primary_title, 'he', True, True)
         index_titles = [primary_title]
         for title in self.schema["titles"]:
-            if title["lang"] == "he" and title.get("primary", False) == False:
+            if title["lang"] == "he" and title.get("primary", False) is False:
                 index_titles.append(title["text"])
 
         for title in index_titles:
@@ -618,7 +618,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     self.nodes.add_title(new_title, 'he')
 
         for node in self.nodes.children:
-            if getattr(node, "default", False) == False and getattr(node, "sharedTitle", "") == "":
+            if getattr(node, "default", False) is False and getattr(node, "sharedTitle", "") == "":
                 primary_title = node.get_primary_title('he')
                 primary_title = primary_title.replace('״', '"').replace('”', '"')
                 node.add_title(primary_title, 'he', True, True)
