@@ -72,11 +72,70 @@ spec:
             topologyKey: kubernetes.io/hostname
         nodeAffinity:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      initContainers:
+      - name: migration
+        image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+        imagePullPolicy: Always
+        args: [ "python manage.py migrate" ]
+        env:
+          - name: ENV_NAME
+            value: "{{ .Values.deployEnv }}"
+          - name: STACK_COMPONENT
+            value: web
+          - name: REDIS_HOST
+            value: "redis-{{ .Values.deployEnv }}"
+          - name: NODEJS_HOST
+            value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: VARNISH_HOST
+            value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: HELM_REVISION
+            value: "{{ .Release.Revision }}"
+        envFrom:
+          - secretRef:
+              name: {{ template "sefaria.secrets.elasticUser" . }}  
+          - secretRef:
+              name: {{ .Values.secrets.localSettings.ref }}
+              optional: true
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
+          - configMapRef:
+              name: local-settings-web-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-web-secrets-{{ .Values.deployEnv }}
+              optional: true
+        ports:
+          - containerPort: 80
+            protocol: TCP
+        resources: {{ toYaml .Values.web.resources.web.resources | nindent 10 }}
+        volumeMounts:
+        # https://stackoverflow.com/questions/53491603/kubernetes-volumemounts-a-file-not-a-directory
+        - mountPath: /app/sefaria/local_settings.py
+          name: local-settings
+          subPath: local_settings.py
+          readOnly: true
+        - mountPath: /client-secret
+          name: client-secret
+          readOnly: true
+        #TODO: what is this used for?  Is it needed? There's no env var pointing to this location
+        - mountPath: /google-cloud-secret
+          name: backup-manager-secret
+          readOnly: true
+        - mountPath: /app/logging-secret.json
+          name: logging-secret
+          subPath: logging-secret.json
+          readOnly: true
+        - name: elastic-cert
+          mountPath: /etc/ssl/certs/elastic
+          readOnly: true
       containers:
       - name: web
         image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
         imagePullPolicy: Always
-        args: [ "python manage.py migrate && gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 300 --threads {{ .Values.web.resources.web.gunicornThreadCount }} --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
+        args: [ "gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 300 --threads {{ .Values.web.resources.web.gunicornThreadCount }} --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
         env:
           # WEB_CONCURRENCY is used for determining the number of server workers
           - name: WEB_CONCURRENCY
