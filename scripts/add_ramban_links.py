@@ -321,7 +321,8 @@ def add_halachic_midrash_links():
         c = csv.DictReader(fin)
         for row in c:
             ramban_tref = row['Ramban Ref']
-            if len(ramban_tref) == 0: continue
+            if len(ramban_tref) == 0:
+                continue
             midrash_uri = urlparse(row['Midrash Ref'])
             midrash_tref = midrash_uri.path[1:].replace('_', ' ').replace('%2C', ',')
             assert Ref.is_ref(midrash_tref), midrash_tref
@@ -341,7 +342,8 @@ def delete_section_level_comm_links():
         c = csv.DictReader(fin)
         for row in c:
             comm_oref = Ref(row['Ref Commentator'])
-            if row['Is Correct?'] == 'n': continue
+            if row['Is Correct?'] == 'n':
+                continue
             edit_map[row['Ref Ramban']] += [row['Ref Commentator']]
     issue_count = 0
     for ref, edit_list in tqdm(edit_map.items(), total=len(edit_map), desc='comm links'):

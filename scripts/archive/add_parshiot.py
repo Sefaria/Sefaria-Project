@@ -62,7 +62,8 @@ def parse_parashot(parashiot_file, diaspora=False):
 		next(parashiot)
 		parasha = {"date": None}
 		for row in parashiot:
-			if not len(row): continue
+			if not len(row):
+				continue
 
 			# Continuation
 			if datetime.strptime(row[0], "%d-%b-%Y") == parasha["date"]:

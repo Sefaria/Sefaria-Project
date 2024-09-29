@@ -94,7 +94,8 @@ def update_authors_data():
         if len(l[9]) == 0:
             error_texts.append(f"ERROR: slug '{slug}' must have column 'Halachic Era' filled in.")
             has_slug_issues = True
-        if len(slug.strip()) == 0: continue
+        if len(slug.strip()) == 0:
+            continue
         internal_slug_count[slug] += 1
     for slug, count in internal_slug_count.items():
         if count > 1:
@@ -124,7 +125,8 @@ def update_authors_data():
     response_texts.append("*** Updating authorTopic records ***")
     for irow, l in enumerate(rows):
         slug = l[0].encode('utf8').decode()
-        if len(slug.strip()) == 0: continue
+        if len(slug.strip()) == 0:
+            continue
         # print(slug)
         p = AuthorTopic.init(slug) or AuthorTopic()
         p.slug = slug

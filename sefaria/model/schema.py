@@ -2129,8 +2129,10 @@ class AddressType(object):
         for starti in starti_list:
             curr_s = s[starti:]
             for SuperClass in cls.__mro__:  # mro gives all super classes
-                if SuperClass == AddressType: break
-                if SuperClass in {AddressInteger, AddressTalmud} and starti > 0: continue  # prefixes don't really make sense on AddressInteger or Talmud (in my opinion)
+                if SuperClass == AddressType:
+                    break
+                if SuperClass in {AddressInteger, AddressTalmud} and starti > 0:
+                    continue  # prefixes don't really make sense on AddressInteger or Talmud (in my opinion)
                 addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
                 section_str = None
                 if addr.is_special_case(curr_s):
@@ -2138,7 +2140,8 @@ class AddressType(object):
                 else:
                     strict = SuperClass not in {AddressAmud, AddressTalmud}  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
                     regex_str = addr.regex(lang, strict=strict, group_id='section') + "$"  # must match entire string
-                    if regex_str is None: continue
+                    if regex_str is None:
+                        continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
                     match = reg.match(curr_s)
                     if match:

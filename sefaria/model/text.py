@@ -2443,7 +2443,8 @@ class TextFamily(object):
         # processes "en" and "he" TextChunks, and puts the text in self.text and self.he, respectively.
         for language, attr in list(self.text_attr_map.items()):
             tc_kwargs = dict(oref=oref, lang=language, fallback_on_default_version=fallbackOnDefaultVersion)
-            if language == 'en': tc_kwargs['actual_lang'] = translationLanguagePreference
+            if language == 'en':
+                tc_kwargs['actual_lang'] = translationLanguagePreference
             if language in {lang, lang2}:
                 curr_version = version if language == lang else version2
                 c = TextChunk(vtitle=curr_version, **tc_kwargs)
@@ -3859,7 +3860,8 @@ class Ref(object, metaclass=RefCacheType):
             ja = self.get_state_ja()
             ja_inds = [sec - 1 for sec in self.sections + subsections]
             for i, sec in enumerate(subsections):
-                if sec >= 0: continue
+                if sec >= 0:
+                    continue
                 subsections[i] = ja.sub_array_length(ja_inds[:len(self.sections) + i]) + sec + 1
         d["sections"] += subsections
         d["toSections"] += subsections
@@ -4453,7 +4455,8 @@ class Ref(object, metaclass=RefCacheType):
         :return string or list: if format == 'string' return string where each address is separated by period else return list of addresses
         """
         address_list = ["chapter"] + self.index_node.address()[1:]
-        if format == "list": return address_list
+        if format == "list":
+            return address_list
         return ".".join(address_list)
 
     def part_projection(self):
@@ -5194,7 +5197,8 @@ class Library(object):
         topic_stack = [t for t in topic_toc]
         while len(topic_stack) > 0:
             curr_topic = topic_stack.pop()
-            if curr_topic['slug'] in discovered_slugs: continue
+            if curr_topic['slug'] in discovered_slugs:
+                continue
             discovered_slugs.add(curr_topic['slug'])
             for child_topic in curr_topic.get('children', []):
                 topic_stack += [child_topic]

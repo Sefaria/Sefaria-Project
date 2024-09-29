@@ -112,19 +112,23 @@ class YerushalmiCatcher:
             soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
             itag_list = soup.find_all(TextChunk._find_itags)
             for itag in itag_list:
-                if itag.name != 'sup': continue  # technically possible but dont think this happens
+                if itag.name != 'sup':
+                    continue  # technically possible but dont think this happens
                 try:
                     footnote_text = itag.text.replace(',', '')
                     footnote_num = int(footnote_text)
                 except ValueError:
                     # print(f"non-numeric footnote {itag.text}")
                     continue
-                if footnote_num in footnote_map: continue  # only map to the first occurrence of footnote_num
+                if footnote_num in footnote_map:
+                    continue  # only map to the first occurrence of footnote_num
                 footnote_map[(chapter_ref.normal(), footnote_num)] = en_tref
 
         for title in tqdm(library.get_indexes_in_category("Yerushalmi")):
             version = Version().load({"title": title, "versionTitle": VTITLE, "language": "en"})
-            if version is None: print("None version", title); continue
+            if version is None:
+                print("None version", title)
+                continue
             version.walk_thru_contents(footnote_mapper)
 
         return footnote_map
@@ -507,14 +511,17 @@ class YerushalmiCatcher:
                 footnote_span_map[en_tref] |= set(range(start , end))
 
         version = Version().load({"title": title, "versionTitle": VTITLE, "language": "en"})
-        if version is None: print("None version", title); return
+        if version is None:
+            print("None version", title)
+            return
         version.walk_thru_contents(footnote_mapper)
 
         links = []
         with open(f'../data/yerushalmi refs/{title}.csv', 'r') as fin:
             cin = csv.DictReader(fin)
             for row in cin:
-                if len(row['Parsed Ref']) == 0: continue
+                if len(row['Parsed Ref']) == 0:
+                    continue
                 start_char = int(row['Start Char'])
                 context_ref = row['Context Ref']
                 potential_link = {

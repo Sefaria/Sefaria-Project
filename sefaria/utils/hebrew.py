@@ -555,17 +555,20 @@ def get_abbr(abbr: str, unabbr: List[str], match=lambda x, y: x.startswith(y), l
 	first_empty_ind = None
 	for i in range(len(indexes)):
 		if len(indexes[i]) == 0:
-			if i == 0: return None  # nothing matched
+			if i == 0:
+				return None  # nothing matched
 			first_empty_ind = i
 			break
 	indexes = indexes[:first_empty_ind]
 	choices = itertools.product(*indexes)
 	for choice in choices:
-		if choice[0] != 0: continue
+		if choice[0] != 0:
+			continue
 		longest_desc_choice = []
 		for i, j in zip(choice, choice[1:] + (None,)):
 			longest_desc_choice += [i]
-			if j is None or i >= j: break
+			if j is None or i >= j:
+				break
 		choice = longest_desc_choice
 		temp_unabbr = unabbr[:len(choice)]
 		choice += [None]
@@ -592,7 +595,8 @@ def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
 	"""
 	abbrevs = []
 	for iabbr, abbr in enumerate(abbr_words):
-		if not is_abbr(abbr): continue
+		if not is_abbr(abbr):
+			continue
 		for iother in range(len(unabbr_words)):
 			unabbr = get_abbr(abbr, unabbr_words[iother:])
 			if unabbr:
@@ -648,6 +652,7 @@ def get_prefixless_inds(st: str) -> List[int]:
 	"""
 	starti_list = []
 	for prefix in PREFIXES:
-		if not st.startswith(prefix): continue
+		if not st.startswith(prefix):
+			continue
 		starti_list += [len(prefix)]
 	return starti_list

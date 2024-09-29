@@ -113,7 +113,8 @@ def index_sheet(index_name, id):
     """
 
     sheet = db.sheets.find_one({"id": id})
-    if not sheet: return False
+    if not sheet:
+        return False
 
     pud = public_user_data(sheet["owner"])
     tag_terms_simple = make_sheet_tags(sheet)

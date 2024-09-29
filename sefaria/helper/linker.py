@@ -188,7 +188,8 @@ def _make_find_refs_response_inner(resolved_ref_list: List[PossiblyAmbigResolved
         start_char, end_char = resolved_ref.raw_entity.char_indices
         text = resolved_ref.pretty_text
         link_failed = resolved_refs[0].ref is None
-        if not link_failed and resolved_refs[0].ref.is_book_level(): continue
+        if not link_failed and resolved_refs[0].ref.is_book_level():
+            continue
         ref_results += [{
             "startChar": start_char,
             "endChar": end_char,
@@ -197,9 +198,11 @@ def _make_find_refs_response_inner(resolved_ref_list: List[PossiblyAmbigResolved
             "refs": None if link_failed else [rr.ref.normal() for rr in resolved_refs]
         }]
         for rr in resolved_refs:
-            if rr.ref is None: continue
+            if rr.ref is None:
+                continue
             tref = rr.ref.normal()
-            if tref in ref_data: continue
+            if tref in ref_data:
+                continue
             ref_data[tref] = _make_ref_response_for_linker(rr.ref, options)
         if options.debug:
             debug_data += [[_make_debug_response_for_linker(rr) for rr in resolved_refs]]

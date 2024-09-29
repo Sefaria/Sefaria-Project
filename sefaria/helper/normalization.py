@@ -406,7 +406,8 @@ class NormalizerByLang(AbstractNormalizer):
         :param lang: passed through kwargs. two letter lang code (usually "en" or "he") indicating which normalizer to apply
         """
         lang = kwargs.get('lang')
-        if lang not in self.normalizers_by_lang: return s
+        if lang not in self.normalizers_by_lang:
+            return s
         return self.normalizers_by_lang[lang].normalize(s, **kwargs)
 
     def find_text_to_remove(self, s:str, **kwargs) -> list:
@@ -414,7 +415,8 @@ class NormalizerByLang(AbstractNormalizer):
         :param lang: passed through kwargs. two letter lang code (usually "en" or "he") indicating which normalizer to apply
         """
         lang = kwargs.get('lang')
-        if lang not in self.normalizers_by_lang: return []
+        if lang not in self.normalizers_by_lang:
+            return []
         return self.normalizers_by_lang[lang].find_text_to_remove(s, **kwargs)
 
 
