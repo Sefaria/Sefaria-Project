@@ -39,6 +39,12 @@ def jsonpResponse(data, callback, status=200):
     return HttpResponse("%s(%s)" % (callback, json.dumps(data, ensure_ascii=False)), content_type="application/javascript; charset=utf-8", charset="utf-8", status=status)
 
 
+def celeryResponse(task_id: str, sub_task_ids: list[str] = None):
+    data = {'task_id': task_id}
+    if sub_task_ids:
+        data['sub_task_ids'] = sub_task_ids
+    return jsonResponse(data, status=202)
+
 def send_email(subject, message_html, from_email, to_email):
     msg = EmailMultiAlternatives(subject, message_html, "Sefaria <hello@sefaria.org>", [to_email], reply_to=[from_email])
     msg.send()

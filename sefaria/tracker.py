@@ -3,6 +3,8 @@ Object history tracker
 Accepts change requests for model objects, passes the changes to the models, and records the changes in history
 
 """
+from functools import reduce
+
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -89,6 +91,53 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
 
     count_segments(version.get_index())
     return error_map
+
+
+def modify_version(user: int, version_dict: dict, patch=True, **kwargs):
+
+    def modify_node(jagged_array_node):
+        address = jagged_array_node.address()[1:]  # first element is the index name
+        new_content = reduce(lambda x, y: x.get(y, {}), address, version_dict['chapter'])
+        if is_version_new:
+            old_content = []
+        else:
+            old_content = reduce(lambda x, y: x.setdefault(y, {}), address, version.chapter) or []
+        if (patch and new_content == {}) or old_content == new_content:
+            return
+        new_content = new_content or []
+        if not is_version_new:
+            if address:
+                reduce(lambda x, y: x[y], address[:-1], version.chapter)[address[-1]] = new_content
+            else:
+                version.chapter = new_content
+        action = 'add' if not old_content else 'edit'
+        changing_texts.append({'action': action, 'oref': jagged_array_node.ref(), 'old_text': old_content, 'curr_text': new_content})
+
+    index_title = version_dict['title']
+    lang = version_dict['language']
+    version_title = version_dict['versionTitle']
+    version = model.Version().load({'title': index_title, 'versionTitle': version_title, 'language': lang})
+    changing_texts = []
+    if version:
+        is_version_new = False
+        if not patch:
+            for attr in model.Version.required_attrs + model.Version.optional_attrs:
+                if hasattr(version, attr) and attr != 'chapter':
+                    delattr(version, attr)
+        for key, value in version_dict.items():
+            if key == 'chapter':
+                continue
+            else:
+                setattr(version, key, value)
+    else:
+        is_version_new = True
+        version = model.Version(version_dict)
+    model.Ref(index_title).index_node.visit_content(modify_node)
+    version.save()
+
+    for change in changing_texts:
+        post_modify_text(user, change['action'], change['oref'], lang, version_title, change['old_text'], change['curr_text'], version._id, **kwargs)
+    count_segments(version.get_index())
 
 
 def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs) -> None:

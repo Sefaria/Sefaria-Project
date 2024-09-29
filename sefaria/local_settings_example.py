@@ -270,7 +270,11 @@ SENTINEL_TRANSPORT_OPTS = {}
 CELERY_REDIS_BROKER_DB_NUM = 2
 CELERY_REDIS_RESULT_BACKEND_DB_NUM = 3
 CELERY_QUEUES = {}
+CELERY_ENABLED = False
 # END Celery
+
+#Slack
+SLACK_URL = ''
 
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration
