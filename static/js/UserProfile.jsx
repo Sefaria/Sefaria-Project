@@ -556,22 +556,23 @@ const EditorToggleHeader = ({usesneweditor}) => {
 const ProfileSummary = ({ profile:p, openFollowers, openFollowing, toggleSignUpModal, showFollowersAndFollowing=true }) => {
     const getFollowComponent = () => {
         if (showFollowersAndFollowing) {
-          return <div className="follow">
-                     <a href="" onClick={openFollowers}>
-                         <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
-                         <InterfaceText>followers</InterfaceText>
-                     </a>
-                     <span className="follow-bull">&bull;</span>
-                     <a href="" onClick={openFollowing}>
-                         <InterfaceText>{String(p.followees.length)}</InterfaceText>&nbsp;
-                         <InterfaceText>following</InterfaceText>
-                     </a>
-                  </div>;
-        } else {
-          return <div className="follow">
+            return <div className="follow">
+                <a href="" onClick={openFollowers}>
                     <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
                     <InterfaceText>followers</InterfaceText>
-                 </div>;
+                </a>
+                <span className="follow-bull">&bull;</span>
+                <a href="" onClick={openFollowing}>
+                    <InterfaceText>{String(p.followees.length)}</InterfaceText>&nbsp;
+                    <InterfaceText>following</InterfaceText>
+                </a>
+            </div>;
+        } else {
+            return <div className="follow">
+                <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
+                <InterfaceText>followers</InterfaceText>
+            </div>;
+        }
     }
 
     // collect info about this profile in `infoList`
@@ -663,14 +664,13 @@ const ProfileSummary = ({ profile:p, openFollowers, openFollowing, toggleSignUpM
                     </div>
                 </div>
                 );
-                };
-                ProfileSummary.propTypes = {
-                    profile:       PropTypes.object.isRequired,
-                    openFollowers: PropTypes.func,
-                    openFollowing: PropTypes.func,
-                    showFollowersAndFollowing: PropTypes.bool,
-                    toggleSignUpModal: PropTypes.func.isRequired,
-                };
-}
+};
+ProfileSummary.propTypes = {
+    profile:       PropTypes.object.isRequired,
+    openFollowers: PropTypes.func,
+    openFollowing: PropTypes.func,
+    showFollowersAndFollowing: PropTypes.bool,
+    toggleSignUpModal: PropTypes.func.isRequired,
+};
 
 export {UserProfile, ProfileSummary};

@@ -2,7 +2,7 @@ import {FollowButton, InterfaceText, ProfilePic} from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 import React, {useEffect, useState} from "react";
 import {ProfileSummary} from "../UserProfile";
-const SheetSidebar = ({authorID, authorImage, authorStatement, authorUrl, summary, collections}) => {
+const SheetSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections}) => {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     useEffect(() => {
