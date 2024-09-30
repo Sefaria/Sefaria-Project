@@ -3267,23 +3267,7 @@ a.cardTitle:hover {
   flex-direction: row;
   justify-content: space-between;
 }
-.sheetFollowers {
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 18.75px;
-  margin-block-end: 20px;
-  color: #666666;
-}
-.sheetSidebar .summary {
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 18px;
-  margin-block-end: 20px;
-}
+
 .sheetSidebar .profile-pic {
   display: block;
   margin-block-end: 20px;
