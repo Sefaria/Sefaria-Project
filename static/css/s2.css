@@ -10148,10 +10148,22 @@ span.purim-emoji img{
     padding: 130px 0;
   }
 }
+@media screen and (min-width: 900px) {
+  .contentInner .table {
+    display: flex;
+    flex-direction: row;
+  }
+}
 @media screen and (min-width: 700px) and (max-width: 900px)  {
   .contentInner .table {
     display: flex;
     flex-direction: column;
+  }
+}
+@media screen and (min-width: 600px) and (max-width: 700px) {
+  .contentInner .table {
+    display: flex;
+    flex-direction: row;
   }
 }
 @media screen and (max-width: 600px) {
@@ -13339,10 +13351,6 @@ span.ref-link-color-3 {color: blue}
 }
 .multiPanel .sheetsTopicTOC {
   margin-top: 30px;
-}
-.sheetsTopicsCalendar {
-  display: flex;
-  justify-content: space-between;
 }
 .singlePanel .sheetsHomepage .navSidebar {
   margin-block-start: 5px;
