@@ -23,13 +23,18 @@ export const changeLanguage = async (page: Page, language: string) => {
 }
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
-    if (!langCookies.length) {
-        const page: Page = await context.newPage();
-        await page.goto('');
-        await changeLanguage(page, language);
-        langCookies = await context.cookies();
-    }
+    // If a cookie already has contents, clear it so that the language cookie can be reset
+    if (langCookies.length) {
+        await context.clearCookies()
+    }   
+    const page: Page = await context.newPage();
+    await hideModals(page)
+    await page.goto('');
+    await changeLanguage(page, language);
+    langCookies = await context.cookies();
+
     await context.addCookies(langCookies);
+
     // this is a hack to get the cookie to work
     const newPage: Page = await context.newPage();
     await newPage.goto(url);
