@@ -353,6 +353,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   height: 100%;
   z-index: 1000;
 }
+
 #s2.headerOnly {
   z-index: 1000;
   height: 60px;
@@ -4740,11 +4741,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   z-index: 2;
 }
 .singlePanel .autocomplete-dropdown {
-  width: 100vw;
+  width: 0;
   position: fixed;
   top: 120px;
   inset-inline-start: 0;
   padding-bottom: 10px;
+}
+.singlePanel .autocomplete-dropdown:has(*){
+  width: 100vw;
 }
 .search-group-suggestions{
   border-bottom: 0.766667px solid rgb(204, 204, 204);
@@ -9832,7 +9836,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .currVersionSection, .aboutBox .alternateVersionsSection {
   padding-bottom: 30px;
 }
-.aboutBox .versionsBox .versionBlock:first-child{
+.aboutBox .versionsBox .language-block:first-child .versionBlock:first-child {
   border-top: none;
   padding-top: 10px;
 }
