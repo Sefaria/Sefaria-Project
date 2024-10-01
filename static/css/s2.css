@@ -1520,9 +1520,9 @@ div.interfaceLinks-row a {
 .readerPanel.bilingual .readerNavMenu .gridBox {
   direction: ltr;
 }
-.readerPanel.english .primary,
+.readerPanel.english .contentSpan.primary,
 .readerPanel.english .languageToggle .he,
-.readerPanel.hebrew .translation,
+.readerPanel.hebrew .contentSpan.translation,
 .readerPanel.hebrew .languageToggle .en {
   display: none;
 }
