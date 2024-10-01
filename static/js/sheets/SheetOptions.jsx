@@ -95,6 +95,7 @@ const CopyModal = ({close, sheetID}) => {
   }
   const [copyText, setCopyText] = useState(copyState.copying);
   const [copiedSheetId, setCopiedSheetId] = useState(0);
+  const [loaded, setLoaded] = useState(false);
   const filterAndSaveCopiedSheetData = async (data) => {
     let newSheet = Sefaria.util.clone(data);
     newSheet.status = "unlisted";
@@ -118,15 +119,20 @@ const CopyModal = ({close, sheetID}) => {
 
     return await Sefaria.apiRequestWithBody("/api/sheets/", null, newSheet);
   }
-  useEffect(async () => {
-    let loadedSheet = Sefaria.sheets.loadSheetByID(sheetID);
-    const response = await filterAndSaveCopiedSheetData(loadedSheet);
-    if (response.id) {
-      setCopyText(copyState.copied);
-      setCopiedSheetId(response.id);
+  useEffect( () => {
+    async function fetchData() {
+      let loadedSheet = Sefaria.sheets.loadSheetByID(sheetID);
+      return await filterAndSaveCopiedSheetData(loadedSheet);
     }
-    else {
-      setCopyText(copyState.error);
+    if (!loaded) {
+      fetchData().then((response) => {
+        if (response.id) {
+          setCopyText(copyState.copied);
+          setCopiedSheetId(response.id);
+        } else {
+          setCopyText(copyState.error);
+        }
+      })
     }
   })
   const getCopySuccessMessage = () => {
@@ -137,6 +143,7 @@ const CopyModal = ({close, sheetID}) => {
   }
   const handleClose = () => {
     if (copyText.en !== copyState.copying) { // don't allow user to close modal while copying is taking place
+      setLoaded(false);
       close();
     }
   }
