@@ -552,30 +552,8 @@ const EditorToggleHeader = ({usesneweditor}) => {
  )
 }
 
-
-const ProfileSummary = ({ profile:p, openFollowers, openFollowing, toggleSignUpModal, showFollowersAndFollowing=true }) => {
-    const getFollowComponent = () => {
-        if (showFollowersAndFollowing) {
-            return <div className="follow">
-                <a href="" onClick={openFollowers}>
-                    <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
-                    <InterfaceText>followers</InterfaceText>
-                </a>
-                <span className="follow-bull">&bull;</span>
-                <a href="" onClick={openFollowing}>
-                    <InterfaceText>{String(p.followees.length)}</InterfaceText>&nbsp;
-                    <InterfaceText>following</InterfaceText>
-                </a>
-            </div>;
-        } else {
-            return <div className="follow">
-                <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
-                <InterfaceText>followers</InterfaceText>
-            </div>;
-        }
-    }
-
-    // collect info about this profile in `infoList`
+const ProfileBio = ({profile: p}) => {
+    // used in ProfileSummary and in SheetSidebar, renders user education, organization, and location info
     const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
     let infoList = [];
     if (p.location) {
@@ -598,79 +576,94 @@ const ProfileSummary = ({ profile:p, openFollowers, openFollowing, toggleSignUpM
       </span>
         );
     }
-    const followComponent = getFollowComponent();
+    const subTitle = <div className="title sub-title">
+        <span>{p.position}</span>
+        {p.position && p.organization ? <span>{Sefaria._(" at ")}</span> : null}
+        <span>{p.organization}</span>
+    </div>;
+    const infoListComponent = <div className="title sub-sub-title">
+                                        {
+                                            infoList.map((i, ii) => (
+                                                <span key={ii}>
+                                                        {ii !== 0 && '\u2022'}
+                                                    <span className="small-margin">{i}</span>
+                                                </span>
+                                            ))
+                                        }
+                                    </div>;
+
+    return <>{(p.position || p.organization) && subTitle}
+             {infoList.length && infoListComponent}
+           </>;
+}
+const ProfileSummary = ({
+                            profile: p,
+                            openFollowers,
+                            openFollowing,
+                            toggleSignUpModal,
+                        }) => {
+    const followInfo = <div className="follow">
+                                 <a href="" onClick={openFollowers}>
+                                    <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
+                                    <InterfaceText>followers</InterfaceText>
+                                 </a>
+                                 <span className="follow-bull">&bull;</span>
+                                 <a href="" onClick={openFollowing}>
+                                    <InterfaceText>{String(p.followees.length)}</InterfaceText>&nbsp;
+                                    <InterfaceText>following</InterfaceText>
+                                 </a>
+                             </div>;
+    const profileButtons = Sefaria._uid === p.id ? (
+                                    <div className="profile-actions">
+                                        <a href="/settings/profile" className="resourcesLink sans-serif">
+                                            <span className="int-en">Edit Profile</span>
+                                            <span className="int-he">עריכת פרופיל</span>
+                                        </a>
+                                        <a href="/settings/account" className="resourcesLink sans-serif profile-settings">
+                                            <img src="/static/icons/settings.svg" alt="Profile Settings"/>
+                                            <span className="int-en">Settings</span>
+                                            <span className="int-he">הגדרות</span>
+                                        </a>
+                                        <a href="/logout" className="button transparent logoutLink">
+                                            <span className="int-en">Log Out</span>
+                                            <span className="int-he">ניתוק</span>
+                                        </a>
+                                    </div>) : (
+                                    <div className="profile-actions">
+                                        <FollowButton
+                                            large={true}
+                                            uid={p.id}
+                                            following={Sefaria.following.indexOf(p.id) > -1}
+                                            toggleSignUpModal={toggleSignUpModal}
+                                        />
+                                    </div>);
+    const profileName = <div className="title pageTitle">
+                                    <span className="int-en">{p.full_name}</span>
+                                    <span className="int-he">{p.full_name}</span>
+                                </div>;
     return (
-                <div className="profile-summary sans-serif">
-                    <div className="summary-column profile-summary-content start">
-                        <div className="title pageTitle">
-                            <span className="int-en">{p.full_name}</span>
-                            <span className="int-he">{p.full_name}</span>
-                        </div>
-                        {p.position || p.organization ?
-                            <div className="title sub-title">
-                                <span>{p.position}</span>
-                                {p.position && p.organization ? <span>{Sefaria._(" at ")}</span> : null}
-                                <span>{p.organization}</span>
-                            </div> : null
-                        }
-                        {infoList.length ?
-                            <div className="title sub-sub-title">
-                                {
-                                    infoList.map((i, ii) => (
-                                        <span key={ii}>
-                  {ii !== 0 ? '\u2022' : null}
-                                            <span className="small-margin">{i}</span>
-                </span>
-                                    ))
-                                }
-                            </div> : null
-                        }
-                        {
-                            Sefaria._uid === p.id ? (
-                                <div className="profile-actions">
-                                    <a href="/settings/profile" className="resourcesLink sans-serif">
-                                        <span className="int-en">Edit Profile</span>
-                                        <span className="int-he">עריכת פרופיל</span>
-                                    </a>
-                                    <a href="/settings/account" className="resourcesLink sans-serif profile-settings">
-                                        <img src="/static/icons/settings.svg" alt="Profile Settings"/>
-                                        <span className="int-en">Settings</span>
-                                        <span className="int-he">הגדרות</span>
-                                    </a>
-                                    <a href="/logout" className="button transparent logoutLink">
-                                        <span className="int-en">Log Out</span>
-                                        <span className="int-he">ניתוק</span>
-                                    </a>
-                                </div>) : (
-                                <div className="profile-actions">
-                                    <FollowButton
-                                        large={true}
-                                        uid={p.id}
-                                        following={Sefaria.following.indexOf(p.id) > -1}
-                                        toggleSignUpModal={toggleSignUpModal}
-                                    />
-                                </div>)
-                        }
-                        {followComponent}
-                    </div>
-                    <div className="summary-column end">
-                        <ProfilePic
-                            url={p.profile_pic_url}
-                            name={p.full_name}
-                            len={175}
-                            hideOnDefault={Sefaria._uid !== p.id}
-                            showButtons={Sefaria._uid === p.id}
-                        />
-                    </div>
-                </div>
-                );
+        <div className="profile-summary sans-serif">
+            <div className="summary-column profile-summary-content start">
+                {profileName}
+                <ProfileSummaryInfo profile={p}/>
+                {profileButtons}
+                {followInfo}
+            </div>
+            <ProfilePic
+                url={p.profile_pic_url}
+                name={p.full_name}
+                len={175}
+                hideOnDefault={Sefaria._uid !== p.id}
+                showButtons={Sefaria._uid === p.id}
+            />
+        </div>
+    );
 };
 ProfileSummary.propTypes = {
-    profile:       PropTypes.object.isRequired,
+    profile: PropTypes.object.isRequired,
     openFollowers: PropTypes.func,
     openFollowing: PropTypes.func,
-    showFollowersAndFollowing: PropTypes.bool,
     toggleSignUpModal: PropTypes.func.isRequired,
 };
 
-export {UserProfile, ProfileSummary};
+export {UserProfile, ProfileBio};

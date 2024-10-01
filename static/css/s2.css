@@ -3274,6 +3274,15 @@ a.cardTitle:hover {
   margin-block-start: 30px;
   margin-inline-start: -5px;
 }
+.sheetSidebar .profileFollowers {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  margin-block-end: 20px;
+  color: #666666;
+}
 .sheetViewer {
   display: flex;
 }
@@ -11196,10 +11205,21 @@ cursor: pointer;
   opacity: 0.6;
   cursor:pointer;
 }
-.profile-page .social-icon img {
+.profile-page .social-icon img, .sheetSidebar .social-icon img {
   width: 13px;
   height: 13px;
   opacity: 0.4;
+}
+.sheetSidebar .title.sub-title, .sheetSidebar .title.sub-sub-title {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-block-end: 10px;
+}
+.sheetSidebar .title.sub-sub-title {
+  margin-block-end: 20px;
 }
 .profile-page .social-icon + .social-icon {
   padding: 0 5px;
@@ -11480,19 +11500,19 @@ cursor: pointer;
 .profile-page .profile-summary .summary-column.end {
   flex-grow: 1;
 }
-.profile-page .profile-summary .small-margin {
+.profile-summary .small-margin {
   margin: 0 4px;
 }
-.profile-page .profile-summary .sub-sub-title > .small-margin:first-child,
-.profile-page .profile-summary .sub-sub-title > span:first-child .small-margin {
+.profile-summary .sub-sub-title > .small-margin:first-child,
+.profile-summary .sub-sub-title > span:first-child .small-margin {
   margin: 0 4px 0 0;
 }
-.profile-page .profile-summary .sub-sub-title > .small-margin:last-child,
-.profile-page .profile-summary .sub-sub-title > span:last-child .small-margin {
+.profile-summary .sub-sub-title > .small-margin:last-child,
+.profile-summary .sub-sub-title > span:last-child .small-margin {
   margin: 0 0 0 4px;
 }
-.interface-hebrew .profile-page .profile-summary .sub-sub-title > .small-margin:last-child,
-.interface-hebrew .profile-page .profile-summary .sub-sub-title > span:last-child .small-margin {
+.interface-hebrew .profile-summary .sub-sub-title > .small-margin:last-child,
+.interface-hebrew .profile-summary .sub-sub-title > span:last-child .small-margin {
   margin: 0 4px 0 0;
 }
 .profile-page .aboutText {
