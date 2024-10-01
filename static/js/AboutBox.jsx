@@ -11,6 +11,7 @@ import {VersionsTextList} from "./VersionsTextList";
 
 class AboutBox extends Component {
   constructor(props) {
+      console.log('constructor')
     super(props);
     this.state = {
       versionLangMap: {},
@@ -54,6 +55,7 @@ class AboutBox extends Component {
   onVersionsLoad(versions) {
     //rearrange the current selected versions to be mapped by their real language,
     // then sort the current version to the top of its language list
+    console.log('onVersionsLoad')
     let versionsByLang = versions;
     let currentVersionsByActualLangs = Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions);
     for (let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
@@ -95,7 +97,7 @@ class AboutBox extends Component {
       return <section className="aboutBox">{detailSection}</section>;
     }
 
-  if (!this.state.versionLangMap) {
+  if (!Object.keys(this.state.versionLangMap).length) {
     return (
       <div className="versionsBox">
         <LoadingMessage />
