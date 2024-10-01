@@ -645,7 +645,7 @@ const ProfileSummary = ({
         <div className="profile-summary sans-serif">
             <div className="summary-column profile-summary-content start">
                 {profileName}
-                <ProfileSummaryInfo profile={p}/>
+                <ProfileBio profile={p}/>
                 {profileButtons}
                 {followInfo}
             </div>
