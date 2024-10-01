@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon} from "../common/DropdownMenu";
-import {SaveButton} from "../Misc";
+import {InterfaceText, SaveButton} from "../Misc";
 import Modal from "../shared/modal";
 import {ShareBox, ToolsButton} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
@@ -19,41 +19,42 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
     return <EditCollectionsModal isOpen={isAdding} close={() => setAdding(false)} sheetID={sheetID}/>;
   }
   return (
-    <DropdownMenu toggle={"..."}>
-      <DropdownMenuItem>
-        <SaveButton
-            historyObject={historyObject}
-            tooltip={true}
-            toggleSignUpModal={toggleSignUpModal}
-            shouldDisplayText={true}
-        />
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <GoogleDocExportButton sheetID={sheetID} toggleSignUpModal={toggleSignUpModal}/>
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <CopyButton toggleSignUpModal={toggleSignUpModal} sheetID={sheetID}/>
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
-                                  textEn={'Share'}
-                                  textHe={'שיתוף'}
-                                  descEn={""}
-                                  descHe={""}
-                                  onClick={() => setSharing(true)}/>
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
-                                  textEn={'Edit Collections'}
-                                  textHe={'צירוף לאסופה'}
-                                  descEn={""}
-                                  descHe={""}
-                                  onClick={() => setAdding(true)} />
-      </DropdownMenuItem>
-    </DropdownMenu>
-  );
+        <DropdownMenu toggle={"..."}>
+          <DropdownMenuItem>
+            <SaveButton
+                historyObject={historyObject}
+                tooltip={true}
+                toggleSignUpModal={toggleSignUpModal}
+                shouldDisplayText={true}
+            />
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <GoogleDocExportButton sheetID={sheetID} toggleSignUpModal={toggleSignUpModal}/>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <CopyButton toggleSignUpModal={toggleSignUpModal}
+                        sheetID={sheetID}/>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
+                                      textEn={'Share'}
+                                      textHe={'שיתוף'}
+                                      descEn={""}
+                                      descHe={""}
+                                      onClick={() => setSharing(true)}/>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
+                                      textEn={'Edit Collections'}
+                                      textHe={'צירוף לאסופה'}
+                                      descEn={""}
+                                      descHe={""}
+                                      onClick={() => setAdding(true)}/>
+          </DropdownMenuItem>
+        </DropdownMenu>
+    );
 }
-const ShareModal = ({sheetID, isOpen, close}) => {
+const ShareModal = ({sheetID, close}) => {
   return <Modal isOpen={true} close={close}>
           <ShareBox
               sheetID={sheetID}
@@ -79,12 +80,12 @@ const CopyButton = ({toggleSignUpModal, sheetID}) => {
   }
   const [copyText, setCopyText] = useState(copyState.copy);
   const [copiedSheetId, setCopiedSheetId] = useState(0);
+  const [showModal, setShowModal] = useState(false);
   const sheet = Sefaria.sheets.loadSheetByID(sheetID);
-  const filterAndSaveCopiedSheetData = (data) => {
+  const filterAndSaveCopiedSheetData = async (data) => {
     let newSheet = Sefaria.util.clone(data);
     newSheet.status = "unlisted";
     newSheet.title = newSheet.title + " (Copy)";
-
     if (Sefaria._uid !== newSheet.owner) {
       newSheet.via = newSheet.id;
       newSheet.viaOwner = newSheet.owner;
@@ -102,31 +103,49 @@ const CopyButton = ({toggleSignUpModal, sheetID}) => {
     delete newSheet.promptedToPublish;
     delete newSheet._id;
 
-    const postJSON = JSON.stringify(newSheet);
-    $.post("/api/sheets/", { "json": postJSON }, (data) => {
-      if (data.id) {
-        setCopiedSheetId(data.id);
-        setCopyText(copyState.copied);
-      } else if ("error" in data) {
-        setCopyText(copyState.error);
-        console.log(data.error);
-      }
-    })
+    return await Sefaria.apiRequestWithBody("/api/sheets/", null, newSheet);
   }
 
-  const copySheet = () => {
+  const copySheet = async () => {
     if (!Sefaria._uid) {
       toggleSignUpModal(SignUpModalKind.AddToSheet);
     } else if (copyText.en === copyState.copy.en) {
       setCopyText(copyState.copying);
-      filterAndSaveCopiedSheetData(sheet);
+      setShowModal(true);
+      const response = await filterAndSaveCopiedSheetData(sheet);
+      if (response.id) {
+        setCopyText(copyState.copied);
+        setCopiedSheetId(response.id);
+      }
     } else if (copyText.en === copyState.copied.en) {
-      window.location.href = `/sheets/${copiedSheetId}`
-      // TODO: open copied sheet
+      window.open(`/sheets/${copiedSheetId}`);
     }
   }
-  return <ToolsButton en={copyText.en} he={copyText.he} image="copy.png" greyColor={!!copyText.secondaryEn || copyText.greyColor} onClick={() => copySheet()} />;
+  const getCopyModal = () => {
+    const copySuccessMessage = <>Success! <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
+                                          <InterfaceText>View your Copy</InterfaceText>
+                                        </a>
+                                     </>;
+    const copyMessage = copyText.en === copyState.copied.en ? copySuccessMessage : <InterfaceText>{copyText.en}</InterfaceText>;
+    return <CopyModal close={() => setShowModal(false)} copyMessage={copyMessage}/>;
+  }
+  return <>
+          {showModal && getCopyModal()}
+          <ToolsButton
+              en={copyText.en}
+              he={copyText.he}
+              image="copy.png"
+              greyColor={!!copyText.secondaryEn || copyText.greyColor}
+              onClick={() => copySheet()} />
+        </>
 }
+const CopyModal = ({close, copyMessage}) => {
+  return <Modal isOpen={true} close={close}>
+            <div className="modalTitle">Copy</div>
+            <div className="modalMessage">{copyMessage}</div>
+        </Modal>;
+}
+
 const GoogleDocExportButton = ({ toggleSignUpModal, sheetID }) => {
   const googleDriveState = {
     export: { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" },
