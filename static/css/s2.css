@@ -2784,16 +2784,12 @@ display: none;
   color: var(--light-grey);
 }
 
-.sheetsHomepage .card:nth-child(2)::before,
-.sheetsHomepage .card:nth-child(3)::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  width: 95%;
+.sheetsHomepage .card:nth-child(2),
+.sheetsHomepage .card:nth-child(3) {
   border-top: 1px solid #EDEDEC;
 }
 .card {
-  flex: 1 1 50%;
+  flex: 1 1 45%;
   position: relative;
   padding-bottom: 12px;
 }
@@ -10159,6 +10155,9 @@ span.purim-emoji img{
     display: flex;
     flex-direction: column;
   }
+  .sheetsHomepage .card:nth-child(3) {
+    border-top: revert;
+  }
 }
 @media screen and (min-width: 600px) and (max-width: 700px) {
   .contentInner .table {
@@ -10170,6 +10169,9 @@ span.purim-emoji img{
    .contentInner .table {
     display: flex;
     flex-direction: column;
+  }
+  .sheetsHomepage .card:nth-child(3) {
+    border-top: revert;
   }
 }
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
@@ -13336,10 +13338,14 @@ span.ref-link-color-3 {color: blue}
 .sheetsHomepage .sidebarLayout .sheetsTopicsCalendar, .sheetsHomepage .sidebarLayout .sheetsTopicTOC {
   margin-inline-start: 10%;
 }
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
+  column-gap: 20px;
+}
 .sheetsHomepage .sheetsTopicTOC .sheetsWrapper {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
+  column-gap: 20px;
 }
 .sheetsHomepage .sheetsTopicsCalendar .sheetsWrapper {
   flex: 1;
