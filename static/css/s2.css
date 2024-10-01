@@ -3268,13 +3268,13 @@ a.cardTitle:hover {
   justify-content: space-between;
 }
 
-.sheetSidebar .profile-pic {
+.sheetContentSidebar .profile-pic {
   display: block;
   margin-block-end: 20px;
   margin-block-start: 30px;
   margin-inline-start: -5px;
 }
-.sheetSidebar .profileFollowers {
+.sheetContentSidebar .profileFollowers {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
@@ -3286,7 +3286,7 @@ a.cardTitle:hover {
 .sheetViewer {
   display: flex;
 }
-.sheetSidebar {
+.sheetContentSidebar {
   width: 33%;
 }
 .bookPage .currentSection,
@@ -8423,7 +8423,7 @@ a.sheetAuthorName {
 a.sheetAuthorName:hover {
   text-decoration: none;
 }
-.sheetSidebar a.sheetAuthorName {
+.sheetContentSidebar a.sheetAuthorName {
   display: block;
 }
 .sheetMetaDataBox .summary {
@@ -9117,14 +9117,6 @@ h3.aboutSheetHeader {
 .aboutSheetPanel hr {
   height: 0px;
   border: 1px solid var(--light-grey);
-}
-
-.sheetSidebar div.description {
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 18px;
 }
 
 .aboutSheetPanel h2 {
@@ -11205,12 +11197,12 @@ cursor: pointer;
   opacity: 0.6;
   cursor:pointer;
 }
-.profile-page .social-icon img, .sheetSidebar .social-icon img {
+.profile-page .social-icon img, .sheetContentSidebar .social-icon img {
   width: 13px;
   height: 13px;
   opacity: 0.4;
 }
-.sheetSidebar .title.sub-title, .sheetSidebar .title.sub-sub-title {
+.sheetContentSidebar .title.sub-title, .sheetContentSidebar .title.sub-sub-title {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 14px;
@@ -11218,7 +11210,7 @@ cursor: pointer;
   line-height: 18px;
   margin-block-end: 10px;
 }
-.sheetSidebar .title.sub-sub-title {
+.sheetContentSidebar .title.sub-sub-title {
   margin-block-end: 20px;
 }
 .profile-page .social-icon + .social-icon {

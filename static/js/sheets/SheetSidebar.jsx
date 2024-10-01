@@ -2,7 +2,7 @@ import {FollowButton, InterfaceText, ProfilePic} from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 import React, {useEffect, useState} from "react";
 import {ProfileBio} from "../UserProfile";
-const SheetSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections}) => {
+const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections}) => {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     useEffect(() => {
@@ -14,7 +14,7 @@ const SheetSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModa
     const authorName = <a href={authorUrl} className="sheetAuthorName">
                                     {Sefaria._(authorStatement)}
                                 </a>;
-    return <div className="sheetSidebar">
+    return <div className="sheetContentSidebar">
             <ProfilePic
                 url={authorImage}
                 len={100}
@@ -56,4 +56,4 @@ const PartOfCollections = ({collections}) => {
                     </div>
                 </div>;
 }
-export default SheetSidebar;
+export default SheetContentSidebar;

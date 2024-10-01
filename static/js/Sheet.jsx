@@ -11,7 +11,7 @@ import {
   InterfaceText,
   LoadingMessage,
 } from './Misc';
-import SheetSidebar from "./sheets/SheetSidebar";
+import SheetContentSidebar from "./sheets/SheetSidebar";
 import SheetContent from "./sheets/SheetContent";
 
 class Sheet extends Component {
@@ -122,7 +122,7 @@ class Sheet extends Component {
                   authorImage={sheet.ownerImageUrl}
                   summary={sheet.summary}
             />
-              <SheetSidebar
+              <SheetContentSidebar
                   authorStatement={sheet.ownerName}
                   authorUrl={sheet.ownerProfileUrl}
                   authorImage={sheet.ownerImageUrl}
