@@ -2784,8 +2784,7 @@ display: none;
   color: var(--light-grey);
 }
 
-.sheetsHomepage .card:nth-child(2),
-.sheetsHomepage .card:nth-child(3) {
+div.sheetsWrapper :nth-child(1 of .card) {
   border-top: 1px solid #EDEDEC;
 }
 .card {
@@ -10149,14 +10148,14 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
+  div.sheetsWrapper :nth-child(-n+2 of .card) {
+    border-top: 1px solid #EDEDEC;
+  }
 }
 @media screen and (min-width: 700px) and (max-width: 900px)  {
   .contentInner .table {
     display: flex;
     flex-direction: column;
-  }
-  .sheetsHomepage .card:nth-child(3) {
-    border-top: revert;
   }
 }
 @media screen and (min-width: 600px) and (max-width: 700px) {
@@ -10164,14 +10163,14 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
+  div.sheetsWrapper :nth-child(-n+2 of .card) {
+    border-top: 1px solid #EDEDEC;
+  }
 }
 @media screen and (max-width: 600px) {
    .contentInner .table {
     display: flex;
     flex-direction: column;
-  }
-  .sheetsHomepage .card:nth-child(3) {
-    border-top: revert;
   }
 }
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
