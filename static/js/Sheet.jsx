@@ -129,11 +129,10 @@ class Sheet extends Component {
             />
               <SheetSidebar
                   authorStatement={sheet.ownerName}
-                  authorID={sheet.owner}
                   authorUrl={sheet.ownerProfileUrl}
                   authorImage={sheet.ownerImageUrl}
                   collections={sheet.collections}
-                  summary={sheet.summary}
+                  toggleSignUpModal={this.props.toggleSignUpModal}
               />
           </div>
       );
