@@ -12,7 +12,7 @@ import {
   LoadingMessage,
 } from './Misc';
 import {SheetOptions} from "./sheets/SheetOptions";
-import SheetSidebar from "./sheets/SheetSidebar";
+import SheetContentSidebar from "./sheets/SheetContentSidebar";
 import SheetContent from "./sheets/SheetContent";
 
 class Sheet extends Component {
@@ -129,7 +129,7 @@ class Sheet extends Component {
                   toggleSignUpModal={this.props.toggleSignUpModal}
                   historyObject={this.props.historyObject}
             />
-              <SheetSidebar
+              <SheetContentSidebar
                   authorStatement={sheet.ownerName}
                   authorUrl={sheet.ownerProfileUrl}
                   authorImage={sheet.ownerImageUrl}

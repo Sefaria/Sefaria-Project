@@ -553,7 +553,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
 }
 
 const ProfileBio = ({profile: p}) => {
-    // used in ProfileSummary and in SheetSidebar, renders user education, organization, and location info
+    // used in ProfileSummary and in SheetContentSidebar, renders user education, organization, and location info
     const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
     let infoList = [];
     if (p.location) {
