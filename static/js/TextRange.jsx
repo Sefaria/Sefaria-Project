@@ -589,8 +589,8 @@ class TextSegment extends Component {
     en = this.props.formatEnAsPoetry ? this.addPoetrySpans(en) : en
     he = this.props.formatHeAsPoetry ? this.addPoetrySpans(he) : he
 
-    const heOnly = !this.props.en && textsData?.primaryDirection === 'rtl';
-    const enOnly = !this.props.he && textsData?.primaryDirection === 'ltr';
+    const heOnly = (!this.props.en && textsData?.primaryDirection === 'rtl');
+    const enOnly = !this.props.en && textsData?.primaryDirection === 'ltr';
 
     if (this.props.showLinkCount) {
       const linkCount = this.props.linkCount;
