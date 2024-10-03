@@ -15,7 +15,7 @@
         <form id="register-form" action="{% url "register" %}" method="post" autocomplete="false">
         <div style="overflow: visible;">
           {% csrf_token %}
-          {{ form.user_type }}
+          {{ form }}
       </div>
       
         {% if next %}
