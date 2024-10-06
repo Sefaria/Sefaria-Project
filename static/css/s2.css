@@ -651,6 +651,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: #666;
   font-size: 16px;
   padding: 15px;
+}
+.mobileNavMenu hr {
+  border: none;
   border-bottom: 1px solid #EDEDEC;
 }
 .mobileNavMenu a > img,
@@ -682,8 +685,23 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   opacity: 1;
 }
 .mobileNavMenu .mobileAccountLinks .login {
-  display: block;
   padding: 15px;
+}
+.mobileNavMenu .signupLink::after {
+  content: "•";
+  padding: 0px 4px;
+}
+.interface-english .mobileNavMenu .signupLink {
+  padding-right: 0px !important;
+}
+.interface-english .mobileNavMenu .loginLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .signupLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .loginLink {
+  padding-right: 0px !important;
 }
 .mobileNavMenu .profile-pic {
   display: inline-block;

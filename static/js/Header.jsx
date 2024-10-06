@@ -237,16 +237,22 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
   const classes = classNames({accountLinks: !mobile, anon: !mobile});
   return (
     <div className={classes}>
+      { loginOnly && (
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
          {mobile ? <img src="/static/icons/login.svg" /> : null }
          <InterfaceText>Log in</InterfaceText>
-       </a>
+       </a>)}
       {loginOnly ? null :
-      <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
-         {mobile ? <img src="/static/icons/register.svg" /> : null }
-         <InterfaceText>Sign up</InterfaceText>
-      </a> }
-      { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
+      <span>
+        <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
+          {mobile ? <img src="/static/icons/login.svg" /> : null }
+          <InterfaceText>Sign up</InterfaceText>
+        </a> 
+        <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
+          <InterfaceText>Log in</InterfaceText>
+        </a>
+      </span>}
+      {/* { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null} */}
     </div>
   );
 }
@@ -300,17 +306,9 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <img src="/static/icons/topic.svg" />
         <InterfaceText>Topics</InterfaceText>
       </a>
-      <a href="/community" onClick={close}>
-        <img src="/static/icons/community.svg" />
-        <InterfaceText>Community</InterfaceText>
-      </a>
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
         <InterfaceText>Learning Schedules</InterfaceText>
-      </a>
-      <a href="/collections" onClick={close}>
-        <img src="/static/icons/collection.svg"/>
-        <InterfaceText>Collections</InterfaceText>
       </a>
 
       <DonateLink classes={"blue"} source="MobileNavMenu">
@@ -335,11 +333,6 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           </a>
         </> : null }
 
-        <a href="/mobile-about-menu">
-          <img src="/static/icons/info.svg" />
-          <InterfaceText>About Sefaria</InterfaceText>
-        </a>
-
         {Sefaria._uid ?
         <>
           <a href="/settings/account">
@@ -350,16 +343,37 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <MobileInterfaceLanguageToggle />
 
-        <a href="/products">
-          <img src="/static/icons/products.svg" />
-          <InterfaceText text={{en: "Products", he: "מוצרים"}} />
-        </a>
-
+         <hr />
 
         <a href="/help">
           <img src="/static/icons/help.svg" />
           <InterfaceText>Get Help</InterfaceText>
         </a>
+
+        <a href="/mobile-about-menu">
+          <img src="/static/icons/info.svg" />
+          <InterfaceText>About Sefaria</InterfaceText>
+        </a>
+
+        <hr />
+
+        <a href="sheets.sefaria.org" target="_blank">
+          <img src="/static/icons/sheets-mobile-icon.svg" />
+          <InterfaceText>Sheets</InterfaceText>
+        </a>
+
+        <a href="developers.sefaria.org" target="_blank">
+          <img src="/static/icons/dev-portal-mobile-icon.svg" />
+          <InterfaceText text={{en: "Developers", he: "מפתחים"}} />
+
+        </a>
+
+        <a href="/products">
+          <img src="/static/icons/products_icon.svg" />
+          <InterfaceText text={{en: "All Products", he: "מוצרים"}} />
+        </a>
+
+        <hr />
 
         {Sefaria._uid ?
         <a href="/logout" className="logout">
@@ -367,8 +381,9 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <InterfaceText>Logout</InterfaceText>
         </a>
         :
-        <LoggedOutButtons mobile={true} loginOnly={true}/> }
+        <LoggedOutButtons mobile={true} loginOnly={false}/> }
 
+      <hr />
       </div>
     </div>
   );
