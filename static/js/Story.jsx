@@ -73,7 +73,7 @@ SheetListStory.propTypes = {
  *****************************/
 
 // todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
-const StoryFrame = ({cls, cardColor, children}) => {
+const StoryFrame = ({cls, children}) => {
 return (
      <div className={'story ' + cls}>
          {children}
@@ -81,18 +81,28 @@ return (
 )};
 StoryFrame.propTypes = {
     cls:        PropTypes.string,   // Story type as class name
-    cardColor:  PropTypes.string,
 };
-const SummarizedStoryFrame = ({cls, cardColor, collapsibleSummary, children}) => {
+const SummarizedStoryFrame = ({cls, title, tref, children}) => {
 return (
     <StoryFrame cls={cls}>
-        <details><summary>{collapsibleSummary}</summary>{children}</details>
+        <details
+            data-anl-event="package_toggle:toggle|package_viewed:scrollIntoView"
+            data-anl-feature_name="prompt"
+            data-anl-text={title.en}
+        >
+            <summary>
+                <ColorBarBox tref={tref}>
+                    <TopicStoryDescBlock title={title} tref={tref}/>
+                </ColorBarBox>
+            </summary>
+            {children}
+        </details>
     </StoryFrame>
 )};
 SummarizedStoryFrame.propTypes = {
     cls:        PropTypes.string,   // Story type as class name
-    cardColor:  PropTypes.string,
-    collapsibleSummary: PropTypes.func
+    title: PropTypes.object,
+    tref: PropTypes.string,
 };
 
 
@@ -164,18 +174,14 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : langPref;
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage}
                                     bilingualOrder={["he", "en"]}/>;
-    const content = bodyTextIsLink ? <a href={url} style={{textDecoration: 'none'}}>{innerContent}</a> : innerContent;
+    const content = bodyTextIsLink ? <a href={url} style={{textDecoration: 'none'}} data-anl-event="clickto_reader:click">{innerContent}</a> : innerContent;
     const isIntroducedSource = isCurated && displayDescription
     const StoryFrameComp = isIntroducedSource ? SummarizedStoryFrame : StoryFrame
     const hideThisLanguageMissingSource = (heOnly && (langPref == 'english') && hideLanguageMissingSources) || (enOnly && (langPref == 'hebrew') && hideLanguageMissingSources);
 
     return (
         !hideThisLanguageMissingSource &&
-        <StoryFrameComp cls="topicPassageStory"
-                        collapsibleSummary={isIntroducedSource ?
-                <ColorBarBox tref={text.ref}><TopicStoryDescBlock title={{'en': text.descriptions?.en?.title, 'he': text.descriptions?.he?.title}}
-                                                                  tref={text.ref}/></ColorBarBox> : null}
-        >
+        <StoryFrameComp cls="topicPassageStory" tref={text.ref} title={{'en': text.descriptions?.en?.title, 'he': text.descriptions?.he?.title}}>
             {isIntroducedSource ?
                 <ColorBarBox tref={text.ref}>
 
@@ -192,13 +198,11 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
                     {content}
                 </StoryBodyBlock>
                 <div className={"headerWithAdminButtonsContainer"}>
-                    <div className={"headerWithAdminButtons"}>
-                <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
-                        </div>
-                    {isAdmin &&
-                        <ReviewStateIndicator topic={topic} topicLink={text}/>}
-                    {isAdmin &&
-                        <PencilSourceEditor topic={topic} text={text} classes={"pencilEditorButton"}/>}
+                    <div className={"headerWithAdminButtons"} data-anl-event="clickto_reader:click">
+                        <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
+                    </div>
+                    {isAdmin && <ReviewStateIndicator topic={topic} topicLink={text}/>}
+                    {isAdmin && <PencilSourceEditor topic={topic} text={text} classes={"pencilEditorButton"}/>}
                 </div>
             </ColorBarBox>
         </StoryFrameComp>

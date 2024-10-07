@@ -56,8 +56,11 @@ def _get_context_ref(segment_oref: Ref) -> Optional[Ref]:
     if segment_oref.primary_category == "Tanakh":
         return segment_oref.section_ref()
     elif segment_oref.index.get_primary_corpus() == "Bavli":
-        passage = Passage.containing_segment(segment_oref)
-        return passage.ref()
+        try:
+            passage = Passage.containing_segment(segment_oref)
+            return passage.ref()
+        except:
+            return None
     return None
 
 

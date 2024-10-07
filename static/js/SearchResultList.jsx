@@ -183,7 +183,7 @@ class SearchResultList extends Component {
             numSheets: 0,
             url: "/topics/" + topic.key
         }
-        const typeObj = Sefaria.topicTocCategory(topic.key);
+        const typeObj = Sefaria.displayTopicTocCategory(topic.key);
         if (!typeObj) {
             searchTopic.topicCat = "Topics";
             searchTopic.heTopicCat = Sefaria.hebrewTranslation("Topics");
