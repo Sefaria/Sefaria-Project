@@ -50,6 +50,7 @@ crrd = create_raw_ref_data
     # Amud split into two parts
     [crrd(['@בבלי', '@יבמות', '#סא', '#א']), ("Yevamot 61a",)],
     [crrd(["@תוספות", "@פסחים", "#קו", "#א"]), ("Tosafot on Pesachim 106a",)],  # amud for commentary that has DH
+    [crrd(["@תוספות", "@פסחים", "#קו", "#א", "*ד\"ה ושמע מינה"]), ("Tosafot on Pesachim 106a:1:1",)],  # amud for commentary that has DH
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '@במכות']), ("Makkot 2a",)],
     [crrd(['@בבלי', '#עמוד א', '#דף ב', '@במכות']), ("Makkot 2a",)],  # out of order daf and amud
     [crrd(['@בבלי', '#דף ב', '#עמוד ג', '@במכות']), tuple()],
