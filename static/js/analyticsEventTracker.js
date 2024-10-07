@@ -15,7 +15,7 @@ const AnalyticsEventTracker = (function() {
     }
     let scrollIntoViewObserver = null;
 
-    function _isValidAnalyticsObject(obj) {
+    function _filterInvalidAnalyticsKeys(obj) {
         const invalid_keys = Object.keys(obj).filter(
             key => !VALID_ANALYTICS_FIELDS.has(key)
         );
@@ -23,9 +23,9 @@ const AnalyticsEventTracker = (function() {
             for (let key of invalid_keys) {
                 console.warn("Invalid analytics key:", key);
             }
-            return false;
+            return Object.fromEntries(Object.entries(obj).filter(([k, v]) => !invalid_keys.includes(k)));
         }
-        return true;
+        return obj;
     }
 
     function _parseEventAttr(value) {
@@ -162,9 +162,9 @@ const AnalyticsEventTracker = (function() {
             // make sure that analytics fields that are defined lower down aren't overwritten by ones defined higher in the DOM tree
             anlEventData = _mergeObjectsWithoutOverwrite(currAnlEventData, anlEventData);
         } while (currElem?.parentNode);
-        anlEventData = {...anlEventData, ..._getDerivedData(event)};
 
-        if (!_isValidAnalyticsObject(anlEventData)) { return; }
+        anlEventData = {...anlEventData, ..._getDerivedData(event)};
+        anlEventData = _filterInvalidAnalyticsKeys(anlEventData);
 
         anlEventArray.forEach(anlEvent => {
             gtag("event", anlEvent.name, anlEventData);
