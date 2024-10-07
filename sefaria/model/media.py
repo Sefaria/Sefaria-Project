@@ -15,7 +15,7 @@ logger = structlog.get_logger(__name__)
 
 class Media(abst.AbstractMongoRecord):
     """
-    Media for sidebar connection pannel.
+    Media for sidebar connection panel.
     """
     collection = 'media'
     required_attrs = [

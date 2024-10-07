@@ -9,6 +9,13 @@
 .staticPage .staticPageHeader {
     background-image: url(/static/img/powered-by-landing-page/PBS_header.png);
 }
+
+/* Page only has English content currently
+*  This will need to be changed in the future should the page become intermixed with Hebrew and English
+*/
+.staticPage.englishOnly .int-he {
+  direction: ltr;
+}
 {% endblock %}
 
 
@@ -17,11 +24,6 @@
     {% autoescape off %}
     DJANGO_VARS.containerId = 'PoweredByInner';
     DJANGO_VARS.reactComponentName = 'PoweredByPage';
-    ['body', '#content'].forEach(q => {
-            const cl = document.querySelector(q).classList;
-            cl.remove('interface-hebrew');
-            cl.add('interface-english');
-        });
     {% endautoescape %}
 </script>
 {% endblock %}

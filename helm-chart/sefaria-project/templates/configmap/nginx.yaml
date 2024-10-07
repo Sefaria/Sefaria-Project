@@ -34,7 +34,7 @@ data:
     set -e
 
     export ELASTIC_AUTH_HEADER=$(echo -n $ELASTIC_USERNAME:$ELASTIC_PASSWORD | base64)
-    envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${RELEASE_TAG},${STRAPI_LOCATION},${ELASTIC_AUTH_HEADER}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf 
+    envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${SEARCH_PORT},${SEARCH_PATH},${SEARCH_SSL_ENABLE},${RELEASE_TAG},${STRAPI_LOCATION},${ELASTIC_AUTH_HEADER}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf 
 
     nginx -c /nginx.conf -g 'daemon off;'
 

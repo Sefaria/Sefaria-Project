@@ -19,6 +19,7 @@ static_pages = [
     "henry-and-julia-koschitzky-apps",
     "adin-even-israel-steinsaltz",
     "william-davidson-talmud",
+    "nash-bravmann-collection",
     "linker",
     "ios",
     "mobile",
@@ -48,6 +49,11 @@ static_pages = [
     "cloudflare_site_is_down_en",
     "cloudflare_site_is_down_he",
     "team",
+    "products",
+    "link-to-annual-report",
+    'mobile-about-menu',
+    "updates",
+    "pioneers"
 ]
 
 static_pages_by_lang = [
@@ -75,8 +81,8 @@ site_urlpatterns = [
 
 # Redirects to Wikis etc
 site_urlpatterns += [
-    url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/en?c_src=mobile-app' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he?c_src=mobile-app')),
-    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/en' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he')),
+    url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/english?c_src=App' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he?c_src=App')),
+    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/english' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he')),
     url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
     url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
@@ -85,8 +91,9 @@ site_urlpatterns += [
     url(r'^faq/?$', lambda x: HttpResponseRedirect('/collections/sefaria-faqs' if x.interfaceLang == 'english' else '/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90')),
     url(r'^help/?$', lambda x: HttpResponseRedirect('/collections/sefaria-faqs' if x.interfaceLang == 'english' else '/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/event/sefarias-10-year-anniversary-gala/e486954')),
-    url(r'^give/(?P<campaign_id>[a-zA-Z0-9]+)/?$', lambda x, campaign_id: HttpResponseRedirect(f'https://donate.sefaria.org/give/550774/#!/donation/checkout?c_src={campaign_id}')),
+    url(r'^give/(?P<channel_source>[a-zA-Z0-9]+)/?$', lambda x, channel_source: HttpResponseRedirect(f'https://donate.sefaria.org/give/550774/#!/donation/checkout?c_src={channel_source}')),
     url(r'^give/?$', lambda x: HttpResponseRedirect(f'https://donate.sefaria.org/give/550774/#!/donation/checkout?c_src=mu')),
+    url(r'^giving/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/give/524771/#!/donation/checkout')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
     url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/collections/גיליונות-נחמה")),
     url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),
@@ -100,5 +107,5 @@ site_urlpatterns +=[
     url(r'^ideasforteaching/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
     url(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
     url(r'^annualreport2021?$', lambda x: HttpResponseRedirect('/annualreport/2021')), # Added for backwards compatability for old links that might still point to this
-    url(r'^annualreport/(?P<report_year>\d+)$', reader_views.annual_report),
+    url(r'^annualreport(/(?P<report_year>\d+)/?|/?)$', reader_views.annual_report),
 ]

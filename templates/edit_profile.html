@@ -231,7 +231,7 @@
 			$("#saveProfile").click(function(){
 				var jewishEducation = [];
 				$("#jewishEducation").find("input").each(function() {
-					var val = $(this).val();
+					var val = $(this).val().stripHtml();
 					if (val) {
 						jewishEducation.push(val);
 					}
@@ -259,18 +259,18 @@
                 });
 
 				var profile = {
-					first_name:       $("#firstName").val(),
-					last_name:        $("#lastName").val(),
-					bio:              $("#bio").text() ? $("#bio").html() : "",
-					position:         $("#position").val(),
-					organization:     $("#organization").val(),
-					website:          $("#website").val(),
-					location:         $("#location").val(),
-					public_email:     $("#public_email").val(),
-					youtube:          youtube,
-					facebook:         $("#facebook").val(),
-					twitter:          twitter,
-					linkedin:         $("#linkedin").val(),
+					first_name:       $("#firstName").val().stripHtml(),
+					last_name:        $("#lastName").val().stripHtml(),
+					bio:              $("#bio").text() ? $("#bio").html().stripHtml() : "",
+					position:         $("#position").val().stripHtml(),
+					organization:     $("#organization").val().stripHtml(),
+					website:          $("#website").val().stripHtml(),
+					location:         $("#location").val().stripHtml(),
+					public_email:     $("#public_email").val().stripHtml(),
+					youtube:          youtube.stripHtml(),
+					facebook:         $("#facebook").val().stripHtml(),
+					twitter:          twitter.stripHtml(),
+					linkedin:         $("#linkedin").val().stripHtml(),
 					slug:             $("#slug").val(),
 					jewish_education: jewishEducation,
 					pinned_sheets:    pinnedSheets

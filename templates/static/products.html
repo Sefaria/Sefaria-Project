@@ -1,0 +1,30 @@
+
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Products" %}{% endblock %}
+
+{% block description %}{% trans "A catalogue of Sefaria's products and experiments" %}{% endblock %}
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'productsPageContent';
+    DJANGO_VARS.reactComponentName = 'ProductsPage';
+    {% endautoescape %}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="superAbout">
+    {% if not request.user_agent.is_mobile %}
+      {% include '_sidebar.html' with whichPage='products' title="Products" heTitle="מוצרים" %}
+    {% endif %}
+    <main id="productsPage">
+        <div id="productsPageContent">
+            <div id="appLoading">Loading...</div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+{% block footer %} {% endblock %}

@@ -175,3 +175,13 @@ preferredDuringSchedulingIgnoredDuringExecution:
             - "true"
 {{- end }}
 {{- end }}
+
+{{/*
+Setup complete tasks queue info
+*/}}
+{{- define "sefaria.tasks.internalQueues" }}
+tasks: {{ .Values.deployEnv }}-tasks
+{{- end }}
+{{- define "sefaria.tasks.queues" }}
+{{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}
+{{- end }}

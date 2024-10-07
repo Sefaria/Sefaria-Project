@@ -395,7 +395,7 @@ class UserProfile(object):
 
         # new editor
         self.show_editor_toggle = False
-        self.uses_new_editor = False
+        self.uses_new_editor = True
 
         # Fundraising
         self.is_sustainer = False
@@ -686,25 +686,24 @@ class UserProfile(object):
                 "slug": self.slug,
                 "profile_pic_url": self.profile_pic_url,
                 "full_name": self.full_name,
+                "followers": self.followers.uids,
+                "followees": self.followees.uids,
+                "profile_pic_url": self.profile_pic_url,
+                "jewish_education": self.jewish_education,
+                "bio": self.bio,
+                "website": self.website,
+                "location": self.location,
+                "public_email": self.public_email,
+                "facebook": self.facebook,
+                "twitter": self.twitter,
+                "linkedin": self.linkedin,
+                "youtube": self.youtube,
                 "position": self.position,
                 "organization": self.organization
             }
         if basic:
             return dictionary
         other_info = {
-            "full_name":             self.full_name,
-            "followers":             self.followers.uids,
-            "followees":             self.followees.uids,
-            "profile_pic_url":       self.profile_pic_url,
-            "jewish_education":      self.jewish_education,
-            "bio":                   self.bio,
-            "website":               self.website,
-            "location":              self.location,
-            "public_email":          self.public_email,
-            "facebook":              self.facebook,
-            "twitter":               self.twitter,
-            "linkedin":              self.linkedin,
-            "youtube":               self.youtube,
             "pinned_sheets":         self.pinned_sheets,
             "show_editor_toggle":    self.show_editor_toggle,
             "uses_new_editor":       self.uses_new_editor,
@@ -874,23 +873,6 @@ def is_user_staff(uid):
         return user.is_staff
     except:
         return False
-
-
-def user_started_text(uid, title):
-    """
-    Returns true if uid was responsible for first adding 'title'
-    to the library.
-
-    This checks for the oldest matching index change record for 'title'.
-    If someone other than the initiator changed the text's title, this function
-    will incorrectly report False, but this matches our intended behavior to
-    lock name changes after an admin has stepped in.
-    """
-    log = db.history.find({"title": title}).sort([["date", -1]]).limit(1)
-    if len(log):
-        return log[0]["user"] == uid
-    return False
-
 
 def annotate_user_list(uids):
     """

@@ -23,6 +23,8 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+import { ReaderApp } from './ReaderApp'; 
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -59,6 +61,7 @@ const __filterChildrenByLanguage = (children, language) => {
   let newChildren = chlArr.filter(x=> x.type == currLangComponent);
   return newChildren;
 };
+
 
 const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
   /**
@@ -1043,29 +1046,6 @@ class ToggleOption extends Component {
   }
 }
 
-         //style={this.props.style}
-
-const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}, redirect_params}) => {
-    let ajaxPayload = {url, type};
-    if (type === "POST") {
-      ajaxPayload.data = {json: JSON.stringify(data)};
-    }
-    $.ajax({
-      ...ajaxPayload,
-      success: function(result) {
-        if ("error" in result) {
-          if (setSavingStatus) {
-            setSavingStatus(false);
-          }
-          alert(result.error);
-        } else {
-          redirect();
-        }
-      }
-    }).fail(function() {
-      alert(Sefaria._("Something went wrong. Sorry!"));
-    });
-}
 
  const TopicToCategorySlug = function(topic, category=null) {
    //helper function for AdminEditor
@@ -1093,12 +1073,12 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
-const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
+const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
   return (
     <span className={adminClasses}>
-      {buttonsToDisplay.map((key, i) => {
+      {buttonIDs.map((key, i) => {
         const top = i === 0;
-        const bottom = i === buttonsToDisplay.length - 1;
+        const bottom = i === buttonIDs.length - 1;
         const [buttonText, toggleAddingTopics] = buttonOptions[key];
         return (
           <AdminEditorButton
@@ -1112,9 +1092,7 @@ const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
     </span>
   );
 };
-
-
-const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"]}) => {
+const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcategory", "edit"], actionButtons = {}}) => {
   /*
   Provides an interface for using admin tools.
   `type` is 'sources', 'cats', 'books' or 'topics'
@@ -1122,7 +1100,8 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
         for `type` === 'books' it's the name of the book
         for `type` === 'topics' it's a dictionary of the topic object
         for `type` === 'sources' it's a list where the first item is topic slug and second item is source data
-  `buttonsToDisplay` is a list that says in the specified order we want all of the buttons in buttonOptions
+  `toggleButtonIDs` is a list of IDs that appear in buttonOptions. Each ID will create a button that performs the toggle action specified for it in buttonOptions. toggleButtonIDs will always appear before actionButtons
+  `actionButtons` is an object where each key is an ID of a new button in the list and each value is an array of form [English Display Text, callback]. actionButtons will always appear after toggleButtonIDs.
    */
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
@@ -1130,19 +1109,21 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   const [addSource, toggleAddSource] = useEditToggle();
   const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
-  const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
+  const buttonIDs = toggleButtonIDs.concat(Object.keys(actionButtons));
+
+  const buttonOptions = Object.assign({"subcategory": ["Add sub-category", toggleAddCategory],
                           "source": ["Add a source", toggleAddSource],
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
-                          "edit": ["Edit", toggleEditCategory]};
-
+                          "edit": ["Edit", toggleEditCategory]}, actionButtons);
 
   let wrapper = "";
   let adminButtonsSpan = null;
   if (Sefaria.is_moderator) {
     if (editCategory) {
       adminButtonsSpan = <CategoryEditorWrapper toggle={toggleEditCategory} data={data} type={type}/>;
-    } else if (addSource) {
+    }
+      else if (addSource) {
       adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
     } else if (addCategory) {
       adminButtonsSpan = <CategoryAdderWrapper toggle={toggleAddCategory} data={data} type={type}/>;
@@ -1155,7 +1136,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
       const adminClasses = classNames({adminButtons: 1, hiddenButtons});
         adminButtonsSpan = <AllAdminButtons
         buttonOptions={buttonOptions}
-        buttonsToDisplay={buttonsToDisplay}
+        buttonIDs={buttonIDs}
         adminClasses={adminClasses}
       />;
     }
@@ -1174,7 +1155,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
             return [];
         }
         // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
-        refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+        refs = refs.filter((x) => !x.is_sheet);
         // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
         return refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
     }
@@ -1183,7 +1164,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
         return {
           url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
           redirect: `/topics/${data.slug}`,
-          origItems: _filterAndSortRefs(data.refs?.about?.refs) || [],
+          origItems: _filterAndSortRefs(data.tabs?.sources?.refs) || [],
         }
       }
       switch (type) {  // at /texts or /topics
@@ -1213,7 +1194,10 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
 
 const EditorForExistingTopic = ({ toggle, data }) => {
   const prepAltTitles = (lang) => { // necessary for use with TitleVariants component
-    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({["name"]: item.text, ["id"]: i}))
+    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({
+      name: item.disambiguation ? `${item.text} (${item.disambiguation})` : item.text,
+      id: i
+  }))
   }
   const initCatSlug = TopicToCategorySlug(data);
   const origData = {
@@ -1288,7 +1272,7 @@ const CategoryEditorWrapper = ({toggle, data, type}) => {
 }
 
 const CategoryAdderWrapper = ({toggle, data, type}) => {
-      const origData = {origEnTitle: ""};
+      const origData = {origEn: ""};
       switch (type) {
         case "cats":
           return <CategoryEditor origData={origData} close={toggle} origPath={data}/>;
@@ -1346,6 +1330,8 @@ class DisplaySettingsButton extends Component {
   render() {
     let style = this.props.placeholder ? {visibility: "hidden"} : {};
     let icon;
+    const altText = Sefaria._('Text display options')
+    const classes = "readerOptionsTooltip tooltip-toggle";
 
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
@@ -1356,17 +1342,21 @@ class DisplaySettingsButton extends Component {
     } else {
       icon = <span className="textIcon">Aa</span>;
     }
-    return (<a
-              className="readerOptions"
-              tabIndex="0"
-              role="button"
-              aria-haspopup="true"
-              aria-label="Toggle Reader Menu Display Settings"
-              style={style}
-              onClick={this.props.onClick}
-              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
-              {icon}
-            </a>);
+    return (
+            <ToolTipped {...{ altText, classes}}>
+                <a
+                className="readerOptions"
+                tabIndex="0"
+                role="button"
+                aria-haspopup="true"
+                aria-label="Toggle Reader Menu Display Settings"
+                style={style}
+                onClick={this.props.onClick}
+                onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+                {icon}
+              </a>
+            </ToolTipped>
+            );
   }
 }
 DisplaySettingsButton.propTypes = {
@@ -1415,7 +1405,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
 
   return (
       <div className="interfaceLinks" ref={wrapperRef}>
-        <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg"/></a>
+        <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/></a>
         <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
           <div className="interfaceLinks-header">
             <InterfaceText>Site Language</InterfaceText>
@@ -1506,6 +1496,39 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
     { children }
   </div>
 )};
+
+const AiInfoTooltip = () => {
+  const [showMessage, setShowMessage] = useState(false);
+  const aiInfoIcon = (
+            <img className="ai-info-icon" src="/static/icons/ai-info.svg" alt="AI Info Icon" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}/>
+    );
+        const aiMessage = (
+        <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
+              <div className="ai-info-first-message">
+              <InterfaceText>
+                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/583824?lang=bi"}>Learn more.</a></EnglishText>
+                  <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית ועברו הגהה על ידי צוות העורכים שלנו.&nbsp;
+                       <a href={"/sheets/583824?lang=bi"}>לפרטים נוספים</a></HebrewText>
+              </InterfaceText>
+
+          </div>
+          <hr className="ai-info-messages-hr" />
+          <div className="ai-info-last-message">
+              <InterfaceText><EnglishText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></EnglishText>
+              <HebrewText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>כתבו לנו</a></HebrewText>
+              </InterfaceText>
+          </div>
+        </div>
+    );
+  return (
+    <div className="ai-info-tooltip">
+      {aiInfoIcon}
+        <div className={`ai-message ${(showMessage) ? 'visible' : ''}`}>
+            {aiMessage}
+        </div>
+    </div>
+  );
+};
 
 
 class FollowButton extends Component {
@@ -1634,7 +1657,7 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
     const deleteImage = () => {
         const old_filename_wout_url = old_filename.split("/").slice(-1);
         const url = `${Sefaria.apiHost}/api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
-        requestWithCallBack({url, type: "DELETE", redirect: () => alert("Deleted image.")});
+        Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => alert("Deleted image."));
         callback("");
         fileInput.current.value = "";
     }
@@ -2995,7 +3018,7 @@ const TitleVariants = function({titles, update, options}) {
                     allowNew={true}
                     tags={titles}
                     onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
-                    placeholderText={Sefaria._("Add a title...")}
+                    placeholderText={Sefaria._("Add a title and press 'enter' or 'tab'.")}
                     delimiters={["Enter", "Tab"]}
                     onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
                     onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
@@ -3252,11 +3275,13 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+const getImgAltText = (caption) => {
+return Sefaria._v(caption) || Sefaria._('Illustrative image');
+}
 const ImageWithCaption = ({photoLink, caption }) => {
-  
   return (
     <div>
-        <img class="imageWithCaptionPhoto" src={photoLink}/>
+        <img class="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
         <div class="imageCaption"> 
           <InterfaceText text={caption} />
         </div>
@@ -3275,6 +3300,41 @@ const AppStoreButton = ({ platform, href, altText }) => {
       </a>
   );
 };
+
+const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_type, analytics_event) => {
+
+
+  // get the lowest level parent element of an event target that is an HTML link tag. Or Null.
+  let target = e.target;
+  let linkTarget = null;
+  let parent = target;
+  let outmost = e.currentTarget;
+  let text = "";
+  
+  while (parent) {
+    if(parent.nodeName === 'A'){
+      linkTarget = parent;
+      text = linkTarget.text
+      break;
+    }
+    else if (parent.parentNode === outmost) {
+      return null;
+    }
+    parent = parent.parentNode;
+  }
+
+  // Ignore clicks from non-a elements.
+  if (!linkTarget) {
+    return;
+  }
+  const href = linkTarget.getAttribute('href');
+  if (!href) {
+    return;
+  }
+  else {
+    gtag_fxn(rank, product, text, label, link_type, analytics_event);
+  }
+}
 
 
 export {
@@ -3328,6 +3388,7 @@ export {
   TextBlockLink,
   ToggleSet,
   ToolTipped,
+  AiInfoTooltip,
   TwoOrThreeBox,
   ResponsiveNBox,
   SheetMetaDataBox,
@@ -3340,8 +3401,8 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  requestWithCallBack,
   OnInView,
   TopicPictureUploader,
-  ImageWithCaption
+  ImageWithCaption, 
+  handleAnalyticsOnMarkdown
 };

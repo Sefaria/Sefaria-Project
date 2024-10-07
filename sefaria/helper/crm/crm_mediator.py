@@ -21,7 +21,7 @@ class CrmMediator:
             return False
 
     def subscribe_to_lists(self, email, first_name, last_name, educator=False, lang="en"):
-        self._crm_connection.subscribe_to_lists(email, first_name, last_name, educator, lang)
+        return self._crm_connection.subscribe_to_lists(email, first_name, last_name, educator, lang)
 
     def sync_sustainers(self):
         current_sustainers = CrmInfoStore.get_current_sustainers()

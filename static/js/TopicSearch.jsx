@@ -64,31 +64,25 @@ class TopicSearch extends Component {
   }
 
   post(slug) {
-      const postJSON = JSON.stringify({"topic": slug, 'interface_lang': Sefaria.interfaceLang});
+      const postJSON = {"topic": slug, 'interface_lang': Sefaria.interfaceLang};
       const srefs = this.props.srefs;
       const update = this.props.update;
       const reset = this.reset;
-      $.post("/api/ref-topic-links/" + Sefaria.normRef(this.props.srefs), {"json": postJSON}, async function (data) {
-        if (data.error) {
-          alert(data.error);
-        } else {
+      Sefaria.postRefTopicLink(Sefaria.normRef(this.props.srefs), postJSON).then(async () => {
           const sectionRef = await Sefaria.getRef(Sefaria.normRef(srefs)).sectionRef;
           srefs.map(sref => {
-            if (!Sefaria._refTopicLinks[sref]) {
-              Sefaria._refTopicLinks[sref] = [];
-            }
-            Sefaria._refTopicLinks[sref].push(data);
+              if (!Sefaria._refTopicLinks[sref]) {
+                  Sefaria._refTopicLinks[sref] = [];
+              }
+              Sefaria._refTopicLinks[sref].push(data);
           });
           if (!Sefaria._refTopicLinks[sectionRef]) {
-            Sefaria._refTopicLinks[sectionRef] = [];
+              Sefaria._refTopicLinks[sectionRef] = [];
           }
           Sefaria._refTopicLinks[sectionRef].push(data);
           update();
           reset();
           alert("Topic added.");
-        }
-      }).fail(function (xhr, status, errorThrown) {
-        alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown);
       });
   }
 

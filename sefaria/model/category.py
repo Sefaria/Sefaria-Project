@@ -294,8 +294,8 @@ class TocTree(object):
             else:
                 cat.children.sort(key=_explicit_order_and_title)
 
-    def _make_index_node(self, index, old_title=None, mobile=False):
-        d = index.toc_contents(include_first_section=False, include_flags=False)
+    def _make_index_node(self, index, old_title=None, mobile=False, include_first_section=False):
+        d = index.toc_contents(include_first_section=include_first_section, include_flags=False, include_base_texts=True)
 
         title = old_title or d["title"]
 
@@ -303,7 +303,9 @@ class TocTree(object):
             vs = self._vs_lookup.get(title, {})
             d["firstSection"] = vs.get("first_section_ref", None)
         
-        if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
+        if "base_text_titles" in d and len(d["base_text_titles"]) > 0 and include_first_section:
+            # `d["firstSection"]` assumes `include_first_section` is True
+            #  this code seems to never actually get run
             d["refs_to_base_texts"] = {btitle:
                 self._first_comment_lookup.get(frozenset([btitle, title]), d["firstSection"])
                 for btitle in d["base_text_titles"]

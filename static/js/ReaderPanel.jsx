@@ -24,7 +24,6 @@ import CollectionPage from "./CollectionPage"
 import { NotificationsPanel } from './NotificationsPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
 import UserProfile  from './UserProfile';
-import UpdatesPanel  from './UpdatesPanel';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
@@ -51,6 +50,7 @@ class ReaderPanel extends Component {
     let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
     state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel
+    state.backButtonSettings = null;
     this.state = state;
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -167,11 +167,11 @@ class ReaderPanel extends Component {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef, replace, currVersions);
+      this.showBaseText(citationRef, replace, currVersions, [], true);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
-    this.showBaseText(ref, replaceHistory, currVersions);
+    this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
   }
   updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
     const newVersions = {
@@ -236,52 +236,42 @@ class ReaderPanel extends Component {
       highlightedRefsInSheet
     });
   }
-  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
-    // Set the current primary text `ref`, which may be either a string or an array of strings.
-    // `replaceHistory` - bool whether to replace browser history rather than push for this change
+  setPreviousSettings(backButtonSettings) {
+    this.setState({ backButtonSettings });
+  }
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[],
+               convertCommentaryRefToBaseRef=true, forceOpenCommentaryPanel = false) {
+    /* Set the current primary text `ref`, which may be either a string or an array of strings.
+    * @param {bool} `replaceHistory` - whether to replace browser history rather than push for this change
+    * @param {bool} `convertCommentaryRefToBaseRef` - whether to try to convert commentary refs like "Rashi on Genesis 3:2" to "Genesis 3:2"
+    * @param {bool} `forceOpenCommentaryPanel` - see `Sefaria.isCommentaryRefWithBaseText()`
+    */
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
+    convertCommentaryRefToBaseRef = this.state.compare ? false : convertCommentaryRefToBaseRef;
     // console.log("showBaseText", ref, replaceHistory);
     if (this.state.mode === "Connections" && this.props.masterPanelLanguage === "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
-    let refs, currentlyVisibleRef, highlightedRefs;
-    if (ref.constructor === Array) {
-      // When called with an array, set highlight for the whole spanning range
-      refs = ref;
-      currentlyVisibleRef = Sefaria.humanRef(ref);
-      let splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
-      highlightedRefs = [].concat.apply([], splitArray);
-    } else {
+    let refs;
+    if (!Array.isArray(ref)) {
       const oRef = Sefaria.parseRef(ref);
       if (oRef.book === "Sheet") {
         this.openSheet(ref);
         return;
       }
       refs = [ref];
-      currentlyVisibleRef = ref;
-      highlightedRefs = [];
     }
-
+    else {
+      refs = ref;
+    }
     if (this.replaceHistory) {
       this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
     }
-    this.conditionalSetState({
-      mode: "Text",
-      refs,
-      filter,
-      currentlyVisibleRef,
-      currVersions,
-      highlightedRefs,
-      recentFilters: [],
-      menuOpen: null,
-      compare: false,
-      sheetID: null,
-      connectionsMode: "Resources",
-      settings: this.state.settings
-    });
+    this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings},
+                          true, convertCommentaryRefToBaseRef, this.replaceHistory, false, forceOpenCommentaryPanel);
   }
   openSheet(sheetRef, replaceHistory) {
     this.replaceHistory = Boolean(replaceHistory);
@@ -783,6 +773,9 @@ class ReaderPanel extends Component {
           translationLanguagePreference={this.props.translationLanguagePreference}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
+          setPreviousSettings={this.setPreviousSettings}
+          filterRef={this.state.filterRef}
+          backButtonSettings={this.state.backButtonSettings}
           key="connections" />
       );
     }
@@ -1029,14 +1022,6 @@ class ReaderPanel extends Component {
           initialWidth={this.state.width} />
       );
 
-    } else if (this.state.menuOpen === "updates") {
-      menu = (
-        <UpdatesPanel
-          interfaceLang={this.props.interfaceLang}
-          multiPanel={this.props.multiPanel}
-          navHome={this.openMenu.bind(null, "navigation")} />
-      );
-
     } else if (this.state.menuOpen === "user_stats") {
       menu = (<UserStats />);
 
@@ -1134,6 +1119,7 @@ class ReaderPanel extends Component {
             connectionData={this.state.connectionData}
             translationLanguagePreference={this.props.translationLanguagePreference}
             setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
+            backButtonSettings={this.state.backButtonSettings}
           />}
 
           {(items.length > 0 && !menu) ?
@@ -1350,6 +1336,7 @@ class ReaderControls extends Component {
           closePanel={this.props.closePanel}
           toggleLanguage={this.props.toggleLanguage}
           interfaceLang={this.props.interfaceLang}
+          backButtonSettings={this.props.backButtonSettings}
         />
       </div>
       :
@@ -1462,6 +1449,7 @@ ReaderControls.propTypes = {
   toggleSignUpModal:       PropTypes.func.isRequired,
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
+  backButtonSettings:      PropTypes.object,
 };
 
 
