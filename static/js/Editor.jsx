@@ -5,6 +5,8 @@ import {Editor, createEditor, Range, Node, Transforms, Path, Text, Point, Elemen
 import {Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocused} from 'slate-react'
 import isHotkey from 'is-hotkey'
 import Sefaria from './sefaria/sefaria';
+import * as sheetsUtils from './sefaria/sheetsUtils'
+
 
 import {
     SheetMetaDataBox,
@@ -147,6 +149,59 @@ const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
    return {node: bottom, path: bottomPath}
  };
 
+const isMultiNodeSelection = (editor) => {
+  if (!editor.selection) {return false}
+
+  const [start, end] = Range.edges(editor.selection);
+
+  const startPath = start.path;
+  const endPath = end.path;
+
+  // If the start and end paths are different, it means multiple nodes are selected
+  return !Path.equals(startPath, endPath);
+};
+const moveAnchorToEndOfClosestParagraph = (editor) => {
+  const { selection } = editor;
+
+  if (selection && Range.isCollapsed(selection)) {
+    const { anchor } = selection;
+    const [closestParagraphNode, closestParagraphPath] = Editor.above(editor, {
+      at: anchor.path,
+      match: (n) => n.type === 'paragraph',
+    }) || [];
+
+    if (closestParagraphNode) {
+      const endPoint = Editor.end(editor, closestParagraphPath);
+
+      Transforms.select(editor, {
+        anchor: endPoint,
+        focus: endPoint,
+      });
+    }
+  }
+};
+const moveAnchorToEndOfCurrentNode = (editor) => {
+  const { selection } = editor;
+
+  if (selection && Range.isCollapsed(selection)) {
+    const { anchor } = selection;
+    const node = Editor.node(editor, anchor);
+
+    if (node) {
+      const [, path] = node;
+      const endPoint = Editor.end(editor, path);
+
+      Transforms.select(editor, {
+        anchor: endPoint,
+        focus: endPoint
+      });
+    }
+  }
+};
+const insertNewLine = (editor) => {
+  moveAnchorToEndOfClosestParagraph(editor);
+  editor.insertBreak();
+}
 
 export const deserialize = el => {
     if (el.nodeType === 3) {
@@ -336,15 +391,15 @@ export const serialize = (content) => {
 const replaceDivineNames = (str, divineName) => {
     // Regexes for identifying divine names with or without nikkud / trop
     // Currently ignores אֵל & צְבָאוֹת & שדי
-    const divineRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\'|ה׳)(?=[/(/[<//.,;:׃'"\-\s]|$)/g;
+    const divineRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\'|ה׳)(?=[/(/[<//.,;:׃'’"\-\s]|$)/g;
 
     // don't match אֲדֹנִי
-    const adoshemRE = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<\[\(\s.,;:׃'"\-]|$)/g;
+    const adoshemRE = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<\[\(\s.,;:׃'’"\-]|$)/g;
 
     // only allow segol or tzere nikkud, so doesn't match אֲלֵהֶ֖ם or the like
-    const elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C2\u05C4-\u05C7]*)?[ךיוהםן][\u0591-\u05C2\u05C4-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[[\u0591-\u05C2\u05C4-\u05C7]*[םן])(?=[\s<\[\(.,;׃:'"\-]|$)/g;
+    const elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C2\u05C4-\u05C7]*)?[ךיוהםן][\u0591-\u05C2\u05C4-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[[\u0591-\u05C2\u05C4-\u05C7]*[םן])(?=[\s<\[\(.,;׃:'’"\-]|$)/g;
 
-    const elokaRE   = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C2\u05C4-\u05C7]*)(?=[)(?=[\s<\[\(.,;:׃'"\-]|$)/g;
+    const elokaRE   = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C2\u05C4-\u05C7]*)(?=[)(?=[\s<\[\(.,;:׃'’"\-]|$)/g;
 
     // const shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;׃:'"\-]|$)/g;
 
@@ -710,7 +765,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       segment: 1,
       selected: isActive
   };
-  const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
+  const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false};
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
   const dragStart = (e) => {
       const slateRange = ReactEditor.findEventRange(parentEditor, e)
@@ -754,6 +809,15 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       e.stopPropagation();
       parentEditor.dragging = false;
     }
+    const renderEnglishElement = ({attributes, children}) => {
+    //passed to the English source Editable, to make it always! be rendered as 'ltr'
+        return (
+            <span {...attributes} dir='ltr'>
+                {children}
+            </span>
+        )
+    }
+
 
   return (
       <div
@@ -778,7 +842,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
               onKeyDown={(e) => onKeyDown(e, sheetSourceHeEditor)}
-
             />
           </Slate>
         </div>
@@ -792,6 +855,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
               onKeyDown={(e) => onKeyDown(e, sheetSourceEnEditor)}
+              renderElement={renderEnglishElement}
             />
           </Slate>
         </div>
@@ -1062,6 +1126,9 @@ const AddInterface = ({ attributes, children, element }) => {
 
 const Element = (props) => {
     const { attributes, children, element } = props;
+    const editor = useSlate();
+
+
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
@@ -1180,11 +1247,32 @@ const Element = (props) => {
               <div className="sourceContentText">{children}</div>
             )
         case 'paragraph':
+            const selected = useSelected();
+
+            const addNewLineClasses = {
+            hidden: isMultiNodeSelection(editor) || !selected,
+            editorAddLineButton: 1,
+            };
+            const handleClick = (event, editor) => {
+                 // a way to check if the click was on the 'pseudo' ::before element or on the actual div
+                //this relies on the event bubbling mechanism doing sth iffy, we should findd a more deterministic way to implement this check
+                 if (event.target.matches('.editorAddLineButton')) { //if click was on ::before
+                    insertNewLine(editor);
+                  } else {
+                    return;
+                  }
+            };
+
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div className={classNames(pClasses)} {...attributes}>
-                    {element.loading ? <div className="sourceLoader"></div> : null}
-                    {children}
+                <div role="button" title={"paragraph"} contentEditable suppressContentEditableWarning
+                     aria-label={"Add new line"} data-trigger="true" className={classNames(addNewLineClasses)}
+                     onClick={(event) => handleClick(event, editor)}
+                >
+                    <div className={classNames(pClasses)} {...attributes}>
+                        {element.loading ? <div className="sourceLoader"></div> : null}
+                        {children}
+                    </div>
                 </div>
             );
         case 'bulleted-list':
@@ -1866,25 +1954,7 @@ const insertMedia = (editor, mediaUrl) => {
   Transforms.move(editor);
 }
 
-
-function placed_segment_mapper(lang, segmented, includeNumbers, s) {
-    if (!s[lang]) {return ""}
-
-    let numStr = "";
-    if (includeNumbers) {
-        const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
-        numStr = "<small>(" + num + ")</small> ";
-    }
-    let str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
-    if (segmented) {
-        str = "<p>" + str + "</p>";
-    }
-    str = str.replace(/(<br\/>)+/g, ' ')
-    return str;
-}
-
-
-const insertSource = (editor, ref) => {
+const insertSource = async (editor, ref) => {
     const path = editor.selection.anchor.path;
 
     Transforms.setNodes(editor, { loading: true }, {at: path});
@@ -1892,47 +1962,39 @@ const insertSource = (editor, ref) => {
     const nodeAbove = getNodeAbove(path, editor)
     const nodeBelow = getNodeBelow(path, editor)
 
-    Sefaria.getText(ref, {stripItags: 1}).then(text => {
-        let segments = Sefaria.makeSegments(text, false);
-        segments = Sefaria.stripImagesFromSegments(segments);
+    const {en: normalEnRef, he: normalHeRef} = await sheetsUtils.getNormalRef(ref);
 
-        let includeNumbers = $.inArray("Talmud", text.categories) == -1;
-        includeNumbers = text.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
-        const segmented = !(text.categories[0] in {"Tanakh": 1, "Talmud": 1});
+    let segments = await sheetsUtils.getSegmentObjs([ref])
 
-        const enText = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
-            .filter(Boolean)
-            .join("");
-        const heText = segments.map(placed_segment_mapper.bind(this, "he", segmented, includeNumbers))
-            .filter(Boolean)
-            .join("");
+    const enText = sheetsUtils.segmentsToSourceText(segments, 'en');
 
-        let fragment = [{
-                type: "SheetSource",
-                node: editor.children[0].nextNode,
-                ref: text.ref,
-                heRef: text.heRef,
-                heText: parseSheetItemHTML(heText),
-                enText: parseSheetItemHTML(enText),
-                title: null,
-                children: [
-                    {text: ""},
-                ]
-        }];
+    const heText = sheetsUtils.segmentsToSourceText(segments, 'he');
 
-        if (!(nodeBelow.node && (nodeBelow.node.type == "SheetOutsideText" || nodeBelow.node.type == "paragraph" ) )) {
-          fragment.push({type: 'spacer', children: [{text: ""}]})
-        }
-        Transforms.setNodes(editor, { loading: false }, { at: path });
-        addItemToSheet(editor, fragment);
-        checkAndFixDuplicateSheetNodeNumbers(editor)
-        if (nodeAbove.node && (nodeAbove.node.type == "SheetOutsideText" || nodeAbove.node.type == "paragraph" ) ) {
-          Transforms.delete(editor, {at: path})
-        }
+    let fragment = [{
+            type: "SheetSource",
+            node: editor.children[0].nextNode,
+            ref: normalEnRef,
+            heRef: normalHeRef,
+            heText: parseSheetItemHTML(heText),
+            enText: parseSheetItemHTML(enText),
+            title: null,
+            children: [
+                {text: ""},
+            ]
+    }];
+
+    if (!(nodeBelow.node && (nodeBelow.node.type == "SheetOutsideText" || nodeBelow.node.type == "paragraph" ) )) {
+      fragment.push({type: 'spacer', children: [{text: ""}]})
+    }
+    Transforms.setNodes(editor, { loading: false }, { at: path });
+    addItemToSheet(editor, fragment);
+    checkAndFixDuplicateSheetNodeNumbers(editor)
+    if (nodeAbove.node && (nodeAbove.node.type == "SheetOutsideText" || nodeAbove.node.type == "paragraph" ) ) {
+      Transforms.delete(editor, {at: path})
+    }
 
 
-        Transforms.move(editor, { unit: 'block', distance: 1 })
-    });
+    Transforms.move(editor, { unit: 'block', distance: 1 })
 };
 
 
@@ -2488,7 +2550,7 @@ const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
-    const renderElement = useCallback(props => <Element {...props} />, []);
+    const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
@@ -2947,7 +3009,6 @@ const SefariaEditor = (props) => {
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
     );
-
 
     return (
         <div ref={editorContainer} onClick={props.handleClick}>

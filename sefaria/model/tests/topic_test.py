@@ -3,6 +3,7 @@ from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, T
 from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.system.exceptions import SluggedMongoRecordMissingError
+from sefaria.helper.topic import update_topic
 
 
 def make_topic(slug):
@@ -163,6 +164,8 @@ class TestTopics(object):
         assert "<script>" not in t.description["en"]
         assert "<script>" not in t.description["he"]
         assert "<script>" not in t.slug
+
+
 
 
 

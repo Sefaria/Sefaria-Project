@@ -59,3 +59,10 @@ class TestTruncateString:
         max_length = 24
         expected_output = "string with length of 24"
         assert truncate_string(string, min_length, max_length) == expected_output
+
+    def test_long_string_with_html_closing_tag_after_max_length(self):
+        string = 'This is a long string aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa <i>a</i>'
+        min_length = 10
+        max_length = 22
+        expected_output = "This is a long string…"
+        assert truncate_string(string, min_length, max_length) == expected_output

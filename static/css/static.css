@@ -814,6 +814,17 @@ p.registration-links a:hover{
   width: 200px;
   content: "";
 }
+
+@media (max-width: 450px) {
+  #teamPage .team-members {
+    justify-content: center;
+  }
+  
+  #teamPage .team-members::after {
+   width:  auto !important; 
+  }
+}
+
 #teamPage .teamMember {
   flex: 0 0 30%;
 }
@@ -3449,7 +3460,8 @@ form.globalUpdateForm + div.notificationsList {
   display: none;
 }
 #about.selected, #team.selected, #jobs.selected, #updates.selected, #testimonials.selected,
-#supporters.selected, #metrics.selected, #annualreport.selected, #terms.selected, #privacy.selected {
+#supporters.selected, #metrics.selected, #annualreport.selected, #terms.selected, 
+#privacy.selected, #products.selected {
   background-color: var(--lighter-grey);
   color: var(--selected-option);
   border-radius: 6px;

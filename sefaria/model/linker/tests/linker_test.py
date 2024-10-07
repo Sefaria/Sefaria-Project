@@ -10,11 +10,18 @@ if not ENABLE_LINKER:
 
 
 def test_referenceable_child():
+    from sefaria.model.schema import AddressAmud
     i = library.get_index("Rashi on Berakhot")
     assert i.nodes.depth == 3
     ref_node = NumberedReferenceableBookNode(i.nodes)
-    child = ref_node.get_children(Ref("Rashi on Berakhot 2a"))[0]
-    assert isinstance(child, DiburHamatchilNodeSet)
+    children = ref_node.get_children(Ref("Rashi on Berakhot 2a"))
+    child = next((child for child in children if child.__class__ == NumberedReferenceableBookNode and child._address_class.__class__ == AddressAmud), None)
+    assert child is not None
+
+    # one more level
+    child = child.get_children(Ref("Rashi on Berakhot 2a"))[0]
+    assert child.__class__ == DiburHamatchilNodeSet
+    assert child.query == {'container_refs': 'Rashi on Berakhot 2a'}
 
 
 def test_resolved_raw_ref_clone():
@@ -42,6 +49,8 @@ crrd = create_raw_ref_data
 
     # Amud split into two parts
     [crrd(['@בבלי', '@יבמות', '#סא', '#א']), ("Yevamot 61a",)],
+    [crrd(["@תוספות", "@פסחים", "#קו", "#א"]), ("Tosafot on Pesachim 106a",)],  # amud for commentary that has DH
+    [crrd(["@תוספות", "@פסחים", "#קו", "#א", "*ד\"ה ושמע מינה"]), ("Tosafot on Pesachim 106a:1:1",)],  # amud for commentary that has DH
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '@במכות']), ("Makkot 2a",)],
     [crrd(['@בבלי', '#עמוד א', '#דף ב', '@במכות']), ("Makkot 2a",)],  # out of order daf and amud
     [crrd(['@בבלי', '#דף ב', '#עמוד ג', '@במכות']), tuple()],
@@ -104,6 +113,9 @@ crrd = create_raw_ref_data
 
     # Base text context
     [crrd(['@ובתוס\'', '#דכ"ז ע"ב', '*ד"ה והלכתא'], "Rashi on Berakhot 2a"), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
+
+    # Mis-classified part types
+    [crrd(['@ושו"ע', "#אה״ע", "#סי׳ כ״ח", "#סעיף א"]), ("Shulchan Arukh, Even HaEzer 28:1",)],
 
     # Ibid
     [crrd(['&שם', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 7", "Genesis 1:7"]],  # ambiguous ibid
