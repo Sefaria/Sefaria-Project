@@ -21,7 +21,6 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   const sidebarModules = [
     {type: dataLoaded ? "WhoToFollow" : null, props: {toggleSignUpModal}},
     {type: "Promo"},
-    {type: "ExploreCollections"},
     {type: "SupportSefaria", props: {blue: true}},
     {type: "StayConnected"},
   ];
