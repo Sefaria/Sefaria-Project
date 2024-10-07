@@ -1,7 +1,7 @@
 {
-    "name": "Pecha.org",
-    "short_name": "Pecha.org",
-    "start_url": "base.html",
+    "name": "Pecha",
+    "short_name": "Pecha",
+    "start_url": "https://pecha.org/base.html",
     "display": "standalone",
     "background_color": "#fdfdfd",
     "theme_color": "#db4938",
