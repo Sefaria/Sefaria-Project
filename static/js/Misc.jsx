@@ -491,7 +491,7 @@ const FilterableList = ({
         </div>
       </div> : null }
       { !oldDesign && showFilterHeader ? (
-        <div className="filter-bar-new" data-anl-feature_name="source_filter">
+        <div className="filter-bar-new">
           <div className="filter-input">
             <SearchButton />
             <input

@@ -805,7 +805,7 @@ const TopicPageTab = ({
   return (
     <div className="topicTabContents">
       {!!data ?
-        <div className={classes}>
+        <div className={classes} data-anl-feature_name="source_filter">
           <FilterableList
             pageSize={20}
             scrollableElement={scrollableElement}
