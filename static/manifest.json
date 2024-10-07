@@ -1,7 +1,7 @@
 {
     "name": "Pecha",
     "short_name": "Pecha",
-    "start_url": "base.html",
+    "start_url": "/",
     "display": "standalone",
     "background_color": "#fdfdfd",
     "theme_color": "#db4938",
