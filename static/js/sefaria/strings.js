@@ -21,6 +21,7 @@ const Strings = {
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
     "Log in": "התחברות",
+    "A": "א",
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
 
@@ -93,6 +94,7 @@ const Strings = {
     "Title must be provided": "יש לספק כותרת",
     "Unfortunately, there may have been an error saving this topic information": "הודעת שגיאה: נראה כי חלה שגיאה במהלך שמירת הנתונים",
     "Something went wrong. Sorry!": "מצטערים, משהו השתבש",
+    "Admin" : "עריכה",
 
 
     // Topics Tool
@@ -256,8 +258,13 @@ const Strings = {
     'Select': 'בחירה',
     'Currently Selected': 'נוכחי',
     "Merged from": "נוצר ממיזוג",
-    "Source" : "מקור",
     "Sources": "מקורות",
+    "Notable Sources": "מקורות מרכזיים",
+    "All Sources": "כל המקורות",
+    "Source" : "מקור",
+    "Translation": "תרגום",
+    "Source with Translation": "מקור עם תרגום",
+    "Source Language": "שפת המקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
     "Revision History" : "היסטורית עריכה",

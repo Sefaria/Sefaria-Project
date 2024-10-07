@@ -23,7 +23,7 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import { ReaderApp } from './ReaderApp'; 
+import { ReaderApp } from './ReaderApp';
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -511,6 +511,13 @@ const FilterableList = ({
                 key={option}
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => setSort(option)}
+                tabIndex="0"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.target.click();
+                  }
+                }}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
@@ -1143,6 +1150,15 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
   }
   return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
 }
+
+
+//Pencil-shaped button to open the ref-link (source) editor
+const PencilSourceEditor = ({topic, text, classes}) => {
+    const [addSource, toggleAddSource] = useEditToggle();
+    return addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
+        <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"}/>;
+}
+
 const ReorderEditorWrapper = ({toggle, type, data}) => {
     /*
     Wrapper for ReorderEditor that can reorder topics, categories, and sources.  It is only used for reordering topics and categories at the
@@ -1161,9 +1177,11 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
     }
     const _createURLs = (type, data) => {
       if (reorderingSources) {
+        const urlObj = new URL(window.location.href);
+        const tabName = urlObj.searchParams.get('tab');
         return {
           url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
-          redirect: `/topics/${data.slug}`,
+          redirect: `/topics/${data.slug}?sort=Relevance&tab=${tabName}`,
           origItems: _filterAndSortRefs(data.tabs?.sources?.refs) || [],
         }
       }
@@ -2078,7 +2096,7 @@ function OnInView({ children, onVisible }) {
    *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
    *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
    */
-  const elementRef = useRef(); 
+  const elementRef = useRef();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -3310,7 +3328,7 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
   let parent = target;
   let outmost = e.currentTarget;
   let text = "";
-  
+
   while (parent) {
     if(parent.nodeName === 'A'){
       linkTarget = parent;
@@ -3334,6 +3352,77 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
   else {
     gtag_fxn(rank, product, text, label, link_type, analytics_event);
   }
+}
+
+
+const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
+
+  return (
+      <div className={classNames({ active: lang === buttonId, radioChoice: 1 })}>
+        <label htmlFor={buttonId}>
+          <InterfaceText>{buttonTitle}</InterfaceText>
+        </label>
+        <input
+          type="radio"
+          id={buttonId}
+          name="options"
+          value={buttonId}
+          checked={lang === buttonId}
+          onChange={handleLangChange}
+        />
+      </div>
+  );
+};
+const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
+  const [lang, setLang] = useState(defaultVal);
+  const buttonData = [
+  { buttonTitle: "Source Language", buttonId: "source" },
+  { buttonTitle: "Translation", buttonId: "translation" },
+  { buttonTitle: "Source with Translation", buttonId: "sourcewtrans" }
+];
+
+  const handleLangChange = (event) => {
+    setLang(event.target.value);
+    callback(event.target.value);
+    closeInterface();
+  };
+
+  useEffect(()=>{
+    document.querySelector('.langSelectPopover').focus()
+  },[])
+
+  return (
+    <div className="langSelectPopover"
+      tabIndex="0"
+      onClick={(e) => {
+          e.stopPropagation();
+          e.nativeEvent.stopImmediatePropagation();
+        }
+      }
+
+      // HACK to prevent the option menu to close once an option is selected (which is technically blurring this element)
+      onBlur={(e) => {
+            setTimeout(() => {
+              if (!document.querySelector('.langSelectPopover').contains(document.activeElement)) {
+                closeInterface();
+              }
+            }, 50);
+        }
+      }
+    >
+      <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
+       {buttonData.map((button, index) => (
+        <LangRadioButton
+          key={button.buttonId}
+          buttonTitle={button.buttonTitle}
+          lang={lang}
+          buttonId={button.buttonId}
+          handleLangChange={handleLangChange}
+        />
+      ))}
+    </div>
+  );
+
 }
 
 
@@ -3403,6 +3492,8 @@ export {
   TitleVariants,
   OnInView,
   TopicPictureUploader,
-  ImageWithCaption, 
-  handleAnalyticsOnMarkdown
+  ImageWithCaption,
+  handleAnalyticsOnMarkdown,
+  LangSelectInterface,
+  PencilSourceEditor
 };
