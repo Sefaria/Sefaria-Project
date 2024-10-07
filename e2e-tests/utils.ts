@@ -78,3 +78,17 @@ export const changeLanguageOfText = async (page: Page, sourceLanguage: string) =
     await page.getByRole('radiogroup', {name: 'Language'}).locator(sourceLanguage).click()
 
 }
+
+export const getCountryByIp = async (page: Page) => {
+    const data = await page.evaluate(() => {
+        return fetch('https://ipapi.co/json/')
+            .then(response => response.json())
+            .then(data => data)
+    })
+    return data.country;
+}
+
+export const isIsraelIp = async (page: Page) => {
+    const country = await getCountryByIp(page);
+    return country === "IL";
+}
