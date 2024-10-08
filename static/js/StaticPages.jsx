@@ -865,13 +865,7 @@ const EducatorsPage = () => (
     <div className="staticPageCallToActionFooter">
       <div className="staticPageBlockInner flexContainer">
         <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="קבלו עדכונים והפניות למקורות מעניינים" />
-        <SubscribeButton
-                     enAction={"Sign up to get updates"}
-                     heAction={"הירשמו לקבלת הניוזלטר"}
-                     heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
-                     enLists={"Announcements_General|Announcements_Edu"}
-                     redirectURL={"/register?educator=true&next=/educators"}
-        />
+        <NewsletterSignUpForm contextName="educators" />
       </div>
     </div>
 
