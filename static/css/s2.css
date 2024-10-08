@@ -294,7 +294,6 @@ body, .sans-serif {
 }
 
 body, .en, .int-en {
-    font-size: 18px;
     --is-hebrew: initial; /* false */
 }
 
