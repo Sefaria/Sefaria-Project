@@ -318,17 +318,10 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       <div className="mobileAccountLinks">
         {Sefaria._uid ?
         <>
-          <a href="/my/profile" onClick={close}>
-            <ProfilePic len={22} url={Sefaria.profile_pic_url} name={Sefaria.full_name} />
-            <InterfaceText>Profile</InterfaceText>
-          </a>
           <a href="/texts/saved" onClick={close}>
             <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
-            <InterfaceText>Saved & History</InterfaceText>
-          </a>
-          <a href="/notifications" onClick={close}>
-            <img src="/static/icons/notification.svg" alt={Sefaria._('Notifications')} />
-            <InterfaceText>Notifications</InterfaceText>
+            <InterfaceText text={{en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות"}} />
+
           </a>
         </> : null }
 
@@ -342,7 +335,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <MobileInterfaceLanguageToggle />
 
-         <hr />
+        <hr/>
 
         <a href="/help">
           <img src="/static/icons/help.svg" />
@@ -364,11 +357,10 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <a href="developers.sefaria.org" target="_blank">
           <img src="/static/icons/dev-portal-mobile-icon.svg" />
           <InterfaceText text={{en: "Developers", he: "מפתחים"}} />
-
         </a>
 
-        <a href="/products">
-          <img src="/static/icons/products_icon.svg" />
+        <a href="sefaria.org/products" target="_blank">
+          <img src="/static/icons/products-icon.svg" />
           <InterfaceText text={{en: "All Products", he: "מוצרים"}} />
         </a>
 
@@ -382,7 +374,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         :
         <LoggedOutButtons mobile={true} loginOnly={false}/> }
 
-      <hr />
+        <hr />
       </div>
     </div>
   );
