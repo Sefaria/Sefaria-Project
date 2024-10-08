@@ -5,9 +5,9 @@ import englishJson from "./english.json";
 
 // combine all languages string 
 const LanguagesJson = {
-        hebrew: {translation: tibetanJson},
-        chinese:{translation: chineseJson},
-        english:{translation: englishJson}
+        en:{translation: englishJson},
+        bo: {translation: tibetanJson},
+        zh:{translation: chineseJson}
 };
 
 export default LanguagesJson;

@@ -590,7 +590,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <a href="/help">
           <img src="/static/icons/help.svg" />
-          <InterfaceText>get_help</InterfaceText>
+          <InterfaceText>text.feedback.get_help</InterfaceText>
         </a>
 
         {Sefaria._uid ?
