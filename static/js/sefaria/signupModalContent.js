@@ -10,230 +10,152 @@ export const SignUpModalKind = {
 
 const signUpModalContent = {
   [SignUpModalKind.AddConnection]: {
-    h2: {
-      en: "Want to document a connection to another text?",
-      he: "רוצים לתעד חיבור לטקסט נוסף?",
-    },
-    h3: {
-      en: "Create a free account to do more on Sefaria",
-      he: "פתחו חשבון משתמש בחינם - ותוכלו לעשות הרבה יותר עם ספריא",
-    },
+    h2: "model.sign_up.add_connection.connection_to_another_text",
+    h3: "model.sign_up.add_connection.create_free_account",
     contentList: [
       {
         icon: "tools-add-connection-white.svg",
-        bulletContent: {
-          en: "Add interconnections & translations",
-          he: "הוסיפו תרגומים וחיבורים בין טקסטים",
-        },
+        bulletContent: "model.sign_up.add_connection.content_list.add_interconnection_and_translation",
       },
       {
         icon: "sheetsplus-white.svg",
-        bulletContent: {
-          en: "Build & share source sheets",
-          he: "בנו ושתפו דפי מקורות",
-        },
+        bulletContent: "model.sign_up.add_connection.content_list.build_and_share_source_sheet",
       },
       {
         icon: "note-white.png",
-        bulletContent: { en: "Take notes", he: "མཆན་བཀོད།" },
+        bulletContent: "model.sign_up.add_connection.content_list.take_notes",
       },
       {
         icon: "email-white.png",
-        bulletContent: {
-          en: "Get updates on new texts",
-          he: "התעדכנו בטקסטים חדשים הנוספים לספרייה",
-        },
+        bulletContent: "model.sign_up.add_connection.content_list.get_updates_on_new_texts",
       },
     ],
   },
   [SignUpModalKind.AddToSheet]: {
-    h2: {
-      en: "Want to make your own source sheet?",
-      he: "ཁྱེད་རང་ཉིད་ཀྱི་ཤོག་ངོས་བཟོ་འདོད་དམ།",
-    },
-    h3: {
-      en: "Create a free account to join the conversation",
-      he: "རིན་མེད་ཁ་བྱང་ཞིག་བཟོས་ཏེ་གླེང་མོལ་ནང་མཉམ་གཞུགས་བྱོས།",
-    },
+    h2: "model.sign_up.add_to_sheet.want_to_make_your_own_source_sheet",
+    h3: "model.sign_up.add_to_sheet.create_free_accout_to_join_conversation",
     contentList: [
       {
         icon: "sheetsplus-white.svg",
-        bulletContent: {
-          en: "Build & share source sheets",
-          he: "ཤོག་ངོས་བཟོས་ཏེ་བརྒྱུད་སྐུར་བྱོས།",
-        },
+        bulletContent: "model.sign_up.add_to_sheet.build_share_souce_sheet",
       },
       {
         icon: "star-white.png",
-        bulletContent: { en: "Save texts", he: "ཟིན་བྲིས་ཉར་ཚགས།"},
+        bulletContent: "text.save_text",
       },
       {
         icon: "note-white.svg",
-        bulletContent: { en: "Take notes", he: "མཆན་བཀོད།" },
+        bulletContent: "note.take_note",
       },
       {
         icon: "share-icon-white.svg",
-        bulletContent: {
-          en: "Connect with other users",
-          he: "གཞན་དང་མཉམ་དུ་སྦྲེལ་མཐུད་བྱེད།",
-        },
+        bulletContent: "model.sign_up.add_to_sheet.connect_with_other_users",
       },
     ],
   },
   [SignUpModalKind.AddTranslation]: {
-    h2: {
-      en: "Have your own translation of this text?",
-      he: "יש לכם תרגום משלכם לטקסט זה?",
-    },
-    h3: {
-      en: "Create a free account to add it to the library & do more on Sefaria",
-      he: "פתחו חשבון משתמש בחינם כדי להוסיף אותו לספרייה - ועוד:",
-    },
+    h2: "model.sign_up.add_translation.have_your_own_translation_of_this_text",
+    h3: "model.sign_up.add_translation.create_free_account__to_add_it_to_library",
     contentList: [
       {
         icon: "sheetsplus-white.svg",
-        bulletContent: {
-          en: "Build & share source sheets",
-          he: "בנו ושתפו דפי מקורות",
-        },
+        bulletContent: "model.sign_up.add_connection.content_list.build_and_share_source_sheet",
       },
       {
         icon: "star-white.png",
-        bulletContent: { en: "Save texts", he: "ཟིན་བྲིས་ཉར་ཚགས།" },
+        bulletContent: "text.save_text",
       },
       {
         icon: "note-white.svg",
-        bulletContent: { en: "Take notes", he: "མཆན་བཀོད།" },
+        bulletContent: "note.take_note",
       },
       {
         icon: "share-icon-white.svg",
-        bulletContent: {
-          en: "Connect with other users",
-          he: "התחברו עם משתמשי ספריא אחרים",
-        },
+        bulletContent: "model.sign_up.add_to_sheet.connect_with_other_users",
       },
     ],
   },
   [SignUpModalKind.Follow]: {
-    h2: {
-      en: "Want to connect with other Sefaria users?",
-      he: "רוצים להתחבר עם משתמשים אחרים בספריא?",
-    },
-    h3: {
-      en: "Create a free account to join the conversation",
-      he: "פתחו חשבון משתמש בחינם והצטרפו לשיח",
-    },
+    h2: "model.sign_up.follow.want_to_connect_with_other_users",
+    h3: "model.sign_up.add_to_sheet.create_free_accout_to_join_conversation",
     contentList: [
       {
         icon: "profile-white.svg",
-        bulletContent: {
-          en: "Follow your favorite creators",
-          he: "עקבו אחרי היוצרים האהובים עליכם",
-        },
+        bulletContent: "model.sign_up.follow.follow_your_favorite_creaters",
       },
       {
         icon: "sheetsplus-white.svg",
-        bulletContent: {
-          en: "Build & share source sheets",
-          he: "בנו ושתפו דפי מקורות",
-        },
+        bulletContent: "model.sign_up.add_connection.content_list.build_and_share_source_sheet",
       },
       {
         icon: "note-white.svg",
-        bulletContent: { en: "Send messages", he: "שלחו הודעות דרך ספריא" },
+        bulletContent: "model.sign_up.follow.send_messages",
       },
     ],
   },
   [SignUpModalKind.Notes]: {
-    h2: { en: "Don’t lose that thought!", he: "ཁྱེད་ཀྱི་གོ་རྟོགས་གསར་པ་དེ་མ་བརླགས་པར་བྱེད་དགོས།" },
-    h3: {
-      en: "Create a free account to do more on Sefaria",
-      he: "དཔེ་ཆ་དྲ་བའི་ཆ་རྐྱེན་ཚང་མ་སྤྱོད་པ་ལ། རིན་མེད་ཐོག་ནས་ཐོ་འགོད་གྱིས།",
-    },
+    h2: "model.sign_up.note.dont_lose_that_thought",
+    h3: "model.sign_up.add_connection.create_free_account",
     contentList: [
       {
         icon: "note-white.svg",
-        bulletContent: {
-          en: "Take notes on this text",
-          he: "ཡིག་ཆ་འདི་ལ་མཆན་རྒྱོབས།",
-        },
+        bulletContent: "model.sign_up.note.take_notes_on_this_text",
       },
       {
         icon: "sheetsplus-white.svg",
-        bulletContent: {
-          en: "Build & share source sheets",
-          he: "ཟིན་བྲིས་གསར་བཟོ་དང་འགྲེམས་སྤེལ།",
-        },
+        bulletContent: "model.sign_up.add_connection.content_list.build_and_share_source_sheet",
       },
       {
         icon: "share-icon-white.svg",
-        bulletContent: {
-          en: "Connect with other users",
-          he: "དཔེ་ཀློག་པ་གཞན་དང་གྲོགས་འབྲེལ་བཟོ་བ།",
-        },
+        bulletContent: "model.sign_up.add_to_sheet.connect_with_other_users",
       },
       {
         icon: "email-white.png",
-        bulletContent: {
-          en: "Get updates on new features",
-          he: "ཁྱད་ཆོས་ཁ་སྣོན་བྱས་པ་སོགས་ལ་ལྟོས།",
-        },
+        bulletContent: "model.sign_up.note.get_updates_on_new_features",
       },
     ],
   },
   [SignUpModalKind.Save]: {
-    h2: { en: "Want to return to this text?", he: "רוצים לחזור לטקסט הזה?" },
-    h3: {
-      en: "Create a free account to do more on Sefaria",
-      he: "פתחו חשבון משתמש בחינם כדי לעשות יותר עם ספריא",
-    },
+    h2: "model.sign_up.save.want_to_return_to_this_text",
+    h3: "model.sign_up.add_connection.create_free_account",
     contentList: [
       {
         icon: "star-white.png",
-        bulletContent: { en: "Save texts", he: "ཟིན་བྲིས་ཉར་ཚགས།" },
+        bulletContent: "text.save_text",
       },
       {
         icon: "note-white.svg",
-        bulletContent: { en: "Take notes", he: "མཆན་བཀོད།" },
+        bulletContent: "note.take_note",
       },
       {
         icon: "clock-white.svg",
-        bulletContent: {
-          en: "View your reading history",
-          he: "צפו בהיסטוריית הקריאה שלכם",
-        },
+        bulletContent: "model.sign_up.save.view_your_reading_history",
       },
       {
         icon: "sheetsplus-white.svg",
-        bulletContent: {
-          en: "Build & share source sheets",
-          he: "צרו ושתפו דפי מקורות",
-        },
+        bulletContent: "model.sign_up.add_connection.content_list.build_and_share_source_sheet",
       },
     ],
   },
   [SignUpModalKind.Default]: {
-    h2: { en: "Love Learning?", he: "སློབ་གཉེར་ལ་དགའ་བོ་ཡོད་དམ།" },
-    h3: {
-      en: "Sign up to get more from Sefaria",
-      he: "དཔེ་ཆ་དྲ་ཐོག་དཔེ་མཛོད་ནས་འདི་ལས་མང་བ་ཐོབ་པ་ལ་ཞུགས་ཐོ་གསར་འགོད་བྱོས།",
-    },
+    h2: "modal.sign_up.default.love_learning",
+    h3: "modal.sign_up.default.sign_up__to_get_more_from_sefaria",
     contentList: [
       {
         icon: "star-white.png",
-        bulletContent: { en: "Save texts", he: "ཟིན་བྲིས་ཉར་ཚགས།" },
+        bulletContent: "text.save_text",
       },
       {
         icon: "sheet-white.png",
-        bulletContent: { en: "Make source sheets", he: "הכינו דפי מקורות" },
+        bulletContent: "sheet.make_source_sheet",
       },
       {
         icon: "note-white.png",
-        bulletContent: { en: "Take notes", he: "མཆན་འགོད་པ།" },
+        bulletContent: "note.take_note",
       },
       {
         icon: "email-white.png",
-        bulletContent: { en: "Stay in the know", he: "ཤེས་བཞིན་དུ་ནི་གནས་པར་གྱིས།" },
+        bulletContent: "modal.sign_up.stay_in_the_know",
       },
     ],
   },
