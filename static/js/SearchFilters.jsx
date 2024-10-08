@@ -195,26 +195,22 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
       return false;
     }
   }
-
-  const wordSelected = (item) => {
-    if (item.selected) {
-      return -1;
-    } else {
-      return 1;
-    }
+  
+  const sortFiltersBySelected = (filter1, filter2) => {
+   return filter2.selected - filter1.selected;
   }
 
   const updateFilters = text => {
-    if (text && text != "") {
+    if (text && text !== "") {
       if (!expandable) {
-        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)).sort(x => wordSelected(x)));
+        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)).sort(sortFiltersBySelected));
       } else { // don't sort
         setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)));
       }
       setShowClearInputButton(true);
     } else {
       if (!expandable) {
-        setFilters(filters.sort(x => wordSelected(x)));
+        setFilters(filters.sort(sortFiltersBySelected));
       } else {
         setFilters(filters);
       }

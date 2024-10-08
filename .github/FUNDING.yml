@@ -9,4 +9,4 @@ community_bridge: # Replace with a single Community Bridge project-name e.g., cl
 liberapay: # Replace with a single Liberapay username
 issuehunt: # Replace with a single IssueHunt username
 otechie: # Replace with a single Otechie username
-custom: https://donate.sefaria.org/en # Replace with a single custom sponsorship URL
+custom: https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=github # Replace with a single custom sponsorship URL

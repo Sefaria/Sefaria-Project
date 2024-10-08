@@ -23,7 +23,6 @@ import { NavSidebar, Modules } from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';
 import VersionBlock  from './VersionBlock/VersionBlock';
 import ExtendedNotes from './ExtendedNotes';
-import Footer  from './Footer';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
@@ -305,8 +304,6 @@ class BookPage extends Component {
             {this.isBookToc() && ! this.props.compare ? 
             <NavSidebar modules={sidebarModules} /> : null}
           </div>
-          {this.isBookToc() && ! this.props.compare ?
-          <Footer /> : null}
         </div>
       </div>
     );
@@ -383,7 +380,7 @@ class TextTableOfContents extends Component {
       if(this.props?.close){
         this.props.close();
       }
-      this.props.navigatePanel ? this.props.navigatePanel(ref, this.props.currVersions) : this.props.showBaseText(ref, false, this.props.currVersions);
+      this.props.navigatePanel ? this.props.navigatePanel(ref, this.props.currVersions) : this.props.showBaseText(ref, false, this.props.currVersions, [], true, true);
       e.preventDefault();
     }
   }
