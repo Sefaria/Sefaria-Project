@@ -103,7 +103,7 @@ class TextRange extends Component {
     }
   }
   setData() {
-    Sefaria.getTextFromCurrVersions(this.props.sref, this.props.currVersions, this.props.withContext).then(data => {
+    Sefaria.getTextFromCurrVersions(this.props.sref, this.props.currVersions, this.props.translationLanguagePreference, this.props.withContext).then(data => {
       this.setState({data: data});
     })
   }
@@ -175,10 +175,10 @@ class TextRange extends Component {
 
     if (this.props.prefetchNextPrev) {
      if (data.next) {
-       Sefaria.getTextFromCurrVersions(data.next, this.props.currVersions).then(this._prefetchLinksAndNotes);
+       Sefaria.getTextFromCurrVersions(data.next, this.props.currVersions, this.props.translationLanguagePreference).then(this._prefetchLinksAndNotes);
      }
      if (data.prev) {
-       Sefaria.getTextFromCurrVersions(data.prev, this.props.currVersions).then(this._prefetchLinksAndNotes);
+       Sefaria.getTextFromCurrVersions(data.prev, this.props.currVersions, this.props.translationLanguagePreference).then(this._prefetchLinksAndNotes);
      }
      if (data.indexTitle) {
         // Preload data that is used on Text TOC page

@@ -554,7 +554,7 @@ Sefaria = extend(Sefaria, {
   _textsStore: {},
   getTextsFromAPIV3: async function(ref, requiredVersions, mergeText, return_format) {
     // ref is segment ref or bottom level section ref
-    // requiredVersions is array of objects that can have language and versionTitle
+    // requiredVersions is array of objects that can have languageFamilyName and versionTitle
     const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
     //TODO here's the place for getting it from cache
     const apiObject = await Sefaria._cachedApiPromise({url: url, key: url, store: Sefaria._textsStore});
@@ -590,21 +590,46 @@ Sefaria = extend(Sefaria, {
         versionsResponse.heSources = primary.sources;
     }
   },
-  _getPrimaryAndTranslationText: async function(ref, primaryVersionObj, translationVersionObj) {
+  _getVersionObjects: async function(ref, primaryVersionObj, translationVersionObj, translationLanguagePreference) {
+    primaryVersionObj = (primaryVersionObj?.languageFamilyName) ? primaryVersionObj : {languageFamilyName: 'primary'};
+    if (!translationVersionObj.versionTitle) {
+        const versions = await Sefaria.getVersions(ref);
+        let requiredVersion;
+        const preferredTranslation = Sefaria.versionPreferences.getVersionPref(ref)?.en;
+        if (preferredTranslation) {
+            requiredVersion = Object.values(versions).flat().filter((v) => !v.isSource && v.versionTitle === preferredTranslation)[0];
+        }
+        if (!requiredVersion && translationLanguagePreference) {
+            const langVersions = versions[translationLanguagePreference];
+            if (langVersions) {
+                requiredVersion = langVersions.reduce((max, obj) =>
+                  obj.priority > max.priority ? obj : max
+                );
+            }
+        }
+        if (requiredVersion) {
+            const {languageFamilyName, versionTitle} = requiredVersion;
+            translationVersionObj = {languageFamilyName, versionTitle};
+        } else {
+            translationVersionObj = {languageFamilyName: 'translation'};
+        }
+    }
+    return [primaryVersionObj, translationVersionObj];
+  },
+  _getPrimaryAndTranslationText: async function(ref, primaryVersionObj, translationVersionObj, translationLanguagePreference) {
     // versionObjs are objects with language and versionTitle
-    primaryVersionObj = (primaryVersionObj?.languageFamilyName) ? primaryVersionObj : {language: 'primary'};
-    translationVersionObj = (translationVersionObj?.languageFamilyName) ? translationVersionObj : {language: 'translation'}; //TODO language prefernces; when defauld primary and trnaslation is the same
-    const versionsResponse = await Sefaria.getTextsFromAPIV3(ref, [primaryVersionObj, translationVersionObj], true, 'wrap_all_entities');
+    const requiredVersions = await Sefaria._getVersionObjects(ref, primaryVersionObj, translationVersionObj, translationLanguagePreference);
+    const versionsResponse = await Sefaria.getTextsFromAPIV3(ref, requiredVersions, true, 'wrap_all_entities');
     Sefaria._adaptApiResponse(versionsResponse);
     return versionsResponse;
   },
-  getTextFromCurrVersions: async function(ref, currVersions, withContext) {
+  getTextFromCurrVersions: async function(ref, currVersions, translationLanguagePreference, withContext) {
     let {he, en} = currVersions;
     if (!he?.languageFamilyName) {he = {languageFamilyName: 'primary'};}
     if (!en?.languageFamilyName) {en = {languageFamilyName: 'translation'};}
-    let data = await Sefaria._getPrimaryAndTranslationText(ref, he, en);
+    let data = await Sefaria._getPrimaryAndTranslationText(ref, he, en, translationLanguagePreference);
     if (withContext && data.textDepth === data.sections.length) {
-        const {text, he, alts} = await Sefaria.getTextFromCurrVersions(data.sectionRef, currVersions);
+        const {text, he, alts} = await Sefaria.getTextFromCurrVersions(data.sectionRef, currVersions, translationLanguagePreference);
         data = {
             ...data,
             text,
