@@ -2014,11 +2014,10 @@ LoginPrompt.propTypes = {
 class SignUpModal extends Component {
   render() {
     let modalContent = !this.props.modalContentKind ? generateContentForModal() : generateContentForModal(this.props.modalContentKind);
-    
     const innerContent = modalContent.contentList.map(bullet => (
       <div key={bullet.icon}>
-        <img src={`/static/img/${bullet.icon}`} alt={bullet.bulletContent.en} />
-        <InterfaceText text={bullet.bulletContent} />
+        <img src={`/static/img/${bullet.icon}`} />
+        <InterfaceText>{bullet.bulletContent}</InterfaceText>
       </div>
     ));
     const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
@@ -2030,19 +2029,16 @@ class SignUpModal extends Component {
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
-              <InterfaceText text={modalContent.h2} />
+              <InterfaceText>{modalContent.h2}</InterfaceText>
             </h2>
             <h3>
-              <InterfaceText text={modalContent.h3} />
+              <InterfaceText>{modalContent.h3}</InterfaceText>
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
             <a className="button white control-elem" href={"/register" + nextParam}>
-              <InterfaceText>
-                <EnglishText>Sign Up</EnglishText>
-                <HebrewText>ཐོ་འགོད་གྱིས།</HebrewText>
-                </InterfaceText>
+              <InterfaceText>common.sign_up</InterfaceText>
             </a>
             <div className="sefariaModalBottomContent">
               <InterfaceText>{ Sefaria._("sign_up.already_have_account")} </InterfaceText>&nbsp;
