@@ -1604,7 +1604,7 @@ def find_holiday_in_hebcal_results(response):
                 topic = Topic.init(result['key'])
                 if topic:
                     return topic.contents()
-    return null
+    return None
 
 @catch_error_as_json
 def next_holiday(request):
