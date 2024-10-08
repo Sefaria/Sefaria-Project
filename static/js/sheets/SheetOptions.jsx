@@ -12,6 +12,8 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isAdding, setAdding] = useState(false);  // Edit Collections Modal open or closed
   const [isCopying, setCopying] = useState(false);
+  const [isSaving, setSaving] = useState(false);
+  const [isExporting, setExporting] = useState(false);
   if (isSharing) {
     return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
@@ -29,6 +31,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
                 tooltip={true}
                 toggleSignUpModal={toggleSignUpModal}
                 shouldDisplayText={true}
+                onSave={() => setSaving(true)}
             />
           </DropdownMenuItem>
           <DropdownMenuItem>
