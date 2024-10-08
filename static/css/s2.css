@@ -353,6 +353,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   height: 100%;
   z-index: 1000;
 }
+
 #s2.headerOnly {
   z-index: 1000;
   height: 60px;
@@ -650,6 +651,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: #666;
   font-size: 16px;
   padding: 15px;
+}
+.mobileNavMenu hr {
+  border: none;
   border-bottom: 1px solid #EDEDEC;
 }
 .mobileNavMenu a > img,
@@ -681,8 +685,23 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   opacity: 1;
 }
 .mobileNavMenu .mobileAccountLinks .login {
-  display: block;
   padding: 15px;
+}
+.mobileNavMenu .signupLink::after {
+  content: "•";
+  padding: 0px 4px;
+}
+.interface-english .mobileNavMenu .signupLink {
+  padding-right: 0px !important;
+}
+.interface-english .mobileNavMenu .loginLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .signupLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .loginLink {
+  padding-right: 0px !important;
 }
 .mobileNavMenu .profile-pic {
   display: inline-block;
@@ -4737,11 +4756,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   z-index: 2;
 }
 .singlePanel .autocomplete-dropdown {
-  width: 100vw;
+  width: 0;
   position: fixed;
   top: 120px;
   inset-inline-start: 0;
   padding-bottom: 10px;
+}
+.singlePanel .autocomplete-dropdown:has(*){
+  width: 100vw;
 }
 .search-group-suggestions{
   border-bottom: 0.766667px solid rgb(204, 204, 204);
@@ -9812,7 +9834,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .currVersionSection, .aboutBox .alternateVersionsSection {
   padding-bottom: 30px;
 }
-.aboutBox .versionsBox .versionBlock:first-child{
+.aboutBox .versionsBox .language-block:first-child .versionBlock:first-child {
   border-top: none;
   padding-top: 10px;
 }
@@ -13470,8 +13492,9 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownItem {
-  padding: 10px 0px 5px 10px !important;
+  padding: 10px 5px !important;
   flex-direction: column;
+  margin-inline-start: 5px;
 }
 
 .dropdownSeparator {
@@ -13768,6 +13791,38 @@ span.ref-link-color-3 {color: blue}
   color: #666666;
 }
 
+.languageHeader {
+  padding-right: 10px;
+  padding-left: 10px;
+  padding-top: 4px;
+  padding-bottom: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: left;
+  color: var(--medium-grey);
+
+}
+
+.languageToggleFlexContainer{
+  display: flex;
+  flex-direction: row;
+  /* padding: 10px 0px; */
+  align-items: baseline;
+  line-height: 18px;
+  height: 23px;
+  padding-bottom: 15px;
+}
+
+.languageDot{
+  font-size: 25px;
+  padding: 10px 2px;
+}
+
+.englishLanguageButton::after {
+  content: "•";
+  padding: 0px 4px;
+}
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}

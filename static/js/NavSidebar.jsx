@@ -239,8 +239,6 @@ const Resources = () => (
     <h3><InterfaceText context="ResourcesModule">Resources</InterfaceText></h3>
     <div className="linkList">
       <IconLink text="Mobile Apps" url="/mobile" icon="mobile.svg" />
-      <IconLink text="Create with Sefaria" url="/sheets" icon="sheet.svg" />
-      <IconLink text="Collections" url="/collections" icon="collection.svg" />
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
