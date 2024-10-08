@@ -23,6 +23,9 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   else if (isCopying) {
     return <CopyModal close={() => setCopying(false)} sheetID={sheetID}/>;
   }
+  else if (isSaving) {
+    return <SaveModal historyObject={historyObject} toggleSignUpModal={toggleSignUpModal} close={() => setSaving(false)}/>;
+  }
   return (
         <DropdownMenu toggle={"..."}>
           <DropdownMenuItem>
@@ -30,8 +33,8 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
                 historyObject={historyObject}
                 tooltip={true}
                 toggleSignUpModal={toggleSignUpModal}
-                shouldDisplayText={true}
                 onSave={() => setSaving(true)}
+                displayAltText={false}
             />
           </DropdownMenuItem>
           <DropdownMenuItem>
@@ -92,7 +95,7 @@ const CopyButton = ({toggleSignUpModal, onCopy}) => {
 }
 const CopyModal = ({close, sheetID}) => {
   const copyState = {
-    copying: { en: "Copying...", he: "מעתיק..."},
+    copying: { en: "Copying Sheet...", he: "מעתיק..."},
     copied: { he: "צפייה בדף המקורות", en: "View Copy"},
     error: { en: "Sorry, there was an error.", he: "סליחה, ארעה שגיאה" }
   }
@@ -156,6 +159,30 @@ const CopyModal = ({close, sheetID}) => {
   return <Modal isOpen={true} close={handleClose}>
             <div className="modalTitle">Copy</div>
             <div className="modalMessage">{copyMessage}</div>
+        </Modal>;
+}
+
+const SaveModal = ({historyObject, toggleSignUpModal, close}) => {
+  const isSaved = !!Sefaria.getSavedItem(historyObject);
+  const savingMessage = "Saving...";
+  const [message, setMessage] = useState(savingMessage);
+  const savedMessage = isSaved ? "Sheet no longer saved." : "Saved sheet.";
+  useEffect(() => {
+    if (message === savingMessage) {
+      Sefaria.toggleSavedItem(historyObject)
+          .catch(e => {
+            if (e === 'notSignedIn') {
+              toggleSignUpModal(SignUpModalKind.Save);
+            }
+          })
+          .finally(() => {
+            setMessage(savedMessage);
+          });
+    }
+  });
+  return <Modal isOpen={true} close={close}>
+            <div className="modalTitle">Save</div>
+            <div className="modalMessage">{message}</div>
         </Modal>;
 }
 

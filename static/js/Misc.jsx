@@ -1440,7 +1440,8 @@ InterfaceLanguageMenu.propTypes = {
 };
 
 
-function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal, onSave}) {
+function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal, onSave, displayAltText=true}) {
+  // `displayAltText`: If True, display alt text such as "Save" or "Remove".  Otherwise, display text next to the button "Save"/"Remove"
   if (!historyObject) { placeholder = true; }
   const isSelected = () => !!Sefaria.getSavedItem(historyObject);
   const [selected, setSelected] = useState(placeholder || isSelected());
@@ -1453,11 +1454,16 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal, onS
 
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-  const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+  const message = Sefaria._(selected ? "Remove" : "Save");
+  const altText = placeholder || !displayAltText ? '' :
+      `${message} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {
+    if (onSave) {
+      onSave();
+      return;
+    }
     if (isPosting) { return; }
     event.preventDefault();
     setPosting(true);
@@ -1471,6 +1477,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal, onS
     <ToolTipped {...{ altText, classes, style, onClick }}>
       {selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
                   <img src="/static/icons/bookmark.svg" alt={altText}/>}
+      {!displayAltText && <span className={"toolsButtonText"}>{message}</span>}
     </ToolTipped>
   );
 }
