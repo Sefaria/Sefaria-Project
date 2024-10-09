@@ -263,6 +263,7 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
             serial, next_referenceable_depth = insert_amud_node_values(serial)
         serial['depth'] -= next_referenceable_depth
         serial['default'] = False  # any JA node that has been modified should lose 'default' flag
+        serial['parent'] = self._ja_node
         if serial['depth'] == 0:
             raise ValueError("Can't serialize JaggedArray of depth 0")
         serial = truncate_serialized_node_to_depth(serial, next_referenceable_depth)
