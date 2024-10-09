@@ -704,7 +704,7 @@ class ResolvedRefPruner:
     @staticmethod
     def remove_superfluous_matches(thoroughness: ResolutionThoroughness, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         # make matches with refs that are essentially equivalent (i.e. refs cover same span) actually equivalent
-        resolved_refs.sort(key=lambda x: x.ref and x.ref.order_id())
+        resolved_refs.sort(key=lambda x: x.ref.order_id() if x.ref else "ZZZ")
         for i, r in enumerate(resolved_refs[:-1]):
             next_r = resolved_refs[i+1]
             if r.contains(next_r) and next_r.contains(r):
