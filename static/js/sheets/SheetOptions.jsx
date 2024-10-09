@@ -7,13 +7,20 @@ import Sefaria from "../sefaria/sefaria";
 import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
 import {CollectionsWidget} from "../CollectionsWidget";
-
+const modifyHistoryObjectForSheetOptions = (historyObject) => {
+  // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
+  let newHistoryObject = Object.assign({}, historyObject);
+  const refParts = newHistoryObject.ref.split(":");
+  newHistoryObject.ref = refParts[0];
+  return newHistoryObject;
+}
 const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isAdding, setAdding] = useState(false);  // Edit Collections Modal open or closed
   const [isCopying, setCopying] = useState(false);
   const [isSaving, setSaving] = useState(false);
   const [isExporting, setExporting] = useState(false);
+  const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   if ((isAdding || isSaving || isCopying) && !Sefaria._uid) {
     toggleSignUpModal();
   }
@@ -27,13 +34,13 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
     return <CopyModal close={() => setCopying(false)} sheetID={sheetID}/>;
   }
   else if (isSaving) {
-    return <SaveModal historyObject={historyObject} close={() => setSaving(false)}/>;
+    return <SaveModal historyObject={historyObjectForSheet} close={() => setSaving(false)}/>;
   }
   return (
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
-                historyObject={historyObject}
+                historyObject={historyObjectForSheet}
                 onClick={() => setSaving(true)}
             />
           </DropdownMenuItem>
