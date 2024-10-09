@@ -472,14 +472,14 @@ class ConnectionsPanel extends Component {
         selectedWordsForSheet = null;
       } else { // add source from sheet itself
         refForSheet = this.props.srefs;
-        versionsForSheet = this.props.currVersions;
+        versionsForSheet = this.state.currObjectVersions;
         selectedWordsForSheet = this.props.selectedWords;
         nodeRef = this.props.nodeRef;
       }
       content = (<div>
         <AddToSourceSheetBox
           srefs={refForSheet}
-          currVersions={versionsForSheet} //sidebar doesn't actually do versions
+          currObjectVersions={versionsForSheet} //sidebar doesn't actually do versions
           contentLanguage={this.props.masterPanelLanguage}
           selectedWords={selectedWordsForSheet}
           nodeRef={nodeRef}
