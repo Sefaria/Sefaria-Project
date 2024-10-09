@@ -89,6 +89,11 @@ class ReferenceableBookNode:
         """
         Does `self` contain `other`. If `self_ref` and `other_ref` aren't None, this is just ref comparison.
         Otherwise, see if the schema/altstruct node that back `self` contains `other`'s node.
+        Note this function is a bit confusing. It works like this:
+        - If `self_ref` and `other_ref` are None, we compare the nodes themselves to see if self is an ancestor of other
+        - If `self_ref` is None and `other_ref` isn't, we check that `other_ref` is contained in at least one of `self`'s children (`self` may be an AltStructNode in which case it has no Ref)
+        - If `self_ref` isn't None and `other_ref` is None, we check that `self_ref` contains all of `other`'s children (`other` may be an AltStructNode in which case it has no Ref)
+        - If `self_ref` and `other_ref` are both defined, we can use Ref.contains()
         @param other:
         @param self_ref: although `self` has a ref (if it's backed by a schemaNode) this ref doesn't include sections. For this reason, we need to be able to pass `self_ref`.
         @param other_ref: see `self_ref` for docs.
