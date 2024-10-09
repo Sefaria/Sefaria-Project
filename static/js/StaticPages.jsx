@@ -865,13 +865,7 @@ const EducatorsPage = () => (
     <div className="staticPageCallToActionFooter">
       <div className="staticPageBlockInner flexContainer">
         <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="קבלו עדכונים והפניות למקורות מעניינים" />
-        <SubscribeButton
-                     enAction={"Sign up to get updates"}
-                     heAction={"הירשמו לקבלת הניוזלטר"}
-                     heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
-                     enLists={"Announcements_General|Announcements_Edu"}
-                     redirectURL={"/register?educator=true&next=/educators"}
-        />
+        <NewsletterSignUpForm contextName="educators" />
       </div>
     </div>
 
@@ -2355,7 +2349,7 @@ const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) =>
               method: 'POST',
               mode: 'same-origin',
               credentials: 'same-origin',
-              body: {"lists": lists},
+              body: JSON.stringify({"lists": lists}),
           }).then(response => {
               if (!response.ok) {
                   response.text().then(resp_text => {
@@ -2374,7 +2368,7 @@ const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) =>
                   });
               }
           }).catch(error => {
-              setMessage(error.message);
+              setMessage(`Failed to subscribe ${email}.`);
           });
       }
   }
@@ -2406,13 +2400,7 @@ const HeaderForEducatorsPage = () => {
           <span className="int-he">{heTitle}</span>
         </h1>
         <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
-        <SubscribeButton
-             enAction={"Sign up to get updates"}
-             heAction={"הירשמו לקבלת הניוזלטר"}
-             heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
-             enLists={"Announcements_General|Announcements_Edu"}
-             redirectURL={"/register?educator=true&next=/educators"}
-            />
+        <NewsletterSignUpForm contextName="educators" />
       </div>
     </div>
   </div>
