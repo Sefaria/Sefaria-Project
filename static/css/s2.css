@@ -11034,6 +11034,49 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
+/* Button is initially off-screen on the right */
+.pwa-install-button {
+    padding: 10px 10px;
+    font-size: 16px;
+    background-color: #b84045;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    position: fixed; /* Fix the position of the button */
+    right: 260px; /* Initially off-screen */
+    bottom: 15px; /* Position near the bottom */
+    transition: background-color 0.3s ease; /* Smooth background change */
+    display: none; /* Initially hidden */
+  }
+  
+  /* Slide-in animation */
+  .pwa-install-button.show {
+    display: inline-block;
+    animation: slide-in 0.10s forwards; /* Trigger the slide-in animation */
+  }
+  
+  /* Keyframes for sliding in the button from the right */
+  @keyframes slide-in {
+    from {
+      right: -100px; /* Start off-screen */
+    }
+    to {
+      right: 20px; /* Slide in to 20px from the right */
+    }
+  }
+  
+  .pwa-install-button:hover {
+    background-color: #a7353b;
+    transform: scale(1.05); /* Slightly enlarge the button on hover */
+  }
+  
+  .pwa-install-button:active {
+    background-color: #8b2c30;
+    transform: scale(0.98);
+  }
+  
+
 #footer .section {
     display: inline-block;
     vertical-align: top;
