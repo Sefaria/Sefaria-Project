@@ -6,6 +6,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
+import Button from "./shared/Button";
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -43,6 +44,8 @@ const Modules = ({type, props}) => {
     "GetTheApp":              GetTheApp,
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
+    "CreateASheet":           CreateASheet,
+    "WhatIsASourceSheet":     WhatIsASourceSheet,
     "AboutTranslatedText":    AboutTranslatedText,
     "AboutCollections":       AboutCollections,
     "ExploreCollections":     ExploreCollections,
@@ -75,14 +78,13 @@ const ModuleTitle = ({children, en, he}) => {
   return <h1>{content}</h1>;
 };
 
-
-const TitledText = ({enTitle, heTitle, enText, heText}) => {
+const TitledText = ({children, title, text}) => {
   return <Module>
-    <ModuleTitle en={enTitle} he={heTitle} />
-    <InterfaceText markdown={{en: enText, he: heText}} />
-  </Module>
+            <ModuleTitle en={title.en} he={title.he}/>
+            <InterfaceText markdown={{en: text.en, he: text.he}} />
+            {children}
+        </Module>
 };
-
 const RecentlyViewedItem = ({oref}) => {
    const trackItem = () => {
      gtag('event', 'recently_viewed', {link_text: oref.ref, link_type: 'ref'})
@@ -237,8 +239,6 @@ const Resources = () => (
     <h3><InterfaceText context="ResourcesModule">Resources</InterfaceText></h3>
     <div className="linkList">
       <IconLink text="Mobile Apps" url="/mobile" icon="mobile.svg" />
-      <IconLink text="Create with Sefaria" url="/sheets" icon="sheet.svg" />
-      <IconLink text="Collections" url="/collections" icon="collection.svg" />
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
@@ -666,7 +666,29 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
   );
 };
 
+const GetStartedButton = () => {
+    const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
+    return <Button className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
+}
+const CreateSheetsButton = () => {
+  // #sheetsButton
+  return <Button icon={"/static/icons/new-sheet-black.svg"} className="small" onClick={() => window.location.href="/sheets/new"}>Create</Button>
+}
+const CreateASheet = () => (
+  <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
+              text={{'en': 'Mix and match sources along with outside sources, comments, images, and videos.',
+                     'he': ''}}>
+      <CreateSheetsButton/>
+  </TitledText>
+);
 
+const WhatIsASourceSheet = () => (
+    <TitledText title={{'en': 'What is a Source Sheet?', 'he': ''}}
+                text={{'en': '',
+                       'he': ''}}>
+        <GetStartedButton/>
+    </TitledText>
+);
 const AboutLearningSchedules = () => (
   <Module>
     <ModuleTitle>Learning Schedules</ModuleTitle>
