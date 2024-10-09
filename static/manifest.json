@@ -1,6 +1,6 @@
 {
-  "name": "Pecha.org",
-  "short_name": "Pecha.org",
+  "name": "Pecha",
+  "short_name": "Pecha",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fdfdfd",
@@ -10,7 +10,7 @@
   "icons": [
     {
       "src": "https://dev.pecha.org/static/screenshots/icon.png",
-      "sizes": "144x144",
+      "sizes": "945x1969",
       "type": "image/png",
       "purpose": "any"
     },
