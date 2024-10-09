@@ -138,6 +138,10 @@ class AbstractNamedReferenceableBookNode(ABC, ReferenceableBookNode):
         pass
 
     @abstractmethod
+    def ref_order_id(self) -> str:
+        pass
+
+    @abstractmethod
     def ref_part_title_trie(self, *args, **kwargs):
         pass
 
@@ -180,6 +184,16 @@ class NamedReferenceableBookNode(AbstractNamedReferenceableBookNode):
 
     def ref(self) -> text.Ref:
         return self._titled_tree_node.ref()
+
+    def ref_order_id(self) -> str:
+        if isinstance(self._titled_tree_node, schema.AltStructNode):
+            leaves = self._titled_tree_node.get_leaf_nodes()
+            # assume leaves are contiguous. If this is wrong, will be disproven later in the function
+            if len(leaves) == 0:
+                return "N/A"
+            approx_ref = leaves[0].ref().to(leaves[-1].ref())
+            return approx_ref.order_id()
+        return self.ref().order_id()
 
     @staticmethod
     def _is_array_map_referenceable(node: schema.ArrayMapNode) -> bool:

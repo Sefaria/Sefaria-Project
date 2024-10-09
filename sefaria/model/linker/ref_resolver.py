@@ -770,13 +770,8 @@ class ResolvedRefPruner:
             if resolved_ref.ref is None:
                 if resolved_ref.node is None:
                     return "N/A"
-                elif isinstance(resolved_ref.node._titled_tree_node, schema.AltStructNode):
-                    leaves = resolved_ref.node._titled_tree_node.get_leaf_nodes()
-                    # assume leaves are contiguous. If this is wrong, will be disproven later in the function
-                    if len(leaves) == 0:
-                        return "N/A"
-                    approx_ref = leaves[0].ref().to(leaves[-1].ref())
-                    return approx_ref.order_id()
+                elif hasattr(resolved_ref.node, "ref_order_id"):
+                    return resolved_ref.node.ref_order_id()
                 else:
                     return "N/A"
             else:
