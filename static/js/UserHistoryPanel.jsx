@@ -5,7 +5,6 @@ import Component from 'react-class';
 import Sefaria  from './sefaria/sefaria';
 import { useScrollToLoad } from "./Hooks";
 import { NavSidebar } from './NavSidebar';
-import Footer  from './Footer';
 import { 
   SheetBlock,
   TextPassage
@@ -44,7 +43,6 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     {type: "SupportSefaria"},
   ];
 
-  const footer = compare ? null : <Footer />;
   const navMenuClasses = classNames({readerNavMenu: 1, compare, noLangToggleInHebrew: 1});
 
   return (
@@ -66,7 +64,6 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
           </div>
           <NavSidebar modules={sidebarModules} />
         </div>
-        {footer}
       </div>
     </div>
     );

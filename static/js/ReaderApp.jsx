@@ -1416,7 +1416,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true, replaceHistory=false, saveLastPlace=true) {
+  openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true,
+              replaceHistory=false, saveLastPlace=true, forceOpenCommentaryPanel=false) {
     /* Open a new panel or replace existing panel. If book level, Open book toc
     * @param {int} n: Open new panel after `n` with the new ref
     * @param {string} ref: ref to use for new panel.  `ref` can refer to book, actual ref, or sheet.
@@ -1426,6 +1427,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     * @param {bool} convertCommentaryRefToBaseRef: if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
     * @param {bool} replaceHistory: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
     * @param {bool} saveLastPlace: whether to save user history.
+    * @param {bool} forceOpenCommentaryPanel: If true, the commentary side panel will open regardless of the ref's depth.
+    *                                       If false, side panel will only open if ref is depth 3 or greater; see `Sefaria.isCommentaryRefWithBaseText()`
     */
     this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
@@ -1445,7 +1448,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else {  // Text
       let filter = [];
       let filterRef;
-      if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
+      if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref, forceOpenCommentaryPanel)) {
         // getBaseRefAndFilter breaks up the ref "Rashi on Genesis 1:1:4" into filter "Rashi" and ref "Genesis 1:1",
         // so `filterRef` is needed to store the entire "Rashi on Genesis 1:1:4"
         filterRef = Sefaria.humanRef(ref);
@@ -2224,17 +2227,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
 
     return (
-      <AdContext.Provider value={this.getUserContext()}>
-        <div id="readerAppWrap">
-          <div className={classes} onClick={this.handleInAppLinkClick}>
-            {header}
-            {panels}
-            {signUpModal}
-            {communityPagePreviewControls}
-            <CookiesNotification />
+      // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
+      // InterruptingMessage modals and Banners will always render if available but stay hidden initially
+      <StrapiDataProvider>
+        <AdContext.Provider value={this.getUserContext()}>
+          <div id="readerAppWrap">
+            <InterruptingMessage />
+            <Banner onClose={this.setContainerMode} />
+            <div className={classes} onClick={this.handleInAppLinkClick}>
+              {header}
+              {panels}
+              {signUpModal}
+              {communityPagePreviewControls}
+              <CookiesNotification />
+            </div>
           </div>
-        </div>
-      </AdContext.Provider>
+        </AdContext.Provider>
+      </StrapiDataProvider>
     );
   }
 }

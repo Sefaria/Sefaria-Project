@@ -3,7 +3,6 @@ import Component from 'react-class';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import NoteListing  from './NoteListing';
-import Footer  from './Footer';
 import {
   CollectionListing,
   FilterableList,
@@ -434,7 +433,6 @@ class UserProfile extends Component {
             </div>
             }
           </div>
-          <Footer />
         </div>
       </div>
     );
@@ -553,7 +551,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
 }
 
 const ProfileBio = ({profile: p}) => {
-    // used in ProfileSummary and in SheetSidebar, renders user education, organization, and location info
+    // used in ProfileSummary and in SheetContentSidebar, renders user education, organization, and location info
     const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
     let infoList = [];
     if (p.location) {
@@ -645,7 +643,7 @@ const ProfileSummary = ({
         <div className="profile-summary sans-serif">
             <div className="summary-column profile-summary-content start">
                 {profileName}
-                <ProfileSummaryInfo profile={p}/>
+                <ProfileBio profile={p}/>
                 {profileButtons}
                 {followInfo}
             </div>
