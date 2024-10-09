@@ -37,7 +37,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
     return <SaveModal historyObject={historyObjectForSheet} close={() => setSaving(false)}/>;
   }
   else if (isExporting) {
-    return <GoogleDocExportModal close={() => setExporting(false)}/>;
+    return <GoogleDocExportModal close={() => setExporting(false)} sheetID={sheetID}/>;
   }
   return (
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
@@ -48,10 +48,10 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
             />
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <GoogleDocExportButton sheetID={sheetID}/>
+            <GoogleDocExportButton sheetID={sheetID} onClick={() => setExporting(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <CopyButton onCopy={() => setCopying(true)}/>
+            <CopyButton onClick={() => setCopying(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
@@ -86,13 +86,13 @@ const EditCollectionsModal = ({close, sheetID}) => {
         </Modal>;
 }
 
-const CopyButton = ({onCopy}) => {
+const CopyButton = ({onClick}) => {
   return <>
           <ToolsButton
               en={"Copy"}
               he={"העתקה"}
               image="copy.png"
-              onClick={() => onCopy()} />
+              onClick={() => onClick()} />
         </>
 }
 const CopyModal = ({close, sheetID}) => {
@@ -180,7 +180,7 @@ const SaveModal = ({historyObject, close}) => {
           });
     }
   });
-  return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>message</InterfaceText>} close={close}/>;
+  return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={close}/>;
 }
 
 const GoogleDocExportButton = ({ onClick }) => {
@@ -199,7 +199,10 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     exportComplete: { en: "Success!", he: "ייצוא הסתיים", secondaryEn: "View in Google Docs", secondaryHe: "לפתיחה בגוגל דוקס", greyColor: true}
   }
   const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
-  const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState(googleDriveState.exporting) : useState(googleDriveState.export);
+  console.log(urlHashObject);
+  // const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState(googleDriveState.exporting) : useState(googleDriveState.export);
+  const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
+
   const [googleDriveLink, setGoogleDriveLink] = useState("");
   const sheet = Sefaria.sheets.loadSheetByID(sheetID);
 
@@ -227,14 +230,14 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
       });
     }
   }, [googleDriveText])
-  const googleDriveExport = () => {
-    if (googleDriveText.en === googleDriveState.exportComplete.en) {
-      Sefaria.util.openInNewTab(googleDriveLink);
-    } else {
-      Sefaria.track.sheets("Export to Google Docs");
-      setGoogleDriveText(googleDriveState.exporting);
-    }
-  }
+  // const googleDriveExport = () => {
+  //   if (googleDriveText.en === googleDriveState.exportComplete.en) {
+  //     Sefaria.util.openInNewTab(googleDriveLink);
+  //   } else {
+  //     Sefaria.track.sheets("Export to Google Docs");
+  //     setGoogleDriveText(googleDriveState.exporting);
+  //   }
+  // }
   return <GenericSheetModal title={<InterfaceText>Export</InterfaceText>}
                             message={<InterfaceText text={googleDriveText}/>}
                             close={close}/>;
