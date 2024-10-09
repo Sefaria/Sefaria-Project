@@ -226,7 +226,7 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/serviceWorker.js')
+          navigator.serviceWorker.register('/static/serviceWorker.js', { scope: '/' })
             .then(function(registration) {
               console.log('Service Worker registered with scope:', registration.scope);
             })
