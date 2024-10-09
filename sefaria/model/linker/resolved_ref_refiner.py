@@ -76,7 +76,7 @@ class ResolvedRefRefinerForNumberedPart(ResolvedRefRefiner):
         return [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=self.node, ref=refined_ref)]
 
     def __refine_context_free(self, lang: str, fromSections=None) -> List['ResolvedRef']:
-        if self.node is None:
+        if self.node is None or not isinstance(self.node, NumberedReferenceableBookNode):
             return []
         possible_subrefs, can_match_out_of_order_list = self.node.possible_subrefs(lang, self.resolved_ref.ref, self.part_to_match.text, fromSections)
         refined_refs = []
