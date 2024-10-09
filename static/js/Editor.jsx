@@ -765,7 +765,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       segment: 1,
       selected: isActive
   };
-  const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
+  const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false};
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
   const dragStart = (e) => {
       const slateRange = ReactEditor.findEventRange(parentEditor, e)
@@ -809,6 +809,15 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       e.stopPropagation();
       parentEditor.dragging = false;
     }
+    const renderEnglishElement = ({attributes, children}) => {
+    //passed to the English source Editable, to make it always! be rendered as 'ltr'
+        return (
+            <span {...attributes} dir='ltr'>
+                {children}
+            </span>
+        )
+    }
+
 
   return (
       <div
@@ -833,7 +842,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
               onKeyDown={(e) => onKeyDown(e, sheetSourceHeEditor)}
-
             />
           </Slate>
         </div>
@@ -847,6 +855,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
               onKeyDown={(e) => onKeyDown(e, sheetSourceEnEditor)}
+              renderElement={renderEnglishElement}
             />
           </Slate>
         </div>
