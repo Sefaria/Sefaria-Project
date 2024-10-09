@@ -180,7 +180,7 @@ def generic_subscribe_to_newsletter_api(request, org, email):
     }
     body = json.loads(request.body)
     if "firstName" not in body or "lastName" not in body:
-        return jsonResponse({"error": "You must provide first and last name."}, status=401)
+        return jsonResponse({"error": "You must provide first and last name."})
     first_name = body.get("firstName")
     last_name = body.get("lastName")
     try:
