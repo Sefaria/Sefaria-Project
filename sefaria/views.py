@@ -179,8 +179,10 @@ def generic_subscribe_to_newsletter_api(request, org, email):
         "steinsaltz": subscribe_steinsaltz,
     }
     body = json.loads(request.body)
-    first_name = body.get("firstName", None)
-    last_name = body.get("lastName", None)
+    if "firstName" not in body or "lastName" not in body:
+        return jsonResponse({"error": "You must provide first and last name."}, status=401)
+    first_name = body.get("firstName")
+    last_name = body.get("lastName")
     try:
         subscribe = org_subscribe_fn_map.get(org)
         if not subscribe:
@@ -190,7 +192,7 @@ def generic_subscribe_to_newsletter_api(request, org, email):
         else:
             logger.error(f"Failed to subscribe to list")
             return jsonResponse({"error": _("Sorry, there was an error.")})
-    except (TypeError, ValueError) as e:
+    except ValueError as e:
         logger.error(f"Failed to subscribe to list: {e}")
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
