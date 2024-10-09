@@ -3,7 +3,6 @@ import Component from 'react-class';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import NoteListing  from './NoteListing';
-import Footer  from './Footer';
 import {
   CollectionListing,
   FilterableList,
@@ -434,7 +433,6 @@ class UserProfile extends Component {
             </div>
             }
           </div>
-          <Footer />
         </div>
       </div>
     );

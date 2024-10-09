@@ -18,26 +18,82 @@ import {Autocomplete} from './Autocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
 
 
+const LoggedOutMenu = () => {
+  const [isClient, setIsClient] = useState(false);
+  const [next, setNext] = useState("/");
+  const [loginLink, setLoginLink] = useState("/login?next=/");
+  const [registerLink, setRegisterLink] = useState("/register?next=/");
+
+  useEffect(()=>{
+    setIsClient(true);
+  }, []);
+
+  useEffect(()=> {
+    if(isClient){
+      setNext(encodeURIComponent(Sefaria.util.currentPath()));
+      setLoginLink("/login?next="+next);
+      setRegisterLink("/register?next="+next);
+    }
+  })
+
+  const getCurrentPage = () => {
+    return encodeURIComponent(Sefaria.util.currentPath());
+  }
+  return (
+    <DropdownMenu menu_icon={'/static/icons/logged_out.svg'}>
+      <DropdownMenuItem url={loginLink}>
+        Log in
+      </DropdownMenuItem>
+      <DropdownMenuItem url={registerLink}>
+        Sign up
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <div className="languageHeader">
+          <InterfaceText>Site Language</InterfaceText>
+      </div>
+      <div className='languageToggleFlexContainer'>
+        <span className='englishLanguageButton'>
+          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
+            English
+          </DropdownMenuItem>
+        </span>
+        <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
+        עברית    
+        </DropdownMenuItem>
+
+      </div>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem url={'/updates'}>
+        New additions
+      </DropdownMenuItem>
+      <DropdownMenuItem url={'/help'}>
+        Help
+      </DropdownMenuItem>
+
+  </DropdownMenu>
+  );
+}
+
+
 const ModuleSwitcher = () => {
   const toggle = <img src="/static/icons/module_switcher_icon.svg" alt={Sefaria._('Toggle Module Switcher')}/>;
   return (
-      <DropdownMenu toggle={toggle}>
-        <DropdownMenuItem url={'/'}>
-          <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'}/>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator/>
-        <DropdownMenuItem url={'//sheets.sefaria.org'}>
-          <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator/>
-        <DropdownMenuItem url={'//developers.sefaria.org'}>
-          <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator/>
-        <DropdownMenuItem url={'//sefaria.org/products'}>
-          <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
-        </DropdownMenuItem>
-
+    <DropdownMenu menu_icon={'/static/icons/module_switcher_icon.svg'}>
+    <DropdownMenuItem url={'/'} newTab={true}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'//sheets.sefaria.org'} newTab={true}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'//developers.sefaria.org'} newTab={true}>
+      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem url={'//sefaria.org/products'} newTab={true}>
+      <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products ›'}} />
+    </DropdownMenuItem>
       </DropdownMenu>
   );
 }
@@ -77,7 +133,6 @@ class Header extends Component {
           <a className="home" href="/" >{logo}</a> : null }
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
-          <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
@@ -89,21 +144,20 @@ class Header extends Component {
             openURL={this.props.openURL}
         />
 
-
-          { Sefaria._uid ?
-            <LoggedInButtons headerMode={this.props.headerMode}/>
-            : <LoggedOutButtons headerMode={this.props.headerMode}/>
-          }
-
-          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <ModuleSwitcher /> : null}
-
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
-        
+
+
+          <ModuleSwitcher /> 
+
+          { Sefaria._uid ?
+            <LoggedInButtons headerMode={this.props.headerMode}/>
+            : <LoggedOutMenu currentLang={Sefaria.interfaceLang}/>
+          }
+
         </div>
       </>
     );
@@ -183,16 +237,22 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
   const classes = classNames({accountLinks: !mobile, anon: !mobile});
   return (
     <div className={classes}>
+      { loginOnly && (
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
          {mobile ? <img src="/static/icons/login.svg" /> : null }
          <InterfaceText>Log in</InterfaceText>
-       </a>
+       </a>)}
       {loginOnly ? null :
-      <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
-         {mobile ? <img src="/static/icons/register.svg" /> : null }
-         <InterfaceText>Sign up</InterfaceText>
-      </a> }
-      { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
+      <span>
+        <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
+          {mobile ? <img src="/static/icons/login.svg" /> : null }
+          <InterfaceText>Sign up</InterfaceText>
+        </a> 
+        <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
+          <InterfaceText>Log in</InterfaceText>
+        </a>
+      </span>}
+      {/* { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null} */}
     </div>
   );
 }
@@ -246,17 +306,9 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <img src="/static/icons/topic.svg" />
         <InterfaceText>Topics</InterfaceText>
       </a>
-      <a href="/community" onClick={close}>
-        <img src="/static/icons/community.svg" />
-        <InterfaceText>Community</InterfaceText>
-      </a>
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
         <InterfaceText>Learning Schedules</InterfaceText>
-      </a>
-      <a href="/collections" onClick={close}>
-        <img src="/static/icons/collection.svg"/>
-        <InterfaceText>Collections</InterfaceText>
       </a>
 
       <DonateLink classes={"blue"} source="MobileNavMenu">
@@ -281,11 +333,6 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           </a>
         </> : null }
 
-        <a href="/mobile-about-menu">
-          <img src="/static/icons/info.svg" />
-          <InterfaceText>About Sefaria</InterfaceText>
-        </a>
-
         {Sefaria._uid ?
         <>
           <a href="/settings/account">
@@ -296,16 +343,37 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <MobileInterfaceLanguageToggle />
 
-        <a href="/products">
-          <img src="/static/icons/products.svg" />
-          <InterfaceText text={{en: "Products", he: "מוצרים"}} />
-        </a>
-
+         <hr />
 
         <a href="/help">
           <img src="/static/icons/help.svg" />
           <InterfaceText>Get Help</InterfaceText>
         </a>
+
+        <a href="/mobile-about-menu">
+          <img src="/static/icons/info.svg" />
+          <InterfaceText>About Sefaria</InterfaceText>
+        </a>
+
+        <hr />
+
+        <a href="sheets.sefaria.org" target="_blank">
+          <img src="/static/icons/sheets-mobile-icon.svg" />
+          <InterfaceText>Sheets</InterfaceText>
+        </a>
+
+        <a href="developers.sefaria.org" target="_blank">
+          <img src="/static/icons/dev-portal-mobile-icon.svg" />
+          <InterfaceText text={{en: "Developers", he: "מפתחים"}} />
+
+        </a>
+
+        <a href="/products">
+          <img src="/static/icons/products_icon.svg" />
+          <InterfaceText text={{en: "All Products", he: "מוצרים"}} />
+        </a>
+
+        <hr />
 
         {Sefaria._uid ?
         <a href="/logout" className="logout">
@@ -313,8 +381,9 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <InterfaceText>Logout</InterfaceText>
         </a>
         :
-        <LoggedOutButtons mobile={true} loginOnly={true}/> }
+        <LoggedOutButtons mobile={true} loginOnly={false}/> }
 
+      <hr />
       </div>
     </div>
   );
