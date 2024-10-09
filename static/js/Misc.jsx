@@ -1446,7 +1446,7 @@ const getSaveButtonImage = (selected) => {
   return selected ? "bookmark-filled.svg" : "bookmark.svg";
 }
 const SaveButtonWithText = ({historyObject, onClick}) => {
-  const selected = useState(isSaveButtonSelected(historyObject));
+  const selected = isSaveButtonSelected(historyObject);
   return <div>
             <ToolsButton en={getSaveButtonMessage(selected)} he={getSaveButtonMessage(selected)}
                          image={getSaveButtonImage(selected)} onClick={() => onClick()}/>
