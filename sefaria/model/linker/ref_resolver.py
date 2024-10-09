@@ -364,7 +364,7 @@ class RefResolver:
             unrefined_matches = self.get_unrefined_ref_part_matches(book_context_ref, temp_raw_ref)
             if is_non_cts:
                 # filter unrefined matches to matches that resolved previously
-                resolved_titles = {r.ref.index.title for r in resolved_list}
+                resolved_titles = {r.ref.index.title for r in resolved_list if not r.is_ambiguous}
                 unrefined_matches = list(filter(lambda x: x.ref.index.title in resolved_titles, unrefined_matches))
                 # resolution will start at context_ref.sections - len(ref parts). rough heuristic
                 for match in unrefined_matches:
