@@ -143,8 +143,8 @@ class AddToSourceSheetBox extends Component {
 
 
         const { en, he } = this.props.currVersions ? this.props.currVersions : {"en": null, "he": null}; //the text we are adding may be non-default version
-        if (he) { source["version-he"] = he; }
-        if (en) { source["version-en"] = en; }
+        if (he) { source["version-he"] = he.versionTitle; }
+        if (en) { source["version-en"] = en.versionTitle; }
 
         // If something is highlighted and main panel language is not bilingual:
         // Use passed in language to determine which version this highlight covers.
