@@ -4,7 +4,6 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
-import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
 import SearchFilters from './SearchFilters';
 import Component from 'react-class';
