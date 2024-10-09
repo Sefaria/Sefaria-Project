@@ -36,6 +36,9 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   else if (isSaving) {
     return <SaveModal historyObject={historyObjectForSheet} close={() => setSaving(false)}/>;
   }
+  else if (isExporting) {
+    return <GoogleDocExportModal close={() => setExporting(false)}/>;
+  }
   return (
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
@@ -141,7 +144,7 @@ const CopyModal = ({close, sheetID}) => {
     }
   })
   const getCopySuccessMessage = () => {
-    return <>Success! <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
+    return <><InterfaceText>Success!</InterfaceText> <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
               <InterfaceText>View your Copy</InterfaceText>
               </a>
           </>;
@@ -154,10 +157,13 @@ const CopyModal = ({close, sheetID}) => {
   }
 
   const copyMessage = copyText.en === copyState.copied.en ? getCopySuccessMessage() : <InterfaceText>{copyText.en}</InterfaceText>;
+  return <GenericSheetModal title={<InterfaceText>Copy</InterfaceText>} message={copyMessage} close={handleClose}/>;
+}
 
-  return <Modal isOpen={true} close={handleClose}>
-            <div className="modalTitle">Copy</div>
-            <div className="modalMessage">{copyMessage}</div>
+const GenericSheetModal = ({title, message, close}) => {
+  return <Modal isOpen={true} close={close}>
+            <div className="modalTitle">{title}</div>
+            <div className="modalMessage">{message}</div>
         </Modal>;
 }
 
@@ -174,24 +180,23 @@ const SaveModal = ({historyObject, close}) => {
           });
     }
   });
-  return <Modal isOpen={true} close={close}>
-            <div className="modalTitle">Save</div>
-            <div className="modalMessage">{message}</div>
-        </Modal>;
+  return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>message</InterfaceText>} close={close}/>;
 }
 
 const GoogleDocExportButton = ({ onClick }) => {
   const googleDriveText = { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" };
   return <div>
-            <ToolsButton en={googleDriveText.en} he={googleDriveText.he} image="googledrive.svg" onClick={() => onClick()} />
+            <ToolsButton en={googleDriveText.en}
+                         he={googleDriveText.he}
+                         image="googledrive.svg"
+                         onClick={() => onClick()} />
           </div>;
 }
 
-const GoogleDocExportModal = ({ sheetID }) => {
+const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
-    export: { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" },
     exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס...", greyColor: true},
-    exportComplete: { en: "Export Complete", he: "ייצוא הסתיים", secondaryEn: "Open in Google", secondaryHe: "לפתיחה בגוגל דוקס", greyColor: true}
+    exportComplete: { en: "Success!", he: "ייצוא הסתיים", secondaryEn: "View in Google Docs", secondaryHe: "לפתיחה בגוגל דוקס", greyColor: true}
   }
   const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
   const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState(googleDriveState.exporting) : useState(googleDriveState.export);
@@ -223,8 +228,6 @@ const GoogleDocExportModal = ({ sheetID }) => {
     }
   }, [googleDriveText])
   const googleDriveExport = () => {
-    // $("#overlay").show();
-    // sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
     if (googleDriveText.en === googleDriveState.exportComplete.en) {
       Sefaria.util.openInNewTab(googleDriveLink);
     } else {
@@ -232,6 +235,10 @@ const GoogleDocExportModal = ({ sheetID }) => {
       setGoogleDriveText(googleDriveState.exporting);
     }
   }
+  return <GenericSheetModal title={<InterfaceText>Export</InterfaceText>}
+                            message={<InterfaceText text={googleDriveText}/>}
+                            close={close}/>;
+
 }
 
 export {SheetOptions};
