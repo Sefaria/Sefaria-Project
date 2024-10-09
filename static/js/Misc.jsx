@@ -1445,19 +1445,11 @@ const getSaveButtonMessage = (selected) => Sefaria._(selected ? "Remove" : "Save
 const getSaveButtonImage = (selected) => {
   return selected ? "bookmark-filled.svg" : "bookmark.svg";
 }
-const SaveButtonWithText = ({historyObject, toggleSignUpModal, onClick}) => {
-  const [selected, setSelected] = useState(isSaveButtonSelected(historyObject));
-  const handleClick = () => {
-    if (!Sefaria._uid) {
-      toggleSignUpModal();
-    }
-    else {
-      onClick();
-    }
-  }
+const SaveButtonWithText = ({historyObject, onClick}) => {
+  const selected = useState(isSaveButtonSelected(historyObject));
   return <div>
             <ToolsButton en={getSaveButtonMessage(selected)} he={getSaveButtonMessage(selected)}
-                         image={getSaveButtonImage(selected)} onClick={() => handleClick()}/>
+                         image={getSaveButtonImage(selected)} onClick={() => onClick()}/>
          </div>;
 }
 
