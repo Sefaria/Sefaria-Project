@@ -179,10 +179,10 @@ def generic_subscribe_to_newsletter_api(request, org, email):
         "steinsaltz": subscribe_steinsaltz,
     }
     body = json.loads(request.body)
-    if "firstName" not in body or "lastName" not in body:
-        return jsonResponse({"error": "You must provide first and last name."})
     first_name = body.get("firstName")
     last_name = body.get("lastName")
+    if not first_name or not last_name:
+        return jsonResponse({"error": "You must provide first and last name."})
     try:
         subscribe = org_subscribe_fn_map.get(org)
         if not subscribe:
