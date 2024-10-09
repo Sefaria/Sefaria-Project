@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon} from "../common/DropdownMenu";
-import {InterfaceText, SaveButton} from "../Misc";
+import {InterfaceText, SaveButton, SaveButtonWithText} from "../Misc";
 import Modal from "../shared/modal";
 import {ShareBox, ToolsButton} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
@@ -29,12 +29,10 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   return (
         <DropdownMenu toggle={"..."}>
           <DropdownMenuItem>
-            <SaveButton
+            <SaveButtonWithText
                 historyObject={historyObject}
-                tooltip={true}
                 toggleSignUpModal={toggleSignUpModal}
-                onSave={() => setSaving(true)}
-                displayAltText={false}
+                onClick={() => setSaving(true)}
             />
           </DropdownMenuItem>
           <DropdownMenuItem>
