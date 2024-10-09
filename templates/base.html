@@ -223,20 +223,6 @@
 
     {% autoescape off %}
 
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/static/serviceWorker.js', { scope: '/' })
-            .then(function(registration) {
-              console.log('Service Worker registered with scope:', registration.scope);
-            })
-            .catch(function(error) {
-              console.log('Service Worker registration failed:', error);
-            });
-        });
-      }
-    </script>
-
     <!--Sentry error reporting config-->
     <script>
       {% if CLIENT_SENTRY_DSN %}
@@ -383,6 +369,20 @@
     }</script> -->
 
     <!-- <script src="{% static 'js/pwa_app_installer.js' %}"></script> -->
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/static/serviceWorker.js', { scope: '/' })
+            .then(function(registration) {
+              console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch(function(error) {
+              console.log('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
 
 
 
