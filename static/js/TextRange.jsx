@@ -251,7 +251,7 @@ class TextRange extends Component {
     let title, heTitle, ref;
     if (data && this.props.basetext) {
       ref              = this.props.withContext ? data.sectionRef : data.ref;
-      const sectionStrings   = Sefaria.sectionString(ref, data);
+      const sectionStrings   = Sefaria.sectionString(ref);
       const oref             = Sefaria.ref(ref);
       const useShortString   = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]) !== -1;
       title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;

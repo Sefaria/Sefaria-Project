@@ -556,10 +556,8 @@ Sefaria = extend(Sefaria, {
     // ref is segment ref or bottom level section ref
     // requiredVersions is array of objects that can have languageFamilyName and versionTitle
     const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
-    //TODO here's the place for getting it from cache
     const apiObject = await Sefaria._cachedApiPromise({url: url, key: url, store: Sefaria._textsStore});
     this._textsStore[ref] = apiObject;
-    //TODO here's the place for all changes we want to add, and saving in cache
     return apiObject;
   },
   getAllTranslationsWithText: async function(ref) {
@@ -637,6 +635,7 @@ Sefaria = extend(Sefaria, {
             alts,
         };
     }
+    this._saveText(data)
     return data;
   },
   _bulkSheets: {},
@@ -1245,7 +1244,9 @@ Sefaria = extend(Sefaria, {
   },
   getRefFromCache: function(ref) {
     if (!ref) return null;
-    return this._textsStore[ref];
+    const versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
+    if (versionedKey) { return this._getOrBuildTextData(versionedKey); }
+    return null;
   },
   getRef: function(ref, currVersions=null) {
     // Returns Promise for parsed ref info
@@ -1258,7 +1259,7 @@ Sefaria = extend(Sefaria, {
       if (callback) {
           throw new Error("Use of Sefaria.ref() with a callback has been deprecated in favor of Sefaria.getRef()");
       }
-      return ref ? this.getRefFromCache(ref) || this.getRefFromCache(ref) : null;
+      return ref ? this.getRefFromCache(ref) : null;
   },
   openTransBannerApplies: (book, textLanguage) => {
       /**
@@ -2275,12 +2276,10 @@ _media: {},
           return x;
       })
   },
-  sectionString: function(ref, data) {
+  sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
-    if (!data) {
-        data = this.getRefFromCache(ref);
-    }
+    const data = this.getRefFromCache(ref);
     let result = {
           en: {named: "", numbered: ""},
           he: {named: "", numbered: ""}
