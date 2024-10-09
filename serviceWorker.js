@@ -1,62 +1,53 @@
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
 
-// Define your cache name
-const CACHE = "pwabuilder-page";
+const CACHE_NAME = 'pecha_cache';
 
-// Replace this with the actual offline page
-const offlineFallbackPage = "/";
+// Define the files to be cached
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/styles.css',
+  '/script.js',
+  '/logo.png'
+];
 
-// Workbox Precache and Routing
-workbox.precaching.precacheAndRoute([
-  { url: '/', revision: '1' },
-  { url: '/index.html', revision: '1' },
-  { url: '/styles.css', revision: '1' },
-  { url: '/script.js', revision: '1' },
-  { url: '/icon.png', revision: '1' },
-  { url: `/${offlineFallbackPage}`, revision: '1' }
-]);
-
-// Fallback for offline page
-self.addEventListener('install', async event => {
+// Install event: cache the files
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE).then(function (cache) {
-      return cache.addAll([
-        offlineFallbackPage,
-        '/index.html',
-        '/styles.css',
-        '/script.js',
-        '/icon.png'
-      ]);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
   );
-  self.skipWaiting();
 });
 
-// Fetch event to serve from cache or fallback to network
+// Fetch event: respond with cached files if available
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        // If both fail, show the offline fallback page
-        return caches.match(offlineFallbackPage);
-      });
-    })
+    caches.match(event.request)
+      .then(response => {
+        // If the file is in the cache, return it
+        if (response) {
+          return response;
+        }
+        // Otherwise, fetch it from the network
+        return fetch(event.request);
+      })
   );
 });
 
-// Activate the new service worker and clean up old caches
+// Activate event: clean up old caches
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE];
+  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then(keyList =>
-      Promise.all(
-        keyList.map(key => {
-          if (!cacheWhitelist.includes(key)) {
-            return caches.delete(key);
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
           }
         })
-      )
-    )
+      );
+    })
   );
-  self.clients.claim();
 });
