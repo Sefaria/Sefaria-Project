@@ -17,8 +17,8 @@ const Modal = ({ isOpen, children, close }) => {
 
   return (
     <div className="overlayDialogModal" onClick={() => {close();}}>
-      <dialog ref={dialogRef} className="dialogModal" onClick={(e) => {e.stopPropagation()}}>
-        <div className="modal-content">
+      <dialog ref={dialogRef} className="dialogModal">
+        <div className="modal-content" onClick={(e) => {e.stopPropagation()}}>
           {children}
         </div>
       </dialog>

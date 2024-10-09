@@ -1,31 +1,39 @@
 import React, {useEffect, useState} from "react";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon} from "../common/DropdownMenu";
-import {InterfaceText, SaveButton} from "../Misc";
+import {InterfaceText, SaveButton, SaveButtonWithText} from "../Misc";
 import Modal from "../shared/modal";
 import {ShareBox, ToolsButton} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
 import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
 import {AddToSourceSheetBox} from "../AddToSourceSheet";
-import {CollectionsModal, CollectionsWidget} from "../CollectionsWidget";
+import {CollectionsWidget} from "../CollectionsWidget";
 
 const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isAdding, setAdding] = useState(false);  // Edit Collections Modal open or closed
+  const [isCopying, setCopying] = useState(false);
+  const [isSaving, setSaving] = useState(false);
+  const [isExporting, setExporting] = useState(false);
   if (isSharing) {
     return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
   else if (isAdding) {
     return <EditCollectionsModal isOpen={isAdding} close={() => setAdding(false)} sheetID={sheetID}/>;
   }
+  else if (isCopying) {
+    return <CopyModal close={() => setCopying(false)} sheetID={sheetID}/>;
+  }
+  else if (isSaving) {
+    return <SaveModal historyObject={historyObject} toggleSignUpModal={toggleSignUpModal} close={() => setSaving(false)}/>;
+  }
   return (
         <DropdownMenu toggle={"..."}>
           <DropdownMenuItem>
-            <SaveButton
+            <SaveButtonWithText
                 historyObject={historyObject}
-                tooltip={true}
                 toggleSignUpModal={toggleSignUpModal}
-                shouldDisplayText={true}
+                onClick={() => setSaving(true)}
             />
           </DropdownMenuItem>
           <DropdownMenuItem>
@@ -33,7 +41,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
           </DropdownMenuItem>
           <DropdownMenuItem>
             <CopyButton toggleSignUpModal={toggleSignUpModal}
-                        sheetID={sheetID}/>
+                        onCopy={() => setCopying(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
@@ -71,17 +79,31 @@ const EditCollectionsModal = ({close, sheetID}) => {
 const AddToSourceSheetModal = ({nodeRef, srefs, close}) => {
   return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs} hideGDocAdvert={true}/></Modal>
 }
-const CopyButton = ({toggleSignUpModal, sheetID}) => {
+const CopyButton = ({toggleSignUpModal, onCopy}) => {
+  const copySheet = async () => {
+    if (!Sefaria._uid) {
+      toggleSignUpModal(SignUpModalKind.AddToSheet);
+    } else {
+      onCopy();
+    }
+  }
+  return <>
+          <ToolsButton
+              en={"Copy"}
+              he={"העתקה"}
+              image="copy.png"
+              onClick={() => copySheet()} />
+        </>
+}
+const CopyModal = ({close, sheetID}) => {
   const copyState = {
-    copy: { en: "Copy", he: "העתקה" },
-    copying: { en: "Copying...", he: "מעתיק..."},
+    copying: { en: "Copying Sheet...", he: "מעתיק..."},
     copied: { he: "צפייה בדף המקורות", en: "View Copy"},
     error: { en: "Sorry, there was an error.", he: "סליחה, ארעה שגיאה" }
   }
-  const [copyText, setCopyText] = useState(copyState.copy);
+  const [copyText, setCopyText] = useState(copyState.copying);
   const [copiedSheetId, setCopiedSheetId] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const sheet = Sefaria.sheets.loadSheetByID(sheetID);
+  const [loaded, setLoaded] = useState(false);
   const filterAndSaveCopiedSheetData = async (data) => {
     let newSheet = Sefaria.util.clone(data);
     newSheet.status = "unlisted";
@@ -105,44 +127,64 @@ const CopyButton = ({toggleSignUpModal, sheetID}) => {
 
     return await Sefaria.apiRequestWithBody("/api/sheets/", null, newSheet);
   }
-
-  const copySheet = async () => {
-    if (!Sefaria._uid) {
-      toggleSignUpModal(SignUpModalKind.AddToSheet);
-    } else if (copyText.en === copyState.copy.en) {
-      setCopyText(copyState.copying);
-      setShowModal(true);
-      const response = await filterAndSaveCopiedSheetData(sheet);
-      if (response.id) {
-        setCopyText(copyState.copied);
-        setCopiedSheetId(response.id);
-      }
-    } else if (copyText.en === copyState.copied.en) {
-      window.open(`/sheets/${copiedSheetId}`);
+  useEffect( () => {
+    async function fetchData() {
+      let loadedSheet = Sefaria.sheets.loadSheetByID(sheetID);
+      return await filterAndSaveCopiedSheetData(loadedSheet);
+    }
+    if (!loaded) {
+      fetchData().then((response) => {
+        if (response.id) {
+          setCopyText(copyState.copied);
+          setCopiedSheetId(response.id);
+        } else {
+          setCopyText(copyState.error);
+        }
+      })
+    }
+  })
+  const getCopySuccessMessage = () => {
+    return <>Success! <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
+              <InterfaceText>View your Copy</InterfaceText>
+              </a>
+          </>;
+  }
+  const handleClose = () => {
+    if (copyText.en !== copyState.copying) { // don't allow user to close modal while copying is taking place
+      setLoaded(false);
+      close();
     }
   }
-  const getCopyModal = () => {
-    const copySuccessMessage = <>Success! <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
-                                          <InterfaceText>View your Copy</InterfaceText>
-                                        </a>
-                                     </>;
-    const copyMessage = copyText.en === copyState.copied.en ? copySuccessMessage : <InterfaceText>{copyText.en}</InterfaceText>;
-    return <CopyModal close={() => setShowModal(false)} copyMessage={copyMessage}/>;
-  }
-  return <>
-          {showModal && getCopyModal()}
-          <ToolsButton
-              en={copyText.en}
-              he={copyText.he}
-              image="copy.png"
-              greyColor={!!copyText.secondaryEn || copyText.greyColor}
-              onClick={() => copySheet()} />
-        </>
-}
-const CopyModal = ({close, copyMessage}) => {
-  return <Modal isOpen={true} close={close}>
+
+  const copyMessage = copyText.en === copyState.copied.en ? getCopySuccessMessage() : <InterfaceText>{copyText.en}</InterfaceText>;
+
+  return <Modal isOpen={true} close={handleClose}>
             <div className="modalTitle">Copy</div>
             <div className="modalMessage">{copyMessage}</div>
+        </Modal>;
+}
+
+const SaveModal = ({historyObject, toggleSignUpModal, close}) => {
+  const isSaved = !!Sefaria.getSavedItem(historyObject);
+  const savingMessage = "Saving...";
+  const [message, setMessage] = useState(savingMessage);
+  const savedMessage = isSaved ? "Sheet no longer saved." : "Saved sheet.";
+  useEffect(() => {
+    if (message === savingMessage) {
+      Sefaria.toggleSavedItem(historyObject)
+          .catch(e => {
+            if (e === 'notSignedIn') {
+              toggleSignUpModal(SignUpModalKind.Save);
+            }
+          })
+          .finally(() => {
+            setMessage(savedMessage);
+          });
+    }
+  });
+  return <Modal isOpen={true} close={close}>
+            <div className="modalTitle">Save</div>
+            <div className="modalMessage">{message}</div>
         </Modal>;
 }
 
