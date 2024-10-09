@@ -11059,10 +11059,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
   /* Keyframes for sliding in the button from the right */
   @keyframes slide-in {
     from {
-      right: -100px; /* Start off-screen */
+      right: 100px; /* Start off-screen */
     }
     to {
-      right: 20px; /* Slide in to 20px from the right */
+      right: 2000px; /* Slide in to 20px from the right */
     }
   }
   

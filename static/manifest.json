@@ -9,8 +9,8 @@
   
   "icons": [
     {
-      "src": "https://dev.pecha.org/static/screenshots/icon.png",
-      "sizes": "945x1969",
+      "src": "/static/screenshots/icon.png",
+      "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
@@ -32,7 +32,7 @@
     "form_factor": "wide"
   },
   {
-    "src": "https://dev.pecha.org/static/screenshots/mobile-collection.jpg",
+    "src": "/static/screenshots/mobile-collection.jpg",
     "type": "image/jpg",
     "sizes": "1080x1918"
   },
