@@ -8,7 +8,6 @@
 <head>
     <title> Pecha - A Living Library of Buddhist Text </title>
     <meta charset="utf-8"/>
-    <meta charset="UTF-8">
     <!-- <meta name="description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/> -->
 
     <!-- SEO Tags -->
@@ -223,6 +222,20 @@
 
     {% autoescape off %}
 
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register("{% static 'serviceWorker.js' %}")
+            .then(function(registration) {
+              console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch(function(error) {
+              console.log('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+
     <!--Sentry error reporting config-->
     <script>
       {% if CLIENT_SENTRY_DSN %}
@@ -328,28 +341,28 @@
     </div>
 
     <script type="text/javascript">
-      window.addEventListener("load", function(event) {
+      // This function will load the feedbucket script dynamically
+      function loadFeedbucket() {
         const s = document.createElement('script');
         s.module = true;
         s.defer = true;
         s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
         s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
-        s.onload = function() {
-          // Script has loaded, now try to find the feedbucket-app component
-          const feedbucket = document.querySelector("feedbucket-app");
-          feedbucket.classList.add('hidden');
-          feedbucket.style.display = "none";
-          crossImage.classList.add('hidden');
-      };
-      document.head.appendChild(s);
-      })
-      // This function will load the feedbucket script dynamically
-      function loadFeedbucket() {
-        const feedbucket = document.querySelector("feedbucket-app")
-        const crossImage =document.querySelector("#crossImage")
-        feedbucket.classList.add('hidden');
-        feedbucket.style.display = "none";
-        crossImage.classList.add('hidden');
+        document.head.appendChild(s);
+        const crossImage =document.querySelector("#crossImage");
+        const messageImage =document.querySelector("#messageImage");
+
+        const feedbucket = document.querySelector("feedbucket-app");
+        // Remove the event listener so the script isn't loaded multiple times
+        let container=document.getElementById('imageContainer');
+        feedbucket.classList.toggle('hidden');
+        crossImage.classList.toggle('hidden');
+        if (!crossImage.classList.toggle('hidden')) {
+            feedbucket.classList.add('hidden'); // Hide feedbucket
+            crossImage.classList.add('hidden'); // Hide crossImage
+        } else {
+            feedbucket.classList.remove('hidden'); // Show feedbucket
+        }
       }
 
       // Add click event listener to the container
@@ -368,21 +381,7 @@
       })
     }</script> -->
 
-    <script src="{% static 'js/pwa_app_installer.js' %}"></script>
-
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/static/serviceWorker.js')
-            .then(function(registration) {
-              console.log('Service Worker registered with scope:', registration.scope);
-            })
-            .catch(function(error) {
-              console.log('Service Worker registration failed:', error);
-            });
-        });
-      }
-    </script>
+    <!-- <script src="{% static 'js/pwa_app_installer.js' %}"></script> -->
 
 
 
