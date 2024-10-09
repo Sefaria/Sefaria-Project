@@ -30,6 +30,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         "isPrimary",
         "searchRoot",
         "order",
+        "match_templates",
     ]
 
     def __str__(self):

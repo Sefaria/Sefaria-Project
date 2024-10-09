@@ -1,10 +1,12 @@
 import dataclasses
+from abc import ABC, abstractmethod
 from typing import List, Union, Optional, Tuple, Dict
 import copy
 from typing import List, Union, Optional
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
+from sefaria.model.category import Category
 from sefaria.system.exceptions import InputError
 from bisect import bisect_right
 
@@ -119,7 +121,43 @@ class ReferenceableBookNode:
         raise NotImplementedError
 
 
-class NamedReferenceableBookNode(ReferenceableBookNode):
+def make_named_referenceable_book_node(object: Union[schema.TitledTreeNode, text.Index, Category]) -> 'AbstractNamedReferenceableBookNode':
+    if isinstance(object, Category):
+        return CategoryReferenceableBookNode(object)
+    return NamedReferenceableBookNode(object)
+
+
+class AbstractNamedReferenceableBookNode(ABC, ReferenceableBookNode):
+
+    @abstractmethod
+    def get_numeric_equivalent(self):
+        pass
+
+    @abstractmethod
+    def ref(self) -> text.Ref:
+        pass
+
+    @abstractmethod
+    def ref_part_title_trie(self, *args, **kwargs):
+        pass
+
+
+class CategoryReferenceableBookNode(AbstractNamedReferenceableBookNode):
+
+    def __init__(self, category: Category):
+        self._category = category
+
+    def get_numeric_equivalent(self):
+        return None
+
+    def ref(self) -> text.Ref:
+        return None
+
+    def ref_part_title_trie(self, *args, **kwargs):
+        pass
+
+
+class NamedReferenceableBookNode(AbstractNamedReferenceableBookNode):
 
     def __init__(self, titled_tree_node_or_index: Union[schema.TitledTreeNode, text.Index]):
         self._titled_tree_node_or_index = titled_tree_node_or_index
