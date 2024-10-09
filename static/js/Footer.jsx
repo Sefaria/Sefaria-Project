@@ -29,12 +29,25 @@ class Footer extends Component {
   trackLanguageClick(language){
     Sefaria.track.setInterfaceLanguage('interface language footer', language);
   }
+
+  componentDidMount() {
+    // Dynamically load pwa.js script
+    const script = document.createElement("script");
+    script.src = "/static/js/pwa.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }
+
   render() {
     if (!Sefaria._siteSettings.TORAH_SPECIFIC) { return null; }
 
     return (
       <div id='version_number'>
         <InterfaceText>Version: 1.3.0</InterfaceText>
+        {/* Install PWA Button */}
+      <button id="install-pwa-button" style={{ marginLeft: "10px" }}>
+        Install PWA
+      </button>
       </div>  
     );
   }
