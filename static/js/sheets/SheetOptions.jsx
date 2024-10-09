@@ -14,7 +14,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isCopying, setCopying] = useState(false);
   const [isSaving, setSaving] = useState(false);
   const [isExporting, setExporting] = useState(false);
-  if ((isSharing || isAdding || isSaving || isExporting || isCopying) && !Sefaria._uid) {
+  if ((isAdding || isSaving || isCopying) && !Sefaria._uid) {
     toggleSignUpModal();
   }
   else if (isSharing) {
@@ -30,7 +30,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
     return <SaveModal historyObject={historyObject} close={() => setSaving(false)}/>;
   }
   return (
-        <DropdownMenu toggle={"..."}>
+        <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
                 historyObject={historyObject}

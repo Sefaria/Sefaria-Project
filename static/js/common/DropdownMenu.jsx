@@ -18,32 +18,22 @@ const DropdownMenuItem = ({url, children, newTab}) => {
   const dropDownClasses = `interfaceLinks-option int-bi dropdownItem`;
   if (!url) {
       return (
-
           <div className={dropDownClasses}>
               {children}
           </div>
+      );
+  }
 
   if (!newTab){
     newTab = false;
   }
 
   return (
-
     <a className={dropDownClasses} href={url} target={newTab ? '_blank' : null}>
       {children}
     </a>
 
       );
-  }
-  else {
-      return (
-
-          <a className={dropDownClasses} href={url} target="_blank">
-              {children}
-          </a>
-
-      );
-  }
 }
 
 const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='Lorem ipsum dolor sit amet, lorem dolor.',
@@ -101,6 +91,7 @@ const DropdownMenu = ({children, menu_icon}) => {
             <div className="dropdownLinks-options">
               {children}
             </div>
+          </div>
         </div>
     );
 }
