@@ -273,7 +273,7 @@ const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, au
       {sheetContentOptions}
     </div>
     {summary && <SheetMetaDataBoxSegment text={summary} className="summary"/>}
-    <div>
+    <div className="user">
       <ProfilePic
           url={authorImage}
           len={30}
