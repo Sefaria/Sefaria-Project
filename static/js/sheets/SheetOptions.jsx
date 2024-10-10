@@ -145,11 +145,13 @@ const CopyModal = ({close, sheetID}) => {
         } else {
           setCopyText(copyState.error);
         }
+        setLoaded(true);
       })
     }
   })
   const getCopySuccessMessage = () => {
-    return <><InterfaceText>Success!</InterfaceText> <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
+    return <><InterfaceText>Success!</InterfaceText>&nbsp;
+              <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
               <InterfaceText>View your Copy</InterfaceText>
               </a>
           </>;
@@ -238,8 +240,8 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     }
     else {
       return <>
-               <a href={googleDriveLink}><InterfaceText text={googleDriveText}/></a>
-               <InterfaceText>View in Google Docs</InterfaceText>
+                <InterfaceText text={googleDriveText}/>&nbsp;
+                <a href={googleDriveLink} target="_blank"><InterfaceText>View in Google Docs</InterfaceText></a>
              </>
     }
   }
