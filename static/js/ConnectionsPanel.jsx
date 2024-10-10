@@ -234,7 +234,7 @@ class ConnectionsPanel extends Component {
   async getData() {
     // Gets data about this text from cache, which may be null.
     const versionPref = Sefaria.versionPreferences.getVersionPref(this.props.srefs[0]);
-    return await Sefaria.getTextFromCurrVersions(this.props.srefs[0], this.props.currVersions, this.props.translationLanguagePreference);
+    return await Sefaria.getTextFromCurrVersions(this.props.srefs[0], this.props.currVersions, this.props.translationLanguagePreference, 1);
   }
   async setCurrentVersions() {
     const data = await this.getData();
