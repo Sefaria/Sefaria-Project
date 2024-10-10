@@ -142,6 +142,14 @@ class AbstractNamedReferenceableBookNode(ABC, ReferenceableBookNode):
         pass
 
     @abstractmethod
+    def unique_key(self) -> str:
+        """
+        Key which uniquely identifies this node
+        @return:
+        """
+        pass
+
+    @abstractmethod
     def ref_part_title_trie(self, *args, **kwargs):
         pass
 
@@ -156,6 +164,12 @@ class CategoryReferenceableBookNode(AbstractNamedReferenceableBookNode):
 
     def ref(self) -> text.Ref:
         return None
+
+    def ref_order_id(self) -> str:
+        return "N/A"
+
+    def unique_key(self) -> str:
+        return '/'.join(self._category.path)
 
     def ref_part_title_trie(self, *args, **kwargs):
         pass
@@ -184,6 +198,9 @@ class NamedReferenceableBookNode(AbstractNamedReferenceableBookNode):
 
     def ref(self) -> text.Ref:
         return self._titled_tree_node.ref()
+
+    def unique_key(self) -> str:
+        return self.ref().normal()
 
     def ref_order_id(self) -> str:
         if isinstance(self._titled_tree_node, schema.AltStructNode):

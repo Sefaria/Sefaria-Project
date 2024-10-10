@@ -479,7 +479,7 @@ class RefResolver:
 
     def refine_ref_part_matches(self, book_context_ref: Optional[text.Ref], matches: List[ResolvedRef]) -> List[ResolvedRef]:
         temp_matches = []
-        refs_matched = {match.ref.normal() for match in matches}
+        refs_matched = {match.ref.normal() for match in matches if match.ref}
         for unrefined_match in matches:
             unused_parts = list(set(unrefined_match.raw_entity.parts_to_match) - set(unrefined_match.resolved_parts))
             context_free_matches = self._get_refined_ref_part_matches_recursive(unrefined_match, unused_parts)
@@ -612,7 +612,7 @@ class ResolvedRefPruner:
     def prune_unrefined_ref_part_matches(ref_part_matches: List[ResolvedRef]) -> List[ResolvedRef]:
         index_match_map = defaultdict(list)
         for match in ref_part_matches:
-            key = match.node.ref().normal()
+            key = match.node.unique_key()
             index_match_map[key] += [match]
         pruned_matches = []
         for match_list in index_match_map.values():

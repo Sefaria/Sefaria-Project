@@ -5,7 +5,7 @@ from sefaria.model import abstract as abst
 from sefaria.model import schema
 from sefaria.model.category import Category
 from .ref_part import TermContext, LEAF_TRIE_ENTRY
-from .referenceable_book_node import NamedReferenceableBookNode
+from .referenceable_book_node import make_named_referenceable_book_node
 import structlog
 
 
@@ -102,7 +102,7 @@ class MatchTemplateTrie:
     @staticmethod
     def __add_nodes_to_leaves(node: TreeNodeOrCategory, curr_dict_queue: List[dict]):
         for curr_dict in curr_dict_queue:
-            leaf_node = NamedReferenceableBookNode(node.index if (isinstance(node, schema.TitledTreeNode) and node.is_root()) else node)
+            leaf_node = make_named_referenceable_book_node(node.index if (isinstance(node, schema.TitledTreeNode) and node.is_root()) else node)
             if LEAF_TRIE_ENTRY in curr_dict:
                 curr_dict[LEAF_TRIE_ENTRY] += [leaf_node]
             else:
