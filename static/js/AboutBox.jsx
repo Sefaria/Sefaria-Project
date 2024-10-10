@@ -55,7 +55,6 @@ class AboutBox extends Component {
   onVersionsLoad(versions) {
     //rearrange the current selected versions to be mapped by their real language,
     // then sort the current version to the top of its language list
-    console.log('onVersionsLoad')
     let versionsByLang = versions;
     let currentVersionsByActualLangs = Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions);
     for (let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
