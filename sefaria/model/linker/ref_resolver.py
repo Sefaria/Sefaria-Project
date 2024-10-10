@@ -498,7 +498,9 @@ class RefResolver:
 
             # combine
             if len(context_full_matches) > 0:
-                context_free_matches = list(filter(lambda x: x.ref.normal() not in refs_matched, context_free_matches))
+                # assumption is we don't want refs that used context at book level, then didn't get refined more when considering context free
+                # BUT did get refined more when considering context
+                context_free_matches = list(filter(lambda x: not (x.num_resolved(include={ContextPart}) > 0 and x.ref.normal() in refs_matched), context_free_matches))
             temp_matches += context_free_matches + context_full_matches
         return ResolvedRefPruner.prune_refined_ref_part_matches(self._thoroughness, temp_matches)
 
