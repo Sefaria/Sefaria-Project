@@ -3,21 +3,22 @@ from typing import List, Optional, Union, Iterable, Tuple
 from tqdm import tqdm
 from sefaria.model.text import Ref
 from sefaria.model.linker.ref_part import RawRef, RawNamedEntity, span_inds
-from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughness, PossiblyAmbigResolvedRef
+from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughness, PossiblyAmbigResolvedRef, ResolvedRef
 from sefaria.model.linker.named_entity_resolver import NamedEntityResolver, ResolvedNamedEntity
 from sefaria.model.linker.named_entity_recognizer import NamedEntityRecognizer
-from sefaria.model.linker.category_resolver import CategoryResolver
+from sefaria.model.linker.category_resolver import CategoryResolver, ResolvedCategory
 
 
 @dataclasses.dataclass
 class LinkedDoc:
     text: str
-    resolved_refs: List[PossiblyAmbigResolvedRef]
-    resolved_named_entities: List[ResolvedNamedEntity]
+    resolved_refs: list[PossiblyAmbigResolvedRef]
+    resolved_named_entities: list[ResolvedNamedEntity]
+    resolved_categories: list[ResolvedCategory]
 
     @property
-    def all_resolved(self) -> List[Union[PossiblyAmbigResolvedRef, ResolvedNamedEntity]]:
-        return self.resolved_refs + self.resolved_named_entities
+    def all_resolved(self) -> List[Union[PossiblyAmbigResolvedRef, ResolvedNamedEntity, ResolvedCategory]]:
+        return self.resolved_refs + self.resolved_named_entities + self.resolved_categories
 
 
 class Linker:
@@ -49,12 +50,12 @@ class Linker:
         iterable = self._get_bulk_link_iterable(inputs, all_named_entities, book_context_refs, verbose)
         for input_str, book_context_ref, inner_named_entities in iterable:
             raw_refs, named_entities = self._partition_raw_refs_and_named_entities(inner_named_entities)
-            resolved_refs, resolved_named_entities = [], []
+            resolved_refs, resolved_named_entities, resolved_cats = [], [], []
             if type_filter in {'all', 'citation'}:
-                resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness, reset_ibids=False)
+                resolved_refs, resolved_cats = self._bulk_resolve_refs_and_cats(raw_refs, book_context_ref, thoroughness, False)
             if type_filter in {'all', 'named entity'}:
                 resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
-            docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities)]
+            docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)]
 
         named_entity_list_list = [[rr.raw_entity for rr in doc.all_resolved] for doc in docs]
         self._ner.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
@@ -72,15 +73,15 @@ class Linker:
         @return:
         """
         raw_refs, named_entities = self._ner.recognize(input_str)
-        resolved_refs, resolved_named_entities = [], []
+        resolved_refs, resolved_named_entities, resolved_cats = [], [], []
         if type_filter in {'all', 'citation'}:
-            resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, thoroughness)
+            resolved_refs, resolved_cats = self._bulk_resolve_refs_and_cats(raw_refs, book_context_ref, thoroughness)
         if type_filter in {'all', 'named entity'}:
             resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities)
         if not with_failures:
             resolved_refs = list(filter(lambda r: not r.resolution_failed, resolved_refs))
             resolved_named_entities = list(filter(lambda r: not r.resolution_failed, resolved_named_entities))
-        doc = LinkedDoc(input_str, resolved_refs, resolved_named_entities)
+        doc = LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)
         self._ner.map_normal_output_to_original_input(input_str, [x.raw_entity for x in doc.all_resolved])
         return doc
 
@@ -127,6 +128,21 @@ class Linker:
         @return:
         """
         self._ref_resolver.reset_ibid_history()
+
+    def _bulk_resolve_refs_and_cats(self, raw_refs, book_context_ref, thoroughness, reset_ibids=True) -> (list[ResolvedRef], list[ResolvedCategory]):
+        """
+        First match categories, then resolve refs for anything that didn't match a category
+        This prevents situations where a category is parsed as a ref using ibid (e.g. Talmud with context Berakhot 2a)
+        @param raw_refs:
+        @param book_context_ref:
+        @param thoroughness:
+        @param reset_ibids:
+        @return:
+        """
+        resolved_cats = self._cat_resolver.bulk_resolve(raw_refs)
+        unresolved_raw_refs = [r.raw_entity for r in filter(lambda r: r.resolution_failed, resolved_cats)]
+        resolved_refs = self._ref_resolver.bulk_resolve(unresolved_raw_refs, book_context_ref, thoroughness, reset_ibids=reset_ibids)
+        return resolved_refs, resolved_cats
 
     @staticmethod
     def _partition_raw_refs_and_named_entities(raw_refs_and_named_entities: List[RawNamedEntity]) \

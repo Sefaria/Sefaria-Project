@@ -24,7 +24,7 @@ class CategoryMatcher:
         self._title_to_cat: dict[str, list[Category]] = defaultdict(list)
         for cat in category_registry:
             for title in cat.get_titles(lang):
-                self._title_to_cat[title.text] += [cat]
+                self._title_to_cat[title] += [cat]
 
     def match(self, raw_ref: RawRef) -> list[Category]:
         return self._title_to_cat[raw_ref.text]
