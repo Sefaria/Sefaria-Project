@@ -591,7 +591,7 @@ const ProfileBio = ({profile: p}) => {
                                     </div>;
 
     return <>{(p.position || p.organization) && subTitle}
-             {infoList.length && infoListComponent}
+             {infoList.length > 0 && infoListComponent}
            </>;
 }
 const ProfileSummary = ({
