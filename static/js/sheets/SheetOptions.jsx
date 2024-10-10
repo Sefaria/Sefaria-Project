@@ -8,14 +8,29 @@ import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
 import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
+const modifyHistoryObjectForSheetOptions = (historyObject) => {
+  // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
+  let newHistoryObject = Object.assign({}, historyObject);
+  const refParts = newHistoryObject.ref.split(":");
+  newHistoryObject.ref = refParts[0];
+  return newHistoryObject;
+}
+const getExportingStatus = () => {
+  const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
+  return urlHashObject === "exportToDrive";
+}
 
 const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isAdding, setAdding] = useState(false);  // Edit Collections Modal open or closed
   const [isCopying, setCopying] = useState(false);
   const [isSaving, setSaving] = useState(false);
-  const [isExporting, setExporting] = useState(false);
-  if (isSharing) {
+  const [isExporting, setExporting] = useState(getExportingStatus());
+  const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
+  if ((isAdding || isSaving || isCopying) && !Sefaria._uid) {
+    toggleSignUpModal();
+  }
+  else if (isSharing) {
     return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
   else if (isAdding) {
@@ -25,23 +40,24 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
     return <CopyModal close={() => setCopying(false)} sheetID={sheetID}/>;
   }
   else if (isSaving) {
-    return <SaveModal historyObject={historyObject} toggleSignUpModal={toggleSignUpModal} close={() => setSaving(false)}/>;
+    return <SaveModal historyObject={historyObjectForSheet} close={() => setSaving(false)}/>;
+  }
+  else if (isExporting) {
+    return <GoogleDocExportModal close={() => setExporting(false)} sheetID={sheetID}/>;
   }
   return (
-        <DropdownMenu toggle={"..."}>
+        <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
-                historyObject={historyObject}
-                toggleSignUpModal={toggleSignUpModal}
+                historyObject={historyObjectForSheet}
                 onClick={() => setSaving(true)}
             />
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <GoogleDocExportButton sheetID={sheetID} toggleSignUpModal={toggleSignUpModal}/>
+            <GoogleDocExportButton sheetID={sheetID} onClick={() => setExporting(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <CopyButton toggleSignUpModal={toggleSignUpModal}
-                        onCopy={() => setCopying(true)}/>
+            <CopyButton onClick={() => setCopying(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
@@ -79,20 +95,13 @@ const EditCollectionsModal = ({close, sheetID}) => {
 const AddToSourceSheetModal = ({nodeRef, srefs, close}) => {
   return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs} hideGDocAdvert={true}/></Modal>
 }
-const CopyButton = ({toggleSignUpModal, onCopy}) => {
-  const copySheet = async () => {
-    if (!Sefaria._uid) {
-      toggleSignUpModal(SignUpModalKind.AddToSheet);
-    } else {
-      onCopy();
-    }
-  }
+const CopyButton = ({onClick}) => {
   return <>
           <ToolsButton
               en={"Copy"}
               he={"העתקה"}
               image="copy.png"
-              onClick={() => copySheet()} />
+              onClick={() => onClick()} />
         </>
 }
 const CopyModal = ({close, sheetID}) => {
@@ -144,7 +153,7 @@ const CopyModal = ({close, sheetID}) => {
     }
   })
   const getCopySuccessMessage = () => {
-    return <>Success! <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
+    return <><InterfaceText>Success!</InterfaceText> <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
               <InterfaceText>View your Copy</InterfaceText>
               </a>
           </>;
@@ -157,14 +166,17 @@ const CopyModal = ({close, sheetID}) => {
   }
 
   const copyMessage = copyText.en === copyState.copied.en ? getCopySuccessMessage() : <InterfaceText>{copyText.en}</InterfaceText>;
+  return <GenericSheetModal title={<InterfaceText>Copy</InterfaceText>} message={copyMessage} close={handleClose}/>;
+}
 
-  return <Modal isOpen={true} close={handleClose}>
-            <div className="modalTitle">Copy</div>
-            <div className="modalMessage">{copyMessage}</div>
+const GenericSheetModal = ({title, message, close}) => {
+  return <Modal isOpen={true} close={close}>
+            <div className="modalTitle">{title}</div>
+            <div className="modalMessage">{message}</div>
         </Modal>;
 }
 
-const SaveModal = ({historyObject, toggleSignUpModal, close}) => {
+const SaveModal = ({historyObject, close}) => {
   const isSaved = !!Sefaria.getSavedItem(historyObject);
   const savingMessage = "Saving...";
   const [message, setMessage] = useState(savingMessage);
@@ -172,30 +184,31 @@ const SaveModal = ({historyObject, toggleSignUpModal, close}) => {
   useEffect(() => {
     if (message === savingMessage) {
       Sefaria.toggleSavedItem(historyObject)
-          .catch(e => {
-            if (e === 'notSignedIn') {
-              toggleSignUpModal(SignUpModalKind.Save);
-            }
-          })
           .finally(() => {
             setMessage(savedMessage);
           });
     }
   });
-  return <Modal isOpen={true} close={close}>
-            <div className="modalTitle">Save</div>
-            <div className="modalMessage">{message}</div>
-        </Modal>;
+  return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={close}/>;
 }
 
-const GoogleDocExportButton = ({ toggleSignUpModal, sheetID }) => {
+const GoogleDocExportButton = ({ onClick }) => {
+  const googleDriveText = { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" };
+  return <div>
+            <ToolsButton en={googleDriveText.en}
+                         he={googleDriveText.he}
+                         image="googledrive.svg"
+                         onClick={() => onClick()} />
+          </div>;
+}
+
+const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
-    export: { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" },
-    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס...", greyColor: true},
-    exportComplete: { en: "Export Complete", he: "ייצוא הסתיים", secondaryEn: "Open in Google", secondaryHe: "לפתיחה בגוגל דוקס", greyColor: true}
+    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
+    exportComplete: { en: "Success!", he: "ייצוא הסתיים"}
   }
-  const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
-  const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState(googleDriveState.exporting) : useState(googleDriveState.export);
+  const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
+
   const [googleDriveLink, setGoogleDriveLink] = useState("");
   const sheet = Sefaria.sheets.loadSheetByID(sheetID);
 
@@ -222,23 +235,22 @@ const GoogleDocExportButton = ({ toggleSignUpModal, sheetID }) => {
         }
       });
     }
-  }, [googleDriveText])
-  const googleDriveExport = () => {
-    // $("#overlay").show();
-    // sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
-    if (!Sefaria._uid) {
-      toggleSignUpModal();
+  }, [googleDriveText]);
+  const getExportMessage = () => {
+    if (googleDriveText.en === googleDriveState.exporting.en) {
+      return <InterfaceText text={googleDriveText}/>;
     }
-    else if (googleDriveText.en === googleDriveState.exportComplete.en) {
-      Sefaria.util.openInNewTab(googleDriveLink);
-    } else {
-      Sefaria.track.sheets("Export to Google Docs");
-      setGoogleDriveText(googleDriveState.exporting);
+    else {
+      return <>
+               <a href={googleDriveLink}><InterfaceText text={googleDriveText}/></a>
+               <InterfaceText>View in Google Docs</InterfaceText>
+             </>
     }
   }
-  return <div>
-            <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
-          </div>;
+  return <GenericSheetModal title={<InterfaceText>Export</InterfaceText>}
+                            message={getExportMessage()}
+                            close={close}/>;
+
 }
 
 
