@@ -564,12 +564,7 @@ Sefaria = extend(Sefaria, {
     let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{languageFamilyName: 'translation', versionTitle: 'all'}], false);
     return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
   },
-  _adaptApiResponse: function(versionsResponse) {
-    /**
-     * takes an api-v3 texts response for primary and translation versions, and adapt it to the expected 'old' result.
-     * it adds the texts to 'he' and 'text', and the sources to 'sources' and 'heSources'
-     */
-    const versions = versionsResponse.versions;
+  getPrimaryAndTranslationFromVersions: function(versions) {
     let primary, translation;
     if (versions.length === 1) {
       primary = versions[0];
@@ -579,6 +574,15 @@ Sefaria = extend(Sefaria, {
     } else {
       [translation, primary] = versions;
     }
+    return [primary, translation];
+  },
+  _adaptApiResponse: function(versionsResponse) {
+    /**
+     * takes an api-v3 texts response for primary and translation versions, and adapt it to the expected 'old' result.
+     * it adds the texts to 'he' and 'text', and the sources to 'sources' and 'heSources'
+     */
+    const versions = versionsResponse.versions;
+    const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(versions);
     ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle, direction: versionsResponse.translationDirection, languageFamilyName: versionsResponse.translationLang } = translation);
     ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle, direction: versionsResponse.primaryDirection, languageFamilyName: versionsResponse.primaryLang } = primary);
     if (translation.sources && !translation.sources.every(source => source === translation.sources[0])) {
