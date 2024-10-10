@@ -3,7 +3,6 @@ import Sefaria from "./sefaria/sefaria";
 import classNames  from 'classnames';
 import {InterfaceText, TabView} from './Misc';
 import { NavSidebar, Modules } from './NavSidebar';
-import Footer  from './Footer';
 
 
 const TranslationsPage = ({translationsSlug}) => {
@@ -91,7 +90,6 @@ const TranslationsPage = ({translationsSlug}) => {
               </div>
             <NavSidebar modules={sidebarModules} />
           </div>
-          <Footer />
         </div>
       </div>
     )

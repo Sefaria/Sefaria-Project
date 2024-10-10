@@ -14,26 +14,26 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children}) => {
+const DropdownMenuItem = ({url, children, newTab}) => {
   const dropDownClasses = `interfaceLinks-option int-bi dropdownItem`;
   if (!url) {
       return (
-
           <div className={dropDownClasses}>
               {children}
           </div>
-
       );
   }
-  else {
-      return (
 
-          <a className={dropDownClasses} href={url} target="_blank">
-              {children}
-          </a>
+  if (!newTab){
+    newTab = false;
+  }
+
+  return (
+    <a className={dropDownClasses} href={url} target={newTab ? '_blank' : null}>
+      {children}
+    </a>
 
       );
-  }
 }
 
 const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='Lorem ipsum dolor sit amet, lorem dolor.',
@@ -53,7 +53,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='Lorem 
   );
 }
 
-const DropdownMenu = ({children, toggle}) => {
+const DropdownMenu = ({children, menu_icon}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
 
@@ -86,20 +86,20 @@ const DropdownMenu = ({children, toggle}) => {
 
     return (
         <div className="dropdownLinks" ref={wrapperRef}>
-            <a className="dropdownLinks-button" onClick={handleClick}>{toggle}</a>
-            <div className={`dropdownLinks-menu ${isOpen ? "open" : "closed"}`}>
-                <div className="dropdownLinks-options">
-                    {children}
-                </div>
+          <a className="dropdownLinks-button" onClick={handleClick}><img src={menu_icon} alt={Sefaria._('Dropdown menu')}/></a>
+          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
+            <div className="dropdownLinks-options">
+              {children}
             </div>
+          </div>
         </div>
     );
 }
 
 
-export {
-    DropdownMenu,
-    DropdownMenuSeparator,
-    DropdownMenuItem,
-    DropdownMenuItemWithIcon
+  export {
+    DropdownMenu, 
+    DropdownMenuSeparator, 
+    DropdownMenuItemWithIcon,
+    DropdownMenuItem
   };

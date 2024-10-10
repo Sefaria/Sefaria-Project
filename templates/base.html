@@ -97,6 +97,8 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
+    <!-- Specific styling to correct behavior of Unbounce banners -->
+    <link rel="stylesheet" href="{%  static 'css/unbounce-banner.css' %}">
 
     {% block static_css %}
     {% if not html %}
@@ -152,7 +154,7 @@
     {% endif %}
 
     <!-- Unbounce Embed Code -->
-    <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script>
+    <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script> 
 </head>
 
 <body class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">

@@ -76,7 +76,7 @@ urlpatterns += [
 
 # Source Sheet Builder
 urlpatterns += [
-    url(r'^sheets$', sheets_views.sheets_home_page),
+    url(r'^sheets/?$', sheets_views.sheets_home_page),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
@@ -88,13 +88,13 @@ urlpatterns += [
     url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
+    url(r'^settings/account/user$', reader_views.account_user_update),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
     url(r'^api/profile/user_history$', reader_views.user_history_api),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),
-    url(r'^settings/account/user$', reader_views.account_user_update),
-    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
+    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
 ]

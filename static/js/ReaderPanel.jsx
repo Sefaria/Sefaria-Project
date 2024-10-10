@@ -44,7 +44,7 @@ import {
 import {ContentText} from "./ContentText";
 import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
 import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
-import SheetsHomePage from "./sheets/SheetsHomePage";
+import {SheetsHomePage} from "./sheets/SheetsHomePage";
 
 
 class ReaderPanel extends Component {
@@ -214,10 +214,12 @@ class ReaderPanel extends Component {
   setPreviousSettings(backButtonSettings) {
     this.setState({ backButtonSettings });
   }
-  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], convertCommentaryRefToBaseRef=true) {
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[],
+               convertCommentaryRefToBaseRef=true, forceOpenCommentaryPanel = false) {
     /* Set the current primary text `ref`, which may be either a string or an array of strings.
     * @param {bool} `replaceHistory` - whether to replace browser history rather than push for this change
     * @param {bool} `convertCommentaryRefToBaseRef` - whether to try to convert commentary refs like "Rashi on Genesis 3:2" to "Genesis 3:2"
+    * @param {bool} `forceOpenCommentaryPanel` - see `Sefaria.isCommentaryRefWithBaseText()`
     */
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
@@ -244,7 +246,7 @@ class ReaderPanel extends Component {
       this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
     }
     this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings},
-                          true, convertCommentaryRefToBaseRef, this.replaceHistory, false);
+                          true, convertCommentaryRefToBaseRef, this.replaceHistory, false, forceOpenCommentaryPanel);
   }
   openSheet(sheetRef, replaceHistory) {
     this.replaceHistory = Boolean(replaceHistory);
@@ -1022,7 +1024,9 @@ class ReaderPanel extends Component {
       );
 
     } else if (this.state.menuOpen === "sheets") {
-      menu = (<SheetsHomePage/>);
+      menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}
+                              multiPanel={this.props.multiPanel}
+                              setTopic={this.setTopic}/>);
     } else if (this.state.menuOpen === "profile") {
       menu = (
         <UserProfile
