@@ -236,16 +236,6 @@ class ConnectionsPanel extends Component {
     const versionPref = Sefaria.versionPreferences.getVersionPref(this.props.srefs[0]);
     return await Sefaria.getTextFromCurrVersions(this.props.srefs[0], this.props.currVersions, this.props.translationLanguagePreference);
   }
-  getVersionFromData(d, isSource) {
-    //d - data received from this.getData()
-    //language - the language of the version
-    const currentVersionTitle = (isSource) ? d.heVersionTitle : d.versionTitle;
-    let v = d.versions.find(v => v.versionTitle === currentVersionTitle && !!v.isSource === isSource);
-    v.title = d.indexTitle;
-    v.heTitle = d.heIndexTitle;
-    v.merged = isSource && !v.sources?.every(source => source === v.sources[0])
-    return v;
-  }
   async setCurrentVersions() {
     const data = await this.getData();
     let currentLanguage = this.props.masterPanelLanguage;
@@ -257,10 +247,11 @@ class ConnectionsPanel extends Component {
         currObjectVersions: { en: null, he: null },
       });
     }
+    const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(data.versions);
     this.setState({
       currObjectVersions: {
-        en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? this.getVersionFromData(data, false) : null,
-        he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? this.getVersionFromData(data, true) : null,
+        en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? translation : null,
+        he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? primary : null,
       },
       sectionRef: data.sectionRef,
     });
