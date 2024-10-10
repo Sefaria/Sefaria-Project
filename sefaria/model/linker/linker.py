@@ -55,6 +55,8 @@ class Linker:
                 resolved_refs, resolved_cats = self._bulk_resolve_refs_and_cats(raw_refs, book_context_ref, thoroughness, False)
             if type_filter in {'all', 'named entity'}:
                 resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
+            if not with_failures:
+                resolved_refs, resolved_named_entities, resolved_cats = self._remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
             docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)]
 
         named_entity_list_list = [[rr.raw_entity for rr in doc.all_resolved] for doc in docs]
@@ -79,8 +81,7 @@ class Linker:
         if type_filter in {'all', 'named entity'}:
             resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities)
         if not with_failures:
-            resolved_refs = list(filter(lambda r: not r.resolution_failed, resolved_refs))
-            resolved_named_entities = list(filter(lambda r: not r.resolution_failed, resolved_named_entities))
+            resolved_refs, resolved_named_entities, resolved_cats = self._remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
         doc = LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)
         self._ner.map_normal_output_to_original_input(input_str, [x.raw_entity for x in doc.all_resolved])
         return doc
@@ -159,3 +160,10 @@ class Linker:
         if verbose:
             iterable = tqdm(iterable, total=len(book_context_refs))
         return iterable
+
+    @staticmethod
+    def _remove_failures(*args):
+        out = []
+        for arg in args:
+            out.append(list(filter(lambda x: not x.resolution_failed, arg)))
+        return out
