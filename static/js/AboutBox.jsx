@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import VersionBlock, {VersionsBlocksList} from './VersionBlock/VersionBlock';
 import Component             from 'react-class';
-import {InterfaceText} from "./Misc";
+import {InterfaceText, LoadingMessage} from "./Misc";
 import {ContentText} from "./ContentText";
 import { Modules } from './NavSidebar';
+import {VersionsTextList} from "./VersionsTextList";
 
 
 class AboutBox extends Component {
@@ -63,8 +64,8 @@ class AboutBox extends Component {
     this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
   }
   openVersionInSidebar(versionTitle, versionLanguage) {
-    this.props.setConnectionsMode("Translation Open", {previousMode: "About"});
-    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
+    this.props.setConnectionsMode("Version Open", {previousMode: "About"});
+    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage), 'About');
   }
   isSheet(){
     return this.props.srefs[0].startsWith("Sheet");
@@ -92,6 +93,29 @@ class AboutBox extends Component {
           )
       }
       return <section className="aboutBox">{detailSection}</section>;
+    }
+
+  if (!Object.keys(this.state.versionLangMap).length) {
+    return (
+      <div className="versionsBox">
+        <LoadingMessage />
+      </div>
+    );
+  }
+
+    if (this.props.mode === "Version Open") {
+      return (
+        <VersionsTextList
+            srefs={this.props.srefs}
+            vFilter={this.props.vFilter}
+            recentVFilters={this.props.vFilter}
+            setFilter={this.props.setFilter.bind(null, 'About')}
+            onRangeClick={this.props.onRangeClick}
+            setConnectionsMode={this.props.setConnectionsMode}
+            onCitationClick={this.props.onCitationClick}
+            versionLangMap={this.state.versionLangMap}
+        />
+      );
     }
 
     const category = Sefaria.index(this.state?.details?.title)?.primary_category;
@@ -163,8 +187,10 @@ class AboutBox extends Component {
 
           { !!placeTextEn || !!dateTextEn ?
             <div className="aboutComposed">
-              <span className="en">{`Composed: ${!!placeTextEn ? placeTextEn : ""} ${!!dateTextEn ? dateTextEn : ""}`}</span>
-              <span className="he">{`נוצר/נערך: ${!!placeTextHe ? placeTextHe : ""} ${!!dateTextHe ? dateTextHe : ""}`}</span>
+                <ContentText text={{
+                    en: `Composed: ${placeTextEn ? placeTextEn : ""} ${dateTextEn ? dateTextEn : ""}`,
+                    he: `נוצר/נערך: ${placeTextHe ? placeTextHe : ""} ${dateTextHe ? dateTextHe : ""}`
+                }}/>
             </div> : null
           }
         </div>
@@ -196,14 +222,14 @@ class AboutBox extends Component {
           {
               translationVersions.map((ve) => (
                   <VersionBlock
-                  key={`${ve.versionTitle}|${ve.actualLanguage}`}
-                  rendermode="about-box"
-                  sidebarDisplay = {true}
-                  version={ve}
-                  currObjectVersions={this.props.currObjectVersions}
-                  currentRef={this.props.srefs[0]}
-                  firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
-                  viewExtendedNotes={this.props.viewExtendedNotes}
+                      key={`${ve.versionTitle}|${ve.actualLanguage}`}
+                      rendermode="about-box"
+                      sidebarDisplay = {true}
+                      version={ve}
+                      currObjectVersions={this.props.currObjectVersions}
+                      currentRef={this.props.srefs[0]}
+                      firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
+                      viewExtendedNotes={this.props.viewExtendedNotes}
                    />
               ))
           }
@@ -243,6 +269,9 @@ AboutBox.propTypes = {
   masterPanelLanguage: PropTypes.oneOf(["english", "hebrew", "bilingual"]),
   title:               PropTypes.string.isRequired,
   srefs:               PropTypes.array.isRequired,
+  vFilter:             PropTypes.array,
+  onRangeClick:        PropTypes.func,
+  onCitationClick:     PropTypes.func,
 };
 
 

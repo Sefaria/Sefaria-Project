@@ -659,12 +659,13 @@ class JaggedTextArray(JaggedArray):
         Func should accept two parameters: 1) text of current segment 2) zero-indexed indices of segment
         :param start_sections: array(int), optional param. Sections passed to `func` will be offset by `start_sections`, if passed
         """
-        _curSections = _curSections or []
         if _cur is None:
             _cur = self._store
         if isinstance(_cur, str):
+            _curSections = _curSections or [0]
             return func(_cur, self.get_offset_sections(_curSections, start_sections))
         elif isinstance(_cur, list):
+            _curSections = _curSections or []
             return [self.modify_by_function(func, start_sections, temp_curr, _curSections + [i]) for i, temp_curr in enumerate(_cur)]
 
     def flatten_to_array(self, _cur=None):
