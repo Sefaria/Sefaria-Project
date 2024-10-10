@@ -17,8 +17,8 @@ function hideInstallButton() {
   }
 }
 
-// Listen for the 'beforeinstallprompt' event
-window.addEventListener('beforeinstallprompt', (e) => {
+// Function to handle the 'beforeinstallprompt' event
+function handleBeforeInstallPrompt(e) {
   // Prevent the mini-infobar from appearing
   e.preventDefault();
 
@@ -48,8 +48,13 @@ window.addEventListener('beforeinstallprompt', (e) => {
         deferredPrompt = null; // Clear the prompt
       });
     });
+
+    // Hide the install button after 10 seconds
+    setTimeout(() => {
+      hideInstallButton();
+    }, 10000); // 10 seconds in milliseconds
   }
-});
+}
 
 // Listen for the 'appinstalled' event and hide the button when PWA is installed
 window.addEventListener('appinstalled', () => {
@@ -57,5 +62,11 @@ window.addEventListener('appinstalled', () => {
   hideInstallButton();
 });
 
-// Check if the app is already installed when the page loads
-window.addEventListener('load', checkIfInstalled);
+// Wait for the DOM to fully load before attaching event listeners
+window.addEventListener('DOMContentLoaded', () => {
+  // Listen for the 'beforeinstallprompt' event
+  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+  // Check if the app is already installed when the page loads
+  checkIfInstalled();
+});
