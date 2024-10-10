@@ -1,6 +1,5 @@
 from collections import defaultdict
 from typing import List, Union, Dict, Optional, Tuple, Iterable, Set
-from functools import reduce
 from enum import IntEnum, Enum
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
@@ -228,23 +227,12 @@ class TermMatcher:
 
 class IbidHistory:
 
-    ignored_term_slugs = ['torah', 'talmud', 'gemara', 'mishnah', 'midrash']
-
     def __init__(self, last_n_titles: int = 3, last_n_refs: int = 3):
         self.last_n_titles = last_n_titles
         self.last_n_refs = last_n_refs
         self._last_refs: List[text.Ref] = []
         self._last_titles: List[str] = []
         self._title_ref_map: Dict[str, text.Ref] = {}
-        self._ignored_titles: Set[str] = self._get_ignored_titles()
-
-    @classmethod
-    def _get_ignored_titles(cls) -> Set[str]:
-        terms = [schema.NonUniqueTerm.init(slug) for slug in cls.ignored_term_slugs]
-        return reduce(lambda a, b: a | set(b), [term.get_titles() for term in terms], set())
-
-    def should_ignore_text(self, text) -> bool:
-        return text in self._ignored_titles
 
     def _get_last_refs(self) -> List[text.Ref]:
         return self._last_refs
@@ -311,8 +299,6 @@ class RefResolver:
         return temp_resolved
 
     def _update_ibid_history(self, raw_ref: RawRef, temp_resolved: List[PossiblyAmbigResolvedRef]):
-        if self._ibid_history.should_ignore_text(raw_ref.text):
-            return
         if len(temp_resolved) == 0:
             self.reset_ibid_history()
         elif any(r.is_ambiguous for r in temp_resolved):
