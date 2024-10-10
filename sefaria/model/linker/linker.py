@@ -72,9 +72,12 @@ class Linker:
         raw_refs, named_entities = self._ner.recognize(input_str)
         resolved_refs, resolved_named_entities = [], []
         if type_filter in {'all', 'citation'}:
-            resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
+            resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, thoroughness)
         if type_filter in {'all', 'named entity'}:
-            resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
+            resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities)
+        if not with_failures:
+            resolved_refs = list(filter(lambda r: not r.resolution_failed, resolved_refs))
+            resolved_named_entities = list(filter(lambda r: not r.resolution_failed, resolved_named_entities))
         doc = LinkedDoc(input_str, resolved_refs, resolved_named_entities)
         self._ner.map_normal_output_to_original_input(input_str, [x.raw_entity for x in doc.all_resolved])
         return doc
