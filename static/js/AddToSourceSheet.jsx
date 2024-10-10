@@ -125,7 +125,7 @@ class AddToSourceSheetBox extends Component {
       if (this.props.note) {
         postData.note = this.props.note;
       }
-      $.post(url, postData, this.confirmAdd);
+      await $.post(url, postData, this.confirmAdd);
     }
   }
 
@@ -141,10 +141,9 @@ class AddToSourceSheetBox extends Component {
         source.outsideText = this.props.en || this.props.he;
       }
     }
-    return source
   }
 
-  async handleSelectedWords(source) {
+  async handleSelectedWords(source, lan) {
     // If something is highlighted and main panel language is not bilingual:
     // Use passed in language to determine which version this highlight covers.
     let selectedWords = this.props.selectedWords; //if there was highlighted single panel
@@ -152,7 +151,6 @@ class AddToSourceSheetBox extends Component {
     if (!selectedWords || language === "bilingual") {
       return;
     }
-    let lan = language.slice(0,2);
     let segments = await sheetsUtils.getSegmentObjs(source.refs);
     selectedWords = this.normalize(selectedWords);
     segments = segments.map(segment => ({
@@ -176,22 +174,46 @@ class AddToSourceSheetBox extends Component {
     source[lan] = sheetsUtils.segmentsToSourceText(segments, lan);
   }
 
+  async handleSameDirectionVersions() {
+    for (const lang of ['he', 'en']) {
+      const version = this.props.currObjectVersions[lang];
+      const source = {
+        refs: this.props.srefs,
+        [`version-${version.language}`]: version.versionTitle
+      }
+      await this.postToSheet(source);
+    }
+  }
+
   async addToSourceSheet() {
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     }
-    if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
-    let source = {};
+    if (!this.state.selectedSheet || !this.state.selectedSheet.id) {
+      return;
+    }
+
+    const source = {};
+    let en, he;
     if (this.props.en || this.props.he) { // legacy code to support a call to this component in Gardens.
-      source = this.makeSourceForEden();
+      this.makeSourceForEden();
     } else if (this.props.srefs) { //regular use - this is currently the case when the component is loaded in the sidepanel or in the modal component via profiles and notes pages
       source.refs = this.props.srefs;
-      const { en, he } = this.props.currObjectVersions || {"en": null, "he": null}; //the text we are adding may be non-default version
+
+      ({ en, he } = this.props.currObjectVersions || {"en": null, "he": null}); //the text we are adding may be non-default version
+      if (en?.direction && en?.direction === he?.direction) {
+        await this.handleSameDirectionVersions();
+        return;
+      } else if (en?.direction === 'rtl' || he?.direction === 'ltr') {
+        ([en, he] = [he, en]);
+      }
+
       if (he) { source["version-he"] = he.versionTitle; }
       if (en) { source["version-en"] = en.versionTitle; }
     }
-    await this.handleSelectedWords(source);
-    this.postToSheet(source);
+    const contentLang = he?.language || en?.language; // this matters only if one language is shown.
+    await this.handleSelectedWords(source, contentLang);
+    await this.postToSheet(source);
   }
   checkContentForImages(refs) {
     // validate texts corresponding to refs have no images before posting them to sheet
