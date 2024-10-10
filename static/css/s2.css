@@ -8453,6 +8453,9 @@ a .button:hover {
   vertical-align: middle;
   margin-inline-end: 10px;
 }
+.readerPanel.hebrew .sheetMetaDataBox .user {
+  direction: rtl;
+}
 .sheetMetaDataBox {
   margin-block-end: 40px;
 }
