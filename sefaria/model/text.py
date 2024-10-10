@@ -5733,7 +5733,8 @@ class Library(object):
         named_entity_resolver = self._build_named_entity_resolver(lang)
         ref_resolver = self._build_ref_resolver(lang)
         named_entity_recognizer = self._build_named_entity_recognizer(lang)
-        self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver)
+        cat_resolver = self._build_category_resolver(lang)
+        self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver, cat_resolver)
         return self._linker_by_lang[lang]
 
     @staticmethod
@@ -5756,6 +5757,12 @@ class Library(object):
             load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
             load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
         )
+
+    def _build_category_resolver(self, lang: str):
+        from sefaria.model.category import CategorySet, Category
+        from .linker.category_resolver import CategoryResolver, CategoryMatcher
+        categories: list[Category] = CategorySet({"match_templates": {"$exists": True}}).array()
+        return CategoryResolver(CategoryMatcher(lang, categories))
 
     def _build_ref_resolver(self, lang: str):
         from .linker.match_template import MatchTemplateTrie

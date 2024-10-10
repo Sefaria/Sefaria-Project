@@ -6,6 +6,7 @@ from sefaria.model.linker.ref_part import RawRef, RawNamedEntity, span_inds
 from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughness, PossiblyAmbigResolvedRef
 from sefaria.model.linker.named_entity_resolver import NamedEntityResolver, ResolvedNamedEntity
 from sefaria.model.linker.named_entity_recognizer import NamedEntityRecognizer
+from sefaria.model.linker.category_resolver import CategoryResolver
 
 
 @dataclasses.dataclass
@@ -21,10 +22,11 @@ class LinkedDoc:
 
 class Linker:
 
-    def __init__(self, ner: NamedEntityRecognizer, ref_resolver: RefResolver, ne_resolver: NamedEntityResolver, ):
+    def __init__(self, ner: NamedEntityRecognizer, ref_resolver: RefResolver, ne_resolver: NamedEntityResolver, cat_resolver: CategoryResolver):
         self._ner = ner
         self._ref_resolver = ref_resolver
         self._ne_resolver = ne_resolver
+        self._cat_resolver = cat_resolver
 
     def bulk_link(self, inputs: List[str], book_context_refs: Optional[List[Optional[Ref]]] = None, with_failures=False,
                   verbose=False, thoroughness=ResolutionThoroughness.NORMAL, type_filter='all') -> List[LinkedDoc]:
