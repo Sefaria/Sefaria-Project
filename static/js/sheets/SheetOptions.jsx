@@ -14,12 +14,17 @@ const modifyHistoryObjectForSheetOptions = (historyObject) => {
   newHistoryObject.ref = refParts[0];
   return newHistoryObject;
 }
+const getExportingStatus = () => {
+  const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
+  return urlHashObject === "exportToDrive";
+}
+
 const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isAdding, setAdding] = useState(false);  // Edit Collections Modal open or closed
   const [isCopying, setCopying] = useState(false);
   const [isSaving, setSaving] = useState(false);
-  const [isExporting, setExporting] = useState(false);
+  const [isExporting, setExporting] = useState(getExportingStatus());
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   if ((isAdding || isSaving || isCopying) && !Sefaria._uid) {
     toggleSignUpModal();
@@ -195,12 +200,9 @@ const GoogleDocExportButton = ({ onClick }) => {
 
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
-    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס...", greyColor: true},
-    exportComplete: { en: "Success!", he: "ייצוא הסתיים", secondaryEn: "View in Google Docs", secondaryHe: "לפתיחה בגוגל דוקס", greyColor: true}
+    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
+    exportComplete: { en: "Success!", he: "ייצוא הסתיים"}
   }
-  const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
-  console.log(urlHashObject);
-  // const [googleDriveText, setGoogleDriveText] = urlHashObject === "exportToDrive" ? useState(googleDriveState.exporting) : useState(googleDriveState.export);
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
 
   const [googleDriveLink, setGoogleDriveLink] = useState("");
@@ -229,17 +231,20 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
         }
       });
     }
-  }, [googleDriveText])
-  // const googleDriveExport = () => {
-  //   if (googleDriveText.en === googleDriveState.exportComplete.en) {
-  //     Sefaria.util.openInNewTab(googleDriveLink);
-  //   } else {
-  //     Sefaria.track.sheets("Export to Google Docs");
-  //     setGoogleDriveText(googleDriveState.exporting);
-  //   }
-  // }
+  }, [googleDriveText]);
+  const getExportMessage = () => {
+    if (googleDriveText.en === googleDriveState.exporting.en) {
+      return <InterfaceText text={googleDriveText}/>;
+    }
+    else {
+      return <>
+               <a href={googleDriveLink}><InterfaceText text={googleDriveText}/></a>
+               <InterfaceText>View in Google Docs</InterfaceText>
+             </>
+    }
+  }
   return <GenericSheetModal title={<InterfaceText>Export</InterfaceText>}
-                            message={<InterfaceText text={googleDriveText}/>}
+                            message={getExportMessage()}
                             close={close}/>;
 
 }
