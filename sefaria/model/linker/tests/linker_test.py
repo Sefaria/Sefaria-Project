@@ -36,7 +36,6 @@ crrd = create_raw_ref_data
 
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
-    [crrd(["@Torah"], lang='en'), tuple()],
     # Numbered JAs
     [crrd(["@Jerusalem", "@Talmud", "@Yoma", "#5a"], lang='en'), ("Jerusalem Talmud Yoma 1:1:20-25",)],
     [crrd(["@Babylonian", "@Talmud", "@Sukkah", "#49b"], lang='en'), ("Sukkah 49b",)],

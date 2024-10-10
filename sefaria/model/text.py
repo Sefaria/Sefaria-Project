@@ -5761,15 +5761,13 @@ class Library(object):
         from .linker.match_template import MatchTemplateTrie
         from .linker.ref_resolver import RefResolver, TermMatcher
         from sefaria.model.schema import NonUniqueTermSet
-        from sefaria.model.category import CategorySet, Category
 
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
-        categories: list[Category] = CategorySet({"match_templates": {"$exists": True}}).array()
         non_unique_terms = NonUniqueTermSet()
 
         return RefResolver(
-           lang, MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes + categories), scope='alone'),
+           lang, MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone'),
            TermMatcher(lang, non_unique_terms),
         )
 
