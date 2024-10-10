@@ -11,7 +11,6 @@ import {VersionsTextList} from "./VersionsTextList";
 
 class AboutBox extends Component {
   constructor(props) {
-      console.log('constructor')
     super(props);
     this.state = {
       versionLangMap: {},
