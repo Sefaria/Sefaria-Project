@@ -11034,6 +11034,50 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
+.pwa-install-button {
+    padding: 2px 10px;
+    font-size: 16px;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    background-color: #b84045;
+    color: white;
+    border: var(--talmud-gold) 1px solid;
+    border-radius: 5px;
+    cursor: pointer;
+    position: fixed; /* Fix the position of the button */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Adjust to center it exactly */
+    bottom: 15px; /* Position near the bottom */
+    transition: background-color 0.3s ease; /* Smooth background change */
+    display: none; /* Initially hidden */
+}
+
+/* Slide-in animation */
+.pwa-install-button.show {
+    display: inline-block;
+    animation: slide-in 0.10s forwards; /* Trigger the slide-in animation */
+}
+
+/* Keyframes for sliding in the button from the right */
+@keyframes slide-in {
+    from {
+      transform: translateX(100px); /* Start off-screen */
+    }
+    to {
+      transform: translateX(-50%); /* Slide in to the centered position */
+    }
+}
+
+.pwa-install-button:hover {
+    background-color: #a7353b;
+    transform: translateX(-50%) scale(1.05); /* Keep centering and enlarge the button on hover */
+}
+
+.pwa-install-button:active {
+    background-color: #8b2c30;
+    transform: translateX(-50%) scale(0.98); /* Keep centering on active state */
+}
+  
+
 #footer .section {
     display: inline-block;
     vertical-align: top;

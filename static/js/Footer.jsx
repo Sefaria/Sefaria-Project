@@ -29,12 +29,17 @@ class Footer extends Component {
   trackLanguageClick(language){
     Sefaria.track.setInterfaceLanguage('interface language footer', language);
   }
+
   render() {
     if (!Sefaria._siteSettings.TORAH_SPECIFIC) { return null; }
 
     return (
       <div id='version_number'>
         <InterfaceText>Version: 1.3.0</InterfaceText>
+        {/* Install PWA Button */}
+        <button id="install-pwa-button" className="pwa-install-button" style={{ marginLeft: "10px", display: 'none' }}>
+        Install pecha App
+      </button>
       </div>  
     );
   }
