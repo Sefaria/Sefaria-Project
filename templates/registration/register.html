@@ -10,7 +10,7 @@
 <div id="register" class="biReady registrationContent static">
     <div class="inner">
         <h1>
-          <span>{% trans "Sign Up" %}</span>
+          <span>{% trans "Sign_Up_Title" %}</span>
         </h1>
         <form id="register-form" action="{% url "register" %}" method="post" autocomplete="false">
         <div style="overflow: visible;">
@@ -22,7 +22,7 @@
             <input type="hidden" name="next" value="{{ next }}" />
         {% endif %}
         <button type="submit" class="control-elem button">
-            <span>{% trans "Sign Up" %}</span>
+            <span>{% trans "Sign_Up_Button" %}</span>
         </button>
         </form>
         <a class="registration-links control-elem" href="{% url "login" %}{% if next %}?next={{ next }}{% endif %}">

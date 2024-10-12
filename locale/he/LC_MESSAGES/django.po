@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-25 11:21+0530\n"
+"POT-Creation-Date: 2024-10-10 17:28+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -243,7 +243,7 @@ msgstr ""
 msgid "Sheet ID to delete"
 msgstr ""
 
-#: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
+#: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:153
 #: templates/messages/2022-01-09-user-testing-modal.html:86
 #: templates/static/aramaic-translation-contest.html:140
 #: templates/static/home.html:362 templates/static/newsletter.html:24
@@ -268,7 +268,7 @@ msgstr "ཡིག་ཆ་ཞིག་འདེམས།"
 
 #: sefaria/forms.py:56
 msgid "Monastic"
-msgstr "དགོན་སྡེ།"
+msgstr "གྲྭ་བཙུན།"
 
 #: sefaria/forms.py:57
 msgid "Teacher"
@@ -280,37 +280,33 @@ msgstr "སློབ་མ།"
 
 #: sefaria/forms.py:59
 msgid "Educated* /Dr / Prof"
-msgstr "ཤེས་ལྡན།"
+msgstr "བསླབ་པ་མཐར་སོན།"
 
 #: sefaria/forms.py:60
 msgid "regular user"
-msgstr "སྤྱིར་བཏང་སྤྱོད་མཁན།"
+msgstr "དཀྱུས་མ།"
 
-#: sefaria/forms.py:66
-msgid "Select an Option"
-msgstr "ཡིག་ཆ་ཞིག་འདེམ།"
-
-#: sefaria/forms.py:95
+#: sefaria/forms.py:96
 msgid "A user with that email already exists."
 msgstr ""
 
-#: sefaria/forms.py:143
+#: sefaria/forms.py:144
 msgid "Incorrect mobile_app_key provided"
 msgstr ""
 
-#: sefaria/forms.py:157
+#: sefaria/forms.py:158
 msgid "New password"
 msgstr ""
 
-#: sefaria/forms.py:158
+#: sefaria/forms.py:159
 msgid "Enter New Password"
 msgstr "གསང་ཚིག་གསར་པ།"
 
-#: sefaria/forms.py:163
+#: sefaria/forms.py:164
 msgid "New password confirmation"
 msgstr ""
 
-#: sefaria/forms.py:165
+#: sefaria/forms.py:166
 msgid "Repeat New Password"
 msgstr "ཡང་བསྐྱར།"
 
@@ -1066,8 +1062,6 @@ msgid "Older Activity"
 msgstr ""
 
 #: templates/elements/login_prompt.html:6
-#: templates/registration/register.html:13
-#: templates/registration/register.html:22
 msgid "Sign Up"
 msgstr "ཐོ་འགོད།"
 
@@ -1425,7 +1419,7 @@ msgstr ""
 msgid "Log back in"
 msgstr ""
 
-#: templates/registration/login.html:4 templates/registration/login.html:31
+#: templates/registration/login.html:4 templates/registration/login.html:29
 msgid "Log in to Pecha"
 msgstr "ནང་དུ་འཛུལ་ས།"
 
@@ -1435,27 +1429,27 @@ msgid ""
 "other Pecha users."
 msgstr ""
 
-#: templates/registration/login.html:14 templates/registration/login.html:15
+#: templates/registration/login.html:14
 msgid "You are already logged in as"
 msgstr ""
 
-#: templates/registration/login.html:18 templates/registration/login.html:19
+#: templates/registration/login.html:17
 msgid "Logout."
 msgstr ""
 
-#: templates/registration/login.html:35
+#: templates/registration/login.html:33
 msgid "Your username and password didn't match. Please try again."
 msgstr ""
 
-#: templates/registration/login.html:52 templates/sheets.html:497
+#: templates/registration/login.html:50 templates/sheets.html:497
 msgid "Login"
 msgstr "ནང་འཛུལ་གྱིས།"
 
-#: templates/registration/login.html:55
+#: templates/registration/login.html:53
 msgid "Forgot your password?"
 msgstr "གསང་ཚིག་བརྗེད་སོང་ན། འདིར་སྣུན།"
 
-#: templates/registration/login.html:60
+#: templates/registration/login.html:58
 msgid "Create a new account"
 msgstr "ཁ་བྱང་གསར་པ་ཞིག་བཟོས།"
 
@@ -1496,7 +1490,7 @@ msgstr ""
 #: templates/registration/password_reset_done.html:10
 #: templates/registration/password_reset_done.html:11
 msgid "An email has been sent with a link to reset your password."
-msgstr ""
+msgstr "ཁྱེད་ཀྱི་གློག་འཕྲིན་ནང་། གསང་ཚིག་བསྐྱར་སྒྲིག་གི་དྲ་ཐག་བསྐུར་ཡོད།"
 
 #: templates/registration/password_reset_email.html:4
 #: templates/registration/password_reset_email.txt:3
@@ -1547,7 +1541,15 @@ msgid ""
 "other people."
 msgstr ""
 
-#: templates/registration/register.html:26
+#: templates/registration/register.html:13
+msgid "Sign_Up_Title"
+msgstr "ཐོ་འགོད་བྱེད་ས།"
+
+#: templates/registration/register.html:25
+msgid "Sign_Up_Button"
+msgstr "ཐོ་འགོད་གྱིས།"
+
+#: templates/registration/register.html:29
 msgid "Already have an account? Log in"
 msgstr "ཁ་བྱང་བཟོས་ཡོད་ན། ནང་འཛུལ་བྱེད་ས་འདིར་སྣུན།"
 
@@ -2444,6 +2446,67 @@ msgid ""
 "Explore how Rashi connects verses of Torah to one another when he quotes one "
 "verse in his commentary on another."
 msgstr ""
+
+#, fuzzy
+#~| msgid "Education"
+#~ msgid "Syndication"
+#~ msgstr "ཤེས་ཚད།"
+
+#, fuzzy
+#~| msgid "Education"
+#~ msgid "Duration"
+#~ msgstr "ཤེས་ཚད།"
+
+#, fuzzy
+#~| msgid "Email Address"
+#~ msgid "Email address"
+#~ msgstr "གློག་འཕྲིན།"
+
+#, fuzzy
+#~| msgid "File"
+#~ msgid "File path"
+#~ msgstr "ཡིག་ཆ།"
+
+#, fuzzy
+#~| msgid "Email Address"
+#~ msgid "IP address"
+#~ msgstr "གློག་འཕྲིན།"
+
+#, fuzzy
+#~| msgid "Delete Sheet"
+#~ msgid "Delete"
+#~ msgstr "ཟིན་བྲིས་འདི་བསུབ།"
+
+#, fuzzy
+#~| msgid "Change Email"
+#~ msgid "Change"
+#~ msgstr "གློག་འཕྲིན་གཞན་པ་བེད་སྤྱོད་བྱེད།"
+
+#, fuzzy
+#~| msgid "Student"
+#~ msgid "Sun"
+#~ msgstr "སློབ་མ།"
+
+#, fuzzy
+#~| msgid "Version"
+#~ msgid "Permissions"
+#~ msgstr "ཐོན་རིམ།"
+
+#, fuzzy
+#~| msgid "Password"
+#~ msgid "Password:"
+#~ msgstr "གསང་ཚིག"
+
+#, fuzzy
+#~| msgid "Forgot your password?"
+#~ msgid "Forgotten your password or username?"
+#~ msgstr "གསང་ཚིག་བརྗེད་སོང་ན། འདིར་སྣུན།"
+
+#~ msgid "Select an Option"
+#~ msgstr "ཡིག་ཆ་ཞིག་འདེམ།"
+
+#~ msgid "login_success_message"
+#~ msgstr "གློག་འཕྲིན་འདི། {{ user.email }} དཔེ་ཆ་དྲ་བ་ལ་སྤྱོད་བཞིན་འདུག།"
 
 #~ msgid "Select an option..."
 #~ msgstr "ཡིག་ཆ་ཞིག་འདེམ།"

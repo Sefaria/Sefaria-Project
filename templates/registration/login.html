@@ -11,12 +11,10 @@
     <div id="login" class="biReady registrationContent static">
         <div class="inner">
             <p id="message">
-                <span class="int-en">{% trans "You are already logged in as" %}</span>
-                <span class="int-he">{% trans "You are already logged in as" %}</span>
+                <span class="{{ language_font_class }}">{% trans "You are already logged in as" %}</span>
                 {{ user.email }}.
                 <a href="{% url "logout" %}">
-                    <span class="int-en">{% trans "Logout." %}</span>
-                    <span class="int-he">{% trans "Logout." %}</span>
+                    <span class="{{ language_font_class }}">{% trans "Logout." %}</span>
                 </a>
             </p>
         </div>
