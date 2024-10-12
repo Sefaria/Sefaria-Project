@@ -1048,9 +1048,15 @@ msgstr ""
 msgid "Older Activity"
 msgstr ""
 
-#: templates/elements/login_prompt.html:6
 #: templates/registration/register.html:13
+msgid "Sign_Up_Title"
+msgstr "Sign Up"
+
 #: templates/registration/register.html:22
+msgid "Sign_Up_Button"
+msgstr "Sign Up"
+
+#: templates/elements/login_prompt.html:6
 msgid "Sign Up"
 msgstr ""
 
@@ -1448,8 +1454,8 @@ msgstr ""
 "other Pecha users."
 
 #: templates/registration/login.html:14 templates/registration/login.html:15
-msgid "You are already logged in as"
-msgstr ""
+msgid "login_success_message"
+msgstr "You are already logged in as {{ user.email }}."
 
 #: templates/registration/login.html:18 templates/registration/login.html:19
 msgid "Logout."
