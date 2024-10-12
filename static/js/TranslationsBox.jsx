@@ -120,12 +120,12 @@ const TranslationsHeader = () => (
     <h3>
       <InterfaceText>connection_pannel.translations</InterfaceText>
     </h3>
-    <div className="translationsDesc sans-serif">
+    {/* <div className="translationsDesc sans-serif">
       <InterfaceText>connection_pannel.translation.description</InterfaceText>
       <a href="/sheets/36" target="_blank" className="inTextLink">
         <InterfaceText>common.learn_more</InterfaceText>
       </a>
-    </div>
+    </div> */}
   </div>
 );
 
