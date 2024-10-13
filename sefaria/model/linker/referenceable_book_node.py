@@ -119,13 +119,13 @@ class ReferenceableBookNode:
         raise NotImplementedError
 
 
-class NamedReferenceableBookNode(ReferenceableBookNode):
+class IndexNodeReferenceableBookNode(ReferenceableBookNode):
+    """
+    ReferenceableBookNode backed by node in an Index (either SchemaNode or AltStructNode)
+    """
 
-    def __init__(self, titled_tree_node_or_index: Union[schema.TitledTreeNode, text.Index]):
-        self._titled_tree_node_or_index = titled_tree_node_or_index
-        self._titled_tree_node = titled_tree_node_or_index
-        if isinstance(titled_tree_node_or_index, text.Index):
-            self._titled_tree_node = titled_tree_node_or_index.nodes
+    def __init__(self, titled_tree_node: schema.TitledTreeNode):
+        self._titled_tree_node = titled_tree_node
 
     @property
     def referenceable(self):
@@ -135,16 +135,26 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
         return self._titled_tree_node
 
     def is_default(self):
-        return self._titled_tree_node.is_default()
-
-    def get_numeric_equivalent(self):
-        return getattr(self._titled_tree_node, "numeric_equivalent", None)
+        return self._titled_tree_node.is_default() and self._titled_tree_node.parent is not None
 
     def ref(self) -> text.Ref:
         return self._titled_tree_node.ref()
 
     def leaf_refs(self) -> list[text.Ref]:
         return [n.ref() for n in self._get_titled_tree_node().get_leaf_nodes()]
+
+
+class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
+
+    def __init__(self, titled_tree_node_or_index: Union[schema.TitledTreeNode, text.Index]):
+        self._titled_tree_node_or_index = titled_tree_node_or_index
+        titled_tree_node = titled_tree_node_or_index
+        if isinstance(titled_tree_node_or_index, text.Index):
+            titled_tree_node = titled_tree_node_or_index.nodes
+        super().__init__(titled_tree_node)
+
+    def get_numeric_equivalent(self):
+        return getattr(self._titled_tree_node, "numeric_equivalent", None)
 
     @staticmethod
     def _is_array_map_referenceable(node: schema.ArrayMapNode) -> bool:
@@ -208,23 +218,15 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
         return self._titled_tree_node.get_match_template_trie(*args, **kwargs)
 
 
-class NumberedReferenceableBookNode(ReferenceableBookNode):
+class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
 
     def __init__(self, ja_node: schema.NumberedTitledTreeNode):
-        self._ja_node = ja_node
+        super().__init__(ja_node)
+        self._ja_node: schema.NumberedTitledTreeNode = ja_node
 
     @property
     def referenceable(self):
         return getattr(self._ja_node, 'referenceable', True)
-
-    def _get_titled_tree_node(self) -> schema.TitledTreeNode:
-        return self._ja_node
-
-    def is_default(self):
-        return self._ja_node.is_default() and self._ja_node.parent is not None
-
-    def ref(self):
-        return self._ja_node.ref()
 
     def leaf_refs(self) -> list[text.Ref]:
         return [self.ref()]
