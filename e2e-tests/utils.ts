@@ -75,7 +75,7 @@ export const changeLanguageOfText = async (page: Page, sourceLanguage: string) =
     await page.getByAltText('Toggle Reader Menu Display Settings').click()
 
     // Selecting Source Language
-    await page.getByRole('radiogroup', {name: 'Language'}).locator(sourceLanguage).click()
+    await page.getByLabel(sourceLanguage, {exact: true}).click()
 
 }
 
