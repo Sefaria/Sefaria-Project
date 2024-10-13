@@ -1539,7 +1539,7 @@ div.interfaceLinks-row a {
   display: inline;
 }
 .readerPanel.hebrew .he {
-  display: inline;
+  display: inline-block;
   text-align: right;
 }
 .readerPanel.english .heOnly .he,
