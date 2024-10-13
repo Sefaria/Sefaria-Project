@@ -19,8 +19,7 @@ function StrapiDataProvider({ children }) {
   const [modal, setModal] = useState(null);
   const [banner, setBanner] = useState(null);
   useEffect(() => {
-    // Disable Strapi API calls during Unbounce trial
-    if (false && typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+    if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
       const getStrapiData = async () => {
         let getDateWithoutTime = (date) => date.toISOString().split("T")[0];
         let getJSONDateStringInLocalTimeZone = (date) => {

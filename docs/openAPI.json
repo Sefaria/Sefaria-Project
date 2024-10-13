@@ -13074,42 +13074,42 @@
       "ShapeJSON": {
         "description": "The shape API allows one to retrieve information about the shape of an Index on Sefaria. The shape refers some basic statistics about the Index, mostly the number of chapters, and the number of segments per chapter.",
         "required": [
-          "Book",
-          "heBook",
-          "Chapters"
+            "Book",
+            "heBook",
+            "Chapters"
         ],
         "type": "object",
         "properties": {
-          "Section": {
-            "description": "The parent section for this `Index`. (So for example, the `section` for `Jonah` is `Prophets`. The `section` for `Pesachim` is `Seder Moed`)",
-            "type": "string",
-            "example": "Prophets"
-          },
-          "isComplex": {
-            "description": "A boolean representing whether or not this is a complex text. ",
-            "type": "boolean"
-          },
-          "Length": {
-            "description": "The number of chapters or top-level sections in the `Index`. "
-          },
-          "Book": {
-            "description": "Title of the `Index` in English",
-            "type": "string"
-          },
-          "heBook": {
-            "description": "Title of the `Index` in Hebrew. ",
-            "type": "string"
-          },
-          "Chapters": {
-            "description": "For simple texts, this is a list of chapter lengths. For complex texts or categories, the Shape API will return a list of dicts for each text within that category or text. ",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ShapeJSON"
+            "Section": {
+                "description": "The parent section for this `Index`. (So for example, the `section` for `Jonah` is `Prophets`. The `section` for `Pesachim` is `Seder Moed`)",
+                "type": "string",
+                "example": "Prophets"
             },
-            "example": "    \"chapters\": [\n      16,\n      11,\n      10,\n      11\n    ]"
-          }
+            "isComplex": {
+                "description": "A boolean representing whether or not this is a complex text. ",
+                "type": "boolean"
+            },
+            "Length": {
+                "description": "The number of chapters or top-level sections in the `Index`. "
+            },
+            "Book": {
+                "description": "Title of the `Index` in English",
+                "type": "string"
+            },
+            "heBook": {
+                "description": "Title of the `Index` in Hebrew. ",
+                "type": "string"
+            },
+            "Chapters": {
+                "description": "For simple texts, this is a list of chapter lengths. For complex texts or categories, the Shape API will return a list of dicts for each text within that category or text. ",
+                "type": "array",
+                "items": {
+                    "type": "integer"
+                },
+                "example": [16, 11, 10, 11]
+            }
         }
-      },
+    },
       "CatJSON": {
         "title": "Root Type for CatJSON",
         "description": "JSON response for a Category GET request",

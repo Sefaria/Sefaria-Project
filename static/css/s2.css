@@ -9579,7 +9579,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .newsletterSignUpBox .subscribeMessage {
   margin: 4px 0 14px 0;
-  color: #333;
   font-size: 14px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: italic;
@@ -9772,7 +9771,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .currVersionSection, .aboutBox .alternateVersionsSection {
   padding-bottom: 30px;
 }
-.aboutBox .versionsBox .versionBlock:first-child{
+.aboutBox .versionsBox .language-block:first-child .versionBlock:first-child {
   border-top: none;
   padding-top: 10px;
 }

@@ -727,54 +727,43 @@ Sefaria = extend(Sefaria, {
       ]);
       return {status: "ok"};
   },
-  filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
+  filterVersionsByAttr: function(versionsObj, filterObj) {
       /**
-       * @versionsObj {object} whode keys are language codes ('he', 'en' etc.) and values are version objects (like the object that getVersions returns)
-       * @langs {array} of string of language codes
-       * @includeFilter {boolean} true for returning the language in the langs param, false for returning other languages
+       * @versionsObj {object} whose keys are language codes ('he', 'en' etc.) and values are version objects (like the object that getVersions returns)
+       * * @filterObj {object} keys are attribute of version objects and values are their values
+       * returns the versionsObj after filtering its version, and filtering languages with no matching versions
        */
-    return Object.keys(versionsObj)
-        .filter(lang => {
-            return includeFilter === langs.includes(lang);
-        })
-        .reduce((obj, lang) => {
-            obj[lang] = versionsObj[lang];
-            return obj;
-          }, {});
-  },
-  filterVersionsArrayByAttr: function(versionsArray, filterObj) {
-      /**
-       * @versionsArray {array} of version objects
-       * @filterObj {object} keys are attribute of version objects and values are their values
-       * returns an array of versions from versionsArray that has all the attributes and their values as in filterObj
-       */
-    return versionsArray.filter(version => {
-        return Object.keys(filterObj).every(key => version?.[key] === filterObj[key])
-    });
+
+    return Object.fromEntries(
+        Object.entries(versionsObj).reduce((acc, [lang, versions]) => {
+            const filteredVersions = versions.filter(version =>
+                Object.entries(filterObj).every(([key, value]) => version?.[key] === value)
+            );
+            if (filteredVersions.length) {
+              acc.push([lang, filteredVersions]);
+            }
+            return acc;
+        }, [])
+    );
   },
   getSourceVersions: async function(ref) {
     /**
-     * Gets Hebrew versions only
-     * @ref {string} ref
+     * Gets all versions that have isSource true
+     * * @ref {string} ref
      * @returns {string: [versions]} Versions by language
      */
     return Sefaria.getVersions(ref).then(versions => {
-        return Sefaria.filterVersionsObjByLangs(versions, ['he'], true);
+        return Sefaria.filterVersionsByAttr(versions, {isPrimary: true});
     });
   },
   getTranslations: async function(ref) {
     /**
-     * Gets all versions except Hebrew versions that have isSource true
+     * Gets all versions that have isSource false
      * @ref {string} ref
      * @returns {string: [versions]} Versions by language
      */
-    return Sefaria.getVersions(ref).then(result => {
-        let versions = Sefaria.filterVersionsObjByLangs(result, ['he'], false);
-        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isSource: false});
-        if (heVersions.length) {
-            versions.he = heVersions;
-        }
-        return versions;
+    return Sefaria.getVersions(ref).then(versions => {
+        return Sefaria.filterVersionsByAttr(versions, {isSource: false});
     });
   },
   _makeVersions: function(versions, byLang){

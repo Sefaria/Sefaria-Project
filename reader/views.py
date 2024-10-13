@@ -2313,6 +2313,22 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
+    def update_version(request, title, lang, version):
+        flags = json.loads(request.POST.get("json"))
+        title = title.replace("_", " ")
+        version = version.replace("_", " ")
+        vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+        if flags.get("newVersionTitle"):
+            vobj.versionTitle = flags.get("newVersionTitle")
+        for flag in _attributes_to_save:
+            if flag in flags:
+                if flag == 'license' and flags[flag] == "":
+                    delattr(vobj, flag)
+                else:
+                    setattr(vobj, flag, flags[flag])
+        vobj.save()
+        return jsonResponse({"status": "ok"})
+
     _attributes_to_save = Version.optional_attrs + ["versionSource"]
 
     if not request.user.is_authenticated:
@@ -2326,31 +2342,9 @@ def flag_text_api(request, title, lang, version):
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can flag texts."})
 
-        flags = json.loads(request.POST.get("json"))
-        title   = title.replace("_", " ")
-        version = version.replace("_", " ")
-        vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
-        if flags.get("newVersionTitle"):
-            vobj.versionTitle = flags.get("newVersionTitle")
-        for flag in _attributes_to_save:
-            if flag in flags:
-                setattr(vobj, flag, flags[flag])
-        vobj.save()
-        return jsonResponse({"status": "ok"})
+        return update_version(request, title, lang, version)
     elif request.user.is_staff:
-        @csrf_protect
-        def protected_post(request, title, lang, version):
-            flags = json.loads(request.POST.get("json"))
-            title   = title.replace("_", " ")
-            version = version.replace("_", " ")
-            vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
-            if flags.get("newVersionTitle"):
-                vobj.versionTitle = flags.get("newVersionTitle")
-            for flag in _attributes_to_save:
-                if flag in flags:
-                    setattr(vobj, flag, flags[flag])
-            vobj.save()
-            return jsonResponse({"status": "ok"})
+        protected_post = csrf_protect(update_version)
         return protected_post(request, title, lang, version)
     else:
         return jsonResponse({"error": "Unauthorized"})
