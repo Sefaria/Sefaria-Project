@@ -54,7 +54,7 @@ class Linker:
             if type_filter in {'all', 'citation'}:
                 resolved_refs, resolved_cats = self._bulk_resolve_refs_and_cats(raw_refs, book_context_ref, thoroughness, False)
             if type_filter in {'all', 'named entity'}:
-                resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
+                resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities)
             if not with_failures:
                 resolved_refs, resolved_named_entities, resolved_cats = self._remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
             docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)]
