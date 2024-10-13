@@ -221,6 +221,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
     <script src="{% static 'js/lib/keyboard.js' %}"></script>
+    <script src="{% static 'js/analyticsEventTracker.js' %}"></script>
     <script src="/data.{{ last_cached_short }}.js"></script>
 
     <script>
@@ -260,6 +261,9 @@
             gtag('config', '{{ GOOGLE_GTAG }}', {
               'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null
             });
+
+            <!-- attach analyticsEventTracker -->
+            AnalyticsEventTracker.attach("#s2, #staticContentWrapper", ['click', 'scrollIntoView', 'toggle', 'mouseover', 'input']);
           </script>
       <!-- End Google tag -->
     {% endif %}

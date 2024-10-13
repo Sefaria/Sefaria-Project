@@ -500,6 +500,7 @@ const FilterableList = ({
               name="filterableListInput"
               value={filter}
               onChange={e => setFilter(e.target.value)}
+              data-anl-event="search:input"
             />
           </div>
           <div className="filter-sort-wrapper">
@@ -518,6 +519,10 @@ const FilterableList = ({
                     e.target.click();
                   }
                 }}
+                data-anl-event="sort_by:click"
+                data-anl-batch={JSON.stringify({
+                  text: option, from: sortOption, to: option,
+                })}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
@@ -1057,7 +1062,7 @@ class ToggleOption extends Component {
  const TopicToCategorySlug = function(topic, category=null) {
    //helper function for AdminEditor
    if (!category) {
-     category = Sefaria.topicTocCategory(topic.slug);
+     category = Sefaria.displayTopicTocCategory(topic.slug);
    }
    let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
    // so all category topics initialized to "Main Menu"
@@ -1089,6 +1094,7 @@ const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
         const [buttonText, toggleAddingTopics] = buttonOptions[key];
         return (
           <AdminEditorButton
+            key={`${buttonText}|${i}`}
             text={buttonText}
             top={top}
             bottom={bottom}
@@ -1515,31 +1521,60 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   </div>
 )};
 
+const AiLearnMoreLink = ({lang}) => {
+  const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
+  return (
+      <a href={"/sheets/583824?lang=bi"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
+        {text}
+      </a>
+  );
+};
+
+const AiFeedbackLink = ({lang}) => {
+  const text = lang === 'english' ? 'Feedback' : 'כתבו לנו';
+  return (
+      <a href={"https://sefaria.formstack.com/forms/ai_feedback_form"} data-anl-event="feedback_click:click" data-anl-text="feedback">
+        {text}
+      </a>
+  );
+}
+
 const AiInfoTooltip = () => {
   const [showMessage, setShowMessage] = useState(false);
   const aiInfoIcon = (
-            <img className="ai-info-icon" src="/static/icons/ai-info.svg" alt="AI Info Icon" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}/>
+      <img
+          className="ai-info-icon"
+          data-anl-event="ai_marker_hover:mouseover"
+          src="/static/icons/ai-info.svg"
+          alt="AI Info Icon" onMouseEnter={() => setShowMessage(true)}
+          onMouseLeave={() => setShowMessage(false)}
+      />
     );
-        const aiMessage = (
-        <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
-              <div className="ai-info-first-message">
-              <InterfaceText>
-                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/583824?lang=bi"}>Learn more.</a></EnglishText>
-                  <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית ועברו הגהה על ידי צוות העורכים שלנו.&nbsp;
-                       <a href={"/sheets/583824?lang=bi"}>לפרטים נוספים</a></HebrewText>
-              </InterfaceText>
+  const aiMessage = (
+      <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
+            <div className="ai-info-first-message">
+            <InterfaceText>
+                <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors.
+                  &nbsp;<AiLearnMoreLink lang="english" />
+                </EnglishText>
+                <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית ועברו הגהה על ידי צוות העורכים שלנו.&nbsp;
+                  <AiLearnMoreLink lang="hebrew" />
+                </HebrewText>
+            </InterfaceText>
 
-          </div>
-          <hr className="ai-info-messages-hr" />
-          <div className="ai-info-last-message">
-              <InterfaceText><EnglishText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></EnglishText>
-              <HebrewText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>כתבו לנו</a></HebrewText>
-              </InterfaceText>
-          </div>
         </div>
-    );
+        <hr className="ai-info-messages-hr" />
+        <div className="ai-info-last-message">
+            <InterfaceText><EnglishText><AiFeedbackLink lang="english" /></EnglishText>
+            <HebrewText><AiFeedbackLink lang="hebrew" /></HebrewText>
+            </InterfaceText>
+        </div>
+      </div>
+  );
   return (
-    <div className="ai-info-tooltip">
+    <div className="ai-info-tooltip"
+         data-anl-feature_name="ai_marker"
+    >
       {aiInfoIcon}
         <div className={`ai-message ${(showMessage) ? 'visible' : ''}`}>
             {aiMessage}
@@ -3299,8 +3334,8 @@ return Sefaria._v(caption) || Sefaria._('Illustrative image');
 const ImageWithCaption = ({photoLink, caption }) => {
   return (
     <div>
-        <img class="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
-        <div class="imageCaption"> 
+        <img className="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
+        <div className="imageCaption">
           <InterfaceText text={caption} />
         </div>
       </div>);
@@ -3358,7 +3393,12 @@ const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_
 const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
 
   return (
-      <div className={classNames({ active: lang === buttonId, radioChoice: 1 })}>
+      <div
+          className={classNames({ active: lang === buttonId, radioChoice: 1 })}
+          data-anl-event="lang_toggle_select:click"
+          data-anl-text={buttonId}
+          data-anl-to={buttonId}
+      >
         <label htmlFor={buttonId}>
           <InterfaceText>{buttonTitle}</InterfaceText>
         </label>
@@ -3394,6 +3434,11 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   return (
     <div className="langSelectPopover"
       tabIndex="0"
+      data-anl-batch={JSON.stringify({
+        feature_name: "source lang toggled",
+        text: lang,
+        from: lang,
+      })}
       onClick={(e) => {
           e.stopPropagation();
           e.nativeEvent.stopImmediatePropagation();
