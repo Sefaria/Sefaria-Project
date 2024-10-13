@@ -3115,7 +3115,6 @@ const JobsPage = memo(() => {
             ) : loading ? (
                 <>
                     <LoadingMessage />
-                    <LoadingRing />
                 </>
             ) : (
                 <>
@@ -3435,22 +3434,23 @@ const ProductsPage = memo(() => {
     const initialProducts = ProductList.slice(0, devBoxPosition);
     const remainingProducts = ProductList.slice(devBoxPosition);
     return (
-        <>
-                <h1 className="mobileAboutHeader">
+        loading ? <LoadingMessage/> :
+            <>
+
+                 <h1 className="mobileAboutHeader">
                     <span className="int-en">Sefaria's Products</span>
                     <span className="int-he">מוצרים של בספריא</span>
                 </h1>
-            {loading ? <LoadingMessage/> :
-            <div className='productsFlexWrapper'>
-                {products && products.length > 0  ? (
-                    <>
-                    {initialProducts}
-                    {/* <DevBox /> */}
-                    {remainingProducts}
-                    </>
-                ) : null}
-            </div>}
-        </>
+                <div className='productsFlexWrapper'>
+                    {products && products.length > 0  ? (
+                        <>
+                        {initialProducts}
+                        {/* <DevBox /> */}
+                        {remainingProducts}
+                        </>
+                    ) : null}
+                </div>
+           </>
     );
 });
 

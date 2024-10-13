@@ -13202,6 +13202,12 @@ span.ref-link-color-3 {color: blue}
   margin-top: 165px;
   margin-bottom: 165px;
 }
+#productsPageContent .loadingMessage {
+  margin-block-start: 230px;
+}
+#jobsPageContent .loadingMessage {
+  margin-block-start: 20px;
+}
 
 .productInner {
   display: flex;
