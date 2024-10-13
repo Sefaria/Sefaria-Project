@@ -35,7 +35,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
       setSaving(false);
       setExporting(false);
     }
-  }, [isAdding, isSaving, isCopying]);
+  }, [isAdding, isSaving, isCopying, isExporting]);
   if (isSharing) {
     return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
@@ -161,7 +161,7 @@ const CopyModal = ({close, sheetID}) => {
   })
   const getCopySuccessMessage = () => {
     return <><InterfaceText>Success!</InterfaceText>&nbsp;
-              <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
+              <a className="successMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
               <InterfaceText>View your Copy</InterfaceText>
               </a>
           </>;
@@ -251,7 +251,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     else {
       return <>
                 <InterfaceText text={googleDriveText}/>&nbsp;
-                <a href={googleDriveLink} target="_blank"><InterfaceText>View in Google Docs</InterfaceText></a>
+                <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google Docs</InterfaceText></a>
              </>
     }
   }
