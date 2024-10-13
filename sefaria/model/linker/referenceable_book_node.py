@@ -1,5 +1,7 @@
 import dataclasses
 from typing import List, Union, Optional, Tuple, Dict
+import copy
+from typing import List, Union, Optional
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
@@ -38,13 +40,30 @@ def _parsha_subref(ref: text.Ref, section: int):
         return ref.subref(section)
 
 
+JA_NODE_LIST_ATTRS = ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections')
+
+
 def truncate_serialized_node_to_depth(serial_node: dict, depth: int) -> dict:
     truncated_serial_node = serial_node.copy()
-    for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
-        if list_attr not in serial_node:
-            continue
-        truncated_serial_node[list_attr] = serial_node[list_attr][depth:]
+    for list_attr in JA_NODE_LIST_ATTRS:
+        if list_attr in serial_node:
+            truncated_serial_node[list_attr] = serial_node[list_attr][depth:]
     return truncated_serial_node
+
+
+def insert_amud_node_values(serial_node: dict) -> (dict, int):
+    """
+    Insert values to serialized JA node that correspond to an Amud section.
+    This section doesn't exist in the JA node but is useful for matching Talmud sections with the linker
+    @param serial_node: serialized JA node
+    @return: `serial_node` with values for Amud section + the next referenceable depth corresponding to this modified node
+    """
+    serial_node['depth'] += 1
+    next_referenceable_depth = 1
+    for key, value in zip(JA_NODE_LIST_ATTRS, ('Amud', 'Amud', 1, True)):
+        if key in serial_node:
+            serial_node[key].insert(1, value)
+    return serial_node, next_referenceable_depth
 
 
 class ReferenceableBookNode:
@@ -151,6 +170,7 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
 
 
 class NumberedReferenceableBookNode(ReferenceableBookNode):
+
     def __init__(self, ja_node: schema.NumberedTitledTreeNode):
         self._ja_node = ja_node
 
@@ -202,27 +222,30 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
                 next_refereceable_depth += 1
         return next_refereceable_depth
 
-    def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
-        serial = self._ja_node.serialize()
+    def _get_serialized_node(self) -> dict:
+        serial = copy.deepcopy(self._ja_node.serialize())
         next_referenceable_depth = self._get_next_referenceable_depth()
+        if isinstance(self._address_class, schema.AddressTalmud):
+            serial, next_referenceable_depth = insert_amud_node_values(serial)
         serial['depth'] -= next_referenceable_depth
-        if serial['depth'] < 0:
-            return []
         serial['default'] = False  # any JA node that has been modified should lose 'default' flag
-        if serial['depth'] <= 1 and self._ja_node.is_segment_level_dibur_hamatchil():
-            return [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
-        if (self._ja_node.depth - next_referenceable_depth) == 0:
-            if isinstance(self._address_class, schema.AddressTalmud):
-                serial['addressTypes'] = ["Amud"]
-                serial['sectionNames'] = ["Amud"]
-                serial['lengths'] = [1]
-                serial['referenceableSections'] = [True]
-            else:
-                return []
-        else:
-            serial = truncate_serialized_node_to_depth(serial, next_referenceable_depth)
+        if serial['depth'] == 0:
+            raise ValueError("Can't serialize JaggedArray of depth 0")
+        serial = truncate_serialized_node_to_depth(serial, next_referenceable_depth)
+        return serial
+
+    def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
+        try:
+            serial = self._get_serialized_node()
+        except ValueError:
+            return []
+        children = []
+        if self._ja_node.is_segment_level_dibur_hamatchil():
+            children += [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
+            if serial['depth'] == 1:
+                return children
         new_ja = schema.JaggedArrayNode(serial=serial, index=getattr(self, 'index', None), **kwargs)
-        return [NumberedReferenceableBookNode(new_ja)]
+        return children + [NumberedReferenceableBookNode(new_ja)]
 
     def matches_section_context(self, section_context: 'SectionContext') -> bool:
         """

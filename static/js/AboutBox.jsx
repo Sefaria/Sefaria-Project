@@ -11,9 +11,8 @@ import { Modules } from './NavSidebar';
 class AboutBox extends Component {
   constructor(props) {
     super(props);
-    this._includeOtherVersionsLangs = ["he"];
     this.state = {
-      versionLangMap: null,
+      versionLangMap: {},
       currentVersionsByActualLangs: Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions),
       details: Sefaria.getIndexDetailsFromCache(props.title),
     }
@@ -56,8 +55,8 @@ class AboutBox extends Component {
     // then sort the current version to the top of its language list
     let versionsByLang = versions;
     let currentVersionsByActualLangs = Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions);
-    for(let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
-      if (this._includeOtherVersionsLangs.includes(lang)){ //remove current version if its "he"
+    for (let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
+      if (versionsByLang[lang]){
         versionsByLang[lang] = versionsByLang[lang].filter((v) => v.versionTitle != ver.versionTitle);
       }
     }
@@ -210,7 +209,7 @@ class AboutBox extends Component {
           }
       </div> : null );
     const alternateSectionHe =
-      (this.state.versionLangMap?.he?.length > 0 ?
+      (Object.values(this.state.versionLangMap).some(array => array?.length) ?
           <div className="alternateVersionsSection">
             <h2 className="aboutHeader">
               <InterfaceText text={alternateVersionsSectionTitle} />
