@@ -158,9 +158,11 @@ class TextRange extends Component {
 
     if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
       for (let i = 0; i < sectionRefs.length; i++) {
-        Sefaria.related(sectionRefs[i]);
+        Sefaria.related(sectionRefs[i], function() {
+          if (this.state.isMounted) { this.forceUpdate(); }
+        }.bind(this));
         if (Sefaria._uid) {
-          Sefaria.relatedPrivate(sectionRefs[i]);
+          Sefaria.relatedPrivate(sectionRefs[i], () => {});
         }
       }
     }
