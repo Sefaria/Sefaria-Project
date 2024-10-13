@@ -138,6 +138,7 @@ const CopyModal = ({close, sheetID}) => {
       return await filterAndSaveCopiedSheetData(loadedSheet);
     }
     if (!loaded) {
+      setLoaded(true);
       fetchData().then((response) => {
         if (response.id) {
           setCopyText(copyState.copied);
@@ -145,7 +146,6 @@ const CopyModal = ({close, sheetID}) => {
         } else {
           setCopyText(copyState.error);
         }
-        setLoaded(true);
       })
     }
   })
