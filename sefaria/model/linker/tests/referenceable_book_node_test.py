@@ -36,7 +36,7 @@ def make_named_node(title: str, node_path: list[str], is_alt_struct_path: bool):
 
 zohar_volume1_intro_node = MapReferenceableBookNode(Ref('Zohar').index.get_alt_structure("Daf").children[0].children[0])
 zohar_first_daf_node = zohar_volume1_intro_node.get_children()[0]
-print("hi")
+
 
 @pytest.mark.parametrize(('node_a', 'node_b', 'self_tref', 'other_tref', 'is_contained'), [
     [make_num_node(Ref('Genesis')), make_num_node(Ref('Genesis'), 1), None, None, True],  # Generic pasuk node is contained in generic perek node
@@ -47,7 +47,7 @@ print("hi")
     [make_num_node(Ref("Sefer HaChinukh")), make_named_node('Sefer HaChinukh', ['Parasha', 'Bo'], True), "Sefer HaChinukh, 4", None, False],  # alt struct node with multiple refs is not contained in a single one of refs
     [make_named_node('Sefer HaChinukh', ['Parasha', 'Lech Lecha'], True),  make_num_node(Ref("Sefer HaChinukh")), None, "Sefer HaChinukh, 3", False],  # ref outside of alt struct node isn't contained in it
     [zohar_volume1_intro_node, zohar_first_daf_node, None, 'Zohar, Volume I, Introduction 1b', True],  # zohar altStruct ref
-
+    [zohar_first_daf_node, zohar_volume1_intro_node, 'Zohar, Volume I, Introduction 1b', None, False],  # zohar altStruct ref
 ])
 def test_contains(node_a: ReferenceableBookNode, node_b: ReferenceableBookNode, self_tref: str, other_tref: str, is_contained: bool):
     self_oref = self_tref and Ref(self_tref)
