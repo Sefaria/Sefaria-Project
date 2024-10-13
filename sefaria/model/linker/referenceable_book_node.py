@@ -85,37 +85,19 @@ class ReferenceableBookNode:
     def referenceable(self) -> bool:
         return True
 
-    def contains(self, other: 'ReferenceableBookNode', self_ref: Optional[text.Ref], other_ref: Optional[text.Ref]) -> bool:
-        """
-        Does `self` contain `other`. If `self_ref` and `other_ref` aren't None, this is just ref comparison.
-        Otherwise, see if the schema/altstruct node that back `self` contains `other`'s node.
-        Note this function is a bit confusing. It works like this:
-        - If `self_ref` and `other_ref` are None, we compare the nodes themselves to see if self is an ancestor of other
-        - If `self_ref` is None and `other_ref` isn't, we check that `other_ref` is contained in at least one of `self`'s children (`self` may be an AltStructNode in which case it has no Ref)
-        - If `self_ref` isn't None and `other_ref` is None, we check that `self_ref` contains all of `other`'s children (`other` may be an AltStructNode in which case it has no Ref)
-        - If `self_ref` and `other_ref` are both defined, we can use Ref.contains()
-        @param other:
-        @param self_ref: although `self` has a ref (if it's backed by a schemaNode) this ref doesn't include sections. For this reason, we need to be able to pass `self_ref`.
-        @param other_ref: see `self_ref` for docs.
-        @return:
-        """
-        if other_ref and self_ref:
-            return self_ref.contains(other_ref)
-        try:
-            if other_ref is None:
-                other_node = other._get_titled_tree_node()
-                if self_ref is None:
-                    return self._get_titled_tree_node().is_ancestor_of(other_node)
-                # other is alt struct and self has a ref
-                # check that every leaf node is contained by self's ref
-                return all([self_ref.contains(leaf_ref) for leaf_ref in other.leaf_refs()])
-            # self is alt struct and other has a ref
-            # check if any leaf node contains other's ref
-            return any([leaf_ref.contains(other_ref) for leaf_ref in self.leaf_refs()])
-        except NotImplementedError:
-            return False
+    def is_ancestor_of(self, other: 'ReferenceableBookNode') -> bool:
+        other_node = other._get_titled_tree_node()
+        self_node = self._get_titled_tree_node()
+        return self_node.is_ancestor_of(other_node)
 
     def _get_titled_tree_node(self) -> schema.TitledTreeNode:
+        raise NotImplementedError
+
+    def leaf_refs(self) -> list[text.Ref]:
+        """
+        Get the Refs for the ReferenceableBookNode leaf nodes from `self`
+        @return:
+        """
         raise NotImplementedError
 
 
@@ -139,9 +121,6 @@ class IndexNodeReferenceableBookNode(ReferenceableBookNode):
 
     def ref(self) -> text.Ref:
         return self._titled_tree_node.ref()
-
-    def leaf_refs(self) -> list[text.Ref]:
-        return [n.ref() for n in self._get_titled_tree_node().get_leaf_nodes()]
 
 
 class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
@@ -216,6 +195,9 @@ class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
 
     def ref_part_title_trie(self, *args, **kwargs):
         return self._titled_tree_node.get_match_template_trie(*args, **kwargs)
+
+    def leaf_refs(self) -> list[text.Ref]:
+        return [n.ref() for n in self._get_titled_tree_node().get_leaf_nodes()]
 
 
 class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
