@@ -111,16 +111,18 @@ class ReaderPanel extends Component {
     // Because it's called in the constructor, assume state isnt necessarily defined and pass
     // variables mode and menuOpen manually
     let contentLangOverride = originalLanguage;
-    if (["topics", "allTopics", "calendars", "community", "collection" ].includes(menuOpen)) {   //  "story_editor",
-      // Always bilingual for English interface, always Hebrew for Hebrew interface
-      contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
-
-    } else if (mode === "Connections" || !!menuOpen){
+    if (["topics"].includes(menuOpen)) {
+      contentLangOverride = "bilingual";
+    }
+    else if (mode === "Connections" || !!menuOpen){
       // Always Hebrew for Hebrew interface, treat bilingual as English for English interface
       contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
-
     }
     return contentLangOverride;
+  }
+  getContentLanguageOverrideStateful() {
+    // same as getContentLanguageOverride() but relies on values in this.state
+    return this.getContentLanguageOverride(this.state.settings.language, this.state.mode, this.state.menuOpen);
   }
   clonePanel(panel) {
     // Todo: Move the multiple instances of this out to a utils file
@@ -615,6 +617,30 @@ class ReaderPanel extends Component {
     const highlighted = this.getHighlightedByScrollPos();
     highlighted.click();
   }
+  getPanelType() {
+    const {menuOpen, tab} = this.state;
+    if (menuOpen === "topics") {
+      return `${menuOpen}_${tab}`;
+    }
+  }
+  getPanelName() {
+    const {menuOpen, navigationTopic, navigationTopicCategory} = this.state;
+    if (menuOpen === "topics") {
+      return navigationTopicCategory || navigationTopic;
+    }
+  }
+  getPanelNumber() {
+    // TODO update for commentary panels
+    return this.props.panelPosition+1;
+  }
+  getAnalyticsData() {
+    return {
+      panel_type: this.getPanelType(),
+      panel_number: this.getPanelNumber(),
+      content_lang: this.getContentLanguageOverrideStateful(),
+      panel_name: this.getPanelName(),
+    };
+  }
   render() {
     if (this.state.error) {
       return (
@@ -636,7 +662,7 @@ class ReaderPanel extends Component {
 
     let items = [];
     let menu = null;
-    const contextContentLang = {"language": this.getContentLanguageOverride(this.state.settings.language, this.state.mode, this.state.menuOpen)};
+    const contextContentLang = {"language": this.getContentLanguageOverrideStateful()};
 
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       const oref  = Sefaria.parseRef(this.state.refs[0]);
@@ -1081,7 +1107,8 @@ class ReaderPanel extends Component {
     );
     return (
       <ContentLanguageContext.Provider value={contextContentLang}>
-        <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
+        <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region"
+             id={"panel-"+this.props.panelPosition} data-anl-batch={JSON.stringify(this.getAnalyticsData())}>
           {hideReaderControls ? null :
           <ReaderControls
             showBaseText={this.showBaseText}
