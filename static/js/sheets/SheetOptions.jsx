@@ -26,10 +26,16 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSaving, setSaving] = useState(false);
   const [isExporting, setExporting] = useState(getExportingStatus());
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
-  if ((isAdding || isSaving || isCopying) && !Sefaria._uid) {
-    toggleSignUpModal();
-  }
-  else if (isSharing) {
+  useEffect(() => {
+    if ((isAdding || isSaving || isCopying || isExporting) && !Sefaria._uid) {
+      toggleSignUpModal();
+      setCopying(false);
+      setAdding(false);
+      setSaving(false);
+      setExporting(false);
+    }
+  }, [isAdding, isSaving, isCopying]);
+  if (isSharing) {
     return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
   else if (isAdding) {
