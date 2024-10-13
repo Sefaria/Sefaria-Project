@@ -27,10 +27,16 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
   const [isSaving, setSaving] = useState(false);
   const [isExporting, setExporting] = useState(getExportingStatus());
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
-  if ((isAdding || isSaving || isCopying) && !Sefaria._uid) {
-    toggleSignUpModal();
-  }
-  else if (isSharing) {
+  useEffect(() => {
+    if ((isAdding || isSaving || isCopying || isExporting) && !Sefaria._uid) {
+      toggleSignUpModal();
+      setCopying(false);
+      setAdding(false);
+      setSaving(false);
+      setExporting(false);
+    }
+  }, [isAdding, isSaving, isCopying]);
+  if (isSharing) {
     return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
   else if (isAdding) {
@@ -142,6 +148,7 @@ const CopyModal = ({close, sheetID}) => {
       return await filterAndSaveCopiedSheetData(loadedSheet);
     }
     if (!loaded) {
+      setLoaded(true);
       fetchData().then((response) => {
         if (response.id) {
           setCopyText(copyState.copied);
@@ -153,7 +160,8 @@ const CopyModal = ({close, sheetID}) => {
     }
   })
   const getCopySuccessMessage = () => {
-    return <><InterfaceText>Success!</InterfaceText> <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
+    return <><InterfaceText>Success!</InterfaceText>&nbsp;
+              <a className="copySuccessMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
               <InterfaceText>View your Copy</InterfaceText>
               </a>
           </>;
@@ -242,8 +250,8 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     }
     else {
       return <>
-               <a href={googleDriveLink}><InterfaceText text={googleDriveText}/></a>
-               <InterfaceText>View in Google Docs</InterfaceText>
+                <InterfaceText text={googleDriveText}/>&nbsp;
+                <a href={googleDriveLink} target="_blank"><InterfaceText>View in Google Docs</InterfaceText></a>
              </>
     }
   }
