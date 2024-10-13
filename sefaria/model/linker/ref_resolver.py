@@ -188,6 +188,10 @@ class AmbiguousResolvedRef:
         # assumption is first resolved refs pretty_text is good enough
         return self.resolved_raw_refs[0].pretty_text
 
+    @property
+    def resolution_failed(self) -> bool:
+        return False
+
 
 PossiblyAmbigResolvedRef = Union[ResolvedRef, AmbiguousResolvedRef]
 
