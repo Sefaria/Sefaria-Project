@@ -2680,7 +2680,7 @@ _media: {},
     'authors': ['popular-writing-of'],
   },
   getTopic: function(slug, {annotated=true, with_html=false}={}) {
-    const cat = Sefaria.topicTocCategory(slug);
+    const cat = Sefaria.displayTopicTocCategory(slug);
     let ref_link_type_filters = ['about', 'popular-writing-of']
     // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.
     if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug]) {
@@ -2706,6 +2706,8 @@ _media: {},
     const tabs = {};
     for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
       for (let refObj of linkTypeObj.refs) {
+        // sheets are no longer displayed on topic pages
+        if (refObj.is_sheet) { continue; }
         let tabKey = linkTypeSlug;
         if (tabKey === 'about') {
             tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) ? 'notable-sources' : 'sources';
@@ -2724,14 +2726,13 @@ _media: {},
             shouldDisplay: linkTypeObj.shouldDisplay,
           };
         }
-        const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
         if (refObj.order) {
             refObj.order = {...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
                                 numDatasource: refObj?.order?.numDatasource || 1,
                                 tfidf: refObj?.order?.tfidf || 0,
                                 pr: refObj?.order?.pr || 0,
                                 curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}}}
-        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
+        tabs[tabKey].refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
       }
     }
     for (let tabObj of Object.values(tabs)) {
@@ -2793,12 +2794,15 @@ _media: {},
   },
   _initTopicTocCategoryReducer: function(a,c) {
     if (!c.children) {
-      a[c.slug] = c.parent;
-      return a;
+        a[c.slug] = c.parents;
+        return a;
+    }
+    if (!c.parents) {
+        c.parents = [];
     }
     for (let sub_c of c.children) {
-      sub_c.parent = { en: c.en, he: c.he, slug: c.slug };
-      Sefaria._initTopicTocCategoryReducer(a, sub_c);
+        sub_c.parents = c.parents.concat({ en: c.en, he: c.he, slug: c.slug });
+        Sefaria._initTopicTocCategoryReducer(a, sub_c);
     }
     return a;
   },
@@ -2810,10 +2814,13 @@ _media: {},
     }
     return this._topicTocPages[key]
   },
-  topicTocCategory: function(slug) {
+  topicTocCategories: function(slug) {
     // return category english and hebrew for slug
     if (!this._topicTocCategory) { this._initTopicTocCategory(); }
     return this._topicTocCategory[slug];
+  },
+  displayTopicTocCategory: function(slug) {
+    return this.topicTocCategories(slug)?.at(-1);
   },
   _topicTocCategoryTitles: null,
   _initTopicTocCategoryTitles: function() {
