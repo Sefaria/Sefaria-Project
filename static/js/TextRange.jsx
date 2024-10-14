@@ -5,7 +5,7 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
-import {EnglishText, HebrewText} from "./Misc";
+import {EnglishText, HebrewText, LoadingMessage} from "./Misc";
 import {VersionContent} from "./ContentText";
 import {ContentText} from "./ContentText";
 import {ReaderPanelContext} from "./context";
@@ -250,22 +250,25 @@ class TextRange extends Component {
 
   render() {
     const data = this.state.data;
-    let title, heTitle, ref;
-    if (data && this.props.basetext) {
-      ref              = this.props.withContext ? data.sectionRef : data.ref;
-      const sectionStrings   = Sefaria.sectionString(ref);
-      const oref             = Sefaria.ref(ref);
-      const useShortString   = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]) !== -1;
-      title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
-      heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;
-    } else if (data && !this.props.basetext) {
-      title            = data.ref;
-      heTitle          = data.heRef;
-      ref              = data.ref;
-    } else if (!data) {
-      title            = "Loading...";
-      heTitle          = "טעינה...";
-      ref              = null;
+    let title, ref;
+    if (!data) {
+      title = (<LoadingMessage/>);
+      ref = null;
+    } else {
+      let enTitle, heTitle;
+      if (this.props.basetext) {
+        ref = this.props.withContext ? data.sectionRef : data.ref;
+        const sectionStrings = Sefaria.sectionString(ref);
+        const oref = Sefaria.ref(ref);
+        const useShortString = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]) !== -1;
+        enTitle = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
+        heTitle = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;
+      } else if (data && !this.props.basetext) {
+        enTitle = data.ref;
+        heTitle = data.heRef;
+        ref = data.ref;
+      }
+      title = (<ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>)
     }
     const formatEnAsPoetry = data && data.formatEnAsPoetry
     const formatHeAsPoetry = data && data.formatHeAsPoetry
@@ -395,7 +398,7 @@ class TextRange extends Component {
         {this.props.hideTitle ? null :
         (<div className="title">
           <div className="titleBox" role="heading" aria-level="2">
-            <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>
+            {title}
           </div>
           {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
         </div>)}
