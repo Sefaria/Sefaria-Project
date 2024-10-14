@@ -9988,7 +9988,7 @@ span.purim-emoji img{
   box-sizing: border-box;
   position: relative;
 }
-.sheetContent .button, .sheetContentSidebar .largeFollowButton {
+.sheetContent .collectionsWidgetDone .button, .sheetContentSidebar .largeFollowButton {
   background-color: var(--midrash-green);
 }
 .sheetContentSidebar .largeFollowButton {
@@ -9997,6 +9997,8 @@ span.purim-emoji img{
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
+  min-height: 31px;
+  height: 31px;
 }
 
 .sheetContent {
