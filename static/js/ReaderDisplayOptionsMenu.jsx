@@ -33,12 +33,12 @@ const ReaderDisplayOptionsMenu = () => {
         return width > 600 || language !== 'bilingual';
     }
 
-    const haAliyot = () => {
+    const hasAliyot = () => {
         let booksWithAliyot = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Onkelos Genesis", "Onkelos Exodus", "Onkelos Leviticus", "Onkelos Numbers", "Onkelos Deuteronomy"];
         return booksWithAliyot.includes(textsData?.book);
     };
     const showAliyotToggle = () => {
-        return haAliyot() && panelMode !== "Sheet";
+        return hasAliyot() && panelMode !== "Sheet";
     };
     const aliyotAreShown = aliyotShowStatus === 'aliyotOn';
     const onAliyotClick = () => {
