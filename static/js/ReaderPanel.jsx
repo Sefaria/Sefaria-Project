@@ -154,6 +154,10 @@ class ReaderPanel extends Component {
     }
     return contentLangOverride;
   }
+  getContentLanguageOverrideStateful() {
+    // same as getContentLanguageOverride() but relies on values in this.state
+    return this.getContentLanguageOverride(this.state.settings.language, this.state.mode, this.state.menuOpen);
+  }
   clonePanel(panel) {
     // Todo: Move the multiple instances of this out to a utils file
     return Sefaria.util.clone(panel);
@@ -629,6 +633,30 @@ class ReaderPanel extends Component {
     const highlighted = this.getHighlightedByScrollPos();
     highlighted.click();
   }
+  getPanelType() {
+    const {menuOpen, tab} = this.state;
+    if (menuOpen === "topics") {
+      return `${menuOpen}_${tab}`;
+    }
+  }
+  getPanelName() {
+    const {menuOpen, navigationTopic, navigationTopicCategory} = this.state;
+    if (menuOpen === "topics") {
+      return navigationTopicCategory || navigationTopic;
+    }
+  }
+  getPanelNumber() {
+    // TODO update for commentary panels
+    return this.props.panelPosition+1;
+  }
+  getAnalyticsData() {
+    return {
+      panel_type: this.getPanelType(),
+      panel_number: this.getPanelNumber(),
+      content_lang: this.getContentLanguageOverrideStateful(),
+      panel_name: this.getPanelName(),
+    };
+  }
   render() {
     if (this.state.error) {
       return (
@@ -663,6 +691,7 @@ class ReaderPanel extends Component {
       punctuationState: this.state.settings.punctuationTalmud,
       width: this.state.width,
     };
+    const contextContentLang = {"language": this.getContentLanguageOverrideStateful()};
 
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       const oref  = Sefaria.parseRef(this.state.refs[0]);
@@ -1068,7 +1097,8 @@ class ReaderPanel extends Component {
     );
     return (
       <ReaderPanelContext.Provider value={readerPanelContextData}>
-        <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
+        <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region"
+             id={"panel-"+this.props.panelPosition} data-anl-batch={JSON.stringify(this.getAnalyticsData())}>
           {hideReaderControls ? null :
             <ReaderControls
               showBaseText={this.showBaseText}
