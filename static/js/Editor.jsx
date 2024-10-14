@@ -1078,7 +1078,7 @@ const Element = (props) => {
             empty: 1
           }
           return (
-            <div className={classNames(spacerClasses)} {...attributes}>
+            <div className={classNames(spacerClasses, Sefaria.languageClassFont())} {...attributes} >
               {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
             </div>
           );
@@ -2524,7 +2524,7 @@ const SefariaEditor = (props) => {
             });
 
             //TODO: Check that we still need/want this temporary analytics tracking code
-            try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
+            // try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
         }, []
     )
 

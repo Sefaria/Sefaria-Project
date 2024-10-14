@@ -11877,6 +11877,13 @@ span.purim-emoji img {
     pointer-events: none;
 }
 
+.sheetItem:only-of-type.empty .placeholder::before {
+    line-height: inherit;
+    color: #999;
+    position: absolute;
+    pointer-events: none;
+} 
+
 .interface-english .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-english .spacer:only-of-type.empty:before,
 .interface-english .spacer:only-of-type.empty:before {
@@ -11886,8 +11893,15 @@ span.purim-emoji img {
 .interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-hebrew .spacer:only-of-type.empty:before,
 .interface-hebrew .spacer:only-of-type.empty:before {
-    content: "לכתוב משהו...";
+    content:"འདིར་རྩོམ་འབྲི...";
 }
+
+.int-zh .sheetItem:only-of-type.empty .SheetOutsideText:before,
+.int-zh .spacer:only-of-type.empty:before,
+.int-zh .spacer:only-of-type.empty:before {
+    content:"在这里写文章...";
+}
+
 
 .editorAddInterface {
     position: relative;
