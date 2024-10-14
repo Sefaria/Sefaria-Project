@@ -17,6 +17,7 @@ import {
 } from "./SheetContentSegments";
 import { useState } from "react";
 import React from "react";
+import {SignUpModalKind} from "../sefaria/signupModalContent";
 
 class SheetContent extends Component {
   componentDidMount() {
@@ -211,10 +212,11 @@ class SheetContent extends Component {
     if (!sources.length) return null;
 
     return sources.map((source, i) => {
-      const addToSheetButton = this.props.highlightedNode === source.node ?
+      const addToSheetButton = this.props.highlightedNode === source.node &&
                                               <AddToSheetButton sheetID={this.props.sheetID}
                                                                 highlightedRefs={this.props.highlightedRefs}
-                                                                highlightedNode={this.props.highlightedNode}/> : null;
+                                                                highlightedNode={this.props.highlightedNode}
+                                                                toggleSignUpModal={this.props.toggleSignUpModal}/>;
       if ("ref" in source) {
         return this.renderSheetSource(source, i, addToSheetButton);
       } else if ("comment" in source) {
@@ -253,11 +255,18 @@ class SheetContent extends Component {
   }
 }
 
-const AddToSheetButton = ({highlightedNode, sheetID, highlightedRefs}) => {
+const AddToSheetButton = ({highlightedNode, sheetID, highlightedRefs, toggleSignUpModal}) => {
+  const handleClick = () => {
+    if (Sefaria._uid) {
+      setShowingModal(true);
+    } else {
+      toggleSignUpModal(SignUpModalKind.AddToSheet);
+    }
+  }
   const [showingModal, setShowingModal] = useState(false);
   const nodeRef = `${sheetID}.${highlightedNode}`;
   return <>
-    <div onClick={() => setShowingModal(true)} className="addToSheetButton">
+    <div onClick={handleClick} className="addToSheetButton">
       <span className="addToSheetPlus">+</span>
       <span className="addToSheetText">Add to Sheet</span>
     </div>
