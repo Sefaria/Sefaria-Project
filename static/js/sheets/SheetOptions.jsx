@@ -20,27 +20,42 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => {
+  // `editable` -- whether the sheet belongs to the current user
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
-  const [isAdding, setAdding] = useState(false);  // Edit Collections Modal open or closed
+  const [isCollectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
   const [isCopying, setCopying] = useState(false);
   const [isSaving, setSaving] = useState(false);
   const [isExporting, setExporting] = useState(getExportingStatus());
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
+  const getSignUpModalKind = () => {
+    if (isSaving) {
+      return SignUpModalKind.Save;
+    }
+    else if (isCollectionsMode) {
+      return SignUpModalKind.AddToSheet;
+    }
+    else if (isCopying) {
+      return SignUpModalKind.AddToSheet;
+    }
+    else if (isExporting) {
+      return SignUpModalKind.Default;
+    }
+  }
   useEffect(() => {
-    if ((isAdding || isSaving || isCopying || isExporting) && !Sefaria._uid) {
-      toggleSignUpModal();
+    if ((isCollectionsMode || isSaving || isCopying || isExporting) && !Sefaria._uid) {
+      toggleSignUpModal(getSignUpModalKind());
       setCopying(false);
-      setAdding(false);
+      setCollectionsMode(false);
       setSaving(false);
       setExporting(false);
     }
-  }, [isAdding, isSaving, isCopying, isExporting]);
+  }, [isCollectionsMode, isSaving, isCopying, isExporting]);
   if (isSharing) {
     return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
-  else if (isAdding) {
-    return <EditCollectionsModal isOpen={isAdding} close={() => setAdding(false)} sheetID={sheetID}/>;
+  else if (isCollectionsMode) {
+    return <CollectionsModal isOpen={isCollectionsMode} close={() => setCollectionsMode(false)} sheetID={sheetID}/>;
   }
   else if (isCopying) {
     return <CopyModal close={() => setCopying(false)} sheetID={sheetID}/>;
@@ -60,10 +75,13 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
             />
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <GoogleDocExportButton sheetID={sheetID} onClick={() => setExporting(true)}/>
+            <CopyButton onClick={() => setCopying(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <CopyButton onClick={() => setCopying(true)}/>
+            <CollectionsButton setCollectionsMode={setCollectionsMode} editable={editable}/>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <GoogleDocExportButton sheetID={sheetID} onClick={() => setExporting(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
@@ -73,16 +91,18 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
                                       descHe={""}
                                       onClick={() => setSharing(true)}/>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
-                                      textEn={'Edit Collections'}
-                                      textHe={'צירוף לאסופה'}
-                                      descEn={""}
-                                      descHe={""}
-                                      onClick={() => setAdding(true)}/>
-          </DropdownMenuItem>
         </DropdownMenu>
     );
+}
+
+const CollectionsButton = ({setCollectionsMode, editable}) => {
+  const label = editable ? "Edit Collections" : "Add to Collection";
+  return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
+                                      textEn={label}
+                                      textHe={Sefaria._(label)}
+                                      descEn={""}
+                                      descHe={""}
+                                      onClick={() => setCollectionsMode(true)}/>
 }
 const ShareModal = ({sheetID, close}) => {
   return <Modal isOpen={true} close={close}>
@@ -92,7 +112,7 @@ const ShareModal = ({sheetID, close}) => {
           />
         </Modal>;
 }
-const EditCollectionsModal = ({close, sheetID}) => {
+const CollectionsModal = ({close, sheetID}) => {
   return <Modal isOpen={true} close={close}>
             <CollectionsWidget sheetID={sheetID} close={close} />
         </Modal>;
@@ -205,7 +225,7 @@ const GoogleDocExportButton = ({ onClick }) => {
   return <div>
             <ToolsButton en={googleDriveText.en}
                          he={googleDriveText.he}
-                         image="googledrive.svg"
+                         image="googledrivecolor.png"
                          onClick={() => onClick()} />
           </div>;
 }
