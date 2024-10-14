@@ -276,6 +276,7 @@ class SheetMedia extends Component {
             <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
             : null }
         </div>
+        {this.isImage() && this.props.addToSheetButton}
       </section>
     );
   }
