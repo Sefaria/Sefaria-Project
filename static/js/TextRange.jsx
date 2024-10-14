@@ -268,7 +268,7 @@ class TextRange extends Component {
         heTitle = data.heRef;
         ref = data.ref;
       }
-      title = (<ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>)
+      title = (<ContentText text={{en: enTitle, he: heTitle}} defaultToInterfaceOnBilingual={true}/>)
     }
     const formatEnAsPoetry = data && data.formatEnAsPoetry
     const formatHeAsPoetry = data && data.formatHeAsPoetry
