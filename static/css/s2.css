@@ -5712,14 +5712,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heLeft.bilingual .segment > .translation,
 .heRight.bilingual .segment > .primary,
 .heLeft.bilingual .segment > p > .translation,
-.heRight.bilingual .segment > p > .primary {
+.heRight.bilingual .segment > p > .primary,
+.heRight.bilingual .sheetItem.segment > .he,
+.heLeft.bilingual .sheetItem.segment > .en{
   float: right;
   padding-left: 20px;
 }
 .heRight.bilingual .segment > .translation,
 .heLeft.bilingual .segment > .primary,
 .heRight.bilingual .segment > p > .translation,
-.heLeft.bilingual .segment > p > .primary {
+.heLeft.bilingual .segment > p > .primary,
+.heRight.bilingual .sheetItem.segment > .en,
+.heLeft.bilingual .sheetItem.segment > .he{
   float: left;
   padding-right: 20px;
 }
