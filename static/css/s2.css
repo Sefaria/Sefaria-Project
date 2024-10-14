@@ -13683,11 +13683,13 @@ span.ref-link-color-3 {color: blue}
   overflow:hidden;
 }
 .sheetsInPanel .dropdownItem {
-  padding: revert;
+  padding: 5px 5px !important;
 }
 
 .sheetsInPanel .dropdownLinks .dropdownLinks-menu {
   background: white;
+  box-shadow: revert;
+  border: 1px solid #CCCCCC;
 }
 
 

@@ -59,18 +59,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
             />
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <GoogleDocExportButton sheetID={sheetID} onClick={() => setExporting(true)}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
             <CopyButton onClick={() => setCopying(true)}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
-                                      textEn={'Share'}
-                                      textHe={'שיתוף'}
-                                      descEn={""}
-                                      descHe={""}
-                                      onClick={() => setSharing(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
@@ -79,6 +68,17 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID}) => {
                                       descEn={""}
                                       descHe={""}
                                       onClick={() => setAdding(true)}/>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <GoogleDocExportButton sheetID={sheetID} onClick={() => setExporting(true)}/>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
+                                      textEn={'Share'}
+                                      textHe={'שיתוף'}
+                                      descEn={""}
+                                      descHe={""}
+                                      onClick={() => setSharing(true)}/>
           </DropdownMenuItem>
         </DropdownMenu>
     );
@@ -201,7 +201,7 @@ const GoogleDocExportButton = ({ onClick }) => {
   return <div>
             <ToolsButton en={googleDriveText.en}
                          he={googleDriveText.he}
-                         image="googledrive.svg"
+                         image="googledrivecolor.png"
                          onClick={() => onClick()} />
           </div>;
 }
