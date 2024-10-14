@@ -10,8 +10,9 @@ import ToggleSwitchLine from "./components/ToggleSwitchLine";
 const ReaderDisplayOptionsMenu = () => {
     const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width} = useContext(ReaderPanelContext);
 
-    const isSidePanel = panelMode !== 'Text';
+    const isSidePanel = !['Text', 'Sheet'].includes(panelMode);
     const showLangaugeToggle = () => {
+      if (panelMode === 'Sheet') { return false; }
       if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
       if (!textsData) return true;
@@ -30,7 +31,11 @@ const ReaderDisplayOptionsMenu = () => {
     const borderLine = <div className="text-menu-border"/>;
 
     const showLayoutsToggle = () => {
-        return width > 600 || language !== 'bilingual';
+        if ((panelMode === 'Sheet' && Sefaria.interfaceLang === 'hebrew') || //sheets in hebrew interface are hebrew
+        (width <= 600 && language !== 'bilingual')) { //no loyout for mobile biilingual
+            return false;
+        }
+        return true;
     }
 
     const hasAliyot = () => {

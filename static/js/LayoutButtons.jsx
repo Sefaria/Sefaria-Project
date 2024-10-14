@@ -3,22 +3,26 @@ import {ReaderPanelContext} from "./context";
 import {layoutOptions} from "./constants";
 import {InterfaceText} from "./Misc";
 
-const calculateLayoutState = (language, primaryDir, translationDir) => {
+const calculateLayoutState = () => {
+    const {language, textsData, panelMode} = useContext(ReaderPanelContext);
+    const primaryDir = textsData?.primaryDirection;
+    const translationDir = textsData?.translationDirection;
     return (language !== 'bilingual') ? 'mono' //one text
-        : (primaryDir !== translationDir) ? 'mixed' //two texts with different directions
+        : (primaryDir !== translationDir || panelMode === 'Sheet') ? 'mixed' //two texts with different directions
             : (primaryDir === 'rtl') ? 'bi-rtl' //two rtl texts
                 : 'bi-ltr'; //two ltr texts
 }
 
 const LayoutButtons = () => {
-    const {language, textsData, setOption, layout} = useContext(ReaderPanelContext);
-    const layoutState = calculateLayoutState(language, textsData?.primaryDirection, textsData?.translationDirection);
+    const {language, textsData, setOption, layout, panelMode} = useContext(ReaderPanelContext);
+    const layoutState = calculateLayoutState();
 
     const getPath = (layoutOption) => {
         if (layoutState === 'mixed') {
-            const translationDirection = textsData?.translationDirection || textsData?.primaryDirection.split('').reverse().join(''); //when there is an empty translation it has no direction. we will show the button as opposite layouts.
-            const directions = (layoutOption === 'heLeft') ? `${textsData?.primaryDirection}${translationDirection}`  //heLeft means primary in left
-                : `${translationDirection}${textsData?.primaryDirection}`;
+            const primaryDirection = textsData?.primaryDirection || 'rtl'; //no primary is the case of sheet
+            const translationDirection = textsData?.translationDirection || primaryDirection.split('').reverse().join(''); //when there is an empty translation it has no direction. we will show the button as opposite layouts.
+            const directions = (layoutOption === 'heLeft') ? `${primaryDirection}${translationDirection}`  //heLeft means primary in left
+                : `${translationDirection}${primaryDirection}`;
             if (layoutOption !== 'stacked') {
                 layoutOption = 'beside';
             }
