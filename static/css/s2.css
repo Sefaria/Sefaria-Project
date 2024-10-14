@@ -10620,11 +10620,14 @@ section.SheetOutsideBiText {
 
 .readerPanel.hebrew section.SheetSource .sheetItem > .he,
 .readerPanel.english section.SheetSource .sheetItem > .en,
+.readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .en > .sourceContentText,
 .readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .he,
 .readerPanel.english section.SheetOutsideBiText .sheetItem > .en {
   display: block;
 }
-.readerPanel.hebrew section.SheetSource .sheetItem > .en,
+.readerPanel.hebrew section.SheetSource .sheetItem:not(.enOnly) > .en,
+.readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .en > .ref,
+.readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .he > .sourceContentText,
 .readerPanel.english section.SheetSource .sheetItem > .he,
 .readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .en,
 .readerPanel.english section.SheetOutsideBiText .sheetItem > .he  {
