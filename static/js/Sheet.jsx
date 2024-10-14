@@ -92,7 +92,7 @@ class Sheet extends Component {
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
-    const editable = Sefaria._uid === sheet.owner;
+    const editable = Sefaria._uid === sheet?.owner;
     let content;
     if (!sheet) {
       content = (<LoadingMessage />);
