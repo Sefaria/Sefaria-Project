@@ -8492,6 +8492,7 @@ a.sheetAuthorName:hover {
   line-height: 35.16px;
   margin-block-end: 15px;
   flex: 1 0 95%;
+  text-align: initial;
 }
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
   content: "ללא שם";
