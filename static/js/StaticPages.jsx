@@ -3115,7 +3115,6 @@ const JobsPage = memo(() => {
             ) : loading ? (
                 <>
                     <LoadingMessage />
-                    <LoadingRing />
                 </>
             ) : (
                 <>
@@ -3253,9 +3252,11 @@ const Product = ({product}) => {
 const ProductsPage = memo(() => {
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         loadProducts();
+        setLoading(false);
     }, []);
 
     // GraphQL query to Strapi
@@ -3432,23 +3433,24 @@ const ProductsPage = memo(() => {
     const devBoxPosition = 2;
     const initialProducts = ProductList.slice(0, devBoxPosition);
     const remainingProducts = ProductList.slice(devBoxPosition);
-
     return (
-        <>
-                <h1 className="mobileAboutHeader">
+        loading ? <LoadingMessage/> :
+            <>
+
+                 <h1 className="mobileAboutHeader">
                     <span className="int-en">Sefaria's Products</span>
                     <span className="int-he">מוצרים של בספריא</span>
                 </h1>
-            <div className='productsFlexWrapper'>
-                {products && products.length > 0  ? (
-                    <>
-                    {initialProducts}
-                    {/* <DevBox /> */}
-                    {remainingProducts}
-                    </>
-                ) : null}
-            </div>
-        </>
+                <div className='productsFlexWrapper'>
+                    {products && products.length > 0  ? (
+                        <>
+                        {initialProducts}
+                        {/* <DevBox /> */}
+                        {remainingProducts}
+                        </>
+                    ) : null}
+                </div>
+           </>
     );
 });
 
