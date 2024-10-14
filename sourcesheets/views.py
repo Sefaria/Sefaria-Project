@@ -66,7 +66,8 @@ def annotate_user_links(sources):
 @ensure_csrf_cookie
 def new_sheet(request):
 	profile = UserProfile(id=request.user.id)
-	if getattr(profile, "uses_new_editor", False):
+    #if getattr(profile, "uses_new_editor", False):
+	if True:
 		sheet = {
 				'status': 'unlisted',
 				'title': '',

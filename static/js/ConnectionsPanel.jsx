@@ -780,7 +780,6 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
             sheet.options.collaboration === "anyone-can-add"
         )
     )
-    console.log(sheet)
   }, []);
 
   return (<div className="topToolsButtons">
