@@ -95,6 +95,7 @@ class Sheet extends Component {
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
+    const editable = Sefaria._uid === sheet.owner;
     let content;
     if (!sheet) {
       content = (<LoadingMessage />);
@@ -102,7 +103,8 @@ class Sheet extends Component {
     else {
       const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
                                                  sheetID={sheet.id}
-                                                 historyObject={this.props.historyObject}/>;
+                                                 historyObject={this.props.historyObject}
+                                                 editable={editable}/>;
       content = (
             <div className="sidebarLayout">
               <SheetContent
@@ -116,7 +118,7 @@ class Sheet extends Component {
                   highlightedNode={this.props.highlightedNode}
                   highlightedRefsInSheet={this.props.highlightedRefsInSheet}
                   scrollToHighlighted={this.props.scrollToHighlighted}
-                  editable={Sefaria._uid === sheet.owner}
+                  editable={editable}
                   setSelectedWords={this.props.setSelectedWords}
                   sheetNumbered={sheet.options.numbered}
                   hideImages={!!sheet.hideImages}
@@ -141,7 +143,7 @@ class Sheet extends Component {
     }
     return (
       <div className={classes}>
-        { sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor ?
+        { sheet && editable && Sefaria._uses_new_editor ?
         <div className="sheetContent">
           <SefariaEditor
             data={sheet}
