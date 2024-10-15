@@ -3,7 +3,7 @@ import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "../sefaria/sefaria";
 import {
-  InterfaceText, ProfilePic, SheetAuthorStatement,
+  InterfaceText, ProfilePic,
   SheetMetaDataBox, SheetMetaDataBoxSegment
 } from "../Misc";
 import React from "react";
