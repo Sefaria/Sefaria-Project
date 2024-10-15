@@ -3297,7 +3297,7 @@ a.cardTitle:hover {
   font-weight: 400;
   line-height: 18.75px;
   margin-block-end: 20px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .sheetViewer {
   display: flex;
