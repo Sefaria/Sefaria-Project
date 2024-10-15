@@ -3440,5 +3440,5 @@ export {
   OnInView,
   TopicPictureUploader,
   ImageWithCaption, 
-  handleAnalyticsOnMarkdown,
+  handleAnalyticsOnMarkdown
 };
