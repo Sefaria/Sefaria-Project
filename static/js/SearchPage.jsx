@@ -4,7 +4,6 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
-import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
 import SearchFilters from './SearchFilters';
 import Component from 'react-class';
@@ -24,6 +23,7 @@ class SearchPage extends Component {
       mobileFiltersOpen: false,
     };
   }
+
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
@@ -93,9 +93,9 @@ class SearchPage extends Component {
                         <SearchFilters
                             query={this.props.query}
                             searchState={this.props.searchState}
-                            updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.type, this.props.searchState)}
-                            updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.type)}
-                            updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.type)}
+                            updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
+                            updateAppliedOptionField={this.props.updateAppliedOptionField}
+                            updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                             closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
                             compare={this.props.compare}
                             type={this.props.type}/>

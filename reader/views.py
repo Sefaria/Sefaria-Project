@@ -785,24 +785,28 @@ def get_search_params(get_dict, i=None):
         return [urllib.parse.unquote(f) for f in get_dict.get(get_param(prefix+filter_type+"Filters", i)).split("|")] if get_dict.get(get_param(prefix+filter_type+"Filters", i), "") else []
 
     sheet_filters_types = ("collections", "topics_en", "topics_he")
-    sheet_filters = []
-    sheet_agg_types = []
-    for filter_type in sheet_filters_types:
-        filters = get_filters("s", filter_type)
-        sheet_filters += filters
-        sheet_agg_types += [filter_type] * len(filters)
-    text_filters = get_filters("t", "path")
+    filters = []
+    agg_types = []
+    sort = None
+    field = None
+    if get_dict.get('tab') == 'text':
+        filters = get_filters("t", "path")
+        sort = get_dict.get(get_param("tsort", i), None)
+        agg_types = [None for _ in filters] # currently unused. just needs to be equal len as filters
+        field = ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else ""
+    else:
+        for filter_type in sheet_filters_types:
+            filters += get_filters("s", filter_type)
+            agg_types += [filter_type] * len(filters)
+        sort = get_dict.get(get_param("ssort", i), None)
 
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
-        "textField": ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else "",
-        "textSort": get_dict.get(get_param("tsort", i), None),
-        "textFilters": text_filters,
-        "textFilterAggTypes": [None for _ in text_filters],  # currently unused. just needs to be equal len as text_filters
-        "sheetSort": get_dict.get(get_param("ssort", i), None),
-        "sheetFilters": sheet_filters,
-        "sheetFilterAggTypes": sheet_agg_types,
+        "field": field,
+        "sort": sort,
+        "filters": filters,
+        "filterAggTypes": agg_types,
     }
 
 
@@ -840,13 +844,10 @@ def search(request):
         "initialMenu": "search",
         "initialQuery": search_params["query"],
         "initialSearchType": search_params["tab"],
-        "initialTextSearchFilters": search_params["textFilters"],
-        "initialTextSearchFilterAggTypes": search_params["textFilterAggTypes"],
-        "initialTextSearchField": search_params["textField"],
-        "initialTextSearchSortType": search_params["textSort"],
-        "initialSheetSearchFilters": search_params["sheetFilters"],
-        "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
-        "initialSheetSearchSortType": search_params["sheetSort"]
+        "initialSearchFilters": search_params["filters"],
+        "initialSearchFilterAggTypes": search_params["filterAggTypes"],
+        "initialSearchField": search_params["field"],
+        "initialSearchSortType": search_params["sort"],
     }
     return render_template(request,'base.html', props, {
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
@@ -1603,7 +1604,7 @@ def find_holiday_in_hebcal_results(response):
                 topic = Topic.init(result['key'])
                 if topic:
                     return topic.contents()
-    return null
+    return None
 
 @catch_error_as_json
 def next_holiday(request):
@@ -2343,6 +2344,22 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
+    def update_version(request, title, lang, version):
+        flags = json.loads(request.POST.get("json"))
+        title = title.replace("_", " ")
+        version = version.replace("_", " ")
+        vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+        if flags.get("newVersionTitle"):
+            vobj.versionTitle = flags.get("newVersionTitle")
+        for flag in _attributes_to_save:
+            if flag in flags:
+                if flag == 'license' and flags[flag] == "":
+                    delattr(vobj, flag)
+                else:
+                    setattr(vobj, flag, flags[flag])
+        vobj.save()
+        return jsonResponse({"status": "ok"})
+
     _attributes_to_save = Version.optional_attrs + ["versionSource"]
 
     if not request.user.is_authenticated:
@@ -2356,31 +2373,9 @@ def flag_text_api(request, title, lang, version):
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can flag texts."})
 
-        flags = json.loads(request.POST.get("json"))
-        title   = title.replace("_", " ")
-        version = version.replace("_", " ")
-        vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
-        if flags.get("newVersionTitle"):
-            vobj.versionTitle = flags.get("newVersionTitle")
-        for flag in _attributes_to_save:
-            if flag in flags:
-                setattr(vobj, flag, flags[flag])
-        vobj.save()
-        return jsonResponse({"status": "ok"})
+        return update_version(request, title, lang, version)
     elif request.user.is_staff:
-        @csrf_protect
-        def protected_post(request, title, lang, version):
-            flags = json.loads(request.POST.get("json"))
-            title   = title.replace("_", " ")
-            version = version.replace("_", " ")
-            vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
-            if flags.get("newVersionTitle"):
-                vobj.versionTitle = flags.get("newVersionTitle")
-            for flag in _attributes_to_save:
-                if flag in flags:
-                    setattr(vobj, flag, flags[flag])
-            vobj.save()
-            return jsonResponse({"status": "ok"})
+        protected_post = csrf_protect(update_version)
         return protected_post(request, title, lang, version)
     else:
         return jsonResponse({"error": "Unauthorized"})
@@ -3541,10 +3536,12 @@ def user_profile(request, username):
     if not requested_profile.user.is_active:
         raise Http404('Profile is inactive.')
 
+    owner_of_profile = request.user.is_authenticated and request.user.id == requested_profile.id
+
     tab = request.GET.get("tab", "sheets")
     props = {
         "initialMenu":  "profile",
-        "initialProfile": requested_profile.to_api_dict(),
+        "initialProfile": requested_profile.to_api_dict(basic=not owner_of_profile),
         "initialTab": tab,
     }
     title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
@@ -3556,14 +3553,24 @@ def user_profile(request, username):
 
 
 @catch_error_as_json
-def profile_api(request):
+def profile_api(request, slug=None):
     """
     API for user profiles.
     """
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+    if request.method == "GET":
+        profile = UserProfile(slug=slug)
+        if not slug or profile.id is None:
+            raise Http404("Please Supply a valid user identification")
+        owner_of_profile = request.user.is_authenticated and request.user.id == profile.id
+        return jsonResponse(profile.to_api_dict(basic = not owner_of_profile))
 
-    if request.method == "POST":
+    elif request.method == "POST":
+        # The POST only works for the logged in user, which is more common for a website view rather than API.
+        # If the API were to be consistent, we might need to add ability to post updates for any user,
+        # and of course limit authorization on who can do that
+        if not request.user.is_authenticated:
+            return jsonResponse({"error": _("You must be logged in to update your profile.")})
+
         profileJSON = request.POST.get("json")
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
@@ -3579,6 +3586,7 @@ def profile_api(request):
         else:
             profile.save()
             return jsonResponse(profile.to_mongo_dict())
+
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
@@ -3624,14 +3632,6 @@ def account_user_update(request):
         else:
             return jsonResponse({"error": error})
 
-    return jsonResponse({"error": "Unsupported HTTP method."})
-
-
-@catch_error_as_json
-def profile_get_api(request, slug):
-    if request.method == "GET":
-        profile = UserProfile(slug=slug)
-        return jsonResponse(profile.to_api_dict())
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 

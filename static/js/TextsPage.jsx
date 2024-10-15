@@ -5,7 +5,6 @@ import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar, Modules, RecentlyViewed } from './NavSidebar';
 import TextCategoryPage  from './TextCategoryPage';
-import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   TextBlockLink,
@@ -93,11 +92,9 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     multiPanel ? {type: "RecentlyViewed", props: {toggleSignUpModal}} : {type: null},
     {type: "Translations"},
     {type: "LearningSchedules"},
-    {type: "JoinTheCommunity"},
     {type: "Resources"},
   ];
 
-  const footer = compare ? null : <Footer />;
   const classes = classNames({readerNavMenu:1, compare: compare, noLangToggleInHebrew: 1 });
   return (
     <div className={classes} key="0">
@@ -114,7 +111,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
           </div>
           {!compare ? <NavSidebar modules={sidebarModules} /> : null}
         </div>
-        {footer}
       </div>
     </div>
   );

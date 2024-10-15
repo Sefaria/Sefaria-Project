@@ -1034,6 +1034,7 @@ def sheets_by_ref_api(request, ref):
     if include_collections:
         sheets = annotate_sheets_with_collections(sheets)
     return jsonResponse(sheets)
+
 def sheets_with_ref(request, tref):
     """
     Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
@@ -1042,10 +1043,10 @@ def sheets_with_ref(request, tref):
 
     props={
         "initialSearchType": "sheet",
-        "initialTextSearchField": search_params["textField"],
-        "initialSheetSearchFilters": search_params["sheetFilters"],
-        "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
-        "initialSheetSearchSortType": search_params["sheetSort"]
+        "initialSearchField": search_params["field"],
+        "initialSearchFilters": search_params["filters"],
+        "initialSearchFilterAggTypes": search_params["filterAggTypes"],
+        "initialSearchSortType": search_params["sort"]
     }
     he_tref = Ref(tref).he_normal()
     normal_ref = tref if request.interfaceLang == "english" else he_tref

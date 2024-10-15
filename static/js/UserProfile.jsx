@@ -3,7 +3,6 @@ import Component from 'react-class';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import NoteListing  from './NoteListing';
-import Footer  from './Footer';
 import {
   CollectionListing,
   FilterableList,
@@ -342,7 +341,7 @@ class UserProfile extends Component {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu">
         <div className="content noOverflowX">
-          {this.props.profile.show_editor_toggle ?  <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
+          {(this.props.profile.id === Sefaria._uid && this.props.profile.show_editor_toggle)  ? <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
               <div>
@@ -435,7 +434,6 @@ class UserProfile extends Component {
             </div>
             }
           </div>
-          <Footer />
         </div>
       </div>
     );
