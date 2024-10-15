@@ -8432,7 +8432,7 @@ a .button:hover {
   font-size: 16px;
   font-weight: 500;
   line-height: 18.75px;
-  color: #666666;
+  color: var(--dark-grey);
   margin-block-end: 15px;
 }
 .sheetMetaDataBox .title {
