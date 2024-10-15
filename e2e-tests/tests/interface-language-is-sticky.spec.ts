@@ -1,5 +1,5 @@
 import {test, expect} from '@playwright/test';
-import {goToPageWithLang, isIsraelIp} from "../utils";
+import {changeLanguageOfText, goToPageWithLang, isIsraelIp} from "../utils";
 import {LANGUAGES, SOURCE_LANGUAGES} from '../globals'
 
 const interfaceTextHE = 'מקורות';
@@ -43,11 +43,8 @@ const interfaceTextEN = 'Texts';
         // Navigating to Bereshit with selected Interface Language, Hebrew or English
         const page = await goToPageWithLang(context,'/Genesis.1',`${interfaceLanguageToggle}`)
         
-        // Clicking on the Source Language toggle
-        await page.getByAltText('Toggle Reader Menu Display Settings').click()
-
         // Selecting Source Language
-        await page.locator('div').filter({ hasText: sourceLanguageToggle }).click()
+        await changeLanguageOfText(page, sourceLanguageToggle)
     
         // Locating the source text segment, then verifying translation
         await expect(page.locator('div.segmentNumber').first().locator('..').locator('p')).toContainText(`${expectedSourceText}`)
