@@ -8,7 +8,7 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 import {ReaderPanelContext} from "./context";
-import DropdownMenu from "./components/DropdownMenu";
+import DropdownMenu from "./common/DropdownMenu";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 
 

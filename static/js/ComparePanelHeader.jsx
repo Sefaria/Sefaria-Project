@@ -9,7 +9,7 @@ import {
   SearchButton,
 } from './Misc';
 import {ContentText} from "./ContentText";
-import DropdownMenu from "./components/DropdownMenu";
+import DropdownMenu from "./common/DropdownMenu";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {ReaderPanelContext} from "./context";
 

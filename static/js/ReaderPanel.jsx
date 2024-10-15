@@ -42,7 +42,7 @@ import {
 } from './Misc';
 import {ContentText} from "./ContentText";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
-import DropdownMenu from "./components/DropdownMenu";
+import DropdownMenu from "./common/DropdownMenu";
 
 
 class ReaderPanel extends Component {

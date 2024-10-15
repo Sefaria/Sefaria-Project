@@ -32,7 +32,7 @@ import Hebrew from './sefaria/hebrew.js';
 
 import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
-import DropdownMenu from "./components/DropdownMenu";
+import DropdownMenu from "./common/DropdownMenu";
 import Cookies from "js-cookie";
 
 

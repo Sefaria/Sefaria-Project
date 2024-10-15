@@ -5,7 +5,7 @@ import SourceTranslationsButtons from "./SourceTranslationsButtons";
 import {ReaderPanelContext} from "./context";
 import LayoutButtons from "./LayoutButtons";
 import FontSizeButtons from "./FontSizeButton";
-import ToggleSwitchLine from "./components/ToggleSwitchLine";
+import ToggleSwitchLine from "./common/ToggleSwitchLine";
 
 const ReaderDisplayOptionsMenu = () => {
     const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width} = useContext(ReaderPanelContext);
