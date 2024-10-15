@@ -20,7 +20,7 @@ import {ContentText} from "./ContentText";
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
-  toggleLanguage, openTextTOC, openDisplaySettings, multiPanel, initialWidth, compare, toggleSignUpModal}) => {
+  toggleLanguage, openTextTOC, multiPanel, initialWidth, compare, toggleSignUpModal}) => {
   // List of Texts in a Category
   if (categories.length) {
     return (
@@ -31,7 +31,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
           setCategories={setCategories}
           openTextTOC={openTextTOC}
           toggleLanguage={toggleLanguage}
-          openDisplaySettings={openDisplaySettings}
           compare={compare}
           multiPanel={multiPanel}
           initialWidth={initialWidth} />
@@ -65,7 +64,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     <ComparePanelHeader
       search={true}
       onBack={onCompareBack}
-      openDisplaySettings={openDisplaySettings}
       openSearch={openSearch}
     /> : null;
 
@@ -124,7 +122,6 @@ TextsPage.propTypes = {
   settings:            PropTypes.object.isRequired,
   setCategories:       PropTypes.func.isRequired,
   openSearch:          PropTypes.func.isRequired,
-  openDisplaySettings: PropTypes.func,
   toggleLanguage:      PropTypes.func,
   multiPanel:          PropTypes.bool,
   compare:             PropTypes.bool,

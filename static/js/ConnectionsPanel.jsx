@@ -50,7 +50,7 @@ class ConnectionsPanel extends Component {
     this.state = {
       flashMessage: null,
       currObjectVersions: { en: null, he: null },
-      mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
+      // mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
       availableTranslations: [],
       linksLoaded: false, // has the list of refs been loaded
       connectionSummaryCollapsed: true,
@@ -63,7 +63,7 @@ class ConnectionsPanel extends Component {
   componentDidMount() {
     this._isMounted = true;
     this.loadData();
-    this.getCurrentVersions();
+    this.setCurrentVersions();
     this.debouncedCheckVisibleSegments = Sefaria.util.debounce(this.checkVisibleSegments, 100);
     this.addScrollListener();
   }
@@ -73,7 +73,7 @@ class ConnectionsPanel extends Component {
     this.removeScrollListener();
   }
   componentDidUpdate(prevProps, prevState) {
-    if (!prevProps.srefs.compare(this.props.srefs)) {
+    if (prevProps.srefs !== this.props.srefs) {
       this.loadData();
     }
     // Turn on the lexicon when receiving new words if they are less than 3
@@ -90,11 +90,10 @@ class ConnectionsPanel extends Component {
       this.props.setConnectionsMode("Resources");
     }
 
-    if (prevProps.currVersions.en !== this.props.currVersions.en ||
-      prevProps.currVersions.he !== this.props.currVersions.he ||
+    if (!Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions) ||
       prevProps.masterPanelLanguage !== this.props.masterPanelLanguage ||
       prevProps.srefs[0] !== this.props.srefs[0]) {
-      this.getCurrentVersions();
+      this.setCurrentVersions();
     }
 
     if (prevProps.mode !== this.props.mode || prevProps.connectionsCategory !== this.props.connectionsCategory) {
@@ -232,51 +231,29 @@ class ConnectionsPanel extends Component {
     this.props.setConnectionsMode("Resources");
     this.flashMessage("Success! You've created a new connection.");
   }
-  getData(cb) {
+  async getData() {
     // Gets data about this text from cache, which may be null.
     const versionPref = Sefaria.versionPreferences.getVersionPref(this.props.srefs[0]);
-    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(cb);
+    return await Sefaria.getTextFromCurrVersions(this.props.srefs[0], this.props.currVersions, this.props.translationLanguagePreference, 1);
   }
-  getVersionFromData(d, lang) {
-    //d - data received from this.getData()
-    //language - the language of the version
-    //console.log(d);
-    const currentVersionTitle = (lang === "he") ? d.heVersionTitle : d.versionTitle;
-    return {
-      ...d.versions.find(v => v.versionTitle === currentVersionTitle && v.language === lang),
-      title: d.indexTitle,
-      heTitle: d.heIndexTitle,
-      sources: lang === "he" ? d.heSources : d.sources,
-      merged: lang === "he" ? !!d.heSources : !!d.sources,
+  async setCurrentVersions() {
+    const data = await this.getData();
+    let currentLanguage = this.props.masterPanelLanguage;
+    if (currentLanguage === "bilingual") {
+      currentLanguage = "hebrew"
     }
-  }
-  getCurrentVersions() {
-    const data = this.getData((data) => {
-      let currentLanguage = this.props.masterPanelLanguage;
-      if (currentLanguage === "bilingual") {
-        currentLanguage = "hebrew"
-      }
-      if (!data || data.error) {
-        this.setState({
-          currObjectVersions: { en: null, he: null },
-          mainVersionLanguage: currentLanguage,
-        });
-        return
-      }
-      if (currentLanguage === "hebrew" && !data.he.length) {
-        currentLanguage = "english"
-      }
-      if (currentLanguage === "english" && !data.text.length) {
-        currentLanguage = "hebrew"
-      }
+    if (!data || data.error) {
       this.setState({
-        currObjectVersions: {
-          en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? this.getVersionFromData(data, "en") : null,
-          he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? this.getVersionFromData(data, "he") : null,
-        },
-        mainVersionLanguage: currentLanguage,
-        sectionRef: data.sectionRef,
+        currObjectVersions: { en: null, he: null },
       });
+    }
+    const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(data.versions);
+    this.setState({
+      currObjectVersions: {
+        en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? translation : null,
+        he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? primary : null,
+      },
+      sectionRef: data.sectionRef,
     });
   }
   checkSrefs(srefs) {
@@ -449,7 +426,6 @@ class ConnectionsPanel extends Component {
         onCitationClick={this.props.onCitationClick}
         handleSheetClick={this.props.handleSheetClick}
         openNav={this.props.openNav}
-        openDisplaySettings={this.props.openDisplaySettings}
         closePanel={this.props.closePanel}
         selectedWords={this.props.selectedWords}
         checkVisibleSegments={this.checkVisibleSegments}
@@ -487,14 +463,14 @@ class ConnectionsPanel extends Component {
         selectedWordsForSheet = null;
       } else { // add source from sheet itself
         refForSheet = this.props.srefs;
-        versionsForSheet = this.props.currVersions;
+        versionsForSheet = this.state.currObjectVersions;
         selectedWordsForSheet = this.props.selectedWords;
         nodeRef = this.props.nodeRef;
       }
       content = (<div>
         <AddToSourceSheetBox
           srefs={refForSheet}
-          currVersions={versionsForSheet} //sidebar doesn't actually do versions
+          currObjectVersions={versionsForSheet} //sidebar doesn't actually do versions
           contentLanguage={this.props.masterPanelLanguage}
           selectedWords={selectedWordsForSheet}
           nodeRef={nodeRef}
@@ -607,13 +583,16 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Login") {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
 
-    } else if (this.props.mode === "About") {
+    } else if (this.props.mode === "About" || this.props.mode === 'Version Open') {
       content = (<AboutBox
         currObjectVersions={this.state.currObjectVersions}
         masterPanelLanguage={this.props.masterPanelLanguage}
         setConnectionsMode={this.props.setConnectionsMode}
         mode={this.props.mode}
         setFilter={this.props.setVersionFilter}
+        vFilter={this.props.versionFilter}
+        onRangeClick={this.props.onTextClick}
+        onCitationClick={this.props.onCitationClick}
         title={this.props.title}
         srefs={this.props.srefs}
         sectionRef={this.state.sectionRef}
@@ -725,7 +704,6 @@ ConnectionsPanel.propTypes = {
   onTextClick: PropTypes.func,
   onCitationClick: PropTypes.func,
   openNav: PropTypes.func,
-  openDisplaySettings: PropTypes.func,
   closePanel: PropTypes.func,
   toggleLanguage: PropTypes.func,
   selectedWords: PropTypes.string,
@@ -1295,7 +1273,7 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
       let currentLangParam;
       const langCode = masterPanelLanguage.slice(0, 2);
       if (currVersions[langCode]) {
-        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(currVersions[langCode]);
+        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(currVersions[langCode].versionTitle);
       }
       let path = "/edit/" + refString;
       let nextParam = "?next=" + encodeURIComponent(currentPath);

@@ -219,7 +219,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 
 
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth,
-  openDisplaySettings, openSearch}) => {
+  openSearch}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
@@ -398,7 +398,7 @@ const getTopicHeaderAdminActionButtons = (topicSlug, refTopicLinks) => {
     return actionButtons;
 };
 
-const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
+const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const category = !!topicData ? Sefaria.displayTopicTocCategory(topicData.slug) : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
@@ -449,10 +449,10 @@ const AuthorIndexItem = ({url, title, description}) => {
   return (
       <div className="authorIndex" >
       <a href={url} className="navBlockTitle">
-        <ContentText text={title} defaultToInterfaceOnBilingual />
+        <InterfaceText text={title} />
       </a>
       <div className="navBlockDescription">
-        <ContentText text={description} defaultToInterfaceOnBilingual />
+        <InterfaceText text={description} />
       </div>
     </div>
   );
@@ -534,8 +534,8 @@ const getTopicPageAnalyticsData = (slug, langPref) => {
 };
 
 const TopicPage = ({
-  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome,
-  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref,
+  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, navHome,
+  toggleSignUpModal, setTab, openSearch, translationLanguagePreference, versionPref,
   topicTestVersion, onSetTopicSort, topicSort
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
@@ -713,7 +713,7 @@ const TopicPage = ({
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
-                    <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} topicImage={topicImage} />
+                    <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} topicImage={topicImage} />
                     {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
                           currTabName={tab}
@@ -783,9 +783,7 @@ TopicPage.propTypes = {
   openTopics:          PropTypes.func.isRequired,
   setTab:              PropTypes.func.isRequired,
   multiPanel:          PropTypes.bool,
-  showBaseText:        PropTypes.func,
   navHome:             PropTypes.func,
-  openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,
   topicTestVersion:    PropTypes.string
 };
