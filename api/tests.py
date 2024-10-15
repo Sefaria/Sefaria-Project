@@ -179,6 +179,12 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data['warnings'][0]['hebrew|Kishkoosh']['message'],
                          'We do not have version named Kishkoosh with language hebrew for The Book of Maccabees I 1')
 
+    def test_api_get_text_no_version_fill_in(self):
+        response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=hebrew|Kishkoosh&fill_in_missing_segments=1")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(len(data["versions"]), 1)
+
     def test_fill_in_missing_segments(self):
         vtitle = "Maimonides' Mishneh Torah, edited by Philip Birnbaum, New York, 1967"
         response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=english|{vtitle}&fill_in_missing_segments=1")
