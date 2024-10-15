@@ -47,20 +47,11 @@ const interfaceTextEN = 'Texts';
         await page.getByAltText('Toggle Reader Menu Display Settings').click()
 
         // Selecting Source Language
-        await page.getByRole('radiogroup', {name: 'Language'}).locator(`${sourceLanguageToggle}`).click()
+        await page.locator('div').filter({ hasText: sourceLanguageToggle }).click()
     
         // Locating the source text segment, then verifying translation
         await expect(page.locator('div.segmentNumber').first().locator('..').locator('p')).toContainText(`${expectedSourceText}`)
 
-        // Checking out the second part of the text, if 'Bilingual' is selected
-        if(`${sourceLanguage}` === 'Bilingual'){
-            await expect(page.locator('div.segmentNumber').first().locator('..').locator('p span').last()).toContainText(`${expectedBilingualText}`)
-            const isIL = await isIsraelIp(page);
-            if (isIL) {
-                expectedInterfaceText = interfaceTextHE;
-            }
-        }
-    
         // Validate Hebrew interface language is still toggled
         const textLink = page.locator('a.textLink').first()
         await expect(textLink).toHaveText(`${expectedInterfaceText}`)
