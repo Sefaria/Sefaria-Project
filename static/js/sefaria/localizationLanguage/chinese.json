@@ -379,6 +379,7 @@
         "sheet.number_sources": "编号资源",
         "sheet.box_sources": "框选资源",
         "sheet.sheet_language": "表单语言",
+        "sheet.editor.write_something": "Write something...",
         "sheet.sheet_layout": "表单布局",
         "sheet.stacked": "堆叠",
         "sheet.side_by_side": "并排",

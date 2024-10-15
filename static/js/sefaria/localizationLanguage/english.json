@@ -378,6 +378,7 @@
     "sheet.assignment": "Assignments",
     "sheet.print": "Print",
     "sheet.insert": "Insert",
+    "sheet.editor.write_something": "Write something...",
     "sheet.format": "Format",
     "sheet.number_sources": "Number Sources",
     "sheet.box_sources": "Box Sources",

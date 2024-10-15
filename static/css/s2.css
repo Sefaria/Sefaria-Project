@@ -128,16 +128,16 @@ a, a:hover {
 }
 
 @font-face {
-    /*Tibetan | Monlam-bodyig bold */
-    font-family: 'Monlam-bodyig bold';
+    /*Tibetan | Monlam-bodyig regular */
+    font-family: 'Monlam-bodyig Regular';
     src: url('/static/fonts/Monlam-bodyig Regular.ttf');
     unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
 }
 
 @font-face {
     /*Tibetan | wujin+gangbi*/
-    font-family: 'wujin+gangbi';
-    src: url('/static/fonts/wujin+gangbi.ttf');
+    font-family: 'Monlam Uni OuChan2';
+    src: url('/static/fonts/Monlam Uni OuChan2.ttf');
     unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
 }
 
@@ -164,10 +164,10 @@ a, a:hover {
 :root {
     /* font stacks */
     --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    --hebrew-sans-serif-font-family: "Uchen", "Heebo", "Roboto", sans-serif;
+    --hebrew-sans-serif-font-family: "Monlam-bodyig Regular", "Heebo", "Roboto", sans-serif;
 
     --english-serif-font-family: "IndUni-P-Regular", "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-    --hebrew-serif-font-family: "wujin+gangbi", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+    --hebrew-serif-font-family: "Monlam Uni OuChan2", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
     --serif-h1-font-size: 48px;
     --serif-h2-font-size: 30px;
@@ -3637,7 +3637,6 @@ a.navBlockTitle:hover {
 }
 
 .readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .he {
-    font-family: "Uchen";
     font-size: 20px;
     display: inline;
 }
@@ -9687,7 +9686,7 @@ a .button:hover {
 }
 
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
-    content: "ללא שם";
+    content: "མཚན་བྱང་།";
 }
 
 .publishBox {
@@ -11877,6 +11876,13 @@ span.purim-emoji img {
     pointer-events: none;
 }
 
+.sheetItem:only-of-type.empty .placeholder::before {
+    line-height: inherit;
+    color: #999;
+    position: absolute;
+    pointer-events: none;
+} 
+
 .interface-english .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-english .spacer:only-of-type.empty:before,
 .interface-english .spacer:only-of-type.empty:before {
@@ -11886,8 +11892,15 @@ span.purim-emoji img {
 .interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-hebrew .spacer:only-of-type.empty:before,
 .interface-hebrew .spacer:only-of-type.empty:before {
-    content: "לכתוב משהו...";
+    content:"འདིར་རྩོམ་འབྲི...";
 }
+
+.int-zh .sheetItem:only-of-type.empty .SheetOutsideText:before,
+.int-zh .spacer:only-of-type.empty:before,
+.int-zh .spacer:only-of-type.empty:before {
+    content:"在这里写文章...";
+}
+
 
 .editorAddInterface {
     position: relative;
