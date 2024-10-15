@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon} from "../common/DropdownMenu";
-import {InterfaceText, SaveButton, SaveButtonWithText} from "../Misc";
+import {InterfaceText, SaveButtonWithText} from "../Misc";
 import Modal from "../shared/modal";
 import {ShareBox, ToolsButton} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
