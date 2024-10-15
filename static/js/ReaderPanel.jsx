@@ -1056,6 +1056,7 @@ class ReaderPanel extends Component {
 
     const hideReaderControls = (
       this.state.mode === "TextAndConnections" ||
+      this.state.mode === "Sheet" ||
       this.state.menuOpen ||
       this.props.hideNavHeader
     );
