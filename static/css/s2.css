@@ -9687,7 +9687,7 @@ a .button:hover {
 }
 
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
-    content: "ללא שם";
+    content: "མཚན་བྱང་།";
 }
 
 .publishBox {
