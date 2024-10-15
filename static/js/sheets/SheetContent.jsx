@@ -213,7 +213,6 @@ class SheetContent extends Component {
 }
 
 const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage}) => {
-  console.log(Sefaria.interfaceLang);
   return <SheetMetaDataBox>
     <SheetMetaDataBoxSegment text={title} className="title"/>
     {summary && <SheetMetaDataBoxSegment text={summary} className="summary"/>}
