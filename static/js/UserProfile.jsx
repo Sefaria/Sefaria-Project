@@ -347,7 +347,6 @@ class UserProfile extends Component {
               <div>
                 <ProfileSummary
                   profile={this.props.profile}
-                  follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
                   toggleSignUpModal={this.props.toggleSignUpModal}
@@ -550,7 +549,6 @@ const EditorToggleHeader = ({usesneweditor}) => {
    </>
  )
 }
-
 
 const ProfileBio = ({profile: p}) => {
     // used in ProfileSummary and in SheetContentSidebar, renders user education, organization, and location info
