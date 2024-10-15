@@ -5,6 +5,7 @@ import {Editor, createEditor, Range, Node, Transforms, Path, Text, Point, Elemen
 import {Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocused} from 'slate-react'
 import isHotkey from 'is-hotkey'
 import Sefaria from './sefaria/sefaria';
+import * as sheetsUtils from './sefaria/sheetsUtils'
 
 import {
     SheetMetaDataBox,
@@ -1077,7 +1078,7 @@ const Element = (props) => {
             empty: 1
           }
           return (
-            <div className={classNames(spacerClasses)} {...attributes}>
+            <div className={classNames(spacerClasses, Sefaria.languageClassFont())} {...attributes} >
               {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
             </div>
           );
@@ -1884,7 +1885,7 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
 }
 
 
-const insertSource = (editor, ref) => {
+const insertSource = async (editor, ref) => {
     const path = editor.selection.anchor.path;
 
     Transforms.setNodes(editor, { loading: true }, {at: path});
@@ -1892,47 +1893,39 @@ const insertSource = (editor, ref) => {
     const nodeAbove = getNodeAbove(path, editor)
     const nodeBelow = getNodeBelow(path, editor)
 
-    Sefaria.getText(ref, {stripItags: 1}).then(text => {
-        let segments = Sefaria.makeSegments(text, false);
-        segments = Sefaria.stripImagesFromSegments(segments);
+    const {en: normalEnRef, he: normalHeRef} = await sheetsUtils.getNormalRef(ref);
 
-        let includeNumbers = $.inArray("Talmud", text.categories) == -1;
-        includeNumbers = text.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
-        const segmented = !(text.categories[0] in {"Tanakh": 1, "Talmud": 1});
+    let segments = await sheetsUtils.getSegmentObjs([ref])
 
-        const enText = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
-            .filter(Boolean)
-            .join("");
-        const heText = segments.map(placed_segment_mapper.bind(this, "he", segmented, includeNumbers))
-            .filter(Boolean)
-            .join("");
+    const enText = sheetsUtils.segmentsToSourceText(segments, 'en');
 
-        let fragment = [{
-                type: "SheetSource",
-                node: editor.children[0].nextNode,
-                ref: text.ref,
-                heRef: text.heRef,
-                heText: parseSheetItemHTML(heText),
-                enText: parseSheetItemHTML(enText),
-                title: null,
-                children: [
-                    {text: ""},
-                ]
-        }];
+    const heText = sheetsUtils.segmentsToSourceText(segments, 'he');
 
-        if (!(nodeBelow.node && (nodeBelow.node.type == "SheetOutsideText" || nodeBelow.node.type == "paragraph" ) )) {
-          fragment.push({type: 'spacer', children: [{text: ""}]})
-        }
-        Transforms.setNodes(editor, { loading: false }, { at: path });
-        addItemToSheet(editor, fragment);
-        checkAndFixDuplicateSheetNodeNumbers(editor)
-        if (nodeAbove.node && (nodeAbove.node.type == "SheetOutsideText" || nodeAbove.node.type == "paragraph" ) ) {
-          Transforms.delete(editor, {at: path})
-        }
+    let fragment = [{
+            type: "SheetSource",
+            node: editor.children[0].nextNode,
+            ref: normalEnRef,
+            heRef: normalHeRef,
+            heText: parseSheetItemHTML(heText),
+            enText: parseSheetItemHTML(enText),
+            title: null,
+            children: [
+                {text: ""},
+            ]
+    }];
+
+    if (!(nodeBelow.node && (nodeBelow.node.type == "SheetOutsideText" || nodeBelow.node.type == "paragraph" ) )) {
+      fragment.push({type: 'spacer', children: [{text: ""}]})
+    }
+    Transforms.setNodes(editor, { loading: false }, { at: path });
+    addItemToSheet(editor, fragment);
+    checkAndFixDuplicateSheetNodeNumbers(editor)
+    if (nodeAbove.node && (nodeAbove.node.type == "SheetOutsideText" || nodeAbove.node.type == "paragraph" ) ) {
+      Transforms.delete(editor, {at: path})
+    }
 
 
-        Transforms.move(editor, { unit: 'block', distance: 1 })
-    });
+    Transforms.move(editor, { unit: 'block', distance: 1 })
 };
 
 
@@ -2531,7 +2524,7 @@ const SefariaEditor = (props) => {
             });
 
             //TODO: Check that we still need/want this temporary analytics tracking code
-            try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
+            // try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
         }, []
     )
 
