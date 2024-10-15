@@ -13368,7 +13368,7 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 
-.popover-menu {
+.dropdownMenu {
   position: relative;
   display: flex;
   flex-direction: row-reverse;
@@ -13391,12 +13391,12 @@ span.ref-link-color-3 {color: blue}
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
-.popover-button {
+.dropdownButton {
   border: none;
   background-color: inherit;
 }
 
-.rightButtons .popover-button {
+.rightButtons .dropdownButton {
   text-align: end;
 }
 

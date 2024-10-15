@@ -42,7 +42,7 @@ import {
 } from './Misc';
 import {ContentText} from "./ContentText";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
-import PopoverMenu from "./components/PopoverMenu";
+import DropdownMenu from "./components/DropdownMenu";
 
 
 class ReaderPanel extends Component {
@@ -1382,7 +1382,7 @@ class ReaderControls extends Component {
             tooltip={true}
             toggleSignUpModal={this.props.toggleSignUpModal}
           />
-          <PopoverMenu buttonContent={displaySettingsButton} menu={displaySettingsMenu} context={ReaderPanelContext}/>
+          <DropdownMenu buttonContent={displaySettingsButton} menu={displaySettingsMenu} context={ReaderPanelContext}/>
         </div>);
     const openTransBannerApplies = () => Sefaria.openTransBannerApplies(this.props.currentBook(), this.props.settings.language);
     let banner = (hideHeader || connectionsHeader) ? null : (
