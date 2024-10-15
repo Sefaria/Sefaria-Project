@@ -6,11 +6,11 @@ const DropdownMenu = ({buttonContent, menu, context}) => {
   const {isMenuOpen, setIsMenuOpen} = useContext(context);
   const wrapperRef = useRef(null);
   useOutsideClick(wrapperRef, () => setIsMenuOpen(false), isMenuOpen);
-  const onClock = () => setIsMenuOpen(!isMenuOpen)
+  const onClick = () => setIsMenuOpen(!isMenuOpen)
 
   return (
     <div className="dropdownMenu" ref={wrapperRef}>
-      <button className="dropdownButton" onClick={onClock}>{buttonContent}</button>
+      <button className="dropdownButton" onClick={onClick}>{buttonContent}</button>
       {isMenuOpen && menu}
     </div>
   );
