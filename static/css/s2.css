@@ -1539,7 +1539,7 @@ div.interfaceLinks-row a {
   display: inline;
 }
 .readerPanel.hebrew .he {
-  display: inline-block;
+  display: inline;
   text-align: right;
 }
 .readerPanel.english .heOnly .he,
@@ -5526,6 +5526,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   direction: ltr;
 }
 .interface-english .readerPanel.rtl .textRange,
+.interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
 .interface-english .readerPanel.hebrew .essayGroup,
 .interface-english .readerPanel.hebrew .structToggles,
@@ -5633,7 +5634,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline;
 }*/
 .bilingual .segment > .he,
-.bilingual .segment > p > .he{
+.bilingual .segment > p > .he,
+.connectionsPanel .textRange .segment > p > .he {
   display: block;
 }
 .bilingual .segment > .en,
