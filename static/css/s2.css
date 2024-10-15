@@ -3322,7 +3322,7 @@ a.cardTitle:hover {
   font-weight: 400;
   line-height: 18.75px;
   margin-block-end: 20px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .sheetViewer {
   display: flex;
@@ -8506,7 +8506,7 @@ a.sheetAuthorName:hover {
   font-size: 16px;
   font-weight: 500;
   line-height: 18.75px;
-  color: #666666;
+  color: var(--dark-grey);
   margin-block-end: 15px;
 }
 .sheetMetaDataBox .title {
@@ -9146,7 +9146,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   opacity: 0.6;
 }
 
-ul.aboutSheetLinks {
+ul.sheetCollectionsLinks {
   list-style-type: none;
   padding-inline-start: 0;
   --english-font: var(--english-sans-serif-font-family);
@@ -9156,7 +9156,7 @@ ul.aboutSheetLinks {
   line-height: 18.75px;
 }
 
-h3.aboutSheetHeader {
+h3.sheetCollections {
   text-transform: none;
   color: var(--dark-grey);
   font-size: var(--sans-serif-h3-font-size);
