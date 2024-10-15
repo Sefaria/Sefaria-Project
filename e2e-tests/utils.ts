@@ -70,13 +70,12 @@ export const getPathAndParams = (url: string) => {
     return urlObj.pathname + urlObj.search;
 }
 
-export const changeLanguageOfText = async (page: Page, sourceLanguage: string) => {
+export const changeLanguageOfText = async (page: Page, sourceLanguage: RegExp) => {
     // Clicking on the Source Language toggle
     await page.getByAltText('Toggle Reader Menu Display Settings').click()
 
     // Selecting Source Language
-    await page.getByRole('radiogroup', {name: 'Language'}).locator(sourceLanguage).click()
-
+    await page.locator('div').filter({ hasText: sourceLanguage }).click()
 }
 
 export const getCountryByIp = async (page: Page) => {

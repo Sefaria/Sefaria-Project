@@ -39,7 +39,7 @@ import {LANGUAGES, SOURCE_LANGUAGES} from '../globals'
          const page = await goToPageWithLang(context,'/Genesis.1', `${interfaceLanguageToggle}`)
 
          // Change the Source Language of the text
-         await changeLanguageOfText(page, `${sourceLanguageToggle}`)
+         await changeLanguageOfText(page, sourceLanguageToggle)
  
          // Retain the translation name locator
          const translationNameInTitle = page.locator('span.readerTextVersion')
