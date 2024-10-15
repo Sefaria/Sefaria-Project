@@ -316,6 +316,10 @@ const TopicSponsorship = ({topic_slug}) => {
         "parashat-vaetchanan": {
             "en": "Shabbat Nachamu learning is dedicated in memory of Jerome L. Stern, Yehuda Leib ben David Shmuel, z\"l.",
             "he": "הלימוד לשבת נחמו מוקדש לזכרו של ג'רום ל. שטרן, יהודה לייב בן דוד שמואל ז\"ל."
+        },
+        "parashat-vzot-haberachah": {
+            "en": "Parashat VeZot HaBerakhah is dedicated to the victims of the October 7th, 2023, terrorist attack in Israel.",
+            "he": "פרשת ״וזאת הברכה״ מוקדשת לקורבנות מתקפת הטרור והטבח הנורא שאירע ב-7 באוקטובר 2023."
         }
 
     };
