@@ -1752,7 +1752,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   openProfile(slug, tab) {
     tab = tab || "sheets";
-    console.log('slug', slug);
     Sefaria.profileAPI(slug).then(profile => {
       this.setSinglePanelState({ menuOpen: "profile", profile, tab: tab});
     });

@@ -44,9 +44,9 @@ const SheetProfileInfo = ({profile}) => {
 const PartOfCollections = ({collections}) => {
     return collections.length > 0 &&
                 <div>
-                    <h3 className="aboutSheetHeader"><InterfaceText>Part of Collections</InterfaceText></h3>
+                    <h3 className="sheetCollections"><InterfaceText>Part of Collections</InterfaceText></h3>
                     <div>
-                        <ul className="aboutSheetLinks">
+                        <ul className="sheetCollectionsLinks">
                             {collections.map((collection, i) => (
                                 <li key={i}><a
                                     href={"/collections/" + collection.slug}><InterfaceText>{collection.name}</InterfaceText></a>
