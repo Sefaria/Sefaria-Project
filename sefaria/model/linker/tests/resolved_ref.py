@@ -1,14 +1,11 @@
 import pytest
-from sqlalchemy import True_
-
-from scripts.sefer_hayashar_restructure import add_alt_struct
-from sefaria.model import ArrayMapNode
-from sefaria.model.linker.referenceable_book_node import *
-from sefaria.model.linker.referenceable_book_node import NamedReferenceableBookNode
+from unittest.mock import Mock
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, NamedReferenceableBookNode, MapReferenceableBookNode
+from sefaria.model.linker.ref_resolver import ResolvedRef
 from sefaria.model.text import Ref
 
 
-def make_num_node(ref: Ref, depth=0, is_alt_struct_ref=False) -> ReferenceableBookNode:
+def make_num_node(ref: Ref, depth=0) -> ReferenceableBookNode:
     ja_node = ref.index_node
     if ja_node.has_default_child():
         ja_node = ja_node.get_default_child()
@@ -52,5 +49,6 @@ zohar_first_daf_node = zohar_volume1_intro_node.get_children()[0]
 def test_contains(node_a: ReferenceableBookNode, node_b: ReferenceableBookNode, self_tref: str, other_tref: str, is_contained: bool):
     self_oref = self_tref and Ref(self_tref)
     other_oref = other_tref and Ref(other_tref)
-    print(node_a.contains(node_b, self_oref, other_oref))
-    assert node_a.contains(node_b, self_oref, other_oref) == is_contained
+    rr_a = ResolvedRef(Mock(), Mock(), node_a, self_oref)
+    rr_b = ResolvedRef(Mock(), Mock(), node_b, other_oref)
+    assert rr_a.contains(rr_b) == is_contained
