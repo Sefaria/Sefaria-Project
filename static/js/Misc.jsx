@@ -2909,7 +2909,7 @@ SheetMetaDataBoxSegment.propTypes = {
 
 
 const SheetAuthorStatement = (props) => (
-  <div contentEditable={false} style={{ userSelect: 'none' }}>
+  <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
     {props.children}
   </div>
 );
