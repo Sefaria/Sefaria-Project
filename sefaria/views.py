@@ -419,7 +419,7 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
                     'url': oref.url()
                 }
             else:
-                he_tc = model.TextChunk(oref, "he", actual_lang=translation_language_preference, vtitle=hebrew_version)
+                he_tc = model.TextChunk(oref, "he", vtitle=hebrew_version)
                 en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference, vtitle=english_version)
                 if hebrew_version and he_tc.is_empty():
                   raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
