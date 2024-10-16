@@ -384,7 +384,7 @@ WEBPACK_LOADER = {
     }
 
 }
-DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
+DATA_UPLOAD_MAX_MEMORY_SIZE = 240000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
