@@ -1,4 +1,5 @@
 {
+        "pwa.download_button.label":"安装 PECHA 应用",
         "text.reader_option_menu.layout": "布局",
         "common.loading": "加载中...",
         "common.version": "版本",
