@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-17 10:14+0530\n"
+"POT-Creation-Date: 2024-10-17 10:29+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -243,7 +243,7 @@ msgstr "管理员密码"
 msgid "Sheet ID to delete"
 msgstr "要删除的表单 ID"
 
-#: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:153
+#: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
 #: templates/messages/2022-01-09-user-testing-modal.html:86
 #: templates/static/aramaic-translation-contest.html:140
 #: templates/static/home.html:362 templates/static/newsletter.html:24
@@ -262,52 +262,57 @@ msgstr "名"
 msgid "Last Name"
 msgstr "姓"
 
-#: sefaria/forms.py:55
-#| msgid "Select a text"
+#: sefaria/forms.py:55 templates/registration/custom_dropdown.html:5
+#: templates/registration/register.html:27
 msgid "Select an option"
 msgstr "选择文本"
 
-#: sefaria/forms.py:56
+#: sefaria/forms.py:56 templates/registration/custom_dropdown.html:10
+#: templates/registration/register.html:32
 msgid "Monastic"
 msgstr "僧侣"
 
-#: sefaria/forms.py:57
+#: sefaria/forms.py:57 templates/registration/custom_dropdown.html:11
+#: templates/registration/register.html:33
 msgid "Teacher"
 msgstr "教师"
 
-#: sefaria/forms.py:58
+#: sefaria/forms.py:58 templates/registration/custom_dropdown.html:12
+#: templates/registration/register.html:34
 msgid "Student"
 msgstr "学生"
 
-#: sefaria/forms.py:59
+#: sefaria/forms.py:59 templates/registration/custom_dropdown.html:13
+#: templates/registration/register.html:35
 msgid "Educated* /Dr / Prof"
 msgstr "受过教育者 / 博士 / 教授"
 
-#: sefaria/forms.py:60
+#: sefaria/forms.py:60 templates/registration/custom_dropdown.html:14
+#: templates/registration/register.html:36
 msgid "regular user"
 msgstr "普通用户"
 
-#: sefaria/forms.py:96
+#: sefaria/forms.py:95
 msgid "A user with that email already exists."
 msgstr "该电子邮件的用户已存在。"
 
-#: sefaria/forms.py:144
+#: sefaria/forms.py:143
 msgid "Incorrect mobile_app_key provided"
 msgstr "提供的 mobile_app_key 不正确"
 
-#: sefaria/forms.py:158
+#: sefaria/forms.py:157
 msgid "New password"
 msgstr "新密码"
 
-#: sefaria/forms.py:159
+#: sefaria/forms.py:158
 msgid "Enter New Password"
 msgstr "输入新密码"
 
-#: sefaria/forms.py:164
+#: sefaria/forms.py:163
 msgid "New password confirmation"
 msgstr "新密码确认"
 
-#: sefaria/forms.py:166
+#: sefaria/forms.py:165
 msgid "Repeat New Password"
 msgstr "重复新密码"
 
@@ -352,7 +357,7 @@ msgstr ""
 msgid "Spanish"
 msgstr ""
 
-#: sefaria/views.py:196 sefaria/views.py:199 sefaria/views.py:283
+#: sefaria/views.py:200 sefaria/views.py:203 sefaria/views.py:287
 #: templates/static/app.html:383
 #: templates/static/aramaic-translation-contest.html:189
 #: templates/static/home.html:392 templates/static/mobile.html:388
@@ -360,17 +365,17 @@ msgstr ""
 msgid "Sorry, there was an error."
 msgstr "对不起，发生了一个错误。"
 
-#: sourcesheets/views.py:402
+#: sourcesheets/views.py:403
 msgid "You must be logged in to create a new collection."
 msgstr "您必须登录才能创建新的收藏。"
 
-#: sourcesheets/views.py:565
+#: sourcesheets/views.py:566
 msgid ""
 "Leaving this collection would leave it without any owners. Please appoint "
 "another owner before leaving, or delete the collection."
 msgstr ""
 
-#: sourcesheets/views.py:1160
+#: sourcesheets/views.py:1161
 msgid "You must be logged in to access this api."
 msgstr "您必须登录才能访问此 API。"
 
@@ -1541,16 +1546,14 @@ msgid ""
 msgstr ""
 
 #: templates/registration/register.html:13
-#, fuzzy
-#| msgid "Sign Up"
 msgid "Sign_Up_Title"
 msgstr "注册"
 
-#: templates/registration/register.html:25
+#: templates/registration/register.html:46
 msgid "Sign_Up_Button"
 msgstr "注册"
 
-#: templates/registration/register.html:29
+#: templates/registration/register.html:50
 msgid "Already have an account? Log in"
 msgstr "已经有账户？登录"
 
