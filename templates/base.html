@@ -387,11 +387,12 @@
       document.querySelectorAll('.dropdown-item').forEach(item => {
           item.addEventListener('click', function() {
             userTypeDisplay.value = this.textContent;
-              userTypeInput.value = this.textContent;
-              console.log("value : ", userTypeDisplay.value)
+              userTypeInput.value = `${item.getAttribute('data-value')}`;
+              console.log("value : ", userTypeInput.value)
               dropdownContent.classList.remove('show');
           });
       });
+
     
       // Close dropdown if clicked outside
       window.addEventListener('click', function(event) {
