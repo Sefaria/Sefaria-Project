@@ -17,6 +17,8 @@
     <meta name="author" content="Pecha.org">
     <meta name="robots" content="index, follow">
     <meta name="revisit-after" content="7 days">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous">
+
 
     {% if noindex or DEBUG %}
         <meta name="robots" content="index, follow">
@@ -370,7 +372,34 @@
       // Add click event listener to the container
       document.getElementById('crossImage').addEventListener('click', loadFeedbucket);
     </script>
-
+    <script>
+      const userTypeInput = document.getElementById('user_type');
+      const userTypeDisplay = document.getElementById('user_type_display');
+      const dropdownContent = document.getElementById('dropdownContent');
+    
+      // Toggle dropdown visibility
+      userTypeDisplay.addEventListener('click', function() {
+        
+          dropdownContent.classList.toggle('show');
+      });
+    
+      // Set value when an option is selected
+      document.querySelectorAll('.dropdown-item').forEach(item => {
+          item.addEventListener('click', function() {
+            userTypeDisplay.value = this.textContent;
+              userTypeInput.value = this.textContent;
+              console.log("value : ", userTypeDisplay.value)
+              dropdownContent.classList.remove('show');
+          });
+      });
+    
+      // Close dropdown if clicked outside
+      window.addEventListener('click', function(event) {
+          if (!event.target.matches('#user_type_display')) {
+              dropdownContent.classList.remove('show');
+          }
+      });
+    </script>
 
     <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="b5a8d317-af7b-4b83-8801-84e6658f1f6e";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
 
