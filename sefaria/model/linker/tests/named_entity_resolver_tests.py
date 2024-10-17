@@ -1,5 +1,5 @@
 import pytest
-from sefaria.model.linker.named_entity_resolver import NamedEntityTitleGenerator, PersonTitleGenerator
+from sefaria.model.linker.named_entity_resolver import PersonTitleGenerator
 
 
 @pytest.mark.parametrize(('title', 'expected_output'), [

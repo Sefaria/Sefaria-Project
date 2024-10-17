@@ -198,7 +198,7 @@ crrd = create_raw_ref_data
 
     [crrd(['@זהר חדש', '@בראשית']), ['Zohar Chadash, Bereshit']],
     [crrd(['@מסכת', '@סופרים', '#ב', '#ג']), ['Tractate Soferim 2:3']],
-    [crrd(['@אדר"נ', '#ב', '#ג']), ["Avot D'Rabbi Natan 2:3"]],
+    [crrd(['@אדר"נ', '#ב', '#ג']), ["Avot DeRabbi Natan 2:3"]],
     [crrd(['@פרק השלום', '#ג']), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
     [crrd(['@ד"א זוטא', '@פרק השלום', '#ג']), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
     [crrd(['@ספר החינוך', '@לך לך', '#ב']), ['Sefer HaChinukh 2']],
