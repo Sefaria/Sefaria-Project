@@ -122,7 +122,7 @@ def process_register_form(request, auth_method='session'):
         elif auth_method == 'jwt':
             token_dict = TokenObtainPairSerializer().validate({"username": form.cleaned_data['email'], "password": form.cleaned_data['password1']})
     else:
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>> not value", form.cleaned_data['user_type'])
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>> not value>>>>>>>>>>>>>>>>>>>>>>>>>", form.errors)
     return {
         k: v[0] if len(v) > 0 else str(v) for k, v in list(form.errors.items())
     }, token_dict, form
