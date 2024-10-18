@@ -12,18 +12,39 @@
         <h1>
           <span>{% trans "Sign_Up_Title" %}</span>
         </h1>
-        <form id="register-form" action="{% url "register" %}" method="post" autocomplete="false">
-        <div style="overflow: visible;">
-          {% csrf_token %}
-          {{ form }}
-      </div>
-      
-        {% if next %}
-            <input type="hidden" name="next" value="{{ next }}" />
-        {% endif %}
-        <button type="submit" class="control-elem button">
-            <span>{% trans "Sign_Up_Button" %}</span>
-        </button>
+          <form id="register-form" action="{% url "register" %}" method="post" autocomplete="false">
+            <div style="overflow: visible;">
+            {% csrf_token %}
+            <label for="email">{{ form.email.label }}</label>
+            {{ form.email }}
+            <label for="first_name">{{ form.first_name.label }}</label>
+            {{ form.first_name }}
+            <label for="last_name">{{ form.last_name.label }}</label>
+            {{ form.last_name }}
+            <label for="password1">{{ form.password1.label }}</label>
+            {{ form.password1 }}
+            <div class="dropdown">
+                <input type="text" id="user_type_display" placeholder={% trans "Select an option" %} readonly required>
+                <span id="dropdownArrow" class="dropdown-arrow">
+                  <i class="fas fa-chevron-down"></i> <!-- Down arrow icon initially -->
+                </span>
+                <div class="dropdown-content" id="dropdownContent">
+                    <div class="dropdown-item" data-value="Monastic">{% trans "Monastic" %}</div>
+                    <div class="dropdown-item" data-value="Teacher">{% trans "Teacher" %}</div>
+                    <div class="dropdown-item" data-value="Student">{% trans "Student" %}</div>
+                    <div class="dropdown-item" data-value="Educated* /Dr / Prof">{% trans "Educated* /Dr / Prof" %}</div>
+                    <div class="dropdown-item" data-value="regular user">{% trans "regular user" %}</div>
+                </div>
+            </div>
+            <input type="hidden" name="user_type" id="user_type" required>
+            {{ form.captcha }}
+          </div>
+          {% if next %}
+              <input type="hidden" name="next" value="{{ next }}" />
+            {% endif %}
+            <button type="submit" class="control-elem button">
+                <span>{% trans "Sign_Up_Button" %}</span>
+            </button>
         </form>
         <a class="registration-links control-elem" href="{% url "login" %}{% if next %}?next={{ next }}{% endif %}">
           <span>{% trans "Already have an account? Log in" %}</span>

@@ -63,8 +63,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
     # Add the select field
     user_type = forms.ChoiceField(
         choices=CHOICES,
-        widget=forms.Select(attrs={  
-            'class': 'custom-select-large-margin'})
+        label="User Type"
     )
 
     captcha_lang = "iw" if get_language() == 'he' else "en"

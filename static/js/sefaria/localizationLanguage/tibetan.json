@@ -1,6 +1,8 @@
 {
+    "pwa.download_button.label":"དཔེ་ཆ་མརྙན་ཆས་ཕབ་ལེན་བྱོས།",
     "text.reader_option_menu.layout": "ཁྱད་ཆོས།",
     "common.loading": "ལེན་བཞིན་པ་་་",
+    "website.pecha.version": "ཐོན་རིམ།: ༡་༤་༠",
     "common.version": "འགྱུར་མའམ་དཔེ་རྒྱུན།",
     "common.log_in": "ནང་འཛུལ།",
     "common.sign_up": "ཐོ་འགོད་གྱིས།",

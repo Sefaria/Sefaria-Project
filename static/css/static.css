@@ -554,14 +554,7 @@
   width: 100%;
   box-sizing: border-box;
 }
-.registrationContent select option {
-  padding: 12px 20px;
-  height: initial;
-  margin: 1% 0px;
-  cursor: pointer;
-  width: 100%;
-  box-sizing: border-box;
-}
+
 .registrationContent input::placeholder { /* eventual spec? */
   font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -590,20 +583,14 @@
   padding-top: 10px;
   padding-bottom: 10px;
 }
-.registrationContent #register-form p:nth-of-type(6){
-  padding-top: 10px;
+
+.registrationContent #register-form .custom-select-large-margin {
+  width: 300px; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap; 
 }
-/* Style the select element */
-.registrationContent #register-form .custom-select-large-margin option {
-  padding: 12px;
-  font-size: 16px;
-  height: 2.5em;   /* Ensures sufficient space */
-}
-/* Style the individual options within the select */
-.registrationContent #register-form .custom-select-large-margin option {
-  padding: 15px 20px;  /* Increase padding inside each option to simulate margin */
-  color:rgba(0, 0, 0, 0.572);
-}
+
 input#id_email::placeholder {
   text-align: left;
 }
@@ -617,18 +604,64 @@ input#id_email{
 .registrationContent a {
   display: block;
 }
-.registrationContent a.registration-links, .registrationContent p.registration-links{
-  margin-top: 20px;
+
+
+/* Dropdown Styles */
+.registrationContent .dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.registrationContent .dropdown #uset_type {
+  padding: 12px 20px;
+  height: initial;
+  margin: 1% 0px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Dropdown Content */
+.registrationContent .dropdown .dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  width: 100%;
+  z-index: 1;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Dropdown Item Styles */
+.registrationContent .dropdown .dropdown-content .dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* Hover Effect for Dropdown Items */
+.registrationContent .dropdown .dropdown-content .dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+/* Show Class for Dropdown */
+.registrationContent .dropdown .dropdown-content.show {
   display: block;
-  text-align: center;
-  color: #999;
-  font-size: 14px;
-  font-style: normal;
-  text-decoration: none;
 }
-.registrationContent a.registration-links:hover{
-  color: #666;
+
+.registrationContent .dropdown .dropdown-arrow {
+  position: absolute;
+  right: 10px; /* Adjust as needed */
+  top: 50%; /* Center vertically */
+  transform: translateY(-50%);
+  pointer-events: none; /* Prevent click events on the icon */
+  color: #333; /* Icon color */
 }
+
+
+
+
 
 
 p.registration-links a{

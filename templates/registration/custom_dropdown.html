@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block content %}
+<div class="dropdown">
+    <input type="text" id="dropdownInput" placeholder={% trans "Select an option" %} readonly required>
+    <span id="dropdownArrow" class="dropdown-arrow">
+      <i class="fas fa-chevron-down"></i> <!-- Down arrow icon initially -->
+    </span>
+    <div class="dropdown-content" id="dropdownContent">
+        <div class="dropdown-item" data-value="Monastic">{% trans "Monastic" %}</div>
+        <div class="dropdown-item" data-value="Teacher">{% trans "Teacher" %}</div>
+        <div class="dropdown-item" data-value="Student">{% trans "Student" %}</div>
+        <div class="dropdown-item" data-value="Educated* /Dr / Prof">{% trans "Educated* /Dr / Prof" %}</div>
+        <div class="dropdown-item" data-value="regular user">{% trans "regular user" %}</div>
+    </div>
+</div>
+{% endblock %}
