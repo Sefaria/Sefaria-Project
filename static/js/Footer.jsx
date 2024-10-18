@@ -18,7 +18,7 @@ const Link = ({href, en, he, blank}) => (
     </a>
 );
 
-class Footer extends Component {
+class Footer extends Component {https://github.com/orgs/OpenPecha/projects/87/views/1?filterQuery=iteration%3A%22Iteration+6%22
   constructor(props) {
     super(props);
     this.state = {};
@@ -35,7 +35,7 @@ class Footer extends Component {
 
     return (
       <div id="version_number" className="flex flex-col items-center">
-        <InterfaceText>Version: 1.3.0</InterfaceText>
+        <InterfaceText>Version: 1.4.0</InterfaceText>
         {/* Install PWA Button */}
         <button id="install-pwa-button" className="pwa-install-button flex items-center">
           <InterfaceText className={"pwa_download_label"}>pwa.download_button.label</InterfaceText>
