@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
+from account.models import UserType
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -80,12 +81,14 @@ def process_register_form(request, auth_method='session'):
     from PIL import Image
     form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
     token_dict = None
+    
     if form.is_valid():
         with transaction.atomic():
             form.save()
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
             profile = UserProfile(id=user.id, user_registration=True)
+            user_type = form.cleaned_data['user_type']
             # add analytics
             add_signup_info(email=profile.email,first_name=profile.first_name,last_name=profile.last_name)
             profile.assign_slug()
@@ -118,9 +121,12 @@ def process_register_form(request, auth_method='session'):
             auth_login(request, user)
         elif auth_method == 'jwt':
             token_dict = TokenObtainPairSerializer().validate({"username": form.cleaned_data['email'], "password": form.cleaned_data['password1']})
+    else:
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>> not value>>>>>>>>>>>>>>>>>>>>>>>>>", form.errors)
     return {
         k: v[0] if len(v) > 0 else str(v) for k, v in list(form.errors.items())
     }, token_dict, form
+    
 
 
 @api_view(["POST"])
@@ -140,6 +146,7 @@ def register(request):
 
     if request.method == 'POST':
         errors, _, form = process_register_form(request)
+        print("form >>>>>>>>>>>>>>>>>", form)
         if len(errors) == 0:
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
@@ -154,9 +161,6 @@ def register(request):
                     next += "?welcome=to-sefaria"
                 return HttpResponseRedirect(next)
     else:
-        if request.GET.get('educator', ''):
-            form = SefariaNewUserForm(initial={'subscribe_educator': True})
-        else:
             form = SefariaNewUserForm()
 
     return render_template(request, "registration/register.html", None, {'form': form, 'next': next})

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-22 12:11+0530\n"
+"POT-Creation-Date: 2024-10-17 10:29+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,1272 +18,34 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: env/lib/python3.7/site-packages/_pytest/config/argparsing.py:442
-#, python-format
-msgid "ambiguous option: %(option)s could match %(matches)s"
-msgstr "模糊选项：%(option)s 可能匹配 %(matches)s"
-
-#: env/lib/python3.7/site-packages/captcha/fields.py:26
-#: env/lib/python3.7/site-packages/captcha/fields.py:27
-msgid "Error verifying reCAPTCHA, please try again."
-msgstr "验证reCAPTCHA时出错，请重试。"
-
-#: env/lib/python3.7/site-packages/django/contrib/messages/apps.py:7
-msgid "Messages"
-msgstr "消息"
-
-#: env/lib/python3.7/site-packages/django/contrib/sitemaps/apps.py:7
-msgid "Site Maps"
-msgstr "网站地图"
-
-#: env/lib/python3.7/site-packages/django/contrib/staticfiles/apps.py:7
-msgid "Static Files"
-msgstr "静态文件"
-
-#: env/lib/python3.7/site-packages/django/contrib/syndication/apps.py:7
-msgid "Syndication"
-msgstr "联合发布"
-
-#: env/lib/python3.7/site-packages/django/core/paginator.py:43
-msgid "That page number is not an integer"
-msgstr "该页码不是整数"
-
-#: env/lib/python3.7/site-packages/django/core/paginator.py:45
-msgid "That page number is less than 1"
-msgstr "该页码小于1"
-
-#: env/lib/python3.7/site-packages/django/core/paginator.py:50
-msgid "That page contains no results"
-msgstr "该页面没有结果"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:34
-msgid "Enter a valid value."
-msgstr "输入有效的值。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:107
-#: env/lib/python3.7/site-packages/django/forms/fields.py:671
-msgid "Enter a valid URL."
-msgstr "输入有效的URL。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:160
-msgid "Enter a valid integer."
-msgstr "输入有效的整数。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:171
-msgid "Enter a valid email address."
-msgstr "输入有效的电子邮件地址。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:245
-msgid ""
-"Enter a valid 'slug' consisting of letters, numbers, underscores or hyphens."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:252
-msgid ""
-"Enter a valid 'slug' consisting of Unicode letters, numbers, underscores, or"
-" hyphens."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:257
-#: env/lib/python3.7/site-packages/django/core/validators.py:277
-msgid "Enter a valid IPv4 address."
-msgstr "输入有效的IPv4地址。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:262
-#: env/lib/python3.7/site-packages/django/core/validators.py:278
-msgid "Enter a valid IPv6 address."
-msgstr "输入有效的IPv6地址。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:272
-#: env/lib/python3.7/site-packages/django/core/validators.py:276
-msgid "Enter a valid IPv4 or IPv6 address."
-msgstr "输入有效的IPv4或IPv6地址。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:308
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1131
-msgid "Enter only digits separated by commas."
-msgstr "仅输入以逗号分隔的数字。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:314
-#, python-format
-msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
-msgstr "确保此值为 %(limit_value)s（实际为 %(show_value)s）。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:345
-#, python-format
-msgid "Ensure this value is less than or equal to %(limit_value)s."
-msgstr "确保此值小于或等于 %(limit_value)s。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:354
-#, python-format
-msgid "Ensure this value is greater than or equal to %(limit_value)s."
-msgstr "确保此值大于或等于 %(limit_value)s。"
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:364
-#, python-format
-msgid ""
-"Ensure this value has at least %(limit_value)d character (it has "
-"%(show_value)d)."
-msgid_plural ""
-"Ensure this value has at least %(limit_value)d characters (it has "
-"%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:379
-#, python-format
-msgid ""
-"Ensure this value has at most %(limit_value)d character (it has "
-"%(show_value)d)."
-msgid_plural ""
-"Ensure this value has at most %(limit_value)d characters (it has "
-"%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:399
-#, python-format
-msgid "Ensure that there are no more than %(max)s digit in total."
-msgid_plural "Ensure that there are no more than %(max)s digits in total."
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:404
-#, python-format
-msgid "Ensure that there are no more than %(max)s decimal place."
-msgid_plural "Ensure that there are no more than %(max)s decimal places."
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:409
-#, python-format
-msgid ""
-"Ensure that there are no more than %(max)s digit before the decimal point."
-msgid_plural ""
-"Ensure that there are no more than %(max)s digits before the decimal point."
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/core/validators.py:463
-#, python-format
-msgid ""
-"File extension '%(extension)s' is not allowed. Allowed extensions are: "
-"'%(allowed_extensions)s'."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/db/models/base.py:1209
-#: env/lib/python3.7/site-packages/django/forms/models.py:749
-msgid "and"
-msgstr "和"
-
-#: env/lib/python3.7/site-packages/django/db/models/base.py:1211
-#, python-format
-msgid "%(model_name)s with this %(field_labels)s already exists."
-msgstr "具有此 %(field_labels)s 的 %(model_name)s 已经存在。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:116
-#, python-format
-msgid "Value %(value)r is not a valid choice."
-msgstr "值 %(value)r 不是有效的选择。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:117
-msgid "This field cannot be null."
-msgstr "此字段不能为空。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:118
-msgid "This field cannot be blank."
-msgstr "此字段不能为空。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:119
-#, python-format
-msgid "%(model_name)s with this %(field_label)s already exists."
-msgstr "具有此 %(field_label)s 的 %(model_name)s 已经存在。"
-
-#. Translators: The 'lookup_type' is one of 'date', 'year' or 'month'.
-#. Eg: "Title must be unique for pub_date year"
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:123
-#, python-format
-msgid ""
-"%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:140
-#, python-format
-msgid "Field of type: %(field_type)s"
-msgstr "字段类型：%(field_type)s"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:901
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1809
-msgid "Integer"
-msgstr "整数"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:905
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1807
-#, python-format
-msgid "'%(value)s' value must be an integer."
-msgstr "'%(value)s' 的值必须是整数。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:978
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1878
-msgid "Big (8 byte) integer"
-msgstr "大（8字节）整数"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:990
-#, python-format
-msgid "'%(value)s' value must be either True or False."
-msgstr "'%(value)s' 的值必须是 True 或 False。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:992
-msgid "Boolean (Either True or False)"
-msgstr "布尔值（True 或 False）"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1058
-#, python-format
-msgid "String (up to %(max_length)s)"
-msgstr "字符串（最多 %(max_length)s）"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1115
-msgid "Comma-separated integers"
-msgstr "以逗号分隔的整数"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1172
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid date format. It must be in YYYY-MM-DD "
-"format."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1174
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1319
-#, python-format
-msgid ""
-"'%(value)s' value has the correct format (YYYY-MM-DD) but it is an invalid "
-"date."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1177
-msgid "Date (without time)"
-msgstr "日期（不含时间）"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1317
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid format. It must be in YYYY-MM-DD "
-"HH:MM[:ss[.uuuuuu]][TZ] format."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1321
-#, python-format
-msgid ""
-"'%(value)s' value has the correct format (YYYY-MM-DD "
-"HH:MM[:ss[.uuuuuu]][TZ]) but it is an invalid date/time."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1325
-msgid "Date (with time)"
-msgstr "日期（含时间）"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1475
-#, python-format
-msgid "'%(value)s' value must be a decimal number."
-msgstr "'%(value)s' 的值必须是小数。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1477
-msgid "Decimal number"
-msgstr "小数"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1628
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid format. It must be in [DD] "
-"[HH:[MM:]]ss[.uuuuuu] format."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1631
-msgid "Duration"
-msgstr "持续时间"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1683
-msgid "Email address"
-msgstr "电子邮件地址"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1707
-msgid "File path"
-msgstr "文件路径"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1773
-#, python-format
-msgid "'%(value)s' value must be a float."
-msgstr "'%(value)s' 的值必须是浮点数。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1775
-msgid "Floating point number"
-msgstr "浮点数"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1893
-msgid "IPv4 address"
-msgstr "IPv4 地址"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:1924
-msgid "IP address"
-msgstr "IP 地址"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2006
-#, python-format
-msgid "'%(value)s' value must be either None, True or False."
-msgstr "'%(value)s' 的值必须是 None、True 或 False。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2008
-msgid "Boolean (Either True, False or None)"
-msgstr "布尔值（True、False 或 None）"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2071
-msgid "Positive integer"
-msgstr "正整数"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2083
-msgid "Positive small integer"
-msgstr "正小整数"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2096
-#, python-format
-msgid "Slug (up to %(max_length)s)"
-msgstr "简短名称（最多 %(max_length)s）"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2130
-msgid "Small integer"
-msgstr "小整数"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2137
-#: templates/sheets.html:369 templates/sheets.html:637
-msgid "Text"
-msgstr "文本"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2163
-#, python-format
-msgid ""
-"'%(value)s' value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
-"format."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2165
-#, python-format
-msgid ""
-"'%(value)s' value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
-"invalid time."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2168
-msgid "Time"
-msgstr "时间"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2296
-msgid "URL"
-msgstr "网址"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2319
-msgid "Raw binary data"
-msgstr "原始二进制数据"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/__init__.py:2366
-#, python-format
-msgid "'%(value)s' is not a valid UUID."
-msgstr "'%(value)s' 不是有效的 UUID。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/files.py:228
-#: templates/sheets.html:31
-msgid "File"
-msgstr "文件"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/files.py:391
-msgid "Image"
-msgstr "图像"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:788
-#, python-format
-msgid "%(model)s instance with %(field)s %(value)r does not exist."
-msgstr "具有 %(field)s %(value)r 的 %(model)s 实例不存在。"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:790
-msgid "Foreign Key (type determined by related field)"
-msgstr "外键（由相关字段确定类型）"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:1029
-msgid "One-to-one relationship"
-msgstr "一对一关系"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:1104
-#, python-format
-msgid "%(from)s-%(to)s relationship"
-msgstr "%(from)s-%(to)s 关系"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:1105
-#, python-format
-msgid "%(from)s-%(to)s relationships"
-msgstr "%(from)s-%(to)s 关系"
-
-#: env/lib/python3.7/site-packages/django/db/models/fields/related.py:1147
-msgid "Many-to-many relationship"
-msgstr "多对多关系"
-
-#. Translators: If found as last label character, these punctuation
-#. characters will prevent the default label_suffix to be appended to the
-#. label
-#: env/lib/python3.7/site-packages/django/forms/boundfield.py:181
-msgid ":?.!"
-msgstr ":?.!"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:56
-msgid "This field is required."
-msgstr "此字段是必填的。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:258
-msgid "Enter a whole number."
-msgstr "输入一个整数。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:303
-#: env/lib/python3.7/site-packages/django/forms/fields.py:340
-msgid "Enter a number."
-msgstr "输入一个数字。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:418
-#: env/lib/python3.7/site-packages/django/forms/fields.py:1149
-msgid "Enter a valid date."
-msgstr "输入有效的日期。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:442
-#: env/lib/python3.7/site-packages/django/forms/fields.py:1150
-msgid "Enter a valid time."
-msgstr "输入有效的时间。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:464
-msgid "Enter a valid date/time."
-msgstr "输入有效的日期/时间。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:493
-msgid "Enter a valid duration."
-msgstr "输入有效的持续时间。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:547
-msgid "No file was submitted. Check the encoding type on the form."
-msgstr "没有提交文件。请检查表单上的编码类型。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:548
-msgid "No file was submitted."
-msgstr "没有提交文件。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:549
-msgid "The submitted file is empty."
-msgstr "提交的文件为空。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:551
-#, python-format
-msgid ""
-"Ensure this filename has at most %(max)d character (it has %(length)d)."
-msgid_plural ""
-"Ensure this filename has at most %(max)d characters (it has %(length)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:554
-msgid "Please either submit a file or check the clear checkbox, not both."
-msgstr "请提交文件或选中清除复选框，而不是两者都做。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:619
-msgid ""
-"Upload a valid image. The file you uploaded was either not an image or a "
-"corrupted image."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:776
-#: env/lib/python3.7/site-packages/django/forms/fields.py:872
-#: env/lib/python3.7/site-packages/django/forms/models.py:1265
-#, python-format
-msgid "Select a valid choice. %(value)s is not one of the available choices."
-msgstr "选择一个有效的选项。%(value)s 不是可用选项之一。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:873
-#: env/lib/python3.7/site-packages/django/forms/fields.py:990
-#: env/lib/python3.7/site-packages/django/forms/models.py:1264
-msgid "Enter a list of values."
-msgstr "输入一个值列表。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:991
-msgid "Enter a complete value."
-msgstr "输入完整的值。"
-
-#: env/lib/python3.7/site-packages/django/forms/fields.py:1208
-msgid "Enter a valid UUID."
-msgstr "输入有效的 UUID。"
-
-#. Translators: This is the default suffix added to form field labels
-#: env/lib/python3.7/site-packages/django/forms/forms.py:87
-msgid ":"
-msgstr ":"
-
-#: env/lib/python3.7/site-packages/django/forms/forms.py:213
-#, python-format
-msgid "(Hidden field %(name)s) %(error)s"
-msgstr "(隐藏字段 %(name)s) %(error)s"
-
-#: env/lib/python3.7/site-packages/django/forms/formsets.py:97
-msgid "ManagementForm data is missing or has been tampered with"
-msgstr "ManagementForm 数据丢失或已被篡改"
-
-#: env/lib/python3.7/site-packages/django/forms/formsets.py:355
-#, python-format
-msgid "Please submit %d or fewer forms."
-msgid_plural "Please submit %d or fewer forms."
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/forms/formsets.py:362
-#, python-format
-msgid "Please submit %d or more forms."
-msgid_plural "Please submit %d or more forms."
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/forms/formsets.py:390
-#: env/lib/python3.7/site-packages/django/forms/formsets.py:392
-msgid "Order"
-msgstr "排序"
-
-#: env/lib/python3.7/site-packages/django/forms/formsets.py:394
-msgid "Delete"
-msgstr "删除"
-
-#: env/lib/python3.7/site-packages/django/forms/models.py:744
-#, python-format
-msgid "Please correct the duplicate data for %(field)s."
-msgstr "请更正 %(field)s 的重复数据。"
-
-#: env/lib/python3.7/site-packages/django/forms/models.py:748
-#, python-format
-msgid "Please correct the duplicate data for %(field)s, which must be unique."
-msgstr "请更正 %(field)s 的重复数据，该数据必须唯一。"
-
-#: env/lib/python3.7/site-packages/django/forms/models.py:754
-#, python-format
-msgid ""
-"Please correct the duplicate data for %(field_name)s which must be unique "
-"for the %(lookup)s in %(date_field)s."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/forms/models.py:763
-msgid "Please correct the duplicate values below."
-msgstr "请更正下面的重复值。"
-
-#: env/lib/python3.7/site-packages/django/forms/models.py:1093
-msgid "The inline foreign key did not match the parent instance primary key."
-msgstr "内联外键与父实例主键不匹配。"
-
-#: env/lib/python3.7/site-packages/django/forms/models.py:1154
-msgid ""
-"Select a valid choice. That choice is not one of the available choices."
-msgstr "选择一个有效的选项。该选项不是可用选项之一。"
-
-#: env/lib/python3.7/site-packages/django/forms/models.py:1267
-#, python-format
-msgid "\"%(pk)s\" is not a valid value for a primary key."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/forms/utils.py:172
-#, python-format
-msgid ""
-"%(datetime)s couldn't be interpreted in time zone %(current_timezone)s; it "
-"may be ambiguous or it may not exist."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/forms/widgets.py:377
-msgid "Clear"
-msgstr "清除"
-
-#: env/lib/python3.7/site-packages/django/forms/widgets.py:378
-msgid "Currently"
-msgstr "当前"
-
-#: env/lib/python3.7/site-packages/django/forms/widgets.py:379
-msgid "Change"
-msgstr "更改"
-
-#: env/lib/python3.7/site-packages/django/forms/widgets.py:703
-msgid "Unknown"
-msgstr "未知"
-
-#: env/lib/python3.7/site-packages/django/forms/widgets.py:704
-msgid "Yes"
-msgstr "是"
-
-#: env/lib/python3.7/site-packages/django/forms/widgets.py:705
-msgid "No"
-msgstr "否"
-
-#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:851
-msgid "yes,no,maybe"
-msgstr "是，否，也许"
-
-#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:880
-#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:897
-#, python-format
-msgid "%(size)d byte"
-msgid_plural "%(size)d bytes"
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:899
-#, python-format
-msgid "%s KB"
-msgstr "%s KB"
-
-#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:901
-#, python-format
-msgid "%s MB"
-msgstr "%s MB"
-
-#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:903
-#, python-format
-msgid "%s GB"
-msgstr "%s GB"
-
-#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:905
-#, python-format
-msgid "%s TB"
-msgstr "%s TB"
-
-#: env/lib/python3.7/site-packages/django/template/defaultfilters.py:907
-#, python-format
-msgid "%s PB"
-msgstr "%s PB"
-
-#: env/lib/python3.7/site-packages/django/utils/dateformat.py:66
-msgid "p.m."
-msgstr "下午"
-
-#: env/lib/python3.7/site-packages/django/utils/dateformat.py:67
-msgid "a.m."
-msgstr "上午"
-
-#: env/lib/python3.7/site-packages/django/utils/dateformat.py:72
-msgid "PM"
-msgstr "下午"
-
-#: env/lib/python3.7/site-packages/django/utils/dateformat.py:73
-msgid "AM"
-msgstr "上午"
-
-#: env/lib/python3.7/site-packages/django/utils/dateformat.py:158
-msgid "midnight"
-msgstr "午夜"
-
-#: env/lib/python3.7/site-packages/django/utils/dateformat.py:160
-msgid "noon"
-msgstr "中午"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:6
-msgid "Monday"
-msgstr "星期一"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:6
-msgid "Tuesday"
-msgstr "星期二"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:6
-msgid "Wednesday"
-msgstr "星期三"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:6
-msgid "Thursday"
-msgstr "星期四"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:6
-msgid "Friday"
-msgstr "星期五"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:7
-msgid "Saturday"
-msgstr "星期六"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:7
-msgid "Sunday"
-msgstr "星期日"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:10
-msgid "Mon"
-msgstr "周一"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:10
-msgid "Tue"
-msgstr "周二"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:10
-msgid "Wed"
-msgstr "周三"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:10
-msgid "Thu"
-msgstr "周四"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:10
-msgid "Fri"
-msgstr "周五"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:11
-msgid "Sat"
-msgstr "周六"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:11
-msgid "Sun"
-msgstr "周日"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:18
-msgid "January"
-msgstr "一月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:18
-msgid "February"
-msgstr "二月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:18
-msgid "March"
-msgstr "三月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:18
-msgid "April"
-msgstr "四月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:18
-msgid "May"
-msgstr "五月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:18
-msgid "June"
-msgstr "六月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:19
-msgid "July"
-msgstr "七月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:19
-msgid "August"
-msgstr "八月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:19
-msgid "September"
-msgstr "九月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:19
-msgid "October"
-msgstr "十月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:19
-msgid "November"
-msgstr "十一月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:20
-msgid "December"
-msgstr "十二月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:23
-msgid "jan"
-msgstr "一月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:23
-msgid "feb"
-msgstr "二月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:23
-msgid "mar"
-msgstr "三月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:23
-msgid "apr"
-msgstr "四月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:23
-msgid "may"
-msgstr "五月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:23
-msgid "jun"
-msgstr "六月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:24
-msgid "jul"
-msgstr "七月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:24
-msgid "aug"
-msgstr "八月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:24
-msgid "sep"
-msgstr "九月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:24
-msgid "oct"
-msgstr "十月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:24
-msgid "nov"
-msgstr "十一月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:24
-msgid "dec"
-msgstr "十二月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:31
-msgctxt "abbrev. month"
-msgid "Jan."
-msgstr "1月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:32
-msgctxt "abbrev. month"
-msgid "Feb."
-msgstr "2月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:33
-msgctxt "abbrev. month"
-msgid "March"
-msgstr "三月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:34
-msgctxt "abbrev. month"
-msgid "April"
-msgstr "四月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:35
-msgctxt "abbrev. month"
-msgid "May"
-msgstr "五月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:36
-msgctxt "abbrev. month"
-msgid "June"
-msgstr "六月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:37
-msgctxt "abbrev. month"
-msgid "July"
-msgstr "七月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:38
-msgctxt "abbrev. month"
-msgid "Aug."
-msgstr "8月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:39
-msgctxt "abbrev. month"
-msgid "Sept."
-msgstr "9月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:40
-msgctxt "abbrev. month"
-msgid "Oct."
-msgstr "10月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:41
-msgctxt "abbrev. month"
-msgid "Nov."
-msgstr "11月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:42
-msgctxt "abbrev. month"
-msgid "Dec."
-msgstr "12月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:45
-msgctxt "alt. month"
-msgid "January"
-msgstr "一月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:46
-msgctxt "alt. month"
-msgid "February"
-msgstr "二月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:47
-msgctxt "alt. month"
-msgid "March"
-msgstr "三月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:48
-msgctxt "alt. month"
-msgid "April"
-msgstr "四月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:49
-msgctxt "alt. month"
-msgid "May"
-msgstr "五月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:50
-msgctxt "alt. month"
-msgid "June"
-msgstr "六月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:51
-msgctxt "alt. month"
-msgid "July"
-msgstr "七月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:52
-msgctxt "alt. month"
-msgid "August"
-msgstr "八月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:53
-msgctxt "alt. month"
-msgid "September"
-msgstr "九月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:54
-msgctxt "alt. month"
-msgid "October"
-msgstr "十月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:55
-msgctxt "alt. month"
-msgid "November"
-msgstr "十一月"
-
-#: env/lib/python3.7/site-packages/django/utils/dates.py:56
-msgctxt "alt. month"
-msgid "December"
-msgstr "十二月"
-
-#: env/lib/python3.7/site-packages/django/utils/ipv6.py:12
-msgid "This is not a valid IPv6 address."
-msgstr "这不是有效的IPv6地址。"
-
-#: env/lib/python3.7/site-packages/django/utils/text.py:81
-#, python-format
-msgctxt "String to return when truncating text"
-msgid "%(truncated_text)s..."
-msgstr "%(truncated_text)s..."
-
-#: env/lib/python3.7/site-packages/django/utils/text.py:251
-#: templates/edit_text.html:101 templates/sheets.html:726
-#: templates/sheets.html:794
-msgid "or"
-msgstr "或"
-
-#. Translators: This string is used as a separator between list elements
-#: env/lib/python3.7/site-packages/django/utils/text.py:270
-#: env/lib/python3.7/site-packages/django/utils/timesince.py:71
-msgid ", "
-msgstr ", "
-
-#: env/lib/python3.7/site-packages/django/utils/timesince.py:11
-#, python-format
-msgid "%d year"
-msgid_plural "%d years"
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/utils/timesince.py:12
-#, python-format
-msgid "%d month"
-msgid_plural "%d months"
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/utils/timesince.py:13
-#, python-format
-msgid "%d week"
-msgid_plural "%d weeks"
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/utils/timesince.py:14
-#, python-format
-msgid "%d day"
-msgid_plural "%d days"
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/utils/timesince.py:15
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/utils/timesince.py:16
-#, python-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/django/utils/timesince.py:60
-msgid "0 minutes"
-msgstr "0 分钟"
-
-#: env/lib/python3.7/site-packages/django/views/csrf.py:109
-msgid "Forbidden"
-msgstr "禁止"
-
-#: env/lib/python3.7/site-packages/django/views/csrf.py:110
-msgid "CSRF verification failed. Request aborted."
-msgstr "CSRF验证失败。请求被中止。"
-
-#: env/lib/python3.7/site-packages/django/views/csrf.py:114
-msgid ""
-"You are seeing this message because this HTTPS site requires a 'Referer "
-"header' to be sent by your Web browser, but none was sent. This header is "
-"required for security reasons, to ensure that your browser is not being "
-"hijacked by third parties."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/views/csrf.py:119
-msgid ""
-"If you have configured your browser to disable 'Referer' headers, please re-"
-"enable them, at least for this site, or for HTTPS connections, or for 'same-"
-"origin' requests."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/views/csrf.py:124
-msgid ""
-"You are seeing this message because this site requires a CSRF cookie when "
-"submitting forms. This cookie is required for security reasons, to ensure "
-"that your browser is not being hijacked by third parties."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/views/csrf.py:129
-msgid ""
-"If you have configured your browser to disable cookies, please re-enable "
-"them, at least for this site, or for 'same-origin' requests."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/views/csrf.py:134
-msgid "More information is available with DEBUG=True."
-msgstr "更多信息请设置DEBUG=True。"
-
-#: env/lib/python3.7/site-packages/django/views/debug.py:520
-msgid "Welcome to Django"
-msgstr "欢迎来到Django"
-
-#: env/lib/python3.7/site-packages/django/views/debug.py:521
-msgid "It worked!"
-msgstr "成功了！"
-
-#: env/lib/python3.7/site-packages/django/views/debug.py:522
-msgid "Congratulations on your first Django-powered page."
-msgstr "祝贺你创建了第一个Django页面。"
-
-#: env/lib/python3.7/site-packages/django/views/debug.py:524
-msgid ""
-"Next, start your first app by running <code>python manage.py startapp "
-"[app_label]</code>."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/views/debug.py:527
-msgid ""
-"You're seeing this message because you have <code>DEBUG = True</code> in "
-"your Django settings file and you haven't configured any URLs. Get to work!"
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:48
-msgid "No year specified"
-msgstr "未指定年份"
-
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:72
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:132
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:249
-msgid "Date out of range"
-msgstr "日期超出范围"
-
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:107
-msgid "No month specified"
-msgstr "未指定月份"
-
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:169
-msgid "No day specified"
-msgstr "未指定日期"
-
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:225
-msgid "No week specified"
-msgstr "未指定周"
-
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:387
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:415
-#, python-format
-msgid "No %(verbose_name_plural)s available"
-msgstr "没有可用的%(verbose_name_plural)s"
-
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:669
-#, python-format
-msgid ""
-"Future %(verbose_name_plural)s not available because "
-"%(class_name)s.allow_future is False."
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/views/generic/dates.py:703
-#, python-format
-msgid "Invalid date string '%(datestr)s' given format '%(format)s'"
-msgstr "无效的日期字符串 '%(datestr)s'，格式 '%(format)s'"
-
-#: env/lib/python3.7/site-packages/django/views/generic/detail.py:55
-#, python-format
-msgid "No %(verbose_name)s found matching the query"
-msgstr "没有找到匹配查询的%(verbose_name)s"
-
-#: env/lib/python3.7/site-packages/django/views/generic/list.py:77
-msgid "Page is not 'last', nor can it be converted to an int."
-msgstr "页面不是'最后'，也不能转换为整数。"
-
-#: env/lib/python3.7/site-packages/django/views/generic/list.py:82
-#, python-format
-msgid "Invalid page (%(page_number)s): %(message)s"
-msgstr "无效的页面 (%(page_number)s): %(message)s"
-
-#: env/lib/python3.7/site-packages/django/views/generic/list.py:172
-#, python-format
-msgid "Empty list and '%(class_name)s.allow_empty' is False."
-msgstr "空列表且 '%(class_name)s.allow_empty' 为 False。"
-
-#: env/lib/python3.7/site-packages/django/views/static.py:44
-msgid "Directory indexes are not allowed here."
-msgstr "这里不允许目录索引。"
-
-#: env/lib/python3.7/site-packages/django/views/static.py:46
-#, python-format
-msgid "\"%(path)s\" does not exist"
-msgstr ""
-
-#: env/lib/python3.7/site-packages/django/views/static.py:86
-#, python-format
-msgid "Index of %(directory)s"
-msgstr "%(directory)s 的索引"
-
-#: env/lib/python3.7/site-packages/emailusernames/admin.py:23
-msgid "Personal info"
-msgstr "个人信息"
-
-#: env/lib/python3.7/site-packages/emailusernames/admin.py:24
-msgid "Permissions"
-msgstr "权限"
-
-#: env/lib/python3.7/site-packages/emailusernames/admin.py:25
-msgid "Important dates"
-msgstr "重要日期"
-
-#: env/lib/python3.7/site-packages/emailusernames/admin.py:26
-msgid "Groups"
-msgstr "群组"
-
-#: env/lib/python3.7/site-packages/emailusernames/forms.py:10
-msgid "Please enter a correct email and password. "
-msgstr "请输入正确的电子邮件和密码。"
-
-#: env/lib/python3.7/site-packages/emailusernames/forms.py:11
-msgid "You do not have permission to access the admin."
-msgstr "你没有权限访问管理员。"
-
-#: env/lib/python3.7/site-packages/emailusernames/forms.py:12
-msgid "This account is inactive."
-msgstr "此账户已被停用。"
-
-#: env/lib/python3.7/site-packages/emailusernames/forms.py:19
-#: env/lib/python3.7/site-packages/emailusernames/forms.py:60
-#: env/lib/python3.7/site-packages/emailusernames/forms.py:92
-#: env/lib/python3.7/site-packages/emailusernames/forms.py:120
-msgid "Email"
-msgstr "电子邮件"
-
-#: env/lib/python3.7/site-packages/emailusernames/forms.py:106
-#: sefaria/forms.py:78
-msgid "A user with that email already exists."
-msgstr "该电子邮件的用户已存在。"
-
-#: env/lib/python3.7/site-packages/emailusernames/management/commands/createsuperuser.py:26
-msgid "Enter a valid e-mail address."
-msgstr "请输入有效的电子邮件地址。"
-
-#: env/lib/python3.7/site-packages/emailusernames/templates/email_usernames/login.html:15
-msgid "Please correct the error below."
-msgid_plural "Please correct the errors below."
-msgstr[0] ""
-msgstr[1] ""
-
-#: env/lib/python3.7/site-packages/emailusernames/templates/email_usernames/login.html:31
-msgid "Email:"
-msgstr "电子邮件："
-
-#: env/lib/python3.7/site-packages/emailusernames/templates/email_usernames/login.html:35
-msgid "Password:"
-msgstr "密码："
-
-#: env/lib/python3.7/site-packages/emailusernames/templates/email_usernames/login.html:42
-msgid "Forgotten your password or username?"
-msgstr "忘记了密码或用户名？"
-
-#: env/lib/python3.7/site-packages/emailusernames/templates/email_usernames/login.html:46
-msgid "Log in"
-msgstr "登录"
-
-#: env/lib/python3.7/site-packages/httplib2/__init__.py:470
-#, python-format
-msgid "Content purported to be compressed with %s but failed to decompress."
-msgstr "内容声称使用 %s 压缩，但解压失败。"
-
-#: env/lib/python3.7/site-packages/httplib2/__init__.py:656
-#, python-format
-msgid "Unsupported value for qop: %s."
-msgstr "不支持的 qop 值: %s。"
-
-#: env/lib/python3.7/site-packages/httplib2/__init__.py:661
-#: env/lib/python3.7/site-packages/httplib2/__init__.py:755
-#, python-format
-msgid "Unsupported value for algorithm: %s."
-msgstr "不支持的算法值: %s。"
-
-#: env/lib/python3.7/site-packages/httplib2/__init__.py:750
-msgid "The challenge doesn't contain a server nonce, or this one is empty."
-msgstr "挑战中不包含服务器 nonce，或者该 nonce 为空。"
-
-#: env/lib/python3.7/site-packages/httplib2/__init__.py:761
-#, python-format
-msgid "Unsupported value for pw-algorithm: %s."
-msgstr "不支持的 pw-algorithm 值: %s。"
-
-#: env/lib/python3.7/site-packages/httplib2/__init__.py:1687
-msgid "Redirected but the response is missing a Location: header."
-msgstr "重定向，但响应中缺少 Location: 头。"
-
-#: env/lib/python3.7/site-packages/ipware/apps.py:10
-msgid "ipware app"
-msgstr "ipware 应用"
-
-#: reader/templatetags/sefaria_tags.py:226 sefaria/settings.py:24
+#: reader/templatetags/sefaria_tags.py:226 sefaria/settings.py:30
 #: templates/edit_text.html:185 templates/elements/notification.html:15
-#: templates/elements/notification.html:17 templates/sheets.html:191
-#: templates/sheets.html:273
+#: templates/elements/notification.html:17 templates/sheets.html:190
+#: templates/sheets.html:272
 msgid "English"
 msgstr "英语"
 
-#: reader/templatetags/sefaria_tags.py:227 sefaria/settings.py:25
+#: reader/templatetags/sefaria_tags.py:227 sefaria/settings.py:31
 #: templates/edit_text.html:186 templates/elements/notification.html:15
-#: templates/elements/notification.html:17 templates/sheets.html:279
+#: templates/elements/notification.html:17 templates/sheets.html:278
 msgid "Hebrew"
 msgstr "希伯来语"
 
-#: reader/templatetags/sefaria_tags.py:228 templates/sheets.html:203
-#: templates/sheets.html:285
+#: reader/templatetags/sefaria_tags.py:228 templates/sheets.html:202
+#: templates/sheets.html:284
 msgid "Bilingual"
 msgstr "双语"
 
-#: reader/views.py:702
+#: reader/views.py:706
 #, python-format
 msgid "Read the text of %(book)s online with commentaries and connections."
 msgstr "%(book)s 的文本可以在线阅读，附有注释和关联。"
 
-#: reader/views.py:724
+#: reader/views.py:728
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr "探索三千年的犹太文本，包括希伯来语和英文翻译。"
 
-#: reader/views.py:729 reader/views.py:3161 templates/delete-sheet.html:4
+#: reader/views.py:733 reader/views.py:3165 templates/delete-sheet.html:4
 #: templates/person.html:6 templates/person.html:8
 #: templates/registration/delete_user_account.html:4
 #: templates/registration/password_reset_complete.html:3
@@ -1297,226 +59,260 @@ msgstr "探索三千年的犹太文本，包括希伯来语和英文翻译。"
 msgid "Sefaria"
 msgstr "Sefaria"
 
-#: reader/views.py:731
+#: reader/views.py:735
 msgid "A source sheet created with Sefaria's Source Sheet Builder"
 msgstr "使用 Sefaria 的源表生成器创建的源表"
 
-#: reader/views.py:768
+#: reader/views.py:772
 msgid "Recently Viewed"
 msgstr "最近查看"
 
-#: reader/views.py:769
+#: reader/views.py:773
 msgid "Texts that you've recently viewed on Sefaria."
 msgstr "您最近在 Sefaria 上查看的文本。"
 
-#: reader/views.py:781
+#: reader/views.py:785
 #, python-format
 msgid "Read %(categories)s texts online with commentaries and connections."
 msgstr "在线阅读 %(categories)s 文本，附有注释和关联。"
 
-#: reader/views.py:783
+#: reader/views.py:787
 msgid " | Sefaria"
 msgstr " | Sefaria"
 
-#: reader/views.py:817 reader/views.py:3201
+#: reader/views.py:821 reader/views.py:3205
 msgid ""
 "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish "
 "sources."
 msgstr ""
 
-#: reader/views.py:819 reader/views.py:3203
+#: reader/views.py:823 reader/views.py:3207
 #, python-format
 msgid ""
 "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other "
 "sources in Sefaria's library."
 msgstr ""
 
-#: reader/views.py:837
+#: reader/views.py:841
 msgid "Explore Jewish Texts by Topic"
 msgstr "按主题探索犹太文本"
 
-#: reader/views.py:839
+#: reader/views.py:843
 msgid ""
 "Explore Jewish texts related to traditional and contemporary topics, coming "
 "from Torah, Talmud, and more."
 msgstr ""
 
-#: reader/views.py:919
+#: reader/views.py:923
 msgid "Sefaria Search"
 msgstr "Sefaria 搜索"
 
-#: reader/views.py:920
+#: reader/views.py:924
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr "搜索三千年的犹太文本，包括希伯来语和英文翻译。"
 
-#: reader/views.py:946 reader/views.py:1007
+#: reader/views.py:950 reader/views.py:1011
 msgid "Sefaria Collections"
 msgstr "Sefaria 收藏"
 
-#: reader/views.py:1124
+#: reader/views.py:1128
 msgid "Pecha - Buddhism in your own words"
 msgstr "Pecha - 用你自己的话说佛教"
 
-#: reader/views.py:1125
+#: reader/views.py:1129
 msgid ""
 "The largest free library of Buddhist texts available to read online in "
 "Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, "
 "commentaries and more."
 msgstr ""
 
-#: reader/views.py:1130
+#: reader/views.py:1134
 msgid "Learning Schedules"
 msgstr "学习计划"
 
-#: reader/views.py:1131
+#: reader/views.py:1135
 msgid ""
 "Weekly Torah portions, Daf Yomi, and other schedules for Torah learning."
 msgstr ""
 
-#: reader/views.py:1137
+#: reader/views.py:1141
 msgid "My Saved Content"
 msgstr "我的保存内容"
 
-#: reader/views.py:1138
+#: reader/views.py:1142
 msgid "See your saved content on Sefaria"
 msgstr "查看您在 Sefaria 上保存的内容"
 
-#: reader/views.py:1154
+#: reader/views.py:1158
 msgid "My User History"
 msgstr "我的用户历史"
 
-#: reader/views.py:1155
+#: reader/views.py:1159
 msgid "See your user history on Sefaria"
 msgstr "查看您在 Sefaria 上的用户历史"
 
-#: reader/views.py:1160
+#: reader/views.py:1164
 msgid "New Additions to the Pecha Library"
 msgstr ""
 
-#: reader/views.py:1161
+#: reader/views.py:1165
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Pecha."
 msgstr ""
 
-#: reader/views.py:1167
+#: reader/views.py:1171
 msgid "User Stats"
 msgstr "用户统计"
 
-#: reader/views.py:1174
+#: reader/views.py:1178
 msgid "Sefaria Notifications"
 msgstr "Sefaria 通知"
 
-#: reader/views.py:1184
+#: reader/views.py:1188
 msgid "Moderator Tools"
 msgstr "主持工具"
 
-#: reader/views.py:1229 reader/views.py:3161
+#: reader/views.py:1233 reader/views.py:3165
 msgid "Topics"
 msgstr "主题"
 
-#: reader/views.py:1231
+#: reader/views.py:1235
 msgid "Source Sheet"
 msgstr "源表"
 
-#: reader/views.py:1261
+#: reader/views.py:1265
 msgid "Texts"
 msgstr "文本"
 
-#: reader/views.py:3162
+#: reader/views.py:3166
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr "在 Sefaria 上按主题探索犹太文本"
 
-#: reader/views.py:3620
+#: reader/views.py:3624
 #, python-format
 msgid "%(full_name)s on Sefaria"
 msgstr "%(full_name)s 在 Sefaria 上"
 
-#: reader/views.py:3621
+#: reader/views.py:3625
 #, python-format
 msgid ""
 "%(full_name)s is on Sefaria. Follow to view their public source sheets, "
 "notes and translations."
 msgstr ""
 
-#: reader/views.py:3635 reader/views.py:3663 reader/views.py:3797
+#: reader/views.py:3639 reader/views.py:3667 reader/views.py:3801
 msgid "You must be logged in to update your profile."
 msgstr "您必须登录才能更新您的个人资料。"
 
-#: reader/views.py:3673
+#: reader/views.py:3677
 msgid "Email fields did not match"
 msgstr "电子邮件字段不匹配"
 
-#: reader/views.py:3675
+#: reader/views.py:3679
 msgid "Incorrect account password for this account"
 msgstr "此账户的密码不正确"
 
-#: reader/views.py:3756
+#: reader/views.py:3760
 msgid "You must be logged in to update your profile photo."
 msgstr "您必须登录才能更新您的个人资料照片。"
 
-#: reader/views.py:3881
+#: reader/views.py:3885
 msgid "You must be logged in to delete your account."
 msgstr "您必须登录才能删除您的账户。"
 
-#: reader/views.py:4032
+#: reader/views.py:4076
 msgid "From the Community: Today on Sefaria"
 msgstr "来自社区：今天在 Sefaria 上"
 
-#: reader/views.py:4034
+#: reader/views.py:4078
 msgid ""
 "New and featured source sheets, divrei torah, articles, sermons and more "
 "created by members of the Sefaria community."
 msgstr ""
 
-#: sefaria/forms.py:30
+#: sefaria/forms.py:32
 msgid "Email Address to delete"
 msgstr "要删除的电子邮件地址"
 
-#: sefaria/forms.py:31 sefaria/forms.py:35
+#: sefaria/forms.py:33 sefaria/forms.py:37
 msgid "Admin Password"
 msgstr "管理员密码"
 
-#: sefaria/forms.py:34
+#: sefaria/forms.py:36
 msgid "Sheet ID to delete"
 msgstr "要删除的表单 ID"
 
-#: sefaria/forms.py:39 sefaria/forms.py:45 sefaria/forms.py:130
+#: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
 #: templates/messages/2022-01-09-user-testing-modal.html:86
 #: templates/static/aramaic-translation-contest.html:140
 #: templates/static/home.html:362 templates/static/newsletter.html:24
 msgid "Email Address"
 msgstr "电子邮件地址"
 
-#: sefaria/forms.py:40 sefaria/forms.py:48 templates/account_settings.html:96
+#: sefaria/forms.py:42 sefaria/forms.py:50 templates/account_settings.html:96
 msgid "Password"
 msgstr "密码"
 
-#: sefaria/forms.py:46 templates/edit_profile.html:27
+#: sefaria/forms.py:48 templates/edit_profile.html:27
 msgid "First Name"
 msgstr "名"
 
-#: sefaria/forms.py:47 templates/edit_profile.html:33
+#: sefaria/forms.py:49 templates/edit_profile.html:33
 msgid "Last Name"
 msgstr "姓"
 
-#: sefaria/forms.py:121
+#: sefaria/forms.py:55 templates/registration/custom_dropdown.html:5
+#: templates/registration/register.html:27
+msgid "Select an option"
+msgstr "选择文本"
+
+#: sefaria/forms.py:56 templates/registration/custom_dropdown.html:10
+#: templates/registration/register.html:32
+msgid "Monastic"
+msgstr "僧侣"
+
+#: sefaria/forms.py:57 templates/registration/custom_dropdown.html:11
+#: templates/registration/register.html:33
+msgid "Teacher"
+msgstr "教师"
+
+#: sefaria/forms.py:58 templates/registration/custom_dropdown.html:12
+#: templates/registration/register.html:34
+msgid "Student"
+msgstr "学生"
+
+#: sefaria/forms.py:59 templates/registration/custom_dropdown.html:13
+#: templates/registration/register.html:35
+msgid "Educated* /Dr / Prof"
+msgstr "受过教育者 / 博士 / 教授"
+
+#: sefaria/forms.py:60 templates/registration/custom_dropdown.html:14
+#: templates/registration/register.html:36
+msgid "regular user"
+msgstr "普通用户"
+
+#: sefaria/forms.py:95
+msgid "A user with that email already exists."
+msgstr "该电子邮件的用户已存在。"
+
+#: sefaria/forms.py:143
 msgid "Incorrect mobile_app_key provided"
 msgstr "提供的 mobile_app_key 不正确"
 
-#: sefaria/forms.py:135
+#: sefaria/forms.py:157
 msgid "New password"
 msgstr "新密码"
 
-#: sefaria/forms.py:136
+#: sefaria/forms.py:158
 msgid "Enter New Password"
 msgstr "输入新密码"
 
-#: sefaria/forms.py:141
+#: sefaria/forms.py:163
 msgid "New password confirmation"
 msgstr "新密码确认"
 
-#: sefaria/forms.py:143
+#: sefaria/forms.py:165
 msgid "Repeat New Password"
 msgstr "重复新密码"
 
@@ -1526,8 +322,8 @@ msgstr "请为您的收藏设置一个名称。"
 
 #: sefaria/model/collection.py:117
 msgid ""
-"A public collection with this name already exists. Please choose a different"
-" name before publishing."
+"A public collection with this name already exists. Please choose a different "
+"name before publishing."
 msgstr ""
 
 #: sefaria/model/collection.py:119
@@ -1553,15 +349,15 @@ msgstr "该电子邮件的用户已存在"
 msgid "The email address is not valid."
 msgstr "电子邮件地址无效。"
 
-#: sefaria/settings.py:26
+#: sefaria/settings.py:32
 msgid "Chinese"
 msgstr ""
 
-#: sefaria/settings.py:27
+#: sefaria/settings.py:33
 msgid "Spanish"
 msgstr ""
 
-#: sefaria/views.py:196 sefaria/views.py:199 sefaria/views.py:283
+#: sefaria/views.py:200 sefaria/views.py:203 sefaria/views.py:287
 #: templates/static/app.html:383
 #: templates/static/aramaic-translation-contest.html:189
 #: templates/static/home.html:392 templates/static/mobile.html:388
@@ -1569,17 +365,17 @@ msgstr ""
 msgid "Sorry, there was an error."
 msgstr "对不起，发生了一个错误。"
 
-#: sourcesheets/views.py:402
+#: sourcesheets/views.py:403
 msgid "You must be logged in to create a new collection."
 msgstr "您必须登录才能创建新的收藏。"
 
-#: sourcesheets/views.py:565
+#: sourcesheets/views.py:566
 msgid ""
 "Leaving this collection would leave it without any owners. Please appoint "
 "another owner before leaving, or delete the collection."
 msgstr ""
 
-#: sourcesheets/views.py:1160
+#: sourcesheets/views.py:1161
 msgid "You must be logged in to access this api."
 msgstr "您必须登录才能访问此 API。"
 
@@ -1604,9 +400,8 @@ msgstr "内部服务器错误"
 #: templates/500.html:15
 msgid ""
 "Unfortunately, we've encountered an error.An email has been sent "
-"automatically to our developers.If you have any questions about the "
-"problem,or think you can help us figure out what went wrong,please email our"
-" "
+"automatically to our developers.If you have any questions about the problem,"
+"or think you can help us figure out what went wrong,please email our "
 msgstr ""
 
 #: templates/500.html:15
@@ -1621,14 +416,14 @@ msgstr "账户设置"
 #: templates/edit_profile.html:17 templates/edit_text.html:69
 #: templates/edit_text.html:97 templates/edit_text.html:150
 #: templates/elements/login_prompt.html:8 templates/profile.html:181
-#: templates/sheets.html:1000 templates/sheets.html:1022
+#: templates/sheets.html:996 templates/sheets.html:1018
 msgid "Cancel"
 msgstr "取消"
 
 #: templates/account_settings.html:19 templates/account_settings.html:125
 #: templates/edit_profile.html:20 templates/edit_text.html:96
-#: templates/edit_text.html:149 templates/sheets.html:454
-#: templates/sheets.html:831 templates/sheets.html:982
+#: templates/edit_text.html:149 templates/sheets.html:452
+#: templates/sheets.html:825 templates/sheets.html:978
 msgid "Save"
 msgstr "保存"
 
@@ -1652,11 +447,11 @@ msgstr "从不"
 msgid "Site Language"
 msgstr "网站语言"
 
-#: templates/account_settings.html:46 templates/sheets.html:704
+#: templates/account_settings.html:46 templates/sheets.html:702
 msgid "english"
 msgstr "英语"
 
-#: templates/account_settings.html:49 templates/sheets.html:705
+#: templates/account_settings.html:49 templates/sheets.html:703
 msgid "tibetan"
 msgstr "藏语"
 
@@ -1790,7 +585,7 @@ msgid "Admin: Delete a Sheet"
 msgstr "管理员：删除一个表单"
 
 #: templates/delete-sheet.html:11 templates/delete-sheet.html:19
-#: templates/sheets.html:62
+#: templates/sheets.html:61
 msgid "Delete Sheet"
 msgstr "删除表单"
 
@@ -1856,7 +651,7 @@ msgstr "编辑 Sefaria 上的收藏"
 
 #: templates/edit_collection.html:20 templates/edit_term.html:40
 #: templates/elements/loading.html:12 templates/metrics.html:16
-#: templates/sheets.html:520 templates/sheets.html:752
+#: templates/sheets.html:518 templates/sheets.html:750
 msgid "Loading..."
 msgstr "加载中..."
 
@@ -1906,8 +701,8 @@ msgstr "公开表单"
 
 #: templates/edit_profile.html:91
 msgid ""
-"You can drag and order source sheets that you want to pin to the top of your"
-" profile."
+"You can drag and order source sheets that you want to pin to the top of your "
+"profile."
 msgstr ""
 
 #: templates/edit_profile.html:95
@@ -1958,8 +753,8 @@ msgstr "添加新文本"
 msgid "Text or commentator name:"
 msgstr "文本或评论者姓名："
 
-#: templates/edit_text.html:68 templates/sheets.html:975
-#: templates/sheets.html:997
+#: templates/edit_text.html:68 templates/sheets.html:971
+#: templates/sheets.html:993
 msgid "Add"
 msgstr "添加"
 
@@ -1979,7 +774,12 @@ msgstr "要添加您的评论，请 "
 msgid "log in"
 msgstr "登录"
 
-#: templates/edit_text.html:101 templates/sheets.html:795
+#: templates/edit_text.html:101 templates/sheets.html:724
+#: templates/sheets.html:788
+msgid "or"
+msgstr "或"
+
+#: templates/edit_text.html:101 templates/sheets.html:789
 msgid "register"
 msgstr "注册"
 
@@ -1997,8 +797,8 @@ msgstr "对于主要文本和历史翻译："
 
 #: templates/edit_text.html:110
 msgid ""
-" Indicate what outside source (book, web page) was used to compare the text,"
-" or make clear that your review is only looking at the text present."
+" Indicate what outside source (book, web page) was used to compare the text, "
+"or make clear that your review is only looking at the text present."
 msgstr ""
 
 #: templates/edit_text.html:112
@@ -2019,8 +819,8 @@ msgstr "对于原始翻译："
 
 #: templates/edit_text.html:117
 msgid ""
-" Review the text carefully next to the original, and comment on its accuracy"
-" and style according to our "
+" Review the text carefully next to the original, and comment on its accuracy "
+"and style according to our "
 msgstr ""
 
 #: templates/edit_text.html:117
@@ -2063,8 +863,8 @@ msgstr "发现一些需要解决的问题。"
 msgid " Found serious problems that need to be addressed."
 msgstr "发现了需要解决的严重问题。"
 
-#: templates/edit_text.html:142 templates/sheets.html:1046
-#: templates/sheets.html:1082 templates/sheets.html:1098
+#: templates/edit_text.html:142 templates/sheets.html:1042
+#: templates/sheets.html:1078 templates/sheets.html:1094
 msgid "OK"
 msgstr "确定"
 
@@ -2086,8 +886,8 @@ msgstr "这文本将以 "
 
 #: templates/edit_text.html:172
 msgid ""
-" licence, effectively donating it to the Public Domain. Only submit texts as"
-" \"Original Translation\" that you have authored."
+" licence, effectively donating it to the Public Domain. Only submit texts as "
+"\"Original Translation\" that you have authored."
 msgstr ""
 
 #: templates/edit_text.html:176
@@ -2266,8 +1066,6 @@ msgid "Older Activity"
 msgstr "较早的活动"
 
 #: templates/elements/login_prompt.html:6
-#: templates/registration/register.html:13
-#: templates/registration/register.html:22
 msgid "Sign Up"
 msgstr "注册"
 
@@ -2298,18 +1096,15 @@ msgid "is now following you."
 msgstr "现在关注你。"
 
 #: templates/elements/notification.html:52
-#: templates/elements/notification.html:57
-#: templates/email/notification.html:26
+#: templates/elements/notification.html:57 templates/email/notification.html:26
 msgid "added you to the collection"
 msgstr "将你添加到收藏中"
 
-#: templates/elements/notification.html:62
-#: templates/email/notification.html:29
+#: templates/elements/notification.html:62 templates/email/notification.html:29
 msgid "added a note to a"
 msgstr "在某个"
 
-#: templates/elements/notification.html:62
-#: templates/email/notification.html:31
+#: templates/elements/notification.html:62 templates/email/notification.html:31
 msgid "discussion you follow"
 msgstr "讨论中添加了注释"
 
@@ -2324,7 +1119,8 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"            To change your email settings, click <a href=\"%(settings_url)s\">here</a>\n"
+"            To change your email settings, click <a href=\"%(settings_url)s"
+"\">here</a>\n"
 "        "
 msgstr ""
 
@@ -2332,7 +1128,8 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"            Your feedback is welcome. Feel free to send us an <a href=\"%(hello_email)s\">email</a>.\n"
+"            Your feedback is welcome. Feel free to send us an <a href="
+"\"%(hello_email)s\">email</a>.\n"
 "        "
 msgstr ""
 
@@ -2340,7 +1137,8 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"\t\t%(inviter)s invited you to contribute to the collection %(collection)s on Sefaria.\n"
+"\t\t%(inviter)s invited you to contribute to the collection %(collection)s "
+"on Sefaria.\n"
 "\t\t"
 msgstr ""
 
@@ -2348,15 +1146,19 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"\t\tTo accept this invitation, <a href=\"%(register)s\">create a free Sefaria account</a>.\n"
+"\t\tTo accept this invitation, <a href=\"%(register)s\">create a free "
+"Sefaria account</a>.\n"
 "\t\t"
 msgstr ""
 
 #: templates/email/collection_signup_invitation_email.html:24
 msgid ""
 "\n"
-"\t\tSefaria is a free living library of Jewish texts. Collections on Sefaria help you easily build and share collections of source sheets you create or find on Sefaria.<br>.\n"
-"\t\tFeel free to send any questions over <a href=\"mailto:hello@sefaria.org\">email</a>.\n"
+"\t\tSefaria is a free living library of Jewish texts. Collections on Sefaria "
+"help you easily build and share collections of source sheets you create or "
+"find on Sefaria.<br>.\n"
+"\t\tFeel free to send any questions over <a href=\"mailto:hello@sefaria.org"
+"\">email</a>.\n"
 "\t\t"
 msgstr ""
 
@@ -2403,8 +1205,8 @@ msgstr ""
 
 #: templates/explore.html:6
 msgid ""
-"Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom"
-" in to particular books either above or below to explore deeper."
+"Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom "
+"in to particular books either above or below to explore deeper."
 msgstr ""
 
 #: templates/explore.html:6
@@ -2414,6 +1216,12 @@ msgid ""
 "%(topCatTitle)s. Zoom in to particular books either above or below to "
 "explore deeper."
 msgstr ""
+
+#: templates/gdocs_sheet.html:2218
+#, fuzzy
+#| msgid "Source Sheet created on Pecha by "
+msgid "Source Sheet created on Pecha by"
+msgstr "在Pecha上创建的来源表，由 "
 
 #: templates/leaderboard.html:4
 msgid "Top Contributors | Sefaria"
@@ -2615,7 +1423,7 @@ msgstr "你现在已注销。"
 msgid "Log back in"
 msgstr "重新登录"
 
-#: templates/registration/login.html:4 templates/registration/login.html:31
+#: templates/registration/login.html:4 templates/registration/login.html:29
 msgid "Log in to Pecha"
 msgstr "登录Pecha"
 
@@ -2625,27 +1433,27 @@ msgid ""
 "other Pecha users."
 msgstr ""
 
-#: templates/registration/login.html:14 templates/registration/login.html:15
+#: templates/registration/login.html:14
 msgid "You are already logged in as"
 msgstr "你已经以身份登录"
 
-#: templates/registration/login.html:18 templates/registration/login.html:19
+#: templates/registration/login.html:17
 msgid "Logout."
 msgstr "注销。"
 
-#: templates/registration/login.html:35
+#: templates/registration/login.html:33
 msgid "Your username and password didn't match. Please try again."
 msgstr "你的用户名和密码不匹配。请再试一次。"
 
-#: templates/registration/login.html:52 templates/sheets.html:499
+#: templates/registration/login.html:50 templates/sheets.html:497
 msgid "Login"
 msgstr "登录"
 
-#: templates/registration/login.html:55
+#: templates/registration/login.html:53
 msgid "Forgot your password?"
 msgstr "忘记密码？"
 
-#: templates/registration/login.html:60
+#: templates/registration/login.html:58
 msgid "Create a new account"
 msgstr "创建一个新账户"
 
@@ -2737,7 +1545,15 @@ msgid ""
 "other people."
 msgstr ""
 
-#: templates/registration/register.html:26
+#: templates/registration/register.html:13
+msgid "Sign_Up_Title"
+msgstr "注册"
+
+#: templates/registration/register.html:46
+msgid "Sign_Up_Button"
+msgstr "注册"
+
+#: templates/registration/register.html:50
 msgid "Already have an account? Log in"
 msgstr "已经有账户？登录"
 
@@ -2764,471 +1580,483 @@ msgstr "使用Sefaria的来源表生成器创建的来源表。"
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr "使用Sefaria的来源表生成器创建你自己的来源表。"
 
+#: templates/sheets.html:31
+msgid "File"
+msgstr "文件"
+
 #: templates/sheets.html:38
 msgid "Copy Sheet"
 msgstr "复制表格"
 
-#: templates/sheets.html:54 templates/sheets.html:1008
+#: templates/sheets.html:46
+msgid "Export to Google Drive"
+msgstr ""
+
+#: templates/sheets.html:53 templates/sheets.html:1004
 msgid "Embed Sheet"
 msgstr "嵌入表格"
 
-#: templates/sheets.html:73
+#: templates/sheets.html:72
 msgid "Tags"
 msgstr "标签"
 
-#: templates/sheets.html:85 templates/sheets.html:859
+#: templates/sheets.html:84 templates/sheets.html:853
 msgid "Assignments"
 msgstr "作业"
 
-#: templates/sheets.html:99 templates/sheets.html:785
+#: templates/sheets.html:98 templates/sheets.html:779
 msgid "Print"
 msgstr "打印"
 
-#: templates/sheets.html:107
+#: templates/sheets.html:106
 msgid "Visualize"
 msgstr "可视化"
 
-#: templates/sheets.html:115
+#: templates/sheets.html:114
 msgid "Highlight Mode"
 msgstr "高亮模式"
 
-#: templates/sheets.html:118
+#: templates/sheets.html:117
 msgid "Exit Highlight Mode"
 msgstr "退出高亮模式"
 
-#: templates/sheets.html:126
+#: templates/sheets.html:125
 msgid "Format"
 msgstr "格式"
 
-#: templates/sheets.html:131
+#: templates/sheets.html:130
 msgid "Number Sources"
 msgstr "编号来源"
 
-#: templates/sheets.html:137
+#: templates/sheets.html:136
 msgid "Box Sources"
 msgstr "框来源"
 
-#: templates/sheets.html:150
+#: templates/sheets.html:149
 msgid "Reset Source Text"
 msgstr "重置源文本"
 
-#: templates/sheets.html:157
+#: templates/sheets.html:156
 msgid "Auto-Segment Text"
 msgstr "自动分段文本"
 
-#: templates/sheets.html:165
+#: templates/sheets.html:164
 msgid "Remove Vowel Points"
 msgstr "移除元音标记"
 
-#: templates/sheets.html:172
+#: templates/sheets.html:171
 msgid "Add Source Title"
 msgstr "添加来源标题"
 
-#: templates/sheets.html:183
+#: templates/sheets.html:182
 msgid "Sheet Language"
 msgstr "表格语言"
 
-#: templates/sheets.html:197
+#: templates/sheets.html:196
 msgid "Tibetan"
 msgstr "藏语"
 
-#: templates/sheets.html:214
+#: templates/sheets.html:213
 msgid "Sheet Layout"
 msgstr "表格布局"
 
-#: templates/sheets.html:222 templates/sheets.html:304
+#: templates/sheets.html:221 templates/sheets.html:303
 msgid "Stacked"
 msgstr "堆叠"
 
-#: templates/sheets.html:228 templates/sheets.html:310
+#: templates/sheets.html:227 templates/sheets.html:309
 msgid "Side-by-Side"
 msgstr "并排"
 
-#: templates/sheets.html:239 templates/sheets.html:321
+#: templates/sheets.html:238 templates/sheets.html:320
 msgid "Side-by-Side Layout"
 msgstr "并排布局"
 
-#: templates/sheets.html:247 templates/sheets.html:329
+#: templates/sheets.html:246 templates/sheets.html:328
 msgid "Tibetan Left"
 msgstr "藏文左侧"
 
-#: templates/sheets.html:253 templates/sheets.html:335
+#: templates/sheets.html:252 templates/sheets.html:334
 msgid "Tibetan Right"
 msgstr "藏文右侧"
 
-#: templates/sheets.html:265
+#: templates/sheets.html:264
 msgid "Source Language"
 msgstr "来源语言"
 
-#: templates/sheets.html:296
+#: templates/sheets.html:295
 msgid "Source Layout"
 msgstr "来源布局"
 
-#: templates/sheets.html:345
+#: templates/sheets.html:344
 msgid "Reset to Sheet Default"
 msgstr "重置为表格默认设置"
 
-#: templates/sheets.html:358
+#: templates/sheets.html:357
 msgid "Insert"
 msgstr "插入"
 
-#: templates/sheets.html:363 templates/sheets.html:627
+#: templates/sheets.html:362 templates/sheets.html:625
 msgid "Source"
 msgstr "来源"
 
-#: templates/sheets.html:375 templates/sheets.html:647
+#: templates/sheets.html:368 templates/sheets.html:635
+msgid "Text"
+msgstr "文本"
+
+#: templates/sheets.html:374 templates/sheets.html:645
 msgid "Comment"
 msgstr "评论"
 
-#: templates/sheets.html:381 templates/sheets.html:642
+#: templates/sheets.html:380 templates/sheets.html:640
 msgid "Media"
 msgstr "媒体"
 
-#: templates/sheets.html:388 templates/sheets.html:389
+#: templates/sheets.html:387
 msgid "Highlight Tools"
 msgstr "高亮工具"
 
-#: templates/sheets.html:394
+#: templates/sheets.html:392
 msgid "Paragraph View"
 msgstr "段落视图"
 
-#: templates/sheets.html:397
+#: templates/sheets.html:395
 msgid "Line-by-line View"
 msgstr "逐行视图"
 
-#: templates/sheets.html:404
+#: templates/sheets.html:402
 msgid "Reset"
 msgstr "重置"
 
-#: templates/sheets.html:410
+#: templates/sheets.html:408
 msgid "Filter"
 msgstr "筛选"
 
-#: templates/sheets.html:426
+#: templates/sheets.html:424
 msgid "Last Saved"
 msgstr "最后保存"
 
-#: templates/sheets.html:429
+#: templates/sheets.html:427
 msgid "All changes saved in Pecha"
 msgstr "所有更改已保存在Pecha中"
 
-#: templates/sheets.html:432 templates/sheets.html:457
+#: templates/sheets.html:430 templates/sheets.html:455
 msgid "Saving..."
 msgstr "保存中..."
 
-#: templates/sheets.html:435
+#: templates/sheets.html:433
 msgid "Changes Pending..."
 msgstr "更改待处理..."
 
-#: templates/sheets.html:444
+#: templates/sheets.html:442
 msgid "Highlight Mode is On"
 msgstr "高亮模式已开启"
 
-#: templates/sheets.html:463 templates/sheets.html:785
-#: templates/sheets.html:1093
+#: templates/sheets.html:461 templates/sheets.html:779
+#: templates/sheets.html:1089
 msgid "Share"
 msgstr "分享"
 
-#: templates/sheets.html:466 templates/sheets.html:470
+#: templates/sheets.html:464 templates/sheets.html:468
 msgid "View in Library"
 msgstr "在图书馆查看"
 
-#: templates/sheets.html:499
+#: templates/sheets.html:497
 msgid "Like this?"
 msgstr "喜欢这个？"
 
-#: templates/sheets.html:500
+#: templates/sheets.html:498
 msgid "create an account"
 msgstr "创建一个账户"
 
-#: templates/sheets.html:500
+#: templates/sheets.html:498
 msgid "to build your own source sheet."
 msgstr "以创建你自己的来源表。"
 
-#: templates/sheets.html:507
+#: templates/sheets.html:505
 msgid "Header Title"
 msgstr "标题"
 
-#: templates/sheets.html:534 templates/sheets.html:542
+#: templates/sheets.html:532 templates/sheets.html:540
 #, python-format
 msgid ""
 "\n"
-"Assignment Completed by %(owner)s\n"
+"            Assignment Completed by %(owner)s\n"
 "            "
 msgstr ""
 
-#: templates/sheets.html:549
+#: templates/sheets.html:547
 #, python-format
 msgid ""
 "\n"
-"Source Sheet by %(owner)s\n"
+"            Source Sheet by %(owner)s\n"
 "            "
 msgstr ""
 
-#: templates/sheets.html:559
+#: templates/sheets.html:557
 msgid "More info"
 msgstr "更多信息"
 
-#: templates/sheets.html:564 templates/sheets.html:978
+#: templates/sheets.html:562 templates/sheets.html:974
 msgid "Edit"
 msgstr "编辑"
 
-#: templates/sheets.html:565
+#: templates/sheets.html:563
 msgid "Created"
 msgstr "创建于"
 
-#: templates/sheets.html:566 templates/sheets.html:972
+#: templates/sheets.html:564 templates/sheets.html:968
 msgid "View"
 msgstr "查看"
 
-#: templates/sheets.html:567
+#: templates/sheets.html:565
 msgid "Views"
 msgstr "查看次数"
 
-#: templates/sheets.html:571
+#: templates/sheets.html:569
 msgid "Based on"
 msgstr "基于"
 
-#: templates/sheets.html:572 templates/sheets.html:847
+#: templates/sheets.html:570 templates/sheets.html:841
 msgid "a sheet"
 msgstr "一个表格"
 
-#: templates/sheets.html:572 templates/sheets.html:847
+#: templates/sheets.html:570 templates/sheets.html:841
 msgid "by"
 msgstr "由"
 
-#: templates/sheets.html:578 templates/sheets.html:584
+#: templates/sheets.html:576 templates/sheets.html:582
 msgid "Assigned by"
 msgstr "分配者"
 
-#: templates/sheets.html:632
+#: templates/sheets.html:630
 msgid "Connection"
 msgstr "连接"
 
-#: templates/sheets.html:653
+#: templates/sheets.html:651
 msgid "Select a text"
 msgstr "选择文本"
 
-#: templates/sheets.html:672
+#: templates/sheets.html:670
 msgid "Browse Sources"
 msgstr "浏览来源"
 
-#: templates/sheets.html:681
+#: templates/sheets.html:679
 msgid "Select connected texts"
 msgstr "选择连接的文本"
 
-#: templates/sheets.html:685 templates/sheets.html:708
-#: templates/sheets.html:722 templates/sheets.html:744
+#: templates/sheets.html:683 templates/sheets.html:706
+#: templates/sheets.html:720 templates/sheets.html:742
 msgid "Add to Sheet"
 msgstr "添加到表格"
 
-#: templates/sheets.html:690
+#: templates/sheets.html:688
 msgid "Write or paste text"
 msgstr "编写或粘贴文本"
 
-#: templates/sheets.html:713
+#: templates/sheets.html:711
 msgid "Add Image, Youtube Video, SoundCloud link, or MP3"
 msgstr "添加图片、YouTube视频、SoundCloud链接或MP3"
 
-#: templates/sheets.html:718
+#: templates/sheets.html:716
 msgid "Paste URL"
 msgstr "粘贴URL"
 
-#: templates/sheets.html:731
+#: templates/sheets.html:729
 msgid "Upload an Image"
 msgstr "上传图片"
 
-#: templates/sheets.html:740
+#: templates/sheets.html:738
 msgid "Comment on this section"
 msgstr "对这个部分发表评论"
 
-#: templates/sheets.html:763
+#: templates/sheets.html:761
 msgid "Watch a 2 minute intro video or "
 msgstr "观看2分钟的介绍视频或 "
 
-#: templates/sheets.html:763
+#: templates/sheets.html:761
 msgid "read more"
 msgstr "阅读更多"
 
-#: templates/sheets.html:767
+#: templates/sheets.html:765
 msgid "Source Sheet Builder: How it Works"
 msgstr "来源表生成器：如何工作"
 
-#: templates/sheets.html:773 templates/sheets.html:777
+#: templates/sheets.html:771
 msgid "Add Sources"
 msgstr "添加来源"
 
-#: templates/sheets.html:773 templates/sheets.html:777
+#: templates/sheets.html:771
 msgid "by typing a citation like:"
 msgstr "通过输入引用，例如："
 
-#: templates/sheets.html:782
+#: templates/sheets.html:776
 msgid "Reorder Sources"
 msgstr "重新排序来源"
 
-#: templates/sheets.html:782
+#: templates/sheets.html:776
 msgid "by dragging and dropping."
 msgstr "通过拖放。"
 
-#: templates/sheets.html:785
+#: templates/sheets.html:779
 msgid "your sheets to paper or PDF, or just"
 msgstr "将你的表格导出为纸质或PDF格式，或者只是"
 
-#: templates/sheets.html:785
+#: templates/sheets.html:779
 msgid " the link."
 msgstr " 链接。"
 
-#: templates/sheets.html:788
+#: templates/sheets.html:782
 msgid "More Options"
 msgstr "更多选项"
 
-#: templates/sheets.html:788
+#: templates/sheets.html:782
 msgid "are available in the icons that appear when you hover over a source."
 msgstr "可以在悬停在来源上时出现的图标中找到。"
 
-#: templates/sheets.html:794
+#: templates/sheets.html:788
 msgid "Take a spin! But you'll need to "
 msgstr "试试吧！但你需要 "
 
-#: templates/sheets.html:794
+#: templates/sheets.html:788
 msgid "login"
 msgstr "登录"
 
-#: templates/sheets.html:795
+#: templates/sheets.html:789
 msgid "to save your work."
 msgstr "以保存你的工作。"
 
-#: templates/sheets.html:806
+#: templates/sheets.html:800
 msgid "Made with the Pecha Source Sheet Builder"
 msgstr "使用Pecha来源表生成器制作"
 
-#: templates/sheets.html:817
+#: templates/sheets.html:811
 msgid "Add Highlight"
 msgstr "添加高亮"
 
-#: templates/sheets.html:828
+#: templates/sheets.html:822
 msgid "Create New"
 msgstr "创建新表格"
 
-#: templates/sheets.html:843
+#: templates/sheets.html:837
 msgid "Source Sheet created on Pecha by "
 msgstr "在Pecha上创建的来源表，由 "
 
-#: templates/sheets.html:847
+#: templates/sheets.html:841
 msgid "Based on "
 msgstr "基于 "
 
-#: templates/sheets.html:862
+#: templates/sheets.html:856
 msgid ""
 "Assignments allow you to create a template that your students can fill out "
 "on their own."
 msgstr ""
 
-#: templates/sheets.html:866
+#: templates/sheets.html:860
 msgid "Assign this Sheet"
 msgstr "分配此表格"
 
-#: templates/sheets.html:869
+#: templates/sheets.html:863
 msgid "Stop Collecting Assignments"
 msgstr "停止收集作业"
 
-#: templates/sheets.html:876
+#: templates/sheets.html:870
 msgid "Saved Assignments"
 msgstr "保存的作业"
 
-#: templates/sheets.html:885
+#: templates/sheets.html:879
 msgid "Your student's saved assignments will be viewable here."
 msgstr "你学生保存的作业将在此处查看。"
 
-#: templates/sheets.html:895
+#: templates/sheets.html:889
 msgid "Write a summary to help others understand your sheet..."
 msgstr "编写摘要以帮助其他人理解你的表格..."
 
-#: templates/sheets.html:901
+#: templates/sheets.html:895
 msgid "Add Tags..."
 msgstr "添加标签..."
 
-#: templates/sheets.html:911
+#: templates/sheets.html:905
 msgid "List on Pecha"
 msgstr "在Pecha上列出"
 
-#: templates/sheets.html:927
+#: templates/sheets.html:921
 msgid "Display Collection"
 msgstr "显示集合"
 
-#: templates/sheets.html:933
+#: templates/sheets.html:928
 msgid "None"
 msgstr "无"
 
-#: templates/sheets.html:946
+#: templates/sheets.html:943
 msgid "To manage the collections this sheet appears in, visit your profile."
 msgstr "要管理此表单出现的集合，请访问您的个人资料。"
 
-#: templates/sheets.html:955
+#: templates/sheets.html:952
 msgid "Share a link"
 msgstr "分享链接"
 
-#: templates/sheets.html:968
+#: templates/sheets.html:963
 msgid "Anyone with access can"
 msgstr "任何有权限的人可以"
 
-#: templates/sheets.html:989
+#: templates/sheets.html:985
 msgid ""
 "\n"
 "            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
 "            "
 msgstr ""
 
-#: templates/sheets.html:1011
+#: templates/sheets.html:1007
 msgid ""
 "Copy and paste the embed code below. Adjust the values of width and height "
 "to best fit your design."
 msgstr ""
 
-#: templates/sheets.html:1018
+#: templates/sheets.html:1014
 msgid "Add a Parasha to a Source Sheet"
 msgstr "将经文添加到源表单"
 
-#: templates/sheets.html:1030
+#: templates/sheets.html:1026
 msgid "Change this source's layout"
 msgstr "更改此来源的布局"
 
-#: templates/sheets.html:1047
+#: templates/sheets.html:1043
 msgid "Reset to sheet defaults"
 msgstr "重置为表单默认设置"
 
-#: templates/sheets.html:1056
+#: templates/sheets.html:1052
 msgid "Would you like to make your Source Sheet public?"
 msgstr "您是否希望将您的源表单设为公开？"
 
-#: templates/sheets.html:1061
+#: templates/sheets.html:1057
 msgid ""
 "Your Source Sheet is looking great! You can share it with other members of "
 "the Pecha Community by making it public."
 msgstr ""
 
-#: templates/sheets.html:1066
+#: templates/sheets.html:1062
 msgid "Make Public"
 msgstr "设为公开"
 
-#: templates/sheets.html:1069
+#: templates/sheets.html:1065
 msgid "Maybe Later"
 msgstr "稍后再说"
 
-#: templates/sheets.html:1074
+#: templates/sheets.html:1070
 msgid "Your Sheet is now Public!"
 msgstr "您的表单现在已公开！"
 
-#: templates/sheets.html:1078
+#: templates/sheets.html:1074
 msgid ""
 "Thank you for contributing to a free, growing resource for Jewish learning."
 msgstr ""
 
-#: templates/sheets.html:1087
+#: templates/sheets.html:1083
 msgid "No problem, this sheet is still not listed on Sefaria."
 msgstr "没问题，此表单仍未列在Sefaria上。"
 
-#: templates/sheets.html:1092
+#: templates/sheets.html:1088
 msgid "You can make your sheet public in the future from the"
 msgstr "您可以在将来从中将您的表单设为公开"
 
@@ -3320,8 +2148,8 @@ msgstr "贡献给Sefaria的文本"
 #: templates/static/contributed-to-sefaria.html:6
 msgid ""
 "Texts on Sefaria that list this page as their source were contributed "
-"directly to Sefaria and have not yet been published elsewhere in print or on"
-" the web."
+"directly to Sefaria and have not yet been published elsewhere in print or on "
+"the web."
 msgstr ""
 
 #: templates/static/daf-yomi.html:4
@@ -3463,8 +2291,8 @@ msgstr "关于Sefaria社区翻译"
 
 #: templates/static/sefaria-community-translation.html:6
 msgid ""
-"Sefaria Community Translations are open, crowd-sourced translations of texts"
-" available in the Sefaria Library."
+"Sefaria Community Translations are open, crowd-sourced translations of texts "
+"available in the Sefaria Library."
 msgstr ""
 
 #: templates/static/sefaria-edition.html:4
@@ -3560,8 +2388,8 @@ msgstr "William Davidson塔木德"
 msgid ""
 "The William Davidson Talmud is a free digital edition of the Babylonian "
 "Talmud with parallel translations, interlinked to major commentaries, "
-"biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish"
-" texts."
+"biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish "
+"texts."
 msgstr ""
 
 #: templates/static/word-by-word.html:4
@@ -3578,8 +2406,7 @@ msgstr ""
 #: templates/talmud_people.html:8
 msgid ""
 "An index of the sages of the Talmud (Chazal) ordered by generation, "
-"including relationships to one another, time periods and links to learn "
-"more."
+"including relationships to one another, time periods and links to learn more."
 msgstr ""
 
 #: templates/talmudic_relationships.html:24
@@ -3620,6 +2447,668 @@ msgstr "通过拉希的评论可视化托拉连接"
 
 #: templates/visualize_links_through_rashi.html:8
 msgid ""
-"Explore how Rashi connects verses of Torah to one another when he quotes one"
-" verse in his commentary on another."
+"Explore how Rashi connects verses of Torah to one another when he quotes one "
+"verse in his commentary on another."
 msgstr ""
+
+#~ msgid "ambiguous option: %(option)s could match %(matches)s"
+#~ msgstr "模糊选项：%(option)s 可能匹配 %(matches)s"
+
+#~ msgid "Error verifying reCAPTCHA, please try again."
+#~ msgstr "验证reCAPTCHA时出错，请重试。"
+
+#~ msgid "Messages"
+#~ msgstr "消息"
+
+#~ msgid "Site Maps"
+#~ msgstr "网站地图"
+
+#~ msgid "Static Files"
+#~ msgstr "静态文件"
+
+#~ msgid "Syndication"
+#~ msgstr "联合发布"
+
+#~ msgid "That page number is not an integer"
+#~ msgstr "该页码不是整数"
+
+#~ msgid "That page number is less than 1"
+#~ msgstr "该页码小于1"
+
+#~ msgid "That page contains no results"
+#~ msgstr "该页面没有结果"
+
+#~ msgid "Enter a valid value."
+#~ msgstr "输入有效的值。"
+
+#~ msgid "Enter a valid URL."
+#~ msgstr "输入有效的URL。"
+
+#~ msgid "Enter a valid integer."
+#~ msgstr "输入有效的整数。"
+
+#~ msgid "Enter a valid email address."
+#~ msgstr "输入有效的电子邮件地址。"
+
+#~ msgid "Enter a valid IPv4 address."
+#~ msgstr "输入有效的IPv4地址。"
+
+#~ msgid "Enter a valid IPv6 address."
+#~ msgstr "输入有效的IPv6地址。"
+
+#~ msgid "Enter a valid IPv4 or IPv6 address."
+#~ msgstr "输入有效的IPv4或IPv6地址。"
+
+#~ msgid "Enter only digits separated by commas."
+#~ msgstr "仅输入以逗号分隔的数字。"
+
+#~ msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
+#~ msgstr "确保此值为 %(limit_value)s（实际为 %(show_value)s）。"
+
+#~ msgid "Ensure this value is less than or equal to %(limit_value)s."
+#~ msgstr "确保此值小于或等于 %(limit_value)s。"
+
+#~ msgid "Ensure this value is greater than or equal to %(limit_value)s."
+#~ msgstr "确保此值大于或等于 %(limit_value)s。"
+
+#~ msgid "and"
+#~ msgstr "和"
+
+#~ msgid "%(model_name)s with this %(field_labels)s already exists."
+#~ msgstr "具有此 %(field_labels)s 的 %(model_name)s 已经存在。"
+
+#~ msgid "Value %(value)r is not a valid choice."
+#~ msgstr "值 %(value)r 不是有效的选择。"
+
+#~ msgid "This field cannot be null."
+#~ msgstr "此字段不能为空。"
+
+#~ msgid "This field cannot be blank."
+#~ msgstr "此字段不能为空。"
+
+#~ msgid "%(model_name)s with this %(field_label)s already exists."
+#~ msgstr "具有此 %(field_label)s 的 %(model_name)s 已经存在。"
+
+#~ msgid "Field of type: %(field_type)s"
+#~ msgstr "字段类型：%(field_type)s"
+
+#~ msgid "Integer"
+#~ msgstr "整数"
+
+#~ msgid "'%(value)s' value must be an integer."
+#~ msgstr "'%(value)s' 的值必须是整数。"
+
+#~ msgid "Big (8 byte) integer"
+#~ msgstr "大（8字节）整数"
+
+#~ msgid "'%(value)s' value must be either True or False."
+#~ msgstr "'%(value)s' 的值必须是 True 或 False。"
+
+#~ msgid "Boolean (Either True or False)"
+#~ msgstr "布尔值（True 或 False）"
+
+#~ msgid "String (up to %(max_length)s)"
+#~ msgstr "字符串（最多 %(max_length)s）"
+
+#~ msgid "Comma-separated integers"
+#~ msgstr "以逗号分隔的整数"
+
+#~ msgid "Date (without time)"
+#~ msgstr "日期（不含时间）"
+
+#~ msgid "Date (with time)"
+#~ msgstr "日期（含时间）"
+
+#~ msgid "'%(value)s' value must be a decimal number."
+#~ msgstr "'%(value)s' 的值必须是小数。"
+
+#~ msgid "Decimal number"
+#~ msgstr "小数"
+
+#~ msgid "Duration"
+#~ msgstr "持续时间"
+
+#~ msgid "Email address"
+#~ msgstr "电子邮件地址"
+
+#~ msgid "File path"
+#~ msgstr "文件路径"
+
+#~ msgid "'%(value)s' value must be a float."
+#~ msgstr "'%(value)s' 的值必须是浮点数。"
+
+#~ msgid "Floating point number"
+#~ msgstr "浮点数"
+
+#~ msgid "IPv4 address"
+#~ msgstr "IPv4 地址"
+
+#~ msgid "IP address"
+#~ msgstr "IP 地址"
+
+#~ msgid "'%(value)s' value must be either None, True or False."
+#~ msgstr "'%(value)s' 的值必须是 None、True 或 False。"
+
+#~ msgid "Boolean (Either True, False or None)"
+#~ msgstr "布尔值（True、False 或 None）"
+
+#~ msgid "Positive integer"
+#~ msgstr "正整数"
+
+#~ msgid "Positive small integer"
+#~ msgstr "正小整数"
+
+#~ msgid "Slug (up to %(max_length)s)"
+#~ msgstr "简短名称（最多 %(max_length)s）"
+
+#~ msgid "Small integer"
+#~ msgstr "小整数"
+
+#~ msgid "Time"
+#~ msgstr "时间"
+
+#~ msgid "URL"
+#~ msgstr "网址"
+
+#~ msgid "Raw binary data"
+#~ msgstr "原始二进制数据"
+
+#~ msgid "'%(value)s' is not a valid UUID."
+#~ msgstr "'%(value)s' 不是有效的 UUID。"
+
+#~ msgid "Image"
+#~ msgstr "图像"
+
+#~ msgid "%(model)s instance with %(field)s %(value)r does not exist."
+#~ msgstr "具有 %(field)s %(value)r 的 %(model)s 实例不存在。"
+
+#~ msgid "Foreign Key (type determined by related field)"
+#~ msgstr "外键（由相关字段确定类型）"
+
+#~ msgid "One-to-one relationship"
+#~ msgstr "一对一关系"
+
+#~ msgid "%(from)s-%(to)s relationship"
+#~ msgstr "%(from)s-%(to)s 关系"
+
+#~ msgid "%(from)s-%(to)s relationships"
+#~ msgstr "%(from)s-%(to)s 关系"
+
+#~ msgid "Many-to-many relationship"
+#~ msgstr "多对多关系"
+
+#~ msgid ":?.!"
+#~ msgstr ":?.!"
+
+#~ msgid "This field is required."
+#~ msgstr "此字段是必填的。"
+
+#~ msgid "Enter a whole number."
+#~ msgstr "输入一个整数。"
+
+#~ msgid "Enter a number."
+#~ msgstr "输入一个数字。"
+
+#~ msgid "Enter a valid date."
+#~ msgstr "输入有效的日期。"
+
+#~ msgid "Enter a valid time."
+#~ msgstr "输入有效的时间。"
+
+#~ msgid "Enter a valid date/time."
+#~ msgstr "输入有效的日期/时间。"
+
+#~ msgid "Enter a valid duration."
+#~ msgstr "输入有效的持续时间。"
+
+#~ msgid "No file was submitted. Check the encoding type on the form."
+#~ msgstr "没有提交文件。请检查表单上的编码类型。"
+
+#~ msgid "No file was submitted."
+#~ msgstr "没有提交文件。"
+
+#~ msgid "The submitted file is empty."
+#~ msgstr "提交的文件为空。"
+
+#~ msgid "Please either submit a file or check the clear checkbox, not both."
+#~ msgstr "请提交文件或选中清除复选框，而不是两者都做。"
+
+#~ msgid ""
+#~ "Select a valid choice. %(value)s is not one of the available choices."
+#~ msgstr "选择一个有效的选项。%(value)s 不是可用选项之一。"
+
+#~ msgid "Enter a list of values."
+#~ msgstr "输入一个值列表。"
+
+#~ msgid "Enter a complete value."
+#~ msgstr "输入完整的值。"
+
+#~ msgid "Enter a valid UUID."
+#~ msgstr "输入有效的 UUID。"
+
+#~ msgid ":"
+#~ msgstr ":"
+
+#~ msgid "(Hidden field %(name)s) %(error)s"
+#~ msgstr "(隐藏字段 %(name)s) %(error)s"
+
+#~ msgid "ManagementForm data is missing or has been tampered with"
+#~ msgstr "ManagementForm 数据丢失或已被篡改"
+
+#~ msgid "Order"
+#~ msgstr "排序"
+
+#~ msgid "Delete"
+#~ msgstr "删除"
+
+#~ msgid "Please correct the duplicate data for %(field)s."
+#~ msgstr "请更正 %(field)s 的重复数据。"
+
+#~ msgid ""
+#~ "Please correct the duplicate data for %(field)s, which must be unique."
+#~ msgstr "请更正 %(field)s 的重复数据，该数据必须唯一。"
+
+#~ msgid "Please correct the duplicate values below."
+#~ msgstr "请更正下面的重复值。"
+
+#~ msgid ""
+#~ "The inline foreign key did not match the parent instance primary key."
+#~ msgstr "内联外键与父实例主键不匹配。"
+
+#~ msgid ""
+#~ "Select a valid choice. That choice is not one of the available choices."
+#~ msgstr "选择一个有效的选项。该选项不是可用选项之一。"
+
+#~ msgid "Clear"
+#~ msgstr "清除"
+
+#~ msgid "Currently"
+#~ msgstr "当前"
+
+#~ msgid "Change"
+#~ msgstr "更改"
+
+#~ msgid "Unknown"
+#~ msgstr "未知"
+
+#~ msgid "Yes"
+#~ msgstr "是"
+
+#~ msgid "No"
+#~ msgstr "否"
+
+#~ msgid "yes,no,maybe"
+#~ msgstr "是，否，也许"
+
+#~ msgid "%s KB"
+#~ msgstr "%s KB"
+
+#~ msgid "%s MB"
+#~ msgstr "%s MB"
+
+#~ msgid "%s GB"
+#~ msgstr "%s GB"
+
+#~ msgid "%s TB"
+#~ msgstr "%s TB"
+
+#~ msgid "%s PB"
+#~ msgstr "%s PB"
+
+#~ msgid "p.m."
+#~ msgstr "下午"
+
+#~ msgid "a.m."
+#~ msgstr "上午"
+
+#~ msgid "PM"
+#~ msgstr "下午"
+
+#~ msgid "AM"
+#~ msgstr "上午"
+
+#~ msgid "midnight"
+#~ msgstr "午夜"
+
+#~ msgid "noon"
+#~ msgstr "中午"
+
+#~ msgid "Monday"
+#~ msgstr "星期一"
+
+#~ msgid "Tuesday"
+#~ msgstr "星期二"
+
+#~ msgid "Wednesday"
+#~ msgstr "星期三"
+
+#~ msgid "Thursday"
+#~ msgstr "星期四"
+
+#~ msgid "Friday"
+#~ msgstr "星期五"
+
+#~ msgid "Saturday"
+#~ msgstr "星期六"
+
+#~ msgid "Sunday"
+#~ msgstr "星期日"
+
+#~ msgid "Mon"
+#~ msgstr "周一"
+
+#~ msgid "Tue"
+#~ msgstr "周二"
+
+#~ msgid "Wed"
+#~ msgstr "周三"
+
+#~ msgid "Thu"
+#~ msgstr "周四"
+
+#~ msgid "Fri"
+#~ msgstr "周五"
+
+#~ msgid "Sat"
+#~ msgstr "周六"
+
+#~ msgid "Sun"
+#~ msgstr "周日"
+
+#~ msgid "January"
+#~ msgstr "一月"
+
+#~ msgid "February"
+#~ msgstr "二月"
+
+#~ msgid "March"
+#~ msgstr "三月"
+
+#~ msgid "April"
+#~ msgstr "四月"
+
+#~ msgid "May"
+#~ msgstr "五月"
+
+#~ msgid "June"
+#~ msgstr "六月"
+
+#~ msgid "July"
+#~ msgstr "七月"
+
+#~ msgid "August"
+#~ msgstr "八月"
+
+#~ msgid "September"
+#~ msgstr "九月"
+
+#~ msgid "October"
+#~ msgstr "十月"
+
+#~ msgid "November"
+#~ msgstr "十一月"
+
+#~ msgid "December"
+#~ msgstr "十二月"
+
+#~ msgid "jan"
+#~ msgstr "一月"
+
+#~ msgid "feb"
+#~ msgstr "二月"
+
+#~ msgid "mar"
+#~ msgstr "三月"
+
+#~ msgid "apr"
+#~ msgstr "四月"
+
+#~ msgid "may"
+#~ msgstr "五月"
+
+#~ msgid "jun"
+#~ msgstr "六月"
+
+#~ msgid "jul"
+#~ msgstr "七月"
+
+#~ msgid "aug"
+#~ msgstr "八月"
+
+#~ msgid "sep"
+#~ msgstr "九月"
+
+#~ msgid "oct"
+#~ msgstr "十月"
+
+#~ msgid "nov"
+#~ msgstr "十一月"
+
+#~ msgid "dec"
+#~ msgstr "十二月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "Jan."
+#~ msgstr "1月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "Feb."
+#~ msgstr "2月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "March"
+#~ msgstr "三月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "April"
+#~ msgstr "四月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "May"
+#~ msgstr "五月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "June"
+#~ msgstr "六月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "July"
+#~ msgstr "七月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "Aug."
+#~ msgstr "8月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "Sept."
+#~ msgstr "9月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "Oct."
+#~ msgstr "10月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "Nov."
+#~ msgstr "11月"
+
+#~ msgctxt "abbrev. month"
+#~ msgid "Dec."
+#~ msgstr "12月"
+
+#~ msgctxt "alt. month"
+#~ msgid "January"
+#~ msgstr "一月"
+
+#~ msgctxt "alt. month"
+#~ msgid "February"
+#~ msgstr "二月"
+
+#~ msgctxt "alt. month"
+#~ msgid "March"
+#~ msgstr "三月"
+
+#~ msgctxt "alt. month"
+#~ msgid "April"
+#~ msgstr "四月"
+
+#~ msgctxt "alt. month"
+#~ msgid "May"
+#~ msgstr "五月"
+
+#~ msgctxt "alt. month"
+#~ msgid "June"
+#~ msgstr "六月"
+
+#~ msgctxt "alt. month"
+#~ msgid "July"
+#~ msgstr "七月"
+
+#~ msgctxt "alt. month"
+#~ msgid "August"
+#~ msgstr "八月"
+
+#~ msgctxt "alt. month"
+#~ msgid "September"
+#~ msgstr "九月"
+
+#~ msgctxt "alt. month"
+#~ msgid "October"
+#~ msgstr "十月"
+
+#~ msgctxt "alt. month"
+#~ msgid "November"
+#~ msgstr "十一月"
+
+#~ msgctxt "alt. month"
+#~ msgid "December"
+#~ msgstr "十二月"
+
+#~ msgid "This is not a valid IPv6 address."
+#~ msgstr "这不是有效的IPv6地址。"
+
+#~ msgctxt "String to return when truncating text"
+#~ msgid "%(truncated_text)s..."
+#~ msgstr "%(truncated_text)s..."
+
+#~ msgid ", "
+#~ msgstr ", "
+
+#~ msgid "0 minutes"
+#~ msgstr "0 分钟"
+
+#~ msgid "Forbidden"
+#~ msgstr "禁止"
+
+#~ msgid "CSRF verification failed. Request aborted."
+#~ msgstr "CSRF验证失败。请求被中止。"
+
+#~ msgid "More information is available with DEBUG=True."
+#~ msgstr "更多信息请设置DEBUG=True。"
+
+#~ msgid "Welcome to Django"
+#~ msgstr "欢迎来到Django"
+
+#~ msgid "It worked!"
+#~ msgstr "成功了！"
+
+#~ msgid "Congratulations on your first Django-powered page."
+#~ msgstr "祝贺你创建了第一个Django页面。"
+
+#~ msgid "No year specified"
+#~ msgstr "未指定年份"
+
+#~ msgid "Date out of range"
+#~ msgstr "日期超出范围"
+
+#~ msgid "No month specified"
+#~ msgstr "未指定月份"
+
+#~ msgid "No day specified"
+#~ msgstr "未指定日期"
+
+#~ msgid "No week specified"
+#~ msgstr "未指定周"
+
+#~ msgid "No %(verbose_name_plural)s available"
+#~ msgstr "没有可用的%(verbose_name_plural)s"
+
+#~ msgid "Invalid date string '%(datestr)s' given format '%(format)s'"
+#~ msgstr "无效的日期字符串 '%(datestr)s'，格式 '%(format)s'"
+
+#~ msgid "No %(verbose_name)s found matching the query"
+#~ msgstr "没有找到匹配查询的%(verbose_name)s"
+
+#~ msgid "Page is not 'last', nor can it be converted to an int."
+#~ msgstr "页面不是'最后'，也不能转换为整数。"
+
+#~ msgid "Invalid page (%(page_number)s): %(message)s"
+#~ msgstr "无效的页面 (%(page_number)s): %(message)s"
+
+#~ msgid "Empty list and '%(class_name)s.allow_empty' is False."
+#~ msgstr "空列表且 '%(class_name)s.allow_empty' 为 False。"
+
+#~ msgid "Directory indexes are not allowed here."
+#~ msgstr "这里不允许目录索引。"
+
+#~ msgid "Index of %(directory)s"
+#~ msgstr "%(directory)s 的索引"
+
+#~ msgid "Personal info"
+#~ msgstr "个人信息"
+
+#~ msgid "Permissions"
+#~ msgstr "权限"
+
+#~ msgid "Important dates"
+#~ msgstr "重要日期"
+
+#~ msgid "Groups"
+#~ msgstr "群组"
+
+#~ msgid "Please enter a correct email and password. "
+#~ msgstr "请输入正确的电子邮件和密码。"
+
+#~ msgid "You do not have permission to access the admin."
+#~ msgstr "你没有权限访问管理员。"
+
+#~ msgid "This account is inactive."
+#~ msgstr "此账户已被停用。"
+
+#~ msgid "Email"
+#~ msgstr "电子邮件"
+
+#~ msgid "Enter a valid e-mail address."
+#~ msgstr "请输入有效的电子邮件地址。"
+
+#~ msgid "Email:"
+#~ msgstr "电子邮件："
+
+#~ msgid "Password:"
+#~ msgstr "密码："
+
+#~ msgid "Forgotten your password or username?"
+#~ msgstr "忘记了密码或用户名？"
+
+#~ msgid "Log in"
+#~ msgstr "登录"
+
+#~ msgid "Content purported to be compressed with %s but failed to decompress."
+#~ msgstr "内容声称使用 %s 压缩，但解压失败。"
+
+#~ msgid "Unsupported value for qop: %s."
+#~ msgstr "不支持的 qop 值: %s。"
+
+#~ msgid "Unsupported value for algorithm: %s."
+#~ msgstr "不支持的算法值: %s。"
+
+#~ msgid "The challenge doesn't contain a server nonce, or this one is empty."
+#~ msgstr "挑战中不包含服务器 nonce，或者该 nonce 为空。"
+
+#~ msgid "Unsupported value for pw-algorithm: %s."
+#~ msgstr "不支持的 pw-algorithm 值: %s。"
+
+#~ msgid "Redirected but the response is missing a Location: header."
+#~ msgstr "重定向，但响应中缺少 Location: 头。"
+
+#~ msgid "ipware app"
+#~ msgstr "ipware 应用"
