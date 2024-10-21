@@ -543,7 +543,7 @@
     "sheet.add_description":"Please add a description to publish your sheet.",
     "sheet.message.summary_limit":"The summary description is limited to 280 characters.",
     "connection_panel.people_with_link":"People with this link can",
-    "sheet.publish_sheet_on_pecha":"Publish your sheet on Sefaria for others to discover.",
+    "sheet.publish_sheet_on_pecha":"Publish your sheet on Pecha for others to discover.",
     "common.about":"About",  
     "text.version.merged_from":"Merged from",
     "connection_panel.menuscript.source":"Source",
