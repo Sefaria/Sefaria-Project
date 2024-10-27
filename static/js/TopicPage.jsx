@@ -261,12 +261,15 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         );
       });
 
-    const sidebarModules = [
+    let sidebarModules = [
       {type: "AboutTopics"},
       {type: "Promo"},
       {type: "TrendingTopics"},
       {type: "SponsorADay"},
     ];
+    if (topic === "torah-portions") {
+        sidebarModules.splice(1, 0, {type: "StudyCompanion"});
+    }
 
     return (
         <div className="readerNavMenu noLangToggleInHebrew">

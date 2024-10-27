@@ -56,6 +56,7 @@ const Modules = ({type, props}) => {
     "PortalOrganization":     PortalOrganization,
     "PortalNewsletter":       PortalNewsletter,
     "RecentlyViewed":        RecentlyViewed,
+    "StudyCompanion":        StudyCompanion,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -153,13 +154,25 @@ const Promo = () =>
     </Module>
 ;
 
+const StudyCompanion = () => (
+    <Module>
+        <ModuleTitle>Study Companion</ModuleTitle>
+        <div><InterfaceText>Get the Weekly Parashah Study Companion in your inbox.</InterfaceText></div>
+        <a className="button small" href="https://learn.sefaria.org/weekly-parashah/">
+            <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
+            <InterfaceText>Sign Up</InterfaceText>
+        </a>
+    </Module>
+)
+
+
 const AboutSefaria = ({hideTitle}) => (
-  <Module>
-    {!hideTitle ?
-    <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
-    <InterfaceText>
-      <EnglishText>
-          Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
+    <Module>
+        {!hideTitle ?
+            <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null}
+        <InterfaceText>
+            <EnglishText>
+                Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
           and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
         </EnglishText>
         <HebrewText>
