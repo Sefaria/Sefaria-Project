@@ -59,10 +59,9 @@ import {LANGUAGES, SOURCE_LANGUAGES} from '../globals'
         if(sourceLanguage !== 'Hebrew'){
             const defaultTranslation = await selectedTranslationName.textContent()
             
-            // Check that "Currently Selected / נוכחי" has the default translation next to it.  
-            // The "Currently Selected" link is a sibling element of the translation name
-            await expect(page.getByRole('link', {name: currentlySelectedText}).locator('..')).toContainText(defaultTranslation!)
-
+            // Check that "Currently Selected / נוכחי" has the default translation next to it by pointing to the version title div
+            await expect(page.locator('div.version-with-preview-title-line').filter({ hasText: currentlySelectedText })).toContainText(defaultTranslation!)
+            
         }
         
         const translationNames = ['The Schocken Bible, Everett Fox, 1995 ©', '«Да» project']
@@ -75,8 +74,8 @@ import {LANGUAGES, SOURCE_LANGUAGES} from '../globals'
             // Validate selected translation is reflected in title
             await expect(selectedTranslationName).toContainText(translationName)
  
-            // Validate that the currently selected translation is the one we want.
-            await expect(page.getByRole('link', {name: currentlySelectedText}).locator('..')).toContainText(translationName)
+            // Validate that the currently selected translation is the one we want by pointing to the version title div 
+            await expect(page.locator('div.version-with-preview-title-line').filter({ hasText: currentlySelectedText })).toContainText(translationName!)
          }
     })
 });
