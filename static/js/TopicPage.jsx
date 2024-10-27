@@ -267,7 +267,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
       {type: "TrendingTopics"},
       {type: "SponsorADay"},
     ];
-    if (topic === "torah-portions") {
+    if (topic === "torah-portions" && Sefaria.interfaceLang === "english") {
         sidebarModules.splice(1, 0, {type: "StudyCompanion"});
     }
 
@@ -443,22 +443,32 @@ return (
        : null}
        {tpTopImg}
        {topicData && topicData.ref ?
-         <a href={`/${topicData.ref.url}`} className="resourcesLink button blue">
-           <img src="/static/icons/book-icon-black.svg" alt="Book Icon" />
-           <span className="int-en">{ topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en }</span>
-           <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
-         </a>
-       : null}
+           <div>
+               <a href={`/${topicData.ref.url}`} className="resourcesLink button blue">
+                   <img src="/static/icons/book-icon-black.svg" alt="Book Icon"/>
+                   <span className="int-en">{topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en}</span>
+                   <span className="int-he">{topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he)}</span>
+               </a>
+               {Sefaria.interfaceLang === "english" &&
+               <a className="resourcesLink button blue studyCompanion" href="https://learn.sefaria.org/weekly-parashah/">
+                  <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
+                  <InterfaceText>Get the Free Study Companion</InterfaceText>
+               </a>}
+           </div>
+           : null}
     </div>
-);}
+);
+}
 
-const AuthorIndexItem = ({url, title, description}) => {
-  return (
-      <div className="authorIndex" >
-      <a href={url} className="navBlockTitle">
-        <ContentText text={title} defaultToInterfaceOnBilingual />
-      </a>
-      <div className="navBlockDescription">
+const AuthorIndexItem = ({
+    url, title, description
+}) => {
+    return (
+        <div className="authorIndex">
+            <a href={url} className="navBlockTitle">
+                <ContentText text={title} defaultToInterfaceOnBilingual/>
+            </a>
+            <div className="navBlockDescription">
         <ContentText text={description} defaultToInterfaceOnBilingual />
       </div>
     </div>

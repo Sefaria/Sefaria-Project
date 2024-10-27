@@ -11525,6 +11525,9 @@ cursor: pointer;
   color: white;
   background-color: #18345d;
 }
+.resourcesLink.studyCompanion {
+  margin-inline-start: 10px;
+}
 .resourcesLink.blue img {
   filter: invert(1);
   opacity: 1;
