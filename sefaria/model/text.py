@@ -1412,7 +1412,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         pass
 
     def get_index(self):
-        return library.get_index(self.title)
+        return Index().load({'title': self.title})
 
     def first_section_ref(self):
         """
