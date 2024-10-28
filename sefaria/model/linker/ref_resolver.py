@@ -145,12 +145,31 @@ class ResolvedRef(abst.Cloneable):
         """
         Does `self` contain `other`. If `self.ref` and `other.ref` aren't None, this is just ref comparison.
         Otherwise, see if the schema/altstruct node that back `self` contains `other`'s node.
+        Note this function is a bit confusing. It works like this:
+        - If `self.ref` and `other.ref` are None, we compare the nodes themselves to see if self is an ancestor of other
+        - If `self.ref` is None and `other.ref` isn't, we check that `other.ref` is contained in at least one of `self`'s children (`self` may be an AltStructNode in which case it has no Ref)
+        - If `self.ref` isn't None and `other_ref` is None, we check that `self.ref` contains all of `other`'s children (`other` may be an AltStructNode in which case it has no Ref)
+        - If `self.ref` and `other.ref` are both defined, we can use Ref.contains()
         @param other:
         @return:
         """
         if not other.node or not self.node:
             return False
-        return self.node.contains(other.node, self.ref, other.ref)
+        if other.ref and self.ref:
+            return self.ref.contains(other.ref)
+        try:
+            if other.ref is None:
+                if self.ref is None:
+                    return self.node.is_ancestor_of(other.node)
+                # other is alt struct and self has a ref
+                # check that every leaf node is contained by self's ref
+                return all([self.ref.contains(leaf_ref) for leaf_ref in other.node.leaf_refs()])
+            # self is alt struct and other has a ref
+            # check if any leaf node contains other's ref
+            return any([leaf_ref.contains(other.ref) for leaf_ref in self.node.leaf_refs()])
+        except NotImplementedError:
+            return False
+
 
     @property
     def order_key(self):

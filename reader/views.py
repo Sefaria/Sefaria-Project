@@ -3046,7 +3046,7 @@ def topic_page(request, topic, test_version=None):
     props = {
         "initialMenu": "topics",
         "initialTopic": topic,
-        "initialTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTab": urllib.parse.unquote(request.GET.get('tab', 'notable-sources')),
         "initialTopicSort": urllib.parse.unquote(request.GET.get('sort', 'Relevance')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),

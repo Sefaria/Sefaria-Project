@@ -85,47 +85,29 @@ class ReferenceableBookNode:
     def referenceable(self) -> bool:
         return True
 
-    def contains(self, other: 'ReferenceableBookNode', self_ref: Optional[text.Ref], other_ref: Optional[text.Ref]) -> bool:
-        """
-        Does `self` contain `other`. If `self_ref` and `other_ref` aren't None, this is just ref comparison.
-        Otherwise, see if the schema/altstruct node that back `self` contains `other`'s node.
-        Note this function is a bit confusing. It works like this:
-        - If `self_ref` and `other_ref` are None, we compare the nodes themselves to see if self is an ancestor of other
-        - If `self_ref` is None and `other_ref` isn't, we check that `other_ref` is contained in at least one of `self`'s children (`self` may be an AltStructNode in which case it has no Ref)
-        - If `self_ref` isn't None and `other_ref` is None, we check that `self_ref` contains all of `other`'s children (`other` may be an AltStructNode in which case it has no Ref)
-        - If `self_ref` and `other_ref` are both defined, we can use Ref.contains()
-        @param other:
-        @param self_ref: although `self` has a ref (if it's backed by a schemaNode) this ref doesn't include sections. For this reason, we need to be able to pass `self_ref`.
-        @param other_ref: see `self_ref` for docs.
-        @return:
-        """
-        if other_ref and self_ref:
-            return self_ref.contains(other_ref)
-        try:
-            if other_ref is None:
-                other_node = other._get_titled_tree_node()
-                if self_ref is None:
-                    return self._get_titled_tree_node().is_ancestor_of(other_node)
-                # other is alt struct and self has a ref
-                # check that every leaf node is contained by self's ref
-                return all([self_ref.contains(child.ref()) for child in other_node.get_leaf_nodes()])
-            # self is alt struct and other has a ref
-            # check if any leaf node contains other's ref
-            return any([child.ref().contains(other_ref) for child in self._get_titled_tree_node().get_leaf_nodes()])
-        except NotImplementedError:
-            return False
+    def is_ancestor_of(self, other: 'ReferenceableBookNode') -> bool:
+        other_node = other._get_titled_tree_node()
+        self_node = self._get_titled_tree_node()
+        return self_node.is_ancestor_of(other_node)
 
     def _get_titled_tree_node(self) -> schema.TitledTreeNode:
         raise NotImplementedError
 
+    def leaf_refs(self) -> list[text.Ref]:
+        """
+        Get the Refs for the ReferenceableBookNode leaf nodes from `self`
+        @return:
+        """
+        raise NotImplementedError
 
-class NamedReferenceableBookNode(ReferenceableBookNode):
 
-    def __init__(self, titled_tree_node_or_index: Union[schema.TitledTreeNode, text.Index]):
-        self._titled_tree_node_or_index = titled_tree_node_or_index
-        self._titled_tree_node = titled_tree_node_or_index
-        if isinstance(titled_tree_node_or_index, text.Index):
-            self._titled_tree_node = titled_tree_node_or_index.nodes
+class IndexNodeReferenceableBookNode(ReferenceableBookNode):
+    """
+    ReferenceableBookNode backed by node in an Index (either SchemaNode or AltStructNode)
+    """
+
+    def __init__(self, titled_tree_node: schema.TitledTreeNode):
+        self._titled_tree_node = titled_tree_node
 
     @property
     def referenceable(self):
@@ -135,10 +117,7 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
         return self._titled_tree_node
 
     def is_default(self):
-        return self._titled_tree_node.is_default()
-
-    def get_numeric_equivalent(self):
-        return getattr(self._titled_tree_node, "numeric_equivalent", None)
+        return self._titled_tree_node.is_default() and self._titled_tree_node.parent is not None
 
     def ref(self) -> text.Ref:
         return self._titled_tree_node.ref()
@@ -155,6 +134,19 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
             approx_ref = leaves[0].ref().to(leaves[-1].ref())
             return approx_ref.order_id()
         return self.ref().order_id()
+
+
+class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
+
+    def __init__(self, titled_tree_node_or_index: Union[schema.TitledTreeNode, text.Index]):
+        self._titled_tree_node_or_index = titled_tree_node_or_index
+        titled_tree_node = titled_tree_node_or_index
+        if isinstance(titled_tree_node_or_index, text.Index):
+            titled_tree_node = titled_tree_node_or_index.nodes
+        super().__init__(titled_tree_node)
+
+    def get_numeric_equivalent(self):
+        return getattr(self._titled_tree_node, "numeric_equivalent", None)
 
     @staticmethod
     def _is_array_map_referenceable(node: schema.ArrayMapNode) -> bool:
@@ -217,24 +209,22 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
     def ref_part_title_trie(self, *args, **kwargs):
         return self._titled_tree_node.get_match_template_trie(*args, **kwargs)
 
+    def leaf_refs(self) -> list[text.Ref]:
+        return [n.ref() for n in self._get_titled_tree_node().get_leaf_nodes()]
 
-class NumberedReferenceableBookNode(ReferenceableBookNode):
+
+class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
 
     def __init__(self, ja_node: schema.NumberedTitledTreeNode):
-        self._ja_node = ja_node
+        super().__init__(ja_node)
+        self._ja_node: schema.NumberedTitledTreeNode = ja_node
 
     @property
     def referenceable(self):
         return getattr(self._ja_node, 'referenceable', True)
 
-    def _get_titled_tree_node(self) -> schema.TitledTreeNode:
-        return self._ja_node
-
-    def is_default(self):
-        return self._ja_node.is_default() and self._ja_node.parent is not None
-
-    def ref(self):
-        return self._ja_node.ref()
+    def leaf_refs(self) -> list[text.Ref]:
+        return [self.ref()]
 
     def possible_subrefs(self, lang: str, initial_ref: text.Ref, section_str: str, fromSections=None) -> Tuple[List[text.Ref], List[bool]]:
         try:
@@ -378,6 +368,9 @@ class MapReferenceableBookNode(NumberedReferenceableBookNode):
 
     def ref(self):
         raise NotImplementedError(f'{self.__class__} does not have a single ref.')
+
+    def leaf_refs(self) -> list[text.Ref]:
+        return list(self._section_ref_map.values())
 
     def possible_subrefs(self, lang: str, initial_ref: text.Ref, section_str: str, fromSections=None) -> Tuple[List[text.Ref], List[bool]]:
         try:
