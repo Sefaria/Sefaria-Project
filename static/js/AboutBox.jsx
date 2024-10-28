@@ -95,13 +95,13 @@ class AboutBox extends Component {
       return <section className="aboutBox">{detailSection}</section>;
     }
 
-  if (!Object.keys(this.state.versionLangMap).length) {
-    return (
-      <div className="versionsBox">
-        <LoadingMessage />
-      </div>
-    );
-  }
+    if (!Object.keys(this.state.versionLangMap).length) {
+        return (
+          <div className="versionsBox">
+            <LoadingMessage />
+          </div>
+        );
+    }
 
     if (this.props.mode === "Version Open") {
       return (
