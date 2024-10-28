@@ -545,6 +545,8 @@ const TopicPage = ({
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic, {with_html: true}) || defaultTopicData);
     const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
+    console.log("loaded",loadedData)
+    console.log("topic",topicData)
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [langPref, setLangPref] = useState(Sefaria.interfaceLang);
@@ -585,13 +587,13 @@ const TopicPage = ({
 
     useEffect( ()=> {
     // hack to redirect to temporary sheet content on topics page for those topics that only have sheet content.
-      if (document.querySelector('.filter-content') && !document.querySelector('.filter-content').firstChild) {
+        if (!topicData.isLoading && !('notable-sources' in topicData.tabs) && !('sources' in topicData.tabs)){
         const interfaceIsHe = Sefaria.interfaceLang === "hebrew"
         const topicPath = interfaceIsHe ? topicTitle.he : topicTitle.en;
         const redirectUrl = `${document.location.origin}/search?q=${topicPath}&tab=sheet&tvar=1&tsort=relevance&stopics_${interfaceIsHe ? "he": "en"}Filters=${topicPath}&svar=1&ssort=relevance`
         window.location.replace(redirectUrl);
       }
-    },[loadedData])
+    },[topicData])
 
     // Set up tabs and register incremental load hooks
     const displayTabs = [];
