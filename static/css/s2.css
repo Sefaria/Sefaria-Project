@@ -8464,7 +8464,7 @@ a.sheetAuthorName {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 18.75px;
   display: inline;
   margin-block-end: 10px;
@@ -13602,7 +13602,7 @@ span.ref-link-color-3 {color: blue}
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 18px;
   color: #666666;
   margin-inline-start: 10px;
