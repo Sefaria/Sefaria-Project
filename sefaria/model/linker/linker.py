@@ -86,7 +86,7 @@ class Linker:
         self._ner.map_normal_output_to_original_input(input_str, [x.raw_entity for x in doc.all_resolved])
         return doc
 
-    def link_by_paragraph(self, input_str: str, book_context_ref: Ref, *link_args, **link_kwargs) -> LinkedDoc:
+    def link_by_paragraph(self, input_str: str, book_context_ref: Optional[Ref] = None, *link_args, **link_kwargs) -> LinkedDoc:
         """
         Similar to `link()` except model is run on each paragraph individually (via a bulk operation)
         This better mimics the way the underlying ML models were trained and tends to lead to better results
@@ -142,8 +142,9 @@ class Linker:
         @param reset_ibids:
         @return:
         """
-        resolved_cats = self._cat_resolver.bulk_resolve(raw_refs)
-        unresolved_raw_refs = [r.raw_entity for r in filter(lambda r: r.resolution_failed, resolved_cats)]
+        possibly_resolved_cats = self._cat_resolver.bulk_resolve(raw_refs)
+        unresolved_raw_refs = [r.raw_entity for r in filter(lambda r: r.resolution_failed, possibly_resolved_cats)]
+        resolved_cats = list(filter(lambda r: not r.resolution_failed, possibly_resolved_cats))
         resolved_refs = self._ref_resolver.bulk_resolve(unresolved_raw_refs, book_context_ref, thoroughness, reset_ibids=reset_ibids)
         return resolved_refs, resolved_cats
 
