@@ -220,6 +220,30 @@ import {LinkExcluder} from "./excluder";
         return firstOccurrenceLength >= maxSearchLength && firstOccurrenceLength > linkObj.text.length;
     }
 
+    function getOccurrences(linkObj, normalizedText, maxNumWordsAround = 10, maxSearchLength = 30) {
+        document.normalize();
+        let occurrences = [];
+        let numWordsAround = 0;
+        let searchText = linkObj.text;
+        let linkStartChar = 0;  // start index of link text within searchText
+        while ((numWordsAround === 0 || occurrences.length > 1) && numWordsAround < maxNumWordsAround) {
+            // see https://flaviocopes.com/javascript-destructure-object-to-existing-variable/
+            ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround));
+            occurrences = findOccurrences(searchText);
+            numWordsAround += 1;
+            if (linkObj.text === "Chagiga 13b-14a") {
+                console.log("OCCURs", occurrences);
+            }
+            if (isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength)) { break; }
+        }
+        if (occurrences.length !== 1 && !isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength)) {
+            if (ns.debug) {
+                console.log("MISSED", numWordsAround, occurrences.length, searchText, linkObj);
+            }
+        }
+        return [occurrences, linkStartChar];
+    }
+
     function wrapRef(linkObj, normalizedText, refData, iLinkObj, resultsKey, maxNumWordsAround = 10, maxSearchLength = 30) {
         /**
          * wraps linkObj.text with an atag. In the case linkObj.text appears multiple times on the page,
@@ -233,25 +257,8 @@ import {LinkExcluder} from "./excluder";
          */
         if (!ns.debug && (linkObj.linkFailed || linkObj.refs.length > 1)) { return; }
         const urls = linkObj.refs && linkObj.refs.map(ref => refData[ref].url);
-        document.normalize();
-        let occurrences = [];
-        let numWordsAround = 0;
-        let searchText = linkObj.text;
-        let linkStartChar = 0;  // start index of link text within searchText
         const excluder = new LinkExcluder(ns.excludeFromLinking, ns.excludeFromTracking);
-        while ((numWordsAround === 0 || occurrences.length > 1) && numWordsAround < maxNumWordsAround) {
-            // see https://flaviocopes.com/javascript-destructure-object-to-existing-variable/
-            ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround));
-            occurrences = findOccurrences(searchText);
-            numWordsAround += 1;
-            if (isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength)) { break; }
-        }
-        if (occurrences.length !== 1 && !isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength)) {
-            if (ns.debug) {
-                console.log("MISSED", numWordsAround, occurrences.length, linkObj);
-            }
-            return;
-        }
+        const [occurrences, linkStartChar] = getOccurrences(linkObj, normalizedText, maxNumWordsAround, maxSearchLength);
         const globalLinkStarts = occurrences.map(([start, end]) => linkStartChar + start);
         findAndReplaceDOMText(document, {
             find: linkObj.text,
