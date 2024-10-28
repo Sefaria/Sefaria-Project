@@ -450,7 +450,11 @@ return (
                    <span className="int-he">{topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he)}</span>
                </a>
                {Sefaria.interfaceLang === "english" &&
-               <a className="resourcesLink button blue studyCompanion" href="https://learn.sefaria.org/weekly-parashah/">
+               <a className="resourcesLink button blue studyCompanion"
+                  href="https://learn.sefaria.org/weekly-parashah/"
+                  data-anl-event="promo_clicked:click|promo_viewed:scrollIntoView"
+                  data-anl-text="Parashah Email Signup - Parashah Page"
+               >
                   <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
                   <InterfaceText>Get the Free Study Companion</InterfaceText>
                </a>}
