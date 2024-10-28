@@ -389,6 +389,7 @@ export const serialize = (content) => {
 };
 
 const replaceDivineNames = (str, divineName) => {
+    if (divineName == 'noSub'){return str};
     // Regexes for identifying divine names with or without nikkud / trop
     // Currently ignores אֵל & צְבָאוֹת & שדי
     const divineRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\'|ה׳)(?=[/(/[<//.,;:׃'’"\-\s]|$)/g;
