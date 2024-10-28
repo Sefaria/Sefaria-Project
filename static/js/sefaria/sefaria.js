@@ -583,8 +583,8 @@ Sefaria = extend(Sefaria, {
      */
     const versions = versionsResponse.versions;
     const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(versions);
-    ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle, direction: versionsResponse.translationDirection, languageFamilyName: versionsResponse.translationLang } = translation);
-    ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle, direction: versionsResponse.primaryDirection, languageFamilyName: versionsResponse.primaryLang } = primary);
+    ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle, direction: versionsResponse.translationDirection, languageFamilyName: versionsResponse.translationLang, status: versionsResponse.versionStatus } = translation);
+    ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle, direction: versionsResponse.primaryDirection, languageFamilyName: versionsResponse.primaryLang, status: versionsResponse.heVersionStatus } = primary);
     if (translation.sources && !translation.sources.every(source => source === translation.sources[0])) {
         versionsResponse.sources = translation.sources;
     }
