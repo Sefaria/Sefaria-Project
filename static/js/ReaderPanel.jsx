@@ -61,7 +61,7 @@ class ReaderPanel extends Component {
   }
   conditionalSetTextData() {
     this.setState({data: null});
-    if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
+    if (this.state.mode === "Text" || this.state.mode === "TextAndConnections" || this.state.connectionsMode === 'Advanced Tools') {
       const ref = this.state.currentlyVisibleRef;
       Sefaria.getTextFromCurrVersions(ref, this.state.currVersions, this.props.translationLanguagePreference, true).then(data => {
         this.setState({data: data});
@@ -102,7 +102,8 @@ class ReaderPanel extends Component {
       $(".readerOptionsPanel").find('.on:focusable').first().focus();
     }
     if (!Sefaria.areBothVersionsEqual(prevState.currVersions, this.state.currVersions) ||
-        this.state.currentlyVisibleRef !== prevState.currentlyVisibleRef) {
+        this.state.currentlyVisibleRef !== prevState.currentlyVisibleRef ||
+        this.state.connectionsMode !== prevState.connectionsMode) {
       this.conditionalSetTextData();
     }
     if (this.shouldLayoutUpdate(prevState)) {
