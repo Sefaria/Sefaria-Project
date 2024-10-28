@@ -23,7 +23,7 @@ def load_spacy_model(path: str) -> spacy.Language:
 
     if path.startswith("gs://"):
         # file is located in Google Cloud
-        # file is expected to be a tar.gz of the model folder
+        # file is expected to be a tar.gz of the contents of the model folder (not the folder itself)
         match = re.match(r"gs://([^/]+)/(.+)$", path)
         bucket_name = match.group(1)
         blob_name = match.group(2)
