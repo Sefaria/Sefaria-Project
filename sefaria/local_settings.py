@@ -129,7 +129,7 @@ SITE_PACKAGE = "sites.sefaria"
 
 
 ################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
-DEBUG = os.getenv("DEBUG", False)
+DEBUG = os.getenv("DEBUG", True)
 
 REMOTE_HOSTS = os.getenv('REMOTE_HOSTS', 'staging.pecha.org').replace(" ", "")
 
