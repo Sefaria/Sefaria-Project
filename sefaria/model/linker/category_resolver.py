@@ -23,8 +23,10 @@ class CategoryMatcher:
     def __init__(self, lang: str, category_registry: list[Category]) -> None:
         self._title_to_cat: dict[str, list[Category]] = defaultdict(list)
         for cat in category_registry:
-            for title in cat.get_titles(lang):
-                self._title_to_cat[title] += [cat]
+            for match_template in cat.get_match_templates():
+                for term in match_template.get_terms():
+                    for title in term.get_titles(lang):
+                        self._title_to_cat[title] += [cat]
 
     def match(self, raw_ref: RawRef) -> list[Category]:
         return self._title_to_cat[raw_ref.text]
