@@ -103,11 +103,13 @@ class Linker:
         linked_docs = self.bulk_link(inputs, [book_context_ref]*len(inputs), *link_args, **link_kwargs)
         resolved_refs = []
         resolved_named_entities = []
+        resolved_categories = []
         full_spacy_doc = self._ner.named_entity_model.make_doc(input_str)
         offset = 0
         for curr_input, linked_doc in zip(inputs, linked_docs):
             resolved_refs += linked_doc.resolved_refs
             resolved_named_entities += linked_doc.resolved_named_entities
+            resolved_categories += linked_doc.resolved_categories
 
             for resolved in linked_doc.all_resolved:
                 named_entity = resolved.raw_entity
@@ -118,7 +120,7 @@ class Linker:
                     named_entity.align_parts_to_new_doc(full_spacy_doc, raw_ref_offset)
             curr_token_count = len(self._ner.named_entity_model.make_doc(curr_input))
             offset += curr_token_count+1  # +1 for newline token
-        return LinkedDoc(input_str, resolved_refs, resolved_named_entities)
+        return LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_categories)
 
     def get_ner(self) -> NamedEntityRecognizer:
         return self._ner
