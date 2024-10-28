@@ -168,7 +168,7 @@ const _extractAnalyticsDataFromRef = ref => {
     return {
         item_id: ref,
         content_id: title,
-        content_type: Sefaria.index(title).categories.join('|'),
+        content_type: Sefaria.index(title)?.categories?.join('|'),
     };
 };
 const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin, displayDescription, hideLanguageMissingSources) => (item, index) => {
