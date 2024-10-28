@@ -259,7 +259,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         Returns the `schema` dictionary with each node annotated with section lengths info
         from version_state.
         """
-        vstate   = self.versionState()
+        vstate = self.versionState()
 
         def simplify_version_state(vstate_node):
             return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
