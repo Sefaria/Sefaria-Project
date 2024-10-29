@@ -130,9 +130,10 @@ import {LinkExcluder} from "./excluder";
         return startIndex;
     }
 
-    function getNumWordsAround(linkObj, text, numWordsAround) {
+    function getNumWordsAround(linkObj, text, numWordsAround, dir) {
         /**
          * gets text with `numWordsAround` number of words surrounding text in linkObj. Words are broken by any white space.
+         * dir can be either 'before', 'after' or 'both' to indicate in which direction to expand
          * returns: {
          *     text: str with numWordsAround
          *     startChar: int, start index of linkObj text within numWordsAround text
@@ -142,9 +143,9 @@ import {LinkExcluder} from "./excluder";
         if (numWordsAround === 0) {
             return { text: linkObj.text, startChar: 0 };
         }
-        const newEndChar = getNthWhiteSpaceIndex(text, numWordsAround, endChar);
+        const newEndChar = dir === 'before' ? endChar : getNthWhiteSpaceIndex(text, numWordsAround, endChar);
         const textRev = [...text].reverse().join("");
-        const newStartChar = text.length - getNthWhiteSpaceIndex(textRev, numWordsAround, text.length - startChar);
+        const newStartChar = dir === 'after' ? startChar : text.length - getNthWhiteSpaceIndex(textRev, numWordsAround, text.length - startChar);
         const wordsAroundText = escapeRegExp(text.substring(newStartChar, newEndChar));
         // findAndReplaceDOMText and Readability deal with element boundaries differently
         // in order to more flexibly find these boundaries, we treat all whitespace the same
@@ -220,7 +221,13 @@ import {LinkExcluder} from "./excluder";
         return firstOccurrenceLength >= maxSearchLength && firstOccurrenceLength > linkObj.text.length;
     }
 
-    function getOccurrences(linkObj, normalizedText, maxNumWordsAround = 10, maxSearchLength = 30) {
+    function findUniqueOccurrencesByDir(linkObj, normalizedText, dir, maxNumWordsAround = 10, maxSearchLength = 30) {
+        /**
+         * See docs for `findUniqueOccurrences`
+         * This function specifically searches for occurrences using context in a specific direction, `dir`
+         * `dir` can be 'both', 'before' or 'after'. 'both' means we add context in both directions.
+         * 'before' means we only add context before `linkObj` and 'after' means only after
+         */
         document.normalize();
         let occurrences = [];
         let numWordsAround = 0;
@@ -228,18 +235,33 @@ import {LinkExcluder} from "./excluder";
         let linkStartChar = 0;  // start index of link text within searchText
         while ((numWordsAround === 0 || occurrences.length > 1) && numWordsAround < maxNumWordsAround) {
             // see https://flaviocopes.com/javascript-destructure-object-to-existing-variable/
-            ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround));
+            ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround, dir));
             occurrences = findOccurrences(searchText);
             numWordsAround += 1;
-            if (linkObj.text === "Chagiga 13b-14a") {
-                console.log("OCCURs", occurrences);
-            }
             if (isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength)) { break; }
         }
         if (occurrences.length !== 1 && !isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength)) {
             if (ns.debug) {
                 console.log("MISSED", numWordsAround, occurrences.length, searchText, linkObj);
             }
+            occurrences = [];
+        }
+        return [occurrences, linkStartChar];
+    }
+
+    function findUniqueOccurrences(linkObj, normalizedText, maxNumWordsAround = 10, maxSearchLength = 30) {
+        /**
+         * Find unique occurrences of `linkObj.text` in the DOM. In the case where there are multiple occurrences,
+         * uses `normalizedText` to increase the search context around `linkObj.text` until there are only "unique enough" occurrences.
+         * Context will be increased until `maxNumWordsAround`. E.g. if `maxNumWordsAround = 10` then 10 words of context are used from either side of `linkObj.text`
+         * "unique enough" occurrences means that either:
+         * a) there's only one occurrence of `linkObj.text` when including context
+         * b) there are multiple occurrences, but they are deemed to be "unique enough". A match is "unique enough" if it is longer than `maxSearchLength`. This length includes the extra context
+         */
+        let [occurrences, linkStartChar] = [[], 0];
+        for (let dir of ['both', 'before', 'after']) {
+            [occurrences, linkStartChar] = findUniqueOccurrencesByDir(linkObj, normalizedText, dir, maxNumWordsAround, maxSearchLength);
+            if (occurrences.length > 0) { break; }
         }
         return [occurrences, linkStartChar];
     }
@@ -258,7 +280,7 @@ import {LinkExcluder} from "./excluder";
         if (!ns.debug && (linkObj.linkFailed || linkObj.refs.length > 1)) { return; }
         const urls = linkObj.refs && linkObj.refs.map(ref => refData[ref].url);
         const excluder = new LinkExcluder(ns.excludeFromLinking, ns.excludeFromTracking);
-        const [occurrences, linkStartChar] = getOccurrences(linkObj, normalizedText, maxNumWordsAround, maxSearchLength);
+        const [occurrences, linkStartChar] = findUniqueOccurrences(linkObj, normalizedText, maxNumWordsAround, maxSearchLength);
         const globalLinkStarts = occurrences.map(([start, end]) => linkStartChar + start);
         findAndReplaceDOMText(document, {
             find: linkObj.text,
