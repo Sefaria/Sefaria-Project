@@ -8173,6 +8173,10 @@ But not to use a display block directive that might break continuous mode for ot
     background-image: url("/static/icons/add-to-sheet.svg");
 }
 
+.connection-buttons .share-link-add::before {
+    background-image: url("/static/icons/share.svg");
+}
+
 .toolsButtonContainer {
     display: flex;
     justify-content: flex-start;

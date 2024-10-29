@@ -370,7 +370,7 @@ const ShareConnectionButton = ({srefs, setConnectionsMode}) => {
 
   return (
     <SimpleLinkedBlock
-      aclasses={"connection-button share-link"}
+      aclasses={"connection-button share-link-add"}
       onClick={handleShare}
       en={"Share"}
       he={"རྒྱུད་སྤེལ།"}
