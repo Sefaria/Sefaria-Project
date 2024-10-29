@@ -592,22 +592,38 @@ Sefaria = extend(Sefaria, {
         versionsResponse.heSources = primary.sources;
     }
   },
+  _findInVresions: function (query, versions) {
+      query = Object.fromEntries(
+          Object.entries(query).filter(([_, value]) => value != null) // filters also undefined
+      );
+      return versions.reduce((maxObj, current) => (
+              Object.entries(query).every(([key, value]) => current[key] === value) &&
+              (current.priority || 0) > (maxObj?.priority ?? -1) ?
+                  current : maxObj
+      ), null)
+  },
   _getVersionObjects: async function(ref, primaryVersionObj, translationVersionObj, translationLanguagePreference) {
-    primaryVersionObj = (primaryVersionObj?.languageFamilyName) ? primaryVersionObj : {languageFamilyName: 'primary'};
+    const versions = await Sefaria.getVersions(ref);
+    const flatVersions = Object.values(versions).flat();
+    primaryVersionObj = Sefaria._findInVresions({...primaryVersionObj, isPrimary: true}, flatVersions);
+    if (primaryVersionObj) {
+        const {languageFamilyName, versionTitle} = primaryVersionObj;
+        primaryVersionObj = {languageFamilyName, versionTitle};
+    } else {
+        primaryVersionObj = {languageFamilyName: 'primary'}
+    }
+    if (translationVersionObj.versionTitle) {
+        translationVersionObj = Sefaria._findInVresions({...translationVersionObj, isSource: false}, flatVersions);
+    }
     if (!translationVersionObj.versionTitle) {
-        const versions = await Sefaria.getVersions(ref);
         let requiredVersion;
         const preferredTranslation = Sefaria.versionPreferences.getVersionPref(ref)?.en;
         if (preferredTranslation) {
-            requiredVersion = Object.values(versions).flat().filter((v) => !v.isSource && v.versionTitle === preferredTranslation)[0];
+            requiredVersion = Sefaria._findInVresions({isSource: false, versionTitle: preferredTranslation}, flatVersions);
         }
         if (!requiredVersion && translationLanguagePreference) {
-            const langVersions = versions[translationLanguagePreference];
-            if (langVersions) {
-                requiredVersion = langVersions.reduce((max, obj) =>
-                  obj.priority > max.priority ? obj : max
-                );
-            }
+            const langVersions = versions[translationLanguagePreference] || [];
+            requiredVersion = Sefaria._findInVresions({isSource: false}, langVersions);
         }
         if (requiredVersion) {
             const {languageFamilyName, versionTitle} = requiredVersion;
