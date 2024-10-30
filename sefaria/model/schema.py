@@ -2097,7 +2097,10 @@ class AddressType(object):
     def to_numeric_possibilities(self, lang, s, **kwargs):
         if s in self.special_cases:
             return self.special_cases[s]
-        return [self.toNumber(lang, s)]
+        try:
+            return [self.toNumber(lang, s)]
+        except ValueError:
+            return []
 
     @classmethod
     def can_match_out_of_order(cls, lang, s):
@@ -2141,7 +2144,7 @@ class AddressType(object):
                     section_str = curr_s
                 else:
                     strict = SuperClass not in {AddressAmud, AddressTalmud}  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
-                    regex_str = addr.regex(lang, strict=strict, group_id='section') + "$"  # must match entire string
+                    regex_str = addr.regex(lang, strict=strict, group_id='section', with_roman_numerals=True) + "$"  # must match entire string
                     if regex_str is None: continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
                     match = reg.match(curr_s)
@@ -2584,7 +2587,11 @@ class AddressInteger(AddressType):
             reg = r"("
 
         if lang == "en":
-            reg += r"\d+)"
+            if kwargs.get('with_roman_numerals', False):
+                # any char valid in roman numerals (I, V, X, L, C, D, M) + optional trailing period
+                reg += r"(?:\d+|[ivxlcdmIVXLCDM]+(?:\s?\.)?))"
+            else:
+                reg += r"\d+)"
         elif lang == "he":
             reg += self.hebrew_number_regex() + r")"
 
@@ -2595,6 +2602,19 @@ class AddressInteger(AddressType):
             return int(s)
         elif lang == "he":
             return decode_hebrew_numeral(s)
+
+    def to_numeric_possibilities(self, lang, s, **kwargs):
+        import roman
+        from roman import InvalidRomanNumeralError
+
+        possibilities = super().to_numeric_possibilities(lang, s, **kwargs)
+        if lang == "en":
+            try:
+                s = re.sub(r"\.$", "", s).strip()  # remove trailing period
+                possibilities.append(roman.fromRoman(s.upper()))
+            except InvalidRomanNumeralError as e:
+                pass
+        return possibilities
 
     @classmethod
     def can_match_out_of_order(cls, lang, s):
