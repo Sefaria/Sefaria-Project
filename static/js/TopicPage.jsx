@@ -586,8 +586,10 @@ const TopicPage = ({
     useEffect( ()=> {
     // hack to redirect to temporary sheet content on topics page for those topics that only have sheet content.
         if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0){
-        const interfaceIsHe = Sefaria.interfaceLang === "hebrew"
-        const topicPath = interfaceIsHe ? topicTitle.he : topicTitle.en;
+        const interfaceIsHe = Sefaria.interfaceLang === "hebrew";
+        const interfaceLang = interfaceIsHe ? 'he' : 'en';
+        const coInterfaceLang = interfaceIsHe ? 'en' : 'he';
+        const topicPath = topicTitle[interfaceLang] || topicTitle[coInterfaceLang];
         const redirectUrl = `${document.location.origin}/search?q=${topicPath}&tab=sheet&tvar=1&tsort=relevance&stopics_${interfaceIsHe ? "he": "en"}Filters=${topicPath}&svar=1&ssort=relevance`
         window.location.replace(redirectUrl);
       }
