@@ -2738,7 +2738,7 @@ _media: {},
       const allRefs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
       tabs.sources.refs = allRefs;
     }
-    if (Sefaria.is_moderator && Object.keys(tabs).length > 0){
+    if (Sefaria.is_moderator){
         tabs["admin"] = {...tabs["sources"]};
         tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
 
