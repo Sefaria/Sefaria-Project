@@ -36,7 +36,6 @@ crrd = create_raw_ref_data
 
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
-    [crrd(['@Job', '#xli.', '#5'], lang='en'), ("Job 41:5",)],
     # Numbered JAs
     [crrd(["@Jerusalem", "@Talmud", "@Yoma", "#5a"], lang='en'), ("Jerusalem Talmud Yoma 1:1:20-25",)],
     [crrd(["@Babylonian", "@Talmud", "@Sukkah", "#49b"], lang='en'), ("Sukkah 49b",)],
@@ -52,6 +51,7 @@ crrd = create_raw_ref_data
     [crrd(['@Job', '#III', '#5'], lang='en'), ("Job 3:5",)],
     [crrd(['@Job', '#ix', '#5'], lang='en'), ("Job 9:5",)],
     [crrd(['@Job', '#IV .', '#5'], lang='en'), ("Job 4:5",)],
+    [crrd(['@Job', '#xli.', '#5'], lang='en'), ("Job 41:5",)],
     [crrd(['@Job', '#CIV', '#5'], lang='en'), tuple()],  # too high
     [crrd(['@Job', '#iiii', '#5'], lang='en'), tuple()],  # invalid roman numeral
 
