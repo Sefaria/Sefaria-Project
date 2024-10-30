@@ -585,7 +585,7 @@ const TopicPage = ({
 
     useEffect( ()=> {
     // hack to redirect to temporary sheet content on topics page for those topics that only have sheet content.
-        if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0){
+        if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0 .length == 0 && topicData.subclass != "author"){
         const interfaceIsHe = Sefaria.interfaceLang === "hebrew";
         const interfaceLang = interfaceIsHe ? 'he' : 'en';
         const coInterfaceLang = interfaceIsHe ? 'en' : 'he';
