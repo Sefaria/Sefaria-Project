@@ -1679,6 +1679,9 @@ def social_image_api(request, tref):
 
     res = make_img_http_response(text, cat, ref_str, lang, platform)
 
+    print("*"*100)
+    print(res)
+
     return res
 
 
