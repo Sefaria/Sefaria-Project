@@ -6,7 +6,7 @@ from django.http import HttpResponse
 import io
 
 palette = { # [(bg), (font)]
-    "Commentary": [(75, 113, 183), (255, 255, 255)],
+    "Commentary": [(37, 150, 190), (255, 255, 255)],
     "Tanakh": [(0, 78, 95), (255, 255, 255)],
     "Midrash":    [(93, 149, 111), (255, 255, 255)],
     "Mishnah": [(90, 153, 183), (0, 0, 0)],
@@ -87,14 +87,14 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     if lang == "en":
         align = "left"
-        logo_url = "static/img/pecha-logo.svg"
+        logo_url = "static/img/pecha-icon.png"
         spacing = 0
         ref_font = ImageFont.truetype(font='static/fonts/Roboto-Regular.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (0, 0, 0, img.size[1])
 
     else:
         align = "right"
-        logo_url = "static/img/pecha-logo.svg"
+        logo_url = "static/img/pecha-icon.png"
         spacing = platforms[platform]["he_spacing"]
         ref_font = ImageFont.truetype(font='static/fonts/jomolhari.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
@@ -135,7 +135,7 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     img = Image.alpha_composite(img, logo_padded)
 
 
-    return(img)
+    return (img)
 
 def make_img_http_response(text, category, ref_str, lang, platform):
     try:
