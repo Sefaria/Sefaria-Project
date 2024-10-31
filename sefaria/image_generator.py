@@ -77,7 +77,7 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     text_color = palette[category][1]
     bg_color = palette[category][0]
 
-    font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
+    font = ImageFont.truetype(font='static/fonts/jomolhari.ttf', size=platforms[platform]["font_size"])
     width = platforms[platform]["width"]
     height = platforms[platform]["height"]
     padding_x = platforms[platform]["padding"]
@@ -94,9 +94,9 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     else:
         align = "right"
-        logo_url = "static/img/logo-hebrew.png"
+        logo_url = "static/img/pecha-logo.svg"
         spacing = platforms[platform]["he_spacing"]
-        ref_font = ImageFont.truetype(font='static/fonts/Heebo-Regular.ttf', size=platforms[platform]["ref_font_size"])
+        ref_font = ImageFont.truetype(font='static/fonts/jomolhari.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
 
     text = cleanup_and_format_text(text, lang)
