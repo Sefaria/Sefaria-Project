@@ -15,3 +15,8 @@ export const testUser = {
     email: 'test@example.com',
     password: 'test',
 }
+
+export const testAdminUser = {
+    email: process.env.ADMIN_EMAIL,
+    password: process.env.ADMIN_PASSWORD,
+};

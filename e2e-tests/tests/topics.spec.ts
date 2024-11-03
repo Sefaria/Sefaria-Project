@@ -1,6 +1,7 @@
-import { test } from '@playwright/test';
-import {goToPageWithLang} from '../utils';
-import {LANGUAGES} from "../globals";
+import {expect, test} from '@playwright/test';
+import {goToPageWithLang, goToPageWithUser} from '../utils';
+import {LANGUAGES, testAdminUser} from "../globals";
+import * as assert from "node:assert";
 
 
 test('Go to topic page', async ({ context }) => {
@@ -15,6 +16,15 @@ test('Check source', async ({ context }) => {
   await page.getByRole('link', { name: 'Shabbat' }).first().click();
   await page.getByRole('link', { name: 'Notable Sources' }).first().isVisible();
   await page.getByRole('link', { name: 'All Sources' }).first().isVisible();
+});
+
+test('Check admin tab', async ({ context }) => {
+  const page = await goToPageWithUser(context, '/topics', testAdminUser);
+  await page.getByRole('link', { name: 'Jewish Calendar' }).click();
+  await page.getByRole('link', { name: 'Shabbat' }).first().click();
+  await page.getByRole('link', { name: 'Notable Sources' }).first().isVisible();
+  await page.getByRole('link', { name: 'All Sources' }).first().isVisible();
+  await page.getByRole('link', { name: 'Admin' }).first().isVisible();
 });
 
 test('Check sources he interface', async ({ context }) => {
@@ -32,8 +42,20 @@ test('Check author page', async ({ context }) => {
 
 test('Check redirection for sourcesless topic', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics/Monkey');
-  await page.waitForURL('https://example.com/target', { timeout: 5000 });
-  await page.getByRole('link', { name: 'Works on Sefaria' }).first().isVisible();
+  // await page.waitForURL('https://www.sefaria.org/search?q=Monkey&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=Monkey&svar=1&ssort=relevance', { timeout: 50000 });
+  const expectedUrl = 'https://www.sefaria.org/search?q=Monkey&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=Monkey&svar=1&ssort=relevance'
+  // await expect(page).toHaveURL(expectedUrl, { timeout: 90000 });
+  await page.waitForTimeout(10000)
+  expect(page.url()).toEqual(expectedUrl)
+  // await page.waitForURL(expectedUrl,  { timeout: 100000 });
+});
+
+test('Check no redirection when user is admin', async ({ context }) => {
+  const page = await goToPageWithUser(context, '/topics/Monkey', testAdminUser);
+  await page.waitForTimeout(2000)
+  await page.getByRole('link', { name: 'Admin' }).first().isVisible();
+
+
 });
 
 test('Filter topics', async ({ context }) => {
