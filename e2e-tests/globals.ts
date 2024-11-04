@@ -12,11 +12,11 @@ export const cookieObject = {
 }
 
 export const testUser = {
-    email: 'test@example.com',
-    password: 'test',
+    email: process.env.PLAYWRIGHT_USER_EMAIL,
+    password: process.env.PLAYWRIGHT_USER_PASSWORD,
 }
 
 export const testAdminUser = {
-    email: process.env.ADMIN_EMAIL,
-    password: process.env.ADMIN_PASSWORD,
+    email: process.env.PLAYWRIGHT_SUPERUSER_EMAIL,
+    password: process.env.PLAYWRIGHT_SUPERUSER_PASSWORD,
 };
