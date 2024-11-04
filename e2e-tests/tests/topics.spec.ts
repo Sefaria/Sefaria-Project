@@ -42,20 +42,15 @@ test('Check author page', async ({ context }) => {
 
 test('Check redirection for sourcesless topic', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics/Monkey');
-  // await page.waitForURL('https://www.sefaria.org/search?q=Monkey&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=Monkey&svar=1&ssort=relevance', { timeout: 50000 });
   const expectedUrl = 'https://www.sefaria.org/search?q=Monkey&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=Monkey&svar=1&ssort=relevance'
-  // await expect(page).toHaveURL(expectedUrl, { timeout: 90000 });
   await page.waitForTimeout(10000)
   expect(page.url()).toEqual(expectedUrl)
-  // await page.waitForURL(expectedUrl,  { timeout: 100000 });
 });
 
 test('Check no redirection when user is admin', async ({ context }) => {
   const page = await goToPageWithUser(context, '/topics/Monkey', testAdminUser);
-  await page.waitForTimeout(2000)
+  await page.waitForTimeout(10000)
   await page.getByRole('link', { name: 'Admin' }).first().isVisible();
-
-
 });
 
 test('Filter topics', async ({ context }) => {
