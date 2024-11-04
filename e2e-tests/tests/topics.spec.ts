@@ -40,7 +40,7 @@ test('Check author page', async ({ context }) => {
   await page.getByRole('link', { name: 'Works on Sefaria' }).first().isVisible();
 });
 
-test('Check redirection for sourcesless topic', async ({ context }) => {
+test('Check redirection for sourceless topic', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics/Monkey');
   const expectedUrl = 'https://www.sefaria.org/search?q=Monkey&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=Monkey&svar=1&ssort=relevance'
   await page.waitForTimeout(10000)
