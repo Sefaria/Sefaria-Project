@@ -187,7 +187,7 @@ class ConnectionsPanel extends Component {
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs), true) || this.props.srefs;
   }
   loadData() {
-    let ref = this.sectionRef();
+    let ref = this.props.srefs[0];
     if (!Sefaria.related(ref)) {
       Sefaria.related(ref, function (data) {
         if (this._isMounted) {
