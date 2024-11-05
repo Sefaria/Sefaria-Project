@@ -1489,7 +1489,11 @@ class SchemaNode(TitledTreeNode):
         return self.traverse_to_list(lambda n, i: list(n.all_children()) if n.is_virtual else [n])[1:]
 
     def __eq__(self, other):
-        return self.address() == other.address()
+        try:
+            return self.address() == other.address()
+        except AttributeError:
+            # in case `other` isn't a SchemaNode
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -2657,7 +2661,7 @@ class AddressPasuk(AddressInteger):
         "en": r"""(?:(?:([Vv](erses?|[vs]?\.)|[Pp]ass?u[kq]))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?(?:                                        # optional ב in front
             (?:\u05e4\u05b8?\u05bc?\u05e1\u05d5\u05bc?\u05e7(?:\u05d9\u05dd)?\s*)|    #pasuk spelled out, with a space after
-            (?:\u05e4\u05e1(?:['\u2018\u2019\u05f3])\s+)
+            (?:\u05e4\u05e1['\u2018\u2019\u05f3]?\s+)
         ))"""
     }
 

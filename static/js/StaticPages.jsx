@@ -3437,7 +3437,7 @@ const ProductsPage = memo(() => {
         <>
                 <h1 className="mobileAboutHeader">
                     <span className="int-en">Sefaria's Products</span>
-                    <span className="int-he">מוצרים של בספריא</span>
+                    <span className="int-he">המוצרים של ספריא</span>
                 </h1>
             <div className='productsFlexWrapper'>
                 {products && products.length > 0  ? (
