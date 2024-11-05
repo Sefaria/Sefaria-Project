@@ -106,6 +106,14 @@ def unicode_number(u):
         n += ord(u[i])
     return n
 
+def make_sheet_topics(sheet):
+    topics = []
+    for t in sheet.get('topics', []):
+        topic_obj = Topic.init(t['slug'])
+        if not topic_obj:
+            continue
+        topics += [topic_obj]
+    return topics
 
 def index_sheet(index_name, id):
     """
@@ -116,14 +124,7 @@ def index_sheet(index_name, id):
     if not sheet: return False
 
     pud = public_user_data(sheet["owner"])
-    tag_terms_simple = make_sheet_tags(sheet)
-    tags = [t["en"] for t in tag_terms_simple]
-    topics = []
-    for t in sheet.get('topics', []):
-        topic_obj = Topic.init(t['slug'])
-        if not topic_obj:
-            continue
-        topics += [topic_obj]
+    topics = make_sheet_topics(sheet)
     collections = CollectionSet({"sheets": id, "listed": True})
     collection_names = [c.name for c in collections]
     try:
@@ -135,7 +136,6 @@ def index_sheet(index_name, id):
             "owner_image": pud["imageUrl"],
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
-            "tags": tags,
             "topic_slugs": [topic_obj.slug for topic_obj in topics],
             "topics_en": [topic_obj.get_primary_title('en') for topic_obj in topics],
             "topics_he": [topic_obj.get_primary_title('he') for topic_obj in topics],
@@ -156,26 +156,6 @@ def index_sheet(index_name, id):
         print(e)
         return False
 
-
-def make_sheet_tags(sheet):
-    def get_primary_title(lang, titles):
-        return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
-
-    tags = sheet.get('tags', [])
-    tag_terms = [(Term().load({'name': t}) or Term().load_by_title(t)) for t in tags]
-    tag_terms_simple = [
-        {
-            'en': tags[iterm],  # save as en even if it's Hebrew
-            'he': ''
-        } if term is None else
-        {
-            'en': get_primary_title('en', term.titles),
-            'he': get_primary_title('he', term.titles)
-        } for iterm, term in enumerate(tag_terms)
-    ]
-    #tags_en, tags_he = zip(*tag_terms_simple.values())
-    return tag_terms_simple
-
 def make_sheet_text(sheet, pud):
     """
     Returns a plain text representation of the content of sheet.
@@ -186,8 +166,11 @@ def make_sheet_text(sheet, pud):
     if pud.get("name"):
         text += "\nBy: " + pud["name"]
     text += "\n"
-    if sheet.get("tags"):
-        text += " [" + ", ".join(sheet["tags"]) + "]\n"
+    if sheet.get("topics"):
+        topics = make_sheet_topics(sheet)
+        topics_en = [topic_obj.get_primary_title('en') for topic_obj in topics]
+        topics_he = [topic_obj.get_primary_title('he') for topic_obj in topics]
+        text += " [" + ", ".join(topics_en+topics_he) + "]\n"
     for s in sheet["sources"]:
         text += source_text(s) + " "
 
