@@ -101,10 +101,7 @@ def _add_webpage_hit_for_url(url):
 
 @django_cache(cache_type="persistent")
 def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _FindRefsTextOptions, meta_data: dict) -> dict:
-    if request_text.lang == 'he' or True:
-        response = _make_find_refs_response_linker_v3(request_text, options)
-    else:
-        response = _make_find_refs_response_linker_v2(request_text, options)
+    response = _make_find_refs_response_linker_v3(request_text, options)
 
     if meta_data:
         _, webpage = WebPage.add_or_update_from_linker({
