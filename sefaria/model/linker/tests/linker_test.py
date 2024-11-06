@@ -47,6 +47,14 @@ crrd = create_raw_ref_data
     [crrd(['@ספר בראשית', '#פסוק א', '#פרק יג']), ("Genesis 13:1",)],  # sections out of order
     [crrd(['@שמות', '#א', '#ב']), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
 
+    # Roman numerals
+    [crrd(['@Job', '#III', '#5'], lang='en'), ("Job 3:5",)],
+    [crrd(['@Job', '#ix', '#5'], lang='en'), ("Job 9:5",)],
+    [crrd(['@Job', '#IV .', '#5'], lang='en'), ("Job 4:5",)],
+    [crrd(['@Job', '#xli.', '#5'], lang='en'), ("Job 41:5",)],
+    [crrd(['@Job', '#CIV', '#5'], lang='en'), tuple()],  # too high
+    [crrd(['@Job', '#iiii', '#5'], lang='en'), tuple()],  # invalid roman numeral
+
     # Amud split into two parts
     [crrd(['@בבלי', '@יבמות', '#סא', '#א']), ("Yevamot 61a",)],
     [crrd(["@תוספות", "@פסחים", "#קו", "#א"]), ("Tosafot on Pesachim 106a",)],  # amud for commentary that has DH
