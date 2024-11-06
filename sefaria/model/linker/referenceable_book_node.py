@@ -122,6 +122,19 @@ class IndexNodeReferenceableBookNode(ReferenceableBookNode):
     def ref(self) -> text.Ref:
         return self._titled_tree_node.ref()
 
+    def unique_key(self) -> str:
+        return self.ref().normal()
+
+    def ref_order_id(self) -> str:
+        if isinstance(self._titled_tree_node, schema.AltStructNode):
+            leaves = self._titled_tree_node.get_leaf_nodes()
+            # assume leaves are contiguous. If this is wrong, will be disproven later in the function
+            if len(leaves) == 0:
+                return "N/A"
+            approx_ref = leaves[0].ref().to(leaves[-1].ref())
+            return approx_ref.order_id()
+        return self.ref().order_id()
+
 
 class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
 

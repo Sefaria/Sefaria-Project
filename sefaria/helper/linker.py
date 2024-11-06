@@ -23,7 +23,7 @@ def load_spacy_model(path: str) -> spacy.Language:
 
     if path.startswith("gs://"):
         # file is located in Google Cloud
-        # file is expected to be a tar.gz of the model folder
+        # file is expected to be a tar.gz of the contents of the model folder (not the folder itself)
         match = re.match(r"gs://([^/]+)/(.+)$", path)
         bucket_name = match.group(1)
         blob_name = match.group(2)
@@ -101,7 +101,7 @@ def _add_webpage_hit_for_url(url):
 
 @django_cache(cache_type="persistent")
 def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _FindRefsTextOptions, meta_data: dict) -> dict:
-    if request_text.lang == 'he':
+    if request_text.lang == 'he' or True:
         response = _make_find_refs_response_linker_v3(request_text, options)
     else:
         response = _make_find_refs_response_linker_v2(request_text, options)
