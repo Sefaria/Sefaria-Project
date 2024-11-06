@@ -145,6 +145,7 @@ class Linker:
         possibly_resolved_cats = self._cat_resolver.bulk_resolve(raw_refs)
         unresolved_raw_refs = [r.raw_entity for r in filter(lambda r: r.resolution_failed, possibly_resolved_cats)]
         resolved_cats = list(filter(lambda r: not r.resolution_failed, possibly_resolved_cats))
+        #try to resolve only unresolved categories (unresolved_raw_refs) as refs:
         resolved_refs = self._ref_resolver.bulk_resolve(unresolved_raw_refs, book_context_ref, thoroughness, reset_ibids=reset_ibids)
         return resolved_refs, resolved_cats
 
