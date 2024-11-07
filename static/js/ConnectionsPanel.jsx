@@ -18,7 +18,8 @@ import {
 } from './Media';
 
 import { CategoryFilter, TextFilter } from './ConnectionFilters';
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
+import { ReaderPanelContext } from './context';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
@@ -1267,13 +1268,17 @@ WebPagesList.propTypes = {
 };
 
 const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode, masterPanelLanguage, toggleSignUpModal}) => {
-    const editText = canEditText ? function () {
+    const {textsData} = useContext(ReaderPanelContext);
+    const editText = canEditText && textsData ? function () {
+      const {primaryLang, translationLang} = textsData;
       let refString = srefs[0];
       let currentPath = Sefaria.util.currentPath();
-      let currentLangParam;
-      const langCode = masterPanelLanguage.slice(0, 2);
-      if (currVersions[langCode]?.versionTitle) {
-        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(currVersions[langCode].versionTitle);
+      const language =  (masterPanelLanguage === 'english') ? translationLang : primaryLang;
+      const langCode = language.slice(0, 2);
+      const currVersionsLangCode = masterPanelLanguage.slice(0, 2);
+      const {versionTitle} = currVersions[currVersionsLangCode];
+      if (versionTitle) {
+        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(versionTitle);
       }
       let path = "/edit/" + refString;
       let nextParam = "?next=" + encodeURIComponent(currentPath);
