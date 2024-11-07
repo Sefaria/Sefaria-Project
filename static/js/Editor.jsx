@@ -2979,8 +2979,9 @@ const SefariaEditor = (props) => {
                 image={sheet.collectionImage}
             />
         </SheetMetaDataBox>
-            {canUseDOM ?
-            <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
+        {canUseDOM &&
+            <div>
+                <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
                 <Editable
                   renderLeaf={props => <Leaf {...props} />}
@@ -2996,7 +2997,13 @@ const SefariaEditor = (props) => {
                   onDOMBeforeInput={beforeInput}
                   autoFocus
                 />
-            </Slate> : null }
+                </Slate>
+                <SheetContentMetaDataBox authorStatement={props.authorStatement} authorUrl={props.authorUrl}
+                       authorImage={props.authorImage} title={props.title}
+                       summary={props.summary}
+                       sheetContentOptions={props.sheetOptions}/>
+            </div>
+        }
         </div>
     )
 };

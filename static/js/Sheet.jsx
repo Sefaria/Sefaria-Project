@@ -93,26 +93,50 @@ class Sheet extends Component {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
     const editable = Sefaria._uid === sheet?.owner;
-    let content;
+    let content, editor;
     if (!sheet) {
       content = (<LoadingMessage />);
+      editor = (<LoadingMessage />);
     }
     else {
       const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
                                                  sheetID={sheet.id}
                                                  historyObject={this.props.historyObject}
                                                  editable={editable}/>;
+      const sidebar = <SheetContentSidebar
+                                  authorStatement={sheet.ownerName}
+                                  authorUrl={sheet.ownerProfileUrl}
+                                  authorImage={sheet.ownerImageUrl}
+                                  collections={sheet.collections}
+                                  toggleSignUpModal={this.props.toggleSignUpModal}
+                              />;
+        editor = <div className="sidebarLayout">
+                  <div className="sheetContent">
+                    <SefariaEditor
+                        data={sheet}
+                        handleClick={this.handleClick}
+                        multiPanel={this.props.multiPanel}
+                        sheetSourceClick={this.props.onSegmentClick}
+                        highlightedNode={this.props.highlightedNode}
+                        highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                        setDivineNameReplacement={this.props.setDivineNameReplacement}
+                        divineNameReplacement={this.props.divineNameReplacement}
+                        sheetOptions={sheetOptions}
+                    />
+                  </div>
+                  {sidebar}
+                </div>;
       content = (
-            <div className="sidebarLayout">
-              <SheetContent
-                  sheetOptions = {sheetOptions}
-                  sheetNotice={sheet.sheetNotice}
-                  sources={sheet.sources}
-                  title={sheet.title}
-                  onRefClick={this.props.onRefClick}
-                  handleClick={this.handleClick}
-                  sheetSourceClick={this.props.onSegmentClick}
-                  highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
+          <div className="sidebarLayout">
+            <SheetContent
+                sheetOptions={sheetOptions}
+                sheetNotice={sheet.sheetNotice}
+                sources={sheet.sources}
+                title={sheet.title}
+                onRefClick={this.props.onRefClick}
+                handleClick={this.handleClick}
+                sheetSourceClick={this.props.onSegmentClick}
+                highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
                   highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
                   highlightedRefsInSheet={this.props.highlightedRefsInSheet}
                   scrollToHighlighted={this.props.scrollToHighlighted}
@@ -129,31 +153,14 @@ class Sheet extends Component {
                   toggleSignUpModal={this.props.toggleSignUpModal}
                   historyObject={this.props.historyObject}
             />
-              <SheetContentSidebar
-                  authorStatement={sheet.ownerName}
-                  authorUrl={sheet.ownerProfileUrl}
-                  authorImage={sheet.ownerImageUrl}
-                  collections={sheet.collections}
-                  toggleSignUpModal={this.props.toggleSignUpModal}
-              />
+            {sidebar}
           </div>
       );
     }
     return (
       <div className={classes}>
-        { sheet && editable && Sefaria._uses_new_editor ?
-        <div className="sheetContent">
-          <SefariaEditor
-            data={sheet}
-            handleClick={this.handleClick}
-            multiPanel={this.props.multiPanel}
-            sheetSourceClick={this.props.onSegmentClick}
-            highlightedNode={this.props.highlightedNode}
-            highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-            setDivineNameReplacement={this.props.setDivineNameReplacement}
-            divineNameReplacement={this.props.divineNameReplacement}
-          />
-        </div>
+        { editable && Sefaria._uses_new_editor ?
+        editor
         :
         content }
       </div>
