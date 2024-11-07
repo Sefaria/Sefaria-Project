@@ -8464,7 +8464,7 @@ a.sheetAuthorName {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 18.75px;
   display: inline;
   margin-block-end: 10px;
@@ -8482,7 +8482,8 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 18.75px;
   color: var(--dark-grey);
-  margin-block-end: 15px;
+  margin-block-end: 25px;
+  text-align: initial;
 }
 .sheetMetaDataBox .title {
   --english-font: var(--english-sans-serif-font-family);
@@ -13602,7 +13603,7 @@ span.ref-link-color-3 {color: blue}
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 18px;
   color: #666666;
   margin-inline-start: 10px;
