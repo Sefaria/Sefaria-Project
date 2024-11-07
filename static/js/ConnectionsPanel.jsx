@@ -1271,6 +1271,7 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
       let refString = srefs[0];
       let currentPath = Sefaria.util.currentPath();
       let currentLangParam;
+      const langCode = masterPanelLanguage.slice(0, 2);
       if (currVersions[langCode]?.versionTitle) {
         refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(currVersions[langCode].versionTitle);
       }
