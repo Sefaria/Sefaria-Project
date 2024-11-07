@@ -615,7 +615,7 @@ Sefaria = extend(Sefaria, {
     if (translationVersionObj.versionTitle) {
         translationVersionObj = Sefaria._findInVresions({...translationVersionObj, isSource: false}, flatVersions);
     }
-    if (!translationVersionObj.versionTitle) {
+    if (!translationVersionObj?.versionTitle) {
         let requiredVersion;
         const preferredTranslation = Sefaria.versionPreferences.getVersionPref(ref)?.en;
         if (preferredTranslation) {
