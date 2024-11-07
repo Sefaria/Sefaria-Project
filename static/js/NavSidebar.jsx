@@ -6,7 +6,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
-import Button from "./shared/Button";
+import Button from "./common/Button";
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
