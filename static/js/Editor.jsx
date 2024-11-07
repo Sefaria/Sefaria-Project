@@ -2659,18 +2659,6 @@ const SefariaEditor = (props) => {
 
 
   useEffect(() => {
-      let scrollTimeOutId = null;
-      const onScrollListener = () => {
-          clearTimeout(scrollTimeOutId);
-          scrollTimeOutId = setTimeout(
-              () => {
-                  if(props.hasSidebar) {
-                      onEditorSidebarToggleClick()
-                  }
-              }, 200
-          );
-      };
-
       let clickTimeOutId = null;
       const onClickListener = (e) => {
         clearTimeout(clickTimeOutId);
@@ -2696,15 +2684,13 @@ const SefariaEditor = (props) => {
 
 
 
-     editorContainer.current.parentNode.parentNode.addEventListener("scroll", onScrollListener);
      editorContainer.current.parentNode.parentNode.addEventListener("click", onClickListener);
 
 
       return () => {
-          editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener);
           editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener);
       }
-    }, [props.highlightedNode, props.hasSidebar]
+    }, [props.highlightedNode]
   );
 
   useEffect(() => {
@@ -2992,18 +2978,6 @@ const SefariaEditor = (props) => {
 
     };
 
-    const onEditorSidebarToggleClick = event => {
-        const segmentToHighlight = getHighlightedByScrollPos()
-        if (!segmentToHighlight) {
-            updateSidebar(sheet.id, null)
-        }
-        else {
-            const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
-            const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
-            updateSidebar(sheetNode, sheetRef)
-        }
-    };
-
 
     const editor = useMemo(
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
@@ -3021,7 +2995,6 @@ const SefariaEditor = (props) => {
 
         }
 
-            <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
             <SheetAuthorStatement
