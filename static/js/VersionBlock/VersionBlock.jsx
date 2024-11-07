@@ -71,7 +71,8 @@ class VersionBlockUtils {
           const language = (renderMode === 'translation') ? 'en' : 'he';
           openVersionInReader(version.versionTitle, language, version.languageFamilyName);
       }
-      Sefaria.setVersionPreference(currRef, version.versionTitle, version.language);
+      const pseudoLang = !version.isSource ? 'en' : 'he';
+      Sefaria.setVersionPreference(currRef, version.versionTitle, pseudoLang);
   }
 }
 
