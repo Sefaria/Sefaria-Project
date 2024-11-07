@@ -145,7 +145,6 @@ class Sheet extends Component {
         <div className="sheetContent">
           <SefariaEditor
             data={sheet}
-            hasSidebar={this.props.hasSidebar}
             handleClick={this.handleClick}
             multiPanel={this.props.multiPanel}
             sheetSourceClick={this.props.onSegmentClick}

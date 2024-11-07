@@ -2652,46 +2652,8 @@ const SefariaEditor = (props) => {
 
 
   useEffect(() => {
-    if(!props.hasSidebar) {
-      editor.highlightedNode = null;
-    }
-  }, [props.hasSidebar]);
-
-
-  useEffect(() => {
-      let clickTimeOutId = null;
-      const onClickListener = (e) => {
-        clearTimeout(clickTimeOutId);
-        clickTimeOutId = setTimeout(
-          () => {
-            if(props.hasSidebar) {
-            let sheetElementTypes = Object.values(sheet_item_els);
-              for(const node of Node.ancestors(editor, editor.selection.focus.path)) {
-                  if (sheetElementTypes.includes(node[0].type)) {
-                      if (node[0].node != editor.highlightedNode) {
-                        updateSidebar(node[0].node, node[0].ref)
-                        if (node[0].type != "SheetSource") {
-                          Transforms.select(editor, editor.blurSelection);
-                          ReactEditor.focus(editor);
-                        }
-                      }
-                      break;
-                  }
-              }
-            }
-          }, 20);
-      };
-
-
-
-     editorContainer.current.parentNode.parentNode.addEventListener("click", onClickListener);
-
-
-      return () => {
-          editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener);
-      }
-    }, [props.highlightedNode]
-  );
+    editor.highlightedNode = null;
+  }, []);
 
   useEffect(() => {
       if(canUseDOM) {
