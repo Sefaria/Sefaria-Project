@@ -9,7 +9,7 @@ import Sefaria  from './sefaria/sefaria';
 import SefariaEditor from './Editor';
 import {
   InterfaceText,
-  LoadingMessage,
+  LoadingMessage, SheetMetaDataBox,
 } from './Misc';
 import {SheetOptions} from "./sheets/SheetOptions";
 import SheetContentSidebar from "./sheets/SheetContentSidebar";
@@ -152,6 +152,12 @@ class Sheet extends Component {
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}
             setDivineNameReplacement={this.props.setDivineNameReplacement}
             divineNameReplacement={this.props.divineNameReplacement}
+            authorStatement={sheet.ownerName}
+            authorUrl={sheet.ownerProfileUrl}
+            authorImage={sheet.ownerImageUrl}
+            title={sheet.title}
+            summary={sheet.summary}
+            sheetOptions={<></>}
           />
         </div>
         :

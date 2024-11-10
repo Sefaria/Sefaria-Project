@@ -3065,7 +3065,7 @@ const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorIma
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
       {sheetOptions}
     </div>
-    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
+    {summary || editable && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
     <div className="user">
       <ProfilePic
           url={authorImage}
