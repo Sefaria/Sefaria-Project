@@ -2,10 +2,7 @@ import Component from "react-class";
 import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "../sefaria/sefaria";
-import {
-  InterfaceText, ProfilePic, SheetAuthorStatement,
-  SheetMetaDataBox, SheetMetaDataBoxSegment
-} from "../Misc";
+import {SheetMetaDataBox} from "../Misc";
 import React from "react";
 import classNames from "classnames";
 
@@ -196,8 +193,12 @@ class SheetContent extends Component {
     return (
       <div className="sheetContent">
         <div className="text">
-          <SheetContentMetaDataBox authorStatement={this.props.authorStatement} authorUrl={this.props.authorUrl}
-                                   authorImage={this.props.authorImage} title={this.props.title} summary={this.props.summary} />
+          <SheetMetaDataBox authorStatement={this.props.authorStatement}
+                            authorUrl={this.props.authorUrl}
+                            authorImage={this.props.authorImage}
+                            title={this.props.title}
+                            summary={this.props.summary}
+          />
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
           </div>
@@ -212,22 +213,6 @@ class SheetContent extends Component {
   }
 }
 
-const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage}) => {
-  return <SheetMetaDataBox>
-    <SheetMetaDataBoxSegment text={title} className="title"/>
-    {summary && <SheetMetaDataBoxSegment text={summary} className="summary"/>}
-    <div className="user">
-      <ProfilePic
-          url={authorImage}
-          len={30}
-          name={authorStatement}
-      />
-      <a href={authorUrl} className="sheetAuthorName">
-        <InterfaceText>{authorStatement}</InterfaceText>
-      </a>
-    </div>
-  </SheetMetaDataBox>
-}
 class SheetSource extends Component {
   render() {
 
@@ -332,7 +317,7 @@ class SheetComment extends Component {
   }
 }
 
-class SheetHeader extends Component {
+class SheetSegmentHeader extends Component {
   render() {
     const lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
     const containerClasses = classNames("sheetItem",
