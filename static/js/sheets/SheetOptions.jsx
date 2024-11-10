@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon} from "../common/DropdownMenu";
-import {InterfaceText, SaveButton, SaveButtonWithText} from "../Misc";
+import {InterfaceText, SaveButtonWithText} from "../Misc";
 import Modal from "../shared/modal";
-import {ShareBox, ToolsButton} from "../ConnectionsPanel";
+import {ShareBox} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
 import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
@@ -84,17 +84,20 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
             <GoogleDocExportButton sheetID={sheetID} onClick={() => setExporting(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
-                                      textEn={'Share'}
-                                      textHe={'שיתוף'}
-                                      descEn={""}
-                                      descHe={""}
-                                      onClick={() => setSharing(true)}/>
+            <ShareButton onClick={() => setSharing(true)}/>
           </DropdownMenuItem>
         </DropdownMenu>
     );
 }
 
+const ShareButton = ({onClick}) => {
+  return <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
+              textEn={'Share'}
+              textHe={'שיתוף'}
+              descEn={""}
+              descHe={""}
+              onClick={onClick}/>
+}
 const CollectionsButton = ({setCollectionsMode, editable}) => {
   const label = editable ? "Edit Collections" : "Add to Collection";
   return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
@@ -122,13 +125,13 @@ const AddToSourceSheetModal = ({nodeRef, srefs, close}) => {
   return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs} hideGDocAdvert={true}/></Modal>
 }
 const CopyButton = ({onClick}) => {
-  return <>
-          <ToolsButton
-              en={"Copy"}
-              he={"העתקה"}
-              image="copy.png"
+  return <DropdownMenuItemWithIcon
+              textEn={"Copy"}
+              textHe={"העתקה"}
+              descEn={""}
+              descHe={""}
+              icon="/static/img/copy.png"
               onClick={() => onClick()} />
-        </>
 }
 const CopyModal = ({close, sheetID}) => {
   const copyState = {
@@ -222,12 +225,13 @@ const SaveModal = ({historyObject, close}) => {
 
 const GoogleDocExportButton = ({ onClick }) => {
   const googleDriveText = { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" };
-  return <div>
-            <ToolsButton en={googleDriveText.en}
-                         he={googleDriveText.he}
-                         image="googledrivecolor.png"
-                         onClick={() => onClick()} />
-          </div>;
+  return <DropdownMenuItemWithIcon
+                         textEn={googleDriveText.en}
+                         textHe={googleDriveText.he}
+                         descEn={""}
+                         descHe={""}
+                         icon="/static/img/googledrivecolor.png"
+                         onClick={() => onClick()} />;
 }
 
 const GoogleDocExportModal = ({ sheetID, close }) => {

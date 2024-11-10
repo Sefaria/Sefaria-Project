@@ -76,7 +76,6 @@ const LoggedOutMenu = () => {
 
 
 const ModuleSwitcher = () => {
-  const toggle = <img src="/static/icons/module_switcher_icon.svg" alt={Sefaria._('Toggle Module Switcher')}/>;
   return (
     <DropdownMenu menu_icon={'/static/icons/module_switcher_icon.svg'}>
     <DropdownMenuItem url={'/'} newTab={true}>
@@ -94,10 +93,10 @@ const ModuleSwitcher = () => {
     <DropdownMenuItem url={'//sefaria.org/products'} newTab={true}>
       <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products ›'}} />
     </DropdownMenuItem>
-      </DropdownMenu>
+
+  </DropdownMenu>
   );
 }
-
 class Header extends Component {
   constructor(props) {
     super(props)
