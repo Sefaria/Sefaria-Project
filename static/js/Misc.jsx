@@ -25,6 +25,7 @@ import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
 import {ToolsButton} from "./ConnectionsPanel";
+import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1443,14 +1444,17 @@ InterfaceLanguageMenu.propTypes = {
 const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
 const getSaveButtonMessage = (selected) => Sefaria._(selected ? "Remove" : "Save");
 const getSaveButtonImage = (selected) => {
-  return selected ? "bookmark-filled.svg" : "bookmark.svg";
+  return selected ? "/static/icons/bookmark-filled.svg" : "/static/icons/bookmark.svg";
 }
 const SaveButtonWithText = ({historyObject, onClick}) => {
   const selected = isSaveButtonSelected(historyObject);
-  return <div>
-            <ToolsButton en={getSaveButtonMessage(selected)} he={getSaveButtonMessage(selected)}
-                         image={getSaveButtonImage(selected)} onClick={() => onClick()}/>
-         </div>;
+  return <DropdownMenuItemWithIcon
+                    textEn={getSaveButtonMessage(selected)}
+                    textHe={getSaveButtonMessage(selected)}
+                    descEn={""}
+                    descHe={""}
+                    icon={getSaveButtonImage(selected)}
+                    onClick={() => onClick()}/>;
 }
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
@@ -1485,7 +1489,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   }
   return (
     <ToolTipped {...{ altText, classes, style, onClick }}>
-      {<img src={`/static/img/${getSaveButtonImage(selected)}`} alt={altText}/>}
+      {<img src={`${getSaveButtonImage(selected)}`} alt={altText}/>}
     </ToolTipped>
   );
 }
@@ -3055,12 +3059,25 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-
-const SheetMetaDataBox = (props) => (
-  <div className="sheetMetaDataBox">
-    {props.children}
+const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, sheetOptions, editable, blurCallback}) => {
+  return <div className="sheetMetaDataBox">
+    <div className="sidebarLayout">
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={blurCallback}/>
+      {sheetOptions}
+    </div>
+    {summary || editable && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable} blurCallback={blurCallback}/>}
+    <div className="user">
+      <ProfilePic
+          url={authorImage}
+          len={30}
+          name={authorStatement}
+      />
+      <a href={authorUrl} className="sheetAuthorName">
+        <InterfaceText>{authorStatement}</InterfaceText>
+      </a>
+    </div>
   </div>
-);
+}
 
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
@@ -3436,5 +3453,5 @@ export {
   OnInView,
   TopicPictureUploader,
   ImageWithCaption, 
-  handleAnalyticsOnMarkdown,
+  handleAnalyticsOnMarkdown
 };

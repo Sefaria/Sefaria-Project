@@ -2669,7 +2669,8 @@ const SefariaEditor = (props) => {
   }, [canUseDOM])
 
     function saveSheetContent(doc, lastModified) {
-        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
+        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled";
+        const sheetSummary = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .summary") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .summary").textContent : "";
         const docContent = doc.children.find(el => el.type == "SheetContent")
         if (!docContent) {
             return false
@@ -2768,7 +2769,7 @@ const SefariaEditor = (props) => {
             id: doc.id,
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
-            summary: doc.summary,
+            summary: sheetSummary,
             options: { ...doc.options, divineNames: props.divineNameReplacement },
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
@@ -2947,41 +2948,26 @@ const SefariaEditor = (props) => {
     );
 
     return (
-        <div ref={editorContainer} onClick={props.handleClick}>
-        {
+          <div ref={editorContainer} onClick={props.handleClick}>
+              <SheetMetaDataBox authorStatement={props.authorStatement}
+                            authorUrl={props.authorUrl}
+                            authorImage={props.authorImage}
+                            title={props.title}
+                            summary={props.summary}
+                            editable={true}
+                            blurCallback={() => saveDocument(currentDocument)}
+                            sheetOptions={props.sheetOptions}/>
+          {
           /* debugger */
 
           // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
           // {JSON.stringify(editor.children[0,0], null, 4)}
           // </div>
 
-        }
+          }
 
-        <SheetMetaDataBox>
-            <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
-            <SheetAuthorStatement
-                authorUrl={sheet.ownerProfileUrl}
-                authorStatement={sheet.ownerName}
-            >
-              <ProfilePic
-                url={sheet.ownerImageUrl}
-                len={30}
-                name={sheet.ownerName}
-                outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
-              />
-              <a href={sheet.ownerProfileUrl}>
-                <InterfaceText>{sheet.ownerName}</InterfaceText>
-              </a>
-            </SheetAuthorStatement>
-            <CollectionStatement
-                name={sheet.collectionName}
-                slug={sheet.displayedCollection}
-                image={sheet.collectionImage}
-            />
-        </SheetMetaDataBox>
-        {canUseDOM &&
-            <div>
-                <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
+          {canUseDOM &&
+            <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
                 <Editable
                   renderLeaf={props => <Leaf {...props} />}
@@ -2997,13 +2983,8 @@ const SefariaEditor = (props) => {
                   onDOMBeforeInput={beforeInput}
                   autoFocus
                 />
-                </Slate>
-                <SheetContentMetaDataBox authorStatement={props.authorStatement} authorUrl={props.authorUrl}
-                       authorImage={props.authorImage} title={props.title}
-                       summary={props.summary}
-                       sheetContentOptions={props.sheetOptions}/>
-            </div>
-        }
+            </Slate>
+          }
         </div>
     )
 };
