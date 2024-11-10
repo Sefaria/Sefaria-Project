@@ -632,7 +632,7 @@ if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs)
         });
       }
     }
-    if (displayTabs.length && tab!="notable-sources") {
+    if (displayTabs.length && tab!="notable-sources" && tab!="author-works-on-sefaria") {
       displayTabs.push({
         title: {
           en: "",
@@ -645,7 +645,7 @@ if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs)
       onClickFilterIndex = displayTabs.length - 1;
     }
 
-    if (displayTabs.length) {
+    if (displayTabs.length && tab!="author-works-on-sefaria") {
       displayTabs.push({
         title: {
           en: "A",
