@@ -93,10 +93,10 @@ const ModuleSwitcher = () => {
     <DropdownMenuItem url={'//sefaria.org/products'} newTab={true}>
       <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products ›'}} />
     </DropdownMenuItem>
-      </DropdownMenu>
+
+  </DropdownMenu>
   );
 }
-
 class Header extends Component {
   constructor(props) {
     super(props)

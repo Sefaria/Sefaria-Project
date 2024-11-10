@@ -2,10 +2,6 @@ import Component from "react-class";
 import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "../sefaria/sefaria";
-import {
-  InterfaceText, ProfilePic,
-  SheetMetaDataBox, SheetMetaDataBoxSegment
-} from "../Misc";
 import {AddToSourceSheetModal} from "./SheetOptions";
 import {
   SheetComment,
@@ -16,6 +12,7 @@ import {
   SheetSource
 } from "./SheetContentSegments";
 import { useState } from "react";
+import {SheetMetaDataBox} from "../Misc";
 import React from "react";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
 
@@ -237,10 +234,10 @@ class SheetContent extends Component {
     return (
       <div className="sheetContent">
         <div className="text">
-          <SheetContentMetaDataBox authorStatement={this.props.authorStatement} authorUrl={this.props.authorUrl}
+          <SheetMetaDataBox authorStatement={this.props.authorStatement} authorUrl={this.props.authorUrl}
                                    authorImage={this.props.authorImage} title={this.props.title}
                                    summary={this.props.summary}
-                                   sheetContentOptions={this.props.sheetOptions}/>
+                                   sheetOptions={this.props.sheetOptions}/>
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
           </div>
@@ -273,25 +270,5 @@ const AddToSheetButton = ({highlightedNode, sheetID, highlightedRefs, toggleSign
     {showingModal &&
         <AddToSourceSheetModal nodeRef={nodeRef} srefs={highlightedRefs} close={() => setShowingModal(false)}/>}
   </>;
-}
-
-const SheetContentMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, sheetContentOptions}) => {
-  return <SheetMetaDataBox>
-    <div className="sidebarLayout">
-      <SheetMetaDataBoxSegment text={title} className="title"/>
-      {sheetContentOptions}
-    </div>
-    {summary && <SheetMetaDataBoxSegment text={summary} className="summary"/>}
-    <div className="user">
-      <ProfilePic
-          url={authorImage}
-          len={30}
-          name={authorStatement}
-      />
-      <a href={authorUrl} className="sheetAuthorName">
-        <InterfaceText>{authorStatement}</InterfaceText>
-      </a>
-    </div>
-  </SheetMetaDataBox>
 }
 export default SheetContent;
