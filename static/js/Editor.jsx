@@ -2669,7 +2669,8 @@ const SefariaEditor = (props) => {
   }, [canUseDOM])
 
     function saveSheetContent(doc, lastModified) {
-        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
+        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled";
+        const sheetSummary = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .summary") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .summary").textContent : "";
         const docContent = doc.children.find(el => el.type == "SheetContent")
         if (!docContent) {
             return false
@@ -2768,7 +2769,7 @@ const SefariaEditor = (props) => {
             id: doc.id,
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
-            summary: doc.summary,
+            summary: sheetSummary,
             options: { ...doc.options, divineNames: props.divineNameReplacement },
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
@@ -2947,11 +2948,16 @@ const SefariaEditor = (props) => {
     );
 
     return (
-        <><SheetMetaDataBox authorStatement={props.authorStatement} authorUrl={props.authorUrl}
-                           authorImage={props.authorImage} title={props.title}
-                           summary={props.summary} editable={true}
-                           sheetOptions={props.sheetOptions}/>
+        <>
           <div ref={editorContainer} onClick={props.handleClick}>
+              <SheetMetaDataBox authorStatement={props.authorStatement}
+                            authorUrl={props.authorUrl}
+                            authorImage={props.authorImage}
+                            title={props.title}
+                            summary={props.summary}
+                            editable={true}
+                            blurCallback={() => saveDocument(currentDocument)}
+                            sheetOptions={props.sheetOptions}/>
           {
           /* debugger */
 

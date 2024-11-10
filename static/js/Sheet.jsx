@@ -155,8 +155,8 @@ class Sheet extends Component {
             authorStatement={sheet.ownerName}
             authorUrl={sheet.ownerProfileUrl}
             authorImage={sheet.ownerImageUrl}
-            title={sheet.title}
-            summary={sheet.summary}
+            title={sheet.title || ""}
+            summary={sheet.summary || ""}
             sheetOptions={<></>}
           />
         </div>
