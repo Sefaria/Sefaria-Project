@@ -3059,10 +3059,12 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-
-const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, editable}) => {
+const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, sheetOptions, editable}) => {
   return <div className="sheetMetaDataBox">
-    <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
+    <div className="sidebarLayout">
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
+      {sheetOptions}
+    </div>
     {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
     <div className="user">
       <ProfilePic
