@@ -3060,11 +3060,22 @@ const TitleVariants = function({titles, update, options}) {
          </div>
 }
 
-const SheetMetaDataBox = (props) => (
-  <div className="sheetMetaDataBox">
-    {props.children}
+const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, editable}) => {
+  return <div className="sheetMetaDataBox">
+    <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
+    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
+    <div className="user">
+      <ProfilePic
+          url={authorImage}
+          len={30}
+          name={authorStatement}
+      />
+      <a href={authorUrl} className="sheetAuthorName">
+        <InterfaceText>{authorStatement}</InterfaceText>
+      </a>
+    </div>
   </div>
-);
+}
 
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
