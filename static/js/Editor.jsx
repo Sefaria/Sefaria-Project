@@ -1234,7 +1234,7 @@ const Element = (props) => {
             );
         case 'SheetContent':
             return (
-                <div className="text editorContent" {...attributes}>
+                <div className="editorContent" {...attributes}>
                     {children}
                 </div>
             );
@@ -2948,7 +2948,7 @@ const SefariaEditor = (props) => {
     );
 
     return (
-          <div ref={editorContainer} onClick={props.handleClick}>
+          <div ref={editorContainer} onClick={props.handleClick} className="text">
               <SheetMetaDataBox authorStatement={props.authorStatement}
                             authorUrl={props.authorUrl}
                             authorImage={props.authorImage}
