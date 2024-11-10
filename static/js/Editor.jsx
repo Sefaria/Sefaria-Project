@@ -2957,28 +2957,10 @@ const SefariaEditor = (props) => {
 
         }
 
-        <SheetMetaDataBox>
-            <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
-            <SheetAuthorStatement
-                authorUrl={sheet.ownerProfileUrl}
-                authorStatement={sheet.ownerName}
-            >
-              <ProfilePic
-                url={sheet.ownerImageUrl}
-                len={30}
-                name={sheet.ownerName}
-                outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
-              />
-              <a href={sheet.ownerProfileUrl}>
-                <InterfaceText>{sheet.ownerName}</InterfaceText>
-              </a>
-            </SheetAuthorStatement>
-            <CollectionStatement
-                name={sheet.collectionName}
-                slug={sheet.displayedCollection}
-                image={sheet.collectionImage}
-            />
-        </SheetMetaDataBox>
+          <SheetMetaDataBox authorStatement={props.authorStatement} authorUrl={props.authorUrl}
+                           authorImage={props.authorImage} title={props.title}
+                           summary={props.summary} editable={true}
+                           sheetOptions={props.sheetOptions}/>
             {canUseDOM ?
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
