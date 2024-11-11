@@ -10,8 +10,18 @@ import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
 import Button from "../shared/Button";
 
+const togglePublish = async (sheetID, shouldPublish) => {
+  const newPublishState = shouldPublish ? "unlisted" : "public";
+  let updatedSheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetID, sheet => resolve(sheet))));
+  updatedSheet.status = newPublishState;
+  updatedSheet.lastModified = lastModified;
+  delete updatedSheet._id;
+  const postJSON = JSON.stringify(updatedSheet);
+  postSheet(postJSON);
+}
+
 const PublishButton = () => {
-  return <Button className="small" onClick={() => window.location.href="/sheets/new"}>Create</Button>
+  return <Button className="small" onClick={() => togglePublish(true)}>Publish</Button>
 }
 
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
