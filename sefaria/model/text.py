@@ -1171,14 +1171,21 @@ class AbstractTextRecord(object):
 
     @staticmethod
     def remove_html(t):
+
+        def conditional_replace(match):
+            tag = match.group()
+            if tag in ["<br/>", "<br>"]:
+                return " "
+            return ""
+
         if isinstance(t, list):
             for i, v in enumerate(t):
                 if isinstance(v, str):
-                    t[i] = re.sub('<[^>]+>', " ", v)
+                    t[i] = re.sub('<[^>]+>', conditional_replace, v)
                 else:
                     t[i] = AbstractTextRecord.remove_html(v)
         elif isinstance(t, str):
-            t = re.sub('<[^>]+>', " ", t)
+            t = re.sub('<[^>]+>', conditional_replace, t)
         else:
             return False
         return t
@@ -2287,6 +2294,9 @@ class VirtualTextChunk(AbstractTextRecord):
 
     def version_ids(self):
         return [self._versions[0]._id] if self._versions else []
+
+    def has_manually_wrapped_refs(self):
+        return not getattr(self._oref.index_node.parent.lexicon, 'needsRefsWrapping', False)
 
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.

@@ -443,7 +443,7 @@ class RawRef(RawNamedEntity):
         """
         start_char, end_char = span_char_inds(part.span)
         pivot = len(part.text) - len(str_end) + start_char
-        aspan = part.span.doc.char_span(0, pivot, alignment_mode='contract')
+        aspan = part.span.doc.char_span(start_char, pivot, alignment_mode='contract')
         bspan = part.span.doc.char_span(pivot, end_char, alignment_mode='contract')
         if aspan is None or bspan is None:
             raise InputError(f"Couldn't break on token boundaries for strings '{self.text[0:pivot]}' and '{self.text[pivot:end_char]}'")
