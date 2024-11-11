@@ -21,7 +21,7 @@ const togglePublish = async (sheetID, shouldPublish) => {
 }
 
 const PublishButton = () => {
-  return <Button className="small" onClick={() => togglePublish(true)}>Publish</Button>
+  return <Button className="small publish" onClick={() => togglePublish(true)}>Publish</Button>
 }
 
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
@@ -36,7 +36,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, authorUrl}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, authorUrl}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isCollectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -44,6 +44,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
   const [isSaving, setSaving] = useState(false);
   const [isExporting, setExporting] = useState(getExportingStatus());
   const [isDeleting, setDeleting] = useState(false);
+  const [isPublished, setIsPublished] = useState(sheet.status === "public");
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   const getSignUpModalKind = () => {
     if (isSaving) {
@@ -69,25 +70,26 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
     }
   }, [isCollectionsMode, isSaving, isCopying, isExporting]);
   if (isSharing) {
-    return <ShareModal sheetID={sheetID} isOpen={isSharing} close={() => setSharing(false)}/>;
+    return <ShareModal sheetID={sheet.id} isOpen={isSharing} close={() => setSharing(false)}/>;
   }
   else if (isCollectionsMode) {
-    return <CollectionsModal isOpen={isCollectionsMode} close={() => setCollectionsMode(false)} sheetID={sheetID}/>;
+    return <CollectionsModal isOpen={isCollectionsMode} close={() => setCollectionsMode(false)} sheetID={sheet.id}/>;
   }
   else if (isCopying) {
-    return <CopyModal close={() => setCopying(false)} sheetID={sheetID}/>;
+    return <CopyModal close={() => setCopying(false)} sheetID={sheet.id}/>;
   }
   else if (isSaving) {
     return <SaveModal historyObject={historyObjectForSheet} close={() => setSaving(false)}/>;
   }
   else if (isExporting) {
-    return <GoogleDocExportModal close={() => setExporting(false)} sheetID={sheetID}/>;
+    return <GoogleDocExportModal close={() => setExporting(false)} sheetID={sheet.id}/>;
   }
   else if (isDeleting) {
-    return <DeleteModal close={() => setDeleting(false)} sheetID={sheetID} authorUrl={authorUrl}/>;
+    return <DeleteModal close={() => setDeleting(false)} sheetID={sheet.id} authorUrl={authorUrl}/>;
   }
   return (
         <>
+        {editable && !isPublished && <PublishButton/>}
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
@@ -102,11 +104,18 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
             <CollectionsButton setCollectionsMode={setCollectionsMode} editable={editable}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <GoogleDocExportButton sheetID={sheetID} onClick={() => setExporting(true)}/>
+            <GoogleDocExportButton sheetID={sheet.id} onClick={() => setExporting(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <ShareButton onClick={() => setSharing(true)}/>
           </DropdownMenuItem>
+          {editable && isPublished && <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem>
+                                          <UnpublishButton onClick={() => togglePublish(sheet.id, false)}/>
+                                        </DropdownMenuItem>
+                                      </>
+          }
           {editable && <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>
@@ -140,6 +149,15 @@ const DeleteButton = ({onClick}) => {
               descEn={""}
               descHe={""}
               onClick={handleClick}/>
+}
+
+const UnpublishButton = ({onClick}) => {
+  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"}
+                                   textEn={'Unpublish'}
+                                   textHe={""}
+                                   descEn={""}
+                                   descHe={""}
+                                   onClick={onClick}/>
 }
 
 const CollectionsButton = ({setCollectionsMode, editable}) => {

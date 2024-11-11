@@ -100,7 +100,7 @@ class Sheet extends Component {
     }
     else {
       const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
-                                                 sheetID={sheet.id}
+                                                 sheet={sheet}
                                                  historyObject={this.props.historyObject}
                                                  editable={editable}
                                                  authorUrl={sheet.ownerProfileUrl}/>;
