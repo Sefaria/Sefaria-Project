@@ -14106,6 +14106,19 @@ span.ref-link-color-3 {color: blue}
   padding: 3px 10px;
 }
 
+
+.footerContainer {
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding-top: 25px;
+}
+
+.footerContainer a {
+  padding: 3px 10px;
+}
+
 .stickySidebarFooter {
   position: sticky;
   top: 0;
