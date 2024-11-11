@@ -93,6 +93,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     {type: "Translations"},
     {type: "LearningSchedules"},
     {type: "Resources"},
+    {type: "Footer"},
   ];
 
   const classes = classNames({readerNavMenu:1, compare: compare, noLangToggleInHebrew: 1 });

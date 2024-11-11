@@ -26,6 +26,7 @@ const Modules = ({type, props}) => {
     "AboutSefaria":           AboutSefaria,
     "Promo":                  Promo,
     "Resources":              Resources,
+    "Footer":                 SidebarFooter,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
@@ -246,6 +247,38 @@ const Resources = () => (
     </div>
   </Module>
 );
+
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'}, 
+                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'}, 
+                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'www.example.com'},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': 'www.example.com'},
+                                    {'he': 'בלוג','en':'Blog', 'url': 'www.example.com'},
+                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'www.example.com'},
+                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'www.example.com'},
+                                    {'he': 'יוטיוב','en':'YouTube', 'url':'www.example.com'},
+                                    {'he': 'חנות','en':'Shop', 'url': 'www.example.com'},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': 'www.example.com'},
+                                    {'he': 'תרומות','en':'Donate', 'url': 'www.example.com'},
+                                  ];
+
+const SidebarFooter = () => {
+
+  const data = getSidebarFooterData();
+
+  return (
+    <Module>
+      <h3/>
+      <div className="footerContainer">
+        {data.map(footerLink => 
+          <a href={footerLink.url}>
+            <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
+          </a>
+        )}
+      </div>
+    </Module>
+);
+}
+
 
 
 const TheJewishLibrary = ({hideTitle}) => (
