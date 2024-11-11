@@ -8070,7 +8070,14 @@ a .button:hover {
   width: -moz-fit-content;
   width: fit-content;
 }
-
+.button.small.publish {
+  color: #666666;
+  background-color: white;
+  font-weight: 600;
+  min-height: 31px;
+  height: 31px;
+  padding: 0 10px;
+}
 .headerWithAdminButtonsContainer{
   display: flex;
   justify-content: space-between;
@@ -8495,6 +8502,7 @@ a.sheetAuthorName:hover {
   flex: 1 0 95%;
   text-align: initial;
 }
+
 .sheetMetaDataBox .title:empty:before {
   content: "Title";
   color: #999;
