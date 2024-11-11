@@ -53,7 +53,7 @@ from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAI
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError, ComplexBookLevelRefError
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
@@ -1451,8 +1451,8 @@ def texts_api(request, tref):
                 text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                                  alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
             except Exception as e:
-                if str(e) == "Can not get TextRange at this level, please provide a more precise reference":
-                    return jsonResponse({'error': "Please pass a more specific ref for this book, and try again. The ref you passed is a \'complex\' book-level ref. We only support book-level refs in cases of texts with a 'simple' structure. To learn more about the structure of a text on Sefaria, see: https://developers.sefaria.org/docs/the-schema-of-a-simple-text"}, status=400)
+                if isinstance(e, ComplexBookLevelRefError):
+                    return jsonResponse({'error': e.message}, status=400)
             return jsonResponse(text, cb)
         else:
             # Return list of many sections
