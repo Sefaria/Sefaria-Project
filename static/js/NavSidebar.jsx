@@ -30,7 +30,6 @@ const Modules = ({type, props}) => {
     "AboutSefaria":           AboutSefaria,
     "Promo":                  Promo,
     "Resources":              Resources,
-    // "Footer":                 SidebarFooter,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
@@ -270,8 +269,7 @@ const SidebarFooter = () => {
   const data = getSidebarFooterData();
 
   return (
-    <div className = "stickySidebarFooter">
-      <Module>
+    <div className = "stickySidebarFooter navSidebarModule">
         <h3/>
         <div className="footerContainer">
           {data.map(footerLink => 
@@ -280,7 +278,6 @@ const SidebarFooter = () => {
             </a>
           )}
         </div>
-      </Module>
     </div>
 );
 }

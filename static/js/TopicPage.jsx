@@ -28,7 +28,6 @@ import {
     HebrewText
 } from './Misc';
 import {ContentText} from "./ContentText";
-import { SidebarFooter } from './NavSidebar';
 
 
 /*
@@ -606,7 +605,6 @@ const TopicPage = ({
                         multiPanel={multiPanel}
                         topicImage={topicImage}
                     />
-                    <SidebarFooter />
                     {!topicData.isLoading && <Promotions/>}
                 </div>
             );
