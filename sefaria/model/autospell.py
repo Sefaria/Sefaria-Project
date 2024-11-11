@@ -201,7 +201,7 @@ class AutoCompleter(object):
         except KeyError:
             return None
 
-    def complete(self, instring, limit=0, redirected=False):
+    def complete(self, instring, limit=0, redirected=False, type_scope=''):
         """
         Wrapper for Completions object - prioritizes and aggregates completion results.
         In the case where there are no results, tries to swap keyboards and get completion results from the other language.
@@ -215,7 +215,7 @@ class AutoCompleter(object):
         if len(instring) >= self.max_completion_length:
             return [], []
         cm = Completions(self, self.lang, instring, limit,
-                         do_autocorrect=len(instring) < self.max_autocorrect_length)
+                         do_autocorrect=len(instring) < self.max_autocorrect_length, type_scope=type_scope)
         cm.process()
         if cm.has_results():
             return cm.get_completion_strings(), cm.get_completion_objects()
@@ -247,7 +247,7 @@ class AutoCompleter(object):
 
 
 class Completions(object):
-    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True):
+    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type_scope=''):
         """
         An object that contains a single search, delegates to different methods of completions, and aggregates results.
         :param auto_completer:
@@ -272,6 +272,7 @@ class Completions(object):
         self._completion_objects = []
         self._candidate_type_counters = defaultdict(int)
         self._type_limit = 3
+        self.type_scope = type_scope
 
     def has_results(self):
         return len(self._completion_objects) > 0
@@ -325,6 +326,8 @@ class Completions(object):
 
         joined = list(zip(cs, co))
         if len(joined):
+            joined_type_filtered = [suggestion for suggestion in joined if not self.type_scope or suggestion[1]["type"] == self.type_scope]
+            joined = joined_type_filtered
             # joined.sort(key=lambda w: w[1]["order"])
             joined.sort(key=self._candidate_order)
             self._raw_completion_strings, self._completion_objects = [list(_) for _ in zip(*joined)]
