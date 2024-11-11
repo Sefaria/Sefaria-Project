@@ -144,6 +144,7 @@ INSTALLED_APPS = (
     'reader',
     'sourcesheets',
     'sefaria.gauth',
+    'admin_tools',
     'captcha',
     'django.contrib.admin',
     'anymail',
