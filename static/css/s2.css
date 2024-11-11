@@ -354,6 +354,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   z-index: 1000;
 }
 
+
 #s2.headerOnly {
   z-index: 1000;
   height: 60px;
@@ -13466,6 +13467,319 @@ span.ref-link-color-3 {color: blue}
     width: 67%;
   }
 }
+
+.dropdownHeader {
+  margin-bottom: 10px;
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  color: var(--selected-option);
+
+}
+
+.dropdownHeaderText {
+  padding-left: 10px;
+}
+
+.dropdownDesc {
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  padding-left: 30px;
+  padding-bottom: 10px;
+  padding-right: 10px;
+}
+
+.dropdownItem {
+  padding: 10px 5px !important;
+  flex-direction: column;
+  margin-inline-start: 5px;
+}
+
+.dropdownSeparator {
+  border: 1px solid var(--light-grey);
+}
+.header .dropdownLinks {
+  display: block;
+  align-items: center;
+  margin-top: 2px;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  -webkit-margin-start: 20px;
+  -moz-margin-start: 20px;
+  margin-inline-start: 10px;
+}
+.header .dropdownLinks img {
+  height: 18px;
+  width: 18px;
+  vertical-align: middle;
+}
+
+.interface-english .header .dropdownLinks img {
+  margin-inline-end: 2px;
+}
+
+.interface-hebrew .header .dropdownLinks img {
+  margin-inline-end: 6px;
+}
+
+.header .dropdownLinks a.dropdownLinks-button::after {
+  display: inline-block;
+  background: no-repeat url("/static/icons/chevron-down.svg");
+  height: 10px;
+  width: 12px;
+  vertical-align: middle;
+  content: "";
+  transform: scale(0.75);
+}
+.header .dropdownLinks .dropdownLinks-menu {
+  top: 35px;
+  position: absolute;
+  z-index: 1;
+  width: 150px;
+  background: #FBFBFA;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  display:none;
+  overflow:hidden;
+}
+.interface-english .header .dropdownLinks .dropdownLinks-menu {
+  right: 0px;
+  min-width: 150px;
+  width: max-content;
+}
+.interface-hebrew .header .dropdownLinks .dropdownLinks-menu {
+  left: 0px;
+  min-width: 150px;
+  width: max-content;
+}
+.dropdownLinks-options {
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  max-width: 220px;
+}
+.header .dropdownLinks .dropdownLinks-menu.open {
+  display: block;
+}
+
+.productsFlexWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.product {
+  max-width: 600px;
+}
+
+#productsPageContent {
+  margin-inline-start: 70px;
+  margin-top: 165px;
+  margin-bottom: 165px;
+}
+
+.productInner {
+  display: flex;
+  align-items: right;
+  flex-direction: row;
+}
+
+.productInner img {
+  max-width: 100%;
+  max-height: 116px;
+  height: auto;
+  display: block;
+  margin-inline-end: 3%;
+  padding-bottom: 20px;
+}
+
+.productInner .productsDesc {
+  font: var(--english-sans-serif-font-family);
+  color: var(--dark-grey);
+  font-size: 16px;
+}
+
+.productImgWrapper {
+  flex: 0 0 auto;
+}
+
+.productDescWrapper {
+  flex: 1 1 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.productsDesc p {
+  margin-top: 0;
+}
+
+.productsHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10%;
+  margin-bottom: 2%;
+  padding-bottom: 2%;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.productsTitleAndLabel {
+  flex: auto;
+}
+
+.productsHeader .productsTitle {
+  font: var(--english-sans-serif-font-family);
+  color: var(--dark-grey);
+  font-size: 22px;
+  font-weight: 500px;
+}
+
+.productsHeader .productsTypeLabel {
+  font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  background-color: var(--lighter-grey);
+  border-radius: 6px;
+  padding: 0.01px 5px;
+  color: var(--dark-grey);
+  margin-inline-start: 3%;
+}
+
+.productsHeader .cta {
+  display: flex;
+  align-items: center;
+}
+
+.productsHeader .cta .productsCTA {
+  color: var(--commentary-blue);
+  border-width: 10px;
+  margin-inline-end: 10px;
+}
+
+
+.productsHeader .cta .productsCTAIcon {
+  height: 12px;
+  top: 646px;
+  left: 610px;
+  margin: 0 5px;
+  vertical-align: baseline;
+  /** This uses the filter to recolor SVGs in a single line to commentary blue.
+  To determine the appropriate parameters, see a filter color picker such as https://angel-rs.github.io/css-color-filter-generator/ */
+  filter: brightness(0) saturate(100%) invert(52%) sepia(17%) saturate(6763%) hue-rotate(200deg) brightness(78%) contrast(77%);
+
+}
+
+.productsTitle {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  text-align: left;
+  color: var(--dark-grey);
+}
+
+.productsCTA::after {
+    content: " ›";
+    color: var(--commentary-blue);
+}
+
+.productsDevBox {
+    background: var(--lighter-grey);
+    color: var(--dark-grey);
+    font-family: var(--english-sans-serif-font-family);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 18.75px;
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 3%;
+    margin-top: 10%;
+    max-width: 600px;
+}
+
+.productsDevBox .productsDevHeader {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  padding-bottom: 2%;
+
+}
+
+.productsDevBox a {
+  color: var(--commentary-blue) !important;
+
+}
+
+.productsDevBox p {
+  margin-top: 0;
+}
+
+.productsDevBox a::after {
+  content: " ›";
+  color: var(--commentary-blue);
+}
+
+@media (max-width: 480px) {
+
+  .productImgWrapper {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #productsPageContent {
+    margin: 100px 10px 0px 10px;;
+  }
+
+  .productsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .productsTitleAndLabel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .productsTypeLabel {
+    padding: 1px 5px !important;
+    margin-top: 3px;
+    margin-left: 0px !important;
+  }
+
+  .cta {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .cta a {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  .productInner {
+    flex-direction: column;
+  }
+
+  .productDescWrapper{
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+}
+
+
+
+
 
 .dropdownHeader {
   margin-bottom: 10px;
