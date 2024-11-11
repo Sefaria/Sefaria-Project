@@ -5636,8 +5636,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline;
 }*/
 .bilingual .segment > .he,
-.bilingual .segment > p > .he,
-.connectionsPanel .textRange .segment > p > .he {
+.bilingual .segment > p > .he {
   display: block;
 }
 .bilingual .segment > .en,
