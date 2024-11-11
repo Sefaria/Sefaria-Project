@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon} from "../common/DropdownMenu";
+import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "../common/DropdownMenu";
 import {InterfaceText, SaveButtonWithText} from "../Misc";
 import Modal from "../shared/modal";
 import {ShareBox} from "../ConnectionsPanel";
@@ -27,6 +27,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
   const [isCopying, setCopying] = useState(false);
   const [isSaving, setSaving] = useState(false);
   const [isExporting, setExporting] = useState(getExportingStatus());
+  const [isDeleting, setDeleting] = useState(false);
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   const getSignUpModalKind = () => {
     if (isSaving) {
@@ -66,6 +67,9 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
   else if (isExporting) {
     return <GoogleDocExportModal close={() => setExporting(false)} sheetID={sheetID}/>;
   }
+  else if (isDeleting) {
+    return <DeleteModal close={() => setDeleting(false)} sheetID={sheetID}/>;
+  }
   return (
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
@@ -86,6 +90,13 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
           <DropdownMenuItem>
             <ShareButton onClick={() => setSharing(true)}/>
           </DropdownMenuItem>
+          {editable && <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          <DeleteButton onClick={() => setDeleting(true)}/>
+                        </DropdownMenuItem>
+                      </>
+          }
         </DropdownMenu>
     );
 }
@@ -98,6 +109,16 @@ const ShareButton = ({onClick}) => {
               descHe={""}
               onClick={onClick}/>
 }
+
+const DeleteButton = ({onClick}) => {
+    return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"}
+              textEn={'Delete Sheet'}
+              textHe={''}
+              descEn={""}
+              descHe={""}
+              onClick={onClick}/>
+}
+
 const CollectionsButton = ({setCollectionsMode, editable}) => {
   const label = editable ? "Edit Collections" : "Add to Collection";
   return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
@@ -198,6 +219,15 @@ const CopyModal = ({close, sheetID}) => {
 
   const copyMessage = copyText.en === copyState.copied.en ? getCopySuccessMessage() : <InterfaceText>{copyText.en}</InterfaceText>;
   return <GenericSheetModal title={<InterfaceText>Copy</InterfaceText>} message={copyMessage} close={handleClose}/>;
+}
+
+const DeleteModal = ({close, sheetID}) => {
+  useEffect( () => {
+    Sefaria.sheets.deleteSheetById(sheetID).then(() => {
+      window.location.href = "/texts";
+    });
+  });
+  return <GenericSheetModal title={<InterfaceText>Deleting...</InterfaceText>} close={close}/>;
 }
 
 const GenericSheetModal = ({title, message, close}) => {
