@@ -5742,6 +5742,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   float: left;
   padding-right: 20px;
 }
+.segment > p > .he.translation {
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 100%;
+}
 .basetext .segment:active,
 .basetext .segment:focus {
   background-color: #f5faff;
