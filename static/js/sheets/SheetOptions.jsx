@@ -8,6 +8,12 @@ import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
 import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
+import Button from "../shared/Button";
+
+const PublishButton = () => {
+  return <Button className="small" onClick={() => window.location.href="/sheets/new"}>Create</Button>
+}
+
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
   let newHistoryObject = Object.assign({}, historyObject);
@@ -71,6 +77,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
     return <DeleteModal close={() => setDeleting(false)} sheetID={sheetID}/>;
   }
   return (
+        <>
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
@@ -98,6 +105,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
                       </>
           }
         </DropdownMenu>
+        </>
     );
 }
 
