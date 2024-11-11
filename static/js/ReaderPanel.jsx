@@ -9,6 +9,7 @@ import {ContentLanguageContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
 import TextsPage  from './TextsPage';
+import {SearchResultList} from "./SearchResultList";
 import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
@@ -41,6 +42,9 @@ import {
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
+import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
+import {SheetsHomePage} from "./sheets/SheetsHomePage";
 
 
 class ReaderPanel extends Component {
@@ -239,10 +243,12 @@ class ReaderPanel extends Component {
   setPreviousSettings(backButtonSettings) {
     this.setState({ backButtonSettings });
   }
-  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], convertCommentaryRefToBaseRef=true) {
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[],
+               convertCommentaryRefToBaseRef=true, forceOpenCommentaryPanel = false) {
     /* Set the current primary text `ref`, which may be either a string or an array of strings.
     * @param {bool} `replaceHistory` - whether to replace browser history rather than push for this change
     * @param {bool} `convertCommentaryRefToBaseRef` - whether to try to convert commentary refs like "Rashi on Genesis 3:2" to "Genesis 3:2"
+    * @param {bool} `forceOpenCommentaryPanel` - see `Sefaria.isCommentaryRefWithBaseText()`
     */
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
@@ -269,7 +275,7 @@ class ReaderPanel extends Component {
       this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
     }
     this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings},
-                          true, convertCommentaryRefToBaseRef, this.replaceHistory, false);
+                          true, convertCommentaryRefToBaseRef, this.replaceHistory, false, forceOpenCommentaryPanel);
   }
   openSheet(sheetRef, replaceHistory) {
     this.replaceHistory = Boolean(replaceHistory);
@@ -780,25 +786,34 @@ class ReaderPanel extends Component {
 
     if (this.state.menuOpen === "navigation") {
 
-      const openNav     = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
+      const openNav = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
       const openTextTOC = this.state.compare ? this.openCompareTextTOC : null;
 
       menu = (<TextsPage
-                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
-                    compare={this.state.compare}
-                    multiPanel={this.props.multiPanel}
-                    categories={this.state.navigationCategories || []}
-                    settings={this.state.settings}
-                    setCategories={this.setNavigationCategories}
-                    openTextTOC={openTextTOC}
-                    setOption={this.setOption}
-                    toggleLanguage={this.toggleLanguage}
-                    onCompareBack={this.props.closePanel}
-                    openSearch={this.openSearch}
-                    openDisplaySettings={this.openDisplaySettings}
-                    initialWidth={this.state.width}
-                    toggleSignUpModal={this.props.toggleSignUpModal} />);
-
+          key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory : "navHome"}
+          compare={this.state.compare}
+          multiPanel={this.props.multiPanel}
+          categories={this.state.navigationCategories || []}
+          settings={this.state.settings}
+          setCategories={this.setNavigationCategories}
+          openTextTOC={openTextTOC}
+          setOption={this.setOption}
+          toggleLanguage={this.toggleLanguage}
+          onCompareBack={this.props.closePanel}
+          openSearch={this.openSearch}
+          openDisplaySettings={this.openDisplaySettings}
+          initialWidth={this.state.width}
+          toggleSignUpModal={this.props.toggleSignUpModal}/>);
+    } else if (this.state.menuOpen === "sheetsWithRef") {
+      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef.en}
+                                 searchState={this.state['searchState']}
+                                 updateSearchState={this.props.updateSearchState}
+                                 updateAppliedFilter={this.props.updateSearchFilter}
+                                 updateAppliedOptionField={this.props.updateSearchOptionField}
+                                 updateAppliedOptionSort={this.props.updateSearchOptionSort}
+                                 registerAvailableFilters={this.props.registerAvailableFilters}
+                                 resetSearchFilters={this.props.resetSearchFilters}
+                                 onResultClick={this.props.onSearchResultClick}/>);
     } else if (this.state.menuOpen === "sheet meta") {
       menu = (<SheetMetadata
                     mode={this.state.menuOpen}
@@ -883,13 +898,10 @@ class ReaderPanel extends Component {
                     }/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
-      menu = (<SearchPage
-                    key={"searchPage"}
-                    interfaceLang={this.props.interfaceLang}
+      menu = (<ElasticSearchQuerier
                     query={this.state.searchQuery}
-                    tab={this.state.searchTab}
-                    textSearchState={this.state.textSearchState}
-                    sheetSearchState={this.state.sheetSearchState}
+                    searchState={this.state['searchState']}
+                    resetSearchFilters={this.props.resetSearchFilters}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
@@ -897,14 +909,11 @@ class ReaderPanel extends Component {
                     toggleLanguage={this.toggleLanguage}
                     close={this.props.closePanel}
                     onQueryChange={this.props.onQueryChange}
-                    updateTab={this.props.updateSearchTab}
                     updateAppliedFilter={this.props.updateSearchFilter}
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
-                    compare={this.state.compare}
-                  />);
-
+                    compare={this.state.compare}/>);
     } else if (this.state.menuOpen === "topics") {
       if (this.state.navigationTopicCategory) {
         menu = (
@@ -1031,17 +1040,21 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history") {
       menu = (
-        <UserHistoryPanel
-          multiPanel={this.props.multiPanel}
-          menuOpen={this.state.menuOpen}
-          openMenu={this.openMenu}
-          openNav={this.openMenu.bind(null, "navigation")}
-          openDisplaySettings={this.openDisplaySettings}
-          toggleLanguage={this.toggleLanguage}
-          compare={this.state.compare}
-          toggleSignUpModal={this.props.toggleSignUpModal} />
+          <UserHistoryPanel
+              multiPanel={this.props.multiPanel}
+              menuOpen={this.state.menuOpen}
+              openMenu={this.openMenu}
+              openNav={this.openMenu.bind(null, "navigation")}
+              openDisplaySettings={this.openDisplaySettings}
+              toggleLanguage={this.toggleLanguage}
+              compare={this.state.compare}
+              toggleSignUpModal={this.props.toggleSignUpModal}/>
       );
 
+    } else if (this.state.menuOpen === "sheets") {
+      menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}
+                              multiPanel={this.props.multiPanel}
+                              setTopic={this.setTopic}/>);
     } else if (this.state.menuOpen === "profile") {
       menu = (
         <UserProfile
@@ -1168,7 +1181,6 @@ ReaderPanel.propTypes = {
   backFromExtendedNotes:       PropTypes.func,
   unsetTextHighlight:          PropTypes.func,
   onQueryChange:               PropTypes.func,
-  updateSearchTab:             PropTypes.func,
   updateSearchFilter:          PropTypes.func,
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
@@ -1646,6 +1658,7 @@ ReaderDisplayOptionsMenu.propTypes = {
   multiPanel:    PropTypes.bool.isRequired,
   width:         PropTypes.number.isRequired,
   settings:      PropTypes.object.isRequired,
+  resetSearchFilters: PropTypes.func,
 };
 
 
