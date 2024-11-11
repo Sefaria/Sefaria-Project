@@ -20,7 +20,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, authorUrl}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [isSharing, setSharing] = useState(false); // Share Modal open or closed
   const [isCollectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -68,7 +68,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
     return <GoogleDocExportModal close={() => setExporting(false)} sheetID={sheetID}/>;
   }
   else if (isDeleting) {
-    return <DeleteModal close={() => setDeleting(false)} sheetID={sheetID}/>;
+    return <DeleteModal close={() => setDeleting(false)} sheetID={sheetID} authorUrl={authorUrl}/>;
   }
   return (
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
@@ -111,12 +111,17 @@ const ShareButton = ({onClick}) => {
 }
 
 const DeleteButton = ({onClick}) => {
+    const handleClick = () => {
+      if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+        onClick();
+      }
+    }
     return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"}
               textEn={'Delete Sheet'}
               textHe={''}
               descEn={""}
               descHe={""}
-              onClick={onClick}/>
+              onClick={handleClick}/>
 }
 
 const CollectionsButton = ({setCollectionsMode, editable}) => {
@@ -221,10 +226,10 @@ const CopyModal = ({close, sheetID}) => {
   return <GenericSheetModal title={<InterfaceText>Copy</InterfaceText>} message={copyMessage} close={handleClose}/>;
 }
 
-const DeleteModal = ({close, sheetID}) => {
+const DeleteModal = ({close, sheetID, authorUrl}) => {
   useEffect( () => {
     Sefaria.sheets.deleteSheetById(sheetID).then(() => {
-      window.location.href = "/texts";
+      window.location.href = authorUrl;
     });
   });
   return <GenericSheetModal title={<InterfaceText>Deleting...</InterfaceText>} close={close}/>;

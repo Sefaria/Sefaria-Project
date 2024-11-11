@@ -102,7 +102,8 @@ class Sheet extends Component {
       const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
                                                  sheetID={sheet.id}
                                                  historyObject={this.props.historyObject}
-                                                 editable={editable}/>;
+                                                 editable={editable}
+                                                 authorUrl={sheet.ownerProfileUrl}/>;
       const sidebar = <SheetContentSidebar
                                   authorStatement={sheet.ownerName}
                                   authorUrl={sheet.ownerProfileUrl}
