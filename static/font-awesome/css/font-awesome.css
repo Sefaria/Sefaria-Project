@@ -629,6 +629,7 @@
 }
 .fa-X:before {
   content: "𝕏";
+  font-size: larger;
 }
 .fa-facebook-f:before,
 .fa-facebook:before {
