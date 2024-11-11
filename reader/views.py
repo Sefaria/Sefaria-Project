@@ -4230,7 +4230,7 @@ def random_by_topic_api(request):
     Returns Texts API data for a random text taken from popular topic tags
     """
     cb = request.GET.get("callback", None)
-    random_topic = get_random_topic('torahtab')
+    random_topic = get_random_topic('promoted')
     if random_topic is None:
         return random_by_topic_api(request)
     random_source = get_random_topic_source(random_topic)
