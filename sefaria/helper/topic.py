@@ -285,15 +285,12 @@ def get_random_topic(pool=None) -> Optional[Topic]:
     :param pool: name of the pool from which to select the topic. If `None`, all topics are considered.
     :return: Returns a random topic from the database. If you provide `pool`, then the selection is limited to topics in that pool.
     """
-    query = {"pools": pool} if pool else {}
-    random_topic_dict = list(db.topics.aggregate([
-        {"$match": query},
-        {"$sample": {"size": 1}}
-    ]))
-    if len(random_topic_dict) == 0:
+    from admin_tools.models import TopicPoolLink
+    random_topic_slugs = TopicPoolLink.objects.get_random_topic_slugs(pool=pool, limit=1)
+    if len(random_topic_slugs) == 0:
         return None
 
-    return Topic(random_topic_dict[0])
+    return Topic.init(random_topic_slugs[0])
 
 
 def get_random_topic_source(topic:Topic) -> Optional[Ref]:
