@@ -4,6 +4,7 @@ from bidi.algorithm import get_display
 import re
 from django.http import HttpResponse
 import io
+import subprocess
 
 palette = { # [(bg), (font)]
     "Commentary": [(37, 150, 190), (255, 255, 255)],
@@ -48,6 +49,7 @@ platforms = {
 
 }
 
+
 def smart_truncate(content, length=180, suffix='...'):
     if len(content) <= length:
         return content
@@ -64,16 +66,18 @@ def cleanup_and_format_text(text, language):
     text = text.replace('<br>', ' ')
     cleanr = re.compile('<.*?>')
     text = re.sub(cleanr, '', text)
-    text = text.replace("—", "-")
-    text = text.replace(u"\u05BE", " ")  #replace hebrew dash with ascii
+    # text = text.replace("—", "-")
+    # text = text.replace(u"\u05BE", " ")  #replace hebrew dash with ascii
 
-    strip_cantillation_vowel_regex = re.compile("[^\u05d0-\u05f4\s^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2000-\u206f]")
-    text = strip_cantillation_vowel_regex.sub('', text)
+    # strip_cantillation_vowel_regex = re.compile("[^\u05d0-\u05f4\s^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2000-\u206f]")
+    # text = strip_cantillation_vowel_regex.sub('', text)
     text = smart_truncate(text)
     return text
 
 
 def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter"):
+    # subprocess.run(["/home/lungsang/Project/Pecha.org/env/bin/python3", "sefaria/pecha_text_image.py", text, "output.png"])
+    # subprocess_img = Image.open("output.png")
     text_color = palette[category][1]
     bg_color = palette[category][0]
 
@@ -139,6 +143,8 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
 def make_img_http_response(text, category, ref_str, lang, platform):
     try:
+        # subprocess.run(["/home/lungsang/Project/Pecha.org/env/bin/python3", "sefaria/pecha_text_image.py", "བྱང་ཆུབ་སེམས་པའི་སྤྱོད་པ་ལ་འཇུག་པར་བྱའོ།", "output.png"])
+        # img = Image.open("output.png")
         img = generate_image(text, category, ref_str, lang, platform)
     except Exception as e:
         print(e)

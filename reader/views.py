@@ -1663,15 +1663,11 @@ def social_image_api(request, tref):
         ref = Ref(tref)
         ref_str = ref.normal() if lang == "en" else ref.he_normal()
 
-        tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
+        tf = TextFamily(ref, stripItags=True, lang=None, version=version, context=0, commentary=False).contents()
 
-        print("t"*100)
-        print(tf)
 
-        he = tf["he"] if type(tf["heRef"]) is list else [tf["heRef"]]
+        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
         en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
-        print("L"*100)
-        print(he)
         text = en if lang == "en" else he
         text = ' '.join(text)
         cat = tf["primary_category"]
@@ -1681,13 +1677,7 @@ def social_image_api(request, tref):
         cat = None
         ref_str = None
 
-
-    print("*"*100)
-    print(text)
     res = make_img_http_response(text, cat, ref_str, lang, platform)
-
-    print("*"*100)
-    print(res)
 
     return res
 
