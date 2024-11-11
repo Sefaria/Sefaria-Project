@@ -319,8 +319,12 @@ class TextRange extends Component {
           );
         }
       }
-      segment.he = strip_vowels_re ? segment.he.replace(strip_vowels_re, "") : segment.he;
-      segment.he = strip_punctuation_re ? segment.he.replace(strip_punctuation_re, "") : segment.he;
+      for (const pattern of [strip_vowels_re, strip_punctuation_re]) {
+        if (pattern) {
+          segment.he = segment.he.replace(pattern, "");
+          segment.en = segment.en?.replace(pattern, "");
+        }
+      }
 
       return (
         <span className="rangeSpan" key={i + segment.ref}>
