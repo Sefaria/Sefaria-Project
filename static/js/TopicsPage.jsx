@@ -8,15 +8,14 @@ import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar, Modules } from './NavSidebar';
-import Footer  from './Footer';
 import {CategoryHeader} from "./Misc";
 import Component from 'react-class';
 
 // The root topics page listing topic categories to browse
 const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   let categoryListings = Sefaria.topic_toc.map(cat => {
-    const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
-    return (
+  const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
+  return (
       <div className="navBlock">
         <a href={`/topics/category/${cat.slug}`} className="navBlockTitle" onClick={openCat}>
           <InterfaceText text={cat} />
@@ -50,7 +49,6 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   const sidebarModules = [
     multiPanel ? {type: "AboutTopics"} : {type: null},
     {type: "TrendingTopics"},
-    {type: "JoinTheConversation"},
     {type: "GetTheApp"},
     {type: "SupportSefaria"},
   ];
@@ -71,7 +69,6 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
           </div>
           <NavSidebar modules={sidebarModules} />
         </div>
-        <Footer />
       </div>
     </div>
   );

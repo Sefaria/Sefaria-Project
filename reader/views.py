@@ -78,7 +78,7 @@ from io import BytesIO
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
-from sefaria.helper.topic import update_topic, update_topic_titles
+from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
 
 if USE_VARNISH:
@@ -429,7 +429,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
     panel = {
         "menuOpen": "search",
         "searchQuery": search_params["query"],
-        "searchTab": search_params["tab"],
+        "searchType": search_params["tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -785,24 +785,28 @@ def get_search_params(get_dict, i=None):
         return [urllib.parse.unquote(f) for f in get_dict.get(get_param(prefix+filter_type+"Filters", i)).split("|")] if get_dict.get(get_param(prefix+filter_type+"Filters", i), "") else []
 
     sheet_filters_types = ("collections", "topics_en", "topics_he")
-    sheet_filters = []
-    sheet_agg_types = []
-    for filter_type in sheet_filters_types:
-        filters = get_filters("s", filter_type)
-        sheet_filters += filters
-        sheet_agg_types += [filter_type] * len(filters)
-    text_filters = get_filters("t", "path")
+    filters = []
+    agg_types = []
+    sort = None
+    field = None
+    if get_dict.get('tab') == 'text':
+        filters = get_filters("t", "path")
+        sort = get_dict.get(get_param("tsort", i), None)
+        agg_types = [None for _ in filters] # currently unused. just needs to be equal len as filters
+        field = ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else ""
+    else:
+        for filter_type in sheet_filters_types:
+            filters += get_filters("s", filter_type)
+            agg_types += [filter_type] * len(filters)
+        sort = get_dict.get(get_param("ssort", i), None)
 
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
-        "textField": ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else "",
-        "textSort": get_dict.get(get_param("tsort", i), None),
-        "textFilters": text_filters,
-        "textFilterAggTypes": [None for _ in text_filters],  # currently unused. just needs to be equal len as text_filters
-        "sheetSort": get_dict.get(get_param("ssort", i), None),
-        "sheetFilters": sheet_filters,
-        "sheetFilterAggTypes": sheet_agg_types,
+        "field": field,
+        "sort": sort,
+        "filters": filters,
+        "filterAggTypes": agg_types,
     }
 
 
@@ -839,14 +843,11 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
-        "initialSearchTab": search_params["tab"],
-        "initialTextSearchFilters": search_params["textFilters"],
-        "initialTextSearchFilterAggTypes": search_params["textFilterAggTypes"],
-        "initialTextSearchField": search_params["textField"],
-        "initialTextSearchSortType": search_params["textSort"],
-        "initialSheetSearchFilters": search_params["sheetFilters"],
-        "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
-        "initialSheetSearchSortType": search_params["sheetSort"]
+        "initialSearchType": search_params["tab"],
+        "initialSearchFilters": search_params["filters"],
+        "initialSearchFilterAggTypes": search_params["filterAggTypes"],
+        "initialSearchField": search_params["field"],
+        "initialSearchSortType": search_params["sort"],
     }
     return render_template(request,'base.html', props, {
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
@@ -1242,6 +1243,7 @@ def edit_text(request, ref=None, lang=None, version=None):
     })
 
 @ensure_csrf_cookie
+@staff_member_required
 @sanitize_get_params
 def edit_text_info(request, title=None, new_title=None):
     """
@@ -1593,7 +1595,37 @@ def parashat_hashavua_api(request):
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
+def find_holiday_in_hebcal_results(response):
+    for hebcal_holiday in json.loads(response.text)['items']:
+        if hebcal_holiday['category'] != 'holiday':
+            continue
+        for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
+            if result['type'] == 'Topic':
+                topic = Topic.init(result['key'])
+                if topic:
+                    return topic.contents()
+    return None
 
+@catch_error_as_json
+def next_holiday(request):
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    import requests
+    current_date = datetime.now().date()
+    date_in_three_months = current_date + relativedelta(months=+3)
+
+    # Format the date as YYYY-MM-DD
+    current_date = current_date.strftime('%Y-%m-%d')
+    date_in_three_months = date_in_three_months.strftime("%Y-%m-%d")
+    response = requests.get(f"https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&start={current_date}&end={date_in_three_months}")
+    if response.status_code == 200:
+        topic = find_holiday_in_hebcal_results(response)
+        if topic:
+            return jsonResponse(topic)
+        else:
+            return jsonResponse({"error": "Couldn't find any topics corresponding to HebCal results"})
+    else:
+        return jsonResponse({"error": "Couldn't establish connection with HebCal API"})
 @catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
@@ -2312,6 +2344,22 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
+    def update_version(request, title, lang, version):
+        flags = json.loads(request.POST.get("json"))
+        title = title.replace("_", " ")
+        version = version.replace("_", " ")
+        vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+        if flags.get("newVersionTitle"):
+            vobj.versionTitle = flags.get("newVersionTitle")
+        for flag in _attributes_to_save:
+            if flag in flags:
+                if flag == 'license' and flags[flag] == "":
+                    delattr(vobj, flag)
+                else:
+                    setattr(vobj, flag, flags[flag])
+        vobj.save()
+        return jsonResponse({"status": "ok"})
+
     _attributes_to_save = Version.optional_attrs + ["versionSource"]
 
     if not request.user.is_authenticated:
@@ -2325,31 +2373,9 @@ def flag_text_api(request, title, lang, version):
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can flag texts."})
 
-        flags = json.loads(request.POST.get("json"))
-        title   = title.replace("_", " ")
-        version = version.replace("_", " ")
-        vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
-        if flags.get("newVersionTitle"):
-            vobj.versionTitle = flags.get("newVersionTitle")
-        for flag in _attributes_to_save:
-            if flag in flags:
-                setattr(vobj, flag, flags[flag])
-        vobj.save()
-        return jsonResponse({"status": "ok"})
+        return update_version(request, title, lang, version)
     elif request.user.is_staff:
-        @csrf_protect
-        def protected_post(request, title, lang, version):
-            flags = json.loads(request.POST.get("json"))
-            title   = title.replace("_", " ")
-            version = version.replace("_", " ")
-            vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
-            if flags.get("newVersionTitle"):
-                vobj.versionTitle = flags.get("newVersionTitle")
-            for flag in _attributes_to_save:
-                if flag in flags:
-                    setattr(vobj, flag, flags[flag])
-            vobj.save()
-            return jsonResponse({"status": "ok"})
+        protected_post = csrf_protect(update_version)
         return protected_post(request, title, lang, version)
     else:
         return jsonResponse({"error": "Unauthorized"})
@@ -2437,9 +2463,9 @@ def category_api(request, path=None):
         else:
             return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
 
-        j = request.POST.get("json")
+        j = request.body
         if not j:
-            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+            return jsonResponse({"error": "Missing data in POST request."})
         j = json.loads(j)
         update = int(request.GET.get("update", False))
         new_category = Category().load({"path": j["path"]})
@@ -2485,6 +2511,18 @@ def category_api(request, path=None):
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+@catch_error_as_json
+@csrf_exempt
+def parasha_data_api(request):
+    from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+    diaspora = request.GET.get("diaspora", "1")
+    datetime_obj = timezone.localtime(timezone.now())
+    if diaspora not in ["0", "1"]:
+        return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
+    else:
+        diaspora = True if diaspora == "1" else False
+        db_parasha = get_parasha(datetime_obj, diaspora=diaspora)
+        return jsonResponse(make_parashah_response_from_calendar_entry(db_parasha, include_topic_slug=True)[0])
 
 @catch_error_as_json
 @csrf_exempt
@@ -3108,7 +3146,9 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
-        update_topic_titles(t, **data)
+        titles = data.get('titles')
+        if titles:
+            t.set_titles(titles)
         t.set_slug_to_primary_title()
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
@@ -3496,10 +3536,12 @@ def user_profile(request, username):
     if not requested_profile.user.is_active:
         raise Http404('Profile is inactive.')
 
+    owner_of_profile = request.user.is_authenticated and request.user.id == requested_profile.id
+
     tab = request.GET.get("tab", "sheets")
     props = {
         "initialMenu":  "profile",
-        "initialProfile": requested_profile.to_api_dict(),
+        "initialProfile": requested_profile.to_api_dict(basic=not owner_of_profile),
         "initialTab": tab,
     }
     title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
@@ -3511,14 +3553,24 @@ def user_profile(request, username):
 
 
 @catch_error_as_json
-def profile_api(request):
+def profile_api(request, slug=None):
     """
     API for user profiles.
     """
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+    if request.method == "GET":
+        profile = UserProfile(slug=slug)
+        if not slug or profile.id is None:
+            raise Http404("Please Supply a valid user identification")
+        owner_of_profile = request.user.is_authenticated and request.user.id == profile.id
+        return jsonResponse(profile.to_api_dict(basic = not owner_of_profile))
 
-    if request.method == "POST":
+    elif request.method == "POST":
+        # The POST only works for the logged in user, which is more common for a website view rather than API.
+        # If the API were to be consistent, we might need to add ability to post updates for any user,
+        # and of course limit authorization on who can do that
+        if not request.user.is_authenticated:
+            return jsonResponse({"error": _("You must be logged in to update your profile.")})
+
         profileJSON = request.POST.get("json")
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
@@ -3534,6 +3586,7 @@ def profile_api(request):
         else:
             profile.save()
             return jsonResponse(profile.to_mongo_dict())
+
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
@@ -3579,14 +3632,6 @@ def account_user_update(request):
         else:
             return jsonResponse({"error": error})
 
-    return jsonResponse({"error": "Unsupported HTTP method."})
-
-
-@catch_error_as_json
-def profile_get_api(request, slug):
-    if request.method == "GET":
-        profile = UserProfile(slug=slug)
-        return jsonResponse(profile.to_api_dict())
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
@@ -4026,14 +4071,12 @@ def digitized_by_sefaria(request):
         "texts": texts,
     })
 
-
 def parashat_hashavua_redirect(request):
     """ Redirects to this week's Parashah"""
     diaspora = request.GET.get("diaspora", "1")
     calendars = get_keyed_calendar_items()  # TODO Support israel / customs
     parashah = calendars["Parashat Hashavua"]
     return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
-
 
 def daf_yomi_redirect(request):
     """ Redirects to today's Daf Yomi"""
@@ -4195,7 +4238,7 @@ def random_by_topic_api(request):
     Returns Texts API data for a random text taken from popular topic tags
     """
     cb = request.GET.get("callback", None)
-    random_topic = get_random_topic(good_to_promote=True)
+    random_topic = get_random_topic('torahtab')
     if random_topic is None:
         return random_by_topic_api(request)
     random_source = get_random_topic_source(random_topic)

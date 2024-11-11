@@ -44,7 +44,7 @@ monitor:
     tag: 
 secrets:
   localSettings: 
-    ref: local-settings-secrets-dev
+    ref: local-settings-secrets
   backupManager: 
     ref: backup-manager
   slackWebhook: 
@@ -53,7 +53,6 @@ localSettings:
   DEBUG: false
   DOMAIN_LANGUAGE: {}
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
-  TURN_SERVER: ''
   USE_CLOUDFLARE: false
   FRONT_END_URL:  "http://${NAME}.cauldron.sefaria.org" 
   OFFLINE: false

@@ -19,7 +19,7 @@ jobs:
         id: semantic
         with:
           extra_plugins: |
-            conventional-changelog-conventionalcommits@6.1.0
+            conventional-changelog-conventionalcommits@8.0.0
             @semantic-release/commit-analyzer@10.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

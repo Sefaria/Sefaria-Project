@@ -280,8 +280,12 @@ def sort_refs_by_relevance(a, b, lang="english"):
     return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
 
 
-def get_random_topic(good_to_promote=True) -> Optional[Topic]:
-    query = {"good_to_promote": True} if good_to_promote else {}
+def get_random_topic(pool=None) -> Optional[Topic]:
+    """
+    :param pool: name of the pool from which to select the topic. If `None`, all topics are considered.
+    :return: Returns a random topic from the database. If you provide `pool`, then the selection is limited to topics in that pool.
+    """
+    query = {"pools": pool} if pool else {}
     random_topic_dict = list(db.topics.aggregate([
         {"$match": query},
         {"$sample": {"size": 1}}
@@ -960,33 +964,18 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
                 "order": {"custom_order": rd['pagesheetrank']}
             }).save()
 
-
 def recalculate_secondary_topic_data():
-    # run before everything else because this creates new links
-    calculate_popular_writings_for_authors(100, 300)
+    sheet_source_links = RefTopicLinkSet({'pools': 'textual'})
+    sheet_topic_links = RefTopicLinkSet({'pools': 'sheets'})
+    sheet_related_links = IntraTopicLinkSet()
 
-    sheet_source_links, sheet_related_links, sheet_topic_links = generate_all_topic_links_from_sheets()
     related_links = update_intra_topic_link_orders(sheet_related_links)
-    all_ref_links = update_ref_topic_link_orders(sheet_source_links, sheet_topic_links)
-
-    # now that we've gathered all the new links, delete old ones and insert new ones
-    RefTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
-    RefTopicLinkSet({"is_sheet": True}).delete()
-    IntraTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
-    print(f"Num Ref Links {len(all_ref_links)}")
-    print(f"Num Intra Links {len(related_links)}")
-    print(f"Num to Update {len(list(filter(lambda x: getattr(x, '_id', False), all_ref_links + related_links)))}")
-    print(f"Num to Insert {len(list(filter(lambda x: not getattr(x, '_id', False), all_ref_links + related_links)))}")
+    all_ref_links = update_ref_topic_link_orders(sheet_source_links.array(), sheet_topic_links.array())
 
     db.topic_links.bulk_write([
         UpdateOne({"_id": l._id}, {"$set": {"order": l.order}})
-        if getattr(l, "_id", False) else
-        InsertOne(l.contents(for_db=True))
         for l in (all_ref_links + related_links)
     ])
-    add_num_sources_to_topics()
-    make_titles_unique()
-
 
 def set_all_slugs_to_primary_title():
     # reset all slugs to their primary titles, if they have drifted away
@@ -1070,18 +1059,6 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
-def update_topic_titles(topic, title="", heTitle="", **kwargs):
-    new_primary = {"en": title, "he": heTitle}
-    for lang in ['en', 'he']:   # first remove all titles and add new primary and then alt titles
-        for title in topic.get_titles(lang):
-            topic.remove_title(title, lang)
-        topic.add_title(new_primary[lang], lang, True, False)
-        if 'altTitles' in kwargs:
-            for title in kwargs['altTitles'][lang]:
-                topic.add_title(title, lang)
-    return topic
-
-
 def update_authors_place_and_time(topic, dataSource='learning-team-editing-tool', **kwargs):
     # update place info added to author, then update year and era info
     if not hasattr(topic, 'properties'):
@@ -1097,11 +1074,11 @@ def update_properties(topic_obj, dataSource, k, v):
 
 def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwargs):
     for k in ["birthYear", "deathYear"]:
-        if k in kwargs.keys():   # only change property value if key exists, otherwise it indicates no change
+        if kwargs.get(k, False):   # only change property value if key exists, otherwise it indicates no change
             year = kwargs[k]
             update_properties(topic_obj, dataSource, k, year)
 
-    if 'era' in kwargs.keys():    # only change property value if key is in data, otherwise it indicates no change
+    if kwargs.get('era', False):    # only change property value if key is in data, otherwise it indicates no change
         prev_era = topic_obj.properties.get('era', {}).get('value')
         era = kwargs['era']
         update_properties(topic_obj, dataSource, 'era', era)
@@ -1110,46 +1087,49 @@ def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwar
     return topic_obj
 
 
-def update_topic(topic, **kwargs):
+def update_topic(topic, titles=None, category=None, origCategory=None, categoryDescritpion=None, description=None,
+                 birthPlace=None, deathPlace=None, birthYear=None, deathYear=None, era=None,
+                 rebuild_toc=True, manual=False, image=None, **kwargs):
     """
-    Can update topic object's title, hebrew title, category, description, and categoryDescription fields
+    Can update topic object's titles, category, description, and categoryDescription fields
     :param topic: (Topic) The topic to update
-    :param **kwargs can be title, heTitle, category, description, categoryDescription, and rebuild_toc where `title`, `heTitle`,
-         and `category` are strings. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
+    :param **kwargs can be titles, category, description, categoryDescription, and rebuild_toc where `titles` is a list
+     of title objects as they are represented in the database, and `category` is a string. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
          The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """
     old_category = ""
     orig_slug = topic.slug
-    update_topic_titles(topic, **kwargs)
-    if kwargs.get('category') == 'authors':
-        topic = update_authors_place_and_time(topic, **kwargs)
 
-    if 'category' in kwargs and kwargs['category'] != kwargs.get('origCategory', kwargs['category']):
+    if titles:
+        topic.set_titles(titles)
+    if category == 'authors':
+        topic = update_authors_place_and_time(topic, birthPlace=birthPlace, birthYear=birthYear, deathPlace=deathPlace, deathYear=deathYear, era=era)
+
+    if category and origCategory and origCategory != category:
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic.slug, "toTopic": {"$ne": topic.slug}})
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
-        if old_category != kwargs['category']:
-            topic = topic_change_category(topic, kwargs["category"], old_category=old_category)  # can change topic and intratopiclinks
+        if old_category != category:
+            topic = topic_change_category(topic, category, old_category=old_category)  # can change topic and intratopiclinks
 
-    if kwargs.get('manual', False):
+    if manual:
         topic.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         topic.description_published = True
 
-    if "description" in kwargs or "categoryDescription" in kwargs:
-        topic.change_description(kwargs.get("description", None), kwargs.get("categoryDescription", None))
+    if description or categoryDescritpion:
+        topic.change_description(description, categoryDescritpion)
 
-    if "image" in kwargs:
-        image_dict = kwargs["image"]
-        if image_dict["image_uri"] != "":
-            topic.image = kwargs["image"]
+    if image:
+        if image["image_uri"] != "":
+            topic.image = image
         elif hasattr(topic, 'image'):
             # we don't want captions without image_uris, so if the image_uri is blank, get rid of the caption too
             del topic.image
 
     topic.save()
 
-    if kwargs.get('rebuild_topic_toc', True):
-        rebuild_topic_toc(topic, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
+    if rebuild_toc:
+        rebuild_topic_toc(topic, orig_slug=orig_slug, category_changed=(old_category != category))
     return topic
 
 

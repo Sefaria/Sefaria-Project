@@ -427,24 +427,28 @@ class RefResolver:
         raw_ref.parts_to_match = swapped_ref_parts
 
     def _get_unrefined_ref_part_matches_recursive(self, raw_ref: RawRef, title_trie: MatchTemplateTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRef]:
+        """
+        We are now considering all types for trie lookups (not just NAMED) since there seem to be no cases of false positives when we consider all part types
+        In addition, sometimes the raw ref part type model misclassifies a part type and relaxing the type requirement here allows it to recover.
+        The exception is we only will split NAMED parts since this causes some odd parts to split. e.g. משנה א can be considered part of the title of book when א is removed
+        """
         title_trie = title_trie or self.get_ref_part_title_trie()
         prev_ref_parts = prev_ref_parts or []
         matches = []
         for part in ref_parts:
             temp_raw_ref = raw_ref
-            # no need to consider other types at root level
-            if part.type != RefPartType.NAMED: continue
-
             temp_title_trie, partial_key_end = title_trie.get_continuations(part.key(), allow_partial=True)
             if temp_title_trie is None: continue
             if partial_key_end is None:
                 matched_part = part
-            else:
+            elif part.type == RefPartType.NAMED:
                 try:
                     temp_raw_ref, apart, bpart = raw_ref.split_part(part, partial_key_end)
                     matched_part = apart
                 except InputError:
                     matched_part = part  # fallback on original part
+            else:
+                continue
             temp_prev_ref_parts = prev_ref_parts + [matched_part]
             if LEAF_TRIE_ENTRY in temp_title_trie:
                 for node in temp_title_trie[LEAF_TRIE_ENTRY]:
