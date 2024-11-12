@@ -5669,6 +5669,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 10px 0 20px;
   color: #666;
 }
+.stacked.bilingual .basetext .segment > p > .he.translation {
+  color: black;
+}
 .stacked.bilingual .segment.heOnly > .he,
 .stacked.bilingual .segment.enOnly > .en,
 .stacked.bilingual .segment.heOnly > p > .he,
