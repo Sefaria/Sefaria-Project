@@ -108,8 +108,8 @@ const InterfaceText = ({text, html, markdown, children, placeholder, disallowedM
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}>{textResponse}</ReactMarkdown></span>
-                    : <span className={elemclasses}>{textResponse}</span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}> {textResponse}</ReactMarkdown></span>
+                    : <span className={elemclasses}> {textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
@@ -2015,8 +2015,8 @@ class SignUpModal extends Component {
   render() {
     let modalContent = !this.props.modalContentKind ? generateContentForModal() : generateContentForModal(this.props.modalContentKind);
     const innerContent = modalContent.contentList.map(bullet => (
-      <div key={bullet.icon}>
-        <img src={`/static/img/${bullet.icon}`} />
+      <div key={bullet.icon} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <img src={`/static/img/${bullet.icon}`} /> 
         <InterfaceText>{bullet.bulletContent}</InterfaceText>
       </div>
     ));

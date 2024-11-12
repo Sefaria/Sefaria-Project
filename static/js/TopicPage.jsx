@@ -247,7 +247,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
       sidebarModules.unshift({
         type: "TitledText",
         props: {
-          enTitle: "About",
+          enTitle: Sefaria._("common.about"),
           heTitle: Sefaria._("common.about"),
           enText: topicData.description.en,
           heText: topicData.description.he
@@ -444,6 +444,7 @@ const TopicPage = ({
 
     const scrollableElement = useRef();
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
+    console.log("topic : ", topicData)
 
     // Initial Topic Data, updates when `topic` changes
     useEffect(() => {
@@ -610,6 +611,7 @@ const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader,
   scrollableElement, onDisplayedDataChange, initialRenderSize, onSetTopicSort, topicSort
 }) => {
+  console.log("data : ", data)
   return (
     <div className="topicTabContents">
       {!!data ?
