@@ -2547,7 +2547,7 @@ const BlockButton = ({format, icon}) => {
 }
 
 const SefariaEditor = (props) => {
-    const editorContainer = useRef();
+    const editorContainer = useRef(null);
     const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props}/>, []);

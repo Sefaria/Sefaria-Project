@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "../common/DropdownMenu";
-import {InterfaceText, SaveButtonWithText} from "../Misc";
+import {InterfaceText, SaveButtonWithText, TitleVariants} from "../Misc";
 import Modal from "../shared/modal";
 import {ShareBox} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
@@ -10,18 +10,19 @@ import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
 import Button from "../shared/Button";
 
-const togglePublish = async (sheetID, shouldPublish) => {
-  const newPublishState = shouldPublish ? "unlisted" : "public";
-  let updatedSheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetID, sheet => resolve(sheet))));
-  updatedSheet.status = newPublishState;
-  updatedSheet.lastModified = lastModified;
-  delete updatedSheet._id;
-  const postJSON = JSON.stringify(updatedSheet);
-  postSheet(postJSON);
+const togglePublish = async (sheet, shouldPublish) => {
+  sheet.status = shouldPublish ? "public" : "unlisted";
+  sheet.lastModified = sheet.dateModified;
+  delete sheet._id;
+  Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST").then(data => {
+    if (data.id) {
+      Sefaria.sheets._loadSheetByID[data.id] = data;
+    }
+  })
 }
 
-const PublishButton = () => {
-  return <Button className="small publish" onClick={() => togglePublish(true)}>Publish</Button>
+const PublishButton = ({onClick}) => {
+  return <Button className="small publish" onClick={onClick}>Publish</Button>
 }
 
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
@@ -36,7 +37,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, authorUrl}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, authorUrl}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -45,6 +46,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, author
   const [exportingMode, setExportingMode] = useState(getExportingStatus());
   const [deletingMode, setDeletingMode] = useState(false);  
   const [publishingMode, setPublishingMode] = useState(false);
+  let sheet = Sefaria.sheets.loadSheetByID(sheetID);
   const [sheetIsPublished, setSheetIsPublished] = useState(sheet.status === "public");
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   const getSignUpModalKind = () => {
@@ -71,29 +73,29 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, author
     }
   }, [collectionsMode, savingMode, copyingMode, exportingMode]);
   if (sharingMode) {
-    return <ShareModal sheetID={sheet.id} isOpen={sharingMode} close={() => setSharingMode(false)}/>;
+    return <ShareModal sheetID={sheetID} isOpen={sharingMode} close={() => setSharingMode(false)}/>;
   }
   else if (collectionsMode) {
-    return <CollectionsModal isOpen={collectionsMode} close={() => setCollectionsMode(false)} sheetID={sheet.id}/>;
+    return <CollectionsModal isOpen={collectionsMode} close={() => setCollectionsMode(false)} sheetID={sheetID}/>;
   }
   else if (copyingMode) {
-    return <CopyModal close={() => setCopyingMode(false)} sheetID={sheet.id}/>;
+    return <CopyModal close={() => setCopyingMode(false)} sheetID={sheetID}/>;
   }
   else if (savingMode) {
     return <SaveModal historyObject={historyObjectForSheet} close={() => setSavingMode(false)}/>;
   }
   else if (exportingMode) {
-    return <GoogleDocExportModal close={() => setExportingMode(false)} sheetID={sheet.id}/>;
+    return <GoogleDocExportModal close={() => setExportingMode(false)} sheetID={sheetID}/>;
   }
   else if (deletingMode) {
-    return <DeleteModal close={() => setDeletingMode(false)} sheetID={sheet.id} authorUrl={authorUrl}/>;
+    return <DeleteModal close={() => setDeletingMode(false)} sheetID={sheetID} authorUrl={authorUrl}/>;
   }
   else if (publishingMode) {
     return <PublishModal close={() => setPublishingMode(false)} sheet={sheet}/>;
   }
   return (
         <>
-        {editable && !sheetIsPublished && <PublishButton/>}
+        {editable && !sheetIsPublished && <PublishButton onClick={() => togglePublish(sheet,true)}/>}
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
@@ -108,7 +110,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, author
             <CollectionsButton setCollectionsMode={setCollectionsMode} editable={editable}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <GoogleDocExportButton sheetID={sheet.id} onClick={() => setExportingMode(true)}/>
+            <GoogleDocExportButton sheetID={sheetID} onClick={() => setExportingMode(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <ShareButton onClick={() => setSharingMode(true)}/>
@@ -116,7 +118,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, author
           {editable && sheetIsPublished && <>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem>
-                                          <UnpublishButton onClick={() => togglePublish(sheet.id, false)}/>
+                                          <UnpublishButton onClick={() => togglePublish(sheetID, false)}/>
                                         </DropdownMenuItem>
                                       </>
           }
@@ -282,6 +284,19 @@ const GenericSheetModal = ({title, message, close}) => {
         </Modal>;
 }
 
+const PublishModal = ({sheet, close}) => {
+  const [topics, setTopics] = useState(sheet.map((item, i) =>({["name"]: item, ["id"]: i})));
+  return <Modal isOpen={true} close={close}>
+            <div className="modalTitle"><InterfaceText>Publish</InterfaceText></div>
+            <label>Title</label>
+            <input type="text"></input>
+            <label>Description (max 140 characters)</label>
+            <input type="text"></input>
+            <label>Add topics related to your sheet</label>
+            <TitleVariants update={setTopics} titles={topics}/>
+        </Modal>;
+}
+
 const SaveModal = ({historyObject, close}) => {
   const isSaved = !!Sefaria.getSavedItem(historyObject);
   const savingMessage = "Saving...";
@@ -324,7 +339,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       $.ajax({
         type: "POST",
-        url: "/api/sheets/" + sheet.id + "/export_to_drive",
+        url: "/api/sheets/" + sheetID + "/export_to_drive",
         success: function (data) {
           if ("error" in data) {
             console.log(data.error.message);
