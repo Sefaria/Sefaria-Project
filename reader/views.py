@@ -2687,7 +2687,6 @@ def name_api(request, name, type_scope=None):
     LIMIT = int(request.GET.get("limit", 10))
     ref_only = bool(int(request.GET.get("ref_only", False)))
     ##DEBUG NEW TYPE RESTRICTION
-    type_scope = 'Topic'
     completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override, type_scope)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
