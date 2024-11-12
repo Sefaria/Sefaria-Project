@@ -1,9 +1,11 @@
 from enum import Enum
 from typing import Union, Optional
+from django.db.utils import IntegrityError
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
 from .category import Category
+from admin_tools.models.topic_pool_link import TopicPoolLink, PoolType
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
 from sefaria.system.validators import validate_url
@@ -121,11 +123,6 @@ class DisjointBookSet:
         return hash((self.collective_title, self.base_cat_path))
 
 
-class Pool(Enum):
-    TEXTUAL = "textual"
-    SHEETS = "sheets"
-
-
 class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     collection = 'topics'
     history_noun = 'topic'
@@ -163,8 +160,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'pools',  # list of strings, any of them represents a pool that this topic is member of
     ]
 
-    allowed_pools = [pool.value for pool in Pool] + ['torahtab']
-
     attr_schemas = {
         "image": {
             'type': 'dict',
@@ -176,14 +171,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                                          'schema': {'en': {'type': 'string', 'required': True},
                                                     'he': {'type': 'string', 'required': True}}}}
             },
-        'pools': {
-                'type': 'list',
-                'schema': {
-                    'type': 'string',
-                    'allowed': allowed_pools
-                }
-            }
-        }
+    }
 
     ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
                         # this constant is helpful in the topic editor tool functions in this file
@@ -200,6 +188,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
+        self.pools = TopicPoolLink.objects.get_pools_by_topic_slug(getattr(self, "slug", None))
         if self.__class__ != Topic and not getattr(self, "subclass", False):
             # in a subclass. set appropriate "subclass" attribute
             setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
@@ -224,10 +213,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         displays_under_link = IntraTopicLink().load({"fromTopic": slug, "linkType": "displays-under"})
         if getattr(displays_under_link, "toTopic", "") == "authors":
             self.subclass = "author"
-        if self.get_pools():
-            self.pools = sorted(set(self.get_pools()))
-        elif hasattr(self, 'pools'):
-            delattr(self, 'pools')
 
     def _sanitize(self):
         super()._sanitize()
@@ -237,17 +222,23 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 p[k] = bleach.clean(v, tags=[], strip=True)
             setattr(self, attr, p)
 
-    def get_pools(self):
+    def get_pools(self) -> list[str]:
         return getattr(self, 'pools', [])
 
-    def has_pool(self, pool):
+    def has_pool(self, pool: str) -> bool:
         return pool in self.get_pools()
 
-    def add_pool(self, pool): #does not save!
+    def add_pool(self, pool: str) -> None:
+        try:
+            link = TopicPoolLink(pool=pool, topic_slug=self.slug)
+            link.save()
+        except IntegrityError:
+            raise DuplicateRecordError(f"'{pool}'<>'{self.slug}' link already exists in TopicPoolLink table.")
         self.pools = self.get_pools()
         self.pools.append(pool)
 
-    def remove_pool(self, pool): #does not save!
+    def remove_pool(self, pool) -> None:
+        TopicPoolLink.objects.filter(pool=pool, topic_slug=self.slug).delete()
         pools = self.get_pools()
         pools.remove(pool)
 
@@ -498,8 +489,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def contents(self, **kwargs):
         mini = kwargs.get('minify', False)
         d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
-        if kwargs.get('remove_pools', True):
-            d.pop('pools', None)
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
@@ -565,7 +554,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         updating the pools 'sheets' or 'textual' according to the existence of links and the numSources
         :param pool: 'sheets' or 'textual'
         """
-        links = self.get_ref_links(pool == Pool.SHEETS.value)
+        links = self.get_ref_links(pool == PoolType.SHEETS.value)
         if self.has_pool(pool) and not links:
             self.remove_pool(pool)
         elif not self.has_pool(pool) and links:
@@ -970,7 +959,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
         return self
 
     def get_related_pool(self):
-        return Pool.SHEETS.value if self.is_sheet else Pool.TEXTUAL.value
+        return PoolType.SHEETS.value if self.is_sheet else PoolType.TEXTUAL.value
 
     def get_topic(self):
         return Topic().load({'slug': self.toTopic})
