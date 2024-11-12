@@ -273,6 +273,15 @@ class Completions(object):
         self._candidate_type_counters = defaultdict(int)
         self._type_limit = 3
         self.type_scope = type_scope
+        self._type_norm_map = {
+            "Collection": "Collection",
+            "AuthorTopic": "Topic",
+            "TocCategory": "TocCategory",
+            "PersonTopic": "Topic",
+            "Topic": "Topic",
+            "ref": "ref",
+            "Term": "Term",
+            "User": "User"}
 
     def has_results(self):
         return len(self._completion_objects) > 0
@@ -319,6 +328,11 @@ class Completions(object):
             return c[1]["order"]
         else:
             return c[1]["order"] * 100
+    def _filter_suggestions_by_type_scope(self, suggestions):
+        if not self.type_scope:
+            return suggestions
+        filtered_suggestions = [suggestion for suggestion in suggestions if self._type_norm_map[suggestion[1]["type"]] == self.type_scope]
+        return filtered_suggestions
 
     def _collect_candidates(self):
         # Match titles that begin exactly this way
@@ -326,8 +340,7 @@ class Completions(object):
 
         joined = list(zip(cs, co))
         if len(joined):
-            joined_type_filtered = [suggestion for suggestion in joined if not self.type_scope or suggestion[1]["type"] == self.type_scope]
-            joined = joined_type_filtered
+            joined = self._filter_suggestions_by_type_scope(joined)
             # joined.sort(key=lambda w: w[1]["order"])
             joined.sort(key=self._candidate_order)
             self._raw_completion_strings, self._completion_objects = [list(_) for _ in zip(*joined)]
@@ -375,7 +388,7 @@ class Completions(object):
                     all_v = []
                 for v in all_v:
                     if (v["type"], v["key"]) not in self.keys_covered:
-                        if self.type_scope and v["type"] != self.type_scope:
+                        if self.type_scope and self._type_norm_map[v["type"]] != self.type_scope:
                             break
                         self._completion_objects += [v]
                         self._raw_completion_strings += [v["title"]]
