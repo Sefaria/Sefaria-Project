@@ -44,7 +44,8 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, author
   const [isSaving, setSaving] = useState(false);
   const [isExporting, setExporting] = useState(getExportingStatus());
   const [isDeleting, setDeleting] = useState(false);
-  const [isPublished, setIsPublished] = useState(sheet.status === "public");
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [sheetIsPublished, setSheetIsPublished] = useState(sheet.status === "public");
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   const getSignUpModalKind = () => {
     if (isSaving) {
@@ -87,9 +88,12 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, author
   else if (isDeleting) {
     return <DeleteModal close={() => setDeleting(false)} sheetID={sheet.id} authorUrl={authorUrl}/>;
   }
+  else if (isPublishing) {
+    return <PublishModal close={() => setIsPublishing(false)} sheet={sheet}/>;
+  }
   return (
         <>
-        {editable && !isPublished && <PublishButton/>}
+        {editable && !sheetIsPublished && <PublishButton/>}
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
@@ -109,7 +113,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, author
           <DropdownMenuItem>
             <ShareButton onClick={() => setSharing(true)}/>
           </DropdownMenuItem>
-          {editable && isPublished && <>
+          {editable && sheetIsPublished && <>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem>
                                           <UnpublishButton onClick={() => togglePublish(sheet.id, false)}/>
