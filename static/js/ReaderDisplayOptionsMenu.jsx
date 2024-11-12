@@ -32,7 +32,7 @@ const ReaderDisplayOptionsMenu = () => {
 
     const showLayoutsToggle = () => {
         if ((panelMode === 'Sheet' && Sefaria.interfaceLang === 'hebrew') || //sheets in hebrew interface are hebrew
-        (width <= 600 && language !== 'bilingual')) { //no loyout for mobile biilingual
+        (width <= 600 && language === 'bilingual')) { //no loyout for mobile biilingual
             return false;
         }
         return true;
