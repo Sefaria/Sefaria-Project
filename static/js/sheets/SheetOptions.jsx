@@ -38,58 +38,58 @@ const getExportingStatus = () => {
 
 const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, authorUrl}) => {
   // `editable` -- whether the sheet belongs to the current user
-  const [isSharing, setSharing] = useState(false); // Share Modal open or closed
-  const [isCollectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
-  const [isCopying, setCopying] = useState(false);
-  const [isSaving, setSaving] = useState(false);
-  const [isExporting, setExporting] = useState(getExportingStatus());
-  const [isDeleting, setDeleting] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
+  const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
+  const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
+  const [copyingMode, setCopyingMode] = useState(false);
+  const [savingMode, setSavingMode] = useState(false);
+  const [exportingMode, setExportingMode] = useState(getExportingStatus());
+  const [deletingMode, setDeletingMode] = useState(false);  
+  const [publishingMode, setPublishingMode] = useState(false);
   const [sheetIsPublished, setSheetIsPublished] = useState(sheet.status === "public");
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   const getSignUpModalKind = () => {
-    if (isSaving) {
+    if (savingMode) {
       return SignUpModalKind.Save;
     }
-    else if (isCollectionsMode) {
+    else if (collectionsMode) {
       return SignUpModalKind.AddToSheet;
     }
-    else if (isCopying) {
+    else if (copyingMode) {
       return SignUpModalKind.AddToSheet;
     }
-    else if (isExporting) {
+    else if (exportingMode) {
       return SignUpModalKind.Default;
     }
   }
   useEffect(() => {
-    if ((isCollectionsMode || isSaving || isCopying || isExporting) && !Sefaria._uid) {
+    if ((collectionsMode || savingMode || copyingMode || exportingMode) && !Sefaria._uid) {
       toggleSignUpModal(getSignUpModalKind());
-      setCopying(false);
+      setCopyingMode(false);
       setCollectionsMode(false);
-      setSaving(false);
-      setExporting(false);
+      setSavingMode(false);
+      setExportingMode(false);
     }
-  }, [isCollectionsMode, isSaving, isCopying, isExporting]);
-  if (isSharing) {
-    return <ShareModal sheetID={sheet.id} isOpen={isSharing} close={() => setSharing(false)}/>;
+  }, [collectionsMode, savingMode, copyingMode, exportingMode]);
+  if (sharingMode) {
+    return <ShareModal sheetID={sheet.id} isOpen={sharingMode} close={() => setSharingMode(false)}/>;
   }
-  else if (isCollectionsMode) {
-    return <CollectionsModal isOpen={isCollectionsMode} close={() => setCollectionsMode(false)} sheetID={sheet.id}/>;
+  else if (collectionsMode) {
+    return <CollectionsModal isOpen={collectionsMode} close={() => setCollectionsMode(false)} sheetID={sheet.id}/>;
   }
-  else if (isCopying) {
-    return <CopyModal close={() => setCopying(false)} sheetID={sheet.id}/>;
+  else if (copyingMode) {
+    return <CopyModal close={() => setCopyingMode(false)} sheetID={sheet.id}/>;
   }
-  else if (isSaving) {
-    return <SaveModal historyObject={historyObjectForSheet} close={() => setSaving(false)}/>;
+  else if (savingMode) {
+    return <SaveModal historyObject={historyObjectForSheet} close={() => setSavingMode(false)}/>;
   }
-  else if (isExporting) {
-    return <GoogleDocExportModal close={() => setExporting(false)} sheetID={sheet.id}/>;
+  else if (exportingMode) {
+    return <GoogleDocExportModal close={() => setExportingMode(false)} sheetID={sheet.id}/>;
   }
-  else if (isDeleting) {
-    return <DeleteModal close={() => setDeleting(false)} sheetID={sheet.id} authorUrl={authorUrl}/>;
+  else if (deletingMode) {
+    return <DeleteModal close={() => setDeletingMode(false)} sheetID={sheet.id} authorUrl={authorUrl}/>;
   }
-  else if (isPublishing) {
-    return <PublishModal close={() => setIsPublishing(false)} sheet={sheet}/>;
+  else if (publishingMode) {
+    return <PublishModal close={() => setPublishingMode(false)} sheet={sheet}/>;
   }
   return (
         <>
@@ -98,20 +98,20 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, author
           <DropdownMenuItem>
             <SaveButtonWithText
                 historyObject={historyObjectForSheet}
-                onClick={() => setSaving(true)}
+                onClick={() => setSavingMode(true)}
             />
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <CopyButton onClick={() => setCopying(true)}/>
+            <CopyButton onClick={() => setCopyingMode(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <CollectionsButton setCollectionsMode={setCollectionsMode} editable={editable}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <GoogleDocExportButton sheetID={sheet.id} onClick={() => setExporting(true)}/>
+            <GoogleDocExportButton sheetID={sheet.id} onClick={() => setExportingMode(true)}/>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <ShareButton onClick={() => setSharing(true)}/>
+            <ShareButton onClick={() => setSharingMode(true)}/>
           </DropdownMenuItem>
           {editable && sheetIsPublished && <>
                                         <DropdownMenuSeparator />
@@ -123,7 +123,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, editable, author
           {editable && <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>
-                          <DeleteButton onClick={() => setDeleting(true)}/>
+                          <DeleteButton onClick={() => setDeletingMode(true)}/>
                         </DropdownMenuItem>
                       </>
           }
