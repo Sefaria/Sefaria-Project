@@ -201,7 +201,7 @@ class AutoCompleter(object):
         except KeyError:
             return None
 
-    def complete(self, instring, limit=0, redirected=False, type_scope=''):
+    def complete(self, instring, limit=0, redirected=False, type_scope=None):
         """
         Wrapper for Completions object - prioritizes and aggregates completion results.
         In the case where there are no results, tries to swap keyboards and get completion results from the other language.
@@ -247,7 +247,7 @@ class AutoCompleter(object):
 
 
 class Completions(object):
-    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type_scope=''):
+    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type_scope=None):
         """
         An object that contains a single search, delegates to different methods of completions, and aggregates results.
         :param auto_completer:
@@ -375,6 +375,8 @@ class Completions(object):
                     all_v = []
                 for v in all_v:
                     if (v["type"], v["key"]) not in self.keys_covered:
+                        if self.type_scope and v["type"] != self.type_scope:
+                            break
                         self._completion_objects += [v]
                         self._raw_completion_strings += [v["title"]]
                         self.keys_covered.add((v["type"], v["key"]))

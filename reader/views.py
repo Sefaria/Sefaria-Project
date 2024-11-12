@@ -2621,7 +2621,7 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, ref_only, topic_override=False, type_scope=''):
+def get_name_completions(name, limit, ref_only, topic_override=False, type_scope=None):
     lang = "he" if has_hebrew(name) else "en"
     completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
     object_data = None
@@ -2647,7 +2647,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False, type_scope
             completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
         else:
-            completions, completion_objects = completer.complete(name, limit, type_scope='')
+            completions, completion_objects = completer.complete(name, limit, type_scope=type_scope)
             object_data = completer.get_object(name)
 
     except DictionaryEntryNotFoundError as e:
@@ -2657,7 +2657,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False, type_scope
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
         completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
     except InputError:  # Not a Ref
-        completions, completion_objects = completer.complete(name, limit, type_scope='')
+        completions, completion_objects = completer.complete(name, limit, type_scope=type_scope)
         object_data = completer.get_object(name)
 
     return {
@@ -2678,7 +2678,7 @@ def topic_completion_api(request, topic):
 
 
 @catch_error_as_json
-def name_api(request, name, type_scope=''):
+def name_api(request, name, type_scope=None):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
     topic_override = name.startswith('#')
@@ -2686,6 +2686,8 @@ def name_api(request, name, type_scope=''):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
     ref_only = bool(int(request.GET.get("ref_only", False)))
+    ##DEBUG NEW TYPE RESTRICTION
+    type_scope = 'Topic'
     completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override, type_scope)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
