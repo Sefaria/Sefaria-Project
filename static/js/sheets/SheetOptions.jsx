@@ -47,7 +47,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, sheetID, authorU
   const [exportingMode, setExportingMode] = useState(getExportingStatus());
   const [deletingMode, setDeletingMode] = useState(false);  
   const [publishingMode, setPublishingMode] = useState(false);
-  const [sheetIsPublished, setSheetIsPublished] = useState(sheet?.status === "public");
+  const sheetIsPublished = sheet?.status === "public";
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   const getSignUpModalKind = () => {
     if (savingMode) {
