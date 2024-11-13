@@ -10,9 +10,7 @@ import * as sheetsUtils from './sefaria/sheetsUtils'
 
 import {
     SheetMetaDataBox,
-    SheetAuthorStatement,
     SheetTitle,
-    CollectionStatement,
     ProfilePic,
     InterfaceText,
     Autocompleter,
@@ -21,6 +19,7 @@ import {
 import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
+import {SheetOptions} from "./sheets/SheetOptions";
 
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
@@ -2558,6 +2557,12 @@ const SefariaEditor = (props) => {
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
+    const sheetOptions = <SheetOptions toggleSignUpModal={props.toggleSignUpModal}
+                                               sheetID={props.data.id}
+                                               historyObject={props.historyObject}
+                                               editable={props.editable}
+                                               authorUrl={props.data.ownerProfileUrl}
+                                               lastModified={props.data.dateModified}/>;
 
     useEffect(
         () => {
@@ -2949,14 +2954,14 @@ const SefariaEditor = (props) => {
 
     return (
           <div ref={editorContainer} onClick={props.handleClick} className="text">
-              <SheetMetaDataBox authorStatement={props.authorStatement}
-                            authorUrl={props.authorUrl}
-                            authorImage={props.authorImage}
-                            title={props.title}
-                            summary={props.summary}
+              <SheetMetaDataBox authorStatement={props.data.ownerName}
+                            authorUrl={props.data.ownerProfileUrl}
+                            authorImage={props.data.ownerImageUrl}
+                            title={props.data.title || ""}
+                            summary={props.data.summary || ""}
                             editable={true}
                             blurCallback={() => saveDocument(currentDocument)}
-                            sheetOptions={props.sheetOptions}/>
+                            sheetOptions={sheetOptions}/>
           {
           /* debugger */
 

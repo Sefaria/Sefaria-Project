@@ -37,7 +37,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, authorUrl}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, authorUrl, lastModified}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -95,7 +95,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
   }
   return (
         <>
-        {editable && !sheetIsPublished && <PublishButton onClick={() => togglePublish(sheet,true)}/>}
+        {editable && !sheetIsPublished && <PublishButton onClick={() => togglePublish(sheet,true, lastModified)}/>}
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
