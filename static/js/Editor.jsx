@@ -2558,11 +2558,12 @@ const SefariaEditor = (props) => {
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
     const sheetOptions = <SheetOptions toggleSignUpModal={props.toggleSignUpModal}
-                                               sheetID={props.data.id}
-                                               historyObject={props.historyObject}
-                                               editable={props.editable}
-                                               authorUrl={props.data.ownerProfileUrl}
-                                               lastModified={props.data.dateModified}/>;
+                                           sheetID={props.data.id}
+                                           historyObject={props.historyObject}
+                                           editable={props.editable}
+                                           authorUrl={props.data.ownerProfileUrl}
+                                           lastModified={lastModified}
+                                           sheet={sheet}/>;
 
     useEffect(
         () => {

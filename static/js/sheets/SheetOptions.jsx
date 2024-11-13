@@ -10,9 +10,10 @@ import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
 import Button from "../shared/Button";
 
-const togglePublish = async (sheet, shouldPublish) => {
+const togglePublish = async (sheet, shouldPublish, lastModified) => {
   sheet.status = shouldPublish ? "public" : "unlisted";
-  sheet.lastModified = sheet.dateModified;
+  sheet.lastModified = lastModified;
+  console.log(lastModified, sheet.dateModified);
   delete sheet._id;
   Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST").then(data => {
     if (data.id) {
@@ -37,7 +38,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, authorUrl, lastModified}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheet, sheetID, authorUrl, editable, lastModified}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -46,8 +47,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
   const [exportingMode, setExportingMode] = useState(getExportingStatus());
   const [deletingMode, setDeletingMode] = useState(false);  
   const [publishingMode, setPublishingMode] = useState(false);
-  let sheet = Sefaria.sheets.loadSheetByID(sheetID);
-  const [sheetIsPublished, setSheetIsPublished] = useState(sheet.status === "public");
+  const [sheetIsPublished, setSheetIsPublished] = useState(sheet?.status === "public");
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   const getSignUpModalKind = () => {
     if (savingMode) {

@@ -9,9 +9,8 @@ import Sefaria  from './sefaria/sefaria';
 import SefariaEditor from './Editor';
 import {
   InterfaceText,
-  LoadingMessage, SheetMetaDataBox,
+  LoadingMessage,
 } from './Misc';
-import {SheetOptions} from "./sheets/SheetOptions";
 import SheetContentSidebar from "./sheets/SheetContentSidebar";
 import SheetContent from "./sheets/SheetContent";
 
