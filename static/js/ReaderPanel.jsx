@@ -41,6 +41,7 @@ import {
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 
 
 class ReaderPanel extends Component {
@@ -976,12 +977,7 @@ class ReaderPanel extends Component {
         );
       } else {
         menu = (
-          <TopicsPage
-            key={"TopicsPage"}
-            setNavTopic={this.setNavigationTopic}
-            multiPanel={this.props.multiPanel}
-            initialWidth={this.state.width}
-          />
+          <TopicsLandingPage />
         );
       }
 
