@@ -1,7 +1,7 @@
 from sefaria.model import *
 from sefaria.model.text_reuqest_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, ComplexBookLevelRefError
 from django.views import View
 from .api_warnings import *
 
@@ -59,11 +59,15 @@ class Text(View):
 
         try:
             data = text_manager.get_versions_for_query()
-        except InputError as e:
-            if str(e) == "Can not get TextRange at this level, please provide a more precise reference":
-                return jsonResponse({'error': "Please pass a more specific ref for this book, and try again. The ref you passed is a \'complex\' book-level ref. We only support book-level refs in cases of texts with a 'simple' structure. To learn more about the structure of a text on Sefaria, see: https://developers.sefaria.org/docs/the-schema-of-a-simple-text"}, status=400)
-        data = self._handle_warnings(data)
+            data = self._handle_warnings(data)
+
+        except Exception as e:
+            if isinstance(e, InputError):
+                return jsonResponse({'error': e.message})
+
         return jsonResponse(data)
+
+
 
 
 

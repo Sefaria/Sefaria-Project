@@ -1450,7 +1450,7 @@ def texts_api(request, tref):
             try:
                 text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                                  alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
-            except Exception as e:
+            except InputError as e:
                 if isinstance(e, ComplexBookLevelRefError):
                     return jsonResponse({'error': e.message}, status=400)
             return jsonResponse(text, cb)

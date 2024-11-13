@@ -100,8 +100,12 @@ class InvalidHTTPMethodException(Exception):
         self.message = f"'{method}' is not a valid HTTP API method."
         super().__init__(self.message)
 
-class ComplexBookLevelRefError(Exception):
+class ComplexBookLevelRefError(InputError):
     def __init__(self, book_ref):
         self.book_ref = book_ref
-        self.message = f"Please pass a more specific ref for this book, and try again. You passed in a \'complex\' book-level ref. We only support book-level refs in cases of texts with a 'simple' structure. To learn more about the structure of a text on Sefaria, see: https://developers.sefaria.org/docs/the-schema-of-a-simple-text"
+        self.message = (f"You passed '{book_ref}', please pass a more specific ref for this book, and try again. "
+                        f"'{book_ref}' is a \'complex\' book-level ref. We only support book-level "
+                        f"refs in cases of texts with a 'simple' structure. To learn more about the "
+                        f"structure of a text on Sefaria, "
+                        f"see: https://developers.sefaria.org/docs/the-schema-of-a-simple-text")
         super().__init__(self.message)
