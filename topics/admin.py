@@ -38,7 +38,7 @@ class TopicAdmin(admin.ModelAdmin):
                 default=False,
                 output_field=BooleanField()
             )
-        )
+        ).filter(pools__name=PoolType.LIBRARY.value)
 
     def is_in_pool_general(self, obj):
         return obj.in_pool_general
