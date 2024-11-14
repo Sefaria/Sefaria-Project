@@ -1,2 +1,2 @@
 from .topic import Topic
-from .pool import TopicPool
+from .pool import TopicPool, PoolType
