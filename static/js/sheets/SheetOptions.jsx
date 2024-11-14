@@ -46,6 +46,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, sheetID, authorU
   const [publishingMode, setPublishingMode] = useState(false);
   const sheetIsPublished = sheet?.status === "public";
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
+  console.log("SheetOptions", sheet);
   const getSignUpModalKind = () => {
     if (savingMode) {
       return SignUpModalKind.Save;
@@ -361,11 +362,16 @@ const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
             </div>
     <div className="modalMessage">
       <InterfaceText>Description (max 140 characters)</InterfaceText>
-      <input type="text" value={summary} onChange={handleSummaryChange}></input>
+      <textarea value={summary} onChange={handleSummaryChange}></textarea>
     </div>
     <div className="modalMessage">
       <InterfaceText>Add topics related to your sheet</InterfaceText>
-      <ReactTags
+
+
+     <div className="publishSettingsEditMode">
+       <div className={"publishBox sans-serif"}>
+        <div className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
+            <ReactTags
                 ref={reactTags}
                 allowNew={true}
                 tags={tags}
@@ -377,6 +383,9 @@ const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
                 onValidate={onTagValidate}
                 onInput={updateSuggestedTags}
             />
+        </div>
+       </div>
+     </div>
       <Button className="small" onClick={handlePublish}>Publish</Button>
     </div>
   </Modal>;
