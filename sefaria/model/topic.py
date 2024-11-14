@@ -236,14 +236,14 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def add_pool(self, pool_name: str) -> None:
         pool = TopicPool.objects.get(name=pool_name)
         DjangoTopic.objects.get(slug=self.slug).pools.add(pool)
-        self.pools = self.get_pools()
-        self.pools.append(pool_name)
+        if not self.has_pool(pool_name):
+            self.get_pools().append(pool_name)
 
     def remove_pool(self, pool_name) -> None:
         pool = TopicPool.objects.get(name=pool_name)
         DjangoTopic.objects.get(slug=self.slug).pools.remove(pool)
-        pools = self.get_pools()
-        pools.remove(pool_name)
+        if self.has_pool(pool_name):
+            self.get_pools().remove(pool_name)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
