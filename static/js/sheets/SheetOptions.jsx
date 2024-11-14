@@ -22,10 +22,6 @@ const togglePublish = async (sheet, shouldPublish, lastModified) => {
   })
 }
 
-const PublishButton = ({onClick}) => {
-  return <Button className="small publish" onClick={onClick}>Publish</Button>
-}
-
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
   let newHistoryObject = Object.assign({}, historyObject);
@@ -91,11 +87,12 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, sheetID, authorU
     return <DeleteModal close={() => setDeletingMode(false)} sheetID={sheetID} authorUrl={authorUrl}/>;
   }
   else if (publishingMode) {
-    return <PublishModal close={() => setPublishingMode(false)} sheet={sheet}/>;
+    return <PublishModal close={() => setPublishingMode(false)} sheet={sheet} togglePublish={togglePublish} lastModified={lastModified}/>;
   }
+  const openPublishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
   return (
         <>
-        {editable && !sheetIsPublished && <PublishButton onClick={() => togglePublish(sheet,true, lastModified)}/>}
+        {editable && !sheetIsPublished && openPublishModalButton}
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
@@ -118,7 +115,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, sheetID, authorU
           {editable && sheetIsPublished && <>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem>
-                                          <UnpublishButton onClick={() => togglePublish(sheetID, false)}/>
+                                          <UnpublishButton onClick={() => togglePublish(sheet, false, lastModified)}/>
                                         </DropdownMenuItem>
                                       </>
           }
@@ -284,17 +281,34 @@ const GenericSheetModal = ({title, message, close}) => {
         </Modal>;
 }
 
-const PublishModal = ({sheet, close}) => {
-  const [topics, setTopics] = useState(sheet.map((item, i) =>({["name"]: item, ["id"]: i})));
+const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
+  const [topics, setTopics] = useState(sheet.topics.map((item, i) =>({["name"]: item, ["id"]: i})));
+  const [title, setTitle] = useState(sheet.title || "");
+  const [summary, setSummary] = useState(sheet.summary || "");
+  console.log("hello", sheet);
+  const handlePublish = () => {
+    sheet.title = title;
+    sheet.summary = summary;
+    sheet.topics = topics;
+    togglePublish(sheet, true, lastModified);
+  }
+
   return <Modal isOpen={true} close={close}>
             <div className="modalTitle"><InterfaceText>Publish</InterfaceText></div>
-            <label>Title</label>
-            <input type="text"></input>
-            <label>Description (max 140 characters)</label>
-            <input type="text"></input>
-            <label>Add topics related to your sheet</label>
-            <TitleVariants update={setTopics} titles={topics}/>
-        </Modal>;
+            <div className="modalMessage">
+                <InterfaceText>Title</InterfaceText>
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}></input>
+            </div>
+    <div className="modalMessage">
+      <InterfaceText>Description (max 140 characters)</InterfaceText>
+      <input type="text" value={summary} onChange={(e) => setSummary(e.target.value)}></input>
+    </div>
+    <div className="modalMessage">
+      <InterfaceText>Add topics related to your sheet</InterfaceText>
+      <TitleVariants update={setTopics} titles={topics}/>
+      <Button className="small" onClick={handlePublish}>Publish</Button>
+    </div>
+  </Modal>;
 }
 
 const SaveModal = ({historyObject, close}) => {
