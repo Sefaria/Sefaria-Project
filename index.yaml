@@ -2,6 +2,21 @@ apiVersion: v1
 entries:
   sefaria:
   - apiVersion: v2
+    appVersion: v5.116.2
+    created: "2024-11-14T09:55:03.954090459Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: ca602212b89393e3c9d64302c0771774943c098debed20d35edd1695a9dcf4ba
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.64.4-slack-secret-ref.1.tgz
+    version: 0.64.4-slack-secret-ref.1
+  - apiVersion: v2
     appVersion: v5.116.1
     created: "2024-11-06T18:34:12.422517914Z"
     description: Chart to deploy complete Sefaria environment
@@ -6765,4 +6780,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2024-11-11T12:53:31.597845203Z"
+generated: "2024-11-14T09:55:03.951234281Z"
