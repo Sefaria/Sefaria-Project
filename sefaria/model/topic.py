@@ -193,6 +193,13 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             # in a subclass. set appropriate "subclass" attribute
             setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
 
+    def _pre_save(self):
+        super()._pre_save()
+        django_topic, created = DjangoTopic.objects.get_or_create(slug=self.slug)
+        django_topic.en_title = self.get_primary_title('en')
+        django_topic.he_title = self.get_primary_title('he')
+        django_topic.save()
+
     def _validate(self):
         super(Topic, self)._validate()
         if getattr(self, 'subclass', False):
