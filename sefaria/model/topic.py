@@ -1,6 +1,4 @@
-from enum import Enum
 from typing import Union, Optional
-from django.db.utils import IntegrityError
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
