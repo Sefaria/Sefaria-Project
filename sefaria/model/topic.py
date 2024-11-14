@@ -188,7 +188,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
-        self.pools = DjangoTopic.objects.get_pools_by_topic_slug(getattr(self, "slug", None))
+        self.pools = list(DjangoTopic.objects.get_pools_by_topic_slug(getattr(self, "slug", None)))
         if self.__class__ != Topic and not getattr(self, "subclass", False):
             # in a subclass. set appropriate "subclass" attribute
             setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
@@ -241,11 +241,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         self.pools = self.get_pools()
         self.pools.append(pool_name)
 
-    def remove_pool(self, pool) -> None:
-        pool = TopicPool.objects.get(name=pool)
+    def remove_pool(self, pool_name) -> None:
+        pool = TopicPool.objects.get(name=pool_name)
         DjangoTopic.objects.get(slug=self.slug).pools.remove(pool)
         pools = self.get_pools()
-        pools.remove(pool)
+        pools.remove(pool_name)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -1169,7 +1169,10 @@ def process_topic_delete(topic):
     for sheet in db.sheets.find({"topics.slug": topic.slug}):
         sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
         db.sheets.save(sheet)
-    DjangoTopic.objects.get(slug=topic.slug).delete()
+    try:
+        DjangoTopic.objects.get(slug=topic.slug).delete()
+    except DjangoTopic.DoesNotExist:
+        print('Topic {} does not exist in django'.format(topic.slug))
 
 def process_topic_description_change(topic, **kwargs):
     """
