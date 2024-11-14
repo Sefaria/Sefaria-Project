@@ -464,7 +464,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                     setattr(self, attr, getattr(other, attr))
             self.save()
             other.delete()
-            DjangoTopic.objects.get(slug=other_slug).delete()
 
     def link_set(self, _class='intraTopic', query_kwargs: dict = None, **kwargs):
         """
@@ -1170,6 +1169,7 @@ def process_topic_delete(topic):
     for sheet in db.sheets.find({"topics.slug": topic.slug}):
         sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
         db.sheets.save(sheet)
+    DjangoTopic.objects.get(slug=topic.slug).delete()
 
 def process_topic_description_change(topic, **kwargs):
     """
