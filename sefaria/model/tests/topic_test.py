@@ -3,6 +3,7 @@ from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, T
 from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.system.exceptions import SluggedMongoRecordMissingError
+from topics.models import Topic as DjangoTopic
 from sefaria.helper.topic import update_topic
 
 
@@ -154,6 +155,22 @@ class TestTopics(object):
             {"slug": '20', 'asTyped': 'twent-e'},
             {"slug": '30', 'asTyped': 'thirty'}
         ]
+
+        t40 = Topic.init('40')
+        assert t40 is None
+        DjangoTopic.objects.get(slug='20')
+        with pytest.raises(DjangoTopic.DoesNotExist):
+            DjangoTopic.objects.get(slug='40')
+
+    def test_change_title(self, topic_graph):
+        ts = topic_graph['topics']
+        dt1 = DjangoTopic.objects.get(slug=ts['1'].slug)
+        assert dt1.en_title == ts['1'].get_primary_title('en')
+        ts['1'].title_group.add_title('new title', 'en', True, True)
+        ts['1'].save()
+        dt1 = DjangoTopic.objects.get(slug=ts['1'].slug)
+        assert dt1.en_title == ts['1'].get_primary_title('en')
+
 
     def test_sanitize(self):
         t = Topic()
