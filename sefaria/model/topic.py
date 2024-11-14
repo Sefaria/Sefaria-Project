@@ -389,6 +389,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         old_slug = getattr(self, slug_field)
         setattr(self, slug_field, new_slug)
         setattr(self, slug_field, self.normalize_slug_field(slug_field))
+        DjangoTopic.objects.filter(slug=old_slug).update(slug=new_slug)
         self.save()  # so that topic with this slug exists when saving links to it
         self.merge(old_slug)
 
@@ -464,6 +465,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                     setattr(self, attr, getattr(other, attr))
             self.save()
             other.delete()
+            DjangoTopic.objects.get(slug=other_slug).delete()
 
     def link_set(self, _class='intraTopic', query_kwargs: dict = None, **kwargs):
         """
