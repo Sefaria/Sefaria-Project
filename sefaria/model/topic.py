@@ -5,7 +5,8 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
 from .category import Category
-from admin_tools.models.topic_pool_link import TopicPoolLink, PoolType
+from topics.models import Topic as DjangoTopic
+from topics.models import TopicPool, PoolType
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
 from sefaria.system.validators import validate_url
@@ -188,7 +189,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
-        self.pools = TopicPoolLink.objects.get_pools_by_topic_slug(getattr(self, "slug", None))
+        self.pools = DjangoTopic.objects.get_pools_by_topic_slug(getattr(self, "slug", None))
         if self.__class__ != Topic and not getattr(self, "subclass", False):
             # in a subclass. set appropriate "subclass" attribute
             setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
@@ -228,17 +229,15 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def has_pool(self, pool: str) -> bool:
         return pool in self.get_pools()
 
-    def add_pool(self, pool: str) -> None:
-        try:
-            link = TopicPoolLink(pool=pool, topic_slug=self.slug)
-            link.save()
-        except IntegrityError:
-            raise DuplicateRecordError(f"'{pool}'<>'{self.slug}' link already exists in TopicPoolLink table.")
+    def add_pool(self, pool_name: str) -> None:
+        pool = TopicPool.objects.get(name=pool_name)
+        DjangoTopic.objects.get(slug=self.slug).pools.add(pool)
         self.pools = self.get_pools()
-        self.pools.append(pool)
+        self.pools.append(pool_name)
 
     def remove_pool(self, pool) -> None:
-        TopicPoolLink.objects.filter(pool=pool, topic_slug=self.slug).delete()
+        pool = TopicPool.objects.get(name=pool)
+        DjangoTopic.objects.get(slug=self.slug).pools.remove(pool)
         pools = self.get_pools()
         pools.remove(pool)
 
@@ -959,7 +958,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
         return self
 
     def get_related_pool(self):
-        return PoolType.SHEETS.value if self.is_sheet else PoolType.TEXTUAL.value
+        return PoolType.SHEETS.value if self.is_sheet else PoolType.LIBRARY.value
 
     def get_topic(self):
         return Topic().load({'slug': self.toTopic})
