@@ -9,6 +9,7 @@ import {SignUpModalKind} from "../sefaria/signupModalContent";
 import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
 import Button from "../shared/Button";
+import ReactTags from "react-tag-autocomplete";
 
 const togglePublish = async (sheet, shouldPublish, lastModified) => {
   sheet.status = shouldPublish ? "public" : "unlisted";
@@ -282,14 +283,73 @@ const GenericSheetModal = ({title, message, close}) => {
 }
 
 const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
+  const reactTags = React.createRef();
   const [topics, setTopics] = useState(sheet.topics.map((item, i) =>({["name"]: item, ["id"]: i})));
-  const [title, setTitle] = useState(sheet.title || "");
+  const [title, setTitle] = useState(sheet.title.stripHtmlConvertLineBreaks() || "");
   const [summary, setSummary] = useState(sheet.summary || "");
-  console.log("hello", sheet);
+  const [suggestions, setSuggestions] = useState([]);
+  const [validation, setValidation] = useState({
+          validationMsg: "",
+          validationFailed: "none"
+      });
+  const [tags, setTags] = useState(
+      sheet.topics.map((topic, i) => ({
+          id: i,
+          name: topic["asTyped"],
+          slug: topic["slug"],
+      })
+      )
+  )
+      const updateSuggestedTags = (input) => {
+        if (input == "") return
+        Sefaria.getName(input, false, 0).then(d => {
+            const topics = d.completion_objects
+                .filter(obj => obj.type === "Topic")
+                .map((filteredObj, index) => ({
+                    id: index,
+                    name: filteredObj.title,
+                    slug: filteredObj.key
+                })
+                )
+            return topics
+        }).then(topics => setSuggestions(topics))
+  }
+  const onTagDelete = (i) => {
+    const newTags = tags.slice(0);
+    newTags.splice(i, 1);
+    setTags(newTags);
+  }
+  const onTagAddition = (tag) => {
+    const newTags = [].concat(tags, tag);
+    setTags(newTags);
+  }
+  const onTagValidate = (tag) => {
+      return tags.every((item) => item.name !== tag.name)
+  }
+  const handleSummaryChange = (event) => {
+    const newSummary = event.target.value;
+    if (event.target.value.length > 280) {
+        setValidation({
+            validationMsg: Sefaria._("The summary description is limited to 280 characters."),
+            validationFailed: "summary"
+        });
+    }
+    else {
+        setValidation({
+            validationMsg: "",
+            validationFailed: "none"
+        });
+    }
+    setSummary(newSummary);
+  }
   const handlePublish = () => {
     sheet.title = title;
     sheet.summary = summary;
-    sheet.topics = topics;
+    sheet.topics = tags.map(tag => ({
+          asTyped: tag.name,
+          slug: tag.slug,
+        })
+    );
     togglePublish(sheet, true, lastModified);
   }
 
@@ -301,11 +361,22 @@ const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
             </div>
     <div className="modalMessage">
       <InterfaceText>Description (max 140 characters)</InterfaceText>
-      <input type="text" value={summary} onChange={(e) => setSummary(e.target.value)}></input>
+      <input type="text" value={summary} onChange={handleSummaryChange}></input>
     </div>
     <div className="modalMessage">
       <InterfaceText>Add topics related to your sheet</InterfaceText>
-      <TitleVariants update={setTopics} titles={topics}/>
+      <ReactTags
+                ref={reactTags}
+                allowNew={true}
+                tags={tags}
+                suggestions={suggestions}
+                onDelete={onTagDelete}
+                placeholderText={Sefaria._("Add a topic...")}
+                delimiters={["Enter", "Tab", ","]}
+                onAddition={onTagAddition}
+                onValidate={onTagValidate}
+                onInput={updateSuggestedTags}
+            />
       <Button className="small" onClick={handlePublish}>Publish</Button>
     </div>
   </Modal>;
