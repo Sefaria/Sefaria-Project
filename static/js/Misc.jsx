@@ -3202,6 +3202,11 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       onSelectCallBack && onSelectCallBack(key)
   }
 
+  const handleSuggestionKeyDown = (e)=> {
+    inputEl.current.focus();
+    changeInputValue(inputEl.current.value);
+  }
+
   const Suggestion = ({title, color, sluggishKey}) => {
     return(<option
               className="suggestion"
@@ -3215,7 +3220,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
   }
   const mapSuggestions = (suggestions) => {
-    console.log(suggestions)
     const div = suggestions.map((suggestion, index) => (
 
         (<Suggestion
@@ -3282,6 +3286,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       if (e.key === 'Enter') {
           handleOnClickSuggestion(e.target.value);
       }
+      if (e.key!= "ArrowDown" && e.key != "ArrowUp")
+      handleSuggestionKeyDown(e)
     }
 
   return(
