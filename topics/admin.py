@@ -1,11 +1,10 @@
 from django.contrib import admin, messages
-from django.db.models import BooleanField, Case, When
 from topics.models import Topic, TopicPool
 from topics.models.pool import PoolType
 
 
-def create_add_to_specific_pool_action(pool_name):
-    def add_to_specific_pool(modeladmin, request, queryset):
+def create_add_to_pool_action(pool_name):
+    def add_to_pool(modeladmin, request, queryset):
         try:
             pool = TopicPool.objects.get(name=pool_name)
             for topic in queryset:
@@ -15,42 +14,70 @@ def create_add_to_specific_pool_action(pool_name):
         except TopicPool.DoesNotExist:
             modeladmin.message_user(request, "The specified pool does not exist.", messages.ERROR)
 
-    add_to_specific_pool.short_description = f"Add selected topics to '{pool_name}' pool"
-    return add_to_specific_pool
+    add_to_pool.short_description = f"Add selected topics to '{pool_name}' pool"
+    add_to_pool.__name__ = f"add_to_specific_pool_{pool_name}"
+    return add_to_pool
+
+
+def create_remove_from_pool_action(pool_name):
+    def remove_from_pool(modeladmin, request, queryset):
+        try:
+            pool = TopicPool.objects.get(name=pool_name)
+            for topic in queryset:
+                topic.pools.remove(pool)
+            modeladmin.message_user(request, f"Removed {queryset.count()} topics from {pool.name}", messages.SUCCESS)
+
+        except TopicPool.DoesNotExist:
+            modeladmin.message_user(request, "The specified pool does not exist.", messages.ERROR)
+
+    remove_from_pool.short_description = f"Remove selected topics from '{pool_name}' pool"
+    remove_from_pool.__name__ = f"remove_from_pool_{pool_name}"
+    return remove_from_pool
+
+
+class PoolFilter(admin.SimpleListFilter):
+    title = 'Pool Filter'
+    parameter_name = 'pool'
+
+    def lookups(self, request, model_admin):
+        return [
+            (PoolType.GENERAL.value, 'General Pool'),
+            (PoolType.TORAH_TAB.value, 'TorahTab Pool'),
+        ]
+
+    def queryset(self, request, queryset):
+        pool_name = self.value()
+        if pool_name:
+            pool = TopicPool.objects.get(name=pool_name)
+            return queryset.filter(pools=pool)
+        return queryset
 
 
 class TopicAdmin(admin.ModelAdmin):
     list_display = ('slug', 'en_title', 'he_title', 'is_in_pool_general', 'is_in_pool_torah_tab')
+    list_filter = (PoolFilter,)
     filter_horizontal = ('pools',)
     readonly_fields = ('slug', 'en_title', 'he_title')
-    actions = [create_add_to_specific_pool_action(pool_name) for pool_name in (PoolType.GENERAL.value, PoolType.TORAH_TAB.value)]
+    actions = [
+        create_add_to_pool_action(PoolType.GENERAL.value),
+        create_add_to_pool_action(PoolType.TORAH_TAB.value),
+        create_remove_from_pool_action(PoolType.GENERAL.value),
+        create_remove_from_pool_action(PoolType.TORAH_TAB.value),
+    ]
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.annotate(
-            in_pool_general=Case(
-                When(pools__name=PoolType.GENERAL.value, then=True),
-                default=False,
-                output_field=BooleanField()
-            ),
-            in_pool_torah_tab=Case(
-                When(pools__name=PoolType.TORAH_TAB.value, then=True),
-                default=False,
-                output_field=BooleanField()
-            )
-        ).filter(pools__name=PoolType.LIBRARY.value)
+        return queryset.filter(pools__name=PoolType.LIBRARY.value)
 
     def is_in_pool_general(self, obj):
-        return obj.in_pool_general
+        return obj.pools.filter(name=PoolType.GENERAL.value).exists()
     is_in_pool_general.boolean = True
     is_in_pool_general.short_description = "General?"
-    is_in_pool_general.admin_order_field = 'in_pool_general'
 
     def is_in_pool_torah_tab(self, obj):
-        return obj.in_pool_torah_tab
+        return obj.pools.filter(name=PoolType.TORAH_TAB.value).exists()
     is_in_pool_torah_tab.boolean = True
     is_in_pool_torah_tab.short_description = "TorahTab?"
-    is_in_pool_torah_tab.admin_order_field = 'in_pool_torah_tab'
 
 
 class TopicPoolAdmin(admin.ModelAdmin):
