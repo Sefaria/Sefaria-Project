@@ -3,8 +3,7 @@ from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, T
 from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.system.exceptions import SluggedMongoRecordMissingError
-from topics.models import Topic as DjangoTopic
-from sefaria.helper.topic import update_topic
+from topics.models import Topic as DjangoTopic, TopicPool
 
 
 def make_topic(slug):
@@ -106,6 +105,13 @@ def topic_graph_to_merge():
     db.sheets.delete_one({"id": 1234567890})
 
 
+@pytest.fixture(scope='module')
+def topic_pool():
+    pool = TopicPool.objects.create(name='test-pool')
+    yield pool
+    pool.delete()
+
+
 class TestTopics(object):
 
     def test_graph_funcs(self, topic_graph):
@@ -171,6 +177,22 @@ class TestTopics(object):
         dt1 = DjangoTopic.objects.get(slug=ts['1'].slug)
         assert dt1.en_title == ts['1'].get_primary_title('en')
 
+    def test_pools(self, topic_graph, topic_pool):
+        ts = topic_graph['topics']
+        t1 = ts['1']
+        assert len(t1.pools) == 0
+        t1.add_pool(topic_pool.name)
+        assert t1.pools == [topic_pool.name]
+
+        # dont add duplicates
+        t1.add_pool(topic_pool.name)
+        assert t1.pools == [topic_pool.name]
+
+        assert t1.has_pool(topic_pool.name)
+        t1.remove_pool(topic_pool.name)
+        assert len(t1.pools) == 0
+        # dont error when removing non-existant pool
+        t1.remove_pool(topic_pool.name)
 
     def test_sanitize(self):
         t = Topic()
