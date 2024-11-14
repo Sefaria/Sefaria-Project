@@ -3234,6 +3234,16 @@ def topic_graph_api(request, topic):
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
+@catch_error_as_json
+def topic_pool_api(request, pool_name):
+    from topics.models import Topic as DjangoTopic
+    n_samples = int(request.GET.get("n"))
+    order = request.GET.get("order", "random")
+    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, pool_name, n_samples)
+    response = [Topic.init(slug).contents() for slug in topic_slugs]
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
 @staff_member_required
 def reorder_topics(request):
     topics = json.loads(request.POST["json"]).get("topics", [])
