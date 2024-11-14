@@ -393,7 +393,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         self.save()  # so that topic with this slug exists when saving links to it
         self.merge(old_slug)
 
-
     def merge(self, other: Union['Topic', str]) -> None:
         """
         Merge `other` into `self`. This means that all data from `other` will be merged into self.
