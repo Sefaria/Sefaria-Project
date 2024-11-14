@@ -4229,9 +4229,9 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
-    from topics.models.topic_pool_link import PoolType
+    from topics.models import PoolType
     cb = request.GET.get("callback", None)
-    random_topic = get_random_topic(PoolType.PROMOTED.value)
+    random_topic = get_random_topic(PoolType.TORAH_TAB.value)
     if random_topic is None:
         return random_by_topic_api(request)
     random_source = get_random_topic_source(random_topic)
