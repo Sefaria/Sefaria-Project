@@ -3,9 +3,10 @@ from enum import Enum
 
 
 class PoolType(Enum):
-    TEXTUAL = "textual"
+    LIBRARY = "library"
     SHEETS = "sheets"
-    PROMOTED = "promoted"
+    TORAH_TAB = "torah_tab"
+    GENERAL = "general"
 
 
 class TopicPool(models.Model):
