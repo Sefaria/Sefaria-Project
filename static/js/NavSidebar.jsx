@@ -160,7 +160,7 @@ const StudyCompanion = () => (
         <div><InterfaceText>Get the Weekly Parashah Study Companion in your inbox.</InterfaceText></div>
         <a className="button small"
            data-anl-event="promo_clicked:click|promo_viewed:scrollIntoView"
-           data-anl-text="Parashah Email Signup - Topic TOC"
+           data-anl-campaign-id="Parashah Email Signup - Topic TOC"
            href="https://learn.sefaria.org/weekly-parashah/">
             <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
             <InterfaceText>Sign Up</InterfaceText>
