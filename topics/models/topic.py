@@ -15,7 +15,7 @@ class TopicManager(models.Manager):
             raise Exception("Invalid order: '{}'".format(order))
 
     def get_pools_by_topic_slug(self, topic_slug: str) -> list[str]:
-        return self.filter(topic_slug=topic_slug).values_list("pools__name", flat=True)
+        return self.filter(slug=topic_slug).values_list("pools__name", flat=True)
 
     def get_topic_slugs_by_pool(self, pool: str) -> list[str]:
         return self.filter(pools__name=pool).values_list("slug", flat=True)
