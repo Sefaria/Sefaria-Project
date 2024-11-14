@@ -977,7 +977,7 @@ class ReaderPanel extends Component {
         );
       } else {
         menu = (
-          <TopicsLandingPage />
+          <TopicsLandingPage openTopic={this.props.openTopic}/>
         );
       }
 

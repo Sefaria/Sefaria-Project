@@ -3106,8 +3106,8 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
   )
 
 }
-const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholder, inputValue, changeInputValue, selectedCallback,
-                         buttonTitle, autocompleteClassNames }) => {
+const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholder, inputValue, changeInputValueOnSelect=true, changeInputStyleOnSelect=true, changeInputValue, selectedCallback,
+                         onSelectCallBack, buttonTitle, autocompleteClassNames }) => {
   /*
   Autocompleter component used in AddInterfaceInput and TopicSearch components.  Component contains an input box, a
   select menu that shows autcomplete suggestions, and a button.  To submit an autocomplete suggestion, user can press enter in the input box, or click on the button.
@@ -3128,6 +3128,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
   const buttonClassNames = classNames({button: 1, small: 1});
+  const addButtonExists = !!buttonTitle
 
   const getWidthOfInput = () => {
     //Create a temporary div w/ all of the same styles as the input since we can't measure the input
@@ -3171,7 +3172,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   const processSuggestions = (resultsPromise) => {
     resultsPromise.then(results => {
       setCurrentSuggestions(results.currentSuggestions);
-      setShowAddButton(results.showAddButton);
+      setShowAddButton(results.showAddButton && addButtonExists);
       setHelperPromptText(results.helperPromptText);
       if (!!results.previewText) {
         generatePreviewText(results.previewText);
@@ -3183,29 +3184,30 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   }
 
   const onChange = (input) => {
-    setInputClassNames(classNames({selected: 0}));
+    changeInputStyleOnSelect && setInputClassNames(classNames({selected: 0}));
     setShowCurrentSuggestions(true);
     processSuggestions(getSuggestions(input));
     resizeInputIfNeeded();
   }
 
-  const handleOnClickSuggestion = (title) => {
-      changeInputValue(title);
+  const handleOnClickSuggestion = (title, key) => {
+      changeInputValueOnSelect && changeInputValue(title);
       setShowCurrentSuggestions(showSuggestionsOnSelect);
       if (showSuggestionsOnSelect) {
         processSuggestions(getSuggestions(title));
       }
-      setInputClassNames(classNames({selected: 1}));
+      changeInputStyleOnSelect && setInputClassNames(classNames({selected: 1}));
       resizeInputIfNeeded();
       inputEl.current.focus();
+      onSelectCallBack && onSelectCallBack(key)
   }
 
-  const Suggestion = ({title, color}) => {
+  const Suggestion = ({title, color, sluggishKey}) => {
     return(<option
               className="suggestion"
               onClick={(e)=>{
                   e.stopPropagation()
-                  handleOnClickSuggestion(title)
+                  handleOnClickSuggestion(title, sluggishKey)
                 }
               }
               style={{"borderInlineStartColor": color}}
@@ -3213,11 +3215,13 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
   }
   const mapSuggestions = (suggestions) => {
+    console.log(suggestions)
     const div = suggestions.map((suggestion, index) => (
 
         (<Suggestion
            title={suggestion.name}
            color={suggestion.border_color}
+           sluggishKey={suggestion.key}
            key={index}
         />)
 

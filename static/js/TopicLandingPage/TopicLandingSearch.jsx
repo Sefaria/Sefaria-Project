@@ -124,7 +124,7 @@ import {Autocompleter, InterfaceText} from "../Misc";
 // };
 import { useState } from 'react';
 
-const TopicSearch = (props) => {
+const TopicSearch = ({openTopic}) => {
   const [showAdminEditor, setShowAdminEditor] = useState(false);
   const [value, setValue] = useState("");
 
@@ -138,11 +138,20 @@ const TopicSearch = (props) => {
       return results;
     }
     const word = input.trim();
-    const callback = (d) => {
+
+    const _getFormattedPath = (slug, lang) => {
+      const categories = Sefaria.topicTocCategories(slug);
+      if(!categories){return ""}
+      const titles = categories.map((cat) => cat[lang]);
+      return "("+ titles.join(" < ") + ")";
+    }
+
+    const parseSuggestions = (d) => {
       let topics = [];
+      console.log(d)
       if (d[1].length > 0) {
-        topics = d[1].slice(0, 4).map((e) => ({
-          title: e.title,
+        topics = d[1].slice(0, 10).map((e) => ({
+          title: e.title + " " + _getFormattedPath(e.key, 'en'),
           key: e.key,
         }));
       }
@@ -150,7 +159,7 @@ const TopicSearch = (props) => {
     };
     // const completionObjects = await Sefaria.getTopicCompletions(word, callback());
     let returnValue = await Sefaria.getTopicCompletions(word);
-    const completionObjects = callback(returnValue)
+    const completionObjects = parseSuggestions(returnValue)
     results.currentSuggestions = completionObjects.map((suggestion) => ({
       name: suggestion.title,
       key: suggestion.key,
@@ -169,20 +178,30 @@ const TopicSearch = (props) => {
     setValue(newValue);
   }
 
+  const redirectOnSelect = (slug) => {
+    // console.log(slug)
+    // const url = `${Sefaria.apiHost}/topics/${slug}`;
+    // window.location = url;
+    openTopic(slug)
+  }
+
   return (
       <Autocompleter
         selectedCallback={selectedCallback}
         getSuggestions={getSuggestions}
-        inputPlaceholder={Sefaria.translation(props.contentLang, "Search for a Topic")}
-        buttonTitle={Sefaria.translation(props.contentLang, "Add Topic")}
+        inputPlaceholder={"hi"}
+        buttonTitle={false}
         inputValue={value}
+        changeInputValueOnSelect={false}
+        changeInputStyleOnSelect={false}
         changeInputValue={changeInputValue}
         showSuggestionsOnSelect={false}
+        onSelectCallBack={redirectOnSelect}
         autocompleteClassNames="topicSearch addInterfaceInput"
       />
     );
 };
 
-export const TopicsSearchAutocomplete = ({}) => {
-    return (<TopicSearch/>);
+export const TopicsSearchAutocomplete = ({openTopic}) => {
+    return (<TopicSearch openTopic={openTopic}/>);
 };
