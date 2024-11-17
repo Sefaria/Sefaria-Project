@@ -35,7 +35,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheet, sheetID, authorUrl, editable, lastModified}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, lastModified}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -44,6 +44,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheet, sheetID, authorU
   const [exportingMode, setExportingMode] = useState(getExportingStatus());
   const [deletingMode, setDeletingMode] = useState(false);  
   const [publishingMode, setPublishingMode] = useState(false);
+  const sheet = Sefaria.sheets.loadSheetByID(sheetID);
   const sheetIsPublished = sheet?.status === "public";
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   console.log("SheetOptions", sheet);
