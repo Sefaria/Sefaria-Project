@@ -36,7 +36,7 @@ const getSuggestions = async (input) => {
   };
 
 
-const renderItem = (openTopic, item, index, highlightedIndex, getItemProps, otherRelevantDownshiftProps)=>{
+const renderItem = (openTopic, item, index, highlightedIndex, getItemProps)=>{
   const isHighlighted = index === highlightedIndex;
   return (
     <div
@@ -45,6 +45,7 @@ const renderItem = (openTopic, item, index, highlightedIndex, getItemProps, othe
         backgroundColor: isHighlighted ? 'grey' : 'transparent'
       }}
       onClick={(e) => openTopic(item.slug)}
+      {...getItemProps({index})}
     >{item.text}
     </div>
   );

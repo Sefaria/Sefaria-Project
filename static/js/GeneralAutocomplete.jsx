@@ -30,6 +30,7 @@ export const GeneralAutocomplete = ({
     });
     const inputDownshiftProps = getInputProps();
     const highlightedSuggestion=suggestions[highlightedIndex]
+    console.log(highlightedIndex)
     return (
         <>
             {renderInput(highlightedIndex, highlightedSuggestion, inputDownshiftProps, onSubmit)}
