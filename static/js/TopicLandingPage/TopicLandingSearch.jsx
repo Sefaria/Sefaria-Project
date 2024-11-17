@@ -3,7 +3,6 @@ import {GeneralAutocomplete} from "../GeneralAutocomplete";
 import Sefaria from "../sefaria/sefaria";
 
 const getSuggestions = async (input) => {
-    console.log("I got called")
     if (input === "") {
       return [];
     }
@@ -30,14 +29,14 @@ const getSuggestions = async (input) => {
     // const completionObjects = await Sefaria.getTopicCompletions(word, callback());
     let returnValue = await Sefaria.getTopicCompletions(word);
     const completionObjects = parseSuggestions(returnValue)
-    const a = completionObjects.map((suggestion) => ({
+    return completionObjects.map((suggestion) => ({
       text: suggestion.title,
       slug: suggestion.key,
     }));
-    console.log(a);
-    return a;
   };
-const renderItem = (item, index, highlightedIndex, getItemProps, otherRelevenatDownshiftProps)=>{
+
+
+const renderItem = (openTopic, item, index, highlightedIndex, getItemProps, otherRelevantDownshiftProps)=>{
   const isHighlighted = index === highlightedIndex;
   return (
     <div
@@ -45,8 +44,8 @@ const renderItem = (item, index, highlightedIndex, getItemProps, otherRelevenatD
       style={{
         backgroundColor: isHighlighted ? 'grey' : 'transparent'
       }}
-    >
-      <a href={`/topics/${item.slug}`}>{item.text}</a>
+      onClick={(e) => openTopic(item.slug)}
+    >{item.text}
     </div>
   );
 };
@@ -67,7 +66,7 @@ const renderInput = (downshiftProps) =>{
     )
 }
 
-export const TopicLandingSearch = ({}) => {
-    return (<GeneralAutocomplete getSuggestions={getSuggestions} renderItem={renderItem} dropdownMenuClassString=''
+export const TopicLandingSearch = ({openTopic}) => {
+    return (<GeneralAutocomplete getSuggestions={getSuggestions} renderItem={renderItem.bind(null, openTopic)} dropdownMenuClassString=''
                                  renderInput={renderInput}/>);
 };
