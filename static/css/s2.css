@@ -11528,6 +11528,16 @@ cursor: pointer;
 .resourcesLink.studyCompanion {
   margin-inline-start: 10px;
 }
+@media screen and (max-width: 900px) {
+  .resourcesLink.studyCompanion {
+    margin-inline-start: 0;
+  }
+}
+@media screen and (max-width: 900px) {
+  .resourcesLink.studyCompanion {
+    margin-inline-start: 0;
+  }
+}
 .resourcesLink.blue img {
   filter: invert(1);
   opacity: 1;
