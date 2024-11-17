@@ -58,13 +58,12 @@ const renderInput = (openTopic, highlightedIndex, highlightedSuggestion, inputDo
     const onKeyDownOverride = (event) => {
         onKeyDown(event);
         if (event.key === 'Enter') {
-            highlightedIndex > 0 && openTopic(highlightedSuggestion.slug)
+            highlightedIndex >= 0 && openTopic(highlightedSuggestion.slug)
         }
-
     }
     return (
         <input
-            className={''}
+            className=''
             id="searchInput"
             placeholder={Sefaria._("Search")}
             // onFocus={focusSearch}
