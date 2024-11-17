@@ -28,11 +28,11 @@ export const GeneralAutocomplete = ({
             setSuggestions(await getSuggestions(inputValue));
         }
     });
-    const inputProps = getInputProps();
-    console.log("suggestions:", suggestions)
+    const inputDownshiftProps = getInputProps();
+    const highlightedSuggestion=suggestions[highlightedIndex]
     return (
         <>
-            {renderInput(inputProps, onSubmit)}
+            {renderInput(highlightedIndex, highlightedSuggestion, inputDownshiftProps, onSubmit)}
             <div
               {...getMenuProps()}
               className={dropdownMenuClassString}

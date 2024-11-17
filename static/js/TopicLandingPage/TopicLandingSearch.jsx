@@ -50,23 +50,34 @@ const renderItem = (openTopic, item, index, highlightedIndex, getItemProps, othe
   );
 };
 
-const renderInput = (downshiftProps) =>{
+
+
+const renderInput = (openTopic, highlightedIndex, highlightedSuggestion, inputDownshiftProps) =>{
+    console.log(inputDownshiftProps)
+    const { onKeyDown, ...otherInputDownshiftProps } = inputDownshiftProps;
+    const onKeyDownOverride = (event) => {
+        onKeyDown(event);
+        if (event.key === 'Enter') {
+            highlightedIndex > 0 && openTopic(highlightedSuggestion.slug)
+        }
+
+    }
     return (
         <input
             className={''}
             id="searchInput"
             placeholder={Sefaria._("Search")}
-            // onKeyDown={handleSearchKeyDown}
             // onFocus={focusSearch}
             // onBlur={blurSearch}
+            onKeyDown={onKeyDownOverride}
             maxLength={75}
             title={Sefaria._("Search for Texts or Keywords Here")}
-            {...downshiftProps}
+            {...otherInputDownshiftProps}
         />
     )
 }
 
 export const TopicLandingSearch = ({openTopic}) => {
     return (<GeneralAutocomplete getSuggestions={getSuggestions} renderItem={renderItem.bind(null, openTopic)} dropdownMenuClassString=''
-                                 renderInput={renderInput}/>);
+                                 renderInput={renderInput.bind(null, openTopic)}/>);
 };
