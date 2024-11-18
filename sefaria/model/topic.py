@@ -3,8 +3,8 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
 from .category import Category
-from topics.models import Topic as DjangoTopic
-from topics.models import TopicPool, PoolType
+from django_topics.models import Topic as DjangoTopic
+from django_topics.models import TopicPool, PoolType
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
 from sefaria.system.validators import validate_url

@@ -3,7 +3,7 @@ from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, T
 from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.system.exceptions import SluggedMongoRecordMissingError
-from topics.models import Topic as DjangoTopic, TopicPool
+from django_topics.models import Topic as DjangoTopic, TopicPool
 
 
 def make_topic(slug):

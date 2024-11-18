@@ -3,8 +3,8 @@ from django.db import IntegrityError
 
 django.setup()
 from sefaria.model import TopicSet, RefTopicLinkSet
-from topics.models.topic import Topic
-from topics.models.pool import TopicPool, PoolType
+from django_topics.models.topic import Topic
+from django_topics.models.pool import TopicPool, PoolType
 
 
 def add_to_torah_tab_pool():

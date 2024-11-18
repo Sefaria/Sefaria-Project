@@ -3236,7 +3236,7 @@ def topic_graph_api(request, topic):
 
 @catch_error_as_json
 def topic_pool_api(request, pool_name):
-    from topics.models import Topic as DjangoTopic
+    from django_topics.models import Topic as DjangoTopic
     n_samples = int(request.GET.get("n"))
     order = request.GET.get("order", "random")
     topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, pool_name, n_samples)
@@ -4239,7 +4239,7 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
-    from topics.models import PoolType
+    from django_topics.models import PoolType
     cb = request.GET.get("callback", None)
     random_topic = get_random_topic(PoolType.TORAH_TAB.value)
     if random_topic is None:

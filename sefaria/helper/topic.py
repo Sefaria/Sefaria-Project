@@ -285,7 +285,7 @@ def get_random_topic(pool=None) -> Optional[Topic]:
     :param pool: name of the pool from which to select the topic. If `None`, all topics are considered.
     :return: Returns a random topic from the database. If you provide `pool`, then the selection is limited to topics in that pool.
     """
-    from topics.models import Topic as DjangoTopic
+    from django_topics.models import Topic as DjangoTopic
     random_topic_slugs = DjangoTopic.objects.sample_topic_slugs('random', pool, limit=1)
     if len(random_topic_slugs) == 0:
         return None

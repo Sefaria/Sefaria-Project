@@ -1,6 +1,6 @@
 from django.contrib import admin, messages
-from topics.models import Topic, TopicPool
-from topics.models.pool import PoolType
+from django_topics.models import Topic, TopicPool
+from django_topics.models.pool import PoolType
 
 
 def create_add_to_pool_action(pool_name):

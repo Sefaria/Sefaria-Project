@@ -1,6 +1,6 @@
 from django.db import models
 import random
-from topics.models.pool import TopicPool
+from django_topics.models.pool import TopicPool
 
 
 class TopicManager(models.Manager):
