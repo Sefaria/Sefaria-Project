@@ -97,9 +97,9 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
         cat_border_pos = (0, 0, 0, img.size[1])
 
     else:
-        align = "right"
+        align = "left"
         logo_url = "static/img/pecha-icon.png"
-        spacing = platforms[platform]["he_spacing"]
+        spacing = 0
         ref_font = ImageFont.truetype(font='static/fonts/jomolhari.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
 
