@@ -4,7 +4,7 @@ import Sefaria from "../sefaria/sefaria";
 import {SearchButton} from "../Misc";
 
 const getSuggestions = async (input) => {
-    if (input === "") {
+    if (input.length <=1) {
       return [];
     }
     const word = input.trim();
@@ -21,7 +21,7 @@ const getSuggestions = async (input) => {
       console.log(d)
       if (d[1].length > 0) {
         topics = d[1].slice(0, 10).map((e) => ({
-          title: e.title + " " + _getFormattedPath(e.key, 'en'),
+          title: "# " + e.title + " " + _getFormattedPath(e.key, 'en'),
           key: e.key,
         }));
       }
@@ -39,24 +39,22 @@ const getSuggestions = async (input) => {
 
 const renderItem = (openTopic, item, index, highlightedIndex, getItemProps)=>{
   const isHighlighted = index === highlightedIndex;
+  const highlightedClassString = isHighlighted ? "highlighted" : '';
   return (
-      <a onClick={openTopic.bind(null, item.slug)}>
+      <div onClick={openTopic.bind(null, item.slug)}>
     <div
+      className={`topic-landing-search-suggestion ${highlightedClassString}`}
       key={item.slug}
-      style={{
-        backgroundColor: isHighlighted ? 'grey' : 'transparent'
-      }}
       {...getItemProps({index})}
     >{item.text}
     </div>
-          </a>
+          </div>
   );
 };
 
 
 
 const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSuggestion, inputDownshiftProps) =>{
-    console.log(inputDownshiftProps)
     const { onKeyDown, ...otherInputDownshiftProps } = inputDownshiftProps;
     const onKeyDownOverride = (event) => {
         onKeyDown(event);
@@ -65,10 +63,10 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
         }
     }
     return (
-        <div>
+        <div className="topic-landing-search-input-box-wrapper">
         <SearchButton/>
         <input
-            className=''
+            className='topic-landing-search-input'
             id="searchInput"
             placeholder={`Find ${numOfTopics} Topics`}
             // onFocus={focusSearch}
@@ -83,6 +81,9 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
 }
 
 export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
-    return (<GeneralAutocomplete getSuggestions={getSuggestions} renderItem={renderItem.bind(null, openTopic)} dropdownMenuClassString=''
-                                 renderInput={renderInput.bind(null, openTopic, numOfTopics)}/>);
+    return (<div className="topic-landing-search-wrapper">
+        <GeneralAutocomplete getSuggestions={getSuggestions} renderItem={renderItem.bind(null, openTopic)} containerClassString={"topic-landing-search-container"} dropdownMenuClassString='topic-landing-search-dropdown'
+                                 renderInput={renderInput.bind(null, openTopic, numOfTopics)}/>
+            </div>
+    );
 };

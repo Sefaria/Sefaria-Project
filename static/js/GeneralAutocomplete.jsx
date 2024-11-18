@@ -10,6 +10,7 @@ export const GeneralAutocomplete = ({
     getSuggestions,
     renderItem,
     renderInput,
+    containerClassString,
     dropdownMenuClassString,
     onSubmit,
 }) => {
@@ -30,16 +31,15 @@ export const GeneralAutocomplete = ({
     });
     const inputDownshiftProps = getInputProps();
     const highlightedSuggestion=suggestions[highlightedIndex]
-    console.log(highlightedIndex)
     return (
-        <>
+        <div className={containerClassString}>
             {renderInput(highlightedIndex, highlightedSuggestion, inputDownshiftProps, onSubmit)}
             <div
               {...getMenuProps()}
               className={dropdownMenuClassString}
             >
-                {suggestions.map((item, index) => renderItem(item, index, highlightedIndex, getItemProps, onSubmit))}
+                {(isOpen) && suggestions.map((item, index) => renderItem(item, index, highlightedIndex, getItemProps, onSubmit))}
             </div>
-        </>
+        </div>
     );
 };
