@@ -25,6 +25,8 @@ const getSuggestions = async (input) => {
           key: e.key,
         }));
       }
+      const dummySuggestion = {title: "# Dummy", key: 'dummy'};
+      topics = topics.concat([dummySuggestion, dummySuggestion, dummySuggestion, dummySuggestion, dummySuggestion])
       return topics;
     };
     // const completionObjects = await Sefaria.getTopicCompletions(word, callback());
