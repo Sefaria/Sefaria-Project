@@ -1,6 +1,7 @@
 import React from 'react';
 import {GeneralAutocomplete} from "../GeneralAutocomplete";
 import Sefaria from "../sefaria/sefaria";
+import {SearchButton} from "../Misc";
 
 const getSuggestions = async (input) => {
     if (input === "") {
@@ -39,15 +40,16 @@ const getSuggestions = async (input) => {
 const renderItem = (openTopic, item, index, highlightedIndex, getItemProps)=>{
   const isHighlighted = index === highlightedIndex;
   return (
+      <a onClick={openTopic.bind(null, item.slug)}>
     <div
       key={item.slug}
       style={{
         backgroundColor: isHighlighted ? 'grey' : 'transparent'
       }}
-      onClick={(e) => openTopic(item.slug)}
       {...getItemProps({index})}
     >{item.text}
     </div>
+          </a>
   );
 };
 
@@ -63,6 +65,8 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
         }
     }
     return (
+        <div>
+        <SearchButton/>
         <input
             className=''
             id="searchInput"
@@ -74,6 +78,7 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
             title={Sefaria._("Search for Texts or Keywords Here")}
             {...otherInputDownshiftProps}
         />
+            </div>
     )
 }
 
