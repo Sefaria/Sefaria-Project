@@ -390,43 +390,42 @@ const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
   return <Modal isOpen={true} close={close}>
       <div className="modalTitle"><InterfaceText>Publish</InterfaceText></div>
       <div className="publishSettingsEditMode">
-      <div className={"publishBox sans-serif"}>
-          <div className="modalMessage">
-              <InterfaceText>Title</InterfaceText>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}></input>
-          </div>
-          <div className="modalMessage">
-              <InterfaceText>Description (max 140 characters)</InterfaceText>
-              <textarea
-                  className={validation.validationFailed === "both" || validation.validationFailed === "summary" ? "error" : ""}
-                  rows="3"
-                  maxLength="281"
-                  placeholder={Sefaria._("Write a short description of your sheet...")}
-                  value={summary}
-                  onChange={handleSummaryChange}></textarea>
-          </div>
-          <div className="modalMessage">
-              <InterfaceText>Add topics related to your sheet</InterfaceText>
-              <div
-                  className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
-                  <ReactTags
-                      ref={reactTags}
-                      allowNew={true}
-                      tags={tags}
-                      suggestions={suggestions}
-                      onDelete={onTagDelete}
-                      placeholderText={Sefaria._("Add a topic...")}
-                      delimiters={["Enter", "Tab", ","]}
-                      onAddition={onTagAddition}
-                      onValidate={onTagValidate}
-                      onInput={updateSuggestedTags}
-                  />
+          <div className={"publishBox sans-serif"}>
+              <div className="publishLabel">
+                 <InterfaceText>Title</InterfaceText>
               </div>
-          {validation.validationFailed !== "none" &&
-              <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
-          <Button className="small" onClick={handlePublish}>Publish</Button>
-        </div>
-      </div>
+              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}></input>
+              <div className="publishLabel">
+                  <InterfaceText>Description (max 140 characters)</InterfaceText>
+              </div>
+              <textarea
+                      className={validation.validationFailed === "both" || validation.validationFailed === "summary" ? "error" : ""}
+                      rows="3"
+                      maxLength="281"
+                      placeholder={Sefaria._("Write a short description of your sheet...")}
+                      value={summary}
+                      onChange={handleSummaryChange}></textarea>
+              <div className="publishLabel">
+                  <InterfaceText>Add topics related to your sheet</InterfaceText>
+              </div>
+              <div className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
+                 <ReactTags
+                          ref={reactTags}
+                          allowNew={true}
+                          tags={tags}
+                          suggestions={suggestions}
+                          onDelete={onTagDelete}
+                          placeholderText={Sefaria._("Add a topic...")}
+                          delimiters={["Enter", "Tab", ","]}
+                          onAddition={onTagAddition}
+                          onValidate={onTagValidate}
+                          onInput={updateSuggestedTags}
+                      />
+              </div>
+              {validation.validationFailed !== "none" &&
+                      <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
+              <Button className="small" onClick={handlePublish}>Publish</Button>
+          </div>
       </div>
   </Modal>;
 }
