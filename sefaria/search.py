@@ -10,8 +10,6 @@ import re
 import bleach
 import pymongo
 
-# To allow these files to be run directly from command line (w/o Django shell)
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import structlog
 import logging
