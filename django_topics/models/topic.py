@@ -29,4 +29,4 @@ class Topic(models.Model):
     objects = TopicManager()
 
     def __str__(self):
-        return f"Topic('{self.slug}')"
+        return self.slug
