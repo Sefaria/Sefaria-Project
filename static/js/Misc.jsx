@@ -3065,7 +3065,7 @@ const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorIma
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={blurCallback}/>
       {sheetOptions}
     </div>
-    {summary || editable && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable} blurCallback={blurCallback}/>}
+    {(summary || editable) && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable} blurCallback={blurCallback}/>}
     <div className="user">
       <ProfilePic
           url={authorImage}

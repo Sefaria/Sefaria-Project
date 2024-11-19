@@ -14,7 +14,6 @@ import ReactTags from "react-tag-autocomplete";
 const togglePublish = async (sheet, shouldPublish, lastModified) => {
   sheet.status = shouldPublish ? "public" : "unlisted";
   sheet.lastModified = lastModified;
-  console.log(lastModified, sheet.dateModified);
   delete sheet._id;
   Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST").then(data => {
     if (data.id) {
@@ -286,7 +285,6 @@ const GenericSheetModal = ({title, message, close}) => {
 
 const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
   const reactTags = React.createRef();
-  const [topics, setTopics] = useState(sheet.topics.map((item, i) =>({["name"]: item, ["id"]: i})));
   const [title, setTitle] = useState(sheet.title.stripHtmlConvertLineBreaks() || "");
   const [summary, setSummary] = useState(sheet.summary || "");
   const [suggestions, setSuggestions] = useState([]);
@@ -302,19 +300,51 @@ const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
       })
       )
   )
-      const updateSuggestedTags = (input) => {
-        if (input == "") return
-        Sefaria.getName(input, false, 0).then(d => {
-            const topics = d.completion_objects
-                .filter(obj => obj.type === "Topic")
-                .map((filteredObj, index) => ({
-                    id: index,
-                    name: filteredObj.title,
-                    slug: filteredObj.key
-                })
-                )
-            return topics
-        }).then(topics => setSuggestions(topics))
+  const isFormValidated = () => {
+        if ((!summary || summary.trim() === '') && tags.length === 0) {
+            setValidation({
+                validationMsg: Sefaria._("Please add a description and topics to publish your sheet."),
+                validationFailed: "both"
+            });
+            return false
+        }
+        else if (!summary || summary.trim() === '') {
+            setValidation({
+                validationMsg: Sefaria._("Please add a description to publish your sheet."),
+                validationFailed: "summary"
+            });
+            return false
+        }
+
+        else if (tags.length === 0) {
+            setValidation({
+                validationMsg: Sefaria._("Please add topics to publish your sheet."),
+                validationFailed: "topics"
+            });
+            return false;
+        }
+
+        else {
+            setValidation({
+                validationMsg: "",
+                validationFailed: "none"
+            });
+            return true;
+        }
+    }
+  const updateSuggestedTags = (input) => {
+    if (input === "") return
+    Sefaria.getName(input, false, 0).then(d => {
+        const topics = d.completion_objects
+            .filter(obj => obj.type === "Topic")
+            .map((filteredObj, index) => ({
+                id: index,
+                name: filteredObj.title,
+                slug: filteredObj.key
+            })
+            )
+        return topics;
+    }).then(topics => setSuggestions(topics))
   }
   const onTagDelete = (i) => {
     const newTags = tags.slice(0);
@@ -352,48 +382,57 @@ const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
           slug: tag.slug,
         })
     );
-    togglePublish(sheet, true, lastModified);
+    if ((isFormValidated())) {
+      togglePublish(sheet, true, lastModified);
+    }
   }
 
   return <Modal isOpen={true} close={close}>
-            <div className="modalTitle"><InterfaceText>Publish</InterfaceText></div>
-            <div className="modalMessage">
-                <InterfaceText>Title</InterfaceText>
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}></input>
-            </div>
-    <div className="modalMessage">
-      <InterfaceText>Description (max 140 characters)</InterfaceText>
-      <textarea value={summary} onChange={handleSummaryChange}></textarea>
-    </div>
-    <div className="modalMessage">
-      <InterfaceText>Add topics related to your sheet</InterfaceText>
-
-
-     <div className="publishSettingsEditMode">
-       <div className={"publishBox sans-serif"}>
-        <div className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
-            <ReactTags
-                ref={reactTags}
-                allowNew={true}
-                tags={tags}
-                suggestions={suggestions}
-                onDelete={onTagDelete}
-                placeholderText={Sefaria._("Add a topic...")}
-                delimiters={["Enter", "Tab", ","]}
-                onAddition={onTagAddition}
-                onValidate={onTagValidate}
-                onInput={updateSuggestedTags}
-            />
+      <div className="modalTitle"><InterfaceText>Publish</InterfaceText></div>
+      <div className="publishSettingsEditMode">
+      <div className={"publishBox sans-serif"}>
+          <div className="modalMessage">
+              <InterfaceText>Title</InterfaceText>
+              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}></input>
+          </div>
+          <div className="modalMessage">
+              <InterfaceText>Description (max 140 characters)</InterfaceText>
+              <textarea
+                  className={validation.validationFailed === "both" || validation.validationFailed === "summary" ? "error" : ""}
+                  rows="3"
+                  maxLength="281"
+                  placeholder={Sefaria._("Write a short description of your sheet...")}
+                  value={summary}
+                  onChange={handleSummaryChange}></textarea>
+          </div>
+          <div className="modalMessage">
+              <InterfaceText>Add topics related to your sheet</InterfaceText>
+              <div
+                  className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
+                  <ReactTags
+                      ref={reactTags}
+                      allowNew={true}
+                      tags={tags}
+                      suggestions={suggestions}
+                      onDelete={onTagDelete}
+                      placeholderText={Sefaria._("Add a topic...")}
+                      delimiters={["Enter", "Tab", ","]}
+                      onAddition={onTagAddition}
+                      onValidate={onTagValidate}
+                      onInput={updateSuggestedTags}
+                  />
+              </div>
+          {validation.validationFailed !== "none" &&
+              <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
+          <Button className="small" onClick={handlePublish}>Publish</Button>
         </div>
-       </div>
-     </div>
-      <Button className="small" onClick={handlePublish}>Publish</Button>
-    </div>
+      </div>
+      </div>
   </Modal>;
 }
 
 const SaveModal = ({historyObject, close}) => {
-  const isSaved = !!Sefaria.getSavedItem(historyObject);
+    const isSaved = !!Sefaria.getSavedItem(historyObject);
   const savingMessage = "Saving...";
   const [message, setMessage] = useState(savingMessage);
   const savedMessage = isSaved ? "Sheet no longer saved." : "Saved sheet.";
