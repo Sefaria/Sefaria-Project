@@ -45,6 +45,7 @@ class Footer extends Component {
                 <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
                 <Link href="/help" en="Help" he="עזרה" />
                 <Link href="/team" en="Team" he="צוות" />
+                <Link href="/products" en="Products" he="מוצרים" />
                 <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
                 <Link href="/metrics" en="Metrics" he="מדדים" />
                 <Link href="/annualreport" en="Annual Report" he='דו"ח שנתי' />
@@ -55,7 +56,6 @@ class Footer extends Component {
             <Section en="Tools" he="כלים">
                 <Link href="/educators" en="Teach with Sefaria" he="מלמדים עם ספריא" />
                 <Link href="/calendars" en="Learning Schedules" he="לוח לימוד יומי" />
-                <Link href="/sheets" en="Source Sheets" he="דפי מקורות" />
                 <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />
                 <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" />
                 <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />

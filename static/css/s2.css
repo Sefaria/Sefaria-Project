@@ -353,6 +353,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   height: 100%;
   z-index: 1000;
 }
+
 #s2.headerOnly {
   z-index: 1000;
   height: 60px;
@@ -650,6 +651,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: #666;
   font-size: 16px;
   padding: 15px;
+}
+.mobileNavMenu hr {
+  border: none;
   border-bottom: 1px solid #EDEDEC;
 }
 .mobileNavMenu a > img,
@@ -681,8 +685,23 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   opacity: 1;
 }
 .mobileNavMenu .mobileAccountLinks .login {
-  display: block;
   padding: 15px;
+}
+.mobileNavMenu .signupLink::after {
+  content: "•";
+  padding: 0px 4px;
+}
+.interface-english .mobileNavMenu .signupLink {
+  padding-right: 0px !important;
+}
+.interface-english .mobileNavMenu .loginLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .signupLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .loginLink {
+  padding-right: 0px !important;
 }
 .mobileNavMenu .profile-pic {
   display: inline-block;
@@ -971,7 +990,7 @@ div.interfaceLinks-row a {
   }
 }
 @media screen and (max-width: 580px) {
-  .header .interfaceLinks, 
+  .header .interfaceLinks,
   .header .dropdownLinks,
   .accountLinks .help,
   .header .notifications {
@@ -1491,7 +1510,7 @@ div.interfaceLinks-row a {
   text-align: right;
   unicode-bidi: initial;
 }
-}
+
 .interface-hebrew .readerPanel .en {
   direction: ltr;
 }
@@ -1817,7 +1836,6 @@ div.interfaceLinks-row a {
   letter-spacing: 0em;
   text-decoration: underline;
 }
-.readerPanel .navSidebarModule h3,
 .readerPanel .navSidebarModule h1,
 .readerPanel .bookPage h3{
   margin: 0 0 20px;
@@ -1837,7 +1855,7 @@ div.interfaceLinks-row a {
 .singlePanel .navSidebarModule.blue {
   padding: 34px 15px 45px;
 }
-.readerPanel .navSidebarModule.blue h3 {
+.readerPanel .navSidebarModule.blue h1 {
   color: white;
 }
 .navSidebarIcon {
@@ -2785,7 +2803,42 @@ display: none;
   color: var(--light-grey);
 }
 
-.navBlockTitle .int-he, .navBlockDescription .int-he{
+div.sheetsWrapper :nth-child(1 of .card) {
+  border-top: 1px solid #EDEDEC;
+}
+.card {
+  flex: 1 1 45%;
+  position: relative;
+  padding-bottom: 12px;
+}
+.cardTitle {
+  text-align: start;
+  font-size: 24px;
+  padding: 15px 0 8px;
+  margin: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  line-height: 1.3;
+  flex: 1;
+  font-weight: 400;
+}
+a.cardTitle:hover {
+  text-decoration: none;
+  color: var(--dark-grey);
+}
+.cardDescription {
+  font-size: 14px;
+  line-height: 18px;
+  color: #666;
+  margin-inline-end: 20px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.hebrew .cardDescription {
+  line-height: 24px;
+}
+.navBlockTitle .int-he, .navBlockDescription .int-he, .cardTitle .int-he, .cardDescription .int-he{
   font-size: 122%;
 }
 .interface-english .navBlockDescription.clamped .int-en,
@@ -3033,7 +3086,7 @@ display: none;
 .readerNavMenu.readerNavCategoryMenu .navTitle {
   margin-bottom: 40px;
 }
-.readerNavMenu.readerNavCategoryMenu h1 {
+.readerNavMenu.readerNavCategoryMenu .navTitle h1 {
   color: #000;
   text-transform: uppercase;
   font-size: 30px;
@@ -4703,11 +4756,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   z-index: 2;
 }
 .singlePanel .autocomplete-dropdown {
-  width: 100vw;
+  width: 0;
   position: fixed;
   top: 120px;
   inset-inline-start: 0;
   padding-bottom: 10px;
+}
+.singlePanel .autocomplete-dropdown:has(*){
+  width: 100vw;
 }
 .search-group-suggestions{
   border-bottom: 0.766667px solid rgb(204, 204, 204);
@@ -7584,7 +7640,6 @@ But not to use a display block directive that might break continuous mode for ot
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  margin-bottom: 4px;
 }
 .profile-page {
   background-color: var(--lightest-grey);
@@ -7903,6 +7958,7 @@ But not to use a display block directive that might break continuous mode for ot
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border: none;
 }
+
 .button.disabled{
   border: 1px solid var(--light-grey);
   background-color: var(--lightest-grey);
@@ -9777,7 +9833,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .currVersionSection, .aboutBox .alternateVersionsSection {
   padding-bottom: 30px;
 }
-.aboutBox .versionsBox .versionBlock:first-child{
+.aboutBox .versionsBox .language-block:first-child .versionBlock:first-child {
   border-top: none;
   padding-top: 10px;
 }
@@ -10072,7 +10128,6 @@ span.purim-emoji img{
 }
 .overlayTextOnSheetsHero {
   color: white;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-weight: 400;
@@ -10091,10 +10146,14 @@ span.purim-emoji img{
   line-height: 18px;
   top: 227px;
 }
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 800px) {
+  .overlayTextOnSheetsHero {
+    margin-inline-start: 15%;
+  }
   .overlayTextOnSheetsHero #title {
     font-size: 24px;
     top: 115px;
+    line-height: revert;
   }
   .overlayTextOnSheetsHero #message {
     font-size: 16px;
@@ -10103,6 +10162,36 @@ span.purim-emoji img{
   #aboutCover {
     height: 150px;
     padding: 130px 0;
+  }
+}
+@media screen and (min-width: 900px) {
+  .contentInner .table {
+    display: flex;
+    flex-direction: row;
+  }
+  div.sheetsWrapper :nth-child(-n+2 of .card) {
+    border-top: 1px solid #EDEDEC;
+  }
+}
+@media screen and (min-width: 700px) and (max-width: 900px)  {
+  .contentInner .table {
+    display: flex;
+    flex-direction: column;
+  }
+}
+@media screen and (min-width: 600px) and (max-width: 700px) {
+  .contentInner .table {
+    display: flex;
+    flex-direction: row;
+  }
+  div.sheetsWrapper :nth-child(-n+2 of .card) {
+    border-top: 1px solid #EDEDEC;
+  }
+}
+@media screen and (max-width: 600px) {
+   .contentInner .table {
+    display: flex;
+    flex-direction: column;
   }
 }
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
@@ -10283,17 +10372,21 @@ span.purim-emoji img{
 .interface-english .spacer:only-of-type.empty:before,
 .interface-english .spacer:only-of-type.empty:before {
   content: "Write something... ";
+  margin-inline-start: 50px;
 }
 .interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-hebrew .spacer:only-of-type.empty:before,
 .interface-hebrew .spacer:only-of-type.empty:before {
   content: "לכתוב משהו...";
+  margin-inline-start: 50px;
 }
 .editorAddInterface {
   position: relative;
   pointer-events:none;
   background-color: transparent;
+  margin-inline-start: 50px;
 }
+
 .editorAddInterface:before {
   content: "";
   margin-inline-start:-46px;
@@ -10307,6 +10400,34 @@ span.purim-emoji img{
   background-size: 14px;
   border-radius: 50%;
   pointer-events:auto;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 3px 0px #00000040;
+}
+.editorAddLineButton {
+  position: relative;
+  background-color: transparent;
+  margin-inline-start: 50px;
+}
+.hidden.editorAddLineButton::before {
+    display: none;
+}
+
+.editorAddLineButton:before {
+  content: "";
+  margin-inline-start:-46px;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  transform: rotate(45deg);
+  background-color: white;
+  background-image: url("/static/icons/heavy-x-dark.svg");
+  border: 1px solid var(--light-grey);
+  background-size: 14px;
+  border-radius: 50%;
+  /*pointer-events:auto;*/
   cursor: pointer;
   background-repeat: no-repeat;
   background-position: center;
@@ -10336,6 +10457,10 @@ background-color: white;
   pointer-events: none;
   display: inline-block;
 }
+.hidden.editorAddInterface::before {
+    display: none;
+}
+
 
 .addInterfaceInput .textPreview {
   border-inline-start: 4px solid;
@@ -13205,7 +13330,109 @@ span.ref-link-color-3 {color: blue}
 .blockButton {
   cursor: pointer;
 }
+.sheetsHomepage .button {
+  background-color: var(--midrash-green);
+}
+.sheetsHomepage .sheetsHomepageSectionTitle {
+  color: var(--midrash-green);
+  font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-bottom: 15px;
+}
+.multiPanel .sheetsHomepage .sheetsTopicTOC .sheetsHomepageSectionTitle {
+  flex: 1 1 100%;
+}
+.sheetsHomepage .sidebarLayout {
+  justify-content: space-between;
+  margin-top: 50px;
+}
+.sheetsHomepage .sidebarLayout .sheetsTopics {
+  display: flex;
+  flex-direction: column;
+}
+.sheetsHomepage .content .contentInner {
+  width: 875px;
+}
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar, .sheetsHomepage .sidebarLayout .sheetsTopicTOC {
+  margin-inline-start: 10%;
+}
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
+  column-gap: 20px;
+}
+.sheetsHomepage .sheetsTopicTOC .sheetsWrapper {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 20px;
+}
+.sheetsHomepage .sheetsTopicsCalendar .sheetsWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.singlePanel .sheetsTopicTOC, .singlePanel .sheetsTopicsCalendar {
+  margin-top: 30px;
+}
+.multiPanel .sheetsTopicTOC {
+  margin-top: 30px;
+}
+.singlePanel .sheetsHomepage .navSidebar {
+  margin-block-start: 5px;
+  width: revert;
+}
+.singlePanel .sheetsHomepage .navSidebarModule {
+  padding: 0 10%;
+}
+.singlePanel .sheetsHomepage .sheetsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.singlePanel .sheetsHomepage .sidebarLayout {
+  margin-top: revert;
+}
 
+.singlePanel .sheetsHomepage .sidebarLayout .sheetsTopics {
+  width: revert;
+}
+.singlePanel .sheetsHomepage .button {
+  display: block;
+}
+@media screen and (max-width: 840px) {
+  .sheetsHomepage .sidebarLayout .sheetsTopics {
+    width: 100%;
+  }
+  .sheetsHomepage .button {
+    display: block;
+  }
+  .sheetsHomepage .navSidebar {
+    width: revert;
+    border-top: 40px solid #FBFBFA;
+    margin-block-start: -40px;
+    border-bottom: 40px solid #FBFBFA;
+  }
+}
+@media screen and (max-width: 700px) {
+  .sheetsHomepage .navSidebar {
+    margin-top: 30px;
+  }
+}
+.button.getStartedSheets {
+  width: 111px;
+  height: 39px;
+  padding: 10px 15px 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #CCCCCC;
+  display: block;
+  background-color: white;
+  color: black;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.button.getStartedSheets:hover {
+  color: black;
+}
 .image-in-text {
     display: flex;
     justify-content: center;
@@ -13267,6 +13494,7 @@ span.ref-link-color-3 {color: blue}
   padding: 10px 5px !important;
   flex-direction: column;
   margin-inline-start: 5px;
+
 }
 
 .dropdownSeparator {
@@ -13276,6 +13504,7 @@ span.ref-link-color-3 {color: blue}
   display: block;
   align-items: center;
   margin-top: 2px;
+  margin-bottom: 4px;
   color: #666;
   cursor: pointer;
   position: relative;
@@ -13337,6 +13566,232 @@ span.ref-link-color-3 {color: blue}
   display: block;
 }
 
+.productsFlexWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.product {
+  max-width: 600px;
+}
+
+#productsPageContent {
+  margin-inline-start: 70px;
+  margin-top: 165px;
+  margin-bottom: 165px;
+}
+
+.productInner {
+  display: flex;
+  align-items: right;
+  flex-direction: row;
+}
+
+.productInner img {
+  max-width: 100%;
+  max-height: 116px;
+  height: auto;
+  display: block;
+  margin-inline-end: 3%;
+  padding-bottom: 20px;
+}
+
+.productInner .productsDesc {
+  font: var(--english-sans-serif-font-family);
+  color: var(--dark-grey);
+  font-size: 16px;
+}
+
+.productImgWrapper {
+  flex: 0 0 auto;
+}
+
+.productDescWrapper {
+  flex: 1 1 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.productsDesc p {
+  margin-top: 0;
+}
+
+.productsHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10%;
+  margin-bottom: 2%;
+  padding-bottom: 2%;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.productsTitleAndLabel {
+  flex: auto;
+}
+
+.productsHeader .productsTitle {
+  font: var(--english-sans-serif-font-family);
+  color: var(--dark-grey);
+  font-size: 22px;
+  font-weight: 500px;
+}
+
+.productsHeader .productsTypeLabel {
+  font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  background-color: var(--lighter-grey);
+  border-radius: 6px;
+  padding: 0.01px 5px;
+  color: var(--dark-grey);
+  margin-inline-start: 3%;
+}
+
+.productsHeader .cta {
+  display: flex;
+  align-items: center;
+}
+
+.productsHeader .cta .productsCTA {
+  color: var(--commentary-blue);
+  border-width: 10px;
+  margin-inline-end: 10px;
+}
+
+
+.productsHeader .cta .productsCTAIcon {
+  height: 12px;
+  top: 646px;
+  left: 610px;
+  margin: 0 5px;
+  vertical-align: baseline;
+  /** This uses the filter to recolor SVGs in a single line to commentary blue.
+  To determine the appropriate parameters, see a filter color picker such as https://angel-rs.github.io/css-color-filter-generator/ */
+  filter: brightness(0) saturate(100%) invert(52%) sepia(17%) saturate(6763%) hue-rotate(200deg) brightness(78%) contrast(77%);
+
+}
+
+.productsTitle {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  text-align: left;
+  color: var(--dark-grey);
+}
+
+.productsCTA::after {
+    content: " ›";
+    color: var(--commentary-blue);
+}
+
+.productsDevBox {
+    background: var(--lighter-grey);
+    color: var(--dark-grey);
+    font-family: var(--english-sans-serif-font-family);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 18.75px;
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 3%;
+    margin-top: 10%;
+    max-width: 600px;
+}
+
+.productsDevBox .productsDevHeader {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  padding-bottom: 2%;
+
+}
+
+.productsDevBox a {
+  color: var(--commentary-blue) !important;
+
+}
+
+.productsDevBox p {
+  margin-top: 0;
+}
+
+.productsDevBox a::after {
+  content: " ›";
+  color: var(--commentary-blue);
+}
+
+@media (max-width: 480px) {
+
+  .productImgWrapper {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #productsPageContent {
+    margin: 100px 10px 0px 10px;;
+  }
+
+  .productsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .productsTitleAndLabel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .productsTypeLabel {
+    padding: 1px 5px !important;
+    margin-top: 3px;
+    margin-left: 0px !important;
+  }
+
+  .cta {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .cta a {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  .productInner {
+    flex-direction: column;
+  }
+
+  .productDescWrapper{
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+}
+
+
+
+
+
+.footerContainer {
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding-top: 25px;
+}
+
+.footerContainer a {
+  padding: 3px 10px;
+}
 
 .image-in-text-title {
   margin: auto; /* English System Small */
@@ -13358,7 +13813,6 @@ span.ref-link-color-3 {color: blue}
   font-size: 12px;
   font-weight: 400;
   line-height: 18px;
-  /* text-align: left; */
   color: var(--medium-grey);
 
 }
@@ -13378,8 +13832,9 @@ span.ref-link-color-3 {color: blue}
   padding: 10px 2px;
 }
 
-.dropdownLinks-button .profile-pic {
-  padding-top: 7px;
+.englishLanguageButton::after {
+  content: "•";
+  padding: 0px 4px;
 }
 
 @-webkit-keyframes load5 {

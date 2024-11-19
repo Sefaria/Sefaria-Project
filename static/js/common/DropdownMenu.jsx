@@ -1,11 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import { InterfaceText } from '../Misc';
 
-
-// Todo
-// Fix the styling on the 'dropdown item' (regular one)
-// Restore the header to also show the globe icon
-
 const DropdownMenuSeparator = () => {
 
   return (

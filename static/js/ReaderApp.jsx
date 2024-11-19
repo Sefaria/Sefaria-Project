@@ -23,6 +23,7 @@ import {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  ProductsPage
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -44,29 +45,22 @@ class ReaderApp extends Component {
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];
-
+    const searchType = props.initialSearchType || 'text';  // should really be set by URL such as sheets.sefaria.org or www.sefaria.org
     if (props.initialMenu) {
       // If a menu is specified in `initialMenu`, make a panel for it
       panels[0] = {
         mode:                    "Menu",
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
-        searchType:               props.initialSearchType,
-        tab:                     props.initialTab,
         topicSort:               props.initialTopicSort,
-        textSearchState: new SearchState({
-          type: 'text',
-          appliedFilters:        props.initialTextSearchFilters,
-          field:                 props.initialTextSearchField,
-          appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
-          sortType:              props.initialTextSearchSortType,
+        searchState: new SearchState({
+          type:                  searchType,
+          appliedFilters:        props.initialSearchFilters,
+          field:                 props.initialSearchField,
+          appliedFilterAggTypes: props.initialSearchFilterAggTypes,
+          sortType:              props.initialSearchSortType,
         }),
-        sheetSearchState: new SearchState({
-          type: 'sheet',
-          appliedFilters:        props.initialSheetSearchFilters,
-          appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
-          sortType:              props.initialSheetSearchSortType,
-        }),
+        sheetsWithRef:           props.sheetsWithRef,
         navigationCategories:    props.initialNavigationCategories,
         navigationTopicCategory: props.initialNavigationTopicCategory,
         navigationTopic:         props.initialTopic,
@@ -143,6 +137,7 @@ class ReaderApp extends Component {
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
       sheetNodes:              state.sheetNodes              || null,
+      sheetsWithRef:           state.sheetsWithRef           || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
       navigationTopicTitle:    state.navigationTopicTitle    || null,
@@ -153,10 +148,8 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
       searchQuery:             state.searchQuery             || null,
-      searchType:               state.searchType               || 'text',
       showHighlight:           state.showHighlight           || null,
-      textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
-      sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
+      searchState:             state.searchState             || new SearchState({ type: this.props.initialSearchType || 'text' }),
       compare:                 state.compare                 || false,
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
@@ -275,8 +268,7 @@ class ReaderApp extends Component {
       // history does not preserve custom objects
       if (state.panels) {
         for (let p of state.panels) {
-          p.textSearchState = p.textSearchState && new SearchState(p.textSearchState);
-          p.sheetSearchState = p.sheetSearchState && new SearchState(p.sheetSearchState);
+          p.searchState = p.searchState && new SearchState(p.searchState);
         }
       } else {
         state.panels = [];
@@ -376,10 +368,8 @@ class ReaderApp extends Component {
       const next  = nextPanels[i];
       if (!prev || !next) { return true; }
       // history does not preserve custom objects
-      const prevTextSearchState = new SearchState(prev.textSearchState);
-      const prevSheetSearchState = new SearchState(prev.sheetSearchState);
-      const nextTextSearchState = new SearchState(next.textSearchState);
-      const nextSheetSearchState = new SearchState(next.sheetSearchState);
+      const prevSearchState = new SearchState(prev.searchState);
+      const nextSearchState = new SearchState(next.searchState);
 
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
@@ -394,14 +384,12 @@ class ReaderApp extends Component {
           (next.connectionsMode !== prev.connectionsMode) ||
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
-          (prev.searchQuery != next.searchQuery) ||
-          (prev.searchType != next.searchType) ||
+          (prev.searchQuery !== next.searchQuery) ||
           (prev.tab !== next.tab) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
-          (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
-          (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
+          (!prevSearchState.isEqual({ other: nextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.navigationTopicCategory !== next.navigationTopicCategory) ||
           (prev.settings.aliyotTorah != next.settings.aliyotTorah) ||
@@ -453,6 +441,13 @@ class ReaderApp extends Component {
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
+          case "sheetsWithRef":
+            hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
+            const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
+            hist.url   = "sheets/sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
+                          state.searchState.makeURL({ prefix: 's', isStart: false })) : "");
+            hist.mode = "sheetsWithRef";
+            break;
           case "text toc":
             var ref    = state.refs.slice(-1)[0];
             var bookTitle  = ref ? Sefaria.parseRef(ref).index : "404";
@@ -483,9 +478,9 @@ class ReaderApp extends Component {
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery.stripHtml() + " | " : "";
             hist.title += Sefaria._(siteName + " Search");
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchType}` +
-              state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
-              state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
+            const prefix = state.searchState.type === 'text' ? 't' : 's';
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` +
+              state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
             hist.mode  = "search";
             break;
           case "topics":
@@ -1176,35 +1171,34 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   unsetTextHighlight(n) {
     this.setPanelState(n, { textHighlights: null });
   }
-  _getSearchStateName(type) {
-    return `${type}SearchState`;
-  }
-  _getSearchState(state, type) {
-    return !!state && state[this._getSearchStateName(type)];
+  _getSearchState(state) {
+    return !!state && state['searchState'];
   }
   updateQuery(n, query) {
     const state = this.state.panels[n];
     const updates = {
       searchQuery: query,
-      textSearchState: state.textSearchState.update({ filtersValid: false }),
-      sheetSearchState: state.sheetSearchState.update({ filtersValid: false }),
+      searchState: state.searchState.update({ filtersValid: false }),
     };
     this.setPanelState(n, updates);
   }
-  updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
+  updateSearchState(n, searchState) {
+    this.setPanelState(n,{searchState: searchState});
+  }
+  updateAvailableFilters(n, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     const state = this.state.panels[n];
-    const searchState = this._getSearchState(state, type);
-    const searchStateName = this._getSearchStateName(type);
+    const searchState = this._getSearchState(state);
     this.setPanelState(n, {
-      [searchStateName]: !!searchState ?
+      searchState: !!searchState ?
         searchState.update({
+          type: searchState.type,
           availableFilters,
           filterRegistry,
           orphanFilters,
           filtersValid: true,
           aggregationsToUpdate,
         }) : new SearchState({
-        type,
+        type: this.props.initialSearchType || 'text',
         availableFilters,
         filterRegistry,
         orphanFilters,
@@ -1212,32 +1206,42 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       })
     });
   }
-  updateSearchFilter(n, type, searchState, filterNode) {
-    const searchStateName = this._getSearchStateName(type);
+  resetSearchFilters(n) {
+    const state = this.state.panels[n];
+    const searchState = this._getSearchState(state);
+    searchState.availableFilters.forEach(filterNode => {
+      if (!filterNode.isUnselected()) {
+        filterNode.setUnselected(true);
+      }
+    })
+    this.setPanelState(n, {
+      searchState: searchState.update({appliedFilters: [], appliedFilterAggTypes: [], filterRegistry: {},
+                                            filtersValid: false}),
+    });
+  }
+  updateSearchFilter(n, searchState, filterNode) {
     if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
     } else {
       filterNode.setUnselected(true);
     }
-    const update = Sefaria.search.getAppliedSearchFilters(searchState.availableFilters)
+    const update = Sefaria.search.getAppliedSearchFilters(searchState.availableFilters);
     this.setPanelState(n, {
-      [searchStateName]: searchState.update(update)
+      searchState: searchState.update(update)
     });
   }
-  updateSearchOptionField(n, type, field) {
+  updateSearchOptionField(n, field) {
     const state = this.state.panels[n];
-    const searchState = this._getSearchState(state, type);
-    const searchStateName = this._getSearchStateName(type);
+    const searchState = this._getSearchState(state);
     this.setPanelState(n, {
-      [searchStateName]: searchState.update({ field, filtersValid: false })
+      searchState: searchState.update({ field, filtersValid: false })
     });
   }
-  updateSearchOptionSort(n, type, sortType) {
+  updateSearchOptionSort(n, sortType) {
     const state = this.state.panels[n];
-    const searchState = this._getSearchState(state, type);
-    const searchStateName = this._getSearchStateName(type);
+    const searchState = this._getSearchState(state);
     this.setPanelState(n, {
-      [searchStateName]: searchState.update({ sortType })
+      searchState: searchState.update({ sortType })
     });
   }
   setPanelState(n, state, replaceHistory) {
@@ -1434,7 +1438,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true, replaceHistory=false, saveLastPlace=true) {
+  openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true,
+              replaceHistory=false, saveLastPlace=true, forceOpenCommentaryPanel=false) {
     /* Open a new panel or replace existing panel. If book level, Open book toc
     * @param {int} n: Open new panel after `n` with the new ref
     * @param {string} ref: ref to use for new panel.  `ref` can refer to book, actual ref, or sheet.
@@ -1444,6 +1449,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     * @param {bool} convertCommentaryRefToBaseRef: if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
     * @param {bool} replaceHistory: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
     * @param {bool} saveLastPlace: whether to save user history.
+    * @param {bool} forceOpenCommentaryPanel: If true, the commentary side panel will open regardless of the ref's depth.
+    *                                       If false, side panel will only open if ref is depth 3 or greater; see `Sefaria.isCommentaryRefWithBaseText()`
     */
     this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
@@ -1463,7 +1470,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else {  // Text
       let filter = [];
       let filterRef;
-      if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
+      if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref, forceOpenCommentaryPanel)) {
         // getBaseRefAndFilter breaks up the ref "Rashi on Genesis 1:1:4" into filter "Rashi" and ref "Genesis 1:1",
         // so `filterRef` is needed to store the entire "Rashi on Genesis 1:1:4"
         filterRef = Sefaria.humanRef(ref);
@@ -1716,19 +1723,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.setSinglePanelState(state);
   }
   showSearch(searchQuery) {
-    let panel;
-    const textSearchState =  (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].textSearchState)  ? this.state.panels[0].textSearchState.update({ filtersValid: false })  : new SearchState({ type: 'text' });
-    const sheetSearchState = (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].sheetSearchState) ? this.state.panels[0].sheetSearchState.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
-
-    const searchType = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchType : "text";
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchType, textSearchState, sheetSearchState });
+    const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState;
+    const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
+        : new SearchState({ type: this.props.initialSearchType || 'text'});
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchState });
   }
   searchInCollection(searchQuery, collection) {
-    let panel;
-    const textSearchState =  new SearchState({ type: 'text' });
-    const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [collection], appliedFilterAggTypes: ['collections']});
-
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchType": "sheet", searchQuery, textSearchState, sheetSearchState });
+    const appliedFilters = [collection];
+    const appliedFilterAggTypes = ['collections'];
+    const searchState = new SearchState({ type: 'sheet',  appliedFilters, appliedFilterAggTypes});
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchState });
   }
   showCommunity() {
     this.setSinglePanelState({menuOpen: "community"});
@@ -2133,7 +2137,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
       var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
+      const updateSearchState            = this.updateSearchState.bind(null, i);
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
+      const resetSearchFilters           = this.resetSearchFilters.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
       var openConnectionsPanel           = this.openTextListAt.bind(null, i+1);
@@ -2163,6 +2169,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
                       openPanelAt={this.openPanelAt}
+                      updateSearchState={updateSearchState}
+                      resetSearchFilters={resetSearchFilters}
                       panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
@@ -2247,17 +2255,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
 
     return (
-      <AdContext.Provider value={this.getUserContext()}>
-        <div id="readerAppWrap">
-          <div className={classes} onClick={this.handleInAppLinkClick}>
-            {header}
-            {panels}
-            {signUpModal}
-            {communityPagePreviewControls}
-            <CookiesNotification />
+      // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
+      // InterruptingMessage modals and Banners will always render if available but stay hidden initially
+      <StrapiDataProvider>
+        <AdContext.Provider value={this.getUserContext()}>
+          <div id="readerAppWrap">
+            <InterruptingMessage />
+            <Banner onClose={this.setContainerMode} />
+            <div className={classes} onClick={this.handleInAppLinkClick}>
+              {header}
+              {panels}
+              {signUpModal}
+              {communityPagePreviewControls}
+              <CookiesNotification />
+            </div>
           </div>
-        </div>
-      </AdContext.Provider>
+        </AdContext.Provider>
+      </StrapiDataProvider>
     );
   }
 }
@@ -2270,12 +2284,11 @@ ReaderApp.propTypes = {
   initialMenu:                 PropTypes.string,
   initialCollection:           PropTypes.string,
   initialQuery:                PropTypes.string,
-  initialTextSearchFilters:    PropTypes.array,
-  initialTextSearchField:      PropTypes.string,
-  initialTextSearchSortType:   PropTypes.string,
-  initialSheetSearchFilters:   PropTypes.array,
-  initialSheetSearchField:     PropTypes.string,
-  initialSheetSearchSortType:  PropTypes.string,
+  initialSearchType:           PropTypes.string,
+  initialSearchFilters:        PropTypes.array,
+  initialSearchField:          PropTypes.string,
+  initialSearchSortType:       PropTypes.string,
+  initialSearchFilterAggTypes: PropTypes.array,
   initialTopic:                PropTypes.string,
   initialProfile:              PropTypes.object,
   initialNavigationCategories: PropTypes.array,
@@ -2284,7 +2297,8 @@ ReaderApp.propTypes = {
   initialDefaultVersions:      PropTypes.object,
   initialPath:                 PropTypes.string,
   initialPanelCap:             PropTypes.number,
-  topicTestVersion:          PropTypes.string,
+  topicTestVersion:            PropTypes.string,
+  sheetsWithRef:               PropTypes.object //properties 'he' and 'en' for english and hebrew spelling of ref
 };
 ReaderApp.defaultProps = {
   multiPanel:                  true,
@@ -2326,5 +2340,6 @@ export {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  ProductsPage,
   UpdatesPanel
 };

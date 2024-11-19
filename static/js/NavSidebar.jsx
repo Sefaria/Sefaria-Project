@@ -6,6 +6,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
+import Button from "./common/Button";
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -25,6 +26,7 @@ const Modules = ({type, props}) => {
     "AboutSefaria":           AboutSefaria,
     "Promo":                  Promo,
     "Resources":              Resources,
+    "Footer":                 SidebarFooter,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
@@ -39,11 +41,12 @@ const Modules = ({type, props}) => {
     "RelatedTopics":          RelatedTopics,
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
-    "JoinTheConversation":    JoinTheConversation,
     "JoinTheCommunity":       JoinTheCommunity,
     "GetTheApp":              GetTheApp,
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
+    "CreateASheet":           CreateASheet,
+    "WhatIsASourceSheet":     WhatIsASourceSheet,
     "AboutTranslatedText":    AboutTranslatedText,
     "AboutCollections":       AboutCollections,
     "ExploreCollections":     ExploreCollections,
@@ -69,24 +72,20 @@ const Module = ({children, blue, wide}) => {
 };
 
 
-const ModuleTitle = ({children, en, he, h1}) => {
+const ModuleTitle = ({children, en, he}) => {
   const content = children ?
     <InterfaceText>{children}</InterfaceText>
     : <InterfaceText text={{en, he}} />;
-
-  return h1 ?
-    <h1>{content}</h1>
-    : <h3>{content}</h3>
+  return <h1>{content}</h1>;
 };
 
-
-const TitledText = ({enTitle, heTitle, enText, heText}) => {
+const TitledText = ({children, title, text}) => {
   return <Module>
-    <ModuleTitle en={enTitle} he={heTitle} />
-    <InterfaceText markdown={{en: enText, he: heText}} />
-  </Module>
+            <ModuleTitle en={title.en} he={title.he}/>
+            <InterfaceText markdown={{en: text.en, he: text.he}} />
+            {children}
+        </Module>
 };
-
 const RecentlyViewedItem = ({oref}) => {
    const trackItem = () => {
      gtag('event', 'recently_viewed', {link_text: oref.ref, link_type: 'ref'})
@@ -138,7 +137,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
    return <Module>
             <div className="recentlyViewed">
                 <div id="header">
-                  <ModuleTitle h1={true}>Recently Viewed</ModuleTitle>
+                  <ModuleTitle>Recently Viewed</ModuleTitle>
                   {!mobile && recentlyViewedList}
                   <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>{allHistoryPhrase}</InterfaceText></a>
                 </div>
@@ -156,7 +155,7 @@ const Promo = () =>
 const AboutSefaria = ({hideTitle}) => (
   <Module>
     {!hideTitle ?
-    <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
+    <ModuleTitle>A Living Library of Torah</ModuleTitle> : null }
     <InterfaceText>
       <EnglishText>
           Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
@@ -215,7 +214,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
   }
   return (
   <Module>
-    <ModuleTitle h1={true}>{translationLookup[translationsSlug] ?
+    <ModuleTitle>{translationLookup[translationsSlug] ?
           translationLookup[translationsSlug]["title"] : "A Living Library of Torah"}</ModuleTitle>
         { translationLookup[translationsSlug] ?
           translationLookup[translationsSlug]["body"] :
@@ -241,8 +240,6 @@ const Resources = () => (
     <h3><InterfaceText context="ResourcesModule">Resources</InterfaceText></h3>
     <div className="linkList">
       <IconLink text="Mobile Apps" url="/mobile" icon="mobile.svg" />
-      <IconLink text="Create with Sefaria" url="/sheets" icon="sheet.svg" />
-      <IconLink text="Collections" url="/collections" icon="collection.svg" />
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
@@ -250,6 +247,38 @@ const Resources = () => (
     </div>
   </Module>
 );
+
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'}, 
+                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'}, 
+                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'www.example.com'},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': 'www.example.com'},
+                                    {'he': 'בלוג','en':'Blog', 'url': 'www.example.com'},
+                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'www.example.com'},
+                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'www.example.com'},
+                                    {'he': 'יוטיוב','en':'YouTube', 'url':'www.example.com'},
+                                    {'he': 'חנות','en':'Shop', 'url': 'www.example.com'},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': 'www.example.com'},
+                                    {'he': 'תרומות','en':'Donate', 'url': 'www.example.com'},
+                                  ];
+
+const SidebarFooter = () => {
+
+  const data = getSidebarFooterData();
+
+  return (
+    <Module>
+      <h3/>
+      <div className="footerContainer">
+        {data.map(footerLink => 
+          <a href={footerLink.url}>
+            <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
+          </a>
+        )}
+      </div>
+    </Module>
+);
+}
+
 
 
 const TheJewishLibrary = ({hideTitle}) => (
@@ -299,7 +328,7 @@ const AboutTextCategory = ({cats}) => {
 
   return (
     <Module>
-      <h3><InterfaceText text={{en: enTitle, he: heTitle}} /></h3>
+      <ModuleTitle><InterfaceText text={{en: enTitle, he: heTitle}} /></ModuleTitle>
       <InterfaceText markdown={{en: tocObject.enDesc, he: tocObject.heDesc}} />
     </Module>
   );
@@ -609,27 +638,6 @@ const RelatedTopics = ({title}) => {
   );
 };
 
-
-const JoinTheConversation = ({wide}) => {
-  if (!Sefaria.multiPanel) { return null; } // Don't advertise create sheets on mobile (yet)
-
-  return (
-    <Module wide={wide}>
-      <div>
-        <ModuleTitle>Join the Conversation</ModuleTitle>
-        <InterfaceText>Combine sources from our library with your own comments, questions, images, and videos.</InterfaceText>
-      </div>
-      <div>
-        <a className="button small" href="/sheets/new">
-          <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" />
-          <InterfaceText>Make a Sheet</InterfaceText>
-        </a>
-      </div>
-    </Module>
-  );
-};
-
-
 const JoinTheCommunity = ({wide}) => {
   return (
     <Module wide={wide}>
@@ -691,10 +699,32 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
   );
 };
 
+const GetStartedButton = () => {
+    const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
+    return <Button className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
+}
+const CreateSheetsButton = () => {
+  // #sheetsButton
+  return <Button icon={"/static/icons/new-sheet-black.svg"} className="small" onClick={() => window.location.href="/sheets/new"}>Create</Button>
+}
+const CreateASheet = () => (
+  <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
+              text={{'en': 'Mix and match sources along with outside sources, comments, images, and videos.',
+                     'he': ''}}>
+      <CreateSheetsButton/>
+  </TitledText>
+);
 
+const WhatIsASourceSheet = () => (
+    <TitledText title={{'en': 'What is a Source Sheet?', 'he': ''}}
+                text={{'en': '',
+                       'he': ''}}>
+        <GetStartedButton/>
+    </TitledText>
+);
 const AboutLearningSchedules = () => (
   <Module>
-    <ModuleTitle h1={true}>Learning Schedules</ModuleTitle>
+    <ModuleTitle>Learning Schedules</ModuleTitle>
     <InterfaceText>
         <EnglishText>
             Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar.
@@ -712,7 +742,7 @@ const AboutLearningSchedules = () => (
 const AboutCollections = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
-    <ModuleTitle h1={true}>About Collections</ModuleTitle>}
+    <ModuleTitle>About Collections</ModuleTitle>}
     <InterfaceText>
         <EnglishText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</EnglishText>
         <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
