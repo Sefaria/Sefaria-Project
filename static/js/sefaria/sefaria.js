@@ -2818,10 +2818,13 @@ _media: {},
     }
 
     if (tabs["notable-sources"]) {
-      tabs["sources"]["title"] = {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')};
-    //turn "sources" tab into 'super-set', containing all refs from all tabs:
-      const allRefs = [...tabs["notable-sources"].refs, ...tabs["sources"].refs];
-      tabs["sources"].refs = allRefs;
+      if (!tabs.sources) {
+          tabs.sources = {refMap: {}, shouldDisplay: true, refs: []};
+      }
+      tabs.sources.title = {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')};
+      //turn "sources" tab into 'super-set', containing all refs from all tabs:
+      const allRefs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
+      tabs.sources.refs = allRefs;
     }
     if (Sefaria.is_moderator){
         tabs["admin"] = {...tabs["sources"]};

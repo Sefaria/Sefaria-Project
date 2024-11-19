@@ -726,7 +726,11 @@ def _import_versions_from_csv(rows, columns, user_id):
     from sefaria.tracker import modify_bulk_text
 
     index_title = rows[0][columns[0]]  # assume the same index title for all
-    index_node = Ref(index_title).index_node
+    index = Index().load({'title': index_title})
+    if index:
+        index_node = index.nodes
+    else:
+        raise InputError(f'No book with primary title "{index_title}"')
 
 
     action = "edit"

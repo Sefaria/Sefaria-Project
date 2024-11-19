@@ -168,7 +168,7 @@ const _extractAnalyticsDataFromRef = ref => {
     return {
         item_id: ref,
         content_id: title,
-        content_type: Sefaria.index(title).categories.join('|'),
+        content_type: Sefaria.index(title)?.categories?.join('|'),
     };
 };
 const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin, displayDescription, hideLanguageMissingSources) => (item, index) => {
@@ -316,6 +316,10 @@ const TopicSponsorship = ({topic_slug}) => {
         "parashat-vaetchanan": {
             "en": "Shabbat Nachamu learning is dedicated in memory of Jerome L. Stern, Yehuda Leib ben David Shmuel, z\"l.",
             "he": "הלימוד לשבת נחמו מוקדש לזכרו של ג'רום ל. שטרן, יהודה לייב בן דוד שמואל ז\"ל."
+        },
+        "parashat-vzot-haberachah": {
+            "en": "Parashat VeZot HaBerakhah is dedicated to the victims of the October 7th, 2023, terrorist attack in Israel.",
+            "he": "פרשת ״וזאת הברכה״ מוקדשת לקורבנות מתקפת הטרור והטבח הנורא שאירע ב-7 באוקטובר 2023."
         }
 
     };
@@ -581,13 +585,16 @@ const TopicPage = ({
 
     useEffect( ()=> {
     // hack to redirect to temporary sheet content on topics page for those topics that only have sheet content.
-      if (document.querySelector('.filter-content') && !document.querySelector('.filter-content').firstChild) {
-        const interfaceIsHe = Sefaria.interfaceLang === "hebrew"
-        const topicPath = interfaceIsHe ? topicTitle.he : topicTitle.en;
-        const redirectUrl = `${document.location.origin}/search?q=${topicPath}&tab=sheet&tvar=1&tsort=relevance&stopics_${interfaceIsHe ? "he": "en"}Filters=${topicPath}&svar=1&ssort=relevance`
+if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0 && topicData.subclass != "author"){
+        const interfaceIsHe = Sefaria.interfaceLang === "hebrew";
+        const interfaceLang = interfaceIsHe ? 'he' : 'en';
+        const coInterfaceLang = interfaceIsHe ? 'en' : 'he';
+        const topicPathLang = topicTitle[interfaceLang] ? interfaceLang : coInterfaceLang
+        const topicPath = topicTitle[topicPathLang]
+        const redirectUrl = `${document.location.origin}/search?q=${topicPath}&tab=sheet&tvar=1&tsort=relevance&stopics_${topicPathLang}Filters=${topicPath}&svar=1&ssort=relevance`
         window.location.replace(redirectUrl);
       }
-    },[loadedData])
+    },[topicData])
 
     // Set up tabs and register incremental load hooks
     const displayTabs = [];
@@ -625,7 +632,7 @@ const TopicPage = ({
         });
       }
     }
-    if (displayTabs.length && tab!="notable-sources") {
+    if (displayTabs.length && tab!="notable-sources" && tab!="author-works-on-sefaria") {
       displayTabs.push({
         title: {
           en: "",
@@ -638,7 +645,7 @@ const TopicPage = ({
       onClickFilterIndex = displayTabs.length - 1;
     }
 
-    if (displayTabs.length) {
+    if (displayTabs.length && tab!="author-works-on-sefaria") {
       displayTabs.push({
         title: {
           en: "A",
