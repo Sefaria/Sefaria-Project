@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from django_topics.models import Topic, TopicPool, TopicOfTheDay
+from django_topics.models import Topic, TopicPool, TopicOfTheDay, SeasonalTopic
 from django_topics.models.pool import PoolType
 
 
@@ -98,15 +98,63 @@ class TopicPoolAdmin(admin.ModelAdmin):
 
 @admin.register(TopicOfTheDay)
 class TopicOfTheDayAdmin(admin.ModelAdmin):
-    list_display = ('topic', 'start_date', 'end_date')
+    list_display = ('topic', 'start_date')
     list_filter = ('start_date',)
     raw_id_fields = ('topic',)
     search_fields = ('topic__slug', 'topic__en_title', 'topic__he_title')
     date_hierarchy = 'start_date'
     fieldsets = (
         (None, {
-            'fields': ('topic', 'start_date', 'end_date'),
+            'fields': ('topic', 'start_date'),
         }),
     )
 
 
+@admin.register(SeasonalTopic)
+class SeasonalTopicAdmin(admin.ModelAdmin):
+    list_display = (
+        'topic',
+        'secondary_topic',
+        'start_date',
+        'display_start_date_israel',
+        'display_end_date_israel',
+        'display_start_date_diaspora',
+        'display_end_date_diaspora'
+    )
+    raw_id_fields = ('topic', 'secondary_topic')
+    list_filter = (
+        'start_date',
+        'display_start_date_israel',
+        'display_start_date_diaspora'
+    )
+    search_fields = ('topic__slug', 'topic__en_title', 'topic__he_title', 'secondary_topic__slug')
+    autocomplete_fields = ('topic', 'secondary_topic')
+    date_hierarchy = 'start_date'
+    fieldsets = (
+        (None, {
+            'fields': (
+                'topic',
+                'secondary_topic',
+                'start_date'
+            )
+        }),
+        ('Israel Display Dates', {
+            'fields': (
+                'display_start_date_israel',
+                'display_end_date_israel'
+            )
+        }),
+        ('Diaspora Display Dates', {
+            'fields': (
+                'display_start_date_diaspora',
+                'display_end_date_diaspora'
+            )
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        """
+        Overriding the save_model to ensure the model's clean method is executed.
+        """
+        obj.clean()
+        super().save_model(request, obj, form, change)
