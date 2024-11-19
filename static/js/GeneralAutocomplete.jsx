@@ -8,10 +8,11 @@ import { useCombobox } from 'downshift';
 
 export const GeneralAutocomplete = ({
     getSuggestions,
-    renderItem,
+    renderItems,
     renderInput,
     containerClassString,
     dropdownMenuClassString,
+    shouldDisplaySuggestions,
     onSubmit,
 }) => {
     const [suggestions, setSuggestions] = useState([]);
@@ -31,14 +32,16 @@ export const GeneralAutocomplete = ({
     });
     const inputDownshiftProps = getInputProps();
     const highlightedSuggestion=suggestions[highlightedIndex]
+    shouldDisplaySuggestions = shouldDisplaySuggestions || (() => {return isOpen})
     return (
         <div className={containerClassString}>
-            {renderInput(highlightedIndex, highlightedSuggestion, inputDownshiftProps, onSubmit)}
+            {renderInput(highlightedIndex, highlightedSuggestion, getInputProps, setInputValue)}
             <div
               {...getMenuProps()}
               className={dropdownMenuClassString}
             >
-                {(isOpen) && suggestions.map((item, index) => renderItem(item, index, highlightedIndex, getItemProps, onSubmit))}
+                {/*{(shouldDisplaySuggestions(isOpen)) && suggestions.map((item, index) => renderItem(item, index, highlightedIndex, getItemProps, onSubmit))}*/}
+                {(shouldDisplaySuggestions(isOpen)) && renderItems(suggestions, highlightedIndex, getItemProps, getInputProps)}
             </div>
         </div>
     );

@@ -56,10 +56,20 @@ const renderItem = (openTopic, item, index, highlightedIndex, getItemProps)=>{
   );
 };
 
+const renderItems = (openTopic, suggestions, highlightedIndex, getItemProps) => {
+  return (
+    <>
+      {suggestions.map((item, index) =>
+        renderItem(openTopic, item, index, highlightedIndex, getItemProps)
+      )}
+    </>
+  );
+};
 
 
-const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSuggestion, inputDownshiftProps) =>{
-    const { onKeyDown, ...otherInputDownshiftProps } = inputDownshiftProps;
+
+const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSuggestion, getInputProps) =>{
+    const { onKeyDown, ...otherInputDownshiftProps } = getInputProps();
     const onKeyDownOverride = (event) => {
         onKeyDown(event);
         if (event.key === 'Enter') {
@@ -87,7 +97,7 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
 export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
 
     return (<div className="topic-landing-search-wrapper">
-        <GeneralAutocomplete getSuggestions={getSuggestions} renderItem={renderItem.bind(null, openTopic)} containerClassString={"topic-landing-search-container"} dropdownMenuClassString='topic-landing-search-dropdown'
+        <GeneralAutocomplete getSuggestions={getSuggestions} renderItems={renderItems.bind(null, openTopic)} containerClassString={"topic-landing-search-container"} dropdownMenuClassString='topic-landing-search-dropdown'
                                  renderInput={renderInput.bind(null, openTopic, numOfTopics)}/>
             </div>
     );

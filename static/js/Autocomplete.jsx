@@ -3,6 +3,7 @@ import React, {useEffect, useState} from "react";
 import classNames from "classnames";
 import {EnglishText, HebrewText, InterfaceText, SearchButton} from "./Misc";
 import { useCombobox } from 'downshift';
+import {GeneralAutocomplete} from "./GeneralAutocomplete";
 
 const type_icon_map = {
   "Collection": "collection.svg",
@@ -174,7 +175,7 @@ const EntitySearchSuggestion = ({label, onClick, type, url, ...props}) => {
     );
 }
 
-const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebrewKeyboard, setInputValue,
+const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex, hideHebrewKeyboard, setInputValue,
                         setSearchFocused, searchFocused,
                             submitSearch, redirectToObject}) => {
 
@@ -192,7 +193,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex, hideHebre
     const handleSearchKeyDown = (event) => {
       onKeyDown(event);
       if (event.keyCode !== 13) return;
-      const highlightedItem = highlightedIndex > -1 ? suggestions[highlightedIndex] : null
+      const highlightedItem = highlightedIndex > -1 ? highlightedSuggestion : null
       if (highlightedItem  && highlightedItem.type != 'search'){
         redirectToObject(highlightedItem);
         return;
@@ -353,28 +354,12 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 };
 
  const Autocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
-  const [suggestions, setSuggestions] = useState([]);
   const [searchFocused, setSearchFocused] = useState(false);
-  const {
-    isOpen,
-    getMenuProps,
-    getInputProps,
-    getItemProps,
-    highlightedIndex,
-    setInputValue
-  } = useCombobox({
-    items: suggestions,
-    itemToString: (item) => (item ? item.name : ''),
-    onInputValueChange: ({ inputValue }) => {
-      fetchSuggestions(inputValue);
-    }
-  });
 
 
   const fetchSuggestions = async (inputValue) => {
   if (inputValue.length < 3){
-      setSuggestions([]);
-      return;
+      return([]);
     }
   try {
     const d = await Sefaria.getName(inputValue);
@@ -396,24 +381,25 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     comps = sortByTypeOrder(comps)
     if (comps.length > 0) {
       const q = inputValue;
-      setSuggestions([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
+      return([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
 
     } else {
-      setSuggestions([]);
+      return([]);
     }
   } catch (error) {
     console.error('Error fetching autocomplete suggestions:', error);
-    setSuggestions([]);
+    return([]);
   }
 };
-    const clearSearchBox = function () {
-     getInputProps().onChange({ target: { value: '' } });
+    const clearSearchBox = function (onChange) {
+     // getInputProps().onChange({ target: { value: '' } });
+        onChange({ target: { value: '' } });
   }
-   const submitSearch = (query) => {
-      if (highlightedIndex > -1 && suggestions[highlightedIndex].type === 'search')
+   const submitSearch = (onChange, query, highlightedIndex, highlightedSuggestion) => {
+      if (highlightedIndex > -1 && highlightedSuggestion.type === 'search')
        {
               showSearchWrapper(query);
-              clearSearchBox();
+              clearSearchBox(onChange);
               return;
        }
       getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
@@ -421,13 +407,13 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
           if (queryType === 'Ref') {
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
-              clearSearchBox();
+              clearSearchBox(onChange);
               onRefClick(queryId);
               onNavigate && onNavigate();
           }
           else if (queryType === 'Topic') {
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
-              clearSearchBox();
+              clearSearchBox(onChange);
               openTopic(queryId);
               onNavigate && onNavigate();
           }
@@ -437,7 +423,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
           else {
               Sefaria.track.event("Search", "Search Box Search", queryId);
               showSearchWrapper(queryId);
-              clearSearchBox();
+              clearSearchBox(onChange);
           }
       }
       )
@@ -455,9 +441,9 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     onNavigate && onNavigate();
   };
 
-  const redirectToObject = (item) => {
+  const redirectToObject = (onChange, item) => {
     Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
-    clearSearchBox();
+    clearSearchBox(onChange);
     const url = item.url
     const handled = openURL(url);
     if (!handled) {
@@ -466,12 +452,12 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     onNavigate && onNavigate();
   }
 
+  const renderInput = (highlightedIndex, highlightedSuggestion, getInputProps, setInputValue)=> {
 
-  return (
-    <div className={"search-container"}>
-      <SearchInputBox
+      return(
+            <SearchInputBox
             getInputProps={getInputProps}
-            suggestions={suggestions}
+            highlightedSuggestion={highlightedSuggestion}
             hideHebrewKeyboard={hideHebrewKeyboard}
             highlightedIndex={highlightedIndex}
             setInputValue={setInputValue}
@@ -479,21 +465,33 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
             setSearchFocused={setSearchFocused}
             searchFocused={searchFocused}
 
-            submitSearch={submitSearch}
-            redirectToObject={redirectToObject}
+            submitSearch={submitSearch.bind(null, getInputProps().onChange)}
+            redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
       />
-      <div
-        {...getMenuProps()}
-        className={"autocomplete-dropdown"}
-      >
-      {/*//debug: make following condition always truthy:*/}
-          {(isOpen && searchFocused) &&
-              <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}
-                   getInputProps={getInputProps} submitSearch={submitSearch} redirectToObject={redirectToObject}
+      )
+  };
+
+  const renderItems =(suggestions, highlightedIndex, getItemProps, getInputProps) => {
+
+      return(
+             <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}
+                   getInputProps={getInputProps}
+                                    submitSearch={submitSearch.bind(null, getInputProps().onChange)}
+                                    redirectToObject={redirectToObject}
               />
-          }
-      </div>
-    </div>
+      )
+  };
+
+
+  return (
+      <GeneralAutocomplete
+          containerClassString='search-container'
+          dropdownMenuClassString='autocomplete-dropdown'
+          renderInput={renderInput}
+          renderItems={renderItems}
+          getSuggestions={fetchSuggestions}
+          shouldDisplaySuggestions={(isOpen)=> {return isOpen && searchFocused}}
+      />
   );
 };
 export {Autocomplete};
