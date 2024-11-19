@@ -13,15 +13,15 @@ const getSuggestions = async (input) => {
       const categories = Sefaria.topicTocCategories(slug);
       if(!categories){return ""}
       const titles = categories.map((cat) => cat[lang]);
-      return "("+ titles.join(" < ") + ")";
+      return "("+ titles.join(` > `) + ")";
     }
 
-    const parseSuggestions = (d) => {
+    const parseSuggestions = (d, lang) => {
       let topics = [];
       console.log(d)
       if (d[1].length > 0) {
         topics = d[1].slice(0, 10).map((e) => ({
-          title: "# " + e.title + " " + _getFormattedPath(e.key, 'en'),
+          title: "# " + e.title + " " + _getFormattedPath(e.key, lang),
           key: e.key,
         }));
       }
@@ -31,7 +31,9 @@ const getSuggestions = async (input) => {
     };
     // const completionObjects = await Sefaria.getTopicCompletions(word, callback());
     let returnValue = await Sefaria.getTopicCompletions(word);
-    const completionObjects = parseSuggestions(returnValue)
+    const isInputHebrew = Sefaria.hebrew.isHebrew(word);
+    const lang = isInputHebrew? 'he' : 'en';
+    const completionObjects = parseSuggestions(returnValue, lang)
     return completionObjects.map((suggestion) => ({
       text: suggestion.title,
       slug: suggestion.key,
@@ -83,6 +85,7 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
 }
 
 export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
+
     return (<div className="topic-landing-search-wrapper">
         <GeneralAutocomplete getSuggestions={getSuggestions} renderItem={renderItem.bind(null, openTopic)} containerClassString={"topic-landing-search-container"} dropdownMenuClassString='topic-landing-search-dropdown'
                                  renderInput={renderInput.bind(null, openTopic, numOfTopics)}/>
