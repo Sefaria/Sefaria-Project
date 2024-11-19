@@ -1653,6 +1653,9 @@ def texts_api(request, tref):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
+    print("Image generation requested")
+    print(f"Path: {request.path}")
+    print(f"Query params: {request.GET}")
     lang = request.GET.get("lang", "en")
     if lang == "bi":
         lang = "en"
