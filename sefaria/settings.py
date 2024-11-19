@@ -141,7 +141,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
-    'reader',
+    'reader.apps.ReaderAppConfig',
     'sourcesheets',
     'sefaria.gauth',
     'django_topics',
