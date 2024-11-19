@@ -206,7 +206,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                     onCreateSuccess(newSlug);
                 }
                 else {
-                    window.location.href = `/topics/${newSlug}`;
+                    window.location.href = `../../django_topics/${newSlug}`;
                 }
             }
         }).fail(function (xhr, status, errorThrown) {

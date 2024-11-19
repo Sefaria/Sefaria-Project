@@ -3234,6 +3234,16 @@ def topic_graph_api(request, topic):
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
+@catch_error_as_json
+def topic_pool_api(request, pool_name):
+    from django_topics.models import Topic as DjangoTopic
+    n_samples = int(request.GET.get("n"))
+    order = request.GET.get("order", "random")
+    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, pool_name, n_samples)
+    response = [Topic.init(slug).contents() for slug in topic_slugs]
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
 @staff_member_required
 def reorder_topics(request):
     topics = json.loads(request.POST["json"]).get("topics", [])
@@ -4229,8 +4239,9 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
+    from django_topics.models import PoolType
     cb = request.GET.get("callback", None)
-    random_topic = get_random_topic('torahtab')
+    random_topic = get_random_topic(PoolType.TORAH_TAB.value)
     if random_topic is None:
         return random_by_topic_api(request)
     random_source = get_random_topic_source(random_topic)
