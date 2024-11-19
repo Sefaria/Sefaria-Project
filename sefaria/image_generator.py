@@ -5,6 +5,7 @@ import re
 from django.http import HttpResponse
 import io
 import subprocess
+import os
 
 palette = { # [(bg), (font)]
     "Commentary": [(37, 150, 190), (255, 255, 255)],
@@ -75,9 +76,8 @@ def cleanup_and_format_text(text, language):
     return text
 
 
-def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter"):
-    # subprocess.run(["/home/lungsang/Project/Pecha.org/env/bin/python3", "sefaria/pecha_text_image.py", text, "output.png"])
-    # subprocess_img = Image.open("output.png")
+def generate_image(text="", category="System", ref_str="", lang="he", platform="facebook"):
+
     text_color = palette[category][1]
     bg_color = palette[category][0]
 
@@ -87,6 +87,7 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     padding_x = platforms[platform]["padding"]
     padding_y = padding_x/2
     img = Image.new('RGBA', (width, height), color=bg_color)
+    print("K"*100)
 
 
     if lang == "en":
@@ -137,17 +138,24 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height*.05-logo.size[1]/2)))
 
     img = Image.alpha_composite(img, logo_padded)
+    print("L"*100)
+    img.save("output.png")
 
 
     return (img)
 
 def make_img_http_response(text, category, ref_str, lang, platform):
     try:
-        # subprocess.run(["/home/lungsang/Project/Pecha.org/env/bin/python3", "sefaria/pecha_text_image.py", "བྱང་ཆུབ་སེམས་པའི་སྤྱོད་པ་ལ་འཇུག་པར་བྱའོ།", "output.png"])
-        # img = Image.open("output.png")
-        img = generate_image(text, category, ref_str, lang, platform)
+        env = os.environ.copy()
+        env['PECHA_TEXT'] = text
+        env['PECHA_REF'] = ref_str
+        subprocess.run(["/home/lungsang/Project/Pecha.org/env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env)
+        img = Image.open("output.png")
+        # print("H"*100)
+        # img = generate_image(text, category, ref_str, lang, platform)
     except Exception as e:
         print(e)
+        print("Error generating imagee")
         height = platforms[platform]["height"]
         width = platforms[platform]["width"]
         img = Image.new('RGBA', (width, height), color="#b5343c")
