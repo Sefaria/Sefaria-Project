@@ -15,8 +15,9 @@ class SeasonalTopic(models.Model):
         related_name='seasonal_secondary_topic',
         blank=True,
         null=True,
-    )  # e.g. for topic Teshuva, secondary_topic would be Yom Kippur
-    start_date = models.DateField()
+        help_text="Secondary topic which will be displayed alongside `topic`. E.g. `topic` is 'Teshuva' then secondary topic could be 'Yom Kippur'."
+    )
+    start_date = models.DateField(help_text="Start date of when this will appear. End date is implied by when the next Seasonal Topic is displayed.")
     display_start_date_israel = models.DateField(blank=True, null=True)
     display_end_date_israel = models.DateField(blank=True, null=True)
     display_start_date_diaspora = models.DateField(blank=True, null=True)

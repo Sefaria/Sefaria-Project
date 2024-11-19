@@ -142,13 +142,20 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
             'fields': (
                 'display_start_date_israel',
                 'display_end_date_israel'
-            )
+            ),
+            'description': 'Dates to be displayed to the user of when this topic is "happening". '
+                           'E.g. for a holiday, when the holiday occurs. '
+                           'When the dates are the same for both Israel and Diaspora, only fill out Israeli dates. '
+                           'Similarly, when the start and end dates are the same, only fill out start date.'
         }),
         ('Diaspora Display Dates', {
             'fields': (
                 'display_start_date_diaspora',
                 'display_end_date_diaspora'
-            )
+            ),
+            'description': 'When the dates are the same for both Israel and Diaspora, only fill out Israeli dates. '
+                           'Similarly, when the start and end dates are the same, only fill out start date.'
+
         }),
     )
 
