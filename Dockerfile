@@ -20,7 +20,20 @@ COPY ./static/js ./static/js
 RUN npm run setup
 RUN npm run build-prod
 
+# Create a virtual environment with Python 3.12
+ENV VIRTUAL_ENV="/env"
+RUN python3.12 -m venv $VIRTUAL_ENV
+
+# Install Pillow 11 in the virtual environment
+RUN $VIRTUAL_ENV/bin/pip install --upgrade pip && \
+    $VIRTUAL_ENV/bin/pip install Pillow==11.0.0
+
+# Copy application source code
 COPY . ./
+
+# Ensure the virtual environment is used for the application
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN echo "PATH is set to: $PATH"
 
 # Run Django migrations and start the server
 CMD ["bash", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]

@@ -131,7 +131,7 @@ SITE_PACKAGE = "sites.sefaria"
 ################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
 # DEBUG = os.getenv("DEBUG", "True") == "True"
 # In Render environment variables:
-DEBUG = False
+DEBUG = True
 
 REMOTE_HOSTS = os.getenv('REMOTE_HOSTS', 'staging.pecha.org').replace(" ", "")
 
