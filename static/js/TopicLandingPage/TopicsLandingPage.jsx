@@ -3,9 +3,9 @@ import {TopicLandingSearch} from "./TopicLandingSearch";
 
 
 export const TopicsLandingPage = ({openTopic}) => {
-    return (<>
+    return (<div className='topic-landing-page-wrapper'>
         <div>Hello, would you like a serving of topics salad?</div>
         <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
-        </>
+        </div>
     )
 };
