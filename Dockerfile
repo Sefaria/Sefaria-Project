@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
     software-properties-common 
 
 # Add the Deadsnakes PPA for Python 3.12 manually
-RUN curl -fsSL https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xDEADSNAKES \
+RUN curl -fsSL https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa/+files/ppa.gpg \
     | gpg --dearmor -o /usr/share/keyrings/deadsnakes-archive-keyring.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/deadsnakes-archive-keyring.gpg] http://ppa.launchpad.net/deadsnakes/ppa/ubuntu focal main" \
     > /etc/apt/sources.list.d/deadsnakes-ppa.list && \
