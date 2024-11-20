@@ -353,7 +353,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     );
 };
 
- const Autocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
+ const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
   const [searchFocused, setSearchFocused] = useState(false);
 
 
@@ -494,4 +494,4 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
       />
   );
 };
-export {Autocomplete};
+export {HeaderAutocomplete};

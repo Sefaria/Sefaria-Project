@@ -1,6 +1,4 @@
 import React, {useState} from "react";
-import classNames from "classnames";
-import {EnglishText, HebrewText, InterfaceText, SearchButton} from "./Misc";
 import { useCombobox } from 'downshift';
 
 

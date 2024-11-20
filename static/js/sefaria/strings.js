@@ -25,7 +25,7 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
 
-    //Autocomplete
+    //HeaderAutocomplete
     "Books": "ספרים",
     "Terms": "מונחים",
     "Users": "משתמשים",
