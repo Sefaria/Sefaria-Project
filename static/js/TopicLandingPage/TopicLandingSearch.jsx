@@ -18,7 +18,6 @@ const getSuggestions = async (input) => {
 
     const parseSuggestions = (d, lang) => {
       let topics = [];
-      console.log(d)
       if (d[1].length > 0) {
         topics = d[1].slice(0, 10).map((e) => ({
           title: "# " + e.title + " " + _getFormattedPath(e.key, lang),
@@ -29,11 +28,12 @@ const getSuggestions = async (input) => {
       topics = topics.concat([dummySuggestion, dummySuggestion, dummySuggestion, dummySuggestion, dummySuggestion])
       return topics;
     };
-    // const completionObjects = await Sefaria.getTopicCompletions(word, callback());
-    let returnValue = await Sefaria.getTopicCompletions(word);
+
     const isInputHebrew = Sefaria.hebrew.isHebrew(word);
     const lang = isInputHebrew? 'he' : 'en';
-    const completionObjects = parseSuggestions(returnValue, lang)
+
+    const rawCompletions = await Sefaria.getTopicCompletions(word);
+    const completionObjects = parseSuggestions(rawCompletions, lang)
     return completionObjects.map((suggestion) => ({
       text: suggestion.title,
       slug: suggestion.key,
