@@ -13,7 +13,6 @@ export const GeneralAutocomplete = ({
     containerClassString,
     dropdownMenuClassString,
     shouldDisplaySuggestions,
-    onSubmit,
 }) => {
     const [suggestions, setSuggestions] = useState([]);
       const {
@@ -30,9 +29,10 @@ export const GeneralAutocomplete = ({
             setSuggestions(await getSuggestions(inputValue));
         }
     });
-    const inputDownshiftProps = getInputProps();
+
     const highlightedSuggestion=suggestions[highlightedIndex]
     shouldDisplaySuggestions = shouldDisplaySuggestions || (() => {return isOpen})
+
     return (
         <div className={containerClassString}>
             {renderInput(highlightedIndex, highlightedSuggestion, getInputProps, setInputValue)}
@@ -40,7 +40,6 @@ export const GeneralAutocomplete = ({
               {...getMenuProps()}
               className={dropdownMenuClassString}
             >
-                {/*{(shouldDisplaySuggestions(isOpen)) && suggestions.map((item, index) => renderItem(item, index, highlightedIndex, getItemProps, onSubmit))}*/}
                 {(shouldDisplaySuggestions(isOpen)) && renderItems(suggestions, highlightedIndex, getItemProps, getInputProps)}
             </div>
         </div>
