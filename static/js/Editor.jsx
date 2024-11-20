@@ -2557,13 +2557,6 @@ const SefariaEditor = (props) => {
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
-    const sheetOptions = <SheetOptions toggleSignUpModal={props.toggleSignUpModal}
-                                           sheetID={props.data.id}
-                                           historyObject={props.historyObject}
-                                           editable={props.editable}
-                                           authorUrl={props.data.ownerProfileUrl}
-                                           lastModified={lastModified}
-                                           sheet={sheet}/>;
 
     useEffect(
         () => {
@@ -2783,9 +2776,7 @@ const SefariaEditor = (props) => {
             sources: sources.filter(x => !!x),
             nextNode: doc.nextNode,
         };
-
-        return JSON.stringify(sheet);
-
+        return sheet;
     }
 
 
@@ -2795,14 +2786,15 @@ const SefariaEditor = (props) => {
             return
         }
         // console.log('saving...');
+        postSheet(json, doc[0].id);
+    }
 
-        $.post("/api/sheets/", {"json": json}, res => {
-            setlastModified(res.dateModified);
-            // console.log("saved at: "+ res.dateModified);
+    const postSheet = (sheet, id) => {
+        return Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST").then(data => {
+            setlastModified(data.dateModified);
             setUnsavedChanges(false);
-
-            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
-            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
+            const updatedSheet = {...Sefaria.sheets._loadSheetByID[id], ...data};
+            Sefaria.sheets._loadSheetByID[id] = updatedSheet;
         });
     }
 
@@ -2952,14 +2944,21 @@ const SefariaEditor = (props) => {
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
     );
-
+    const sheetOptions = <SheetOptions toggleSignUpModal={props.toggleSignUpModal}
+                                       sheetID={sheet.id}
+                                       postSheet={postSheet}
+                                       historyObject={props.historyObject}
+                                       editable={props.editable}
+                                       authorUrl={sheet.ownerProfileUrl}
+                                       lastModified={lastModified}
+                                       />;
     return (
           <div ref={editorContainer} onClick={props.handleClick} className="text">
-              <SheetMetaDataBox authorStatement={props.data.ownerName}
-                            authorUrl={props.data.ownerProfileUrl}
-                            authorImage={props.data.ownerImageUrl}
-                            title={props.data.title || ""}
-                            summary={props.data.summary || ""}
+              <SheetMetaDataBox authorStatement={sheet.ownerName}
+                            authorUrl={sheet.ownerProfileUrl}
+                            authorImage={sheet.ownerImageUrl}
+                            title={sheet.title || ""}
+                            summary={sheet.summary || ""}
                             editable={true}
                             blurCallback={() => saveDocument(currentDocument)}
                             sheetOptions={sheetOptions}/>

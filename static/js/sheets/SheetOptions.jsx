@@ -22,7 +22,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, lastModified}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, lastModified, postSheet}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -76,7 +76,11 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
     return <DeleteModal close={() => setDeletingMode(false)} sheetID={sheetID} authorUrl={authorUrl}/>;
   }
   else if (publishingMode) {
-    return <PublishModal close={() => setPublishingMode(false)} sheet={sheet} isPublic={isPublic} lastModified={lastModified}/>;
+    return <PublishModal close={() => setPublishingMode(false)}
+                         sheet={sheet}
+                         isPublic={isPublic}
+                         postSheet={postSheet}
+                         lastModified={lastModified}/>;
   }
   const publishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
   return (
@@ -270,7 +274,7 @@ const GenericSheetModal = ({title, message, close}) => {
         </Modal>;
 }
 
-const PublishModal = ({sheet, close, lastModified, isPublic}) => {
+const PublishModal = ({sheet, close, lastModified, isPublic, postSheet}) => {
   // `isPublic` is a boolean indicating whether the sheet is already published/public;
   // if false, the sheet's 'status' is 'unlisted'.  If `isPublic` is true, we just want to unpublish it
   // so this modal simply posts the new status.  If `isPublic` is false, we want to give the user the PublishMenu component
@@ -291,23 +295,24 @@ const PublishModal = ({sheet, close, lastModified, isPublic}) => {
     }
   }
   const togglePublishStatus = async () => {
-      setPublishText(publishState.posting);
       sheet.status = isPublic ? "unlisted" : "public";
       sheet.lastModified = lastModified;
       delete sheet._id;
-      Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST").then(data => {
+      postSheet(sheet, sheet.id).then(data => {
           if (data.id) {
-              Sefaria.sheets._loadSheetByID[data.id] = data;
-              setPublishText(publishState.posted);
+            setPublishText(publishState.posted);
           }
       }).catch(error => {
-        setPublishText(error.message);
+          setPublishText(error.message);
       })
   }
-  useEffect(async () => {
-      if (publishText === publishState.posting) {
-        await togglePublishStatus();
+  useEffect( () => {
+      const toggle = async () => {
+          if (publishText === publishState.posting) {
+              await togglePublishStatus();
+          }
       }
+      toggle();
   }, [publishText])
   let contents;
   if (publishText === publishState.notPosting) {
