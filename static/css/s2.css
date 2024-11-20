@@ -354,6 +354,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   z-index: 1000;
 }
 
+
 #s2.headerOnly {
   z-index: 1000;
   height: 60px;
@@ -13777,8 +13778,17 @@ span.ref-link-color-3 {color: blue}
   }
 }
 
+.footerContainer {
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding-top: 25px;
+}
 
-
+.footerContainer a {
+  padding: 3px 10px;
+}
 
 
 .footerContainer {
@@ -13791,6 +13801,11 @@ span.ref-link-color-3 {color: blue}
 
 .footerContainer a {
   padding: 3px 10px;
+}
+
+.stickySidebarFooter {
+  position: sticky;
+  top: 0;
 }
 
 .image-in-text-title {
