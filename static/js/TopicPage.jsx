@@ -452,8 +452,8 @@ return (
                {Sefaria.interfaceLang === "english" &&
                <a className="resourcesLink button blue studyCompanion"
                   href="https://learn.sefaria.org/weekly-parashah/"
-                  data-anl-event="promo_clicked:click|promo_viewed:scrollIntoView"
-                  data-anl-campaign-id="Parashah Email Signup - Parashah Page"
+                  data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
+                  data-anl-promotion-name="Parashah Email Signup - Parashah Page"
                >
                   <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
                   <InterfaceText>Get the Free Study Companion</InterfaceText>
