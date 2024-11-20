@@ -597,7 +597,7 @@ function transformSheetJsonToSlate(sheet) {
     let initValue = [
         {
             type: 'Sheet',
-            status: sheet.status,
+            status: status,
             views: sheet.views,
             tags: sheet.tags || [],
             includedRefs: sheet.includedRefs,
@@ -2548,6 +2548,7 @@ const BlockButton = ({format, icon}) => {
 const SefariaEditor = (props) => {
     const editorContainer = useRef(null);
     const [sheet, setSheet] = useState(props.data);
+    const [status, setStatus] = useState(sheet?.status || "unlisted");
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
@@ -2764,7 +2765,7 @@ const SefariaEditor = (props) => {
 
         });
         let sheet = {
-            status: doc.status,
+            status: status,
             id: doc.id,
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
@@ -2792,6 +2793,7 @@ const SefariaEditor = (props) => {
     const postSheet = (sheet, id) => {
         return Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST").then(data => {
             setlastModified(data.dateModified);
+            setStatus(data.status);
             setUnsavedChanges(false);
             const updatedSheet = {...Sefaria.sheets._loadSheetByID[id], ...data};
             Sefaria.sheets._loadSheetByID[id] = updatedSheet;
@@ -2799,6 +2801,7 @@ const SefariaEditor = (props) => {
     }
 
     function onChange(value) {
+        console.log("onChange", value);
         if (currentDocument !== value) {
             setCurrentDocument(value);
         }
@@ -2951,6 +2954,7 @@ const SefariaEditor = (props) => {
                                        editable={props.editable}
                                        authorUrl={sheet.ownerProfileUrl}
                                        lastModified={lastModified}
+                                       status={status}
                                        />;
     return (
           <div ref={editorContainer} onClick={props.handleClick} className="text">

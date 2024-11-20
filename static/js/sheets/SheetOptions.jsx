@@ -22,7 +22,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, lastModified, postSheet}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, lastModified, postSheet, status}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -31,8 +31,6 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
   const [exportingMode, setExportingMode] = useState(getExportingStatus());
   const [deletingMode, setDeletingMode] = useState(false);  
   const [publishingMode, setPublishingMode] = useState(false);
-  const sheet = Sefaria.sheets.loadSheetByID(sheetID);
-  const isPublic = sheet?.status === "public";
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
   const getSignUpModalKind = () => {
     if (savingMode) {
@@ -77,15 +75,15 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
   }
   else if (publishingMode) {
     return <PublishModal close={() => setPublishingMode(false)}
-                         sheet={sheet}
-                         isPublic={isPublic}
+                         sheetID={sheetID}
+                         status={status}
                          postSheet={postSheet}
                          lastModified={lastModified}/>;
   }
   const publishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
   return (
         <>
-        {editable && !isPublic && publishModalButton}
+        {editable && status === 'unlisted' && publishModalButton}
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
@@ -105,12 +103,12 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
           <DropdownMenuItem>
             <ShareButton onClick={() => setSharingMode(true)}/>
           </DropdownMenuItem>
-          {editable && isPublic && <>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem>
-                                          <UnpublishButton onClick={() => setPublishingMode(true)}/>
-                                        </DropdownMenuItem>
-                                      </>
+          {editable && status === 'public' && <>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem>
+                                                  <UnpublishButton onClick={() => setPublishingMode(true)}/>
+                                                </DropdownMenuItem>
+                                              </>
           }
           {editable && <>
                         <DropdownMenuSeparator />
@@ -274,20 +272,21 @@ const GenericSheetModal = ({title, message, close}) => {
         </Modal>;
 }
 
-const PublishModal = ({sheet, close, lastModified, isPublic, postSheet}) => {
-  // `isPublic` is a boolean indicating whether the sheet is already published/public;
-  // if false, the sheet's 'status' is 'unlisted'.  If `isPublic` is true, we just want to unpublish it
-  // so this modal simply posts the new status.  If `isPublic` is false, we want to give the user the PublishMenu component
-  // allowing them to specify title, summary, and tags and from there the user can choose to post it.
+const PublishModal = ({close, lastModified, status, sheetID, postSheet}) => {
+  // `status` is 'public' or 'unlisted'.  we are going to toggle the status.  if it's 'public' we want to unlist it
+  // so this modal simply posts the new status.  If it's 'unlisted', we want to give the user the PublishMenu component
+  // allowing them to specify title, summary, and tags and from there the user can choose to make the sheet public
+  const sheet = Sefaria.sheets.loadSheetByID(sheetID);
   const publishState = {
     notPosting: "",
     posting: "Updating sheet...",
     posted: "Success!",
   }
 
-  // if it's not yet public, show PublishMenu; if it's public, start unpublishing it
-  const initState = !isPublic ? publishState.notPosting : publishState.posting;
+  // if it's not yet public, show PublishMenu and don't yet post it; if it's public, start posting it
+  const initState = status === 'unlisted' ? publishState.notPosting : publishState.posting;
   const [publishText, setPublishText] = useState(initState);
+
   const handleClose = () => {
     if (publishText !== publishText.posting) {
       // don't allow user to close modal while posting is taking place
@@ -295,7 +294,7 @@ const PublishModal = ({sheet, close, lastModified, isPublic, postSheet}) => {
     }
   }
   const togglePublishStatus = async () => {
-      sheet.status = isPublic ? "unlisted" : "public";
+      sheet.status = status === 'public' ? "unlisted" : "public";
       sheet.lastModified = lastModified;
       delete sheet._id;
       postSheet(sheet, sheet.id).then(data => {
