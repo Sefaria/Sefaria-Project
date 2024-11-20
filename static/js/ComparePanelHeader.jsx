@@ -37,7 +37,7 @@ const ComparePanelHeader = ({ search, category, openDisplaySettings, navHome, ca
           </div>
         </div>
         {Sefaria.interfaceLang !== "hebrew" ? 
-        <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} menu={(<ReaderDisplayOptionsMenu/>)} context={ReaderPanelContext}/>
+            <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>
         : null}
       </div>
     );
@@ -52,7 +52,7 @@ const ComparePanelHeader = ({ search, category, openDisplaySettings, navHome, ca
         
         {(Sefaria.interfaceLang === "hebrew") ?
         <DisplaySettingsButton placeholder={true} />
-        : <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} menu={(<ReaderDisplayOptionsMenu/>)} context={ReaderPanelContext}/>}
+        : <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>}
       </div>
     );
   }

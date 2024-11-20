@@ -223,7 +223,7 @@ class BookPage extends Component {
               </div>
               <div className="rightButtons">
                 {Sefaria.interfaceLang !== "hebrew" ?
-                  <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} menu={(<ReaderDisplayOptionsMenu/>)} context={ReaderPanelContext}/>
+                  <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>
                   : <DisplaySettingsButton placeholder={true} />}
               </div>
             </div>

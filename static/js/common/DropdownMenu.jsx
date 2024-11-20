@@ -12,7 +12,7 @@ const useIsMenuOpen = (context) => {
     return contextValue ? [contextValue.isMenuOpen, contextValue.setIsMenuOpen] : [stateIsMenuOpen, stateSetIsMenuOpen];
 }
 
-const DropdownMenu = ({buttonContent, menu, context=null}) => {
+const DropdownMenu = ({children, buttonContent, context=null}) => {
   /**
   context - if provided, would be used for menu opening (which also be available outside.
             if not, will use state (and the opening won't be availabe in the parent component)
@@ -25,12 +25,11 @@ const DropdownMenu = ({buttonContent, menu, context=null}) => {
   return (
     <div className="dropdownMenu" ref={wrapperRef}>
       <button className="dropdownButton" onClick={onClick}>{buttonContent}</button>
-      {isMenuOpen && menu}
+      {isMenuOpen && children}
     </div>
   );
 };
 DropdownMenu.propTypes = {
     buttonContent: PropTypes.elementType.isRequired,
-    menu: PropTypes.elementType.isRequired,
 };
 export default DropdownMenu;

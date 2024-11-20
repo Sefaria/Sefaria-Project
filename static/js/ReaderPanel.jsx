@@ -1383,7 +1383,7 @@ class ReaderControls extends Component {
             tooltip={true}
             toggleSignUpModal={this.props.toggleSignUpModal}
           />
-          <DropdownMenu buttonContent={displaySettingsButton} menu={displaySettingsMenu} context={ReaderPanelContext}/>
+        <DropdownMenu buttonContent={displaySettingsButton} context={ReaderPanelContext}>{displaySettingsMenu}</DropdownMenu>
         </div>);
     const openTransBannerApplies = () => Sefaria.openTransBannerApplies(this.props.currentBook(), this.props.settings.language);
     let banner = (hideHeader || connectionsHeader) ? null : (
