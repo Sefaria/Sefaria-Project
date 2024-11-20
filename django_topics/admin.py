@@ -157,7 +157,6 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
             kwargs["help_text"] = "Use the magnifying glass button to select a topic."
         if db_field.name == "secondary_topic":
             kwargs["label"] = "Secondary Topic ID num (not slug)"
-            kwargs["help_text"] = kwargs["help_text"] + " Use the magnifying glass button to select a topic."
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
