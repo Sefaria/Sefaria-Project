@@ -10,18 +10,6 @@ import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
 import Button from "../shared/Button";
 import ReactTags from "react-tag-autocomplete";
-
-const togglePublish = async (sheet, shouldPublish, lastModified) => {
-  sheet.status = shouldPublish ? "public" : "unlisted";
-  sheet.lastModified = lastModified;
-  delete sheet._id;
-  Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST").then(data => {
-    if (data.id) {
-      Sefaria.sheets._loadSheetByID[data.id] = data;
-    }
-  })
-}
-
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
   let newHistoryObject = Object.assign({}, historyObject);
@@ -44,9 +32,8 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
   const [deletingMode, setDeletingMode] = useState(false);  
   const [publishingMode, setPublishingMode] = useState(false);
   const sheet = Sefaria.sheets.loadSheetByID(sheetID);
-  const sheetIsPublished = sheet?.status === "public";
+  const isPublic = sheet?.status === "public";
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
-  console.log("SheetOptions", sheet);
   const getSignUpModalKind = () => {
     if (savingMode) {
       return SignUpModalKind.Save;
@@ -89,12 +76,12 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
     return <DeleteModal close={() => setDeletingMode(false)} sheetID={sheetID} authorUrl={authorUrl}/>;
   }
   else if (publishingMode) {
-    return <PublishModal close={() => setPublishingMode(false)} sheet={sheet} togglePublish={togglePublish} lastModified={lastModified}/>;
+    return <PublishModal close={() => setPublishingMode(false)} sheet={sheet} isPublic={isPublic} lastModified={lastModified}/>;
   }
-  const openPublishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
+  const publishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
   return (
         <>
-        {editable && !sheetIsPublished && openPublishModalButton}
+        {editable && !isPublic && publishModalButton}
         <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
           <DropdownMenuItem>
             <SaveButtonWithText
@@ -114,10 +101,10 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
           <DropdownMenuItem>
             <ShareButton onClick={() => setSharingMode(true)}/>
           </DropdownMenuItem>
-          {editable && sheetIsPublished && <>
+          {editable && isPublic && <>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem>
-                                          <UnpublishButton onClick={() => togglePublish(sheet, false, lastModified)}/>
+                                          <UnpublishButton onClick={() => setPublishingMode(true)}/>
                                         </DropdownMenuItem>
                                       </>
           }
@@ -283,7 +270,59 @@ const GenericSheetModal = ({title, message, close}) => {
         </Modal>;
 }
 
-const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
+const PublishModal = ({sheet, close, lastModified, isPublic}) => {
+  // `isPublic` is a boolean indicating whether the sheet is already published/public;
+  // if false, the sheet's 'status' is 'unlisted'.  If `isPublic` is true, we just want to unpublish it
+  // so this modal simply posts the new status.  If `isPublic` is false, we want to give the user the PublishMenu component
+  // allowing them to specify title, summary, and tags and from there the user can choose to post it.
+  const publishState = {
+    notPosting: "",
+    posting: "Updating sheet...",
+    posted: "Success!",
+  }
+
+  // if it's not yet public, show PublishMenu; if it's public, start unpublishing it
+  const initState = !isPublic ? publishState.notPosting : publishState.posting;
+  const [publishText, setPublishText] = useState(initState);
+  const handleClose = () => {
+    if (publishText !== publishText.posting) {
+      // don't allow user to close modal while posting is taking place
+      close();
+    }
+  }
+  const togglePublishStatus = async () => {
+      setPublishText(publishState.posting);
+      sheet.status = isPublic ? "unlisted" : "public";
+      sheet.lastModified = lastModified;
+      delete sheet._id;
+      Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST").then(data => {
+          if (data.id) {
+              Sefaria.sheets._loadSheetByID[data.id] = data;
+              setPublishText(publishState.posted);
+          }
+      }).catch(error => {
+        setPublishText(error.message);
+      })
+  }
+  useEffect(async () => {
+      if (publishText === publishState.posting) {
+        await togglePublishStatus();
+      }
+  }, [publishText])
+  let contents;
+  if (publishText === publishState.notPosting) {
+      contents = <PublishMenu sheet={sheet} publishCallback={() => setPublishText(publishState.posting)}/>;
+  }
+  else {
+      contents = <div className="modalMessage"><InterfaceText>{publishText}</InterfaceText></div>;
+  }
+  return <Modal isOpen={true} close={handleClose}>
+              <div className="modalTitle"><InterfaceText>Publish</InterfaceText></div>
+              {contents}
+          </Modal>;
+}
+
+const PublishMenu = ({sheet, publishCallback}) => {
   const reactTags = React.createRef();
   const [title, setTitle] = useState(sheet.title.stripHtmlConvertLineBreaks() || "");
   const [summary, setSummary] = useState(sheet.summary || "");
@@ -332,7 +371,7 @@ const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
             return true;
         }
     }
-  const updateSuggestedTags = (input) => {
+    const updateSuggestedTags = (input) => {
     if (input === "") return
     Sefaria.getName(input, false, 0).then(d => {
         const topics = d.completion_objects
@@ -383,102 +422,100 @@ const PublishModal = ({sheet, close, togglePublish, lastModified}) => {
         })
     );
     if ((isFormValidated())) {
-      togglePublish(sheet, true, lastModified);
+      publishCallback(true);
     }
   }
-
-  return <Modal isOpen={true} close={close}>
-      <div className="modalTitle"><InterfaceText>Publish</InterfaceText></div>
-      <div className="publishSettingsEditMode">
-          <div className={"publishBox sans-serif"}>
-              <div className="publishLabel">
-                 <InterfaceText>Title</InterfaceText>
-              </div>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}></input>
-              <div className="publishLabel">
-                  <InterfaceText>Description (max 140 characters)</InterfaceText>
-              </div>
-              <textarea
-                      className={validation.validationFailed === "both" || validation.validationFailed === "summary" ? "error" : ""}
-                      rows="3"
-                      maxLength="281"
-                      placeholder={Sefaria._("Write a short description of your sheet...")}
-                      value={summary}
-                      onChange={handleSummaryChange}></textarea>
-              <div className="publishLabel">
-                  <InterfaceText>Add topics related to your sheet</InterfaceText>
-              </div>
-              <div className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
-                 <ReactTags
-                          ref={reactTags}
-                          allowNew={true}
-                          tags={tags}
-                          suggestions={suggestions}
-                          onDelete={onTagDelete}
-                          placeholderText={Sefaria._("Add a topic...")}
-                          delimiters={["Enter", "Tab", ","]}
-                          onAddition={onTagAddition}
-                          onValidate={onTagValidate}
-                          onInput={updateSuggestedTags}
-                      />
-              </div>
-              {validation.validationFailed !== "none" &&
-                      <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
-              <Button className="small" onClick={handlePublish}>Publish</Button>
-          </div>
-      </div>
-  </Modal>;
+  return <div className="publishSettingsEditMode">
+        <div className={"publishBox sans-serif"}>
+            <div className="publishLabel">
+                <InterfaceText>Title</InterfaceText>
+            </div>
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}></input>
+            <div className="publishLabel">
+                <InterfaceText>Description (max 140 characters)</InterfaceText>
+            </div>
+            <textarea
+                className={validation.validationFailed === "both" || validation.validationFailed === "summary" ? "error" : ""}
+                rows="3"
+                maxLength="281"
+                placeholder={Sefaria._("Write a short description of your sheet...")}
+                value={summary}
+                onChange={handleSummaryChange}></textarea>
+            <div className="publishLabel">
+                <InterfaceText>Add topics related to your sheet</InterfaceText>
+            </div>
+            <div
+                className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
+                <ReactTags
+                    ref={reactTags}
+                    allowNew={true}
+                    tags={tags}
+                    suggestions={suggestions}
+                    onDelete={onTagDelete}
+                    placeholderText={Sefaria._("Add a topic...")}
+                    delimiters={["Enter", "Tab", ","]}
+                    onAddition={onTagAddition}
+                    onValidate={onTagValidate}
+                    onInput={updateSuggestedTags}
+                />
+            </div>
+            {validation.validationFailed !== "none" &&
+                <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
+            <Button className="small" onClick={handlePublish}>Publish</Button>
+        </div>
+    </div>
 }
 
 const SaveModal = ({historyObject, close}) => {
     const isSaved = !!Sefaria.getSavedItem(historyObject);
-  const savingMessage = "Saving...";
-  const [message, setMessage] = useState(savingMessage);
-  const savedMessage = isSaved ? "Sheet no longer saved." : "Saved sheet.";
-  useEffect(() => {
-    if (message === savingMessage) {
-      Sefaria.toggleSavedItem(historyObject)
-          .finally(() => {
-            setMessage(savedMessage);
-          });
+    const savingMessage = "Saving...";
+    const [message, setMessage] = useState(savingMessage);
+    const savedMessage = isSaved ? "Sheet no longer saved." : "Saved sheet.";
+    useEffect(() => {
+        if (message === savingMessage) {
+            Sefaria.toggleSavedItem(historyObject)
+                .finally(() => {
+                    setMessage(savedMessage);
+                });
+        }
+    });
+    return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>}
+                              message={<InterfaceText>{message}</InterfaceText>} close={close}/>;
+}
+
+const GoogleDocExportButton = ({onClick}) => {
+    const googleDriveText = {en: "Export to Google Docs", he: "ייצוא לגוגל דוקס"};
+    return <DropdownMenuItemWithIcon
+        textEn={googleDriveText.en}
+        textHe={googleDriveText.he}
+        descEn={""}
+        descHe={""}
+        icon="/static/img/googledrivecolor.png"
+        onClick={() => onClick()}/>;
+}
+
+const GoogleDocExportModal = ({sheetID, close}) => {
+    const googleDriveState = {
+        exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
+        exportComplete: {en: "Success!", he: "ייצוא הסתיים"}
     }
-  });
-  return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={close}/>;
-}
+    const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
 
-const GoogleDocExportButton = ({ onClick }) => {
-  const googleDriveText = { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" };
-  return <DropdownMenuItemWithIcon
-                         textEn={googleDriveText.en}
-                         textHe={googleDriveText.he}
-                         descEn={""}
-                         descHe={""}
-                         icon="/static/img/googledrivecolor.png"
-                         onClick={() => onClick()} />;
-}
+    const [googleDriveLink, setGoogleDriveLink] = useState("");
+    const sheet = Sefaria.sheets.loadSheetByID(sheetID);
 
-const GoogleDocExportModal = ({ sheetID, close }) => {
-  const googleDriveState = {
-    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
-    exportComplete: { en: "Success!", he: "ייצוא הסתיים"}
-  }
-  const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
-
-  const [googleDriveLink, setGoogleDriveLink] = useState("");
-  const sheet = Sefaria.sheets.loadSheetByID(sheetID);
-
-  useEffect(() => {
-    if (googleDriveText.en === googleDriveState.exporting.en) {
-      history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
-      $.ajax({
-        type: "POST",
-        url: "/api/sheets/" + sheetID + "/export_to_drive",
-        success: function (data) {
-          if ("error" in data) {
-            console.log(data.error.message);
-            // Export Failed
-          } else {
-            // Export succeeded
+    useEffect(() => {
+        if (googleDriveText.en === googleDriveState.exporting.en) {
+            history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
+            $.ajax({
+                type: "POST",
+                url: "/api/sheets/" + sheetID + "/export_to_drive",
+                success: function (data) {
+                    if ("error" in data) {
+                        console.log(data.error.message);
+                        // Export Failed
+                    } else {
+                        // Export succeeded
             setGoogleDriveLink(data.webViewLink);
             setGoogleDriveText(googleDriveState.exportComplete)
           }
