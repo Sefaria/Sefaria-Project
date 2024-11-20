@@ -62,8 +62,7 @@ class Text(View):
             data = self._handle_warnings(data)
 
         except Exception as e:
-            if isinstance(e, InputError):
-                return jsonResponse({'error': e.message})
+            return jsonResponse({'error': str(e)})
 
         return jsonResponse(data)
 
