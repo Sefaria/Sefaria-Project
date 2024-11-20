@@ -82,20 +82,6 @@ class TopicAdmin(admin.ModelAdmin):
     is_in_pool_torah_tab.short_description = "TorahTab?"
 
 
-@admin.register(TopicPool)
-class TopicPoolAdmin(admin.ModelAdmin):
-    list_display = ('name', 'topic_names')
-    filter_horizontal = ('topics',)
-    readonly_fields = ('name',)
-
-    def topic_names(self, obj):
-        topic_slugs = obj.topics.all().values_list('slug', flat=True)
-        str_rep = ', '.join(topic_slugs[:30])
-        if len(topic_slugs) > 30:
-            str_rep = str_rep + '...'
-        return str_rep
-
-
 @admin.register(TopicOfTheDay)
 class TopicOfTheDayAdmin(admin.ModelAdmin):
     list_display = ('topic', 'start_date')
