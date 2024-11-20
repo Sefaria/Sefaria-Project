@@ -24,9 +24,14 @@ RUN npm run build-prod
 RUN apt-get update && apt-get install -y \
     software-properties-common 
 
-# Add the repository for Python 3.12 and install it
-RUN add-apt-repository ppa:deadsnakes/ppa && apt-get update && \
-    apt-get install -y python3.12 python3.12-venv python3.12-dev
+# Add the Deadsnakes PPA for Python 3.12 manually
+RUN curl -fsSL https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xDEADSNAKES \
+    | gpg --dearmor -o /usr/share/keyrings/deadsnakes-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/deadsnakes-archive-keyring.gpg] http://ppa.launchpad.net/deadsnakes/ppa/ubuntu focal main" \
+    > /etc/apt/sources.list.d/deadsnakes-ppa.list && \
+    apt-get update && \
+    apt-get install -y python3.12 python3.12-venv python3.12-dev && \
+    apt-get clean
 
 # Verify Python 3.12 installation
 RUN python3.12 --version
