@@ -1,5 +1,5 @@
 import django
-from django.db import IntegrityError
+from django.db import IntegrityError, DataError
 
 django.setup()
 from sefaria.model import TopicSet, RefTopicLinkSet
@@ -60,6 +60,8 @@ def add_topics():
             Topic.objects.create(slug=topic.slug, en_title=topic.get_primary_title('en'), he_title=topic.get_primary_title('he'))
         except IntegrityError:
             print('Duplicate topic', topic.slug)
+        except DataError:
+            print('Data error with topic', topic.slug)
 
 
 def add_pools():
