@@ -3140,19 +3140,19 @@ const JobsPage = memo(() => {
 const DevBox = () => {
     return (
       <div className='productsDevBox'>
-        <p className='productsDevHeader'>
+        <div className='productsDevHeader'>
             <InterfaceText text={{en: "Powered by Sefaria" , he:"פרויקטים מכח ספריא" }} />
-        </p>
-        <p>
+        </div>
+        <div>
             <InterfaceText>  
                 <HebrewText>   
-                    נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="www.example.com">גלו את הפרויקטים</a>                
+                    נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="https://developers.sefaria.org/docs/powered-by-sefaria">גלו את הפרויקטים</a>                
                 </HebrewText>  
                 <EnglishText>
-                Check out the products our software developer friends from around the world have been building for you! <a href="www.example.com">Explore</a> 
+                Check out the products our software developer friends from around the world have been building for you! <a href="https://developers.sefaria.org/docs/powered-by-sefaria">Explore</a> 
                 </EnglishText>
             </InterfaceText>
-        </p>
+        </div>
       </div>
     );
   };
@@ -3443,7 +3443,7 @@ const ProductsPage = memo(() => {
                 {products && products.length > 0  ? (
                     <>
                     {initialProducts}
-                    {/* <DevBox /> */}
+                    <DevBox />
                     {remainingProducts}
                     </>
                 ) : null}
