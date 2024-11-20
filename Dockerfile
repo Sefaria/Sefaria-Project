@@ -20,29 +20,29 @@ COPY ./static/js ./static/js
 RUN npm run setup
 RUN npm run build-prod
 
-# # Install system dependencies for Pillow and Python 3.12
-# RUN apt-get update && apt-get install -y \
-#     software-properties-common 
+# Install system dependencies for Pillow and Python 3.12
+RUN apt-get update && apt-get install -y \
+    software-properties-common 
 
-# # Download and build Python 3.12 from source
-# RUN wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz && \
-#     tar xvf Python-3.12.0.tgz && \
-#     cd Python-3.12.0 && \
-#     ./configure --enable-optimizations && \
-#     make -j$(nproc) && \
-#     make altinstall && \
-#     cd .. && rm -rf Python-3.12.0 Python-3.12.0.tgz
+# Download and build Python 3.12 from source
+RUN wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz && \
+    tar xvf Python-3.12.0.tgz && \
+    cd Python-3.12.0 && \
+    ./configure --enable-optimizations && \
+    make -j$(nproc) && \
+    make altinstall && \
+    cd .. && rm -rf Python-3.12.0 Python-3.12.0.tgz
 
-# # Verify Python 3.12 installation
-# RUN python3.12 --version
+# Verify Python 3.12 installation
+RUN python3.12 --version
 
-# # Create a virtual environment with Python 3.12
-# ENV VIRTUAL_ENV="/env"
-# RUN python3.12 -m venv $VIRTUAL_ENV
+# Create a virtual environment with Python 3.12
+ENV VIRTUAL_ENV="/env"
+RUN python3.12 -m venv $VIRTUAL_ENV
 
-# # Install Pillow 11 in the virtual environment
-# RUN $VIRTUAL_ENV/bin/pip install --upgrade pip && \
-#     $VIRTUAL_ENV/bin/pip install Pillow==11.0.0
+# Install Pillow 11 in the virtual environment
+RUN $VIRTUAL_ENV/bin/pip install --upgrade pip && \
+    $VIRTUAL_ENV/bin/pip install Pillow==11.0.0
 
 # Copy application source code
 COPY . ./
