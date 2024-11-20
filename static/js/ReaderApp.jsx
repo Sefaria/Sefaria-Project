@@ -1114,6 +1114,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/texts/saved") {
       this.showSaved();
 
+    } 
+    else if (path === "/texts/notes") {
+      this.showNotes();
+
     } else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
 
@@ -1739,6 +1743,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});
+  }
+  showNotes() {
+    this.setSinglePanelState({menuOpen: "notes"});
   }
   showHistory() {
     this.setSinglePanelState({menuOpen: "history"});

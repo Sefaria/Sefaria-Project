@@ -22,6 +22,7 @@ import {
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
   const store = menuOpen === "saved" ? Sefaria.saved : Sefaria.userHistory;
+  const notes = Sefaria.allPrivateNotes();
   const contentRef = useRef();
 
   const title = (
@@ -33,6 +34,10 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
       <a href="/texts/history" className={"navTitleTab" + (menuOpen === "history" ? " current" : "")}>
         <img src="/static/icons/clock.svg" />
         <InterfaceText>History</InterfaceText>
+      </a>
+      <a href="/texts/notes" className={"navTitleTab" + (menuOpen === "notes" ? " current" : "")}> {/**Add URL */}
+        <img src="/static/icons/clock.svg" /> {/**Change icon */}
+        <InterfaceText>Notes</InterfaceText>
       </a>
     </span>
   );
@@ -55,12 +60,20 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
               {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null}
             </div>
-            <UserHistoryList
-              store={store}
-              scrollableRef={contentRef}
-              menuOpen={menuOpen}
-              toggleSignUpModal={toggleSignUpModal}
-              key={menuOpen}/>
+            { menuOpen === "notes" ?
+                  (notes.length ?
+                    notes.map(function(item, i) {
+                      return <NoteListing data={item} key={i} showText={i <= this.state.numberToRender} />
+                    }.bind(this))
+                    : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)
+                 :
+                  <UserHistoryList
+                    store={store}
+                    scrollableRef={contentRef}
+                    menuOpen={menuOpen}
+                    toggleSignUpModal={toggleSignUpModal}
+                    key={menuOpen}/>
+            }
           </div>
           <NavSidebar modules={sidebarModules} />
         </div>

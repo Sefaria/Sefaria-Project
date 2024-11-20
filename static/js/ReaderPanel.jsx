@@ -1038,7 +1038,7 @@ class ReaderPanel extends Component {
           interfaceLang={this.props.interfaceLang} />
       );
 
-    } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history") {
+    } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history" || this.state.menuOpen === "notes") {
       menu = (
           <UserHistoryPanel
               multiPanel={this.props.multiPanel}
