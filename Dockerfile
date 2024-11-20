@@ -20,6 +20,10 @@ COPY ./static/js ./static/js
 RUN npm run setup
 RUN npm run build-prod
 
+# Install system dependencies for Pillow and Python 3.12
+RUN apt-get update && apt-get install -y \
+    software-properties-common 
+
 # Add the repository for Python 3.12 and install it
 RUN add-apt-repository ppa:deadsnakes/ppa && apt-get update && \
     apt-get install -y python3.12 python3.12-venv python3.12-dev
