@@ -20,6 +20,13 @@ COPY ./static/js ./static/js
 RUN npm run setup
 RUN npm run build-prod
 
+# Add the repository for Python 3.12 and install it
+RUN add-apt-repository ppa:deadsnakes/ppa && apt-get update && \
+    apt-get install -y python3.12 python3.12-venv python3.12-dev
+
+# Verify Python 3.12 installation
+RUN python3.12 --version
+
 # Create a virtual environment with Python 3.12
 ENV VIRTUAL_ENV="/env"
 RUN python3.12 -m venv $VIRTUAL_ENV
