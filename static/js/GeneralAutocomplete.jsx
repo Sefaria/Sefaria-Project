@@ -1,5 +1,4 @@
-import Sefaria from "./sefaria/sefaria";
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import classNames from "classnames";
 import {EnglishText, HebrewText, InterfaceText, SearchButton} from "./Misc";
 import { useCombobox } from 'downshift';

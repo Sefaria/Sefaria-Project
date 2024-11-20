@@ -75,16 +75,15 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
         if (event.key === 'Enter') {
             highlightedIndex >= 0 && openTopic(highlightedSuggestion.slug)
         }
-    }
+    };
+    const placeHolder = Sefaria._v({"he": `חפש ${numOfTopics} אנשים, מקומות, חפצים`, "en": `Find ${numOfTopics} People, Places, Things`})
     return (
         <div className="topic-landing-search-input-box-wrapper">
         <SearchButton/>
         <input
             className='topic-landing-search-input'
             id="searchInput"
-            placeholder={`Find ${numOfTopics} Topics`}
-            // onFocus={focusSearch}
-            // onBlur={blurSearch}
+            placeholder={placeHolder}
             onKeyDown={onKeyDownOverride}
             maxLength={75}
             title={Sefaria._("Search for Texts or Keywords Here")}
