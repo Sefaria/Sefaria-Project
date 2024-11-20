@@ -149,7 +149,18 @@ def make_img_http_response(text, category, ref_str, lang, platform):
         env = os.environ.copy()
         env['PECHA_TEXT'] = text
         env['PECHA_REF'] = ref_str
-        subprocess.run(["/home/lungsang/Project/Pecha.org/env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env)
+        
+        # for local testing
+        # subprocess.run(["/home/lungsang/Project/Pecha.org/env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env)
+
+        # for production
+        # Dynamically resolve the Python path
+        python_path = os.path.join(env.get("VIRTUAL_ENV", "/env"), "bin", "python3")
+
+        # Run the script
+        subprocess.run([python_path, "sefaria/pecha_text_image.py", "output.png"], env=env)
+
+
         img = Image.open("output.png")
         # print("H"*100)
         # img = generate_image(text, category, ref_str, lang, platform)
