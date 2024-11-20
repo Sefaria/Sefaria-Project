@@ -33,6 +33,9 @@ class SeasonalTopic(models.Model):
             setattr(self, field, getattr(self, reference_field))
 
     def validate_start_end_dates(self, start_date_field, end_date_field):
+        if not getattr(self, start_date_field, None) and not getattr(self, end_date_field, None):
+            # no data
+            return
         if not getattr(self, start_date_field, None) and getattr(self, end_date_field):
             raise ValidationError(f"End date field '{end_date_field}' defined without start date.")
         if getattr(self, start_date_field) > getattr(self, end_date_field):
