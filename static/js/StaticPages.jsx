@@ -3139,7 +3139,7 @@ const JobsPage = memo(() => {
 // The static content on the page inviting users to browse our "powered-by" products
 const DevBox = () => {
     return (
-      <div className='productsDevBox'>
+      <aside className='productsDevBox'>
         <div className='productsDevHeader'>
             <InterfaceText text={{en: "Powered by Sefaria" , he:"פרויקטים מכח ספריא" }} />
         </div>
@@ -3153,7 +3153,7 @@ const DevBox = () => {
                 </EnglishText>
             </InterfaceText>
         </div>
-      </div>
+      </aside>
     );
   };
 
