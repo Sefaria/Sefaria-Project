@@ -84,7 +84,7 @@ class TopicAdmin(admin.ModelAdmin):
 
 @admin.register(TopicOfTheDay)
 class TopicOfTheDayAdmin(admin.ModelAdmin):
-    list_display = ('topic', 'start_date')
+    list_display = ('start_date', 'topic')
     list_filter = ('start_date',)
     raw_id_fields = ('topic',)
     search_fields = ('topic__slug', 'topic__en_title', 'topic__he_title')
@@ -105,9 +105,9 @@ class TopicOfTheDayAdmin(admin.ModelAdmin):
 @admin.register(SeasonalTopic)
 class SeasonalTopicAdmin(admin.ModelAdmin):
     list_display = (
+        'start_date',
         'topic',
         'secondary_topic',
-        'start_date',
         'display_start_date_israel',
         'display_end_date_israel',
         'display_start_date_diaspora',
