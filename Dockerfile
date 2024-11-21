@@ -48,8 +48,8 @@ RUN python3.12 --version
 
 # Create a virtual environment with Python 3.12
 RUN python3.12 -m venv /pillow-env && \
-    /env/bin/pip install --upgrade pip && \
-    /env/bin/pip install Pillow==11.0.0
+    /pillow-env/bin/pip install --upgrade pip && \
+    /pillow-env/bin/pip install Pillow==11.0.0
 
 # Copy application source code
 COPY . ./
