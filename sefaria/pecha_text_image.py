@@ -92,7 +92,7 @@ class SyntheticImageGenerator:
         text_color = (255, 255, 255)
 
         # Calculate padding and max width
-        padding_x = 100  # Padding from edges
+        padding_x = 5  # Padding from edges
         max_width = self.image_width - (padding_x * 2)
         
         # Wrap text using textwrap
@@ -139,8 +139,8 @@ def clean_text(text):
 def create_synthetic_data(text, ref_str, logo_path=None):
     cleaned_text = clean_text(text)
     synthetic_image_generator = SyntheticImageGenerator(
-        image_width=1500,
-        image_height=700,
+        image_width=700,
+        image_height=400,
         font_size=30,
         font_type="Uchen1",
         bg_color="#ac1c22"

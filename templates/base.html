@@ -40,8 +40,8 @@
     {% endblock %}
 
     {% block ogimage %}
-        <meta property="og:title" content="Pecha - A Living Library of Buddhist Text" />
-        <meta property="og:description" content="The largest free library of Buddhist texts available to read online in Tibetan, English, and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more."/>
+        <meta property="og:title" content="Pecha - Buddhism in your own words" />
+        <!-- <meta property="og:description" content="The largest free library of Buddhist texts available to read online in Tibetan, English, and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more."/> -->
         <meta property="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{ request.GET.lang }}&platform=facebook&ven={{ request.GET.ven }}&vhe={{ request.GET.vhe }}" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
