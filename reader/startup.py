@@ -12,7 +12,7 @@ def init_library_cache():
     library.get_toc_tree()
 
     logger.info("Initializing Shared Cache")
-    # library.init_shared_cache()
+    library.init_shared_cache()
 
     if not settings.DISABLE_AUTOCOMPLETER:
         logger.info("Initializing Full Auto Completer")
