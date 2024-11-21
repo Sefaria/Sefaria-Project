@@ -226,6 +226,7 @@ const AnalyticsEventTracker = (function() {
                 if (entry.isIntersecting) {
                     const scrollIntoViewEvent = new CustomEvent(eventType, {bubbles: true});
                     entry.target.dispatchEvent(scrollIntoViewEvent);
+                    observer.unobserve(entry.target); // Stop observing the node
                 }
             });
         });
