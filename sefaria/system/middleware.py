@@ -29,7 +29,7 @@ class StartupMiddleware:
     def __call__(self, request):
         if not self.initialized:
             self.initialized = True
-            # self.on_startup()
+            self.on_startup()
         return self.get_response(request)
 
     def on_startup(self):
