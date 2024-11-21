@@ -74,12 +74,12 @@ class TopicAdmin(admin.ModelAdmin):
     def is_in_pool_general(self, obj):
         return obj.pools.filter(name=PoolType.GENERAL.value).exists()
     is_in_pool_general.boolean = True
-    is_in_pool_general.short_description = "General?"
+    is_in_pool_general.short_description = "General Pool"
 
     def is_in_pool_torah_tab(self, obj):
         return obj.pools.filter(name=PoolType.TORAH_TAB.value).exists()
     is_in_pool_torah_tab.boolean = True
-    is_in_pool_torah_tab.short_description = "TorahTab?"
+    is_in_pool_torah_tab.short_description = "TorahTab Pool"
 
 
 @admin.register(TopicOfTheDay)
