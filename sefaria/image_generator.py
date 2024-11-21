@@ -154,7 +154,7 @@ def make_img_http_response(text, category, ref_str, lang, platform):
         # subprocess.run(["/home/lungsang/Project/Pecha.org/env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env)
 
         # for production
-        subprocess.run(["/env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env)
+        subprocess.run(["/pillow-env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env)
 
 
         img = Image.open("output.png")

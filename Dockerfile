@@ -47,7 +47,7 @@ RUN wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz && \
 RUN python3.12 --version
 
 # Create a virtual environment with Python 3.12
-RUN python3.12 -m venv /env && \
+RUN python3.12 -m venv /pillow-env && \
     /env/bin/pip install --upgrade pip && \
     /env/bin/pip install Pillow==11.0.0
 
