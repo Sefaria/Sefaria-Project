@@ -1,5 +1,11 @@
 import React from 'react';
+import {TopicLandingSearch} from "./TopicLandingSearch";
 
-export const TopicsLandingPage = ({}) => {
-    return (<div>Hello, would you like a serving of topics salad?</div>);
+
+export const TopicsLandingPage = ({openTopic}) => {
+    return (<div className='topic-landing-page-wrapper'>
+        <div>Hello, would you like a serving of topics salad?</div>
+        <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
+        </div>
+    )
 };

@@ -4832,6 +4832,89 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-inline-end: 0;
 }
 
+.topic-landing-search-wrapper{
+  display: flex;
+  justify-content: center;
+}
+
+.interface-hebrew .topic-landing-page-wrapper{
+  direction: rtl;
+}
+
+.topic-landing-search-container{
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  text-align: inherit;
+  background: #EDEDEC;
+  border-radius: 250px;
+  width: 634px;
+  height: 60px;
+  margin-top: 137px;
+}
+
+.topic-landing-search-input-box-wrapper{
+  display: flex;
+}
+
+.topic-landing-search-input{
+  background-color: transparent;
+  padding: 0;
+  flex: 1;
+  height: 100%;
+  margin-bottom: 1px;
+  /*font-size: var(--serif-body-font-size);*/
+  font-size: 24px;
+  font-weight: 500;
+  border: none;
+  width: 600px;
+}
+
+.topic-landing-search-suggestion{
+  display: flex;
+  list-style-type: none;
+  padding: 6px 12px;
+  font-family: 'EB Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 23px;
+  cursor: pointer;
+  /*width: max-content;*/
+  flex-grow: 1;
+  max-width: 100%;
+  min-height: 10px;
+}
+
+.topic-landing-search-suggestion.highlighted{
+  background-color: #EDEDEC;
+}
+
+.topic-landing-search-dropdown{
+  background: #FFFFFF;
+  position: absolute;
+  top: 218px;
+  /*width: auto;*/
+  /*max-width: 130%;*/
+  width: 606px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 0px 0px 6px 4px;
+  padding: 10px;
+  max-height: calc(1.9em * 10 + 2em); /* 2.5em is an estimate of the height per suggestion, and 2em for padding */
+  overflow-y: auto;
+  z-index: 2;
+}
+.topic-landing-search-dropdown:empty {
+    padding: 0;
+    visibility: hidden;
+}
+
+.topic-landing-search-container .readerNavMenuSearchButton{
+  top: 6px;
+  padding-inline-start: 11px;
+}
+
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
