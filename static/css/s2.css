@@ -13544,10 +13544,6 @@ span.ref-link-color-3 {color: blue}
 
 }
 
-.productsDevBox p {
-  margin-top: 0;
-}
-
 .productsDevBox a::after {
   content: " ›";
   color: var(--commentary-blue);
