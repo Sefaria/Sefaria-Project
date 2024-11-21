@@ -20,7 +20,7 @@ const getSuggestions = async (input) => {
     const _parseSuggestions = (completionObjs, lang) => {
       let topics = [];
       if (completionObjs.length > 0) {
-        topics = completionObjs.slice(0, 10).map((e) => ({
+        topics = completionObjs.map((e) => ({
           title: `# ${e.title} ${_getFormattedPath(e.key, lang)}`,
           key: e.key,
         }));
