@@ -273,27 +273,6 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
   }, [fetchPage]);
 }
 
-function useOutsideClick(ref, onClickOutside, isActive=true) {
-  useEffect(() => {
-    /**
-     * Executes onClickOutside if clicked on outside of element
-     */
-    function handleClickOutside(event) {
-      if (ref.current && !ref.current.contains(event.target)) {
-        onClickOutside();
-      }
-    }
-    if (isActive) {
-      // Bind the event listener
-      document.addEventListener("mouseup", handleClickOutside);
-      return () => {
-        // Unbind the event listener on clean up
-        document.removeEventListener("mouseup", handleClickOutside);
-      };
-    }
-  }, [ref, isActive]);
-}
-
 
 export {
   useScrollToLoad,
@@ -302,5 +281,4 @@ export {
   useDebounce,
   useContentLang,
   useIncrementalLoad,
-  useOutsideClick,
 };

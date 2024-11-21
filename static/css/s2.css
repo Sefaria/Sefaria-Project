@@ -13390,6 +13390,14 @@ span.ref-link-color-3 {color: blue}
   z-index: 3;
 }
 
+.dropdownLinks-menu {
+  display: contents;
+}
+
+.dropdownLinks-menu.closed {
+  display: none;
+}
+
 .texts-properties-menu {
   width: 256px;
   border: 1px solid var(--lighter-grey);
