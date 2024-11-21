@@ -2561,6 +2561,9 @@ const SefariaEditor = (props) => {
     const [title, setTitle] = useState(sheet.title || "");
 
     useEffect(() => {
+        if (!canUseDOM) {
+            return
+        }
         saveDocument(currentDocument);
     }, [title, summary]);
 
@@ -2797,6 +2800,8 @@ const SefariaEditor = (props) => {
         return Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST").then(data => {
             setlastModified(data.dateModified);
             setStatus(data.status);
+            setTitle(data.title);
+            setSummary(data.summary);
             setUnsavedChanges(false);
             const updatedSheet = {...Sefaria.sheets._loadSheetByID[id], ...data};
             Sefaria.sheets._loadSheetByID[id] = updatedSheet;
