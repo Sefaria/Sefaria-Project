@@ -25,8 +25,8 @@ class SeasonalTopic(models.Model):
 
     class Meta:
         unique_together = ('topic', 'start_date')
-        verbose_name = "Seasonal Topic"
-        verbose_name_plural = "Seasonal Topics"
+        verbose_name = "Landing Page - Calendar"
+        verbose_name_plural = "Landing Page - Calendar"
 
     def populate_field_based_on_field(self, field, reference_field):
         if not getattr(self, field, None) and getattr(self, reference_field, None):

@@ -145,7 +145,7 @@ INSTALLED_APPS = (
     'emailusernames',
     'sourcesheets',
     'sefaria.gauth',
-    'django_topics',
+    'django_topics.apps.DjangoTopicsAppConfig',
     'captcha',
     'django.contrib.admin',
     'anymail',

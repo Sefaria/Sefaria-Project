@@ -13,8 +13,8 @@ class TopicOfTheDay(models.Model):
 
     class Meta:
         unique_together = ('topic', 'start_date')
-        verbose_name = "Topic of the Day"
-        verbose_name_plural = "Topics of the Day"
+        verbose_name = "Landing Page - Topic of the Day"
+        verbose_name_plural = "Landing Page - Topic of the Day"
 
     def __str__(self):
         return f"{self.topic.slug} ({self.start_date})"

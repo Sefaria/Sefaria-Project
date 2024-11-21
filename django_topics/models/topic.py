@@ -28,5 +28,9 @@ class Topic(models.Model):
     pools = models.ManyToManyField(TopicPool, related_name="topics", blank=True)
     objects = TopicManager()
 
+    class Meta:
+        verbose_name = "Topic Pool Management"
+        verbose_name_plural = "Topic Pool Management"
+
     def __str__(self):
         return self.slug
