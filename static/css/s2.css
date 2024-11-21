@@ -11530,6 +11530,19 @@ cursor: pointer;
   color: white;
   background-color: #18345d;
 }
+.resourcesLink.studyCompanion {
+  margin-inline-start: 10px;
+}
+@media screen and (max-width: 900px) {
+  .resourcesLink.studyCompanion {
+    margin-inline-start: 0;
+  }
+}
+@media screen and (max-width: 900px) {
+  .resourcesLink.studyCompanion {
+    margin-inline-start: 0;
+  }
+}
 .resourcesLink.blue img {
   filter: invert(1);
   opacity: 1;
