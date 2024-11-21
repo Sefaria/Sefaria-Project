@@ -89,6 +89,7 @@ class TopicOfTheDayAdmin(admin.ModelAdmin):
     raw_id_fields = ('topic',)
     search_fields = ('topic__slug', 'topic__en_title', 'topic__he_title')
     date_hierarchy = 'start_date'
+    ordering = ['-start_date']
     fieldsets = (
         (None, {
             'fields': ('topic', 'start_date'),
@@ -119,6 +120,7 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
         'display_start_date_israel',
         'display_start_date_diaspora'
     )
+    ordering = ['-start_date']
     search_fields = ('topic__slug', 'topic__en_title', 'topic__he_title', 'secondary_topic__slug')
     autocomplete_fields = ('topic', 'secondary_topic')
     date_hierarchy = 'start_date'
