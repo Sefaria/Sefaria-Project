@@ -153,9 +153,21 @@ def make_img_http_response(text, category, ref_str, lang, platform):
         # for local testing
         # subprocess.run(["/home/lungsang/Project/Pecha.org/env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env)
 
-        # for production
-        subprocess.run(["/pillow-env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env)
+        # Debug: Print the Python version being used in the subprocess
+        subprocess.run(
+            ["/pillow-env/bin/python3", "-c", "import sys; print(sys.version)"],
+            env=env,
+            check=True
+        )
+        # Debug: Print the Pillow version being used in the subprocess
+        subprocess.run(
+            ["/pillow-env/bin/python3", "-c", "import PIL; print(f'Pillow version: {PIL.__version__}')"],
+            env=env,
+            check=True
+        )
 
+        # for production
+        subprocess.run(["/pillow-env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env, check=True) 
 
         img = Image.open("output.png")
         # print("H"*100)
