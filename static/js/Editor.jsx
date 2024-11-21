@@ -593,7 +593,6 @@ function transformSheetJsonToSlate(sheet) {
           children: [{text: ""}]
         })
     }
-
     let initValue = [
         {
             type: 'Sheet',
@@ -613,7 +612,7 @@ function transformSheetJsonToSlate(sheet) {
             authorUrl: sheet.ownerProfileUrl,
             authorStatement: sheet.ownerName,
             authorImage: sheet.ownerImageUrl,
-            title: sheet.title,
+            title: sheetTitle,
             displayedCollection: sheet.displayedCollection || "",
             collectionName: sheet.collectionName || "",
             collectionImage: sheet.collectionImage || "",
@@ -2558,6 +2557,12 @@ const SefariaEditor = (props) => {
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
+    const [summary, setSummary] = useState(sheet.summary || "");
+    const [title, setTitle] = useState(sheet.title || "");
+
+    useEffect(() => {
+        saveDocument(currentDocument);
+    }, [title, summary]);
 
     useEffect(
         () => {
@@ -2669,8 +2674,6 @@ const SefariaEditor = (props) => {
   }, [canUseDOM])
 
     function saveSheetContent(doc, lastModified) {
-        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled";
-        const sheetSummary = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .summary") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .summary").textContent : "";
         const docContent = doc.children.find(el => el.type == "SheetContent")
         if (!docContent) {
             return false
@@ -2769,11 +2772,11 @@ const SefariaEditor = (props) => {
             id: doc.id,
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
-            summary: sheetSummary,
+            summary: summary,
             options: { ...doc.options, divineNames: props.divineNameReplacement },
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
-            title: sheetTitle === "" ? "Untitled" : sheetTitle,
+            title: title === "" ? "Untitled" : title,
             sources: sources.filter(x => !!x),
             nextNode: doc.nextNode,
         };
@@ -2801,7 +2804,6 @@ const SefariaEditor = (props) => {
     }
 
     function onChange(value) {
-        console.log("onChange", value);
         if (currentDocument !== value) {
             setCurrentDocument(value);
         }
@@ -2961,10 +2963,11 @@ const SefariaEditor = (props) => {
               <SheetMetaDataBox authorStatement={sheet.ownerName}
                             authorUrl={sheet.ownerProfileUrl}
                             authorImage={sheet.ownerImageUrl}
-                            title={sheet.title || ""}
-                            summary={sheet.summary || ""}
+                            title={title}
+                            summary={summary}
                             editable={true}
-                            blurCallback={() => saveDocument(currentDocument)}
+                            titleCallback={(newTitle) => setTitle(newTitle)}
+                            summaryCallback={(newSummary) => setSummary(newSummary)}
                             sheetOptions={sheetOptions}/>
           {
           /* debugger */

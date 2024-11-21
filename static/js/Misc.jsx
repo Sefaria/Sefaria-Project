@@ -2895,21 +2895,24 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
-const SheetMetaDataBoxSegment = (props) => (
-  <div className={props.className}
-    role="heading"
-    aria-level="1"
-    contentEditable={props.editable}
-    suppressContentEditableWarning={true}
-    onBlur={props.editable ? props.blurCallback : null}
-    style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" :"ltr"}}
+const SheetMetaDataBoxSegment = (props) => {
+  const handleBlur = (e) => {
+    const content = e.target.textContent;
+    if (props.blurCallback) {
+      props.blurCallback(content);
+    }
+  }
+  return <div className={props.className}
+              role="heading"
+              aria-level="1"
+              contentEditable={props.editable}
+              suppressContentEditableWarning={true}
+              onBlur={props.editable && handleBlur}
+              style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" : "ltr"}}
   >
-  {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+    {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
   </div>
-);
-SheetMetaDataBoxSegment.propTypes = {
-  title: PropTypes.string,
-};
+}
 
 
 const SheetAuthorStatement = (props) => (
@@ -3059,13 +3062,17 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, sheetOptions, editable, blurCallback}) => {
+const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, sheetOptions, editable, titleCallback,
+                          summaryCallback}) => {
   return <div className="sheetMetaDataBox">
     <div className="sidebarLayout">
-      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={blurCallback}/>
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
       {sheetOptions}
     </div>
-    {(summary || editable) && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable} blurCallback={blurCallback}/>}
+    {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
+                                                       className="summary"
+                                                       editable={editable}
+                                                       blurCallback={summaryCallback}/>}
     <div className="user">
       <ProfilePic
           url={authorImage}
