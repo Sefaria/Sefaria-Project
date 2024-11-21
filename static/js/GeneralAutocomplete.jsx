@@ -11,6 +11,18 @@ export const GeneralAutocomplete = ({
     dropdownMenuClassString,
     shouldDisplaySuggestions,
 }) => {
+    /**
+ * @param {Function} getSuggestions - A function that takes the current input value as a parameter
+ *                                    and returns a promise resolving to an array of suggestions.
+ * @param {Function} renderItems - A function to render the list of suggestions. It receives the following arguments:
+ *                                 (suggestions, highlightedIndex, getItemProps, getInputProps).
+ * @param {Function} renderInput - A function to render the input box. It receives the following arguments:
+ *                                 (highlightedIndex, highlightedSuggestion, getInputProps, setInputValue).
+ * @param {string} containerClassString - CSS class string for styling the main container of the autocomplete component.
+ * @param {string} dropdownMenuClassString - CSS class string for styling the dropdown menu containing the suggestions.
+ * @param {Function} shouldDisplaySuggestions - An optional function to determine whether the suggestions dropdown should
+ *                                                be displayed. Defaults to checking if the dropdown is open.
+ */
     const [suggestions, setSuggestions] = useState([]);
       const {
         isOpen,
