@@ -11,6 +11,7 @@ COPY ./sefaria/local_settings.py ./sefaria/local_settings.py
 COPY requirements.txt ./
 COPY package*.json ./
 
+# Install global Python and Node.js dependencies
 RUN pip install -r requirements.txt
 RUN npm install --unsafe-perm
 
@@ -20,11 +21,20 @@ COPY ./static/js ./static/js
 RUN npm run setup
 RUN npm run build-prod
 
-# Install system dependencies for Pillow and Python 3.12
+# Install system dependencies for building Python 3.12
 RUN apt-get update && apt-get install -y \
-    software-properties-common 
+    software-properties-common \
+    wget \
+    build-essential \
+    zlib1g-dev \
+    libssl-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libffi-dev && \
+    apt-get clean
 
-# Download and build Python 3.12 from source
+# Download and build Python 3.12
 RUN wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz && \
     tar xvf Python-3.12.0.tgz && \
     cd Python-3.12.0 && \
@@ -37,22 +47,15 @@ RUN wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz && \
 RUN python3.12 --version
 
 # Create a virtual environment with Python 3.12
-ENV VIRTUAL_ENV="/env"
-RUN python3.12 -m venv $VIRTUAL_ENV
-
-# Install Pillow 11 in the virtual environment
-RUN $VIRTUAL_ENV/bin/pip install --upgrade pip && \
-    $VIRTUAL_ENV/bin/pip install Pillow==11.0.0
+RUN python3.12 -m venv /env && \
+    /env/bin/pip install --upgrade pip && \
+    /env/bin/pip install Pillow==11.0.0
 
 # Copy application source code
 COPY . ./
 
-# Ensure the virtual environment is used for the application
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN echo "PATH is set to: $PATH"
-
 # Run Django migrations and start the server
 CMD ["bash", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
 
-# Expose the port that the Django server will listen on
+# Expose the port for the Django application
 EXPOSE 8000
