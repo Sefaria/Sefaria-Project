@@ -46,6 +46,10 @@ RUN wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz && \
 # Verify Python 3.12 installation
 RUN python3.12 --version
 
+# Print the working directory of Python 3.12
+RUN python3.12 -c "import os; print(f'Python 3.12 working directory: {os.getcwd()}')"
+RUN python3.12 -c "import sys; print(f'Python 3.12 path: {sys.path}')"
+
 # Create a virtual environment with Python 3.12
 RUN python3.12 -m venv /pillow-env && \
     /pillow-env/bin/pip install --upgrade pip && \
