@@ -40,6 +40,7 @@
     {% endblock %}
 
     {% block ogimage %}
+        <meta property="og:title" content="Tashi Delek" />
         <meta property="og:description" content="{% block fb_description %}{{ desc|striptags }}{% endblock %}"/>
         <meta property="og:image" content="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=facebook&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
         <meta property="og:image:type" content="image/png" />
