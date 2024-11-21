@@ -16,6 +16,28 @@ from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_terri
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 
+import structlog
+logger = structlog.get_logger(__name__)
+
+
+class StartupMiddleware:
+    initialized = False
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if not self.initialized:
+            self.initialized = True
+            self.on_startup()
+        return self.get_response(request)
+
+    def on_startup(self):
+        from reader.startup import init_library_cache
+        logger.info("Server has started handling requests!")
+        print("Server has started handling requests!")
+        init_library_cache()
+
 
 class SharedCacheMiddleware(MiddlewareMixin):
     def process_request(self, request):

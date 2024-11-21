@@ -90,39 +90,6 @@ if USE_VARNISH:
 import structlog
 logger = structlog.get_logger(__name__)
 
-#    #    #
-# Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.info("Initializing library objects.")
-logger.info("Initializing TOC Tree")
-library.get_toc_tree()
-
-logger.info("Initializing Shared Cache")
-library.init_shared_cache()
-
-if not DISABLE_AUTOCOMPLETER:
-    logger.info("Initializing Full Auto Completer")
-    library.build_full_auto_completer()
-
-    logger.info("Initializing Ref Auto Completer")
-    library.build_ref_auto_completer()
-
-    logger.info("Initializing Lexicon Auto Completers")
-    library.build_lexicon_auto_completers()
-
-    logger.info("Initializing Cross Lexicon Auto Completer")
-    library.build_cross_lexicon_auto_completer()
-
-    logger.info("Initializing Topic Auto Completer")
-    library.build_topic_auto_completer()
-
-if ENABLE_LINKER:
-    logger.info("Initializing Linker")
-    library.build_linker('he')
-
-if server_coordinator:
-    server_coordinator.connect()
-#    #    #
-
 
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
@@ -3234,6 +3201,16 @@ def topic_graph_api(request, topic):
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
+@catch_error_as_json
+def topic_pool_api(request, pool_name):
+    from django_topics.models import Topic as DjangoTopic
+    n_samples = int(request.GET.get("n"))
+    order = request.GET.get("order", "random")
+    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, pool_name, n_samples)
+    response = [Topic.init(slug).contents() for slug in topic_slugs]
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
 @staff_member_required
 def reorder_topics(request):
     topics = json.loads(request.POST["json"]).get("topics", [])
@@ -4229,8 +4206,9 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
+    from django_topics.models import PoolType
     cb = request.GET.get("callback", None)
-    random_topic = get_random_topic(good_to_promote=True)
+    random_topic = get_random_topic(PoolType.TORAH_TAB.value)
     if random_topic is None:
         return random_by_topic_api(request)
     random_source = get_random_topic_source(random_topic)

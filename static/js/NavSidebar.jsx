@@ -479,7 +479,7 @@ const WeeklyTorahPortion = () => {
         </span>
         <HaftarotLinks />
       </div>
-      <a href="/topics/category/torah-portions" className="allLink">
+      <a href="/django_topics/category/torah-portions" className="allLink">
         <InterfaceText>
         <EnglishText>All Portions ›</EnglishText>
         <HebrewText>פרשות השבוע ›</HebrewText>
