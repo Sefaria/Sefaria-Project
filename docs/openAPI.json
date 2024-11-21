@@ -4461,6 +4461,24 @@
         "tags": [
           "Topic"
         ],
+        "parameters": [
+          {
+              "examples": {
+                  "Return all topics": {
+                      "value": "limit=0"
+                  },
+                  "Return 20 topics": {
+                      "value": "limit=20"
+                  }
+              },
+              "name": "limit",
+              "description": "This parameter limits the number of topics returned. The default is `1000`. If `limit=0` then all topics will be returned.",
+              "schema": {
+                  "type": "integer"
+              },
+              "in": "query"
+          }
+      ],
         "responses": {
           "200": {
             "content": {
