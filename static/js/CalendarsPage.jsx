@@ -28,7 +28,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
   const weeklyListings  = makeListings(weeklyCalendars);
 
   const about = multiPanel ? null :
-    <Modules type={"AboutLearningSchedules"} />
+    <SidebarModules type={"AboutLearningSchedules"} />
 
   const sidebarModules = [
     multiPanel ? {type: "AboutLearningSchedules"} : {type: null},
@@ -56,7 +56,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
               <ResponsiveNBox content={weeklyListings} initialWidth={initialWidth} />
             </div>
           </div>
-          <NavSidebar modules={sidebarModules} />
+          <NavSidebar sidebarModules={sidebarModules} />
         </div>
         <Footer />
       </div>
