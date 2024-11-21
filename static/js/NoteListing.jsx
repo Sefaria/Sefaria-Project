@@ -37,6 +37,8 @@ class NoteListing extends Component {
     var data = this.props.data;
     var url  = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
 
+    console.log(data.ref, data.text);
+
     return (<div className="noteListing">
               <div className="actionButtons">
                 <img src="/static/icons/sheet.svg" onClick={this.showSheetModal} />

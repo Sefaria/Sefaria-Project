@@ -22,8 +22,29 @@ import {
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
   const store = menuOpen === "saved" ? Sefaria.saved : Sefaria.userHistory;
-  const notes = Sefaria.allPrivateNotes();
+
+  let flattenedNotes = [];
+  let notes = null;
+
+// Call the allPrivateNotes function
+  Sefaria.allPrivateNotes((data) => {
+  if (Array.isArray(data)) {
+    // Map the data to extract 'ref' and 'text' pairs
+    flattenedNotes = data.map(note => ({
+      ref: note.ref,
+      text: note.text
+    }));
+
+    console.log("Flattened notes:", flattenedNotes); // Log the result
+    notes = flattenedNotes;
+  } else {
+    console.error("Unexpected data format:", data);
+  }
+});
+
   const contentRef = useRef();
+
+  console.log(notes);
 
   const title = (
     <span className="sans-serif">
@@ -35,7 +56,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         <img src="/static/icons/clock.svg" />
         <InterfaceText>History</InterfaceText>
       </a>
-      <a href="/texts/notes" className={"navTitleTab" + (menuOpen === "notes" ? " current" : "")}> {/**Add URL */}
+      <a href="/texts/notes" className={"navTitleTab" + (menuOpen === "notes" ? " current" : "")}> 
         <img src="/static/icons/clock.svg" /> {/**Change icon */}
         <InterfaceText>Notes</InterfaceText>
       </a>
@@ -61,8 +82,9 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
               <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null}
             </div>
             { menuOpen === "notes" ?
-                  (notes.length ?
+                  (notes && notes.length ?
                     notes.map(function(item, i) {
+                      {console.log(`item ${item}, i: ${i}`);}
                       return <NoteListing data={item} key={i} showText={i <= this.state.numberToRender} />
                     }.bind(this))
                     : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)
