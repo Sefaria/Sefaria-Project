@@ -52,11 +52,9 @@ RUN python3.12 -m venv /pillow-env && \
     /pillow-env/bin/pip install --upgrade pip && \
     /pillow-env/bin/pip install Pillow==11.0.0
 
-# List the contents of the env/bin directory
-RUN ls -l /pillow-env/bin
+RUN /pillow-env/bin/pip list
 
-# List the contents of the env/lib directory
-RUN ls -l /pillow-env/lib
+RUN ls -l /env/lib/python3.12/site-packages
 
 # Copy application source code
 COPY . ./
