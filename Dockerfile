@@ -54,7 +54,7 @@ RUN python3.12 -m venv /pillow-env && \
 
 RUN /pillow-env/bin/pip list
 
-RUN ls -l /env/lib/python3.12/site-packages
+RUN ls -l /pillow-env/lib/python3.12/site-packages
 
 # Copy application source code
 COPY . ./
