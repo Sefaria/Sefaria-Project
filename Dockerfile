@@ -52,8 +52,11 @@ RUN python3.12 -m venv /pillow-env && \
     /pillow-env/bin/pip install --upgrade pip && \
     /pillow-env/bin/pip install Pillow==11.0.0
 
-# Print the working directory of the env folder
-RUN python3.12 -c "import os; print(f'Virtual environment folder exists: {os.path.exists(\"/pillow-env\")}, Path: {os.path.abspath(\"/pillow-env\")}')"    
+# List the contents of the env/bin directory
+RUN ls -l /pillow-env/bin
+
+# List the contents of the env/lib directory
+RUN ls -l /pillow-env/lib
 
 # Copy application source code
 COPY . ./
