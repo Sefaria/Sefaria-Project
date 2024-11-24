@@ -8496,7 +8496,7 @@ a.sheetAuthorName:hover {
   text-align: initial;
 }
 .sheetMetaDataBox .title:empty:before {
-  content: "Title";
+  content: "Untitled";
   color: #999;
   position: relative;
   pointer-events: none;
