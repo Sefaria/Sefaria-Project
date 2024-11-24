@@ -499,7 +499,8 @@ class TitleTrie(datrie.Trie):
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": True,
-                    "order": base_order + sub_order
+                    "order": base_order + sub_order,
+                    "pools": obj.get_pools() if obj.__class__.__name__ == 'Topic' else None
                 }
 
             titles = getattr(obj, all_names_method)(self.lang)
@@ -513,7 +514,8 @@ class TitleTrie(datrie.Trie):
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": False,
-                    "order": base_order + sub_order
+                    "order": base_order + sub_order,
+                    "pools": obj.get_pools() if obj.__class__.__name__ == 'Topic' else None
                 }
 
 
