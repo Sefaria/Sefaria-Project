@@ -434,7 +434,10 @@ const PublishMenu = ({sheet, publishCallback}) => {
             <div className="publishLabel">
                 <InterfaceText>Title</InterfaceText>
             </div>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}></input>
+            <input type="text"
+                   value={title}
+                   placeholder={Sefaria._("Untitled")}
+                   onChange={(e) => setTitle(e.target.value)}></input>
             <div className="publishLabel">
                 <InterfaceText>Description (max 140 characters)</InterfaceText>
             </div>
