@@ -2561,9 +2561,6 @@ const SefariaEditor = (props) => {
     const [title, setTitle] = useState(sheet.title || "");
 
     useEffect(() => {
-        if (!canUseDOM) {
-            return
-        }
         saveDocument(currentDocument);
     }, [title, summary]);
 
@@ -2779,7 +2776,7 @@ const SefariaEditor = (props) => {
             options: { ...doc.options, divineNames: props.divineNameReplacement },
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
-            title: title === "" ? "Untitled" : title,
+            title: title,
             sources: sources.filter(x => !!x),
             nextNode: doc.nextNode,
         };
