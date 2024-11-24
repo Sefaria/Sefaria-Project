@@ -22,7 +22,7 @@ class TopicManager(models.Manager):
 
 
 class Topic(models.Model):
-    slug = models.CharField(max_length=255, unique=True)
+    slug = models.CharField(max_length=255, primary_key=True)
     en_title = models.CharField(max_length=255, blank=True, default="")
     he_title = models.CharField(max_length=255, blank=True, default="")
     pools = models.ManyToManyField(TopicPool, related_name="topics", blank=True)
