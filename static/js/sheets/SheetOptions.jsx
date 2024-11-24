@@ -418,7 +418,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
     setSummary(newSummary);
   }
   const handlePublish = () => {
-    sheet.title = title;
+    sheet.title = title === "" ? "Untitled" : title;
     sheet.summary = summary;
     sheet.topics = tags.map(tag => ({
           asTyped: tag.name,
