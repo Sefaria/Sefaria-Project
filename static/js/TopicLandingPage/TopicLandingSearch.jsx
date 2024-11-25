@@ -10,6 +10,10 @@ const getSuggestions = async (input) => {
     }
     const word = input.trim();
 
+    const _capitalizeFirstLetter = (text)=> {
+        return String(text).charAt(0).toUpperCase() + String(text).slice(1);
+    }
+
     const _getFormattedPath = (slug, lang) => {
       const categories = Sefaria.topicTocCategories(slug);
       if(!categories){return ""}
@@ -21,7 +25,8 @@ const getSuggestions = async (input) => {
       let topics = [];
       if (completionObjs.length > 0) {
         topics = completionObjs.map((e) => ({
-          title: `# ${e.title} ${_getFormattedPath(e.key, lang)}`,
+          title: `#${_capitalizeFirstLetter(e.title)}`,
+          categoryPathTitle: `${_getFormattedPath(e.key, lang)}`,
           key: e.key,
         }));
       }
@@ -37,6 +42,7 @@ const getSuggestions = async (input) => {
     const completionObjects = _parseSuggestions(rawCompletions["completion_objects"], lang)
     return completionObjects.map((suggestion) => ({
       text: suggestion.title,
+      categoryText: suggestion.categoryPathTitle,
       slug: suggestion.key,
     }));
 };
@@ -53,7 +59,7 @@ const renderItem = (openTopic, item, index, highlightedIndex, getItemProps)=>{
           key={item.slug}
           {...getItemProps({index})}
         >
-            {item.text}
+            <span className="topic-landing-search-suggestion-title">{item.text}</span> <span className="topic-landing-search-suggestion-category-path">&nbsp;{item.categoryText}</span>
         </div>
       </div>
     );
