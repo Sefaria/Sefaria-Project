@@ -74,7 +74,7 @@ class ConnectionsPanel extends Component {
     this.removeScrollListener();
   }
   componentDidUpdate(prevProps, prevState) {
-    if (prevProps.srefs !== this.props.srefs) {
+    if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
     }
     // Turn on the lexicon when receiving new words if they are less than 3
