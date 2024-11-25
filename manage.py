@@ -7,11 +7,11 @@ if __name__ == "__main__":
 
     from django.core.management import execute_from_command_line
     
-    # skip migrate command
-    if "migrate" in sys.argv:
-        sys.argv.remove("migrate")
-        if "&&" in sys.argv:
-            sys.argv.remove("&&")
+    # replace migrate command with help command
+    for i, arg in enumerate(sys.argv):
+        if arg == 'migrate':
+            sys.argv[i] = 'help'
+            break
 
     execute_from_command_line(sys.argv)
 
