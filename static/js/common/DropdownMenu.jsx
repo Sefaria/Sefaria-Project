@@ -11,11 +11,14 @@ const DropdownMenu = ({children, buttonContent}) => {
      */
 
     const dropdownLinksClass = 'dropdownLinks-menu';
-    const isOpenRef = useRef(null);
+    const dropdownLinksRef = useRef(null);
+    const isMenuOpen = () => {
+        return dropdownLinksRef.current?.className?.includes('open');
+    };
 
     const setIsOpen = (isOpen) => {
-        if (isOpenRef.current) {
-            isOpenRef.current.className = `${dropdownLinksClass} ${isOpen ? 'open' : 'closed'}`;
+        if (dropdownLinksRef.current) {
+            dropdownLinksRef.current.className = `${dropdownLinksClass} ${isOpen ? 'open' : 'closed'}`;
             const action = isOpen ? 'addEventListener' : 'removeEventListener';
             document[action]('keydown', handleHideDropdown, true);
             document[action]('click', handleClickOutside, true);
@@ -23,7 +26,7 @@ const DropdownMenu = ({children, buttonContent}) => {
     }
     const handleClick = (e) => {
       e.stopPropagation();
-      if (isOpenRef.current?.className?.includes('open')) {
+      if (isMenuOpen()) {
           setIsOpen(false);
       } else {
           setIsOpen(true);
@@ -43,7 +46,7 @@ const DropdownMenu = ({children, buttonContent}) => {
   return (
     <div className="dropdownMenu">
       <button className="dropdownButton preventClosing" onClick={handleClick}>{buttonContent}</button>
-        <div className={ `${dropdownLinksClass} closed`} ref={isOpenRef}>
+        <div className={ `${dropdownLinksClass} closed`} ref={dropdownLinksRef}>
             {children}
         </div>
     </div>
