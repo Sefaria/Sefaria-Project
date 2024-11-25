@@ -2588,7 +2588,7 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, ref_only, topic_override=False):
+def get_name_completions(name, limit, ref_only, topic_override=False, type=None, topic_pool=None):
     lang = "he" if has_hebrew(name) else "en"
     completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
     object_data = None
@@ -2614,7 +2614,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
             completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
         else:
-            completions, completion_objects = completer.complete(name, limit)
+            completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool)
             object_data = completer.get_object(name)
 
     except DictionaryEntryNotFoundError as e:
@@ -2624,7 +2624,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
         completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
     except InputError:  # Not a Ref
-        completions, completion_objects = completer.complete(name, limit)
+        completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool)
         object_data = completer.get_object(name)
 
     return {
@@ -2653,7 +2653,9 @@ def name_api(request, name):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
     ref_only = bool(int(request.GET.get("ref_only", False)))
-    completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override)
+    type = request.GET.get("type", None)
+    topic_pool = request.GET.get("topic_pool", None)
+    completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override, type=type, topic_pool=topic_pool)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
     d = {

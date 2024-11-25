@@ -12,6 +12,7 @@ from unidecode import unidecode
 from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
+from sefaria.model.tests.topic_test import topic_pool
 from sefaria.utils import hebrew
 from sefaria.model.following import aggregate_profiles
 import re2 as re
@@ -201,7 +202,7 @@ class AutoCompleter(object):
         except KeyError:
             return None
 
-    def complete(self, instring, limit=0, redirected=False):
+    def complete(self, instring, limit=0, redirected=False, type=None, topic_pool=None):
         """
         Wrapper for Completions object - prioritizes and aggregates completion results.
         In the case where there are no results, tries to swap keyboards and get completion results from the other language.
@@ -215,7 +216,7 @@ class AutoCompleter(object):
         if len(instring) >= self.max_completion_length:
             return [], []
         cm = Completions(self, self.lang, instring, limit,
-                         do_autocorrect=len(instring) < self.max_autocorrect_length)
+                         do_autocorrect=len(instring) < self.max_autocorrect_length, type=type, topic_pool=topic_pool)
         cm.process()
         if cm.has_results():
             return cm.get_completion_strings(), cm.get_completion_objects()
@@ -247,7 +248,7 @@ class AutoCompleter(object):
 
 
 class Completions(object):
-    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True):
+    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, topic_pool=None):
         """
         An object that contains a single search, delegates to different methods of completions, and aggregates results.
         :param auto_completer:
@@ -272,6 +273,17 @@ class Completions(object):
         self._completion_objects = []
         self._candidate_type_counters = defaultdict(int)
         self._type_limit = 3
+        self.type = type
+        self._type_norm_map = {
+            "Collection": "Collection",
+            "AuthorTopic": "Topic",
+            "TocCategory": "TocCategory",
+            "PersonTopic": "Topic",
+            "Topic": "Topic",
+            "ref": "ref",
+            "Term": "Term",
+            "User": "User"}
+        self.topic_pool = topic_pool
 
     def has_results(self):
         return len(self._completion_objects) > 0
@@ -319,12 +331,36 @@ class Completions(object):
         else:
             return c[1]["order"] * 100
 
+    def _filter_suggestions_by_type(self, suggestions):
+        if not self.type:
+            return suggestions
+
+        filtered_suggestions = [suggestion for suggestion in suggestions if self._type_norm_map[suggestion[1]["type"]] == self.type]
+        if not self.topic_pool:
+            return filtered_suggestions
+        pool_filtered_suggestions = [suggestion for suggestion in filtered_suggestions if
+                                     self.topic_pool in suggestion[1]['topic_pools']]
+        return pool_filtered_suggestions
+
+    def _filter_values_by_type(self, values):
+        if not self.type:
+            return values
+
+        filtered_values = [value for value in values if self._type_norm_map[value["type"]] == self.type]
+        if not self.topic_pool:
+            return filtered_values
+        pool_filtered_values = [value for value in filtered_values if
+                                     self.topic_pool in value['topic_pools']]
+        return pool_filtered_values
+
+
     def _collect_candidates(self):
         # Match titles that begin exactly this way
         [cs, co] = self.get_new_continuations_from_string(self.normal_string)
 
         joined = list(zip(cs, co))
         if len(joined):
+            joined = self._filter_suggestions_by_type(joined)
             # joined.sort(key=lambda w: w[1]["order"])
             joined.sort(key=self._candidate_order)
             self._raw_completion_strings, self._completion_objects = [list(_) for _ in zip(*joined)]
@@ -343,7 +379,12 @@ class Completions(object):
         # single misspellings
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
-            [cs, co] = self.get_new_continuations_from_string(edit)
+            cs, co =  self.get_new_continuations_from_string(edit)
+            filtered_suggestions = self._filter_suggestions_by_type(zip(cs, co))
+            if filtered_suggestions:
+                cs, co = zip(*filtered_suggestions)
+            else:
+                cs, co = [], []
             self._raw_completion_strings += cs
             self._completion_objects += co
             if self._is_past_limit():
@@ -368,10 +409,15 @@ class Completions(object):
                 k = normalizer(self.lang)(suggestion)
                 try:
                     all_v = self.auto_completer.title_trie[k]
+                    all_v = self._filter_values_by_type(all_v)
                 except KeyError:
                     all_v = []
                 for v in all_v:
                     if (v["type"], v["key"]) not in self.keys_covered:
+                        # if self.type and self._type_norm_map[v["type"]] != self.type:
+                        #     break
+                        # if self.topic_pool and self.topic_pool not in v['topic_pools']:
+                        #     break
                         self._completion_objects += [v]
                         self._raw_completion_strings += [v["title"]]
                         self.keys_covered.add((v["type"], v["key"]))
@@ -500,7 +546,7 @@ class TitleTrie(datrie.Trie):
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": True,
                     "order": base_order + sub_order,
-                    "pools": obj.get_pools() if obj.__class__.__name__ == 'Topic' else None
+                    "topic_pools": obj.get_pools() if obj.__class__.__name__ == 'Topic' else []
                 }
 
             titles = getattr(obj, all_names_method)(self.lang)
@@ -515,7 +561,7 @@ class TitleTrie(datrie.Trie):
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": False,
                     "order": base_order + sub_order,
-                    "pools": obj.get_pools() if obj.__class__.__name__ == 'Topic' else None
+                    "topic_pools": obj.get_pools() if obj.__class__.__name__ == 'Topic' else []
                 }
 
 
