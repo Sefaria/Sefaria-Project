@@ -359,8 +359,8 @@ class Completions(object):
         [cs, co] = self.get_new_continuations_from_string(self.normal_string)
 
         joined = list(zip(cs, co))
+        joined = self._filter_suggestions_by_type(joined)
         if len(joined):
-            joined = self._filter_suggestions_by_type(joined)
             # joined.sort(key=lambda w: w[1]["order"])
             joined.sort(key=self._candidate_order)
             self._raw_completion_strings, self._completion_objects = [list(_) for _ in zip(*joined)]
@@ -380,8 +380,8 @@ class Completions(object):
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
             cs, co =  self.get_new_continuations_from_string(edit)
-            filtered_suggestions = self._filter_suggestions_by_type(zip(cs, co))
-            if filtered_suggestions:
+            filtered_suggestions = list(self._filter_suggestions_by_type(zip(cs, co)))
+            if len(filtered_suggestions):
                 cs, co = zip(*filtered_suggestions)
             else:
                 cs, co = [], []
