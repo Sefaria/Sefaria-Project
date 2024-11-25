@@ -1,0 +1,3353 @@
+#staticContentWrapper{
+  background-color: #FBFBFA;
+}
+.inApp #staticContentWrapper {
+  display: none;
+}
+.container{
+  width: 100%;
+}
+.interface-hebrew .static,
+.interface-hebrew .staticPage {
+  direction:ltr;
+}
+.interface-hebrew .staticPage.englishOnly {
+  direction:ltr;
+}
+.interface-hebrew .static .englishOnly {
+  direction:ltr;
+}
+#register.static .inner {
+  width: 302px;
+}
+.interface-english .static .int-he, .interface-english .static .he {
+  display: none;
+}
+.interface-hebrew .static .int-en, .interface-hebrew .static .en {
+  display: none;
+}
+.static h1 {
+  position: relative;
+  font-weight: lighter;
+  letter-spacing: 1px;
+  text-align: center;
+  font-size: 30px;
+  margin: 0 0 60px 0;
+  height: auto;
+}
+.static h2 {
+  font-weight: lighter;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #666;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+.static h3 {
+  font-weight: normal;
+  font-size: 16px;
+  text-transform: uppercase;
+  color: #aaa;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  margin-top: 40px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+.static p, .static section {
+  margin: initial;
+  font-size: 18px;
+  line-height: 1.5;
+}
+.static p a {
+  text-decoration: underline;
+}
+.static a {
+  color: #333;
+}
+
+.static .light {
+  color: white;
+}
+
+.static a.button, .static .button a, .static a .button {
+  color: white;
+  text-decoration: none;
+}
+.static a.button.white, .static .button.white a, .static a .button.white {
+  color: #333;
+}
+.static a.button.transparent {
+  color: #666;
+}
+.static .refLink {
+  text-decoration: none;
+}
+.static .refLink:hover {
+  text-decoration: underline;
+}
+.static .page-title{
+  margin-bottom: 50px;
+}
+.static label.button {
+  height: auto;
+}
+.static .error {
+  color: red;
+}
+.static img.fullWidth {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 30px 0;
+  border: 1px solid #ddd;
+}
+.static p.tagline {
+  font-style: italic;
+  margin-bottom: 25px;
+}
+.static h1 p.tagline {
+  margin-top: 25px;
+  margin-bottom: 0px;
+}
+.static-text {
+  margin: 0;
+  text-align: justify
+}
+.static .quotation {
+  text-align: center;
+  font-weight: bold;
+  color: #666;
+}
+.static .quotation a {
+  color: #666;
+}
+.static .quotation he {
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+}
+.static .quotation int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#homePage {
+  overflow: hidden;
+  color: #333;
+  background-color: transparent;
+}
+#homePage .section {
+  margin-bottom: 0;
+}
+#homePage #homeCover {
+  height: 560px;
+  padding: 180px 0;
+  background-color: #ADA99B;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+#homePage #homeCover h1.featureTitle {
+  color: white;
+  margin-bottom: 22px;
+}
+#homePage #homeCover h1.featureTitle .int-en,
+#homePage #homeCover h1.featureTitle .int-he {
+  color: white;
+}
+#homePage #homeCover .sub {
+  color: white;
+  font-size: 18px;
+  margin: 0;
+  position: relative;
+}
+#homePage #homeCover .sub a {
+  font-size: 18px;
+}
+#homePage #homeCover .sub .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#homePage #homeCover a {
+  color: white;
+  font-style: normal;
+  position: relative;
+}
+#homePage #homeCover .button {
+  margin-top: 80px;
+  padding: 16px 30px;
+}
+#homePage .section {
+  overflow: hidden;
+  padding: 100px 0;
+}
+#homePage .sectionInner {
+  width: 750px;
+  max-width: 94%;
+  margin: auto;
+}
+#homePage .section:nth-child(even) {
+  background-color: #FBFBFA;
+}
+#homePage .section:nth-child(odd) {
+  background-color: white;
+}
+#homePage .textBox {
+  display: inline-block;
+  width: 380px;
+}
+#homePage .imageBox {
+  display: inline-block;
+  width: 300px;
+  text-align: center;
+}
+#homePage .imageBox img {
+  max-width: 100%;
+}
+@media screen and (max-width: 700px) {
+  #homePage .sectionInner {
+    width: 350px;
+  }
+  #homePage .textBox, #homePage .imageBox {
+    max-width: 100%;
+    margin: 0 auto;
+    float: none !important;
+  }
+  #homePage .imageBox {
+    margin-top: 20px;
+  }
+}
+#homePage .imageBox.bordered {
+  border: 1px solid #ccc;
+}
+#homePage .imageBox.bordered img {
+  display: block;
+}
+#homePage .textLeft .textBox {
+  float: left;
+}
+#homePage .textLeft .imageBox {
+  float: right;
+}
+#homePage .textRight .textBox {
+  float: right;
+}
+#homePage .textRight .imageBox {
+  float: left;
+}
+#homePage .section a .button {
+  display: block;
+  width: 250px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+#homePage .section .button .fa {
+  color: #ccc;
+  font-size: 25px;
+}
+#homePage .section.center {
+  text-align: center;
+}
+#homePage .section.center .button {
+  margin: 0 auto;
+}
+#homePage h2 .int-en{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#homePage h2 {
+  margin: 0 0 12px 0;
+  padding: 0;
+  font-size: 30px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: none;
+  border: none;
+  color: #000;
+}
+#homePage h2 .int-he {
+  font-style: normal;
+}
+#homePage .description {
+  margin: 26px 0 34px 0;
+  line-height: 1.2;
+}
+#homePage .description .int-en,
+#homePage .description .int-he {
+  color: #666;
+}
+#homePage .description .int-he {
+  font-style: normal;
+}
+#homePage .dedication {
+  margin: -12px 0 34px;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#homePage .section .button {
+  margin: 0;
+  position: relative;
+}
+#homePage #homeBlog .blogTag {
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+  font-size: 15px;
+  font-weight: lighter;
+}
+#homePage #homeBlog .blogText {
+  font-size: 18px;
+  margin: 40px 0 40px;
+  line-height: 1.2;
+  text-align: justify;
+}
+#homePage a {
+  color: #999;
+  font-size: 16px;
+}
+#homePage a.refLink {
+  color: #000;
+  font-size: 18px;
+  padding: 12px 0px 15px;
+}
+#homePage a.refLink .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#homePage a.refLink .int-he {
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+}
+#homePage #homeProgress {
+  text-align: center;
+}
+#homeProgress h3 {
+  font-style: normal;
+  font-size: 16px;
+  font-weight: lighter;
+  letter-spacing: 1px;
+  color: #666;
+  margin-bottom: 20px;
+  border-bottom: none;
+  text-transform: uppercase;
+}
+#homeProgress .stat {
+  display: inline-block;
+  width: 32.9%;
+  padding: 20px 0;
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: 1px;
+  box-sizing: border-box;
+}
+#homeProgress .stat .statIcon,
+#homeProgress .stat .wordCount {
+  display: block;
+}
+#homeProgress img.statIcon {
+  margin: 20px auto;
+  text-align: center;
+}
+#homeProgress .fa.statIcon {
+  line-height: 70px;
+  font-size: 63px;
+  color: #ccc;
+  margin-bottom: 8px;
+}
+#homeProgress .stat .wordCount {
+  font-size: 30px;
+  margin: 0px 0;
+}
+#homeProgress .stat .int-en {
+  color: #999;
+}
+#homeProgress .stat .int-he {
+  color: #999;
+}
+#homeProgress #moreMetrics {
+  display: block;
+  margin-top: 50px;
+}
+#homeHelp .description {
+  margin: 30px 0 40px;
+}
+#homeConnect h2 {
+  margin-bottom: 30px;
+}
+#homeConnect #mailingListTitle {
+  margin-bottom: 40px;
+  color: #999;
+  font-size: 14px;
+}
+#homeConnect #mailingListTitle .int-en {
+}
+#homeConnect #mailingListTitle .int-he {
+}
+#homeConnect #mailingListEmail {
+  padding: 14px 24px;
+  margin: -4px 8px 0 0;
+  width: 240px;
+  font-size: 16px;
+}
+#homeConnect #subscribeMsg {
+  margin-top: 40px;
+  font-size: 20px;
+  display: none;
+}
+#homePage #homeMobile .button{
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: row;
+  -webkit-flex-direction: row;
+  padding: 12px 14px;
+  align-items: center;
+  -webkit-align-items: center;
+  -webkit-align-content: center; /* Safari */
+  align-content:         center;
+  -webkit-justify-content: space-between; /* Safari */
+  justify-content:         space-between;
+}
+#homePage #homeMobile a .button i:before
+{
+  text-decoration: none;
+  display: inline-block; /*so this does not inherit the underline from the parent a*/
+}
+#homePage #homeMobile .button .int-en {
+  margin-left: 15px;
+  margin-right: auto;
+}
+#homePage #homeMobile .button .int-he{
+  margin-right: 15px;
+  margin-left: auto;
+}
+#profilePage {
+}
+#profileTop {
+  text-align: center;
+}
+#profileImage {
+  border: 1px solid #E6E5E6;
+  width: 200px;
+  height: 200px;
+}
+#profileName {
+  margin: 20px 0 24px;
+}
+#profileTagline {
+  margin-bottom: 24px;
+  font-size: 18px;
+  color: #666;
+}
+#profileSnippets > div {
+  display: inline-block;
+  color: #999;
+  margin: 2px 7px;
+  font-size: 14px;
+  font-weight: lighter;
+}
+#profileSnippets a {
+  color: #999
+}
+#profilePage #buttons {
+  margin: 24px 0 50px;
+}
+#profilePage .sections {
+  margin-bottom: 50px;
+}
+#profilePage #bio {
+  font-size: 22px;
+}
+#profilePage #bio,
+#profilePage #bio p {
+  font-size: 16px;
+  line-height: 1.3;
+}
+#profilePage #bio a {
+  color: #333;
+}
+#profilePage ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+#profilePage li {
+}
+#profilePage .sheet {
+  margin: 26px 0;
+  font-size: 18px;
+  color: #333;
+}
+#profilePage .sheet a {
+  color: #333;
+}
+#activityList {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
+  padding: 0;
+}
+.interface-hebrew #activityList {
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
+}
+#profileActivity a {
+  color: #333;
+  font-weight: normal;
+}
+#profilePage  #followMe span {
+  font-size: inherit;
+}
+#profilePage  .button span.int-en {
+}
+#profilePage  .button span.int-he {
+  font-size: inherit;
+}
+#profilePage #followMe.follow span.following {
+  display: none;
+}
+#profilePage #followMe.following span.follow {
+  display: none;
+}
+#profilePage #followMe span.unfollow {
+  display:none;
+}
+#profilePage #followMe.following:hover span.unfollow {
+  display:inherit;
+}
+#profilePage #followMe.following:hover span.following {
+  display:none;
+}
+#activityList .topline {
+  font-weight: normal;
+}
+#activityList .text.int-en, #activityList .text {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#activityList .text.int-he {
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+}
+#activityList .time {
+  color: #ccc;
+}
+#activityList li > :not(:first-child){
+  margin-top:5px;
+}
+#activityList li{
+  margin-bottom: 15px;
+  list-style-type: none;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+#activityList + a.page-link{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+}
+.registrationContent {
+  margin: 1% auto 0;
+  width: 320px;
+}
+.registrationContent label {
+  display: none;
+}
+.registrationContent input {
+  padding: 12px 20px;
+  height: initial;
+  margin: 1% 0px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.registrationContent input::placeholder { /* eventual spec? */
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input::-moz-placeholder { /* Firefox 19+ */
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input:-ms-input-placeholder { /* IE 10+ */
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input:-moz-placeholder { /* Firefox 18- */
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
+  width: auto;
+  -webkit-appearance: checkbox; /* fixes a declaration from here `.static input` that was meant to fix drop shadows on iOS Safari*/
+}
+.registrationContent .helptext {
+  font-size: 16px;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  color: #000;
+}
+.registrationContent .g-recaptcha{
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.registrationContent #register-form .custom-select-large-margin {
+  width: 300px; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap; 
+}
+
+input#id_email::placeholder {
+  text-align: left;
+}
+input#id_email{
+  text-align: left;
+  direction: ltr;
+}
+.registrationContent button {
+  width: 100%;
+}
+.registrationContent a {
+  display: block;
+}
+
+
+/* Dropdown Styles */
+.registrationContent .dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.registrationContent .dropdown #uset_type {
+  padding: 12px 20px;
+  height: initial;
+  margin: 1% 0px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Dropdown Content */
+.registrationContent .dropdown .dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  width: 100%;
+  z-index: 1;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Dropdown Item Styles */
+.registrationContent .dropdown .dropdown-content .dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* Hover Effect for Dropdown Items */
+.registrationContent .dropdown .dropdown-content .dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+/* Show Class for Dropdown */
+.registrationContent .dropdown .dropdown-content.show {
+  display: block;
+}
+
+.registrationContent .dropdown .dropdown-arrow {
+  position: absolute;
+  right: 10px; /* Adjust as needed */
+  top: 50%; /* Center vertically */
+  transform: translateY(-50%);
+  pointer-events: none; /* Prevent click events on the icon */
+  color: #333; /* Icon color */
+}
+
+
+
+
+
+
+p.registration-links a{
+  color: #999;
+  text-decoration: none;
+}
+p.registration-links a:hover{
+  color: #666;
+  text-decoration: none;
+}
+#visualizationsPage {
+  text-align: left;
+}
+.interface-hebrew #visualizationsPage {
+  text-align: left;
+}
+#visualLibraryPage {
+  padding-top: 70px;
+}
+.static div.single-button {
+  margin: 5% 0;
+}
+.static div.single-button.center {
+  text-align: center;
+}
+#donatePage h3{
+  font-size: inherit;
+  font-weight: bold;
+  display: inline;
+  text-transform: none;
+  color: inherit;
+  letter-spacing: 1px;
+  border-bottom: none;
+}
+#donatePage .notice{
+  font-style: italic;
+}
+#donatePage .covidNotice span {
+    font-size: 0.8em;
+}
+#donatePage .donateIntroduction{
+  text-align: center;
+}
+#donatePage section p{
+  margin-top: 10px;
+}
+#donatePage #givingOpportunities{
+
+}
+#donatePage #givingOpportunities .givingOpportunitiesDesc{
+  font-style: italic;
+  padding-inline-start: 5%;
+}
+#donatePage #donateOptions .donateOption {
+  margin-bottom: 35px;
+}
+#donatePage #donateOptions .donateOption p{
+  display: inline;
+}
+#donatePage .faq p.question {
+  font-weight: bold;
+}
+#donatePage .faq p.answer {
+  padding-inline-start: 40px;
+}
+/*#donatePage .faq p.question:before {
+  content: "Q)";
+}
+#donatePage .faq p.answer:before {
+  content: "A)";
+}*/
+#donatePage address{
+  font-size: 20px;
+}
+#donatePage ul li{
+  list-style: none;
+  font-size: 18px;
+  line-height: 27px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+/*.interface-hebrew #donatePage .faq p.question:before {
+  content: "ש)";
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
+}
+.interface-hebrew #donatePage .faq p.answer:before {
+  content: "ת)";
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
+}*/
+#supportersPage{
+  text-align: center;
+}
+#supportersPage .leading-supporters p.tagline:first-child {
+  text-align: center;
+  max-width: 500px;
+  margin: auto;
+}
+#supportersPage .leading-supporters p.tagline:last-child {
+  margin-top: 20px;
+}
+#supportersPage .supporters p.tagline:first-child {
+  margin-bottom: 20px;
+}
+#supportersPage h2 {
+    margin-top: 25px;
+}
+#supportersPage h2 span {
+  font-size: 1.3em;
+}
+#supportersPage .donate-link {
+  margin-top:20px;
+}
+#aboutPage {
+  margin: 0;
+  width: 100%;
+}
+#aboutCover {
+  height: 540px;
+  padding: 180px 0;
+  background-color: #ADA99B;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+#aboutVideo {
+  position: absolute;
+  top: -90px;
+  left: 0;
+  min-width: 1200px;
+  z-index: 0;
+  width: 100%;
+}
+#aboutPage .inner {
+  margin-top: -440px;
+}
+#aboutHeader {
+  color: white;
+  margin-bottom: 250px;
+  text-align: center;
+  position: relative;
+}
+#aboutPage #aboutTitle {
+  font-size: 50px;
+  margin-bottom: 20px;
+}
+#aboutTitleSub {
+  font-size: 24px;
+}
+#aboutPage .section {
+  margin-bottom: 60px;
+}
+#aboutPage p {
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+#aboutPage .year {
+  margin-top: 30px;
+}
+#aboutPage .year.first {
+  margin-top: 0;
+}
+#aboutPage .historyItem {
+  font-size: 16px;
+  margin: 14px 0;
+  line-height: 1.2;
+}
+@media (max-width: 450px) {
+  #aboutPage #aboutHeader {
+    margin-bottom: 130px;
+  }
+  #aboutPage #aboutCover {
+    height: 270px;
+    padding: 180px 0;
+  }
+  #aboutPage .inner {
+    margin-top: -365px;
+  }
+  #aboutPage #aboutVideo {
+    min-width: 900px;
+  }
+}
+#donatePage pre{
+  all: initial;
+  display: block;
+  unicode-bidi: embed;
+  white-space: pre;
+  font-style: italic;
+  font-size: 1.2em;
+}
+.static-text .static-content-note {
+  margin: 60px 0;
+}
+.static-text .static-content-not > p:first-child {
+  font-weight: bold;
+}
+#linkExplorerPage {
+  padding-top: 60px;
+}
+#supportersPage p{
+  font-size: 16px;
+  color: #666;
+}
+#linkerPage h2 {
+  margin: 30px 0 30px 0;
+  font-size: 24px;
+  letter-spacing: 0;
+  padding-bottom: 0;
+  text-transform: none;
+  border: none;
+}
+#linkerPage img {
+  width: 100%;
+  margin: 30px 0 30px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+#linkerPage .buttonBox {
+  margin: 30px 0;
+  text-align: center;
+}
+#teamPage h2{
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: #999;
+  text-align: center;
+  margin-bottom: 40px;
+}
+#teamPage .team-members, #teamPage .board-members{
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+#teamPage .teamMember, #teamPage .teamBoardMember {
+  font-size: 20px;
+  line-height: 1.2em;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+#teamPage .team-members::after, #teamPage .board-members::after {
+  width: 200px;
+  content: "";
+}
+#teamPage .teamMember {
+  flex: 0 0 30%;
+}
+#teamPage .teamBoardMember {
+  border-bottom: none;
+  flex: 0 0 30%;
+}
+#teamPage .teamMember .teamMemberImage {
+  display: block;
+}
+#teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails {
+  display: block;
+  margin: 20px 0px;
+  text-align: start;
+}
+#teamPage .teamBoardMember .teamMemberDetails {
+  margin: 0;
+}
+#teamPage .teamMember .teamMemberImage img {
+  border: 1px solid #E6E5E6;
+  width: 200px;
+  height: 200px;
+  vertical-align:middle;
+}
+#teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName {
+  margin-bottom: 10px;
+  font-size: 24px;
+  color: #555;
+}
+#teamPage .teamBoardMember .teamName {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+#teamPage .teamMember .teamTitle {
+  font-size: 18px;
+}
+#teamPage .teamBoardMember .teamTitle {
+  font-size: 16px;
+}
+#teamContact {
+  margin-top: 60px;
+  line-height: 2;
+}
+#editProfilePage {
+  color: #666;
+}
+#editProfilePage .inner {
+  position: relative;
+}
+#saveCancelButtons .button {
+  padding: 10px 16px;
+  font-weight: normal;
+}
+#editProfilePage #profileBox,
+#editProfilePage #contactBox,
+#editProfilePage #sheetsBox,
+#editProfilePage #aboutBox {
+  margin-bottom: 60px;
+  display: flex;
+  display: -webkit-flex;
+  justify-content: space-between;
+  -webkit-justify-content:space-between;
+  flex-flow: row wrap;
+}
+#editProfilePage #sheetsBox{
+  flex-direction: column;
+  text-align: center;
+}
+#editProfilePage #aboutBox div, #editProfilePage #contactBox input{
+  border: 1px solid #bbb;
+}
+
+#editProfilePage h2 {
+  text-align: center;
+}
+#editProfilePage .field label{
+  padding-bottom: 10px;
+  display: block;
+}
+#editProfilePage input {
+  padding: 15px 12px;
+  border: none;
+}
+#editProfilePage #profilePictureBox img {
+  vertical-align: top;
+  float: left;
+  width: 80px;
+  height: 80px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+#editProfilePage #aboutBox {
+  /*margin-bottom: 12px;*/
+}
+#editProfilePage #bio {
+  width: 100%;
+  min-height: 100px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 3px;
+  padding: 10px 14px;
+  font-size: 18px;
+  background-color: white;
+}
+#editProfilePage .field {
+  margin-bottom: 20px;
+  width: 48%;
+  min-width: 300px;
+}
+#editProfilePage .field input {
+  width: 100%;
+  color: #333;
+  background-color: white;
+  box-sizing: border-box;
+}
+#editProfilePage ul {
+  list-style-type: none;
+  padding: 0px;
+  margin: 0px;
+}
+#editProfilePage #jewishEducation li {
+  position: relative;
+  margin: 8px 0;
+}
+#editProfilePage #jewishEducation li:first-child .remove {
+  display: none;
+}
+#editProfilePage #jewishEducation label{
+  display: inline-block;
+}
+#editProfilePage #addEducation {
+  font-size: 12px;
+  /*font-style: italic;*/
+  color: #555;
+  margin-top: 4px;
+  cursor: pointer;
+  width: 100%;
+  border-radius: 4px;
+  padding: 15px 0px;
+  border: 1px solid #bbb;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#editProfilePage #addEducation:hover {
+  text-decoration: underline;
+  /*background-color: #bbb;*/
+}
+#editProfilePage #addEducation i{
+  padding: 0 5px;
+}
+#editProfilePage #addEducation:hover i:before{
+  display: inline-block;
+  text-decoration: none;
+}
+#editProfilePage #jewishEducation .remove {
+  position: absolute;
+  top: 15px;
+  cursor: pointer;
+}
+.interface-hebrew #editProfilePage #jewishEducation .remove{
+  left: 5px;
+}
+.interface-english #editProfilePage #jewishEducation .remove{
+  right: 5px;
+}
+#editProfilePage #sheetsBox #pinnedSheetsMessage {
+  margin-bottom: 4px;
+  font-style: italic;
+}
+#editProfilePage .sheetSet {
+  margin: 14px 0;
+}
+#editProfilePage #sheetsBox ul {
+  background: white;
+  border-radius: 3px;
+  border: none;
+  margin: 0;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+#editProfilePage #sheetsBox li {
+  margin: 6px 0;
+}
+#editProfilePage #pinnedSheets ul {
+  min-height: 36px;
+}
+#accountSettingsPage .inner {
+  position: relative;
+}
+#accountSettingsPage label {
+  margin-bottom: 15px;
+}
+#accountSettingsPage .toggleSet {
+  width: 100%;
+  text-align: center;
+}
+#accountSettingsPage input {
+  width: 100%;
+  color: #999;
+  box-sizing: border-box;
+  padding: 15px 12px;
+  border: none;
+  margin-bottom: 10px;
+}
+#accountSettingsPage .form-section{
+  margin: 2px auto 20px auto;
+  margin-left: 1px;
+}
+#accountSettingsPage input[disabled="disabled"] {
+  background-color: #FBFBFA;
+}
+#accountSettingsPage input::placeholder{
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  color: #999;
+  padding-bottom: 15px;
+  font-style: normal;
+}
+#accountSettingsPage [id^="email-edit"]{
+  padding: 15px;
+  text-align: center;
+  display: block;
+  width: 100%;
+  margin: 10px;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+}
+#accountSettingsPage #email-edit-errors, #accountSettingsPage #reading-history-warning {
+  color: #CB6158;
+}
+#accountSettingsPage #email-edit-ok{
+  color: #666;
+}
+#accountSettingsPage #reading-history-warning{
+  display: none;
+}
+#accountSettingsPage #reading-history-warning.active{
+  margin: 10px;
+  display: inline-block;
+}
+#personPage h1 {
+  margin-bottom: 40px;
+}
+#personPage h2 {
+  text-align: center;
+  border-bottom: none;
+  margin-bottom: 40px;
+}
+#personPage p {
+  font-size: 20px;
+  line-height: 1.1em;
+}
+#personPage #bio{
+  color: #666;
+}
+#personPage a,
+#peoplePage a,
+#talmudicPeoplePage a{
+  text-decoration: none;
+}
+#peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
+  color: #000;
+  font-size: 18px;
+}
+#peoplePage .author a .int-en,
+#talmudicPeoplePage .author a .int-en,
+#personPage a .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#peoplePage .author, #talmudicPeoplePage .author{
+  margin-left: 0;
+  font-size: 20px;
+}
+#peoplePage .author {
+  width: 49%;
+  display: inline-block;
+  box-sizing: border-box;
+}
+@media screen and (max-width: 700px) {
+  #peoplePage .author {
+    width: 100%
+  }
+}
+#peoplePage .authors-row{
+  padding-bottom: 5px;
+}
+#peoplePage .authors-row:first-of-type {
+  padding-top: 10px;
+}
+#peoplePage h3, #talmudicPeoplePage h3, #talmudicPeoplePage h4{
+  color: #666;
+  font-size: 16px;
+}
+#talmudicPeoplePage .talmudic-generation {
+  width: 49%;
+  display: inline-block;
+  vertical-align: top;
+}
+@media screen and (max-width: 700px) {
+  #talmudicPeoplePage .talmudic-generation {
+    width: 100%
+  }
+}
+#talmudicPeoplePage p.author{
+  padding-bottom: 5px;
+}
+#talmudicPeoplePage p.author:first-of-type{
+  padding-top: 10px;
+}
+#personPage #periodNameLine, #personPage #yearLine{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #aaa;
+  padding-bottom: 15px;
+}
+#personPage #external_links i{
+  padding: 0 5px;
+}
+#personPage #external_links a{
+  padding: 0 5px;
+}
+#personPage div.person_tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 6px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+#activityPage h2 {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 25px;
+  font-style: italic;
+  color: #aaa;
+  text-align: center;
+  border: none;
+  text-transform: none;
+}
+.interface-hebrew #activityPage h2 {
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
+}
+#activityPage #activityFeed {
+  color: #666;
+}
+#activityPage #activityFeed a {
+  color: #333;
+  font-weight: normal;
+}
+#activityPage #activityFeed #moreActivity {
+  display: block;
+  margin-top: 30px;
+  font-size: 15px;
+}
+#activityPage #activityFeed .topline {
+  font-weight: normal;
+}
+#activityPage #activityFeed .text.ver-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#activityPage #activityFeed .text.ver-he {
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+}
+#activityPage #activityList .time {
+  color: #ccc;
+}
+#activityPage .activityFilterSection{
+  text-align: center;
+  margin: 30px 0;
+  padding-bottom: 30px;
+}
+#activityPage select {
+  min-width: 165px;
+  background-color: #ffffff;
+  height: 3em;
+  padding: 0 15px;
+  letter-spacing: 1px;
+  border-radius: 3px;
+  border-color: #ccc;
+  font-size: 14px;
+}
+#iosPage p {
+  margin-bottom: 30px;
+}
+#iosPage a {
+  text-decoration: underline;
+}
+#connectPage {
+  text-align: center;
+}
+#jobsPage {
+  font-size: 18px
+}
+#jobsPage nav{
+  margin-top: 60px;
+}
+#jobsPage nav:not(.navigationVisible){
+  display: none;
+}
+/*#jobsPage nav h3{
+  text-transform: uppercase;
+}*/
+#jobsPage h1 {
+  margin-bottom: 0;
+}
+#jobsPage h2 {
+  font-size: 22px;
+}
+#jobsPage .nothing{
+  margin-top: 40px;
+  margin-bottom: 40px;
+  font-weight: bold;
+}
+
+#jobsPage .nothing a {
+  display: inline-block;
+}
+
+#jobsPage section.department h2{
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 26px;
+  color: var(--dark-grey);
+  text-transform: none;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--light-grey);
+}
+#jobsPage section.department{
+  margin-top: 50px;
+}
+#jobsPage section.department:first-of-type{
+  margin-top: 80px;
+}
+#jobsPage .department .jobsListForDepartment{
+  margin-top: 18px;
+}
+#jobsPage h2.anchorable {
+  margin-top: 0;
+}
+#jobsPage h3 {
+  font-size: 16px;
+  font-weight: lighter;
+}
+#jobsPage li {
+  margin: 14px 0;
+}
+#jobsPage .job, #jobsPage .job details summary{
+  margin-bottom: 15px;
+  scroll-margin-top: 5em;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 29px;
+  color: #000000;
+}
+#jobsPage .job details {
+  margin-bottom: 15px;
+  scroll-margin-top: 5em;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: normal;
+  color: #000000;
+}
+#jobsPage .job details p {
+  margin-bottom: 15px;
+}
+
+#jobsPage .solicitationNotice, #jobsPage .solicitationNotice p{
+  margin-top: 80px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--medium-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  direction: ltr;
+}
+#jobsPage .bold{
+  font-weight: bold;
+}
+#helpPage .section {
+  margin-bottom: 60px;
+}
+#metricsPage .chart {
+  margin-bottom: 80px;
+  border: 1px solid #ddd;
+}
+#metricsPage .chartLabel {
+  text-align: center;
+  display: block;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#digitizedBySefaria p {
+  margin-bottom: 20px;
+}
+#digitizedBySefaria #texts {
+  margin-top: 40px;
+  padding: 0;
+}
+#digitizedBySefaria .sub {
+  color: #666;
+  font-size: 13px;
+}
+#digitizedBySefaria ul {
+  list-style-type: none
+}
+#digitizedBySefaria li {
+  margin-bottom: 12px;
+}
+#digitizedBySefaria li a {
+  font-size: 18px;
+}
+.static.legal iframe {
+  width: 100%;
+  height: 600px;
+  border: 1px solid #aaa;
+}
+#legalTabs a {
+  padding: 4px 8px;
+  margin-right: 4px;
+  background-color: #eee;
+  border: 1px solid #aaa;
+  border-bottom: none;
+  font-size: 15px;
+  display: inline-block;
+}
+#legalTabs a.current {
+  background-color: white;
+}
+#edPage {
+  overflow: hidden;
+  color: #333;
+  background-color: transparent;
+}
+#edPage .section {
+  margin-bottom: 0;
+}
+#edPage #edCover {
+  color: white;
+  height: 660px;
+  padding: 225px 0;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+  background-image: url(/static/img/edheader.jpg);
+  background-size: cover;
+  background-color: #ADA99B;
+  background-position: center;
+}
+#edPage #edCover h1 {
+  height: 70px;
+  margin-bottom: 20px;
+}
+#edPage #edCover h1.featureTitle .int-en,
+#edPage #edCover h1.featureTitle .int-he {
+  color: white;
+}
+#edPage h1 .int-en, #edPage h2 .int-en{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#edPage #edCover .sub {
+  color: white;
+  font-size: 18px;
+  margin: 0;
+  position: relative;
+}
+#edPage #edCover .sub .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#edPage #edCover a {
+  color: white;
+  font-style: normal;
+  font-size: 21px;
+  position: relative;
+}
+#edPage #edCover .button {
+  margin-top: 80px;
+  padding: 16px 34px;
+  outline: none;
+}
+#edPage .section {
+  overflow: hidden;
+  padding: 100px 0;
+}
+#edPage .sectionInner {
+  width: 750px;
+  max-width: 94%;
+  margin: auto;
+}
+#edPage .section:nth-child(odd) {
+  background-color: #FBFBFA;
+}
+#edPage .section:nth-child(even) {
+  background-color: white;
+}
+#edPage .textBox {
+  display: inline-block;
+  width: 380px;
+}
+#edPage .imageBox {
+  display: inline-block;
+  width: 300px;
+  text-align: center;
+}
+#edPage .imageBox img {
+  max-width: 100%;
+}
+#edPage .imageBox a .button.fullWidth {
+  width: 300px;
+}
+@media screen and (max-width: 700px) {
+  #edPage .sectionInner {
+    width: 350px;
+  }
+  #edPage .textBox, #edPage .imageBox {
+    max-width: 100%;
+    margin: 0 auto;
+    float: none !important;
+  }
+  #edPage .imageBox {
+    margin-top: 20px;
+  }
+}
+#edPage .imageBox.bordered {
+  border: 1px solid #ccc;
+}
+#edPage .imageBox.bordered img {
+  display: block;
+}
+#edPage .textLeft .textBox {
+  float: left;
+}
+#edPage .textLeft .imageBox {
+  float: right;
+}
+#edPage .textRight .textBox {
+  float: right;
+}
+#edPage .textRight .imageBox {
+  float: left;
+}
+#edPage .section a .button {
+  display: block;
+  width: 280px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+#edPage .section.center {
+  text-align: center;
+}
+#edPage .section.center .button {
+  margin-left: auto;
+  margin-right: auto;
+}
+#edPage h1, #edPage h2 {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#edPage h2 {
+  margin: 0 0 12px 0;
+  padding: 0;
+  font-style: italic;
+  font-size: 28px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: none;
+  border: none;
+  color: #000;
+}
+#edPage h2 img {
+  top: 2px;
+  position: relative;
+}
+#edPage .description {
+  margin: 26px 0 34px 0;
+  line-height: 1.2;
+}
+#edPage .dedication {
+  margin: -12px 0 34px;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#edPage .section .button {
+  margin: 0;
+  position: relative;
+}
+#edPage a {
+  color: #999;
+  font-size: 16px;
+}
+#edPage a.refLink {
+  color: #333;
+  font-size: 16px;
+  padding: 12px 0px 15px;
+}
+#edHelp .description {
+  margin: 30px 0 40px;
+}
+#edConnect h2 {
+  margin-bottom: 30px;
+}
+#edConnect #mailingListTitle {
+  margin-bottom: 40px;
+  color: #999;
+  font-size: 14px;
+}
+#edConnect #mailingListEmail {
+  padding: 16px 24px;
+  margin: -4px 8px 0 0;
+  width: 240px;
+  font-size: 16px;
+}
+#edConnect #subscribeMsg {
+  margin-top: 40px;
+  font-size: 20px;
+  display: none;
+}
+#visualGardenPage .control-results-containe{
+  display: flex;
+  display: -webkit-flex;
+  align-items: flex-start;
+  -webkit-align-items: flex-start;
+}
+#visualGardenPage #results-container .int-he {
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+}
+#visualGardenPage .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#visualGardenPage h1 {
+  font-size: 36px;
+  border: none;
+  margin: 0;
+}
+#visualGardenPage h2 {
+  text-align: center;
+}
+/* Controls need LTR to present right, hebrew 'reset' block wants RTL on top charts, but not on filter charts */
+#visualGardenPage #controls {
+  width: 320px;
+  float: left;
+  direction: ltr;
+}
+#visualGardenPage #top-controls {
+  display: flex;
+}
+#visualGardenPage #top-filter-control {
+  text-align: center;
+  font-size: 28px;
+}
+#visualGardenPage #data-count {
+  float: none;
+  text-align: center;
+  margin: 0 0 30px 0;
+}
+body.interface-hebrew #visualGardenPage .reset {
+  direction: ltr;
+  float: right;
+}
+body.interface-hebrew #visualGardenPage .filter-title .reset {
+  float: none;
+  direction: ltr;
+}
+#visualGardenPage #sort-label {
+  display: inline-block;
+  vertical-align: top;
+}
+#visualGardenPage #sort-container {
+  display: inline-block;
+}
+#visualGardenPage .top-paging-block {
+  display: inline-block;
+  padding-left: 30px;
+}
+#visualGardenPage .paging-block input {
+  padding: 3px;
+}
+#visualGardenPage .bottom-paging-block {
+  padding-top: 35px;
+  float: right;
+}
+#visualGardenPage #results .result {
+  margin: 10px 0;
+}
+#visualGardenPage #results .result-ref {
+  font-weight: bold;
+}
+#visualGardenPage #results .result-ref i {
+  cursor: pointer;
+  margin: 0 7px;
+}
+#visualGardenPage #results .result-byline {
+  font-size: .8em;
+}
+#visualGardenPage #results .result-text {
+  margin: 0 10px 0;
+}
+#visualGardenPage #results .result-text span {
+  display: block;
+  margin: 5px 0 0;
+}
+#visualGardenPage #results .result-text span.he,
+#visualGardenPage #results .result-text span.int-he {
+   direction: ltr;
+}
+#visualGardenPage #results .result-text span.he {
+ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+}
+#visualGardenPage #results:after { /* Clearfix, for footer */
+	visibility: hidden;
+	display: block;
+	font-size: 0;
+	content: " ";
+	clear: both;
+	height: 0;
+}
+#visualGardenPage #sort-container {
+  float: none;
+  padding: 25px 0 5px;
+}
+#visualGardenPage .filter-title {
+  margin-left: 10px;
+}
+#visualGardenPage .filter-title .filter-title-en {
+  font-weight: bold;
+}
+#visualGardenPage .tags-list.dc-chart g.row text {
+  fill: black;
+}
+#visualGardenPage .tags-list.dc-chart .axis path,
+#visualGardenPage .tags-list.dc-chart .axis line {
+  stroke: none
+}
+#visualGardenPage #results-table .dc-table-column ._0 {
+  width: 220px;
+}
+#visualGardenPage #results-table .dc-table-column._1,
+#visualGardenPage #results-table .dc-table-column._2,
+#visualGardenPage #results-table .dc-table-column._3 {
+  width: 170px;
+}
+#visualGardenPage #results-table .dc-table-column._4 {
+  width: 30px;
+}
+#visualGardenPage #map-chart {
+  margin-left: 10px;
+  margin-bottom: 25px;
+}
+#visualGardenPage #map-chart path {
+  stroke-width: 1;
+  stroke: black;
+}
+#visualGardenPage #map-chart .selected path {
+  stroke-width: 1;
+  stroke: white;
+}
+#visualGardenPage .sourceSheetPanelBox .contentInner {
+  margin: 0 auto;
+}
+#visualGardenPage .sourceSheetPanelBox .textList .texts {
+  padding: 0 5px;
+  overflow-y: hidden;
+}
+#visualGardenPage .sourceSheetPanelBox .textList {
+  position: static;
+}
+#visualGardenPage .sourceSheetPanelBox .sourceSheetSelector {
+  margin: 0;
+}
+#visualGardenPage .sourceSheetBoxTitle i {
+  padding: 0 10px 10px 0;
+  cursor: pointer;
+}
+#dashboardContent {
+  padding-bottom: 100px;
+}
+#dashboardContent #moderatorMsg {
+  text-align: center;
+  font-size: 24px;
+  margin: 30px auto;
+}
+#dashboardContent #moderatorMsg .actions {
+  margin: 30px auto;
+}
+#dashboardContent #dashboard_filter {
+  width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  text-align: left;
+  margin: 10px -12px;
+  font-size: 24px;
+}
+#dashboardContent #dashboard_wrapper input {
+  font-size: 24px;
+  padding: 10px 20px;
+  width: 270px;
+  max-width: 60%;
+}
+#dashboardContent #loggedOutMsg {
+  text-align: center;
+  font-size: 24px;
+  margin: 60px;
+}
+.phone-number{
+  unicode-bidi: plaintext;
+}
+#koschitzky.static {
+  margin-top: 60px;
+}
+.static .categoryColorLineRainbow {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 101;
+  background: linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)
+}
+
+/******* mobile landing page ****/
+#mobilePage{
+  background: #FBFBFA;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.interface-hebrew #mobilePage.static .int-he{
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif !important;
+}
+#mobilePage .button{
+  padding: 3% 5%;
+}
+#mobilePage .sectionInner{
+  position: relative;
+  max-width: 1152px;
+  margin: auto;
+}
+#mobilePage .sectionWide{}
+#mobilePage .sectionRegular{
+  max-width: 960px;
+}
+#mobilePage .sectionNarrow{
+  max-width: 640px;
+}
+#mobilePage .flexContainer{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+#mobilePage .flexReverse{
+  flex-direction: row-reverse;
+}
+#mobilePage #headerButtons{
+  position: fixed;
+  right: 30px;
+  top: 15px;
+  z-index: 1002;
+}
+.interface-hebrew #mobilePage #headerButtons {
+  right: auto;
+  left: 30px;
+}
+#mobilePage #headerButtons a:active,
+#mobilePage #headerButtons a:hover{
+  text-decoration: none;
+}
+#mobilePage #topHeaderAndroid{
+  width: 88px;
+  height: 30px;
+  top: 15px;
+}
+#mobilePage #topHeaderIOS{
+  width: 81px;
+  height: 31px;
+  top: 15px;
+}
+#mobilePage #mobilePageHeader{
+  background: #b5343c;
+  padding: 70px 0;
+  margin-top: 60px;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderImage{
+  flex: 1;
+  height: 480px;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderText{
+  flex: 1;
+  /* width: 438px; */
+  padding-top: 0%;
+  margin: auto;
+  text-align: center;
+  margin-inline-end: 10%;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderPhoneImage{
+    position: absolute;
+    width: 207px;
+    height: 335px;
+    z-index: 1;
+    left: -80px;
+    top: 144px;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderTabletImage{
+    position: relative;
+    width: 335px;
+    height: 419px;
+    left: 35px;
+    top: -10px;
+}
+.interface-hebrew #mobilePage #mobilePageHeader #mobilePageHeaderPhoneImage{
+    left: 205px;
+}
+.interface-hebrew #mobilePage #mobilePageHeader #mobilePageHeaderTabletImage{
+    left: -48px;
+}
+#mobilePage #mobilePageHeader h1{
+  /*width: 438px;*/
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 64px;
+  line-height: 77px;
+  text-align: center;
+  letter-spacing: 2px;
+  color: #FFFFFF;
+  margin: auto;
+}
+#mobilePage #mobilePageHeader #mobilePageSubHeaderText{
+  padding: 10% 0;
+}
+#mobilePage #mobilePageHeader #mobilePageSubHeaderText h2{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: center;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #FFFFFF;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: auto;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderButtons{
+  display: inline-block;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderButtons .button{
+  width: 228px;
+  height: 59px;
+  background: #EDEDEC;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: left;
+  color: #b5343c;
+  align-items: center;
+  letter-spacing: 0px;
+  justify-content: space-evenly;
+  margin-top: 3%;
+    margin-bottom: 10%;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderButtons .button img{
+  height: 35px;
+}
+
+#mobilePage #mobileDescription p{
+  font-size: 22px;
+  line-height: 36px;
+  text-align: justify;
+  color: #000000;
+  margin-top: 62px;
+  margin-bottom: 65px;
+}
+#mobilePage #mobileDescription p .int-en{
+    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#mobilePage .newsletterSignUpBox{
+    position: relative;
+    margin-bottom: 4px;
+}
+.colorLine {
+  width: 100%;
+  height: 4px;
+  z-index: 101;
+  background: linear-gradient(90deg, #00505E 0% 14.2%, #5698B4 14.2% 28.4%, #CCB37C 28.4% 42.67%, #5B9370 42.67% 56.85%, #823241 56.85% 71%, #5A4474 71% 85.2%, #AD4F66 85.2% 100%)
+}
+#mobilePage #mobileTestimonials{
+  padding: 3% 0 3% 0;
+  background: #EDEDEC;
+}
+#mobilePage #mobileTestimonials .mobileTestimonial{
+  flex: 0 0 30%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+#mobilePage #mobileTestimonials .mobileTestimonialImageHolder{
+  height: 50px;
+  width: 50px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#mobilePage #mobileTestimonials img.mobileTestimonialImage{
+  height: 50px;
+  width: 50px;
+}
+
+#mobilePage #mobileTestimonials h3.mobileTestimonialHeader{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: center;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #000000;
+  margin-bottom: 10%;
+  border: none;
+}
+#mobilePage #mobileTestimonials .mobileTestimonialContent{
+  text-align: left;
+}
+.interface-hebrew #mobilePage #mobileTestimonials .mobileTestimonialContent{
+  text-align: left;
+}
+#mobilePage #mobileTestimonials .mobileTestimonialText{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: justify;
+  color: #000000;
+  margin-bottom: 5%;
+}
+#mobilePage #mobileTestimonials .mobileTestimonialAttribution{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: justify;
+  color: #000000;
+  font-style: italic;
+  text-align: left;
+  font-weight: bold;
+}
+#mobilePage #mobileTestimonials .mobileTestimonialAttribution::before{
+  content: '-';
+  font-style: italic;
+}
+#mobilePage #mobileExamples{
+}
+#mobilePage #mobileExamples .example{
+  border-bottom: 1px solid #CCCCCC;
+  padding-bottom: 40px;
+  padding-top: 40px;
+}
+#mobilePage #mobileExamples .example:last-child{
+  border-bottom: none;
+}
+
+#mobilePage #mobileExamples .example div{
+  flex: 0 0 45%;
+}
+#mobilePage #mobileExamples .example .mobileExampleHeader h3{
+  display: inline-block;
+  border-bottom: 4px solid;
+}
+#mobilePage #mobileExamples #mobileExampleCalendar.example .mobileExampleHeader h3{
+  border-bottom-color: #CCB479;
+}
+#mobilePage #mobileExamples #mobileExampleCommentaries.example .mobileExampleHeader h3{
+  border-bottom-color: #4871BF;
+}
+#mobilePage #mobileExamples #mobileExampleSearch.example .mobileExampleHeader h3{
+  border-bottom-color: #5D956F;
+}
+#mobilePage #mobileExamples #mobileExampleSheets.example .mobileExampleHeader h3{
+  border-bottom-color: #802F3E;
+}
+#mobilePage #mobileExamples .example .mobileExampleHeader h3 .int-en{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: justify;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #666666;
+}
+#mobilePage #mobileExamples .flexReverse.example .mobileExampleHeader{
+  text-align: end;
+}
+#mobilePage #mobileExamples .example .mobileExampleText{
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 21px;
+  text-align: justify;
+  color: #000000;
+}
+#mobilePage #mobileExamples .example .mobileExampleImage {
+  text-align: center;
+}
+#mobilePage #mobileExamples .example .mobileExampleImage img{
+  height: 350px;
+}
+
+#mobilePage #mobileUpdate {
+  background: #EDEDEC;
+  padding-top: 5%;
+}
+#mobilePage #mobileUpdate .flexContainer div{
+  flex: 1;
+}
+#mobilePage #mobileUpdate #mobileUpdateImage{
+  height: 352px;
+  overflow: hidden;
+}
+#mobilePage #mobileUpdate #mobileUpdateImage img{
+  width: 362px;
+}
+
+#mobilePage #mobileUpdate div.mobileUpdateText{
+  flex: 2;
+}
+
+#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateVersion span{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 24px;
+  line-height: 29px;
+  text-align: justify;
+  color: #000000;
+}
+#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateTitle{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 30px;
+  line-height: 35px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #000000;
+}
+#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateTitle .mobileUpdateTitleSection{
+  display: block;
+}
+#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateDescription{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 22px;
+  line-height: 26px;
+  color: #000000;
+}
+#mobilePage #mobileDownloadLinks{
+  margin: auto;
+  padding-top: 3%;
+  padding-bottom: 3%;
+}
+#mobilePage #mobileDownloadLinks .mobileDownloadHeader h3{
+  text-align: center;
+  border-bottom: none;
+  margin: 10% 0 10% 0;
+}
+#mobilePage #mobileDownloadLinks .mobileDownloadHeader h3 span{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 48px;
+  line-height: 58px;
+  color: #666666;
+  text-transform: initial;
+}
+#mobilePage #mobileDownloadLinks .mobileDownloadButtons .button{
+  width: 300px;
+  height: 78px;
+  background: #212E50;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  align-items: center;
+  justify-content: space-evenly;
+}
+#mobilePage #mobileDownloadLinks .mobileDownloadButtons .button img{
+  height: 40px;
+}
+#mobilePage #mobileDownloadLinks .mobileDownloadButtons .button span{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 20px;
+  line-height: 23px;
+  text-align: left;
+  color: #FFFFFF;
+  letter-spacing: 0px;
+}
+#mobilePage #mobileNewsletterSocial{
+  padding-bottom: 3%;
+  padding-top: 3%;
+  background: #FFFFFF;
+  text-align: center;
+}
+#mobilePage #mobileNewsletterSocial div h3{
+  border-bottom: none;
+  text-align: center;
+  margin: auto;
+}
+#mobilePage #mobileNewsletterSocial div h3 span{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 30px;
+  line-height: 36px;
+  color: #000000;
+  text-transform: initial;
+}
+#mobilePage #mobileNewsletterSocial .newsletterSignUpBox input.newsletterInput{
+  width: 289px;
+  height: 46px;
+  background: #FFFFFF;
+  border: 1px solid #666666;
+  box-sizing: border-box;
+  border-radius: 6px;
+}
+#mobilePage #mobileNewsletterSocial .newsletterSignUpBox input.newsletterInput::placeholder,
+#mobilePage #mobileNewsletterSocial .newsletterSignUpBox #newsletterInput-subscribeMessage{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
+  line-height: 22px;
+  color: #999;
+  font-style: normal;
+}
+#mobilePage #mobileNewsletterSocial .newsletterSignUpBox .inputWithNestedImageSubmit{
+    position: relative;
+    margin: auto;
+    width: 320px;
+}
+#mobilePage #mobileNewsletterSocial input[type=image]{
+  padding: 0;
+  box-shadow: none;
+  color: #000;
+  opacity: .2;
+  height: 20px;
+  width: 20px;
+  position: absolute;
+  top: 14px;
+  right: 26px;
+  left: auto;
+}
+.interface-hebrew #mobilePage #mobileNewsletterSocial input[type=image] {
+  transform: scale(-1, 1);
+  left: 26px;
+  right: auto;
+}
+.interface-hebrew #mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
+    position: relative;
+    top: 4px;
+    right: -40px;
+}
+#mobilePage #mobileNewsletterSocial .mobileSocialLinks{
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 26px;
+  text-align: center;
+  letter-spacing: 0.1em;
+  color: #666666;
+  margin: 5% 10%;
+  justify-content: space-around;
+}
+#mobilePage #mobileNewsletterSocial #mobilePageNonProfit p{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 12px;
+  line-height: 29px;
+  color: #000000;
+}
+
+@media screen and (max-width: 700px) {
+  #mobilePage .sectionInner{
+    max-width: 310px;
+  }
+  #mobilePage .sectionRegular{
+    max-width: 310px;
+  }
+  #mobilePage .sectionNarrow{
+    max-width: 310px;
+  }
+  #mobilePage #topHeaderAndroid{
+    display: none;
+  }
+  #mobilePage #topHeaderIOS{
+    display: none;
+  }
+  #mobilePage #mobilePageHeader #mobilePageHeaderImage{
+    height: auto;
+  }
+
+  #mobilePage #mobilePageHeader #mobilePageHeaderText{
+    padding-top: 20%;
+    margin-inline-end: unset;
+  }
+  #mobilePage #mobilePageHeader #mobilePageHeaderPhoneImage{
+      width: 151px;
+      height: 245px;
+      left: -11px;
+      top: 87px;
+  }
+  .interface-hebrew #mobilePage #mobilePageHeader #mobilePageHeaderPhoneImage{
+      left:5px
+  }
+  #mobilePage #mobilePageHeader #mobilePageHeaderTabletImage{
+      width: 245px;
+      height: 306px;
+      left: 70px;
+  }
+  .interface-hebrew #mobilePage #mobilePageHeader #mobilePageHeaderTabletImage{
+      left: 22px
+  }
+  #mobilePage #mobilePageHeader h1{
+    font-size: 40px;
+    line-height: 48px;
+  }
+  #mobilePage #mobilePageHeader #mobilePageSubHeaderText h2{
+    font-size: 16px;
+    line-height: 19px;
+  }
+  #mobilePage #mobilePageHeader #mobilePageHeaderButtons .button{
+    width: 183px;
+    height: 47px;
+    font-size: 12px;
+    line-height: 14px;
+  }
+  #mobilePage #mobileDescription p{
+    font-size: 18px;
+    line-height: 22px;
+  }
+  #mobilePage #mobileTestimonials .mobileTestimonial{
+    flex: 100%;
+    margin-top: 10%;
+  }
+  #mobilePage #mobileExamples{
+    text-align: center;
+  }
+  #mobilePage #mobileExamples .example div{
+    margin: auto;
+    text-align: center;
+  }
+  #mobilePage #mobileExamples .flexReverse.example .mobileExampleHeader{
+    text-align: center;
+  }
+  #mobilePage #mobileExamples .example .mobileExampleText{
+    flex: 100%;
+    margin: auto;
+    text-align: center;
+  }
+  #mobilePage #mobileExamples .example .mobileExampleImage{
+    margin-top: 10%;
+  }
+  #mobilePage #mobileExamples .example .mobileExampleImage img{
+    height: 246px;
+  }
+  #mobilePage #mobileUpdate .flexContainer div{
+    text-align: center;
+    flex: 100%;
+  }
+  #mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateDescription{
+    text-align: justify;
+    font-size: 16px;
+  }
+  #mobilePage #mobileUpdate #mobileUpdateImage{
+    margin-top: 10%;
+    height: 245px;
+  }
+  #mobilePage #mobileUpdate #mobileUpdateImage img{
+    width: 100%;
+  }
+  #mobilePage #mobileUpdate div.mobileUpdateText{
+    flex: 100%;
+  }
+  #mobilePage #mobileDownloadLinks{
+    margin-bottom: 10%;
+  }
+  #mobilePage #mobileDownloadLinks .mobileDownloadHeader h3{
+    margin: 10% 0 10% 0;
+  }
+  #mobilePage #mobileDownloadLinks .mobileDownloadHeader h3 span{
+    font-size: 30px;
+    line-height: 36px;
+  }
+  #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button{
+    justify-content: space-evenly;
+  }
+  #mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
+    top: -32px;
+    right: -110px;
+  }
+  .interface-hebrew #mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
+    top: -32px;
+    right: 115px;
+  }
+  #mobilePage #mobileNewsletterSocial .mobileSocialLinks a{
+    flex: 100%;
+    margin: 3% auto;
+  }
+  #mobilePage #mobileNewsletterSocial .mobileSocialLinks .dot{
+    display: none;
+  }
+  #mobilePage #mobileNewsletterSocial #mobilePageNonProfit p{
+    margin-top: 20%;
+  }
+}
+
+/******* daf yomi landing page ****/
+#dafyomiPage{
+  background: #fff;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+#dafyomiPage p {
+  font-size: 16px;
+  line-height: 21px;
+}
+
+.interface-hebrew #dafyomiPage.static .int-he{
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif !important;
+}
+#dafyomiPage .button{
+  padding: 3% 5%;
+}
+#dafyomiPage .sectionInner{
+  position: relative;
+  max-width: 1152px;
+  margin: auto;
+}
+#dafyomiPage .sectionWide{}
+#dafyomiPage .sectionRegular{
+  max-width: 960px;
+}
+#dafyomiPage .sectionNarrow {
+  max-width: 640px;
+}
+#dafyomiPage .flexContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+#dafyomiPage .flexReverse {
+  flex-direction: row-reverse;
+}
+#dafyomiPage #dafyomiPageHeader {
+  background-color: #b5343c;
+  padding: 70px 0;
+  margin-top: 60px;
+  background-image: url(/static/img/daf-yomi-landing-page/talmudtextheader.jpg);
+  background-size: cover;
+  background-position: center;
+}
+
+#dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderText{
+  flex: 1;
+  /* width: 438px; */
+  padding-top: 0%;
+  margin: auto;
+  text-align: center;
+}
+#dafyomiPage #dafyomiPageHeader h1{
+  /*width: 438px;*/
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 64px;
+  line-height: 77px;
+  text-align: center;
+  letter-spacing: 2px;
+  color: #FFFFFF;
+  margin: auto;
+}
+
+#dafyomiPage #dafyomiPageHeader h1 img {
+  width: 244px;
+}
+
+#dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText{
+  padding: 2% 0;
+}
+#dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText h2{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 30px;
+  line-height: 35px;
+  text-align: center;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #FFFFFF;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: auto;
+}
+
+#dafyomiPage .center {
+    text-align: center;
+}
+#dafyomiPage #dafyomiDescription p{
+  font-size: 22px;
+  line-height: 26px;
+  text-align: justify;
+  color: #000000;
+  margin-top: 62px;
+  margin-bottom: 65px;
+}
+#dafyomiPage #dafyomiDescription p .int-en{
+    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+#dafyomiPage #dafyomiWhatIs,
+#dafyomiPage #dafyomiWhatsNew {
+  background: #EDEDEC;
+  padding: 2% 0;
+}
+#dafyomiPage #dafyomiWhatIs .flexContainer div,
+#dafyomiPage #dafyomiWhatsNew .flexContainer div{
+  flex: 1;
+}
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatIsImage,
+#dafyomiPage #dafyomiWhatIs #dafyomiWhatsNewImage {
+  margin: 30px;
+  text-align: center;
+}
+
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img,
+#dafyomiPage #dafyomiWhatIs #dafyomiWhatIsImage img{
+  width: 362px;
+  margin-left: 40px;
+}
+
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img {
+  margin-bottom: -30px
+}
+
+#dafyomiPage #dafyomiWhatIs div.dafyomiWhatIsText,
+#dafyomiPage #dafyomiWhatsNew div.dafyomiWhatsNewText{
+  flex: 2;
+}
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsTitle{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 30px;
+  line-height: 35px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText h3.dafyomiWhatsNewTitle {
+  margin-top: 10px;
+}
+
+
+/*#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle span,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsTitle span{
+  display: inline-block;
+}*/
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewDescription,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsDescription{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  color: #000000;
+}
+
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewNew span{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 24px;
+  line-height: 29px;
+  text-align: justify;
+  color: #000000;
+  font-style: italic;
+}
+
+#dafyomiPage #dafyomiExamples{
+  background-color: #fff;
+}
+#dafyomiPage #dafyomiExamples .example{
+  border-bottom: 1px solid #CCCCCC;
+  padding-bottom: 40px;
+  padding-top: 40px;
+}
+#dafyomiPage #dafyomiExamples .example:last-child{
+  border-bottom: none;
+}
+
+#dafyomiPage #dafyomiExamples .example div{
+  flex: 0 0 45%;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3 {
+  display: inline-block;
+  border-bottom: 4px solid;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleMobileApp.example .dafyomiExampleHeader h3{
+  border-bottom-color: #CCB479;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleCalendar.example .dafyomiExampleHeader h3{
+  border-bottom-color: #4871BF;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleTranslations.example .dafyomiExampleHeader h3{
+  border-bottom-color: #5D956F;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleConnections.example .dafyomiExampleHeader h3{
+  border-bottom-color: #802F3E;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3 .int-en{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: justify;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #666666;
+}
+#dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
+  text-align: end;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleText{
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 21px;
+  text-align: justify;
+  color: #000000;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleImage {
+  text-align: center;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleImage img{
+  height: 250px;
+}
+
+#dafyomiPage #dafyomiExamples .dafyomiExamplesHeader h3{
+  text-align: center;
+  border-bottom: none;
+  margin: 65px 0 10px 0;
+}
+
+#dafyomiPage h3.headerText {
+  border-bottom: none;
+}
+#dafyomiPage h3.headerText.additionalMargin {
+  margin: 80px 0 60px 0;
+}
+
+#dafyomiPage h3.headerText span {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 48px;
+  line-height: 58px;
+  color: #666666;
+  text-transform: initial;
+}
+
+#dafyomiPage hr {
+  border-top: 1px solid #ccc;
+  margin: 50px;
+}
+
+#dafyomiPage .testimonial {
+  font-style: italic;
+  margin: 40px 0;
+
+}
+#dafyomiPage .testimonial::before {
+  font-family: FontAwesome;
+  content: '\f10d'; /*quote left icon*/
+  position: relative;
+  top: -7px;
+}
+
+#dafyomiPage .int-he.testimonial::before {
+  font-family: FontAwesome;
+  content: '\f10e'; /*quote left icon*/
+  position: relative;
+  top: -7px;
+}
+
+#dafyomiPage .finalContent {
+  margin-bottom: 80px;
+}
+
+
+@media screen and (max-width: 700px) {
+  #dafyomiPage .sectionInner{
+    max-width: 310px;
+  }
+  #dafyomiPage .sectionRegular{
+    max-width: 310px;
+  }
+  #dafyomiPage .sectionNarrow{
+    max-width: 310px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderImage{
+    height: auto;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderText{
+    padding-top: 20%;
+  }
+  #dafyomiPage #dafyomiPageHeader h1{
+    font-size: 40px;
+    line-height: 48px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText h2{
+    font-size: 16px;
+    line-height: 19px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderButtons .button{
+    width: 183px;
+    height: 47px;
+    font-size: 12px;
+    line-height: 14px;
+  }
+  #dafyomiPage #dafyomiDescription p{
+    font-size: 18px;
+    line-height: 22px;
+  }
+  #dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img,
+  #dafyomiPage #dafyomiWhatIs #dafyomiWhatIsImage img {
+    margin-left: 0;
+    margin-bottom: 0;
+  }
+  #dafyomiPage #dafyomiExamples{
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example div{
+    margin: auto;
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleText{
+    flex: 100%;
+    margin: auto;
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleImage{
+    margin-top: 10%;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleImage img{
+    height: 246px;
+  }
+}
+
+
+/* Static Page Templates */
+
+.staticPage {
+  background-color: #fff;
+}
+.staticPage hr {
+  border-top: 1px solid #ccc;
+  margin-top: 60px;
+}
+.staticPage p a {
+  text-decoration: underline;
+}
+.staticPage .parashaSponsorship .parashaTitle {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 30px;
+  padding-top: 50px;
+  display: block;
+}
+.staticPage .parashaSponsorship .parashaTitle:hover {
+  color: black;
+  text-decoration: none;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames {
+  font-family: Roboto, serif;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 16px;
+  padding-top: 25px;
+  width: 75%;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames a {
+  text-decoration: none;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames a {
+  text-decoration: none;
+  color: black;
+}
+.staticPage .parashaSponsorship .parashaMessage {
+  font-family: Roboto, serif;
+  font-style: italic;
+  font-weight: lighter;
+  font-size: 16px;
+  width: 75%;
+  padding-top: 25px;
+  line-height: 1.3;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  flex: 7;
+  text-align: center;
+  font-size: 2em;
+}
+.interface-english .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-right: 10px;
+  padding-top: 10px;
+}
+.interface-hebrew .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-left: 10px;
+  padding-top: 10px;
+}
+.interface-hebrew .staticPage.englishOnly .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-right: 10px;
+  padding-top: 10px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderImg {
+display: none;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderImg img {
+display: none;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderText {
+  font-size: 16px;
+  line-height: 22px;
+  padding-bottom: 40px;
+  text-align: left;
+  font-weight: lighter;
+  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
+  max-width: 100%;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox h1 {
+  line-height: 52px;
+  margin: 0 0 14px 0;
+  padding-bottom: 20px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox h1 .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-weight: lighter;
+  font-size: 46px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox .simpleButtonWrapper {
+  width: auto;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 40px;
+}
+.staticPage .staticPageBlockInner {
+  width: 800px;
+  margin: 0 auto;
+  max-width: 90%;
+}
+.staticPage .blockVerticalPadding {
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
+#EducatorsInner .staticPage .blockVerticalPadding,
+#RabbisInner .staticPage .blockVerticalPadding {
+  background-color: #FBFBFA;
+}
+
+.staticPage .flexContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+/* We need to hide some <a> tags that have a flexContainer on them. */
+.interface-hebrew .staticPage .flexContainer.int-en,
+.interface-english .staticPage .flexContainer.int-he {
+  display: none;
+}
+.staticPage .flexReverse {
+  flex-direction: row-reverse;
+}
+.staticPage .greyBackground {
+  background-color: #EDEDEC;
+}
+.staticPage .lightgreyBackground {
+  background-color: #FBFBFA;
+}
+.staticPage .staticPageHeader {
+  background-color: #212E50;
+  padding: 70px 0 0 0;
+  margin-top: 60px;
+  color: white;
+}
+.staticPage .staticPageHeader.educators, .staticPage .staticPageHeader.rabbis {
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 70px 0 30px;
+}
+.staticPage .staticPageHeader.educators {
+ background-image: url("/static/img/educators-landing-page/edu_landingpage_header.png");
+ background-position: 50% 0%;
+}
+.staticPage .staticPageHeader.rabbis {
+  background-image: url("/static/img/rabbis-landing-page/rabbis-landing-page-header.png");
+  background-position: 50% 50%;
+}
+.staticPage .staticPageHeader.donate {
+  background-image: url("/static/img/sofrut.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 70px 0 30px;
+  background-position: bottom right;
+}
+
+.staticPage .staticPageHeader.wordbyword {
+  background-image: url("/static/img/word-by-word-bg.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 70px 0 30px;
+  background-position: bottom right;
+}
+
+.staticPage .staticPageCallToActionFooter {
+  background-color: #212E50;
+  color: white;
+}
+.staticPage .staticPageCallToActionFooter .staticPageBlockInner {
+  padding: 80px 0;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 30px;
+  line-height: 36px;
+  width: 50%;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText a {
+  color: inherit;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText a {
+
+}
+.staticPage .staticPageCallToActionFooter .callToActionText.noButton {
+  width: 100%;
+  text-align: center;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
+  color: white;
+}
+.staticPage .staticPageHeader .staticPageHeaderTextBox {
+  flex: 7;
+}
+.staticPage .staticPageHeader .staticPageHeaderTextBox.educators,
+.staticPage .staticPageHeader .staticPageHeaderTextBox.rabbis
+{
+  flex: inherit;
+}
+.staticPage .staticPageHeader .staticPageHeaderImg {
+  flex: 9;
+  min-height: 290px;
+}
+.interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
+  padding-right: 10px;
+}
+.interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBox {
+  padding-left: 10px;
+}
+.interface-hebrew .staticPage.englishOnly .staticPageHeader .staticPageHeaderTextBox {
+  padding-right: 10px;
+}
+.staticPage .staticPageH1,
+.staticPage .staticPageH2 {
+  padding: 55px 0 10px;
+  margin: 0;
+}
+.staticPage .staticPageH2 span {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 30px;
+  line-height: 35px;
+  color: #666666;
+}
+.staticPage.donate .staticPageH2 span {
+  color: #000;
+}
+.staticPage.donate .HeaderWithColorAccentBlockAndText hr {
+  border: black 2px solid;
+  margin-top: 0;
+}
+.staticPage.donate .HeaderWithColorAccentBlockAndText h2 {
+  font-weight: normal;
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+.staticPage.donate h2 {
+  font-size: 30px;
+  font-weight: 400;
+}
+.staticPage.donate details {
+  padding: 0 15px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-top: 4px solid black;
+  margin: 8px 0;
+}
+.staticPage.donate details[open] {
+  padding-bottom: 15px;
+}
+.staticPage.donate details > summary::-webkit-details-marker {
+  display: none;
+}
+.staticPage.donate details > summary {
+  list-style: none;
+  padding: 15px 0;
+  text-align: center;
+  margin: 0 -15px;
+  cursor: pointer;
+}
+
+.staticPage.donate details[open] > summary {
+  padding-bottom: 0;
+}
+
+
+.staticPage.donate details > summary span {
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.staticPage.donate .HeaderWithColorAccentBlockAndText a,
+.staticPage.donate .msgToSupporters a {
+  font-weight: bold;
+}
+.staticPage .staticPageH1 span {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 42px;
+  color: #000;
+}
+.staticPage .msgToSupporters {
+  margin-top: -40px;
+  width: 100%;
+}
+.staticPage .msgToSupportersEven {
+    margin-top: -40px;
+    margin-bottom: -40px;
+    width: 100%;
+}
+.staticPage .msgToSupporters h1 {
+  font-weight: 500;
+  font-size: 42px;
+}
+
+.staticPage .center {
+  text-align: center;
+}
+.staticPage .staticPageSpacer {
+}
+.staticPage .staticPageSection {
+  padding: 30px 0;
+}
+.staticPage .staticPageSheetItem {
+  padding: 20px 0;
+}
+.staticPage .staticPageSheetItem + .staticPageSheetItem {
+  border-top: 1px solid #ccc;
+}
+.staticPage .staticPageSheetItem a {
+  padding-bottom: 20px;
+  display: block;
+  color: #000;
+}
+.staticPage .int-en .staticPageSheetItem a {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 24px;
+}
+.staticPage .int-he .staticPageSheetItem a {
+  font-family: "Heebo", sans-serif;
+  font-size: 24px;
+}
+.staticPage .staticPageSheetItem img {
+  height: 46px;
+  width: 46px;
+  vertical-align: middle;
+}
+.staticPage .staticPageSheetAuthor {
+  padding: 0 20px;
+}
+.staticPage .staticPageUserQuote {
+  padding: 26px 0;
+}
+.staticPage .staticPageUserQuote + .staticPageUserQuote {
+  border-top: 1px solid #ccc;
+}
+.staticPage .staticPageUserQuoteNameBox {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+}
+.staticPage .staticPageUserQuote img {
+  height: 46px;
+  width: 46px;
+  border-radius: 46px;
+}
+.staticPage .staticPageUserQuoteName {
+  padding: 0 20px;
+}
+.staticPage .simpleButtonWrapper {
+  width: 33%;
+}
+.staticPage .simpleButtonWrapper.signUpEducators img {
+  height: 18px;
+  width: 18px;
+  opacity: 0.2;
+  position: absolute;
+  margin-inline-start: 10px;
+}
+.staticPage .simpleButtonWrapper.signUpEducators, .staticPage .staticPageHeaderTextBox .simpleButtonWrapper.signUpEducators {
+  width: 100%;
+  padding-bottom: 0px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPage .simpleButtonWrapper.signUpEducators a:hover {
+  color: inherit;
+  text-decoration: none;
+}
+.staticPage .simpleButtonWrapper.signUpEducators .button {
+  padding: 17px 50px;
+}
+.staticPage .signUpEducatorsMessage {
+  text-align: center;
+}
+.staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
+  width: 66%;
+  padding-bottom: 80px;
+}
+.staticPage .simpleButtonWrapper .button {
+  border-radius: 0;
+  min-height: 47px;
+}
+.staticPage .simpleButtonWrapper .button.tall {
+  min-height: 78px;
+}
+.staticPage .simpleButtonWrapper .button.rounded {
+  border-radius: 6px;
+}
+.staticPage .simpleButtonWrapper .button span {
+  margin: auto;
+}
+.staticPageHeader h1 {
+  font-size: 42px;
+  line-height: 52px;
+  font-weight: normal;
+  margin: 0 0 14px 0;
+}
+.staticPageHeader h1 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPageHeaderText {
+  font-size: 16px;
+  max-width: 280px;
+  line-height: 22px;
+  padding-bottom: 25px;
+}
+.staticPageHeaderImg img {
+  width: 100%;
+  display: block;
+}
+.staticPageAbout {
+  padding: 50px 0;
+}
+.staticPageAbout h2 {
+  font-size: 22px;
+  font-weight: 500;
+  color: #666;
+  line-height: 26px;
+  margin: 0 0 19px 0;
+}
+.staticPageAboutText {
+  font-size: 16px;
+  line-height: 19px;
+}
+.staticPage .feature .featureText {
+  font-family: "Roboto", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 21px;
+  border-top: 4px solid;
+  color: #000000;
+  width: 35%;
+}
+.staticPage .feature .featureImage {
+  text-align: center;
+  width: 57%;
+}
+.staticPage .feature .featureImage img {
+  width: 454px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  border-radius: 6px;
+}
+.staticPage.wordbyword .feature .featureText {
+  width: 57%;
+}
+.staticPage.wordbyword .feature .featureImage {
+  width: 35%;
+}
+
+.staticPage.wordbyword .feature .featureImage img {
+  width: initial;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+
+.staticPage .feature {
+  padding: 40px 0;
+  background-color: #FBFBFA;
+}
+.staticPage .featureBox {
+  padding: 0 27px 20px;
+  background-color: #FBFBFA;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 0 0 6px 6px;
+  border-top: black 4px solid;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.staticPage.donate .simpleButtonWrapper {
+  margin-top: 20px;
+  width: 100%;
+}
+.staticPage.donate.wordbyword .simpleButtonWrapper {
+  width: 33%;
+}
+
+.staticPage.donate .finStewardBox {
+  display: flex;
+  flex-direction: column;
+  height: 300px;
+  justify-content: space-between;
+}
+
+.staticPage.donate .finStewardBox h2 {
+  margin:0;
+}
+
+.staticPage .feature .featureHeader a {
+  color: inherit;
+}
+.staticPage .feature .featureHeader a:hover h3 {
+  text-decoration: underline;
+}
+.staticPage .featureBox .featureHeader h3,
+.staticPage .feature .featureHeader h3 {
+  margin: 20px 0 20px 0;
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: normal;
+  display: inline-block;
+}
+.staticPage .featureBox .featureHeader h3 .int-en,
+.staticPage .feature .featureHeader h3 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPage .buttonRow h2 {
+  padding: 0 0 30px 0;
+}
+@media (max-width: 540px) {
+  .staticPage .flexContainer {
+    flex-direction: column;
+  }
+  .staticPage .staticPageBlockInner {
+    width: auto;
+    max-width: none;
+    margin: 0 30px;
+  }
+  .staticPage .staticPageHeader {
+    padding-top: 40px;
+  }
+  .staticPage .staticPageHeaderText {
+    max-width: 100%;
+  }
+  .staticPage .staticPageH2 {
+    width: 100%;
+  }
+  .staticPageFooter .simpleButtonWrapper,
+  .staticPage .feature .featureImage {
+    padding-top: 30px;
+  }
+  .staticPage .staticPageHeader .staticPageHeaderImg {
+    margin-top: 20px;
+  }
+
+  .staticPage .simpleButtonWrapper,
+  .staticPage .feature .featureText,
+  .staticPage .feature .featureImage,
+  .staticPage .feature .featureImage img,
+  .staticPage .staticPageCallToActionFooter .callToActionText {
+    width: 100%;
+  }
+
+  .staticPage.donate.wordbyword .simpleButtonWrapper,
+  .staticPage.donate.wordbyword .feature .featureText,
+  .staticPage.donate.wordbyword .feature .featureImage,
+  .staticPage.donate.wordbyword .feature .featureImage img,
+  .staticPage.donate.wordbyword .staticPageCallToActionFooter .callToActionText {
+    width: 100%;
+  }
+
+  .staticPage .staticPageCallToActionFooter .callToActionText {
+    padding-bottom: 20px;
+  }
+}
+
+/*** Filters for coloring svgs ***/
+.svg-white {
+  filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
+}
