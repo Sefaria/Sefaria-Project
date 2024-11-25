@@ -49,7 +49,7 @@ export const GeneralAutocomplete = ({
               {...getMenuProps()}
               className={dropdownMenuClassString}
             >
-                {(shouldDisplaySuggestions(isOpen) || true) && renderItems(suggestions, highlightedIndex, getItemProps, getInputProps)}
+                {shouldDisplaySuggestions(isOpen) && renderItems(suggestions, highlightedIndex, getItemProps, getInputProps)}
             </div>
         </div>
     );
