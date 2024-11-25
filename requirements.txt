@@ -42,8 +42,7 @@ google-auth==1.24.0
 google-auth-oauthlib==0.4.2
 p929==0.6.1
 pathos==0.2.6
-pillow==8.0.1; sys_platform == 'linux'
-pillow==10.0.1; sys_platform != 'linux'
+pillow sys_platform == 'linux'
 psycopg2==2.8.6
 py2-py3-django-email-as-username==1.7.1
 pymongo==3.12.*
