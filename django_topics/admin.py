@@ -67,6 +67,12 @@ class TopicAdmin(admin.ModelAdmin):
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.filter(pools__name=PoolType.LIBRARY.value)
