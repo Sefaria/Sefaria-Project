@@ -104,7 +104,7 @@ class TopicOfTheDayAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "topic":
-            kwargs["label"] = "Topic ID num (not slug)"
+            kwargs["label"] = "Topic slug"
             kwargs["help_text"] = "Use the magnifying glass button to select a topic."
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -161,10 +161,10 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "topic":
-            kwargs["label"] = "Topic ID num (not slug)"
+            kwargs["label"] = "Topic slug"
             kwargs["help_text"] = "Use the magnifying glass button to select a topic."
         if db_field.name == "secondary_topic":
-            kwargs["label"] = "Secondary Topic ID num (not slug)"
+            kwargs["label"] = "Secondary topic slug"
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
