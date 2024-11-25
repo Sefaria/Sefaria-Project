@@ -46,9 +46,9 @@ export const VersionsTextList = ({
     };
 
     const getVersion = () => {
-        return Object.values(versionLangMap).flat().filter(
+        return Object.values(versionLangMap).flat().find(
             v => Sefaria.getTranslateVersionsKey(v.versionTitle, v.language) === vFilter[0]
-        )[0];
+        );
     };
 
     if (!loaded || !vFilter.length) {
