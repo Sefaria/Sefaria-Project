@@ -9,7 +9,6 @@ from io import StringIO, BytesIO
 from django.contrib.admin.views.decorators import staff_member_required
 
 import structlog
-logger = structlog.get_logger(__name__)
 
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
@@ -42,9 +41,19 @@ from bs4 import BeautifulSoup
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
-
-
 from sefaria.gauth.decorators import gauth_required
+from sefaria import search
+from sefaria.system.database import db
+from sefaria.model.notification import Notification
+from sefaria.model.story import Story
+from PIL import Image
+import uuid
+import base64
+import imghdr
+from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
+
+logger = structlog.get_logger(__name__)
+
 
 def annotate_user_links(sources):
     """
@@ -344,7 +353,6 @@ def delete_sheet_api(request, sheet_id):
     """
     Deletes sheet with id, only if the requester is the sheet owner.
     """
-    import sefaria.search as search
     id = int(sheet_id)
     sheet = db.sheets.find_one({"id": id})
     if not sheet:
@@ -465,7 +473,6 @@ def collections_post_api(request, user_id, slug=None):
 
 @csrf_exempt
 def user_collections_api(request, user_id):
-    from sefaria.system.database import db
     if request.method == "GET":
         is_me = request.user.id == int(user_id)
         collections_serialized = get_user_collections(int(user_id), is_me)
@@ -589,7 +596,6 @@ def collections_invite_api(request, slug, uid_or_email, uninvite=False):
 
         if is_new_member:
             collection.add_member(user.id)
-            from sefaria.model.notification import Notification
             notification = Notification({"uid": user.id})
             notification.make_collection_add(adder_id=request.user.id, collection_slug=collection.slug)
             notification.save()
@@ -835,7 +841,6 @@ def copy_source_to_sheet_api(request, sheet_id):
     """
     API to copy a source from one sheet to another.
     """
-    from sefaria.system.database import db
     copy_sheet = request.POST.get("sheetID")
     copy_source = request.POST.get("nodeID")
     if not copy_sheet and copy_source:
@@ -967,7 +972,6 @@ def all_sheets_api(request, limiter, offset=0):
 
 
 def sheet_to_story_dict(request, sid):
-    from sefaria.model.story import Story
     d = Story.sheet_metadata(sid, return_id=True)
     d.update(Story.publisher_metadata(d["publisher_id"]))
 
@@ -984,7 +988,6 @@ def sheet_list_to_story_list(request, sid_list, public=True):
     :param public: if True, return only public sheets
     :return:
     """
-    from sefaria.model.story import Story
     dict_list = Story.sheet_metadata_bulk(sid_list, return_id=True, public=public)
     followees_set = following.FolloweesSet(request.user.id).uids
     for d in dict_list:
@@ -1139,12 +1142,6 @@ def upload_sheet_media(request):
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to access this api.")})
     if request.method == "POST":
-        from PIL import Image
-        from io import BytesIO
-        import uuid
-        import base64
-        import imghdr
-
         bucket_name = GoogleStorageManager.UGC_SHEET_BUCKET
         max_img_size = [1024, 1024]
 
@@ -1169,7 +1166,6 @@ def upload_sheet_media(request):
 @staff_member_required
 @api_view(["PUT"])
 def next_untagged(request):
-    from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     if("sheetId" in body):
@@ -1180,7 +1176,6 @@ def next_untagged(request):
 @staff_member_required
 @api_view(["PUT"])
 def next_uncategorized(request):
-    from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     if("sheetId" in body):
