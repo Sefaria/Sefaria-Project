@@ -119,7 +119,6 @@ MIDDLEWARE = [
     'sefaria.system.middleware.ProfileMiddleware',
     'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.middleware.SharedCacheMiddleware',
-    'sefaria.system.middleware.StartupMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
     'django_structlog.middlewares.RequestMiddleware',
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
