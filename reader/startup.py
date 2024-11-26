@@ -27,8 +27,6 @@ def init_library_cache():
         logger.info("Initializing Cross Lexicon Auto Completer")
         library.build_cross_lexicon_auto_completer()
 
-        logger.info("Initializing Topic Auto Completer")
-        library.build_topic_auto_completer()
 
     if settings.ENABLE_LINKER:
         logger.info("Initializing Linker")

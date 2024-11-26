@@ -69,7 +69,7 @@ class TopicSearch extends Component {
       const srefs = this.props.srefs;
       const update = this.props.update;
       const reset = this.reset;
-      Sefaria.postRefTopicLink(Sefaria.normRef(this.props.srefs), postJSON).then(async () => {
+      Sefaria.postRefTopicLink(Sefaria.normRef(this.props.srefs), postJSON).then(async (data) => {
           const sectionRef = await Sefaria.getRef(Sefaria.normRef(srefs)).sectionRef;
           srefs.map(sref => {
               if (!Sefaria._refTopicLinks[sref]) {

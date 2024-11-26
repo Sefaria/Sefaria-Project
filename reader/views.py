@@ -2638,13 +2638,6 @@ def get_name_completions(name, limit, topic_override=False, type=None, topic_poo
 
 
 @catch_error_as_json
-def topic_completion_api(request, topic):
-    limit = int(request.GET.get("limit", 10))
-    result = library.topic_auto_completer().complete(topic, limit=limit)
-    return jsonResponse(result)
-
-
-@catch_error_as_json
 def name_api(request, name):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -3124,7 +3117,7 @@ def add_new_topic_api(request):
             t.image = data["image"]
 
         t.save()
-        library.build_topic_auto_completer()
+        library.build_full_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
         library.get_topic_toc_category_mapping(rebuild=True)
@@ -3141,7 +3134,7 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            library.build_topic_auto_completer()
+            library.build_full_auto_completer()
             library.get_topic_toc(rebuild=True)
             library.get_topic_toc_json(rebuild=True)
             library.get_topic_toc_category_mapping(rebuild=True)
@@ -3176,7 +3169,7 @@ def topics_api(request, topic, v2=False):
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
         topic = update_topic(topic, **topic_data)
         if author_status_changed:
-            library.build_topic_auto_completer()
+            library.build_full_auto_completer()
 
         def protected_index_post(request):
             return jsonResponse(topic.contents())

@@ -1238,14 +1238,6 @@ Sefaria = extend(Sefaria, {
           }.bind(this)
       });
   },
-  _topicCompletions: {},
-  getTopicCompletions: function (word, callback) {
-       return this._cachedApiPromise({
-          url: `${Sefaria.apiHost}/api/topic/completion/${word}`, key: word,
-          store: Sefaria._topicCompletions,
-          processor: callback
-      });   // this API is used instead of api/name because when we want all topics. api/name only gets topics with a minimum amount of sources
-  },
   _lexiconLookups: {},
   getLexiconWords: function(words, ref) {
     // Returns Promise which resolve to a list of lexicon entries for the given words
