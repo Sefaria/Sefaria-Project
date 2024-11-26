@@ -1129,7 +1129,7 @@ Sefaria = extend(Sefaria, {
   },
   postSegment: function(ref, versionTitle, language, text, success, error) {
     if (!versionTitle || !language) { return; }
-    this.getName(ref, true)
+    this.getName(ref, undefined, 'ref')
         .then(data => {
             if (!data.is_segment) { return; }
             var d = {json: JSON.stringify({
@@ -1206,10 +1206,10 @@ Sefaria = extend(Sefaria, {
   _lookups: {},
 
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  getName: function(name, refOnly = false, limit = undefined, type=undefined, topicPool=undefined) {
+  getName: function(name, limit = undefined, type=undefined, topicPool=undefined) {
     const trimmed_name = name.trim();
     let params = {};
-    if (refOnly) { params["ref_only"] = 1; }
+    // if (refOnly) { params["ref_only"] = 1; }
     if (limit != undefined) { params["limit"] = limit; }
     if (type != undefined) { params["type"] = type; }
     if (topicPool != undefined) { params["topic_pool"] = topicPool; }

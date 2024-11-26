@@ -1625,7 +1625,7 @@ def search_autocomplete_redirecter(request):
     query = request.GET.get("q", "")
     topic_override = query.startswith('#')
     query = query[1:] if topic_override else query
-    completions_dict = get_name_completions(query, 1, False, topic_override)
+    completions_dict = get_name_completions(query, 1, topic_override)
     ref = completions_dict['ref']
     object_data = completions_dict['object_data']
     if ref:
@@ -1643,7 +1643,7 @@ def search_autocomplete_redirecter(request):
 def opensearch_suggestions_api(request):
     # see here for docs: http://www.opensearch.org/Specifications/OpenSearch/Extensions/Suggestions/1.1
     query = request.GET.get("q", "")
-    completions_dict = get_name_completions(query, 5, False)
+    completions_dict = get_name_completions(query, 5)
     ret_data = [
         query,
         completions_dict["completions"]
@@ -2588,9 +2588,9 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, ref_only, topic_override=False, type=None, topic_pool=None):
+def get_name_completions(name, limit, topic_override=False, type=None, topic_pool=None):
     lang = "he" if has_hebrew(name) else "en"
-    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
+    completer = library.full_auto_completer(lang)
     object_data = None
     ref = None
     topic = None
@@ -2652,10 +2652,9 @@ def name_api(request, name):
     name = name[1:] if topic_override else name
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
-    ref_only = bool(int(request.GET.get("ref_only", False)))
     type = request.GET.get("type", None)
     topic_pool = request.GET.get("topic_pool", None)
-    completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override, type=type, topic_pool=topic_pool)
+    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, topic_pool=topic_pool)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
     d = {

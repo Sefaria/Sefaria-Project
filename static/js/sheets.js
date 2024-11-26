@@ -160,7 +160,7 @@ $(function() {
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
         var ref = $("#inlineAdd").val();
-		Sefaria.getName(ref, true).then(function(q) {
+		Sefaria.getName(ref, undefined, 'ref').then(function(q) {
             addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").html("");
@@ -2123,7 +2123,7 @@ sjs.sheetTagger = {
 		})
 		.autocomplete({
 			source: function(request, response) {
-			Sefaria.getName(request.term, false, 0)
+			Sefaria.getName(request.term, 0)
 				.then(function(d) {
 					var topics = [];
 					d.completion_objects.map(function(obj) {

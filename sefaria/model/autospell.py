@@ -334,10 +334,13 @@ class Completions(object):
             return c[1]["order"] * 100
 
     def _filter_completions_by_type(self, completion_strings, completion_objects):
-        filtered_completions = (
-            (cs, co) for cs, co in zip(completion_strings, completion_objects) if self._has_required_type(co)
-        )
-        return list(zip(*filtered_completions)) if any(filtered_completions) else ([], [])
+        filtered_completions = [
+            (cs, co)
+            for cs, co in zip(completion_strings, completion_objects)
+            if self._has_required_type(co)
+        ]
+        list1, list2 = zip(*filtered_completions) if filtered_completions else ([], [])
+        return list(list1), list(list2)
 
     def _has_required_type(self, completion_object):
         if not self.type:
