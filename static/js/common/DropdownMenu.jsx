@@ -10,31 +10,39 @@ const DropdownMenuSeparator = () => {
 }
 
 const DropdownMenuItem = ({url, children, newTab}) => {
+  const dropDownClasses = `interfaceLinks-option int-bi dropdownItem`;
+  if (!url) {
+      return (
+          <div className={dropDownClasses}>
+              {children}
+          </div>
+      );
+  }
 
   if (!newTab){
     newTab = false;
   }
 
   return (
-
-    <a className={`interfaceLinks-option int-bi dropdownItem`} href={url} target={newTab ? '_blank' : null}>
+    <a className={dropDownClasses} href={url} target={newTab ? '_blank' : null}>
       {children}
     </a>
 
-  );
+      );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='Lorem ipsum dolor sit amet, lorem dolor.',
+                                  descHe='לורם איפסום דולור סיט אמט'}) => {
   return (
     <>
-      <div className="dropdownHeader">
+      <div className="dropdownHeader" onClick={() => onClick()}>
         <img src={icon} />
         <span className='dropdownHeaderText'>
           <InterfaceText text={{'en': textEn, 'he': textHe}} />
         </span>
       </div>
       <div className='dropdownDesc'>
-        <InterfaceText text={{'en': 'Lorem ipsum dolor sit amet, lorem dolor.', 'he': 'לורם איפסום דולור סיט אמט'}} />     
+        <InterfaceText text={{'en': descEn, 'he': descHe}} />
       </div>
   </>
   );
@@ -43,10 +51,10 @@ const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
 const DropdownMenu = ({children, menuIconComponent}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
-  
+
     const handleClick = (e) => {
-      e.stopPropagation();
-      setIsOpen(isOpen => !isOpen);
+        e.stopPropagation();
+        setIsOpen(isOpen => !isOpen);
     }
     const handleHideDropdown = (event) => {
         if (event.key === 'Escape') {
@@ -61,7 +69,7 @@ const DropdownMenu = ({children, menuIconComponent}) => {
             setIsOpen(false);
         }
     };
-  
+
     useEffect(() => {
         document.addEventListener('keydown', handleHideDropdown, true);
         document.addEventListener('click', handleClickOutside, true);
@@ -70,7 +78,7 @@ const DropdownMenu = ({children, menuIconComponent}) => {
             document.removeEventListener('click', handleClickOutside, true);
         };
     }, []);
-  
+
     return (
         <div className="dropdownLinks" ref={wrapperRef}>
            <a className="dropdownLinks-button" onClick={handleClick}>
@@ -83,7 +91,7 @@ const DropdownMenu = ({children, menuIconComponent}) => {
           </div>
         </div>
     );
-  }
+}
 
 
   export {
