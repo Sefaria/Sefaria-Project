@@ -100,6 +100,7 @@ class InvalidHTTPMethodException(Exception):
         self.message = f"'{method}' is not a valid HTTP API method."
         super().__init__(self.message)
 
+
 class ComplexBookLevelRefError(InputError):
     def __init__(self, book_ref):
         self.book_ref = book_ref
