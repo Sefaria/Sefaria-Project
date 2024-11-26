@@ -504,7 +504,9 @@ class TextIndexer(object):
         total_versions = len(versions)
         versions = None  # release RAM
         for title, vlist in list(versions_by_index.items()):
-            cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
+            if len(vlist) == 0:
+                continue
+            cls.curr_index = vlist[0].get_index()
             if for_es:
                 cls._bulk_actions = []
                 try:
