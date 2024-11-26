@@ -8,7 +8,6 @@ from collections import defaultdict
 from typing import List, Iterable
 import math
 import datrie
-from sympy import false
 from unidecode import unidecode
 from django.contrib.auth.models import User
 from sefaria.model import *
