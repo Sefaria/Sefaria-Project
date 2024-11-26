@@ -2560,10 +2560,6 @@ const SefariaEditor = (props) => {
     const [summary, setSummary] = useState(sheet.summary || "");
     const [title, setTitle] = useState(sheet.title || "");
 
-    useEffect(() => {
-        saveDocument(currentDocument);
-    }, [title, summary]);
-
     useEffect(
         () => {
             if (!canUseDOM) {
@@ -2583,7 +2579,7 @@ const SefariaEditor = (props) => {
                 clearTimeout(handler);
             };
         },
-        [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
+        [currentDocument[0].children[0], title, summary] // Only re-call effect if value or delay changes
     );
 
     useEffect(
@@ -2599,6 +2595,8 @@ const SefariaEditor = (props) => {
 
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
+
+            return () => saveDocument(currentDocument);
         }, []
     )
 
@@ -2793,16 +2791,15 @@ const SefariaEditor = (props) => {
         postSheet(json, doc[0].id);
     }
 
-    const postSheet = (sheet, id) => {
-        return Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST").then(data => {
-            setlastModified(data.dateModified);
-            setStatus(data.status);
-            setTitle(data.title);
-            setSummary(data.summary);
-            setUnsavedChanges(false);
-            const updatedSheet = {...Sefaria.sheets._loadSheetByID[id], ...data};
-            Sefaria.sheets._loadSheetByID[id] = updatedSheet;
-        });
+    const postSheet = async (sheet, id) => {
+        const data = await Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST");
+        setlastModified(data.dateModified);
+        setStatus(data.status);
+        setTitle(data.title);
+        setSummary(data.summary);
+        setUnsavedChanges(false);
+        const updatedSheet = {...Sefaria.sheets._loadSheetByID[id], ...data};
+        Sefaria.sheets._loadSheetByID[id] = updatedSheet;
     }
 
     function onChange(value) {
