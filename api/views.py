@@ -60,6 +60,6 @@ class Text(View):
             data = self._handle_warnings(data)
 
         except Exception as e:
-            return jsonResponse({'error': str(e)})
+            return jsonResponse({'error': str(e)}, status=400)
 
         return jsonResponse(data)
