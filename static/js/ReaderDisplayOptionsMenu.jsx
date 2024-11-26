@@ -15,8 +15,6 @@ const ReaderDisplayOptionsMenu = () => {
       if (panelMode === 'Sheet') { return false; }
       if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
-      if (!textsData) return true;
-
       const hasHebrew = !!textsData.he.length;
       const hasEnglish = !!textsData.text.length;
       return !(hasHebrew && hasEnglish);
