@@ -36,9 +36,7 @@ const getSuggestions = async (input) => {
     const isInputHebrew = Sefaria.hebrew.isHebrew(word);
     const lang = isInputHebrew? 'he' : 'en';
 
-    // const rawCompletions = await Sefaria.getTopicCompletions(word);
     const rawCompletions = await Sefaria.getName(word, undefined, 20, "Topic", "library")
-    // const completionObjects = _parseSuggestions(rawCompletions[1], lang)
     const completionObjects = _parseSuggestions(rawCompletions["completion_objects"], lang)
     return completionObjects.map((suggestion) => ({
       text: suggestion.title,
