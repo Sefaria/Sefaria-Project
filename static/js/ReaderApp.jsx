@@ -1428,7 +1428,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.defaultVersions[indexTitle][language] = {versionTitle, languageFamilyName};  // Does this need a setState?  I think not.
   }
   setDefaultOption(option, value) {
-   if (value !== this.state.defaultPanelSettings[option]) {
+    if (value !== this.state.defaultPanelSettings[option]) {
       this.state.defaultPanelSettings[option] = value;
       this.setState(this.state);
     }
