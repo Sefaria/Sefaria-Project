@@ -7190,6 +7190,11 @@ But not to use a display block directive that might break continuous mode for ot
   flex: 1 1 auto;
 }
 
+.toolsButton ::before {
+  position: relative;
+  top: 3px;
+}
+
 .toolsSecondaryButton {
   color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
