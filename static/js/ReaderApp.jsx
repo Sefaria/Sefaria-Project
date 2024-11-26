@@ -1425,7 +1425,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   setCachedVersion(indexTitle, language, versionTitle, languageFamilyName) {
     this.state.defaultVersions[indexTitle] = this.state.defaultVersions[indexTitle] || {};
-      this.state.defaultVersions[indexTitle][language] = {versionTitle, languageFamilyName};  // Does this need a setState?  I think not.
+    this.state.defaultVersions[indexTitle][language] = {versionTitle, languageFamilyName};  // Does this need a setState?  I think not.
   }
   setDefaultOption(option, value) {
    if (value !== this.state.defaultPanelSettings[option]) {
