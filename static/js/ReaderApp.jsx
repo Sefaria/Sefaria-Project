@@ -1515,9 +1515,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (connectionPanel) {
       newPanels.push(connectionPanel);
     }
-   this.setState({panels: newPanels});
+    this.setState({panels: newPanels});
     if (saveLastPlace) {
-      this.saveLastPlace(panel, n + 1, !!connectionPanel);
+        this.saveLastPlace(panel, n + 1, !!connectionPanel);
     }
   }
   makePanelWithConnectionsState(panelProps) {
@@ -1587,7 +1587,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       panel = {...panel, ...textListState};
     }
     newPanels[n] = this.makePanelState(panel);
-   this.setState({panels: newPanels});
+    this.setState({panels: newPanels});
   }
   setTextListHighlight(n, refs) {
     // Set the textListHighlight for panel `n` to `refs`
