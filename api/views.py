@@ -6,7 +6,6 @@ from django.views import View
 from .api_warnings import *
 
 
-
 class Text(View):
 
     RETURN_FORMATS = ['default', 'wrap_all_entities', 'text_only', 'strip_only_footnotes']
@@ -56,7 +55,6 @@ class Text(View):
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
         text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format)
 
-
         try:
             data = text_manager.get_versions_for_query()
             data = self._handle_warnings(data)
@@ -65,9 +63,3 @@ class Text(View):
             return jsonResponse({'error': str(e)})
 
         return jsonResponse(data)
-
-
-
-
-
-
