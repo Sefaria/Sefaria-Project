@@ -8,6 +8,7 @@ from collections import defaultdict
 from typing import List, Iterable
 import math
 import datrie
+from sympy import false
 from unidecode import unidecode
 from django.contrib.auth.models import User
 from sefaria.model import *
@@ -331,35 +332,39 @@ class Completions(object):
         else:
             return c[1]["order"] * 100
 
-    def _filter_suggestions_by_type(self, suggestions):
+
+    def _filter_completions_by_type(self, completion_strings, completion_objects):
+        filtered_completion_strings = []
+        filtered_completion_objects = []
+        for cs, co in zip(completion_strings, completion_objects):
+            if self._has_required_type(co):
+                filtered_completion_strings.append(cs)
+                filtered_completion_objects.append(co)
+        return filtered_completion_strings, filtered_completion_objects
+
+
+    def _has_required_type(self, completion_object):
+        co_type = completion_object["type"]
         if not self.type:
-            return suggestions
-
-        filtered_suggestions = [suggestion for suggestion in suggestions if self._type_norm_map[suggestion[1]["type"]] == self.type]
-        if not self.topic_pool:
-            return filtered_suggestions
-        pool_filtered_suggestions = [suggestion for suggestion in filtered_suggestions if
-                                     self.topic_pool in suggestion[1]['topic_pools']]
-        return pool_filtered_suggestions
-
-    def _filter_values_by_type(self, values):
-        if not self.type:
-            return values
-
-        filtered_values = [value for value in values if self._type_norm_map[value["type"]] == self.type]
-        if not self.topic_pool:
-            return filtered_values
-        pool_filtered_values = [value for value in filtered_values if
-                                     self.topic_pool in value['topic_pools']]
-        return pool_filtered_values
+            return True
+        if self._type_norm_map[co_type] == self.type:
+            if self._type_norm_map[co_type] != 'Topic' or not self.topic_pool:
+                return True
+            else:
+                if self.topic_pool in completion_object["topic_pools"]:
+                    return True
+                else:
+                    return False
+        else:
+            return False
 
 
     def _collect_candidates(self):
         # Match titles that begin exactly this way
         [cs, co] = self.get_new_continuations_from_string(self.normal_string)
+        cs, co = self._filter_completions_by_type(cs, co)
 
         joined = list(zip(cs, co))
-        joined = self._filter_suggestions_by_type(joined)
         if len(joined):
             # joined.sort(key=lambda w: w[1]["order"])
             joined.sort(key=self._candidate_order)
@@ -380,11 +385,8 @@ class Completions(object):
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
             cs, co =  self.get_new_continuations_from_string(edit)
-            filtered_suggestions = list(self._filter_suggestions_by_type(zip(cs, co)))
-            if len(filtered_suggestions):
-                cs, co = zip(*filtered_suggestions)
-            else:
-                cs, co = [], []
+            cs, co = self._filter_completions_by_type(cs, co)
+
             self._raw_completion_strings += cs
             self._completion_objects += co
             if self._is_past_limit():
@@ -409,15 +411,11 @@ class Completions(object):
                 k = normalizer(self.lang)(suggestion)
                 try:
                     all_v = self.auto_completer.title_trie[k]
-                    all_v = self._filter_values_by_type(all_v)
+                    _, all_v = self._filter_completions_by_type([0] * len(all_v), all_v)
                 except KeyError:
                     all_v = []
                 for v in all_v:
                     if (v["type"], v["key"]) not in self.keys_covered:
-                        # if self.type and self._type_norm_map[v["type"]] != self.type:
-                        #     break
-                        # if self.topic_pool and self.topic_pool not in v['topic_pools']:
-                        #     break
                         self._completion_objects += [v]
                         self._raw_completion_strings += [v["title"]]
                         self.keys_covered.add((v["type"], v["key"]))
