@@ -67,6 +67,12 @@ class TopicAdmin(admin.ModelAdmin):
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.filter(pools__name=PoolType.LIBRARY.value)
@@ -98,7 +104,7 @@ class TopicOfTheDayAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "topic":
-            kwargs["label"] = "Topic ID num (not slug)"
+            kwargs["label"] = "Topic slug"
             kwargs["help_text"] = "Use the magnifying glass button to select a topic."
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -155,10 +161,10 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "topic":
-            kwargs["label"] = "Topic ID num (not slug)"
+            kwargs["label"] = "Topic slug"
             kwargs["help_text"] = "Use the magnifying glass button to select a topic."
         if db_field.name == "secondary_topic":
-            kwargs["label"] = "Secondary Topic ID num (not slug)"
+            kwargs["label"] = "Secondary topic slug"
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):

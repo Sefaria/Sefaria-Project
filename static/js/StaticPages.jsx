@@ -1437,8 +1437,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Donate Now"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/english?c_src=waystogive"
-                heButtonUrl="https://donate.sefaria.org/he?c_src=waystogive"
+                enButtonUrl="https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=ways-to-give"
+                heButtonUrl="https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=ways-to-give"
                 borderColor="#004E5F"
             />,
             <FeatureBox
@@ -1448,8 +1448,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Join the Sustainers"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/sustainers?c_src=waystogive"
-                heButtonUrl="https://donate.sefaria.org/sustainershe?c_src=waystogive"
+                enButtonUrl="https://donate.sefaria.org/give/457760/#!/donation/checkout?c_src=waystogive"
+                heButtonUrl="https://donate.sefaria.org/give/478929/#!/donation/checkout?c_src=waystogive"
                 borderColor="#97B386"
             />,
             <FeatureBox
@@ -1459,8 +1459,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Sponsor a Day of Learning"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/sponsor?c_src=waystogive"
-                heButtonUrl="https://donate.sefaria.org/sponsorhe?c_src=waystogive"
+                enButtonUrl="https://donate.sefaria.org/campaign/sponsor-a-day-of-learning/c460961?c_src=waystogive"
+                heButtonUrl="https://donate.sefaria.org/campaign/sponsor-a-day-of-learning-hebrew/c479003?c_src=waystogive"
                 borderColor="#4B71B7"
             />,
             <FeatureBox
@@ -1493,7 +1493,7 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Donate Online"
                     heTitle=""
-                    enText="<p>Make a donation by <strong>credit card, PayPal, GooglePay, ApplePay, Venmo, or bank transfer</strong> on our <a href='http://donate.sefaria.org/english'>main donation page</a>.</p>"
+                    enText="<p>Make a donation by <strong>credit card, PayPal, GooglePay, ApplePay, Venmo, or bank transfer</strong> on our <a href='https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=waystogive'>main donation page</a>.</p>"
                     heText=""
                     colorBar="#AB4E66"
                 />,
@@ -1566,7 +1566,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="Can I make a gift to support a specific program or initiative?"
             heTitle=""
-            enText="<p>Our online giving page does not support restricted gifts. You can sponsor a day of learning <a href='https://donate.sefaria.org/sponsor'>here</a>. If you would like to sponsor a text or support a specific Sefaria program, please email Samantha Shokin, Grant Writer and Development Associate, at <a href='mailto:samantha@sefaria.org'>samantha@sefaria.org</a> for more information.</p>"
+            enText="<p>Our online giving page does not support restricted gifts. You can sponsor a day of learning <a href='https://donate.sefaria.org/campaign/sponsor-a-day-of-learning/c460961?c_src=waystogive'>here</a>. If you would like to sponsor a text or support a specific Sefaria program, please email Samantha Shokin, Grant Writer and Development Associate, at <a href='mailto:samantha@sefaria.org'>samantha@sefaria.org</a> for more information.</p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1605,7 +1605,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="Can I still donate from outside the USA?"
             heTitle=""
-            enText="<p>Yes! Donors outside of the USA may make a gift online  – via credit card, PayPal, GooglePay, ApplePay, Venmo, and bank transfer – <a href='https://donate.sefaria.org/english'>on this page</a> On this page you can modify your currency. You can also <a href='https://sefaria.formstack.com/forms/wire_request'>make a wire transfer</a>.</p>"
+            enText="<p>Yes! Donors outside of the USA may make a gift online  – via credit card, PayPal, GooglePay, ApplePay, Venmo, and bank transfer – <a href='https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=waystogive'>on this page</a> On this page you can modify your currency. You can also <a href='https://sefaria.formstack.com/forms/wire_request'>make a wire transfer</a>.</p>"
             heText=""
             colorBar="#7F85A9"
         />
@@ -3139,21 +3139,21 @@ const JobsPage = memo(() => {
 // The static content on the page inviting users to browse our "powered-by" products
 const DevBox = () => {
     return (
-      <div className='productsDevBox'>
-        <p className='productsDevHeader'>
+      <aside className='productsDevBox'>
+        <div className='productsDevHeader'>
             <InterfaceText text={{en: "Powered by Sefaria" , he:"פרויקטים מכח ספריא" }} />
-        </p>
-        <p>
+        </div>
+        <div>
             <InterfaceText>  
                 <HebrewText>   
-                    נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="www.example.com">גלו את הפרויקטים</a>                
+                    נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="https://developers.sefaria.org/docs/powered-by-sefaria">גלו את הפרויקטים</a>                
                 </HebrewText>  
                 <EnglishText>
-                Check out the products our software developer friends from around the world have been building for you! <a href="www.example.com">Explore</a> 
+                Check out the products our software developer friends from around the world have been building for you! <a href="https://developers.sefaria.org/docs/powered-by-sefaria">Explore</a> 
                 </EnglishText>
             </InterfaceText>
-        </p>
-      </div>
+        </div>
+      </aside>
     );
   };
 
@@ -3443,7 +3443,7 @@ const ProductsPage = memo(() => {
                 {products && products.length > 0  ? (
                     <>
                     {initialProducts}
-                    {/* <DevBox /> */}
+                    <DevBox />
                     {remainingProducts}
                     </>
                 ) : null}
