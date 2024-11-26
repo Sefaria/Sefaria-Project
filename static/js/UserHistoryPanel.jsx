@@ -5,6 +5,7 @@ import Component from 'react-class';
 import Sefaria  from './sefaria/sefaria';
 import { useScrollToLoad } from "./Hooks";
 import { NavSidebar } from './NavSidebar';
+import { NotesList } from './NoteListing';
 import { 
   SheetBlock,
   TextPassage
@@ -21,30 +22,23 @@ import {
 
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
-  const store = menuOpen === "saved" ? Sefaria.saved : Sefaria.userHistory;
-
-  let flattenedNotes = [];
-  let notes = null;
-
-// Call the allPrivateNotes function
-  Sefaria.allPrivateNotes((data) => {
-  if (Array.isArray(data)) {
-    // Map the data to extract 'ref' and 'text' pairs
-    flattenedNotes = data.map(note => ({
-      ref: note.ref,
-      text: note.text
-    }));
-
-    console.log("Flattened notes:", flattenedNotes); // Log the result
-    notes = flattenedNotes;
-  } else {
-    console.error("Unexpected data format:", data);
-  }
-});
-
+  const [notes, setNotes] = useState(null); // State to manage notes
   const contentRef = useRef();
 
-  console.log(notes);
+  useEffect(() => {
+    // Fetch private notes asynchronously
+    Sefaria.allPrivateNotes((data) => {
+      if (Array.isArray(data)) {
+        const flattenedNotes = data.map(note => ({
+          ref: note.ref,
+          text: note.text
+        }));
+        setNotes(flattenedNotes); // Update state with notes
+      } else {
+        console.error("Unexpected data format:", data);
+      }
+    });
+  }, []); // Empty dependency array ensures this runs once on mount
 
   const title = (
     <span className="sans-serif">
@@ -82,15 +76,10 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
               <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null}
             </div>
             { menuOpen === "notes" ?
-                  (notes && notes.length ?
-                    notes.map(function(item, i) {
-                      {console.log(`item ${item}, i: ${i}`);}
-                      return <NoteListing data={item} key={i} showText={i <= this.state.numberToRender} />
-                    }.bind(this))
-                    : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)
+                  <NotesList notes={notes} />
                  :
                   <UserHistoryList
-                    store={store}
+                    store={menuOpen === "saved" ? Sefaria.saved : Sefaria.userHistory}
                     scrollableRef={contentRef}
                     menuOpen={menuOpen}
                     toggleSignUpModal={toggleSignUpModal}
@@ -101,8 +90,9 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         </div>
       </div>
     </div>
-    );
+  );
 };
+
 UserHistoryPanel.propTypes = {
   toggleLanguage:      PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func.isRequired,
@@ -110,6 +100,7 @@ UserHistoryPanel.propTypes = {
   compare:             PropTypes.bool,
   menuOpen:            PropTypes.string.isRequired,
 };
+
 
 
 const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {

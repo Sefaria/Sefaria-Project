@@ -76,4 +76,14 @@ NoteListing.defaultProps = {
   showText: true
 };
 
+const NotesList = ({notes}) => {  
+  return (
+    notes && notes.length ? 
+      notes.map((item, i) => (
+        <NoteListing data={item} key={i} showText={i <= 5 /* Example limit */} />
+      ))
+    : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)};
+
+
 export default NoteListing;
+export { NotesList };
