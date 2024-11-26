@@ -13,7 +13,7 @@ from typing import List, Optional, Tuple
 
 logger = structlog.get_logger(__name__)
 
-FIND_REFS_POST_SCHEMA = schema = {
+FIND_REFS_POST_SCHEMA = {
     "text": {
         "type": "dict",
         "required": True,
