@@ -62,6 +62,7 @@ const Modules = ({type, props}) => {
     "PortalOrganization":     PortalOrganization,
     "PortalNewsletter":       PortalNewsletter,
     "RecentlyViewed":        RecentlyViewed,
+    "StudyCompanion":        StudyCompanion,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -154,6 +155,21 @@ const Promo = () =>
         <Promotions adType="sidebar"/>
     </Module>
 ;
+
+const StudyCompanion = () => (
+    <Module>
+        <ModuleTitle>Study Companion</ModuleTitle>
+        <div><InterfaceText>Get the Weekly Parashah Study Companion in your inbox.</InterfaceText></div>
+        <a className="button small"
+           data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
+           data-anl-promotion_name="Parashah Email Signup - Topic TOC"
+           href="https://learn.sefaria.org/weekly-parashah/">
+            <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
+            <InterfaceText>Sign Up</InterfaceText>
+        </a>
+    </Module>
+)
+
 
 const AboutSefaria = ({hideTitle}) => (
   <Module>
