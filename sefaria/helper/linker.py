@@ -9,7 +9,7 @@ from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
 from sefaria.system.exceptions import APIInvalidInputException
-from typing import List, Union, Optional, Tuple
+from typing import List, Optional, Tuple
 
 logger = structlog.get_logger(__name__)
 
@@ -103,10 +103,6 @@ class _FindRefsText:
     title: str
     body: str
     lang: str
-
-    # def __post_init__(self):
-    #     from sefaria.utils.hebrew import is_mostly_hebrew
-    #     self.lang = 'he' if is_mostly_hebrew(self.body) else 'en'
 
 
 def _unpack_find_refs_request(request):
