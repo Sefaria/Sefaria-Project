@@ -99,3 +99,7 @@ class InvalidHTTPMethodException(Exception):
         self.method = method
         self.message = f"'{method}' is not a valid HTTP API method."
         super().__init__(self.message)
+
+
+class APIInvalidInputException(Exception):
+    pass
