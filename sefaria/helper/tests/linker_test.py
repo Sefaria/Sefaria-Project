@@ -198,8 +198,8 @@ class TestFindRefsResponseLinkerV3:
         with patch.object(library, 'get_linker') as mock_get_linker:
             mock_linker = Mock()
             mock_get_linker.return_value = mock_linker
-            mock_linker.link.return_value = LinkedDoc('', [], [])
-            mock_linker.link_by_paragraph.return_value = LinkedDoc('', [], [])
+            mock_linker.link.return_value = LinkedDoc('', [], [], [])
+            mock_linker.link_by_paragraph.return_value = LinkedDoc('', [], [], [])
             yield mock_get_linker
 
     def test_make_find_refs_response_linker_v3(self, mock_get_linker: WSGIRequest,
