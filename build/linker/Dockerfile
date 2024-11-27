@@ -38,7 +38,7 @@ RUN apt-get update -qq \
  && rm -rf /var/lib/apt/lists/*
 
 # fix issues with shared objects
-RUN ls /usr/local/cuda-11.6/targets/x86_64-linux/lib/* | xargs -I{} ln -s {} /usr/lib/x86_64-linux-gnu/ \
+RUN ls /usr/local/cuda-11.4/targets/x86_64-linux/lib/* | xargs -I{} ln -s {} /usr/lib/x86_64-linux-gnu/ \
  && ln -s libcuda.so /usr/lib/x86_64-linux-gnu/libcuda.so.1 \
  && ln -s libnvidia-ml.so /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1
 

@@ -259,7 +259,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         Returns the `schema` dictionary with each node annotated with section lengths info
         from version_state.
         """
-        vstate   = self.versionState()
+        vstate = self.versionState()
 
         def simplify_version_state(vstate_node):
             return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
@@ -1412,7 +1412,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         pass
 
     def get_index(self):
-        return library.get_index(self.title)
+        return Index().load({'title': self.title})
 
     def first_section_ref(self):
         """
@@ -5733,7 +5733,8 @@ class Library(object):
         named_entity_resolver = self._build_named_entity_resolver(lang)
         ref_resolver = self._build_ref_resolver(lang)
         named_entity_recognizer = self._build_named_entity_recognizer(lang)
-        self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver)
+        cat_resolver = self._build_category_resolver(lang)
+        self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver, cat_resolver)
         return self._linker_by_lang[lang]
 
     @staticmethod
@@ -5756,6 +5757,12 @@ class Library(object):
             load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
             load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
         )
+
+    def _build_category_resolver(self, lang: str):
+        from sefaria.model.category import CategorySet, Category
+        from .linker.category_resolver import CategoryResolver, CategoryMatcher
+        categories: list[Category] = CategorySet({"match_templates": {"$exists": True}}).array()
+        return CategoryResolver(CategoryMatcher(lang, categories))
 
     def _build_ref_resolver(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
