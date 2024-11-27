@@ -50,7 +50,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         <InterfaceText>History</InterfaceText>
       </a>
       <a href="/texts/notes" className={"navTitleTab" + (menuOpen === "notes" ? " current" : "")}> 
-        <img src="/static/icons/notes-icon.svg" /> {/**Change icon */}
+        <img src="/static/icons/notes-icon.svg" /> 
         <InterfaceText>Notes</InterfaceText>
       </a>
     </span>
