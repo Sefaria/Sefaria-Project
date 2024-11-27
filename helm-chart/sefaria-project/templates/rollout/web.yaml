@@ -116,12 +116,12 @@ spec:
                 fieldPath: spec.nodeName
           - name: OTEL_RESOURCE_ATTRIBUTES
             value: k8s.container.name=app,k8s.deployment.name={{ .Values.deployEnv }}-web,k8s.namespace.name={{ .Release.Namespace }},k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)
+          {{- end }}
           - name: SLACK_URL
             valueFrom:
               secretKeyRef:
-                name: { { template "sefaria.secrets.slackWebhook" . } }
+                name: {{ template "sefaria.secrets.slackWebhook" . }}
                 key: slack-webhook
-          {{- end }}
         envFrom:
           {{- if .Values.tasks.enabled }}
           - secretRef:
