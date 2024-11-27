@@ -4875,7 +4875,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   list-style-type: none;
   padding: 6px 12px;
-  font-family: 'EB Garamond';
+  /*font-family: 'EB Garamond';*/
+  font-family: 'Adobe Garamond Pro';
   font-style: normal;
   font-weight: 400;
   font-size: 18px;
@@ -4885,6 +4886,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   flex-grow: 1;
   max-width: 100%;
   min-height: 10px;
+}
+.topic-landing-search-suggestion-title{
+  font-weight: 600;
+}
+.topic-landing-search-suggestion-category-path{
+  color: #333333;
 }
 
 .topic-landing-search-suggestion.highlighted{
