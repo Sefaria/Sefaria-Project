@@ -22,7 +22,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, lastModified, postSheet, status}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, postSheet, status}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -77,8 +77,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
     return <PublishModal close={() => setPublishingMode(false)}
                          sheetID={sheetID}
                          status={status}
-                         postSheet={postSheet}
-                         lastModified={lastModified}/>;
+                         postSheet={postSheet}/>;
   }
   const publishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
   return (
@@ -272,7 +271,7 @@ const GenericSheetModal = ({title, message, close}) => {
         </Modal>;
 }
 
-const PublishModal = ({close, lastModified, status, sheetID, postSheet}) => {
+const PublishModal = ({close, status, sheetID, postSheet}) => {
   // `status` is 'public' or 'unlisted'.  we are going to toggle the status.  if it's 'public' we want to unlist it
   // so this modal simply posts the new status.  If it's 'unlisted', we want to give the user the PublishMenu component
   // allowing them to specify title, summary, and tags and from there the user can choose to make the sheet public
@@ -295,7 +294,7 @@ const PublishModal = ({close, lastModified, status, sheetID, postSheet}) => {
   }
   const togglePublishStatus = async () => {
       sheet.status = status === 'public' ? "unlisted" : "public";
-      sheet.lastModified = lastModified;
+      sheet.lastModified = sheet.dateModified;
       delete sheet._id;
       postSheet(sheet, sheet.id).then(data => {
           if (data.id) {

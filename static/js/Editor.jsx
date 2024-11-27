@@ -2553,7 +2553,6 @@ const SefariaEditor = (props) => {
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
-    const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
@@ -2596,7 +2595,6 @@ const SefariaEditor = (props) => {
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
 
-            return () => saveDocument(currentDocument);
         }, []
     )
 
@@ -2781,25 +2779,26 @@ const SefariaEditor = (props) => {
         return sheet;
     }
 
-
+    function getLastModified() {
+      return Sefaria.sheets._loadSheetByID[props.data.id]?.dateModified || props.data.dateModified;
+    }
     function saveDocument(doc) {
+        const lastModified = getLastModified();
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {
             return
         }
         // console.log('saving...');
-        postSheet(json, doc[0].id);
+        postSheet(json);
     }
 
-    const postSheet = async (sheet, id) => {
+    const postSheet = async (sheet) => {
         const data = await Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST");
-        setlastModified(data.dateModified);
         setStatus(data.status);
         setTitle(data.title);
         setSummary(data.summary);
-        setUnsavedChanges(false);
-        const updatedSheet = {...Sefaria.sheets._loadSheetByID[id], ...data};
-        Sefaria.sheets._loadSheetByID[id] = updatedSheet;
+        const updatedSheet = {...Sefaria.sheets._loadSheetByID[props.data.id], ...data};
+        Sefaria.sheets._loadSheetByID[props.data.id] = updatedSheet;
     }
 
     function onChange(value) {
@@ -2954,7 +2953,6 @@ const SefariaEditor = (props) => {
                                        historyObject={props.historyObject}
                                        editable={props.editable}
                                        authorUrl={sheet.ownerProfileUrl}
-                                       lastModified={lastModified}
                                        status={status}
                                        />;
     return (
