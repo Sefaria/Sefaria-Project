@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import { NavSidebar, Modules }from './NavSidebar';
+import { NavSidebar, SidebarModules }from './NavSidebar';
 import Footer  from './Footer';
 import Component from 'react-class';
 
@@ -28,7 +28,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
   const weeklyListings  = makeListings(weeklyCalendars);
 
   const about = multiPanel ? null :
-    <Modules type={"AboutLearningSchedules"} />
+    <SidebarModules type={"AboutLearningSchedules"} />
 
   const sidebarModules = [
     multiPanel ? {type: "AboutLearningSchedules"} : {type: null},
@@ -56,7 +56,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
               <ResponsiveNBox content={weeklyListings} initialWidth={initialWidth} />
             </div>
           </div>
-          <NavSidebar modules={sidebarModules} />
+          <NavSidebar sidebarModules={sidebarModules} />
         </div>
         <Footer />
       </div>

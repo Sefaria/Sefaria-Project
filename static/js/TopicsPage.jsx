@@ -7,7 +7,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import { NavSidebar, Modules } from './NavSidebar';
+import { NavSidebar, SidebarModules } from './NavSidebar';
 import Footer  from './Footer';
 import {CategoryHeader} from "./Misc";
 import Component from 'react-class';
@@ -45,7 +45,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   );
 
   const about = multiPanel ? null :
-    <Modules type={"AboutTopics"} props={{hideTitle: true}} />;
+    <SidebarModules type={"AboutTopics"} props={{hideTitle: true}} />;
 
   const sidebarModules = [
     multiPanel ? {type: "AboutTopics"} : {type: null},
@@ -69,7 +69,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
               { about }
               { categoryListings }
           </div>
-          <NavSidebar modules={sidebarModules} />
+          <NavSidebar sidebarModules={sidebarModules} />
         </div>
         <Footer />
       </div>
