@@ -1,4 +1,5 @@
 from django.contrib import admin, messages
+from django.utils.html import format_html
 from django_topics.models import Topic, TopicPool, TopicOfTheDayEnglish, TopicOfTheDayHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
 from django_topics.models.pool import PoolType
 
@@ -56,7 +57,7 @@ class PoolFilter(admin.SimpleListFilter):
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ('slug', 'en_title', 'he_title', 'is_in_pool_general_en', 'is_in_pool_general_he', 'is_in_pool_torah_tab')
+    list_display = ('slug', 'en_title', 'he_title', 'is_in_pool_general_en', 'is_in_pool_general_he', 'is_in_pool_torah_tab', 'sefaria_link')
     list_filter = (PoolFilter,)
     filter_horizontal = ('pools',)
     search_fields = ('slug', 'en_title', 'he_title')
@@ -94,6 +95,11 @@ class TopicAdmin(admin.ModelAdmin):
         return obj.pools.filter(name=PoolType.TORAH_TAB.value).exists()
     is_in_pool_torah_tab.boolean = True
     is_in_pool_torah_tab.short_description = "TorahTab Pool"
+
+    def sefaria_link(self, obj):
+        url = f"https://www.sefaria.org/topics/{obj.slug}"
+        return format_html('<a href="{}" target="_blank">{}</a>', url, obj.slug)
+    sefaria_link.short_description = "Sefaria Link"
 
 
 class TopicOfTheDayAdmin(admin.ModelAdmin):
