@@ -3,7 +3,7 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import TextRange  from './TextRange';
 import { AddToSourceSheetWindow } from './AddToSourceSheet';
-import { Note } from './Misc';
+import { Note, LoadingMessage } from './Misc';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 

@@ -1072,8 +1072,7 @@ def user_history(request):
 def notes(request):
     title = _("My Notes")
     desc = _("See your notes on Sefaria")
-    props = {"saved": {"loaded": True, "items": []}}
-    return menu_page(request, None, page="notes", title=title, desc=desc)
+    return menu_page(request, page="notes", title=title, desc=desc)
 
 @login_required
 def user_stats(request):
