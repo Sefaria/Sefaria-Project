@@ -88,7 +88,7 @@ const LoggedInDropdown = () => {
                                           len={25}
                               />
     }>
-      <DropdownMenuItem>
+      <DropdownMenuItem preventClose={true}>
         <strong>{Sefaria.full_name}</strong>
       </DropdownMenuItem>
       <DropdownMenuSeparator />
@@ -115,7 +115,7 @@ const LoggedInDropdown = () => {
       <DropdownMenuItem url={'/notifications'}>
         <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}} />
       </DropdownMenuItem>
-      <DropdownMenuItem url={'/help'}>
+      <DropdownMenuItem preventClose={true} url={'/help'}>
         <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}} />
       </DropdownMenuItem>
       <DropdownMenuSeparator/>
