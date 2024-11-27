@@ -346,7 +346,7 @@ class ProfilePic extends Component {
                   </div>
                   <div className="profile-pic-cropper-button-row">
                     <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
-                      <span >{ Sefaria._("button.cancel") }</span>
+                      <span >{ Sefaria._("common.button.cancel") }</span>
                     </a>
                     <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
                       <span >{ Sefaria._("common.button.save") }</span>
@@ -2884,7 +2884,7 @@ const AdminToolHeader = function({title, validate, close}) {
               </h1>
               <div className="end">
                 <a onClick={close} id="cancel" className="button small transparent control-elem">
-                  <InterfaceText>{ Sefaria._("button.cancel")}</InterfaceText>
+                  <InterfaceText>{ Sefaria._("common.button.cancel")}</InterfaceText>
                 </a>
                 <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
                   <InterfaceText>{ Sefaria._("common.button.save")}</InterfaceText>

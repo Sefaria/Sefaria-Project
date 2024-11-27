@@ -171,7 +171,6 @@
     "login.form.button.login_in": "ནང་འཛུལ་གྱིས།",
     "login.forget_password": "གསང་ཚིག་བརྗེད་སོང་ན། འདིར་སྣུན།",
     "login.create_account": "ཁ་བྱང་གསར་པ་ཞིག་བཟོས།",
-    "login.already_logged_in": "གློག་འཕྲིན་འདི། {user} དཔེ་ཆ་དྲ་བ་ལ་སྤྱོད་བཞིན་འདུག།",
     "forget.send_reset_link": "བསྐྱར་སྒྲིག་གི་དྲ་ཐག་སྐུར།",
     "forget.back_to_login": "ནང་འཛུལ་བྱེད་སར་ཕྱིར་ལོག།",
     "forget.email_send_message": "ཁྱེད་ཀྱི་གློག་འཕྲིན་ནང་། གསང་ཚིག་བསྐྱར་སྒྲིག་གི་དྲ་ཐག་བསྐུར་ཡོད།",

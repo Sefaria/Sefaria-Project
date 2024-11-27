@@ -171,7 +171,6 @@
     "login.form.button.login_in": "Login",
     "login.forget_password": "Forgot your password?",
     "login.create_account": "Create a new account",
-    "login.already_logged_in": "You are already logged in as",
     "forget.send_reset_link": "Send Reset Link",
     "forget.back_to_login": "Back to login",
     "forget.email_send_message": "An email has been sent with a link to reset your password.",
