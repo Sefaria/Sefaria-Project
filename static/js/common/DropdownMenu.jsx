@@ -47,7 +47,8 @@ const DropdownMenu = ({children, menuIconComponent}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
   
-    const handleClick = (e) => {
+    const handleClick = (e) => {console.log("click");
+        console.log("click");
       e.stopPropagation();
       // Check if the clicked element or its parent has data-prevent-close
       const preventClose = e.target.closest('[data-prevent-close="true"]');
@@ -82,8 +83,8 @@ const DropdownMenu = ({children, menuIconComponent}) => {
     }, []);
   
     return (
-        <div className="dropdownLinks" ref={wrapperRef}>
-           <a className="dropdownLinks-button" onClick={handleClick}>
+        <div className="dropdownLinks" ref={wrapperRef} onClick={handleClick}>
+           <a className="dropdownLinks-button">
               {menuIconComponent} 
           </a>         
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
