@@ -170,6 +170,13 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
                 'start_date'
             )
         }),
+        ('Display Date Prefix/Suffix', {
+            'fields': (
+                'display_date_prefix',
+                'display_date_suffix',
+            ),
+            'description': 'Prefix/Suffix that will be displayed around the secondary topic.',
+        }),
         ('Israel Display Dates', {
             'fields': (
                 'display_start_date_israel',
