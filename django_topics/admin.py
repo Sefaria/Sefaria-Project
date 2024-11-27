@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from django_topics.models import Topic, TopicPool, TopicOfTheDay, SeasonalTopicHebrew, SeasonalTopicEnglish
+from django_topics.models import Topic, TopicPool, TopicOfTheDayEnglish, TopicOfTheDayHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
 from django_topics.models.pool import PoolType
 
 
@@ -88,8 +88,8 @@ class TopicAdmin(admin.ModelAdmin):
     is_in_pool_torah_tab.short_description = "TorahTab Pool"
 
 
-@admin.register(TopicOfTheDay)
 class TopicOfTheDayAdmin(admin.ModelAdmin):
+    exclude = ("lang",)  # not for manual editing
     list_display = ('start_date', 'topic')
     list_filter = ('start_date',)
     raw_id_fields = ('topic',)
@@ -107,6 +107,22 @@ class TopicOfTheDayAdmin(admin.ModelAdmin):
             kwargs["label"] = "Topic slug"
             kwargs["help_text"] = "Use the magnifying glass button to select a topic."
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(TopicOfTheDayEnglish)
+class TopicOfTheDayAdminEnglish(TopicOfTheDayAdmin):
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(lang="en")
+
+
+@admin.register(TopicOfTheDayHebrew)
+class TopicOfTheDayAdminHebrew(TopicOfTheDayAdmin):
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(lang="he")
 
 
 class SeasonalTopicAdmin(admin.ModelAdmin):
