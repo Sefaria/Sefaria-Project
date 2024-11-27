@@ -22,18 +22,17 @@ import {
 
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
-  const [notes, setNotes] = useState(null); // State to manage notes
+  const [notes, setNotes] = useState(null);
   const contentRef = useRef();
 
   useEffect(() => {
-    // Fetch private notes asynchronously
     Sefaria.allPrivateNotes((data) => {
       if (Array.isArray(data)) {
         const flattenedNotes = data.map(note => ({
           ref: note.ref,
           text: note.text
         }));
-        setNotes(flattenedNotes); // Update state with notes
+        setNotes(flattenedNotes); 
       } else {
         console.error("Unexpected data format:", data);
       }
@@ -106,7 +105,6 @@ UserHistoryPanel.propTypes = {
 const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
   const [items, setItems] = useState(store.loaded ? store.items : null);
 
-  // Store changes when switching tabs, reset items
   useEffect(() => {
     setItems(store.loaded ? store.items : null);
   }, [store]);
