@@ -6,7 +6,6 @@ class PoolType(Enum):
     LIBRARY = "library"
     SHEETS = "sheets"
     TORAH_TAB = "torah_tab"
-    GENERAL = "general"
 
 
 class TopicPool(models.Model):

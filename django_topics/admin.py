@@ -41,7 +41,8 @@ class PoolFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
-            (PoolType.GENERAL.value, 'General Pool'),
+            ('general_en', 'General Pool EN'),
+            ('general_he', 'General Pool HE'),
             (PoolType.TORAH_TAB.value, 'TorahTab Pool'),
         ]
 
@@ -55,15 +56,17 @@ class PoolFilter(admin.SimpleListFilter):
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ('slug', 'en_title', 'he_title', 'is_in_pool_general', 'is_in_pool_torah_tab')
+    list_display = ('slug', 'en_title', 'he_title', 'is_in_pool_general_en', 'is_in_pool_general_he', 'is_in_pool_torah_tab')
     list_filter = (PoolFilter,)
     filter_horizontal = ('pools',)
     search_fields = ('slug', 'en_title', 'he_title')
     readonly_fields = ('slug', 'en_title', 'he_title')
     actions = [
-        create_add_to_pool_action(PoolType.GENERAL.value),
+        create_add_to_pool_action('general_en'),
+        create_add_to_pool_action('general_he'),
         create_add_to_pool_action(PoolType.TORAH_TAB.value),
-        create_remove_from_pool_action(PoolType.GENERAL.value),
+        create_remove_from_pool_action('general_en'),
+        create_remove_from_pool_action('general_he'),
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
 
@@ -77,10 +80,15 @@ class TopicAdmin(admin.ModelAdmin):
         queryset = super().get_queryset(request)
         return queryset.filter(pools__name=PoolType.LIBRARY.value)
 
-    def is_in_pool_general(self, obj):
-        return obj.pools.filter(name=PoolType.GENERAL.value).exists()
-    is_in_pool_general.boolean = True
-    is_in_pool_general.short_description = "General Pool"
+    def is_in_pool_general_en(self, obj):
+        return obj.pools.filter(name='general_en').exists()
+    is_in_pool_general_en.boolean = True
+    is_in_pool_general_en.short_description = "General Pool EN"
+
+    def is_in_pool_general_he(self, obj):
+        return obj.pools.filter(name='general_he').exists()
+    is_in_pool_general_he.boolean = True
+    is_in_pool_general_he.short_description = "General Pool HE"
 
     def is_in_pool_torah_tab(self, obj):
         return obj.pools.filter(name=PoolType.TORAH_TAB.value).exists()
