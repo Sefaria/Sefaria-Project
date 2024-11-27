@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from django_topics.models import Topic, TopicPool, TopicOfTheDay, SeasonalTopic
+from django_topics.models import Topic, TopicPool, TopicOfTheDay, SeasonalTopicHebrew, SeasonalTopicEnglish
 from django_topics.models.pool import PoolType
 
 
@@ -109,11 +109,13 @@ class TopicOfTheDayAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-@admin.register(SeasonalTopic)
 class SeasonalTopicAdmin(admin.ModelAdmin):
+    exclude = ("lang",)  # not for manual editing
     list_display = (
         'start_date',
         'topic',
+        'display_date_prefix',
+        'display_date_suffix',
         'secondary_topic',
         'display_start_date_israel',
         'display_end_date_israel',
@@ -173,3 +175,18 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
         """
         obj.clean()
         super().save_model(request, obj, form, change)
+
+
+@admin.register(SeasonalTopicEnglish)
+class SeasonalTopicAdminEnglish(SeasonalTopicAdmin):
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(lang="en")
+
+
+@admin.register(SeasonalTopicHebrew)
+class SeasonalTopicAdminHebrew(SeasonalTopicAdmin):
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(lang="he")
