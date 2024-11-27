@@ -1625,7 +1625,7 @@ def search_autocomplete_redirecter(request):
     query = request.GET.get("q", "")
     topic_override = query.startswith('#')
     query = query[1:] if topic_override else query
-    completions_dict = get_name_completions(query, 1, False, topic_override)
+    completions_dict = get_name_completions(query, 1, topic_override)
     ref = completions_dict['ref']
     object_data = completions_dict['object_data']
     if ref:
@@ -1643,7 +1643,7 @@ def search_autocomplete_redirecter(request):
 def opensearch_suggestions_api(request):
     # see here for docs: http://www.opensearch.org/Specifications/OpenSearch/Extensions/Suggestions/1.1
     query = request.GET.get("q", "")
-    completions_dict = get_name_completions(query, 5, False)
+    completions_dict = get_name_completions(query, 5)
     ret_data = [
         query,
         completions_dict["completions"]
@@ -2588,9 +2588,9 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, ref_only, topic_override=False):
+def get_name_completions(name, limit, topic_override=False, type=None, topic_pool=None):
     lang = "he" if has_hebrew(name) else "en"
-    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
+    completer = library.full_auto_completer(lang)
     object_data = None
     ref = None
     topic = None
@@ -2614,7 +2614,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
             completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
         else:
-            completions, completion_objects = completer.complete(name, limit)
+            completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool)
             object_data = completer.get_object(name)
 
     except DictionaryEntryNotFoundError as e:
@@ -2624,7 +2624,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
         completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
     except InputError:  # Not a Ref
-        completions, completion_objects = completer.complete(name, limit)
+        completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool)
         object_data = completer.get_object(name)
 
     return {
@@ -2638,13 +2638,6 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
 
 
 @catch_error_as_json
-def topic_completion_api(request, topic):
-    limit = int(request.GET.get("limit", 10))
-    result = library.topic_auto_completer().complete(topic, limit=limit)
-    return jsonResponse(result)
-
-
-@catch_error_as_json
 def name_api(request, name):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -2652,8 +2645,9 @@ def name_api(request, name):
     name = name[1:] if topic_override else name
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
-    ref_only = bool(int(request.GET.get("ref_only", False)))
-    completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override)
+    type = request.GET.get("type", None)
+    topic_pool = request.GET.get("topic_pool", None)
+    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, topic_pool=topic_pool)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
     d = {
@@ -3123,7 +3117,7 @@ def add_new_topic_api(request):
             t.image = data["image"]
 
         t.save()
-        library.build_topic_auto_completer()
+        library.build_full_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
         library.get_topic_toc_category_mapping(rebuild=True)
@@ -3140,7 +3134,7 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            library.build_topic_auto_completer()
+            library.build_full_auto_completer()
             library.get_topic_toc(rebuild=True)
             library.get_topic_toc_json(rebuild=True)
             library.get_topic_toc_category_mapping(rebuild=True)
@@ -3175,7 +3169,7 @@ def topics_api(request, topic, v2=False):
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
         topic = update_topic(topic, **topic_data)
         if author_status_changed:
-            library.build_topic_auto_completer()
+            library.build_full_auto_completer()
 
         def protected_index_post(request):
             return jsonResponse(topic.contents())
