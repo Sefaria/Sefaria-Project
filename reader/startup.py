@@ -18,8 +18,6 @@ def init_library_cache():
         logger.info("Initializing Full Auto Completer")
         library.build_full_auto_completer()
 
-        logger.info("Initializing Ref Auto Completer")
-        library.build_ref_auto_completer()
 
         logger.info("Initializing Lexicon Auto Completers")
         library.build_lexicon_auto_completers()
