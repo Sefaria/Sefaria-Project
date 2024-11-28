@@ -59,18 +59,14 @@ class NoteListing extends Component {
 }
 NoteListing.propTypes = {
   data:         PropTypes.object.isRequired,
-  showText:     PropTypes.bool,
   onDeleteNote: PropTypes.func,
-};
-NoteListing.defaultProps = {
-  showText: true
 };
 
 const NotesList = ({notes}) => {  
   return (
     notes && notes.length ? 
       notes.map((item, i) => (
-        <NoteListing data={item} key={i} showText={i <= 5 /* Example limit */} />
+        <NoteListing data={item} key={i} />
       ))
     : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)};
 
