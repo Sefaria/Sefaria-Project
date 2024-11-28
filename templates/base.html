@@ -224,20 +224,6 @@
 
     {% autoescape off %}
 
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register("{% static 'serviceWorker.js' %}")
-            .then(function(registration) {
-              console.log('Service Worker registered with scope:', registration.scope);
-            })
-            .catch(function(error) {
-              console.log('Service Worker registration failed:', error);
-            });
-        });
-      }
-    </script>
-
     <script src="{% static 'pwa.js' %}"></script>
 
     <!--Sentry error reporting config-->
@@ -404,14 +390,6 @@
 
     <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="b5a8d317-af7b-4b83-8801-84e6658f1f6e";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
 
-    <!-- <script>if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function() {
-        navigator.serviceWorker
-          .register("{% static 'js/serviceWorker.js' %}")
-          .then(res => console.log("service worker registered"))
-          .catch(err => console.log("service worker not registered", err))
-      })
-    }</script> -->
 
     <!-- <script src="{% static 'js/pwa_app_installer.js' %}"></script> -->
 
