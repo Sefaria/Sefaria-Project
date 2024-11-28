@@ -343,7 +343,7 @@ def find_refs_api(request):
     try:
         return jsonResponse(make_find_refs_response(request))
     except APIInvalidInputException as e:
-        return jsonResponse({"error": str(e)}, status=400)
+        return e.to_json_response()
 
 
 @api_view(["GET"])
