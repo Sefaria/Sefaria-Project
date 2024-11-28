@@ -83,26 +83,11 @@ class UserProfile extends Component {
         <div className="emptyListText">
           <InterfaceText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</InterfaceText>
         </div>
-        <a href="/collections/new" className="resourcesLink sans-serif">
-          <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <InterfaceText>Create a New Collection</InterfaceText>
-        </a>
       </div>);
   }
   renderCollection(collection) {
     return (
       <CollectionListing key={collection.slug} data={collection} />
-    );
-  }
-  renderCollectionHeader() {
-    if (Sefaria._uid !== this.props.profile.id) { return null; }
-    return (
-      <div className="sheet-header">
-        <a href="/collections/new" className="resourcesLink sans-serif">
-          <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <InterfaceText>Create a New Collection</InterfaceText>
-        </a>
-      </div>
     );
   }
   getSheets() {
@@ -153,11 +138,6 @@ class UserProfile extends Component {
             באפשרותכם להשתמש בדפי מקורות בכדי לארגן מקורות, ליצור טקסטים חדשים, לתכנן שיעורים, הרצאות, כתבות ועוד.
           </span>
         </div>
-        <a href="/sheets/new" className="resourcesLink sans-serif">
-          <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className="int-en">Create a New Sheet</span>
-          <span className="int-he">צור דף חדש</span>
-        </a>
       </div>
     );
   }
@@ -184,18 +164,6 @@ class UserProfile extends Component {
         infoUnderneath={true}
         toggleSignUpModal={this.props.toggleSignUpModal}
       />
-    );
-  }
-  renderSheetHeader() {
-    if (Sefaria._uid !== this.props.profile.id) { return null; }
-    return (
-      <div className="sheet-header">
-        <a href="/sheets/new" className="resourcesLink sans-serif">
-          <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className="int-en">Create a New Sheet</span>
-          <span className="int-he">יצירת דף מקורות</span>
-        </a>
-      </div>
     );
   }
   renderTab(tab) {
@@ -244,7 +212,6 @@ class UserProfile extends Component {
                     sortFunc={this.sortSheet}
                     renderItem={this.renderSheet}
                     renderEmptyList={this.renderEmptySheetList}
-                    renderHeader={this.renderSheetHeader}
                     sortOptions={["Recent", "Views"]}
                     containerClass={"sheetList"}
                     getData={this.getSheets}
@@ -258,7 +225,6 @@ class UserProfile extends Component {
                     sortFunc={this.sortCollection}
                     renderItem={this.renderCollection}
                     renderEmptyList={this.renderEmptyCollectionList}
-                    renderHeader={this.renderCollectionHeader}
                     sortOptions={["Recent", "Name", "Sheets"]}
                     getData={this.getCollections}
                     data={this.getCollectionsFromCache()}
