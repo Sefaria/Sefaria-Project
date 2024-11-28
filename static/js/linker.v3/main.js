@@ -441,7 +441,8 @@ import {LinkExcluder} from "./excluder";
         return new Promise((resolve, reject) => {
             fetch(getFindRefsUrl(), {
                 method: 'POST',
-                body: JSON.stringify(postData)
+                body: JSON.stringify(postData),
+                headers: {'Content-Type': 'application/json'},
             })
                 .then(handleApiResponse)
                 .then(resp => resolve(resp));
