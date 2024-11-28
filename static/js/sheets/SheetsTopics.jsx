@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
-import {Card} from "../shared/Card";
+import {Card} from "../common/Card";
 const SheetsTopicsTOC = ({handleClick}) => {
     const categoryListings = Sefaria.topic_toc.map(cat => {
         return <Card cardTitleHref={`/topics/category/${cat.slug}`}
