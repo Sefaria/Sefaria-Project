@@ -10,6 +10,8 @@ import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
+import SearchState from "./searchState";
+import FilterNode from "./FilterNode";
 
 
 let Sefaria = Sefaria || {
@@ -2647,6 +2649,18 @@ _media: {},
     stories: [],
     page: 0
   },
+  _upcomingDay: {},  // for example, possible keys are 'parasha' and 'holiday'
+  getUpcomingDay: function(day) {
+      // currently `day` can be 'holiday' or 'parasha'
+      if (day !== 'holiday' && day !== 'parasha') {
+        throw new Error('Invalid day. Expected "holiday" or "parasha".');
+      }
+      return this._cachedApiPromise({
+          url:   `${this.apiHost}/api/calendars/topics/${day}`,
+          key:   day,
+          store: this._upcomingDay,
+     });
+  },
   _parashaNextRead: {},
   getParashaNextRead: function(parasha) {
     return this._cachedApiPromise({
@@ -2839,6 +2853,56 @@ _media: {},
     return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
+    getSheetsByRef: function(srefs, callback) {
+        return Sefaria._cachedApiPromise({
+          url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}?include_collections=1`,
+          key: `include_collections|${srefs}`,
+          store: Sefaria.sheets._sheetsByRef,
+          processor: callback
+        });
+      },
+    sheetsWithRefFilterNodes(sheets) {
+      /*
+      This function is used to generate the SearchState with its relevant
+      FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
+       */
+      const newFilter = (item, type) => {
+          let title, heTitle;
+          if (type === 'topics') {
+              [title, heTitle] = [item.en, item.he];
+              type = 'topics_en';
+          }
+          else if (type === 'collections') {
+              [title, heTitle] = [item.name, item.name];
+          }
+          return {
+              title, heTitle,
+              docCount: 0, aggKey: item.slug,
+              selected: 0, aggType: type,
+          };
+      }
+
+      let filters = {};
+      sheets.forEach(sheet => {
+        let slugsFound = new Set();  // keep track of slugs in this sheet\n
+        ['topics', 'collections'].forEach(itemsType => {
+            sheet[itemsType]?.forEach(item => {
+              const key = `${item.slug}|${itemsType}`;
+              if (!slugsFound.has(key)) { // we don't want to increase docCount when one sheet already
+                                              // has a topic/collection with the same slug as the current topic/collection
+                let filter = filters[key];
+                if (!filter) {
+                  filter = newFilter(item, itemsType);
+                  filters[key] = filter;
+                }
+                slugsFound.add(key);
+                filter.docCount += 1;
+              }
+            })
+        })
+      })
+      return Object.values(filters).map(f => new FilterNode(f));;
+    },
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {
       if (reset) {
@@ -3003,10 +3067,10 @@ _media: {},
     },
     sheetsTotalCount: function(refs) {
       // Returns the total number of private and public sheets on `refs` without double counting my public sheets.
-      var sheets = Sefaria.sheets.sheetsByRef(refs) || [];
+      let sheets = Sefaria.sheets.sheetsByRef(refs) || [];
       if (Sefaria._uid) {
-        var mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
-        sheets = sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }).concat(mySheets);
+        const mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
+        sheets = mySheets.concat(sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }));
       }
       return sheets.length;
     },

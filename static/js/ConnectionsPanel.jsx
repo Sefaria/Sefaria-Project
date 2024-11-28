@@ -385,6 +385,7 @@ class ConnectionsPanel extends Component {
                   null
               }
               <ResourcesList
+                srefs={this.props.srefs}
                 setConnectionsMode={this.props.setConnectionsMode}
                 counts={resourcesButtonCounts}
               />
@@ -457,27 +458,6 @@ class ConnectionsPanel extends Component {
         filterRef={this.props.filterRef}
       />);
 
-    } else if (this.props.mode === "Sheets") {
-      const connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
-      content = (<div>
-        {this.props.srefs[0].indexOf("Sheet") === -1 ?
-          <MySheetsList
-            srefs={this.props.srefs}
-            connectedSheet={connectedSheet}
-            fullPanel={this.props.fullPanel}
-            handleSheetClick={this.props.handleSheetClick}
-          />
-          : null
-        }
-        {this.props.srefs[0].indexOf("Sheet") === -1 ?
-          <PublicSheetsList
-            srefs={this.props.srefs}
-            connectedSheet={connectedSheet}
-            fullPanel={this.props.fullPanel}
-            handleSheetClick={this.props.handleSheetClick}
-          /> : null
-        }
-      </div>);
     } else if (this.props.mode === "Add To Sheet") {
       let refForSheet, versionsForSheet, selectedWordsForSheet, nodeRef;
       // add source from connections
@@ -750,12 +730,16 @@ ConnectionsPanel.propTypes = {
   backButtonSettings:      PropTypes.object,
 };
 
+const createSheetsWithRefURL = (srefs) => {
+  const normalizedRef = Sefaria.normRef(srefs);
+  window.open(`${Sefaria.apiHost}/sheets/sheets-with-ref/${normalizedRef}`);
+}
 
-const ResourcesList = ({ masterPanelMode, setConnectionsMode, counts }) => {
+const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => setConnectionsMode("Sheets")} />
+      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => createSheetsWithRefURL(srefs)} />
       <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
       <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
       <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
@@ -1480,7 +1464,7 @@ class ShareBox extends Component {
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">
           <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
-          <ToolsButton en="Share on Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
+          <ToolsButton en="Share on X" he="X" icon="X" onClick={shareTwitter} />
           <ToolsButton en="Share by Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
         </ConnectionsPanelSection>
       </div>);
