@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon} from "../common/DropdownMenu";
 import {InterfaceText, SaveButtonWithText} from "../Misc";
-import Modal from "../shared/modal";
+import Modal from "../common/modal";
 import {ShareBox} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
 import $ from "../sefaria/sefariaJquery";
@@ -67,7 +67,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
     return <GoogleDocExportModal close={() => setExportingMode(false)} sheetID={sheetID}/>;
   }
   return (
-        <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
+        <DropdownMenu menuIconComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
           <DropdownMenuItem>
             <SaveButtonWithText
                 historyObject={historyObjectForSheet}
