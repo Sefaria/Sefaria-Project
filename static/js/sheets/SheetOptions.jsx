@@ -67,7 +67,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
     return <GoogleDocExportModal close={() => setExportingMode(false)} sheetID={sheetID}/>;
   }
   return (
-        <DropdownMenu menu_icon={"/static/icons/ellipses.svg"}>
+        <DropdownMenu menuIconComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
           <DropdownMenuItem>
             <SaveButtonWithText
                 historyObject={historyObjectForSheet}
