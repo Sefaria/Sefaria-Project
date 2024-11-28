@@ -37,7 +37,7 @@ def add_db_num_to_url(url, port, db_num):
 
 
 def add_password_to_url(url, password):
-    if len(password) == 0:
+    if not password:
         return url
     return re.sub(r'((?:redis|sentinel)://)', fr'\1:{password}@', url)
 

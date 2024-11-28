@@ -354,6 +354,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   z-index: 1000;
 }
 
+
 #s2.headerOnly {
   z-index: 1000;
   height: 60px;
@@ -2354,7 +2355,7 @@ div.interfaceLinks-row a {
   flex-direction: column;
 }
 .topicPanel .mainColumn {
-  padding: 0 40px;
+  padding: 0 40px 80px;
 }
 @media (max-width: 450px) {
   .topicPanel .mainColumn,
@@ -2409,7 +2410,8 @@ div.interfaceLinks-row a {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .topicPanel .mainColumn .story {
-    padding: 0 0 20px 0;
+    padding: 0;
+    margin-bottom: 20px;
 }
 .topicPanel .mainColumn .storySheetListItem {
   padding: 0 0 30px 0;
@@ -2447,8 +2449,17 @@ div.interfaceLinks-row a {
   font-size: 29px;
 }
 .topicPanel .story .storyTitle {
-  font-size: 24px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 600;
 }
+
+.topicPanel .story .storyTitle .int-he {
+  font-size: 18px;
+  font-weight: 600;
+}
+
 .topicPanel h1 {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
@@ -2553,7 +2564,8 @@ div.interfaceLinks-row a {
     height: auto;
     max-width: calc(66.67vw);
     max-height: calc(66.67vw);
-    margin-bottom: 10px;
+    margin: 0 auto 10px;
+    display: block;
   }
   .topicImage{
     padding-left: 0;
@@ -7212,6 +7224,11 @@ But not to use a display block directive that might break continuous mode for ot
   flex: 1 1 auto;
 }
 
+.toolsButton ::before {
+  position: relative;
+  top: 3px;
+}
+
 .toolsSecondaryButton {
   color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
@@ -7675,7 +7692,6 @@ But not to use a display block directive that might break continuous mode for ot
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  margin-bottom: 4px;
 }
 .profile-page {
   background-color: var(--lightest-grey);
@@ -8078,6 +8094,15 @@ a .button:hover {
   align-items: center;
   flex-wrap: nowrap;
   width: 100%;
+}
+.headerWithAdminButtonsContainer .pencilEditorButton{
+  margin-top: 8px;
+  margin-bottom: 5px;
+  margin-inline-end: 6px;
+  cursor: pointer;
+}
+.button.extraSmall.reviewState{
+  margin-inline-end: 7px;
 }
 .button.extraSmall.reviewState.reviewed {
   background-color: #5D956F;
@@ -9694,7 +9719,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .newsletterSignUpBox .subscribeMessage {
   margin: 4px 0 14px 0;
-  color: #333;
   font-size: 14px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: italic;
@@ -11172,6 +11196,16 @@ cursor: pointer;
   margin-inline-end: 30px;
   cursor: pointer;
 }
+
+.tab-view .tab-list .tab.popover {
+  margin-inline-end: 0;
+  margin-inline-start: 10px;
+}
+
+.interface-hebrew .tab-view .tab-list .tab.popover{
+    transform: scale(1.3);
+}
+
 .tab-view .tab-list .tab a {
   color: inherit;
 }
@@ -11180,9 +11214,6 @@ cursor: pointer;
 }
 .tab-view .tab-list .active .tab {
   border-bottom: 4px solid #CCC;
-}
-.interface-hebrew .tab-view .tab-list .tab {
-  margin: 0 0 0 30px;
 }
 .tab-view .tab-list .tab img {
   width: 18px;
@@ -11201,20 +11232,26 @@ cursor: pointer;
 }
 .tab-view .tab-list .tab.filter,
 .tab-view.largeTabs .tab-list .tab.filter {
-  font-size: 16px;
   margin: 0;
-  padding: 6px 9px;
-  border: 1px solid #EDEDEC;
-  background-color: #EDEDEC;
-  border-radius: 6px;
 }
+
+.interface-hebrew .singlePanel .tab-view.largeTabs .tab-list .tab.filter {
+  margin-top: 3px;
+}
+
+.tab-view .tab-list .tab.popover {
+  position: relative;
+  display: inline-block;
+}
+
+
 .tab-view .tab-list .tab.filter.open {
   background-color: inherit;
 }
 .tab-view .tab-list .tab.filter img {
   margin: 0 0 1px 6px;
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
 }
 .interface-hebrew .tab-view .tab-list .tab.filter img {
   margin: 0 6px 1px 0;
@@ -11238,19 +11275,109 @@ cursor: pointer;
 .tab-view.largeTabs .tab-list .tab {
   font-size: 22px;
 }
+.singlePanel .tab-view.largeTabs .tab-list .tab:not(.popover) {
+    font-size: 16px;
+}
 .tab-view.largeTabs .tab-list .active .tab {
   border-bottom: 4px solid var(--light-grey);
 }
+
+.singlePanel .tab-view.largeTabs .tab-list .active .tab {
+  padding-bottom: 18px;
+}
+
+.langSelectPopover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border-radius: 6px;
+  box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.25);
+  text-align: start;
+  width: 266px;
+  padding-bottom: 15px;
+}
+
+.interface-hebrew .singlePanel .langSelectPopover {
+  right: -233px;
+}
+.langSelectPopover .langHeader {
+  font-weight: 500;
+  font-size: 16px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.langSelectPopover .radioChoice.active {
+  background-color: var(--sefaria-blue);
+  color: #fff;
+}
+
+.langSelectPopover .radioChoice {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #000;
+  margin-inline: 15px;
+  background-color: var(--lighter-grey);
+  cursor: pointer;
+}
+
+.langSelectPopover .radioChoice:nth-of-type(2) {
+  border-radius: 6px 6px 0px 0px;
+}
+
+.langSelectPopover .radioChoice:nth-of-type(4) {
+  border-radius: 0px 0px 6px 6px;
+}
+
+.langSelectPopover .radioChoice label {
+  flex-grow: 1;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.langSelectPopover .radioChoice input[type=radio] {
+    appearance: none;
+    background-color: #fff;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--medium-grey);
+    border-radius: 20px;
+    display: inline-grid;
+    place-content: center;
+    margin-top: 0;
+    margin-inline-end: 10px;
+
+  }
+
+/* Styles the radio select as a checkbox  */
+.langSelectPopover .radioChoice input[type=radio]::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    transform: scale(0);
+    transform-origin: bottom left;
+    background-color: var(--sefaria-blue);
+    clip-path: polygon(13% 50%, 34% 66%, 81% 2%, 100% 18%, 39% 100%, 0 71%);
+}
+
+.langSelectPopover .radioChoice input[type=radio]:checked::before {
+    transform: scale(1);
+}
+
+.langSelectPopover .radioChoice input[type=radio]:checked{
+    background-color:   #fff;
+    border: 0;
+}
+
 @media (max-width: 540px) {
   .profile-page .tab-view .tab .tabIcon {
     display: none;
   }
-  .interface-hebrew .tab-view .tab-list .justifyright {
-    margin: initial;
-  }
-  .tab-view .tab-list .justifyright {
-    margin: initial;
-  }
+
   .tab-view .tab-list{
     flex-wrap: wrap;
   }
@@ -11661,6 +11788,19 @@ cursor: pointer;
   color: white;
   background-color: #18345d;
 }
+.resourcesLink.studyCompanion {
+  margin-inline-start: 10px;
+}
+@media screen and (max-width: 900px) {
+  .resourcesLink.studyCompanion {
+    margin-inline-start: 0;
+  }
+}
+@media screen and (max-width: 900px) {
+  .resourcesLink.studyCompanion {
+    margin-inline-start: 0;
+  }
+}
 .resourcesLink.blue img {
   filter: invert(1);
   opacity: 1;
@@ -11996,8 +12136,28 @@ body .homeFeedWrapper .content {
   color: #666;
 }
 .story .learningPrompt {
-  padding: 10px 0 20px;
+  padding: 20px 0 20px;
 }
+.story details .learningPrompt {
+  background-color: var(--highlight-blue-light);
+  margin-inline-start: -20px;
+  padding-inline-start: 20px;
+  padding-inline-end: 20px;
+  border-top: 1px solid var(--light-grey);
+}
+
+.story.topicPassageStory {
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.story.topicPassageStory .storyBody {
+  padding-inline-end: 20px;
+  padding-top: 20px;
+}
+.story.topicPassageStory .contentText.subHeading {
+  padding-bottom: 20px;
+}
+
 .mainColumn .story .storyTitleBlock {
   clear: both;
 }
@@ -12041,11 +12201,70 @@ body .homeFeedWrapper .content {
   float: right;
 }
 
+.story details .storyBody {
+  margin-top: 0;
+}
+
+.story details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.story details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.story details > summary .topicStoryDescBlock {
+  background-color: var(--lightest-grey);
+  margin-inline-start: -20px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* extremely hacky, but required unless there's a major refactor of CategoryHeader logic */
+.story details > summary .topicStoryDescBlock > span:nth-child(1) {
+  flex: 1
+}
+
+
+.story details > summary .storyTitleBlock {
+  background: url('/static/icons/arrow-down-bold.svg') no-repeat transparent;
+  background-size: 14px;
+  background-position-y: center;
+  margin: 0;
+  padding: 0px 0px 1px 24px;
+  vertical-align: middle;
+}
+
+.interface-hebrew .story details > summary .storyTitleBlock {
+  background-position-x: right;
+  padding: 0px 24px 1px 0px;
+}
+
+.story details[open] > summary .storyTitleBlock {
+  background: url('/static/icons/arrow-up-bold.svg') no-repeat transparent;
+  background-size: 14px;
+  background-position-y: center;
+}
+
+.interface-hebrew .story details[open] > summary .storyTitleBlock {
+  background-position-x: right;
+}
+
+
 .story .storyBody {
   clear: both;
   margin: 10px 0;
   text-align: justify;
   font-size: 18px;
+}
+/*HACK to make English text of sources in topic pages ltr*/
+.interface-hebrew .storyBody {
+    direction: ltr;
+    margin-top: 10px;
+    margin-right: -17px;
+    margin-bottom: 10px;
+    margin-left: 26px;
 }
 .story .storySheetListItem > div.storyBody.sheetSummary > * {
   color: var(--dark-grey);
@@ -13577,6 +13796,7 @@ span.ref-link-color-3 {color: blue}
   padding: 10px 5px !important;
   flex-direction: column;
   margin-inline-start: 5px;
+
 }
 
 .dropdownSeparator {
@@ -13592,6 +13812,7 @@ span.ref-link-color-3 {color: blue}
   display: block;
   align-items: center;
   margin-top: 2px;
+  margin-bottom: 4px;
   color: #666;
   cursor: pointer;
   position: relative;
@@ -13651,7 +13872,7 @@ span.ref-link-color-3 {color: blue}
   margin-inline-end: 6px;
 }
 
-.header .dropdownLinks a.dropdownLinks-button::after {
+/* .header .dropdownLinks a.dropdownLinks-button::after {
   display: inline-block;
   background: no-repeat url("/static/icons/chevron-down.svg");
   height: 10px;
@@ -13659,7 +13880,7 @@ span.ref-link-color-3 {color: blue}
   vertical-align: middle;
   content: "";
   transform: scale(0.75);
-}
+} */
 .sheetsInPanel .dropdownLinks a.dropdownLinks-button::after {
   display: inline-block;
   height: 10px;
@@ -13867,10 +14088,6 @@ span.ref-link-color-3 {color: blue}
 
 }
 
-.productsDevBox p {
-  margin-top: 0;
-}
-
 .productsDevBox a::after {
   content: " ›";
   color: var(--commentary-blue);
@@ -13929,8 +14146,43 @@ span.ref-link-color-3 {color: blue}
   }
 }
 
+.noteRefTitle {
+  font-size: 18px;
+}
+
+.noteText{
+  color: var(--dark-grey);
+}
+
+.footerContainer {
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding-top: 25px;
+}
+
+.footerContainer a {
+  padding: 3px 10px;
+}
 
 
+.footerContainer {
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding-top: 25px;
+}
+
+.footerContainer a {
+  padding: 3px 10px;
+}
+
+.stickySidebarFooter {
+  position: sticky;
+  top: 0;
+}
 
 .image-in-text-title {
   margin: auto; /* English System Small */
@@ -13952,7 +14204,6 @@ span.ref-link-color-3 {color: blue}
   font-size: 12px;
   font-weight: 400;
   line-height: 18px;
-  text-align: left;
   color: var(--medium-grey);
 
 }
