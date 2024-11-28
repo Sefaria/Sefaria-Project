@@ -14136,6 +14136,14 @@ span.ref-link-color-3 {color: blue}
   }
 }
 
+.noteRefTitle {
+  font-size: 18px;
+}
+
+.noteText{
+  color: var(--dark-grey);
+}
+
 .footerContainer {
   max-width: 100%;
   display: flex;
