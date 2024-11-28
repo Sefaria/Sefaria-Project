@@ -332,12 +332,12 @@ Sefaria = extend(Sefaria, {
     }
   },
     /**
-     * Helps the BookPage toc translate the given integer to the correctly formatted display string for the section given the varying address types. 
+     * Helps the BookPage toc translate the given integer to the correctly formatted display string for the section given the varying address types.
      * @param {string} addressType - The address type of the schema being requested
      * @param {number} i - The numeric section string from the database
      * @param {number} offset - If needed, an offest to allow section addresses that do not start counting with 0
-     * @returns {[string,string]} Section string in both languages. 
-     */  
+     * @returns {[string,string]} Section string in both languages.
+     */
   getSectionStringByAddressType: function(addressType, i, offset=0) {
     let section = i + offset;
     let enSection, heSection;
@@ -345,11 +345,11 @@ Sefaria = extend(Sefaria, {
       enSection = Sefaria.hebrew.intToDaf(section);
       heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
     } else if (addressType === "Year") {
-      enSection = section + 1241;  
+      enSection = section + 1241;
       heSection = Sefaria.hebrew.encodeHebrewNumeral(section+1);
       heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
     } else if (addressType === "Folio") {
-      enSection = Sefaria.hebrew.intToFolio(section);  
+      enSection = Sefaria.hebrew.intToFolio(section);
       heSection = Sefaria.hebrew.encodeHebrewFolio(enSection);
     } else {
       enSection = section + 1;
@@ -2676,7 +2676,7 @@ _media: {},
     'authors': ['popular-writing-of'],
   },
   getTopic: function(slug, {annotated=true, with_html=false}={}) {
-    const cat = Sefaria.topicTocCategory(slug);
+    const cat = Sefaria.displayTopicTocCategory(slug);
     let ref_link_type_filters = ['about', 'popular-writing-of']
     // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.
     if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug]) {
@@ -2696,22 +2696,25 @@ _media: {},
       return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
   processTopicsData: function(data) {
+    const lang = Sefaria.interfaceLang == "hebrew" ? 'he' : 'en'
     if (!data) { return null; }
     if (!data.refs) { return data; }
     const tabs = {};
     for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
       for (let refObj of linkTypeObj.refs) {
+        // sheets are no longer displayed on topic pages
+        if (refObj.is_sheet) { continue; }
         let tabKey = linkTypeSlug;
         if (tabKey === 'about') {
-          tabKey = refObj.is_sheet ? 'sheets' : 'sources';
+            tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) ? 'notable-sources' : 'sources';
         }
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
-          if (tabKey === 'sheets') {
-            title = {en: 'Sheets', he: Sefaria._('Sheets')};
+          if (tabKey === 'notable-sources') {
+            title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
           }
           if (tabKey === 'sources') {
-            title = {en: 'Sources', he: Sefaria._('Sources')};
+            title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
           }
           tabs[tabKey] = {
             refMap: {},
@@ -2719,20 +2722,36 @@ _media: {},
             shouldDisplay: linkTypeObj.shouldDisplay,
           };
         }
-        const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
         if (refObj.order) {
             refObj.order = {...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
                                 numDatasource: refObj?.order?.numDatasource || 1,
                                 tfidf: refObj?.order?.tfidf || 0,
                                 pr: refObj?.order?.pr || 0,
                                 curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}}}
-        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
+        tabs[tabKey].refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
       }
     }
     for (let tabObj of Object.values(tabs)) {
       tabObj.refs = Object.values(tabObj.refMap);
       delete tabObj.refMap;
     }
+
+    if (tabs["notable-sources"]) {
+      if (!tabs.sources) {
+          tabs.sources = {refMap: {}, shouldDisplay: true, refs: []};
+      }
+      tabs.sources.title = {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')};
+      //turn "sources" tab into 'super-set', containing all refs from all tabs:
+      const allRefs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
+      tabs.sources.refs = allRefs;
+    }
+    if (Sefaria.is_moderator){
+        tabs["admin"] = {...tabs["sources"]};
+        tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
+
+    }
+
+
     data.tabs = tabs;
     return data;
   },
@@ -2774,12 +2793,15 @@ _media: {},
   },
   _initTopicTocCategoryReducer: function(a,c) {
     if (!c.children) {
-      a[c.slug] = c.parent;
-      return a;
+        a[c.slug] = c.parents;
+        return a;
+    }
+    if (!c.parents) {
+        c.parents = [];
     }
     for (let sub_c of c.children) {
-      sub_c.parent = { en: c.en, he: c.he, slug: c.slug };
-      Sefaria._initTopicTocCategoryReducer(a, sub_c);
+        sub_c.parents = c.parents.concat({ en: c.en, he: c.he, slug: c.slug });
+        Sefaria._initTopicTocCategoryReducer(a, sub_c);
     }
     return a;
   },
@@ -2791,10 +2813,13 @@ _media: {},
     }
     return this._topicTocPages[key]
   },
-  topicTocCategory: function(slug) {
+  topicTocCategories: function(slug) {
     // return category english and hebrew for slug
     if (!this._topicTocCategory) { this._initTopicTocCategory(); }
     return this._topicTocCategory[slug];
+  },
+  displayTopicTocCategory: function(slug) {
+    return this.topicTocCategories(slug)?.at(-1);
   },
   _topicTocCategoryTitles: null,
   _initTopicTocCategoryTitles: function() {
