@@ -201,12 +201,11 @@ class ConnectionsPanel extends Component {
     }
 
     Sefaria.getTranslations(ref).then(versions => this.setState({ availableTranslations: Object.values(versions).flat() })); //for counting translations
-    Sefaria.getRef(this.props.currentlyVisibleRef).then(data => { //this does not properly return a secionRef for a spanning/ranged ref
+    Sefaria.getRef(this.props.currentlyVisibleRef).then(data => { //this does not properly return a sectionRef for a spanning/ranged ref
       const currRef = (typeof data == "string") ? Sefaria.sectionRef(data) : data["sectionRef"]; //this is an annoying consequence of getRef not actually returning a
       // consistent response. Its either the ref from cache or the entire text api response if async.
       this.setState({currentlyVisibleSectionRef: currRef});
     });
-    //this.setState({currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef)});
   }
   reloadData() {
     this.setState({
