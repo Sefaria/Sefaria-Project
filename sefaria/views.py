@@ -46,7 +46,8 @@ from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
-from sefaria.system.exceptions import InputError, NoVersionFoundError, APIInvalidInputException
+from sefaria.system.exceptions import InputError, NoVersionFoundError
+from api.api_errors import APIInvalidInputException
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud

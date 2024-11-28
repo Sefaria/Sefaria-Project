@@ -8,7 +8,7 @@ from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
-from sefaria.system.exceptions import APIInvalidInputException
+from api.api_errors import APIInvalidInputException
 from typing import List, Optional, Tuple
 
 logger = structlog.get_logger(__name__)

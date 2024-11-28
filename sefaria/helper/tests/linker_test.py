@@ -10,7 +10,7 @@ import io
 from sefaria.model.text import Ref, TextChunk
 from sefaria.model.webpage import WebPage
 from sefaria.settings import ENABLE_LINKER
-from sefaria.system.exceptions import APIInvalidInputException
+from api.api_errors import APIInvalidInputException
 
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
