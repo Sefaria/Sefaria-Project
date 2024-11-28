@@ -15,7 +15,7 @@ const ContentText = (props) => {
    * order to return the bilingual langauage elements in (as opposed to the unguaranteed order by default).
    */
    const langAndContentItems = _filterContentTextByLang(props);
-   return langAndContentItems.map(item => <ContentSpan lang={item[0]} content={item[1]} isHTML={!!props.html} markdown={props.markdown}/>);
+   return langAndContentItems.map(item => <ContentSpan key={item[0]} lang={item[0]} content={item[1]} isHTML={!!props.html} markdown={props.markdown}/>);
 };
 
 const VersionContent = (props) => {

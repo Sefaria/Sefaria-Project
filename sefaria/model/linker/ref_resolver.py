@@ -1,13 +1,12 @@
 from collections import defaultdict
 from typing import List, Union, Dict, Optional, Tuple, Iterable, Set
-from functools import reduce
 from enum import IntEnum, Enum
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
 import structlog
@@ -108,6 +107,10 @@ class ResolvedRef(abst.Cloneable):
                 self.resolved_parts = [part] + self.resolved_parts
             else:
                 self.resolved_parts += [part]
+        if not self.ref:
+            # self may reference an AltStructNode and therefore doesn't have a ref.
+            # Use ref from other which is expected to be equivalent or more specific
+            self.ref = other.ref
 
     def get_resolved_parts(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> List[RawRefPart]:
         """
@@ -138,6 +141,36 @@ class ResolvedRef(abst.Cloneable):
     def get_node_children(self):
         return self.node.get_children(self.ref)
 
+    def contains(self, other: 'ResolvedRef') -> bool:
+        """
+        Does `self` contain `other`. If `self.ref` and `other.ref` aren't None, this is just ref comparison.
+        Otherwise, see if the schema/altstruct node that back `self` contains `other`'s node.
+        Note this function is a bit confusing. It works like this:
+        - If `self.ref` and `other.ref` are None, we compare the nodes themselves to see if self is an ancestor of other
+        - If `self.ref` is None and `other.ref` isn't, we check that `other.ref` is contained in at least one of `self`'s children (`self` may be an AltStructNode in which case it has no Ref)
+        - If `self.ref` isn't None and `other_ref` is None, we check that `self.ref` contains all of `other`'s children (`other` may be an AltStructNode in which case it has no Ref)
+        - If `self.ref` and `other.ref` are both defined, we can use Ref.contains()
+        @param other:
+        @return:
+        """
+        if not other.node or not self.node:
+            return False
+        if other.ref and self.ref:
+            return self.ref.contains(other.ref)
+        try:
+            if other.ref is None:
+                if self.ref is None:
+                    return self.node.is_ancestor_of(other.node)
+                # other is alt struct and self has a ref
+                # check that every leaf node is contained by self's ref
+                return all([self.ref.contains(leaf_ref) for leaf_ref in other.node.leaf_refs()])
+            # self is alt struct and other has a ref
+            # check if any leaf node contains other's ref
+            return any([leaf_ref.contains(other.ref) for leaf_ref in self.node.leaf_refs()])
+        except NotImplementedError:
+            return False
+
+
     @property
     def order_key(self):
         """
@@ -151,6 +184,10 @@ class ResolvedRef(abst.Cloneable):
         if next(iter(part for part in explicit_matched if part.type == RefPartType.DH), False):
             num_context_parts_matched = self.num_resolved(include={ContextPart})
         return len(explicit_matched), num_context_parts_matched
+
+    @property
+    def resolution_failed(self) -> bool:
+        return self.ref is None and self.node is None
 
 
 class AmbiguousResolvedRef:
@@ -169,6 +206,10 @@ class AmbiguousResolvedRef:
     def pretty_text(self):
         # assumption is first resolved refs pretty_text is good enough
         return self.resolved_raw_refs[0].pretty_text
+
+    @property
+    def resolution_failed(self) -> bool:
+        return False
 
 
 PossiblyAmbigResolvedRef = Union[ResolvedRef, AmbiguousResolvedRef]
@@ -209,23 +250,12 @@ class TermMatcher:
 
 class IbidHistory:
 
-    ignored_term_slugs = ['torah', 'talmud', 'gemara', 'mishnah', 'midrash']
-
     def __init__(self, last_n_titles: int = 3, last_n_refs: int = 3):
         self.last_n_titles = last_n_titles
         self.last_n_refs = last_n_refs
         self._last_refs: List[text.Ref] = []
         self._last_titles: List[str] = []
         self._title_ref_map: Dict[str, text.Ref] = {}
-        self._ignored_titles: Set[str] = self._get_ignored_titles()
-
-    @classmethod
-    def _get_ignored_titles(cls) -> Set[str]:
-        terms = [schema.NonUniqueTerm.init(slug) for slug in cls.ignored_term_slugs]
-        return reduce(lambda a, b: a | set(b), [term.get_titles() for term in terms], set())
-
-    def should_ignore_text(self, text) -> bool:
-        return text in self._ignored_titles
 
     def _get_last_refs(self) -> List[text.Ref]:
         return self._last_refs
@@ -266,12 +296,11 @@ class RefResolver:
         self._ibid_history = IbidHistory()
 
     def bulk_resolve(self, raw_refs: List[RawRef], book_context_ref: Optional[text.Ref] = None,
-                     with_failures=False, thoroughness=ResolutionThoroughness.NORMAL, reset_ibids=True) -> List[PossiblyAmbigResolvedRef]:
+                     thoroughness=ResolutionThoroughness.NORMAL, reset_ibids=True) -> List[PossiblyAmbigResolvedRef]:
         """
         Main function for resolving refs in text. Given a list of RawRefs, returns ResolvedRefs for each
         @param raw_refs:
         @param book_context_ref:
-        @param with_failures:
         @param thoroughness: how thorough should the search be. More thorough == slower. Currently "normal" will avoid searching for DH matches at book level and avoid filtering empty refs
         @param reset_ibids: If true, reset ibid history before resolving
         @return:
@@ -281,25 +310,25 @@ class RefResolver:
             self.reset_ibid_history()
         resolved = []
         for raw_ref in raw_refs:
-            temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref, with_failures)
+            temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref)
             resolved += temp_resolved
         return resolved
 
-    def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref, with_failures=False) -> List[PossiblyAmbigResolvedRef]:
+    def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref) -> List[PossiblyAmbigResolvedRef]:
         temp_resolved = self.resolve_raw_ref(book_context_ref, raw_ref)
         self._update_ibid_history(raw_ref, temp_resolved)
-        if len(temp_resolved) == 0 and with_failures:
+        if len(temp_resolved) == 0:
             return [ResolvedRef(raw_ref, [], None, None, context_ref=book_context_ref)]
         return temp_resolved
 
     def _update_ibid_history(self, raw_ref: RawRef, temp_resolved: List[PossiblyAmbigResolvedRef]):
-        if self._ibid_history.should_ignore_text(raw_ref.text):
-            return
         if len(temp_resolved) == 0:
             self.reset_ibid_history()
-        elif any(r.is_ambiguous for r in temp_resolved):
+        elif any(r.is_ambiguous for r in temp_resolved) or temp_resolved[-1].ref is None:
             # can't be sure about future ibid inferences
             # TODO can probably salvage parts of history if matches are ambiguous within one book
+            # if ref is None, match is likely to AltStructNode
+            # TODO this node still has useful info. Try to salvage it.
             self.reset_ibid_history()
         else:
             self._ibid_history.last_refs = temp_resolved[-1].ref
@@ -349,7 +378,7 @@ class RefResolver:
             unrefined_matches = self.get_unrefined_ref_part_matches(book_context_ref, temp_raw_ref)
             if is_non_cts:
                 # filter unrefined matches to matches that resolved previously
-                resolved_titles = {r.ref.index.title for r in resolved_list}
+                resolved_titles = {r.ref.index.title for r in resolved_list if not r.is_ambiguous}
                 unrefined_matches = list(filter(lambda x: x.ref.index.title in resolved_titles, unrefined_matches))
                 # resolution will start at context_ref.sections - len(ref parts). rough heuristic
                 for match in unrefined_matches:
@@ -480,7 +509,9 @@ class RefResolver:
 
             # combine
             if len(context_full_matches) > 0:
-                context_free_matches = list(filter(lambda x: x.ref.normal() not in refs_matched, context_free_matches))
+                # assumption is we don't want refs that used context at book level, then didn't get refined more when considering context free
+                # BUT did get refined more when considering context
+                context_free_matches = list(filter(lambda x: not (x.num_resolved(include={ContextPart}) > 0 and x.ref.normal() in refs_matched), context_free_matches))
             temp_matches += context_free_matches + context_full_matches
         return ResolvedRefPruner.prune_refined_ref_part_matches(self._thoroughness, temp_matches)
 
@@ -597,7 +628,7 @@ class ResolvedRefPruner:
     def prune_unrefined_ref_part_matches(ref_part_matches: List[ResolvedRef]) -> List[ResolvedRef]:
         index_match_map = defaultdict(list)
         for match in ref_part_matches:
-            key = match.node.ref().normal()
+            key = match.node.unique_key()
             index_match_map[key] += [match]
         pruned_matches = []
         for match_list in index_match_map.values():
@@ -689,17 +720,17 @@ class ResolvedRefPruner:
     @staticmethod
     def remove_superfluous_matches(thoroughness: ResolutionThoroughness, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         # make matches with refs that are essentially equivalent (i.e. refs cover same span) actually equivalent
-        resolved_refs.sort(key=lambda x: x.ref and x.ref.order_id())
+        resolved_refs.sort(key=lambda x: x.ref.order_id() if x.ref else "ZZZ")
         for i, r in enumerate(resolved_refs[:-1]):
             next_r = resolved_refs[i+1]
-            if r.ref.contains(next_r.ref) and next_r.ref.contains(r.ref):
+            if r.contains(next_r) and next_r.contains(r):
                 next_r.ref = r.ref
 
         # make unique
         resolved_refs = list({r.ref: r for r in resolved_refs}.values())
         if thoroughness >= ResolutionThoroughness.HIGH or len(resolved_refs) > 1:
             # remove matches that have empty refs
-            resolved_refs = list(filter(lambda x: not x.ref.is_empty(), resolved_refs))
+            resolved_refs = list(filter(lambda x: x.ref and not x.ref.is_empty(), resolved_refs))
         return resolved_refs
 
     @staticmethod
@@ -751,21 +782,31 @@ class ResolvedRefPruner:
         Merge matches where one ref is contained in another ref
         E.g. if matchA.ref == Ref("Genesis 1") and matchB.ref == Ref("Genesis 1:1"), matchA will be deleted and its parts will be appended to matchB's parts
         """
-        resolved_refs.sort(key=lambda x: "N/A" if x.ref is None else x.ref.order_id())
+        def get_sort_key(resolved_ref: ResolvedRef) -> str:
+            if resolved_ref.ref is None:
+                if resolved_ref.node is None:
+                    return "N/A"
+                elif hasattr(resolved_ref.node, "ref_order_id"):
+                    return resolved_ref.node.ref_order_id()
+                else:
+                    return "N/A"
+            else:
+                return resolved_ref.ref.order_id()
+        resolved_refs.sort(key=get_sort_key)
         merged_resolved_refs = []
         next_merged = False
         for imatch, match in enumerate(resolved_refs[:-1]):
             next_match = resolved_refs[imatch+1]
-            if match.is_ambiguous or match.ref is None or next_match.ref is None or next_merged:
+            if match.is_ambiguous or match.node is None or next_match.node is None or next_merged:
                 merged_resolved_refs += [match]
                 next_merged = False
                 continue
-            if match.ref.index.title != next_match.ref.index.title:
+            if match.ref and next_match.ref and match.ref.index.title != next_match.ref.index.title:
                 # optimization, the easiest cases to check for
                 merged_resolved_refs += [match]
-            elif match.ref.contains(next_match.ref):
+            elif match.contains(next_match):
                 next_match.merge_parts(match)
-            elif next_match.ref.contains(match.ref):
+            elif next_match.contains(match):
                 # unfortunately Ref.order_id() doesn't consistently put larger refs before smaller ones
                 # e.g. Tosafot on Berakhot 2 precedes Tosafot on Berakhot Chapter 1...
                 # check if next match actually contains this match

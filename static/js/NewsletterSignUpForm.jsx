@@ -28,7 +28,7 @@ export function NewsletterSignUpForm({
                     setSubscribeMessage("Subscribed! Welcome to our list.");
                     Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
                 }).catch(error => {
-                    setSubscribeMessage(error?.error || "Sorry, there was an error.");
+                    setSubscribeMessage(error?.message || "Sorry, there was an error.");
                     setShowNameInputs(false);
                 });
             } else {
