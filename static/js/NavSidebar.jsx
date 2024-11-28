@@ -6,17 +6,21 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
-import Button from "./shared/Button";
+import Button from "./common/Button";
 
 const NavSidebar = ({modules}) => {
-  return <div className="navSidebar sans-serif">
+  return (
+    <div className="navSidebar sans-serif">
     {modules.map((m, i) =>
       <Modules
         type={m.type}
         props={m.props || {}}
         key={i} />
     )}
+    <SidebarFooter />
   </div>
+
+  )
 };
 
 
@@ -58,6 +62,7 @@ const Modules = ({type, props}) => {
     "PortalOrganization":     PortalOrganization,
     "PortalNewsletter":       PortalNewsletter,
     "RecentlyViewed":        RecentlyViewed,
+    "StudyCompanion":        StudyCompanion,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -150,6 +155,21 @@ const Promo = () =>
         <Promotions adType="sidebar"/>
     </Module>
 ;
+
+const StudyCompanion = () => (
+    <Module>
+        <ModuleTitle>Study Companion</ModuleTitle>
+        <div><InterfaceText>Get the Weekly Parashah Study Companion in your inbox.</InterfaceText></div>
+        <a className="button small"
+           data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
+           data-anl-promotion_name="Parashah Email Signup - Topic TOC"
+           href="https://learn.sefaria.org/weekly-parashah/">
+            <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
+            <InterfaceText>Sign Up</InterfaceText>
+        </a>
+    </Module>
+)
+
 
 const AboutSefaria = ({hideTitle}) => (
   <Module>
@@ -246,6 +266,38 @@ const Resources = () => (
     </div>
   </Module>
 );
+
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'}, 
+                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'}, 
+                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'www.example.com'},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': 'www.example.com'},
+                                    {'he': 'בלוג','en':'Blog', 'url': 'www.example.com'},
+                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'www.example.com'},
+                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'www.example.com'},
+                                    {'he': 'יוטיוב','en':'YouTube', 'url':'www.example.com'},
+                                    {'he': 'חנות','en':'Shop', 'url': 'www.example.com'},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': 'www.example.com'},
+                                    {'he': 'תרומות','en':'Donate', 'url': 'www.example.com'},
+                                  ];
+
+const SidebarFooter = () => {
+
+  const data = getSidebarFooterData();
+
+  return (
+    <div className = "stickySidebarFooter navSidebarModule">
+        <h3/>
+        <div className="footerContainer">
+          {data.map(footerLink => 
+            <a href={footerLink.url}>
+              <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
+            </a>
+          )}
+        </div>
+    </div>
+);
+}
+
 
 
 const TheJewishLibrary = ({hideTitle}) => (
@@ -918,5 +970,6 @@ const PortalNewsletter = ({title, description}) => {
 export {
   NavSidebar,
   Modules,
-  RecentlyViewed
+  RecentlyViewed, 
+  SidebarFooter
 };

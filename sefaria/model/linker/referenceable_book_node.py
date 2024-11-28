@@ -1,5 +1,7 @@
 import dataclasses
 from typing import List, Union, Optional, Tuple, Dict
+import copy
+from typing import List, Union, Optional
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
@@ -38,13 +40,30 @@ def _parsha_subref(ref: text.Ref, section: int):
         return ref.subref(section)
 
 
+JA_NODE_LIST_ATTRS = ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections')
+
+
 def truncate_serialized_node_to_depth(serial_node: dict, depth: int) -> dict:
     truncated_serial_node = serial_node.copy()
-    for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
-        if list_attr not in serial_node:
-            continue
-        truncated_serial_node[list_attr] = serial_node[list_attr][depth:]
+    for list_attr in JA_NODE_LIST_ATTRS:
+        if list_attr in serial_node:
+            truncated_serial_node[list_attr] = serial_node[list_attr][depth:]
     return truncated_serial_node
+
+
+def insert_amud_node_values(serial_node: dict) -> (dict, int):
+    """
+    Insert values to serialized JA node that correspond to an Amud section.
+    This section doesn't exist in the JA node but is useful for matching Talmud sections with the linker
+    @param serial_node: serialized JA node
+    @return: `serial_node` with values for Amud section + the next referenceable depth corresponding to this modified node
+    """
+    serial_node['depth'] += 1
+    next_referenceable_depth = 1
+    for key, value in zip(JA_NODE_LIST_ATTRS, ('Amud', 'Amud', 1, True)):
+        if key in serial_node:
+            serial_node[key].insert(1, value)
+    return serial_node, next_referenceable_depth
 
 
 class ReferenceableBookNode:
@@ -66,27 +85,68 @@ class ReferenceableBookNode:
     def referenceable(self) -> bool:
         return True
 
+    def is_ancestor_of(self, other: 'ReferenceableBookNode') -> bool:
+        other_node = other._get_titled_tree_node()
+        self_node = self._get_titled_tree_node()
+        return self_node.is_ancestor_of(other_node)
 
-class NamedReferenceableBookNode(ReferenceableBookNode):
+    def _get_titled_tree_node(self) -> schema.TitledTreeNode:
+        raise NotImplementedError
 
-    def __init__(self, titled_tree_node_or_index: Union[schema.TitledTreeNode, text.Index]):
-        self._titled_tree_node_or_index = titled_tree_node_or_index
-        self._titled_tree_node = titled_tree_node_or_index
-        if isinstance(titled_tree_node_or_index, text.Index):
-            self._titled_tree_node = titled_tree_node_or_index.nodes
+    def leaf_refs(self) -> list[text.Ref]:
+        """
+        Get the Refs for the ReferenceableBookNode leaf nodes from `self`
+        @return:
+        """
+        raise NotImplementedError
+
+
+class IndexNodeReferenceableBookNode(ReferenceableBookNode):
+    """
+    ReferenceableBookNode backed by node in an Index (either SchemaNode or AltStructNode)
+    """
+
+    def __init__(self, titled_tree_node: schema.TitledTreeNode):
+        self._titled_tree_node = titled_tree_node
 
     @property
     def referenceable(self):
         return getattr(self._titled_tree_node, 'referenceable', not self.is_default())
 
-    def is_default(self):
-        return self._titled_tree_node.is_default()
+    def _get_titled_tree_node(self) -> schema.TitledTreeNode:
+        return self._titled_tree_node
 
-    def get_numeric_equivalent(self):
-        return getattr(self._titled_tree_node, "numeric_equivalent", None)
+    def is_default(self):
+        return self._titled_tree_node.is_default() and self._titled_tree_node.parent is not None
 
     def ref(self) -> text.Ref:
         return self._titled_tree_node.ref()
+
+    def unique_key(self) -> str:
+        return self.ref().normal()
+
+    def ref_order_id(self) -> str:
+        if isinstance(self._titled_tree_node, schema.AltStructNode):
+            leaves = self._titled_tree_node.get_leaf_nodes()
+            # assume leaves are contiguous. If this is wrong, will be disproven later in the function
+            if len(leaves) == 0:
+                return "N/A"
+            approx_ref = leaves[0].ref().to(leaves[-1].ref())
+            return approx_ref.order_id()
+        return self.ref().order_id()
+
+
+class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
+
+    def __init__(self, titled_tree_node_or_index: Union[schema.TitledTreeNode, text.Index]):
+        self._titled_tree_node_or_index = titled_tree_node_or_index
+        titled_tree_node = titled_tree_node_or_index
+        if isinstance(titled_tree_node_or_index, text.Index):
+            titled_tree_node = titled_tree_node_or_index.nodes
+        super().__init__(titled_tree_node)
+
+    def get_numeric_equivalent(self):
+        return getattr(self._titled_tree_node, "numeric_equivalent", None)
 
     @staticmethod
     def _is_array_map_referenceable(node: schema.ArrayMapNode) -> bool:
@@ -149,20 +209,22 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
     def ref_part_title_trie(self, *args, **kwargs):
         return self._titled_tree_node.get_match_template_trie(*args, **kwargs)
 
+    def leaf_refs(self) -> list[text.Ref]:
+        return [n.ref() for n in self._get_titled_tree_node().get_leaf_nodes()]
 
-class NumberedReferenceableBookNode(ReferenceableBookNode):
+
+class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
+
     def __init__(self, ja_node: schema.NumberedTitledTreeNode):
-        self._ja_node = ja_node
+        super().__init__(ja_node)
+        self._ja_node: schema.NumberedTitledTreeNode = ja_node
 
     @property
     def referenceable(self):
         return getattr(self._ja_node, 'referenceable', True)
 
-    def is_default(self):
-        return self._ja_node.is_default() and self._ja_node.parent is not None
-
-    def ref(self):
-        return self._ja_node.ref()
+    def leaf_refs(self) -> list[text.Ref]:
+        return [self.ref()]
 
     def possible_subrefs(self, lang: str, initial_ref: text.Ref, section_str: str, fromSections=None) -> Tuple[List[text.Ref], List[bool]]:
         try:
@@ -202,27 +264,31 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
                 next_refereceable_depth += 1
         return next_refereceable_depth
 
-    def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
-        serial = self._ja_node.serialize()
+    def _get_serialized_node(self) -> dict:
+        serial = copy.deepcopy(self._ja_node.serialize())
         next_referenceable_depth = self._get_next_referenceable_depth()
+        if isinstance(self._address_class, schema.AddressTalmud):
+            serial, next_referenceable_depth = insert_amud_node_values(serial)
         serial['depth'] -= next_referenceable_depth
-        if serial['depth'] < 0:
-            return []
         serial['default'] = False  # any JA node that has been modified should lose 'default' flag
-        if serial['depth'] <= 1 and self._ja_node.is_segment_level_dibur_hamatchil():
-            return [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
-        if (self._ja_node.depth - next_referenceable_depth) == 0:
-            if isinstance(self._address_class, schema.AddressTalmud):
-                serial['addressTypes'] = ["Amud"]
-                serial['sectionNames'] = ["Amud"]
-                serial['lengths'] = [1]
-                serial['referenceableSections'] = [True]
-            else:
-                return []
-        else:
-            serial = truncate_serialized_node_to_depth(serial, next_referenceable_depth)
+        serial['parent'] = self._ja_node
+        if serial['depth'] == 0:
+            raise ValueError("Can't serialize JaggedArray of depth 0")
+        serial = truncate_serialized_node_to_depth(serial, next_referenceable_depth)
+        return serial
+
+    def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
+        try:
+            serial = self._get_serialized_node()
+        except ValueError:
+            return []
+        children = []
+        if self._ja_node.is_segment_level_dibur_hamatchil():
+            children += [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
+            if serial['depth'] == 1:
+                return children
         new_ja = schema.JaggedArrayNode(serial=serial, index=getattr(self, 'index', None), **kwargs)
-        return [NumberedReferenceableBookNode(new_ja)]
+        return children + [NumberedReferenceableBookNode(new_ja)]
 
     def matches_section_context(self, section_context: 'SectionContext') -> bool:
         """
@@ -301,7 +367,10 @@ class MapReferenceableBookNode(NumberedReferenceableBookNode):
         return section
 
     def ref(self):
-        return self._ref
+        raise NotImplementedError(f'{self.__class__} does not have a single ref.')
+
+    def leaf_refs(self) -> list[text.Ref]:
+        return list(self._section_ref_map.values())
 
     def possible_subrefs(self, lang: str, initial_ref: text.Ref, section_str: str, fromSections=None) -> Tuple[List[text.Ref], List[bool]]:
         try:

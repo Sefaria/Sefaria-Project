@@ -1,11 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import { InterfaceText } from '../Misc';
 
-
-// Todo
-// Fix the styling on the 'dropdown item' (regular one)
-// Restore the header to also show the globe icon
-
 const DropdownMenuSeparator = () => {
 
   return (
@@ -53,7 +48,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='Lorem 
   );
 }
 
-const DropdownMenu = ({children, menu_icon}) => {
+const DropdownMenu = ({children, menuIconComponent}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
 
@@ -86,7 +81,9 @@ const DropdownMenu = ({children, menu_icon}) => {
 
     return (
         <div className="dropdownLinks" ref={wrapperRef}>
-          <a className="dropdownLinks-button" onClick={handleClick}><img src={menu_icon} alt={Sefaria._('Dropdown menu')}/></a>
+           <a className="dropdownLinks-button" onClick={handleClick}>
+              {menuIconComponent} 
+          </a>         
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
             <div className="dropdownLinks-options">
               {children}
