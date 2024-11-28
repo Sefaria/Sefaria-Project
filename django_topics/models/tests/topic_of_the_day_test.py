@@ -1,6 +1,3 @@
-import django
-django.setup()
-
 import pytest
 from datetime import date
 from django_topics.models import TopicOfTheDay, Topic
