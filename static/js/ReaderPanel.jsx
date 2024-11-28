@@ -24,7 +24,7 @@ import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
 import { NotificationsPanel } from './NotificationsPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
-import UserProfile  from './UserProfile';
+import {UserProfile} from './UserProfile';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
@@ -146,28 +146,8 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
-    if(source === 0){
-      //the click may be coming from the sheet reader controls, and so we need to find
-      // the first node or the node thats in the url
-      const sheet = Sefaria.sheets.loadSheetByID(this.state.sheetID); // Should already be loaded and in cache
-      source = this.state.highlightedNode ? sheet.sources.find(source => source.node === this.state.highlightedNode) : sheet.sources[0];
-    }
-    this.conditionalSetState({highlightedNode: source.node});
-    const sheetRef = "Sheet " + this.state.sheetID + ":" + source.node;
-    if (this.state.mode ==="SheetAndConnections") {
-      this.closeSheetConnectionsInPanel();
-    }
-    else if (this.state.mode === "Sheet") {
-      if (this.props.multiPanel) {
-        if (source.ref) {
-          this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
-        } else {
-          this.props.onSegmentClick(sheetRef, source.node)
-        }
-      } else {
-        this.openSheetConnectionsInPanel(source.ref || sheetRef, source.node);
-      }
-    }
+    const highlightedRefs = source.ref ? Sefaria.splitRangingRef(source.ref) : [`Sheet ${this.state.sheetID}:${source.node}`];
+    this.conditionalSetState({highlightedNode: source.node, highlightedRefs});
   }
   handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
@@ -223,15 +203,6 @@ class ReaderPanel extends Component {
   closeConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
-  }
-  openSheetConnectionsInPanel(ref, node) {
-    let refs = typeof ref == "string" ? [ref] : ref;
-    this.replaceHistory = this.state.mode === "SheetAndConnections"; // Don't push history for change in Connections focus
-    this.conditionalSetState({highlightedNode: node, highlightedRefs: refs, mode: "SheetAndConnections" }, this.replaceHistory);
-  }
-  closeSheetConnectionsInPanel() {
-    // Return to the original text in the ReaderPanel contents
-    this.conditionalSetState({highlightedNode: null, highlightedRefs: [], mode: "Sheet"});
   }
   handleSheetClick(e, sheet, highlightedNode, highlightedRefsInSheet) {
     e.preventDefault();
@@ -713,32 +684,34 @@ class ReaderPanel extends Component {
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
-    if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
+    if (this.state.mode === "Sheet") {
       items.push(
         <Sheet
-          nodeRef={this.sheetRef}
           adjustHighlightedAndVisible={this.adjustSheetHighlightedAndVisible}
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
           key={"sheet-"+this.state.sheetID}
           multiPanel={this.props.multiPanel}
           highlightedNode={this.state.highlightedNode}
+          highlightedRefs={this.state.highlightedRefs}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           scrollToHighlighted={this.state.scrollToHighlighted}
           onRefClick={this.handleCitationClick}
           onSegmentClick={this.handleSheetSegmentClick}
           onCitationClick={this.handleCitationClick}
           openSheet={this.openSheet}
-          hasSidebar={this.props.hasSidebar}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
+          hasSidebar={this.props.hasSidebar}
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
         />
       );
     }
 
-    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
+    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
       const langMode = this.props.masterPanelLanguage || this.state.settings.language;
       let data     = this.currentData();
       const canEditText = data &&
@@ -792,8 +765,7 @@ class ReaderPanel extends Component {
           clearNamedEntity={this.props.clearNamedEntity}
           setSidebarSearchQuery={this.props.setSidebarSearchQuery}
           masterPanelLanguage={this.props.masterPanelLanguage}
-          masterPanelMode={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? "Sheet" : this.props.masterPanelMode}
-          masterPanelSheetId={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? this.props.initialState.sheetID : this.props.masterPanelSheetId}
+          masterPanelMode={this.props.masterPanelMode}
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
           setVersionFilter={this.setVersionFilter}
@@ -1113,6 +1085,7 @@ class ReaderPanel extends Component {
 
     const hideReaderControls = (
       this.state.mode === "TextAndConnections" ||
+      this.state.mode === "Sheet" ||
       this.state.menuOpen ||
       this.props.hideNavHeader
     );
