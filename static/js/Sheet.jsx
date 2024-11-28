@@ -39,24 +39,13 @@ class Sheet extends Component {
     const sheetRef = "Sheet " + data.id + (this.props.highlightedNode ? "." + this.props.highlightedNode : "");
     this.props.openSheet(sheetRef, true); // Replace state now that data is loaded so History can include sheet title
     this.forceUpdate();
-    this.preloadConnections();
     this.updateDivineNameStateWithSheetValue()
   }
   ensureData() {
     if (!this.getSheetFromCache()) {
       this.getSheetFromAPI();
     } else {
-      this.preloadConnections();
       this.updateDivineNameStateWithSheetValue()
-    }
-  }
-  preloadConnections() {
-    const data = this.getSheetFromCache();
-    if (!data) {return; }
-    for (let i = 0; i < data.sources.length; i++) {
-      if ("ref" in data.sources[i]) {
-        Sefaria.related(data.sources[i].ref, () => this.forceUpdate);
-      }
     }
   }
   updateDivineNameStateWithSheetValue() {
