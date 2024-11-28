@@ -2746,6 +2746,14 @@ _media: {},
       const key = this._getTopicCacheKey(slug, {annotated, with_html});
       return this._topics[key];
   },
+  _topicOfTheDay: {},
+  getTopicOfTheDay: function() {
+    return this._cachedApiPromise({
+        url: `${Sefaria.apiHost}/_api/topics/topic-of-the-day?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
+        key: (new Date()).toLocaleDateString(),
+        store: this._topicOfTheDay,
+    });
+  },
   _topicSlugsToTitles: null,
   slugsToTitles: function() {
     //initializes _topicSlugsToTitles for Topic Editor tool and adds necessary "Choose a Category" and "Main Menu" for
