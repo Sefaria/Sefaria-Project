@@ -1,6 +1,24 @@
 from django.db import models
+from datetime import datetime
+from django.utils.timezone import now
 from django_topics.models import Topic
-from django.core.exceptions import ValidationError
+
+
+class TopicOfTheDayManager(models.Manager):
+
+    def get_topic_of_the_day(self, lang: str, date: datetime = None) -> 'TopicOfTheDay':
+        """
+        Return topic of day for given date or closest date that is less than or equal to given date
+        @param lang: language code, "en" or "he"
+        @param date: datetime object
+        @return:
+        """
+        date = date or now().date()
+        return (
+            self.filter(start_date__lte=date, lang=lang)
+            .order_by('-start_date')
+            .first()
+        )
 
 
 class TopicOfTheDay(models.Model):
@@ -11,6 +29,7 @@ class TopicOfTheDay(models.Model):
     )
     start_date = models.DateField()
     lang = models.CharField(max_length=2, choices=[('en', 'English'), ('he', 'Hebrew')])
+    objects = TopicOfTheDayManager()
 
     class Meta:
         unique_together = ('topic', 'start_date')
