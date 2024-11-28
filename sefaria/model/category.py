@@ -9,9 +9,10 @@ from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 from . import collection as collection
+from .linker.has_match_template import HasMatchTemplates
 
 
-class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
+class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject, HasMatchTemplates):
     collection = 'category'
     history_noun = "category"
 
@@ -30,6 +31,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         "isPrimary",
         "searchRoot",
         "order",
+        "match_templates",
     ]
 
     def __str__(self):
