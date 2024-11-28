@@ -92,7 +92,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     multiPanel ? {type: "RecentlyViewed", props: {toggleSignUpModal}} : {type: null},
     {type: "Translations"},
     {type: "LearningSchedules"},
-    {type: "Resources"},
+    {type: "Resources"}
   ];
 
   const classes = classNames({readerNavMenu:1, compare: compare, noLangToggleInHebrew: 1 });

@@ -26,6 +26,10 @@ class ResolvedNamedEntity:
     def is_ambiguous(self):
         return len(self.topics) != 1
 
+    @property
+    def resolution_failed(self):
+        return len(self.topics) == 0
+
 
 class TitleGenerator:
 
@@ -134,12 +138,11 @@ class NamedEntityResolver:
     def __init__(self, topic_matcher: TopicMatcher):
         self._topic_matcher = topic_matcher
 
-    def bulk_resolve(self, raw_named_entities: List[RawNamedEntity], with_failures=False) -> List[ResolvedNamedEntity]:
+    def bulk_resolve(self, raw_named_entities: List[RawNamedEntity]) -> List[ResolvedNamedEntity]:
         resolved = []
         for named_entity in raw_named_entities:
             matched_topics = self._topic_matcher.match(named_entity)
-            if len(matched_topics) > 0 or with_failures:
-                resolved += [ResolvedNamedEntity(named_entity, matched_topics)]
+            resolved += [ResolvedNamedEntity(named_entity, matched_topics)]
         return resolved
 
 
