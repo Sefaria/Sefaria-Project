@@ -222,6 +222,9 @@ data:
     SENTINEL_HEADLESS_URL = os.getenv("SENTINEL_HEADLESS_URL") 
     SENTINEL_TRANSPORT_OPTS = json.loads(os.getenv("SENTINEL_TRANSPORT_OPTS", "{}"))
     SENTINEL_PASSWORD = os.getenv("SENTINEL_PASSWORD")
+    CELERY_ENABLED = os.getenv("CELERY_ENABLED").lower() == "true"
+    
+    SLACK_URL = os.getenv("SLACK_URL")
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
 
