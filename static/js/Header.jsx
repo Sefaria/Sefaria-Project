@@ -18,7 +18,7 @@ import {Autocomplete} from './Autocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
 
 
-const LoggedOutMenu = () => {
+const LoggedOutDropdown = () => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
@@ -40,12 +40,12 @@ const LoggedOutMenu = () => {
     return encodeURIComponent(Sefaria.util.currentPath());
   }
   return (
-    <DropdownMenu menu_icon={'/static/icons/logged_out.svg'}>
+    <DropdownMenu menuIconComponent={<img src='/static/icons/logged_out.svg' />}>
       <DropdownMenuItem url={loginLink}>
-        Log in
+        <InterfaceText text={{'en': 'Log in', 'he': 'התחברות'}} />
       </DropdownMenuItem>
       <DropdownMenuItem url={registerLink}>
-        Sign up
+      <InterfaceText text={{'en': 'Sign up', 'he': 'להרשמה'}} />
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <div className="languageHeader">
@@ -64,10 +64,10 @@ const LoggedOutMenu = () => {
       </div>
       <DropdownMenuSeparator />
       <DropdownMenuItem url={'/updates'}>
-        New additions
+        <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}} />
       </DropdownMenuItem>
       <DropdownMenuItem url={'/help'}>
-        Help
+      <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}} />
       </DropdownMenuItem>
 
   </DropdownMenu>
@@ -75,26 +75,77 @@ const LoggedOutMenu = () => {
 }
 
 
+const LoggedInDropdown = () => {
+
+  const getCurrentPage = () => {
+    return encodeURIComponent(Sefaria.util.currentPath());
+  }
+
+  return (
+    <DropdownMenu menuIconComponent={<ProfilePic
+                                          url={Sefaria.profile_pic_url}
+                                          name={Sefaria.full_name}
+                                          len={25}
+                              />
+    }>
+      <DropdownMenuItem>
+        <strong>{Sefaria.full_name}</strong>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem url={'/settings/account'}>
+        <InterfaceText>Account Settings</InterfaceText>
+      </DropdownMenuItem>
+      <DropdownMenuItem url={'/torahtracker'}>
+        <InterfaceText text={{'en': 'Torah Tracker', 'he': 'לימוד במספרים'}} />
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <div className="languageHeader">
+        <InterfaceText>Site Language</InterfaceText>
+      </div>
+      <div className='languageToggleFlexContainer'>
+        <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
+          English
+        </DropdownMenuItem>
+          <span className="languageDot">&#183;</span>
+        <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
+        עברית    
+        </DropdownMenuItem>
+      </div>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem url={'/notifications'}>
+        <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}} />
+      </DropdownMenuItem>
+      <DropdownMenuItem url={'/help'}>
+        <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}} />
+      </DropdownMenuItem>
+      <DropdownMenuSeparator/>
+      <DropdownMenuItem url={'/logout'}>
+        <InterfaceText text={{'en': 'Log Out', 'he': 'ניתוק'}} />
+      </DropdownMenuItem>
+    </DropdownMenu>
+  );
+}
+
+
 const ModuleSwitcher = () => {
   return (
-    <DropdownMenu menu_icon={'/static/icons/module_switcher_icon.svg'}>
-    <DropdownMenuItem url={'/'} newTab={true}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//sheets.sefaria.org'} newTab={true}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//developers.sefaria.org'} newTab={true}>
-      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem url={'//sefaria.org/products'} newTab={true}>
-      <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products ›'}} />
-    </DropdownMenuItem>
-
-  </DropdownMenu>
+    <DropdownMenu menuIconComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
+      <DropdownMenuItem url={'/'} newTab={true}>
+        <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'} textHe={'ספריה'} />
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem url={'/sheets'} newTab={true}>
+        <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
+        <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'} textHe={'מפתחים'}/>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem url={'/products'} newTab={true}>
+        <InterfaceText text={{'he':'לכל המוצרים שלנו', 'en': 'See all products ›'}} />
+      </DropdownMenuItem>
+    </DropdownMenu>
   );
 }
 class Header extends Component {
@@ -143,7 +194,7 @@ class Header extends Component {
             openURL={this.props.openURL}
         />
 
-          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
+        { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
                 translationLanguagePreference={this.props.translationLanguagePreference}
@@ -153,8 +204,8 @@ class Header extends Component {
           <ModuleSwitcher /> 
 
           { Sefaria._uid ?
-            <LoggedInButtons headerMode={this.props.headerMode}/>
-            : <LoggedOutMenu currentLang={Sefaria.interfaceLang}/>
+            <LoggedInDropdown /> 
+            : <LoggedOutDropdown currentLang={Sefaria.interfaceLang}/>
           }
 
         </div>

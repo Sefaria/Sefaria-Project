@@ -14,6 +14,7 @@ import {
   InterfaceText,
   LoadingMessage,
 } from './Misc';
+import Footer from "./Footer";
 
 class SearchPage extends Component {
   constructor(props) {

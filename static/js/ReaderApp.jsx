@@ -1018,11 +1018,20 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 }
   getHTMLLinkParentOfEventTarget(event){
     //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
-    let target = event.target,
-    parent = target,
-    outmost = event.currentTarget;
+    return this.getEventTargetByCondition(event, element => element.nodeName === "A");
+  }
+  getEventTargetByCondition(event, condition, eventTarget=null) {
+    /**
+     * Searches the parents of an event target for an element to meets a certain condition
+     * `condition` is a function of form condition(element) => bool.
+     * If `eventTarget` is passed, it will be used as the starting point of the search instead of `event.target`
+     * Returns the first element in parent hierarchy where `condition` returns true
+     * If no element returns true, returns null.
+     */
+    let parent = eventTarget || event.target;
+    const outmost = event.currentTarget;
     while (parent) {
-      if(parent.nodeName === 'A'){
+      if(condition(parent)){
         return parent
       }
       else if (parent.parentNode === outmost) {
@@ -1041,6 +1050,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         e.stopImmediatePropagation();
         return;
       }
+    }
+  }
+  handleAppClick(event) {
+    if (linkTarget) {
+      this.handleInAppLinkClick(event);
+    }
+    if (this.eventIsAnalyticsEvent(event)) {
+      this.handleAnalyticsEvent(event);
     }
   }
   handleInAppLinkClick(e) {
