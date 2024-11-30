@@ -4922,6 +4922,36 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-inline-start: 11px;
 }
 
+.topicOfTheDay {
+  display: flex;
+  flex-direction: column;
+}
+
+.topicOfTheDayContent {
+  display: flex;
+  flex-direction: row;
+}
+
+.topicOfTheDayContent img {
+  width: 300px;
+}
+
+.topicOfTheDayContent h3 {
+  font-size: var(--serif-h3-font-size);
+  color: #333;
+  text-transform: none;
+}
+
+.topicOfTheDayText {
+  display: flex;
+  flex-direction: column;
+}
+
+.topicOfTheDay h1 {
+  font-size: 30px;
+  border-bottom: 1px solid #ccc;
+}
+
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
