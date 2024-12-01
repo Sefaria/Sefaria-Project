@@ -4932,10 +4932,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: ellipsis-font;
 }
 
-.salad-item-wrapper{
-  white-space: nowrap;
-}
-
 .topic-salad{
   /*font-family: Roboto;*/
   width: 843px;
@@ -4949,6 +4945,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .topic-salad-item{
   margin: 11px;
+  font-family: 'Roboto';
 }
 
 .readerNavMenu .sheet {
