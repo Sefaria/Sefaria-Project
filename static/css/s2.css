@@ -4915,10 +4915,40 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-inline-start: 11px;
 }
 
+@font-face {
+  font-family: "ellipsis-font";
+  src: local("Courier");
+  unicode-range: U+2026;
+   size-adjust: 0%;
+}
+
+
 .salad-container{
   overflow: hidden;
-  word-wrap: break-word;
-  line-height: 1.5rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--num-lines);
+  text-overflow: clip;
+  font-family: ellipsis-font;
+}
+
+.salad-item-wrapper{
+  white-space: nowrap;
+}
+
+.topic-salad{
+  /*font-family: Roboto;*/
+  width: 843px;
+  margin: 0 auto;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 32px;
+  text-align: center;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+}
+.topic-salad-item{
+  margin: 11px;
 }
 
 .readerNavMenu .sheet {

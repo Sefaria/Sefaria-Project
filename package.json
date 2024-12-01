@@ -68,7 +68,6 @@
     "jquery.cookie": "^1.4.1",
     "jquery.scrollto": "^2.1.2",
     "js-cookie": "^2.2.1",
-    "line-clamp": "^1.0.0",
     "patch-package": "^6.2.2",
     "prop-types": "^15.6.0",
     "querystring": "^0.2.0",
