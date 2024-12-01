@@ -3517,7 +3517,13 @@ form.globalUpdateForm + div.notificationsList {
 .interface-hebrew h1.mobileAboutHeader, .interface-hebrew #aboutSidebar h1 {
   text-align: right;
 }
+nav#aboutSidebar h1 {
+  display: none;
+}
 @media (max-width: 480px) {
+  .interface-english nav#aboutSidebar h1.int-en, .interface-hebrew nav#aboutSidebar h1.int-he {
+    display: block;
+  }
   .container.doc.legal.static .inner, #annualReport .inner, #metricsPage .inner, #supportersPage .inner,
   #testimonialsPage .inner, #aboutPage .inner, #teamPage .inner, #jobsPage .inner {
     margin-inline-start: auto;
@@ -3571,9 +3577,6 @@ form.globalUpdateForm + div.notificationsList {
   .interface-english #teamPage .inner {
     margin-top: -75px;
   }
-  .interface-hebrew .about.section {
-    padding-top: 50px;
-  }
   div #metricsBox {
     margin-top: 50px;
   }
@@ -3609,7 +3612,10 @@ form.globalUpdateForm + div.notificationsList {
     padding-top: 55px;
   }
   h1.mobileAboutHeader {
-    margin: 40px 0 0 0;
+    margin: 40px 0 40px 0;
+  }
+  div#productsPageContent h1.mobileAboutHeader {
+    margin: revert;
   }
   .interface-english #aboutSidebar li {
     margin-left: 5px;
@@ -3625,9 +3631,6 @@ form.globalUpdateForm + div.notificationsList {
   }
   div .section.leading-supporters {
     margin-top: 40px;
-  }
-  .static.legal iframe {
-    margin-top: 60px;
   }
 }
 #metricsBox {
