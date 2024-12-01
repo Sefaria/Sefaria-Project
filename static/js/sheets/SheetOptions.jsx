@@ -296,10 +296,8 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
       sheet.status = status === 'public' ? "unlisted" : "public";
       sheet.lastModified = sheet.dateModified;
       delete sheet._id;
-      postSheet(sheet, sheet.id).then(data => {
-          if (data.id) {
-            setPublishText(publishState.posted);
-          }
+      postSheet(sheet, sheet.id).then(() => {
+          setPublishText(publishState.posted);
       }).catch(error => {
           setPublishText(error.message);
       })
@@ -402,9 +400,9 @@ const PublishMenu = ({sheet, publishCallback}) => {
   }
   const handleSummaryChange = (event) => {
     const newSummary = event.target.value;
-    if (event.target.value.length > 280) {
+    if (event.target.value.length > 140) {
         setValidation({
-            validationMsg: Sefaria._("The summary description is limited to 280 characters."),
+            validationMsg: Sefaria._("The summary description is limited to 140 characters."),
             validationFailed: "summary"
         });
     }
@@ -428,7 +426,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
       publishCallback(true);
     }
   }
-  return <div className="publishSettingsEditMode">
+  return <div>
         <div className={"publishBox sans-serif"}>
             <div className="publishLabel">
                 <InterfaceText>Title</InterfaceText>
@@ -443,7 +441,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
             <textarea
                 className={validation.validationFailed === "both" || validation.validationFailed === "summary" ? "error" : ""}
                 rows="3"
-                maxLength="281"
+                maxLength="140"
                 placeholder={Sefaria._("Write a short description of your sheet...")}
                 value={summary}
                 onChange={handleSummaryChange}></textarea>

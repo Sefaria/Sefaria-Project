@@ -8550,6 +8550,7 @@ a.sheetAuthorName:hover {
   border-radius: 6px;
   padding: 10px 20px;
   max-width: 540px;
+  width: 500px;
   margin: 20px -20px;
   font-size: 16px;
   color: #666;
@@ -8606,8 +8607,7 @@ div.transparentBackground.publishBox {
 .sheetMetaDataBox .publishBox textarea, .sheetMetaDataBox .publishBox input, .sheetMetaDataBox .publishBox .react-tags {
   border-radius: 6px;
   border: none;
-  max-width: 200px;
-  width: 95%;
+  width: 98%;
   padding: 7px;
   background: #EDEDEC;
   --english-font: var(--english-sans-serif-font-family);
