@@ -8,7 +8,7 @@ import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
 import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
-import Button from "../shared/Button";
+import Button from "../common/Button";
 import ReactTags from "react-tag-autocomplete";
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
