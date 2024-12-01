@@ -4915,6 +4915,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-inline-start: 11px;
 }
 
+.salad-container{
+  overflow: hidden;
+  word-wrap: break-word;
+  line-height: 1.5rem;
+}
+
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
