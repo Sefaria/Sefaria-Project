@@ -39,6 +39,16 @@
   margin: 0 0 60px 0;
   height: auto;
 }
+#aboutSidebar.mobileAbout h1, h1.mobileAboutHeader {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 22px;
+  text-align: left;
+  line-height: 26px;
+  color: var(--dark-grey);
+}
 .static h2 {
   font-weight: lighter;
   font-size: 16px;
@@ -3390,9 +3400,6 @@ form.globalUpdateForm + div.notificationsList {
 #aboutSidebar a:hover {
   text-decoration: underline;
 }
-.annualReport {
-  padding-top: 85px;
-}
 .interface-hebrew .annualReport {
   padding-top: 95px;
 }
@@ -3507,6 +3514,9 @@ form.globalUpdateForm + div.notificationsList {
       margin-right: 20px;
     }
 }
+.interface-hebrew h1.mobileAboutHeader, .interface-hebrew #aboutSidebar h1 {
+  text-align: right;
+}
 @media (max-width: 480px) {
   .container.doc.legal.static .inner, #annualReport .inner, #metricsPage .inner, #supportersPage .inner,
   #testimonialsPage .inner, #aboutPage .inner, #teamPage .inner, #jobsPage .inner {
@@ -3598,18 +3608,6 @@ form.globalUpdateForm + div.notificationsList {
     margin: 0;
     padding-top: 55px;
   }
-  #aboutSidebar.mobileAbout h1, h1.mobileAboutHeader {
-    font-family: 'Roboto', sans-serif;
-    font-style: normal;
-    font-weight: 500;
-    font-size: 22px;
-    text-align: left;
-    line-height: 26px;
-    color: var(--dark-grey);
-  }
-  .interface-hebrew h1.mobileAboutHeader, .interface-hebrew #aboutSidebar h1 {
-    text-align: right;
-  }
   h1.mobileAboutHeader {
     margin: 40px 0 0 0;
   }
@@ -3627,10 +3625,6 @@ form.globalUpdateForm + div.notificationsList {
   }
   div .section.leading-supporters {
     margin-top: 40px;
-  }
-
-  .updatesHeader, .jobsHeader, .mobileAboutHeader {
-    display: block;
   }
   .static.legal iframe {
     margin-top: 60px;
