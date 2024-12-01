@@ -3490,9 +3490,6 @@ form.globalUpdateForm + div.notificationsList {
     margin-left: 200px;
 }
 
-.mobileAboutHeader, .updatesHeader, .jobsHeader {
-  display: none;
-}
 .container.doc.legal.static .inner {
   margin-top: 675px;
 }
@@ -3672,7 +3669,4 @@ form.globalUpdateForm + div.notificationsList {
 }
 .updateTextarea {
   width: 100%;
-}
-.about.section {
-  padding-top: 40px;
 }
