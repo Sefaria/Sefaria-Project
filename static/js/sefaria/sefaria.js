@@ -643,8 +643,6 @@ Sefaria = extend(Sefaria, {
   },
   getTextFromCurrVersions: async function(ref, currVersions, translationLanguagePreference, withContext) {
     let {he, en} = currVersions;
-    if (!he?.languageFamilyName) {he = {languageFamilyName: 'primary'};}
-    if (!en?.languageFamilyName) {en = {languageFamilyName: 'translation'};}
     let data = await Sefaria._getPrimaryAndTranslationText(ref, he, en, translationLanguagePreference);
     if (withContext && data.textDepth === data.sections.length) {
         const {text, he, alts} = await Sefaria.getTextFromCurrVersions(data.sectionRef, currVersions, translationLanguagePreference);
