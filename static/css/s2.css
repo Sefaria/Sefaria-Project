@@ -4837,6 +4837,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: center;
 }
 
+.topic-lading-page-content{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 .interface-hebrew .topic-landing-page-wrapper{
   direction: rtl;
 }
@@ -4942,7 +4949,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topic-salad{
   /*font-family: Roboto;*/
   width: 843px;
-  margin: 0 auto;
   font-size: 22px;
   font-weight: 400;
   line-height: 32px;
