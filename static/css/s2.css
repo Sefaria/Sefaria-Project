@@ -4926,7 +4926,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "ellipsis-font";
   src: local("Courier");
   unicode-range: U+2026;
-   size-adjust: 0%;
+  size-adjust: 0%;
 }
 
 
