@@ -1,5 +1,7 @@
 import React from 'react';
+import {useEffect, useState} from "react";
 import {WordSalad} from "./WordSalad";
+import Sefaria from "../sefaria/sefaria";
 
 const exampleSlugs = [
   "Potiphar’s wife", "Og", "vines", "diversity", "humanity", "ravens",
@@ -17,14 +19,27 @@ const renderSaladItem = (item) => {
     return <span className="topic-salad-item">{item.text} </span>
 }
 
+const getRandomSaladItems = async () => {
+    const topics = await Sefaria.getTopicsByPool('general_en', 50);
+    const saladItems = topics.map(topic=>({slug: topic.slugs, text: topic.primaryTitle.en}))
+    return saladItems;
+}
 
-export const TopicSalad = ({ numLines, salad, renderItem }) => {
 
-  return (
+export const TopicSalad = () => {
+
+    const [salad, setSalad] = useState([]);
+
+    useEffect(async () => {
+        const saladItems = await getRandomSaladItems();
+        setSalad(saladItems);
+    }, []);
+
+    return (
       <div className='topic-salad'>
                   <WordSalad renderItem={renderSaladItem}
                        numLines={5}
-                       salad={exampleItems}/>
+                       salad={salad}/>
       </div>
   );
 };
