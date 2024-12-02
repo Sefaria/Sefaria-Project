@@ -2172,7 +2172,7 @@ sjs.sheetTagger = {
 		}
 		var html = "";
 		for (var i = 0; i < topics.length; i++) {
-			html = html + '<a class="button" role="button" href='+topics[i].slug+'"/django_topics/">'+topics[i].asTyped+'</a>';
+			html = html + '<a class="button" role="button" href='+topics[i].slug+'"/topics/">'+topics[i].asTyped+'</a>';
 	    }
 		$("#sheetTags").html(html);
 	},
