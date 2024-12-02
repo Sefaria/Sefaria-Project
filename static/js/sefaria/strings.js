@@ -114,6 +114,8 @@ const Strings = {
     // Topic Images
     "Illustrative image" : "תמונה להמחשה",
 
+    // Topic Landing Page
+    "Featured Topic": "Featured Topic",
 
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",

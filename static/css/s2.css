@@ -121,6 +121,7 @@ a, a:hover {
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
   --beit-midrash-grey: #333333;
+  --darkest-grey: #333333;
   --dark-grey: #666666;
   --medium-grey: #999999;
   --light-grey: #CCCCCC;
@@ -4837,10 +4838,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: center;
 }
 
-.interface-hebrew .topic-landing-page-wrapper{
-  direction: rtl;
-}
-
 .topic-landing-search-container{
   overflow: hidden;
   display: flex;
@@ -4923,29 +4920,41 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topicOfTheDay {
   display: flex;
   flex-direction: column;
+  margin-top: 68px;
 }
 .topicOfTheDayContent {
   display: flex;
   flex-direction: row;
 }
 .topicOfTheDayContent img {
-  width: 300px;
+  width: 239px;
 }
 .topicOfTheDayContent h3 {
   font-size: var(--serif-h3-font-size);
-  color: #333;
   text-transform: none;
 }
-.topicOfTheDayText {
+.topicOfTheDayText .int-en,
+.topicOfTheDayText .int-he {
   display: flex;
   flex-direction: column;
+  color: var(--dark-grey);
+  margin-inline-start: 30px;
 }
 .topicOfTheDayText h3 {
   text-transform: none;
+  margin: 0 0 15px 0;
+}
+.topicOfTheDayGoToLink {
+  margin-top: 25px;
+}
+.topicOfTheDayText .topicDescription {
+  font-size: var(--sans-serif-small-font-size);
 }
 .topicOfTheDay h1 {
-  font-size: 30px;
+  font-size: var(--sans-serif-h2-font-size);
   border-bottom: 1px solid #ccc;
+  width: fit-content;
+  padding-bottom: 10px;
 }
 
 .readerNavMenu .sheet {
