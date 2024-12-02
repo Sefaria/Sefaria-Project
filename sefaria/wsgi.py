@@ -23,6 +23,9 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
+
+from reader.startup import init_library_cache
+init_library_cache()
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
 # application = HelloWorldApplication(application)

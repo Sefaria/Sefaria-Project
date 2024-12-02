@@ -56,7 +56,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         const currentUrlObj = new URL(window.location.href);
         const tabName = currentUrlObj.searchParams.get('tab');
         Sefaria.postRefTopicLink(refInUrl, payload)
-            .then(() => window.location.href = `/topics/${topic}?sort=Relevance&tab=${tabName}`)
+            .then(() => window.location.href = `../../topics/${topic}?sort=Relevance&tab=${tabName}`)
             .finally(() => setSavingStatus(false));
     }
 
@@ -73,7 +73,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         if (input === "") {  // this occurs when there was text in the inputbox and user just erased it
             return results;
         }
-        const d = await Sefaria.getName(input, true, 5);
+        const d = await Sefaria.getName(input, 0, 'ref');
         if (d.is_section || d.is_segment) {
             results.helperPromptText = null;
             results.currentSuggestions = null;
@@ -96,7 +96,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
     const deleteTopicSource = function() {
         const url = `/api/ref-topic-links/${Sefaria.normRef(origData.ref)}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
         Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
-            .then(() => window.location.href = `/topics/${topic}`);
+            .then(() => window.location.href = `../../topics/${topic}`);
     }
     const previousTitleItemRef = useRef(data.enTitle ? "Previous Title" : null); //use useRef to make value null even if component re-renders
     const previousPromptItemRef = useRef(data.prompt ? "Previous Prompt" : null);

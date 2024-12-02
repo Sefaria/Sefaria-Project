@@ -160,7 +160,7 @@ $(function() {
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
         var ref = $("#inlineAdd").val();
-		Sefaria.getName(ref, true).then(function(q) {
+		Sefaria.getName(ref, undefined, 'ref').then(function(q) {
             addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").html("");
@@ -2123,7 +2123,7 @@ sjs.sheetTagger = {
 		})
 		.autocomplete({
 			source: function(request, response) {
-			Sefaria.getName(request.term, false, 0)
+			Sefaria.getName(request.term, 0)
 				.then(function(d) {
 					var topics = [];
 					d.completion_objects.map(function(obj) {
@@ -2172,7 +2172,7 @@ sjs.sheetTagger = {
 		}
 		var html = "";
 		for (var i = 0; i < topics.length; i++) {
-			html = html + '<a class="button" role="button" href="/topics/'+topics[i].slug+'">'+topics[i].asTyped+'</a>';
+			html = html + '<a class="button" role="button" href='+topics[i].slug+'"/topics/">'+topics[i].asTyped+'</a>';
 	    }
 		$("#sheetTags").html(html);
 	},
