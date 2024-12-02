@@ -9180,6 +9180,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 .noteListing {
   margin-bottom: 30px;
   border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
 }
 .noteListing a:hover {
   text-decoration: none;

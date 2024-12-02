@@ -2,7 +2,7 @@ import React  from 'react';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import { AddToSourceSheetWindow } from './AddToSourceSheet';
-import { Note } from './Misc';
+import { Note, LoadingMessage } from './Misc';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 
@@ -59,11 +59,17 @@ class NoteListing extends Component {
 }
 NoteListing.propTypes = {
   data:         PropTypes.object.isRequired,
-  showText:     PropTypes.bool,
   onDeleteNote: PropTypes.func,
 };
-NoteListing.defaultProps = {
-  showText: true
-};
+
+const NotesList = ({notes}) => {  
+  return (
+    notes && notes.length ? 
+      notes.map((item, i) => (
+        <NoteListing data={item} key={i} />
+      ))
+    : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)};
+
 
 export default NoteListing;
+export { NotesList };
