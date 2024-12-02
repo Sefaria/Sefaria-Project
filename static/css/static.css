@@ -39,6 +39,12 @@
   margin: 0 0 60px 0;
   height: auto;
 }
+.interface-hebrew h1.mobileAboutHeader {
+  padding-top: 5px;
+}
+.interface-english h1.mobileAboutHeader {
+  padding-top: 2px;
+}
 #aboutSidebar.mobileAbout h1, h1.mobileAboutHeader {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -3613,6 +3619,7 @@ nav#aboutSidebar h1 {
   }
   h1.mobileAboutHeader {
     margin: 40px 0 40px 0;
+    padding-top: 0;
   }
   div#productsPageContent h1.mobileAboutHeader {
     margin: revert;
