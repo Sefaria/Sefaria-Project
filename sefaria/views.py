@@ -47,6 +47,7 @@ from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
 from sefaria.system.exceptions import InputError, NoVersionFoundError
+from api.api_errors import APIInvalidInputException
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
@@ -339,7 +340,10 @@ def find_refs_report_api(request):
 @api_view(["POST"])
 def find_refs_api(request):
     from sefaria.helper.linker import make_find_refs_response
-    return jsonResponse(make_find_refs_response(request))
+    try:
+        return jsonResponse(make_find_refs_response(request))
+    except APIInvalidInputException as e:
+        return e.to_json_response()
 
 
 @api_view(["GET"])
@@ -673,14 +677,11 @@ def rebuild_toc(request):
 @staff_member_required
 def rebuild_auto_completer(request):
     library.build_full_auto_completer()
-    library.build_ref_auto_completer()
     library.build_lexicon_auto_completers()
     library.build_cross_lexicon_auto_completer()
-    library.build_topic_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
-        server_coordinator.publish_event("library", "build_ref_auto_completer")
         server_coordinator.publish_event("library", "build_lexicon_auto_completers")
         server_coordinator.publish_event("library", "build_cross_lexicon_auto_completer")
 

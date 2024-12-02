@@ -22,6 +22,9 @@ class SeasonalTopic(models.Model):
     display_end_date_israel = models.DateField(blank=True, null=True)
     display_start_date_diaspora = models.DateField(blank=True, null=True)
     display_end_date_diaspora = models.DateField(blank=True, null=True)
+    display_date_prefix = models.CharField(max_length=255, blank=True, null=True)
+    display_date_suffix = models.CharField(max_length=255, blank=True, null=True)
+    lang = models.CharField(max_length=2, choices=[('en', 'English'), ('he', 'Hebrew')])
 
     class Meta:
         unique_together = ('topic', 'start_date')
@@ -50,6 +53,32 @@ class SeasonalTopic(models.Model):
             raise ValidationError("If diaspora date is defined, Israel date must also be defined.")
         self.validate_start_end_dates('display_start_date_israel', 'display_end_date_israel')
         self.validate_start_end_dates('display_start_date_diaspora', 'display_end_date_diaspora')
+        if self.display_date_prefix:
+            self.display_date_prefix = self.display_date_prefix.strip()
+        if self.display_date_suffix:
+            self.display_date_suffix = self.display_date_suffix.strip()
 
     def __str__(self):
         return f"{self.topic.slug} ({self.start_date})"
+
+
+class SeasonalTopicEnglish(SeasonalTopic):
+    class Meta:
+        proxy = True
+        verbose_name = "Landing Page - Calendar (EN)"
+        verbose_name_plural = "Landing Page - Calendar (EN)"
+
+    def save(self, *args, **kwargs):
+        self.lang = "en"
+        super().save(*args, **kwargs)
+
+
+class SeasonalTopicHebrew(SeasonalTopic):
+    class Meta:
+        proxy = True
+        verbose_name = "Landing Page - Calendar (HE)"
+        verbose_name_plural = "Landing Page - Calendar (HE)"
+
+    def save(self, *args, **kwargs):
+        self.lang = "he"
+        super().save(*args, **kwargs)

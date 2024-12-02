@@ -66,7 +66,7 @@ def add_topics():
 
 def add_pools():
     print('Adding pools')
-    for pool_name in [PoolType.LIBRARY.value, PoolType.SHEETS.value, PoolType.GENERAL.value, PoolType.TORAH_TAB.value]:
+    for pool_name in [PoolType.LIBRARY.value, PoolType.SHEETS.value, 'general_en', 'general_he', PoolType.TORAH_TAB.value]:
         TopicPool.objects.create(name=pool_name)
 
 

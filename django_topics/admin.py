@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
-from django_topics.models import Topic, TopicPool, TopicOfTheDay, SeasonalTopic
+from django.utils.html import format_html
+from django_topics.models import Topic, TopicPool, TopicOfTheDayEnglish, TopicOfTheDayHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
 from django_topics.models.pool import PoolType
 
 
@@ -41,7 +42,8 @@ class PoolFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
-            (PoolType.GENERAL.value, 'General Pool'),
+            ('general_en', 'General Pool EN'),
+            ('general_he', 'General Pool HE'),
             (PoolType.TORAH_TAB.value, 'TorahTab Pool'),
         ]
 
@@ -55,15 +57,17 @@ class PoolFilter(admin.SimpleListFilter):
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ('slug', 'en_title', 'he_title', 'is_in_pool_general', 'is_in_pool_torah_tab')
+    list_display = ('slug', 'en_title', 'he_title', 'is_in_pool_general_en', 'is_in_pool_general_he', 'is_in_pool_torah_tab', 'sefaria_link')
     list_filter = (PoolFilter,)
     filter_horizontal = ('pools',)
     search_fields = ('slug', 'en_title', 'he_title')
     readonly_fields = ('slug', 'en_title', 'he_title')
     actions = [
-        create_add_to_pool_action(PoolType.GENERAL.value),
+        create_add_to_pool_action('general_en'),
+        create_add_to_pool_action('general_he'),
         create_add_to_pool_action(PoolType.TORAH_TAB.value),
-        create_remove_from_pool_action(PoolType.GENERAL.value),
+        create_remove_from_pool_action('general_en'),
+        create_remove_from_pool_action('general_he'),
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
 
@@ -77,19 +81,29 @@ class TopicAdmin(admin.ModelAdmin):
         queryset = super().get_queryset(request)
         return queryset.filter(pools__name=PoolType.LIBRARY.value)
 
-    def is_in_pool_general(self, obj):
-        return obj.pools.filter(name=PoolType.GENERAL.value).exists()
-    is_in_pool_general.boolean = True
-    is_in_pool_general.short_description = "General Pool"
+    def is_in_pool_general_en(self, obj):
+        return obj.pools.filter(name='general_en').exists()
+    is_in_pool_general_en.boolean = True
+    is_in_pool_general_en.short_description = "General Pool EN"
+
+    def is_in_pool_general_he(self, obj):
+        return obj.pools.filter(name='general_he').exists()
+    is_in_pool_general_he.boolean = True
+    is_in_pool_general_he.short_description = "General Pool HE"
 
     def is_in_pool_torah_tab(self, obj):
         return obj.pools.filter(name=PoolType.TORAH_TAB.value).exists()
     is_in_pool_torah_tab.boolean = True
     is_in_pool_torah_tab.short_description = "TorahTab Pool"
 
+    def sefaria_link(self, obj):
+        url = f"https://www.sefaria.org/topics/{obj.slug}"
+        return format_html('<a href="{}" target="_blank">{}</a>', url, obj.slug)
+    sefaria_link.short_description = "Sefaria Link"
 
-@admin.register(TopicOfTheDay)
+
 class TopicOfTheDayAdmin(admin.ModelAdmin):
+    exclude = ("lang",)  # not for manual editing
     list_display = ('start_date', 'topic')
     list_filter = ('start_date',)
     raw_id_fields = ('topic',)
@@ -109,11 +123,29 @@ class TopicOfTheDayAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-@admin.register(SeasonalTopic)
+@admin.register(TopicOfTheDayEnglish)
+class TopicOfTheDayAdminEnglish(TopicOfTheDayAdmin):
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(lang="en")
+
+
+@admin.register(TopicOfTheDayHebrew)
+class TopicOfTheDayAdminHebrew(TopicOfTheDayAdmin):
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(lang="he")
+
+
 class SeasonalTopicAdmin(admin.ModelAdmin):
+    exclude = ("lang",)  # not for manual editing
     list_display = (
         'start_date',
         'topic',
+        'display_date_prefix',
+        'display_date_suffix',
         'secondary_topic',
         'display_start_date_israel',
         'display_end_date_israel',
@@ -137,6 +169,13 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
                 'secondary_topic',
                 'start_date'
             )
+        }),
+        ('Display Date Prefix/Suffix', {
+            'fields': (
+                'display_date_prefix',
+                'display_date_suffix',
+            ),
+            'description': 'Prefix/Suffix that will be displayed around the secondary topic.',
         }),
         ('Israel Display Dates', {
             'fields': (
@@ -173,3 +212,18 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
         """
         obj.clean()
         super().save_model(request, obj, form, change)
+
+
+@admin.register(SeasonalTopicEnglish)
+class SeasonalTopicAdminEnglish(SeasonalTopicAdmin):
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(lang="en")
+
+
+@admin.register(SeasonalTopicHebrew)
+class SeasonalTopicAdminHebrew(SeasonalTopicAdmin):
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(lang="he")

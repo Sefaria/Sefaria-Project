@@ -1129,7 +1129,7 @@ Sefaria = extend(Sefaria, {
   },
   postSegment: function(ref, versionTitle, language, text, success, error) {
     if (!versionTitle || !language) { return; }
-    this.getName(ref, true)
+    this.getName(ref, undefined, 'ref')
         .then(data => {
             if (!data.is_segment) { return; }
             var d = {json: JSON.stringify({
@@ -1206,11 +1206,13 @@ Sefaria = extend(Sefaria, {
   _lookups: {},
 
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  getName: function(name, refOnly = false, limit = undefined) {
+  getName: function(name, limit = undefined, type=undefined, topicPool=undefined) {
     const trimmed_name = name.trim();
     let params = {};
-    if (refOnly) { params["ref_only"] = 1; }
+    // if (refOnly) { params["ref_only"] = 1; }
     if (limit != undefined) { params["limit"] = limit; }
+    if (type != undefined) { params["type"] = type; }
+    if (topicPool != undefined) { params["topic_pool"] = topicPool; }
     let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
     queryString = (queryString ? "?" + queryString : "");
     return this._cachedApiPromise({
@@ -1235,14 +1237,6 @@ Sefaria = extend(Sefaria, {
               callback(data);
           }.bind(this)
       });
-  },
-  _topicCompletions: {},
-  getTopicCompletions: function (word, callback) {
-       return this._cachedApiPromise({
-          url: `${Sefaria.apiHost}/api/topic/completion/${word}`, key: word,
-          store: Sefaria._topicCompletions,
-          processor: callback
-      });   // this API is used instead of api/name because when we want all topics. api/name only gets topics with a minimum amount of sources
   },
   _lexiconLookups: {},
   getLexiconWords: function(words, ref) {
@@ -1625,12 +1619,12 @@ Sefaria = extend(Sefaria, {
     // First sort by predefined "top"
     const hebrewTopByCategory = {
       "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-      "Talmud": ["Rashi", "Tosafot"],
+      "Talmud": ["Rashi", "Rashbam", "Tosafot"],
       "Mishnah": ["Bartenura", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
     };
     const englishTopByCategory = {
       "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-      "Talmud": ["Rashi", "Tosafot"],
+      "Talmud": ["Rashi", "Rashbam", "Tosafot"],
       "Mishnah": ["Bartenura", "English Explanation of Mishnah", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
     };
     const top = (byHebrew ? hebrewTopByCategory[category] : englishTopByCategory[category]) || [];

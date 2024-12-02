@@ -19,7 +19,7 @@ import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import { NavSidebar, Modules } from './NavSidebar';
+import { NavSidebar, SidebarModules } from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';
 import VersionBlock  from './VersionBlock/VersionBlock';
 import ExtendedNotes from './ExtendedNotes';
@@ -272,7 +272,7 @@ class BookPage extends Component {
 
                 {this.props.multiPanel ? null :
                 <div className="about">
-                  <Modules type={"AboutText"} props={{index: this.state.indexDetails, hideTitle: true}} />
+                  <SidebarModules type={"AboutText"} props={{index: this.state.indexDetails, hideTitle: true}} />
                 </div>}
 
                  <TabView
@@ -303,7 +303,7 @@ class BookPage extends Component {
               }
             </div>
             {this.isBookToc() && ! this.props.compare ? 
-            <NavSidebar modules={sidebarModules} /> : null}
+            <NavSidebar sidebarModules={sidebarModules} /> : null}
           </div>
           {this.isBookToc() && ! this.props.compare ?
           <Footer /> : null}
@@ -1219,8 +1219,8 @@ const EditTextInfo = function({initTitle, close}) {
   }
   const addAuthor = function (newAuthor) {
     const lowerCaseName = newAuthor.name.toLowerCase();
-    Sefaria._ApiPromise(Sefaria.apiHost + "/api/topic/completion/" + newAuthor.name).then(d => {
-      const matches = d[1].filter((t) => t.type === 'AuthorTopic');
+    Sefaria._ApiPromise(Sefaria.apiHost + "/api/name/" + newAuthor.name).then(d => {
+      const matches = d['completion_objects'].filter((t) => t.type === 'AuthorTopic');
       const exactMatch = matches.find((t) => t.title.toLowerCase() === lowerCaseName);
       if (!exactMatch) {
         const closestMatches = matches.map((t) => t.title);
