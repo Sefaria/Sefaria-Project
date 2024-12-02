@@ -9,10 +9,15 @@ export const WordSalad = ({ numLines, salad, renderItem }) => {
     text: saladItem.text.replace(/ /g, nonWhitespaceInvisibleChar),
   }));
 
+  const renderItemWithSpacesForBreaks = (item)=>{
+    const spacedElement = <span>{renderItem(item)} </span>
+    return spacedElement
+  }
+
 
   return (
     <div className="salad-container" style={{ '--num-lines': numLines }}>
-      {salad.map((item, index) => renderItem(item))}
+      {salad.map((item, index) => renderItemWithSpacesForBreaks(item))}
     </div>
   );
 };

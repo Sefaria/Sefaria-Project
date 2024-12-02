@@ -2,6 +2,7 @@ import React from 'react';
 import {useEffect, useState} from "react";
 import {WordSalad} from "./WordSalad";
 import Sefaria from "../sefaria/sefaria";
+import {InterfaceText} from "../Misc";
 
 const exampleSlugs = [
   "Potiphar’s wife", "Og", "vines", "diversity", "humanity", "ravens",
@@ -16,12 +17,22 @@ const exampleSlugs = [
 const exampleItems = exampleSlugs.map(slug => ({text: slug}))
 
 const renderSaladItem = (item) => {
-    return <span className="topic-salad-item">{item.text} </span>
+    console.log(item)
+    return(
+    // <span href={`/topics/${item.slug}`} className="topic-salad-item">
+    //     {/*<InterfaceText text={{en: item.text, he: item.text}}/>*/}
+    //     {item.text}
+    //     {/*<span>{item.text}</span>*/}
+    // </span>
+        <a href={`/topics/${item.slug}`} className="topic-salad-item">
+            <InterfaceText text={{en: item.text, he: item.text}}/>
+        </a>
+    )
 }
 
-const getRandomSaladItems = async () => {
+const fetchRandomSaladItems = async () => {
     const topics = await Sefaria.getTopicsByPool('general_en', 50);
-    const saladItems = topics.map(topic=>({slug: topic.slugs, text: topic.primaryTitle.en}))
+    const saladItems = topics.map(topic=>({slug: topic.slug, text: topic.primaryTitle.en}))
     return saladItems;
 }
 
@@ -30,9 +41,13 @@ export const TopicSalad = () => {
 
     const [salad, setSalad] = useState([]);
 
-    useEffect(async () => {
-        const saladItems = await getRandomSaladItems();
-        setSalad(saladItems);
+    useEffect(() => {
+        const fetchSaladItems = async () => {
+            const saladItems = await fetchRandomSaladItems();
+            setSalad(saladItems);
+        };
+
+        fetchSaladItems();
     }, []);
 
     return (

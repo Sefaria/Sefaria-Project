@@ -4947,7 +4947,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .topic-salad{
-  /*font-family: Roboto;*/
   width: 843px;
   font-size: 22px;
   font-weight: 400;
@@ -4958,7 +4957,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .topic-salad-item{
   margin: 11px;
-  font-family: 'Roboto';
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
 .readerNavMenu .sheet {
