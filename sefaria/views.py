@@ -47,6 +47,7 @@ from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
 from sefaria.system.exceptions import InputError, NoVersionFoundError
+from api.api_errors import APIInvalidInputException
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
@@ -339,7 +340,10 @@ def find_refs_report_api(request):
 @api_view(["POST"])
 def find_refs_api(request):
     from sefaria.helper.linker import make_find_refs_response
-    return jsonResponse(make_find_refs_response(request))
+    try:
+        return jsonResponse(make_find_refs_response(request))
+    except APIInvalidInputException as e:
+        return e.to_json_response()
 
 
 @api_view(["GET"])
@@ -419,7 +423,7 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
                     'url': oref.url()
                 }
             else:
-                he_tc = model.TextChunk(oref, "he", actual_lang=translation_language_preference, vtitle=hebrew_version)
+                he_tc = model.TextChunk(oref, "he", vtitle=hebrew_version)
                 en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference, vtitle=english_version)
                 if hebrew_version and he_tc.is_empty():
                   raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
@@ -470,7 +474,7 @@ def bulktext_api(request, refs):
         g = lambda x: request.GET.get(x, None)
         min_char = int(g("minChar")) if g("minChar") else None
         max_char = int(g("maxChar")) if g("maxChar") else None
-        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char, g("transLangPref"), g("ven"), g("vhe"))
+        res = bundle_many_texts(refs, int(g("useTextFamily")), g("asSizedString"), min_char, max_char, g("transLangPref"), g("ven"), g("vhe"))
         resp = jsonResponse(res, cb)
         return resp
 

@@ -1010,15 +1010,24 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       showHighlight: true,
                       currentlyVisibleRef: refs,
                     }
-    this.replacePanel(n-1, ref, currVersions, new_opts);
+    this.replacePanel(n-1, ref, currVersions, new_opts, false);
 }
   getHTMLLinkParentOfEventTarget(event){
     //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
-    let target = event.target,
-    parent = target,
-    outmost = event.currentTarget;
+    return this.getEventTargetByCondition(event, element => element.nodeName === "A");
+  }
+  getEventTargetByCondition(event, condition, eventTarget=null) {
+    /**
+     * Searches the parents of an event target for an element to meets a certain condition
+     * `condition` is a function of form condition(element) => bool.
+     * If `eventTarget` is passed, it will be used as the starting point of the search instead of `event.target`
+     * Returns the first element in parent hierarchy where `condition` returns true
+     * If no element returns true, returns null.
+     */
+    let parent = eventTarget || event.target;
+    const outmost = event.currentTarget;
     while (parent) {
-      if(parent.nodeName === 'A'){
+      if(condition(parent)){
         return parent
       }
       else if (parent.parentNode === outmost) {
@@ -1037,6 +1046,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         e.stopImmediatePropagation();
         return;
       }
+    }
+  }
+  handleAppClick(event) {
+    if (linkTarget) {
+      this.handleInAppLinkClick(event);
+    }
+    if (this.eventIsAnalyticsEvent(event)) {
+      this.handleAnalyticsEvent(event);
     }
   }
   handleInAppLinkClick(e) {
@@ -1530,9 +1547,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
-  replacePanel(n, ref, currVersions, options) {
+  replacePanel(n, ref, currVersions, options, convertCommentaryRefToBaseRef=true) {
     // Opens a text in in place of the panel currently open at `n`.
-    this.openPanelAt(n, ref, currVersions, options, true);
+    this.openPanelAt(n, ref, currVersions, options, true, convertCommentaryRefToBaseRef);
   }
   openComparePanel(n, connectAfter) {
     const comparePanel = this.makePanelState({

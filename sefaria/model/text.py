@@ -25,7 +25,7 @@ from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
-    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError
+    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -259,7 +259,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         Returns the `schema` dictionary with each node annotated with section lengths info
         from version_state.
         """
-        vstate   = self.versionState()
+        vstate = self.versionState()
 
         def simplify_version_state(vstate_node):
             return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
@@ -1412,7 +1412,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         pass
 
     def get_index(self):
-        return library.get_index(self.title)
+        return Index().load({'title': self.title})
 
     def first_section_ref(self):
         """
@@ -1700,7 +1700,7 @@ class TextRange:
         elif oref.has_default_child(): #use default child:
             self.oref = oref.default_child_ref()
         else:
-            raise InputError("Can not get TextRange at this level, please provide a more precise reference")
+            raise ComplexBookLevelRefError(book_ref=oref.normal())
         self.lang = lang
         self.vtitle = vtitle
         self.merge_versions = merge_versions
@@ -2434,7 +2434,7 @@ class TextFamily(object):
         self._alts          = []
 
         if not isinstance(oref.index_node, JaggedArrayNode) and not oref.index_node.is_virtual:
-            raise InputError("Can not get TextFamily at this level, please provide a more precise reference")
+            raise InputError("Unable to find text for that ref")
 
         for i in range(0, context):
             oref = oref.context_ref()
@@ -4000,8 +4000,10 @@ class Ref(object, metaclass=RefCacheType):
             except AttributeError:  # This is a schema node, try to get a default child
                 if self.has_default_child():
                     return self.default_child_ref().padded_ref()
+                elif self.is_book_level():
+                    raise ComplexBookLevelRefError(book_ref=self.normal())
                 else:
-                    raise InputError("Can not pad a schema node ref")
+                    raise InputError("Cannot pad a schema node ref.")
 
             d = self._core_dict()
             if self.is_talmud():
@@ -5733,7 +5735,8 @@ class Library(object):
         named_entity_resolver = self._build_named_entity_resolver(lang)
         ref_resolver = self._build_ref_resolver(lang)
         named_entity_recognizer = self._build_named_entity_recognizer(lang)
-        self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver)
+        cat_resolver = self._build_category_resolver(lang)
+        self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver, cat_resolver)
         return self._linker_by_lang[lang]
 
     @staticmethod
@@ -5756,6 +5759,12 @@ class Library(object):
             load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
             load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
         )
+
+    def _build_category_resolver(self, lang: str):
+        from sefaria.model.category import CategorySet, Category
+        from .linker.category_resolver import CategoryResolver, CategoryMatcher
+        categories: list[Category] = CategorySet({"match_templates": {"$exists": True}}).array()
+        return CategoryResolver(CategoryMatcher(lang, categories))
 
     def _build_ref_resolver(self, lang: str):
         from .linker.match_template import MatchTemplateTrie

@@ -28,7 +28,7 @@ spec:
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             resources:
               limits:
-                memory: 9Gi
+                memory: 10Gi
               requests:
                 memory: 7Gi
             env:

@@ -2,14 +2,54 @@ import dataclasses
 import json
 import spacy
 import structlog
+from cerberus import Validator
 from sefaria.model.linker.ref_part import TermContext, RefPartType
 from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
-from typing import List, Union, Optional, Tuple
+from api.api_errors import APIInvalidInputException
+from typing import List, Optional, Tuple
 
 logger = structlog.get_logger(__name__)
+
+FIND_REFS_POST_SCHEMA = {
+    "text": {
+        "type": "dict",
+        "required": True,
+        "schema": {
+            "title": {"type": "string", "required": True},
+            "body": {"type": "string", "required": True},
+        },
+    },
+    "metaDataForTracking": {
+        "type": "dict",
+        "required": False,
+        "schema": {
+            "url": {"type": "string", "required": False},
+            "description": {"type": "string", "required": False},
+            "title": {"type": "string", "required": False},
+        },
+    },
+    "lang": {
+        "type": "string",
+        "allowed": ["he", "en"],
+        "required": False,
+    },
+    "version_preferences_by_corpus": {
+        "type": "dict",
+        "required": False,
+        "keysrules": {"type": "string"},
+        "valuesrules": {
+            "type": "dict",
+            "schema": {
+                "type": "string",
+                "keysrules": {"type": "string"},
+                "valuesrules": {"type": "string"},
+            },
+        },
+    },
+}
 
 
 def load_spacy_model(path: str) -> spacy.Language:
@@ -23,7 +63,7 @@ def load_spacy_model(path: str) -> spacy.Language:
 
     if path.startswith("gs://"):
         # file is located in Google Cloud
-        # file is expected to be a tar.gz of the model folder
+        # file is expected to be a tar.gz of the contents of the model folder (not the folder itself)
         match = re.match(r"gs://([^/]+)/(.+)$", path)
         bucket_name = match.group(1)
         blob_name = match.group(2)
@@ -64,13 +104,12 @@ class _FindRefsText:
     body: str
     lang: str
 
-    # def __post_init__(self):
-    #     from sefaria.utils.hebrew import is_mostly_hebrew
-    #     self.lang = 'he' if is_mostly_hebrew(self.body) else 'en'
-
 
 def _unpack_find_refs_request(request):
+    validator = Validator(FIND_REFS_POST_SCHEMA)
     post_body = json.loads(request.body)
+    if not validator.validate(post_body):
+        raise APIInvalidInputException(validator.errors)
     meta_data = post_body.get('metaDataForTracking')
     return _create_find_refs_text(post_body), _create_find_refs_options(request.GET, post_body), meta_data
 
@@ -101,10 +140,7 @@ def _add_webpage_hit_for_url(url):
 
 @django_cache(cache_type="persistent")
 def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _FindRefsTextOptions, meta_data: dict) -> dict:
-    if request_text.lang == 'he':
-        response = _make_find_refs_response_linker_v3(request_text, options)
-    else:
-        response = _make_find_refs_response_linker_v2(request_text, options)
+    response = _make_find_refs_response_linker_v3(request_text, options)
 
     if meta_data:
         _, webpage = WebPage.add_or_update_from_linker({
