@@ -296,11 +296,12 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
       sheet.status = status === 'public' ? "unlisted" : "public";
       sheet.lastModified = sheet.dateModified;
       delete sheet._id;
-      postSheet(sheet, sheet.id).then(() => {
-          setPublishText(publishState.posted);
-      }).catch(error => {
-          setPublishText(error.message);
-      })
+      try {
+        await postSheet(sheet);
+        setPublishText(publishState.posted);
+      } catch (error) {
+        setPublishText(`Error: ${error.message}`);
+      }
   }
   useEffect( () => {
       const toggle = async () => {

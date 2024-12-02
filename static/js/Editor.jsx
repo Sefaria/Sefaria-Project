@@ -2567,7 +2567,7 @@ const SefariaEditor = (props) => {
 
             setUnsavedChanges(true);
             // Update debounced value after delay
-            const handler = setTimeout(() => {
+            const handler = setTimeout( () => {
                 saveDocument(currentDocument);
             }, 500);
 
@@ -2629,7 +2629,7 @@ const SefariaEditor = (props) => {
                 if (node.text && props.divineNameReplacement) {
                     const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
                     if (newStr != node.text) {
-                        Transforms.insertText(editor, newStr, { at: path })
+                        Transforms.insertText(editor, newStr, {at: path})
                     }
                 }
             }
@@ -2640,8 +2640,8 @@ const SefariaEditor = (props) => {
             const temp_select = editor.selection
 
             Transforms.select(editor, {
-              anchor: {path: [0, 0], offset: 0},
-              focus: {path: [0, 0], offset: 0},
+                anchor: {path: [0, 0], offset: 0},
+                focus: {path: [0, 0], offset: 0},
             });
 
             Transforms.select(editor, temp_select)
@@ -2782,14 +2782,18 @@ const SefariaEditor = (props) => {
     function getLastModified() {
       return Sefaria.sheets._loadSheetByID[props.data.id]?.dateModified || props.data.dateModified;
     }
-    function saveDocument(doc) {
+    async function saveDocument(doc) {
         const lastModified = getLastModified();
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {
             return
         }
         // console.log('saving...');
-        postSheet(json);
+        try {
+            await postSheet(json);
+        } catch(error) {
+            console.log(`Error: ${error.message}`)
+        }
     }
 
     const postSheet = async (sheet) => {
