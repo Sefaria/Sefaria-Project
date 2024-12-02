@@ -114,7 +114,7 @@ class TextRange extends Component {
       return;
     }
 
-    if (this.props.basetext && this.props.sref !== data.ref) {console.log(0)
+    if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       this.props.showBaseText(data.ref, true, this.props.currVersions, [], false);
