@@ -2257,10 +2257,10 @@ _media: {},
     return result;
   },
   isCommentaryWithBaseText(book) {
-      /* Only returns true for commentaries with a base_text_mapping to one and only one base_text_title
+      /* Only returns true for commentaries with a base_text_mapping
        * @param {Object} book: Corresponds to a book in Sefaria.toc
        */
-      return book?.dependence === "Commentary" && !!book?.base_text_titles && !!book?.base_text_mapping && book?.base_text_titles.length === 1;
+      return book?.dependence === "Commentary" && !!book?.base_text_titles && !!book?.base_text_mapping;
   },
   isCommentaryRefWithBaseText(ref, forceOpenCommentaryPanel) {
       /* This is a helper function for openPanelAt. Determines whether the ref(s) are part of a commentary
@@ -2295,9 +2295,26 @@ _media: {},
        * @param {Object} book: Object created with Sefaria.index.  We want to use `book`'s metadata to modify the ref.
        */
       const parsedRefCopy = Object.create(parsedRef);  // copy object to avoid modifying Sefaria._parseRef
-      const baseText = book.base_text_titles[0];
+      const baseText = this.getBaseText(parsedRef, book.base_text_titles);
+      if (!baseText) {
+          return false;
+      }
       parsedRefCopy.ref = parsedRefCopy.ref.replace(book.title, baseText);
       return (!Sefaria.parseRef(parsedRefCopy.ref).error);
+  },
+  getBaseText(ref, base_text_titles) {
+    let foundTitle = null;
+    for (let i = 0; i < base_text_titles.length; i++) {
+        const title = base_text_titles[i];
+        if (ref.includes(title)) {
+          if (foundTitle) {
+            // If a title is already found, we return null as more than one title is in the ref
+            return null;
+          }
+          foundTitle = title;
+        }
+    }
+    return foundTitle;
   },
   convertCommentaryRefToBaseRef(commRef) {
     /* Converts commentary ref, `commRef`, to base ref:
@@ -2310,7 +2327,7 @@ _media: {},
         // if book is not isCommentaryWithBaseText just return the ref
         return Sefaria.humanRef(commRef.ref);
     }
-    const base_text = book.base_text_titles[0];
+    const base_text = this.getBaseText(commRef, book.base_text_titles);
     const many_to_one = book.base_text_mapping.startsWith("many_to_one");  // four options, two start with many_to_one and two start with one_to_one
     const commRefCopy = Object.create(commRef);  // need to create a copy so that the Sefaria._parseRef cache isn't changed
     if (commRefCopy.sections.length <= 2 || !many_to_one) {
