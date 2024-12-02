@@ -641,7 +641,7 @@ Sefaria = extend(Sefaria, {
     Sefaria._adaptApiResponse(versionsResponse);
     return versionsResponse;
   },
-  getTextFromCurrVersions: async function(ref, currVersions, translationLanguagePreference, withContext) {console.log(0, currVersions)
+  getTextFromCurrVersions: async function(ref, currVersions, translationLanguagePreference, withContext) {
     let {he, en} = currVersions;
     he = he || {};
     en = en || {};
