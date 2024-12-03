@@ -1488,6 +1488,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         // so `filterRef` is needed to store the entire "Rashi on Genesis 1:1:4"
         filterRef = Sefaria.humanRef(ref);
         ({ref, filter} = Sefaria.getBaseRefAndFilter(ref));
+        currVersions = {}; // don't try to use the version of the commentary for the base ref!
       }
       let refs, currentlyVisibleRef, highlightedRefs;
       if (Array.isArray(ref)) {
