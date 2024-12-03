@@ -4,18 +4,6 @@ import {WordSalad} from "./WordSalad";
 import Sefaria from "../sefaria/sefaria";
 import {InterfaceText} from "../Misc";
 
-const exampleSlugs = [
-  "Potiphar’s wife", "Og", "vines", "diversity", "humanity", "ravens",
-  "Terach", "Fast of Gedaliah", "harmful forces", "Purim", "energy",
-  "camels", "relationships", "Melchizedek", "prayer", "growth", "Iddo",
-  "maror", "Yitro", "menorah", "alacrity", "authority", "Yom Kippur",
-  "bal tashchit", "four questions", "Moses and Joseph’s coffin", "fertility",
-  "freedom", "the future to come", "Jacob’s dream", "Ezekiel", "social justice",
-  "compassion",
-    "hate"
-]
-const exampleItems = exampleSlugs.map(slug => ({text: slug}))
-
 const renderSaladItem = (item) => {
     return(
         <a href={`/topics/${item.slug}`} className="topic-salad-item">
