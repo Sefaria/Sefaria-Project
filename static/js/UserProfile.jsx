@@ -5,12 +5,14 @@ import Sefaria  from './sefaria/sefaria';
 import {
   CollectionListing,
   FilterableList,
+  SheetsList,
   LoadingMessage,
   TabView,
   SheetListing,
   ProfileListing,
   ProfilePic,
   InterfaceText,
+  NonFilterableList,
 } from './Misc';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 
@@ -205,7 +207,7 @@ class UserProfile extends Component {
                   renderTab={this.renderTab}
                   setTab={this.props.setTab}
                 >
-                  <FilterableList
+                  <NonFilterableList
                     key="sheet"
                     pageSize={1e6}
                     filterFunc={this.filterSheet}
@@ -218,7 +220,7 @@ class UserProfile extends Component {
                     data={this.getSheetsFromCache()}
                     refreshData={this.state.refreshSheetData}
                   />
-                  <FilterableList
+                  <NonFilterableList
                     key="collection"
                     pageSize={1e6}
                     filterFunc={this.filterCollection}
@@ -404,14 +406,17 @@ const ProfileSummary = ({ profile:p, toggleSignUpModal }) => {
           </div> : null
         }
         {
-          Sefaria._uid === p.id ? (
-          <div className="profile-actions">
+          Sefaria._uid && p.id && (
+            // NOTE: THE CREATE SHEET IS A "DUMMY" BUTTON WHICH WILL BE REPLACED
+            <div className="profile-actions">
+            <a href="/sheets/new" className="resourcesLink sans-serif">
+              <span className="int-en">Create a Sheet</span>
+              <span className="int-he">Create a Sheet</span>
+            </a>
             <a href="/settings/profile" className="resourcesLink sans-serif">
               <span className="int-en">Edit Profile</span>
               <span className="int-he">עריכת פרופיל</span>
             </a>
-          </div>) : (
-          <div className="profile-actions">
           </div>)
         }
       </div>
