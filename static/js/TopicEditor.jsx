@@ -7,40 +7,43 @@ import {ImageCropper} from "./ImageCropper";
 import React, {useState, useRef} from "react";
 
 
+const uploadTopicImage = function(imageData, slug, old_filename, topic_image_api="_api/topics/images") {
+    const formData = new FormData();
+    formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
+    if (old_filename !== "") {
+        formData.append('old_filename', old_filename);
+    }
+    const request = new Request(
+        `${Sefaria.apiHost}/${topic_image_api}/${slug}`,
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+    );
+    return fetch(request, {
+        method: 'POST',
+        mode: 'same-origin',
+        credentials: 'same-origin',
+        body: formData
+    }).then(response => {
+        if (!response.ok) {
+            response.text().then(resp_text=> {
+                alert(resp_text);
+                throw new Error(resp_text);
+            })
+        } else {
+            return response.json().then(resp_json => resp_json.url);
+        }
+    }).catch(error => {
+        alert(error);
+        throw new Error(error);
+    })
+};
+
+
 const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
     /*
     `old_filename` is passed to API so that if it exists, it is deleted
      */
     const fileInput = useRef(null);
 
-    const uploadImage = function(imageData, type="POST") {
-        const formData = new FormData();
-        formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
-        if (old_filename !== "") {
-            formData.append('old_filename', old_filename);
-        }
-        const request = new Request(
-            `${Sefaria.apiHost}/api/topics/images/${slug}`,
-            {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
-        );
-        fetch(request, {
-            method: 'POST',
-            mode: 'same-origin',
-            credentials: 'same-origin',
-            body: formData
-        }).then(response => {
-            if (!response.ok) {
-                response.text().then(resp_text=> {
-                    alert(resp_text);
-                })
-            }else{
-                response.json().then(resp_json=>{
-                    callback(resp_json.url);
-                });
-            }
-        }).catch(error => {
-            alert(error);
-        })};
     const onFileSelect = (e) => {
         const file = fileInput.current.files[0];
         if (file == null)
@@ -49,7 +52,7 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
             const reader = new FileReader();
 
             reader.addEventListener("load", function() {
-                uploadImage(reader.result);
+                uploadTopicImage(reader.result).then(url => callback(url));
             }, false);
 
             reader.addEventListener("onerror", function() {
@@ -63,7 +66,7 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
     }
     const deleteImage = () => {
         const old_filename_wout_url = old_filename.split("/").slice(-1);
-        const url = `${Sefaria.apiHost}/api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
+        const url = `${Sefaria.apiHost}/_api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
         Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => alert("Deleted image."));
         callback("");
         fileInput.current.value = "";
@@ -94,7 +97,7 @@ const TopicPictureCropper = ({image_uri}) => {
         <div>
             <label><InterfaceText>Secondary Picture</InterfaceText></label>
             <SmallBlueButton tabIndex="0" onClick={() => setImageToCrop(image_uri)} text="Upload Secondary Picture" />
-            <ImageCropper src={imageToCrop} onClose={() => setImageToCrop(null)}/>
+            <ImageCropper src={imageToCrop} onClose={() => setImageToCrop(null)} onSave={() => uploadTopicImage()}/>
         </div>
     );
 }
