@@ -3637,9 +3637,11 @@ def profile_follow_api(request, ftype, slug):
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+
 @staff_member_required
-def topic_upload_photo(request, slug):
+def topic_upload_photo(request, slug, secondary=False):
     from io import BytesIO
+    from sefaria.helper.topic import add_image_to_topic, delete_image_from_topic, add_secondary_image_to_topic, delete_secondary_image_from_topic
     import uuid
     import base64
     if request.method == "DELETE":
@@ -3648,10 +3650,10 @@ def topic_upload_photo(request, slug):
             return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
         old_filename = f"topics/{old_filename.split('/')[-1]}"
         GoogleStorageManager.delete_filename(old_filename, GoogleStorageManager.TOPICS_BUCKET)
-        topic = Topic.init(slug)
-        if hasattr(topic, "image"):
-            del topic.image
-            topic.save()
+        if secondary:
+            delete_secondary_image_from_topic(slug)
+        else:
+            delete_image_from_topic(slug)
         return jsonResponse({"success": "You have successfully removed the image."})
     elif request.method == "POST":
         file = request.POST.get('file')
@@ -3661,12 +3663,10 @@ def topic_upload_photo(request, slug):
         img_file_in_mem = BytesIO(base64.b64decode(file))
         img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
                                                     GoogleStorageManager.TOPICS_BUCKET, old_filename=old_filename)
-        topic = Topic.init(slug)
-        if not hasattr(topic, "image"):
-            topic.image = {"image_uri": img_url, "image_caption": {"en": "", "he": ""}}
+        if secondary:
+            add_secondary_image_to_topic(slug, img_url)
         else:
-            topic.image["image_uri"] = img_url
-        topic.save()
+            add_image_to_topic(slug, img_url)
         return jsonResponse({"url": img_url})
     return jsonResponse({"error": "Unsupported HTTP method."})
 
