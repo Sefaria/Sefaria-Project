@@ -5,6 +5,14 @@ import {LoadingRing} from "./Misc";
 import 'react-image-crop/dist/ReactCrop.css';
 
 export const ImageCropper = ({loading, error, src, onClose, onSave}) => {
+    /**
+     * loading - bool, is the image cropper loading data
+     * error - str, error message
+     * src
+     * onClose - fn, called when ImageCropper is closed
+     * onSave - fn, called when "Save" is pressed
+     * @type {React.MutableRefObject<null>}
+     */
     const imageRef = useRef(null);
     const [isFirstCropChange, setIsFirstCropChange] = useState(true);
     const [crop, setCrop] = useState({unit: "px", width: 250, aspect: 1});
