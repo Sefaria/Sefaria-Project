@@ -4926,6 +4926,50 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-inline-start: 11px;
 }
 
+.rainbow-line{
+  display: flex;
+  height: 4.07px;
+}
+.rainbow-segment{
+  width: 84.3px;
+}
+.tankah-teal{
+  background: #004E5F;
+}
+.commentary-blue{
+  background: #4B71B7;
+}
+.musar-purple{
+  background: #7C416F;
+}
+.mishna-blue {
+  background: #5A99B7;
+}
+.talmud-gold{
+  background: #CCB479;
+}
+.modrash-green{
+  background: #5D956F;
+}
+.halakha-red{
+  background: #802F3E;
+}
+.philosophy-purple{
+  background: #7F85A9;
+}
+.tanaitic-greem{
+  background: #00827F;
+}
+.chasidut-green{
+  background: #97B386;
+}
+.topic-landing-upper-rainbow{
+  margin-top: 88px;
+  margin-bottom: 43px;
+}
+.topic-landing-lower-rainbow{
+  margin-top: 43px;
+}
 @font-face {
   font-family: "ellipsis-font";
   src: local("Courier");
