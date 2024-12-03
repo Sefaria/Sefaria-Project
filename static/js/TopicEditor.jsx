@@ -3,7 +3,13 @@ import {InterfaceText, TopicPictureUploader} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
+import {ImageCropper} from "./ImageCropper";
 import React, {useState, useEffect} from "react";
+
+
+const TopicPictureCropper = ({}) => {
+    return (<div>hello</div>);
+}
 
 
 const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
@@ -235,10 +241,12 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     items.push("Picture Uploader");
     items.push("English Caption");
     items.push("Hebrew Caption");
+    items.push("Secondary Picture Cropper")
     return <AdminEditor title="Topic Editor" close={closeTopicEditor} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items}
                         pictureUploader={<TopicPictureUploader slug={data.origSlug} callback={handlePictureChange} old_filename={data.image_uri}
                                                                caption={{en: data.enImgCaption, he: data.heImgCaption}}/>}
+                        secondaryPictureCropper={<TopicPictureCropper />}
                         extras={
                               [isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}

@@ -1432,7 +1432,15 @@ FollowButton.propTypes = {
 
 };
 
-const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
+const SmallBlueButton = ({onClick, tabIndex, text}) => {
+  return (
+      <div onClick={onClick} className="button extraSmall blue control-elem" tabIndex={tabIndex} role="button">
+        <InterfaceText>{text}</InterfaceText>
+      </div>
+  );
+};
+
+const TopicPictureUploader = ({title, slug, callback, old_filename, caption}) => {
     /*
     `old_filename` is passed to API so that if it exists, it is deleted
      */
@@ -1500,16 +1508,14 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
             </label>
             <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
               <label htmlFor="addImageFileSelector">
-                <div className="button extraSmall blue control-elem" tabIndex="0" role="button">
-                      <InterfaceText>Upload Picture</InterfaceText>
-                    </div>
+                <SmallBlueButton tabIndex="0" text="Upload Picture" />
               </label>
               </div><input style={{display: "none"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
               {old_filename !== "" && <div style={{"max-width": "420px"}}>
                     <br/><ImageWithCaption photoLink={old_filename} caption={caption}/>
-                    <br/><div onClick={deleteImage} className="button extraSmall blue control-elem" tabIndex="1" role="button">
-                      <InterfaceText>Remove Picture</InterfaceText>
-                    </div></div>
+                    <br/>
+                    <SmallBlueButton tabIndex="1" text="Remove Picture" onClick={deleteImage} />
+              </div>
               }
           </div>
     }
