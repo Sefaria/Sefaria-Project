@@ -2,7 +2,7 @@ version: '3'
 
 services:
   web:
-    build: .
+    build: dev-docker/.
     ports:
       - "8000:8000"
     volumes:
@@ -11,6 +11,9 @@ services:
       - db
       - cache
       - postgres
+    command: >
+      sh -c "python manage.py migrate sites &&
+      python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
 
   db:
     image: "mongo:4.4"
@@ -29,7 +32,7 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: npm start
+    command: sh dev-docker/node-entrypoint.sh
     ports:
       - "3000:3000"
 
