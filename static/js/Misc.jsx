@@ -558,6 +558,78 @@ FilterableList.propTypes = {
   showFilterHeader: PropTypes.bool,
 };
 
+const NonFilterableList = ({
+  filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
+  refreshData, initialFilter, scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
+  bottomMargin, containerClass,
+}) => {
+  const filter = initialFilter || '';
+  const sortOption = sortOptions[0];
+
+  // Apply filter and sort to the raw data
+  const processData = rawData => rawData ? rawData
+      .filter(item => !filter ? true : filterFunc(filter, item))
+      .sort((a, b) => sortFunc(sortOption, a, b))
+      : [];
+
+  const cachedData = data || null;
+  const [loading, setLoading] = useState(!cachedData);
+  const [rawData, setRawData] = useState(cachedData);
+  const [displayData, setDisplayData] = useState(processData(rawData));
+
+  // If `getData` function is passed, load data through this effect
+  useEffect(() => {
+    let isMounted = true;
+    if (!rawData && !!getData) { // Don't try calling getData when `data` is intially passed
+      setLoading(true);
+      getData().then(data => {
+        if (isMounted) {
+          setRawData(data);
+          setDisplayData(processData(data));
+          setLoading(false);
+        }
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [getData, rawData]);
+
+  // Alternatively, if there is no `getData` function passed, we expect data
+  // to be fed in directly through the `data` prop. Check `data` again whenever
+  // refreshData signal changes.
+  useEffect(() => {
+    setRawData(data);
+    setDisplayData(processData(data));
+  }, [data, refreshData]);
+
+  const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin, initialRenderSize || pageSize);
+
+  if (onDisplayedDataChange) {
+    useEffect(() => {
+      onDisplayedDataChange(dataUpToPage);
+    }, [dataUpToPage]);
+  }
+
+  return (
+    <>
+      {
+        loading ? <LoadingMessage /> :
+        <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
+          {
+          dataUpToPage.length ?
+          <>
+            { dataUpToPage.map(renderItem) }
+          </>
+          : <>
+              {!!renderEmptyList ? renderEmptyList({filter}) : null}
+            </>
+          }
+        </div>
+      }
+    </>
+  );
+};
 
 class TabView extends Component {
   constructor(props) {
@@ -3506,6 +3578,7 @@ export {
   LoginPrompt,
   NBox,
   Note,
+  NonFilterableList,
   ProfileListing,
   ProfilePic,
   ReaderMessage,
