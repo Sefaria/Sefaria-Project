@@ -2500,6 +2500,9 @@ const Banner = ({ onClose }) => {
       </OnInView>
     );
   } else {
+    if (document.getElementById("s2").classList.contains("headerOnly")) {
+      document.body.classList.remove("hasBannerMessage");
+    }
     return null;
   }
 };
