@@ -92,6 +92,7 @@ const TopicPictureCropper = ({image_uri}) => {
     const [imageToCrop, setImageToCrop] = useState(null);
     return (
         <div>
+            <label><InterfaceText>Secondary Picture</InterfaceText></label>
             <SmallBlueButton tabIndex="0" onClick={() => setImageToCrop(image_uri)} text="Upload Secondary Picture" />
             <ImageCropper src={imageToCrop} onClose={() => setImageToCrop(null)}/>
         </div>
