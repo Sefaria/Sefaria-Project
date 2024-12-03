@@ -17,13 +17,7 @@ const exampleSlugs = [
 const exampleItems = exampleSlugs.map(slug => ({text: slug}))
 
 const renderSaladItem = (item) => {
-    console.log(item)
     return(
-    // <span href={`/topics/${item.slug}`} className="topic-salad-item">
-    //     {/*<InterfaceText text={{en: item.text, he: item.text}}/>*/}
-    //     {item.text}
-    //     {/*<span>{item.text}</span>*/}
-    // </span>
         <a href={`/topics/${item.slug}`} className="topic-salad-item">
             <InterfaceText text={{en: item.text, he: item.text}}/>
         </a>
