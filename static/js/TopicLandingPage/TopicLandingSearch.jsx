@@ -109,7 +109,10 @@ export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
                 renderItems={renderItems.bind(null, openTopic)}
                 containerClassString="topic-landing-search-container"
                 dropdownMenuClassString="topic-landing-search-dropdown"
-                renderInput={renderInput.bind(null, openTopic, numOfTopics)}/>
+                renderInput={renderInput.bind(null, openTopic, numOfTopics)}
+                //to debug styling:
+                //shouldDisplaySuggestions={()=>true}
+            />
         </div>
     );
 };
