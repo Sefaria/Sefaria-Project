@@ -7,8 +7,6 @@ from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 from sefaria import settings as sls
 
 from typing import Any, Optional, List
-from pprint import pprint
-import traceback
 
 
 class SalesforceConnectionManager(CrmConnectionManager):
@@ -18,7 +16,6 @@ class SalesforceConnectionManager(CrmConnectionManager):
         self.resource_prefix = f"services/data/v{self.version}/sobjects/"
 
     def create_endpoint(self, *args):
-        print(f"{sls.SALESFORCE_BASE_URL}/{self.resource_prefix}{'/'.join(args)}")
         return f"{sls.SALESFORCE_BASE_URL}/{self.resource_prefix}{'/'.join(args)}"
 
     def make_request(self, request, **kwargs):
@@ -164,21 +161,12 @@ class SalesforceConnectionManager(CrmConnectionManager):
         return res
 
     def get_available_lists(self) -> List[str]:
-        print("reaching here")
         try:
             resource_prefix = f"services/data/v{self.version}/query"
             endpoint = f"{sls.SALESFORCE_BASE_URL}/{resource_prefix}/"
             response = self.get(endpoint + "?q=SELECT+Subscriptions__c+FROM+AC_to_SF_List_Mapping__mdt")
-            pprint(response)
-            pprint(response.json())
             records = response.json()["records"]
             return [record["Subscriptions__c"] for record in records]
-        except Exception as e:
-            print("An unexpected error occurred:")
-            pprint({
-                "type": type(e).__name__,
-                "message": str(e),
-                "args": e.args,
-                "traceback": traceback.format_exc()
-            })
+        except:
+            print("Unable to retrieve newsletter mailing lists from Salesforce CRM")
             return []
