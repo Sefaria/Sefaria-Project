@@ -109,7 +109,7 @@ export const ImageCropper = ({loading, error, src, onClose, onSave}) => {
                                     <span className="int-en">Cancel</span>
                                     <span className="int-he">בטל</span>
                                 </a>
-                                <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={onSave}>
+                                <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={()=>onSave(croppedImageBlob)}>
                                     <span className="int-en">Save</span>
                                     <span className="int-he">שמור</span>
                                 </a>
