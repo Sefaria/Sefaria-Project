@@ -3436,7 +3436,6 @@ const ProductsPage = memo(() => {
     return (
         loading ? <LoadingMessage/> :
             <>
-
                  <h1 className="mobileAboutHeader">
                     <span className="int-en">Sefaria's Products</span>
                     <span className="int-he">המוצרים של ספריא</span>
