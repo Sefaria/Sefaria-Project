@@ -964,13 +964,17 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
 
 def recalculate_secondary_topic_data():
     source_links = RefTopicLinkSet({'is_sheet': False})
-    sheet_links = RefTopicLinkSet({'is_sheet': True})
+    sheet_links = [RefTopicLink(l) for l in generate_sheet_topic_links()]
 
     related_links = update_intra_topic_link_orders(IntraTopicLinkSet())
-    all_ref_links = update_ref_topic_link_orders(source_links.array(), sheet_links.array())
+    all_ref_links = update_ref_topic_link_orders(source_links.array(), sheet_links)
+
+    RefTopicLinkSet({"is_sheet": True}).delete()
 
     db.topic_links.bulk_write([
         UpdateOne({"_id": l._id}, {"$set": {"order": l.order}})
+        if getattr(l, "_id", False) else
+        InsertOne(l.contents(for_db=True))
         for l in (all_ref_links + related_links)
     ])
 
