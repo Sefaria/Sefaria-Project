@@ -210,9 +210,12 @@ def subscribe_sefaria_newsletter(request, email, first_name, last_name):
     body = json.loads(request.body)
     language = body.get("language", "")
     educator = body.get("educator", False)
+    mailing_lists = body.get("lists", [])
     crm_mediator = CrmMediator()
-    return crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language)
+    return crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language, mailing_lists=mailing_lists)
 
+def get_available_newsletter_mailing_lists(request):
+    return jsonResponse({"newsletter_mailing_lists": CrmMediator().get_available_lists()})
 
 def subscribe_steinsaltz(request, email, first_name, last_name):
     """
