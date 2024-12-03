@@ -3638,7 +3638,7 @@ def profile_follow_api(request, ftype, slug):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 @staff_member_required
-def topic_upload_photo(request, topic):
+def topic_upload_photo(request, slug):
     from io import BytesIO
     import uuid
     import base64
@@ -3648,7 +3648,7 @@ def topic_upload_photo(request, topic):
             return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
         old_filename = f"topics/{old_filename.split('/')[-1]}"
         GoogleStorageManager.delete_filename(old_filename, GoogleStorageManager.TOPICS_BUCKET)
-        topic = Topic.init(topic)
+        topic = Topic.init(slug)
         if hasattr(topic, "image"):
             del topic.image
             topic.save()
@@ -3661,7 +3661,7 @@ def topic_upload_photo(request, topic):
         img_file_in_mem = BytesIO(base64.b64decode(file))
         img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
                                                     GoogleStorageManager.TOPICS_BUCKET, old_filename=old_filename)
-        topic = Topic.init(topic)
+        topic = Topic.init(slug)
         if not hasattr(topic, "image"):
             topic.image = {"image_uri": img_url, "image_caption": {"en": "", "he": ""}}
         else:
