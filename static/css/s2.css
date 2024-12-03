@@ -4883,14 +4883,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   list-style-type: none;
   padding: 6px 12px;
-  /*font-family: 'EB Garamond';*/
   font-family: 'Adobe Garamond Pro';
   font-style: normal;
   font-weight: 400;
   font-size: 18px;
   line-height: 23px;
   cursor: pointer;
-  /*width: max-content;*/
   flex-grow: 1;
   max-width: 100%;
   min-height: 10px;
@@ -4957,7 +4955,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .philosophy-purple{
   background: #7F85A9;
 }
-.tanaitic-greem{
+.tanaitic-green{
   background: #00827F;
 }
 .chasidut-green{
@@ -4970,8 +4968,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topic-landing-lower-rainbow{
   margin-top: 43px;
 }
+/*'Dummy' font, a hack to prevent the ellipsis char from being displayed at the end of a webkit line-clamped element*/
+/*This font addresses only the ellipsis char, rendering its size 0% */
 @font-face {
-  font-family: "ellipsis-font";
+  font-family: "hide-ellipsis-char-font";
   src: local("Courier");
   unicode-range: U+2026;
   size-adjust: 0%;
@@ -4984,7 +4984,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   -webkit-box-orient: vertical;
   -webkit-line-clamp: var(--num-lines);
   text-overflow: clip;
-  font-family: ellipsis-font;
+  font-family: hide-ellipsis-char-font;
 }
 
 .topic-salad{

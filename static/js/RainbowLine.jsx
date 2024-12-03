@@ -14,7 +14,7 @@ export const RainbowLine = ({rainbowClassname}) => {
         "modrash-green",
         "halakha-red",
         "philosophy-purple",
-        "tanaitic-greem",
+        "tanaitic-green",
         "chasidut-green",
     ];
 
