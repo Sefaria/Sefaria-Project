@@ -1,19 +1,17 @@
 import React  from 'react';
 import ReactDOM  from 'react-dom';
-import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
-import sanitizeHtml  from 'sanitize-html';
 import Component from 'react-class'
-import $  from './sefaria/sefariaJquery';
-import Sefaria  from './sefaria/sefaria';
-import SefariaEditor from './Editor';
+import $  from '../sefaria/sefariaJquery';
+import Sefaria  from '../sefaria/sefaria';
+import SefariaEditor from '../Editor';
+import SheetContentSidebar from "./SheetContentSidebar";
 import {
   InterfaceText,
   LoadingMessage,
-} from './Misc';
-import {SheetOptions} from "./sheets/SheetOptions";
-import SheetContentSidebar from "./sheets/SheetContentSidebar";
-import SheetContent from "./sheets/SheetContent";
+} from '../Misc'; 
+import {SheetOptions} from "./SheetOptions";
+import {SheetContent} from "./SheetContent";
 
 class Sheet extends Component {
   constructor(props) {
@@ -147,16 +145,6 @@ class Sheet extends Component {
         :
         content }
       </div>
-    );
-  }
-}
-
-class SheetNotice extends Component {
-  render() {
-    return (
-        <div className="sheetNotice sans-serif">
-          <InterfaceText>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.</InterfaceText>
-        </div>
     );
   }
 }

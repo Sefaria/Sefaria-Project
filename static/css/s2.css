@@ -10004,6 +10004,7 @@ span.purim-emoji img{
 /* Sheets */
 
 .sheetsInPanel {
+  font-size: 62.5%;
   overflow-y: scroll;
   overflow-x: hidden;
   height: 100%;
