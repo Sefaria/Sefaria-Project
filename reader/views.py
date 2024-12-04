@@ -3658,7 +3658,7 @@ def topic_upload_photo(request, slug, secondary=False):
         if old_filename:
             old_filename = f"topics/{old_filename.split('/')[-1]}"
 
-        img_url = GoogleStorageManager.upload_file(request.FILES.get('file'), f"topics/{request.user.id}-{uuid.uuid1()}.gif",
+        img_url = GoogleStorageManager.upload_file(request.FILES.get('file'), f"topics/{slug}-{uuid.uuid1()}.png",
                                                     GoogleStorageManager.TOPICS_BUCKET, old_filename=old_filename)
         if secondary:
             add_secondary_image_to_topic(slug, img_url)
