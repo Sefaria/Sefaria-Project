@@ -2,14 +2,7 @@ import Component from "react-class";
 import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "../sefaria/sefaria";
-import {
-    CollectionStatement,
-    InterfaceText,
-    ProfilePic,
-    SheetAuthorStatement,
-    SheetMetaDataBox,
-    SheetTitle
-} from "../Misc";
+import {SheetMetaDataBox} from "../Misc";
 import React from "react";
 import classNames from "classnames";
 
@@ -98,8 +91,8 @@ class SheetContent extends Component {
       }
     }
   }
-  render() {
-    var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
+  getSources() {
+    const sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
       const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
       if ("ref" in source) {
         const highlighted = this.props.highlightedNode ?
@@ -193,37 +186,19 @@ class SheetContent extends Component {
       }
 
     }, this) : null;
-
+    return sources;
+  }
+  render() {
+    const sources = this.getSources();
     return (
       <div className="sheetContent">
-        {this.props.sheetNotice ? <SheetNotice /> : null}
-        <SheetMetaDataBox>
-          <SheetTitle title={this.props.title} />
-
-          <SheetAuthorStatement
-            authorUrl={this.props.authorUrl}
-            authorStatement={this.props.authorStatement} >
-            <ProfilePic
-              url={this.props.authorImage}
-              len={30}
-              name={this.props.authorStatement}
-              outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle"}}
-            />
-            <InterfaceText text={{en: "By", he: "מאת"}}/>
-            <a href={this.props.authorUrl} className="sheetAuthorName">
-              <InterfaceText>{this.props.authorStatement}</InterfaceText>
-            </a>
-          </SheetAuthorStatement>
-
-          <CollectionStatement
-            name={this.props.collectionName}
-            slug={this.props.collectionSlug}
-            image={this.props.collectionImage}
-          />
-
-        </SheetMetaDataBox>
-
         <div className="text">
+          <SheetMetaDataBox authorStatement={this.props.authorStatement}
+                            authorUrl={this.props.authorUrl}
+                            authorImage={this.props.authorImage}
+                            title={this.props.title}
+                            summary={this.props.summary}
+          />
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
           </div>
@@ -342,7 +317,7 @@ class SheetComment extends Component {
   }
 }
 
-class SheetHeader extends Component {
+class SheetSegmentHeader extends Component {
   render() {
     const lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
     const containerClasses = classNames("sheetItem",
