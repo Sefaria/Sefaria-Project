@@ -106,6 +106,7 @@ export class ProfilePic extends Component {
                     src={this.state.fileToCropSrc}
                     onClose={this.onCloseCropper}
                     onSave={this.upload}
+                    widthHeightRatio={1}
                 />
             </div>
         );

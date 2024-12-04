@@ -86,11 +86,14 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
 
 const TopicPictureCropper = ({image_uri, slug, old_filename}) => {
     const [imageToCrop, setImageToCrop] = useState(null);
+    const [loading, setLoading] = useState(false);
     const onSave = (croppedImageBlob) => {
+        setLoading(true);
         uploadTopicImage(croppedImageBlob, old_filename, `_api/topics/images/secondary/${slug}`)
             .then((new_image_uri) => {
                 //TODO propagate new_image_uri to TopicEditor
                 setImageToCrop(null);
+                setLoading(false);
             });
     }
     return (
@@ -98,8 +101,10 @@ const TopicPictureCropper = ({image_uri, slug, old_filename}) => {
             <label><InterfaceText>Secondary Picture</InterfaceText></label>
             <SmallBlueButton tabIndex="0" onClick={() => setImageToCrop(image_uri)} text="Upload Secondary Picture" />
             <ImageCropper
+                loading={loading}
                 src={imageToCrop}
                 onClose={() => setImageToCrop(null)}
+                widthHeightRatio={4/3}
                 onSave={onSave}/>
         </div>
     );

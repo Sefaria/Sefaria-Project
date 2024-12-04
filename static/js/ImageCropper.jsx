@@ -4,7 +4,7 @@ import ReactCrop from 'react-image-crop';
 import {LoadingRing} from "./Misc";
 import 'react-image-crop/dist/ReactCrop.css';
 
-export const ImageCropper = ({loading, error, src, onClose, onSave}) => {
+export const ImageCropper = ({loading, error, src, onClose, onSave, widthHeightRatio}) => {
     /**
      * loading - bool, is the image cropper loading data
      * error - str, error message
@@ -15,7 +15,7 @@ export const ImageCropper = ({loading, error, src, onClose, onSave}) => {
      */
     const imageRef = useRef(null);
     const [isFirstCropChange, setIsFirstCropChange] = useState(true);
-    const [crop, setCrop] = useState({unit: "px", width: 250, aspect: 1});
+    const [crop, setCrop] = useState({unit: "px", width: 250, aspect: widthHeightRatio});
     const [croppedImageBlob, setCroppedImageBlob] = useState(null);
     const onImageLoaded = (image) => {imageRef.current = image};
     const onCropComplete = (crop) => {
@@ -25,7 +25,7 @@ export const ImageCropper = ({loading, error, src, onClose, onSave}) => {
         if (isFirstCropChange) {
             const { clientWidth:width, clientHeight:height } = imageRef.current;
             crop.width = Math.min(width, height);
-            crop.height = crop.width;
+            crop.height = crop.width/widthHeightRatio;
             crop.x = (imageRef.current.width/2) - (crop.width/2);
             crop.y = (imageRef.current.height/2) - (crop.width/2);
             setCrop(crop);
