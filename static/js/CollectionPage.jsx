@@ -293,7 +293,7 @@ class CollectionPage extends Component {
             <div className="contentInner">
               {content}
             </div>
-            <NavSidebar modules={sidebarModules} />
+            <NavSidebar sidebarModules={sidebarModules} />
           </div>
         </div>
       </div>

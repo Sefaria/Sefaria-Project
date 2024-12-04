@@ -89,7 +89,7 @@ class NotificationsPanel extends Component {
               notifications :
               <LoginPrompt fullPanel={true} /> }
             </div>
-            <NavSidebar modules={sidebarModules} />
+            <NavSidebar sidebarModules={sidebarModules} />
           </div>
         </div>
       </div>

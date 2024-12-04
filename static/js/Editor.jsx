@@ -943,7 +943,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         if (input === "") {
             return results;
         }
-        const d = await Sefaria.getName(input, true, 5);
+        const d = await Sefaria.getName(input, 5, 'ref');
         if (d.is_section || d.is_segment) {
             results.helperPromptText = null;
             results.currentSuggestions = null;

@@ -4,7 +4,8 @@ import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import PropTypes from 'prop-types';
 import classNames  from 'classnames';
-import { NavSidebar, Modules } from './NavSidebar';
+import { NavSidebar, SidebarModules } from './NavSidebar';
+import Footer from'./Footer';
 import {
   InterfaceText,
   LoadingMessage,
@@ -19,8 +20,10 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   const [dataLoaded, setDataLoaded] = useState(!!Sefaria.community);
 
   const sidebarModules = [
+    {type: "JoinTheConversation"},
     {type: dataLoaded ? "WhoToFollow" : null, props: {toggleSignUpModal}},
     {type: "Promo"},
+    {type: "ExploreCollections"},
     {type: "SupportSefaria", props: {blue: true}},
     {type: "StayConnected"},
   ];
@@ -59,8 +62,9 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
             <RecentlyPublished multiPanel={multiPanel} toggleSignUpModal={toggleSignUpModal} />
 
           </div>
-          <NavSidebar modules={sidebarModules} />
+          <NavSidebar sidebarModules={sidebarModules} />
         </div>
+        <Footer />
       </div>
     </div>
   );
@@ -97,7 +101,13 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
 
   const recentSheetsContent = !recentSheets ? [<LoadingMessage />] :
           recentSheets.map(s => <FeaturedSheet sheet={s} showDate={true} toggleSignUpModal={toggleSignUpModal} />);
+  const joinTheConversation = (
+    <div className="navBlock">
+      <SidebarModules type={"JoinTheConversation"} props={{wide:multiPanel}} />
+    </div>
+  );
   if (recentSheets) {
+    recentSheetsContent.splice(6, 0, joinTheConversation);
     recentSheetsContent.push(
       <a className="button small white loadMore" onClick={loadMore}>
         <InterfaceText context="RecentlyPublished">Load More</InterfaceText>
