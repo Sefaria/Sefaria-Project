@@ -4,17 +4,18 @@ import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
 import {ImageCropper} from "./ImageCropper";
+import Cookies from "js-cookie";
 import React, {useState, useRef} from "react";
 
 
-const uploadTopicImage = function(imageData, slug, old_filename, topic_image_api="_api/topics/images") {
+const uploadTopicImage = function(imageBlob, old_filename, topic_image_api) {
     const formData = new FormData();
-    formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
+    formData.append('file', imageBlob);
     if (old_filename !== "") {
         formData.append('old_filename', old_filename);
     }
     const request = new Request(
-        `${Sefaria.apiHost}/${topic_image_api}/${slug}`,
+        `${Sefaria.apiHost}/${topic_image_api}`,
         {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
     );
     return fetch(request, {
@@ -49,17 +50,9 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
         if (file == null)
             return;
         if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
-            const reader = new FileReader();
-
-            reader.addEventListener("load", function() {
-                uploadTopicImage(reader.result).then(url => callback(url));
-            }, false);
-
-            reader.addEventListener("onerror", function() {
-                alert(reader.error);
-            }, false);
-
-            reader.readAsDataURL(file);
+            uploadTopicImage(file, old_filename, `_api/topics/images/${slug}`)
+                .then(url => callback(url))
+                .catch(err => alert(err));
         } else {
             alert('The file is not an image');
         }
@@ -91,13 +84,23 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
 }
 
 
-const TopicPictureCropper = ({image_uri}) => {
+const TopicPictureCropper = ({image_uri, slug, old_filename}) => {
     const [imageToCrop, setImageToCrop] = useState(null);
+    const onSave = (croppedImageBlob) => {
+        uploadTopicImage(croppedImageBlob, old_filename, `_api/topics/images/secondary/${slug}`)
+            .then((new_image_uri) => {
+                //TODO propagate new_image_uri to TopicEditor
+                setImageToCrop(null);
+            });
+    }
     return (
         <div>
             <label><InterfaceText>Secondary Picture</InterfaceText></label>
             <SmallBlueButton tabIndex="0" onClick={() => setImageToCrop(image_uri)} text="Upload Secondary Picture" />
-            <ImageCropper src={imageToCrop} onClose={() => setImageToCrop(null)} onSave={() => uploadTopicImage()}/>
+            <ImageCropper
+                src={imageToCrop}
+                onClose={() => setImageToCrop(null)}
+                onSave={onSave}/>
         </div>
     );
 }
@@ -337,7 +340,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items}
                         pictureUploader={<TopicPictureUploader slug={data.origSlug} callback={handlePictureChange} old_filename={data.image_uri}
                                                                caption={{en: data.enImgCaption, he: data.heImgCaption}}/>}
-                        secondaryPictureCropper={<TopicPictureCropper image_uri={data.image_uri}/>}
+                        secondaryPictureCropper={<TopicPictureCropper image_uri={data.image_uri} slug={data.origSlug} old_filename={data.image_uri} />}
                         extras={
                               [isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}
