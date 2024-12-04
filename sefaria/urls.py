@@ -6,6 +6,8 @@ from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
+
+import sourcesheets
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
@@ -32,6 +34,7 @@ urlpatterns = [
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
+    url(r'sheets/sheets-with-ref/(?P<tref>.+)$', sourcesheets.views.sheets_with_ref),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^calendars/?$', reader_views.calendars),
     url(r'^collections/?$', reader_views.public_collections),
@@ -73,6 +76,7 @@ urlpatterns += [
 
 # Source Sheet Builder
 urlpatterns += [
+    url(r'^sheets/?$', sheets_views.sheets_home_page),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
@@ -171,6 +175,8 @@ urlpatterns += [
     url(r'^api/terms/(?P<name>.+)$', reader_views.terms_api),
     url(r'^api/calendars/next-read/(?P<parasha>.+)$', reader_views.parasha_next_read_api),
     url(r'^api/calendars/?$', reader_views.calendars_api),
+    url(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
+    url(r'^api/calendars/topics/holiday/?$', reader_views.next_holiday),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     url(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),

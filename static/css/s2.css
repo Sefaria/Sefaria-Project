@@ -651,6 +651,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: #666;
   font-size: 16px;
   padding: 15px;
+}
+.mobileNavMenu hr {
+  border: none;
   border-bottom: 1px solid #EDEDEC;
 }
 .mobileNavMenu a > img,
@@ -682,8 +685,23 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   opacity: 1;
 }
 .mobileNavMenu .mobileAccountLinks .login {
-  display: block;
   padding: 15px;
+}
+.mobileNavMenu .signupLink::after {
+  content: "•";
+  padding: 0px 4px;
+}
+.interface-english .mobileNavMenu .signupLink {
+  padding-right: 0px !important;
+}
+.interface-english .mobileNavMenu .loginLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .signupLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .loginLink {
+  padding-right: 0px !important;
 }
 .mobileNavMenu .profile-pic {
   display: inline-block;
@@ -848,10 +866,12 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Heebo", sans-serif;
 }
+
 .interfaceLinks-options {
   display: flex;
   flex-direction: column;
-  padding: 4px 0;
+  padding: 4px;
+  max-width: 220px;
 }
 .header .interfaceLinks .interfaceLinks-option {
   display: flex;
@@ -860,7 +880,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  text-align: right;
   color: #666666;
   padding: 5px;
   direction: ltr;
@@ -972,6 +991,7 @@ div.interfaceLinks-row a {
 }
 @media screen and (max-width: 580px) {
   .header .interfaceLinks,
+  .header .dropdownLinks,
   .accountLinks .help,
   .header .notifications {
     display: none;
@@ -1816,7 +1836,6 @@ div.interfaceLinks-row a {
   letter-spacing: 0em;
   text-decoration: underline;
 }
-.readerPanel .navSidebarModule h3,
 .readerPanel .navSidebarModule h1,
 .readerPanel .bookPage h3{
   margin: 0 0 20px;
@@ -1836,7 +1855,7 @@ div.interfaceLinks-row a {
 .singlePanel .navSidebarModule.blue {
   padding: 34px 15px 45px;
 }
-.readerPanel .navSidebarModule.blue h3 {
+.readerPanel .navSidebarModule.blue h1 {
   color: white;
 }
 .navSidebarIcon {
@@ -2795,7 +2814,42 @@ display: none;
   color: var(--light-grey);
 }
 
-.navBlockTitle .int-he, .navBlockDescription .int-he{
+div.sheetsWrapper :nth-child(1 of .card) {
+  border-top: 1px solid #EDEDEC;
+}
+.card {
+  flex: 1 1 45%;
+  position: relative;
+  padding-bottom: 12px;
+}
+.cardTitle {
+  text-align: start;
+  font-size: 24px;
+  padding: 15px 0 8px;
+  margin: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  line-height: 1.3;
+  flex: 1;
+  font-weight: 400;
+}
+a.cardTitle:hover {
+  text-decoration: none;
+  color: var(--dark-grey);
+}
+.cardDescription {
+  font-size: 14px;
+  line-height: 18px;
+  color: #666;
+  margin-inline-end: 20px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.hebrew .cardDescription {
+  line-height: 24px;
+}
+.navBlockTitle .int-he, .navBlockDescription .int-he, .cardTitle .int-he, .cardDescription .int-he{
   font-size: 122%;
 }
 .interface-english .navBlockDescription.clamped .int-en,
@@ -3043,7 +3097,7 @@ display: none;
 .readerNavMenu.readerNavCategoryMenu .navTitle {
   margin-bottom: 40px;
 }
-.readerNavMenu.readerNavCategoryMenu h1 {
+.readerNavMenu.readerNavCategoryMenu .navTitle h1 {
   color: #000;
   text-transform: uppercase;
   font-size: 30px;
@@ -4586,6 +4640,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 24px;
   margin-bottom: 15px;
 }
+.sheetResult .result-title {
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+  color: #000000;
+}
+.sheetResult .snippet.en {
+  color: #666666;
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+}
 .searchContent .result-title .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
@@ -4605,8 +4673,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
 }
 .searchContent .sheetResult .ownerName {
-  color: #000;
+  color: var(--midrash-green);
   margin-inline-start: 10px;
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+}
+.searchContent .sheetResult .date {
+  color: #999999;
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-inline-start: 5px;
+}
+.searchContent .sheetResult .bullet {
+  margin-inline-start: 5px;
 }
 .searchContent .sheetResult .sheetData .tagsViews a:not(:last-of-type):after{
   content: ",";
@@ -7984,6 +8065,7 @@ But not to use a display block directive that might break continuous mode for ot
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border: none;
 }
+
 .button.disabled{
   border: 1px solid var(--light-grey);
   background-color: var(--lightest-grey);
@@ -10132,7 +10214,101 @@ span.purim-emoji img{
   border-bottom: 4px solid var(--lighter-grey);
 }
 
-
+#aboutCover {
+  margin-top: -90px;
+  height: 240px;
+  padding: 180px 0;
+  background-color: #ADA99B;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+#aboutVideo {
+  position: absolute;
+  top: -90px;
+  left: 0;
+  min-width: 1200px;
+  z-index: 0;
+  width: 100%;
+}
+@media (max-width: 450px) {
+  #aboutCover {
+    height: 270px;
+    padding: 180px 0;
+  }
+  #aboutVideo {
+    min-width: 900px;
+  }
+}
+.overlayTextOnSheetsHero {
+  color: white;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-weight: 400;
+  margin-inline-start: 10%;
+}
+.overlayTextOnSheetsHero #title {
+  position: absolute;
+  font-size: 50px;
+  font-weight: 500;
+  top: 145px;
+  line-height: 62.65px;
+}
+.overlayTextOnSheetsHero #message {
+  position: absolute;
+  font-size: 24px;
+  line-height: 18px;
+  top: 227px;
+}
+@media screen and (max-width: 800px) {
+  .overlayTextOnSheetsHero {
+    margin-inline-start: 15%;
+  }
+  .overlayTextOnSheetsHero #title {
+    font-size: 24px;
+    top: 115px;
+    line-height: revert;
+  }
+  .overlayTextOnSheetsHero #message {
+    font-size: 16px;
+    top: 175px;
+  }
+  #aboutCover {
+    height: 150px;
+    padding: 130px 0;
+  }
+}
+@media screen and (min-width: 900px) {
+  .contentInner .table {
+    display: flex;
+    flex-direction: row;
+  }
+  div.sheetsWrapper :nth-child(-n+2 of .card) {
+    border-top: 1px solid #EDEDEC;
+  }
+}
+@media screen and (min-width: 700px) and (max-width: 900px)  {
+  .contentInner .table {
+    display: flex;
+    flex-direction: column;
+  }
+}
+@media screen and (min-width: 600px) and (max-width: 700px) {
+  .contentInner .table {
+    display: flex;
+    flex-direction: row;
+  }
+  div.sheetsWrapper :nth-child(-n+2 of .card) {
+    border-top: 1px solid #EDEDEC;
+  }
+}
+@media screen and (max-width: 600px) {
+   .contentInner .table {
+    display: flex;
+    flex-direction: column;
+  }
+}
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
@@ -13464,7 +13640,109 @@ span.ref-link-color-3 {color: blue}
 .blockButton {
   cursor: pointer;
 }
+.sheetsHomepage .button {
+  background-color: var(--midrash-green);
+}
+.sheetsHomepage .sheetsHomepageSectionTitle {
+  color: var(--midrash-green);
+  font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-bottom: 15px;
+}
+.multiPanel .sheetsHomepage .sheetsTopicTOC .sheetsHomepageSectionTitle {
+  flex: 1 1 100%;
+}
+.sheetsHomepage .sidebarLayout {
+  justify-content: space-between;
+  margin-top: 50px;
+}
+.sheetsHomepage .sidebarLayout .sheetsTopics {
+  display: flex;
+  flex-direction: column;
+}
+.sheetsHomepage .content .contentInner {
+  width: 875px;
+}
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar, .sheetsHomepage .sidebarLayout .sheetsTopicTOC {
+  margin-inline-start: 10%;
+}
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
+  column-gap: 20px;
+}
+.sheetsHomepage .sheetsTopicTOC .sheetsWrapper {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 20px;
+}
+.sheetsHomepage .sheetsTopicsCalendar .sheetsWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.singlePanel .sheetsTopicTOC, .singlePanel .sheetsTopicsCalendar {
+  margin-top: 30px;
+}
+.multiPanel .sheetsTopicTOC {
+  margin-top: 30px;
+}
+.singlePanel .sheetsHomepage .navSidebar {
+  margin-block-start: 5px;
+  width: revert;
+}
+.singlePanel .sheetsHomepage .navSidebarModule {
+  padding: 0 10%;
+}
+.singlePanel .sheetsHomepage .sheetsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.singlePanel .sheetsHomepage .sidebarLayout {
+  margin-top: revert;
+}
 
+.singlePanel .sheetsHomepage .sidebarLayout .sheetsTopics {
+  width: revert;
+}
+.singlePanel .sheetsHomepage .button {
+  display: block;
+}
+@media screen and (max-width: 840px) {
+  .sheetsHomepage .sidebarLayout .sheetsTopics {
+    width: 100%;
+  }
+  .sheetsHomepage .button {
+    display: block;
+  }
+  .sheetsHomepage .navSidebar {
+    width: revert;
+    border-top: 40px solid #FBFBFA;
+    margin-block-start: -40px;
+    border-bottom: 40px solid #FBFBFA;
+  }
+}
+@media screen and (max-width: 700px) {
+  .sheetsHomepage .navSidebar {
+    margin-top: 30px;
+  }
+}
+.button.getStartedSheets {
+  width: 111px;
+  height: 39px;
+  padding: 10px 15px 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #CCCCCC;
+  display: block;
+  background-color: white;
+  color: black;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.button.getStartedSheets:hover {
+  color: black;
+}
 .image-in-text {
     display: flex;
     justify-content: center;
@@ -13498,6 +13776,104 @@ span.ref-link-color-3 {color: blue}
   }
 }
 
+.dropdownHeader {
+  margin-bottom: 10px;
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  color: var(--selected-option);
+
+}
+
+.dropdownHeaderText {
+  padding-left: 10px;
+}
+
+.dropdownDesc {
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  padding-left: 30px;
+  padding-bottom: 10px;
+  padding-right: 10px;
+}
+
+.dropdownItem {
+  padding: 10px 5px !important;
+  flex-direction: column;
+  margin-inline-start: 5px;
+}
+
+.dropdownSeparator {
+  border: 1px solid var(--light-grey);
+}
+.header .dropdownLinks {
+  display: block;
+  align-items: center;
+  margin-top: 2px;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  -webkit-margin-start: 20px;
+  -moz-margin-start: 20px;
+  margin-inline-start: 10px;
+}
+.header .dropdownLinks img {
+  height: 18px;
+  width: 18px;
+  vertical-align: middle;
+}
+
+.interface-english .header .dropdownLinks img {
+  margin-inline-end: 2px;
+}
+
+.interface-hebrew .header .dropdownLinks img {
+  margin-inline-end: 6px;
+}
+
+.header .dropdownLinks a.dropdownLinks-button::after {
+  display: inline-block;
+  background: no-repeat url("/static/icons/chevron-down.svg");
+  height: 10px;
+  width: 12px;
+  vertical-align: middle;
+  content: "";
+  transform: scale(0.75);
+}
+.header .dropdownLinks .dropdownLinks-menu {
+  top: 35px;
+  position: absolute;
+  z-index: 1;
+  width: 150px;
+  background: #FBFBFA;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  display:none;
+  overflow:hidden;
+}
+.interface-english .header .dropdownLinks .dropdownLinks-menu {
+  right: 0px;
+  min-width: 150px;
+  width: max-content;
+}
+.interface-hebrew .header .dropdownLinks .dropdownLinks-menu {
+  left: 0px;
+  min-width: 150px;
+  width: max-content;
+}
+.dropdownLinks-options {
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  max-width: 220px;
+}
+.header .dropdownLinks .dropdownLinks-menu.open {
+  display: block;
+}
+
 .productsFlexWrapper {
   display: flex;
   flex-direction: column;
@@ -13520,7 +13896,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productInner img {
-  max-width: 100%; 
+  max-width: 100%;
   max-height: 116px;
   height: auto;
   display: block;
@@ -13529,7 +13905,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productInner .productsDesc {
-  font: var(--english-sans-serif-font-family); 
+  font: var(--english-sans-serif-font-family);
   color: var(--dark-grey);
   font-size: 16px;
 }
@@ -13562,21 +13938,21 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsHeader .productsTitle {
-  font: var(--english-sans-serif-font-family); 
+  font: var(--english-sans-serif-font-family);
   color: var(--dark-grey);
   font-size: 22px;
   font-weight: 500px;
 }
 
 .productsHeader .productsTypeLabel {
-  font: var(--english-sans-serif-font-family); 
+  font: var(--english-sans-serif-font-family);
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
-  background-color: var(--lighter-grey); 
-  border-radius: 6px; 
+  background-color: var(--lighter-grey);
+  border-radius: 6px;
   padding: 0.01px 5px;
-  color: var(--dark-grey); 
+  color: var(--dark-grey);
   margin-inline-start: 3%;
 }
 
@@ -13586,7 +13962,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsHeader .cta .productsCTA {
-  color: var(--commentary-blue); 
+  color: var(--commentary-blue);
   border-width: 10px;
   margin-inline-end: 10px;
 }
@@ -13598,7 +13974,7 @@ span.ref-link-color-3 {color: blue}
   left: 610px;
   margin: 0 5px;
   vertical-align: baseline;
-  /** This uses the filter to recolor SVGs in a single line to commentary blue. 
+  /** This uses the filter to recolor SVGs in a single line to commentary blue.
   To determine the appropriate parameters, see a filter color picker such as https://angel-rs.github.io/css-color-filter-generator/ */
   filter: brightness(0) saturate(100%) invert(52%) sepia(17%) saturate(6763%) hue-rotate(200deg) brightness(78%) contrast(77%);
 
@@ -13626,7 +14002,7 @@ span.ref-link-color-3 {color: blue}
     font-weight: 400;
     line-height: 18.75px;
     display: flex;
-    align-items: flex-start; 
+    align-items: flex-start;
     flex-direction: column;
     padding: 3%;
     margin-top: 10%;
@@ -13643,7 +14019,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsDevBox a {
-  color: var(--commentary-blue) !important; 
+  color: var(--commentary-blue) !important;
 
 }
 
@@ -13652,26 +14028,13 @@ span.ref-link-color-3 {color: blue}
   color: var(--commentary-blue);
 }
 
-
-.image-in-text-title {
-    margin: auto; /* English System Small */
-    margin-top: 15px;
-    text-align: center;
-    font-family: 'Roboto';
-    font-style: normal;
-    font-weight: 400;
-    font-size: 14px;
-    line-height: 18px;
-    color: #666666;
-}
-
 @media (max-width: 480px) {
 
   .productImgWrapper {
     display: block;
     margin-left: auto;
     margin-right: auto;
-  } 
+  }
 
   #productsPageContent {
     margin: 100px 10px 0px 10px;;
@@ -13716,6 +14079,67 @@ span.ref-link-color-3 {color: blue}
     padding-left: 0px;
     padding-right: 0px;
   }
+}
+
+
+
+
+
+.footerContainer {
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding-top: 25px;
+}
+
+.footerContainer a {
+  padding: 3px 10px;
+}
+
+.image-in-text-title {
+  margin: auto; /* English System Small */
+  margin-top: 15px;
+  text-align: center;
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 18px;
+  color: #666666;
+}
+
+.languageHeader {
+  padding-right: 10px;
+  padding-left: 10px;
+  padding-top: 4px;
+  padding-bottom: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: left;
+  color: var(--medium-grey);
+
+}
+
+.languageToggleFlexContainer{
+  display: flex;
+  flex-direction: row;
+  /* padding: 10px 0px; */
+  align-items: baseline;
+  line-height: 18px;
+  height: 23px;
+  padding-bottom: 15px;
+}
+
+.languageDot{
+  font-size: 25px;
+  padding: 10px 2px;
+}
+
+.englishLanguageButton::after {
+  content: "•";
+  padding: 0px 4px;
 }
 
 @-webkit-keyframes load5 {
