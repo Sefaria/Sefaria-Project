@@ -8,17 +8,18 @@ import {InterfaceText} from "../Misc";
 export const TopicSalad = () => {
 
     const [salad, setSalad] = useState([]);
+    const lang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
 
     const renderSaladItem = (item) => {
-    return(
-        <a href={`/topics/${item.slug}`} className="topic-salad-item">
-            <InterfaceText text={{en: item.text, he: item.text}}/>
-        </a>
-    )}
+        return(<a href={`/topics/${item.slug}`} className="topic-salad-item">
+                <InterfaceText text={{en: item.text, he: item.text}}/>
+                </a>)
+    }
 
     const fetchRandomSaladItems = async () => {
-        const topics = await Sefaria.getTopicsByPool('general_en', 50);
-        const saladItems = topics.map(topic=>({slug: topic.slug, text: topic.primaryTitle.en}))
+        const poolName = Sefaria.getLangSpecificTopicPoolName('general', lang);
+        const topics = await Sefaria.getTopicsByPool(poolName, 50);
+        const saladItems = topics.map(topic=>({slug: topic.slug, text: topic.primaryTitle[lang]}))
         return saladItems;
     }
 

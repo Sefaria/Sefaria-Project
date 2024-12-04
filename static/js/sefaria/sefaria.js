@@ -1964,6 +1964,9 @@ _media: {},
         store: this._TopicsByPool
     });
   },
+    getLangSpecificTopicPoolName: function(poolName, lang){
+      return `${poolName}_${lang}`
+    },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
