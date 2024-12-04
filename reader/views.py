@@ -3640,10 +3640,8 @@ def profile_follow_api(request, ftype, slug):
 
 @staff_member_required
 def topic_upload_photo(request, slug, secondary=False):
-    from io import BytesIO
     from sefaria.helper.topic import add_image_to_topic, delete_image_from_topic, add_secondary_image_to_topic, delete_secondary_image_from_topic
     import uuid
-    import base64
     if request.method == "DELETE":
         old_filename = request.GET.get("old_filename")
         if old_filename is None:
@@ -3656,12 +3654,11 @@ def topic_upload_photo(request, slug, secondary=False):
             delete_image_from_topic(slug)
         return jsonResponse({"success": "You have successfully removed the image."})
     elif request.method == "POST":
-        file = request.POST.get('file')
         old_filename = request.POST.get('old_filename')  # delete file from google storage if there is one there
         if old_filename:
             old_filename = f"topics/{old_filename.split('/')[-1]}"
-        img_file_in_mem = BytesIO(base64.b64decode(file))
-        img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
+
+        img_url = GoogleStorageManager.upload_file(request.FILES.get('file'), f"topics/{request.user.id}-{uuid.uuid1()}.gif",
                                                     GoogleStorageManager.TOPICS_BUCKET, old_filename=old_filename)
         if secondary:
             add_secondary_image_to_topic(slug, img_url)
