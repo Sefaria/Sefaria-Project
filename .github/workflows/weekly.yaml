@@ -55,8 +55,6 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v2
         with:
-          cache-from: type=registry, ref=sefaria-mongo/cache
-          cache-to: type=registry, ref=sefaria-mongo/cache, mode=max
           context: .
           push: true
           file: ./build/standalone-db/Dockerfile
