@@ -1,10 +1,13 @@
-import Component from "react-class";
-import $ from "../sefaria/sefariaJquery";
-import ReactDOM from "react-dom";
-import Sefaria from "../sefaria/sefaria";
-import {SheetMetaDataBox} from "../Misc";
-import React from "react";
-import classNames from "classnames";
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import classNames  from 'classnames';
+import Component from 'react-class'
+import $  from '../sefaria/sefariaJquery';
+import Sefaria  from '../sefaria/sefaria';
+import {
+  CollectionStatement,
+  InterfaceText, ProfilePic, SheetAuthorStatement, SheetMetaDataBox, SheetTitle,
+} from '../Misc';
 
 class SheetContent extends Component {
   componentDidMount() {
@@ -69,9 +72,12 @@ class SheetContent extends Component {
     if (!$segment) { return; }
 
     // don't move around highlighted segment when scrolling a single panel,
-    const node = parseInt($segment.attr("data-node"));
-    if (!(this.props.highlightedNode === node)) {
-      $segment.click();
+    var shouldHighlight = this.props.hasSidebar || this.props.mode === "SheetAndConnections";
+    if (shouldHighlight) {
+      const node = parseInt($segment.attr("data-node"));
+      if (!(this.props.highlightedNode === node)) {
+        $segment.click()
+      }
     }
   }
   scrollToHighlighted() {
@@ -212,6 +218,7 @@ class SheetContent extends Component {
     )
   }
 }
+
 
 class SheetSource extends Component {
   render() {
@@ -492,4 +499,15 @@ class SheetMedia extends Component {
     );
   }
 }
-export default SheetContent;
+
+class SheetNotice extends Component {
+  render() {
+    return (
+        <div className="sheetNotice sans-serif">
+          <InterfaceText>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.</InterfaceText>
+        </div>
+    );
+  }
+}
+
+export { SheetContent };
