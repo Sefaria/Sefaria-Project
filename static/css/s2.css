@@ -7619,8 +7619,10 @@ But not to use a display block directive that might break continuous mode for ot
   margin-top: 17px;
 }
 .profile-pic-cropper-modal .ReactCrop__crop-selection {
-  border-radius: 50%;
   box-shadow: 0 0 0 9999em rgba(255, 255, 255, 0.6);
+}
+.profile-page .profile-pic-cropper-modal .ReactCrop__crop-selection {
+  border-radius: 50%;
 }
 .profile-pic-cropper-modal .ReactCrop__image {
   max-width: 50vw;
