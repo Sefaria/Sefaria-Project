@@ -95,6 +95,7 @@ export const ImageCropper = ({loading, error, src, onClose, onSave}) => {
                                 onImageLoaded={onImageLoaded}
                                 onComplete={onCropComplete}
                                 onChange={onCropChange}
+                                crossorigin={"anonymous"}
                             />) : (<div className="profile-pic-cropper-error">{ error }</div>)
                         }
                     </div>
