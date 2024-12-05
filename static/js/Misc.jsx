@@ -2930,6 +2930,22 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
+const SheetMetaDataBoxSegment = (props) => (
+  <div className={props.className}
+    role="heading"
+    aria-level="1"
+    contentEditable={props.editable}
+    suppressContentEditableWarning={true}
+    onBlur={props.editable ? props.blurCallback : null}
+    style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" :"ltr"}}
+  >
+  {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+  </div>
+);
+SheetMetaDataBoxSegment.propTypes = {
+  title: PropTypes.string,
+};
+
 
 const SheetAuthorStatement = (props) => (
   <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
@@ -3079,11 +3095,22 @@ const TitleVariants = function({titles, update, options}) {
          </div>
 }
 
-const SheetMetaDataBox = (props) => (
-  <div className="sheetMetaDataBox">
-    {props.children}
+const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, editable}) => {
+  return <div className="sheetMetaDataBox">
+    <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
+    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
+    <div className="user">
+      <ProfilePic
+          url={authorImage}
+          len={30}
+          name={authorStatement}
+      />
+      <a href={authorUrl} className="sheetAuthorName">
+        <InterfaceText>{authorStatement}</InterfaceText>
+      </a>
+    </div>
   </div>
-);
+}
 
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
@@ -3528,6 +3555,7 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
+  SheetMetaDataBoxSegment,
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,

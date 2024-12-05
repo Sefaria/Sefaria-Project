@@ -3283,7 +3283,6 @@ a.cardTitle:hover {
   --english-font: var(--english-sans-serif-font-family);
 }
 .bookPage .tocTitle,
-.sheetContent .title,
 .bookMetaDataBox .title {
   text-align: center;
   font-size: 30px;
@@ -3298,22 +3297,11 @@ a.cardTitle:hover {
   justify-content: space-between;
 }
 .bookPage .currentSection,
-.bookPage .authorStatement,
-.sheetContent .sheetMetaDataBox .authorStatement,
-.sheetContent .sheetMetaDataBox .collectionStatement {
+.bookPage .authorStatement {
   font-size: 17px;
   color: #999;
   margin-top: 6px;
   letter-spacing: 1px;
-}
-.sheetContent .sheetMetaDataBox .authorStatement,
-.sheetContent .sheetMetaDataBox .collectionStatement {
-  margin-top: 16px;
-}
-.sheetContent .sheetMetaDataBox .collectionStatement a,
-.sheetContent .sheetMetaDataBox .authorStatement a {
-  color: #999;
-  margin-inline-start: 5px;
 }
 .bookPage .currentSection .he,
 .bookPage .authorStatement .he,
@@ -8429,31 +8417,60 @@ a .button:hover {
   overflow: hidden;
   flex-shrink: 0;
 }
-.sheetMetaDataBox .collectionListingImageBox,
 .tocTop .collectionListingImageBox {
   background-color: transparent;
   overflow: initial;
 }
-.sheetMetaDataBox .title {
-  display: block;
+.interface-hebrew .sheetMetaDataBox .authorStatement {
+  direction: rtl;
 }
-.sheetMetaDataBox .title br { /* hide the line breaks that are stripped before saving */
-    display: none;
+.sheetMetaDataBox .profile-pic {
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-end: 10px;
 }
-.sheetMetaDataBox .title * {  /* chrome adds <div> tags to contenteditables and we want those inline as well  */
+.readerPanel.hebrew .sheetMetaDataBox .user {
+  direction: rtl;
+}
+.sheetMetaDataBox {
+  margin-block-end: 40px;
+}
+.sheetContent .sheetMetaDataBox a.sheetAuthorName {
+  color: var(--midrash-green);
+  margin-inline-start: 5px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
   display: inline;
+  margin-block-end: 10px;
 }
-.sheetMetaDataBox .title:empty:before {
-  content: "Untitled";
-  color: #999;
-  position: relative;
-  pointer-events: none;
-  width: auto;
+.sheetContent .sheetMetaDataBox a.sheetAuthorName:hover {
+  text-decoration: none;
+}
+.sheetMetaDataBox .summary {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 18.75px;
+  color: var(--dark-grey);
+  margin-block-end: 15px;
+}
+.sheetMetaDataBox .title {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 35.16px;
+  margin-block-end: 15px;
 }
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
   content: "ללא שם";
 }
-
 .publishBox {
   text-align: start;
   background-color: #EDEDEC;
@@ -8692,9 +8709,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .publishBox .react-tags__suggestions li.is-disabled {
   opacity: 0.5;
   cursor: auto;
-}
-.interface-hebrew .sheetMetaDataBox .authorStatement {
-  direction: rtl;
 }
 .editorSidebarToggle {
   position: fixed;
@@ -9141,11 +9155,6 @@ h3.aboutSheetHeader {
   color: #000000;
   text-transform: none;
   margin: 0px;
-}
-
-div.aboutSheetPanel>div.authorStatement {
-  font-size: 16px;
-  margin: 20px 0px;
 }
 
 .aboutSheetPanel h3.aboutSheetSubtitle {
@@ -9951,6 +9960,7 @@ span.purim-emoji img{
 /* Sheets */
 
 .sheetsInPanel {
+  font-size: 62.5%;
   overflow-y: scroll;
   overflow-x: hidden;
   height: 100%;
@@ -10095,10 +10105,6 @@ span.purim-emoji img{
   font-size: 13px;
   margin-bottom: 0;
   padding-bottom: 8px;
-}
-.sheetMetaDataBox {
-  margin: 40px auto 0 auto;
-  text-align: center;
 }
 .bookMetaDataBox {
   margin: 40px auto;
