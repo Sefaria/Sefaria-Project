@@ -581,7 +581,7 @@ class ReaderPanel extends Component {
       return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
     // dont allow continuous mode in sidebar since it's currently not possible to control layout from sidebar
-    if (this.state.mode === "Connections") {return "segmented"}
+    if (this.state.mode === "Connections") {return "continuous"}
     const category = this.currentCategory();
     const option = (category && (category === "Tanakh" || category === "Talmud")) ? "layout" + category : "layoutDefault";
     return this.state.settings[option];
