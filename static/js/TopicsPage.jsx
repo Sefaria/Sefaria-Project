@@ -59,7 +59,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
 
   const TrendingTopicsBox = () => (
     <div className="trending-topics-box">
-      <h2 className="box-title">Trending Topics</h2>
+      <h1 className="box-title">Trending Topics</h1>
       <div className="topics-list">
         {Sefaria.trendingTopics.map((topic, i) => (
           <div className="topic-item" key={i}>
