@@ -16,9 +16,7 @@ export const TopicsLandingPage = ({openTopic}) => {
                 <div className="sidebarLayout">
                     <div className="contentInner mainColumn topic-lading-page-content">
                         <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
-                        <RainbowLine rainbowClassname={"topic-landing-upper-rainbow"}/>
                         <TopicSalad/>
-                        <RainbowLine rainbowClassname={"topic-landing-lower-rainbow"}/>
                     </div>
                     <NavSidebar sidebarModules={sidebarModules} />
                 </div>

@@ -3,23 +3,23 @@ import {useEffect, useState} from "react";
 import {WordSalad} from "../WordSalad";
 import Sefaria from "../sefaria/sefaria";
 import {InterfaceText} from "../Misc";
+import {RainbowLine} from "../RainbowLine";
 
 
 export const TopicSalad = () => {
 
     const [salad, setSalad] = useState([]);
-    const lang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
 
     const renderSaladItem = (item) => {
         return(<a href={`/topics/${item.slug}`} className="topic-salad-item">
-                <InterfaceText text={{en: item.text, he: item.text}}/>
+                <InterfaceText text={item.text}/>
                 </a>)
     }
 
     const fetchRandomSaladItems = async () => {
-        const poolName = Sefaria.getLangSpecificTopicPoolName('general', lang);
+        const poolName = Sefaria.getLangSpecificTopicPoolName('general');
         const topics = await Sefaria.getTopicsByPool(poolName, 50);
-        const saladItems = topics.map(topic=>({slug: topic.slug, text: topic.primaryTitle[lang]}))
+        const saladItems = topics.map(topic=>({slug: topic.slug, text: topic.primaryTitle}));
         return saladItems;
     }
 
@@ -33,10 +33,15 @@ export const TopicSalad = () => {
     }, []);
 
     return (
+    <>
+    <RainbowLine rainbowClassname={"topic-landing-upper-rainbow"}/>
       <div className='topic-salad'>
                   <WordSalad renderItem={renderSaladItem}
                        numLines={5}
                        salad={salad}/>
       </div>
+    <RainbowLine rainbowClassname={"topic-landing-lower-rainbow"}/>
+    </>
+
   );
 };

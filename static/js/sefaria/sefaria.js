@@ -1964,7 +1964,8 @@ _media: {},
         store: this._TopicsByPool
     });
   },
-    getLangSpecificTopicPoolName: function(poolName, lang){
+    getLangSpecificTopicPoolName: function(poolName){
+      const lang = this.interfaceLang == 'hebrew' ? 'he' : 'en';
       return `${poolName}_${lang}`
     },
   _related: {},

@@ -9,9 +9,7 @@ export const WordSalad = ({ numLines, salad, renderItem }) => {
  * line breaking behavior in CSS.
  *
  * @param {number} props.numLines - The number of lines the container should display.
- *                                  This is used in the CSS to control layout.
  * @param {Array} props.salad - An array of objects representing the items to display.
- *
  * @param {Function} props.renderItem - A function that receives an item from the `salad` array
  *                                      and returns a React element to render it.
  */
