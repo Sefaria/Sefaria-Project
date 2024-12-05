@@ -92,19 +92,23 @@ const Promo = () =>
     </Module>
 ;
 
-const AboutSefaria = ({hideTitle}) => (
+const AboutSefaria = ({ hideTitle }) => (
   <Module>
-    {!hideTitle ?
-    <ModuleTitle h1={true}>side_nav.about_pecha_title</ModuleTitle> : null }
+    {!hideTitle ? (
+      <ModuleTitle h1={true}>side_nav.about_pecha_title</ModuleTitle>
+    ) : null}
+    <a className="hide-on-mobile">
     <InterfaceText>side_nav.about_pecha_description</InterfaceText>
-    {<a href="/about" className="inTextLink">
+    </a>
+    <a href="/about" className="inTextLink hide-on-mobile">
       <InterfaceText>
-          <EnglishText>Learn More ›</EnglishText>
-          <HebrewText> མུ་མཐུད་གཟིགས། ›</HebrewText>
+        <EnglishText>Learn More ›</EnglishText>
+        <HebrewText> མུ་མཐུད་གཟིགས། ›</HebrewText>
       </InterfaceText>
-    </a>}
+    </a>
   </Module>
 );
+
 
 
 const AboutTranslatedText = ({translationsSlug}) => {
@@ -473,8 +477,10 @@ const Visualizations = ({categories}) => {
 const AboutTopics = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
-    <ModuleTitle>topic.about</ModuleTitle> }
+    <ModuleTitle className='hide-on-mobile'>topic.about</ModuleTitle> }
+    <a className='hide-on-mobile'>
     <InterfaceText>topic.about_description</InterfaceText>
+    </a>
   </Module>
 );
 
