@@ -317,6 +317,7 @@ body, .sans-serif {
   color: #333; /* Darker text for contrast */
   border-bottom: 1px solid #ddd; /* Light line beneath the title */
   padding-bottom: 5px; /* Space between title text and the line */
+  padding-top: 15px;
   text-transform: none; /* Ensure text appears as written */
 }
   
@@ -326,7 +327,7 @@ body, .sans-serif {
     flex-direction: column; /* Stack topics vertically */
     gap: 10px; /* Space between each topic */
     padding-right: 20px;
-    padding-top: 1px;
+    padding-top: 0;
   }
   
   .topic-item {
