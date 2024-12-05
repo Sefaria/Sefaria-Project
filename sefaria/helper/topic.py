@@ -1352,7 +1352,7 @@ def add_image_to_topic(topic_slug: str, image_uri: str, en_caption: str = "", he
 
 def add_secondary_image_to_topic(topic_slug: str, image_uri: str):
     topic = Topic.init(topic_slug)
-    topic.secondary_image = image_uri
+    topic.secondary_image_uri = image_uri
     topic.save()
 
 
@@ -1365,6 +1365,6 @@ def delete_image_from_topic(topic_slug: str):
 
 def delete_secondary_image_from_topic(topic_slug: str):
     topic = Topic.init(topic_slug)
-    if hasattr(topic, "secondary_image"):
-        del topic.secondary_image
+    if hasattr(topic, "secondary_image_uri"):
+        del topic.secondary_image_uri
         topic.save()
