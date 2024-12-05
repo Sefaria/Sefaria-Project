@@ -39,6 +39,27 @@ const uploadTopicImage = function(imageBlob, old_filename, topic_image_api) {
 };
 
 
+const deleteTopicImage = (image_src, topic_image_api) => {
+    const old_filename_wout_url = image_src.split("/").slice(-1);
+    const url = `${Sefaria.apiHost}/${topic_image_api}?old_filename=${old_filename_wout_url}`;
+    return Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => alert("Deleted image."));
+}
+
+const CurrImageThumbnail = ({image_src, caption, deleteImage, removeButtonText}) => {
+    if (!image_src) {
+        return null;
+    }
+    return (
+        <div style={{"max-width": "420px"}}>
+            <br/>
+            <ImageWithCaption photoLink={image_src} caption={caption}/>
+            <br/>
+            <SmallBlueButton tabIndex="1" text={removeButtonText} onClick={deleteImage} />
+        </div>
+    );
+};
+
+
 const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
     /*
     `old_filename` is passed to API so that if it exists, it is deleted
@@ -57,13 +78,14 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
             alert('The file is not an image');
         }
     }
+
     const deleteImage = () => {
-        const old_filename_wout_url = old_filename.split("/").slice(-1);
-        const url = `${Sefaria.apiHost}/_api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
-        Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => alert("Deleted image."));
-        callback("");
-        fileInput.current.value = "";
+        deleteTopicImage(old_filename, `_api/topics/images/${slug}`).then(() => {
+            callback("");
+            fileInput.current.value = "";
+        })
     }
+
     return <div className="section">
         <label><InterfaceText>Picture</InterfaceText></label>
         <label>
@@ -74,28 +96,31 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
                 <SmallBlueButton tabIndex="0" text="Upload Picture" />
             </label>
         </div><input style={{display: "none"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
-        {old_filename !== "" && <div style={{"max-width": "420px"}}>
-            <br/><ImageWithCaption photoLink={old_filename} caption={caption}/>
-            <br/>
-            <SmallBlueButton tabIndex="1" text="Remove Picture" onClick={deleteImage} />
-        </div>
-        }
+        <CurrImageThumbnail image_src={old_filename} caption={caption} deleteImage={deleteImage} removeButtonText="Remove Picture" />
     </div>
 }
 
 
-const TopicPictureCropper = ({image_uri, slug, old_filename}) => {
+const TopicPictureCropper = ({slug, callback, old_filename, image_uri}) => {
     const [imageToCrop, setImageToCrop] = useState(null);
     const [loading, setLoading] = useState(false);
+
     const onSave = (croppedImageBlob) => {
         setLoading(true);
         uploadTopicImage(croppedImageBlob, old_filename, `_api/topics/images/secondary/${slug}`)
             .then((new_image_uri) => {
-                //TODO propagate new_image_uri to TopicEditor
+                callback(new_image_uri);
                 setImageToCrop(null);
                 setLoading(false);
             });
     }
+
+    const deleteImage = () => {
+        deleteTopicImage(old_filename, `_api/topics/images/secondary/${slug}`).then(() => {
+            callback("");
+        })
+    }
+
     return (
         <div>
             <label><InterfaceText>Secondary Picture</InterfaceText></label>
@@ -106,6 +131,7 @@ const TopicPictureCropper = ({image_uri, slug, old_filename}) => {
                 onClose={() => setImageToCrop(null)}
                 widthHeightRatio={4/3}
                 onSave={onSave}/>
+            <CurrImageThumbnail image_src={old_filename} deleteImage={deleteImage} removeButtonText="Remove Secondary Picture" />
         </div>
     );
 }
@@ -126,7 +152,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                 deathPlace: origData.origDeathPlace || "",
                                 enImgCaption: origData?.origImage?.image_caption?.en || "",
                                 heImgCaption: origData?.origImage?.image_caption?.he || "",
-                                image_uri: origData?.origImage?.image_uri || ""
+                                image_uri: origData?.origImage?.image_uri || "",
+                                secondary_image_uri: origData?.secondary_image_uri || "",
                                 });
     const isNew = !('origSlug' in origData);
     const [savingStatus, setSavingStatus] = useState(false);
@@ -246,8 +273,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     };
 
     const prepData = () => {
-        // always add category, title, heTitle, altTitles
-        let postData = { category: data.catSlug, titles: []};
+        // always add category, title, heTitle, altTitles, secondary_img_uri
+        let postData = { category: data.catSlug, titles: [], secondary_image_uri: data.secondary_image_uri};
 
         //convert title and altTitles to the database format, including extraction of disambiguation from title string
         postData['titles'].push(createPrimaryTitleObj(data.enTitle, 'en'));
@@ -318,8 +345,9 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
             alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
         });
     }
-    const handlePictureChange = (url) => {
-        data["image_uri"] = url;
+    const handlePictureChange = (url, secondary) => {
+        const key = secondary ? "secondary_image_uri" : "image_uri";
+        data[key] = url;
         setChangedPicture(true);
         updateData({...data});
     }
@@ -345,7 +373,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items}
                         pictureUploader={<TopicPictureUploader slug={data.origSlug} callback={handlePictureChange} old_filename={data.image_uri}
                                                                caption={{en: data.enImgCaption, he: data.heImgCaption}}/>}
-                        secondaryPictureCropper={<TopicPictureCropper image_uri={data.image_uri} slug={data.origSlug} old_filename={data.image_uri} />}
+                        secondaryPictureCropper={<TopicPictureCropper image_uri={data.image_uri} callback={(uri) => handlePictureChange(uri, true)} slug={data.origSlug} old_filename={data.secondary_image_uri} />}
                         extras={
                               [isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}
