@@ -487,9 +487,11 @@ const AboutTopics = ({hideTitle}) => (
 
 const TrendingTopics = () => (
   <Module>
+    <div className="hide-on-mobile">
     <ModuleTitle>topic.trend</ModuleTitle>
+    </div>
     {Sefaria.trendingTopics.map((topic, i) =>
-      <div className="navSidebarLink ref serif" key={i}>
+      <div className="navSidebarLink ref serif hide-on-mobile" key={i}>
         <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
       </div>
     )}

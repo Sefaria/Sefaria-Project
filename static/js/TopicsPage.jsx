@@ -57,15 +57,38 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
     {type: "SupportSefaria"},
   ];
 
+  const TrendingTopicsBox = () => (
+    <div className="trending-topics-box">
+      <h2 className="box-title">Trending Topics</h2>
+      <div className="topics-list">
+        {Sefaria.trendingTopics.map((topic, i) => (
+          <div className="topic-item" key={i}>
+            <a href={`/topics/${topic.slug}`}>
+              <span>{topic.en}</span>
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  
+
 
   return (
     <div className="readerNavMenu noLangToggleInHebrew" key="0">
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
+              <div className='hide-on-desktop'>
+                <TrendingTopicsBox />               
+              </div>
               <div className="navTitle tight sans-serif">
                   <CategoryHeader type="topics" buttonsToDisplay={["subcategory", "reorder"]}>
-                    <h1><InterfaceText>topic.expore</InterfaceText></h1>
+                    <h1><InterfaceText>topic.expore</InterfaceText></h1><br></br>
+                    <div className="navBlockDescription hide-on-desktop">
+                      <InterfaceText>Selection of texts and user created source sheets about thousands of subjects</InterfaceText>
+                    </div>
                   </CategoryHeader>
               </div>
               { about }
