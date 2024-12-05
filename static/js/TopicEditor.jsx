@@ -52,7 +52,7 @@ const CurrImageThumbnail = ({image_src, caption, deleteImage, removeButtonText})
     return (
         <div style={{"max-width": "420px"}}>
             <br/>
-            <ImageWithCaption photoLink={image_src} caption={caption}/>
+            <ImageWithCaption photoLink={image_src} caption={caption || {en: "", he: ""}}/>
             <br/>
             <SmallBlueButton tabIndex="1" text={removeButtonText} onClick={deleteImage} />
         </div>
@@ -153,7 +153,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                 enImgCaption: origData?.origImage?.image_caption?.en || "",
                                 heImgCaption: origData?.origImage?.image_caption?.he || "",
                                 image_uri: origData?.origImage?.image_uri || "",
-                                secondary_image_uri: origData?.secondary_image_uri || "",
+                                secondary_image_uri: origData?.origSecondaryImageUri || "",
                                 });
     const isNew = !('origSlug' in origData);
     const [savingStatus, setSavingStatus] = useState(false);

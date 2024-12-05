@@ -1021,7 +1021,7 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origDeathYear: data?.properties?.deathYear?.value,
     origEra: data?.properties?.era?.value,
     origImage: data?.image,
-
+    origSecondaryImageUri: data?.secondary_image_uri,
   };
 
   const origWasCat = "displays-above" in data?.links;
