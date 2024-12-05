@@ -282,6 +282,19 @@ body, .sans-serif {
 
 /* TILL HERE | edited to yakpotibetanUni from wujin */
 
+/* Default styles for desktop */
+.hide-on-mobile {
+    display: block;
+  }
+  
+  /* Hide on mobile screens */
+  @media (max-width: 768px) {
+    .hide-on-mobile {
+      display: none;
+    }
+  }
+  
+
 .serif {
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);

@@ -30,10 +30,12 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   const letter = Sefaria.interfaceLang === "hebrew" ? "ཀ" : "a";
   categoryListings.push(
     <div className="navBlock">
+      <div className='hide-on-mobile'>
       <a href={"/topics/all/" + letter} className="navBlockTitle">
         <InterfaceText>topic.a_to_z</InterfaceText>
       </a>
-      <div className="navBlockDescription">
+      </div>
+      <div className="navBlockDescription hide-on-mobile">
         <InterfaceText>topic.browse_topic</InterfaceText>
       </div>
     </div>
