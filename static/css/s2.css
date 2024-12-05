@@ -305,7 +305,7 @@ body, .sans-serif {
 
   .trending-topics-box {
     background-color: #f0f0f0; /* Grey background */
-    padding: 2px 8px 25px;
+    padding: 8px 8px 25px;
     border-radius: 8px; /* Rounded corners */
     margin: 20px 0; /* Margin to separate it from other elements */
   }
@@ -317,6 +317,7 @@ body, .sans-serif {
   color: #333; /* Darker text for contrast */
   border-bottom: 1px solid #ddd; /* Light line beneath the title */
   padding-bottom: 5px; /* Space between title text and the line */
+  text-transform: none; /* Ensure text appears as written */
 }
   
   .topics-list {
@@ -325,7 +326,7 @@ body, .sans-serif {
     flex-direction: column; /* Stack topics vertically */
     gap: 10px; /* Space between each topic */
     padding-right: 20px;
-    padding-top: 20px;
+    padding-top: 1px;
   }
   
   .topic-item {
