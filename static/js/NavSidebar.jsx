@@ -760,8 +760,8 @@ const DownloadVersions = ({sref}) => {
               options={[
                 {value: "txt",       label: Sefaria._( "side_nav.download_text.text_with_tag")},
                 {value: "plain.txt", label: Sefaria._( "side_nav.download_text.text_without_tag")},
-                {value: "csv",       label: "CSV"},
-                {value: "json",      label: "JSON"},
+                {value: "csv",       label: Sefaria._( "side_nav.download_text.csv")},
+                {value: "json",      label: Sefaria._( "side_nav.download_text.json")},
               ]}
               placeholder={Sefaria._("side_nav.download_text.select_format")}
               onChange={handleInputChange}
