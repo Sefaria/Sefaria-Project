@@ -5001,6 +5001,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.no-wrapping-salad-item-container{
+  white-space: nowrap;
+}
 
 .readerNavMenu .sheet {
   display: flex;
