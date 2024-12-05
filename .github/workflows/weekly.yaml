@@ -45,7 +45,7 @@ jobs:
         with:
           images: |
             gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-mongo
-            us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-mongo
+            us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/sefaria-public/sefaria-mongo
           # generate Docker tags based on the following events/attributes
           tags: |
             type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
