@@ -1,10 +1,14 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import Sefaria from "../sefaria/sefaria";
 import {ImageWithAltText, InterfaceText, SimpleLinkedBlock} from "../Misc";
 
+
 export const TopicOfTheDay = () => {
     let [topic, setTopic] = useState(null);
-    Sefaria.getTopicOfTheDay().then(result => setTopic(result.topic));
+    useEffect(() => {
+        Sefaria.getTopicOfTheDay().then(result => setTopic(result.topic));
+    }, []);
+
     if (!topic) { return null; }
     return (
         <div className="topicOfTheDay">
