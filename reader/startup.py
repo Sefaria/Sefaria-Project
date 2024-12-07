@@ -36,3 +36,4 @@ def init_library_cache():
 
     if server_coordinator:
         server_coordinator.connect()
+    logger.info("Initialization Complete")
