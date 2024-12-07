@@ -129,7 +129,8 @@ const TopicPictureCropper = ({slug, callback, old_filename, image_uri}) => {
     return (
         <div>
             <label><InterfaceText>Secondary Picture</InterfaceText></label>
-            <SmallBlueButton tabIndex="0" onClick={() => setImageToCrop(image_uri)} text="Upload Secondary Picture" />
+            <InterfaceText>This version of the topic's image will be shown on Topics Landing.</InterfaceText>
+            <SmallBlueButton tabIndex="0" onClick={() => setImageToCrop(image_uri)} text="Edit Secondary Picture" />
             <ImageCropper
                 loading={loading}
                 src={imageToCrop}
