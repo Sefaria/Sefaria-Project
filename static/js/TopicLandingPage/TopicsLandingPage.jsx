@@ -2,6 +2,7 @@ import React from 'react';
 import {TopicLandingSearch} from "./TopicLandingSearch";
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
+import {TopicOfTheDay} from "./TopicOfTheDay";
 
 
 export const TopicsLandingPage = ({openTopic}) => {
@@ -14,6 +15,7 @@ export const TopicsLandingPage = ({openTopic}) => {
                 <div className="sidebarLayout">
                     <div className="contentInner mainColumn">
                         <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
+                        <TopicOfTheDay />
                     </div>
                     <NavSidebar sidebarModules={sidebarModules} />
                 </div>

@@ -3334,12 +3334,14 @@ return Sefaria._v(caption) || Sefaria._('Illustrative image');
 const ImageWithCaption = ({photoLink, caption }) => {
   return (
     <div>
-        <img className="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
+        <ImageWithAltText photoLink={photoLink} altText={caption} />
         <div className="imageCaption">
           <InterfaceText text={caption} />
         </div>
       </div>);
 }
+
+const ImageWithAltText = ({photoLink, altText}) => (<img className="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(altText)}/>);
 
 const AppStoreButton = ({ platform, href, altText }) => {
   const isIOS = platform === 'ios';
@@ -3538,6 +3540,7 @@ export {
   OnInView,
   TopicPictureUploader,
   ImageWithCaption,
+  ImageWithAltText,
   handleAnalyticsOnMarkdown,
   LangSelectInterface,
   PencilSourceEditor
