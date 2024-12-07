@@ -105,6 +105,11 @@ const TopicPictureCropper = ({slug, callback, old_filename, image_uri}) => {
     const [imageToCrop, setImageToCrop] = useState(null);
     const [loading, setLoading] = useState(false);
 
+    if (!image_uri) {
+        // no primary image so nothing to crop
+        return null;
+    }
+
     const onSave = (croppedImageBlob) => {
         setLoading(true);
         uploadTopicImage(croppedImageBlob, old_filename, `_api/topics/images/secondary/${slug}`)
