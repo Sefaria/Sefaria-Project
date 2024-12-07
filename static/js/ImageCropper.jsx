@@ -24,13 +24,11 @@ export const ImageCropper = ({loading, error, src, onClose, onSave, widthHeightR
     const onCropChange = (crop, percentCrop) => {
         if (isFirstCropChange) {
             const { clientWidth:width, clientHeight:height } = imageRef.current;
-            setCrop({
-                ...crop,
-                width: Math.min(width, height),
-                height: crop.width/widthHeightRatio,
-                x: (imageRef.current.width/2) - (crop.width/2),
-                y: (imageRef.current.height/2) - (crop.width/2),
-            });
+            crop.width = Math.min(width, height);
+            crop.height = crop.width/widthHeightRatio;
+            crop.x = (imageRef.current.width/2) - (crop.width/2);
+            crop.y = (imageRef.current.height/2) - (crop.width/2);
+            setCrop(crop);
             setIsFirstCropChange(false);
         } else {
             setCrop(crop);
