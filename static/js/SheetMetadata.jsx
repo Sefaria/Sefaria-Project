@@ -511,8 +511,6 @@ SheetMetadata.propTypes = {
   narrowPanel:      PropTypes.bool,
   close:            PropTypes.func.isRequired,
   openNav:          PropTypes.func.isRequired,
-  showBaseText:     PropTypes.func.isRequired,
-  selectVersion:    PropTypes.func,
   interfaceLang:    PropTypes.string,
 };
 
