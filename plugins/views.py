@@ -3,6 +3,10 @@ from django.http import HttpResponse
 import requests
 
 import structlog
+
+from plugins.models import Plugin
+from sefaria.client.util import jsonResponse
+from sefaria.utils.encryption import encrypt_str_with_key
 logger = structlog.get_logger(__name__)
 
 
@@ -30,3 +34,28 @@ def dev(request):
     plugin = plugin.replace("SefariaPlugin", costum_component_class_name)
 
     return HttpResponse(plugin, content_type="text/javascript")
+
+
+def get_user_plugin_secret(request, plugin_id):
+    """
+    Get the secret for a user's plugin.
+
+    @query_param request: Django request object
+    @query_param plugin_id: ID of the plugin
+    """
+
+    user = request.user
+    plugin = Plugin.objects.get(id=plugin_id)
+
+    # encrypt the user id using the plugin secret
+    plugin_secret = plugin.secret
+    user_id = str(user.id)
+
+    # encrypt the user id
+    encrypted_user_id = encrypt_str_with_key(user_id, plugin_secret)
+
+    json_response = {
+        "encrypted_user_id": encrypted_user_id.decode('utf-8')
+    }
+
+    return jsonResponse(json_response)

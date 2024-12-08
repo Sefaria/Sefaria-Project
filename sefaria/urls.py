@@ -476,6 +476,7 @@ urlpatterns += [
 # Plugin API
 urlpatterns += [
     url(r'^plugin/dev/?$', plugins_views.dev),
+    url(r'^plugin/(?P<plugin_id>.+)/user/?$', plugins_views.get_user_plugin_secret),
 ]
 
 if DOWN_FOR_MAINTENANCE:
