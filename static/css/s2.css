@@ -4837,14 +4837,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: center;
 }
 
-.topic-lading-page-content{
+.topic-landing-page-content{
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
-.readerNavMenu .content .contentInner.topic-lading-page-content{
-  width: auto;
+.readerNavMenu .content .contentInner.topic-landing-page-content{
+  width: 843px;
 }
 
 .interface-hebrew .topic-landing-page-wrapper{

@@ -14,7 +14,7 @@ export const TopicsLandingPage = ({openTopic}) => {
         <div className="readerNavMenu" key="0">
             <div className="content">
                 <div className="sidebarLayout">
-                    <div className="contentInner mainColumn topic-lading-page-content">
+                    <div className="contentInner mainColumn topic-landing-page-content">
                         <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
                         <TopicSalad/>
                     </div>
