@@ -11,6 +11,7 @@ services:
       - db
       - cache
       - postgres
+      - es8
     command: >
       sh -c "python manage.py migrate sites &&
       python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
@@ -35,6 +36,13 @@ services:
     command: sh dev-docker/node-entrypoint.sh
     ports:
       - "3000:3000"
+  es8:
+    image: "elasticsearch:8.8.2"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
 
   postgres:
     image: "postgres:latest"
