@@ -17,6 +17,8 @@ import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
 
+from reader.startup import init_library_cache
+init_library_cache()
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.
@@ -24,8 +26,6 @@ from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
 
-from reader.startup import init_library_cache
-init_library_cache()
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
 # application = HelloWorldApplication(application)
