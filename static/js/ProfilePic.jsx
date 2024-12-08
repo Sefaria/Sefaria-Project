@@ -40,7 +40,6 @@ export class ProfilePic extends Component {
             }
             const reader = new FileReader();
             reader.addEventListener("load", () => this.setState({fileToCropSrc: reader.result}));
-            console.log("FILE", e.target.files[0]);
             reader.readAsDataURL(e.target.files[0]);
         }
     }
@@ -51,10 +50,8 @@ export class ProfilePic extends Component {
         const formData = new FormData();
         formData.append('file', croppedImageBlob);
         this.setState({ uploading: true });
-        console.log("uploading")
         try {
             const response = await Sefaria.uploadProfilePhoto(formData);
-            console.log('responsse', response)
             if (response.error) {
                 throw new Error(response.error);
             } else {
