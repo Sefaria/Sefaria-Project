@@ -1964,6 +1964,10 @@ _media: {},
         store: this._TopicsByPool
     });
   },
+    getLangSpecificTopicPoolName: function(poolName){
+      const lang = this.interfaceLang == 'hebrew' ? 'he' : 'en';
+      return `${poolName}_${lang}`
+    },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.

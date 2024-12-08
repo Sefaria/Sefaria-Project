@@ -4837,14 +4837,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: center;
 }
 
+.topic-landing-page-content{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.readerNavMenu .content .contentInner.topic-landing-page-content{
+  width: 843px;
+}
+
 .interface-hebrew .topic-landing-page-wrapper{
   direction: rtl;
 }
 
 .topic-landing-search-container{
-  overflow: hidden;
   display: flex;
   align-items: center;
+  flex-direction: column;
   padding: 0;
   text-align: inherit;
   background: #EDEDEC;
@@ -4856,6 +4866,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .topic-landing-search-input-box-wrapper{
   display: flex;
+  margin-top: 15px;
 }
 
 .topic-landing-search-input{
@@ -4875,14 +4886,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   list-style-type: none;
   padding: 6px 12px;
-  /*font-family: 'EB Garamond';*/
   font-family: 'Adobe Garamond Pro';
   font-style: normal;
   font-weight: 400;
   font-size: 18px;
   line-height: 23px;
   cursor: pointer;
-  /*width: max-content;*/
   flex-grow: 1;
   max-width: 100%;
   min-height: 10px;
@@ -4900,17 +4909,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .topic-landing-search-dropdown{
   background: #FFFFFF;
-  position: absolute;
-  top: 218px;
-  /*width: auto;*/
-  /*max-width: 130%;*/
   width: 606px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 0px 0px 6px 4px;
   padding: 10px;
   max-height: calc(1.9em * 10 + 2em); /* 2.5em is an estimate of the height per suggestion, and 2em for padding */
-  overflow-y: auto;
   z-index: 2;
+  margin-top: 14px;
 }
 .topic-landing-search-dropdown:empty {
     padding: 0;
@@ -4920,6 +4925,49 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topic-landing-search-container .readerNavMenuSearchButton{
   top: 6px;
   padding-inline-start: 11px;
+}
+.topic-landing-upper-rainbow{
+  margin-top: 88px;
+  margin-bottom: 43px;
+}
+.topic-landing-lower-rainbow{
+  margin-top: 43px;
+}
+/*'Dummy' font, a hack to prevent the ellipsis char from being displayed at the end of a webkit line-clamped element*/
+/*This font addresses only the ellipsis char, rendering its size 0% */
+@font-face {
+  font-family: "hide-ellipsis-char-font";
+  src: local("Courier");
+  unicode-range: U+2026;
+  size-adjust: 0%;
+}
+
+
+.salad-container{
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--num-lines);
+  text-overflow: clip;
+  font-family: hide-ellipsis-char-font;
+}
+
+.topic-salad{
+  width: 843px;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 32px;
+  text-align: center;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+}
+.topic-salad-item{
+  margin: 11px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.no-wrapping-salad-item-container{
+  white-space: nowrap;
 }
 
 .readerNavMenu .sheet {
