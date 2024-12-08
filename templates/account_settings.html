@@ -24,7 +24,7 @@
 		<label class="control-elem">
 			<span class="{{ language_font_class }}">{% trans "Notification Frequency (Maximum)" %}</span>
         </label>
-		<div class="toggleSet toggleSetToggleBox blueStyle tripleOption control-elem" role="radiogroup">
+		<div class="toggleSet toggleSetToggleBox blueStyle tripleOption control-elem" role="radiogroup" style="white-space:nowrap">
 			<div role="radio" data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "daily" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
 			    <span class="{{ language_font_class }}">{% trans "Daily" %}</span>
             </div>
