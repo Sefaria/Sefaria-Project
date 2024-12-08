@@ -1318,7 +1318,7 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
             return {"error": f"Cannot delete link between {tref} and {to_topic}."}
 
 
-def add_image_to_topic(topic_slug, image_uri, en_caption, he_caption):
+def add_image_to_topic(topic_slug: str, image_uri: str, en_caption: str = "", he_caption: str =""):
     """
     A function to add an image to a Topic in the database. Helper for data migration.
     This function queries the desired Topic, adds the image data, and then saves.
@@ -1329,9 +1329,32 @@ def add_image_to_topic(topic_slug, image_uri, en_caption, he_caption):
     :param he_caption String: The Hebrew caption for a Topic image
     """
     topic = Topic.init(topic_slug)
-    topic.image = {"image_uri": image_uri,
-                   "image_caption": {
-                       "en": en_caption,
-                       "he": he_caption
-                   }}
+    if not hasattr(topic, "image"):
+        topic.image = {"image_uri": image_uri, "image_caption": {"en": en_caption, "he": he_caption}}
+    else:
+        topic.image["image_uri"] = image_uri
+        if en_caption:
+            topic.image["image_caption"]["en"] = en_caption
+        if he_caption:
+            topic.image["image_caption"]["he"] = he_caption
     topic.save()
+
+
+def add_secondary_image_to_topic(topic_slug: str, image_uri: str):
+    topic = Topic.init(topic_slug)
+    topic.secondary_image_uri = image_uri
+    topic.save()
+
+
+def delete_image_from_topic(topic_slug: str):
+    topic = Topic.init(topic_slug)
+    if hasattr(topic, "image"):
+        del topic.image
+        topic.save()
+
+
+def delete_secondary_image_from_topic(topic_slug: str):
+    topic = Topic.init(topic_slug)
+    if hasattr(topic, "secondary_image_uri"):
+        del topic.secondary_image_uri
+        topic.save()
