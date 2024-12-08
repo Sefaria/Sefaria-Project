@@ -13,6 +13,14 @@ function WebComponentLoader(props) {
     return middlewareLink
   }
 
+  const getPluginUser = (pluginId=1) => {
+    fetch(`/plugin/${pluginId}/user`)
+    .then(res => res.json())
+    .then(data => {
+      console.log(data);
+    });
+}
+
   let script = null;
   let rand = Math.floor(Math.random() * 1000);
     
@@ -32,6 +40,9 @@ function WebComponentLoader(props) {
       };
       document.head.appendChild(script);
     }
+
+    getPluginUser();
+
   };
 
   if (loaded) {
