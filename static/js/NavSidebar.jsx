@@ -97,15 +97,15 @@ const AboutSefaria = ({ hideTitle }) => (
     {!hideTitle ? (
       <ModuleTitle h1={true}>side_nav.about_pecha_title</ModuleTitle>
     ) : null}
-    <a className="hide-on-mobile">
+    <div className="hide-on-mobile">
     <InterfaceText>side_nav.about_pecha_description</InterfaceText>
-    </a>
-    <a href="/about" className="inTextLink hide-on-mobile">
+    <a href="/about" className="inTextLink">
       <InterfaceText>
         <EnglishText>Learn More ›</EnglishText>
         <HebrewText> མུ་མཐུད་གཟིགས། ›</HebrewText>
       </InterfaceText>
     </a>
+    </div>
   </Module>
 );
 
