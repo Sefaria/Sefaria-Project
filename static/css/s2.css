@@ -5005,6 +5005,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   white-space: nowrap;
 }
 
+.topic-landing-calendar .calendar-header{
+  color: var(--Dark-Grey, #666);
+  font-family: Roboto;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
