@@ -10,26 +10,15 @@ const DropdownMenu = ({children, buttonContent}) => {
      * component and all its children, so when clicking on children their onClick won't be executed.
      */
 
-    const dropdownLinksClass = 'dropdownLinks-menu';
-    const dropdownLinksRef = useRef(null);
-    const isMenuOpen = () => {
-        return dropdownLinksRef.current?.className?.includes('open');
-    };
+    const [isOpen, setIsOpen] = useState(false);
+    const wrapperRef = useRef(null);
 
-    const setIsOpen = (isOpen) => {
-        if (dropdownLinksRef.current) {
-            dropdownLinksRef.current.className = `${dropdownLinksClass} ${isOpen ? 'open' : 'closed'}`;
-            const action = isOpen ? 'addEventListener' : 'removeEventListener';
-            document[action]('keydown', handleHideDropdown, true);
-            document[action]('click', handleClickOutside, true);
-        }
-    }
     const handleClick = (e) => {
       e.stopPropagation();
-      if (isMenuOpen()) {
-          setIsOpen(false);
-      } else {
-          setIsOpen(true);
+      const preventClose = e.target.closest('.preventClosing');
+      // Only toggle if no preventClose element was found
+      if (!preventClose) {
+        setIsOpen(isOpen => !isOpen);
       }
     }
     const handleHideDropdown = (event) => {
@@ -38,15 +27,27 @@ const DropdownMenu = ({children, buttonContent}) => {
       }
     };
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.preventClosing')) {
-          setIsOpen(false);
-      }
+        if (
+            wrapperRef.current &&
+            !wrapperRef.current.contains(event.target)
+        ) {
+            setIsOpen(false);
+        }
     };
 
+    useEffect(() => {
+        document.addEventListener('keydown', handleHideDropdown, true);
+        document.addEventListener('click', handleClickOutside, true);
+        return () => {
+            document.removeEventListener('keydown', handleHideDropdown, true);
+            document.removeEventListener('click', handleClickOutside, true);
+        };
+    }, []);
+
   return (
-    <div className="dropdownMenu">
-      <button className="dropdownButton preventClosing" onClick={handleClick}>{buttonContent}</button>
-        <div className={ `${dropdownLinksClass} closed`} ref={dropdownLinksRef}>
+    <div className="dropdownMenu" onClick={handleClick} ref={wrapperRef}>
+      <button className="dropdownButton" >{buttonContent}</button>
+        <div className={ `dropdownLinks-menu ${isOpen ? 'open' : 'closed'}`} >
             {children}
         </div>
     </div>
