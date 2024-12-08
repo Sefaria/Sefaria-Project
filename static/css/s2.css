@@ -1961,7 +1961,6 @@ div.interfaceLinks-row a {
 }
 
 .readerPanel.hebrew .he {
-    font-size: 16px;
     display: inline;
     text-align: left;
 }
@@ -8396,7 +8395,7 @@ But not to use a display block directive that might break continuous mode for ot
 .toolsButton.systemTypeface .toolsButtonText span.int-he,
 .toolsButton.systemTypeface .toolsButtonText span.he {
     font-size: 18px;
-    font-family: "wujin+gangbi", "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "Monlam Uni OuChan2", "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .toolsButton.textTypeface .toolsButtonText span.int-he,
