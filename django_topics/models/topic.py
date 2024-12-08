@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models.query import QuerySet
-from typing import Any
 import random
 from django_topics.models.pool import TopicPool
 
@@ -16,10 +15,10 @@ class TopicManager(models.Manager):
         else:
             raise Exception("Invalid order: '{}'".format(order))
 
-    def get_pools_by_topic_slug(self, topic_slug: str) -> QuerySet['Topic', Any]:
+    def get_pools_by_topic_slug(self, topic_slug: str) -> QuerySet:
         return self.filter(slug=topic_slug).values_list("pools__name", flat=True)
 
-    def get_topic_slugs_by_pool(self, pool: str) -> QuerySet['Topic', Any]:
+    def get_topic_slugs_by_pool(self, pool: str) -> QuerySet:
         return self.filter(pools__name=pool).values_list("slug", flat=True)
 
 
