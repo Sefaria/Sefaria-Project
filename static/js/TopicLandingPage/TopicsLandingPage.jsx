@@ -5,6 +5,7 @@ import Footer from "../Footer";
 import {TopicSalad} from "./TopicSalad";
 import {RainbowLine} from "../RainbowLine";
 import {TopicLandingCalendar} from "./TopicLandingCalendar";
+import {TopicLandingParasha} from "./TopicLandingParsha";
 
 
 export const TopicsLandingPage = ({openTopic}) => {
@@ -18,11 +19,12 @@ export const TopicsLandingPage = ({openTopic}) => {
                     <div className="contentInner mainColumn topic-landing-page-content">
                         <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
                         <TopicSalad/>
-                        <TopicLandingCalendar
-                            header={{en: "This Week’s Torah Portion"}}
-                            title={{en:"Vayigash"}}
-                            description={{en:"Vayigash (“He Approached”) opens as Judah pleads with Joseph not to keep Benjamin as a prisoner. Joseph reveals his true identity to his brothers, crying and kissing them. The brothers bring Jacob from Canaan to Egypt, and Jacob and his children settle in Goshen. The portion ends as Joseph buys most of Egypt’s land in exchange for food."}}
-                            link={"/topics/parashat-vayigash"}/>
+                        {/*<TopicLandingCalendar*/}
+                        {/*    header={{en: "This Week’s Torah Portion"}}*/}
+                        {/*    title={{en:"Vayigash"}}*/}
+                        {/*    description={{en:"Vayigash (“He Approached”) opens as Judah pleads with Joseph not to keep Benjamin as a prisoner. Joseph reveals his true identity to his brothers, crying and kissing them. The brothers bring Jacob from Canaan to Egypt, and Jacob and his children settle in Goshen. The portion ends as Joseph buys most of Egypt’s land in exchange for food."}}*/}
+                        {/*    link={"/topics/parashat-vayigash"}/>*/}
+                        <TopicLandingParasha/>
 
                     </div>
                     <NavSidebar sidebarModules={sidebarModules} />

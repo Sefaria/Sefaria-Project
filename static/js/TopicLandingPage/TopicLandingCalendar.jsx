@@ -1,7 +1,4 @@
 import React from 'react';
-import {useEffect, useState} from "react";
-import {WordSalad} from "../WordSalad";
-import Sefaria from "../sefaria/sefaria";
 import {InterfaceText} from "../Misc";
 import {Card} from "../common/Card";
 
