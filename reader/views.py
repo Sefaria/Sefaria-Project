@@ -3281,6 +3281,18 @@ def topic_ref_bulk_api(request):
         all_links_touched.append(ref_topic_dict)
     return jsonResponse(all_links_touched)
 
+@catch_error_as_json
+def seasonal_topic_api(request):
+    from django_topics.models import SeasonalTopic
+
+    lang = request.GET.get("lang")
+    cb = request.GET.get("callback", None)
+    stopic = SeasonalTopic.objects.get_seasonal_topic(lang)
+    if not stopic:
+        return jsonResponse({'error': f'No seasonal topic found for lang "{lang}"'}, status=404)
+    mongo_topic = Topic.init(stopic.topic.slug)
+    response = {'topic': mongo_topic.contents(), 'date': stopic.start_date.isoformat()}
+    return jsonResponse(response, callback=cb)
 
 
 @catch_error_as_json

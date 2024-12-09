@@ -6,7 +6,7 @@ import {InterfaceText} from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 
 
-export const TopicLandingParasha = ({ handleClick }) => {
+export const TopicLandingParasha = () => {
     const [parashah, setParashah] = useState({});
 
     useEffect(() => {
