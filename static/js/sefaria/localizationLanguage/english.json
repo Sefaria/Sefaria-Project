@@ -530,6 +530,7 @@
     "topic.admin.title_must_be_provided":"Title must be provided",
     "topic.admin.error_msg":"Unfortunately, there may have been an error saving this topic information",
     "topic.admin.something_wrong":"Something went wrong. Sorry!",
+    "topic.mobile_description":"Selection of texts and user created source sheets about hundreds of subjects",
     "note_save_warning":"Sorry, there was a problem saving your note.",
     "note_save_error_try_again":"Unfortunately, there was an error saving this note. Please try again or try reloading this page.",
     "note_confirm_delete_request":"Are you sure you want to delete this note?",
