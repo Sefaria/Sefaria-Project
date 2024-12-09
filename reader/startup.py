@@ -1,6 +1,8 @@
 
 
 def init_library_cache():
+    import django
+    django.setup()
     import structlog
     logger = structlog.get_logger(__name__)
 
