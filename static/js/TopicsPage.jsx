@@ -59,7 +59,8 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
 
   const TrendingTopicsBox = () => (
     <div className="trending-topics-box">
-      <h1 className="box-title">Trending Topics</h1>
+      <h1 className="box-title">
+        <InterfaceText>topic.trend</InterfaceText></h1>
       <div className="topics-list">
         {Sefaria.trendingTopics.map((topic, i) => (
           <div className="topic-item" key={i}>
@@ -87,7 +88,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
                   <CategoryHeader type="topics" buttonsToDisplay={["subcategory", "reorder"]}>
                     <h1><InterfaceText>topic.expore</InterfaceText></h1><br></br>
                     <div className="navBlockDescription hide-on-desktop">
-                      <InterfaceText>Selection of texts and user created source sheets about thousands of subjects</InterfaceText>
+                      <InterfaceText>topic.mobile_description</InterfaceText>
                     </div>
                   </CategoryHeader>
               </div>

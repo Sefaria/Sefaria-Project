@@ -3264,7 +3264,7 @@ a.navBlockTitle:hover {
 }
 
 .navBlockTitle .int-he, .navBlockDescription .int-he {
-    font-size: 122%;
+    font-size: 100%;
 }
 
 .interface-english .navBlockDescription.clamped .int-en,
@@ -4594,7 +4594,8 @@ details .open-details::before {
     justify-content: space-between;
     font-style: normal;
     font-weight: normal;
-    font-size: 14px;
+    font-family: var(--hebrew-font-conditional);
+    font-size: 16px;
     line-height: 20px;
     color: #666666;
 }
