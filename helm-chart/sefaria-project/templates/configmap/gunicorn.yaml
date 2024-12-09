@@ -34,8 +34,8 @@ data:
     {{- end }}
 
     def when_ready(server):
-      from reader.startup import init_library_cache
-      init_library_cache()
+        from reader.startup import init_library_cache
+        init_library_cache()
 
     def combined_logformat(logger, name, event_dict):
         if event_dict.get('logger') == "gunicorn.access":
