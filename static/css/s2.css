@@ -5007,7 +5007,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .topic-landing-calendar .calendar-header{
   color: var(--Dark-Grey, #666);
-  font-family: Roboto;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
   font-style: normal;
   font-weight: 600;

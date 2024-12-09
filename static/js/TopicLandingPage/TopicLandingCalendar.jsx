@@ -10,7 +10,7 @@ export const TopicLandingCalendar = ({ header, title, description, link, childre
   return (
     <div className="topic-landing-calendar">
       <div className="calendar-header">
-          {header}
+          <InterfaceText text={header}/>
       </div>
       <Card
         cardTitleHref={link}
