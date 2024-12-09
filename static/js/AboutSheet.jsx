@@ -90,6 +90,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             slug: tag.slug,
         })
         )
+        console.log("topic:  ", topics)
         updatedSheet.topics = topics;
         updatedSheet.lastModified = lastModified;
         delete updatedSheet._id;
@@ -179,7 +180,6 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     const postSheet = (postJSON) => {
         $.post("/api/sheets/", { "json": postJSON }, (data) => {
             if (data.id) {
-                console.log('saved...')
                 setLastModified(data.dateModified)
                 Sefaria.sheets._loadSheetByID[data.id] = data;
             } else {
@@ -261,9 +261,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         {isPublished ?
             <div className={"publishButton"}>
                 <div className="publishedText">
-                    <InterfaceText>
-                        {Sefaria._("sheet.your_sheet_is")}<span className="publishedTextBold">{ Sefaria._("sheet.published")} </span> { Sefaria._("topic.visible_to_other")}
-                    </InterfaceText>
+                    {Sefaria._("sheet.your_sheet_is")}<span className="publishedTextBold">{ Sefaria._("sheet.published")} </span> { Sefaria._("topic.visible_to_other")}
                 </div>
                 <button className="button published" onClick={togglePublish}>
                     <InterfaceText>unpublish</InterfaceText>

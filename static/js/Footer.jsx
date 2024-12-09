@@ -35,7 +35,7 @@ class Footer extends Component {
 
     return (
       <div id="version_number" className="flex flex-col items-center">
-        <InterfaceText>website.pecha.version</InterfaceText>
+        {/* <InterfaceText>website.pecha.version</InterfaceText> */}
         {/* Install PWA Button */}
         <button id="install-pwa-button" className="pwa-install-button flex items-center">
           <InterfaceText className={"pwa_download_label"}>pwa.download_button.label</InterfaceText>

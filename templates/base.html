@@ -40,23 +40,23 @@
     {% endblock %}
 
     {% block ogimage %}
-        <meta property="og:title" content="Pecha - A Living Library of Buddhist Text"/>
-        <meta property="og:description" content="The largest free library of Buddhist texts available to read online in Tibetan, English, and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more."/>
-        <meta property="og:image" content="https://pecha.org/static/img/pecha-icon.png" />
+        <!-- <meta property="og:title" content="Pecha - Buddhism in your own words" /> -->
+        <meta property="og:description" content="{% block fb_description %}{{ desc|striptags }}{% endblock %}"/>
+        <meta property="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{ request.GET.lang }}&platform=facebook&ven={{ request.GET.ven }}&vhe={{ request.GET.vhe }}" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:url" content="https://pecha.org"/>
+        <!-- Debugging: Display the og:image URL -->
     {% endblock %}
 
     
 
 
-    <!-- <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@sefariaproject" />
     <meta name="twitter:title" content="{{title|striptags}}" />
     <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
-    <meta name="twitter:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=twitter&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" /> -->
+    <meta name="twitter:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=twitter&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
@@ -224,20 +224,6 @@
 
     {% autoescape off %}
 
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register("{% static 'serviceWorker.js' %}")
-            .then(function(registration) {
-              console.log('Service Worker registered with scope:', registration.scope);
-            })
-            .catch(function(error) {
-              console.log('Service Worker registration failed:', error);
-            });
-        });
-      }
-    </script>
-
     <script src="{% static 'pwa.js' %}"></script>
 
     <!--Sentry error reporting config-->
@@ -340,9 +326,9 @@
 
     {% block js %}{% endblock %}
 
-    <div class="feedback_container" id="imageContainer">
+    <!-- <div class="feedback_container" id="imageContainer">
       <img src="https://cdn.icon-icons.com/icons2/2406/PNG/512/times_error_fail_failure_failed_cross_icon_145926.png" alt="icon" id="crossImage" class="hidden">
-    </div>
+    </div> -->
 
     <script type="text/javascript">
       // This function will load the feedbucket script dynamically
@@ -402,16 +388,8 @@
       });
     </script>
 
-    <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="b5a8d317-af7b-4b83-8801-84e6658f1f6e";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+    {% comment %} <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="b5a8d317-af7b-4b83-8801-84e6658f1f6e";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script> {% endcomment %}
 
-    <!-- <script>if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function() {
-        navigator.serviceWorker
-          .register("{% static 'js/serviceWorker.js' %}")
-          .then(res => console.log("service worker registered"))
-          .catch(err => console.log("service worker not registered", err))
-      })
-    }</script> -->
 
     <!-- <script src="{% static 'js/pwa_app_installer.js' %}"></script> -->
 

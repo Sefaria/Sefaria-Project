@@ -48,7 +48,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   } else {
     featuredContent = <LoadingMessage />
   }
-
+  console.log("load data from recentlyPUblished component")
   return (
     <div className="readerNavMenu communityPage sans-serif" key="0">
       <div className="content">
@@ -75,9 +75,10 @@ CommunityPage.propTypes = {
 
 
 const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
-  const options = Sefaria.interfaceLang === "hebrew" ? {"lang": "hebrew"} : {};
+  // const options = Sefaria.interfaceLang === "hebrew" ? {"lang": "hebrew"} : {};
+  const options =  {};
   // options["filtered"] = true;
-  const pageSize = 18;
+  const pageSize = 10;
   const [nSheetsLoaded, setNSheetsLoded] = useState(0); // counting sheets loaded from the API, may be different than sheets displayed
   // Start with recent sheets in the cache, if any
   const [recentSheets, setRecentSheets] = useState(collapseSheets(Sefaria.sheets.publicSheets(0, pageSize, options)));
@@ -93,7 +94,7 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
       const newSheets = recentSheets ? recentSheets.concat(collapsedSheets) : collapsedSheets;
       setRecentSheets(newSheets);
       setNSheetsLoded(nSheetsLoaded + pageSize);
-      if (collapsedSheets.length < until) {
+      if (collapsedSheets.length < until && collapsedSheets.length !== 0) {
         loadMore(null, until - collapsedSheets.length);
       }
     });

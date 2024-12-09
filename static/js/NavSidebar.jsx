@@ -92,19 +92,23 @@ const Promo = () =>
     </Module>
 ;
 
-const AboutSefaria = ({hideTitle}) => (
+const AboutSefaria = ({ hideTitle }) => (
   <Module>
-    {!hideTitle ?
-    <ModuleTitle h1={true}>side_nav.about_pecha_title</ModuleTitle> : null }
+    {!hideTitle ? (
+      <ModuleTitle h1={true}>side_nav.about_pecha_title</ModuleTitle>
+    ) : null}
+    <div className="hide-on-mobile">
     <InterfaceText>side_nav.about_pecha_description</InterfaceText>
-    {<a href="/about" className="inTextLink">
+    <a href="/about" className="inTextLink">
       <InterfaceText>
-          <EnglishText>Learn More ›</EnglishText>
-          <HebrewText> མུ་མཐུད་གཟིགས། ›</HebrewText>
+        <EnglishText>Learn More ›</EnglishText>
+        <HebrewText> མུ་མཐུད་གཟིགས། ›</HebrewText>
       </InterfaceText>
-    </a>}
+    </a>
+    </div>
   </Module>
 );
+
 
 
 const AboutTranslatedText = ({translationsSlug}) => {
@@ -473,17 +477,21 @@ const Visualizations = ({categories}) => {
 const AboutTopics = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
-    <ModuleTitle>topic.about</ModuleTitle> }
+    <ModuleTitle className='hide-on-mobile'>topic.about</ModuleTitle> }
+    <a className='hide-on-mobile'>
     <InterfaceText>topic.about_description</InterfaceText>
+    </a>
   </Module>
 );
 
 
 const TrendingTopics = () => (
   <Module>
+    <div className="hide-on-mobile">
     <ModuleTitle>topic.trend</ModuleTitle>
+    </div>
     {Sefaria.trendingTopics.map((topic, i) =>
-      <div className="navSidebarLink ref serif" key={i}>
+      <div className="navSidebarLink ref serif hide-on-mobile" key={i}>
         <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
       </div>
     )}
@@ -760,8 +768,8 @@ const DownloadVersions = ({sref}) => {
               options={[
                 {value: "txt",       label: Sefaria._( "side_nav.download_text.text_with_tag")},
                 {value: "plain.txt", label: Sefaria._( "side_nav.download_text.text_without_tag")},
-                {value: "csv",       label: "CSV"},
-                {value: "json",      label: "JSON"},
+                {value: "csv",       label: Sefaria._( "side_nav.download_text.csv")},
+                {value: "json",      label: Sefaria._( "side_nav.download_text.json")},
               ]}
               placeholder={Sefaria._("side_nav.download_text.select_format")}
               onChange={handleInputChange}

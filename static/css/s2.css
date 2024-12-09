@@ -282,6 +282,69 @@ body, .sans-serif {
 
 /* TILL HERE | edited to yakpotibetanUni from wujin */
 
+/* Default styles for desktop */
+.hide-on-mobile {
+    display: block;
+  }
+  
+  /* Hide on mobile screens */
+  @media (max-width: 768px) {
+    .hide-on-mobile {
+      display: none;
+    }
+  }
+
+  /* Hide on desktop screens */
+  @media (min-width: 768px) {
+    .hide-on-desktop {
+      display: none;
+    }
+  }
+
+  /* Trending_topic_box */
+
+  .trending-topics-box {
+    background-color: #f0f0f0; /* Grey background */
+    padding: 8px 8px 25px;
+    border-radius: 8px; /* Rounded corners */
+    margin: 20px 0; /* Margin to separate it from other elements */
+  }
+  
+  .box-title {
+  font-family: 'roboto', sans-serif;  
+  font-size: 1.5em;
+  margin: 0;
+  color: #333; /* Darker text for contrast */
+  border-bottom: 1px solid #ddd; /* Light line beneath the title */
+  padding-bottom: 5px; /* Space between title text and the line */
+  padding-top: 15px;
+  text-transform: none; /* Ensure text appears as written */
+}
+  
+  .topics-list {
+    font-family: 'roboto', sans-serif; 
+    display: flex;
+    flex-direction: column; /* Stack topics vertically */
+    gap: 10px; /* Space between each topic */
+    padding-right: 20px;
+    padding-top: 0;
+  }
+  
+  .topic-item {
+    font-size: 1em;
+  }
+  
+  .topic-item a {
+    text-decoration: none;
+    color: #21130d; /* Link color */
+  }
+  
+  .topic-item a:hover {
+    text-decoration: underline;
+  }
+  
+  
+
 .serif {
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
@@ -1898,7 +1961,6 @@ div.interfaceLinks-row a {
 }
 
 .readerPanel.hebrew .he {
-    font-size: 16px;
     display: inline;
     text-align: left;
 }
@@ -3637,7 +3699,6 @@ a.navBlockTitle:hover {
 }
 
 .readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .he {
-    font-size: 20px;
     display: inline;
 }
 
@@ -8173,6 +8234,10 @@ But not to use a display block directive that might break continuous mode for ot
     background-image: url("/static/icons/add-to-sheet.svg");
 }
 
+.connection-buttons .share-link-add::before {
+    background-image: url("/static/icons/share.svg");
+}
+
 .toolsButtonContainer {
     display: flex;
     justify-content: flex-start;
@@ -8329,7 +8394,7 @@ But not to use a display block directive that might break continuous mode for ot
 .toolsButton.systemTypeface .toolsButtonText span.int-he,
 .toolsButton.systemTypeface .toolsButtonText span.he {
     font-size: 18px;
-    font-family: "wujin+gangbi", "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "Monlam Uni OuChan2", "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .toolsButton.textTypeface .toolsButtonText span.int-he,

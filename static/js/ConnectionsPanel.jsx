@@ -1454,7 +1454,7 @@ class ShareBox extends Component {
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="connection_panel.more_options">
           <ToolsButton en= {Sefaria._("common.share_on_fb")} he={Sefaria._("common.share_on_fb")}icon="facebook-official" onClick={shareFacebook} />
-          <ToolsButton en={Sefaria._("common..share_on_x")} he={Sefaria._("common..share_on_x")}  icon="twitter" onClick={shareTwitter} />
+          <ToolsButton en={Sefaria._("common.share_on_x")} he={Sefaria._("common.share_on_x")}  icon="twitter" onClick={shareTwitter} />
           {/* <ToolsButton en={Sefaria._("common.share_by_email")} he={Sefaria._("common.share_by_email")} icon="envelope-o" onClick={shareEmail} /> */}
         </ConnectionsPanelSection>
       </div>);

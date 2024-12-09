@@ -279,6 +279,15 @@ class TextRange extends Component {
     return null;
   }
 
+  removetitleData(str) {
+    if(str.trim() == 'data' || str.trim() == 'གནས་བབས') {
+      return null
+    } else {
+      return str.split(',')[0];
+    }
+    
+}
+
   render() {
     const data = this.getText();
     let title, heTitle, ref;
@@ -425,7 +434,7 @@ class TextRange extends Component {
           <div className="titleBox" role="heading" aria-level="2">
             { (!title.includes("data")) ?
               <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>
-              : null
+              : <ContentText text={{en: this.removetitleData(title), he: this.removetitleData(heTitle)}} defaultToInterfaceOnBilingual={true}/>
             }
           </div>
           {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
