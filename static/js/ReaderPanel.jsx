@@ -1550,7 +1550,7 @@ class ReaderDisplayOptionsMenu extends Component {
     let languageToggle = this.showLangaugeToggle() ? (
         <ToggleSet
           ariaLabel="Language toggle"
-          label={Sefaria._("Language")}
+          label={Sefaria._("text.reader_option_menu.language")}
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
