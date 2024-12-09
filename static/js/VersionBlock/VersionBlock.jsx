@@ -67,7 +67,7 @@ class VersionBlockUtils {
           let urlVersionTitle = encodeURIComponent(version.versionTitle.replace(/\s/g,'_'));
           window.location = `/${firstSectionRef}?v${version.language}=${urlVersionTitle}`;
       } else {
-          openVersionInReader(version.versionTitle, version.language);
+          openVersionInReader(version.versionTitle, version.language, version.languageFamilyName);
       }
       Sefaria.setVersionPreference(currRef, version.versionTitle, version.language);
   }
@@ -173,7 +173,7 @@ class VersionBlock extends Component {
   }
   openExtendedNotes(e){
     e.preventDefault();
-    this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle);
+    this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle, this.props.version.languageFamilyName);
   }
   makeVersionNotes(){
     if (!this.props.showNotes) {
