@@ -38,7 +38,7 @@ const Promotions = () => {
             buttonLocation: sidebarAd.buttonAboveOrBelow,
             hasBlueBackground: sidebarAd.hasBlueBackground,
             isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
-            mailingLists:
+            newsletterMailingLists:
               sidebarAd.newsletterMailingLists?.data.map(
                 (mailingLists) => mailingLists.attributes.newsletterName
               ) ?? [],
