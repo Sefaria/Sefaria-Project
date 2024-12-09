@@ -25,6 +25,7 @@ data:
     {{- end }}
 
     loglevel = "warning"
+    preload_app = True
     
     {{- if .Values.instrumentation.enabled }}
     def post_fork(server, worker):
@@ -33,7 +34,7 @@ data:
     
     {{- end }}
 
-    def when_ready(server):
+    def on_starting(server):
         from reader.startup import init_library_cache
         init_library_cache()
 
