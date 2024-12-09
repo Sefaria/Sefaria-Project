@@ -3542,7 +3542,12 @@ class Ref(object, metaclass=RefCacheType):
                             return None
                     if next_leaf:
                         next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
-                        potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1, vstate=vstate)
+                        if next_leaf.depth == 1:
+                            potential_next = next_node_ref._iter_text_section(depth_up=0, vstate=vstate)
+                            if potential_next:
+                                potential_next = potential_next.as_ranged_segment_ref()
+                        else:
+                            potential_next = next_node_ref._iter_text_section(depth_up=1, vstate=vstate)
                         if potential_next:
                             self._next = potential_next
                             break
