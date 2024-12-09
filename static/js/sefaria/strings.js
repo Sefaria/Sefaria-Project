@@ -500,6 +500,7 @@ const Strings = {
     "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
     "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
     "Sorry, there was an error.": "סליחה, ארעה שגיאה",
+    "Please enter a valid first and last name.": "נא להוסיף שם פרטי ושם משפחה.",
 
     // Footer
     "Connect": "צרו קשר",

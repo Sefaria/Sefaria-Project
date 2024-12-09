@@ -6,6 +6,7 @@ export function NewsletterSignUpForm({
                                          includeEducatorOption = true,
                                          emailPlaceholder = {en: 'Sign up for Newsletter', he: "הרשמו לניוזלטר"},
                                          subscribe=Sefaria.subscribeSefariaNewsletter,  // function which sends form data to API to subscribe
+                                         additionalNewsletterMailingLists = [],
                                      }) {
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
@@ -24,7 +25,7 @@ export function NewsletterSignUpForm({
         if (showNameInputs === true) { // submit
             if (firstName.length > 0 && lastName.length > 0) {
                 setSubscribeMessage("Subscribing...");
-                subscribe(firstName, lastName, email, educatorCheck).then(res => {
+                subscribe(firstName, lastName, email, educatorCheck, additionalNewsletterMailingLists).then(res => {
                     setSubscribeMessage("Subscribed! Welcome to our list.");
                     Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
                 }).catch(error => {
@@ -32,7 +33,7 @@ export function NewsletterSignUpForm({
                     setShowNameInputs(false);
                 });
             } else {
-                setSubscribeMessage("Please enter a valid first and last name");// get he copy
+                setSubscribeMessage("Please enter a valid first and last name");
             }
         } else if (Sefaria.util.isValidEmailAddress(email)) {
             setShowNameInputs(true);
