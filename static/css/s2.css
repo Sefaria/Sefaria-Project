@@ -12701,7 +12701,7 @@ section.SheetSource .SheetOutsideBiText {
     font-size: 20px;
     color: black;
     text-align: center;
-    padding: 10px 0;
+    padding: 10px 10px;
     margin: 0;
     margin-inline-end: 30px;
     cursor: pointer;
