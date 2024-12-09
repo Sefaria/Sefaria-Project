@@ -5015,6 +5015,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: normal;
 }
 
+.topic-landing-calendar .learn-more-prompt{
+  font-size: 14px;
+  line-height: 18px;
+  color: #666;
+  margin-inline-end: 20px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
