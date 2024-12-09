@@ -3544,7 +3544,9 @@ class Ref(object, metaclass=RefCacheType):
                         next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
                         if next_leaf.depth == 1:
                             potential_next = next_node_ref._iter_text_section(depth_up=0, vstate=vstate)
-                            if potential_next:
+                            if potential_next and next_leaf.is_default():
+                                # edge case: when a depth 1 node is a default node, there's no way to
+                                # distinguish it from its parent node unless we convert it to a ranged ref
                                 potential_next = potential_next.as_ranged_segment_ref()
                         else:
                             potential_next = next_node_ref._iter_text_section(depth_up=1, vstate=vstate)
