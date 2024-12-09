@@ -33,7 +33,7 @@ data:
     
     {{- end }}
 
-    def on_starting(server):
+    def when_ready(server):
       from reader.startup import init_library_cache
       init_library_cache()
 
