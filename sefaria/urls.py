@@ -18,6 +18,11 @@ import api.views as api_views
 
 from sefaria.site.urls import site_urlpatterns
 
+from django.conf import settings
+from django.conf.urls.static import static
+
+
+
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
 handler404 = 'reader.views.custom_page_not_found'
@@ -50,7 +55,7 @@ urlpatterns = [
     url(r'^modtools/links/(?P<tref1>.+)/(?P<tref2>.+)$', sefaria_views.get_csv_links_by_refs_api),
     url(r'^modtools/index_links/(?P<tref1>.+)/(?P<tref2>.+)$', partial(sefaria_views.get_csv_links_by_refs_api, by_segment=True)),
     url(r'^torahtracker/?$', reader_views.user_stats),
-]
+] 
 
 # People Pages
 urlpatterns += [
@@ -59,6 +64,9 @@ urlpatterns += [
     url(r'^people/Talmud/?$', reader_views.talmud_person_index_redirect),
     url(r'^people/?$', reader_views.person_index_redirect),
 ]
+
+if settings.DEBUG is False:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Visualizations / Link Explorer
 urlpatterns += [

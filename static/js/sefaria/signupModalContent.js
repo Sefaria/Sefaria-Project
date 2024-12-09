@@ -37,7 +37,7 @@ const signUpModalContent = {
     contentList: [
       {
         icon: "sheetsplus-white.svg",
-        bulletContent: "model.sign_up.add_to_sheet.build_share_souce_sheet",
+        bulletContent: "model.sign_up.add_to_sheet.build_share_source_sheet",
       },
       {
         icon: "star-white.png",

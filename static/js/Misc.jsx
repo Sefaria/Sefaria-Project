@@ -108,8 +108,8 @@ const InterfaceText = ({text, html, markdown, children, placeholder, disallowedM
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}>{textResponse}</ReactMarkdown></span>
-                    : <span className={elemclasses}>{textResponse}</span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}> {textResponse}</ReactMarkdown></span>
+                    : <span className={elemclasses}> {textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
@@ -346,7 +346,7 @@ class ProfilePic extends Component {
                   </div>
                   <div className="profile-pic-cropper-button-row">
                     <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
-                      <span >{ Sefaria._("button.cancel") }</span>
+                      <span >{ Sefaria._("common.button.cancel") }</span>
                     </a>
                     <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
                       <span >{ Sefaria._("common.button.save") }</span>
@@ -2015,8 +2015,8 @@ class SignUpModal extends Component {
   render() {
     let modalContent = !this.props.modalContentKind ? generateContentForModal() : generateContentForModal(this.props.modalContentKind);
     const innerContent = modalContent.contentList.map(bullet => (
-      <div key={bullet.icon}>
-        <img src={`/static/img/${bullet.icon}`} />
+      <div key={bullet.icon} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <img src={`/static/img/${bullet.icon}`} /> 
         <InterfaceText>{bullet.bulletContent}</InterfaceText>
       </div>
     ));
@@ -2884,7 +2884,7 @@ const AdminToolHeader = function({title, validate, close}) {
               </h1>
               <div className="end">
                 <a onClick={close} id="cancel" className="button small transparent control-elem">
-                  <InterfaceText>{ Sefaria._("button.cancel")}</InterfaceText>
+                  <InterfaceText>{ Sefaria._("common.button.cancel")}</InterfaceText>
                 </a>
                 <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
                   <InterfaceText>{ Sefaria._("common.button.save")}</InterfaceText>

@@ -101,7 +101,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
       <>
         <SearchButton onClick={handleSearchButtonClick} />
         <input className={inputClasses}
-          placeholder={Sefaria._("Search in this text")}
+          placeholder={Sefaria._("connection_panel.search_in_this_text")}
           id="searchQueryInput"
           maxLength={75}
           onKeyUp={
@@ -111,7 +111,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
               }
             }
           }
-          title={Sefaria._("Search in this text")} />
+          title={Sefaria._("connection_panel.search_in_this_text")} />
       </>
       }
 

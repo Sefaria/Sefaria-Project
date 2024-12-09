@@ -1653,26 +1653,29 @@ def texts_api(request, tref):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
+    print("Image generation requested")
+    print(f"Path: {request.path}")
+    print(f"Query params: {request.GET}")
     lang = request.GET.get("lang", "en")
     if lang == "bi":
         lang = "en"
     version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
-    platform = request.GET.get("platform", "twitter")
+    platform = request.GET.get("platform", "facebook")
 
     try:
         ref = Ref(tref)
         ref_str = ref.normal() if lang == "en" else ref.he_normal()
 
-        tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
+        tf = TextFamily(ref, stripItags=True, lang=None, version=version, context=0, commentary=False).contents()
+
 
         he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
         en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
-
         text = en if lang == "en" else he
         text = ' '.join(text)
         cat = tf["primary_category"]
 
-    except:
+    except Exception as e:
         text = None
         cat = None
         ref_str = None
@@ -3621,8 +3624,8 @@ def user_profile(request, username):
         "initialProfile": requested_profile.to_api_dict(),
         "initialTab": tab,
     }
-    title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
-    desc = _('%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.') % {
+    title = _("%(full_name)s on Pecha") % {"full_name": requested_profile.full_name}
+    desc = _('%(full_name)s is on Pecha. Follow to view their public source sheets, notes and translations.') % {
         "full_name": requested_profile.full_name}
     return render_template(request, 'base.html', props, {
         "title": title,

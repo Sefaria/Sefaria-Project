@@ -234,6 +234,7 @@ class TextList extends Component {
                                     <ConnectionButtons>
                                       <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
                                       <AddConnectionToSheetButton srefs={[link.sourceRef]} addToSheetCallback={this.props.setConnectionsMode}/>
+                                      <ShareConnectionButton srefs={[link.sourceRef]} setConnectionsMode={this.props.setConnectionsMode}/>
                                       {Sefaria.is_moderator ?
                                       <DeleteConnectionButton delUrl={"/api/links/" + link._id} connectionDeleteCallback={this.onDataChange}/> : null
                                       }
@@ -357,6 +358,26 @@ const AddConnectionToSheetButton = ({srefs, addToSheetCallback, versions= {"en":
   );
 }
 
+
+const ShareConnectionButton = ({srefs, setConnectionsMode}) => {
+  /*
+  ConnectionButton composite element. Goes inside a ConnectionButtons
+  Takes a ref(s) and callback to open sharing UI
+   */
+  const handleShare = () => {
+    setConnectionsMode("Share", {"connectionRefs": srefs});
+  }
+
+  return (
+    <SimpleLinkedBlock
+      aclasses={"connection-button share-link-add"}
+      onClick={handleShare}
+      en={"Share"}
+      he={"རྒྱུད་སྤེལ།"}
+    />
+  );
+}
+
 const ConnectionButtons = ({children}) =>{
   /* This is basically just a composition container, and allows to apply css rules to a container for connection buttons.
     can also be expanded to use a default set of connection buttons, if not children are present?
@@ -369,4 +390,4 @@ const ConnectionButtons = ({children}) =>{
 }
 
 
-export {TextList as default, ConnectionButtons, AddConnectionToSheetButton, OpenConnectionTabButton, DeleteConnectionButton};
+export {TextList as default, ConnectionButtons, AddConnectionToSheetButton, OpenConnectionTabButton, DeleteConnectionButton, ShareConnectionButton};
