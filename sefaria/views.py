@@ -401,7 +401,7 @@ def title_regex_api(request, titles, json_response=True):
         return jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
 
 
-def bundle_many_texts(refs, useTextFamily=0, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None, english_version=None, hebrew_version=None):
+def bundle_many_texts(refs, useTextFamily=None, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None, english_version=None, hebrew_version=None):
     res = {}
     for tref in refs:
         try:
