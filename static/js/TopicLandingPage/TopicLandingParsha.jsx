@@ -29,6 +29,7 @@ export const TopicLandingParasha = () => {
     )
 
     return (
+        <div className="topic-landing-parasha">
         <TopicLandingCalendar
             header={{en: "This Week’s Torah Portion"}}
             title={parashahTitle}
@@ -38,10 +39,13 @@ export const TopicLandingParasha = () => {
             <div className="learn-more-prompt">
                 {learnMorePrompt}
             </div>
+            <div className="parashah-link">
             <ParashahLink />
-            <div className={"read-portion-button"}>
+            </div>
+            <div className="read-portion-button">
                 {readPortionButton}
             </div>
         </TopicLandingCalendar>
+        </div>
     );
 };

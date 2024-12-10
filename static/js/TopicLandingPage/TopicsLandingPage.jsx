@@ -21,9 +21,10 @@ export const TopicsLandingPage = ({openTopic}) => {
                     <div className="contentInner mainColumn topic-landing-page-content">
                         <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
                         <TopicSalad/>
+                    <div className="topic-landing-temporal">
                         <TopicLandingParasha/>
                         <TopicLandingSeasonal/>
-
+                    </div>
                     </div>
                     <NavSidebar sidebarModules={sidebarModules} />
                 </div>

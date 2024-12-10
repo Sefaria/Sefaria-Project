@@ -5004,6 +5004,30 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .no-wrapping-salad-item-container{
   white-space: nowrap;
 }
+.topic-landing-temporal{
+  display: flex;
+  margin-top: 30px;
+}
+.topic-landing-calendar{
+
+}
+.topic-landing-parasha{
+
+}
+.topic-landing-seasonal{
+
+}
+.topic-landing-parasha .read-portion-button{
+  margin-top: 30px;
+}
+.topic-landing-temporal > .topic-landing-parasha {
+    border-right: 1px solid #ccc;
+    padding-inline-end: 67px;
+}
+.topic-landing-temporal > .topic-landing-seasonal {
+    padding-inline-start: 67px;
+}
+
 
 .topic-landing-calendar .calendar-header{
   color: var(--Dark-Grey, #666);
@@ -5015,13 +5039,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: normal;
 }
 
-.topic-landing-calendar .learn-more-prompt{
+.topic-landing-temporal .learn-more-prompt{
   font-size: 14px;
   line-height: 18px;
   color: #666;
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.topic-landing-temporal .parashah-link{
+  margin-top: 47px;
 }
 
 .readerNavMenu .sheet {

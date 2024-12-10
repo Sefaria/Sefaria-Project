@@ -1,8 +1,6 @@
 import React from 'react';
 import {TopicLandingCalendar} from "./TopicLandingCalendar";
 import {useState, useEffect} from "react";
-import {ParashahLink} from "../NavSidebar";
-import {InterfaceText} from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 
 
@@ -18,11 +16,13 @@ export const TopicLandingSeasonal = () => {
 
 
     return (
+        <div className='topic-landing-seasonal'>
         <TopicLandingCalendar
-            header={{en: "This Week’s Torah Portion"}}
+            header={{en: "Upcoming Holiday"}}
             title={title}
             description={description}
             link={link}
         />
+        </div>
     );
 };
