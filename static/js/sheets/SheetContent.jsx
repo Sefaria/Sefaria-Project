@@ -16,6 +16,7 @@ import {SheetMetaDataBox} from "../Misc";
 import React from "react";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
 
+
 class SheetContent extends Component {
   componentDidMount() {
       this.$container = $(ReactDOM.findDOMNode(this).parentNode);
@@ -79,9 +80,12 @@ class SheetContent extends Component {
     if (!$segment) { return; }
 
     // don't move around highlighted segment when scrolling a single panel,
-    const node = parseInt($segment.attr("data-node"));
-    if (!(this.props.highlightedNode === node)) {
-      $segment.click();
+    var shouldHighlight = this.props.hasSidebar || this.props.mode === "SheetAndConnections";
+    if (shouldHighlight) {
+      const node = parseInt($segment.attr("data-node"));
+      if (!(this.props.highlightedNode === node)) {
+        $segment.click()
+      }
     }
   }
   scrollToHighlighted() {
@@ -271,4 +275,15 @@ const AddToSheetButton = ({highlightedNode, sheetID, highlightedRefs, toggleSign
         <AddToSourceSheetModal nodeRef={nodeRef} srefs={highlightedRefs} close={() => setShowingModal(false)}/>}
   </>;
 }
-export default SheetContent;
+
+class SheetNotice extends Component {
+  render() {
+    return (
+        <div className="sheetNotice sans-serif">
+          <InterfaceText>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.</InterfaceText>
+        </div>
+    );
+  }
+}
+
+export { SheetContent };
