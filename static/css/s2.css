@@ -5008,14 +5008,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   margin-top: 30px;
 }
-.topic-landing-calendar{
 
-}
 .topic-landing-parasha{
 
 }
 .topic-landing-seasonal{
 
+}
+.topic-landing-parasha .browse-all-parashot-prompt{
+  color: var(--Commentary-Blue, #4B71B7);
+  margin-top: 14px
+}
+.topic-landing-parasha .browse-all-parashot-prompt span{
+  font-family: Roboto;
+  font-size: 14px;
 }
 .topic-landing-parasha .read-portion-button{
   margin-top: 30px;

@@ -45,6 +45,9 @@ export const TopicLandingParasha = () => {
             <div className="read-portion-button">
                 {readPortionButton}
             </div>
+            <div className="browse-all-parashot-prompt">
+                <a href='/category/torah-portions'><InterfaceText text={{en: "Browse all Parshayot"}}/></a>
+            </div>
         </TopicLandingCalendar>
         </div>
     );
