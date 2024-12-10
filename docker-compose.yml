@@ -36,6 +36,7 @@ services:
     command: sh dev-docker/node-entrypoint.sh
     ports:
       - "3000:3000"
+
   es8:
     image: "elasticsearch:8.8.2"
     ports:
@@ -43,6 +44,14 @@ services:
       - "9300:9300"
     environment:
       - discovery.type=single-node
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    command: >
+      sh -c "bin/elasticsearch-plugin install --batch analysis-icu &&
+            bin/elasticsearch-plugin install --batch https://github.com/Sefaria/Sefaria-ElasticSearch/releases/download/v1.1.6/sefaria-naive-lemmatizer-v1.1.6.zip &&
+            bin/elasticsearch-plugin install --batch https://github.com/Sefaria/Sefaria-ElasticSearch/releases/download/v1.1.6/sefaria-naive-lemmatizer-less-prefixes-v1.1.6.zip &&
+            bin/elasticsearch"
 
   postgres:
     image: "postgres:latest"
