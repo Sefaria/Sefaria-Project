@@ -45,7 +45,7 @@ USE_TZ = True
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
 DOMAIN_LANGUAGES = {
 }
-SEARCH_URL = "es8"
+SEARCH_URL = "https://www.sefaria.org/api/search"
 
 ################ These are things you can change! ###########################################################################
 SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
