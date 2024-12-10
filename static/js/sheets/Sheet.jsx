@@ -6,9 +6,8 @@ import $  from '../sefaria/sefariaJquery';
 import Sefaria  from '../sefaria/sefaria';
 import SefariaEditor from '../Editor';
 
-import SheetContentSidebar from "./sheets/SheetContentSidebar";
+import SheetContentSidebar from "./SheetContentSidebar";
 import {
-  InterfaceText,
   LoadingMessage,
 } from '../Misc';
 import {SheetContent} from "./SheetContent";
