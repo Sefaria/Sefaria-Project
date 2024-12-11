@@ -78,6 +78,12 @@ class SeasonalTopic(models.Model):
     def __str__(self):
         return f"{self.topic.slug} ({self.start_date})"
 
+    def get_display_start_date(self, diaspora=True):
+        return self.display_start_date_diaspora if diaspora else self.display_start_date_israel
+
+    def get_display_end_date(self, diaspora=True):
+        return self.display_end_date_diaspora if diaspora else self.display_end_date_israel
+
 
 class SeasonalTopicEnglish(SeasonalTopic):
     class Meta:

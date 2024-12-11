@@ -3287,11 +3287,20 @@ def seasonal_topic_api(request):
 
     lang = request.GET.get("lang")
     cb = request.GET.get("callback", None)
+    diaspora = request.GET.get("diaspora", False)
+
     stopic = SeasonalTopic.objects.get_seasonal_topic(lang)
     if not stopic:
         return jsonResponse({'error': f'No seasonal topic found for lang "{lang}"'}, status=404)
     mongo_topic = Topic.init(stopic.topic.slug)
-    response = {'topic': mongo_topic.contents(), 'date': stopic.start_date.isoformat()}
+    mongo_secondary_topic = Topic.init(stopic.secondary_topic.slug)
+    response = {'topic': mongo_topic.contents(),
+                'secondary_topic': mongo_secondary_topic.contents(),
+                'display_start_date': stopic.get_display_start_date(diaspora).isoformat(),
+                'display_end_date': stopic.get_display_end_date(diaspora).isoformat(),
+                'display_date_prefix': stopic.display_date_prefix,
+                'display_date_suffix': stopic.display_date_suffix,
+                }
     return jsonResponse(response, callback=cb)
 
 

@@ -5056,7 +5056,27 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topic-landing-temporal .parashah-link{
   margin-top: 47px;
 }
-
+.topic-landing-temporal .display-date-message{
+  color: var(--Darkest-Grey, #333);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 18px;
+  margin-top: 55px;
+}
+.topic-landing-temporal .display-date-message span {
+  font-family: Roboto;
+}
+.topic-landing-temporal .display-date{
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  font-family: Roboto;
+  margin-top: 19px;
+}
+.topic-landing-temporal .display-date span{
+  font-family: 'Roboto';
+}
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
