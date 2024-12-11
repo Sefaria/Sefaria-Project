@@ -4514,7 +4514,7 @@ details .open-details::before {
 }
 
 .versionBlock .versionTitle a {
-    font-family: --var(--hebrew-serif-font-family);
+    font-family: 'Monlam Uni OuChan2';
     font-size: 20px;
     color: black;
 }
