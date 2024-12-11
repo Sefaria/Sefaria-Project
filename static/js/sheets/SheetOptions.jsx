@@ -240,20 +240,21 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   const exportToDrive = async () => {
     if (googleDriveText.en === googleDriveState.exporting.en) {
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
-
       try {
-        const data = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive`);
+        const data = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive`, null, {}, "POST", false);
+        console.log("DATA", data);
         if (data.status === 401) {
+          // couldn't authenticate, so forward to google authentication
           window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
         } else if ("error" in data) {
-          console.log(data.error.message); // Export Failed
+          setGoogleDriveText(data.error.message);
         } else {
           // Export succeeded
           setGoogleDriveLink(data.webViewLink);
           setGoogleDriveText(googleDriveState.exportComplete);
         }
       } catch (error) {
-        console.error('Error:', error);
+        setGoogleDriveText(data.error);
       }
     }
   }
