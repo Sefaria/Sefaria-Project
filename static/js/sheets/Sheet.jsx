@@ -5,11 +5,11 @@ import Component from 'react-class'
 import $  from '../sefaria/sefariaJquery';
 import Sefaria  from '../sefaria/sefaria';
 import SefariaEditor from '../Editor';
-
 import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
-} from '../Misc';
+} from '../Misc'; 
+import {SheetOptions} from "./SheetOptions";
 import {SheetContent} from "./SheetContent";
 
 class Sheet extends Component {
@@ -78,14 +78,20 @@ class Sheet extends Component {
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
+    const editable = Sefaria._uid === sheet?.owner;
     let content;
     if (!sheet) {
       content = (<LoadingMessage />);
     }
     else {
+      const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
+                                                 sheetID={sheet.id}
+                                                 historyObject={this.props.historyObject}
+                                                 editable={editable}/>;
       content = (
             <div className="sidebarLayout">
               <SheetContent
+                  sheetOptions = {sheetOptions}
                   sheetNotice={sheet.sheetNotice}
                   sources={sheet.sources}
                   title={sheet.title}
@@ -95,7 +101,7 @@ class Sheet extends Component {
                   highlightedNode={this.props.highlightedNode}
                   highlightedRefsInSheet={this.props.highlightedRefsInSheet}
                   scrollToHighlighted={this.props.scrollToHighlighted}
-                  editable={Sefaria._uid === sheet.owner}
+                  editable={editable}
                   setSelectedWords={this.props.setSelectedWords}
                   sheetNumbered={sheet.options.numbered}
                   hideImages={!!sheet.hideImages}
@@ -105,6 +111,8 @@ class Sheet extends Component {
                   authorUrl={sheet.ownerProfileUrl}
                   authorImage={sheet.ownerImageUrl}
                   summary={sheet.summary}
+                  toggleSignUpModal={this.props.toggleSignUpModal}
+                  historyObject={this.props.historyObject}
             />
               <SheetContentSidebar
                   authorStatement={sheet.ownerName}
@@ -118,7 +126,7 @@ class Sheet extends Component {
     }
     return (
       <div className={classes}>
-        { sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor ?
+        { sheet && editable && Sefaria._uses_new_editor ?
         <div className="sheetContent">
           <SefariaEditor
             data={sheet}
