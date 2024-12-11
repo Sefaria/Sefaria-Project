@@ -61,7 +61,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
-from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs
+from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -1363,14 +1363,19 @@ def links_upload_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
     file = request.FILES['csv_file']
-    linktype = request.POST.get("linkType")
-    generated_by = request.POST.get("projectName") + ' csv upload'
     uid = request.user.id
+    if request.POST.get('action') == "DELETE":
+        func = remove_links_from_csv
+        args = (file, uid)
+    else:
+        linktype = request.POST.get("linkType")
+        generated_by = request.POST.get("projectName") + ' csv upload'
+        func = add_links_from_csv
+        args = (file, linktype, generated_by, uid)
     try:
-        res = add_links_from_csv(file, linktype, generated_by, uid)
+        return jsonResponse({"status": "ok", "data": func(*args)})
     except Exception as e:
         return HttpResponseBadRequest(e)
-    return jsonResponse({"status": "ok", "data": res})
 
 def get_csv_links_by_refs_api(request, tref1, tref2, by_segment=False):
     try:
