@@ -652,7 +652,7 @@ def save_sheet_api(request):
         else:
             apikey = None
 
-        j = request.POST.get("json")
+        j = request.POST.get("json") or request.body
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
         sheet = json.loads(j)
