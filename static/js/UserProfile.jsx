@@ -11,10 +11,10 @@ import {
   TabView,
   SheetListing,
   ProfileListing,
-  ProfilePic,
   FollowButton,
   InterfaceText,
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class UserProfile extends Component {
