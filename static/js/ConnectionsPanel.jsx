@@ -8,7 +8,6 @@ import {
   SheetListing,
   Note,
   FeedbackBox,
-  ProfilePic,
   DivineNameReplacer,
   ToolTipped, InterfaceText, EnglishText, HebrewText,
 } from './Misc';
