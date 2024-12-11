@@ -8,7 +8,6 @@ import Sefaria  from './sefaria/sefaria';
 import {
   SearchButton,
   GlobalWarningMessage,
-  ProfilePic,
   InterfaceLanguageMenu,
   InterfaceText,
   LanguageToggleButton,
