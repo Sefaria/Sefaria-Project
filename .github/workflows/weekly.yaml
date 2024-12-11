@@ -25,6 +25,8 @@ jobs:
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config: ./build/standalone-db/buildkit.toml
       - id: auth
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
@@ -69,5 +71,4 @@ jobs:
           file: ./build/standalone-db/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          config: ./build/standalone-db/buildkit.toml
 ...
