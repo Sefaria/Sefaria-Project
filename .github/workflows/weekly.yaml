@@ -12,6 +12,14 @@ jobs:
       contents: 'read'
       id-token: 'write'
     steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v4.1
+        with:
+          remove-android: 'true'
+          remove-dotnet: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
       - uses: actions/checkout@v2
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
