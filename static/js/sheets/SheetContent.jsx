@@ -2,7 +2,7 @@ import Component from "react-class";
 import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "../sefaria/sefaria";
-import {AddToSourceSheetModal} from "./SheetOptions";
+import {AddToSourceSheetModal, SheetOptions} from "./SheetOptions";
 import {
   SheetComment,
   SheetHeader,
@@ -231,13 +231,18 @@ class SheetContent extends Component {
   }
   render() {
     const sources = this.getSources();
+    const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
+                                                 sheetID={this.props.sheetID}
+                                                 historyObject={this.props.historyObject}
+                                                 editable={false}
+                                                 authorUrl={this.props.authorUrl}/>;
     return (
       <div className="sheetContent">
         <div className="text">
           <SheetMetaDataBox authorStatement={this.props.authorStatement} authorUrl={this.props.authorUrl}
                                    authorImage={this.props.authorImage} title={this.props.title}
                                    summary={this.props.summary}
-                                   sheetOptions={this.props.sheetOptions}/>
+                                   sheetOptions={sheetOptions}/>
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
           </div>
