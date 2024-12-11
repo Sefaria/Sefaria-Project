@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import {SheetAuthorStatement, InterfaceText, ProfilePic, EnglishText, HebrewText} from "./Misc";
+import {SheetAuthorStatement, InterfaceText, EnglishText, HebrewText} from "./Misc";
+import {ProfilePic} from "./ProfilePic";
 import Sefaria from "./sefaria/sefaria";
 import ReactTags from 'react-tag-autocomplete'
 import { useDebounce } from "./Hooks";

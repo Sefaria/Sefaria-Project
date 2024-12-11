@@ -15,6 +15,7 @@ import {
   DonateLink
 } from './Misc';
 import {HeaderAutocomplete} from './HeaderAutocomplete'
+import {ProfilePic} from "./ProfilePic";
 
 class Header extends Component {
   constructor(props) {
