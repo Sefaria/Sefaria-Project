@@ -284,7 +284,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                         <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />
                       </div>
                   </div>
-                  <NavSidebar modules={sidebarModules} />
+                  <NavSidebar sidebarModules={sidebarModules} />
                 </div>
             </div>
         </div>
@@ -531,16 +531,16 @@ const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
     "organization": "PortalOrganization",
     "newsletter": "PortalNewsletter"
     }
-    const modules = [];
+    const sidebarModules = [];
     for (let key of entriesToDisplayList) {
         if (!portal[key]) { continue; }
-        modules.push({
+        sidebarModules.push({
             type: portalModuleTypeMap[key],
             props: portal[key],
         });
     }
     return(
-        <NavSidebar modules={modules} />
+        <NavSidebar sidebarModules={sidebarModules} />
     )
 };
 

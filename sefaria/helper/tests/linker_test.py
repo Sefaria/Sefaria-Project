@@ -10,6 +10,7 @@ import io
 from sefaria.model.text import Ref, TextChunk
 from sefaria.model.webpage import WebPage
 from sefaria.settings import ENABLE_LINKER
+from api.api_errors import APIInvalidInputException
 
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
@@ -80,6 +81,12 @@ def mock_request_post_data_without_meta_data(mock_request_post_data: dict) -> di
     return mock_request_post_data
 
 
+@pytest.fixture
+def mock_request_invalid_post_data(mock_request_post_data: dict) -> dict:
+    mock_request_post_data['text'] = 'plain text'
+    return mock_request_post_data
+
+
 def make_mock_request(post_data: dict) -> WSGIRequest:
     factory = RequestFactory()
     request = factory.post('/api/find-refs', data=json.dumps(post_data), content_type='application/json')
@@ -107,6 +114,11 @@ def mock_find_refs_options(mock_request: WSGIRequest) -> linker._FindRefsTextOpt
 @pytest.fixture
 def mock_request_without_meta_data(mock_request_post_data_without_meta_data: dict) -> WSGIRequest:
     return make_mock_request(mock_request_post_data_without_meta_data)
+
+
+@pytest.fixture
+def mock_request_invalid(mock_request_invalid_post_data: dict) -> WSGIRequest:
+    return make_mock_request(mock_request_invalid_post_data)
 
 
 @pytest.fixture
@@ -162,6 +174,13 @@ class TestMakeFindRefsResponse:
         mock_webpage.add_hit.assert_not_called()
         mock_webpage.save.assert_not_called()
 
+    def test_make_find_refs_response_invalid_post_data(self, mock_request_invalid: dict,
+                                                       mock_webpage: Mock):
+        with pytest.raises(APIInvalidInputException) as exc_info:
+            response = linker.make_find_refs_response(mock_request_invalid)
+        # assert that the 'text' field had a validation error
+        assert 'text' in exc_info.value.args[0]
+
 
 class TestUnpackFindRefsRequest:
     def test_unpack_find_refs_request(self, mock_request: WSGIRequest):
@@ -198,8 +217,8 @@ class TestFindRefsResponseLinkerV3:
         with patch.object(library, 'get_linker') as mock_get_linker:
             mock_linker = Mock()
             mock_get_linker.return_value = mock_linker
-            mock_linker.link.return_value = LinkedDoc('', [], [])
-            mock_linker.link_by_paragraph.return_value = LinkedDoc('', [], [])
+            mock_linker.link.return_value = LinkedDoc('', [], [], [])
+            mock_linker.link_by_paragraph.return_value = LinkedDoc('', [], [], [])
             yield mock_get_linker
 
     def test_make_find_refs_response_linker_v3(self, mock_get_linker: WSGIRequest,

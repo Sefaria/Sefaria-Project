@@ -5,8 +5,7 @@ import Component from 'react-class'
 import $  from '../sefaria/sefariaJquery';
 import Sefaria  from '../sefaria/sefaria';
 import {
-  CollectionStatement,
-  InterfaceText, ProfilePic, SheetAuthorStatement, SheetMetaDataBox, SheetTitle,
+  InterfaceText, SheetMetaDataBox,
 } from '../Misc';
 
 class SheetContent extends Component {

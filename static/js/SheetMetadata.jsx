@@ -7,9 +7,8 @@ import {
   LoadingMessage,
   LoginPrompt,
   SheetAuthorStatement,
-  ProfilePic,
-
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 import { CollectionsModal } from './CollectionsWidget'
 import React  from 'react';
 import ReactDOM  from 'react-dom';

@@ -4,7 +4,7 @@ import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import PropTypes from 'prop-types';
 import classNames  from 'classnames';
-import { NavSidebar, Modules } from './NavSidebar';
+import { NavSidebar, SidebarModules } from './NavSidebar';
 import {
   InterfaceText,
   LoadingMessage,
@@ -59,7 +59,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
             <RecentlyPublished multiPanel={multiPanel} toggleSignUpModal={toggleSignUpModal} />
 
           </div>
-          <NavSidebar modules={sidebarModules} />
+          <NavSidebar sidebarModules={sidebarModules} />
         </div>
       </div>
     </div>

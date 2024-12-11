@@ -1,7 +1,8 @@
-import {FollowButton, InterfaceText, ProfilePic} from "../Misc";
+import {FollowButton, InterfaceText} from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 import React, {useEffect, useState} from "react";
 import {ProfileBio} from "../UserProfile";
+import {ProfilePic} from "../ProfilePic";
 const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections}) => {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);

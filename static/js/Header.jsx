@@ -8,12 +8,12 @@ import Sefaria  from './sefaria/sefaria';
 import {
   SearchButton,
   GlobalWarningMessage,
-  ProfilePic,
   InterfaceLanguageMenu,
   InterfaceText,
   LanguageToggleButton,
   DonateLink
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 import {Autocomplete} from './Autocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
 
