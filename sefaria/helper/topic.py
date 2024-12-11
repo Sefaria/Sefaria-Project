@@ -285,15 +285,12 @@ def get_random_topic(pool=None) -> Optional[Topic]:
     :param pool: name of the pool from which to select the topic. If `None`, all topics are considered.
     :return: Returns a random topic from the database. If you provide `pool`, then the selection is limited to topics in that pool.
     """
-    query = {"pools": pool} if pool else {}
-    random_topic_dict = list(db.topics.aggregate([
-        {"$match": query},
-        {"$sample": {"size": 1}}
-    ]))
-    if len(random_topic_dict) == 0:
+    from django_topics.models import Topic as DjangoTopic
+    random_topic_slugs = DjangoTopic.objects.sample_topic_slugs('random', pool, limit=1)
+    if len(random_topic_slugs) == 0:
         return None
 
-    return Topic(random_topic_dict[0])
+    return Topic.init(random_topic_slugs[0])
 
 
 def get_random_topic_source(topic:Topic) -> Optional[Ref]:
@@ -732,15 +729,16 @@ def calculate_other_ref_scores(ref_topic_map):
     return num_datasource_map, langs_available, comp_date_map, order_id_map
 
 
-def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
-    other_ref_topic_links = list(RefTopicLinkSet({"is_sheet": False, "generatedBy": {"$ne": TopicLinkHelper.generated_by_sheets}}))
-    ref_topic_links = other_ref_topic_links + sheet_source_links
+def update_ref_topic_link_orders(source_links, sheet_topic_links):
+    """
 
-    topic_tref_score_map, ref_topic_map = calculate_mean_tfidf(ref_topic_links)
+    @param source_links: Links between sources and topics (as opposed to sheets and topics)
+    @param sheet_topic_links: Links between sheets and topics
+    """
+    topic_tref_score_map, ref_topic_map = calculate_mean_tfidf(source_links)
     num_datasource_map, langs_available, comp_date_map, order_id_map = calculate_other_ref_scores(ref_topic_map)
     pr_map, pr_seg_map = calculate_pagerank_scores(ref_topic_map)
     sheet_cache = {}
-    intra_topic_link_cache = {}
 
     def get_sheet_order(topic_slug, sheet_id):
         if sheet_id in sheet_cache:
@@ -800,7 +798,7 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
         }
 
     all_ref_topic_links_updated = []
-    all_ref_topic_links = sheet_topic_links + ref_topic_links
+    all_ref_topic_links = sheet_topic_links + source_links
     for l in tqdm(all_ref_topic_links, desc='update link orders'):
         if l.is_sheet:
             setattr(l, 'order', get_sheet_order(l.toTopic, int(l.ref.replace("Sheet ", ""))))
@@ -965,15 +963,18 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
             }).save()
 
 def recalculate_secondary_topic_data():
-    sheet_source_links = RefTopicLinkSet({'pools': 'textual'})
-    sheet_topic_links = RefTopicLinkSet({'pools': 'sheets'})
-    sheet_related_links = IntraTopicLinkSet()
+    source_links = RefTopicLinkSet({'is_sheet': False})
+    sheet_links = [RefTopicLink(l) for l in generate_sheet_topic_links()]
 
-    related_links = update_intra_topic_link_orders(sheet_related_links)
-    all_ref_links = update_ref_topic_link_orders(sheet_source_links.array(), sheet_topic_links.array())
+    related_links = update_intra_topic_link_orders(IntraTopicLinkSet())
+    all_ref_links = update_ref_topic_link_orders(source_links.array(), sheet_links)
+
+    RefTopicLinkSet({"is_sheet": True}).delete()
 
     db.topic_links.bulk_write([
         UpdateOne({"_id": l._id}, {"$set": {"order": l.order}})
+        if getattr(l, "_id", False) else
+        InsertOne(l.contents(for_db=True))
         for l in (all_ref_links + related_links)
     ])
 

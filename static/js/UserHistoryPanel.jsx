@@ -62,7 +62,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
               toggleSignUpModal={toggleSignUpModal}
               key={menuOpen}/>
           </div>
-          <NavSidebar modules={sidebarModules} />
+          <NavSidebar sidebarModules={sidebarModules} />
         </div>
       </div>
     </div>

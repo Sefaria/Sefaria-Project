@@ -3,7 +3,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
-import { NavSidebar, Modules } from './NavSidebar';
+import { NavSidebar, SidebarModules } from './NavSidebar';
 import {
   InterfaceText,
   LoadingMessage,
@@ -69,7 +69,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
             </h1>
 
             {multiPanel ? null :
-            <Modules type={"AboutCollections"} props={{hideTitle: true}} /> }
+            <SidebarModules type={"AboutCollections"} props={{hideTitle: true}} /> }
 
             <div className="collectionsList">
               { !!collectionsList ?
@@ -88,7 +88,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
               : <LoadingMessage /> }
             </div>
           </div>
-          <NavSidebar modules={sidebarModules} />
+          <NavSidebar sidebarModules={sidebarModules} />
         </div>
       </div>
     </div>
