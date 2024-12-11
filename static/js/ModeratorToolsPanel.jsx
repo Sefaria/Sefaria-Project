@@ -451,9 +451,9 @@ const RemoveLinksFromCsv = () => {
                     Upload file:
                     <input type="file" name="csv_file"  onChange={handleFileChange} />
                     <br/>
-                    Choose a csv file with two columns. First row should include titles, and the others valid refs to link.
+                    Choose a csv file with two columns. First row should include titles, and the others valid refs to delete.
                     <br/>
-                    Please note that it should be the exact ref, and 'Genesis 1' is different than 'Genesis 1:1-31'
+                    Please note that it should be the exact ref, so 'Genesis 1' is different than 'Genesis 1:1-31'
                 </label>
                 <br/>
                 <input type="submit" value="Submit" disabled={!hasFile} />
