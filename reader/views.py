@@ -1072,6 +1072,7 @@ def user_history(request):
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)
 
+@login_required
 def notes(request):
     title = _("My Notes")
     desc = _("See your notes on Sefaria")

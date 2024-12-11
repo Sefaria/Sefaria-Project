@@ -37,7 +37,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         console.error("Unexpected data format:", data);
       }
     });
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
   const title = (
     <span className="sans-serif">
@@ -101,10 +101,10 @@ UserHistoryPanel.propTypes = {
 };
 
 
-
 const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
   const [items, setItems] = useState(store.loaded ? store.items : null);
 
+  // Store changes when switching tabs, reset items
   useEffect(() => {
     setItems(store.loaded ? store.items : null);
   }, [store]);
