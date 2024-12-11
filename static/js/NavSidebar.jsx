@@ -9,14 +9,18 @@ import {SignUpModalKind} from "./sefaria/signupModalContent";
 import Button from "./common/Button";
 
 const NavSidebar = ({modules}) => {
-  return <div className="navSidebar sans-serif">
+  return (
+    <div className="navSidebar sans-serif">
     {modules.map((m, i) =>
       <Modules
         type={m.type}
         props={m.props || {}}
         key={i} />
     )}
+    <SidebarFooter />
   </div>
+
+  )
 };
 
 
@@ -26,7 +30,6 @@ const Modules = ({type, props}) => {
     "AboutSefaria":           AboutSefaria,
     "Promo":                  Promo,
     "Resources":              Resources,
-    "Footer":                 SidebarFooter,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
@@ -59,6 +62,7 @@ const Modules = ({type, props}) => {
     "PortalOrganization":     PortalOrganization,
     "PortalNewsletter":       PortalNewsletter,
     "RecentlyViewed":        RecentlyViewed,
+    "StudyCompanion":        StudyCompanion,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -151,6 +155,21 @@ const Promo = () =>
         <Promotions adType="sidebar"/>
     </Module>
 ;
+
+const StudyCompanion = () => (
+    <Module>
+        <ModuleTitle>Study Companion</ModuleTitle>
+        <div><InterfaceText>Get the Weekly Parashah Study Companion in your inbox.</InterfaceText></div>
+        <a className="button small"
+           data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
+           data-anl-promotion_name="Parashah Email Signup - Topic TOC"
+           href="https://learn.sefaria.org/weekly-parashah/">
+            <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
+            <InterfaceText>Sign Up</InterfaceText>
+        </a>
+    </Module>
+)
+
 
 const AboutSefaria = ({hideTitle}) => (
   <Module>
@@ -266,16 +285,16 @@ const SidebarFooter = () => {
   const data = getSidebarFooterData();
 
   return (
-    <Module>
-      <h3/>
-      <div className="footerContainer">
-        {data.map(footerLink => 
-          <a href={footerLink.url}>
-            <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
-          </a>
-        )}
-      </div>
-    </Module>
+    <div className = "stickySidebarFooter navSidebarModule">
+        <h3/>
+        <div className="footerContainer">
+          {data.map(footerLink => 
+            <a href={footerLink.url}>
+              <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
+            </a>
+          )}
+        </div>
+    </div>
 );
 }
 
@@ -952,5 +971,6 @@ const PortalNewsletter = ({title, description}) => {
 export {
   NavSidebar,
   Modules,
-  RecentlyViewed
+  RecentlyViewed, 
+  SidebarFooter
 };

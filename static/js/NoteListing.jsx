@@ -1,7 +1,6 @@
 import React  from 'react';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import TextRange  from './TextRange';
 import { AddToSourceSheetWindow } from './AddToSourceSheet';
 import { Note } from './Misc';
 import PropTypes  from 'prop-types';
@@ -39,19 +38,12 @@ class NoteListing extends Component {
 
     return (<div className="noteListing">
               <div className="actionButtons">
-                <img src="/static/icons/sheet.svg" onClick={this.showSheetModal} />
                 <img src="/static/icons/circled-x.svg" onClick={this.deleteNote} />
               </div>
-              <a href={url}>
-                {this.props.showText ?
-                  <TextRange sref={data.ref} /> :
-                  <span className="textRange placeholder">
-                    <span className="title">
-                      {data.ref}
-                    </span>
-                  </span> }
+              <a className="noteRefTitle" href={url}>
+                <span>{data.ref}</span>
               </a>
-              <Note text={data.text} />
+              <span className="noteText"><Note text={data.text}/></span>
               {this.state.showSheetModal ?
                 <div>
                   <AddToSourceSheetWindow

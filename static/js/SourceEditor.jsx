@@ -53,8 +53,10 @@ const SourceEditor = ({topic, close, origData={}}) => {
             interface_lang: Sefaria.interfaceLang,
             description: {"title": data.enTitle, "prompt": data.prompt, "ai_context": data.ai_context, "review_state": "edited"},
         }
+        const currentUrlObj = new URL(window.location.href);
+        const tabName = currentUrlObj.searchParams.get('tab');
         Sefaria.postRefTopicLink(refInUrl, payload)
-            .then(() => window.location.href = `/topics/${topic}`)
+            .then(() => window.location.href = `/topics/${topic}?sort=Relevance&tab=${tabName}`)
             .finally(() => setSavingStatus(false));
     }
 
