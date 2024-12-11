@@ -5,6 +5,7 @@ import Component from 'react-class';
 import Sefaria  from './sefaria/sefaria';
 import { useScrollToLoad } from "./Hooks";
 import { NavSidebar } from './NavSidebar';
+import { NotesList } from './NoteListing';
 import { 
   SheetBlock,
   TextPassage
@@ -21,8 +22,22 @@ import {
 
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
-  const store = menuOpen === "saved" ? Sefaria.saved : Sefaria.userHistory;
+  const [notes, setNotes] = useState(null);
   const contentRef = useRef();
+
+  useEffect(() => {
+    Sefaria.allPrivateNotes((data) => {
+      if (Array.isArray(data)) {
+        const flattenedNotes = data.map(note => ({
+          ref: note.ref,
+          text: note.text
+        }));
+        setNotes(flattenedNotes); 
+      } else {
+        console.error("Unexpected data format:", data);
+      }
+    });
+  }, []);
 
   const title = (
     <span className="sans-serif">
@@ -33,6 +48,10 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
       <a href="/texts/history" className={"navTitleTab" + (menuOpen === "history" ? " current" : "")}>
         <img src="/static/icons/clock.svg" />
         <InterfaceText>History</InterfaceText>
+      </a>
+      <a href="/texts/notes" className={"navTitleTab" + (menuOpen === "notes" ? " current" : "")}> 
+        <img src="/static/icons/notes-icon.svg" /> 
+        <InterfaceText>Notes</InterfaceText>
       </a>
     </span>
   );
@@ -55,19 +74,24 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
               {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null}
             </div>
-            <UserHistoryList
-              store={store}
-              scrollableRef={contentRef}
-              menuOpen={menuOpen}
-              toggleSignUpModal={toggleSignUpModal}
-              key={menuOpen}/>
+            { menuOpen === "notes" ?
+                  <NotesList notes={notes} />
+                 :
+                  <UserHistoryList
+                    store={menuOpen === "saved" ? Sefaria.saved : Sefaria.userHistory}
+                    scrollableRef={contentRef}
+                    menuOpen={menuOpen}
+                    toggleSignUpModal={toggleSignUpModal}
+                    key={menuOpen}/>
+            }
           </div>
           <NavSidebar modules={sidebarModules} />
         </div>
       </div>
     </div>
-    );
+  );
 };
+
 UserHistoryPanel.propTypes = {
   toggleLanguage:      PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func.isRequired,

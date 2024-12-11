@@ -571,6 +571,12 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("My Reading History");
             hist.url = "texts/history";
             hist.mode = "history";
+            break;
+          case "notes":
+            hist.title = Sefaria._("My Notes");
+            hist.url = "texts/notes";
+            hist.mode = "notes";
+            break;
         }
         hist.url = addTab(hist.url)
       } else if (state.mode === "Text") {
@@ -1130,6 +1136,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
     } else if (path === "/texts/saved") {
       this.showSaved();
+
+    } else if (path === "/texts/notes") {
+      this.showNotes();
 
     } else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
@@ -1756,6 +1765,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});
+  }
+  showNotes() {
+    this.setSinglePanelState({menuOpen: "notes"});
   }
   showHistory() {
     this.setSinglePanelState({menuOpen: "history"});
