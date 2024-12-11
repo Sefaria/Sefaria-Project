@@ -236,34 +236,31 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     exportComplete: { en: "Success!", he: "ייצוא הסתיים"}
   }
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
-
   const [googleDriveLink, setGoogleDriveLink] = useState("");
-  const sheet = Sefaria.sheets.loadSheetByID(sheetID);
-
-  useEffect(() => {
+  const exportToDrive = async () => {
     if (googleDriveText.en === googleDriveState.exporting.en) {
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
-      $.ajax({
-        type: "POST",
-        url: "/api/sheets/" + sheet.id + "/export_to_drive",
-        success: function (data) {
-          if ("error" in data) {
-            console.log(data.error.message);
-            // Export Failed
-          } else {
-            // Export succeeded
-            setGoogleDriveLink(data.webViewLink);
-            setGoogleDriveText(googleDriveState.exportComplete)
-          }
-        },
-        statusCode: {
-          401: function () {
-            window.location.href = "/gauth?next=" + encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive");
-          }
+
+      try {
+        const data = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive`);
+        if (data.status === 401) {
+          window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
+        } else if ("error" in data) {
+          console.log(data.error.message); // Export Failed
+        } else {
+          // Export succeeded
+          setGoogleDriveLink(data.webViewLink);
+          setGoogleDriveText(googleDriveState.exportComplete);
         }
-      });
+      } catch (error) {
+        console.error('Error:', error);
+      }
     }
-  }, [googleDriveText]);
+  }
+
+  useEffect(() => {
+      exportToDrive();
+    }, [googleDriveText]);
   const getExportMessage = () => {
     if (googleDriveText.en === googleDriveState.exporting.en) {
       return <InterfaceText text={googleDriveText}/>;
