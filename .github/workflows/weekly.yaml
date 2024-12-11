@@ -69,4 +69,5 @@ jobs:
           file: ./build/standalone-db/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          config: ./build/standalone-db/buildkit.toml
 ...
