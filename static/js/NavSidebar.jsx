@@ -590,14 +590,16 @@ const AboutTopics = ({hideTitle}) => (
 
 
 const TrendingTopics = () => (
-  <SidebarModule>
-    <SidebarModuleTitle>Trending Topics</SidebarModuleTitle>
-    {Sefaria.trendingTopics.map((topic, i) =>
-      <div className="navSidebarLink ref serif" key={i}>
-        <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
-      </div>
-    )}
-  </SidebarModule>
+    <div data-anl-feature_name="Trending">
+        <SidebarModule>
+            <SidebarModuleTitle>Trending Topics</SidebarModuleTitle>
+            {Sefaria.trendingTopics.map((topic, i) =>
+                <div className="navSidebarLink ref serif" key={i}>
+                    <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
+                </div>
+            )}
+        </SidebarModule>
+    </div>
 );
 
 
