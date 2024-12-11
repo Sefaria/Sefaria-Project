@@ -858,11 +858,6 @@ p.registration-links a:hover{
 #editProfilePage #sheetsBox,
 #editProfilePage #aboutBox {
   margin-bottom: 60px;
-  display: flex;
-  display: -webkit-flex;
-  justify-content: space-between;
-  -webkit-justify-content:space-between;
-  flex-flow: row wrap;
 }
 #editProfilePage #sheetsBox{
   flex-direction: column;
@@ -906,7 +901,6 @@ p.registration-links a:hover{
 }
 #editProfilePage .field {
   margin-bottom: 20px;
-  width: 48%;
   min-width: 300px;
 }
 #editProfilePage .field input {
