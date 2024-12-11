@@ -9,6 +9,7 @@ import {SignUpModalKind} from "../sefaria/signupModalContent";
 import {CollectionsWidget} from "../CollectionsWidget";
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
+  // because in the modularization version of the sheets viewer, the UI is designed so that the sheet is saved, not a specific segment
   let newHistoryObject = Object.assign({}, historyObject);
   const refParts = newHistoryObject.ref.split(":");
   newHistoryObject.ref = refParts[0];
