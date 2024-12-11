@@ -27,7 +27,6 @@ import { ReaderApp } from './ReaderApp';
 import {ToolsButton} from "./ConnectionsPanel";
 import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
 
-
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
