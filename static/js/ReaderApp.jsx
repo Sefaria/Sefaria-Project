@@ -1008,7 +1008,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       showHighlight: true,
                       currentlyVisibleRef: refs,
                     }
-    this.replacePanel(n-1, ref, currVersions, new_opts);
+    this.replacePanel(n-1, ref, currVersions, new_opts, false);
 }
   getHTMLLinkParentOfEventTarget(event){
     //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
@@ -1551,9 +1551,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
-  replacePanel(n, ref, currVersions, options) {
+  replacePanel(n, ref, currVersions, options, convertCommentaryRefToBaseRef=true) {
     // Opens a text in in place of the panel currently open at `n`.
-    this.openPanelAt(n, ref, currVersions, options, true);
+    this.openPanelAt(n, ref, currVersions, options, true, convertCommentaryRefToBaseRef);
   }
   openComparePanel(n, connectAfter) {
     const comparePanel = this.makePanelState({
