@@ -568,6 +568,7 @@ class SchemaNode extends Component {
       // Collapse nodes below top level, and those that aren't default or makred includedSections
       collapsed: "nodes" in props.schema && !(props.topLevel || props.disableSubCollapse) ? props.schema.nodes.map(node => !(node.default || node.includeSections)) : []
     };
+    console.log("collapsed", props.refPath, this.state.collapsed);
   }
   toggleCollapse(i) {
     if(this.props.disableSubCollapse) return;
@@ -613,6 +614,7 @@ class SchemaNode extends Component {
         } else if ("nodes" in node) {
           // SchemaNode with children (nodes)
           path = this.props.refPath + ", " + node.title;
+          console.log("schemanode with schemanode", path, this.state.collapsed, i);
           return (
             <div className="schema-node-toc" data-ref={path} key={path}>
               <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"} ${this.props.disableSubCollapse ? "fixed" : ""}`}
@@ -655,6 +657,7 @@ class SchemaNode extends Component {
             </a>);
         } else {
           // SchemaNode that has a JaggedArray below it
+          console.log("schemanode with jaggedarraynode", this.state.collapsed, i);
           return (
             <div className="schema-node-toc janode" key={i}>
               { !node.default ?
@@ -709,6 +712,7 @@ class JaggedArrayNode extends Component {
     const offset = this.props.schema?.index_offsets_by_depth?.['1'] || 0;
     if ("toc_zoom" in this.props.schema) {
       let zoom = this.props.schema.toc_zoom - 1;
+      console.log("toc_zoom", this.props.schema, zoom);
       return (<JaggedArrayNodeSection
                 depth={this.props.schema.depth - zoom}
                 sectionNames={this.props.schema.sectionNames.slice(0, -zoom)}
