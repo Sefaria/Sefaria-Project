@@ -603,6 +603,7 @@ Sefaria = extend(Sefaria, {
       ), null)
   },
   _getVersionObjects: async function(ref, primaryVersionObj, translationVersionObj, translationLanguagePreference) {
+    const [PRIMARY, TRANSLATION] = ['primary', 'translation']
     const versions = await Sefaria.getVersions(ref);
     const flatVersions = Object.values(versions).flat();
     primaryVersionObj = Sefaria._findInVresions({...primaryVersionObj, isPrimary: true}, flatVersions);
@@ -610,7 +611,7 @@ Sefaria = extend(Sefaria, {
         const {languageFamilyName, versionTitle} = primaryVersionObj;
         primaryVersionObj = {languageFamilyName, versionTitle};
     } else {
-        primaryVersionObj = {languageFamilyName: 'primary'}
+        primaryVersionObj = {languageFamilyName: PRIMARY}
     }
     if (translationVersionObj.versionTitle) {
         translationVersionObj = Sefaria._findInVresions({...translationVersionObj, isSource: false}, flatVersions);
@@ -629,7 +630,7 @@ Sefaria = extend(Sefaria, {
             const {languageFamilyName, versionTitle} = requiredVersion;
             translationVersionObj = {languageFamilyName, versionTitle};
         } else {
-            translationVersionObj = {languageFamilyName: 'translation'};
+            translationVersionObj = {languageFamilyName: TRANSLATION};
         }
     }
     return [primaryVersionObj, translationVersionObj];

@@ -10,27 +10,30 @@ import ToggleSwitchLine from "./common/ToggleSwitchLine";
 const ReaderDisplayOptionsMenu = () => {
     const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width} = useContext(ReaderPanelContext);
 
-    const isSidePanel = !['Text', 'Sheet'].includes(panelMode);
+    const isPanelModeSheet = panelMode === 'Sheet';
+    const isSidePanel = !isPanelModeSheet && panelMode !== 'Text';
+    const [HEBREW, ENGLISH, BILINGUAL] = ['hebrew', 'english', 'bilingual'];
+
     const showLangaugeToggle = () => {
-      if (panelMode === 'Sheet') { return false; }
+      if (isPanelModeSheet) { return false; }
       if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
       const hasHebrew = !!textsData.he.length;
       const hasEnglish = !!textsData.text.length;
       return !(hasHebrew && hasEnglish);
     };
-    const showPrimary = language !== 'english';
-    const showTranslation = language !== 'hebrew';
+    const showPrimary = language !== ENGLISH;
+    const showTranslation = language !== HEBREW;
     const setShowTexts = (showPrimary, showTranslation) => {
-        const language = (showPrimary && showTranslation) ? 'bilingual' : (showPrimary) ? 'hebrew' : 'english';
+        const language = (showPrimary && showTranslation) ? BILINGUAL : (showPrimary) ? HEBREW : ENGLISH;
         setOption('language', language);
     };
 
     const borderLine = <div className="text-menu-border"/>;
 
     const showLayoutsToggle = () => {
-        if ((panelMode === 'Sheet' && Sefaria.interfaceLang === 'hebrew') || //sheets in hebrew interface are hebrew
-        (width <= 600 && language === 'bilingual')) { //no loyout for mobile biilingual
+        if ((isPanelModeSheet && Sefaria.interfaceLang === HEBREW) || //sheets in hebrew interface are hebrew
+        (width <= 600 && language === BILINGUAL)) { //no loyout for mobile biilingual
             return false;
         }
         return true;
@@ -41,7 +44,7 @@ const ReaderDisplayOptionsMenu = () => {
         return booksWithAliyot.includes(textsData?.book);
     };
     const showAliyotToggle = () => {
-        return hasAliyot() && panelMode !== "Sheet";
+        return hasAliyot() && !isPanelModeSheet;
     };
     const aliyotAreShown = aliyotShowStatus === 'aliyotOn';
     const onAliyotClick = () => {
@@ -56,24 +59,26 @@ const ReaderDisplayOptionsMenu = () => {
         }
         return regex.test(sample);
     }
+
+    const [HE, TEXT, PARTIAL, ALL, NONE] = ['he', 'text', 'partial', 'all', 'none'];
     const showVowelsToggle = () => {
         const vowels_re = /[\u05b0-\u05c3\u05c7]/g;
-        return (showPrimary && sampleHas(vowels_re, 'he')) || (showTranslation && sampleHas(vowels_re, 'text'));
+        return (showPrimary && sampleHas(vowels_re, HE)) || (showTranslation && sampleHas(vowels_re, TEXT));
     };
-    const vowelsAreShown = vowelsAndCantillationState !== 'none';
+    const vowelsAreShown = vowelsAndCantillationState !== NONE;
     const onVowelsClick = () => {
-        const newVaue = (vowelsAreShown) ? 'none' : 'partial';
+        const newVaue = (vowelsAreShown) ? NONE : PARTIAL;
         setOption('vowels', newVaue);
     };
 
     const showCantillationToggle = () => {
         const cantillation_re = /[\u0591-\u05af]/g;
-        return (showPrimary && sampleHas(cantillation_re, 'he')) || (showTranslation && sampleHas(cantillation_re, 'text'));
+        return (showPrimary && sampleHas(cantillation_re, HE)) || (showTranslation && sampleHas(cantillation_re, TEXT));
     };
     const cantillationDisabled = !vowelsAreShown;
-    const cantillationsAreShown = vowelsAndCantillationState === 'all';
+    const cantillationsAreShown = vowelsAndCantillationState === ALL;
     const onCantillationClick = () => {
-        const newValue = (cantillationsAreShown) ? 'partial' : 'all';
+        const newValue = (cantillationsAreShown) ? PARTIAL : ALL;
         setOption('vowels', newValue)
     };
 
