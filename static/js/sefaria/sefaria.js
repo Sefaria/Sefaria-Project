@@ -596,11 +596,13 @@ Sefaria = extend(Sefaria, {
       query = Object.fromEntries(
           Object.entries(query).filter(([_, value]) => value != null) // filters also undefined
       );
-      return versions.reduce((maxObj, current) => (
-              Object.entries(query).every(([key, value]) => current[key] === value) &&
-              (current.priority || 0) > (maxObj?.priority ?? -1) ?
-                  current : maxObj
-      ), null)
+      return versions.reduce((maxObj, current) => {
+          const matchesQuery = Object.entries(query).every(
+              ([key, value]) => current[key] === value
+          );
+          const hasHigherPriority = (current.priority || 0) > (maxObj?.priority ?? -1);
+          return matchesQuery && hasHigherPriority ? current : maxObj;
+      }, null)
   },
   _getVersionObjects: async function(ref, primaryVersionObj, translationVersionObj, translationLanguagePreference) {
     const [PRIMARY, TRANSLATION] = ['primary', 'translation']
