@@ -592,7 +592,7 @@ Sefaria = extend(Sefaria, {
         versionsResponse.heSources = primary.sources;
     }
   },
-  _findInVresions: function (query, versions) {
+  _findInVersions: function (query, versions) {
       query = Object.fromEntries(
           Object.entries(query).filter(([_, value]) => value != null) // filters also undefined
       );
@@ -606,7 +606,7 @@ Sefaria = extend(Sefaria, {
     const [PRIMARY, TRANSLATION] = ['primary', 'translation']
     const versions = await Sefaria.getVersions(ref);
     const flatVersions = Object.values(versions).flat();
-    primaryVersionObj = Sefaria._findInVresions({...primaryVersionObj, isPrimary: true}, flatVersions);
+    primaryVersionObj = Sefaria._findInVersions({...primaryVersionObj, isPrimary: true}, flatVersions);
     if (primaryVersionObj) {
         const {languageFamilyName, versionTitle} = primaryVersionObj;
         primaryVersionObj = {languageFamilyName, versionTitle};
@@ -614,17 +614,17 @@ Sefaria = extend(Sefaria, {
         primaryVersionObj = {languageFamilyName: PRIMARY}
     }
     if (translationVersionObj.versionTitle) {
-        translationVersionObj = Sefaria._findInVresions({...translationVersionObj, isSource: false}, flatVersions);
+        translationVersionObj = Sefaria._findInVersions({...translationVersionObj, isSource: false}, flatVersions);
     }
     if (!translationVersionObj?.versionTitle) {
         let requiredVersion;
         const preferredTranslation = Sefaria.versionPreferences.getVersionPref(ref)?.en;
         if (preferredTranslation) {
-            requiredVersion = Sefaria._findInVresions({isSource: false, versionTitle: preferredTranslation}, flatVersions);
+            requiredVersion = Sefaria._findInVersions({isSource: false, versionTitle: preferredTranslation}, flatVersions);
         }
         if (!requiredVersion && translationLanguagePreference) {
             const langVersions = versions[translationLanguagePreference] || [];
-            requiredVersion = Sefaria._findInVresions({isSource: false}, langVersions);
+            requiredVersion = Sefaria._findInVersions({isSource: false}, langVersions);
         }
         if (requiredVersion) {
             const {languageFamilyName, versionTitle} = requiredVersion;
