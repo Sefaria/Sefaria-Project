@@ -2950,7 +2950,12 @@ SheetTitle.propTypes = {
 
 const SheetMetaDataBoxSegment = (props) => {
   const handleBlur = (e) => {
-    const content = e.target.textContent;
+    let content = e.target.textContent.trim();
+    // On blur, if the content only contains a <br> or is empty (it seems browsers insert a <br> tag when div content is deleted by user)
+    if (content === '') {
+      e.target.innerHTML = ''; // Clear the inner HTML
+      content = ''; // Ensure content is set to an empty string
+    }
     if (props.blurCallback) {
       props.blurCallback(content);
     }
