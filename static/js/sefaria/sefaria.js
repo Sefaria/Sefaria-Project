@@ -646,7 +646,8 @@ Sefaria = extend(Sefaria, {
     he = he || {};
     en = en || {};
     let data = await Sefaria._getPrimaryAndTranslationText(ref, he, en, translationLanguagePreference);
-    if (withContext && data.textDepth === data.sections.length) {
+    const isDataForSegment = data.textDepth === data.sections.length;
+    if (withContext && isDataForSegment) {
         const {text, he, alts} = await Sefaria.getTextFromCurrVersions(data.sectionRef, currVersions, translationLanguagePreference);
         data = {
             ...data,
