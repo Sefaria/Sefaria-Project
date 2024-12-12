@@ -4,7 +4,6 @@ import Sefaria from "../sefaria/sefaria";
 import React, {useEffect, useState} from "react";
 import {ProfileBio} from "../UserProfile";
 const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections}) => {
-    console.log(toggleSignUpModal);
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     useEffect(() => {
@@ -29,7 +28,6 @@ const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSig
 }
 
 const SheetProfileInfo = ({profile, toggleSignUpModal}) => {
-    console.log(toggleSignUpModal);
     const profileFollowers = <div className="profileFollowers">
                                              <InterfaceText>{String(profile.followers.length)}</InterfaceText>&nbsp;
                                              <InterfaceText>followers</InterfaceText>

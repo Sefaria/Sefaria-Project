@@ -86,7 +86,6 @@ class Sheet extends Component {
       content = (<LoadingMessage />);
     }
     else {
-      console.log(this.props.toggleSignUpModal);
       content = (
             <div className="sidebarLayout">
               <SheetContent
