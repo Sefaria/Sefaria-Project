@@ -6,4 +6,5 @@ class PluginAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     fields = ('name', 'description', 'url')
 
+
 admin.site.register(Plugin, PluginAdmin)
