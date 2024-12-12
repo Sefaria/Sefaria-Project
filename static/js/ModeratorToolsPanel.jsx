@@ -137,7 +137,7 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
         <div className="dlSectionTitle">
           <span className="int-en">Bulk Upload CSV</span>
-          <span className="int-he">הורדת הטקסט</span>
+          <span className="int-he">העלאה מ-CSV</span>
         </div>
          <form id="file-form">
            <input className="dlVersionSelect" type="file" id="file-select"  multiple onChange={this.handleFiles}/>
