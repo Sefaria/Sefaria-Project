@@ -402,11 +402,11 @@ class UploadLinksFromCSV extends Component{
 }
 
 const RemoveLinksFromCsv = () => {
-    const [hasFile, setHasFile] = useState(false);
+    const [fileName, setFileName] = useState(false);
     const [uploadMessage, setUploadMessage] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
     const handleFileChange = (event) => {
-        setHasFile(!!event.target.files[0]);
+        setFileName(event.target.files[0] || null);
     }
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -434,7 +434,7 @@ const RemoveLinksFromCsv = () => {
                     setErrorMessage(null);
                     if (resp_json.data.errors) {
                         let blob = new Blob([resp_json.data.errors], {type: "text/plain;charset=utf-8"});
-                        saveAs(blob, 'errors.csv');
+                        saveAs(blob, `${fileName.name.split('.')[0]} - error report - undeleted links.csv`);
                     }
                 });
             }
@@ -456,7 +456,7 @@ const RemoveLinksFromCsv = () => {
                     Please note that it should be the exact ref, so 'Genesis 1' is different than 'Genesis 1:1-31'
                 </label>
                 <br/>
-                <input type="submit" value="Submit" disabled={!hasFile} />
+                <input type="submit" value="Submit" disabled={!fileName} />
             </form>
             {uploadMessage && <div>{uploadMessage}</div>}
             {errorMessage && <div dangerouslySetInnerHTML={{__html: errorMessage}}/> }
