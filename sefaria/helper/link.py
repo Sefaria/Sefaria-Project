@@ -552,7 +552,7 @@ def add_links_from_csv(file, linktype, generated_by, uid):
                     invalidate_ref(Ref(ref), purge=True)
         except Exception as e:
             logger.error(e)
-    return {'message': f'{success} links succefully saved', 'errors': output.getvalue()}
+    return {'message': f'{success} links successfully saved', 'errors': output.getvalue()}
 
 
 def remove_links_from_csv(file, uid):
@@ -577,7 +577,7 @@ def remove_links_from_csv(file, uid):
                     invalidate_ref(Ref(ref), purge=True)
         except Exception as e:
             logger.error(e)
-    return {'message': f'{success} links succefully removed', 'errors': output.getvalue()}
+    return {'message': f'{success} links successfully removed', 'errors': output.getvalue()}
 
 
 def make_link_query(trefs, **additional_query):
