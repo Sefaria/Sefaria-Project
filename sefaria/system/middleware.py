@@ -16,6 +16,9 @@ from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_terri
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 
+import structlog
+logger = structlog.get_logger(__name__)
+
 
 class SharedCacheMiddleware(MiddlewareMixin):
     def process_request(self, request):
