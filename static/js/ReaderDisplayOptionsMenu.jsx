@@ -32,11 +32,8 @@ const ReaderDisplayOptionsMenu = () => {
     const borderLine = <div className="text-menu-border"/>;
 
     const showLayoutsToggle = () => {
-        if ((isPanelModeSheet && Sefaria.interfaceLang === HEBREW) || //sheets in hebrew interface are hebrew
-        (width <= 600 && language === BILINGUAL)) { //no loyout for mobile biilingual
-            return false;
-        }
-        return true;
+        return !((isPanelModeSheet && Sefaria.interfaceLang === HEBREW) || //sheets in hebrew interface are hebrew
+            (width <= 600 && language === BILINGUAL));
     }
 
     const hasAliyot = () => {
