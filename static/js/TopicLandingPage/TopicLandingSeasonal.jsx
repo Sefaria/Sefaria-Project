@@ -55,9 +55,12 @@ export const TopicLandingSeasonal = () => {
     title,
     description,
     link,
-    secondaryTopicSlug,
     displayStartDate,
     displayEndDate,
+    displayDateSuffix,
+    displayDatePrefix,
+    secondaryTopicTitle,
+    secondaryTopicSlug,
     isLoading,
   } = useSeasonalTopic();
     if (isLoading) return null;
