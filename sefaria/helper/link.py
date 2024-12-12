@@ -563,7 +563,7 @@ def remove_links_from_csv(file, uid):
     errors_writer = csv.DictWriter(output, fieldnames=['ref1', 'ref2'])
     errors_writer.writeheader()
     for row in reader:
-        refs = list(row.values())
+        refs = sorted(row.values())
         try:
             link = Link().load({'refs': refs})
             tracker.delete(uid, Link, link._id)
