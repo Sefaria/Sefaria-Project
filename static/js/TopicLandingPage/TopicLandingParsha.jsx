@@ -17,36 +17,33 @@ export const TopicLandingParasha = () => {
     const parashahDesc = parashah.description;
     const parashahTopicLink = `topics/${parashah?.topic}`;
     const parashahRefLink = `/${parashah?.url}`;
-    const learnMorePrompt = (
-      <a href={parashahTopicLink}>
-        {`Learn More on Parashat ${parashahTitle?.en}>`}
-      </a>
-    );
-    const readPortionButton = (
-        <a href={parashahRefLink} className="button small blue">
-            <InterfaceText text={{en: 'Read the Portion'}}/>
-        </a>
-    )
+    const learnMorePrompt = {en: `Learn More on Parashat ${parashahTitle?.en}>`,
+        he:`${Sefaria._("Learn More on Parashat")} ${parashahTitle?.he}>`}
+
 
     return (
         <div className="topic-landing-parasha">
         <TopicLandingCalendar
-            header={{en: "This Week’s Torah Portion"}}
+            header={<InterfaceText>This Week’s Torah Portion</InterfaceText>}
             title={parashahTitle}
             description={parashahDesc}
             link={parashahTopicLink}
         >
             <div className="learn-more-prompt">
-                {learnMorePrompt}
+                <a href={parashahTopicLink}>
+                    <InterfaceText text={learnMorePrompt}/>
+                </a>
             </div>
             <div className="parashah-link">
             <ParashahLink />
             </div>
             <div className="read-portion-button">
-                {readPortionButton}
+                <a href={parashahRefLink} className="button small blue">
+                    <InterfaceText>Read the Portion</InterfaceText>
+                </a>
             </div>
             <div className="browse-all-parashot-prompt">
-                <a href='/category/torah-portions'><InterfaceText text={{en: "Browse all Parshayot"}}/></a>
+                <a href='/category/torah-portions'><InterfaceText>Browse all Parshayot</InterfaceText></a>
             </div>
         </TopicLandingCalendar>
         </div>

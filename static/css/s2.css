@@ -5027,11 +5027,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 30px;
 }
 .topic-landing-temporal > .topic-landing-parasha {
-    border-right: 1px solid #ccc;
+    border-inline-end: 1px solid #ccc;
     padding-inline-end: 67px;
+    flex: 1;
 }
 .topic-landing-temporal > .topic-landing-seasonal {
     padding-inline-start: 67px;
+    flex: 1;
 }
 
 

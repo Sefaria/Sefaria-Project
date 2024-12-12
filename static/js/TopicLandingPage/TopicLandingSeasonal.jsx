@@ -21,7 +21,9 @@ const useSeasonalTopic = () => {
   const displayEndDate = new Date(seasonal.display_end_date);
   const displayDatePrefix = seasonal.display_date_prefix || '';
   const displayDateSuffix = seasonal.display_date_suffix || '';
-  const displayDateMessage = `${displayDatePrefix} ${title?.en} ${displayDateSuffix}`;
+  const secondaryTopicTitle = seasonal.secondary_topic?.primaryTitle || null;
+  const displayDateMessageEn = `${displayDatePrefix ?? ''} ${secondaryTopicTitle?.en ?? ''} ${displayDateSuffix ?? ''}`;
+  const displayDateMessageHe = `${displayDatePrefix ?? ''} ${secondaryTopicTitle?.he ?? ''} ${displayDateSuffix ?? ''}`;
   const secondaryTopicSlug = seasonal.secondary_topic?.slug || null;
 
 
@@ -31,7 +33,8 @@ const useSeasonalTopic = () => {
     link,
     displayStartDate,
     displayEndDate,
-    displayDateMessage,
+    displayDateMessageEn,
+    displayDateMessageHe,
     secondaryTopicSlug,
     isLoading: false,
   };
@@ -43,40 +46,47 @@ export const TopicLandingSeasonal = () => {
     title,
     description,
     link,
-    displayDateMessage,
+    displayDateMessageEn,
+    displayDateMessageHe,
     secondaryTopicSlug,
     displayStartDate,
     displayEndDate,
     isLoading,
   } = useSeasonalTopic();
     if (isLoading) return null;
-      const fmt = new Intl.DateTimeFormat("en", {
+      const enDateFormat = new Intl.DateTimeFormat("en", {
+    month: "long",
+    day: "numeric",
+  });
+    const heDateFormat = new Intl.DateTimeFormat("he", {
     month: "long",
     day: "numeric",
   });
 
-  const formattedDate = fmt.formatRange(displayStartDate, displayEndDate);
-  const learnMorePrompt = `Learn More on ${title?.en}>`;
+  const formattedDateEn = secondaryTopicSlug  && enDateFormat.formatRange(displayStartDate, displayEndDate);
+  const formattedDateHe = secondaryTopicSlug && heDateFormat.formatRange(displayStartDate, displayEndDate);
+  const learnMorePrompt = {en: `Learn More on ${title?.en}>`,
+      he:`${Sefaria._("Learn More on")} ${title?.he}>`}
 
 
     return (
         <div className='topic-landing-seasonal'>
             <TopicLandingCalendar
-                header={{en: "Upcoming Holiday"}}
+                header={<InterfaceText>Upcoming Holiday</InterfaceText>}
                 title={title}
                 description={description}
                 link={link}
             />
             <div className="learn-more-prompt">
                 <a href={link}>
-                    {learnMorePrompt}
+                    <InterfaceText text={learnMorePrompt}/>
                 </a>
             </div>
             <div className="display-date-message">
-                <a href={`/topics/${secondaryTopicSlug}`}><InterfaceText text={{en: displayDateMessage}}/></a>
+                <a href={`/topics/${secondaryTopicSlug}`}><InterfaceText text={{en: displayDateMessageEn, he: displayDateMessageHe}}/></a>
             </div>
             <div className='display-date'>
-                <InterfaceText text={{en: formattedDate}}/>
+                <InterfaceText text={{en: formattedDateEn, he:formattedDateHe}}/>
             </div>
         </div>
     );

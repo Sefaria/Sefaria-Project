@@ -548,6 +548,12 @@ const Strings = {
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
     "National Library of Israel": "הספרייה הלאומית",
     "Works on Sefaria": "חיבורים וכתבים בספריא",
+    "Learn More on Parashat": "לקריאה נוספת על פרשת",
+    "This Week’s Torah Portion": "פרשת השבוע",
+    "Learn More on": "לקריאה נוספת על",
+    "Read the Portion": "לקריאת הפרשה",
+    "Browse all Parshayot": "לצפייה בכל הפרשות",
+    "Upcoming Holiday": "החג הבא",
 
     //Module Names
     "Download Text": "הורדת טקסט",
