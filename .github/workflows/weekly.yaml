@@ -12,11 +12,21 @@ jobs:
       contents: 'read'
       id-token: 'write'
     steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v4.1
+        with:
+          remove-android: 'true'
+          remove-dotnet: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
       - uses: actions/checkout@v2
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config: ./build/standalone-db/buildkit.toml
       - id: auth
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
@@ -53,10 +63,11 @@ jobs:
           flavor: |
             latest=true
       - name: build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
+          platforms: linux/amd64,linux/arm64
           file: ./build/standalone-db/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
