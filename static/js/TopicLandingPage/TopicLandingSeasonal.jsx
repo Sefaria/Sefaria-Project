@@ -23,6 +23,7 @@ export const TopicLandingSeasonal = () => {
     const displayDatePrefix = seasonal ? seasonal.display_date_prefix: null;
     const displayDateSuffix = seasonal ? seasonal.display_date_suffix: null;
     const displayDateMessage = `${displayDatePrefix ?? ''} ${title?.en} ${displayDateSuffix ?? ''}`;
+    const secondaryTopicSlug = seasonal ? seasonal.secondary_topic.slug: null;
 
     const fmt = new Intl.DateTimeFormat("en", {
       month: "long",
@@ -42,7 +43,7 @@ export const TopicLandingSeasonal = () => {
                 {learnMorePrompt}
             </div>
             <div className="display-date-message">
-                <InterfaceText text={{en: displayDateMessage}}/>
+                <a href={`/topics/${secondaryTopicSlug}`}><InterfaceText text={{en: displayDateMessage}}/></a>
             </div>
             <div className='display-date'>
                 <InterfaceText text={{en: formattedDate}}/>
