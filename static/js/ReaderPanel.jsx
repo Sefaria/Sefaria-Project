@@ -685,6 +685,7 @@ class ReaderPanel extends Component {
       );
     }
     if (this.state.mode === "Sheet") {
+      console.log(this.props)
       menu = <Sheet
           adjustHighlightedAndVisible={this.adjustSheetHighlightedAndVisible}
           panelPosition ={this.props.panelPosition}
@@ -703,7 +704,7 @@ class ReaderPanel extends Component {
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
           hasSidebar={this.props.hasSidebar}
-          toggleSideUpModal={this.props.toggleSignUpModal}
+          toggleSignUpModal={this.props.toggleSignUpModal}
         />;
     }
 
