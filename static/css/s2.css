@@ -386,6 +386,9 @@ body.hasBannerMessage {
   transition: padding-top .3s;
   padding-top: 120px;
 }
+body.hasBannerMessage:not(:has(#bannerMessage)) {
+  padding-top: 0;
+}
 body.hasBannerMessage #s2.headerOnly {
   height: 180px;
 }
@@ -9235,6 +9238,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 .noteListing {
   margin-bottom: 30px;
   border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
 }
 .noteListing a:hover {
   text-decoration: none;
