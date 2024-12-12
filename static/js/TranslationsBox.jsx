@@ -190,7 +190,7 @@ class VersionsTextList extends Component {
         />
         <ConnectionButtons>
           <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={onRangeClick}/>
-          <AddConnectionToSheetButton srefs={this.props.srefs} versions={{[language]: vTitle}} addToSheetCallback={this.props.setConnectionsMode}/>
+          {Sefaria._uid && <AddConnectionToSheetButton srefs={this.props.srefs} versions={{[language]: vTitle}} addToSheetCallback={this.props.setConnectionsMode}/>}
         </ConnectionButtons>
       </div>);
   }
