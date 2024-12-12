@@ -4,6 +4,16 @@ import {useState, useEffect} from "react";
 import Sefaria from "../sefaria/sefaria";
 import {InterfaceText} from "../Misc";
 
+const createDisplayDateMessage =(displayDatePrefix, link, secondaryTopicTitleString, displayDateSuffix)=> {
+  return (
+    <>
+      {displayDatePrefix ?? ''}{' '}
+      {secondaryTopicTitleString ? <a href={link}>{secondaryTopicTitleString}</a> : ''}{' '}
+      {displayDateSuffix ?? ''}
+    </>
+  );
+}
+
 const useSeasonalTopic = () => {
   const [seasonal, setSeasonal] = useState(null);
 
@@ -22,8 +32,6 @@ const useSeasonalTopic = () => {
   const displayDatePrefix = seasonal.display_date_prefix || '';
   const displayDateSuffix = seasonal.display_date_suffix || '';
   const secondaryTopicTitle = seasonal.secondary_topic?.primaryTitle || null;
-  const displayDateMessageEn = `${displayDatePrefix ?? ''} ${secondaryTopicTitle?.en ?? ''} ${displayDateSuffix ?? ''}`;
-  const displayDateMessageHe = `${displayDatePrefix ?? ''} ${secondaryTopicTitle?.he ?? ''} ${displayDateSuffix ?? ''}`;
   const secondaryTopicSlug = seasonal.secondary_topic?.slug || null;
 
 
@@ -33,8 +41,9 @@ const useSeasonalTopic = () => {
     link,
     displayStartDate,
     displayEndDate,
-    displayDateMessageEn,
-    displayDateMessageHe,
+    displayDateSuffix,
+    displayDatePrefix,
+    secondaryTopicTitle,
     secondaryTopicSlug,
     isLoading: false,
   };
@@ -46,19 +55,19 @@ export const TopicLandingSeasonal = () => {
     title,
     description,
     link,
-    displayDateMessageEn,
-    displayDateMessageHe,
     secondaryTopicSlug,
     displayStartDate,
     displayEndDate,
     isLoading,
   } = useSeasonalTopic();
     if (isLoading) return null;
-      const enDateFormat = new Intl.DateTimeFormat("en", {
+  const displayDateMessageEn = createDisplayDateMessage(displayDatePrefix, link, secondaryTopicTitle?.en, displayDateSuffix);
+  const displayDateMessageHe = createDisplayDateMessage(displayDatePrefix, link, secondaryTopicTitle?.he, displayDateSuffix);
+  const enDateFormat = new Intl.DateTimeFormat("en", {
     month: "long",
     day: "numeric",
-  });
-    const heDateFormat = new Intl.DateTimeFormat("he", {
+    });
+  const heDateFormat = new Intl.DateTimeFormat("he", {
     month: "long",
     day: "numeric",
   });
@@ -83,7 +92,7 @@ export const TopicLandingSeasonal = () => {
                 </a>
             </div>
             <div className="display-date-message">
-                <a href={`/topics/${secondaryTopicSlug}`}><InterfaceText text={{en: displayDateMessageEn, he: displayDateMessageHe}}/></a>
+                <InterfaceText text={{en: displayDateMessageEn, he: displayDateMessageHe}}/>
             </div>
             <div className='display-date'>
                 <InterfaceText text={{en: formattedDateEn, he:formattedDateHe}}/>

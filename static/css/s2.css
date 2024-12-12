@@ -5069,6 +5069,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topic-landing-temporal .display-date-message span {
   font-family: Roboto;
 }
+.topic-landing-temporal .display-date-message a {
+  font-family: Roboto;
+}
 .topic-landing-temporal .display-date{
   font-size: 14px;
   font-style: normal;
