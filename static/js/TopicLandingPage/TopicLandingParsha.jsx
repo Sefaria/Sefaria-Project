@@ -17,8 +17,8 @@ export const TopicLandingParasha = () => {
     const parashahDesc = parashah.description;
     const parashahTopicLink = `topics/${parashah?.topic}`;
     const parashahRefLink = `/${parashah?.url}`;
-    const learnMorePrompt = {en: `Learn More on Parashat ${parashahTitle?.en}>`,
-        he:`${Sefaria._("Learn More on Parashat")} ${parashahTitle?.he}>`}
+    const learnMorePrompt = {en: `Learn More on Parashat ${parashahTitle?.en}›`,
+        he:`${Sefaria._("Learn More on Parashat")} ${parashahTitle?.he}›`}
 
 
     return (
