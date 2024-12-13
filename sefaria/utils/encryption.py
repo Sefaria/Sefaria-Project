@@ -1,10 +1,9 @@
 from django.conf import settings
-from django.core import validators
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import timezone
-from django.utils.functional import cached_property
 import cryptography.fernet
+import structlog
 
+logger = structlog.get_logger(__name__)
 
 def parse_key(key):
     """
@@ -20,7 +19,8 @@ def get_crypter(configured_keys=None):
         configured_keys = getattr(settings, 'FIELD_ENCRYPTION_KEY', None)
 
     if configured_keys is None:
-        raise ImproperlyConfigured('FIELD_ENCRYPTION_KEY must be defined in settings')
+        logger.warning('FIELD_ENCRYPTION_KEY must be defined in settings')
+        return None
 
     try:
         # Allow the use of key rotation
@@ -39,8 +39,10 @@ def get_crypter(configured_keys=None):
 
 def encrypt_str_with_key(s, key):
     cypher = get_crypter(key)
-    return cypher.encrypt(s.encode('utf-8'))
+    if cypher:
+        return cypher.encrypt(s.encode('utf-8'))
 
 def decrypt_str_with_key(t, key):
     cypher = get_crypter(key)
-    return cypher.decrypt(t.encode('utf-8')).decode('utf-8')
+    if cypher:
+        return cypher.decrypt(t.encode('utf-8')).decode('utf-8')
