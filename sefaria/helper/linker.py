@@ -39,6 +39,7 @@ FIND_REFS_POST_SCHEMA = {
     "version_preferences_by_corpus": {
         "type": "dict",
         "required": False,
+        "nullable": True,
         "keysrules": {"type": "string"},
         "valuesrules": {
             "type": "dict",

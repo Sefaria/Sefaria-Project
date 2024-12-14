@@ -3,6 +3,8 @@ import {TopicLandingSearch} from "./TopicLandingSearch";
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
 import {TopicOfTheDay} from "./TopicOfTheDay";
+import {TopicSalad} from "./TopicSalad";
+import {RainbowLine} from "../RainbowLine";
 
 
 export const TopicsLandingPage = ({openTopic}) => {
@@ -13,8 +15,9 @@ export const TopicsLandingPage = ({openTopic}) => {
         <div className="readerNavMenu" key="0">
             <div className="content">
                 <div className="sidebarLayout">
-                    <div className="contentInner mainColumn">
+                    <div className="contentInner mainColumn topic-landing-page-content">
                         <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
+                        <TopicSalad/>
                         <TopicOfTheDay />
                     </div>
                     <NavSidebar sidebarModules={sidebarModules} />

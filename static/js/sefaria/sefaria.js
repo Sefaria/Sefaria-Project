@@ -1946,6 +1946,28 @@ _media: {},
     const topics = Sefaria.topicsByRef(refs);
     return topics && topics.length;
   },
+  _TopicsByPool: {},
+  getTopicsByPool: function(poolName, numOfTopics, order) {
+    let params = {};
+    if (numOfTopics != undefined) { params["n"] = numOfTopics; }
+    if (order != undefined) { params["order"] = order; }
+    let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
+    queryString = (queryString ? "?" + queryString : "");
+    const url = this.apiHost + "/api/topics/pools/" + encodeURIComponent(poolName) + queryString;
+
+    const shouldBeCached = order != undefined && order != 'random';
+    if (!shouldBeCached) {return this._ApiPromise(url)}
+
+    return this._cachedApiPromise({
+        url:   url,
+        key:   poolName + queryString,
+        store: this._TopicsByPool
+    });
+  },
+    getLangSpecificTopicPoolName: function(poolName){
+      const lang = this.interfaceLang == 'hebrew' ? 'he' : 'en';
+      return `${poolName}_${lang}`
+    },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
