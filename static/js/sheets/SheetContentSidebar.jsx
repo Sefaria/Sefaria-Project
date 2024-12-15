@@ -22,12 +22,12 @@ const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSig
                 name={authorStatement}
             />
             {authorName}
-            {!loading && <SheetProfileInfo profile={profile}/>}
+            {!loading && <SheetProfileInfo profile={profile} toggleSignUpModal={toggleSignUpModal}/>}
             {<PartOfCollections collections={collections}/>}
     </div>;
 }
 
-const SheetProfileInfo = ({profile}) => {
+const SheetProfileInfo = ({profile, toggleSignUpModal}) => {
     const profileFollowers = <div className="profileFollowers">
                                              <InterfaceText>{String(profile.followers.length)}</InterfaceText>&nbsp;
                                              <InterfaceText>followers</InterfaceText>
@@ -38,7 +38,8 @@ const SheetProfileInfo = ({profile}) => {
              {Sefaria._uid !== profile.id && <FollowButton
                                                 large={true}
                                                 uid={profile.id}
-                                                following={Sefaria.following.indexOf(profile.id) > -1}/>
+                                                following={Sefaria.following.indexOf(profile.id) > -1}
+                                                toggleSignUpModal={toggleSignUpModal}/>
              }
            </span>;
 }
