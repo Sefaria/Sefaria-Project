@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Sefaria from "./sefaria/sefaria";
 import classNames  from 'classnames';
 import {InterfaceText, TabView} from './Misc';
-import { NavSidebar, Modules } from './NavSidebar';
+import { NavSidebar, SidebarModules } from './NavSidebar';
 
 
 const TranslationsPage = ({translationsSlug}) => {
@@ -88,7 +88,7 @@ const TranslationsPage = ({translationsSlug}) => {
               </>
               </TabView>}
               </div>
-            <NavSidebar modules={sidebarModules} />
+            <NavSidebar sidebarModules={sidebarModules} />
           </div>
         </div>
       </div>
