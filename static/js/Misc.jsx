@@ -2891,7 +2891,7 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, sheetOptions, editable}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable}) => {
   return <div className="sheetMetaDataBox">
     <div className="sidebarLayout">
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
