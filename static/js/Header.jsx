@@ -8,13 +8,13 @@ import Sefaria  from './sefaria/sefaria';
 import {
   SearchButton,
   GlobalWarningMessage,
-  ProfilePic,
   InterfaceLanguageMenu,
   InterfaceText,
   LanguageToggleButton,
   DonateLink
 } from './Misc';
 import {HeaderAutocomplete} from './HeaderAutocomplete'
+import {ProfilePic} from "./ProfilePic";
 
 class Header extends Component {
   constructor(props) {

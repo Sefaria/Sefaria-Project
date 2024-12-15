@@ -4617,9 +4617,9 @@ def android_asset_links_json(request):
         }]
     )
 
-def application_health_api(request):
+def rollout_health_api(request):
     """
-    Defines the /healthz  and /health-check API endpoints which responds with
+    Defines the /healthz-rollout API endpoint which responds with
         200 if the application is ready for requests,
         500 if the application is not ready for requests
     """
@@ -4633,9 +4633,9 @@ def application_health_api_nonlibrary(request):
     return http.HttpResponse("Healthy", status="200")
 
 
-def rollout_health_api(request):
+def application_health_api(request):
     """
-    Defines the /healthz-rollout API endpoint which responds with
+    Defines the /healthz API endpoint which responds with
         200 if the services Django depends on, Redis, Multiserver, and NodeJs
             are available.
         500 if any of the aforementioned services are not available

@@ -1,5 +1,4 @@
 from django.contrib import admin, messages
-from django.utils.html import format_html
 from django_topics.models import Topic, TopicPool, FeaturedTopicEnglish, FeaturedTopicHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
 from django_topics.models.pool import PoolType
 
