@@ -8092,7 +8092,7 @@ a .button:hover {
 .button.small.publish {
   color: #666666;
   background-color: white;
-  font-weight: 600;
+  font-weight: 500;
   min-height: 31px;
   height: 31px;
   padding: 0 10px;
@@ -10531,6 +10531,8 @@ span.purim-emoji img{
 }
 .sheetContent .spacer:only-of-type.empty {
   line-height: inherit;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .sheetContent .spacer:only-of-type.empty:before {
@@ -13885,8 +13887,8 @@ span.ref-link-color-3 {color: blue}
 }
 .sheetsInPanel .dropdownLinks {
   min-width: 50%;
-  margin-top: 10px;
-  color: #666;
+  margin-top: 7px;
+  color: var(--dark-grey);
   cursor: pointer;
   position: relative;
   -webkit-margin-start: 20px;
