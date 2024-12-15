@@ -13909,14 +13909,25 @@ span.ref-link-color-3 {color: blue}
   display:none;
   overflow:hidden;
 }
-.sheetsInPanel .dropdownItem {
+.sheetsInPanel .dropdownItem:nth-child(n+2):nth-last-child(n+2) {
   padding: 5px 5px !important;
 }
-
+.sheetsInPanel .dropdownItem:first-child {
+  padding-block-start: 10px !important;
+  padding-block-end: 5px !important;
+}
+.sheetsInPanel .dropdownItem:last-child {
+  padding-block-start: 5px !important;
+  padding-block-end: 10px !important;
+}
 .sheetsInPanel .dropdownLinks .dropdownLinks-menu {
   background: white;
   box-shadow: revert;
-  border: 1px solid #CCCCCC;
+  border: 1px solid var(--light-grey);
+}
+.sheetsInPanel .dropdownSeparator {
+  margin-block: 5px;
+  border: 0.5px solid var(--light-grey);
 }
 
 
@@ -13943,6 +13954,9 @@ span.ref-link-color-3 {color: blue}
   flex-direction: column;
   padding: 4px;
   max-width: 220px;
+}
+.sheetsInPanel .dropdownLinks-options {
+  padding: 0;
 }
 .header .dropdownLinks .dropdownLinks-menu.open, .sheetsInPanel .dropdownLinks .dropdownLinks-menu.open {
   display: block;
