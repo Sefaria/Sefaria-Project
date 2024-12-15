@@ -4926,40 +4926,40 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   top: 6px;
   padding-inline-start: 11px;
 }
-.topicOfTheDay {
+.featuredTopic {
   display: flex;
   flex-direction: column;
   margin-top: 68px;
 }
-.topicOfTheDayContent {
+.featuredTopicContent {
   display: flex;
   flex-direction: row;
 }
-.topicOfTheDayContent img {
+.featuredTopicContent img {
   width: 239px;
 }
-.topicOfTheDayContent h3 {
+.featuredTopicContent h3 {
   font-size: var(--serif-h3-font-size);
   text-transform: none;
 }
-.topicOfTheDayText .int-en,
-.topicOfTheDayText .int-he {
+.featuredTopicText .int-en,
+.featuredTopicText .int-he {
   display: flex;
   flex-direction: column;
   color: var(--dark-grey);
   margin-inline-start: 30px;
 }
-.topicOfTheDayText h3 {
+.featuedTopicText h3 {
   text-transform: none;
   margin: 0 0 15px 0;
 }
-.topicOfTheDayGoToLink {
+.featuedTopicGoToLink {
   margin-top: 25px;
 }
-.topicOfTheDayText .topicDescription {
+.featuredTopicText .topicDescription {
   font-size: var(--sans-serif-small-font-size);
 }
-.topicOfTheDay h1 {
+.featuredTopic h1 {
   font-size: var(--sans-serif-h2-font-size);
   border-bottom: 1px solid #ccc;
   width: fit-content;

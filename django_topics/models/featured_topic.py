@@ -4,11 +4,11 @@ from django.utils.timezone import now
 from django_topics.models import Topic
 
 
-class TopicOfTheDayManager(models.Manager):
+class FeaturedTopicManager(models.Manager):
 
-    def get_topic_of_the_day(self, lang: str, date: datetime = None) -> 'TopicOfTheDay':
+    def get_featured_topic(self, lang: str, date: datetime = None) -> 'FeaturedTopic':
         """
-        Return topic of day for given date or closest date that is less than or equal to given date
+        Return featured topic for given date or closest date that is less than or equal to given date
         @param lang: language code, "en" or "he"
         @param date: datetime object
         @return:
@@ -21,41 +21,41 @@ class TopicOfTheDayManager(models.Manager):
         )
 
 
-class TopicOfTheDay(models.Model):
+class FeaturedTopic(models.Model):
     topic = models.ForeignKey(
         Topic,
         on_delete=models.CASCADE,
-        related_name='topic_of_the_day'
+        related_name='featured_topic'
     )
     start_date = models.DateField()
     lang = models.CharField(max_length=2, choices=[('en', 'English'), ('he', 'Hebrew')])
-    objects = TopicOfTheDayManager()
+    objects = FeaturedTopicManager()
 
     class Meta:
         unique_together = ('topic', 'start_date')
-        verbose_name = "Landing Page - Topic of the Day"
-        verbose_name_plural = "Landing Page - Topic of the Day"
+        verbose_name = "Landing Page - Featured Topic"
+        verbose_name_plural = "Landing Page - Featured Topic"
 
     def __str__(self):
         return f"{self.topic.slug} ({self.start_date})"
 
 
-class TopicOfTheDayEnglish(TopicOfTheDay):
+class FeaturedTopicEnglish(FeaturedTopic):
     class Meta:
         proxy = True
-        verbose_name = "Landing Page - Topic of the Day (EN)"
-        verbose_name_plural = "Landing Page - Topic of the Day (EN)"
+        verbose_name = "Landing Page - Featured Topic (EN)"
+        verbose_name_plural = "Landing Page - Featured Topic (EN)"
 
     def save(self, *args, **kwargs):
         self.lang = "en"
         super().save(*args, **kwargs)
 
 
-class TopicOfTheDayHebrew(TopicOfTheDay):
+class FeaturedTopicHebrew(FeaturedTopic):
     class Meta:
         proxy = True
-        verbose_name = "Landing Page - Topic of the Day (HE)"
-        verbose_name_plural = "Landing Page - Topic of the Day (HE)"
+        verbose_name = "Landing Page - Featured Topic (HE)"
+        verbose_name_plural = "Landing Page - Featured Topic (HE)"
 
     def save(self, *args, **kwargs):
         self.lang = "he"

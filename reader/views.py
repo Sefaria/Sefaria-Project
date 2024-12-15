@@ -3209,16 +3209,16 @@ def topic_pool_api(request, pool_name):
 
 
 @catch_error_as_json
-def topic_of_the_day_api(request):
-    from django_topics.models import TopicOfTheDay
+def featured_topic_api(request):
+    from django_topics.models import FeaturedTopic
 
     lang = request.GET.get("lang")
     cb = request.GET.get("callback", None)
-    tod = TopicOfTheDay.objects.get_topic_of_the_day(lang)
-    if not tod:
-        return jsonResponse({'error': f'No topic of the day found for lang "{lang}"'}, status=404)
-    mongo_topic = Topic.init(tod.topic.slug)
-    response = {'topic': mongo_topic.contents(), 'date': tod.start_date.isoformat()}
+    featured_topic = FeaturedTopic.objects.get_featured_topic(lang)
+    if not featured_topic:
+        return jsonResponse({'error': f'No featured topic found for lang "{lang}"'}, status=404)
+    mongo_topic = Topic.init(featured_topic.topic.slug)
+    response = {'topic': mongo_topic.contents(), 'date': featured_topic.start_date.isoformat()}
     return jsonResponse(response, callback=cb)
 
 

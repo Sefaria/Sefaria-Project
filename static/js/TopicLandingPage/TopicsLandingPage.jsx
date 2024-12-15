@@ -2,7 +2,7 @@ import React from 'react';
 import {TopicLandingSearch} from "./TopicLandingSearch";
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
-import {TopicOfTheDay} from "./TopicOfTheDay";
+import {FeaturedTopic} from "./FeaturedTopic";
 import {TopicSalad} from "./TopicSalad";
 import {RainbowLine} from "../RainbowLine";
 
@@ -18,7 +18,7 @@ export const TopicsLandingPage = ({openTopic}) => {
                     <div className="contentInner mainColumn topic-landing-page-content">
                         <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
                         <TopicSalad/>
-                        <TopicOfTheDay />
+                        <FeaturedTopic />
                     </div>
                     <NavSidebar sidebarModules={sidebarModules} />
                 </div>

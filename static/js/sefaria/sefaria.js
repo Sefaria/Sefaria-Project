@@ -2768,12 +2768,12 @@ _media: {},
       const key = this._getTopicCacheKey(slug, {annotated, with_html});
       return this._topics[key];
   },
-  _topicOfTheDay: {},
-  getTopicOfTheDay: function() {
+  _featuredTopic: {},
+  getFeaturedTopic: function() {
     return this._cachedApiPromise({
-        url: `${Sefaria.apiHost}/_api/topics/topic-of-the-day?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
+        url: `${Sefaria.apiHost}/_api/topics/featured-topic?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
         key: (new Date()).toLocaleDateString(),
-        store: this._topicOfTheDay,
+        store: this._featuredTopic,
     });
   },
   _topicSlugsToTitles: null,
