@@ -304,34 +304,12 @@ CACHES = {
 try:
     if os.getenv("CI_RUN"):
         from sefaria.local_settings_ci import *
+    elif os.getenv("DOCKER"):
+        from sefaria.local_settings_docker import *
     else:
         from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
-# if using docker, load docker setup
-if os.getenv("DOCKER"):
-    DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'admin',
-        'PASSWORD': 'admin',
-        'HOST': 'postgres',
-        'PORT': '5432',
-        }
-    }
-
-    SEARCH_URL = "https://www.sefaria.org/api/search"
-
-    # MongoDB server
-    MONGO_HOST = "db"
-    MONGO_PORT = 27017
-    # Name of the MongoDB database to use.
-    SEFARIA_DB = 'sefaria'
-    # ElasticSearch server
-    SEARCH_ADMIN = "https://www.sefaria.org/api/search"
-
-    REDIS_HOST = "cache"
 
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
