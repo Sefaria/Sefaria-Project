@@ -2898,16 +2898,6 @@ const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorIma
       {sheetOptions}
     </div>
     {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
-    <div className="user">
-      <ProfilePic
-          url={authorImage}
-          len={30}
-          name={authorStatement}
-      />
-      <a href={authorUrl} className="sheetAuthorName">
-        <InterfaceText>{authorStatement}</InterfaceText>
-      </a>
-    </div>
   </div>
 }
 
