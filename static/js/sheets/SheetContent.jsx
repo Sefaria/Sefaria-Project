@@ -499,14 +499,4 @@ class SheetMedia extends Component {
   }
 }
 
-class SheetNotice extends Component {
-  render() {
-    return (
-        <div className="sheetNotice sans-serif">
-          <InterfaceText>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.</InterfaceText>
-        </div>
-    );
-  }
-}
-
 export { SheetContent };
