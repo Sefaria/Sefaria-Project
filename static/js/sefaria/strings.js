@@ -551,6 +551,7 @@ const Strings = {
     "Learn More on Parashat": "לקריאה נוספת על פרשת",
     "This Week’s Torah Portion": "פרשת השבוע",
     "Learn More on": "לקריאה נוספת על",
+    "Learn More about": "לקריאה נוספת על",
     "Read the Portion": "לקריאת הפרשה",
     "Browse all Parshayot": "לצפייה בכל הפרשות",
     "Upcoming Holiday on the Jewish Calendar": "החג הבא בלוח השנה",
