@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Component from 'react-class';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
@@ -12,7 +12,6 @@ import {
   ProfileListing,
   ProfilePic,
   InterfaceText,
-  NonFilterableList,
 } from './Misc';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 
@@ -168,6 +167,7 @@ class UserProfile extends Component {
       />
     );
   }
+
   renderTab(tab) {
     if (tab.invisible) { return null; }
     if (tab.applink) {
@@ -207,20 +207,15 @@ class UserProfile extends Component {
                   renderTab={this.renderTab}
                   setTab={this.props.setTab}
                 >
-                  <NonFilterableList
-                    key="sheet"
-                    pageSize={1e6}
-                    filterFunc={this.filterSheet}
-                    sortFunc={this.sortSheet}
-                    renderItem={this.renderSheet}
-                    renderEmptyList={this.renderEmptySheetList}
-                    sortOptions={["Recent", "Views"]}
-                    containerClass={"sheetList"}
-                    getData={this.getSheets}
-                    data={this.getSheetsFromCache()}
-                    refreshData={this.state.refreshSheetData}
-                  />
-                  <NonFilterableList
+
+                 {this.props.profile && 
+                 <SheetsComponent profile={this.props.profile} 
+                                  handleSheetDelete={this.handleSheetDelete}
+                                  handleCollectionsChange={this.handleCollectionsChange}
+                                  toggleSignUpModal={this.props.toggleSignUpModal}/>}
+
+
+                  {/* <NonFilterableList
                     key="collection"
                     pageSize={1e6}
                     filterFunc={this.filterCollection}
@@ -231,7 +226,7 @@ class UserProfile extends Component {
                     getData={this.getCollections}
                     data={this.getCollectionsFromCache()}
                     refreshData={this.state.refreshCollectionsData}
-                  />
+                  /> */}
                   { this.state.showBio ?
                     <div className="systemText filterable-list">
                       <div  className="aboutText" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
@@ -249,6 +244,59 @@ class UserProfile extends Component {
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
+
+const SheetsComponent = ({profile, handleSheetDelete, handleCollectionsChange, toggleSignUpModal}) => {
+  const [sheets, setSheets] = useState(null);
+
+  console.log('profile', profile);
+
+  useEffect(() => {
+    const fetchSheets = async () => {
+      try {
+        const fetchedSheets = await new Promise((resolve, reject) => {
+          Sefaria.sheets.userSheets(
+            profile.id,
+            sheets => resolve(sheets),
+            undefined,
+            0,
+            0
+          );
+        });
+        setSheets(fetchedSheets);
+      } catch (error) {
+        console.error("Failed to fetch sheets:", error);
+      }
+    };
+
+    fetchSheets();
+  }, [profile.id]);
+
+  if (!sheets) {
+    return <div>Loading sheets...</div>;
+  }
+
+  return (
+    <div>
+      {sheets.map(sheet => (
+        <SheetListing
+          key={sheet.id}
+          sheet={sheet}
+          hideAuthor={true}
+          handleSheetDelete={handleSheetDelete}
+          handleCollectionsChange={handleCollectionsChange}
+          editable={Sefaria._uid === profile.id}
+          deletable={Sefaria._uid === profile.id}
+          saveable={Sefaria._uid !== profile.id}
+          collectable={true}
+          connectedRefs={[]}
+          infoUnderneath={true}
+          toggleSignUpModal={toggleSignUpModal}
+        />
+      ))}
+    </div>
+  );
+};
+
 
 
 const EditorToggleHeader = ({usesneweditor}) => {
