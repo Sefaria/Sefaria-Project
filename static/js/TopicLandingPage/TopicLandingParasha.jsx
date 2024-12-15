@@ -43,7 +43,7 @@ export const TopicLandingParasha = () => {
                 </a>
             </div>
             <div className="browse-all-parashot-prompt">
-                <a href='/category/torah-portions'><InterfaceText>Browse all Parshayot</InterfaceText></a>
+                <a href='/topics/category/torah-portions'><InterfaceText>Browse all Parshayot</InterfaceText></a>
             </div>
         </TopicLandingCalendar>
         </div>
