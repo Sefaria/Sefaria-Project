@@ -14,6 +14,7 @@ class SheetSource extends Component {
     const containerClasses = classNames(
       "sheetItem",
       "segment",
+      this.props.highlighted && "highlight",
       (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() === "...") || (this.props.source.text && (!this.props.source.text.en || !this.props.source.text.en.stripHtml())) ? "heOnly" : null,
       (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() === "...") || (this.props.source.text && (!this.props.source.text.he || !this.props.source.text.he.stripHtml())) ? "enOnly" : null,
       this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
@@ -77,6 +78,7 @@ class SheetComment extends Component {
       "sheetItem",
       "segment",
       lang == "he" ? "heOnly" : "enOnly",
+      this.props.source.node === this.props.highlightedNode && "highlight",
       this.props.source.options ? this.props.source.options.indented : null
     );
 
@@ -112,6 +114,7 @@ class SheetHeader extends Component {
     const containerClasses = classNames("sheetItem",
         "segment",
         lang == "he" ? "heOnly" : "enOnly",
+        this.props.source.node === this.props.highlightedNode && "highlight",
         this.props.source.options ? this.props.source.options.indented : null
     );
 
@@ -146,6 +149,7 @@ class SheetOutsideText extends Component {
     const containerClasses = classNames("sheetItem",
         "segment",
         lang == "he" ? "heOnly" : "enOnly",
+        this.props.source.node === this.props.highlightedNode && "highlight",
         this.props.source.options ? this.props.source.options.indented : null
     );
 
@@ -180,6 +184,7 @@ class SheetOutsideBiText extends Component {
       "segment",
       (this.props.source.outsideBiText.en && this.props.source.outsideBiText.en.stripHtml() === "...") || (!this.props.source.outsideBiText.en.stripHtml()) ? "heOnly" : null,
       (this.props.source.outsideBiText.he && this.props.source.outsideBiText.he.stripHtml() === "...") || (!this.props.source.outsideBiText.he.stripHtml()) ? "enOnly" : null,
+      this.props.source.node === this.props.highlightedNode && "highlight",
     );
 
     const sectionClasses= classNames("SheetOutsideBiText",
@@ -264,6 +269,7 @@ class SheetMedia extends Component {
     const containerClasses = classNames(
       "sheetItem",
       "segment",
+      this.props.source.node === this.props.highlightedNode && "highlight",
       this.props.source.options ? this.props.source.options.indented : null
     );
     return (

@@ -16,7 +16,7 @@ import {
 } from './ConnectionsPanel';
 import BookPage  from './BookPage';
 import SearchPage  from './SearchPage';
-import Sheet  from './Sheet';
+import Sheet  from './sheets/Sheet';
 import SheetMetadata  from './SheetMetadata';
 import TopicPageAll  from './TopicPageAll';
 import {TopicPage, TopicCategory}  from './TopicPage';
@@ -685,8 +685,8 @@ class ReaderPanel extends Component {
       );
     }
     if (this.state.mode === "Sheet") {
-      items.push(
-        <Sheet
+      console.log(this.props)
+      menu = <Sheet
           adjustHighlightedAndVisible={this.adjustSheetHighlightedAndVisible}
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
@@ -705,10 +705,9 @@ class ReaderPanel extends Component {
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
           hasSidebar={this.props.hasSidebar}
-          toggleSignUpModal={this.props.toggleSignUpModal}
           historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
-        />
-      );
+          toggleSideUpModal={this.props.toggleSignUpModal}
+        />;
     }
 
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
@@ -1036,7 +1035,7 @@ class ReaderPanel extends Component {
           interfaceLang={this.props.interfaceLang} />
       );
 
-    } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history") {
+    } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
       menu = (
           <UserHistoryPanel
               multiPanel={this.props.multiPanel}

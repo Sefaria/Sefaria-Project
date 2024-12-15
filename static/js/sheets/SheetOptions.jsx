@@ -10,6 +10,7 @@ import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
+  // because in the modularization version of the sheets viewer, the UI is designed so that the sheet is saved, not a specific segment
   let newHistoryObject = Object.assign({}, historyObject);
   const refParts = newHistoryObject.ref.split(":");
   newHistoryObject.ref = refParts[0];
@@ -275,34 +276,34 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     exportComplete: { en: "Success!", he: "ייצוא הסתיים"}
   }
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
-
   const [googleDriveLink, setGoogleDriveLink] = useState("");
-  const sheet = Sefaria.sheets.loadSheetByID(sheetID);
-
-  useEffect(() => {
+  const exportToDrive = async () => {
     if (googleDriveText.en === googleDriveState.exporting.en) {
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
-      $.ajax({
-        type: "POST",
-        url: "/api/sheets/" + sheet.id + "/export_to_drive",
-        success: function (data) {
-          if ("error" in data) {
-            console.log(data.error.message);
-            // Export Failed
-          } else {
-            // Export succeeded
-            setGoogleDriveLink(data.webViewLink);
-            setGoogleDriveText(googleDriveState.exportComplete)
-          }
-        },
-        statusCode: {
-          401: function () {
-            window.location.href = "/gauth?next=" + encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive");
-          }
+      try {
+        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive`, null, {}, "POST", false);
+        if (response.status === 401) {
+          // couldn't authenticate, so forward to google authentication
+          window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
+          return;
         }
-      });
+        const data = await response.json();
+        if ("error" in data) {
+          setGoogleDriveText(data.error.message);
+        } else {
+          // Export succeeded
+          setGoogleDriveLink(data.webViewLink);
+          setGoogleDriveText(googleDriveState.exportComplete);
+        }
+      } catch (error) {
+        setGoogleDriveText(data.error);
+      }
     }
-  }, [googleDriveText]);
+  }
+
+  useEffect(() => {
+      exportToDrive();
+    }, [googleDriveText]);
   const getExportMessage = () => {
     if (googleDriveText.en === googleDriveState.exporting.en) {
       return <InterfaceText text={googleDriveText}/>;
