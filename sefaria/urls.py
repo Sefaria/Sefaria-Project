@@ -103,7 +103,8 @@ urlpatterns += [
     url(r'^topics/b/(?P<topic>.+)$', reader_views.topic_page_b),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
     url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api),
-    url(r'^api/topics/images/(?P<topic>.+)$', reader_views.topic_upload_photo)
+    url(r'^_api/topics/images/secondary/(?P<slug>.+)$', reader_views.topic_upload_photo, {"secondary": True}),
+    url(r'^_api/topics/images/(?P<slug>.+)$', reader_views.topic_upload_photo)
 
 ]
 
