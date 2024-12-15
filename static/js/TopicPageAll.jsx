@@ -119,7 +119,7 @@ class TopicPageAll extends Component {
                 }
               </div>
             </div>
-            <NavSidebar modules={sidebarModules} />
+            <NavSidebar sidebarModules={sidebarModules} />
           </div>
           <Footer />
         </div>

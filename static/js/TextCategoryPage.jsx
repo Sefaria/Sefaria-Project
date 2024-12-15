@@ -100,7 +100,7 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
               initialWidth={initialWidth}
               nestLevel={nestLevel} />
           </div>
-          {!compare ? <NavSidebar modules={sidebarModules} /> : null}
+          {!compare ? <NavSidebar sidebarModules={sidebarModules} /> : null}
         </div>
         {footer}
       </div>

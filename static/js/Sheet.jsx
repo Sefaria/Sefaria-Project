@@ -15,8 +15,8 @@ import {
   SheetAuthorStatement,
   SheetTitle,
   CollectionStatement,
-  ProfilePic,
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 
 
 class Sheet extends Component {
