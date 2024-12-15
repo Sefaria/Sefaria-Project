@@ -5,7 +5,7 @@ import Footer from "../Footer";
 import {TopicSalad} from "./TopicSalad";
 import {RainbowLine} from "../RainbowLine";
 import {TopicLandingCalendar} from "./TopicLandingCalendar";
-import {TopicLandingParasha} from "./TopicLandingParsha";
+import {TopicLandingParasha} from "./TopicLandingParasha";
 import Search from "../sefaria/search";
 import {TopicLandingSeasonal} from "./TopicLandingSeasonal";
 

@@ -5043,8 +5043,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
   font-style: normal;
-  font-weight: 600;
+  font-weight: 500;
   line-height: normal;
+}
+
+.topic-landing-seasonal .explore-calendar-prompt{
+  color: var(--Commentary-Blue, #4B71B7);
+  margin-top: 14px;
+}
+.topic-landing-seasonal .explore-calendar-prompt span{
+  font-family: Roboto;
+  font-size: 14px;
 }
 
 .topic-landing-temporal .learn-more-prompt{

@@ -84,7 +84,7 @@ export const TopicLandingSeasonal = () => {
     return (
         <div className='topic-landing-seasonal'>
             <TopicLandingCalendar
-                header={<InterfaceText>Upcoming Holiday</InterfaceText>}
+                header={<InterfaceText>Upcoming Holiday on the Jewish Calendar</InterfaceText>}
                 title={title}
                 description={description}
                 link={link}
@@ -98,7 +98,10 @@ export const TopicLandingSeasonal = () => {
                 <InterfaceText text={{en: displayDateMessageEn, he: displayDateMessageHe}}/>
             </div>
             <div className='display-date'>
-                <InterfaceText text={{en: formattedDateEn, he:formattedDateHe}}/>
+                <InterfaceText text={{en: formattedDateEn, he: formattedDateHe}}/>
+            </div>
+            <div className="explore-calendar-prompt">
+                <a href='/category/torah-portions'><InterfaceText>Explore the Jewish Calendar</InterfaceText></a>
             </div>
         </div>
     );
