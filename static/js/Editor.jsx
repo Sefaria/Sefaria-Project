@@ -13,10 +13,10 @@ import {
     SheetAuthorStatement,
     SheetTitle,
     CollectionStatement,
-    ProfilePic,
     InterfaceText,
     Autocompleter,
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 
 import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";

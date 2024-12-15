@@ -5,7 +5,7 @@ import VersionBlock, {VersionsBlocksList} from './VersionBlock/VersionBlock';
 import Component             from 'react-class';
 import {InterfaceText} from "./Misc";
 import {ContentText} from "./ContentText";
-import { Modules } from './NavSidebar';
+import { SidebarModules } from './NavSidebar';
 
 
 class AboutBox extends Component {
@@ -232,8 +232,8 @@ class AboutBox extends Component {
           (<div>{versionSectionEn}{versionSectionHe}{alternateSectionHe}</div>) :
           (<div>{versionSectionHe}{versionSectionEn}{alternateSectionHe}</div>)
         }
-        <Modules type={"RelatedTopics"} props={{title: this.props.title}} />
-        { !isDictionary ? <Modules type={"DownloadVersions"} props={{sref: this.props.title}} /> : null}
+        <SidebarModules type={"RelatedTopics"} props={{title: this.props.title}} />
+        { !isDictionary ? <SidebarModules type={"DownloadVersions"} props={{sref: this.props.title}} /> : null}
       </section>
     );
   }
