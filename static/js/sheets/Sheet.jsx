@@ -74,17 +74,10 @@ class Sheet extends Component {
     }
   }
   handleCollectionsChange() {
-    // when editing a sheet and user selects through SheetOptions to change the status of the collections for the sheet,
-    // update the user's collections and sheet cache.  need to forceUpdate because sheet is stored not in this component's state
-    // but rather in Sefaria module's cache
-    Promise.all([
-         Sefaria.getUserCollections(Sefaria._uid),
-         Sefaria.getUserCollectionsForSheet(this.props.id)
-      ])
-     .then(() => {
-       Sefaria.sheets._loadSheetByID[this.props.id].collections = Sefaria.getUserCollectionsForSheetFromCache(this.props.id);
-       this.forceUpdate();
-     });
+    // when editing a sheet and user makes (through SheetOptions) a change in sheet's collections data we need to forceUpdate because
+    // sheet is stored not in this component's state but rather in Sefaria module's cache
+     Sefaria.sheets._loadSheetByID[this.props.id].collections = Sefaria.getUserCollectionsForSheetFromCache(this.props.id);
+     this.forceUpdate();
   }
 
   render() {
@@ -117,7 +110,8 @@ class Sheet extends Component {
                         divineNameReplacement={this.props.divineNameReplacement}
                         toggleSignUpModal={this.props.toggleSignUpModal}
                         historyObject={this.props.historyObject}
-                        editable={editable}
+                        editable={true}
+                        handleCollectionsChange={this.handleCollectionsChange}
                     />
                   </div>
                   {sidebar}

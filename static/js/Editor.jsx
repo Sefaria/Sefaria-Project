@@ -2955,9 +2955,10 @@ const SefariaEditor = (props) => {
                                        sheetID={sheet.id}
                                        postSheet={postSheet}
                                        historyObject={props.historyObject}
-                                       editable={props.editable}
+                                       editable={true}
                                        authorUrl={sheet.ownerProfileUrl}
                                        status={status}
+                                       handleCollectionsChange={props.handleCollectionsChange}
                                        />;
     return (
           <div ref={editorContainer} onClick={props.handleClick} className="text">
