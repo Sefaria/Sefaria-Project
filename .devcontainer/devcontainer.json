@@ -1,5 +1,5 @@
 {
     "name": "Sefaria Codespace",
-    "postCreateCommand": "docker-compose -f docker-compose.canned.yml up"
-  }
+    "postCreateCommand": "apt-get update && apt-get install -y docker-compose && docker-compose -f docker-compose.canned.yml up"
+}
   
