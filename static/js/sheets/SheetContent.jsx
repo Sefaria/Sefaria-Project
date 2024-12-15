@@ -71,7 +71,7 @@ class SheetContent extends Component {
     if (!$segment) { return; }
 
     // don't move around highlighted segment when scrolling a single panel,
-    var shouldHighlight = this.props.hasSidebar || this.props.mode === "SheetAndConnections";
+    const shouldHighlight = this.props.hasSidebar || this.props.mode === "SheetAndConnections";
     if (shouldHighlight) {
       const node = parseInt($segment.attr("data-node"));
       if (!(this.props.highlightedNode === node)) {
