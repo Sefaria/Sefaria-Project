@@ -69,7 +69,7 @@ class Sheet extends Component {
 
       else if (Sefaria.isRef(path.slice(1))) {
         e.preventDefault();
-        window.open(target.href);
+        Sefaria.util.openInNewTab(target.href);
       }
     }
   }
