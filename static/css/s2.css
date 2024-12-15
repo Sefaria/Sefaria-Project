@@ -386,6 +386,9 @@ body.hasBannerMessage {
   transition: padding-top .3s;
   padding-top: 120px;
 }
+body.hasBannerMessage:not(:has(#bannerMessage)) {
+  padding-top: 0;
+}
 body.hasBannerMessage #s2.headerOnly {
   height: 180px;
 }
@@ -8496,7 +8499,7 @@ a.sheetAuthorName {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 18.75px;
   display: inline;
   margin-block-end: 10px;
@@ -9280,6 +9283,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 .noteListing {
   margin-bottom: 30px;
   border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
 }
 .noteListing a:hover {
   text-decoration: none;
@@ -10051,6 +10055,7 @@ span.purim-emoji img{
 /* Sheets */
 
 .sheetsInPanel {
+  font-size: 62.5%;
   overflow-y: scroll;
   overflow-x: hidden;
   height: 100%;
@@ -13869,7 +13874,7 @@ span.ref-link-color-3 {color: blue}
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 18px;
   color: #666666;
   margin-inline-start: 10px;
@@ -13935,14 +13940,25 @@ span.ref-link-color-3 {color: blue}
   display:none;
   overflow:hidden;
 }
-.sheetsInPanel .dropdownItem {
+.sheetsInPanel .dropdownItem:nth-child(n+2):nth-last-child(n+2) {
   padding: 5px 5px !important;
 }
-
+.sheetsInPanel .dropdownItem:first-child {
+  padding-block-start: 10px !important;
+  padding-block-end: 5px !important;
+}
+.sheetsInPanel .dropdownItem:last-child {
+  padding-block-start: 5px !important;
+  padding-block-end: 10px !important;
+}
 .sheetsInPanel .dropdownLinks .dropdownLinks-menu {
   background: white;
   box-shadow: revert;
-  border: 1px solid #CCCCCC;
+  border: 1px solid var(--light-grey);
+}
+.sheetsInPanel .dropdownSeparator {
+  margin-block: 5px;
+  border: 0.5px solid var(--light-grey);
 }
 
 
@@ -13969,6 +13985,9 @@ span.ref-link-color-3 {color: blue}
   flex-direction: column;
   padding: 4px;
   max-width: 220px;
+}
+.sheetsInPanel .dropdownLinks-options {
+  padding: 0;
 }
 .header .dropdownLinks .dropdownLinks-menu.open, .sheetsInPanel .dropdownLinks .dropdownLinks-menu.open {
   display: block;

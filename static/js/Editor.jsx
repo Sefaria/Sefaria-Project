@@ -11,10 +11,10 @@ import * as sheetsUtils from './sefaria/sheetsUtils'
 import {
     SheetMetaDataBox,
     SheetTitle,
-    ProfilePic,
     InterfaceText,
     Autocompleter,
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 
 import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";

@@ -4,7 +4,6 @@ import {InterfaceText, SaveButtonWithText, TitleVariants} from "../Misc";
 import Modal from "../common/modal";
 import {ShareBox} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
-import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
 import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
@@ -12,6 +11,7 @@ import Button from "../common/Button";
 import ReactTags from "react-tag-autocomplete";
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
+  // because in the modularization version of the sheets viewer, the UI is designed so that the sheet is saved, not a specific segment
   let newHistoryObject = Object.assign({}, historyObject);
   const refParts = newHistoryObject.ref.split(":");
   newHistoryObject.ref = refParts[0];
@@ -22,7 +22,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, postSheet, status}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, postSheet, status, handleCollectionsChange}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -59,7 +59,11 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
     return <ShareModal sheetID={sheetID} isOpen={sharingMode} close={() => setSharingMode(false)}/>;
   }
   else if (collectionsMode) {
-    return <CollectionsModal isOpen={collectionsMode} close={() => setCollectionsMode(false)} sheetID={sheetID}/>;
+    return <CollectionsModal
+                          isOpen={collectionsMode}
+                          close={() => setCollectionsMode(false)}
+                          handleCollectionsChange={handleCollectionsChange}
+                          sheetID={sheetID}/>;
   }
   else if (copyingMode) {
     return <CopyModal close={() => setCopyingMode(false)} sheetID={sheetID}/>;
@@ -170,9 +174,9 @@ const ShareModal = ({sheetID, close}) => {
           />
         </Modal>;
 }
-const CollectionsModal = ({close, sheetID}) => {
+const CollectionsModal = ({close, sheetID, handleCollectionsChange, editable}) => {
   return <Modal isOpen={true} close={close}>
-            <CollectionsWidget sheetID={sheetID} close={close} />
+            <CollectionsWidget sheetID={sheetID} close={close} handleCollectionsChange={handleCollectionsChange} />
         </Modal>;
 }
 
@@ -499,40 +503,40 @@ const GoogleDocExportButton = ({onClick}) => {
         onClick={() => onClick()}/>;
 }
 
-const GoogleDocExportModal = ({sheetID, close}) => {
-    const googleDriveState = {
-        exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
-        exportComplete: {en: "Success!", he: "ייצוא הסתיים"}
-    }
-    const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
-
-    const [googleDriveLink, setGoogleDriveLink] = useState("");
-    const sheet = Sefaria.sheets.loadSheetByID(sheetID);
-
-    useEffect(() => {
-        if (googleDriveText.en === googleDriveState.exporting.en) {
-            history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
-            $.ajax({
-                type: "POST",
-                url: "/api/sheets/" + sheetID + "/export_to_drive",
-                success: function (data) {
-                    if ("error" in data) {
-                        console.log(data.error.message);
-                        // Export Failed
-                    } else {
-                        // Export succeeded
-            setGoogleDriveLink(data.webViewLink);
-            setGoogleDriveText(googleDriveState.exportComplete)
-          }
-        },
-        statusCode: {
-          401: function () {
-            window.location.href = "/gauth?next=" + encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive");
-          }
+const GoogleDocExportModal = ({ sheetID, close }) => {
+  const googleDriveState = {
+    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
+    exportComplete: { en: "Success!", he: "ייצוא הסתיים"}
+  }
+  const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
+  const [googleDriveLink, setGoogleDriveLink] = useState("");
+  const exportToDrive = async () => {
+    if (googleDriveText.en === googleDriveState.exporting.en) {
+      history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
+      try {
+        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive`, null, {}, "POST", false);
+        if (response.status === 401) {
+          // couldn't authenticate, so forward to google authentication
+          window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
+          return;
         }
-      });
+        const data = await response.json();
+        if ("error" in data) {
+          setGoogleDriveText(data.error.message);
+        } else {
+          // Export succeeded
+          setGoogleDriveLink(data.webViewLink);
+          setGoogleDriveText(googleDriveState.exportComplete);
+        }
+      } catch (error) {
+        setGoogleDriveText(data.error);
+      }
     }
-  }, [googleDriveText]);
+  }
+
+  useEffect(() => {
+      exportToDrive();
+    }, [googleDriveText]);
   const getExportMessage = () => {
     if (googleDriveText.en === googleDriveState.exporting.en) {
       return <InterfaceText text={googleDriveText}/>;

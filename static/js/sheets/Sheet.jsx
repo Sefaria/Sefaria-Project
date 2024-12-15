@@ -1,18 +1,16 @@
 import React  from 'react';
 import ReactDOM  from 'react-dom';
-import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
-import sanitizeHtml  from 'sanitize-html';
 import Component from 'react-class'
-import $  from './sefaria/sefariaJquery';
-import Sefaria  from './sefaria/sefaria';
-import SefariaEditor from './Editor';
+import $  from '../sefaria/sefariaJquery';
+import Sefaria  from '../sefaria/sefaria';
+import SefariaEditor from '../Editor';
+import SheetContentSidebar from "./SheetContentSidebar";
 import {
-  InterfaceText,
   LoadingMessage,
-} from './Misc';
-import SheetContentSidebar from "./sheets/SheetContentSidebar";
-import SheetContent from "./sheets/SheetContent";
+} from '../Misc'; 
+import {SheetOptions} from "./SheetOptions";
+import {SheetContent} from "./SheetContent";
 
 class Sheet extends Component {
   constructor(props) {
@@ -66,20 +64,32 @@ class Sheet extends Component {
       if (path.match(/^\/sheets\/\d+/)) {
         e.preventDefault()
         console.log();
-        this.props.onCitationClick(`Sheet ${path.slice(8)}`, `Sheet ${this.props.sheetID}`, true)
+        this.props.onCitationClick(`Sheet ${path.slice(8)}`, `Sheet ${this.props.id}`, true)
       }
 
       else if (Sefaria.isRef(path.slice(1))) {
         e.preventDefault();
-        window.open(target.href);
+        Sefaria.util.openInNewTab(target.href);
       }
     }
   }
-
+  handleCollectionsChange() {
+    // when editing a sheet and user selects through SheetOptions to change the status of the collections for the sheet,
+    // update the user's collections and sheet cache.  need to forceUpdate because sheet is stored not in this component's state
+    // but rather in Sefaria module's cache
+    Promise.all([
+         Sefaria.getUserCollections(Sefaria._uid),
+         Sefaria.getUserCollectionsForSheet(this.props.id)
+      ])
+     .then(() => {
+       Sefaria.sheets._loadSheetByID[this.props.id].collections = Sefaria.getUserCollectionsForSheetFromCache(this.props.id);
+       this.forceUpdate();
+     });
+  }
 
   render() {
-    const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
+    const sheet = this.getSheetFromCache();
     const editable = Sefaria._uid === sheet?.owner;
     let content, editor;
     if (!sheet) {
@@ -125,6 +135,7 @@ class Sheet extends Component {
                 highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
                 highlightedRefsInSheet={this.props.highlightedRefsInSheet}
                 scrollToHighlighted={this.props.scrollToHighlighted}
+                editable={editable}
                 setSelectedWords={this.props.setSelectedWords}
                 sheetNumbered={sheet.options.numbered}
                 hideImages={!!sheet.hideImages}
@@ -148,16 +159,6 @@ class Sheet extends Component {
         :
         content }
       </div>
-    );
-  }
-}
-
-class SheetNotice extends Component {
-  render() {
-    return (
-        <div className="sheetNotice sans-serif">
-          <InterfaceText>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.</InterfaceText>
-        </div>
     );
   }
 }

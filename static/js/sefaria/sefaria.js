@@ -692,7 +692,7 @@ Sefaria = extend(Sefaria, {
           return result;
       }
   },
-  apiRequestWithBody: async function(url, urlParams, payload, method="POST") {
+  apiRequestWithBody: async function(url, urlParams, payload, method="POST", convertResponseToJSON=true) {
     /**
      * Generic function for performing an API request with a payload. Payload and urlParams are optional and will not be used if falsy.
      */
@@ -710,17 +710,18 @@ Sefaria = extend(Sefaria, {
         credentials: 'same-origin',
         body: payload && JSON.stringify(payload)
     });
-
-    if (!response.ok) {
-        throw new Error("Error posting to API");
+    if (convertResponseToJSON) {
+        if (!response.ok) {
+            throw new Error("Error posting to API");
+        }
+        const json = await response.json();
+        if (json.error) {
+            throw new Error(json.error);
+        }
+        return json;
+    } else {
+        return response;
     }
-
-    const json = await response.json();
-    if (json.error) {
-        throw new Error(json.error);
-    }
-
-    return json;
 },
   subscribeSefariaAndSteinsaltzNewsletter: async function(firstName, lastName, email, educatorCheck) {
       const responses = await Promise.all([
@@ -1620,12 +1621,12 @@ Sefaria = extend(Sefaria, {
     // First sort by predefined "top"
     const hebrewTopByCategory = {
       "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-      "Talmud": ["Rashi", "Tosafot"],
+      "Talmud": ["Rashi", "Rashbam", "Tosafot"],
       "Mishnah": ["Bartenura", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
     };
     const englishTopByCategory = {
       "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-      "Talmud": ["Rashi", "Tosafot"],
+      "Talmud": ["Rashi", "Rashbam", "Tosafot"],
       "Mishnah": ["Bartenura", "English Explanation of Mishnah", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
     };
     const top = (byHebrew ? hebrewTopByCategory[category] : englishTopByCategory[category]) || [];
