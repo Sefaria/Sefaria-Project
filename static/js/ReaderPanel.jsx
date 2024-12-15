@@ -685,7 +685,6 @@ class ReaderPanel extends Component {
       );
     }
     if (this.state.mode === "Sheet") {
-      console.log(this.props)
       menu = <Sheet
           adjustHighlightedAndVisible={this.adjustSheetHighlightedAndVisible}
           panelPosition ={this.props.panelPosition}
