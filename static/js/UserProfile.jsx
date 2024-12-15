@@ -5,7 +5,6 @@ import Sefaria  from './sefaria/sefaria';
 import {
   CollectionListing,
   FilterableList,
-  SheetsList,
   LoadingMessage,
   TabView,
   SheetListing,
@@ -209,24 +208,14 @@ class UserProfile extends Component {
                 >
 
                  {this.props.profile && 
-                 <SheetsComponent profile={this.props.profile} 
+                    <SheetsList profile={this.props.profile} 
                                   handleSheetDelete={this.handleSheetDelete}
                                   handleCollectionsChange={this.handleCollectionsChange}
                                   toggleSignUpModal={this.props.toggleSignUpModal}/>}
 
+                  {this.props.profile && 
+                      <CollectionsList profile={this.props.profile} />}
 
-                  {/* <NonFilterableList
-                    key="collection"
-                    pageSize={1e6}
-                    filterFunc={this.filterCollection}
-                    sortFunc={this.sortCollection}
-                    renderItem={this.renderCollection}
-                    renderEmptyList={this.renderEmptyCollectionList}
-                    sortOptions={["Recent", "Name", "Sheets"]}
-                    getData={this.getCollections}
-                    data={this.getCollectionsFromCache()}
-                    refreshData={this.state.refreshCollectionsData}
-                  /> */}
                   { this.state.showBio ?
                     <div className="systemText filterable-list">
                       <div  className="aboutText" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
@@ -245,10 +234,8 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
 
-const SheetsComponent = ({profile, handleSheetDelete, handleCollectionsChange, toggleSignUpModal}) => {
+const SheetsList = ({profile, handleSheetDelete, handleCollectionsChange, toggleSignUpModal}) => {
   const [sheets, setSheets] = useState(null);
-
-  console.log('profile', profile);
 
   useEffect(() => {
     const fetchSheets = async () => {
@@ -294,6 +281,33 @@ const SheetsComponent = ({profile, handleSheetDelete, handleCollectionsChange, t
         />
       ))}
     </div>
+  );
+};
+
+const CollectionsList = ({profile}) => {
+
+  const [collections, setCollections] = useState(null);
+
+  useEffect(() => {
+    const fetchCollections = async () => {
+      try {
+        const collections = await Sefaria.getUserCollections(profile.id);
+        setCollections(collections);
+      } catch (error) {
+        console.error("Failed to fetch collections:", error);
+      }
+    };
+
+    fetchCollections();
+  }, [profile.id]);
+
+  if (!collections) {
+    return <div>Loading collections...</div>;
+  }
+
+  
+  return (
+    collections.map(collection =>(<CollectionListing key={collection.slug} data={collection} />))
   );
 };
 
