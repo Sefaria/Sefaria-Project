@@ -64,7 +64,7 @@ class Sheet extends Component {
       if (path.match(/^\/sheets\/\d+/)) {
         e.preventDefault()
         console.log();
-        this.props.onCitationClick(`Sheet ${path.slice(8)}`, `Sheet ${this.props.sheetID}`, true)
+        this.props.onCitationClick(`Sheet ${path.slice(8)}`, `Sheet ${this.props.id}`, true)
       }
 
       else if (Sefaria.isRef(path.slice(1))) {
@@ -73,11 +73,23 @@ class Sheet extends Component {
       }
     }
   }
-
+  handleCollectionsChange() {
+    // when editing a sheet and user selects through SheetOptions to change the status of the collections for the sheet,
+    // update the user's collections and sheet cache.  need to forceUpdate because sheet is stored not in this component's state
+    // but rather in Sefaria module's cache
+    Promise.all([
+         Sefaria.getUserCollections(Sefaria._uid),
+         Sefaria.getUserCollectionsForSheet(this.props.id)
+      ])
+     .then(() => {
+       Sefaria.sheets._loadSheetByID[this.props.id].collections = Sefaria.getUserCollectionsForSheetFromCache(this.props.id);
+       this.forceUpdate();
+     });
+  }
 
   render() {
-    const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
+    const sheet = this.getSheetFromCache();
     const editable = Sefaria._uid === sheet?.owner;
     let content, editor;
     if (!sheet) {
@@ -89,7 +101,8 @@ class Sheet extends Component {
                                                  sheetID={sheet.id}
                                                  historyObject={this.props.historyObject}
                                                  editable={editable}
-                                                 authorUrl={sheet.ownerProfileUrl}/>;
+                                                 authorUrl={sheet.ownerProfileUrl}
+                                                 handleCollectionsChange={editable && this.handleCollectionsChange}/>;
       const sidebar = <SheetContentSidebar
                                   authorStatement={sheet.ownerName}
                                   authorUrl={sheet.ownerProfileUrl}
@@ -129,21 +142,21 @@ class Sheet extends Component {
                 handleClick={this.handleClick}
                 sheetSourceClick={this.props.onSegmentClick}
                 highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
-                  highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
-                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-                  scrollToHighlighted={this.props.scrollToHighlighted}
-                  editable={editable}
-                  setSelectedWords={this.props.setSelectedWords}
-                  sheetNumbered={sheet.options.numbered}
-                  hideImages={!!sheet.hideImages}
-                  sheetID={sheet.id}
-                  authorStatement={sheet.ownerName}
-                  authorID={sheet.owner}
-                  authorUrl={sheet.ownerProfileUrl}
-                  authorImage={sheet.ownerImageUrl}
-                  summary={sheet.summary}
-                  toggleSignUpModal={this.props.toggleSignUpModal}
-                  historyObject={this.props.historyObject}
+                highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["sheet 4:3"] -- the actual source
+                highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                scrollToHighlighted={this.props.scrollToHighlighted}
+                editable={editable}
+                setSelectedWords={this.props.setSelectedWords}
+                sheetNumbered={sheet.options.numbered}
+                hideImages={!!sheet.hideImages}
+                sheetID={sheet.id}
+                authorStatement={sheet.ownerName}
+                authorID={sheet.owner}
+                authorUrl={sheet.ownerProfileUrl}
+                authorImage={sheet.ownerImageUrl}
+                summary={sheet.summary}
+                toggleSignUpModal={this.props.toggleSignUpModal}
+                historyObject={this.props.historyObject}
             />
             {sidebar}
           </div>

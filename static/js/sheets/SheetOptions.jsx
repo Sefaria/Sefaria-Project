@@ -4,7 +4,6 @@ import {InterfaceText, SaveButtonWithText} from "../Misc";
 import Modal from "../common/modal";
 import {ShareBox} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
-import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
 import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
@@ -21,7 +20,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, authorUrl}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, authorUrl, handleCollectionsChange}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -57,7 +56,11 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
     return <ShareModal sheetID={sheetID} isOpen={sharingMode} close={() => setSharingMode(false)}/>;
   }
   else if (collectionsMode) {
-    return <CollectionsModal isOpen={collectionsMode} close={() => setCollectionsMode(false)} sheetID={sheetID}/>;
+    return <CollectionsModal
+                          isOpen={collectionsMode}
+                          close={() => setCollectionsMode(false)}
+                          handleCollectionsChange={handleCollectionsChange}
+                          sheetID={sheetID}/>;
   }
   else if (copyingMode) {
     return <CopyModal close={() => setCopyingMode(false)} sheetID={sheetID}/>;
@@ -142,9 +145,9 @@ const ShareModal = ({sheetID, close}) => {
           />
         </Modal>;
 }
-const CollectionsModal = ({close, sheetID}) => {
+const CollectionsModal = ({close, sheetID, handleCollectionsChange, editable}) => {
   return <Modal isOpen={true} close={close}>
-            <CollectionsWidget sheetID={sheetID} close={close} />
+            <CollectionsWidget sheetID={sheetID} close={close} handleCollectionsChange={handleCollectionsChange} />
         </Modal>;
 }
 
