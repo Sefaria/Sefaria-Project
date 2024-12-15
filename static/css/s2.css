@@ -5058,6 +5058,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topic-landing-temporal .parashah-link{
   margin-top: 47px;
 }
+.topic-landing-parasha .parasha-link .navSidebarLink.ref span{
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
 .topic-landing-temporal .display-date-message{
   color: var(--Darkest-Grey, #333);
   font-size: 14px;
@@ -5081,6 +5085,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .topic-landing-temporal .display-date span{
   font-family: 'Roboto';
+}
+.topic-landing-parasha .navSidebarLink span{
+  font-family: Roboto, sans-serif;
 }
 .readerNavMenu .sheet {
   display: flex;
