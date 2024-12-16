@@ -263,7 +263,7 @@ const SheetsList = ({profile, handleSheetDelete, handleCollectionsChange, toggle
   }
 
   return (
-    <div>
+    <div class="sheetsProfileList">
       {sheets.map(sheet => (
         <SheetListing
           key={sheet.id}

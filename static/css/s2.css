@@ -8856,7 +8856,10 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   flex: 1;
 }
 .sheet .sheetTitleText {
-  font-family: var(--english-serif-font-family);
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
 }
 .sheetListingPinButton {
   display: none;
@@ -14074,6 +14077,43 @@ span.ref-link-color-3 {color: blue}
   content: "•";
   padding: 0px 4px;
 }
+
+
+.sheetsProfileList {
+  margin-top: 20px;
+  font-size:  24px;
+  background-color: white;
+  border: 1000px solid white;
+  border-top: 4px solid white;
+  border-bottom: 120px solid white;
+  margin: -4px 0 -120px -1000px;
+  width: 100%;
+  
+}
+
+.interface-hebrew .profile-page .sheetsProfileList {
+  margin: -4px -1000px -120px 0;
+}
+
+.sheetsProfileList .readerNavMenuSearchButton {
+  margin: 0 10px 0 5px;
+  display: inline-flex;
+  top: 0;
+}
+.interface-hebrew .sheetsProfileList .readerNavMenuSearchButton {
+  margin: 0 5px 0 10px;
+}
+.sheetsProfileList input {
+  border: 0;
+  font-size: 18px;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  background-color: transparent;
+}
+.sheetsProfileList .loadingMessage {
+  margin-top: 30px;
+}
+
+
 
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}

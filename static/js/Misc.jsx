@@ -1916,7 +1916,6 @@ const SheetListing = ({
       <div className="sheetLeft">
         {sheetInfo}
         <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{title}</span>
         </a>
         {sheetSummary}
