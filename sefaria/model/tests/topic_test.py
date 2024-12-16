@@ -180,17 +180,17 @@ class TestTopics(object):
     def test_pools(self, topic_graph, topic_pool):
         ts = topic_graph['topics']
         t1 = ts['1']
-        assert len(t1.pools) == 0
+        assert len(t1.get_pools()) == 0
         t1.add_pool(topic_pool.name)
-        assert t1.pools == [topic_pool.name]
+        assert t1.get_pools() == [topic_pool.name]
 
         # dont add duplicates
         t1.add_pool(topic_pool.name)
-        assert t1.pools == [topic_pool.name]
+        assert t1.get_pools() == [topic_pool.name]
 
         assert t1.has_pool(topic_pool.name)
         t1.remove_pool(topic_pool.name)
-        assert len(t1.pools) == 0
+        assert len(t1.get_pools()) == 0
         # dont error when removing non-existant pool
         t1.remove_pool(topic_pool.name)
 
