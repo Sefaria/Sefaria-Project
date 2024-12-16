@@ -552,10 +552,14 @@ const EditorToggleHeader = ({usesneweditor}) => {
 }
 
 
-const ProfileBio = ({profile: p}) => {
+const UserBackground = ({profile: p, showBio}) => {
     // used in ProfileSummary and in SheetContentSidebar, renders user education, organization, and location info
+    // if 'showBio', render p.bio; this property corresponds to "About me" in the profile edit view
     const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
     let infoList = [];
+    if (showBio && p.bio) {
+        infoList.push(p.bio);
+    }
     if (p.location) {
         infoList.push(p.location);
     }
@@ -643,7 +647,7 @@ const ProfileSummary = ({
         <div className="profile-summary sans-serif">
             <div className="summary-column profile-summary-content start">
                 {profileName}
-                <ProfileBio profile={p}/>
+                <UserBackground profile={p} showBio={false}/>
                 {profileButtons}
                 {followInfo}
             </div>
@@ -664,4 +668,4 @@ ProfileSummary.propTypes = {
     toggleSignUpModal: PropTypes.func.isRequired,
 };
 
-export {UserProfile, ProfileBio};
+export {UserProfile, UserBackground};
