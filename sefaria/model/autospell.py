@@ -222,7 +222,7 @@ class AutoCompleter(object):
             return cm.get_completion_strings(), cm.get_completion_objects()
 
         # No results. Try letter swap
-        if not redirected and self.other_lang_ac:
+        if not redirected and self.other_lang_ac and not exact_continuations:
             swapped_string = hebrew.swap_keyboards_for_string(instring)
             return self.other_lang_ac.complete(swapped_string, limit, redirected=True)
 
