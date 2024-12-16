@@ -448,9 +448,12 @@ UserProfile.propTypes = {
 
 const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
-
- const text = <InterfaceText>{usesneweditor ? "You are currently testing the new Sefaria editor." : "You are currently using the old Sefaria editor."}</InterfaceText>;
- const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
+ const old_editor_msg = "Sefaria's original source sheet editor will no longer be supported after \"Dec. 1, 2024\". Start\n" +
+     "using the new editor now or click to learn more about this important change.";
+ const new_editor_msg = "You are currently using the new source sheet editor. The old editor will no longer be\n" +
+     "available after \"Dec 1, 2024\". Click to learn more about this important change.";
+ const text = <InterfaceText>{usesneweditor ? new_editor_msg : old_editor_msg}</InterfaceText>;
+ const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Switch to New Editor"}</InterfaceText>;
 
  const sendFeedback = () => {
 

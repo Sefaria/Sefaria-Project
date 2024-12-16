@@ -524,8 +524,6 @@ const Strings = {
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
     "Thank you!": "תודה רבה!",
-    "You are currently testing the new Sefaria editor.": "ברגע זה הינך עושה שימוש בעורך החדש של ספריא",
-    "You are currently using the old Sefaria editor.": "כעת הינך עושה שימוש בגרסה הישנה של עורך ספריא",
     "Try the new version": "להתנסוּת בגרסה החדשה",
     "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
 
