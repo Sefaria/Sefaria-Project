@@ -23,7 +23,7 @@ const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSig
             />
             {authorName}
             {!loading && <SheetProfileInfo profile={profile} toggleSignUpModal={toggleSignUpModal}/>}
-            {<PartOfCollections collections={collections}/>}
+            {<SheetCollectionsList collections={collections}/>}
     </div>;
 }
 
@@ -43,7 +43,7 @@ const SheetProfileInfo = ({profile, toggleSignUpModal}) => {
              }
            </span>;
 }
-const PartOfCollections = ({collections}) => {
+const SheetCollectionsList = ({collections}) => {
     return collections.length > 0 &&
                 <div>
                     <h3 className="sheetCollections"><InterfaceText>Part of Collections</InterfaceText></h3>
