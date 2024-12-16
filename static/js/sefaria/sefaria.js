@@ -3342,6 +3342,7 @@ Sefaria.unpackBaseProps = function(props){
       "community",
       "followRecommendations",
       "trendingTopics",
+      "numLibraryTopics",
       "_siteSettings",
       "_debug"
   ];
