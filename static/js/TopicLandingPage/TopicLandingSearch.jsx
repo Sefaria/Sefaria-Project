@@ -36,7 +36,7 @@ const getSuggestions = async (input) => {
     const isInputHebrew = Sefaria.hebrew.isHebrew(word);
     const lang = isInputHebrew? 'he' : 'en';
 
-    const rawCompletions = await Sefaria.getName(word,20, "Topic", "library", true);
+    const rawCompletions = await Sefaria.getName(word,20, "Topic", "library", true, true);
     const completionObjects = _parseSuggestions(rawCompletions["completion_objects"], lang);
     return completionObjects.map((suggestion) => ({
       text: suggestion.title,
@@ -110,7 +110,7 @@ export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
                 containerClassString="topic-landing-search-container"
                 dropdownMenuClassString="topic-landing-search-dropdown"
                 renderInput={renderInput.bind(null, openTopic, numOfTopics)}
-                shouldDisplaySuggestions={()=>true}
+                // shouldDisplaySuggestions={()=>true}
             />
         </div>
     );
