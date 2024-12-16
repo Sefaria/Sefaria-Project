@@ -39,13 +39,13 @@
   margin: 0 0 60px 0;
   height: auto;
 }
-.interface-hebrew h1.mobileAboutHeader {
+.interface-hebrew h1.aboutHeader {
   padding-top: 5px;
 }
-.interface-english h1.mobileAboutHeader {
+.interface-english h1.aboutHeader {
   padding-top: 2px;
 }
-#aboutSidebar.mobileAbout h1, h1.mobileAboutHeader {
+#aboutSidebar.mobileAbout h1, h1.aboutHeader {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-style: normal;
@@ -3520,7 +3520,7 @@ form.globalUpdateForm + div.notificationsList {
       margin-right: 20px;
     }
 }
-.interface-hebrew h1.mobileAboutHeader, .interface-hebrew #aboutSidebar h1 {
+.interface-hebrew h1.aboutHeader, .interface-hebrew #aboutSidebar h1 {
   text-align: right;
 }
 nav#aboutSidebar h1 {
@@ -3617,11 +3617,11 @@ nav#aboutSidebar h1 {
     margin: 0;
     padding-top: 55px;
   }
-  h1.mobileAboutHeader {
+  h1.aboutHeader {
     margin: 40px 0 40px 0;
     padding-top: 0;
   }
-  div#productsPageContent h1.mobileAboutHeader {
+  div#productsPageContent h1.aboutHeader {
     margin: revert;
   }
   .interface-english #aboutSidebar li {
