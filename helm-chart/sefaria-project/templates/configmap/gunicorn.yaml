@@ -25,6 +25,7 @@ data:
     {{- end }}
 
     loglevel = "warning"
+    preload_app = True
     
     {{- if .Values.instrumentation.enabled }}
     def post_fork(server, worker):
@@ -32,6 +33,10 @@ data:
         from opentelemetry.instrumentation.auto_instrumentation import sitecustomize
     
     {{- end }}
+
+    def on_starting(server):
+        from reader.startup import init_library_cache
+        init_library_cache()
 
     def combined_logformat(logger, name, event_dict):
         if event_dict.get('logger') == "gunicorn.access":

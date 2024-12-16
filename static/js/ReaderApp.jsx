@@ -571,6 +571,12 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("My Reading History");
             hist.url = "texts/history";
             hist.mode = "history";
+            break;
+          case "notes":
+            hist.title = Sefaria._("My Notes");
+            hist.url = "texts/notes";
+            hist.mode = "notes";
+            break;
         }
         hist.url = addTab(hist.url)
       } else if (state.mode === "Text") {
@@ -1008,7 +1014,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       showHighlight: true,
                       currentlyVisibleRef: refs,
                     }
-    this.replacePanel(n-1, ref, currVersions, new_opts);
+    this.replacePanel(n-1, ref, currVersions, new_opts, false);
 }
   getHTMLLinkParentOfEventTarget(event){
     //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
@@ -1130,6 +1136,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
     } else if (path === "/texts/saved") {
       this.showSaved();
+
+    } else if (path === "/texts/notes") {
+      this.showNotes();
 
     } else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
@@ -1551,9 +1560,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
-  replacePanel(n, ref, currVersions, options) {
+  replacePanel(n, ref, currVersions, options, convertCommentaryRefToBaseRef=true) {
     // Opens a text in in place of the panel currently open at `n`.
-    this.openPanelAt(n, ref, currVersions, options, true);
+    this.openPanelAt(n, ref, currVersions, options, true, convertCommentaryRefToBaseRef);
   }
   openComparePanel(n, connectAfter) {
     const comparePanel = this.makePanelState({
@@ -1756,6 +1765,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});
+  }
+  showNotes() {
+    this.setSinglePanelState({menuOpen: "notes"});
   }
   showHistory() {
     this.setSinglePanelState({menuOpen: "history"});
