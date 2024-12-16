@@ -15,12 +15,12 @@ import {
   InterfaceText,
   LanguageToggleButton,
   LoadingMessage,
-  ProfilePic,
   ResponsiveNBox,
   SheetListing,
   TabView,
   TwoOrThreeBox,
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 import {ContentText} from "./ContentText";
 
 
