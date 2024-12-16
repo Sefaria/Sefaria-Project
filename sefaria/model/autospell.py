@@ -202,7 +202,7 @@ class AutoCompleter(object):
         except KeyError:
             return None
 
-    def complete(self, instring, limit=0, redirected=False, type=None, topic_pool=None):
+    def complete(self, instring, limit=0, redirected=False, type=None, topic_pool=None, exact_continuations=False):
         """
         Wrapper for Completions object - prioritizes and aggregates completion results.
         In the case where there are no results, tries to swap keyboards and get completion results from the other language.
@@ -216,7 +216,7 @@ class AutoCompleter(object):
         if len(instring) >= self.max_completion_length:
             return [], []
         cm = Completions(self, self.lang, instring, limit,
-                         do_autocorrect=len(instring) < self.max_autocorrect_length, type=type, topic_pool=topic_pool)
+                         do_autocorrect=len(instring) < self.max_autocorrect_length, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations)
         cm.process()
         if cm.has_results():
             return cm.get_completion_strings(), cm.get_completion_objects()
@@ -259,7 +259,7 @@ class Completions(object):
         "Term": "Term",
         "User": "User"}
 
-    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, topic_pool=None):
+    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, topic_pool=None, exact_continuations=False):
         """
         An object that contains a single search, delegates to different methods of completions, and aggregates results.
         :param auto_completer:
@@ -286,6 +286,7 @@ class Completions(object):
         self._type_limit = 3
         self.type = type
         self.topic_pool = topic_pool
+        self.exact_continuations = exact_continuations
 
     def has_results(self):
         return len(self._completion_objects) > 0
@@ -388,7 +389,7 @@ class Completions(object):
 
             self._raw_completion_strings += cs
             self._completion_objects += co
-            if self._is_past_limit():
+            if self._is_past_limit() or self.exact_continuations:
                 return
 
         # A minor variations of this string of characters deeper in the string
