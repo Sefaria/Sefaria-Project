@@ -562,14 +562,24 @@ class ReaderApp extends Component {
             hist.url = "torahtracker";
             hist.mode = "user_stats";
             break;
-          case "saved":
+          case "texts-saved":
             hist.title = Sefaria._("My Saved Content");
             hist.url = "texts/saved";
             hist.mode = "saved";
             break;
-          case "history":
+          case "sheets-saved":
+            hist.title = Sefaria._("My Saved Content");
+            hist.url = "sheets/saved";
+            hist.mode = "saved";
+            break;
+          case "texts-history":
             hist.title = Sefaria._("My Reading History");
             hist.url = "texts/history";
+            hist.mode = "history";
+            break;
+          case "sheets-history":
+            hist.title = Sefaria._("My Reading History");
+            hist.url = "sheets/history";
             hist.mode = "history";
             break;
           case "notes":

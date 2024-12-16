@@ -32,6 +32,8 @@ urlpatterns = [
     url(r'^texts/saved/?$', reader_views.saved),
     url(r'^texts/notes/?$', reader_views.notes),
     url(r'^texts/history/?$', reader_views.user_history),
+    url(r'^sheets/saved/?$', reader_views.saved),
+    url(r'^sheets/history/?$', reader_views.user_history),
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),

@@ -23,7 +23,7 @@ import {TopicPage, TopicCategory}  from './TopicPage';
 import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
 import { NotificationsPanel } from './NotificationsPanel';
-import UserHistoryPanel  from './UserHistoryPanel';
+import UserHistoryPanel, {SheetsUserHistoryPanelWrapper, LibraryUserHistoryPanelWrapper}  from './UserHistoryPanel';
 import UserProfile  from './UserProfile';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
@@ -1064,9 +1064,22 @@ class ReaderPanel extends Component {
           interfaceLang={this.props.interfaceLang} />
       );
 
-    } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
+    } else if (["texts-saved", "texts-history", "notes"].includes(this.state.menuOpen)) {
       menu = (
-          <UserHistoryPanel
+          <LibraryUserHistoryPanelWrapper
+              multiPanel={this.props.multiPanel}
+              menuOpen={this.state.menuOpen}
+              openMenu={this.openMenu}
+              openNav={this.openMenu.bind(null, "navigation")}
+              openDisplaySettings={this.openDisplaySettings}
+              toggleLanguage={this.toggleLanguage}
+              compare={this.state.compare}
+              toggleSignUpModal={this.props.toggleSignUpModal}/>
+      );
+
+    } else if (["sheets-saved", "sheets-history"].includes(this.state.menuOpen)) {
+      menu = (
+          <SheetsUserHistoryPanelWrapperUserHistoryPanelWrapper
               multiPanel={this.props.multiPanel}
               menuOpen={this.state.menuOpen}
               openMenu={this.openMenu}

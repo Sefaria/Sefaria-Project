@@ -21,7 +21,7 @@ import {
 } from './Misc';
 
 
-const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
+const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, dataSource}) => {
   const [notes, setNotes] = useState(null);
   const contentRef = useRef();
 
@@ -49,10 +49,11 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         <img src="/static/icons/clock.svg" />
         <InterfaceText>History</InterfaceText>
       </a>
-      <a href="/texts/notes" className={"navTitleTab" + (menuOpen === "notes" ? " current" : "")}> 
+      { dataSource === "notes" && 
+        <a href="/texts/notes" className={"navTitleTab" + (menuOpen === "notes" ? " current" : "")}> 
         <img src="/static/icons/notes-icon.svg" /> 
         <InterfaceText>Notes</InterfaceText>
-      </a>
+      </a> }
     </span>
   );
 
@@ -100,6 +101,29 @@ UserHistoryPanel.propTypes = {
   menuOpen:            PropTypes.string.isRequired,
 };
 
+const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
+  return (
+    <UserHistoryPanel menuOpen={menuOpen} 
+                      toggleLanguage={toggleLanguage} 
+                      openDisplaySettings={openDisplaySettings} 
+                      openNav={openNav} 
+                      compare={compare} 
+                      toggleSignUpModal={toggleSignUpModal}
+                      dataSource={"library"} />
+  )
+};
+
+const SheetsUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
+  return (
+    <UserHistoryPanel menuOpen={menuOpen} 
+                      toggleLanguage={toggleLanguage} 
+                      openDisplaySettings={openDisplaySettings} 
+                      openNav={openNav} 
+                      compare={compare} 
+                      toggleSignUpModal={toggleSignUpModal}
+                      dataSource={"sheets"} />
+  )
+};
 
 const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
   const [items, setItems] = useState(store.loaded ? store.items : null);
@@ -204,3 +228,4 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
 
 
 export default UserHistoryPanel;
+export { SheetsUserHistoryPanelWrapper, LibraryUserHistoryPanelWrapper };
