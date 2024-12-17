@@ -6,6 +6,7 @@ import {ShareBox} from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
 import $ from "../sefaria/sefariaJquery";
 import {SignUpModalKind} from "../sefaria/signupModalContent";
+import {AddToSourceSheetBox} from "../AddToSourceSheet";
 import {CollectionsWidget} from "../CollectionsWidget";
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
@@ -121,6 +122,9 @@ const CollectionsModal = ({close, sheetID}) => {
         </Modal>;
 }
 
+const AddToSourceSheetModal = ({nodeRef, srefs, close}) => {
+  return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs} hideGDocAdvert={true}/></Modal>
+}
 const CopyButton = ({onClick}) => {
   return <DropdownMenuItemWithIcon
               textEn={"Copy"}
@@ -282,4 +286,5 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
 
 }
 
-export {SheetOptions};
+
+export {SheetOptions, AddToSourceSheetModal};

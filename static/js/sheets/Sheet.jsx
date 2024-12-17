@@ -96,7 +96,8 @@ class Sheet extends Component {
                   onRefClick={this.props.onRefClick}
                   handleClick={this.handleClick}
                   sheetSourceClick={this.props.onSegmentClick}
-                  highlightedNode={this.props.highlightedNode}
+                  highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
+                  highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
                   highlightedRefsInSheet={this.props.highlightedRefsInSheet}
                   scrollToHighlighted={this.props.scrollToHighlighted}
                   editable={editable}

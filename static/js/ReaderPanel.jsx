@@ -692,6 +692,7 @@ class ReaderPanel extends Component {
           key={"sheet-"+this.state.sheetID}
           multiPanel={this.props.multiPanel}
           highlightedNode={this.state.highlightedNode}
+          highlightedRefs={this.state.highlightedRefs}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           scrollToHighlighted={this.state.scrollToHighlighted}
           onRefClick={this.handleCitationClick}
