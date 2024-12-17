@@ -385,6 +385,9 @@ body.hasBannerMessage {
   transition: padding-top .3s;
   padding-top: 120px;
 }
+body.hasBannerMessage:not(:has(#bannerMessage)) {
+  padding-top: 0;
+}
 body.hasBannerMessage #s2.headerOnly {
   height: 180px;
 }
@@ -2795,7 +2798,42 @@ display: none;
   color: var(--light-grey);
 }
 
-.navBlockTitle .int-he, .navBlockDescription .int-he{
+div.sheetsWrapper :nth-child(1 of .card) {
+  border-top: 1px solid #EDEDEC;
+}
+.card {
+  flex: 1 1 45%;
+  position: relative;
+  padding-bottom: 12px;
+}
+.cardTitle {
+  text-align: start;
+  font-size: 24px;
+  padding: 15px 0 8px;
+  margin: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  line-height: 1.3;
+  flex: 1;
+  font-weight: 400;
+}
+a.cardTitle:hover {
+  text-decoration: none;
+  color: var(--dark-grey);
+}
+.cardDescription {
+  font-size: 14px;
+  line-height: 18px;
+  color: #666;
+  margin-inline-end: 20px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.hebrew .cardDescription {
+  line-height: 24px;
+}
+.navBlockTitle .int-he, .navBlockDescription .int-he, .cardTitle .int-he, .cardDescription .int-he{
   font-size: 122%;
 }
 .interface-english .navBlockDescription.clamped .int-en,
@@ -4972,7 +5010,100 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .no-wrapping-salad-item-container{
   white-space: nowrap;
 }
+.topic-landing-temporal{
+  display: flex;
+  margin-top: 30px;
+}
 
+.topic-landing-parasha{
+
+}
+.topic-landing-seasonal{
+
+}
+.topic-landing-parasha .browse-all-parashot-prompt{
+  color: var(--Commentary-Blue, #4B71B7);
+  margin-top: 14px
+}
+.topic-landing-parasha .browse-all-parashot-prompt span{
+  font-family: Roboto;
+  font-size: 14px;
+}
+.topic-landing-parasha .read-portion-button{
+  margin-top: 30px;
+}
+.topic-landing-temporal > .topic-landing-parasha {
+    border-inline-end: 1px solid #ccc;
+    padding-inline-end: 67px;
+    flex: 1;
+}
+.topic-landing-temporal > .topic-landing-seasonal {
+    padding-inline-start: 67px;
+    flex: 1;
+}
+
+
+.topic-landing-calendar .calendar-header{
+  color: var(--Dark-Grey, #666);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.topic-landing-seasonal .explore-calendar-prompt{
+  color: var(--Commentary-Blue, #4B71B7);
+  margin-top: 14px;
+}
+.topic-landing-seasonal .explore-calendar-prompt span{
+  font-family: Roboto;
+  font-size: 14px;
+}
+
+.topic-landing-temporal .learn-more-prompt{
+  font-size: 14px;
+  line-height: 18px;
+  color: #666;
+  margin-inline-end: 20px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.topic-landing-temporal .parashah-link{
+  margin-top: 47px;
+}
+.topic-landing-parasha .parasha-link .navSidebarLink.ref span{
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.topic-landing-temporal .display-date-message{
+  color: var(--Darkest-Grey, #333);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 18px;
+  margin-top: 55px;
+}
+.topic-landing-temporal .display-date-message span {
+  font-family: Roboto;
+}
+.topic-landing-temporal .display-date-message a {
+  font-family: Roboto;
+}
+.topic-landing-temporal .display-date{
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  font-family: Roboto;
+  margin-top: 19px;
+}
+.topic-landing-temporal .display-date span{
+  font-family: 'Roboto';
+}
+.topic-landing-parasha .navSidebarLink span{
+  font-family: Roboto, sans-serif;
+}
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
@@ -7760,8 +7891,10 @@ But not to use a display block directive that might break continuous mode for ot
   margin-top: 17px;
 }
 .profile-pic-cropper-modal .ReactCrop__crop-selection {
-  border-radius: 50%;
   box-shadow: 0 0 0 9999em rgba(255, 255, 255, 0.6);
+}
+.profile-page .profile-pic-cropper-modal .ReactCrop__crop-selection {
+  border-radius: 50%;
 }
 .profile-pic-cropper-modal .ReactCrop__image {
   max-width: 50vw;
@@ -7772,10 +7905,10 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .profile-pic-cropper {
 }
-.profile-page .profile-pic .profile-pic-cropper-modal .profile-pic-cropper-button {
+#interruptingMessage.profile-pic-cropper-modal .profile-pic-cropper-button {
   display: inline-flex;
 }
-.profile-page .profile-pic .profile-pic-cropper-desc {
+.profile-pic-cropper-desc {
   margin-top: 9px;
   margin-bottom: 18px;
 }
@@ -11702,7 +11835,8 @@ cursor: pointer;
 .profile-page .follow-header .follow-count {
   color: #999;
 }
-.profile-page .resourcesLink  {
+.profile-page .resourcesLink,
+.profile-pic-cropper-button.resourcesLink {
   min-height: 46px;
   height: 46px;
   overflow: visible;
@@ -11725,7 +11859,8 @@ cursor: pointer;
   line-height: 1.5;
 }
 .profile-page .profile-summary .resourcesLink + .resourcesLink,
-.profile-page .profile-summary .largeFollowButton + .resourcesLink {
+.profile-page .profile-summary .largeFollowButton + .resourcesLink,
+#interruptingMessage.profile-pic-cropper-modal .resourcesLink + .resourcesLink {
   margin: 0 0 0 10px;
 }
 .interface-hebrew .profile-page .profile-summary .largeFollowButton + .resourcesLink,

@@ -2665,6 +2665,18 @@ _media: {},
     stories: [],
     page: 0
   },
+  _upcomingDay: {},  // for example, possible keys are 'parasha' and 'holiday'
+  getUpcomingDay: function(day) {
+      // currently `day` can be 'holiday' or 'parasha'
+      if (day !== 'holiday' && day !== 'parasha') {
+        throw new Error('Invalid day. Expected "holiday" or "parasha".');
+      }
+      return this._cachedApiPromise({
+          url:   `${this.apiHost}/api/calendars/topics/${day}`,
+          key:   day,
+          store: this._upcomingDay,
+     });
+  },
   _parashaNextRead: {},
   getParashaNextRead: function(parasha) {
     return this._cachedApiPromise({
@@ -2769,6 +2781,14 @@ _media: {},
   getTopicFromCache: function(slug, {annotated=true, with_html=false}={}) {
       const key = this._getTopicCacheKey(slug, {annotated, with_html});
       return this._topics[key];
+  },
+  _seasonalTopic: {},
+  getSeasonalTopic: function() {
+    return this._cachedApiPromise({
+        url: `${Sefaria.apiHost}/_api/topics/seasonal-topic?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
+        key: (new Date()).toLocaleDateString(),
+        store: this._seasonalTopic,
+    });
   },
   _topicSlugsToTitles: null,
   slugsToTitles: function() {
