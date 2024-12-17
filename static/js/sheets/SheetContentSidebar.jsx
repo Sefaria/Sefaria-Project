@@ -2,7 +2,7 @@ import {FollowButton, InterfaceText} from "../Misc";
 import {ProfilePic} from "../ProfilePic";
 import Sefaria from "../sefaria/sefaria";
 import React, {useEffect, useState} from "react";
-import {ProfileBio} from "../UserProfile";
+import {UserBackground} from "../UserProfile";
 const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections}) => {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
@@ -34,7 +34,7 @@ const SheetProfileInfo = ({profile, toggleSignUpModal}) => {
                                          </div>;
     return <span className="profile-summary">
              {profileFollowers}
-             <ProfileBio profile={profile}/>
+             <UserBackground profile={profile} showBio={true}/>
              {Sefaria._uid !== profile.id && <FollowButton
                                                 large={true}
                                                 uid={profile.id}
