@@ -13,6 +13,13 @@ const getSuggestions = async (input) => {
     const _capitalizeFirstLetter = (text)=> {
         return String(text).charAt(0).toUpperCase() + String(text).slice(1);
     }
+    const _extractDisambiguation = (title) => {
+        const match = title.match(/\((.*?)\)$/);
+        return match ? match[1] : null;
+    };
+    const _removeDisambiguation = (title)=>{
+        return title.replace(/\s*\(.*\)\s*$/, '').trim();
+    }
 
     const _getFormattedPath = (slug, lang) => {
       const categories = Sefaria.topicTocCategories(slug);
@@ -22,15 +29,24 @@ const getSuggestions = async (input) => {
     }
 
     const _parseSuggestions = (completionObjs, lang) => {
-      let topics = [];
-      if (completionObjs.length > 0) {
-        topics = completionObjs.map((e) => ({
-          title: `#${_capitalizeFirstLetter(e.title)}`,
-          categoryPathTitle: `${_getFormattedPath(e.key, lang)}`,
+      if (completionObjs.length === 0) return [];
+
+      return completionObjs.map((e) => {
+        const categories = Sefaria.topicTocCategories(e.key);
+        const isDisambiguationEqualCategory =
+            categories &&
+            categories.some(category => _extractDisambiguation(e.title) === category[lang]);
+
+        const title = isDisambiguationEqualCategory
+          ? _removeDisambiguation(_capitalizeFirstLetter(e.title))
+          : _capitalizeFirstLetter(e.title);
+
+        return {
+          title: `#${title}`,
+          categoryPathTitle: _getFormattedPath(e.key, lang),
           key: e.key,
-        }));
-      }
-      return topics;
+        };
+      });
     };
 
     const isInputHebrew = Sefaria.hebrew.isHebrew(word);
