@@ -1079,7 +1079,7 @@ class ReaderPanel extends Component {
 
     } else if (["sheets-saved", "sheets-history"].includes(this.state.menuOpen)) {
       menu = (
-          <SheetsUserHistoryPanelWrapperUserHistoryPanelWrapper
+          <SheetsUserHistoryPanelWrapper
               multiPanel={this.props.multiPanel}
               menuOpen={this.state.menuOpen}
               openMenu={this.openMenu}

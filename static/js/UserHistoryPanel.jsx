@@ -41,11 +41,11 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const title = (
     <span className="sans-serif">
-      <a href="/texts/saved" className={"navTitleTab" + (menuOpen === "saved" ? " current" : "")}>
+      <a href="/texts/saved" className={"navTitleTab" + (menuOpen === "texts-saved" ? " current" : "")}>
         <img src="/static/icons/bookmark.svg" />
         <InterfaceText>Saved</InterfaceText>
       </a>
-      <a href="/texts/history" className={"navTitleTab" + (menuOpen === "history" ? " current" : "")}>
+      <a href="/texts/history" className={"navTitleTab" + (menuOpen === "texts-history" ? " current" : "")}>
         <img src="/static/icons/clock.svg" />
         <InterfaceText>History</InterfaceText>
       </a>
