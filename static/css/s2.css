@@ -4975,10 +4975,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .featuredTopicContent img {
   width: 239px;
+  height: 100%;
 }
 .featuredTopicContent h3 {
   font-size: var(--serif-h3-font-size);
   text-transform: none;
+  margin: 0 0 15px 0;
 }
 .featuredTopicText .int-en,
 .featuredTopicText .int-he {
