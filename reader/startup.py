@@ -1,6 +1,8 @@
 
 
 def init_library_cache():
+    import django
+    django.setup()
     import structlog
     logger = structlog.get_logger(__name__)
 
@@ -32,3 +34,4 @@ def init_library_cache():
 
     if server_coordinator:
         server_coordinator.connect()
+    logger.info("Initialization Complete")
