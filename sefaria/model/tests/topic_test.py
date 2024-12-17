@@ -1,9 +1,11 @@
 import pytest
+
 from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, TopicLinkHelper, IntraTopicLinkSet, RefTopicLinkSet
 from sefaria.model.text import Ref
-from sefaria.system.database import db
+from sefaria.system.database import db as mongo_db
 from sefaria.system.exceptions import SluggedMongoRecordMissingError
 from django_topics.models import Topic as DjangoTopic, TopicPool
+from django_topics.models.pool import PoolType
 
 
 def make_topic(slug):
@@ -42,8 +44,15 @@ def clean_links(a):
         ls.delete()
 
 
-@pytest.fixture(scope='module')
-def topic_graph():
+@pytest.fixture(autouse=True)
+def topic_pools(db):
+    TopicPool.objects.create(name=PoolType.LIBRARY.value)
+    TopicPool.objects.create(name=PoolType.SHEETS.value)
+
+
+
+@pytest.fixture()
+def topic_graph(db):
     isa_links = [
         (1, 2),
         (2, 3),
@@ -68,8 +77,8 @@ def topic_graph():
         v.delete()
 
 
-@pytest.fixture(scope='module')
-def topic_graph_to_merge():
+@pytest.fixture
+def topic_graph_to_merge(db):
     isa_links = [
         (10, 20),
         (20, 30),
@@ -87,7 +96,7 @@ def topic_graph_to_merge():
         },
         'links': [make_it_link(str(a), str(b), 'is-a') for a, b in isa_links] + [make_rt_link('10', r) for r in trefs] + [make_rt_link('20', r) for r in trefs1] + [make_rt_link('40', r) for r in trefs2]
     }
-    db.sheets.insert_one({
+    mongo_db.sheets.insert_one({
         "id": 1234567890,
         "topics": [
             {"slug": '20', 'asTyped': 'twenty'},
@@ -102,7 +111,7 @@ def topic_graph_to_merge():
         v.delete()
     for v in graph['links']:
         v.delete()
-    db.sheets.delete_one({"id": 1234567890})
+    mongo_db.sheets.delete_one({"id": 1234567890})
 
 
 @pytest.fixture(scope='module')
@@ -114,6 +123,7 @@ def topic_pool():
 
 class TestTopics(object):
 
+    @pytest.mark.django_db
     def test_graph_funcs(self, topic_graph):
         ts = topic_graph['topics']
         assert ts['1'].get_types() == {'1', '2', '3', '4', '5'}
@@ -143,6 +153,7 @@ class TestTopics(object):
         ls = ts['1'].link_set(_class=None)
         assert {getattr(l, 'ref', getattr(l, 'topic', None)) for l in ls} == (trefs | {'2'})
 
+    @pytest.mark.django_db
     def test_merge(self, topic_graph_to_merge):
         ts = topic_graph_to_merge['topics']
         ts['20'].merge(ts['40'])
@@ -177,6 +188,7 @@ class TestTopics(object):
         dt1 = DjangoTopic.objects.get(slug=ts['1'].slug)
         assert dt1.en_title == ts['1'].get_primary_title('en')
 
+    @pytest.mark.django_db
     def test_pools(self, topic_graph, topic_pool):
         ts = topic_graph['topics']
         t1 = ts['1']
