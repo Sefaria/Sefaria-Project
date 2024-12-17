@@ -12,6 +12,9 @@ import VersionInformation from "./VersionInformation";
 import VersionImage from "./VersionImage";
 import VersionBlockWithPreview from "./VersionBlockWithPreview";
 
+/**
+ * making a change to a js file 
+ */
 class VersionBlockUtils {
     static makeVersionTitle(version){
       if (version.merged) {
