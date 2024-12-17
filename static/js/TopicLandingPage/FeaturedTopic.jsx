@@ -14,12 +14,13 @@ export const FeaturedTopic = () => {
         <div className="featuredTopic">
             <h1><InterfaceText>Featured Topic</InterfaceText></h1>
             <div className="featuredTopicContent">
-                <ImageWithAltText photoLink={topic.image.secondary_image_uri} altText={topic.image.image_caption}/>
+                <ImageWithAltText photoLink={topic.secondary_image_uri} altText={topic.image.image_caption}/>
                 <div className="featuredTopicText">
                     <h3><InterfaceText text={topic.primaryTitle} /></h3>
                     <div className="topicDescription systemText">
                         <InterfaceText markdown={topic.description}/>
                         <div className="featuredTopicGoToLink">
+                            <br/>
                             <SimpleLinkedBlock url={`/topics/${topic.slug}`}  en="Go to topic >" he={Sefaria._("Go to topic >")} />
                         </div>
                     </div>
