@@ -11236,11 +11236,14 @@ cursor: pointer;
   height: 30px;
   letter-spacing: 0;
 }
+.editorToggleHeader > span.int-he:first-child { 
+  margin-inline-start: 250px;
+}
 .editorToggleHeader .learnMore {
   text-decoration: underline;
   color: white;
-  margin-right: 200px;
-  margin-left: 20px;
+  margin-inline-end: 200px;
+  margin-inline-start: 20px;
   width: 15%;
   padding: revert;
 }

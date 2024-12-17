@@ -448,12 +448,10 @@ UserProfile.propTypes = {
 
 const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
- const old_editor_msg = "Sefaria's original source sheet editor will no longer be supported after \"Dec. 1, 2024\". Start\n" +
-     "using the new editor now or click to learn more about this important change.";
- const new_editor_msg = "You are currently using the new source sheet editor. The old editor will no longer be\n" +
-     "available after \"Dec 1, 2024\". Click to learn more about this important change.";
+ const old_editor_msg = "Sefaria's original source sheet editor will no longer be supported after March 15, 2025. Start using the new editor now or click to learn more about this important change.";
+ const new_editor_msg = "You are currently using the new source sheet editor. The old editor will no longer be available after March 15, 2025. Click to learn more about this important change.";
  const text = <InterfaceText>{usesneweditor ? new_editor_msg : old_editor_msg}</InterfaceText>;
- const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Switch to New Editor"}</InterfaceText>;
+ const buttonText = <InterfaceText>{usesneweditor ? "Go Back to Old Version" : "Switch to New Editor"}</InterfaceText>;
 
  const sendFeedback = () => {
 
@@ -550,7 +548,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
    <>
    <div className="editorToggleHeader sans-serif">{text}
      <a href="#" onClick={()=>toggleFeedbackOverlayState()} className="button white" role="button">{buttonText}</a>
-       <a href="#" className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
+       <a href="https://sefaria.org/sheets/eol-old-editor" className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
    </div>
    {feedbackHeaderState != "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
    </>
