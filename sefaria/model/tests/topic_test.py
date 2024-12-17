@@ -7,8 +7,6 @@ from sefaria.system.exceptions import SluggedMongoRecordMissingError
 from django_topics.models import Topic as DjangoTopic, TopicPool
 from django_topics.models.pool import PoolType
 
-TEST_SLUG_PREFIX = 'this-is-a-test-slug-'
-
 
 def _ms(slug_suffix):
     """
@@ -16,7 +14,7 @@ def _ms(slug_suffix):
     @param slug_suffix:
     @return:
     """
-    return TEST_SLUG_PREFIX+slug_suffix
+    return 'this-is-a-test-slug-'+slug_suffix
 
 
 def make_topic(slug_suffix):
@@ -56,86 +54,88 @@ def clean_links(a):
         ls.delete()
 
 
-@pytest.fixture(autouse=True)
-def topic_pools(db):
-    TopicPool.objects.create(name=PoolType.LIBRARY.value)
-    TopicPool.objects.create(name=PoolType.SHEETS.value)
+@pytest.fixture(scope='module', autouse=True)
+def library_and_sheets_topic_pools(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
+        TopicPool.objects.create(name=PoolType.LIBRARY.value)
+        TopicPool.objects.create(name=PoolType.SHEETS.value)
 
 
-
-@pytest.fixture()
-def topic_graph(db):
-    isa_links = [
-        (1, 2),
-        (2, 3),
-        (2, 4),
-        (4, 5),
-        (6, 5),
-    ]
-    trefs = [r.normal() for r in Ref('Genesis 1:1-10').range_list()]
-    for a, b in isa_links:
-        clean_links(str(a))
-        clean_links(str(b))
-    graph = {
-        'topics': {
-            str(i): make_topic(str(i)) for i in range(1, 10)
-        },
-        'links': [make_it_link(str(a), str(b), 'is-a') for a, b in isa_links] + [make_rt_link('1', r) for r in trefs]
-    }
-    yield graph
-    for k, v in graph['topics'].items():
-        v.delete()
-    for v in graph['links']:
-        v.delete()
-
-
-@pytest.fixture
-def topic_graph_to_merge(db):
-    isa_links = [
-        (10, 20),
-        (20, 30),
-        (20, 40),
-        (40, 50),
-        (60, 50),
-    ]
-    trefs = [r.normal() for r in Ref('Genesis 1:1-10').range_list()]
-    trefs1 = [r.normal() for r in Ref('Exodus 1:1-10').range_list()]
-    trefs2 = [r.normal() for r in Ref('Leviticus 1:1-10').range_list()]
-
-    graph = {
-        'topics': {
-            str(i): make_topic(str(i)) for i in range(10, 100, 10)
-        },
-        'links': [make_it_link(str(a), str(b), 'is-a') for a, b in isa_links] + [make_rt_link('10', r) for r in trefs] + [make_rt_link('20', r) for r in trefs1] + [make_rt_link('40', r) for r in trefs2]
-    }
-    mongo_db.sheets.insert_one({
-        "id": 1234567890,
-        "topics": [
-            {"slug": _ms('20'), 'asTyped': 'twenty'},
-            {"slug": _ms('40'), 'asTyped': '4d'},
-            {"slug": _ms('20'), 'asTyped': 'twent-e'},
-            {"slug": _ms('30'), 'asTyped': 'thirty'}
+@pytest.fixture(scope='module')
+def topic_graph(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
+        isa_links = [
+            (1, 2),
+            (2, 3),
+            (2, 4),
+            (4, 5),
+            (6, 5),
         ]
-    })
-    
-    yield graph
-    for k, v in graph['topics'].items():
-        v.delete()
-    for v in graph['links']:
-        v.delete()
-    mongo_db.sheets.delete_one({"id": 1234567890})
+        trefs = [r.normal() for r in Ref('Genesis 1:1-10').range_list()]
+        for a, b in isa_links:
+            clean_links(str(a))
+            clean_links(str(b))
+        graph = {
+            'topics': {
+                str(i): make_topic(str(i)) for i in range(1, 10)
+            },
+            'links': [make_it_link(str(a), str(b), 'is-a') for a, b in isa_links] + [make_rt_link('1', r) for r in trefs]
+        }
+        yield graph
+        for k, v in graph['topics'].items():
+            v.delete()
+        for v in graph['links']:
+            v.delete()
 
 
-@pytest.fixture()
-def topic_pool(db):
-    pool = TopicPool.objects.create(name='test-pool')
-    yield pool
-    pool.delete()
+@pytest.fixture(scope='module')
+def topic_graph_to_merge(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
+        isa_links = [
+            (10, 20),
+            (20, 30),
+            (20, 40),
+            (40, 50),
+            (60, 50),
+        ]
+        trefs = [r.normal() for r in Ref('Genesis 1:1-10').range_list()]
+        trefs1 = [r.normal() for r in Ref('Exodus 1:1-10').range_list()]
+        trefs2 = [r.normal() for r in Ref('Leviticus 1:1-10').range_list()]
+
+        graph = {
+            'topics': {
+                str(i): make_topic(str(i)) for i in range(10, 100, 10)
+            },
+            'links': [make_it_link(str(a), str(b), 'is-a') for a, b in isa_links] + [make_rt_link('10', r) for r in trefs] + [make_rt_link('20', r) for r in trefs1] + [make_rt_link('40', r) for r in trefs2]
+        }
+        mongo_db.sheets.insert_one({
+            "id": 1234567890,
+            "topics": [
+                {"slug": _ms('20'), 'asTyped': 'twenty'},
+                {"slug": _ms('40'), 'asTyped': '4d'},
+                {"slug": _ms('20'), 'asTyped': 'twent-e'},
+                {"slug": _ms('30'), 'asTyped': 'thirty'}
+            ]
+        })
+
+        yield graph
+        for k, v in graph['topics'].items():
+            v.delete()
+        for v in graph['links']:
+            v.delete()
+        mongo_db.sheets.delete_one({"id": 1234567890})
+
+
+@pytest.fixture(scope='module')
+def topic_pool(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
+        pool = TopicPool.objects.create(name='test-pool')
+        yield pool
+        pool.delete()
 
 
 class TestTopics(object):
 
-    @pytest.mark.django_db
     def test_graph_funcs(self, topic_graph):
         ts = topic_graph['topics']
         assert ts['1'].get_types() == {_ms(x) for x in {'1', '2', '3', '4', '5'}}
@@ -165,7 +165,6 @@ class TestTopics(object):
         ls = ts['1'].link_set(_class=None)
         assert {getattr(l, 'ref', getattr(l, 'topic', None)) for l in ls} == (trefs | {_ms('2')})
 
-    @pytest.mark.django_db
     def test_merge(self, topic_graph_to_merge):
         ts = topic_graph_to_merge['topics']
         ts['20'].merge(ts['40'])
@@ -200,7 +199,6 @@ class TestTopics(object):
         dt1 = DjangoTopic.objects.get(slug=ts['1'].slug)
         assert dt1.en_title == ts['1'].get_primary_title('en')
 
-    @pytest.mark.django_db
     def test_pools(self, topic_graph, topic_pool):
         ts = topic_graph['topics']
         t1 = ts['1']
@@ -226,9 +224,6 @@ class TestTopics(object):
         assert "<script>" not in t.description["en"]
         assert "<script>" not in t.description["he"]
         assert "<script>" not in t.slug
-
-
-
 
 
 class TestTopicLinkHelper(object):
