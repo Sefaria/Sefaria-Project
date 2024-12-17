@@ -71,7 +71,7 @@ class SheetContent extends Component {
     if (!$segment) { return; }
 
     // don't move around highlighted segment when scrolling a single panel,
-    var shouldHighlight = this.props.hasSidebar || this.props.mode === "SheetAndConnections";
+    const shouldHighlight = this.props.hasSidebar || this.props.mode === "SheetAndConnections";
     if (shouldHighlight) {
       const node = parseInt($segment.attr("data-node"));
       if (!(this.props.highlightedNode === node)) {
@@ -495,16 +495,6 @@ class SheetMedia extends Component {
             : null }
         </div>
       </section>
-    );
-  }
-}
-
-class SheetNotice extends Component {
-  render() {
-    return (
-        <div className="sheetNotice sans-serif">
-          <InterfaceText>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.</InterfaceText>
-        </div>
     );
   }
 }
