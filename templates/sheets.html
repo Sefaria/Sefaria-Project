@@ -21,9 +21,15 @@
 <!-- CSS placed here so it has precedence over other sheets in base.html -->
 <link rel="stylesheet" href="{% static 'css/sheets.css' %}">
 <link rel="stylesheet" href="{% static 'css/sheets-print.css' %}" media="print" />
+
 <div id="sheetsContent" data-interface-lang="{{ request.interfaceLang }}">
 
     <div class="sheetsEditNavTop">
+        <div class="editorToggleHeader sans-serif">
+            <span class="int-en">Sefaria's original source sheet editor will no longer be supported after "Dec. 1, 2024". Start using the new editor now or click to learn more about this important change.</span>
+            <a href="/enable_new_editor" class="button white" role="button"><span class="int-en">Switch to New Editor</span></a>
+            <a href="" class="learnMore"><span class="int-en">Learn More</span></a>
+        </div>
         <div class="sheetsMenuBar" role="menu">
             <div class="sheetsMenuBarInner">
                 <div class="sheetsMenuBarCommands">

@@ -11198,6 +11198,17 @@ cursor: pointer;
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
+#staticContentWrapper .editorToggleHeader {
+  width: 100%;
+  background-color: #18345D;
+  color: white;
+  height: 60px;
+  font-size: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: revert;
+}
 .editorToggleHeader {
   width: 100%;
   background-color: #18345D;
@@ -11207,7 +11218,7 @@ cursor: pointer;
   margin-top: -60px;
   margin-left: -12px;
   margin-bottom: 80px;
-  padding-right: 12px;
+  padding: 0 100px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -11218,11 +11229,20 @@ cursor: pointer;
   direction: rtl;
 }
 .editorToggleHeader .button {
+  white-space: nowrap;
   padding: 5px 8px;
   margin-inline-start: 15px;
   margin-top: 5px;
   height: 30px;
   letter-spacing: 0;
+}
+.editorToggleHeader .learnMore {
+  text-decoration: underline;
+  color: white;
+  margin-right: 200px;
+  margin-left: 20px;
+  width: 15%;
+  padding: revert;
 }
 .feedbackOverlay {
   position: fixed;

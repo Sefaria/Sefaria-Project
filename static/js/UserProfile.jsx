@@ -550,6 +550,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
    <>
    <div className="editorToggleHeader sans-serif">{text}
      <a href="#" onClick={()=>toggleFeedbackOverlayState()} className="button white" role="button">{buttonText}</a>
+       <a href="#" className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
    </div>
    {feedbackHeaderState != "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
    </>
