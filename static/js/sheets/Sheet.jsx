@@ -74,7 +74,6 @@ class Sheet extends Component {
     }
   }
 
-
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
@@ -92,7 +91,6 @@ class Sheet extends Component {
             <div className="sidebarLayout">
               <SheetContent
                   sheetOptions = {sheetOptions}
-                  sheetNotice={sheet.sheetNotice}
                   sources={sheet.sources}
                   title={sheet.title}
                   onRefClick={this.props.onRefClick}

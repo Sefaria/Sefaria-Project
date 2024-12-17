@@ -1,8 +1,8 @@
 import {FollowButton, InterfaceText} from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 import React, {useEffect, useState} from "react";
-import {ProfileBio} from "../UserProfile";
 import {ProfilePic} from "../ProfilePic";
+import {UserBackground} from "../UserProfile";
 const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections}) => {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
@@ -23,7 +23,7 @@ const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSig
             />
             {authorName}
             {!loading && <SheetProfileInfo profile={profile} toggleSignUpModal={toggleSignUpModal}/>}
-            {<PartOfCollections collections={collections}/>}
+            {<SheetCollectionsList collections={collections}/>}
     </div>;
 }
 
@@ -34,7 +34,7 @@ const SheetProfileInfo = ({profile, toggleSignUpModal}) => {
                                          </div>;
     return <span className="profile-summary">
              {profileFollowers}
-             <ProfileBio profile={profile}/>
+             <UserBackground profile={profile} showBio={true}/>
              {Sefaria._uid !== profile.id && <FollowButton
                                                 large={true}
                                                 uid={profile.id}
@@ -43,7 +43,7 @@ const SheetProfileInfo = ({profile, toggleSignUpModal}) => {
              }
            </span>;
 }
-const PartOfCollections = ({collections}) => {
+const SheetCollectionsList = ({collections}) => {
     return collections.length > 0 &&
                 <div>
                     <h3 className="sheetCollections"><InterfaceText>Part of Collections</InterfaceText></h3>
