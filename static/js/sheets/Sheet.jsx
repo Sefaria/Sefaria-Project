@@ -9,7 +9,6 @@ import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
 } from '../Misc'; 
-import {SheetOptions} from "./SheetOptions";
 import {SheetContent} from "./SheetContent";
 
 class Sheet extends Component {
@@ -119,7 +118,6 @@ class Sheet extends Component {
       content = (
           <div className="sidebarLayout">
             <SheetContent
-                sheetNotice={sheet.sheetNotice}
                 sources={sheet.sources}
                 title={sheet.title}
                 onRefClick={this.props.onRefClick}
