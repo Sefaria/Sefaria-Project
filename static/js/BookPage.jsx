@@ -215,7 +215,7 @@ class BookPage extends Component {
       [
         this.props.multiPanel ? {type: "AboutText", props: {index: this.state.indexDetails}} : {type: null},
         {type: "Promo"},
-        {type: "RelatedTopics", props: { title: this.props.title}},
+         {type: "RelatedTopics", props: { title: this.props.title}},
         !isDictionary ? {type: "DownloadVersions", props:{sref: this.props.title}} : {type: null},
       ];
 
@@ -334,7 +334,7 @@ class BookPage extends Component {
               <LoadingMessage />
               }
             </div>
-            {this.isBookToc() && ! this.props.compare ? 
+            {this.isBookToc() && ! this.props.compare && !this.props.isNarrowColumn ? 
             <NavSidebar modules={sidebarModules} /> : null}
           </div>
           {this.isBookToc() && ! this.props.compare ?

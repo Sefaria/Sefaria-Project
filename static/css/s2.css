@@ -6429,6 +6429,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .segment .segmentText {
     display: inline;
+    margin-right: 20px;
 }
 
 .segment > .he,
@@ -6464,6 +6465,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     padding-inline-start: initial;
     display: inline;
     margin-inline-end: .5em;
+    padding-right: 20px;
 }
 
 .continuous .segment .segmentText br {
