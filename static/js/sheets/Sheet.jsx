@@ -73,19 +73,6 @@ class Sheet extends Component {
       }
     }
   }
-  handleCollectionsChange() {
-    // when editing a sheet and user selects through SheetOptions to change the status of the collections for the sheet,
-    // update the user's collections and sheet cache.  need to forceUpdate because sheet is stored not in this component's state
-    // but rather in Sefaria module's cache
-    Promise.all([
-         Sefaria.getUserCollections(Sefaria._uid),
-         Sefaria.getUserCollectionsForSheet(this.props.id)
-      ])
-     .then(() => {
-       Sefaria.sheets._loadSheetByID[this.props.id].collections = Sefaria.getUserCollectionsForSheetFromCache(this.props.id);
-       this.forceUpdate();
-     });
-  }
 
   render() {
     const classes = classNames({sheetsInPanel: 1});
@@ -135,14 +122,13 @@ class Sheet extends Component {
           <div className="sidebarLayout">
             <SheetContent
                 sheetOptions={sheetOptions}
-                sheetNotice={sheet.sheetNotice}
                 sources={sheet.sources}
                 title={sheet.title}
                 onRefClick={this.props.onRefClick}
                 handleClick={this.handleClick}
                 sheetSourceClick={this.props.onSegmentClick}
                 highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
-                highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["sheet 4:3"] -- the actual source
+                highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
                 highlightedRefsInSheet={this.props.highlightedRefsInSheet}
                 scrollToHighlighted={this.props.scrollToHighlighted}
                 editable={editable}
