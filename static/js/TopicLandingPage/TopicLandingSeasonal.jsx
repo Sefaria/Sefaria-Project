@@ -23,28 +23,16 @@ const useSeasonalTopic = () => {
 
   if (!seasonal) return { isLoading: true };
 
-  const title = seasonal.topic?.primaryTitle;
-  const description = seasonal.topic?.description;
-  const link = `/topics/${seasonal.topic?.slug}`;
-
-  const displayStartDate = new Date(seasonal.display_start_date);
-  const displayEndDate = new Date(seasonal.display_end_date);
-  const displayDatePrefix = seasonal.display_date_prefix || '';
-  const displayDateSuffix = seasonal.display_date_suffix || '';
-  const secondaryTopicTitle = seasonal.secondary_topic?.primaryTitle || null;
-  const secondaryTopicSlug = seasonal.secondary_topic?.slug || null;
-
-
   return {
-    title,
-    description,
-    link,
-    displayStartDate,
-    displayEndDate,
-    displayDateSuffix,
-    displayDatePrefix,
-    secondaryTopicTitle,
-    secondaryTopicSlug,
+    title: seasonal.topic?.primaryTitle,
+    description: seasonal.topic?.description,
+    link: `/topics/${seasonal.topic?.slug}`,
+    displayStartDate: new Date(seasonal.display_start_date),
+    displayEndDate: new Date(seasonal.display_end_date),
+    displayDatePrefix: seasonal.display_date_prefix || '',
+    displayDateSuffix: seasonal.display_date_suffix || '',
+    secondaryTopicTitle: seasonal.secondary_topic?.primaryTitle || null,
+    secondaryTopicSlug: seasonal.secondary_topic?.slug || null,
     isLoading: false,
   };
 };
