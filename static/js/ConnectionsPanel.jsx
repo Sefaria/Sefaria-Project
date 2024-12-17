@@ -1075,7 +1075,6 @@ ToolsButton.propTypes = {
   secondaryHe: PropTypes.string
 };
 
-
 class ShareBox extends Component {
   constructor(props) {
     super(props);
@@ -1151,8 +1150,8 @@ class ShareBox extends Component {
       <div>
         <ConnectionsPanelSection title="Share Link">
           <div className="shareInputBox">
-            <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
-            <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
+            <button tabIndex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
+            <input tabIndex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>
           {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
             <div className="shareSettingsBox">
@@ -1178,12 +1177,9 @@ class ShareBox extends Component {
 }
 ShareBox.propTypes = {
   url: PropTypes.string.isRequired,
-  setConnectionsMode: PropTypes.func.isRequired,
-  closePanel: PropTypes.func.isRequired,
   fullPanel: PropTypes.bool,
   sheetID: PropTypes.number
 };
-
 
 class AddNoteBox extends Component {
   constructor(props) {
@@ -1566,4 +1562,6 @@ const ConnectionsPanelSection = ({ title, children }) => {
 export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
+  ToolsButton,
+  ShareBox
 };
