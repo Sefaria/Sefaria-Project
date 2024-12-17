@@ -6,7 +6,7 @@ from django_topics.models import Topic
 
 class FeaturedTopicManager(models.Manager):
 
-    def get_featured_topic(self, lang: str, date: datetime = None) -> 'FeaturedTopic':
+    def get_featured_topic(self, lang: str, date: datetime = None) -> 'TopicOfTheDay':
         """
         Return featured topic for given date or closest date that is less than or equal to given date
         @param lang: language code, "en" or "he"
@@ -21,11 +21,11 @@ class FeaturedTopicManager(models.Manager):
         )
 
 
-class FeaturedTopic(models.Model):
+class TopicOfTheDay(models.Model):
     topic = models.ForeignKey(
         Topic,
         on_delete=models.CASCADE,
-        related_name='featured_topic'
+        related_name='topic_of_the_day'
     )
     start_date = models.DateField()
     lang = models.CharField(max_length=2, choices=[('en', 'English'), ('he', 'Hebrew')])
@@ -40,7 +40,7 @@ class FeaturedTopic(models.Model):
         return f"{self.topic.slug} ({self.start_date})"
 
 
-class FeaturedTopicEnglish(FeaturedTopic):
+class FeaturedTopicEnglish(TopicOfTheDay):
     class Meta:
         proxy = True
         verbose_name = "Landing Page - Featured Topic (EN)"
@@ -51,7 +51,7 @@ class FeaturedTopicEnglish(FeaturedTopic):
         super().save(*args, **kwargs)
 
 
-class FeaturedTopicHebrew(FeaturedTopic):
+class FeaturedTopicHebrew(TopicOfTheDay):
     class Meta:
         proxy = True
         verbose_name = "Landing Page - Featured Topic (HE)"
