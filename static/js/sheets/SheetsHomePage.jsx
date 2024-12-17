@@ -25,7 +25,7 @@ const SheetsSidebar = () => {
     {type: "CreateASheet"},
     {type: "WhatIsASourceSheet"},
   ];
-    return <NavSidebar modules={sidebarModules} />
+    return <NavSidebar sidebarModules={sidebarModules} />
 }
 
 

@@ -16,7 +16,7 @@ import {
 } from './ConnectionsPanel';
 import BookPage  from './BookPage';
 import SearchPage  from './SearchPage';
-import Sheet  from './Sheet';
+import Sheet  from './sheets/Sheet';
 import SheetMetadata  from './SheetMetadata';
 import TopicPageAll  from './TopicPageAll';
 import {TopicPage, TopicCategory}  from './TopicPage';
@@ -24,7 +24,7 @@ import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
 import { NotificationsPanel } from './NotificationsPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
-import UserProfile  from './UserProfile';
+import {UserProfile}  from './UserProfile';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
@@ -703,6 +703,7 @@ class ReaderPanel extends Component {
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
           hasSidebar={this.props.hasSidebar}
+          toggleSignUpModal={this.props.toggleSignUpModal}
         />;
     }
 
