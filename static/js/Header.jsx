@@ -13,8 +13,8 @@ import {
   LanguageToggleButton,
   DonateLink
 } from './Misc';
-import {HeaderAutocomplete} from './HeaderAutocomplete'
 import {ProfilePic} from "./ProfilePic";
+import {HeaderAutocomplete} from './HeaderAutocomplete'
 
 class Header extends Component {
   constructor(props) {

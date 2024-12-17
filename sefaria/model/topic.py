@@ -155,6 +155,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
         'image',
+        'secondary_image_uri',
         "portal_slug",  # slug to relevant Portal object
     ]
 
@@ -186,6 +187,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
+        slug = getattr(self, "slug", None)
+        self.pools = list(DjangoTopic.objects.get_pools_by_topic_slug(slug)) if slug is not None else []
         if self.__class__ != Topic and not getattr(self, "subclass", False):
             # in a subclass. set appropriate "subclass" attribute
             setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
