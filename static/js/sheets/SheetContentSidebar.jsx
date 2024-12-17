@@ -1,7 +1,7 @@
 import {FollowButton, InterfaceText} from "../Misc";
-import {ProfilePic} from "../ProfilePic";
 import Sefaria from "../sefaria/sefaria";
 import React, {useEffect, useState} from "react";
+import {ProfilePic} from "../ProfilePic";
 import {UserBackground} from "../UserProfile";
 const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections}) => {
     const [loading, setLoading] = useState(true);
