@@ -52,7 +52,7 @@ pillow==8.0.1; sys_platform == 'linux'
 psycopg2==2.8.6 #for dev: psycopg2-binary==2.8.6
 py2-py3-django-email-as-username==1.7.1
 pymongo==3.12.*
-pytest==6.1.1
+pytest==7.4.4
 python-bidi
 pytz
 pyyaml==6.0.1
