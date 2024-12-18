@@ -396,6 +396,7 @@ class UserProfile(object):
         # new editor
         self.show_editor_toggle = False
         self.uses_new_editor = True
+        self.show_editor_final_warning = True
 
         # Fundraising
         self.is_sustainer = False
@@ -673,6 +674,7 @@ class UserProfile(object):
             "sf_app_user_id":        self.sf_app_user_id,
             "gauth_email":           self.gauth_email,
             "show_editor_toggle":    self.show_editor_toggle,
+            "show_editor_final_warning": self.show_editor_final_warning,
             "uses_new_editor":       self.uses_new_editor,
         }
 
@@ -706,6 +708,7 @@ class UserProfile(object):
         other_info = {
             "pinned_sheets":         self.pinned_sheets,
             "show_editor_toggle":    self.show_editor_toggle,
+            "show_editor_final_warning": self.show_editor_final_warning,
             "uses_new_editor":       self.uses_new_editor,
             "is_sustainer":          self.is_sustainer,
         }

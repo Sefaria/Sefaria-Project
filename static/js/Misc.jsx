@@ -1888,16 +1888,22 @@ const replaceNewLinesWithLinebreaks = (content) => {
 
 const SheetsEditorWarning = () => {
   const [profile, setProfile] = useState(null);
+  const [showEditorToggle, setShowEditorToggle] = useState(true);
   useEffect(() => {
     Sefaria.profileAPI(Sefaria.slug).then(profile => {
       setProfile(profile);
     });
   }, []);
-  if (!profile) {
+  const handleClick = () => {
+    profile.show_editor_final_warning = false;
+    setProfile({ ...profile});
+    Sefaria.editProfileAPI(profile);
+  }
+  if (!profile || !profile.show_editor_final_warning) {
     return null;
   }
   else {
-    return <div id="interruptingMessageBox" className={profile?.sheetsEditorWarningShown ? "hidden" : ""}>
+    return <div id="interruptingMessageBox">
           <div id="interruptingMessageOverlay"></div>
           <div id="interruptingMessage" className="sheetsWarning">
               <h1>End of Life for the Original Sefaria Source Sheet Editor</h1>
@@ -1907,7 +1913,7 @@ const SheetsEditorWarning = () => {
           the deadline.</p>
           <p>Please take the time to learn more about this important change by reading
             this <a href="https://sefaria.org/sheets/eol-old-editor">help article.</a></p>
-          <div className="button">Thank you, I understand.</div>
+          <div className="button" onClick={handleClick}>Thank you, I understand.</div>
           </div>
     </div>
   }
