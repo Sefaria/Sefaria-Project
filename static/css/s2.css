@@ -6878,6 +6878,31 @@ But not to use a display block directive that might break continuous mode for ot
   color: #999;
   text-decoration: underline;
 }
+#interruptingMessage.sheetsWarning {
+  height: 70%;
+  width: 70%;
+  border: 5px solid black;
+}
+#interruptingMessage.sheetsWarning  .button {
+  color: black;
+  background: var(--highlight-blue);
+  margin-block-start: 60px;
+  border: 5px solid black;
+  border-radius: revert;
+}
+#interruptingMessage.sheetsWarning a {
+  color: var(--inline-link-blue);
+  text-decoration: underline;
+}
+#interruptingMessage.sheetsWarning h1 {
+  font-weight: 500;
+  font-style: normal;
+  margin-bottom: 60px;
+}
+#interruptingMessage.sheetsWarning p {
+  margin-bottom: 30px;
+}
+
 .manuscriptImage {
   width: auto;
   max-height: 180px;
@@ -11236,7 +11261,7 @@ cursor: pointer;
   height: 30px;
   letter-spacing: 0;
 }
-.editorToggleHeader > span.int-he:first-child { 
+.editorToggleHeader > span.int-he:first-child {
   margin-inline-start: 250px;
 }
 .editorToggleHeader .learnMore {

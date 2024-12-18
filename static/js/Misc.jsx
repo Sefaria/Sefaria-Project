@@ -1886,6 +1886,32 @@ const replaceNewLinesWithLinebreaks = (content) => {
   );
 }
 
+const SheetsEditorWarning = () => {
+  const [profile, setProfile] = useState(null);
+  useEffect(() => {
+    Sefaria.profileAPI(Sefaria.slug).then(profile => {
+      setProfile(profile);
+    });
+  }, []);
+  if (!profile) {
+    return null;
+  }
+  else {
+    return <div id="interruptingMessageBox" className={profile?.sheetsEditorWarningShown ? "hidden" : ""}>
+          <div id="interruptingMessageOverlay"></div>
+          <div id="interruptingMessage" className="sheetsWarning">
+              <h1>End of Life for the Original Sefaria Source Sheet Editor</h1>
+          <p>As of "Dec. 1, 2024" the original sheets editor created by Sefaria for the
+          benefit of its users back in 2015, will no longer be available.</p>
+          <p>In your Profile, you will have the ability to switch between the 2 editors until
+          the deadline.</p>
+          <p>Please take the time to learn more about this important change by reading
+            this <a href="https://sefaria.org/sheets/eol-old-editor">help article.</a></p>
+          <div className="button">Thank you, I understand.</div>
+          </div>
+    </div>
+  }
+}
 const InterruptingMessage = ({
   onClose,
 }) => {
@@ -3245,4 +3271,5 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
+  SheetsEditorWarning
 };
