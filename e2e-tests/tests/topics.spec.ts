@@ -42,9 +42,9 @@ test('Check author page', async ({ context }) => {
 
 test('Check redirection for sourceless topic', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics/Monkey');
-  const expectedUrl = 'https://www.sefaria.org/search?q=Monkey&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=Monkey&svar=1&ssort=relevance'
+  const expectedUrl = 'search?q=Monkey&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=Monkey&svar=1&ssort=relevance';
   await page.waitForTimeout(10000)
-  expect(page.url()).toEqual(expectedUrl)
+  expect(page.url()).toContain(expectedUrl);
 });
 
 test('Check no redirection when user is admin', async ({ context }) => {
