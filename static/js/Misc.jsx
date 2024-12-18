@@ -1888,7 +1888,6 @@ const replaceNewLinesWithLinebreaks = (content) => {
 
 const SheetsEditorWarning = () => {
   const [profile, setProfile] = useState(null);
-  const [showEditorToggle, setShowEditorToggle] = useState(true);
   useEffect(() => {
     Sefaria.profileAPI(Sefaria.slug).then(profile => {
       setProfile(profile);
@@ -1912,7 +1911,7 @@ const SheetsEditorWarning = () => {
           <p>In your Profile, you will have the ability to switch between the 2 editors until
           the deadline.</p>
           <p>Please take the time to learn more about this important change by reading
-            this <a href="https://sefaria.org/sheets/eol-old-editor">help article.</a></p>
+            this <a href="https://sefaria.org/sheets/eol-old-editor" target="_blank" onClick={handleClick}>help article.</a></p>
           <div className="button" onClick={handleClick}>Thank you, I understand.</div>
           </div>
     </div>
