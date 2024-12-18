@@ -47,6 +47,17 @@ web:
     schoolLookup:
       ref: school-lookup-data-production
 linker:
+  resources:
+    web:
+      # gunicornWorkerCount: 1
+      # gunicornThreadCount: 1
+      resources:
+        requests:
+          memory: "5Gi"
+          cpu: "600m"
+        limits:
+          memory: "8Gi"
+          cpu: "2000m"
   enabled: true
   containerImage:
     imageRegistry:
