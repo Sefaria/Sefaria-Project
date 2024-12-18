@@ -1148,16 +1148,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.showSaved();
 
     }
-    // } else if (path === "/sheets/saved") {
-    //   this.showSaved();
+     else if (path === "/sheets/saved") {
+      this.showSaved();
 
-    // } else if (path === "/sheets/saved") {
-    //   this.showSaved();
+    } else if (path === "/sheets/saved") {
+      this.showSaved();
 
-    // } else if (path === "/texts/notes") {
-      // this.showNotes();
+    } else if (path === "/texts/notes") {
+      this.showNotes();
 
-    // }  
+    }  
     else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
 
@@ -1784,11 +1784,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   showSaved() {
     this.setSinglePanelState({menuOpen: "texts-saved"});
   }
+  showSheetsSaved() {
+    this.setSinglePanelState({menuOpen: "sheets-saved"});
+  }
   showNotes() {
     this.setSinglePanelState({menuOpen: "notes"});
   }
   showHistory() {
     this.setSinglePanelState({menuOpen: "texts-history"});
+  }
+  showSheetsHistory() {
+    this.setSinglePanelState({menuOpen: "sheets-history"});
   }
   showTopics() {
     this.setSinglePanelState({menuOpen: "topics", navigationTopicCategory: null, navigationTopic: null});

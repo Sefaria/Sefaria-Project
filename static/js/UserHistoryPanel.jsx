@@ -19,6 +19,7 @@ import {
   LoadingMessage,
   InterfaceText,
 } from './Misc';
+import { data } from 'jquery';
 
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, dataSource}) => {
@@ -39,17 +40,26 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     });
   }, []);
 
+  const libraryURLs = {
+    "saved": "/texts/saved", 
+    "history": "/texts/history"
+  };
+  const sheetsURLs = {
+    "saved": "/texts/saved", 
+    "history": "/texts/history"
+  };
+
   const title = (
     <span className="sans-serif">
-      <a href="/texts/saved" className={"navTitleTab" + (menuOpen === "texts-saved" ? " current" : "")}>
+      <a href={ dataSource === "library" ?  libraryURLs.saved : sheetsURLs.saved } className={"navTitleTab" + (menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? " current" : "")}>
         <img src="/static/icons/bookmark.svg" />
         <InterfaceText>Saved</InterfaceText>
       </a>
-      <a href="/texts/history" className={"navTitleTab" + (menuOpen === "texts-history" ? " current" : "")}>
+      <a href={ dataSource === "library" ?  libraryURLs.saved : sheetsURLs.saved } className={"navTitleTab" + (menuOpen === "texts-history" || menuOpen === "sheets-history" ? " current" : "")}>
         <img src="/static/icons/clock.svg" />
         <InterfaceText>History</InterfaceText>
       </a>
-      { dataSource === "notes" && 
+      { dataSource === "library" && 
         <a href="/texts/notes" className={"navTitleTab" + (menuOpen === "notes" ? " current" : "")}> 
         <img src="/static/icons/notes-icon.svg" /> 
         <InterfaceText>Notes</InterfaceText>
@@ -65,6 +75,9 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const navMenuClasses = classNames({readerNavMenu: 1, compare, noLangToggleInHebrew: 1});
 
+  console.log('menuOpen', menuOpen);
+  console.log('dataSource', dataSource);
+
   return (
     <div className={navMenuClasses}>
       <div className="content" ref={contentRef}>
@@ -79,7 +92,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
                   <NotesList notes={notes} />
                  :
                   <UserHistoryList
-                    store={menuOpen === "saved" ? Sefaria.saved : Sefaria.userHistory}
+                    store={menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? Sefaria.saved : Sefaria.userHistory}
                     scrollableRef={contentRef}
                     menuOpen={menuOpen}
                     toggleSignUpModal={toggleSignUpModal}
@@ -100,6 +113,8 @@ UserHistoryPanel.propTypes = {
   compare:             PropTypes.bool,
   menuOpen:            PropTypes.string.isRequired,
 };
+
+// TODO - Wrapper pass data-source to conditionally set menuOpen, to make sure component switches with tabs. 
 
 const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
   return (
