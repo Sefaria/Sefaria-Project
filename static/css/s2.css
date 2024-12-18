@@ -6886,7 +6886,7 @@ But not to use a display block directive that might break continuous mode for ot
 #interruptingMessage.sheetsWarning  .button {
   color: black;
   background: var(--highlight-blue);
-  margin-block-start: 60px;
+  margin-top: 120px;
   border: 5px solid black;
   border-radius: revert;
 }
@@ -6902,7 +6902,21 @@ But not to use a display block directive that might break continuous mode for ot
 #interruptingMessage.sheetsWarning p {
   margin-bottom: 30px;
 }
-
+@media screen and (max-width: 800px) {
+  #interruptingMessage.sheetsWarning {
+    font-size: smaller;
+  }
+  #interruptingMessage.sheetsWarning  .button {
+    margin-top: 40px;
+  }
+  #interruptingMessage.sheetsWarning h1 {
+    margin-bottom: 20px;
+    font-size: large;
+  }
+  #interruptingMessage.sheetsWarning p {
+    margin-bottom: 15px;
+  }
+}
 .manuscriptImage {
   width: auto;
   max-height: 180px;
