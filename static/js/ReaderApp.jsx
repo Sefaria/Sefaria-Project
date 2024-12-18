@@ -134,6 +134,7 @@ class ReaderApp extends Component {
       connectionsMode:         state.connectionsMode         || "Resources",
       connectionsCategory:     state.connectionsCategory     || null,
       currVersions:            state.currVersions            || {en:null,he:null},
+      currCommVersions:        state.currCommVersions        || null,
       highlightedRefs:         state.highlightedRefs         || [],
       highlightedNode:         state.highlightedNode         || null,
       scrollToHighlighted:     state.scrollToHighlighted     || false,
@@ -1488,7 +1489,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         // so `filterRef` is needed to store the entire "Rashi on Genesis 1:1:4"
         filterRef = Sefaria.humanRef(ref);
         ({ref, filter} = Sefaria.getBaseRefAndFilter(ref));
-        currVersions = {}; // don't try to use the version of the commentary for the base ref!
       }
       let refs, currentlyVisibleRef, highlightedRefs;
       if (Array.isArray(ref)) {
@@ -1537,7 +1537,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (this.props.multiPanel) {
         const connectionPanelProps = {...panelProps, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
         connectionPanel = this.makePanelState(connectionPanelProps);
+        panelProps.currVersions = {}; // we may have gotten version from commentary; don't try to use the version of the commentary for the base ref!
     } else {
+        panelProps.currCommVersions = {...panelProps.currVersions};
+        panelProps.currVersions = {};
         panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
     }
     const panel = this.makePanelState(panelProps);
