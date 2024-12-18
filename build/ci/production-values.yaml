@@ -53,10 +53,10 @@ linker:
       # gunicornThreadCount: 1
       resources:
         requests:
-          memory: "5Gi"
+          memory: "3Gi"
           cpu: "600m"
         limits:
-          memory: "8Gi"
+          memory: "5Gi"
           cpu: "2000m"
   enabled: true
   containerImage:
