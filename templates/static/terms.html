@@ -9,13 +9,11 @@
 {% block content %}
 <div class="superAbout">
     {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='terms' title="Terms of Use" heTitle="תנאי שימוש" %}
+        {% include '_sidebar.html' with whichPage='terms' %}
     {% endif %}
     <div id="" class="container doc legal static">
         <div class="inner">
-            {% if request.user_agent.is_mobile %}
-                <h1 class="mobileAboutHeader"><span class="int-en">Terms of Use</span><span class="int-he">תנאי שימוש</span></h1>
-            {% endif %}
+                <h1 class="aboutHeader"><span class="int-en">Terms of Use</span><span class="int-he">תנאי שימוש</span></h1>
             <iframe src="https://docs.google.com/document/d/e/2PACX-1vQHQfHUVMNugNyPyJRucHa9cEU9VUdFD8DAcLFAsUmBORodDmIO2YG85-m01OtF3FUlIgmaSxW_YWSc/pub?embedded=true"></iframe>
         </div>
     </div>
