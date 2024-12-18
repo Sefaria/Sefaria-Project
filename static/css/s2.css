@@ -4900,6 +4900,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 634px;
   height: 60px;
   margin-top: 137px;
+  position: relative;
 }
 
 .topic-landing-search-input-box-wrapper{
@@ -4953,8 +4954,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 10px;
   max-height: calc(1.9em * 10 + 2em); /* 2.5em is an estimate of the height per suggestion, and 2em for padding */
   z-index: 2;
-  margin-top: 14px;
-  overflow-y: clip;
+  margin-top: 62px;
+  overflow-y: scroll;
+  position: absolute;
 }
 .topic-landing-search-dropdown:empty {
   padding: 0;
