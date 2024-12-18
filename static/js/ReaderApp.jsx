@@ -1144,19 +1144,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/texts/history") {
       this.showHistory();
 
+    } else if (path === "/sheets/history") {
+      this.showSheetsHistory();
+
     } else if (path === "/texts/saved") {
       this.showSaved();
 
-    }
-     else if (path === "/sheets/saved") {
-      this.showSaved();
-
     } else if (path === "/sheets/saved") {
-      this.showSaved();
+      this.showSheetsSaved();
 
     } else if (path === "/texts/notes") {
       this.showNotes();
-
     }  
     else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));

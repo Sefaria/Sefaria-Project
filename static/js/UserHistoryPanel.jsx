@@ -24,6 +24,7 @@ import { data } from 'jquery';
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, dataSource}) => {
   const [notes, setNotes] = useState(null);
+  const [mode, setMode] = useState(menuOpen);
   const contentRef = useRef();
 
   useEffect(() => {
@@ -45,13 +46,13 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     "history": "/texts/history"
   };
   const sheetsURLs = {
-    "saved": "/texts/saved", 
-    "history": "/texts/history"
+    "saved": "/sheets/saved", 
+    "history": "/sheets/history"
   };
 
   const title = (
     <span className="sans-serif">
-      <a href={ dataSource === "library" ?  libraryURLs.saved : sheetsURLs.saved } className={"navTitleTab" + (menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? " current" : "")}>
+      <a href={ dataSource === "library" ?  libraryURLs.saved : sheetsURLs.saved } className={"navTitleTab" + (menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? " current" : "") }>
         <img src="/static/icons/bookmark.svg" />
         <InterfaceText>Saved</InterfaceText>
       </a>
@@ -76,7 +77,6 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
   const navMenuClasses = classNames({readerNavMenu: 1, compare, noLangToggleInHebrew: 1});
 
   console.log('menuOpen', menuOpen);
-  console.log('dataSource', dataSource);
 
   return (
     <div className={navMenuClasses}>
@@ -118,7 +118,7 @@ UserHistoryPanel.propTypes = {
 
 const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
   return (
-    <UserHistoryPanel menuOpen={menuOpen} 
+    <UserHistoryPanel menuOpen={menuOpen.menuOpen} 
                       toggleLanguage={toggleLanguage} 
                       openDisplaySettings={openDisplaySettings} 
                       openNav={openNav} 
@@ -130,7 +130,7 @@ const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySet
 
 const SheetsUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
   return (
-    <UserHistoryPanel menuOpen={menuOpen} 
+    <UserHistoryPanel menuOpen={menuOpen.menuOpen} 
                       toggleLanguage={toggleLanguage} 
                       openDisplaySettings={openDisplaySettings} 
                       openNav={openNav} 
