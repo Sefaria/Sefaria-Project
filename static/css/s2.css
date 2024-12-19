@@ -4973,14 +4973,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: row;
 }
-.featuredTopicContent img {
+.featuredTopicImgWrapper {
   width: 239px;
   height: 100%;
+}
+.featuredTopicContent img {
+  object-fit: contain;
 }
 .featuredTopicContent h3 {
   font-size: var(--serif-h3-font-size);
   text-transform: none;
   margin: 0 0 15px 0;
+}
+.featuredTopicText {
+  flex: 1;
 }
 .featuredTopicText .int-en,
 .featuredTopicText .int-he {
