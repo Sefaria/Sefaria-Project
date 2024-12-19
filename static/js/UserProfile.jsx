@@ -574,7 +574,7 @@ const UserBackground = ({profile: p, showBio}) => {
       </span>
         );
     }
-    const aboutMe = <div className="title sub-title" dangerouslySetInnerHTML={{ __html: p.bio }}/>;
+    const aboutMe = <div className="title sub-title" dangerouslySetInnerHTML={{ __html: p.bio }}/>;  // aboutMe is the only field in profile with HTML
     const subTitle = <div className="title sub-title">
         <span>{p.position}</span>
         {p.position && p.organization ? <span>{Sefaria._(" at ")}</span> : null}
