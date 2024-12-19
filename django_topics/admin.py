@@ -1,6 +1,5 @@
 from django.contrib import admin, messages
-from django.utils.html import format_html
-from django_topics.models import Topic, TopicPool, TopicOfTheDayEnglish, TopicOfTheDayHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
+from django_topics.models import Topic, TopicPool, FeaturedTopicEnglish, FeaturedTopicHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
 from django_topics.models.pool import PoolType
 
 
@@ -102,7 +101,7 @@ class TopicAdmin(admin.ModelAdmin):
     sefaria_link.short_description = "Sefaria Link"
 
 
-class TopicOfTheDayAdmin(admin.ModelAdmin):
+class FeaturedTopicAdmin(admin.ModelAdmin):
     exclude = ("lang",)  # not for manual editing
     list_display = ('start_date', 'topic')
     list_filter = ('start_date',)
@@ -123,16 +122,16 @@ class TopicOfTheDayAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-@admin.register(TopicOfTheDayEnglish)
-class TopicOfTheDayAdminEnglish(TopicOfTheDayAdmin):
+@admin.register(FeaturedTopicEnglish)
+class FeaturedTopicAdminEnglish(FeaturedTopicAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(lang="en")
 
 
-@admin.register(TopicOfTheDayHebrew)
-class TopicOfTheDayAdminHebrew(TopicOfTheDayAdmin):
+@admin.register(FeaturedTopicHebrew)
+class FeaturedTopicAdminHebrew(FeaturedTopicAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
