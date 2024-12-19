@@ -178,13 +178,33 @@ jobs:
       - name: Handle Jest Test Results
         run: cat /home/runner/jestResults.json; STATUS=`jq ".numFailedTestSuites" /home/runner/jestResults.json`; exit $STATUS
         if: ${{ always() }}
+  check-python-files:
+    runs-on: ubuntu-latest
+    outputs:
+      python_files_changed: ${{ steps.check-python-files.outputs.python_files_changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check for Python file changes
+        id: check-python-files
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            python_files_changed:
+              - added|modified:
+                - '**/*.py'
+                - 'requirements.txt'
+                - 'setup.py'
+                - 'pyproject.toml'
   sandbox-deploy:
     name: "Continuous Testing: Sandbox Deploy"
     concurrency:
       group: dev-mongo
       cancel-in-progress: false
-    needs: [ build-derived ]
-    if: github.event.pull_request.draft == false
+    needs: [ build-derived, check-python-files ]
+    if: >
+      github.event.pull_request.draft == false &&
+      needs.check-python-files.outputs.python_files_changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -236,7 +256,9 @@ jobs:
           PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
           NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
   sandbox-ready:
-    if: github.event.pull_request.draft == false
+    if: >
+      github.event.pull_request.draft == false &&
+      needs.check-python-files.outputs.python_files_changed == 'true'
     needs: sandbox-deploy
     runs-on: ubuntu-latest
     steps:
@@ -256,8 +278,10 @@ jobs:
     concurrency:
       group: dev-mongo
       cancel-in-progress: false
-    needs: [ sandbox-ready ]
-    if: github.event.pull_request.draft == false
+    needs: [ sandbox-ready, check-python-files ]
+    if: >
+      github.event.pull_request.draft == false &&
+      needs.check-python-files.outputs.python_files_changed == 'true'
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -376,11 +400,17 @@ jobs:
         run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
         if: steps.get-helm.outputs.count > 0
   continuous-branch-protection:
-    needs: [ build-generic, build-derived, sandbox-deploy, sandbox-ready, pytest-job ]
+    needs:
+      - build-generic
+      - build-derived
+      - check-python-files
+      - sandbox-deploy
+      - sandbox-ready
+      - pytest-job
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: 
+      - name:
         run: |
           if [ "${{ github.event_name }}" == "merge_group" ]; then
             exit 0
@@ -391,10 +421,12 @@ jobs:
             exit 1
           fi
           if [ "${{ github.event.pull_request.draft }}" == "false" ]; then
-            if [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
-               [ "${{ needs.sandbox-ready.result }}" != "success" ] || \
-               [ "${{ needs.pytest-job.result }}" != "success" ]; then
-              echo "One or more test jobs failed"
-              exit 1
+            if [ "${{ needs.check-python-files.outputs.python_files_changed }}" == "true" ]; then
+              if [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
+                 [ "${{ needs.sandbox-ready.result }}" != "success" ] || \
+                 [ "${{ needs.pytest-job.result }}" != "success" ]; then
+                echo "One or more Python-related test jobs failed"
+                exit 1
+              fi
             fi
           fi
