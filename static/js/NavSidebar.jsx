@@ -946,5 +946,6 @@ const PortalNewsletter = ({title, description}) => {
 export {
   NavSidebar,
   SidebarModules,
-  RecentlyViewed
+  RecentlyViewed,
+  ParashahLink
 };

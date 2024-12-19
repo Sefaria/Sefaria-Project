@@ -20,8 +20,6 @@ def init_library_cache():
         logger.info("Initializing Full Auto Completer")
         library.build_full_auto_completer()
 
-        logger.info("Initializing Ref Auto Completer")
-        library.build_ref_auto_completer()
 
         logger.info("Initializing Lexicon Auto Completers")
         library.build_lexicon_auto_completers()
@@ -29,8 +27,6 @@ def init_library_cache():
         logger.info("Initializing Cross Lexicon Auto Completer")
         library.build_cross_lexicon_auto_completer()
 
-        logger.info("Initializing Topic Auto Completer")
-        library.build_topic_auto_completer()
 
     if settings.ENABLE_LINKER:
         logger.info("Initializing Linker")

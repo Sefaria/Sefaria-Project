@@ -2240,6 +2240,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       divineNameReplacement={this.state.divineNameReplacement}
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
+                      openTopic={this.openTopic}
                     />
                   </div>);
     }
