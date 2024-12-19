@@ -6,6 +6,9 @@ import json
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 from sefaria import settings as sls
 
+from typing import Any, Optional, List
+
+
 class SalesforceConnectionManager(CrmConnectionManager):
     def __init__(self):
         CrmConnectionManager.__init__(self, sls.SALESFORCE_BASE_URL)
@@ -25,7 +28,7 @@ class SalesforceConnectionManager(CrmConnectionManager):
 
     def get(self, endpoint):
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-        return self.session.get(endpoint, headers)
+        return self.session.get(endpoint, headers=headers)
 
     def post(self, endpoint, **kwargs):
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
@@ -120,8 +123,18 @@ class SalesforceConnectionManager(CrmConnectionManager):
         except:
             return False
 
-    def subscribe_to_lists(self, email, first_name=None, last_name=None, lang="en", educator=False):
-        # TODO: Implement once endpoint exists
+    def subscribe_to_lists(
+        self, 
+        email: str, 
+        first_name: Optional[str] = None, 
+        last_name: Optional[str] = None, 
+        lang: str = "en", 
+        educator: bool = False,
+        mailing_lists: Optional[List[str]] = None) -> Any:
+
+        if mailing_lists is None:
+            mailing_lists = []
+
         CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, lang, educator)
         if lang == "he":
             language = "Hebrew"
@@ -134,7 +147,8 @@ class SalesforceConnectionManager(CrmConnectionManager):
                       "Last_Name__c": last_name,
                       "Sefaria_App_Email__c": email,
                       "Hebrew_English__c": language,
-                      "Educator__c": educator
+                      "Educator__c": educator,
+                      "Newsletter_Names__c": mailing_lists
                   })
         res = self.post(self.create_endpoint("Sefaria_App_Data__c"),
                         json={
@@ -145,3 +159,14 @@ class SalesforceConnectionManager(CrmConnectionManager):
         except:
             return False
         return res
+
+    def get_available_lists(self) -> List[str]:
+        try:
+            resource_prefix = f"services/data/v{self.version}/query"
+            endpoint = f"{sls.SALESFORCE_BASE_URL}/{resource_prefix}/"
+            response = self.get(endpoint + "?q=SELECT+Subscriptions__c+FROM+AC_to_SF_List_Mapping__mdt")
+            records = response.json()["records"]
+            return [record["Subscriptions__c"] for record in records]
+        except:
+            print("Unable to retrieve newsletter mailing lists from Salesforce CRM")
+            return []
