@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo, useCallback, useRef, useContext} from 'react';
 import $  from './sefaria/sefariaJquery';
-import {ContentLanguageContext} from "./context";
+import {ReaderPanelContext} from "./context";
 import Sefaria from "./sefaria/sefaria";
 
 
@@ -8,8 +8,20 @@ function useContentLang(defaultToInterfaceOnBilingual, overrideLanguage){
     /* useful for determining language for content text while taking into account ContentLanguageContent and interfaceLang
     * `overrideLanguage` a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
     * `defaultToInterfaceOnBilingual` use if you want components not to render all languages in bilingual mode, and default them to what the interface language is*/
-    const contentLanguage = useContext(ContentLanguageContext);
-    const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
+    const {language, textsData} = useContext(ReaderPanelContext);
+    const hasContent = !!textsData;
+    const shownLanguage = (language === "bilingual") ? language : (language === "english" && textsData?.text?.length) ? textsData?.translationLang : textsData?.primaryLang; //the 'hebrew' of language means source
+    const isContentLangAmbiguous = !['hebrew', 'english'].includes(shownLanguage);
+    let languageToFilter;
+    if (defaultToInterfaceOnBilingual && hasContent && isContentLangAmbiguous) {
+        languageToFilter = Sefaria.interfaceLang;
+    } else if (overrideLanguage) {
+        languageToFilter = overrideLanguage;
+    } else if (isContentLangAmbiguous || !hasContent) {
+        languageToFilter = language;
+    } else {
+        languageToFilter = shownLanguage;
+    }
     const langShort = languageToFilter.slice(0,2);
     return [languageToFilter, langShort];
 }

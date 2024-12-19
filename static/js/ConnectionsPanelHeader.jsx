@@ -1,4 +1,4 @@
-import {InterfaceText, EnglishText, HebrewText, LanguageToggleButton, CloseButton } from "./Misc";
+import {InterfaceText, EnglishText, HebrewText, LanguageToggleButton, CloseButton, DisplaySettingsButton} from "./Misc";
 import {RecentFilterSet} from "./ConnectionFilters";
 import React  from 'react';
 import ReactDOM  from 'react-dom';
@@ -7,6 +7,9 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
+import {ReaderPanelContext} from "./context";
+import DropdownMenu from "./common/DropdownMenu";
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 
 
 class ConnectionsPanelHeader extends Component {
@@ -114,12 +117,14 @@ class ConnectionsPanelHeader extends Component {
       const toggleLang = Sefaria.util.getUrlVars()["lang2"] === "en" ? "he" : "en";
       const langUrl = Sefaria.util.replaceUrlParam("lang2", toggleLang);
       const closeUrl = Sefaria.util.removeUrlParam("with");
+      const showOneLanguage = !Sefaria._siteSettings.TORAH_SPECIFIC || Sefaria.interfaceLang === "hebrew";
+      const toggleButton =  (showOneLanguage) ? null : (this.props.connectionsMode === 'TextList') ?
+          <DropdownMenu buttonContent={<DisplaySettingsButton/>} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu> :
+            <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />;
       return (<div className="connectionsPanelHeader">
                 {title}
                 <div className="rightButtons">
-                  {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-                    <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />
-                    : null }
+                  {toggleButton}
                   <CloseButton icon="circledX" onClick={this.props.closePanel} url={closeUrl} />
                 </div>
               </div>);

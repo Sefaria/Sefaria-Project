@@ -2,6 +2,7 @@ import React from "react";
 import {useContentLang} from './Hooks';
 import Sefaria from './sefaria/sefaria';
 import ReactMarkdown from "react-markdown";
+import PropTypes from "prop-types";
 
 const ContentText = (props) => {
    /* Renders content language throughout the site (content that comes from the database and is not interface language).
@@ -18,24 +19,28 @@ const ContentText = (props) => {
    return langAndContentItems.map(item => <ContentSpan key={item[0]} lang={item[0]} content={item[1]} isHTML={!!props.html} markdown={props.markdown}/>);
 };
 
-const VersionContent = (props) => {
-  /* Used to render content of Versions.
-  * imageLoadCallback is called to update segment numbers placement
-  * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
-  * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
-  * See filterContentTextByLang for more documentation */
-  const langAndContentItems = _filterContentTextByLang(props);
-  const [languageToFilter, _] = useContentLang(props.defaultToInterfaceOnBilingual, props.overrideLanguage);
-  return langAndContentItems.map((item) => {
-      const [lang, content] = item;
-      if (Sefaria.isFullSegmentImage(content)){
-        return(<VersionImageSpan lang={lang} content={content} languageToFilter={languageToFilter} imageLoadCallback={props.imageLoadCallback}/>);
-      }
-      return (<ContentSpan lang={lang} content={content} isHTML={true}/>);
-  })
+const VersionContent = ({primary, translation, imageLoadCallback}) => {
+    /**
+     * Used to render content of Versions.
+     * imageLoadCallback is called to update segment numbers placement
+     */
+    const versions = {primary, translation};
+    return Object.keys(versions).map((key) => {
+        const version = versions[key];
+        const lang = (version.direction === 'rtl') ? 'he' : 'en';
+        const toFilter = key === 'primary' && !!primary && !!translation;
+        return (Sefaria.isFullSegmentImage(version.text)) ?
+            (<VersionImageSpan lang={lang} content={version.text || ''} toFilter={toFilter} imageLoadCallback={imageLoadCallback}/>) :
+                (<ContentSpan lang={lang} content={version.text || ''} isHTML={true} primaryOrTranslation={key}/>);
+    });
+}
+VersionContent.propTypes = {
+    primary: PropTypes.object,
+    translation: PropTypes.object,
+    imageLoadCallback: PropTypes.func,
 }
 
-const VersionImageSpan = ({lang, content, languageToFilter, imageLoadCallback}) => {
+const VersionImageSpan = ({lang, content, toFilter, imageLoadCallback}) => {
     function getImageAttribute(imgTag, attribute) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(imgTag, 'text/html');
@@ -50,9 +55,8 @@ const VersionImageSpan = ({lang, content, languageToFilter, imageLoadCallback}) 
     const altText = getImageAttribute(content, 'alt');
     const srcText = getImageAttribute(content, 'src');
     content = (<div className="image-in-text">{<img onLoad={imageLoadCallback} src={srcText} alt={altText}/>}<p className="image-in-text-title">{altText}</p></div>);
-    if (lang === 'he' && languageToFilter === "bilingual") {content = ''}
-
-    return(<span className={`contentSpan ${lang}`} lang={lang} key={lang}>{content}</span>)
+    if (toFilter) {content = ''}
+    return (<span className={`contentSpan ${lang}`} lang={lang} key={lang}>{content}</span>)
 };
 
 const _filterContentTextByLang = ({text, html, markdown, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
@@ -77,9 +81,9 @@ const _filterContentTextByLang = ({text, html, markdown, overrideLanguage, defau
   return langAndContentItems;
 }
 
-const ContentSpan = ({lang, content, isHTML, markdown}) => {
+const ContentSpan = ({lang, content, isHTML, markdown, primaryOrTranslation}) => {
   return isHTML ?
-          <span className={`contentSpan ${lang}`} lang={lang} key={lang} dangerouslySetInnerHTML={{__html: content}}/>
+          <span className={`contentSpan ${lang} ${primaryOrTranslation || ''}`} lang={lang} key={lang} dangerouslySetInnerHTML={{__html: content}}/>
           : markdown ? <span className={`contentSpan ${lang}`} lang={lang} key={lang}>
                          <ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{content}</ReactMarkdown>
                        </span>

@@ -151,6 +151,8 @@ class Search {
                 const bookTitle = bookData[2].replace(/_/g, ' ');
                 const bookLoc = bookData.slice(3, 5).join(':');
                 const version = "Tanach with Ta'amei Hamikra";
+                const isPrimary = true;
+                const languageFamilyName = 'hebrew'
                 adaptedHits.push({
                     _source: {
                         type: 'text',
@@ -160,6 +162,8 @@ class Search {
                         ref: `${bookTitle} ${bookLoc}`,
                         heRef: this.reformatDictaRef(hit.hebrewPath),
                         pagesheetrank: (hit.pagerank) ? hit.pagerank : 0,
+                        isPrimary,
+                        languageFamilyName,
                     },
                     highlight: {naive_lemmatizer: [hit.highlight[0].text]},
                     score: (hit.pagerank) ? hit.pagerank * -1 : 0,
