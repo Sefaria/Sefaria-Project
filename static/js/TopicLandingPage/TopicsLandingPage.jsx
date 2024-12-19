@@ -10,7 +10,6 @@ import {InterfaceText} from "../Misc";
 
 export const TopicsLandingPage = ({openTopic}) => {
     const sidebarModules = [
-        {type: 'TrendingTopics'},
     ];
     return (
         <div className="readerNavMenu" key="0">
