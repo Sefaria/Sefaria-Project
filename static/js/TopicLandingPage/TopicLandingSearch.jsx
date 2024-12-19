@@ -15,10 +15,10 @@ const getSuggestions = async (input) => {
     }
     const _extractDisambiguation = (title) => {
         const match = title.match(/\((.*?)\)$/);
-        return match ? match[1] : null;
+        return match?.[1];
     };
     const _removeDisambiguation = (title)=>{
-        return title.replace(/\s*\(.*\)\s*$/, '').trim();
+        return title.replace(/\s*\(.*?\)\s*$/, '').trim();
     }
 
     const _getFormattedPath = (slug, lang) => {
@@ -29,20 +29,19 @@ const getSuggestions = async (input) => {
     }
 
     const _parseSuggestions = (completionObjs, lang) => {
-      if (completionObjs.length === 0) return [];
+      if (completionObjs.length === 0) {return [];}
 
       return completionObjs.map((e) => {
         const categories = Sefaria.topicTocCategories(e.key);
         const isDisambiguationEqualCategory =
-            categories &&
-            categories.some(category => _extractDisambiguation(e.title) === category[lang]);
+            categories?.some(category => _extractDisambiguation(e.title) === category[lang]);
 
         const title = isDisambiguationEqualCategory
-          ? _removeDisambiguation(_capitalizeFirstLetter(e.title))
-          : _capitalizeFirstLetter(e.title);
+          ? _removeDisambiguation(e.title)
+          : e.title;
 
         return {
-          title: `#${title}`,
+          title: `#${_capitalizeFirstLetter(title)}`,
           categoryPathTitle: _getFormattedPath(e.key, lang),
           key: e.key,
         };

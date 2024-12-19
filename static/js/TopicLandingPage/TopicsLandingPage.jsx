@@ -14,13 +14,12 @@ export const TopicsLandingPage = ({openTopic}) => {
     const sidebarModules = [
         {type: 'TrendingTopics'},
     ];
-    const numLibrayTopics = Sefaria.numLibraryTopics;
     return (
         <div className="readerNavMenu" key="0">
             <div className="content">
                 <div className="sidebarLayout">
                     <div className="contentInner mainColumn topic-landing-page-content">
-                        <TopicLandingSearch openTopic={openTopic} numOfTopics={numLibrayTopics}/>
+                        <TopicLandingSearch openTopic={openTopic} numOfTopics={Sefaria.numLibraryTopics}/>
                         <TopicSalad/>
                     <div className="topic-landing-temporal">
                         <TopicLandingParasha/>
