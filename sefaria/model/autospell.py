@@ -202,7 +202,7 @@ class AutoCompleter(object):
         except KeyError:
             return None
 
-    def complete(self, instring, limit=0, redirected=False, type=None, topic_pool=None):
+    def complete(self, instring, limit=0, redirected=False, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
         """
         Wrapper for Completions object - prioritizes and aggregates completion results.
         In the case where there are no results, tries to swap keyboards and get completion results from the other language.
@@ -216,13 +216,13 @@ class AutoCompleter(object):
         if len(instring) >= self.max_completion_length:
             return [], []
         cm = Completions(self, self.lang, instring, limit,
-                         do_autocorrect=len(instring) < self.max_autocorrect_length, type=type, topic_pool=topic_pool)
+                         do_autocorrect=len(instring) < self.max_autocorrect_length, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
         cm.process()
         if cm.has_results():
             return cm.get_completion_strings(), cm.get_completion_objects()
 
         # No results. Try letter swap
-        if not redirected and self.other_lang_ac:
+        if not redirected and self.other_lang_ac and not exact_continuations:
             swapped_string = hebrew.swap_keyboards_for_string(instring)
             return self.other_lang_ac.complete(swapped_string, limit, redirected=True)
 
@@ -259,7 +259,7 @@ class Completions(object):
         "Term": "Term",
         "User": "User"}
 
-    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, topic_pool=None):
+    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
         """
         An object that contains a single search, delegates to different methods of completions, and aggregates results.
         :param auto_completer:
@@ -286,6 +286,8 @@ class Completions(object):
         self._type_limit = 3
         self.type = type
         self.topic_pool = topic_pool
+        self.exact_continuations = exact_continuations
+        self.order_by_matched_length = order_by_matched_length
 
     def has_results(self):
         return len(self._completion_objects) > 0
@@ -367,6 +369,8 @@ class Completions(object):
         if len(joined):
             # joined.sort(key=lambda w: w[1]["order"])
             joined.sort(key=self._candidate_order)
+            if self.order_by_matched_length:
+                joined.sort(key=lambda i: len(i[0]))
             self._raw_completion_strings, self._completion_objects = [list(_) for _ in zip(*joined)]
         else:
             self._raw_completion_strings, self._completion_objects = [], []
@@ -388,7 +392,7 @@ class Completions(object):
 
             self._raw_completion_strings += cs
             self._completion_objects += co
-            if self._is_past_limit():
+            if self._is_past_limit() or self.exact_continuations:
                 return
 
         # A minor variations of this string of characters deeper in the string

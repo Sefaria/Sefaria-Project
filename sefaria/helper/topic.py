@@ -10,7 +10,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
 from sefaria.system.cache import django_cache
-
+from django_topics.models import Topic as DjangoTopic
 import structlog
 from sefaria import tracker
 from sefaria.helper.descriptions import create_era_link
@@ -238,6 +238,11 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
 def get_all_topics(limit=1000, displayableOnly=True):
     query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
     return TopicSet(query, limit=limit, sort=[('numSources', -1)]).array()
+
+@django_cache(timeout=24 * 60 * 60)
+def get_num_library_topics():
+    all_topics = DjangoTopic.objects.get_topic_slugs_by_pool('library')
+    return len(all_topics)
 
 
 def get_topic_by_parasha(parasha:str) -> Topic:

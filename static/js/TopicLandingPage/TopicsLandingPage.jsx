@@ -6,8 +6,8 @@ import {TopicSalad} from "./TopicSalad";
 import {RainbowLine} from "../RainbowLine";
 import {TopicLandingCalendar} from "./TopicLandingCalendar";
 import {TopicLandingParasha} from "./TopicLandingParasha";
-import Search from "../sefaria/search";
 import {TopicLandingSeasonal} from "./TopicLandingSeasonal";
+import Sefaria from "../sefaria/sefaria";
 
 
 export const TopicsLandingPage = ({openTopic}) => {
@@ -19,7 +19,7 @@ export const TopicsLandingPage = ({openTopic}) => {
             <div className="content">
                 <div className="sidebarLayout">
                     <div className="contentInner mainColumn topic-landing-page-content">
-                        <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
+                        <TopicLandingSearch openTopic={openTopic} numOfTopics={Sefaria.numLibraryTopics}/>
                         <TopicSalad/>
                     <div className="topic-landing-temporal">
                         <TopicLandingParasha/>
