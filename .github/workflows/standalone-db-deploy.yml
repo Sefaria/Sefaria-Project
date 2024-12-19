@@ -1,0 +1,72 @@
+name: Deploy Standalone MongoDB
+
+on:
+  # schedule:
+  #   - cron: '0 0 * * 0'  # Runs at 00:00 on Sunday
+  workflow_dispatch:  # Allows manual triggering
+
+env:
+  GCP_REGION: us-east1
+  IMAGE_NAME: sefaria-mongo
+  CONTAINER_NAME: sefaria-standalone-db
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
+
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+
+      - name: Login to GAR
+        uses: docker/login-action@v3
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
+
+      - name: Authenticate GHA Runner To Target Cluster
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.CONTAINER_NAME }} \
+            --image us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/sefaria-public/sefaria-mongo:latest \
+            --platform managed \
+            --region ${{ env.GCP_REGION }} \
+            --port 27017 \
+            --min-instances 1 \
+            --max-instances 1 \
+            --memory 2Gi \
+            --cpu 2 \
+            --allow-unauthenticated \
+            --project ${{ secrets.DEV_PROJECT }} \
+            --set-env-vars="MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_ROOT_USERNAME }},MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_ROOT_PASSWORD }}"
+
+      - name: Get Service URL
+        run: |
+          echo "Service URL: $(gcloud run services describe ${{ env.CONTAINER_NAME }} \
+            --region ${{ env.GCP_REGION }} \
+            --project ${{ secrets.DEV_PROJECT }} \
+            --format 'value(status.url)')"
