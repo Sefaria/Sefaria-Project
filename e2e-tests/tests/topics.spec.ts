@@ -43,14 +43,13 @@ test('Check author page', async ({ context }) => {
 test('Check redirection for sourceless topic', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics/Monkey');
   const expectedUrl = 'search?q=Monkey&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=Monkey&svar=1&ssort=relevance';
-  await page.waitForTimeout(10000)
-  expect(page.url()).toContain(expectedUrl);
+  await page.waitForURL((url) => url.includes(expectedUrl));
 });
 
 test('Check no redirection when user is admin', async ({ context }) => {
   const page = await goToPageWithUser(context, '/topics/Monkey', testAdminUser);
-  await page.waitForTimeout(10000)
-  await page.getByRole('link', { name: 'Admin' }).first().isVisible();
+  await page.waitForSelector('span:has-text("Admin")')
+
 });
 
 test('Filter topics', async ({ context }) => {
