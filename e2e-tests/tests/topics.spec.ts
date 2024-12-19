@@ -43,7 +43,7 @@ test('Check author page', async ({ context }) => {
 test('Check redirection for sourceless topic', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics/Monkey');
   const expectedUrl = 'search?q=Monkey&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=Monkey&svar=1&ssort=relevance';
-  await page.waitForURL((url) => url.includes(expectedUrl));
+  await page.waitForURL((url) => url.href.includes(expectedUrl));
 });
 
 test('Check no redirection when user is admin', async ({ context }) => {
