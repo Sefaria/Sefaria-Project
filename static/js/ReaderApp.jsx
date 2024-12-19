@@ -1534,14 +1534,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   makePanelWithConnectionsState(panelProps) {
     // in the case of multipanel, create two panels based on panelProps
     let connectionPanel;  // in mobile, connectionPanel will remain undefined
+
+    // version is from commentary; don't try to use the version of the commentary for the base ref!
+    const currCommVersions = {...panelProps.currVersions};
+    panelProps.currVersions = {'en': null, 'he': null};
+
     if (this.props.multiPanel) {
-        const connectionPanelProps = {...panelProps, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
+        const connectionPanelProps = {...panelProps, currVersions: currCommVersions, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
         connectionPanel = this.makePanelState(connectionPanelProps);
-        panelProps.currVersions = {}; // we may have gotten version from commentary; don't try to use the version of the commentary for the base ref!
     } else {
-        panelProps.currCommVersions = {...panelProps.currVersions};
-        panelProps.currVersions = {};
-        panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
+        panelProps = {...panelProps, currCommVersions: currCommVersions, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
     }
     const panel = this.makePanelState(panelProps);
     panel.showHighlight = true;
