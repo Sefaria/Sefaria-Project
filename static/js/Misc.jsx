@@ -3034,7 +3034,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 }
 
 const getImgAltText = (caption) => {
-return Sefaria._v(caption) || Sefaria._('Illustrative image');
+  return (caption && Sefaria._v(caption)) || Sefaria._('Illustrative image');
 }
 const ImageWithCaption = ({photoLink, caption }) => {
   return (
