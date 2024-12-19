@@ -24,7 +24,6 @@ import { data } from 'jquery';
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, dataSource}) => {
   const [notes, setNotes] = useState(null);
-  const [mode, setMode] = useState(menuOpen);
   const contentRef = useRef();
 
   useEffect(() => {
@@ -68,6 +67,8 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     </span>
   );
 
+  const dataStore = menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? Sefaria.saved : Sefaria.userHistory;
+
   const sidebarModules = [
     {type: "Promo"},
     {type: "GetTheApp"},
@@ -76,7 +77,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const navMenuClasses = classNames({readerNavMenu: 1, compare, noLangToggleInHebrew: 1});
 
-  console.log('menuOpen', menuOpen);
+  // TODO - Figure out filtering (i.e. in "sheets" only show sheets saved/history, and in "library" only texts)
 
   return (
     <div className={navMenuClasses}>
@@ -92,7 +93,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
                   <NotesList notes={notes} />
                  :
                   <UserHistoryList
-                    store={menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? Sefaria.saved : Sefaria.userHistory}
+                    store={dataStore}
                     scrollableRef={contentRef}
                     menuOpen={menuOpen}
                     toggleSignUpModal={toggleSignUpModal}
