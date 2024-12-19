@@ -14,7 +14,7 @@ import {
   DonateLink
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
-import {Autocomplete} from './Autocomplete'
+import {HeaderAutocomplete} from './HeaderAutocomplete'
 
 class Header extends Component {
   constructor(props) {
@@ -56,7 +56,7 @@ class Header extends Component {
         </div>
 
         <div className="headerLinksSection">
-        <Autocomplete
+        <HeaderAutocomplete
             onRefClick={this.props.onRefClick}
             showSearch={this.props.showSearch}
             openTopic={this.props.openTopic}
@@ -198,7 +198,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
   return (
     <div className={classes}>
       <div className="searchLine">
-        <Autocomplete
+        <HeaderAutocomplete
             onRefClick={onRefClick}
             showSearch={showSearch}
             openTopic={openTopic}
