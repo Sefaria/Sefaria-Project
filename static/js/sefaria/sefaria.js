@@ -2821,8 +2821,8 @@ _media: {},
     this._topicTocCategory = this.topic_toc.reduce(this._initTopicTocCategoryReducer, {});
   },
   _initTopicTocCategoryReducer: function(a,c) {
+    a[c.slug] = c.parents;
     if (!c.children) {
-        a[c.slug] = c.parents;
         return a;
     }
     if (!c.parents) {
