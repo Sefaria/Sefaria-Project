@@ -2635,6 +2635,16 @@ def terms_api(request, name):
 
 
 def get_name_completions(name, limit, topic_override=False, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
+    """
+    Function to get completions (objects and titles) for a given name.
+    :param name: string to get completions for
+    :param limit: int number of items to return
+    :param topic_override: bool
+    :param type: string - get only completions of objects of this specific type
+    :param topic_pool: string - get completions of topic-objects of this specific topic pool
+    :param exact_continuations: bool - if ture get only completions of objects whose title contains an exact match to 'name'
+    :param order_by_matched_length: bool - if true return completion objects by ascending order of length - such that shorter titles whose greater part is a match to 'name' will appear first.
+    """
     lang = "he" if has_hebrew(name) else "en"
     completer = library.full_auto_completer(lang)
     object_data = None
@@ -2693,8 +2703,8 @@ def name_api(request, name):
     LIMIT = int(request.GET.get("limit", 10))
     type = request.GET.get("type", None)
     topic_pool = request.GET.get("topic_pool", None)
-    exact_continuations = request.GET.get("exact_continuations", False)
-    order_by_matched_length = request.GET.get("order_by_matched_length", False)
+    exact_continuations = bool(int(request.GET.get("exact_continuations", False)))
+    order_by_matched_length = bool(int(request.GET.get("order_by_matched_length", False)))
     completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]

@@ -1213,8 +1213,8 @@ Sefaria = extend(Sefaria, {
     if (limit != undefined) { params["limit"] = limit; }
     if (type != undefined) { params["type"] = type; }
     if (topicPool != undefined) { params["topic_pool"] = topicPool; }
-    if (exactContinuations != undefined) { params["exact_continuations"] = exactContinuations; }
-    if (orderByMatchedLength != undefined) { params["order_by_matched_length"] = orderByMatchedLength; }
+    if (exactContinuations) { params["exact_continuations"] = 1; }
+    if (orderByMatchedLength) { params["order_by_matched_length"] = 1; }
     let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
     queryString = (queryString ? "?" + queryString : "");
     return this._cachedApiPromise({
