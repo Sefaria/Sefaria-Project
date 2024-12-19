@@ -1540,7 +1540,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     panelProps.currVersions = {'en': null, 'he': null};
 
     if (this.props.multiPanel) {
-        const connectionPanelProps = {...panelProps, currVersions: currCommVersions, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
+        const connectionPanelProps = {...panelProps, currCommVersions: currCommVersions, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
         connectionPanel = this.makePanelState(connectionPanelProps);
     } else {
         panelProps = {...panelProps, currCommVersions: currCommVersions, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};

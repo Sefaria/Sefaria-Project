@@ -761,7 +761,8 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           title={this.currentBook()}
           currentlyVisibleRef={this.state.currentlyVisibleRef}
-          currVersions={this.state.currCommVersions || this.state.currVersions}
+          currVersions={this.state.currVersions}
+          currCommVersions={this.state.currCommVersions}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
           allOpenRefs={this.props.allOpenRefs}

@@ -434,6 +434,7 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "TextList" || this.props.mode === "EssayList") {
       content = (<TextList
+        currVersions={this.props.currCommVersions || {"en": null, "he": null}}
         panelPosition={this.props.panelPosition}
         srefs={this.checkSrefs(this.props.srefs)}
         filter={this.props.filter}
