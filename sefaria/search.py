@@ -10,8 +10,6 @@ import re
 import bleach
 import pymongo
 
-# To allow these files to be run directly from command line (w/o Django shell)
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import structlog
 import logging
@@ -106,6 +104,14 @@ def unicode_number(u):
         n += ord(u[i])
     return n
 
+def make_sheet_topics(sheet):
+    topics = []
+    for t in sheet.get('topics', []):
+        topic_obj = Topic.init(t['slug'])
+        if not topic_obj:
+            continue
+        topics += [topic_obj]
+    return topics
 
 def index_sheet(index_name, id):
     """
@@ -116,14 +122,7 @@ def index_sheet(index_name, id):
     if not sheet: return False
 
     pud = public_user_data(sheet["owner"])
-    tag_terms_simple = make_sheet_tags(sheet)
-    tags = [t["en"] for t in tag_terms_simple]
-    topics = []
-    for t in sheet.get('topics', []):
-        topic_obj = Topic.init(t['slug'])
-        if not topic_obj:
-            continue
-        topics += [topic_obj]
+    topics = make_sheet_topics(sheet)
     collections = CollectionSet({"sheets": id, "listed": True})
     collection_names = [c.name for c in collections]
     try:
@@ -135,7 +134,6 @@ def index_sheet(index_name, id):
             "owner_image": pud["imageUrl"],
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
-            "tags": tags,
             "topic_slugs": [topic_obj.slug for topic_obj in topics],
             "topics_en": [topic_obj.get_primary_title('en') for topic_obj in topics],
             "topics_he": [topic_obj.get_primary_title('he') for topic_obj in topics],
@@ -156,26 +154,6 @@ def index_sheet(index_name, id):
         print(e)
         return False
 
-
-def make_sheet_tags(sheet):
-    def get_primary_title(lang, titles):
-        return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
-
-    tags = sheet.get('tags', [])
-    tag_terms = [(Term().load({'name': t}) or Term().load_by_title(t)) for t in tags]
-    tag_terms_simple = [
-        {
-            'en': tags[iterm],  # save as en even if it's Hebrew
-            'he': ''
-        } if term is None else
-        {
-            'en': get_primary_title('en', term.titles),
-            'he': get_primary_title('he', term.titles)
-        } for iterm, term in enumerate(tag_terms)
-    ]
-    #tags_en, tags_he = zip(*tag_terms_simple.values())
-    return tag_terms_simple
-
 def make_sheet_text(sheet, pud):
     """
     Returns a plain text representation of the content of sheet.
@@ -186,8 +164,11 @@ def make_sheet_text(sheet, pud):
     if pud.get("name"):
         text += "\nBy: " + pud["name"]
     text += "\n"
-    if sheet.get("tags"):
-        text += " [" + ", ".join(sheet["tags"]) + "]\n"
+    if sheet.get("topics"):
+        topics = make_sheet_topics(sheet)
+        topics_en = [topic_obj.get_primary_title('en') for topic_obj in topics]
+        topics_he = [topic_obj.get_primary_title('he') for topic_obj in topics]
+        text += " [" + ", ".join(topics_en+topics_he) + "]\n"
     for s in sheet["sources"]:
         text += source_text(s) + " "
 
@@ -521,7 +502,9 @@ class TextIndexer(object):
         total_versions = len(versions)
         versions = None  # release RAM
         for title, vlist in list(versions_by_index.items()):
-            cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
+            if len(vlist) == 0:
+                continue
+            cls.curr_index = vlist[0].get_index()
             if for_es:
                 cls._bulk_actions = []
                 try:
@@ -558,7 +541,7 @@ class TextIndexer(object):
             print("Could not find dictionary node in {}".format(version.title))
 
     @classmethod
-    def index_ref(cls, index_name, oref, version_title, lang):
+    def index_ref(cls, index_name, oref, version_title, lang, language_family_name, is_primary):
         # slower than `cls.index_version` but useful when you don't want the overhead of loading all versions into cache
         cls.index_name = index_name
         cls.curr_index = oref.index
@@ -575,7 +558,7 @@ class TextIndexer(object):
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
         tref = oref.normal()
-        doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title)
+        doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary)
         id = make_text_doc_id(tref, version_title, lang)
         es_client.index(index_name, doc, id=id)
 
@@ -584,11 +567,13 @@ class TextIndexer(object):
         # Index this document as a whole
         vtitle = version.versionTitle
         vlang = version.language
+        language_family_name = version.languageFamilyName
+        is_primary = version.isPrimary
         hebrew_version_title = getattr(version, 'versionTitleInHebrew', None)
         try:
             version_priority, categories = cls.version_priority_map[(version.title, vtitle, vlang)]
             #TODO include sgement_str in this func
-            doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories, hebrew_version_title)
+            doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories, hebrew_version_title, language_family_name, is_primary)
             # print doc
         except Exception as e:
             logger.error("Error making index document {} / {} / {} : {}".format(tref, vtitle, vlang, str(e)))
@@ -630,7 +615,7 @@ class TextIndexer(object):
         return content
         
     @classmethod
-    def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories, hebrew_version_title):
+    def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary):
         """
         Create a document for indexing from the text specified by ref/version/lang
         """
@@ -670,6 +655,8 @@ class TextIndexer(object):
             "exact": content,
             "naive_lemmatizer": content,
             'hebrew_version_title': hebrew_version_title,
+            "languageFamilyName": language_family_name,
+            "isPrimary": is_primary,
         }
 
 
@@ -751,7 +738,7 @@ def index_from_queue():
     queue = db.index_queue.find()
     for item in queue:
         try:
-            TextIndexer.index_ref(index_name, Ref(item["ref"]), item["version"], item["lang"])
+            TextIndexer.index_ref(index_name, Ref(item["ref"]), item["version"], item["lang"], item['languageFamilyName'], item['isPrimary'])
             db.index_queue.remove(item)
         except Exception as e:
             logging.error("Error indexing from queue ({} / {} / {}) : {}".format(item["ref"], item["version"], item["lang"], e))

@@ -8,7 +8,6 @@ import {
   SheetListing,
   Note,
   FeedbackBox,
-  ProfilePic,
   DivineNameReplacer,
   ToolTipped, InterfaceText, EnglishText, HebrewText,
 } from './Misc';
@@ -1480,7 +1479,7 @@ class ShareBox extends Component {
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">
           <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
-          <ToolsButton en="Share on Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
+          <ToolsButton en="Share on X" he="X" icon="X" onClick={shareTwitter} />
           <ToolsButton en="Share by Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
         </ConnectionsPanelSection>
       </div>);

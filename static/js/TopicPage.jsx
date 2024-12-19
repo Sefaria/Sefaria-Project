@@ -247,6 +247,9 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         return (
             <div className="navBlock">
               <a href={`/topics/${children ? 'category/' : ''}${slug}`}
+                 data-anl-event="navto_topic:click"
+                 data-anl-link_type={children ? "category" : "topic"}
+                 data-anl-text={en}
                  className="navBlockTitle"
                  onClick={openTopic}
                  key={i}>
@@ -261,18 +264,25 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         );
       });
 
-    const sidebarModules = [
+    let sidebarModules = [
       {type: "AboutTopics"},
       {type: "Promo"},
       {type: "TrendingTopics"},
       {type: "SponsorADay"},
     ];
+    if (topic === "torah-portions" && Sefaria.interfaceLang === "english") {
+        sidebarModules.splice(1, 0, {type: "StudyCompanion"});
+    }
 
     return (
-        <div className="readerNavMenu noLangToggleInHebrew">
+        <div
+            className="readerNavMenu noLangToggleInHebrew"
+            data-anl-project="topics"
+            data-anl-panel_category={getPanelCategory(topic) || "Topic Landing"}
+        >
             <div className="content readerTocTopics">
                 <div className="sidebarLayout">
-                  <div className="contentInner">
+                  <div className="contentInner" data-anl-feature_name="Main">
                       <div className="navTitle tight">
                         <CategoryHeader type="topics" data={topicData}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
@@ -282,7 +292,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                         <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />
                       </div>
                   </div>
-                  <NavSidebar modules={sidebarModules} />
+                  <NavSidebar sidebarModules={sidebarModules} />
                 </div>
                 <Footer />
             </div>
@@ -440,22 +450,36 @@ return (
        : null}
        {tpTopImg}
        {topicData && topicData.ref ?
-         <a href={`/${topicData.ref.url}`} className="resourcesLink button blue">
-           <img src="/static/icons/book-icon-black.svg" alt="Book Icon" />
-           <span className="int-en">{ topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en }</span>
-           <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
-         </a>
-       : null}
+           <div>
+               <a href={`/${topicData.ref.url}`} className="resourcesLink button blue">
+                   <img src="/static/icons/book-icon-black.svg" alt="Book Icon"/>
+                   <span className="int-en">{topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en}</span>
+                   <span className="int-he">{topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he)}</span>
+               </a>
+               {Sefaria.interfaceLang === "english" &&
+               <a className="resourcesLink button blue studyCompanion"
+                  href="https://learn.sefaria.org/weekly-parashah/"
+                  data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
+                  data-anl-promotion_name="Parashah Email Signup - Parashah Page"
+               >
+                  <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
+                  <InterfaceText>Get the Free Study Companion</InterfaceText>
+               </a>}
+           </div>
+           : null}
     </div>
-);}
+);
+}
 
-const AuthorIndexItem = ({url, title, description}) => {
-  return (
-      <div className="authorIndex" >
-      <a href={url} className="navBlockTitle">
-        <ContentText text={title} defaultToInterfaceOnBilingual />
-      </a>
-      <div className="navBlockDescription">
+const AuthorIndexItem = ({
+    url, title, description
+}) => {
+    return (
+        <div className="authorIndex">
+            <a href={url} className="navBlockTitle">
+                <ContentText text={title} defaultToInterfaceOnBilingual/>
+            </a>
+            <div className="navBlockDescription">
         <ContentText text={description} defaultToInterfaceOnBilingual />
       </div>
     </div>
@@ -516,24 +540,28 @@ const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
     "organization": "PortalOrganization",
     "newsletter": "PortalNewsletter"
     }
-    const modules = [];
+    const sidebarModules = [];
     for (let key of entriesToDisplayList) {
         if (!portal[key]) { continue; }
-        modules.push({
+        sidebarModules.push({
             type: portalModuleTypeMap[key],
             props: portal[key],
         });
     }
     return(
-        <NavSidebar modules={modules} />
+        <NavSidebar sidebarModules={sidebarModules} />
     )
 };
+
+const getPanelCategory = (slug) => {
+    return Sefaria.topicTocCategories(slug)?.map(({slug}) => slug)?.join('|');
+}
 
 const getTopicPageAnalyticsData = (slug, langPref) => {
     return {
         project: "topics",
         content_lang: langPref || "bilingual",
-        panel_category: Sefaria.topicTocCategories(slug)?.map(({slug}) => slug)?.join('|'),
+        panel_category: getPanelCategory(slug),
     };
 };
 
@@ -632,7 +660,7 @@ const TopicPage = ({
         });
       }
     }
-    if (displayTabs.length && tab!="notable-sources") {
+    if (displayTabs.length && tab!="notable-sources" && tab!="author-works-on-sefaria") {
       displayTabs.push({
         title: {
           en: "",
@@ -645,7 +673,7 @@ const TopicPage = ({
       onClickFilterIndex = displayTabs.length - 1;
     }
 
-    if (displayTabs.length) {
+    if (displayTabs.length && tab!="author-works-on-sefaria") {
       displayTabs.push({
         title: {
           en: "A",

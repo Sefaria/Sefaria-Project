@@ -15,12 +15,12 @@ import {
   InterfaceText,
   LanguageToggleButton,
   LoadingMessage,
-  ProfilePic,
   ResponsiveNBox,
   SheetListing,
   TabView,
   TwoOrThreeBox,
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 import {ContentText} from "./ContentText";
 
 
@@ -294,7 +294,7 @@ class CollectionPage extends Component {
             <div className="contentInner">
               {content}
             </div>
-            <NavSidebar modules={sidebarModules} />
+            <NavSidebar sidebarModules={sidebarModules} />
           </div>
           <Footer />
         </div>

@@ -618,15 +618,21 @@ class ReaderPanel extends Component {
     highlighted.click();
   }
   getPanelType() {
-    const {menuOpen, tab} = this.state;
+    const {menuOpen, tab, navigationTopic, navigationTopicCategory} = this.state;
     if (menuOpen === "topics") {
-      return `${menuOpen}_${tab}`;
+      if (navigationTopicCategory) {
+        return "Topic Navigation";
+      } else if (navigationTopic) {
+        return `${menuOpen}_${tab}`;
+      } else {
+        return "Topic Landing";
+      }
     }
   }
   getPanelName() {
     const {menuOpen, navigationTopic, navigationTopicCategory} = this.state;
     if (menuOpen === "topics") {
-      return navigationTopicCategory || navigationTopic;
+      return navigationTopicCategory || navigationTopic || "Explore by Topic";
     }
   }
   getPanelNumber() {

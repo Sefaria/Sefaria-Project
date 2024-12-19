@@ -280,16 +280,17 @@ def sort_refs_by_relevance(a, b, lang="english"):
     return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
 
 
-def get_random_topic(good_to_promote=True) -> Optional[Topic]:
-    query = {"good_to_promote": True} if good_to_promote else {}
-    random_topic_dict = list(db.topics.aggregate([
-        {"$match": query},
-        {"$sample": {"size": 1}}
-    ]))
-    if len(random_topic_dict) == 0:
+def get_random_topic(pool=None) -> Optional[Topic]:
+    """
+    :param pool: name of the pool from which to select the topic. If `None`, all topics are considered.
+    :return: Returns a random topic from the database. If you provide `pool`, then the selection is limited to topics in that pool.
+    """
+    from django_topics.models import Topic as DjangoTopic
+    random_topic_slugs = DjangoTopic.objects.sample_topic_slugs('random', pool, limit=1)
+    if len(random_topic_slugs) == 0:
         return None
 
-    return Topic(random_topic_dict[0])
+    return Topic.init(random_topic_slugs[0])
 
 
 def get_random_topic_source(topic:Topic) -> Optional[Ref]:
@@ -728,15 +729,16 @@ def calculate_other_ref_scores(ref_topic_map):
     return num_datasource_map, langs_available, comp_date_map, order_id_map
 
 
-def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
-    other_ref_topic_links = list(RefTopicLinkSet({"is_sheet": False, "generatedBy": {"$ne": TopicLinkHelper.generated_by_sheets}}))
-    ref_topic_links = other_ref_topic_links + sheet_source_links
+def update_ref_topic_link_orders(source_links, sheet_topic_links):
+    """
 
-    topic_tref_score_map, ref_topic_map = calculate_mean_tfidf(ref_topic_links)
+    @param source_links: Links between sources and topics (as opposed to sheets and topics)
+    @param sheet_topic_links: Links between sheets and topics
+    """
+    topic_tref_score_map, ref_topic_map = calculate_mean_tfidf(source_links)
     num_datasource_map, langs_available, comp_date_map, order_id_map = calculate_other_ref_scores(ref_topic_map)
     pr_map, pr_seg_map = calculate_pagerank_scores(ref_topic_map)
     sheet_cache = {}
-    intra_topic_link_cache = {}
 
     def get_sheet_order(topic_slug, sheet_id):
         if sheet_id in sheet_cache:
@@ -796,7 +798,7 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
         }
 
     all_ref_topic_links_updated = []
-    all_ref_topic_links = sheet_topic_links + ref_topic_links
+    all_ref_topic_links = sheet_topic_links + source_links
     for l in tqdm(all_ref_topic_links, desc='update link orders'):
         if l.is_sheet:
             setattr(l, 'order', get_sheet_order(l.toTopic, int(l.ref.replace("Sheet ", ""))))
@@ -960,23 +962,14 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
                 "order": {"custom_order": rd['pagesheetrank']}
             }).save()
 
-
 def recalculate_secondary_topic_data():
-    # run before everything else because this creates new links
-    calculate_popular_writings_for_authors(100, 300)
+    source_links = RefTopicLinkSet({'is_sheet': False})
+    sheet_links = [RefTopicLink(l) for l in generate_sheet_topic_links()]
 
-    sheet_source_links, sheet_related_links, sheet_topic_links = generate_all_topic_links_from_sheets()
-    related_links = update_intra_topic_link_orders(sheet_related_links)
-    all_ref_links = update_ref_topic_link_orders(sheet_source_links, sheet_topic_links)
+    related_links = update_intra_topic_link_orders(IntraTopicLinkSet())
+    all_ref_links = update_ref_topic_link_orders(source_links.array(), sheet_links)
 
-    # now that we've gathered all the new links, delete old ones and insert new ones
-    RefTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
     RefTopicLinkSet({"is_sheet": True}).delete()
-    IntraTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
-    print(f"Num Ref Links {len(all_ref_links)}")
-    print(f"Num Intra Links {len(related_links)}")
-    print(f"Num to Update {len(list(filter(lambda x: getattr(x, '_id', False), all_ref_links + related_links)))}")
-    print(f"Num to Insert {len(list(filter(lambda x: not getattr(x, '_id', False), all_ref_links + related_links)))}")
 
     db.topic_links.bulk_write([
         UpdateOne({"_id": l._id}, {"$set": {"order": l.order}})
@@ -984,9 +977,6 @@ def recalculate_secondary_topic_data():
         InsertOne(l.contents(for_db=True))
         for l in (all_ref_links + related_links)
     ])
-    add_num_sources_to_topics()
-    make_titles_unique()
-
 
 def set_all_slugs_to_primary_title():
     # reset all slugs to their primary titles, if they have drifted away
@@ -1328,7 +1318,7 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
             return {"error": f"Cannot delete link between {tref} and {to_topic}."}
 
 
-def add_image_to_topic(topic_slug, image_uri, en_caption, he_caption):
+def add_image_to_topic(topic_slug: str, image_uri: str, en_caption: str = "", he_caption: str =""):
     """
     A function to add an image to a Topic in the database. Helper for data migration.
     This function queries the desired Topic, adds the image data, and then saves.
@@ -1339,9 +1329,32 @@ def add_image_to_topic(topic_slug, image_uri, en_caption, he_caption):
     :param he_caption String: The Hebrew caption for a Topic image
     """
     topic = Topic.init(topic_slug)
-    topic.image = {"image_uri": image_uri,
-                   "image_caption": {
-                       "en": en_caption,
-                       "he": he_caption
-                   }}
+    if not hasattr(topic, "image"):
+        topic.image = {"image_uri": image_uri, "image_caption": {"en": en_caption, "he": he_caption}}
+    else:
+        topic.image["image_uri"] = image_uri
+        if en_caption:
+            topic.image["image_caption"]["en"] = en_caption
+        if he_caption:
+            topic.image["image_caption"]["he"] = he_caption
     topic.save()
+
+
+def add_secondary_image_to_topic(topic_slug: str, image_uri: str):
+    topic = Topic.init(topic_slug)
+    topic.secondary_image_uri = image_uri
+    topic.save()
+
+
+def delete_image_from_topic(topic_slug: str):
+    topic = Topic.init(topic_slug)
+    if hasattr(topic, "image"):
+        del topic.image
+        topic.save()
+
+
+def delete_secondary_image_from_topic(topic_slug: str):
+    topic = Topic.init(topic_slug)
+    if hasattr(topic, "secondary_image_uri"):
+        del topic.secondary_image_uri
+        topic.save()

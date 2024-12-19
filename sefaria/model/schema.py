@@ -14,6 +14,7 @@ import regex
 from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
+from sefaria.model.linker.has_match_template import HasMatchTemplates
 from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
 from sefaria.utils.talmud import daf_to_section
@@ -671,7 +672,7 @@ class TreeNode(object):
         return self.all_children().index(child) + 1
 
 
-class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
+class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, HasMatchTemplates):
     """
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
@@ -680,7 +681,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     after_title_delimiter_re = r"(?:[,.:\s]|(?:to|\u05d5?\u05d1?(?:\u05e1\u05d5\u05e3|\u05e8\u05d9\u05e9)))+"  # should be an arg?  \r\n are for html matches
     after_address_delimiter_ref = r"[,.:\s]+"
     title_separators = [", "]
-    MATCH_TEMPLATE_ALONE_SCOPES = {'any', 'alone'}
 
     def __init__(self, serial=None, **kwargs):
         super(TitledTreeNode, self).__init__(serial, **kwargs)
@@ -840,10 +840,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
-    def get_match_template_trie(self, lang: str):
-        from .linker.match_template import MatchTemplateTrie
-        return MatchTemplateTrie(lang, nodes=[self], scope='combined')
-
     def validate(self):
         super(TitledTreeNode, self).validate()
 
@@ -895,17 +891,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
             d["title"] = self.title_group.primary_title("en")
             d["heTitle"] = self.title_group.primary_title("he")
         return d
-
-    def get_match_templates(self):
-        from .linker.match_template import MatchTemplate
-        for raw_match_template in getattr(self, 'match_templates', []):
-            yield MatchTemplate(**raw_match_template)
-
-    def has_scope_alone_match_template(self):
-        """
-        @return: True if `self` has any match template that has scope = "alone" OR scope = "any"
-        """
-        return any(template.scope in self.MATCH_TEMPLATE_ALONE_SCOPES for template in self.get_match_templates())
 
     def get_referenceable_alone_nodes(self):
         """
@@ -2097,7 +2082,10 @@ class AddressType(object):
     def to_numeric_possibilities(self, lang, s, **kwargs):
         if s in self.special_cases:
             return self.special_cases[s]
-        return [self.toNumber(lang, s)]
+        try:
+            return [self.toNumber(lang, s)]
+        except ValueError:
+            return []
 
     @classmethod
     def can_match_out_of_order(cls, lang, s):
@@ -2141,7 +2129,7 @@ class AddressType(object):
                     section_str = curr_s
                 else:
                     strict = SuperClass not in {AddressAmud, AddressTalmud}  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
-                    regex_str = addr.regex(lang, strict=strict, group_id='section') + "$"  # must match entire string
+                    regex_str = addr.regex(lang, strict=strict, group_id='section', with_roman_numerals=True) + "$"  # must match entire string
                     if regex_str is None: continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
                     match = reg.match(curr_s)
@@ -2584,7 +2572,11 @@ class AddressInteger(AddressType):
             reg = r"("
 
         if lang == "en":
-            reg += r"\d+)"
+            if kwargs.get('with_roman_numerals', False):
+                # any char valid in roman numerals (I, V, X, L, C, D, M) + optional trailing period
+                reg += r"(?:\d+|[ivxlcdmIVXLCDM]+(?:\s?\.)?))"
+            else:
+                reg += r"\d+)"
         elif lang == "he":
             reg += self.hebrew_number_regex() + r")"
 
@@ -2595,6 +2587,19 @@ class AddressInteger(AddressType):
             return int(s)
         elif lang == "he":
             return decode_hebrew_numeral(s)
+
+    def to_numeric_possibilities(self, lang, s, **kwargs):
+        import roman
+        from roman import InvalidRomanNumeralError
+
+        possibilities = super().to_numeric_possibilities(lang, s, **kwargs)
+        if lang == "en":
+            try:
+                s = re.sub(r"\.$", "", s).strip()  # remove trailing period
+                possibilities.append(roman.fromRoman(s.upper()))
+            except InvalidRomanNumeralError as e:
+                pass
+        return possibilities
 
     @classmethod
     def can_match_out_of_order(cls, lang, s):
