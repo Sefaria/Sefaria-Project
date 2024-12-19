@@ -121,6 +121,7 @@ a, a:hover {
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
   --beit-midrash-grey: #333333;
+  --darkest-grey: #333333;
   --dark-grey: #666666;
   --medium-grey: #999999;
   --light-grey: #CCCCCC;
@@ -4962,10 +4963,56 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0;
   visibility: hidden;
 }
-
 .topic-landing-search-container .readerNavMenuSearchButton{
   top: 6px;
   padding-inline-start: 11px;
+}
+.featuredTopic {
+  display: flex;
+  flex-direction: column;
+  margin-top: 68px;
+}
+.featuredTopicContent {
+  display: flex;
+  flex-direction: row;
+}
+.featuredTopicImgWrapper {
+  width: 239px;
+  height: 100%;
+}
+.featuredTopicContent img {
+  object-fit: contain;
+}
+.featuredTopicContent h3 {
+  font-size: var(--serif-h3-font-size);
+  text-transform: none;
+  margin: 0 0 15px 0;
+}
+.featuredTopicText {
+  flex: 1;
+}
+.featuredTopicText .int-en,
+.featuredTopicText .int-he {
+  display: flex;
+  flex-direction: column;
+  color: var(--dark-grey);
+  margin-inline-start: 30px;
+}
+.featuedTopicText h3 {
+  text-transform: none;
+  margin: 0 0 15px 0;
+}
+.featuedTopicGoToLink {
+  margin-top: 25px;
+}
+.featuredTopicText .topicDescription {
+  font-size: var(--sans-serif-small-font-size);
+}
+.featuredTopic h1 {
+  font-size: var(--sans-serif-h2-font-size);
+  border-bottom: 1px solid #ccc;
+  width: fit-content;
+  padding-bottom: 10px;
 }
 .topic-landing-upper-rainbow{
   margin-top: 88px;
