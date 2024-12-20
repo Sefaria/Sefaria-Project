@@ -25,6 +25,7 @@ class AbstractMongoRecord(object):
     """
     AbstractMongoRecord - superclass of classes representing mongo records.
     "collection" attribute is set on subclass
+    What happens if we make a change to a python file??? 
     """
     collection = None  # name of MongoDB collection
     id_field = "_id"  # Mongo ID field
