@@ -47,7 +47,6 @@ const UserStats = () => {
     if (all_ready) {
         mode_user_data = user_data[modekeys[active_mode]];
         user_active = mode_user_data.textsRead > 2;
-        console.log('user_data', user_data);
     }
     // let user_active = true;
     return (
