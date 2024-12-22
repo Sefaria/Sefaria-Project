@@ -69,6 +69,11 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const dataStore = menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? Sefaria.saved : Sefaria.userHistory;
 
+  console.log(dataStore);
+
+  const sheetsDataStore = {'loaded': true, 'items': dataStore?.items?.filter(item => item.is_sheet)};
+  const libraryDataStore =  {'loaded': true, 'items': dataStore?.items?.filter(item => !item.is_sheet)};
+ 
   const sidebarModules = [
     {type: "Promo"},
     {type: "GetTheApp"},
@@ -76,8 +81,6 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
   ];
 
   const navMenuClasses = classNames({readerNavMenu: 1, compare, noLangToggleInHebrew: 1});
-
-  // TODO - Figure out filtering (i.e. in "sheets" only show sheets saved/history, and in "library" only texts)
 
   return (
     <div className={navMenuClasses}>
@@ -93,7 +96,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
                   <NotesList notes={notes} />
                  :
                   <UserHistoryList
-                    store={dataStore}
+                    store={ dataSource === "sheets" ? sheetsDataStore : libraryDataStore }
                     scrollableRef={contentRef}
                     menuOpen={menuOpen}
                     toggleSignUpModal={toggleSignUpModal}
@@ -141,7 +144,7 @@ const SheetsUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySett
   )
 };
 
-const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
+const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dataSource}) => {
   const [items, setItems] = useState(store.loaded ? store.items : null);
 
   // Store changes when switching tabs, reset items
@@ -149,21 +152,26 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
     setItems(store.loaded ? store.items : null);
   }, [store]);
 
-  useScrollToLoad({
-    scrollableRef: scrollableRef,
-    url: "/api/profile/user_history?secondary=0&annotate=1" + (menuOpen === "saved" ? "&saved=1" : ""),
-    setter: data => {
-      if (!store.loaded) {
-        store.items = []; // saved intially has items that have not been annotated with text
-        store.loaded = true;
-      }
-      store.items.push(...data);
-      setItems(store.items.slice());
-    },
-    itemsPreLoaded: items ? items.length : 0,
-  });
+  // // TODO - tell this function to work conditionally based on which "mode" its in
+  // useScrollToLoad({
+  //   scrollableRef: scrollableRef,
+  //   url: "/api/profile/user_history?secondary=0&annotate=1" + ((menuOpen === "texts-saved" || menuOpen === "sheets-saved") ? "&saved=1" : ""),
+  //   setter: data => {
+  //     if (!store.loaded) {
+  //       store.items = []; // saved intially has items that have not been annotated with text
+  //       store.loaded = true;
+  //     }
 
-  if (menuOpen === 'history' && !Sefaria.is_history_enabled) {
+  //     const filteredData = dataSource === "library" ?  data.items.filter(item => !item.is_sheet) : data.items.filter(item => item.is_sheet);
+
+  //     const updatedItems = [...(store.items || []), ...filteredData];
+  //     store.items = updatedItems;
+  //     setItems(updatedItems); 
+  //   },
+  //   itemsPreLoaded: items ? items.length : 0,
+  // });
+
+  if ((menuOpen === 'texts-history' || menuOpen === "sheets-history") && !Sefaria.is_history_enabled) {
     return (
       <div className="savedHistoryMessage">
         <span className="int-en">Reading history is currently disabled. You can re-enable this feature in your <a href="/settings/account">account settings</a>.</span>
@@ -175,7 +183,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
   } else if (items.length === 0) {
     return (
       <div className="savedHistoryMessage sans-serif">
-        {menuOpen === "history" ?
+        {(menuOpen === 'texts-history' || menuOpen === "sheets-history") ?
         <InterfaceText>Texts and sheets that you read will be available for you to see here.</InterfaceText>
         : <InterfaceText>Click the bookmark icon on texts or sheets to save them here.</InterfaceText>}
       </div>
@@ -186,7 +194,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
     <div className="savedHistoryList">
       {items.reduce((accum, curr, index) => {
         // reduce consecutive history items with the same text/sheet
-        if (!accum.length || menuOpen === "saved") {return accum.concat([curr]); }
+        if (!accum.length || (menuOpen === "texts-saved" || menuOpen === "sheets-saved")) {return accum.concat([curr]); }
         const prev = accum[accum.length-1];
 
         if (curr.is_sheet && curr.sheet_id === prev.sheet_id) {
@@ -200,7 +208,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
       .map((item, iitem) => {
         const key = item.ref + "|" + item.time_stamp + "|" + iitem;
         
-        const timeStamp = menuOpen === "saved" ? null : (
+        const timeStamp = (menuOpen === "texts-saved" || menuOpen === "sheets-saved") ? null : (
           <div className="timeStamp sans-serif">
             { Sefaria.util.naturalTime(item.time_stamp, {short: true}) }
           </div>
