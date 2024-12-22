@@ -3255,13 +3255,12 @@ def featured_topic_api(request):
     from django_topics.models import TopicOfTheDay
 
     lang = request.GET.get("lang")
-    cb = request.GET.get("callback", None)
     featured_topic = TopicOfTheDay.objects.get_featured_topic(lang)
     if not featured_topic:
         return jsonResponse({'error': f'No featured topic found for lang "{lang}"'}, status=404)
     mongo_topic = Topic.init(featured_topic.topic.slug)
     response = {'topic': mongo_topic.contents(), 'date': featured_topic.start_date.isoformat()}
-    return jsonResponse(response, callback=cb)
+    return jsonResponse(response)
 
 
 @staff_member_required
