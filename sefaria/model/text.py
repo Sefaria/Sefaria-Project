@@ -4,9 +4,12 @@ text.py
 """
 
 import time
+import redis
 import structlog
 from functools import reduce, partial
 from typing import Optional, Union
+
+from sefaria.utils.redis_dictionary import RedisHashPrefix, RedisNestedHash
 logger = structlog.get_logger(__name__)
 
 import sys
@@ -29,7 +32,8 @@ from sefaria.system.exceptions import InputError, BookNameError, PartialRefInput
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER,\
+    MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 
@@ -4907,14 +4911,22 @@ class Library(object):
     def __init__(self):
         # Timestamp when library last stored shared cache items (toc, terms, etc)
         self.last_cached = None
+        
+        self.redis_client = redis.StrictRedis(
+            host=MULTISERVER_REDIS_SERVER,
+            port=MULTISERVER_REDIS_PORT,
+            db=MULTISERVER_REDIS_DB,
+            decode_responses=True,
+            encoding="utf-8"
+        )
 
         self.langs = ["en", "he"]
 
         # Maps, keyed by language, from index key to array of titles
-        self._index_title_maps = {lang:{} for lang in self.langs}
+        self._index_title_maps = RedisNestedHash(self.redis_client, "library:index_title_maps")
 
         # Maps, keyed by language, from titles to schema nodes
-        self._title_node_maps = {lang:{} for lang in self.langs}
+        self._title_node_maps = RedisNestedHash(self.redis_client, "library:title_node_maps")
 
         # Lists of full titles, keys are string generated from a combination of language code and "terms".  See method `full_title_list()`
         # Contains a list of only those titles from which citations are recognized in the auto-linker. Keyed by "citing-<lang>"
@@ -4928,10 +4940,10 @@ class Library(object):
         self._title_regexes = {}
 
         # Maps, keyed by language, from term names to text refs
-        self._term_ref_maps = {lang: {} for lang in self.langs}
+        self._term_ref_maps = RedisNestedHash(self.redis_client, "library:term_ref_maps")
 
         # Map from index title to index object
-        self._index_map = {}
+        self._index_map = RedisHashPrefix(self.redis_client, "library:index_map", "default")
 
         # Table of Contents
         self._toc = None
