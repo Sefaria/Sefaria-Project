@@ -23,7 +23,14 @@ import { data } from 'jquery';
 
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, dataSource}) => {
+
+  const initialStore = menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? Sefaria.saved : Sefaria.userHistory;
+
+  console.log('menuOpen', menuOpen)
+
   const [notes, setNotes] = useState(null);
+  const [dataStore, setDataStore] = useState(initialStore);
+  
   const contentRef = useRef();
 
   useEffect(() => {
@@ -39,6 +46,12 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
       }
     });
   }, []);
+  
+  useEffect(() => {
+    // Switch dataStore whenever menuOpen changes
+    const newDataStore = menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? Sefaria.saved : Sefaria.userHistory;
+    setDataStore(newDataStore);
+  }, [menuOpen]); 
 
   const libraryURLs = {
     "saved": "/texts/saved", 
@@ -66,8 +79,6 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
       </a> }
     </span>
   );
-
-  const dataStore = menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? Sefaria.saved : Sefaria.userHistory;
 
   console.log(dataStore);
 
@@ -150,7 +161,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
   // Store changes when switching tabs, reset items
   useEffect(() => {
     setItems(store.loaded ? store.items : null);
-  }, [store]);
+  }, [menuOpen, store]);
 
   // // TODO - tell this function to work conditionally based on which "mode" its in
   // useScrollToLoad({
