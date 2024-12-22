@@ -2782,6 +2782,14 @@ _media: {},
       const key = this._getTopicCacheKey(slug, {annotated, with_html});
       return this._topics[key];
   },
+  _featuredTopic: {},
+  getFeaturedTopic: function() {
+    return this._cachedApiPromise({
+        url: `${Sefaria.apiHost}/_api/topics/featured-topic?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
+        key: (new Date()).toLocaleDateString(),
+        store: this._featuredTopic,
+    });
+  },
   _seasonalTopic: {},
   getSeasonalTopic: function() {
     return this._cachedApiPromise({

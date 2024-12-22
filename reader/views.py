@@ -3263,6 +3263,19 @@ def topic_pool_api(request, pool_name):
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
+@catch_error_as_json
+def featured_topic_api(request):
+    from django_topics.models import TopicOfTheDay
+
+    lang = request.GET.get("lang")
+    featured_topic = TopicOfTheDay.objects.get_featured_topic(lang)
+    if not featured_topic:
+        return jsonResponse({'error': f'No featured topic found for lang "{lang}"'}, status=404)
+    mongo_topic = Topic.init(featured_topic.topic.slug)
+    response = {'topic': mongo_topic.contents(), 'date': featured_topic.start_date.isoformat()}
+    return jsonResponse(response)
+
+
 @staff_member_required
 def reorder_topics(request):
     topics = json.loads(request.POST["json"]).get("topics", [])

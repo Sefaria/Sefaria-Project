@@ -2,6 +2,7 @@ import React from 'react';
 import {TopicLandingSearch} from "./TopicLandingSearch";
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
+import {FeaturedTopic} from "./FeaturedTopic";
 import {TopicSalad} from "./TopicSalad";
 import {RainbowLine} from "../RainbowLine";
 import {TopicLandingCalendar} from "./TopicLandingCalendar";
@@ -21,6 +22,7 @@ export const TopicsLandingPage = ({openTopic}) => {
                     <div className="contentInner mainColumn topic-landing-page-content">
                         <TopicLandingSearch openTopic={openTopic} numOfTopics={Sefaria.numLibraryTopics}/>
                         <TopicSalad/>
+                        <FeaturedTopic />
                     <div className="topic-landing-temporal">
                         <TopicLandingParasha/>
                         <TopicLandingSeasonal/>
