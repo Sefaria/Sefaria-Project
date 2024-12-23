@@ -569,7 +569,6 @@ def remove_links_from_csv(file, uid):
             tracker.delete(uid, Link, link._id)
             links_removed += 1
         except Exception as e:
-            print(e, refs)
             errors_writer.writerow({'ref1': refs[0], 'ref2': refs[1]})
         try:
             if USE_VARNISH:
