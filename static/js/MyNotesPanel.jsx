@@ -4,7 +4,6 @@ import {
   DisplaySettingsButton,
   LanguageToggleButton,
   LoadingMessage,
-  SinglePanelNavHeader,
   Note,
 } from './Misc';
 import React  from 'react';
@@ -54,13 +53,6 @@ class MyNotesPanel extends Component {
 
     return (
       <div className={classStr}>
-        {this.props.hideNavHeader ? null :
-          <SinglePanelNavHeader
-            title="My Notes"
-            navHome={this.props.navHome}
-            showDisplaySettings={true}
-            openDisplaySettings={this.props.openDisplaySettings}/>
-        }
         <div className={contentClasses} onScroll={this.onScroll}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
@@ -94,7 +86,6 @@ MyNotesPanel.propTypes = {
   hideNavHeader:       PropTypes.bool,
   navHome:             PropTypes.func,
   toggleLanguage:      PropTypes.func,
-  openDisplaySettings: PropTypes.func,
 };
 
 

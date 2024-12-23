@@ -11,18 +11,15 @@ import {
   TextPassage
 } from './Story';
 import {
-  CategoryColorLine,
-  MenuButton,
-  DisplaySettingsButton,
-  TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,
   InterfaceText,
 } from './Misc';
 
 
-const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
+const UserHistoryPanel = ({menuOpen, toggleLanguage, openNav, compare, toggleSignUpModal}) => {
   const [notes, setNotes] = useState(null);
+  const store = menuOpen === "saved" ? Sefaria.saved : Sefaria.userHistory;
   const contentRef = useRef();
 
   useEffect(() => {
@@ -94,7 +91,6 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
 UserHistoryPanel.propTypes = {
   toggleLanguage:      PropTypes.func.isRequired,
-  openDisplaySettings: PropTypes.func.isRequired,
   openNav:             PropTypes.func.isRequired,
   compare:             PropTypes.bool,
   menuOpen:            PropTypes.string.isRequired,
