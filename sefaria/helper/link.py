@@ -558,7 +558,7 @@ def add_links_from_csv(file, linktype, generated_by, uid):
 def remove_links_from_csv(file, uid):
     csv.field_size_limit(sys.maxsize)
     reader = csv.DictReader(StringIO(file.read().decode()))
-    success = 0
+    links_removed = 0
     output = StringIO()
     errors_writer = csv.DictWriter(output, fieldnames=['ref1', 'ref2'])
     errors_writer.writeheader()
@@ -567,7 +567,7 @@ def remove_links_from_csv(file, uid):
         try:
             link = Link().load({'refs': refs})
             tracker.delete(uid, Link, link._id)
-            success += 1
+            links_removed += 1
         except Exception as e:
             print(e, refs)
             errors_writer.writerow({'ref1': refs[0], 'ref2': refs[1]})
@@ -577,7 +577,7 @@ def remove_links_from_csv(file, uid):
                     invalidate_ref(Ref(ref), purge=True)
         except Exception as e:
             logger.error(e)
-    return {'message': f'{success} links successfully removed', 'errors': output.getvalue()}
+    return {'message': f'{links_removed} links successfully removed', 'errors': output.getvalue()}
 
 
 def make_link_query(trefs, **additional_query):
