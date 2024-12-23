@@ -44,10 +44,10 @@ const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
   );
 }
 
-const DropdownMenu = ({children, buttonComponent}) => {
+const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     /**
      * buttonComponent is a React component for the opening/closing of a button.
-     * the menu will be closed in click anywhere except in an element with classname 'preventClosing'.
+     * the menu will be closed in click anywhere except in an element where data attribute
      * this class is using useRef for open/close rather than useState, for changing state triggers re-rendering of the
      * component and all its children, so when clicking on children their onClick won't be executed.
      */
@@ -87,11 +87,11 @@ const DropdownMenu = ({children, buttonComponent}) => {
     }, []);
   
     return (
-        <div className="dropdownLinks" ref={wrapperRef} onClick={handleClick}>
+        <div className={positioningClass} ref={wrapperRef} onClick={handleClick}>
            <a className="dropdownLinks-button">
               {buttonComponent}
           </a>
-          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"} dropdownLinks-options`}>
+          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
               {children}
           </div>
         </div>

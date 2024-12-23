@@ -31,7 +31,7 @@ import Hebrew from './sefaria/hebrew.js';
 
 import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
-import DropdownMenu from "./common/DropdownMenu";
+import {DropdownMenu} from "./common/DropdownMenu";
 import Cookies from "js-cookie";
 
 
@@ -222,7 +222,7 @@ class BookPage extends Component {
               </div>
               <div className="rightButtons">
                 {Sefaria.interfaceLang !== "hebrew" ?
-                  <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>
+                  <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={(<DisplaySettingsButton/>)}><ReaderDisplayOptionsMenu/></DropdownMenu>
                   : <DisplaySettingsButton placeholder={true} />}
               </div>
             </div>

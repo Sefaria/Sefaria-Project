@@ -8,7 +8,7 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 import {ReaderPanelContext} from "./context";
-import DropdownMenu from "./common/DropdownMenu";
+import {DropdownMenu} from "./common/DropdownMenu";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 
 
@@ -119,7 +119,7 @@ class ConnectionsPanelHeader extends Component {
       const closeUrl = Sefaria.util.removeUrlParam("with");
       const showOneLanguage = !Sefaria._siteSettings.TORAH_SPECIFIC || Sefaria.interfaceLang === "hebrew";
       const toggleButton =  (showOneLanguage) ? null : (this.props.connectionsMode === 'TextList') ?
-          <DropdownMenu buttonContent={<DisplaySettingsButton/>} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu> :
+          <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu> :
             <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />;
       return (<div className="connectionsPanelHeader">
                 {title}

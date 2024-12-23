@@ -13575,7 +13575,7 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 
-.dropdownMenu {
+.readerDropdownMenu {
   position: relative;
   display: flex;
   flex-direction: row-reverse;
@@ -13606,12 +13606,12 @@ span.ref-link-color-3 {color: blue}
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
-.dropdownButton {
+.dropdownLinks-button {
   border: none;
   background-color: inherit;
 }
 
-.rightButtons .dropdownButton {
+.rightButtons .dropdownLinks-button {
   text-align: end;
 }
 
@@ -13971,7 +13971,7 @@ span.ref-link-color-3 {color: blue}
 .dropdownSeparator {
   border: 1px solid var(--light-grey);
 }
-.header .dropdownLinks {
+.header .headerDropdownMenu {
   display: block;
   align-items: center;
   margin-top: 2px;
@@ -13983,21 +13983,21 @@ span.ref-link-color-3 {color: blue}
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
 }
-.header .dropdownLinks img {
+.header .headerDropdownMenu img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
 }
 
-.interface-english .header .dropdownLinks img {
+.interface-english .header .headerDropdownMenu img {
   margin-inline-end: 2px;
 }
 
-.interface-hebrew .header .dropdownLinks img {
+.interface-hebrew .header .headerDropdownMenu img {
   margin-inline-end: 6px;
 }
 
-/* .header .dropdownLinks a.dropdownLinks-button::after {
+/* .header .headerDropdownMenu a.dropdownLinks-button::after {
   display: inline-block;
   background: no-repeat url("/static/icons/chevron-down.svg");
   height: 10px;
@@ -14006,7 +14006,7 @@ span.ref-link-color-3 {color: blue}
   content: "";
   transform: scale(0.75);
 } */
-.header .dropdownLinks .dropdownLinks-menu {
+.header .headerDropdownMenu .dropdownLinks-menu {
   top: 35px;
   position: absolute;
   z-index: 1;
@@ -14017,12 +14017,12 @@ span.ref-link-color-3 {color: blue}
   display:none;
   overflow:hidden;
 }
-.interface-english .header .dropdownLinks .dropdownLinks-menu {
+.interface-english .header .headerDropdownMenu .dropdownLinks-menu {
   right: 0px;
   min-width: 150px;
   width: max-content;
 }
-.interface-hebrew .header .dropdownLinks .dropdownLinks-menu {
+.interface-hebrew .header .headerDropdownMenu .dropdownLinks-menu {
   left: 0px;
   min-width: 150px;
   width: max-content;
@@ -14033,7 +14033,7 @@ span.ref-link-color-3 {color: blue}
   padding: 4px;
   max-width: 220px;
 }
-.header .dropdownLinks .dropdownLinks-menu.open {
+.header .headerDropdownMenu .dropdownLinks-menu.open {
   display: block;
 }
 
