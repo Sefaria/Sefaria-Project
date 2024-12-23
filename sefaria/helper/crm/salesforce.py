@@ -6,8 +6,10 @@ import json
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 from sefaria import settings as sls
 
-from typing import Any, Optional, List
+from typing import Any, Optional
 
+class SalesforceNewsletterListRetrievalError(Exception):
+    pass
 
 class SalesforceConnectionManager(CrmConnectionManager):
     def __init__(self):
@@ -130,10 +132,9 @@ class SalesforceConnectionManager(CrmConnectionManager):
         last_name: Optional[str] = None, 
         lang: str = "en", 
         educator: bool = False,
-        mailing_lists: Optional[List[str]] = None) -> Any:
+        mailing_lists: Optional[list[str]] = None) -> Any:
 
-        if mailing_lists is None:
-            mailing_lists = []
+        mailing_lists = mailing_lists or []
 
         CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, lang, educator)
         if lang == "he":
@@ -160,13 +161,12 @@ class SalesforceConnectionManager(CrmConnectionManager):
             return False
         return res
 
-    def get_available_lists(self) -> List[str]:
+    def get_available_lists(self) -> list[str]:
         try:
             resource_prefix = f"services/data/v{self.version}/query"
             endpoint = f"{sls.SALESFORCE_BASE_URL}/{resource_prefix}/"
             response = self.get(endpoint + "?q=SELECT+Subscriptions__c+FROM+AC_to_SF_List_Mapping__mdt")
             records = response.json()["records"]
             return [record["Subscriptions__c"] for record in records]
-        except:
-            print("Unable to retrieve newsletter mailing lists from Salesforce CRM")
-            return []
+        except (requests.RequestException, KeyError, json.JSONDecodeError):
+            raise SalesforceNewsletterListRetrievalError("Unable to retrieve newsletter mailing lists from Salesforce CRM")

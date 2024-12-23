@@ -20,7 +20,7 @@ class CrmMediator:
         except:
             return False
 
-    def subscribe_to_lists(self, email, first_name, last_name, educator=False, lang="en", mailing_lists=[]):
+    def subscribe_to_lists(self, email, first_name, last_name, educator=False, lang="en", mailing_lists=None):
         return self._crm_connection.subscribe_to_lists(email, first_name, last_name, educator, lang, mailing_lists)
 
     def sync_sustainers(self):
