@@ -1,4 +1,7 @@
-import redis
+
+import json
+import pickle
+import base64
 import json
 
 class RedisHashPrefix:
@@ -122,3 +125,99 @@ class RedisNestedHash:
         if len(sub_dict) == 0:
             return default
         return sub_dict
+
+
+class RedisPickleHash:
+    """
+    Behaves like a dict that stores arbitrary Python objects as pickled bytes in a single Redis hash.
+    Ideal for `__tref_oref_map` because values are custom Python objects.
+    """
+    def __init__(self, redis_client, hash_key_name):
+        self.redis_client = redis_client
+        self.hash_key_name = hash_key_name
+
+    def __getitem__(self, key):
+        val = self.redis_client.hget(self.hash_key_name, key)
+        if val is None:
+            raise KeyError(key)
+        # val is stored as base64-encoded pickle. Decode, then unpickle.
+        pickled_bytes = base64.b64decode(val)
+        try:
+            return pickle.loads(pickled_bytes)
+        except Exception as e:
+            raise ValueError(f"Failed to unpickle value for key '{key}'") from e
+
+    def __setitem__(self, key, value):
+        # Pickle + base64-encode to ensure it's safe as a Redis string
+        pickled_bytes = pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
+        encoded = base64.b64encode(pickled_bytes).decode('ascii')
+        self.redis_client.hset(self.hash_key_name, key, encoded)
+
+    def __delitem__(self, key):
+        removed = self.redis_client.hdel(self.hash_key_name, key)
+        if removed == 0:
+            raise KeyError(key)
+
+    def __contains__(self, key):
+        return self.redis_client.hexists(self.hash_key_name, key)
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def keys(self):
+        # hkeys returns list of all fields in the hash
+        return self.redis_client.hkeys(self.hash_key_name)
+
+    def __len__(self):
+        return self.redis_client.hlen(self.hash_key_name)
+
+    def clear(self):
+        """Remove the entire hash from Redis."""
+        self.redis_client.delete(self.hash_key_name)
+
+
+class RedisJsonHash:
+    """
+    Behaves like a dict that stores lists (or other JSON-serializable data)
+    in a single Redis hash. Perfect for `__index_tref_map` because values are arrays.
+    """
+    def __init__(self, redis_client, hash_key_name):
+        self.redis_client = redis_client
+        self.hash_key_name = hash_key_name
+
+    def __getitem__(self, key):
+        val = self.redis_client.hget(self.hash_key_name, key)
+        if val is None:
+            raise KeyError(key)
+        return json.loads(val)
+
+    def __setitem__(self, key, value):
+        # Ensure `value` is JSON-serializable (lists, dicts, etc.)
+        self.redis_client.hset(self.hash_key_name, key, json.dumps(value))
+
+    def __delitem__(self, key):
+        removed = self.redis_client.hdel(self.hash_key_name, key)
+        if removed == 0:
+            raise KeyError(key)
+
+    def __contains__(self, key):
+        return self.redis_client.hexists(self.hash_key_name, key)
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def keys(self):
+        return self.redis_client.hkeys(self.hash_key_name)
+
+    def __len__(self):
+        return self.redis_client.hlen(self.hash_key_name)
+
+    def clear(self):
+        """Remove the entire hash from Redis."""
+        self.redis_client.delete(self.hash_key_name)

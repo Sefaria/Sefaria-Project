@@ -9,7 +9,8 @@ import structlog
 from functools import reduce, partial
 from typing import Optional, Union
 
-from sefaria.utils.redis_dictionary import RedisHashPrefix, RedisNestedHash
+from sefaria.system.redis_client import get_redis_client
+from sefaria.utils.redis_dictionary import RedisHashPrefix, RedisJsonHash, RedisNestedHash, RedisPickleHash
 logger = structlog.get_logger(__name__)
 
 import sys
@@ -2618,45 +2619,76 @@ class RefCacheType(type):
     Returns cached instance on instantiation if either instantiation string or normal form are matched.
     """
 
+    redis_client = get_redis_client()
+
     def __init__(cls, name, parents, dct):
         super(RefCacheType, cls).__init__(name, parents, dct)
-        cls.__tref_oref_map = {}
-        cls.__index_tref_map = {}
+
+        cls.__tref_oref_map = RedisPickleHash(
+            cls.redis_client,
+            "refcache:tref_oref_map"
+        )
+        cls.__index_tref_map = RedisJsonHash(
+            cls.redis_client,
+            "refcache:index_tref_map"
+        )
 
     def cache_size(cls):
         return len(cls.__tref_oref_map)
 
     def cache_size_bytes(cls):
-        from sefaria.utils.util import get_size
-        return get_size(cls.__tref_oref_map)
+        # If you want to approximate memory usage, you'd need a different approach
+        # since data is in Redis, not local memory. For demonstration:
+        # from sefaria.utils.util import get_size
+        # return get_size(cls.__tref_oref_map)
+        return "Not applicable (Redis-based)."
+
 
     def cache_dump(cls):
-        return [(a, repr(b)) for (a, b) in cls.__tref_oref_map.items()]
+        """
+        Return a representation of the items from __tref_oref_map.
+        We'll show key + `repr` of the value (which we have to load from Redis).
+        """
+        dump_list = []
+        for k in cls.__tref_oref_map.keys():
+            v = cls.__tref_oref_map[k]
+            dump_list.append((k, repr(v)))
+        return dump_list
 
     def _raw_cache(cls):
-        return cls.__tref_oref_map
+        """
+        Return a dict of all items,
+        be aware it pulls everything from Redis.
+        """
+        return {k: cls.__tref_oref_map[k] for k in cls.__tref_oref_map.keys()}
 
     def clear_cache(cls):
-        cls.__tref_oref_map = {}
-        cls.__index_tref_map = {}
+        """
+        Clears the entire Redis hash for both caches.
+        """
+        cls.__tref_oref_map.clear()
+        cls.__index_tref_map.clear()
 
     def remove_index_from_cache(cls, index_title):
         """
-        Removes all refs to Index with title `index_title` from the Ref cache
-        :param cls:
-        :param index_title:
-        :return:
+        Removes all Refs related to `index_title`.
+        This looks in __index_tref_map for a list of trefs/uid keys, then removes them from __tref_oref_map
         """
-        try:
-            for tref in cls.__index_tref_map[index_title]:
+        arr = cls.__index_tref_map.get(index_title)
+        if arr:
+            for tref in arr:
                 try:
                     del cls.__tref_oref_map[tref]
                 except KeyError:
-                    continue
-        except KeyError:
-            pass
+                    pass
+            # Finally, remove the entry from __index_tref_map itself
+            del cls.__index_tref_map[index_title]
 
     def __call__(cls, *args, **kwargs):
+        """
+        Overridden to first check Redis cache for an existing Ref object.
+        Implementation remains the same logic, but references the Redis dictionaries.
+        """
         if len(args) == 1:
             tref = args[0]
         else:
@@ -2668,40 +2700,46 @@ class RefCacheType(type):
             if tref in cls.__tref_oref_map:
                 return cls.__tref_oref_map[tref]
             else:
+                # Construct a new Ref instance via the normal path
                 result = super(RefCacheType, cls).__call__(*args, **kwargs)
                 uid = result.uid()
                 title = result.index.title
+
+                # Check if the same uid was added while we were constructing
                 if uid in cls.__tref_oref_map:
-                    #del result  #  Do we need this to keep memory clean?
+                    # If so, "merge" them
                     cls.__tref_oref_map[tref] = cls.__tref_oref_map[uid]
-                    try:
-                        cls.__index_tref_map[title] += [tref]
-                    except KeyError:
-                        cls.__index_tref_map[title] = [tref]
+                    arr = cls.__index_tref_map.get(title, [])
+                    arr.append(tref)
+                    cls.__index_tref_map[title] = arr
                     return cls.__tref_oref_map[uid]
+
+                # Otherwise, store it
                 cls.__tref_oref_map[uid] = result
                 cls.__tref_oref_map[tref] = result
-                try:
-                    cls.__index_tref_map[title] += [tref]
-                except KeyError:
-                    cls.__index_tref_map[title] = [tref]
-                cls.__index_tref_map[title] += [uid]
+                arr = cls.__index_tref_map.get(title, [])
+                arr += [tref, uid]
+                cls.__index_tref_map[title] = arr
 
                 return result
+
         elif obj_arg:
+            # Called with _obj
             result = super(RefCacheType, cls).__call__(*args, **kwargs)
             uid = result.uid()
             title = result.index.title
             if uid in cls.__tref_oref_map:
-                #del result  #  Do we need this to keep memory clean?
                 return cls.__tref_oref_map[uid]
+
             cls.__tref_oref_map[uid] = result
-            try:
-                cls.__index_tref_map[title] += [uid]
-            except KeyError:
-                cls.__index_tref_map[title] = [uid]
+            arr = cls.__index_tref_map.get(title, [])
+            arr.append(uid)
+            cls.__index_tref_map[title] = arr
+
             return result
-        else:  # Default.  Shouldn't be used.
+
+        else:
+            # Fallback
             return super(RefCacheType, cls).__call__(*args, **kwargs)
 
 
@@ -4912,13 +4950,7 @@ class Library(object):
         # Timestamp when library last stored shared cache items (toc, terms, etc)
         self.last_cached = None
         
-        self.redis_client = redis.StrictRedis(
-            host=MULTISERVER_REDIS_SERVER,
-            port=MULTISERVER_REDIS_PORT,
-            db=MULTISERVER_REDIS_DB,
-            decode_responses=True,
-            encoding="utf-8"
-        )
+        self.redis_client = get_redis_client()
 
         self.langs = ["en", "he"]
 
