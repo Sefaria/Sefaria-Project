@@ -9,6 +9,7 @@ import {TopicLandingCalendar} from "./TopicLandingCalendar";
 import {TopicLandingParasha} from "./TopicLandingParasha";
 import {TopicLandingSeasonal} from "./TopicLandingSeasonal";
 import Sefaria from "../sefaria/sefaria";
+import {TopicsMonte} from "./TopicsMonte";
 
 
 export const TopicsLandingPage = ({openTopic}) => {
@@ -27,7 +28,8 @@ export const TopicsLandingPage = ({openTopic}) => {
                         <TopicLandingParasha/>
                         <TopicLandingSeasonal/>
                     </div>
-                    </div>
+                        <TopicsMonte/>
+                </div>
                     <NavSidebar sidebarModules={sidebarModules} />
                 </div>
                 <Footer />
