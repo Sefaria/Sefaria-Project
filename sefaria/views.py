@@ -222,7 +222,7 @@ def get_available_newsletter_mailing_lists(request):
     try:
         return jsonResponse({"newsletter_mailing_lists": CrmMediator().get_available_lists()})
     except SalesforceNewsletterListRetrievalError as e:
-        return jsonResponse({"error": e.message}, status=502)
+        return jsonResponse({"error": str(e)}, status=502)
     except:
         return jsonResponse({"error": "Unknown error occurred"}, status=500)
 
