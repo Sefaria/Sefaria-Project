@@ -274,7 +274,6 @@ TextList.propTypes = {
   onDataChange:            PropTypes.func,
   handleSheetClick:        PropTypes.func,
   openNav:                 PropTypes.func,
-  openDisplaySettings:     PropTypes.func,
   closePanel:              PropTypes.func,
   selectedWords:           PropTypes.string,
   checkVisibleSegments:    PropTypes.func.isRequired,

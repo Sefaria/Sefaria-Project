@@ -1,5 +1,7 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
+import PropTypes from "prop-types";
 import { InterfaceText } from '../Misc';
+
 
 const DropdownMenuSeparator = () => {
 
@@ -16,7 +18,6 @@ const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
   }
 
   return (
-
     <a className={`interfaceLinks-option int-bi dropdownItem`}
        href={url}
        target={newTab ? '_blank' : null}
@@ -37,18 +38,23 @@ const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
         </span>
       </div>
       <div className='dropdownDesc'>
-        <InterfaceText text={{'en': 'Lorem ipsum dolor sit amet, lorem dolor.', 'he': 'לורם איפסום דולור סיט אמט'}} />     
+        <InterfaceText text={{'en': 'Lorem ipsum dolor sit amet, lorem dolor.', 'he': 'לורם איפסום דולור סיט אמט'}} />
       </div>
   </>
   );
 }
 
-const DropdownMenu = ({children, menuIconComponent}) => {
+const DropdownMenu = ({children, buttonComponent}) => {
+    /**
+     * buttonComponent is a React component for the opening/closing of a button.
+     * the menu will be closed in click anywhere except in an element with classname 'preventClosing'.
+     * this class is using useRef for open/close rather than useState, for changing state triggers re-rendering of the
+     * component and all its children, so when clicking on children their onClick won't be executed.
+     */
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
-  
-    const handleClick = (e) => {console.log("click");
-        console.log("click");
+
+    const handleClick = (e) => {
       e.stopPropagation();
       // Check if the clicked element or its parent has data-prevent-close
       const preventClose = e.target.closest('[data-prevent-close="true"]');
@@ -57,13 +63,11 @@ const DropdownMenu = ({children, menuIconComponent}) => {
         setIsOpen(isOpen => !isOpen);
       }
     }
-
     const handleHideDropdown = (event) => {
-        if (event.key === 'Escape') {
-            setIsOpen(false);
-        }
+      if (event.key === 'Escape') {
+          setIsOpen(false);
+      }
     };
-
     const handleClickOutside = (event) => {
         if (
             wrapperRef.current &&
@@ -85,21 +89,21 @@ const DropdownMenu = ({children, menuIconComponent}) => {
     return (
         <div className="dropdownLinks" ref={wrapperRef} onClick={handleClick}>
            <a className="dropdownLinks-button">
-              {menuIconComponent} 
-          </a>         
-          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
-            <div className="dropdownLinks-options">
+              {buttonComponent}
+          </a>
+          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"} dropdownLinks-options`}>
               {children}
-            </div>
           </div>
         </div>
     );
   }
 
-
+  DropdownMenu.propTypes = {
+    buttonComponent: PropTypes.elementType.isRequired,
+  };
   export {
-    DropdownMenu, 
-    DropdownMenuSeparator, 
+    DropdownMenu,
+    DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
     DropdownMenuItem
   };

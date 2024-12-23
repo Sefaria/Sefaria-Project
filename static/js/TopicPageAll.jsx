@@ -130,7 +130,6 @@ TopicPageAll.propTypes = {
   mutliPanel:          PropTypes.bool,
   navHome:             PropTypes.func,
   toggleLanguage:      PropTypes.func,
-  openDisplaySettings: PropTypes.func,
 };
 TopicPageAll.defaultProps = {
   initialWidth:        1000,
