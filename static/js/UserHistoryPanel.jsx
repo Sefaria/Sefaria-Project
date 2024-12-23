@@ -51,7 +51,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     // Switch dataStore whenever menuOpen changes
     const newDataStore = menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? Sefaria.saved : Sefaria.userHistory;
     setDataStore(newDataStore);
-  }, [menuOpen]); 
+  }, [menuOpen, Sefaria.saved, Sefaria.userHistory]); 
 
   const libraryURLs = {
     "saved": "/texts/saved", 
@@ -160,27 +160,10 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
 
   // Store changes when switching tabs, reset items
   useEffect(() => {
-    setItems(store.loaded ? store.items : null);
-  }, [menuOpen, store]);
+    setItems(store.loaded && store.items.length > 0 ? store.items : null);
+  }, [menuOpen, store.items]);
 
-  // // TODO - tell this function to work conditionally based on which "mode" its in
-  // useScrollToLoad({
-  //   scrollableRef: scrollableRef,
-  //   url: "/api/profile/user_history?secondary=0&annotate=1" + ((menuOpen === "texts-saved" || menuOpen === "sheets-saved") ? "&saved=1" : ""),
-  //   setter: data => {
-  //     if (!store.loaded) {
-  //       store.items = []; // saved intially has items that have not been annotated with text
-  //       store.loaded = true;
-  //     }
-
-  //     const filteredData = dataSource === "library" ?  data.items.filter(item => !item.is_sheet) : data.items.filter(item => item.is_sheet);
-
-  //     const updatedItems = [...(store.items || []), ...filteredData];
-  //     store.items = updatedItems;
-  //     setItems(updatedItems); 
-  //   },
-  //   itemsPreLoaded: items ? items.length : 0,
-  // });
+  console.log('store in UserHistoryList', store);
 
   if ((menuOpen === 'texts-history' || menuOpen === "sheets-history") && !Sefaria.is_history_enabled) {
     return (
