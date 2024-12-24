@@ -401,10 +401,11 @@ urlpatterns += [
     url(r'^api/send_feedback$', sefaria_views.generate_feedback),
 ]
 
-# Email Subscribe
+# Email Newsletter Subscriptions
 urlpatterns += [
     url(r'^api/subscribe/(?P<org>.+)/(?P<email>.+)$', sefaria_views.generic_subscribe_to_newsletter_api),
     url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe_sefaria_newsletter_view),
+    url(r'^api/newsletter_mailing_lists/?$', sefaria_views.get_available_newsletter_mailing_lists),
 ]
 
 # Admin

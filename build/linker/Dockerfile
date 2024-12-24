@@ -46,5 +46,5 @@ ENV PATH=/usr/local/nvidia/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64/
 ENV LD_PRELOAD=/usr/local/nvidia/lib64/libnvidia-ml.so
 
-RUN pip install spacy[cuda116]~=3.7.0
+RUN pip install spacy[cuda122]~=3.7.0
 
