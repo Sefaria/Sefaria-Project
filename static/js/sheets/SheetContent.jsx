@@ -247,7 +247,7 @@ class SheetContent extends Component {
                                    authorImage={this.props.authorImage} title={this.props.title}
                                    summary={this.props.summary}
                                    sheetOptions={sheetOptions}/>
-          <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
+          <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick} style={this.props.style}>
             {sources}
           </div>
         </div>

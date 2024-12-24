@@ -654,6 +654,7 @@ class ReaderPanel extends Component {
 
     let items = [];
     let menu = null;
+    const style = {"fontSize": this.state.settings.fontSize + "%"};
     const readerPanelContextData = {
       language: this.getContentLanguageOverride(),
       isMenuOpen: this.state.displaySettingsOpen,
@@ -735,6 +736,7 @@ class ReaderPanel extends Component {
           hasSidebar={this.props.hasSidebar}
           historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
           toggleSideUpModal={this.props.toggleSignUpModal}
+          style={style}
         />;
     }
 
@@ -1082,7 +1084,6 @@ class ReaderPanel extends Component {
     }
     classes = classNames(classes);
 
-    const style = {"fontSize": this.state.settings.fontSize + "%"};
 
     const sheet = Sefaria.sheets.loadSheetByID(this.state.sheetID);
     const sheetTitle = !!sheet ? sheet.title.stripHtmlConvertLineBreaks() : null;

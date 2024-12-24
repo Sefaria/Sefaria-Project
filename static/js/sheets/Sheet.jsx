@@ -100,6 +100,7 @@ class Sheet extends Component {
                   <div className="sheetContent">
                     <SefariaEditor
                         data={sheet}
+                        style={this.props.style}
                         handleClick={this.handleClick}
                         multiPanel={this.props.multiPanel}
                         sheetSourceClick={this.props.onSegmentClick}
@@ -118,6 +119,7 @@ class Sheet extends Component {
       content = (
           <div className="sidebarLayout">
             <SheetContent
+                style={this.props.style}
                 sources={sheet.sources}
                 title={sheet.title}
                 handleClick={this.handleClick}
