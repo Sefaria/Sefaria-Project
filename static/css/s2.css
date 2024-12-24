@@ -4977,7 +4977,6 @@ h1.topic-landing-header {
 .featuredTopic {
   display: flex;
   flex-direction: column;
-  margin-top: 68px;
 }
 .featuredTopicContent {
   display: flex;
