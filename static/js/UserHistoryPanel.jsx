@@ -165,6 +165,35 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
 
   console.log('store in UserHistoryList', store);
 
+  useScrollToLoad({
+    scrollableRef: scrollableRef,
+    url: "/api/profile/user_history?secondary=0&annotate=1" + (menuOpen === "saved" ? "&saved=1" : ""),
+    setter: data => {
+      if (!store.loaded) {
+        store.items = []; // Initialize items only once
+        store.loaded = true;
+      }
+  
+      // Filter the data based on whether it's a sheet or not
+      const filteredData = data.filter(item => {
+        if (menuOpen === "sheets-saved" || menuOpen === "sheets-history") {
+          return item.is_sheet; // Keep only sheets
+        } else if (menuOpen === "texts-saved" || menuOpen === "texts-history") {
+          return !item.is_sheet; // Keep only non-sheets (texts)
+        }
+        return true; // Default: No filtering
+      });
+  
+      // Push the filtered data into the store
+      store.items.push(...filteredData);
+  
+      // Update the state with the modified items array
+      setItems(store.items.slice());
+    },
+    itemsPreLoaded: items ? items.length : 0,
+  });
+  
+
   if ((menuOpen === 'texts-history' || menuOpen === "sheets-history") && !Sefaria.is_history_enabled) {
     return (
       <div className="savedHistoryMessage">
