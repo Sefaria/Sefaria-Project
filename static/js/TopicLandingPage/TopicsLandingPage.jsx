@@ -6,6 +6,7 @@ import {FeaturedTopic} from "./FeaturedTopic";
 import {TopicSalad} from "./TopicSalad";
 import {TopicLandingParasha} from "./TopicLandingParasha";
 import {TopicLandingSeasonal} from "./TopicLandingSeasonal";
+import {TopicLandingNewsletter} from "./TopicLandingNewsletter";
 import {InterfaceText} from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 
@@ -29,6 +30,9 @@ export const TopicsLandingPage = ({openTopic}) => {
                         </div>
                         <div className="topic-landing-section">
                             <FeaturedTopic />
+                        </div>
+                        <div className="topic-landing-section">
+                            <TopicLandingNewsletter />
                         </div>
                         <div className="topic-landing-section topic-landing-temporal">
                             <TopicLandingParasha/>
