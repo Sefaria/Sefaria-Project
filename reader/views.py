@@ -62,9 +62,9 @@ from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
-                                get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
-                                get_random_topic_source, edit_topic_source, \
-                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time
+    get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
+    get_random_topic_source, edit_topic_source, \
+    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -228,6 +228,7 @@ def base_props(request):
             "fontSize":          request.COOKIES.get("fontSize", 62.5),
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
+        "numLibraryTopics": get_num_library_topics(),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG
     })
@@ -2633,7 +2634,17 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, topic_override=False, type=None, topic_pool=None):
+def get_name_completions(name, limit, topic_override=False, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
+    """
+    Function to get completions (objects and titles) for a given name.
+    :param name: string to get completions for
+    :param limit: int number of items to return
+    :param topic_override: bool
+    :param type: string - get only completions of objects of this specific type
+    :param topic_pool: string - get completions of topic-objects of this specific topic pool
+    :param exact_continuations: bool - if ture get only completions of objects whose title contains an exact match to 'name'
+    :param order_by_matched_length: bool - if true return completion objects by ascending order of length - such that shorter titles whose greater part is a match to 'name' will appear first.
+    """
     lang = "he" if has_hebrew(name) else "en"
     completer = library.full_auto_completer(lang)
     object_data = None
@@ -2659,7 +2670,7 @@ def get_name_completions(name, limit, topic_override=False, type=None, topic_poo
             completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
         else:
-            completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool)
+            completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
             object_data = completer.get_object(name)
 
     except DictionaryEntryNotFoundError as e:
@@ -2669,7 +2680,7 @@ def get_name_completions(name, limit, topic_override=False, type=None, topic_poo
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
         completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
     except InputError:  # Not a Ref
-        completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool)
+        completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
         object_data = completer.get_object(name)
 
     return {
@@ -2692,7 +2703,9 @@ def name_api(request, name):
     LIMIT = int(request.GET.get("limit", 10))
     type = request.GET.get("type", None)
     topic_pool = request.GET.get("topic_pool", None)
-    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, topic_pool=topic_pool)
+    exact_continuations = bool(int(request.GET.get("exact_continuations", False)))
+    order_by_matched_length = bool(int(request.GET.get("order_by_matched_length", False)))
+    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
     d = {

@@ -13,6 +13,13 @@ const getSuggestions = async (input) => {
     const _capitalizeFirstLetter = (text)=> {
         return String(text).charAt(0).toUpperCase() + String(text).slice(1);
     }
+    const _extractDisambiguation = (title) => {
+        const match = title.match(/\((.*?)\)$/);
+        return match?.[1];
+    };
+    const _removeDisambiguation = (title)=>{
+        return title.replace(/\s*\(.*?\)\s*$/, '').trim();
+    }
 
     const _getFormattedPath = (slug, lang) => {
       const categories = Sefaria.topicTocCategories(slug);
@@ -22,22 +29,30 @@ const getSuggestions = async (input) => {
     }
 
     const _parseSuggestions = (completionObjs, lang) => {
-      let topics = [];
-      if (completionObjs.length > 0) {
-        topics = completionObjs.map((e) => ({
-          title: `#${_capitalizeFirstLetter(e.title)}`,
-          categoryPathTitle: `${_getFormattedPath(e.key, lang)}`,
+      if (completionObjs.length === 0) {return [];}
+
+      return completionObjs.map((e) => {
+        const categories = Sefaria.topicTocCategories(e.key);
+        const isDisambiguationEqualCategory =
+            categories?.some(category => _extractDisambiguation(e.title) === category[lang]);
+
+        const title = isDisambiguationEqualCategory
+          ? _removeDisambiguation(e.title)
+          : e.title;
+
+        return {
+          title: `#${_capitalizeFirstLetter(title)}`,
+          categoryPathTitle: _getFormattedPath(e.key, lang),
           key: e.key,
-        }));
-      }
-      return topics;
+        };
+      });
     };
 
     const isInputHebrew = Sefaria.hebrew.isHebrew(word);
     const lang = isInputHebrew? 'he' : 'en';
 
-    const rawCompletions = await Sefaria.getName(word,20, "Topic", "library")
-    const completionObjects = _parseSuggestions(rawCompletions["completion_objects"], lang)
+    const rawCompletions = await Sefaria.getName(word,20, "Topic", "library", true, true);
+    const completionObjects = _parseSuggestions(rawCompletions["completion_objects"], lang);
     return completionObjects.map((suggestion) => ({
       text: suggestion.title,
       categoryText: suggestion.categoryPathTitle,
@@ -110,6 +125,7 @@ export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
                 containerClassString="topic-landing-search-container"
                 dropdownMenuClassString="topic-landing-search-dropdown"
                 renderInput={renderInput.bind(null, openTopic, numOfTopics)}
+                // shouldDisplaySuggestions={()=>true}
             />
         </div>
     );

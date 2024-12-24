@@ -6,6 +6,7 @@ import {TopicSalad} from "./TopicSalad";
 import {TopicLandingParasha} from "./TopicLandingParasha";
 import {TopicLandingSeasonal} from "./TopicLandingSeasonal";
 import {InterfaceText} from "../Misc";
+import Sefaria from "../sefaria/sefaria";
 
 
 export const TopicsLandingPage = ({openTopic}) => {
@@ -20,7 +21,7 @@ export const TopicsLandingPage = ({openTopic}) => {
                             <InterfaceText>Let Your Curiosity Lead The Way</InterfaceText>
                         </h1>
                         <div className="topic-landing-section">
-                            <TopicLandingSearch openTopic={openTopic} numOfTopics={5000}/>
+                            <TopicLandingSearch openTopic={openTopic} numOfTopics={Sefaria.numLibraryTopics}/>
                         </div>
                         <div className="topic-landing-section">
                             <TopicSalad/>
