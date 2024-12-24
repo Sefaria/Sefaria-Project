@@ -9,7 +9,7 @@ import {TopicLandingCalendar} from "./TopicLandingCalendar";
 import {TopicLandingParasha} from "./TopicLandingParasha";
 import {TopicLandingSeasonal} from "./TopicLandingSeasonal";
 import Sefaria from "../sefaria/sefaria";
-import {TopicsMonte} from "./TopicsMonte";
+import {RandomTopicCardWithDescriptionRow} from "./RandomTopicCardWithDescriptionRow";
 
 
 export const TopicsLandingPage = ({openTopic}) => {
@@ -28,7 +28,7 @@ export const TopicsLandingPage = ({openTopic}) => {
                         <TopicLandingParasha/>
                         <TopicLandingSeasonal/>
                     </div>
-                        <TopicsMonte/>
+                        <RandomTopicCardWithDescriptionRow/>
                 </div>
                     <NavSidebar sidebarModules={sidebarModules} />
                 </div>

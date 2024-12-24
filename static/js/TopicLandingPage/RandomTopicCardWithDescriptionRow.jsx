@@ -2,9 +2,10 @@ import React from 'react';
 import {useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
 import {InterfaceText} from "../Misc";
+import {Card} from "../common/Card";
 
 
-export const TopicsMonte = () => {
+export const RandomTopicCardWithDescriptionRow = () => {
     const numTopics = 3;
     const [deck, setDeck] = useState([]);
 
@@ -27,7 +28,6 @@ export const TopicsMonte = () => {
             title: topic.primaryTitle,
             description: topic.description
           }));
-        console.log(deck);
         return deck;
     }
 
@@ -42,8 +42,12 @@ export const TopicsMonte = () => {
 
     return (
     <>
-      <div className='topic-monte'>
-          {deck.map(topic=><div>{topic.slug}</div>)}
+      <div className='topic-card-with-description-row'>
+          {deck.map(topic=><div className='topic-card-with-description'><Card
+        cardTitleHref={`topics/${topic.slug}`}
+        cardTitle={topic.title}
+        cardText={topic.description}
+      /></div>)}
       </div>
     </>
 

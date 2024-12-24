@@ -5153,6 +5153,33 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topic-landing-parasha .navSidebarLink span{
   font-family: Roboto, sans-serif;
 }
+.topic-card-with-description-row{
+  display: flex;
+  margin-top: 30px;
+  gap: 20px;
+}
+.topic-card-with-description{
+  flex: 1;
+  border-top: 4px solid var(--Sefaria-Blue, #18345D);
+  background: var(--Lightest-Grey, #FBFBFA);
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+  width: 268.395px;
+  height: 345.78px;
+}
+.topic-card-with-description .cardDescription{
+  margin-inline-end: 30px;
+  margin-inline-start: 30px;
+  width: 207.593px;
+  height: 140.617px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow-y: hidden;
+  overflow-x: visible;
+  word-wrap: break-word;
+}
+.topic-card-with-description .cardTitle {
+  margin-inline-start: 30px;
+}
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
