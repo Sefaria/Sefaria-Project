@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Sefaria from '../sefaria/sefaria';
 import {InterfaceText} from "../Misc";
 
 export const TopicLandingNewsletter = () => {
-    const [email, setEmail] = useState('');
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
+    const firstNameRef = useRef();
+    const lastNameRef = useRef();
+    const emailRef = useRef();
     const [subscribeMessage, setSubscribeMessage] = useState(null);
 
     function handleSubscribeKeyUp(e) {
@@ -15,11 +15,11 @@ export const TopicLandingNewsletter = () => {
     }
 
     function validateInputs() {
-        if (firstName.length === 0 || lastName.length === 0) {
+        if (firstNameRef.current?.value.length === 0 || lastNameRef.current?.value.length === 0) {
             setSubscribeMessage(Sefaria._("Please enter a valid first and last name"));
             return false;
         }
-        if (!Sefaria.util.isValidEmailAddress(email)) {
+        if (!Sefaria.util.isValidEmailAddress(emailRef.current?.value)) {
             setSubscribeMessage("Please enter a valid email address.");
             return false;
         }
@@ -29,7 +29,7 @@ export const TopicLandingNewsletter = () => {
     function handleSubscribe() {
         if (!validateInputs()) { return; }
         setSubscribeMessage("Subscribing...");
-        Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, false, []).then(res => {
+        Sefaria.subscribeSefariaNewsletter(firstNameRef.current?.value, lastNameRef.current?.value, emailRef.current?.value, false, []).then(res => {
             setSubscribeMessage("Subscribed! Welcome to our list.");
         }).catch(error => {
             setSubscribeMessage(error?.message || "Sorry, there was an error.");
@@ -45,15 +45,13 @@ export const TopicLandingNewsletter = () => {
                     <input
                         type="text"
                         placeholder={Sefaria._("First Name")}
-                        value={firstName}
-                        onChange={e => setFirstName(e.target.value)}
+                        ref={firstNameRef}
                         onKeyUp={handleSubscribeKeyUp}
                     />
                     <input
                         type="text"
                         placeholder={Sefaria._("Last Name")}
-                        value={lastName}
-                        onChange={e => setLastName(e.target.value)}
+                        ref={lastNameRef}
                         onKeyUp={handleSubscribeKeyUp}
                     />
                 </div>
@@ -61,11 +59,10 @@ export const TopicLandingNewsletter = () => {
                     <input
                         type="text"
                         placeholder={Sefaria._("Email Address")}
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
+                        ref={emailRef}
                         onKeyUp={handleSubscribeKeyUp}
                     />
-                    <button onKeyUp={handleSubscribeKeyUp}>Sign Up</button>
+                    <button type="submit" onKeyUp={handleSubscribeKeyUp} onClick={handleSubscribe}>Sign Up</button>
                 </div>
                 <div className="topic-landing-newsletter-input-row">
                     {subscribeMessage ?
