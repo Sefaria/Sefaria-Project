@@ -4885,6 +4885,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerNavMenu .content .contentInner.topic-landing-page-content{
   width: 843px;
 }
+h1.topic-landing-header {
+  font-size: 40px;
+  color: var(--dark-grey);
+  margin: 0;
+}
+
+.topic-landing-page-content .topic-landing-section {
+  margin-top: 70px;
+}
 
 .interface-hebrew .topic-landing-page-wrapper{
   direction: rtl;
@@ -4900,8 +4909,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 250px;
   width: 634px;
   height: 60px;
-  margin-top: 137px;
-  position: relative;
 }
 
 .topic-landing-search-input-box-wrapper{
@@ -5015,7 +5022,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-bottom: 10px;
 }
 .topic-landing-upper-rainbow{
-  margin-top: 88px;
   margin-bottom: 43px;
   z-index: 0;
 }
