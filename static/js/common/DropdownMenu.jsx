@@ -13,12 +13,16 @@ const DropdownMenu = ({children, buttonContent}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
 
-    const handleClick = (e) => {
+    const handleButtonClick = (e) => {
+      e.stopPropagation();
+      setIsOpen(isOpen => !isOpen);
+    };
+    const handleContentsClick = (e) => {
       e.stopPropagation();
       const preventClose = e.target.closest('.preventClosing');
       // Only toggle if no preventClose element was found
       if (!preventClose) {
-        setIsOpen(isOpen => !isOpen);
+        setIsOpen(false);
       }
     }
     const handleHideDropdown = (event) => {
@@ -45,11 +49,11 @@ const DropdownMenu = ({children, buttonContent}) => {
     }, []);
 
   return (
-    <div className="dropdownMenu" onClick={handleClick} ref={wrapperRef}>
-      <button className="dropdownButton" >{buttonContent}</button>
-        <div className={ `dropdownLinks-menu ${isOpen ? 'open' : 'closed'}`} >
-            {children}
-        </div>
+    <div className="dropdownMenu" ref={wrapperRef}>
+      <button className="dropdownButton" onClick={handleButtonClick}>{buttonContent}</button>
+      <div className={ `dropdownLinks-menu ${isOpen ? 'open' : 'closed'}`} onClick={handleContentsClick}>
+        {children}
+      </div>
     </div>
   );
 };
