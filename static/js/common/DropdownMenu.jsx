@@ -99,7 +99,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
   }
 
   DropdownMenu.propTypes = {
-    buttonComponent: PropTypes.elementType.isRequired,
+    buttonComponent: PropTypes.element.isRequired,
   };
   export {
     DropdownMenu,
