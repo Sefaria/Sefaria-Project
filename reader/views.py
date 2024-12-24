@@ -831,14 +831,14 @@ def enable_new_editor(request):
     profile = UserProfile(id=request.user.id)
     profile.update({"uses_new_editor": True, "show_editor_toggle": True})
     profile.save()
-    return redirect(f"/profile/{profile.slug}")
+    return redirect(f"/sheets/profile/{profile.slug}")
 
 @login_required
 def disable_new_editor(request):
     profile = UserProfile(id=request.user.id)
     profile.update({"uses_new_editor": False})
     profile.save()
-    return redirect(f"/profile/{profile.slug}")
+    return redirect(f"/sheets/profile/{profile.slug}")
 
 
 def public_collections(request):
@@ -3894,7 +3894,7 @@ def profile_redirect(request, uid, page=1):
     """"
     Redirect to the profile of the logged in user.
     """
-    return redirect("/profile/%s" % uid, permanent=True)
+    return redirect("/sheets/profile/%s" % uid, permanent=True)
 
 
 @login_required
@@ -3902,7 +3902,7 @@ def my_profile(request):
     """
     Redirect to a user profile
     """
-    url = "/profile/%s" % UserProfile(id=request.user.id).slug
+    url = "/sheets/profile/%s" % UserProfile(id=request.user.id).slug
     if "tab" in request.GET:
         url += "?tab=" + request.GET.get("tab")
     return redirect(url)

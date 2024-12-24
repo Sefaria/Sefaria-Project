@@ -511,7 +511,7 @@ class ReaderApp extends Component {
             break;
           case "profile":
             hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
-            hist.url   = `profile/${state.profile.slug}`;
+            hist.url   = `sheets/profile/${state.profile.slug}`;
             hist.mode = "profile";
             break;
           case "notifications":
@@ -1176,7 +1176,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path.match(/^\/topics\/[^\/]+/)) {
       this.openTopic(path.slice(8), params.get("tab"));
 
-    } else if (path.match(/^\/profile\/.+/)) {
+    } else if (path.match(/^\/sheets\/profile\/.+/)) {
       this.openProfile(path.slice(9), params.get("tab"));
 
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {

@@ -86,7 +86,7 @@ urlpatterns += [
 # Profiles & Settings
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
-    url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
+    url(r'^sheets/profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^settings/account/user$', reader_views.account_user_update),
