@@ -5054,6 +5054,12 @@ h1.topic-landing-header {
 .topic-landing-newsletter .topic-landing-newsletter-input-row input:first-child {
   margin-inline-end: 16px;
 }
+.topic-landing-newsletter .topic-landing-newsletter-input-row .subscribeMessage {
+  color: white;
+  margin-top: 10px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
 .topic-landing-newsletter h3.topic-landing-newsletter-text {
   width: 220px;
   color: white;
