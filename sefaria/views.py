@@ -36,6 +36,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
+from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
@@ -204,16 +205,27 @@ def subscribe_sefaria_newsletter_view(request, email):
 
 def subscribe_sefaria_newsletter(request, email, first_name, last_name):
     """
-    API for subscribing to mailing lists, in `lists` url param.
-    Currently active lists are:
-    "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
+    API for subscribing to mailing lists
+    * By default, the user's email address is subscribed to the default lists: "Master," "General Updates" (or the one for Hebrew), and "Educator Updates" (if the user is an educator).
+    * If the user's email address already exists, the email address to those lists is not resubscribed to those lists
+    * When you provide additional newsletter mailing lists, the email address will be subscribed to those lists, along with the default ones, if the email address does not already exist.
+    * However, if we pass the email address with any of those default newsletter lists as additional ones, Salesforce will resubscribe the email address to those lists.
     """
     body = json.loads(request.body)
     language = body.get("language", "")
     educator = body.get("educator", False)
+    mailing_lists = body.get("lists", [])
     crm_mediator = CrmMediator()
-    return crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language)
+    return crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language, mailing_lists=mailing_lists)
 
+@csrf_exempt
+def get_available_newsletter_mailing_lists(request):
+    try:
+        return jsonResponse({"newsletter_mailing_lists": CrmMediator().get_available_lists()})
+    except SalesforceNewsletterListRetrievalError as e:
+        return jsonResponse({"error": str(e)}, status=502)
+    except:
+        return jsonResponse({"error": "Unknown error occurred"}, status=500)
 
 def subscribe_steinsaltz(request, email, first_name, last_name):
     """
