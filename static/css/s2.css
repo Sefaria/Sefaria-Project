@@ -5290,6 +5290,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerOptions .int-en {
   margin-right: 4px;
 }
+.sheetMetaDataBox .readerOptions .int-en {
+  margin-right: 24px;
+}
 .readerOptions .int-he {
   margin-left: 8px;
 }
@@ -10345,6 +10348,7 @@ span.purim-emoji img{
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
+  background-color: white;
 }
 .SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
   margin-block-start: -10px;
@@ -14094,14 +14098,17 @@ span.ref-link-color-3 {color: blue}
 .dropdownSeparator {
   border: 1px solid var(--light-grey);
 }
-.sheetMetaDataBox .sidebarLayout {
-
+.sheetMetaDataBox .sidebarLayout.rtl {
+  flex-direction: row-reverse;
 }
 .sheetMetaDataBox a.dropdownLinks-button {
   font-weight: bold;
 }
 .sheetMetaDataBox a.dropdownLinks-button:hover {
   text-decoration: none;
+}
+.sheetMetaDataBox .readerDropdownMenu a.dropdownLinks-button {
+  padding-top: 3px;
 }
 .header .headerDropdownMenu {
   display: block;

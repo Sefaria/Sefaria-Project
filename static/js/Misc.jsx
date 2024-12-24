@@ -2908,7 +2908,7 @@ const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback
   }
   const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
-    <div className="sidebarLayout">
+    <div className={`sidebarLayout ${getDirection(title)}`}>
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback} direction={getDirection(title)}/>
       {languageToggle}
       {sheetOptions}
@@ -2917,7 +2917,7 @@ const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback
                                                        className="summary"
                                                        editable={editable}
                                                        blurCallback={summaryCallback}
-     direction={getDirection(summary)}/>}
+                                                       direction={getDirection(summary)}/>}
   </div>
 }
 
