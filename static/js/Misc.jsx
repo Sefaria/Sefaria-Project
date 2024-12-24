@@ -26,7 +26,8 @@ import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
 import {ToolsButton} from "./ConnectionsPanel";
-import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import {DropdownMenu, DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -2902,9 +2903,11 @@ const TitleVariants = function({titles, update, options}) {
          </div>
 }
 const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+  const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
     <div className="sidebarLayout">
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
+      {languageToggle}
       {sheetOptions}
     </div>
     {(summary || editable) && <SheetMetaDataBoxSegment text={summary}

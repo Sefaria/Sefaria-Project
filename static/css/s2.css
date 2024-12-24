@@ -10967,8 +10967,12 @@ section.SheetOutsideBiText {
 .interface-english section.SheetOutsideBiText .sheetItem > .en {
   padding: 15px 20px 15px 16px;
 }
-.interface-english section.SheetSource .sheetItem > .en {
+.interface-english .stacked section.SheetSource .sheetItem > .en {
   border-block-start: 1px solid #DDDDDD;
+  border-block-end: 1px solid #DDDDDD;
+}
+.interface-english .heRight section.SheetSource .sheetItem,
+.interface-english .heLeft section.SheetSource .sheetItem {
   border-block-end: 1px solid #DDDDDD;
 }
 .interface-hebrew section.SheetSource .sheetItem > .he,
@@ -14089,6 +14093,9 @@ span.ref-link-color-3 {color: blue}
 
 .dropdownSeparator {
   border: 1px solid var(--light-grey);
+}
+.sheetMetaDataBox .sidebarLayout {
+
 }
 .sheetMetaDataBox a.dropdownLinks-button {
   font-weight: bold;

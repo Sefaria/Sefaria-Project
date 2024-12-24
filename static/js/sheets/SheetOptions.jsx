@@ -87,39 +87,41 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
   return (
         <>
         {editable && status === 'unlisted' && publishModalButton}
-        <DropdownMenu menuIconComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
-          <DropdownMenuItem>
-            <SaveButtonWithText
-                historyObject={historyObjectForSheet}
-                onClick={() => setSavingMode(true)}
-            />
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CopyButton onClick={() => setCopyingMode(true)}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CollectionsButton setCollectionsMode={setCollectionsMode} editable={editable}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <GoogleDocExportButton sheetID={sheetID} onClick={() => setExportingMode(true)}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <ShareButton onClick={() => setSharingMode(true)}/>
-          </DropdownMenuItem>
-          {editable && status === 'public' && <>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem>
-                                                  <UnpublishButton onClick={() => setPublishingMode(true)}/>
-                                                </DropdownMenuItem>
-                                              </>
-          }
-          {editable && <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <DeleteButton onClick={() => setDeletingMode(true)}/>
-                        </DropdownMenuItem>
-                      </>
-          }
+        <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
+            <div className="dropdownLinks-options">
+              <DropdownMenuItem>
+                <SaveButtonWithText
+                    historyObject={historyObjectForSheet}
+                    onClick={() => setSavingMode(true)}
+                />
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <CopyButton onClick={() => setCopyingMode(true)}/>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <CollectionsButton setCollectionsMode={setCollectionsMode} editable={editable}/>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <GoogleDocExportButton sheetID={sheetID} onClick={() => setExportingMode(true)}/>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <ShareButton onClick={() => setSharingMode(true)}/>
+              </DropdownMenuItem>
+              {editable && status === 'public' && <>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem>
+                                                      <UnpublishButton onClick={() => setPublishingMode(true)}/>
+                                                    </DropdownMenuItem>
+                                                  </>
+              }
+              {editable && <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                              <DeleteButton onClick={() => setDeletingMode(true)}/>
+                            </DropdownMenuItem>
+                          </>
+              }
+            </div>
         </DropdownMenu>
         </>
     );
