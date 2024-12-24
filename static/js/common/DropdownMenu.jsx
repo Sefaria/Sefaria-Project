@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText } from '../Misc';
 
@@ -51,16 +51,20 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
      * this class is using useRef for open/close rather than useState, for changing state triggers re-rendering of the
      * component and all its children, so when clicking on children their onClick won't be executed.
      */
+
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
 
-    const handleClick = (e) => {
+    const handleButtonClick = (e) => {
       e.stopPropagation();
-      // Check if the clicked element or its parent has data-prevent-close
+      setIsOpen(isOpen => !isOpen);
+    };
+    const handleContentsClick = (e) => {
+      e.stopPropagation();
       const preventClose = e.target.closest('[data-prevent-close="true"]');
       // Only toggle if no preventClose element was found
       if (!preventClose) {
-        setIsOpen(isOpen => !isOpen);
+        setIsOpen(false);
       }
     }
     const handleHideDropdown = (event) => {
@@ -76,7 +80,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             setIsOpen(false);
         }
     };
-  
+
     useEffect(() => {
         document.addEventListener('keydown', handleHideDropdown, true);
         document.addEventListener('click', handleClickOutside, true);
@@ -87,11 +91,11 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     }, []);
   
     return (
-        <div className={positioningClass} ref={wrapperRef} onClick={handleClick}>
-           <a className="dropdownLinks-button">
+        <div className={positioningClass} ref={wrapperRef}>
+           <a className="dropdownLinks-button" onClick={handleButtonClick}>
               {buttonComponent}
           </a>
-          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>
+          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} onClick={handleContentsClick}>
               {children}
           </div>
         </div>
