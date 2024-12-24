@@ -6,8 +6,7 @@ export const TopicLandingNewsletter = () => {
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [educatorCheck, setEducatorCheck] = useState(false);
-    const [subscribeMessage, setSubscribeMessage] = useState("Hello this is a subscribe message");
+    const [subscribeMessage, setSubscribeMessage] = useState(null);
 
     function handleSubscribeKeyUp(e) {
         if (e.keyCode === 13) {
@@ -30,7 +29,7 @@ export const TopicLandingNewsletter = () => {
     function handleSubscribe() {
         if (!validateInputs()) { return; }
         setSubscribeMessage("Subscribing...");
-        Sefaria.subscribeSefariaNewsletter(firstName, lastName, email).then(res => {
+        Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, false, []).then(res => {
             setSubscribeMessage("Subscribed! Welcome to our list.");
         }).catch(error => {
             setSubscribeMessage(error?.message || "Sorry, there was an error.");
