@@ -55,8 +55,12 @@ const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='Lorem 
 
 const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     /**
-     * buttonComponent is a React component for the opening/closing of a button.
-     * the menu will be closed in click anywhere except in an element where data attribute
+     * `buttonComponent` is a React component for the opening/closing of a button.
+     * `positioningClass` is a string for the positioning of the dropdown menu.  It defines a CSS class.
+     *  Currently, we have two possible classes: 'headerDropdownMenu' and 'readerDropdownMenu'.
+     *  The former is a more general case.  Historically, the former was used in the header
+     *  and the latter in the reader.  See s2.css for definition of these classes.
+     * the menu will be closed in click anywhere except in an element where data attribute data-prevent-close="true" is set.
      * this class is using useRef for open/close rather than useState, for changing state triggers re-rendering of the
      * component and all its children, so when clicking on children their onClick won't be executed.
      */
