@@ -1698,7 +1698,7 @@ Sefaria = extend(Sefaria, {
             //Init of the Dict with the Category level descriptions
             Sefaria.toc.map(e=> {this._descDict[[e.category, []]] = [e.enShortDesc, e.heShortDesc]})
             // todo: get this data out of code (into db?)
-            this._descDict[["Commentary", []]] = ["Interpretations and discussions surrounding Buddhist texts, ranging from early medieval to contemporary.", "ནང་པའི་གཞུང་ལུགས་ཀྱི་འགྲེལ་བཤད་དང་བགྲོ་གླེང་། དུས་རབས་བར་མའི་སྟོད་ནས་དེང་སང་གི་བར།"]
+            this._descDict[["Commentary", []]] = []
             this._descDict[["Quoting Commentary", []]] = ["References to this source within commentaries on other texts in the wider library.", "མཛོད་ཀྱི་གཞུང་གཞན་གྱི་འགྲེལ་པར་འདི་དང་སྦྱར་བ་ནི།"]
 
             // special case of a category in sidebar that is a sub cat on the navigation toc pages
