@@ -57,8 +57,10 @@ class ConnectionsPanelHeader extends Component {
 
     } else if ((this.props.previousCategory && this.props.connectionsMode === "TextList") || previousMode) {
       // In a text list, back to Previous Category
-      const prev = previousMode ? previousMode.splitCamelCase() : this.props.previousCategory;
-      const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(this.props.previousCategory);
+      const commentary = this.props.previousCategory == "Commentary" ? 'text.commentary' : this.props.previousCategory
+      const prev = previousMode ? previousMode.splitCamelCase() : Sefaria._(commentary);
+      const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(commentary);
+
       const url = Sefaria.util.replaceUrlParam("with", prev);
       title = <a href={url} className="connectionsHeaderTitle sans-serif active" onClick={this.onClick}>
                     <InterfaceText>

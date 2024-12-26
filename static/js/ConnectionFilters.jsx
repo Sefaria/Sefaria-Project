@@ -205,11 +205,12 @@ class RecentFilterSet extends Component {
       }
     }
     recentFilters = recentFilters.map(function(book) {
+      const commentary_cat = book.heBook == "Commentary" ? Sefaria._("text.commentary") : book.heBook;
      return (<TextFilter
                 srefs={this.props.srefs}
                 key={book.filterKey}
                 book={book.book}
-                heBook={book.heBook}
+                heBook={commentary_cat}
                 category={book.category}
                 hideCounts={true}
                 hideColors={true}
