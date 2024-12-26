@@ -72,7 +72,7 @@ const TextsPage = ({ categories, settings, setCategories, onCompareBack, openSea
   const title = compare ? null :
     <div className="navTitle tight sans-serif">
         <CategoryHeader type="cats" buttonsToDisplay={["subcategory", "reorder"]}>
-            <h1><InterfaceText>home.browse_text</InterfaceText></h1>
+            {/* <h1><InterfaceText>home.browse_text</InterfaceText></h1> */}
         </CategoryHeader>
       { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
