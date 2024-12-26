@@ -5,7 +5,7 @@ import structlog
 import sefaria.system.logging as sefaria_logging
 import os
 
-from decoder import private_key_1
+# from decoder import private_key_1
 from dotenv import load_dotenv
 from google_auth_oauthlib.flow import Flow
 
@@ -274,7 +274,7 @@ GOOGLE_APPLICATION_CREDENTIALS = {
   "type": "service_account",
   "project_id": os.getenv("project_id"),
   "private_key_id": os.getenv("private_key_id"),
-  "private_key": private_key_1,
+  "private_key": os.getenv("private_key").replace("\\n", "\n"),
   "client_email": os.getenv("client_email"),
   "client_id": os.getenv("client_id"),
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -283,6 +283,8 @@ GOOGLE_APPLICATION_CREDENTIALS = {
   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/pecha-15%40pecha-418412.iam.gserviceaccount.com",
   "universe_domain": "googleapis.com"
 }
+
+print("H"*20, GOOGLE_APPLICATION_CREDENTIALS)
 
 
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
