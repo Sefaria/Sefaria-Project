@@ -66,11 +66,17 @@ class BookPage extends Component {
     }
   }
 
-  handleCheckVisibility(value) {
-    if("nodes" in value) {
+  handleCheckVisibility(schema) {
+    if(!("nodes" in schema)) {
+      if(schema.content_counts.length > 1) {
+        this.state.isContentVisible = true
+      }
+      else {
+        this.state.isContentVisible = false
+      }
+      
+    } else{
       this.state.isContentVisible = true
-    } else {
-      this.state.isContentVisible = false
     }
   }
 
@@ -198,7 +204,6 @@ class BookPage extends Component {
     if (this.state.isContentVisible || this.props.isNarrowColumn) {
       tabs.push({id: "contents", title: {en: Sefaria._("text.contents"), he: Sefaria._("text.contents")}});
     }
-    
     if (this.isBookToc()){
       tabs.push({id: "versions", title: {en: Sefaria._("text.versions"), he: Sefaria._("text.versions")}});
     }
@@ -756,7 +761,9 @@ SchemaNode.propTypes = {
 
 
 class JaggedArrayNode extends Component {
+
   render() {
+    
     const offset = this.props.schema?.index_offsets_by_depth?.['1'] || 0;
     if ("toc_zoom" in this.props.schema) {
       let zoom = this.props.schema.toc_zoom - 1;
@@ -774,10 +781,11 @@ class JaggedArrayNode extends Component {
     const specialHeaderText = this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters";
     let topLevelHeader = !this.props.topToggleTitles.includes(specialHeaderText) && (this.props.topLevel && (this.props.schema?.depth <= 2 || this.props.topLevelHeader)) ? (
         <div className="specialNavSectionHeader">
-          <ContentText text={{
+          {/* <ContentText text={{
             en: specialHeaderText,
             he: Sefaria.hebrewTranslation(specialHeaderText)
-          }}/>
+          }}/> */}
+          <InterfaceText placeholder={{segmentNumber : ""}}>text.content.section.sabche</InterfaceText>
         </div>
     ) : null;
     return (
@@ -830,11 +838,12 @@ class JaggedArrayNodeSection extends Component {
       let content = [];
       for (let i = 0; i < this.props.contentCounts.length; i++) {
         if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; }
-        let [enSection, heSection] = Sefaria.getSectionStringByAddressType(this.props.addressTypes[0], i);
+        let [enSection, heSection, sectionString] = Sefaria.getSectionStringByAddressType(this.props.addressTypes[0], i);
         content.push(
           <div className="tocSection" key={i}>
             <div className="sectionName">
-              <ContentText text={{ en:this.props.sectionNames[0] + " " + enSection , he: Sefaria.hebrewTerm(this.props.sectionNames[0]) + " " +heSection}}/>
+              <InterfaceText placeholder={{segmentNumber:sectionString}}>text.content.section.sabche</InterfaceText>
+              {/* <ContentText text={{ en:"Sapche" + " " + enSection , he: "Sapche" + " " +heSection}}/> */}
             </div>
             <JaggedArrayNodeSection
               depth={this.props.depth - 1}
@@ -852,13 +861,14 @@ class JaggedArrayNodeSection extends Component {
     let sectionLinks = [];
     for (let i = 0; i < contentCounts.length; i++) {
       if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
-      let [section, heSection] = Sefaria.getSectionStringByAddressType(this.props.addressTypes[0], i, this.props.offset);
+      let [section, heSection, sectionString] = Sefaria.getSectionStringByAddressType(this.props.addressTypes[0], i, this.props.offset);
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref); //the second clause is for depth 1 texts
       const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
       let link = (
         <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
-          <ContentText text={{en:section, he:heSection}}/>
+          {/* <ContentText text={{en:section, he:heSection}}/> */}
+          {sectionString}
         </a>
       );
       sectionLinks.push(link);
