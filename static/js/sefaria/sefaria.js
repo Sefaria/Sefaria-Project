@@ -331,8 +331,9 @@ Sefaria = extend(Sefaria, {
      * @param {number} offset - If needed, an offest to allow section addresses that do not start counting with 0
      * @returns {[string,string]} Section string in both languages. 
      */  
-  getSectionStringByAddressType: function(addressType, i, offset=0) {
+  getSectionStringByAddressType: function(addressType, i, offset=0) {    
     let section = i + offset;
+    let sectionString = "";
     let enSection, heSection;
     if (addressType === 'Talmud') {
       enSection = Sefaria.hebrew.intToDaf(section);
@@ -348,7 +349,14 @@ Sefaria = extend(Sefaria, {
       enSection = section + 1;
       heSection = Sefaria.hebrew.tibetanNumeral(section + 1);
     }
-  return [enSection, heSection];
+
+    if(Sefaria.interfaceLang == "hebrew") {
+      sectionString = heSection
+    } else {
+      sectionString = enSection
+    }
+
+    return [enSection, heSection, sectionString];
   },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
