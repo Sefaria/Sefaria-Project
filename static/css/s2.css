@@ -5681,7 +5681,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   direction: rtl;
 }
 .basetext .text, .sheetContent .text {
-  padding: 0 44px;
   margin: 30px 0;
   background-color: inherit;
 }
@@ -5872,8 +5871,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heRight.bilingual .segment > .primary,
 .heLeft.bilingual .segment > p > .translation,
 .heRight.bilingual .segment > p > .primary,
-.heRight.bilingual .sheetItem.segment > .he,
-.heLeft.bilingual .sheetItem.segment > .en{
+.heRight.bilingual .SheetSource .sheetItem.segment > .he,
+.heLeft.bilingual .SheetSource .sheetItem.segment > .en{
   float: right;
   padding-left: 20px;
 }
@@ -5881,8 +5880,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heLeft.bilingual .segment > .primary,
 .heRight.bilingual .segment > p > .translation,
 .heLeft.bilingual .segment > p > .primary,
-.heRight.bilingual .sheetItem.segment > .en,
-.heLeft.bilingual .sheetItem.segment > .he{
+.heRight.bilingual .SheetSource .sheetItem.segment > .en,
+.heLeft.bilingual .SheetSource .sheetItem.segment > .he{
   float: left;
   padding-right: 20px;
 }
@@ -13736,6 +13735,16 @@ span.ref-link-color-3 {color: blue}
 .dropdownLinks-button {
   border: none;
   background-color: inherit;
+  cursor: default;
+}
+.dropdownLinks-button img {
+  cursor: pointer;
+}
+
+.headerDropdownMenu {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
 }
 
 .rightButtons .dropdownLinks-button {
@@ -14101,13 +14110,10 @@ span.ref-link-color-3 {color: blue}
 .sheetMetaDataBox .sidebarLayout.rtl {
   flex-direction: row-reverse;
 }
-.sheetMetaDataBox a.dropdownLinks-button {
+.sheetMetaDataBox .dropdownLinks-button {
   font-weight: bold;
 }
-.sheetMetaDataBox a.dropdownLinks-button:hover {
-  text-decoration: none;
-}
-.sheetMetaDataBox .readerDropdownMenu a.dropdownLinks-button {
+.sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
   padding-top: 3px;
 }
 .header .headerDropdownMenu {
@@ -14116,7 +14122,6 @@ span.ref-link-color-3 {color: blue}
   margin-top: 2px;
   margin-bottom: 4px;
   color: #666;
-  cursor: pointer;
   position: relative;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
@@ -14150,7 +14155,6 @@ span.ref-link-color-3 {color: blue}
   min-width: 50%;
   margin-top: 7px;
   color: var(--dark-grey);
-  cursor: pointer;
   position: relative;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
@@ -14174,7 +14178,7 @@ span.ref-link-color-3 {color: blue}
   margin-inline-end: 6px;
 }
 
-/* .header .headerDropdownMenu a.dropdownLinks-button::after {
+/* .header .headerDropdownMenu .dropdownLinks-button::after {
   display: inline-block;
   background: no-repeat url("/static/icons/chevron-down.svg");
   height: 10px;
@@ -14183,7 +14187,7 @@ span.ref-link-color-3 {color: blue}
   content: "";
   transform: scale(0.75);
 } */
-.sheetsInPanel .headerDropdownMenu a.dropdownLinks-button::after {
+.sheetsInPanel .headerDropdownMenu .dropdownLinks-button::after {
   display: inline-block;
   height: 10px;
   width: 12px;
