@@ -2748,7 +2748,6 @@ const SheetMetaDataBoxSegment = (props) => {
               contentEditable={props.editable}
               suppressContentEditableWarning={true}
               onBlur={props.editable && handleBlur}
-              style={{"direction": props.direction}}
   >
     {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
   </div>
@@ -2903,21 +2902,17 @@ const TitleVariants = function({titles, update, options}) {
          </div>
 }
 const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
-  const getDirection = (text) => {
-    return Sefaria.hebrew.isHebrew(text.stripHtml()) ? "rtl" : "ltr";
-  }
   const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
-    <div className={`sidebarLayout ${getDirection(title)}`}>
-      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback} direction={getDirection(title)}/>
+    <div className={`sidebarLayout`}>
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
       {languageToggle}
       {sheetOptions}
     </div>
     {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
                                                        className="summary"
                                                        editable={editable}
-                                                       blurCallback={summaryCallback}
-                                                       direction={getDirection(summary)}/>}
+                                                       blurCallback={summaryCallback}/>}
   </div>
 }
 
