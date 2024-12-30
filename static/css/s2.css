@@ -14107,9 +14107,6 @@ span.ref-link-color-3 {color: blue}
 .dropdownSeparator {
   border: 1px solid var(--light-grey);
 }
-.sheetMetaDataBox .sidebarLayout.rtl {
-  flex-direction: row-reverse;
-}
 .sheetMetaDataBox .dropdownLinks-button {
   font-weight: bold;
 }
