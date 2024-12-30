@@ -267,6 +267,7 @@
     "text.related_texts": "འབྲེལ་ཡོད་ཡིག་ཆ།",
     "text.commentary": "འགྲེལ་བ།",
     "text.quotation": "ལུང་ཚིག",
+    "text.content.section.sabche": "ས་བཅད། {{segmentNumber}}",
     "text.reference": "དཔྱད་གཞི།",
     "text.related Passage": "འབྲེལ་ཡོད་རྩོམ་ཡིག",
     "text.no_connection": "མི་འདུག",

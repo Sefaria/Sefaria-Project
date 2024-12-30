@@ -267,6 +267,7 @@
     "panel.resources": "Resources",
     "text.related_texts": "Related Texts",
     "text.commentary": "Commentary",
+    "text.content.section.sabche": "Sapche {{segmentNumber}}",
     "text.quotation": "Quotation",
     "text.reference": "Reference",
     "text.related Passage": "Related Passage",

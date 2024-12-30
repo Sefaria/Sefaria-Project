@@ -268,6 +268,7 @@
         "text.reference": "参考",
         "text.related Passage": "相关段落",
         "text.no_connection": "无",
+        "text.content.section.sabche": "科判 {{segmentNumber}}",
         "text.version_open": "版本开放",
         "text.web_pages": "网页",
         "text.author": "作者",
