@@ -160,14 +160,28 @@ a, a:hover {
     src: url('/static/fonts/IndUni-P-Regular.otf');
     unicode-range: U+0000, U+007F;
 }
+@font-face {
+    /*Chinese | IBMPlexSansJP-Regular*/
+    font-family: 'IBMPlexSansJP-Regular';
+    src: url('/static/fonts/IBMPlexSansJP-Regular.ttf');
+    unicode-range: U+4E00-9FFF, U+3400-4DBF, U+20000-2A6DF, U+2A700-2B73F, U+2B740-2B81F, U+2B820-2CEAF, U+2CEB0-2EBEF, U+3000-303F, U+FF00-FFEF;
+}
+@font-face {
+    /*Chinese | ZenOldMincho-Regular*/
+    font-family: 'ZenOldMincho-Regular';
+    src: url('/static/fonts/ZenOldMincho-Regular.ttf');
+    unicode-range: U+4E00-9FFF, U+3400-4DBF, U+20000-2A6DF, U+2A700-2B73F, U+2B740-2B81F, U+2B820-2CEAF, U+2CEB0-2EBEF, U+3000-303F, U+FF00-FFEF;
+}
 
 :root {
     /* font stacks */
     --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
     --hebrew-sans-serif-font-family: "Monlam-bodyig Regular", "Heebo", "Roboto", sans-serif;
+    --chinese-sans-serif-font-family: "IBMPlexSansJP-Regular", "Heebo", "Roboto", sans-serif;
 
     --english-serif-font-family: "IndUni-P-Regular", "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
     --hebrew-serif-font-family: "Monlam Uni OuChan2", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+    --chinese-serif-font-family: "ZenOldMincho-Regular", "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
 
     --serif-h1-font-size: 48px;
     --serif-h2-font-size: 30px;
@@ -223,6 +237,7 @@ a, a:hover {
 body, .sans-serif {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     --is-serif: initial; /* false */
 }
 
@@ -348,16 +363,19 @@ body, .sans-serif {
 .serif {
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
     --is-serif: ; /* true */
 }
 
 .sans-serif-in-hebrew {
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
 }
 
 body, .en, .int-en {
     --is-hebrew: initial; /* false */
+    --is-chinese: initial; /* false */
 }
 
 .he, .int-he {
@@ -365,9 +383,15 @@ body, .en, .int-en {
     --is-hebrew: ; /* true */
 }
 
+.zh, .int-zh {
+    unicode-bidi: plaintext;
+    --is-chinese: ; /* true */
+}
+
 * {
     --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
-    font-family: var(--hebrew-font-conditional, var(--english-font));
+    --chinese-font-conditional: var(--is-chinese) var(--chinese-font);
+    font-family: var(--hebrew-font-conditional, var(--chinese-font-conditional, var(--english-font)));
 }
 
 .he {
@@ -408,6 +432,7 @@ body, .en, .int-en {
     text-align: center;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
 }
 
 .btn.white, .btn-sm.white, .btn-xs.white {
@@ -490,6 +515,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .systemText .int-he.enInHe {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinse-font: var(--chinese-sans-serif-font-family);
     font-family: "jomolhari", "Roboto", "Helvetica Neue", "Helvetica", sans-serif; 
     font-size: 16px;
     font-weight: normal;
@@ -1483,6 +1509,7 @@ div.interfaceLinks-row a {
     margin-top: 0px;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinse-font: var(--chinese-sans-serif-font-family);
 }
 
 #interruptingMessage.beitMidrashModalContentBox button.light-grey {
@@ -1745,6 +1772,7 @@ div.interfaceLinks-row a {
     z-index: 1000000 !important;
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
 }
 
 .header > .ui-autocomplete {
@@ -2163,6 +2191,7 @@ div.interfaceLinks-row a {
 .sidebarLayout h1 {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
 }
 
 .interface-hebrew .sidebarLayout {
@@ -2756,6 +2785,7 @@ span .asterisk {
 .topicPanel h2 {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
 }
 
 .topicPanel .mainColumn .story {
@@ -2801,6 +2831,7 @@ span .asterisk {
 .story .storyTitle {
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chiness-font: var(--chinese-serif-font-family);
 }
 
 .story .storyTitle .int-he {
@@ -2814,6 +2845,7 @@ span .asterisk {
 .topicPanel h1 {
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
 }
 
 .topicPanel h1 .int.en {
@@ -3241,6 +3273,7 @@ a.navBlockTitle:hover {
     margin-inline-end: 20px;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
 }
 
 .hebrew .navBlockDescription {
@@ -3255,6 +3288,7 @@ a.navBlockTitle:hover {
     color: var(--dark-grey);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     font-size: var(--sans-serif-small-font-size);
     padding-top: 10px;
 }
@@ -3404,6 +3438,7 @@ a.navBlockTitle:hover {
     padding-top: 0;
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
 }
 
 .communityPage .readingLinks {
@@ -3571,6 +3606,7 @@ a.navBlockTitle:hover {
     font-size: 30px;
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
 }
 
 .readerNavCategoryMenu h2 {
@@ -4132,6 +4168,7 @@ a.navBlockTitle:hover {
     color: var(--medium-grey);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
 }
 
 .connectionsPanel .textTableOfContents .sectionLink {
@@ -4300,6 +4337,7 @@ a.navBlockTitle:hover {
     line-height: 18.75px;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     margin-bottom: 10px;
     color: var(--dark-grey);
 }
@@ -4366,6 +4404,7 @@ a.navBlockTitle:hover {
 .versionBlock.with-preview .versionPreviewWithOptionalEllipsis {
     --english-font: "adobe-garamond-pro", var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
     font-size: 18px;
     display: block;
 }
@@ -4387,6 +4426,7 @@ a.navBlockTitle:hover {
 .versionBlock.with-preview {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--hebrew-sans-serif-font-family);
 }
 
 .versionBlock .versionPreview.shouldAttemptTruncation {
@@ -4595,6 +4635,7 @@ details .open-details::before {
     font-style: normal;
     font-weight: normal;
     font-family: var(--hebrew-font-conditional);
+    font-family: var(--chinese-font-conditional);
     font-size: 16px;
     line-height: 20px;
     color: #666666;
@@ -4738,6 +4779,7 @@ select {
     color: #333;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     --is-serif: initial;
 }
 
@@ -4848,6 +4890,7 @@ select {
     margin-inline-end: auto;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
 }
 
 .dictionarySearchBox input::placeholder {
@@ -4892,6 +4935,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     margin-bottom: 5px;
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
 }
 
 .searchContent h1.englishQuery {
@@ -5006,6 +5050,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchFilters h2 {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     font-size: 22px;
     text-transform: none;
     color: var(--dark-grey);
@@ -5262,6 +5307,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     height: 30px;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     font-size: var(--sans-serif-body-font-size);
     margin-bottom: 10px;
 }
@@ -5518,6 +5564,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     font-weight: lighter;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     text-transform: uppercase;
     letter-spacing: 1px;
     font-size: 11px;
@@ -6113,6 +6160,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .toggleSet.aliyotTorah, .toggleSet.punctuationTalmud, .toggleSet .toggle-set-label {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     text-transform: uppercase;
 }
 
@@ -6247,6 +6295,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     border-radius: 6px;
 }
 
@@ -8271,6 +8320,7 @@ But not to use a display block directive that might break continuous mode for ot
     color: var(--dark-grey);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     height: var(--sans-serif-small-font-size);
     margin-inline-start: 30px;
     align-self: flex-start;
@@ -8437,6 +8487,7 @@ But not to use a display block directive that might break continuous mode for ot
     font-weight: 600;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     font-size: var(--sans-serif-body-font-size);
     align-self: flex-end;
     appearance: none;
@@ -8459,6 +8510,7 @@ But not to use a display block directive that might break continuous mode for ot
 .shareInputBox span {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     font-size: var(--sans-serif-body-font-size);
 }
 
@@ -8506,6 +8558,7 @@ But not to use a display block directive that might break continuous mode for ot
     font-size: var(--sans-serif-body-font-size);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     color: var(--dark-grey);
     margin: 20px 34px;
 }
@@ -9003,6 +9056,7 @@ But not to use a display block directive that might break continuous mode for ot
 .notification .collectionName {
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
     font-size: 24px;
     display: block;
 }
@@ -9010,6 +9064,7 @@ But not to use a display block directive that might break continuous mode for ot
 .notification .sheetSummary {
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
     color: var(--dark-grey);
     font-size: 18px;
     margin-top: 10px;
@@ -9197,6 +9252,7 @@ But not to use a display block directive that might break continuous mode for ot
     text-align: center;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     border: none;
 }
 
@@ -9955,6 +10011,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
     font-size: var(--sans-serif-body-font-size);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     color: var(--dark-grey);
 }
 
@@ -10115,6 +10172,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     margin-bottom: 5px;
     --hebrew-font: var(--hebrew-serif-font-family);
     --english-font: var(--english-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
 }
 
 .collectionPage .navTitle {
@@ -10151,6 +10209,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionPage .collectionDescription .dedication {
     --hebrew-font: var(--hebrew-serif-font-family);
     --english-font: var(--english-serif-font-family);
+    --chinese-font: var(--chinese-serif-font-family);
 }
 
 .collectionPage .collectionDescription .en .dedication {
@@ -10171,6 +10230,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionPage .tagsList {
     --hebrew-font: var(--hebrew-serif-font-family);
     --english-font: var(--english-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
 }
 
 .collectionPage .emptyMessage .button {
@@ -10507,6 +10567,7 @@ ul.aboutSheetLinks {
     padding-inline-start: 0;
     --english-font: var(--english-serif-font-family);
     --hebrew-font: var(--hebrew-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     font-size: var(--serif-body-font-size);
 }
 
@@ -10516,6 +10577,7 @@ h3.aboutSheetHeader {
     font-size: var(--sans-serif-h3-font-size);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     margin-bottom: 17px;
     margin-top: 36px;
     padding-bottom: 18px;
@@ -10534,6 +10596,7 @@ h3.aboutSheetHeader {
     font-size: var(--sans-serif-h3-font-size);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     margin-bottom: 12px;
     margin-top: 0;
 }
@@ -10552,6 +10615,7 @@ h3.aboutSheetHeader {
     color: var(--dark-grey);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     font-size: var(--sans-serif-body-font-size);
     margin: 20px 0px;
 }
@@ -10571,6 +10635,7 @@ div.aboutSheetPanel > div.authorStatement {
 .aboutSheetPanel h3.aboutSheetSubtitle {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     margin-top: 5px;
     margin-bottom: 20px;
 }
@@ -10579,6 +10644,7 @@ div.aboutSheetMetadata {
     color: var(--medium-grey);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     font-size: var(--sans-serif-small-font-size);
     display: flex;
     flex-direction: column;
@@ -10898,6 +10964,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
 
 .dropdown .dropdownMain {
     --is-hebrew: ;
+    --is-chinese: ;
     background: white;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     border-radius: 7px;
@@ -10918,6 +10985,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
 
 .dropdown .dropdownList .dropdownOption {
     --is-hebrew: ;
+    --is-chinese: ;
     font-size: 18px;
     cursor: pointer;
     padding: 0 22px;
@@ -11136,6 +11204,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
 
 #pwa_download_label {
     --is-hebrew: ;
+    --is-chinese: ;
 }
   
 
@@ -11347,6 +11416,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
     border-bottom: solid 1px var(--light-grey);
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
 }
 
 .aboutBox .aboutTitle {
@@ -13908,6 +13978,7 @@ body .homeFeedWrapper.userStats {
     color: #000;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
 }
 
 .editTextInfo #newIndex .publishBox {
@@ -13922,7 +13993,8 @@ body .homeFeedWrapper.userStats {
 
 .editTextInfo #newIndex .publishBox .react-tags__selected-tag-name {
     --english-font: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-    --hebrew-font: "Heebo", sans-serif;
+    --hebrew-font: "Monlam-bodyig Regular", "Heebo", sans-serif;
+    --chinese-font: "IBMPlexSansJP-Regular", "Heebo";
     font-size: 18px;
     font-weight: normal;
     color: #000;
@@ -14728,6 +14800,7 @@ span.ref-link-color-3 {
     font-size: 16px;
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --chinese-font: var(--chinese-sans-serif-font-family);
     font-weight: 400;
     box-sizing: border-box;
     position: relative;
