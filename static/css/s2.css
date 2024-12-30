@@ -8555,7 +8555,7 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 35.16px;
   margin-block-end: 15px;
-  flex: 1 0 95%;
+  flex: 1 0 80%;
   text-align: initial;
 }
 
@@ -14213,6 +14213,9 @@ span.ref-link-color-3 {color: blue}
 .sheetsInPanel .dropdownItem:last-child {
   padding-block-start: 5px !important;
   padding-block-end: 10px !important;
+}
+.sheetsInPanel .dropdownItem {
+  cursor: pointer;
 }
 .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
   background: white;
