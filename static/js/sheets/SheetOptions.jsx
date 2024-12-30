@@ -87,7 +87,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
   return (
         <>
         {editable && status === 'unlisted' && publishModalButton}
-        <DropdownMenu menuIconComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
+        <DropdownMenu buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
           <DropdownMenuItem>
             <SaveButtonWithText
                 historyObject={historyObjectForSheet}
