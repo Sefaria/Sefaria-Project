@@ -5290,8 +5290,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerOptions .int-en {
   margin-right: 4px;
 }
-.sheetMetaDataBox .readerOptions .int-en {
-  margin-right: 48px;
+.sheetMetaDataBox .readerOptions {
+  margin-inline-end: 48px;
 }
 .readerOptions .int-he {
   margin-left: 8px;
