@@ -5291,7 +5291,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 4px;
 }
 .sheetMetaDataBox .readerOptions {
-  margin-inline-end: 48px;
+  margin-inline-end: 24px;
 }
 .readerOptions .int-he {
   margin-left: 8px;
@@ -8555,7 +8555,7 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 35.16px;
   margin-block-end: 15px;
-  flex: 1 0 80%;
+  flex: 0 0 80%;
   text-align: initial;
 }
 
@@ -14149,14 +14149,12 @@ span.ref-link-color-3 {color: blue}
   justify-content: space-between;
 }
 .sheetsInPanel .headerDropdownMenu {
-  min-width: 50%;
   margin-top: 7px;
   color: var(--dark-grey);
   position: relative;
-  -webkit-margin-start: 20px;
-  -moz-margin-start: 20px;
-  margin-inline-start: 10px;
-  line-height: 0px;
+  -webkit-margin-start: 2%;
+  -moz-margin-start: 2%;
+  line-height: 0;
 }
 .sheetsInPanel .dropdownHeader {
   margin-bottom: revert;
