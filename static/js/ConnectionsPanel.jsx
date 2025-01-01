@@ -30,7 +30,7 @@ import { AddToSourceSheetBox } from './AddToSourceSheet';
 import LexiconBox from './LexiconBox';
 import AboutBox from './AboutBox';
 import GuideBox from './GuideBox';
-import WebComponentLoader from './WebComponentLoader'
+import PluginsComponent from './components/plugins/PluginsComponent';
 import TranslationsBox from './TranslationsBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
@@ -677,7 +677,8 @@ class ConnectionsPanel extends Component {
               />
     }
     else if (this.props.mode === "Plugin") {
-      content = <WebComponentLoader sref={this.props.srefs[0]} />
+      // put data here
+      content = <PluginsComponent sref={this.props.srefs[0]} />
     }
 
     const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) !== -1;

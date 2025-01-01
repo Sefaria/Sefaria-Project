@@ -116,6 +116,10 @@ venv/
 #####################################
 client_secrets.json
 
+# Google Cloud Storage #
+########################
+google-cloud-secret*
+
 # Webpack #
 ###########
 /static/bundles

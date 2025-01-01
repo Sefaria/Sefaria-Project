@@ -59,3 +59,19 @@ def get_user_plugin_secret(request, plugin_id):
     }
 
     return jsonResponse(json_response)
+
+
+def all_plugins(request):
+    """
+    Get all plugins.
+
+    @query_param request: Django request object
+    """
+
+    plugins = Plugin.objects.all()
+
+    json_response = {
+        "plugins": [plugin.to_dict() for plugin in plugins]
+    }
+
+    return jsonResponse(json_response)
