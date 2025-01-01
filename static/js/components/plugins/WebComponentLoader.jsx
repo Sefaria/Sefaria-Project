@@ -48,6 +48,7 @@ function WebComponentLoader(props) {
       script.async = true;
       script.onload = () => {
         setLoaded(true);
+        addEventListenerToPlugin(target);
       };
       document.head.appendChild(script);
     }
@@ -55,12 +56,32 @@ function WebComponentLoader(props) {
     getPluginUser();
   };
 
+  const addEventListenerToPlugin = (target) => {
+    const pluginElement = document.querySelector(target);
+    if (pluginElement) {
+      pluginElement.addEventListener('scrollToRef', (event) => {
+        scrollToRef(event.detail.sref);
+      });
+    }
+  };
+
+  const scrollToRef = (sref) => {
+    if (sref) {
+      const query = `div[data-ref="${sref}"]`;
+      const element = document.querySelectorAll(query)[0];
+      if (element) {
+        element.scrollIntoView();
+        element.parentElement.parentElement.parentElement.parentElement.parentElement.scrollBy(0, -40);
+      }
+    }
+  };
+
   if (loaded) {
     const PluginElm = pluginName;
     return (
       <div>
         {isDeveloper && <button onClick={() => loadPlugin(link)}>Reload Plugin</button> }
-        <PluginElm sref={sref} />
+        <PluginElm sref={sref} scrollToRef={scrollToRef} />
       </div>
     );
   }
