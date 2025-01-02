@@ -1,6 +1,5 @@
 from collections import defaultdict
 from typing import List, Union, Dict, Optional, Tuple, Iterable, Set
-from functools import reduce
 from enum import IntEnum, Enum
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
@@ -186,6 +185,10 @@ class ResolvedRef(abst.Cloneable):
             num_context_parts_matched = self.num_resolved(include={ContextPart})
         return len(explicit_matched), num_context_parts_matched
 
+    @property
+    def resolution_failed(self) -> bool:
+        return self.ref is None and self.node is None
+
 
 class AmbiguousResolvedRef:
     """
@@ -203,6 +206,10 @@ class AmbiguousResolvedRef:
     def pretty_text(self):
         # assumption is first resolved refs pretty_text is good enough
         return self.resolved_raw_refs[0].pretty_text
+
+    @property
+    def resolution_failed(self) -> bool:
+        return False
 
 
 PossiblyAmbigResolvedRef = Union[ResolvedRef, AmbiguousResolvedRef]
@@ -243,23 +250,12 @@ class TermMatcher:
 
 class IbidHistory:
 
-    ignored_term_slugs = ['torah', 'talmud', 'gemara', 'mishnah', 'midrash']
-
     def __init__(self, last_n_titles: int = 3, last_n_refs: int = 3):
         self.last_n_titles = last_n_titles
         self.last_n_refs = last_n_refs
         self._last_refs: List[text.Ref] = []
         self._last_titles: List[str] = []
         self._title_ref_map: Dict[str, text.Ref] = {}
-        self._ignored_titles: Set[str] = self._get_ignored_titles()
-
-    @classmethod
-    def _get_ignored_titles(cls) -> Set[str]:
-        terms = [schema.NonUniqueTerm.init(slug) for slug in cls.ignored_term_slugs]
-        return reduce(lambda a, b: a | set(b), [term.get_titles() for term in terms], set())
-
-    def should_ignore_text(self, text) -> bool:
-        return text in self._ignored_titles
 
     def _get_last_refs(self) -> List[text.Ref]:
         return self._last_refs
@@ -300,12 +296,11 @@ class RefResolver:
         self._ibid_history = IbidHistory()
 
     def bulk_resolve(self, raw_refs: List[RawRef], book_context_ref: Optional[text.Ref] = None,
-                     with_failures=False, thoroughness=ResolutionThoroughness.NORMAL, reset_ibids=True) -> List[PossiblyAmbigResolvedRef]:
+                     thoroughness=ResolutionThoroughness.NORMAL, reset_ibids=True) -> List[PossiblyAmbigResolvedRef]:
         """
         Main function for resolving refs in text. Given a list of RawRefs, returns ResolvedRefs for each
         @param raw_refs:
         @param book_context_ref:
-        @param with_failures:
         @param thoroughness: how thorough should the search be. More thorough == slower. Currently "normal" will avoid searching for DH matches at book level and avoid filtering empty refs
         @param reset_ibids: If true, reset ibid history before resolving
         @return:
@@ -315,25 +310,25 @@ class RefResolver:
             self.reset_ibid_history()
         resolved = []
         for raw_ref in raw_refs:
-            temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref, with_failures)
+            temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref)
             resolved += temp_resolved
         return resolved
 
-    def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref, with_failures=False) -> List[PossiblyAmbigResolvedRef]:
+    def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref) -> List[PossiblyAmbigResolvedRef]:
         temp_resolved = self.resolve_raw_ref(book_context_ref, raw_ref)
         self._update_ibid_history(raw_ref, temp_resolved)
-        if len(temp_resolved) == 0 and with_failures:
+        if len(temp_resolved) == 0:
             return [ResolvedRef(raw_ref, [], None, None, context_ref=book_context_ref)]
         return temp_resolved
 
     def _update_ibid_history(self, raw_ref: RawRef, temp_resolved: List[PossiblyAmbigResolvedRef]):
-        if self._ibid_history.should_ignore_text(raw_ref.text):
-            return
         if len(temp_resolved) == 0:
             self.reset_ibid_history()
-        elif any(r.is_ambiguous for r in temp_resolved):
+        elif any(r.is_ambiguous for r in temp_resolved) or temp_resolved[-1].ref is None:
             # can't be sure about future ibid inferences
             # TODO can probably salvage parts of history if matches are ambiguous within one book
+            # if ref is None, match is likely to AltStructNode
+            # TODO this node still has useful info. Try to salvage it.
             self.reset_ibid_history()
         else:
             self._ibid_history.last_refs = temp_resolved[-1].ref
@@ -514,7 +509,9 @@ class RefResolver:
 
             # combine
             if len(context_full_matches) > 0:
-                context_free_matches = list(filter(lambda x: x.ref.normal() not in refs_matched, context_free_matches))
+                # assumption is we don't want refs that used context at book level, then didn't get refined more when considering context free
+                # BUT did get refined more when considering context
+                context_free_matches = list(filter(lambda x: not (x.num_resolved(include={ContextPart}) > 0 and x.ref.normal() in refs_matched), context_free_matches))
             temp_matches += context_free_matches + context_full_matches
         return ResolvedRefPruner.prune_refined_ref_part_matches(self._thoroughness, temp_matches)
 
@@ -631,7 +628,7 @@ class ResolvedRefPruner:
     def prune_unrefined_ref_part_matches(ref_part_matches: List[ResolvedRef]) -> List[ResolvedRef]:
         index_match_map = defaultdict(list)
         for match in ref_part_matches:
-            key = match.node.ref().normal()
+            key = match.node.unique_key()
             index_match_map[key] += [match]
         pruned_matches = []
         for match_list in index_match_map.values():
@@ -789,13 +786,8 @@ class ResolvedRefPruner:
             if resolved_ref.ref is None:
                 if resolved_ref.node is None:
                     return "N/A"
-                elif isinstance(resolved_ref.node._titled_tree_node, schema.AltStructNode):
-                    leaves = resolved_ref.node._titled_tree_node.get_leaf_nodes()
-                    # assume leaves are contiguous. If this is wrong, will be disproven later in the function
-                    if len(leaves) == 0:
-                        return "N/A"
-                    approx_ref = leaves[0].ref().to(leaves[-1].ref())
-                    return approx_ref.order_id()
+                elif hasattr(resolved_ref.node, "ref_order_id"):
+                    return resolved_ref.node.ref_order_id()
                 else:
                     return "N/A"
             else:

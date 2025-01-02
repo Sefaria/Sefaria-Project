@@ -3,6 +3,8 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
 from .category import Category
+from django_topics.models import Topic as DjangoTopic
+from django_topics.models import TopicPool, PoolType
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
 from sefaria.system.validators import validate_url
@@ -144,7 +146,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'categoryDescription',  # dictionary, keys are 2-letter language codes
         'isTopLevelDisplay',
         'displayOrder',
-        'numSources',
+        'numSources',  # total number of refLinks, to texts and sheets.
         'shouldDisplay',
         'parasha',  # name of parsha as it appears in `parshiot` collection
         'ref',  # dictionary for topics with refs associated with them (e.g. parashah) containing strings `en`, `he`, and `url`.
@@ -153,32 +155,22 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
         'image',
+        'secondary_image_uri',
         "portal_slug",  # slug to relevant Portal object
     ]
 
     attr_schemas = {
         "image": {
-                "image_uri": {
-                    "type": "string",
-                    "required": True,
-                    "regex": "^https://storage\.googleapis\.com/img\.sefaria\.org/topics/.*?"
-                },
-                "image_caption": {
-                    "type": "dict",
-                    "required": True,
-                    "schema": {
-                        "en": {
-                            "type": "string",
-                            "required": True
-                        },
-                        "he": {
-                            "type": "string",
-                            "required": True
-                        }
-                    }
-                }
-            }
-        }
+            'type': 'dict',
+            'schema': {'image_uri': {'type': 'string',
+                                     'required': True,
+                                     'regex': '^https://storage\\.googleapis\\.com/img\\.sefaria\\.org/topics/.*?'},
+                       'image_caption': {'type': 'dict',
+                                         'required': True,
+                                         'schema': {'en': {'type': 'string', 'required': True},
+                                                    'he': {'type': 'string', 'required': True}}}}
+            },
+    }
 
     ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
                         # this constant is helpful in the topic editor tool functions in this file
@@ -198,6 +190,13 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if self.__class__ != Topic and not getattr(self, "subclass", False):
             # in a subclass. set appropriate "subclass" attribute
             setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
+
+    def _pre_save(self):
+        super()._pre_save()
+        django_topic, created = DjangoTopic.objects.get_or_create(slug=self.slug)
+        django_topic.en_title = self.get_primary_title('en')
+        django_topic.he_title = self.get_primary_title('he')
+        django_topic.save()
 
     def _validate(self):
         super(Topic, self)._validate()
@@ -227,6 +226,25 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             for k, v in p.items():
                 p[k] = bleach.clean(v, tags=[], strip=True)
             setattr(self, attr, p)
+
+    def get_pools(self) -> list[str]:
+        slug = getattr(self, "slug", None)
+        return list(DjangoTopic.objects.get_pools_by_topic_slug(str(slug))) if slug is not None else []
+
+    def has_pool(self, pool: str) -> bool:
+        return pool in self.get_pools()
+
+    def add_pool(self, pool_name: str) -> None:
+        pool = TopicPool.objects.get(name=pool_name)
+        DjangoTopic.objects.get(slug=self.slug).pools.add(pool)
+        if not self.has_pool(pool_name):
+            self.get_pools().append(pool_name)
+
+    def remove_pool(self, pool_name) -> None:
+        pool = TopicPool.objects.get(name=pool_name)
+        DjangoTopic.objects.get(slug=self.slug).pools.remove(pool)
+        if self.has_pool(pool_name):
+            self.get_pools().remove(pool_name)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -370,9 +388,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         old_slug = getattr(self, slug_field)
         setattr(self, slug_field, new_slug)
         setattr(self, slug_field, self.normalize_slug_field(slug_field))
+        DjangoTopic.objects.filter(slug=old_slug).update(slug=new_slug)
         self.save()  # so that topic with this slug exists when saving links to it
         self.merge(old_slug)
-
 
     def merge(self, other: Union['Topic', str]) -> None:
         """
@@ -467,6 +485,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             kwargs['record_kwargs'] = {'context_slug': self.slug}
             return TopicLinkSetHelper.find(intra_link_query, **kwargs)
 
+    def get_ref_links(self, is_sheet, query_kwargs=None, **kwargs):
+        query_kwargs = query_kwargs or {}
+        query_kwargs['is_sheet'] = is_sheet
+        return self.link_set('refTopic', query_kwargs, **kwargs)
+
     def contents(self, **kwargs):
         mini = kwargs.get('minify', False)
         d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
@@ -529,6 +552,19 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def __repr__(self):
         return "{}.init('{}')".format(self.__class__.__name__, self.slug)
+
+    def update_after_link_change(self, pool):
+        """
+        updating the pools 'sheets' or 'textual' according to the existence of links and the numSources
+        :param pool: 'sheets' or 'textual'
+        """
+        links = self.get_ref_links(pool == PoolType.SHEETS.value)
+        if self.has_pool(pool) and not links:
+            self.remove_pool(pool)
+        elif not self.has_pool(pool) and links:
+            self.add_pool(pool)
+        self.numSources = self.link_set('refTopic').count()
+        self.save()
 
 
 class PersonTopic(Topic):
@@ -926,6 +962,24 @@ class RefTopicLink(abst.AbstractMongoRecord):
         self.descriptions = d
         return self
 
+    def get_related_pool(self):
+        return PoolType.SHEETS.value if self.is_sheet else PoolType.LIBRARY.value
+
+    def get_topic(self):
+        return Topic().load({'slug': self.toTopic})
+
+    def save(self, override_dependencies=False):
+        super(RefTopicLink, self).save(override_dependencies)
+        topic = self.get_topic()
+        topic.update_after_link_change(self.get_related_pool())
+
+    def delete(self, force=False, override_dependencies=False):
+        topic = self.get_topic()
+        pool = self.get_related_pool()
+        super(RefTopicLink, self).delete(force, override_dependencies)
+        if topic:
+            topic.update_after_link_change(pool)
+
     def _sanitize(self):
         super()._sanitize()
         for lang, d in getattr(self, "descriptions", {}).items():
@@ -1114,6 +1168,10 @@ def process_topic_delete(topic):
     for sheet in db.sheets.find({"topics.slug": topic.slug}):
         sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
         db.sheets.save(sheet)
+    try:
+        DjangoTopic.objects.get(slug=topic.slug).delete()
+    except DjangoTopic.DoesNotExist:
+        print('Topic {} does not exist in django'.format(topic.slug))
 
 def process_topic_description_change(topic, **kwargs):
     """
