@@ -7978,7 +7978,9 @@ But not to use a display block directive that might break continuous mode for ot
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border: none;
 }
-
+.saveProfileButton{
+  background-color: var(--midrash-green);
+}
 .button.disabled{
   border: 1px solid var(--light-grey);
   background-color: var(--lightest-grey);

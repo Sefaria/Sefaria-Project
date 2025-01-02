@@ -9,7 +9,7 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab}) => {
+const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
 
   if (!newTab){
     newTab = false;
@@ -17,7 +17,10 @@ const DropdownMenuItem = ({url, children, newTab}) => {
 
   return (
 
-    <a className={`interfaceLinks-option int-bi dropdownItem`} href={url} target={newTab ? '_blank' : null}>
+    <a className={`interfaceLinks-option int-bi dropdownItem`}
+       href={url}
+       target={newTab ? '_blank' : null}
+       data-prevent-close={preventClose}>
       {children}
     </a>
 
@@ -44,15 +47,23 @@ const DropdownMenu = ({children, menuIconComponent}) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
   
-    const handleClick = (e) => {
+    const handleClick = (e) => {console.log("click");
+        console.log("click");
       e.stopPropagation();
-      setIsOpen(isOpen => !isOpen);
+      // Check if the clicked element or its parent has data-prevent-close
+      const preventClose = e.target.closest('[data-prevent-close="true"]');
+      // Only toggle if no preventClose element was found
+      if (!preventClose) {
+        setIsOpen(isOpen => !isOpen);
+      }
     }
+
     const handleHideDropdown = (event) => {
         if (event.key === 'Escape') {
             setIsOpen(false);
         }
     };
+
     const handleClickOutside = (event) => {
         if (
             wrapperRef.current &&
@@ -72,8 +83,8 @@ const DropdownMenu = ({children, menuIconComponent}) => {
     }, []);
   
     return (
-        <div className="dropdownLinks" ref={wrapperRef}>
-           <a className="dropdownLinks-button" onClick={handleClick}>
+        <div className="dropdownLinks" ref={wrapperRef} onClick={handleClick}>
+           <a className="dropdownLinks-button">
               {menuIconComponent} 
           </a>         
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`}>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
-import Component from 'react-class';
 import Sefaria  from './sefaria/sefaria';
 import { useScrollToLoad } from "./Hooks";
 import { NavSidebar } from './NavSidebar';
@@ -11,15 +10,10 @@ import {
   TextPassage
 } from './Story';
 import {
-  CategoryColorLine,
-  MenuButton,
-  DisplaySettingsButton,
-  TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,
   InterfaceText,
 } from './Misc';
-import { data } from 'jquery';
 
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, dataSource}) => {
