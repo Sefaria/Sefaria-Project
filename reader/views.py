@@ -33,6 +33,7 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
+from scripts.update_parashah_descriptions import response
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
@@ -3273,6 +3274,11 @@ def featured_topic_api(request):
         return jsonResponse({'error': f'No featured topic found for lang "{lang}"'}, status=404)
     mongo_topic = Topic.init(featured_topic.topic.slug)
     response = {'topic': mongo_topic.contents(), 'date': featured_topic.start_date.isoformat()}
+    return jsonResponse(response)
+
+def trending_topics_api(request):
+    from sefaria.helper.topic import get_trending_topics
+    response = get_trending_topics()
     return jsonResponse(response)
 
 
