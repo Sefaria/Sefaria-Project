@@ -26,8 +26,6 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const initialStore = menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? Sefaria.saved : Sefaria.userHistory;
 
-  console.log('menuOpen', menuOpen)
-
   const [notes, setNotes] = useState(null);
   const [dataStore, setDataStore] = useState(initialStore);
   
@@ -79,8 +77,6 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
       </a> }
     </span>
   );
-
-  console.log(dataStore);
 
   const sheetsDataStore = {'loaded': true, 'items': dataStore?.items?.filter(item => item.is_sheet)};
   const libraryDataStore =  {'loaded': true, 'items': dataStore?.items?.filter(item => !item.is_sheet)};
@@ -160,14 +156,12 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
 
   // Store changes when switching tabs, reset items
   useEffect(() => {
-    setItems(store.loaded && store.items.length > 0 ? store.items : null);
-  }, [menuOpen, store.items]);
-
-  console.log('store in UserHistoryList', store);
+    setItems(store.loaded ? store.items : null);
+  }, [store]);
 
   useScrollToLoad({
     scrollableRef: scrollableRef,
-    url: "/api/profile/user_history?secondary=0&annotate=1" + (menuOpen === "saved" ? "&saved=1" : ""),
+    url: "/api/profile/user_history?secondary=0&annotate=1" + ((menuOpen === "sheets-saved" || menuOpen === "texts-saved") ? "&saved=1" : ""),
     setter: data => {
       if (!store.loaded) {
         store.items = []; // Initialize items only once
