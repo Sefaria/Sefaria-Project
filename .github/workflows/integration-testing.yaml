@@ -193,7 +193,12 @@ jobs:
       
       - name: Run Playwright tests
         run: npx playwright test
-      
+        env:
+          PLAYWRIGHT_SUPERUSER_EMAIL: "${{ secrets.PLAYWRIGHT_SUPERUSER_EMAIL }}"
+          PLAYWRIGHT_SUPERUSER_PASSWORD: "${{ secrets.PLAYWRIGHT_SUPERUSER_PASSWORD }}"
+          PLAYWRIGHT_USER_EMAIL: "${{ secrets.PLAYWRIGHT_USER_EMAIL }}"
+          PLAYWRIGHT_USER_PASSWORD: "${{ secrets.PLAYWRIGHT_USER_PASSWORD }}"
+
       - name: Upload Playwright report
         uses: actions/upload-artifact@v3
         if: always()

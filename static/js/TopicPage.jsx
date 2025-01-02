@@ -247,6 +247,9 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         return (
             <div className="navBlock">
               <a href={`/topics/${children ? 'category/' : ''}${slug}`}
+                 data-anl-event="navto_topic:click"
+                 data-anl-link_type={children ? "category" : "topic"}
+                 data-anl-text={en}
                  className="navBlockTitle"
                  onClick={openTopic}
                  key={i}>
@@ -272,10 +275,14 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     }
 
     return (
-        <div className="readerNavMenu noLangToggleInHebrew">
+        <div
+            className="readerNavMenu noLangToggleInHebrew"
+            data-anl-project="topics"
+            data-anl-panel_category={getPanelCategory(topic) || "Topic Landing"}
+        >
             <div className="content readerTocTopics">
                 <div className="sidebarLayout">
-                  <div className="contentInner">
+                  <div className="contentInner" data-anl-feature_name="Main">
                       <div className="navTitle tight">
                         <CategoryHeader type="topics" data={topicData}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
@@ -546,11 +553,15 @@ const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
     )
 };
 
+const getPanelCategory = (slug) => {
+    return Sefaria.topicTocCategories(slug)?.map(({slug}) => slug)?.join('|');
+}
+
 const getTopicPageAnalyticsData = (slug, langPref) => {
     return {
         project: "topics",
         content_lang: langPref || "bilingual",
-        panel_category: Sefaria.topicTocCategories(slug)?.map(({slug}) => slug)?.join('|'),
+        panel_category: getPanelCategory(slug),
     };
 };
 
@@ -602,7 +613,7 @@ const TopicPage = ({
 
     useEffect( ()=> {
     // hack to redirect to temporary sheet content on topics page for those topics that only have sheet content.
-if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0 && topicData.subclass != "author"){
+    if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0 && topicData.subclass != "author"){
         const interfaceIsHe = Sefaria.interfaceLang === "hebrew";
         const interfaceLang = interfaceIsHe ? 'he' : 'en';
         const coInterfaceLang = interfaceIsHe ? 'en' : 'he';
