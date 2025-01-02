@@ -1742,7 +1742,6 @@ const CollectionListing = ({data}) => {
         <div className="collectionListingText">
 
           <a href={collectionUrl} className="collectionListingName">
-            <img className="collectionListingImage" src={imageUrl} alt="Collection Icon"/>
             {data.name}
           </a>
 
