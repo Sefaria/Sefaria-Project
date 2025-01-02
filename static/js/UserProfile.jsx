@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Component from 'react-class';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import NoteListing  from './NoteListing';
 import {
   CollectionListing,
   FilterableList,
@@ -281,33 +280,15 @@ class UserProfile extends Component {
                   renderTab={this.renderTab}
                   setTab={this.props.setTab}
                 >
-                  <FilterableList
-                    key="sheet"
-                    pageSize={1e6}
-                    filterFunc={this.filterSheet}
-                    sortFunc={this.sortSheet}
-                    renderItem={this.renderSheet}
-                    renderEmptyList={this.renderEmptySheetList}
-                    renderHeader={this.renderSheetHeader}
-                    sortOptions={["Recent", "Views"]}
-                    containerClass={"sheetList"}
-                    getData={this.getSheets}
-                    data={this.getSheetsFromCache()}
-                    refreshData={this.state.refreshSheetData}
-                  />
-                  <FilterableList
-                    key="collection"
-                    pageSize={1e6}
-                    filterFunc={this.filterCollection}
-                    sortFunc={this.sortCollection}
-                    renderItem={this.renderCollection}
-                    renderEmptyList={this.renderEmptyCollectionList}
-                    renderHeader={this.renderCollectionHeader}
-                    sortOptions={["Recent", "Name", "Sheets"]}
-                    getData={this.getCollections}
-                    data={this.getCollectionsFromCache()}
-                    refreshData={this.state.refreshCollectionsData}
-                  />
+                 {this.props.profile && 
+                    <SheetsList profile={this.props.profile} 
+                                  handleSheetDelete={this.handleSheetDelete}
+                                  handleCollectionsChange={this.handleCollectionsChange}
+                                  toggleSignUpModal={this.props.toggleSignUpModal}/>}
+
+                  {this.props.profile && 
+                    <CollectionsList profile={this.props.profile} />}
+                  
                   <FilterableList
                     key="follower"
                     pageSize={1e6}
@@ -347,6 +328,86 @@ class UserProfile extends Component {
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
+
+const SheetsList = ({profile, handleSheetDelete, handleCollectionsChange, toggleSignUpModal}) => {
+  const [sheets, setSheets] = useState(null);
+
+  useEffect(() => {
+    const fetchSheets = async () => {
+      try {
+        const fetchedSheets = await new Promise((resolve, reject) => {
+          Sefaria.sheets.userSheets(
+            profile.id,
+            sheets => resolve(sheets),
+            undefined,
+            0,
+            0
+          );
+        });
+        setSheets(fetchedSheets);
+      } catch (error) {
+        console.error("Failed to fetch sheets:", error);
+      }
+    };
+
+    fetchSheets();
+  }, [profile.id]);
+
+  if (!sheets) {
+    return <div>Loading sheets...</div>;
+  }
+
+  return (
+    <div class="sheetsProfileList">
+      {sheets.map(sheet => (
+        <SheetListing
+          key={sheet.id}
+          sheet={sheet}
+          hideAuthor={true}
+          handleSheetDelete={handleSheetDelete}
+          handleCollectionsChange={handleCollectionsChange}
+          editable={Sefaria._uid === profile.id}
+          deletable={Sefaria._uid === profile.id}
+          saveable={Sefaria._uid !== profile.id}
+          collectable={true}
+          connectedRefs={[]}
+          infoUnderneath={true}
+          toggleSignUpModal={toggleSignUpModal}
+        />
+      ))}
+    </div>
+  );
+};
+
+const CollectionsList = ({profile}) => {
+
+  const [collections, setCollections] = useState(null);
+
+  useEffect(() => {
+    const fetchCollections = async () => {
+      try {
+        const collections = await Sefaria.getUserCollections(profile.id);
+        setCollections(collections);
+      } catch (error) {
+        console.error("Failed to fetch collections:", error);
+      }
+    };
+
+    fetchCollections();
+  }, [profile.id]);
+
+  if (!collections) {
+    return <div>Loading collections...</div>;
+  }
+
+
+  return (
+    collections.map(collection =>(<CollectionListing key={collection.slug} data={collection} />))
+  );
+};
+
+
+
 
 
 const EditorToggleHeader = ({usesneweditor}) => {
