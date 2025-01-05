@@ -371,6 +371,7 @@ def get_topics_for_ref(tref, lang="english", annotate=False):
     serialized.sort(key=cmp_to_key(partial(sort_refs_by_relevance, lang=lang)))
     return serialized
 
+@django_cache(timeout=24 * 60 * 60)
 def get_trending_topics(num_topics=10):
     from google.analytics.data_v1beta import BetaAnalyticsDataClient
     from google.analytics.data_v1beta.types import (
