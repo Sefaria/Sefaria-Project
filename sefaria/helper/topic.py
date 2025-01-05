@@ -384,10 +384,10 @@ def get_trending_topics(num_topics=10):
     )
     from sefaria.settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
     import urllib.parse
-    """Fetches the top trending topics from Google Analytics."""
+    PROPERTY_ID = 397824505
     client = BetaAnalyticsDataClient.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
     request = RunReportRequest(
-        property="properties/397824505",
+        property=f"properties/{PROPERTY_ID}",
         date_ranges=[DateRange(start_date="7daysAgo", end_date="yesterday")],
         dimensions=[Dimension(name="pagePath")],
         metrics=[Metric(name="screenPageViews")],
