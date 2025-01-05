@@ -382,7 +382,8 @@ const useTabDisplayData = (translationLanguagePreference) => {
     {
       key: 'popular-writing-of',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
-      sortOptions: ['Relevance', 'Chronological'],
+      sortOptions: [Sefaria._("filter_list.relevance"), 'Chronological'],
+
       filterFunc: refFilter,
       sortFunc: refSort,
       renderWrapper: refRenderWrapper,
@@ -390,7 +391,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
     {
       key: 'sources',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
-      sortOptions: ['Relevance', 'Chronological'],
+      sortOptions: [Sefaria._("filter_list.relevance"), 'Chronological'],
       filterFunc: refFilter,
       sortFunc: refSort,
       renderWrapper: refRenderWrapper,
@@ -398,7 +399,8 @@ const useTabDisplayData = (translationLanguagePreference) => {
     {
       key: 'sheets',
       fetcher: fetchBulkSheet,
-      sortOptions: ['Relevance', 'Views', 'Newest'],
+      sortOptions: [Sefaria._("filter_list.relevance"), Sefaria._('profile.tab.sheet.tag.views'), Sefaria._('filter_list.newest')],
+
       filterFunc: sheetFilter,
       sortFunc: sheetSort,
       renderWrapper: sheetRenderWrapper,
@@ -611,7 +613,6 @@ const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader,
   scrollableElement, onDisplayedDataChange, initialRenderSize, onSetTopicSort, topicSort
 }) => {
-  console.log("data : ", data)
   return (
     <div className="topicTabContents">
       {!!data ?
