@@ -3288,7 +3288,7 @@ def trending_topics_api(request):
             continue
         if not pool_name or pool_name in topic.pools:
             trending_topics.append(topic.contents())
-    return jsonResponse(trending_topics)
+    return jsonResponse(trending_topics[:n])
 
 
 @staff_member_required
