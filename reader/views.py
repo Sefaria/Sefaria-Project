@@ -3278,8 +3278,17 @@ def featured_topic_api(request):
 
 def trending_topics_api(request):
     from sefaria.helper.topic import get_trending_topics
-    response = get_trending_topics()
-    return jsonResponse(response)
+    n = int(request.GET.get("n"))
+    pool_name = request.GET.get("pool", None)
+    trending_slugs = get_trending_topics(n * n)
+    trending_topics = []
+    for slug in trending_slugs:
+        topic = Topic.init(slug)
+        if not topic:
+            continue
+        if not pool_name or pool_name in topic.pools:
+            trending_topics.append(topic.contents())
+    return jsonResponse(trending_topics)
 
 
 @staff_member_required

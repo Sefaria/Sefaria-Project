@@ -371,7 +371,7 @@ def get_topics_for_ref(tref, lang="english", annotate=False):
     serialized.sort(key=cmp_to_key(partial(sort_refs_by_relevance, lang=lang)))
     return serialized
 
-def get_trending_topics():
+def get_trending_topics(num_topics=10):
     from google.analytics.data_v1beta import BetaAnalyticsDataClient
     from google.analytics.data_v1beta.types import (
         DateRange,
@@ -383,15 +383,11 @@ def get_trending_topics():
         OrderBy,
     )
     from sefaria.settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
-    # GA4 property ID
-    PROPERTY_ID = "397824505"
-
-    # Initialize the client
+    import urllib.parse
+    """Fetches the top trending topics from Google Analytics."""
     client = BetaAnalyticsDataClient.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
-
-    # Create a request to fetch data
     request = RunReportRequest(
-        property=f"properties/{PROPERTY_ID}",
+        property="properties/397824505",
         date_ranges=[DateRange(start_date="7daysAgo", end_date="yesterday")],
         dimensions=[Dimension(name="pagePath")],
         metrics=[Metric(name="screenPageViews")],
@@ -404,24 +400,13 @@ def get_trending_topics():
                 )
             )
         ),
-        order_bys=[
-            OrderBy(
-                metric=OrderBy.MetricOrderBy(metric_name="screenPageViews"),
-                desc=True
-            )
-        ],
-        limit=10,
+        order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="screenPageViews"), desc=True)],
+        limit=num_topics,
     )
-
-    # Run the report
     response = client.run_report(request)
-
-    # Print the results
-    result = []
-    for row in response.rows:
-        # print(f"URL: {row.dimension_values[0].value}, Views: {row.metric_values[0].value}")
-        result.append(row.dimension_values[0].value)
-    return result
+    slugs = [urllib.parse.unquote(row.dimension_values[0].value.removeprefix("/topics/")) for row in response.rows]
+    slugs = [slug for slug in slugs if not slug.startswith("category/")]
+    return slugs
 
 @django_cache(timeout=24 * 60 * 60, cache_prefix="get_topics_for_book")
 def get_topics_for_book(title: str, annotate=False, n=18) -> list:
