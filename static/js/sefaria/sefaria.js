@@ -542,28 +542,127 @@ Sefaria = extend(Sefaria, {
         return language;
     }
   },
-  makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText) {
+  makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText, return_format) {
     const host = Sefaria.apiHost;
     const endPoint = '/api/v3/texts/';
     const versions = requiredVersions.map(obj =>
-        Sefaria.makeParamsStringForAPIV3(obj.language, obj.versionTitle)
+        Sefaria.makeParamsStringForAPIV3(obj.languageFamilyName, obj.versionTitle)
     );
     const mergeTextInt = mergeText ? 1 : 0;
-    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}`;
+    const return_format_string = (return_format) ? `&return_format=${return_format}` : '';
+    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}${return_format_string}`;
     return url;
   },
-  getTextsFromAPIV3: async function(ref, requiredVersions, mergeText) {
+  _textsStore: {},
+  getTextsFromAPIV3: async function(ref, requiredVersions, mergeText, return_format) {
     // ref is segment ref or bottom level section ref
-    // requiredVersions is array of objects that can have language and versionTitle
-    const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText);
-    //TODO here's the place for getting it from cache
-    const apiObject = await Sefaria._ApiPromise(url);
-    //TODO here's the place for all changes we want to add, and saving in cache
+    // requiredVersions is array of objects that can have languageFamilyName and versionTitle
+    const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
+    const apiObject = await Sefaria._cachedApiPromise({url: url, key: url, store: Sefaria._textsStore});
+    this._textsStore[ref] = apiObject;
     return apiObject;
   },
   getAllTranslationsWithText: async function(ref) {
-    let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{language: 'translation', versionTitle: 'all'}], false);
+    let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{languageFamilyName: 'translation', versionTitle: 'all'}], false);
     return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
+  },
+  getPrimaryAndTranslationFromVersions: function(versions) {
+    let primary, translation;
+    if (versions.length === 1) {
+      primary = versions[0];
+      translation = {text: []};
+    } else if (versions[0].isPrimary && !versions[1].isSource) {
+      [primary, translation] = versions;
+    } else {
+      [translation, primary] = versions;
+    }
+    return [primary, translation];
+  },
+  _adaptApiResponse: function(versionsResponse) {
+    /**
+     * takes an api-v3 texts response for primary and translation versions, and adapt it to the expected 'old' result.
+     * it adds the texts to 'he' and 'text', and the sources to 'sources' and 'heSources'
+     */
+    const versions = versionsResponse.versions;
+    const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(versions);
+    ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle, direction: versionsResponse.translationDirection, languageFamilyName: versionsResponse.translationLang, status: versionsResponse.versionStatus } = translation);
+    ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle, direction: versionsResponse.primaryDirection, languageFamilyName: versionsResponse.primaryLang, status: versionsResponse.heVersionStatus } = primary);
+    if (translation.sources && !translation.sources.every(source => source === translation.sources[0])) {
+        versionsResponse.sources = translation.sources;
+    }
+    if (primary.sources && primary.sources.every(source => source === primary.sources[0])) {
+        versionsResponse.heSources = primary.sources;
+    }
+  },
+  _findInVersions: function (query, versions) {
+      query = Object.fromEntries(
+          Object.entries(query).filter(([_, value]) => value != null) // filters also undefined
+      );
+      return versions.reduce((maxObj, current) => {
+          const matchesQuery = Object.entries(query).every(
+              ([key, value]) => current[key] === value
+          );
+          const hasHigherPriority = (current.priority || 0) > (maxObj?.priority ?? -1);
+          return matchesQuery && hasHigherPriority ? current : maxObj;
+      }, null)
+  },
+  _getVersionObjects: async function(ref, primaryVersionObj, translationVersionObj, translationLanguagePreference) {
+    const [PRIMARY, TRANSLATION] = ['primary', 'translation']
+    const versions = await Sefaria.getVersions(ref);
+    const flatVersions = Object.values(versions).flat();
+    primaryVersionObj = Sefaria._findInVersions({...primaryVersionObj, isPrimary: true}, flatVersions);
+    if (primaryVersionObj) {
+        const {languageFamilyName, versionTitle} = primaryVersionObj;
+        primaryVersionObj = {languageFamilyName, versionTitle};
+    } else {
+        primaryVersionObj = {languageFamilyName: PRIMARY}
+    }
+    if (translationVersionObj.versionTitle) {
+        translationVersionObj = Sefaria._findInVersions({...translationVersionObj, isSource: false}, flatVersions);
+    }
+    if (!translationVersionObj?.versionTitle) {
+        let requiredVersion;
+        const preferredTranslation = Sefaria.versionPreferences.getVersionPref(ref)?.en;
+        if (preferredTranslation) {
+            requiredVersion = Sefaria._findInVersions({isSource: false, versionTitle: preferredTranslation}, flatVersions);
+        }
+        if (!requiredVersion && translationLanguagePreference) {
+            const langVersions = versions[translationLanguagePreference] || [];
+            requiredVersion = Sefaria._findInVersions({isSource: false}, langVersions);
+        }
+        if (requiredVersion) {
+            const {languageFamilyName, versionTitle} = requiredVersion;
+            translationVersionObj = {languageFamilyName, versionTitle};
+        } else {
+            translationVersionObj = {languageFamilyName: TRANSLATION};
+        }
+    }
+    return [primaryVersionObj, translationVersionObj];
+  },
+  _getPrimaryAndTranslationText: async function(ref, primaryVersionObj, translationVersionObj, translationLanguagePreference) {
+    // versionObjs are objects with language and versionTitle
+    const requiredVersions = await Sefaria._getVersionObjects(ref, primaryVersionObj, translationVersionObj, translationLanguagePreference);
+    const versionsResponse = await Sefaria.getTextsFromAPIV3(ref, requiredVersions, true, 'wrap_all_entities');
+    Sefaria._adaptApiResponse(versionsResponse);
+    return versionsResponse;
+  },
+  getTextFromCurrVersions: async function(ref, currVersions, translationLanguagePreference, withContext) {
+    let {he, en} = currVersions;
+    he = he || {};
+    en = en || {};
+    let data = await Sefaria._getPrimaryAndTranslationText(ref, he, en, translationLanguagePreference);
+    const isDataForSegment = data.textDepth === data.sections.length;
+    if (withContext && isDataForSegment) {
+        const {text, he, alts} = await Sefaria.getTextFromCurrVersions(data.sectionRef, currVersions, translationLanguagePreference);
+        data = {
+            ...data,
+            text,
+            he,
+            alts,
+        };
+    }
+    this._saveText(data)
+    return data;
   },
   _bulkSheets: {},
   getBulkSheets: function(sheetIds) {
@@ -1045,6 +1144,13 @@ Sefaria = extend(Sefaria, {
     }
     return data;
   }, */
+  areCurrVersionObjectsEqual: function(version1, version2) {
+      return version1?.versionTitle === version2?.versionTitle && version1?.languageFamilyName === version2?.languageFamilyName;
+  },
+  areBothVersionsEqual(currVersions1, currVersions2) {
+      return Sefaria.areCurrVersionObjectsEqual(currVersions1?.en, currVersions2?.en) &&
+          Sefaria.areCurrVersionObjectsEqual(currVersions1?.he, currVersions2?.he);
+  },
   _index: {}, // Cache for text index records
    index: function(text, index) {
     if (!index) {
@@ -1169,26 +1275,12 @@ Sefaria = extend(Sefaria, {
     if (versionedKey) { return this._getOrBuildTextData(versionedKey); }
     return null;
   },
-  getRef: function(ref) {
+  getRef: function(ref, currVersions=null) {
     // Returns Promise for parsed ref info
+    // currVersions is enabling getting text from cache
+    currVersions = currVersions || {en: null, he: null};
     if (!ref) { return Promise.reject(new Error("No Ref!")); }
-
-    const r = this.getRefFromCache(ref);
-    if (r) return Promise.resolve(r);
-
-    // To avoid an extra API call, first look for any open API calls to this ref (regardless of params)
-    // todo: Ugly.  Breaks abstraction.
-    const urlPattern = "/api/texts/" + this.normRef(ref);
-    const openApiCalls = Object.keys(this._ajaxObjects);
-    for (let i = 0; i < openApiCalls.length; i++) {
-      if (openApiCalls[i].startsWith(urlPattern)) {
-        return this._ajaxObjects[openApiCalls[i]];
-      }
-    }
-
-    // If no open calls found, call the texts API.
-    // Called with context:1 because this is our most common mode, maximize change of saving an API Call
-    return Sefaria.getText(ref, {context: 1});
+    return Sefaria.getTextFromCurrVersions(ref, currVersions);
   },
   ref: function(ref, callback) {
       if (callback) {
@@ -2214,8 +2306,8 @@ _media: {},
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
-    var data = this.getRefFromCache(ref);
-    var result = {
+    const data = this.getRefFromCache(ref);
+    let result = {
           en: {named: "", numbered: ""},
           he: {named: "", numbered: ""}
         };
@@ -2239,7 +2331,7 @@ _media: {},
     result.en.numbered = sections;
 
     // Hebrew
-    var sections = data.heRef.slice(data.heIndexTitle.length+1);
+    var sections = data.heSectionRef.slice(data.heIndexTitle.length+1);
     var name = ""; // missing he section names // data.sectionNames.length > 1 ? " " + data.sectionNames[0] : "";
     if (data.isComplex) {
       var numberedSections = data.heRef.slice(data.heTitle.length+1);
@@ -2426,7 +2518,7 @@ _media: {},
   },
   areVersionsEqual(v1, v2) {
     // v1, v2 are `currVersions` objects stored like {en: ven, he: vhe}
-    return v1.en == v2.en && v1.he == v2.he;
+    return v1?.en === v2?.en && v1?.he === v2?.he;
   },
   getSavedItem: ({ ref, versions }) => {
     return Sefaria.saved.items.find(s => s.ref === ref && Sefaria.areVersionsEqual(s.versions, versions));
@@ -3318,7 +3410,7 @@ Sefaria.unpackDataFromProps = function(props) {
         let settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         //save versions first, so their new format is also saved on text cache
         if(panel.text?.versions?.length){
-            let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
+            let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.available_versions);
             panel.text.versions = Sefaria._makeVersions(versions, false);
         }
 
