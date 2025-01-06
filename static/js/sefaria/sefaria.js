@@ -534,11 +534,13 @@ Sefaria = extend(Sefaria, {
     return Promise.all(promises).then(results => Object.assign({}, ...results));
   },
   makeParamsStringForAPIV3: function(language, versionTitle) {
+    let versionParamsString;
     if (versionTitle) {
-        return `${language}|${versionTitle}`;
+        versionParamsString = `${language}|${versionTitle}`;
     } else if (language) {
-        return language;
+        versionParamsString = language;
     }
+    return encodeURIComponent(versionParamsString);
   },
   makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText, return_format) {
     const host = Sefaria.apiHost;
