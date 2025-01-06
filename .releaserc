@@ -30,5 +30,6 @@ plugins: [
   }]
 ]
 branches: [
-  {name: 'master'},
+  {"name": "master"},
+  {"name": "rtl-client", "prerelease": "beta"},
 ]
