@@ -4178,6 +4178,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item:hover{
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
   text-decoration: underline;
 }
+.singlePanel .searchContent h1 {
+  height: revert;
+}
 .searchContent h1 {
   height: 40px;
   font-size: 30px;
