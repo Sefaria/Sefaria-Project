@@ -9,51 +9,51 @@
 	<div class="headerWithButtons">
         <div class="start"></div>
         <h1>
-            <span class="{{ language_font_class }}">{% trans "Account Settings" %}</span>
+            <span class="{{ language_font_class }}">{% trans "account_setting" %}</span>
         </h1>
         <div class="end">
             <a class="button small transparent control-elem" href="/my/profile">
-                <span class="{{ language_font_class }}">{% trans "Cancel" %}</span>
+                <span class="{{ language_font_class }}">{% trans "common.account_setting.cancel_setting_button" %}</span>
             </a>
             <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
-                <span class="{{ language_font_class }}">{% trans "Save" %}</span>
+                <span class="{{ language_font_class }}">{% trans "common.account_setting.save_request" %}</span>
             </div>
         </div>
     </div>
 	<div id="emailNotifications" class="section">
 		<label class="control-elem">
-			<span class="{{ language_font_class }}">{% trans "Notification Frequency (Maximum)" %}</span>
+			<span class="{{ language_font_class }}">{% trans "account_setting.rate_of_notification" %}</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle tripleOption control-elem" role="radiogroup" style="white-space:nowrap">
 			<div role="radio" data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "daily" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-			    <span class="{{ language_font_class }}">{% trans "Daily" %}</span>
+			    <span class="{{ language_font_class }}">{% trans "account_setting.to_send_notification_daily" %}</span>
             </div>
             <div role="radio"  data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "weekly" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-			    <span class="{{ language_font_class }}">{% trans "Weekly" %}</span>
+			    <span class="{{ language_font_class }}">{% trans "account_setting.to_send_notification_weekly" %}</span>
             </div>
             <div role="radio"  data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "never" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-			    <span class="{{ language_font_class }}">{% trans "Never" %}</span>
+			    <span class="{{ language_font_class }}">{% trans "account_setting.never_send_notification" %}</span>
             </div>
 		</div>
 	</div>
 	{% if SITE_SETTINGS.TORAH_SPECIFIC %}
 	<div id="siteLanguage" class="section">
 		<label class="control-elem">
-			<span class="{{ language_font_class }}">{% trans "Site Language" %}</span>
+			<span class="{{ language_font_class }}">{% trans "account_setting.language_selection_title" %}</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
 			<div role="radio" data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} on{% endif %}" tabindex="{% if profile.settings.interface_language == "english" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-                <span class="int-bi">{% trans "english" %}</span>
+                <span class="int-bi">{% trans "account_setting.language_english_option" %}</span>
             </div>
             <div role="radio" data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} on{% endif %}" tabindex="{% if profile.settings.interface_language == "hebrew" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-                <span class="int-bi">{% trans "tibetan" %}</span>
+                <span class="int-bi">{% trans "common.account_setting.language_tibetan_option" %}</span>
             </div>
 		</div>
 	</div>
     {% if SITE_SETTINGS.SUPPORTED_TRANSLATION_LANGUAGES|length > 0 %}
 	<div id="translationLanguagePreference" class="section">
 		<label class="control-elem">
-			<span class="{{ language_font_class }}">{% trans "Preferred Translation Language" %}</span>
+			<span class="{{ language_font_class }}">{% trans "account_setting.user's_preferred_translation_language" %}</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle quadrupleOption control-elem" role="radiogroup">
             {% for name, lang in lang_names_and_codes %}
@@ -66,14 +66,14 @@
     {% endif %}
     <div id="readingHistory" class="section">
 		<label class="control-elem">
-			<span class="{{ language_font_class }}">{% trans "Reading History" %}</span>
+			<span class="{{ language_font_class }}">{% trans "account_setting.user's_reading_history" %}</span>
         </label>
 		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
 			<div role="radio" data-name="reading-history" data-value=true class="toggleOption {% if "reading_history" not in profile.settings or profile.settings.reading_history %} on{% endif %}" tabindex="{% if "reading_history" not in profile.settings or profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-                <span class="{{ language_font_class }}">{% trans "On" %}</span>
+                <span class="{{ language_font_class }}">{% trans "account_setting.reading_history_enable" %}</span>
             </div>
             <div role="radio" data-name="reading-history" data-value=false class="toggleOption {% if "reading_history" in profile.settings and not profile.settings.reading_history %} on{% endif %}" tabindex="{% if "reading_history" in profile.settings and not profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
-                <span class="{{ language_font_class }}">{% trans "Off" %}</span>
+                <span class="{{ language_font_class }}">{% trans "account_setting.reading_history_disable" %}</span>
             </div>
             <span id="reading-history-warning"></span>
 		</div>
@@ -81,51 +81,51 @@
 	{% endif %}
     <div id="username-change" class="section">
         <label class="control-elem">
-                <span class="{{ language_font_class }}">{% trans "Account Email (This is used for login)" %}</span>
+                <span class="{{ language_font_class }}">{% trans "account_setting.login_account_email_message" %}</span>
         </label>
         <div id="username-change-display" class="form-section">
             <input id="email-display" type="text" disabled="disabled" value="{{ user.email }}" />
             <button id="change-email" type="button" class="button blue fillWidth">
-                <span class="{{ language_font_class }}">{% trans "Change Email" %}</span>
+                <span class="{{ language_font_class }}">{% trans "account_setting.change_email_message" %}</span>
             </button>
             <span id="email-edit-ok" style="display:none"></span>
         </div>
         <div id="username-change-edit" class="form-section" style="display: none">
-            <input id="email" type="text" placeholder="{% trans "New Email" %}" autocomplete="off" />
-            <input id="confirmEmail" type="text" placeholder="{% trans "Confirm New Email" %}" autocomplete="off" />
-            <input id="confirmPassword" type="password" placeholder="{% trans "Password" %}" autocomplete="new-password" />
+            <input id="email" type="text" placeholder="{% trans "account_setting.new_email" %}" autocomplete="off" />
+            <input id="confirmEmail" type="text" placeholder="{% trans "account_setting.confirm_new_email" %}" autocomplete="off" />
+            <input id="confirmPassword" type="password" placeholder="{% trans "common.account_setting.password" %}" autocomplete="new-password" />
             <button id="update-email" type="button" class="button blue fillWidth">
-                <span class="{{ language_font_class }}">{% trans "Update Email" %}</span>
+                <span class="{{ language_font_class }}">{% trans "account_setting.update_email" %}</span>
             </button>
             <span id="email-edit-errors"></span>
         </div>
     </div>
     <div id="gauth-email-change" class="section" style="{% if not profile.gauth_email %} display: none {% endif %}">
         <label class="control-elem">
-                <span class="{{ language_font_class }}">{% trans "Google Account (Allows for exporting sheets to Google Drive)" %}</span>
+                <span class="{{ language_font_class }}">{% trans "account_setting.google_account_message" %}</span>
         </label>
         <div id="gauth-email-disconnect-display" class="form-section">
             <input id="gauth-email-display" type="text" disabled="disabled" value="{{ profile.gauth_email }}" />
             <button id="disconnect-gauth-email" type="button" class="button blue fillWidth">
-                <span class="{{ language_font_class }}">{% trans "Disconnect" %}</span>
+                <span class="{{ language_font_class }}">{% trans "account_setting.google_account_disconnect_with_pecha_acc" %}</span>
             </button>
             <span id="gauth-disconnect-messages"></span>
         </div>
     </div>
     <div id="gauth-email-disconnected" class="form-section" style="{% if profile.gauth_email %} display: none {% endif %}" >
             <div>
-                <span class="{{ language_font_class }}">{% trans "Your Google Account has been disconnected" %}</span>
+                <span class="{{ language_font_class }}">{% trans "account_setting.google_account_disconnected_message" %}</span>
             </div>
             <div class="additional-info">
-                <span class="{{ language_font_class }}">{% trans "You can link to a new Google Account the next time you export a sheet" %}</span>
+                <span class="{{ language_font_class }}">{% trans "account_setting.export_sheet_message" %}</span>
             </div>
         </div>
         <div class="saveCancel">
             <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
-                <span class="{{ language_font_class }}">{% trans "Save" %}</span>
+                <span class="{{ language_font_class }}">{% trans "common.account_setting.save_setting_button" %}</span>
             </div>
             <a class="button transparent small control-elem" href="/my/profile">
-                <span class="{{ language_font_class }}">{% trans "Cancel" %}</span>
+                <span class="{{ language_font_class }}">{% trans "common.account_setting.cancel_request" %}</span>
             </a>
         </div>
     </div>

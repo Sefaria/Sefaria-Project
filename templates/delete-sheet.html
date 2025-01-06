@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Admin: Delete a Sheet" %} | {% trans "Sefaria" %}{% endblock %}
+{% block title %}{% trans "admin.admin_delete_sheet" %} | {% trans "admin.common.delete-sheet.pecha" %}{% endblock %}
 
 {% block content %}
 
 <div id="deleteSheet" class="static">
     <div class="inner">
         <h1>
-            <span class="int-en">{% trans "Delete Sheet" %}</span>
+            <span class="int-en">{% trans "admin.delete_sheet" %}</span>
         </h1>
-        <h2>{% trans "CAUTION THIS WILL DELETE THE SHEET ID YOU INPUT" %}</h2>
-        <h3>{% trans "IT CANNOT BE UNDONE." %}</h3>
+        <h2>{% trans "admin.caution_messsage" %}</h2>
+        <h3>{% trans "admin.can't_undone_message" %}</h3>
         <form method="post" autocomplete="off" if="delete-form" action="{% url "delete/sheet" %}">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="button control-elem">
-                <span class="int-en">{% trans "Delete Sheet" %}</span>
+                <span class="int-en">{% trans "admin.delete_sheet_button" %}</span>
             </button>
         </form>
     </div>

@@ -3677,9 +3677,9 @@ def account_user_update(request):
         error = None
         # some validation on post fields
         if accountUpdate["email"] != accountUpdate["confirmEmail"]:
-            error = _("Email fields did not match")
+            error = _("account_email_mismatch_error")
         elif not request.user.check_password(accountUpdate["confirmPassword"]):
-            error = _("Incorrect account password for this account")
+            error = _("account_password_mismatch_error")
         else:
             # get the logged in user
             uuser = UserWrapper(request.user.email)

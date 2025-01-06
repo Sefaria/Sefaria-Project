@@ -114,11 +114,11 @@ class Collection(abst.AbstractMongoRecord):
             # it can't be change even to add a new public sheet. 
             if self.name_taken():
                 # Require public collections to have a unique name
-                raise InputError(_("A public collection with this name already exists. Please choose a different name before publishing."))
+                raise InputError(_("collection_name_taken_message"))
             if not getattr(self, "imageUrl", False):
-                raise InputError(_("Public Collections are required to include a collection image (a square image will work best)."))
+                raise InputError(_("collection_image_required_message"))
             if self.public_sheet_count() < 3:
-                raise InputError(_("Public Collections are required to have at least 3 public sheets."))
+                raise InputError(_("collection_sheet_count_message"))
 
 
         image_fields = ("imageUrl", "headerUrl", "coverUrl")
@@ -281,8 +281,8 @@ class Collection(abst.AbstractMongoRecord):
                                             })
         finally:
             translation.activate(curr_lang)
-        subject       = _("%(name)s invited you to a collection on Sefaria") % {'name': inviter.full_name}
-        from_email    = "Sefaria <hello@sefaria.org>"
+        subject       = _("collection_invitation_email_subject") % {'name': inviter.full_name}
+        from_email    = "Pecha <hello@pecha.org>"
         to            = email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])

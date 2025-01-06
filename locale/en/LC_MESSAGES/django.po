@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-17 10:33+0530\n"
+"POT-Creation-Date: 2025-01-03 06:48-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,9 +44,8 @@ msgstr ""
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:733 reader/views.py:3165 templates/delete-sheet.html:4
-#: templates/person.html:6 templates/person.html:8
-#: templates/registration/delete_user_account.html:4
+#: reader/views.py:733 reader/views.py:3168 templates/person.html:6
+#: templates/person.html:8 templates/registration/delete_user_account.html:4
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_done.html:3
@@ -79,13 +78,13 @@ msgstr ""
 msgid " | Sefaria"
 msgstr " | Pecha"
 
-#: reader/views.py:821 reader/views.py:3205
+#: reader/views.py:821 reader/views.py:3208
 msgid ""
 "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish "
 "sources."
 msgstr "Texts & Source Sheets from Pecha's library of Buddhist sources."
 
-#: reader/views.py:823 reader/views.py:3207
+#: reader/views.py:823 reader/views.py:3210
 #, python-format
 msgid ""
 "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other "
@@ -182,7 +181,7 @@ msgstr "Pecha Notifications"
 msgid "Moderator Tools"
 msgstr ""
 
-#: reader/views.py:1233 reader/views.py:3165
+#: reader/views.py:1233 reader/views.py:3168
 msgid "Topics"
 msgstr ""
 
@@ -194,49 +193,53 @@ msgstr ""
 msgid "Texts"
 msgstr ""
 
-#: reader/views.py:3166
+#: reader/views.py:3169
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr "Explore Buddhist Texts by Topic on Pecha"
 
-#: reader/views.py:3624
-#, python-format
-msgid "%(full_name)s on Sefaria"
+#: reader/views.py:3627
+#, fuzzy, python-format
+#| msgid "%(full_name)s on Sefaria"
+msgid "%(full_name)s on Pecha"
 msgstr "%(full_name)s on Pecha"
 
-#: reader/views.py:3625
-#, python-format
+#: reader/views.py:3628
+#, fuzzy, python-format
+#| msgid ""
+#| "%(full_name)s is on Sefaria. Follow to view their public source sheets, "
+#| "notes and translations."
 msgid ""
-"%(full_name)s is on Sefaria. Follow to view their public source sheets, "
-"notes and translations."
+"%(full_name)s is on Pecha. Follow to view their public source sheets, notes "
+"and translations."
 msgstr ""
 "%(full_name)s is on Pecha. Follow to view their public source sheets, notes "
 "and translations."
 
-#: reader/views.py:3639 reader/views.py:3667 reader/views.py:3801
+#: reader/views.py:3642 reader/views.py:3670 reader/views.py:3804
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3677
-msgid "Email fields did not match"
+#: reader/views.py:3680
+msgid "account_email_mismatch_error"
 msgstr ""
 
-#: reader/views.py:3679
-msgid "Incorrect account password for this account"
+#: reader/views.py:3682
+msgid "account_password_mismatch_error"
 msgstr ""
 
-#: reader/views.py:3760
+#: reader/views.py:3763
 msgid "You must be logged in to update your profile photo."
 msgstr ""
 
-#: reader/views.py:3885
+#: reader/views.py:3888
 msgid "You must be logged in to delete your account."
 msgstr ""
 
-#: reader/views.py:4076
+#: reader/views.py:4079
 msgid "From the Community: Today on Sefaria"
 msgstr "From the Community: Today on Pecha"
 
-#: reader/views.py:4078
+#: reader/views.py:4081
 msgid ""
 "New and featured source sheets, divrei torah, articles, sermons and more "
 "created by members of the Sefaria community."
@@ -263,7 +266,7 @@ msgstr ""
 msgid "Email Address"
 msgstr ""
 
-#: sefaria/forms.py:42 sefaria/forms.py:50 templates/account_settings.html:96
+#: sefaria/forms.py:42 sefaria/forms.py:50
 msgid "Password"
 msgstr ""
 
@@ -334,25 +337,20 @@ msgid "Please set a name for your collection."
 msgstr ""
 
 #: sefaria/model/collection.py:117
-msgid ""
-"A public collection with this name already exists. Please choose a different "
-"name before publishing."
+msgid "collection_name_taken_message"
 msgstr ""
 
 #: sefaria/model/collection.py:119
-msgid ""
-"Public Collections are required to include a collection image (a square "
-"image will work best)."
+msgid "collection_image_required_message"
 msgstr ""
 
 #: sefaria/model/collection.py:121
-msgid "Public Collections are required to have at least 3 public sheets."
+msgid "collection_sheet_count_message"
 msgstr ""
 
 #: sefaria/model/collection.py:284
-#, python-format
-msgid "%(name)s invited you to a collection on Sefaria"
-msgstr "%(name)s invited you to a collection on Pecha"
+msgid "collection_invitation_email_subject"
+msgstr ""
 
 #: sefaria/model/user_profile.py:283
 msgid "A user with that email already exists"
@@ -422,15 +420,11 @@ msgid "development team"
 msgstr ""
 
 #: templates/account_settings.html:12
-msgid "Account Settings"
+msgid "account_setting"
 msgstr ""
 
-#: templates/account_settings.html:16 templates/account_settings.html:128
-#: templates/edit_profile.html:17 templates/edit_text.html:69
-#: templates/edit_text.html:97 templates/edit_text.html:150
-#: templates/elements/login_prompt.html:8 templates/profile.html:181
-#: templates/sheets.html:996 templates/sheets.html:1018
-msgid "Cancel"
+#: templates/account_settings.html:16
+msgid "common.account_setting.cancel_setting_button"
 msgstr ""
 
 #: templates/account_settings.html:19 templates/account_settings.html:125
@@ -441,177 +435,191 @@ msgid "Save"
 msgstr ""
 
 #: templates/account_settings.html:25
-msgid "Notification Frequency (Maximum)"
+msgid "account_setting.rate_of_notification"
 msgstr ""
 
 #: templates/account_settings.html:29
-msgid "Daily"
+msgid "account_setting.to_send_notification_daily"
 msgstr ""
 
 #: templates/account_settings.html:32
-msgid "Weekly"
+msgid "account_setting.to_send_notification_weekly"
 msgstr ""
 
 #: templates/account_settings.html:35
-msgid "Never"
+msgid "account_setting.never_send_notification"
 msgstr ""
 
 #: templates/account_settings.html:42
-msgid "Site Language"
+msgid "account_setting.language_selection_title"
 msgstr ""
 
-#: templates/account_settings.html:46 templates/sheets.html:702
-msgid "english"
-msgstr "English"
+#: templates/account_settings.html:46
+msgid "account_setting.language_english_option"
+msgstr ""
 
-#: templates/account_settings.html:49 templates/sheets.html:703
-msgid "tibetan"
-msgstr "བོད་ཡིག"
+#: templates/account_settings.html:49
+msgid "common.account_setting.language_tibetan_option"
+msgstr ""
 
 #: templates/account_settings.html:56
-msgid "Preferred Translation Language"
+msgid "account_setting.user's_preferred_translation_language"
 msgstr ""
 
 #: templates/account_settings.html:69
-msgid "Reading History"
+msgid "account_setting.user's_reading_history"
 msgstr ""
 
 #: templates/account_settings.html:73
-msgid "On"
+msgid "account_setting.reading_history_enable"
 msgstr ""
 
 #: templates/account_settings.html:76
-msgid "Off"
+msgid "account_setting.reading_history_disable"
 msgstr ""
 
 #: templates/account_settings.html:84
-msgid "Account Email (This is used for login)"
+msgid "account_setting.login_account_email_message"
 msgstr ""
 
 #: templates/account_settings.html:89
-msgid "Change Email"
+msgid "account_setting.change_email_message"
 msgstr ""
 
 #: templates/account_settings.html:94
-msgid "New Email"
+msgid "account_setting.new_email"
 msgstr ""
 
 #: templates/account_settings.html:95
-msgid "Confirm New Email"
+msgid "account_setting.confirm_new_email"
+msgstr ""
+
+#: templates/account_settings.html:96
+msgid "common.account_setting.password"
 msgstr ""
 
 #: templates/account_settings.html:98
-msgid "Update Email"
+msgid "account_setting.update_email"
 msgstr ""
 
 #: templates/account_settings.html:105
-msgid "Google Account (Allows for exporting sheets to Google Drive)"
+msgid "account_setting.google_account_message"
 msgstr ""
 
 #: templates/account_settings.html:110
-msgid "Disconnect"
+msgid "account_setting.google_account_disconnect_with_pecha_acc"
 msgstr ""
 
 #: templates/account_settings.html:117
-msgid "Your Google Account has been disconnected"
+msgid "account_setting.google_account_disconnected_message"
 msgstr ""
 
 #: templates/account_settings.html:120
-msgid "You can link to a new Google Account the next time you export a sheet"
+msgid "account_setting.export_sheet_message"
 msgstr ""
 
-#: templates/activity.html:7 templates/activity.html:36
+#: templates/account_settings.html:128
+msgid "common.account_setting.cancel_request"
+msgstr ""
+
+#: templates/activity.html:7
+msgid "activity.revision_history"
+msgstr ""
+
+#: templates/activity.html:9
+msgid "activity.pecha_activity_profile"
+msgstr ""
+
+#: templates/activity.html:11
+msgid "activity.pecha_activity"
+msgstr ""
+
+#: templates/activity.html:17
+msgid "activity.revision_history_message"
+msgstr ""
+
+#: templates/activity.html:19
+msgid "activity.activity_message"
+msgstr ""
+
+#: templates/activity.html:21
+msgid "activity.view_log_message"
+msgstr ""
+
+#: templates/activity.html:36
 msgid "Revision History of"
 msgstr ""
 
-#: templates/activity.html:9 templates/activity.html:11
-msgid "Sefaria Activity"
-msgstr "Pecha Activity"
-
-#: templates/activity.html:17
-msgid "View the complete revision hisotry of this text on Sefaria."
-msgstr "View the complete revision hisotry of this text on Pecha."
-
-#: templates/activity.html:19
-msgid ""
-"View a user's acitvitiy history on Sefaria, including published source "
-"sheets, and text translations, edits or additions."
-msgstr ""
-"View a user's acitvitiy history on Pecha, including published source sheets, "
-"and text translations, edits or additions."
-
-#: templates/activity.html:21
-msgid ""
-"View the complete log of public activity on Sefaria, including published "
-"source sheets, and text translations, edits or additions. "
-msgstr ""
-"View the complete log of public activity on Pecha, including published "
-"source sheets, and text translations, edits or additions. "
-
 #: templates/activity.html:43
-msgid "Public Activity"
+msgid "activity.public_activity"
 msgstr ""
 
 #: templates/activity.html:47
-msgid "Recent Activity on Sefaria"
-msgstr "Recent Activity on Pecha"
+msgid "activity.recent_activity"
+msgstr ""
 
 #: templates/activity.html:52
-msgid "All Activity"
+msgid "activity.all_activity_drop_down"
 msgstr ""
 
 #: templates/activity.html:53
-msgid "Translations"
+msgid "activity.translation_option"
 msgstr ""
 
-#: templates/activity.html:54 templates/metrics.html:49
-#: templates/profile.html:99
-msgid "Source Sheets"
+#: templates/activity.html:54
+msgid "activity.source_sheets_option"
 msgstr ""
 
 #: templates/activity.html:55
-msgid "New Texts"
+msgid "activity.new_texts_option"
 msgstr ""
 
 #: templates/activity.html:56
-msgid "Edits"
+msgid "activity.edit_list_option"
 msgstr ""
 
-#: templates/activity.html:57 templates/profile.html:119
-msgid "Notes"
+#: templates/activity.html:57
+msgid "activity.notes_option"
 msgstr ""
 
 #: templates/activity.html:58
-msgid "Reviews"
+msgid "activity.reviews_option"
 msgstr ""
 
 #: templates/activity.html:59
-msgid "Text Info"
+msgid "activity.text_info_option_option"
 msgstr ""
 
 #: templates/activity.html:60
-msgid "Reversions"
+msgid "activity.reversions_option"
 msgstr ""
 
 #: templates/activity.html:61
-msgid "Flagged"
+msgid "activity.flagged_option"
 msgstr ""
 
 #: templates/delete-sheet.html:4
-msgid "Admin: Delete a Sheet"
+msgid "admin.admin_delete_sheet"
 msgstr ""
 
-#: templates/delete-sheet.html:11 templates/delete-sheet.html:19
-#: templates/sheets.html:61
-msgid "Delete Sheet"
+#: templates/delete-sheet.html:4
+msgid "admin.common.delete-sheet.pecha"
+msgstr ""
+
+#: templates/delete-sheet.html:11
+msgid "admin.delete_sheet"
 msgstr ""
 
 #: templates/delete-sheet.html:13
-msgid "CAUTION THIS WILL DELETE THE SHEET ID YOU INPUT"
+msgid "admin.caution_messsage"
 msgstr ""
 
 #: templates/delete-sheet.html:14
-msgid "IT CANNOT BE UNDONE."
+msgid "admin.can't_undone_message"
+msgstr ""
+
+#: templates/delete-sheet.html:19
+msgid "admin.delete_sheet_button"
 msgstr ""
 
 #: templates/discussions.html:6 templates/discussions.html:14
@@ -666,9 +674,9 @@ msgstr ""
 msgid "Edit Collection on Sefaria"
 msgstr "Edit Collection on Pecha"
 
-#: templates/edit_collection.html:20 templates/edit_term.html:40
-#: templates/elements/loading.html:12 templates/metrics.html:16
-#: templates/sheets.html:518 templates/sheets.html:750
+#: templates/edit_collection.html:20 templates/elements/loading.html:12
+#: templates/metrics.html:16 templates/sheets.html:518
+#: templates/sheets.html:750
 msgid "Loading..."
 msgstr ""
 
@@ -678,6 +686,13 @@ msgstr "Edit Your Profile on Pecha"
 
 #: templates/edit_profile.html:13
 msgid "Edit Your Profile"
+msgstr ""
+
+#: templates/edit_profile.html:17 templates/edit_text.html:69
+#: templates/edit_text.html:97 templates/edit_text.html:150
+#: templates/elements/login_prompt.html:8 templates/profile.html:181
+#: templates/sheets.html:996 templates/sheets.html:1018
+msgid "Cancel"
 msgstr ""
 
 #: templates/edit_profile.html:39
@@ -759,7 +774,11 @@ msgid "YouTube Channel"
 msgstr ""
 
 #: templates/edit_term.html:39
-msgid "Terms Editor"
+msgid "admin.terms_editor"
+msgstr ""
+
+#: templates/edit_term.html:40
+msgid "admin.loading"
 msgstr ""
 
 #: templates/edit_text.html:64
@@ -1332,6 +1351,10 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
+#: templates/metrics.html:49 templates/profile.html:99
+msgid "Source Sheets"
+msgstr ""
+
 #: templates/people.html:5
 msgid "Authors on Sefaria"
 msgstr "Authors on Pecha"
@@ -1416,6 +1439,10 @@ msgstr ""
 
 #: templates/profile.html:84
 msgid "Edit Profile"
+msgstr ""
+
+#: templates/profile.html:119
+msgid "Notes"
 msgstr ""
 
 #: templates/profile.html:126
@@ -1646,6 +1673,10 @@ msgstr ""
 
 #: templates/sheets.html:53 templates/sheets.html:1004
 msgid "Embed Sheet"
+msgstr ""
+
+#: templates/sheets.html:61
+msgid "Delete Sheet"
 msgstr ""
 
 #: templates/sheets.html:72
@@ -1905,6 +1936,14 @@ msgstr ""
 #: templates/sheets.html:688
 msgid "Write or paste text"
 msgstr ""
+
+#: templates/sheets.html:702
+msgid "english"
+msgstr "English"
+
+#: templates/sheets.html:703
+msgid "tibetan"
+msgstr "བོད་ཡིག"
 
 #: templates/sheets.html:711
 msgid "Add Image, Youtube Video, SoundCloud link, or MP3"
@@ -2551,6 +2590,32 @@ msgid ""
 "Explore how Rashi connects verses of Torah to one another when he quotes one "
 "verse in his commentary on another."
 msgstr ""
+
+#~ msgid "%(name)s invited you to a collection on Sefaria"
+#~ msgstr "%(name)s invited you to a collection on Pecha"
+
+#~ msgid "Sefaria Activity"
+#~ msgstr "Pecha Activity"
+
+#~ msgid "View the complete revision hisotry of this text on Sefaria."
+#~ msgstr "View the complete revision hisotry of this text on Pecha."
+
+#~ msgid ""
+#~ "View a user's acitvitiy history on Sefaria, including published source "
+#~ "sheets, and text translations, edits or additions."
+#~ msgstr ""
+#~ "View a user's acitvitiy history on Pecha, including published source "
+#~ "sheets, and text translations, edits or additions."
+
+#~ msgid ""
+#~ "View the complete log of public activity on Sefaria, including published "
+#~ "source sheets, and text translations, edits or additions. "
+#~ msgstr ""
+#~ "View the complete log of public activity on Pecha, including published "
+#~ "source sheets, and text translations, edits or additions. "
+
+#~ msgid "Recent Activity on Sefaria"
+#~ msgstr "Recent Activity on Pecha"
 
 #~ msgid "login_success_message"
 #~ msgstr "You are already logged in as {{ user.email }}."
