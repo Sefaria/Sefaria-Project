@@ -1275,7 +1275,7 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
       const language =  (masterPanelLanguage === 'english') ? translationLang : primaryLang;
       const langCode = language.slice(0, 2);
       const currVersionsLangCode = masterPanelLanguage.slice(0, 2);
-      const {versionTitle} = currVersions[currVersionsLangCode];
+      const {versionTitle = undefined} = currVersions[currVersionsLangCode];
       if (versionTitle) {
         refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(versionTitle);
       }
