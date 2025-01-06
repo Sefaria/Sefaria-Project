@@ -573,7 +573,6 @@ const ProfileSummary = ({
                             toggleSignUpModal,
                             inProfileView = false,
                         }) => {
-    console.log("in profile view", inProfileView);
     const followInfo = <div className="follow">
                                  <a href="" onClick={openFollowers}>
                                     <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
