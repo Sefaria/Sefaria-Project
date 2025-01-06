@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-03 06:48-0400\n"
+"POT-Creation-Date: 2025-01-06 13:40-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,14 +18,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: reader/templatetags/sefaria_tags.py:226 sefaria/settings.py:30
-#: templates/edit_text.html:185 templates/elements/notification.html:15
+#: templates/elements/notification.html:15
 #: templates/elements/notification.html:17 templates/sheets.html:190
 #: templates/sheets.html:272
 msgid "English"
 msgstr ""
 
 #: reader/templatetags/sefaria_tags.py:227 sefaria/settings.py:31
-#: templates/edit_text.html:186 templates/elements/notification.html:15
+#: templates/elements/notification.html:15
 #: templates/elements/notification.html:17 templates/sheets.html:278
 msgid "Hebrew"
 msgstr ""
@@ -45,21 +45,18 @@ msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
 #: reader/views.py:733 reader/views.py:3168 templates/person.html:6
-#: templates/person.html:8 templates/registration/delete_user_account.html:4
+#: templates/person.html:8
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_done.html:3
 #: templates/registration/password_reset_form.html:4
-#: templates/registration/register.html:4 templates/sheets.html:7
-#: templates/static/linker.html:4 templates/static/newsletter.html:4
-#: templates/static/privacy-policy.html:4 templates/static/terms.html:4
-#: templates/static/visualizations.html:4
+#: templates/registration/register.html:4
 msgid "Sefaria"
-msgstr "Pecha"
+msgstr ""
 
 #: reader/views.py:735
 msgid "A source sheet created with Sefaria's Source Sheet Builder"
-msgstr "A source sheet created with Pecha's Source Sheet Builder"
+msgstr ""
 
 #: reader/views.py:772
 msgid "Recently Viewed"
@@ -67,7 +64,7 @@ msgstr ""
 
 #: reader/views.py:773
 msgid "Texts that you've recently viewed on Sefaria."
-msgstr "Texts that you've recently viewed on Pecha."
+msgstr ""
 
 #: reader/views.py:785
 #, python-format
@@ -76,13 +73,13 @@ msgstr ""
 
 #: reader/views.py:787
 msgid " | Sefaria"
-msgstr " | Pecha"
+msgstr ""
 
 #: reader/views.py:821 reader/views.py:3208
 msgid ""
 "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish "
 "sources."
-msgstr "Texts & Source Sheets from Pecha's library of Buddhist sources."
+msgstr ""
 
 #: reader/views.py:823 reader/views.py:3210
 #, python-format
@@ -90,8 +87,6 @@ msgid ""
 "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other "
 "sources in Sefaria's library."
 msgstr ""
-"Buddhist texts and source sheets about %(topic)s from sources in Pecha's "
-"library."
 
 #: reader/views.py:841
 msgid "Explore Jewish Texts by Topic"
@@ -105,7 +100,7 @@ msgstr ""
 
 #: reader/views.py:923
 msgid "Sefaria Search"
-msgstr "Pecha Search"
+msgstr ""
 
 #: reader/views.py:924
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
@@ -113,7 +108,7 @@ msgstr ""
 
 #: reader/views.py:950 reader/views.py:1011
 msgid "Sefaria Collections"
-msgstr "Pecha Collections"
+msgstr ""
 
 #: reader/views.py:1128
 msgid "Pecha - Buddhism in your own words"
@@ -141,7 +136,7 @@ msgstr ""
 
 #: reader/views.py:1142
 msgid "See your saved content on Sefaria"
-msgstr "See your saved content on Pecha"
+msgstr ""
 
 #: reader/views.py:1158
 msgid "My User History"
@@ -149,25 +144,17 @@ msgstr ""
 
 #: reader/views.py:1159
 msgid "See your user history on Sefaria"
-msgstr "See your user history on Pecha"
+msgstr ""
 
 #: reader/views.py:1164
-#, fuzzy
-#| msgid "New Additions to the Sefaria Library"
 msgid "New Additions to the Pecha Library"
-msgstr "New Additions to the Pecha Library"
+msgstr ""
 
 #: reader/views.py:1165
-#, fuzzy
-#| msgid ""
-#| "See texts, translations and connections that have been recently added to "
-#| "Sefaria."
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Pecha."
 msgstr ""
-"See texts, translations and connections that have been recently added to "
-"Pecha."
 
 #: reader/views.py:1171
 msgid "User Stats"
@@ -175,7 +162,7 @@ msgstr ""
 
 #: reader/views.py:1178
 msgid "Sefaria Notifications"
-msgstr "Pecha Notifications"
+msgstr ""
 
 #: reader/views.py:1188
 msgid "Moderator Tools"
@@ -195,25 +182,19 @@ msgstr ""
 
 #: reader/views.py:3169
 msgid "Explore Jewish Texts by Topic on Sefaria"
-msgstr "Explore Buddhist Texts by Topic on Pecha"
+msgstr ""
 
 #: reader/views.py:3627
-#, fuzzy, python-format
-#| msgid "%(full_name)s on Sefaria"
+#, python-format
 msgid "%(full_name)s on Pecha"
-msgstr "%(full_name)s on Pecha"
+msgstr ""
 
 #: reader/views.py:3628
-#, fuzzy, python-format
-#| msgid ""
-#| "%(full_name)s is on Sefaria. Follow to view their public source sheets, "
-#| "notes and translations."
+#, python-format
 msgid ""
 "%(full_name)s is on Pecha. Follow to view their public source sheets, notes "
 "and translations."
 msgstr ""
-"%(full_name)s is on Pecha. Follow to view their public source sheets, notes "
-"and translations."
 
 #: reader/views.py:3642 reader/views.py:3670 reader/views.py:3804
 msgid "You must be logged in to update your profile."
@@ -237,15 +218,13 @@ msgstr ""
 
 #: reader/views.py:4079
 msgid "From the Community: Today on Sefaria"
-msgstr "From the Community: Today on Pecha"
+msgstr ""
 
 #: reader/views.py:4081
 msgid ""
 "New and featured source sheets, divrei torah, articles, sermons and more "
 "created by members of the Sefaria community."
 msgstr ""
-"New and featured source sheets, divrei torah, articles, sermons and more "
-"created by members of the Pecha community."
 
 #: sefaria/forms.py:32
 msgid "Email Address to delete"
@@ -261,8 +240,6 @@ msgstr ""
 
 #: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
 #: templates/messages/2022-01-09-user-testing-modal.html:86
-#: templates/static/aramaic-translation-contest.html:140
-#: templates/static/home.html:362 templates/static/newsletter.html:24
 msgid "Email Address"
 msgstr ""
 
@@ -270,18 +247,18 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: sefaria/forms.py:48 templates/edit_profile.html:27
+#: sefaria/forms.py:48
 msgid "First Name"
 msgstr ""
 
-#: sefaria/forms.py:49 templates/edit_profile.html:33
+#: sefaria/forms.py:49
 msgid "Last Name"
 msgstr ""
 
 #: sefaria/forms.py:55 templates/registration/custom_dropdown.html:5
 #: templates/registration/register.html:27
 msgid "Select an option"
-msgstr "Select an option"
+msgstr ""
 
 #: sefaria/forms.py:56 templates/registration/custom_dropdown.html:10
 #: templates/registration/register.html:32
@@ -369,10 +346,6 @@ msgid "Spanish"
 msgstr ""
 
 #: sefaria/views.py:200 sefaria/views.py:203 sefaria/views.py:287
-#: templates/static/app.html:383
-#: templates/static/aramaic-translation-contest.html:189
-#: templates/static/home.html:392 templates/static/mobile.html:388
-#: templates/static/newsletter.html:56
 msgid "Sorry, there was an error."
 msgstr ""
 
@@ -392,7 +365,7 @@ msgstr ""
 
 #: templates/404.html:4
 msgid "Page Not Found | Sefaria"
-msgstr "Page Not Found | Pecha"
+msgstr ""
 
 #: templates/404.html:11
 msgid "Page Not Found"
@@ -427,11 +400,8 @@ msgstr ""
 msgid "common.account_setting.cancel_setting_button"
 msgstr ""
 
-#: templates/account_settings.html:19 templates/account_settings.html:125
-#: templates/edit_profile.html:20 templates/edit_text.html:96
-#: templates/edit_text.html:149 templates/sheets.html:452
-#: templates/sheets.html:825 templates/sheets.html:978
-msgid "Save"
+#: templates/account_settings.html:19
+msgid "common.account_setting.save_request"
 msgstr ""
 
 #: templates/account_settings.html:25
@@ -516,6 +486,10 @@ msgstr ""
 
 #: templates/account_settings.html:120
 msgid "account_setting.export_sheet_message"
+msgstr ""
+
+#: templates/account_settings.html:125
+msgid "common.account_setting.save_setting_button"
 msgstr ""
 
 #: templates/account_settings.html:128
@@ -624,7 +598,7 @@ msgstr ""
 
 #: templates/discussions.html:6 templates/discussions.html:14
 msgid "Discuss a Text on Sefaria"
-msgstr "Discuss a Text on Pecha"
+msgstr ""
 
 #: templates/discussions.html:18
 msgid "This is an <b>EXPERIMENTAL"
@@ -672,105 +646,111 @@ msgstr ""
 
 #: templates/edit_collection.html:9
 msgid "Edit Collection on Sefaria"
-msgstr "Edit Collection on Pecha"
+msgstr ""
 
 #: templates/edit_collection.html:20 templates/elements/loading.html:12
-#: templates/metrics.html:16 templates/sheets.html:518
-#: templates/sheets.html:750
+#: templates/sheets.html:518 templates/sheets.html:750
 msgid "Loading..."
 msgstr ""
 
 #: templates/edit_profile.html:5
-msgid "Edit Your Profile on Sefaria"
-msgstr "Edit Your Profile on Pecha"
-
-#: templates/edit_profile.html:13
-msgid "Edit Your Profile"
+msgid "edit_profile.edit_your_profile"
 msgstr ""
 
-#: templates/edit_profile.html:17 templates/edit_text.html:69
-#: templates/edit_text.html:97 templates/edit_text.html:150
-#: templates/elements/login_prompt.html:8 templates/profile.html:181
-#: templates/sheets.html:996 templates/sheets.html:1018
-msgid "Cancel"
+#: templates/edit_profile.html:13
+msgid "edit_profile.header"
+msgstr ""
+
+#: templates/edit_profile.html:17
+msgid "common.edit_profile.cancel_button"
+msgstr ""
+
+#: templates/edit_profile.html:20
+msgid "common.edit_profile.save_button"
+msgstr ""
+
+#: templates/edit_profile.html:27
+msgid "edit_profile.first_name"
+msgstr ""
+
+#: templates/edit_profile.html:33
+msgid "edit_profile.last_name"
 msgstr ""
 
 #: templates/edit_profile.html:39
-msgid "Title"
+msgid "edit_profile.title"
 msgstr ""
 
 #: templates/edit_profile.html:45
-msgid "Organization"
+msgid "edit_profile.organization"
 msgstr ""
 
 #: templates/edit_profile.html:51
-msgid "Website"
+msgid "edit_profile.website"
 msgstr ""
 
 #: templates/edit_profile.html:57
-msgid "Location"
+msgid "edit_profile.location"
 msgstr ""
 
 #: templates/edit_profile.html:63
-msgid "Education"
+msgid "edit_profile.education_info"
 msgstr ""
 
 #: templates/edit_profile.html:63
-msgid "where have you learned"
+msgid "edit_profile.education_info_detail"
 msgstr ""
 
 #: templates/edit_profile.html:72
-msgid "Add a line"
+msgid "edit_profile.line_add"
 msgstr ""
 
 #: templates/edit_profile.html:77
-msgid "About Me"
+msgid "edit_profile.about_me"
 msgstr ""
 
 #: templates/edit_profile.html:87
-msgid "Public Sheets"
+msgid "edit_profile.public_sheets"
 msgstr ""
 
 #: templates/edit_profile.html:91
-msgid ""
-"You can drag and order source sheets that you want to pin to the top of your "
-"profile."
+msgid "edit_profile.drag_sheet_message"
 msgstr ""
 
 #: templates/edit_profile.html:95
-msgid "Pinned Sheets"
+msgid "edit_profile.pinned_sheets"
 msgstr ""
 
 #: templates/edit_profile.html:105
-msgid "All Sheets"
+msgid "edit_profile.all_sheets"
 msgstr ""
 
 #: templates/edit_profile.html:119
-msgid "Contact"
+msgid "edit_profile.contact"
 msgstr ""
 
 #: templates/edit_profile.html:124
-msgid "Email (will be public)"
+msgid "edit_profile.email_privacy"
 msgstr ""
 
 #: templates/edit_profile.html:130
-msgid "Profile URL"
+msgid "edit_profile.profile_url"
 msgstr ""
 
 #: templates/edit_profile.html:136
-msgid "Twitter Handle"
+msgid "edit_profile.twitter_handle"
 msgstr ""
 
-#: templates/edit_profile.html:142 templates/profile.html:64
-msgid "LinkedIn"
+#: templates/edit_profile.html:142
+msgid "edit_profile.linkedIn"
 msgstr ""
 
-#: templates/edit_profile.html:148 templates/profile.html:52
-msgid "Facebook"
+#: templates/edit_profile.html:148
+msgid "edit_profile.facebook"
 msgstr ""
 
 #: templates/edit_profile.html:154
-msgid "YouTube Channel"
+msgid "edit_profile.youtube_channel"
 msgstr ""
 
 #: templates/edit_term.html:39
@@ -782,185 +762,132 @@ msgid "admin.loading"
 msgstr ""
 
 #: templates/edit_text.html:64
-msgid "Add a New Text"
+msgid "edit_text.add_new_text"
 msgstr ""
 
 #: templates/edit_text.html:65
-msgid "Text or commentator name:"
+msgid "edit_text.text_commentator_name"
 msgstr ""
 
-#: templates/edit_text.html:68 templates/sheets.html:971
-#: templates/sheets.html:993
-msgid "Add"
+#: templates/edit_text.html:68
+msgid "edit_text.add_button"
+msgstr ""
+
+#: templates/edit_text.html:69 templates/edit_text.html:97
+#: templates/edit_text.html:150
+msgid "common.edit_text.cancel_button"
 msgstr ""
 
 #: templates/edit_text.html:86
-msgid "Your Review:"
+msgid "edit_text.your_review"
 msgstr ""
 
 #: templates/edit_text.html:88
-msgid "How should I write a review?"
+msgid "edit_text.review_question"
+msgstr ""
+
+#: templates/edit_text.html:96 templates/edit_text.html:149
+msgid "common.edit_text.save_button"
 msgstr ""
 
 #: templates/edit_text.html:101
-msgid "To add your review, please "
+msgid "edit_text_add_review_request "
 msgstr ""
 
 #: templates/edit_text.html:101
-msgid "log in"
+msgid "edit_text_login"
 msgstr ""
 
-#: templates/edit_text.html:101 templates/sheets.html:724
-#: templates/sheets.html:788
-msgid "or"
+#: templates/edit_text.html:101
+msgid "edit_text_or"
 msgstr ""
 
-#: templates/edit_text.html:101 templates/sheets.html:789
-msgid "register"
+#: templates/edit_text.html:101
+msgid "edit_text_register"
 msgstr ""
 
 #: templates/edit_text.html:104
-msgid "Close"
+msgid "edit_text.close_button"
 msgstr ""
 
 #: templates/edit_text.html:109
-msgid "Writing Helpful Reviews"
+msgid "edit_text.review_message"
 msgstr ""
 
 #: templates/edit_text.html:110
-msgid "For primary texts and historical translations:"
+msgid "edit_text_primary_text_historical_translation"
 msgstr ""
 
 #: templates/edit_text.html:110
-msgid ""
-" Indicate what outside source (book, web page) was used to compare the text, "
-"or make clear that your review is only looking at the text present."
+msgid "edit_text_primary_text_historical_trans_detail"
 msgstr ""
 
 #: templates/edit_text.html:112
-msgid "I compared this text to X printed edition and found no problems."
+msgid "edit_text.compare_printed_edition"
 msgstr ""
 
 #: templates/edit_text.html:113
-msgid "I checked this text against the edition on X website, all looks good."
+msgid "edit_text.all_looks_good"
 msgstr ""
 
 #: templates/edit_text.html:114
-msgid "I read this text carefully and don't see anything wrong."
-msgstr ""
-
-#: templates/edit_text.html:117
-msgid "For original translations:"
-msgstr ""
-
-#: templates/edit_text.html:117
-msgid ""
-" Review the text carefully next to the original, and comment on its accuracy "
-"and style according to our "
-msgstr ""
-
-#: templates/edit_text.html:117
-msgid "translation guidelines"
+msgid "edit_text.no_issue_message"
 msgstr ""
 
 #: templates/edit_text.html:119
-msgid "This translation seems accurate to me."
+msgid "edit_text.accurate"
 msgstr ""
 
 #: templates/edit_text.html:120
-msgid "The language could be improved, but the translation seems right."
+msgid "edit_text.translation_review"
 msgstr ""
 
 #: templates/edit_text.html:121
-msgid "This translation misunderstands the term X."
+msgid "edit_text.misunderstand_term_X"
 msgstr ""
 
 #: templates/edit_text.html:125
-msgid "How to Score your Review:"
+msgid "edit_text.score_review"
 msgstr ""
 
 #: templates/edit_text.html:127
-msgid " Compared closesly to a source, confident there are no problems."
+msgid " edit_text.compared_to_source_message"
 msgstr ""
 
 #: templates/edit_text.html:130
-msgid " Compared to a source, didn't notice any problems."
+msgid " edit_text.compared_to_source_no_problem_message"
 msgstr ""
 
 #: templates/edit_text.html:133
-msgid " Looks problem free, but could be reviewed more closely."
+msgid " edit_text.proble_free_need_review"
 msgstr ""
 
 #: templates/edit_text.html:136
-msgid " Found some issues that need to be addressed."
+msgid " edit_text.found_small_issues_need_to_address"
 msgstr ""
 
 #: templates/edit_text.html:139
-msgid " Found serious problems that need to be addressed."
+msgid " edit_text.found_serious_issues_need_address"
 msgstr ""
 
-#: templates/edit_text.html:142 templates/sheets.html:1042
-#: templates/sheets.html:1078 templates/sheets.html:1094
-msgid "OK"
-msgstr ""
-
-#: templates/edit_text.html:156
-msgid "Source "
+#: templates/edit_text.html:142
+msgid "edit_text_ok_button"
 msgstr ""
 
 #: templates/edit_text.html:163
-msgid "Original Translation"
+msgid "edit_text.original_translation"
 msgstr ""
 
 #: templates/edit_text.html:167
-msgid "Copied Text"
-msgstr ""
-
-#: templates/edit_text.html:172
-msgid "This text will be published with a "
-msgstr ""
-
-#: templates/edit_text.html:172
-msgid ""
-" licence, effectively donating it to the Public Domain. Only submit texts as "
-"\"Original Translation\" that you have authored."
-msgstr ""
-
-#: templates/edit_text.html:176
-msgid "Copied texts must either be in the "
-msgstr ""
-
-#: templates/edit_text.html:176
-msgid "Public Domain"
-msgstr ""
-
-#: templates/edit_text.html:176
-msgid " or carry a "
-msgstr ""
-
-#: templates/edit_text.html:176
-msgid "Creative Commons"
-msgstr ""
-
-#: templates/edit_text.html:176
-msgid " license such as "
-msgstr ""
-
-#: templates/edit_text.html:176
-msgid ""
-". You can learn more about when a text passes into the Public Domain on this"
-msgstr ""
-
-#: templates/edit_text.html:176
-msgid "summary of Copyright Terms"
+msgid "edit_text.copied_text"
 msgstr ""
 
 #: templates/edit_text.html:178
-msgid "Version Title:"
+msgid "edit_text.version_title"
 msgstr ""
 
 #: templates/edit_text.html:179
-msgid "Copied from:"
+msgid "edit_text.copied_from"
 msgstr ""
 
 #: templates/elements/activity_feed.html:7
@@ -1105,6 +1032,11 @@ msgstr ""
 msgid "Sign Up"
 msgstr ""
 
+#: templates/elements/login_prompt.html:8 templates/sheets.html:996
+#: templates/sheets.html:1018
+msgid "Cancel"
+msgstr ""
+
 #: templates/elements/notification.html:15
 #: templates/elements/notification.html:17
 msgid "New"
@@ -1177,10 +1109,6 @@ msgid ""
 "on Sefaria.\n"
 "\t\t"
 msgstr ""
-"\n"
-"\t\t%(inviter)s invited you to contribute to the collection %(collection)s "
-"on Pecha.\n"
-"\t\t"
 
 #: templates/email/collection_signup_invitation_email.html:14
 #, python-format
@@ -1190,18 +1118,8 @@ msgid ""
 "Sefaria account</a>.\n"
 "\t\t"
 msgstr ""
-"\n"
-"\t\tTo accept this invitation, <a href=\"%(register)s\">create a free Pecha "
-"account</a>.\n"
-"\t\t"
 
 #: templates/email/collection_signup_invitation_email.html:24
-#, fuzzy
-#| msgid ""
-#| "\t\tSefaria is a free living library of Jewish texts. Collections on "
-#| "Sefaria help you easily build and share collections of source sheets you "
-#| "create or find on Sefaria.<br>.\t\tFeel free to send any questions over "
-#| "<a href=\"mailto:hello@sefaria.org\">email</a>.\t\t"
 msgid ""
 "\n"
 "\t\tSefaria is a free living library of Jewish texts. Collections on Sefaria "
@@ -1211,10 +1129,6 @@ msgid ""
 "\">email</a>.\n"
 "\t\t"
 msgstr ""
-"Pecha is a free living library of Jewish texts. Collections on Pecha help "
-"you easily build and share collections of source sheets you create or find "
-"on Pecha.\t\tFeel free to send any questions over <a href=\"mailto:"
-"hello@pecha.org\">email</a>."
 
 #: templates/email/notification.html:8
 msgid "sent you a message:"
@@ -1243,13 +1157,12 @@ msgstr ""
 
 #: templates/email/notifications_email.html:9
 msgid " Here's some new activity on Sefaria that you may have missed."
-msgstr " Here's some new activity on Pecha that you may have missed."
+msgstr ""
 
 #: templates/explore.html:4
 msgid ""
 "Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria"
 msgstr ""
-"Link Explorer - Visualized Connections Between Talmud and Tanakh | Pecha"
 
 #: templates/explore.html:4
 #, python-format
@@ -1257,8 +1170,6 @@ msgid ""
 "Link Explorer - Visualized Connections Between %(bottomCatTitle)s and "
 "%(topCatTitle)s | Sefaria"
 msgstr ""
-"Link Explorer - Visualized Connections Between %(bottomCatTitle)s and "
-"%(topCatTitle)s | Pecha"
 
 #: templates/explore.html:6
 msgid ""
@@ -1280,99 +1191,39 @@ msgstr ""
 
 #: templates/leaderboard.html:4
 msgid "Top Contributors | Sefaria"
-msgstr "Top Contributors | Pecha"
+msgstr ""
 
 #: templates/leaderboard.html:6
 msgid ""
 "See who has been contributing most to Sefaria in terms of texts, "
 "translations, and source sheet."
 msgstr ""
-"See who has been contributing most to Pecha in terms of texts, translations, "
-"and source sheet."
 
 #: templates/leaderboard.html:30
 msgid "Top Contributors"
 msgstr ""
 
-#: templates/metrics.html:4
-msgid "Sefaria Metrics"
-msgstr "Pecha Metrics"
-
-#: templates/metrics.html:6
-msgid ""
-"See graphs charting Sefaria's progress since 2013 across metrics including "
-"word counts, number of links and number of source sheets."
-msgstr ""
-"See graphs charting Pecha's progress since 2013 across metrics including "
-"word counts, number of links and number of source sheets."
-
-#: templates/metrics.html:13
-msgid "Metrics"
-msgstr ""
-
-#: templates/metrics.html:33
-msgid "Total Words in Library"
-msgstr ""
-
-#: templates/metrics.html:34
-msgid "Words in Hebrew & Aramaic"
-msgstr ""
-
-#: templates/metrics.html:35
-msgid "Words in Translation"
-msgstr ""
-
-#: templates/metrics.html:36
-msgid "Words of Original Translation created by Sefaria Volunteers"
-msgstr "Words of Original Translation created by Pecha Volunteers"
-
-#: templates/metrics.html:37
-msgid "Number of Public Contributors"
-msgstr ""
-
-#: templates/metrics.html:38
-msgid "Number of Intertextual Links"
-msgstr ""
-
-#: templates/metrics.html:39
-msgid "Number of Source Sheets"
-msgstr ""
-
-#: templates/metrics.html:43 templates/metrics.html:44
-#: templates/metrics.html:45 templates/metrics.html:46
-msgid "Words"
-msgstr ""
-
-#: templates/metrics.html:47
-msgid "Contributors"
-msgstr ""
-
-#: templates/metrics.html:48
-msgid "Links"
-msgstr ""
-
-#: templates/metrics.html:49 templates/profile.html:99
-msgid "Source Sheets"
-msgstr ""
-
 #: templates/people.html:5
-msgid "Authors on Sefaria"
-msgstr "Authors on Pecha"
+msgid "people.authors_on_pecha"
+msgstr ""
 
 #: templates/people.html:7
-msgid ""
-"Biographies and information about the authors of Jewish texts on Sefaria, "
-"together with links to their available texts."
+msgid "people.biography_and_informations_about_authors"
 msgstr ""
-"Biographies and information about the authors of Jewish texts on Pecha, "
-"together with links to their available texts."
 
-#: templates/people.html:23 templates/person.html:38
+#: templates/people.html:23
+msgid "people.authors"
+msgstr ""
+
+#: templates/people.html:28
+msgid "people.choejuk_author"
+msgstr ""
+
+#: templates/person.html:38
 msgid "Authors"
 msgstr ""
 
-#: templates/people.html:28 templates/person.html:41
-#: templates/talmud_people.html:6
+#: templates/person.html:41
 msgid "People in the Talmud"
 msgstr ""
 
@@ -1402,72 +1253,68 @@ msgid "Map"
 msgstr ""
 
 #: templates/profile.html:4
-msgid "on Sefaria"
-msgstr "on Pecha"
+msgid "profile_title_pecha"
+msgstr ""
 
 #: templates/profile.html:6
-msgid ""
-"is on Sefaria. Follow to view their public source sheets, notes and "
-"translations."
+msgid "user_profile_page_desc"
 msgstr ""
-"is on Pecha. Follow to view their public source sheets, notes and "
-"translations."
 
-#: templates/profile.html:20
-msgid "at "
+#: templates/profile.html:52
+msgid "common.profile.facebook"
 msgstr ""
 
 #: templates/profile.html:58
-msgid "Twitter"
+msgid "common.profile.twitter"
+msgstr ""
+
+#: templates/profile.html:64
+msgid "common.profile.linkedIn"
 msgstr ""
 
 #: templates/profile.html:73
-msgid "Message"
+msgid "profile.message"
 msgstr ""
 
 #: templates/profile.html:77
-msgid "Follow"
+msgid "common.profile.follow"
 msgstr ""
 
 #: templates/profile.html:78
-msgid "Following"
+msgid "common.profile.following"
 msgstr ""
 
 #: templates/profile.html:79
-msgid "Unfollow"
+msgid "common.profile.unfollow"
 msgstr ""
 
 #: templates/profile.html:84
-msgid "Edit Profile"
+msgid "profile.edit_profile"
+msgstr ""
+
+#: templates/profile.html:99
+msgid "profile.source_sheet"
 msgstr ""
 
 #: templates/profile.html:119
-msgid "Notes"
+msgid "profile_notes"
 msgstr ""
 
 #: templates/profile.html:126
-msgid "Activity"
+msgid "profile.activity"
 msgstr ""
 
 #: templates/profile.html:128
-msgid "More Activity"
-msgstr ""
-
-#: templates/profile.html:178
-msgid "Send a message to "
-msgstr ""
-
-#: templates/profile.html:180
-msgid "Send"
+msgid "profile.more_activity"
 msgstr ""
 
 #: templates/random.html:7
 msgid "Random Text | Sefaria.org"
-msgstr "Random Text | Pecha.org"
+msgstr ""
 
 #: templates/random.html:14
 msgid "A Random Text on Sefaria"
-msgstr "A Random Text on Pecha"
+msgstr ""
 
 #: templates/random.html:18
 msgid "Get Random"
@@ -1477,6 +1324,10 @@ msgstr ""
 msgid "Admin: Delete a User"
 msgstr ""
 
+#: templates/registration/delete_user_account.html:4
+msgid "common.delete_user_account.pecha"
+msgstr ""
+
 #: templates/registration/delete_user_account.html:11
 #: templates/registration/delete_user_account.html:17
 msgid "Delete User"
@@ -1484,7 +1335,7 @@ msgstr ""
 
 #: templates/registration/logged_out.html:4
 msgid "Logged Out | Sefaria"
-msgstr "Logged Out | Pecha"
+msgstr ""
 
 #: templates/registration/logged_out.html:13
 msgid "You are now logged out."
@@ -1499,16 +1350,10 @@ msgid "Log in to Pecha"
 msgstr ""
 
 #: templates/registration/login.html:6
-#, fuzzy
-#| msgid ""
-#| "Log in to your Sefaria account to make source sheets, write notes, and "
-#| "follow other Sefaria users."
 msgid ""
 "Log in to your Pecha account to make source sheets, write notes, and follow "
 "other Pecha users."
 msgstr ""
-"Log in to your Pecha account to make source sheets, write notes, and follow "
-"other Pecha users."
 
 #: templates/registration/login.html:14
 msgid "You are already logged in as"
@@ -1596,7 +1441,7 @@ msgstr ""
 
 #: templates/registration/password_reset_form.html:6
 msgid "Request a link to change your Sefaria password if you've forgotten it."
-msgstr "Request a link to change your Pecha password if you've forgotten it."
+msgstr ""
 
 #: templates/registration/password_reset_form.html:13
 #: templates/registration/password_reset_form.html:14
@@ -1621,16 +1466,14 @@ msgid ""
 "Create an account on Sefaria to make source sheets, take notes and follow "
 "other people."
 msgstr ""
-"Create an account on Pecha to make source sheets, take notes and follow "
-"other people."
 
 #: templates/registration/register.html:13
 msgid "Sign_Up_Title"
-msgstr "Sign Up"
+msgstr ""
 
 #: templates/registration/register.html:46
 msgid "Sign_Up_Button"
-msgstr "Sign Up"
+msgstr ""
 
 #: templates/registration/register.html:50
 msgid "Already have an account? Log in"
@@ -1648,16 +1491,16 @@ msgstr ""
 
 #: templates/sheets.html:7 templates/sheets_visual.html:4
 msgid "Start a New Sheet - Sefaria Source Sheet Builder"
-msgstr "Start a New Sheet - Pecha Source Sheet Builder"
+msgstr ""
 
 #: templates/sheets.html:9 templates/sheets.html:10
 msgid "A source sheet created with Sefaria's Source Sheet Builder."
-msgstr "A source sheet created with Pecha's Source Sheet Builder."
+msgstr ""
 
 #: templates/sheets.html:9 templates/sheets.html:10
 #: templates/sheets_visual.html:6
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
-msgstr "Create your own source sheet with Pecha's Source Sheet Builder."
+msgstr ""
 
 #: templates/sheets.html:31
 msgid "File"
@@ -1835,6 +1678,11 @@ msgstr ""
 msgid "Highlight Mode is On"
 msgstr ""
 
+#: templates/sheets.html:452 templates/sheets.html:825
+#: templates/sheets.html:978
+msgid "Save"
+msgstr ""
+
 #: templates/sheets.html:461 templates/sheets.html:779
 #: templates/sheets.html:1089
 msgid "Share"
@@ -1939,11 +1787,11 @@ msgstr ""
 
 #: templates/sheets.html:702
 msgid "english"
-msgstr "English"
+msgstr ""
 
 #: templates/sheets.html:703
 msgid "tibetan"
-msgstr "བོད་ཡིག"
+msgstr ""
 
 #: templates/sheets.html:711
 msgid "Add Image, Youtube Video, SoundCloud link, or MP3"
@@ -1951,6 +1799,10 @@ msgstr ""
 
 #: templates/sheets.html:716
 msgid "Paste URL"
+msgstr ""
+
+#: templates/sheets.html:724 templates/sheets.html:788
+msgid "or"
 msgstr ""
 
 #: templates/sheets.html:729
@@ -2014,14 +1866,16 @@ msgid "login"
 msgstr ""
 
 #: templates/sheets.html:789
+msgid "register"
+msgstr ""
+
+#: templates/sheets.html:789
 msgid "to save your work."
 msgstr ""
 
 #: templates/sheets.html:800
-#, fuzzy
-#| msgid "Made with the Sefaria Source Sheet Builder"
 msgid "Made with the Pecha Source Sheet Builder"
-msgstr "Made with the Pecha Source Sheet Builder"
+msgstr ""
 
 #: templates/sheets.html:811
 msgid "Add Highlight"
@@ -2093,6 +1947,10 @@ msgstr ""
 msgid "Anyone with access can"
 msgstr ""
 
+#: templates/sheets.html:971 templates/sheets.html:993
+msgid "Add"
+msgstr ""
+
 #: templates/sheets.html:985
 msgid ""
 "\n"
@@ -2112,6 +1970,11 @@ msgstr ""
 
 #: templates/sheets.html:1026
 msgid "Change this source's layout"
+msgstr ""
+
+#: templates/sheets.html:1042 templates/sheets.html:1078
+#: templates/sheets.html:1094
+msgid "OK"
 msgstr ""
 
 #: templates/sheets.html:1043
@@ -2147,7 +2010,7 @@ msgstr ""
 
 #: templates/sheets.html:1083
 msgid "No problem, this sheet is still not listed on Sefaria."
-msgstr "No problem, this sheet is still not listed on Pecha."
+msgstr ""
 
 #: templates/sheets.html:1088
 msgid "You can make your sheet public in the future from the"
@@ -2159,7 +2022,7 @@ msgstr ""
 
 #: templates/sheets_visual.html:4
 msgid "Sefaria Source Sheet Builder"
-msgstr "Pecha Source Sheet Builder"
+msgstr ""
 
 #: templates/sheets_visual.html:6
 #, python-format
@@ -2167,8 +2030,6 @@ msgid ""
 "Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
 "Sefaria's Source Sheet Builder."
 msgstr ""
-"Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
-"Pecha's Source Sheet Builder."
 
 #: templates/sheets_visual.html:30
 msgid "Back to Sheet"
@@ -2178,447 +2039,27 @@ msgstr ""
 msgid "TBD"
 msgstr ""
 
-#: templates/static/app.html:4
-msgid "Sefaria App"
-msgstr "Pecha App"
-
-#: templates/static/app.html:6
-msgid "Download the free Sefaria App for iOS and Android."
-msgstr "Download the free Pecha App for iOS and Android."
-
-#: templates/static/app.html:314 templates/static/mobile.html:319
-msgid "Sign up for our Newsletter"
-msgstr ""
-
-#: templates/static/app.html:374
-#: templates/static/aramaic-translation-contest.html:180
-#: templates/static/home.html:383 templates/static/mobile.html:379
-#: templates/static/newsletter.html:47
-msgid "<i>Subscribing...</i>"
-msgstr ""
-
-#: templates/static/app.html:380
-#: templates/static/aramaic-translation-contest.html:186
-#: templates/static/home.html:389 templates/static/mobile.html:385
-#: templates/static/newsletter.html:53
-msgid "Subscribed! Welcome to our list."
-msgstr ""
-
-#: templates/static/app.html:386
-#: templates/static/aramaic-translation-contest.html:192
-#: templates/static/home.html:395 templates/static/mobile.html:391
-#: templates/static/newsletter.html:59
-msgid "Please enter a valid email address."
-msgstr ""
-
-#: templates/static/aramaic-translation-contest.html:4
-msgid "Sefaria: a Living Library of Jewish Texts Online"
-msgstr "Pecha: a Living Library of Buddhist Texts Online"
-
-#: templates/static/aramaic-translation-contest.html:6
-msgid ""
-"The largest free library of Jewish texts available to read online in Hebrew "
-"and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries "
-"and more."
-msgstr ""
-
-#: templates/static/connect.html:4
-msgid "Sefaria Newsletter, Social Media and More"
-msgstr "Pecha Newsletter, Social Media and More"
-
-#: templates/static/connect.html:6
-msgid ""
-"Get updates on new texts and features on Sefaria by signing up for our "
-"newsletter or following us on social media."
-msgstr ""
-"Get updates on new texts and features on Pecha by signing up for our "
-"newsletter or following us on social media."
-
-#: templates/static/contest.html:4 templates/static/contest.html:6
-msgid "Powered by Sefaria Contest"
-msgstr "Powered by Pecha Contest"
-
-#: templates/static/contributed-to-sefaria.html:4
-msgid "Texts Contributed to Sefaria"
-msgstr "Texts Contributed to Pecha"
-
-#: templates/static/contributed-to-sefaria.html:6
-msgid ""
-"Texts on Sefaria that list this page as their source were contributed "
-"directly to Sefaria and have not yet been published elsewhere in print or on "
-"the web."
-msgstr ""
-"Texts on Pecha that list this page as their source were contributed directly "
-"to Pecha and have not yet been published elsewhere in print or on the web."
-
-#: templates/static/daf-yomi.html:4
-msgid "Daf Yomi | Sefaria"
-msgstr "Daf Yomi | Pecha"
-
-#: templates/static/daf-yomi.html:6
-msgid "Learn the Talmud each day with Daf Yomi on Sefaria."
-msgstr "Learn the Talmud each day with Daf Yomi on Pecha."
-
-#: templates/static/dicta-thanks.html:4
-msgid "Dicta Thanks"
-msgstr ""
-
-#: templates/static/dicta-thanks.html:6
-msgid "Sefaria thanks Dicta for all of their help."
-msgstr "Pecha thanks Dicta for all of their help."
-
-#: templates/static/digitized-by-sefaria.html:4
-msgid "Texts Digitized by Sefaria"
-msgstr "Texts Digitized by Pecha"
-
-#: templates/static/educators.html:4 templates/static/educators.html:6
-msgid "Teach with Sefaria"
-msgstr "Teach with Pecha"
-
-#: templates/static/en/about.html:4 templates/static/he/about.html:4
-#, fuzzy
-#| msgid "About Sefaria"
+#: templates/static/he/about.html:4
 msgid "About Pecha"
-msgstr "About Pecha"
+msgstr ""
 
-#: templates/static/en/about.html:6 templates/static/he/about.html:6
-#, fuzzy
-#| msgid ""
-#| "Sefaria is a nonprofit organization dedicated to building the future of "
-#| "Jewish learning in an open and participatory way."
+#: templates/static/he/about.html:6
 msgid ""
 "Pecha is a nonprofit organization dedicated to building the future of "
 "Buddhist learning in an open and participatory way."
 msgstr ""
-"Pecha is a nonprofit organization dedicated to building the future of "
-"Buddhist learning in an open and participatory way."
 
-#: templates/static/en/ways-to-give.html:4
 #: templates/static/he/ways-to-give.html:5
 msgid "Donate to Sefaria"
-msgstr "Donate to Pecha"
+msgstr ""
 
-#: templates/static/en/ways-to-give.html:6
 #: templates/static/he/ways-to-give.html:7
 msgid ""
 "Support Sefaria by making a tax-deductible donation online or by check or "
 "wire transfer."
 msgstr ""
-"Support Pecha by making a tax-deductible donation online or by check or wire "
-"transfer."
-
-#: templates/static/home.html:5
-#, fuzzy
-#| msgid "Sefaria: a Living Library of Jewish Texts Online"
-msgid "Pecha: a Living Library of Buddhist Texts Online"
-msgstr "Pecha: a Living Library of Buddhist Texts Online"
-
-#: templates/static/home.html:7
-msgid ""
-"The largest free library of Buddhist texts available to read online in "
-"Tibetan and English including commentaries and more."
-msgstr ""
-
-#: templates/static/home.html:18 templates/static/home.html:32
-msgid "Pecha"
-msgstr ""
-
-#: templates/static/ios.html:4
-msgid "Sefaria iOS"
-msgstr "Pecha iOS"
-
-#: templates/static/jobs.html:4
-#, fuzzy
-#| msgid "Jobs at Sefaria"
-msgid "Jobs at Pecha"
-msgstr "Jobs at Pecha"
-
-#: templates/static/jobs.html:6
-#, fuzzy
-#| msgid ""
-#| "Job openings at Sefaria, a nonprofit technology organization dedicated to "
-#| "building the Jewish future."
-msgid ""
-"Job openings at Pecha, a nonprofit technology organization dedicated to "
-"building the Buddhist future."
-msgstr ""
-"Job openings at Pecha, a nonprofit technology organization dedicated to "
-"building the Buddhist future."
-
-#: templates/static/linker.html:4
-msgid "Linker Plugin"
-msgstr ""
-
-#: templates/static/linker.html:6
-msgid ""
-"Automatically turn citations on your website into links or dynamic popups "
-"with the full text from Sefaria."
-msgstr ""
-"Automatically turn citations on your website into links or dynamic popups "
-"with the full text from Pecha."
-
-#: templates/static/mobile.html:4
-#, fuzzy
-#| msgid "Sefaria Mobile Apps"
-msgid "Pecha Mobile Apps"
-msgstr "Pecha Mobile Apps"
-
-#: templates/static/mobile.html:6
-msgid "Download the free Sefaria Apps for iOS and Android."
-msgstr "Download the free Pecha Apps for iOS and Android."
-
-#: templates/static/newsletter.html:4 templates/static/newsletter.html:6
-msgid "Sign up for Sefaria's Newsletter"
-msgstr "Sign up for Pecha's Newsletter"
 
 #: templates/static/powered-by-sefaria-contest-2020.html:4
 #: templates/static/powered-by-sefaria-contest-2020.html:6
 msgid "Powered by Sefaria Contest 2020"
-msgstr "Powered by Pecha Contest 2020"
-
-#: templates/static/powered-by-sefaria-contest-2021.html:4
-#: templates/static/powered-by-sefaria-contest-2021.html:6
-msgid "Powered by Sefaria Contest 2021"
-msgstr "Powered by Pecha Contest 2021"
-
-#: templates/static/powered-by.html:4
-msgid "Powered by Sefaria"
-msgstr "Powered by Pecha"
-
-#: templates/static/powered-by.html:6
-msgid ""
-"Sefaria’s open data and API can be used by anyone.  You can find it all for "
-"free in our GitHub repository!"
 msgstr ""
-"Pecha’s open data and API can be used by anyone.  You can find it all for "
-"free in our GitHub repository!"
-
-#: templates/static/privacy-policy.html:4
-msgid "Privacy Policy"
-msgstr ""
-
-#: templates/static/ramban-sponsorships.html:4
-#: templates/static/ramban-sponsorships.html:6
-msgid "Ramban on Torah - Thank you to our Sponsors"
-msgstr ""
-
-#: templates/static/remote-learning.html:4
-msgid "Remote Learning | Sefaria"
-msgstr "Remote Learning | Pecha"
-
-#: templates/static/remote-learning.html:6
-msgid "Resources for teaching and learning virtually."
-msgstr ""
-
-#: templates/static/sefaria-community-translation.html:4
-msgid "About Sefaria Community Translations"
-msgstr "About Pecha Community Translations"
-
-#: templates/static/sefaria-community-translation.html:6
-msgid ""
-"Sefaria Community Translations are open, crowd-sourced translations of texts "
-"available in the Sefaria Library."
-msgstr ""
-"Pecha Community Translations are open, crowd-sourced translations of texts "
-"available in the Pecha Library."
-
-#: templates/static/sefaria-edition.html:4
-msgid "About Sefaria Editions"
-msgstr "About Pecha Editions"
-
-#: templates/static/sefaria-edition.html:6
-msgid ""
-"The Sefaria Edition is a Sefaria commissioned translation created by "
-"professional translators."
-msgstr ""
-"The Pecha Edition is a Pecha commissioned translation created by "
-"professional translators."
-
-#: templates/static/sheets.html:4
-#, fuzzy
-#| msgid "Sheets on Sefaria"
-msgid "Sheets on Pecha"
-msgstr "Sheets on Pecha"
-
-#: templates/static/sheets.html:6
-msgid ""
-"Mix and match sources from Sefaria’s library of Jewish texts, and add your "
-"comments, images and videos."
-msgstr ""
-"Mix and match sources from Pecha’s library of Jewish texts, and add your "
-"comments, images and videos."
-
-#: templates/static/shraga-silverstein.html:4
-msgid "In Memory of Rabbi Shraga Silverstein"
-msgstr ""
-
-#: templates/static/strategy.html:4
-msgid "Sefaria Strategy"
-msgstr "Pecha Strategy"
-
-#: templates/static/supporters.html:4
-msgid "Sefaria's Supporters"
-msgstr "Pecha's Supporters"
-
-#: templates/static/supporters.html:6
-msgid ""
-"Sefaria gratefully acknowledges the following donors whose generosity and "
-"leadership are making Sefaria possible."
-msgstr ""
-"Pecha gratefully acknowledges the following donors whose generosity and "
-"leadership are making Pecha possible."
-
-#: templates/static/team.html:5
-msgid "The Sefaria Team"
-msgstr "The Pecha Team"
-
-#: templates/static/team.html:7
-msgid "Sefaria's team is working to create the Jewish future."
-msgstr "Pecha's team is working to create the Jewish future."
-
-#: templates/static/terms.html:4
-msgid "Terms of Use"
-msgstr ""
-
-#: templates/static/testimonials.html:4
-msgid "Sefaria Testimonials"
-msgstr "Pecha Testimonials"
-
-#: templates/static/testimonials.html:6
-msgid "Sefaria’s Impact – Reflections and Insights from Users"
-msgstr "Pecha’s Impact – Reflections and Insights from Users"
-
-#: templates/static/the-sefaria-story.html:4
-msgid "The Sefaria Story"
-msgstr "The Pecha Story"
-
-#: templates/static/the-sefaria-story.html:6
-msgid "Watch a video about the story of Sefaria."
-msgstr "Watch a video about the story of Pecha."
-
-#: templates/static/torah-tab.html:5
-msgid "Sefaria Torah Tab"
-msgstr "Pecha Torah Tab"
-
-#: templates/static/torah-tab.html:7
-msgid "Install the free Sefaria Torah Tab for your web browser."
-msgstr "Install the free Pecha Torah Tab for your web browser."
-
-#: templates/static/visualizations.html:4
-msgid "Visualizations"
-msgstr ""
-
-#: templates/static/visualizations.html:6
-msgid ""
-"Projects which have been created to make interactive visualizations of the "
-"texts and connections in the Sefaria Library of Torah texts."
-msgstr ""
-"Projects which have been created to make interactive visualizations of the "
-"texts and connections in the Pecha Library of Torah texts."
-
-#: templates/static/william-davidson-talmud.html:4
-#: templates/static/william-davidson-talmud.html:84
-msgid "The William Davidson Talmud"
-msgstr ""
-
-#: templates/static/william-davidson-talmud.html:6
-msgid ""
-"The William Davidson Talmud is a free digital edition of the Babylonian "
-"Talmud with parallel translations, interlinked to major commentaries, "
-"biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish "
-"texts."
-msgstr ""
-
-#: templates/static/word-by-word.html:4
-msgid "Word by Word: A Jewish Women's Writing Circle"
-msgstr ""
-
-#: templates/static/word-by-word.html:6
-msgid ""
-"Word by Word: A Jewish Women's Writing Circle will provide up to 20 Jewish "
-"women writers engaged in serious torah scholarship the support and guidance "
-"to produce publishable books."
-msgstr ""
-
-#: templates/talmud_people.html:8
-msgid ""
-"An index of the sages of the Talmud (Chazal) ordered by generation, "
-"including relationships to one another, time periods and links to learn more."
-msgstr ""
-
-#: templates/talmudic_relationships.html:24
-#: templates/talmudic_relationships.html:26
-msgid "Student-Teacher Relationships in the Talmud"
-msgstr ""
-
-#: templates/timeline.html:4 templates/timeline.html:6
-msgid "Timeline"
-msgstr ""
-
-#: templates/unique_words_viz.html:7
-msgid "Unique Words used by Biblical Commentators"
-msgstr ""
-
-#: templates/unique_words_viz.html:9
-msgid "Explore how unique and verbose biblical commentators were."
-msgstr ""
-
-#: templates/visual_library.html:4
-msgid "Visualizing the Sefaria Library"
-msgstr "Visualizing the Pecha Library"
-
-#: templates/visual_library.html:6
-msgid ""
-"How big is Torah compared to Talmud? This sunburst diagram lets you see the "
-"number of words in the texts and categories of Sefaria's library (which is "
-"growing every day!)."
-msgstr ""
-"How big is Torah compared to Talmud? This sunburst diagram lets you see the "
-"number of words in the texts and categories of Pecha's library (which is "
-"growing every day!)."
-
-#: templates/visual_parasha_colors.html:6
-msgid "Visualizing the Parshiot"
-msgstr ""
-
-#: templates/visualize_links_through_rashi.html:6
-msgid "Visualizing Torah Connections through Rashi's Commentary"
-msgstr ""
-
-#: templates/visualize_links_through_rashi.html:8
-msgid ""
-"Explore how Rashi connects verses of Torah to one another when he quotes one "
-"verse in his commentary on another."
-msgstr ""
-
-#~ msgid "%(name)s invited you to a collection on Sefaria"
-#~ msgstr "%(name)s invited you to a collection on Pecha"
-
-#~ msgid "Sefaria Activity"
-#~ msgstr "Pecha Activity"
-
-#~ msgid "View the complete revision hisotry of this text on Sefaria."
-#~ msgstr "View the complete revision hisotry of this text on Pecha."
-
-#~ msgid ""
-#~ "View a user's acitvitiy history on Sefaria, including published source "
-#~ "sheets, and text translations, edits or additions."
-#~ msgstr ""
-#~ "View a user's acitvitiy history on Pecha, including published source "
-#~ "sheets, and text translations, edits or additions."
-
-#~ msgid ""
-#~ "View the complete log of public activity on Sefaria, including published "
-#~ "source sheets, and text translations, edits or additions. "
-#~ msgstr ""
-#~ "View the complete log of public activity on Pecha, including published "
-#~ "source sheets, and text translations, edits or additions. "
-
-#~ msgid "Recent Activity on Sefaria"
-#~ msgstr "Recent Activity on Pecha"
-
-#~ msgid "login_success_message"
-#~ msgstr "You are already logged in as {{ user.email }}."
-
-#~ msgid "Log in to Sefaria"
-#~ msgstr "Log in to Pecha"
