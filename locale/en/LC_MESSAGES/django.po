@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-07 09:48-0400\n"
+"POT-Creation-Date: 2025-01-07 10:00-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -728,20 +728,8 @@ msgstr ""
 msgid "profile.more_activity"
 msgstr ""
 
-#: templates/random.html:7
-msgid "Random Text | Sefaria.org"
-msgstr ""
-
-#: templates/random.html:14
-msgid "A Random Text on Sefaria"
-msgstr ""
-
-#: templates/random.html:18
-msgid "Get Random"
-msgstr ""
-
 #: templates/registration/delete_user_account.html:4
-msgid "Admin: Delete a User"
+msgid "delete_user_account.adming_delete_a_user"
 msgstr ""
 
 #: templates/registration/delete_user_account.html:4
@@ -750,57 +738,51 @@ msgstr ""
 
 #: templates/registration/delete_user_account.html:11
 #: templates/registration/delete_user_account.html:17
-msgid "Delete User"
+msgid "registration.delete_user_account.delete_user"
+msgstr ""
+
+#: templates/registration/delete_user_account.html:20
+msgid "delete_user_acc.long_message"
 msgstr ""
 
 #: templates/registration/logged_out.html:4
-msgid "Logged Out | Sefaria"
+msgid "registration.logged_out.logged_out_pecha"
 msgstr ""
 
 #: templates/registration/logged_out.html:13
-msgid "You are now logged out."
-msgstr ""
-
-#: templates/registration/logged_out.html:13
-msgid "Log back in"
+msgid "registration.logged_out.log_back_in"
 msgstr ""
 
 #: templates/registration/login.html:4 templates/registration/login.html:29
-msgid "Log in to Pecha"
+msgid "registration.login.login_in_to_pecha"
 msgstr ""
 
 #: templates/registration/login.html:6
-msgid ""
-"Log in to your Pecha account to make source sheets, write notes, and follow "
-"other Pecha users."
+msgid "registration.login.login_in_to_pecha_description"
 msgstr ""
 
 #: templates/registration/login.html:14
-msgid "You are already logged in as"
+msgid "registration.login.you_are_already_logged_in_as"
 msgstr ""
 
 #: templates/registration/login.html:17
-msgid "Logout."
+msgid "common.registration.login.log_out"
 msgstr ""
 
 #: templates/registration/login.html:33
-msgid "Your username and password didn't match. Please try again."
+msgid "registration.login.username_and_password_didn't_match_message"
 msgstr ""
 
 #: templates/registration/login.html:50
-msgid "Login"
-msgstr ""
-
-#: templates/registration/login.html:53
-msgid "Forgot your password?"
+msgid "common.registration.login.log_in"
 msgstr ""
 
 #: templates/registration/login.html:58
-msgid "Create a new account"
+msgid "common.registration.login.create_a_new_account"
 msgstr ""
 
 #: templates/registration/password_reset_complete.html:3
-msgid "Password Reset"
+msgid "registration.password_reset_complete.password_reset"
 msgstr ""
 
 #: templates/registration/password_reset_complete.html:3
