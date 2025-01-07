@@ -574,6 +574,7 @@ class TextSegment extends Component {
   }
 
   render() {
+    const {panelMode, language} = this.context;
     let linkCountElement = null;
     let he = this.props.he || "";
     let en = this.props.en || "";
@@ -588,8 +589,17 @@ class TextSegment extends Component {
     en = this.props.formatEnAsPoetry ? this.addPoetrySpans(en) : en
     he = this.props.formatHeAsPoetry ? this.addPoetrySpans(he) : he
 
-    const heOnly = (!this.props.en && this.props?.primaryDirection === 'rtl');
-    const enOnly = !this.props.en && this.props?.primaryDirection === 'ltr';
+    const hasOnlyRtl = (!this.props.en && this.props?.primaryDirection === 'rtl');
+    const hasOnlyLtr = !this.props.en && this.props?.primaryDirection === 'ltr';
+    let sidebarRtl, sidebarLtr;
+    if (panelMode === 'Connections') {
+      const directionAttr = (language === 'hebrew') ? 'primaryDirection' : 'translationDirection';
+      const direction = this.props?.[directionAttr];
+      sidebarRtl = direction === 'rtl';
+      sidebarLtr = direction === 'ltr';
+    }
+    const heOnly = hasOnlyRtl || sidebarRtl;
+    const enOnly = hasOnlyLtr || sidebarLtr;
 
     if (this.props.showLinkCount) {
       const linkCount = this.props.linkCount;
