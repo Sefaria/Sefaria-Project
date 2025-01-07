@@ -89,7 +89,7 @@ const ReaderDisplayOptionsMenu = () => {
     };
 
     return (
-        <div className="texts-properties-menu">
+        <div className="texts-properties-menu" role="dialog">
             {showLangaugeToggle() && <>
                 <SourceTranslationsButtons
                     showPrimary={showPrimary}
