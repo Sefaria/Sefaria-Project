@@ -26,7 +26,6 @@ import { ReaderApp } from './ReaderApp';
 import {ToolsButton} from "./ConnectionsPanel";
 import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
 
-
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -2892,23 +2891,13 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, sheetOptions, editable}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable}) => {
   return <div className="sheetMetaDataBox">
     <div className="sidebarLayout">
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
       {sheetOptions}
     </div>
     {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
-    <div className="user">
-      <ProfilePic
-          url={authorImage}
-          len={30}
-          name={authorStatement}
-      />
-      <a href={authorUrl} className="sheetAuthorName">
-        <InterfaceText>{authorStatement}</InterfaceText>
-      </a>
-    </div>
   </div>
 }
 

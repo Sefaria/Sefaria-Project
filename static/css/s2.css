@@ -8492,7 +8492,7 @@ a.sheetAuthorName {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 18.75px;
   display: inline;
   margin-block-end: 10px;
@@ -8510,7 +8510,8 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 18.75px;
   color: var(--dark-grey);
-  margin-block-end: 15px;
+  margin-block-end: 25px;
+  text-align: initial;
 }
 .sheetMetaDataBox .title {
   --english-font: var(--english-sans-serif-font-family);
@@ -8520,6 +8521,7 @@ a.sheetAuthorName:hover {
   line-height: 35.16px;
   margin-block-end: 15px;
   flex: 1 0 95%;
+  text-align: initial;
 }
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
   content: "ללא שם";
@@ -10016,6 +10018,19 @@ span.purim-emoji img{
   box-sizing: border-box;
   position: relative;
 }
+.sheetContent .collectionsWidgetDone .button, .sheetContentSidebar .largeFollowButton {
+  background-color: var(--midrash-green);
+}
+.sheetContentSidebar .largeFollowButton {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  min-height: 31px;
+  height: 31px;
+}
+
 .sheetContent {
   width: 100%;
   box-sizing: border-box;
@@ -10027,7 +10042,6 @@ span.purim-emoji img{
   max-width: 760px;
   position: relative;
   padding: 0 30px;
-  counter-reset: css-counter 0;
 }
 .sheetContent .ref {
   cursor: pointer;
@@ -10261,7 +10275,7 @@ span.purim-emoji img{
   padding-block-start: 10px;
   padding-block-end: 10px;
 }
-.SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
+.SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
   margin-block-start: -10px;
   margin-block-end: 30px;
 }
@@ -10852,44 +10866,12 @@ section.SheetOutsideBiText .en {
 section.SheetSource,
 section.SheetOutsideBiText {
   border-inline-start: 4px solid;
-  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+  border-inline-end: 1px solid #DDDDDD;
+  border-block-start: 1px solid #DDDDDD;
+  border-block-end: 1px solid #DDDDDD;
+  border-radius: 4px;
   margin-bottom: 30px;
 }
-
-.SheetOutsideBiText, .SheetSource {
-    counter-increment: css-counter 1;
-}
-
-.SheetOutsideBiText:before,
-.SheetSource:before {
-  position: absolute;
-  color:  var(--medium-grey);
-  font-size: 12px;
-}
-
-.english .SheetOutsideBiText:before,
-.english .SheetSource:before {
-  content: counter(css-counter);
-  left: -34px;
-  font-family: var(--english-sans-serif-font-family);
-}
-
-.bilingual .SheetOutsideBiText:before,
-.bilingual .SheetSource:before {
-  content: counter(css-counter);
-  right: -34px;
-  font-family: var(--english-sans-serif-font-family);
-
-}
-
-
-.hebrew .SheetOutsideBiText:before,
-.hebrew .SheetSource:before {
-  content: counter(css-counter, hebrew);
-  right: -34px;
-  font-family: var(--hebrew-sans-serif-font-family);
-}
-
 
 .readerPanel.hebrew section.SheetSource .sheetItem > .he,
 .readerPanel.english section.SheetSource .sheetItem > .en,
@@ -10909,6 +10891,10 @@ section.SheetOutsideBiText {
 .interface-english section.SheetOutsideBiText .sheetItem > .en {
   padding: 15px 20px 15px 16px;
 }
+.interface-english section.SheetSource .sheetItem > .en {
+  border-block-start: 1px solid #DDDDDD;
+  border-block-end: 1px solid #DDDDDD;
+}
 .interface-hebrew section.SheetSource .sheetItem > .he,
 .interface-hebrew section.SheetSource .sheetItem > .en,
 .interface-hebrew section.SheetOutsideBiText .sheetItem > .he,
@@ -10922,6 +10908,9 @@ section.SheetSource .SheetOutsideBiText {
 .sheetContent section.SheetSource .sheetItem.segment .sourceContentText,
 .sheetContent section.SheetOutsideBiText .sheetItem.segment .sourceContentText {
   margin: 0;
+}
+.sheetContent section.SheetSource .sheetItem.segment {
+  margin-block-end: 0;
 }
 .sheetItem .SheetSource,
 .sheetItem .SheetOutsideBiText {
@@ -13840,7 +13829,7 @@ span.ref-link-color-3 {color: blue}
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 18px;
   color: #666666;
   margin-inline-start: 10px;
@@ -13886,6 +13875,7 @@ span.ref-link-color-3 {color: blue}
   content: "";
   transform: scale(0.75);
 } */
+
 .sheetsInPanel .dropdownLinks a.dropdownLinks-button::after {
   display: inline-block;
   height: 10px;
