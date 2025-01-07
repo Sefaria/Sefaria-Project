@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-07 10:00-0400\n"
+"POT-Creation-Date: 2025-01-07 10:04-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -814,9 +814,7 @@ msgid "Password Reset Link Sent"
 msgstr ""
 
 #: templates/registration/password_reset_done.html:10
-msgid ""
-"registration.password_reset_done."
-"an_email_has_been_send_to_reset_your_password"
+msgid "registration.password_reset_done.messages"
 msgstr ""
 
 #: templates/registration/password_reset_email.html:4
