@@ -76,7 +76,7 @@ export const TopicLandingNewsletter = () => {
             </div>
             <div className="">
                 {subscribeErrorMessage ?
-                    <div className="subscribeErrorMessage">*{Sefaria._(subscribeErrorMessage)}</div>
+                    <div className="subscribeErrorMessage">{Sefaria._(subscribeErrorMessage)}</div>
                     : null}
             </div>
         </div>
