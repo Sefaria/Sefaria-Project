@@ -33,7 +33,7 @@ export const TopicLandingNewsletter = () => {
         Sefaria.subscribeSefariaNewsletter(firstNameRef.current?.value, lastNameRef.current?.value, emailRef.current?.value, false, []).then(res => {
             setSubscribeMessage("Subscribed! Welcome to our list.");
         }).catch(error => {
-            setSubscribeErrorMessage("There has been an error. Please re-enter your information.");
+            setSubscribeErrorMessage(error?.message || "Sorry, there was an error.");
             setSubscribeMessage(null);
         });
     }
