@@ -8542,6 +8542,9 @@ a.sheetAuthorName:hover {
 .sheetMetaDataBox .sidebarLayout .items > * {
   margin-inline-start: 15px;
 }
+.sheetMetaDataBox .texts-properties-menu {
+  top: 40px;
+}
 .sheetMetaDataBox .sidebarLayout {
   justify-content: space-between;
 }
