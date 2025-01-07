@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-07 01:54-0400\n"
+"POT-Creation-Date: 2025-01-07 02:50-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,32 +18,31 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: sefaria/forms.py:32
-msgid "Email Address to delete"
+msgid "placeholder_email_delete_message"
 msgstr ""
 
 #: sefaria/forms.py:33 sefaria/forms.py:37
-msgid "Admin Password"
+msgid "placeholder_admin_password"
 msgstr ""
 
 #: sefaria/forms.py:36
-msgid "Sheet ID to delete"
+msgid "placeholder_sheet_id_delete_message"
 msgstr ""
 
 #: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
-#: templates/messages/2022-01-09-user-testing-modal.html:86
-msgid "Email Address"
+msgid "Placeholder_email_address"
 msgstr ""
 
 #: sefaria/forms.py:42 sefaria/forms.py:50
-msgid "Password"
+msgid "placeholder_password"
 msgstr ""
 
 #: sefaria/forms.py:48
-msgid "First Name"
+msgid "placeholder_first_name"
 msgstr ""
 
 #: sefaria/forms.py:49
-msgid "Last Name"
+msgid "placeholder_last_name"
 msgstr ""
 
 #: sefaria/forms.py:55 templates/registration/custom_dropdown.html:5
@@ -51,53 +50,48 @@ msgstr ""
 msgid "Select an option"
 msgstr ""
 
-#: sefaria/forms.py:56 templates/registration/custom_dropdown.html:10
-#: templates/registration/register.html:32
-msgid "Monastic"
+#: sefaria/forms.py:56
+msgid "placeholder_monastic"
 msgstr ""
 
-#: sefaria/forms.py:57 templates/registration/custom_dropdown.html:11
-#: templates/registration/register.html:33
-msgid "Teacher"
+#: sefaria/forms.py:57
+msgid "placeholder_teacher"
 msgstr ""
 
-#: sefaria/forms.py:58 templates/registration/custom_dropdown.html:12
-#: templates/registration/register.html:34
-msgid "Student"
+#: sefaria/forms.py:58
+msgid "placeholder_student"
 msgstr ""
 
-#: sefaria/forms.py:59 templates/registration/custom_dropdown.html:13
-#: templates/registration/register.html:35
-msgid "Educated* /Dr / Prof"
+#: sefaria/forms.py:59
+msgid "placeholder_Educated_Dr_Prof"
 msgstr ""
 
-#: sefaria/forms.py:60 templates/registration/custom_dropdown.html:14
-#: templates/registration/register.html:36
-msgid "regular user"
+#: sefaria/forms.py:60
+msgid "placeholder_regular_user"
 msgstr ""
 
 #: sefaria/forms.py:95
-msgid "A user with that email already exists."
+msgid "user_already_exists_message"
 msgstr ""
 
 #: sefaria/forms.py:143
-msgid "Incorrect mobile_app_key provided"
+msgid "mobile_app_key_error_message"
 msgstr ""
 
 #: sefaria/forms.py:157
-msgid "New password"
+msgid "form.placeholder_new_password"
 msgstr ""
 
 #: sefaria/forms.py:158
-msgid "Enter New Password"
+msgid "placeholder_new_password"
 msgstr ""
 
 #: sefaria/forms.py:163
-msgid "New password confirmation"
+msgid "form_placeholder_new_pw_confirmation"
 msgstr ""
 
 #: sefaria/forms.py:165
-msgid "Repeat New Password"
+msgid "placeholder_repeat_new_password"
 msgstr ""
 
 #: sefaria/model/collection.py:93
@@ -128,38 +122,16 @@ msgstr ""
 msgid "The email address is not valid."
 msgstr ""
 
-#: sefaria/settings.py:30
-msgid "English"
-msgstr ""
-
-#: sefaria/settings.py:31
-msgid "Hebrew"
-msgstr ""
-
-#: sefaria/settings.py:32
-msgid "Chinese"
-msgstr ""
-
-#: sefaria/settings.py:33
-msgid "Spanish"
-msgstr ""
-
-#: sefaria/views.py:200 sefaria/views.py:203 sefaria/views.py:287
-msgid "Sorry, there was an error."
-msgstr ""
-
 #: sourcesheets/views.py:403
 msgid "creating_new_collection_message"
 msgstr ""
 
 #: sourcesheets/views.py:566
-msgid ""
-"Leaving this collection would leave it without any owners. Please appoint "
-"another owner before leaving, or delete the collection."
+msgid "error_message_when_trying_to_remove_the_last_owner_of_a_collection"
 msgstr ""
 
 #: sourcesheets/views.py:1161
-msgid "You must be logged in to access this api."
+msgid "error_message_when_trying_to_upload_media_without_logging_in"
 msgstr ""
 
 #: templates/404.html:4
@@ -393,54 +365,6 @@ msgstr ""
 
 #: templates/delete-sheet.html:19
 msgid "admin.delete_sheet_button"
-msgstr ""
-
-#: templates/discussions.html:6 templates/discussions.html:14
-msgid "Discuss a Text on Sefaria"
-msgstr ""
-
-#: templates/discussions.html:18
-msgid "This is an <b>EXPERIMENTAL"
-msgstr ""
-
-#: templates/discussions.html:18
-msgid " feature. Please try it out and let us know what is"
-msgstr ""
-
-#: templates/discussions.html:18
-msgid "exciting"
-msgstr ""
-
-#: templates/discussions.html:18
-msgid " and what is"
-msgstr ""
-
-#: templates/discussions.html:18
-msgid "frustrating"
-msgstr ""
-
-#: templates/discussions.html:18
-msgid " about it!"
-msgstr ""
-
-#: templates/discussions.html:26
-msgid "Choose a Text"
-msgstr ""
-
-#: templates/discussions.html:31
-msgid "Start a Discussion"
-msgstr ""
-
-#: templates/discussions.html:33
-msgid "Anyone with the link below will be able to view and participate."
-msgstr ""
-
-#: templates/discussions.html:37
-msgid "Get Started"
-msgstr ""
-
-#: templates/discussions.html:41
-msgid "Your Discussions"
 msgstr ""
 
 #: templates/edit_collection.html:9
@@ -689,144 +613,6 @@ msgstr ""
 msgid "edit_text.copied_from"
 msgstr ""
 
-#: templates/elements/activity_feed.html:7
-msgid "deleted the text"
-msgstr ""
-
-#: templates/elements/activity_feed.html:12
-msgid "deleted a text version of"
-msgstr ""
-
-#: templates/elements/activity_feed.html:14
-#: templates/elements/activity_feed.html:37
-#: templates/elements/activity_feed.html:140
-msgid "Version"
-msgstr ""
-
-#: templates/elements/activity_feed.html:20
-msgid "translated"
-msgstr ""
-
-#: templates/elements/activity_feed.html:22
-msgid "added"
-msgstr ""
-
-#: templates/elements/activity_feed.html:24
-msgid "edited"
-msgstr ""
-
-#: templates/elements/activity_feed.html:26
-msgid "reverted"
-msgstr ""
-
-#: templates/elements/activity_feed.html:31
-#: templates/elements/activity_feed.html:59
-msgid "and "
-msgstr ""
-
-#: templates/elements/activity_feed.html:31
-msgid "others"
-msgstr ""
-
-#: templates/elements/activity_feed.html:34
-#: templates/elements/activity_feed.html:138
-msgid "history"
-msgstr ""
-
-#: templates/elements/activity_feed.html:46
-msgid "added a connection"
-msgstr ""
-
-#: templates/elements/activity_feed.html:48
-msgid "edited a connection"
-msgstr ""
-
-#: templates/elements/activity_feed.html:50
-msgid "deleted a connection"
-msgstr ""
-
-#: templates/elements/activity_feed.html:53
-msgid "between"
-msgstr ""
-
-#: templates/elements/activity_feed.html:68
-msgid "automatic commentary link"
-msgstr ""
-
-#: templates/elements/activity_feed.html:69
-msgid "automatic citation link"
-msgstr ""
-
-#: templates/elements/activity_feed.html:76
-msgid "added a note to "
-msgstr ""
-
-#: templates/elements/activity_feed.html:78
-msgid "edited a note on "
-msgstr ""
-
-#: templates/elements/activity_feed.html:80
-msgid "deleted a note on "
-msgstr ""
-
-#: templates/elements/activity_feed.html:97
-msgid "added text info for the text"
-msgstr ""
-
-#: templates/elements/activity_feed.html:99
-msgid "edited the text info of"
-msgstr ""
-
-#: templates/elements/activity_feed.html:103
-#: templates/elements/activity_feed.html:124
-msgid "details"
-msgstr ""
-
-#: templates/elements/activity_feed.html:116
-msgid "added a term"
-msgstr ""
-
-#: templates/elements/activity_feed.html:118
-msgid "edited the term"
-msgstr ""
-
-#: templates/elements/activity_feed.html:120
-msgid "deleted the term"
-msgstr ""
-
-#: templates/elements/activity_feed.html:136
-msgid "reviewed"
-msgstr ""
-
-#: templates/elements/activity_feed.html:148
-#: templates/email/notification.html:20
-msgid "published a new Source Sheet"
-msgstr ""
-
-#: templates/elements/activity_feed.html:158
-msgid "related"
-msgstr ""
-
-#: templates/elements/activity_feed.html:166
-msgid "No matching public activity yet."
-msgstr ""
-
-#: templates/elements/activity_feed.html:168
-msgid "No public activity yet."
-msgstr ""
-
-#: templates/elements/activity_feed.html:172
-msgid "No matching public history items."
-msgstr ""
-
-#: templates/elements/activity_feed.html:174
-msgid "No public history items."
-msgstr ""
-
-#: templates/elements/activity_feed.html:180
-msgid "Older Activity"
-msgstr ""
-
 #: templates/elements/login_prompt.html:6
 msgid "Sign Up"
 msgstr ""
@@ -892,6 +678,10 @@ msgstr ""
 
 #: templates/email/notification.html:17
 msgid "likes your Source Sheet"
+msgstr ""
+
+#: templates/email/notification.html:20
+msgid "published a new Source Sheet"
 msgstr ""
 
 #: templates/email/notification.html:23
@@ -1047,6 +837,31 @@ msgstr ""
 
 #: templates/random.html:18
 msgid "Get Random"
+msgstr ""
+
+#: templates/registration/custom_dropdown.html:10
+#: templates/registration/register.html:32
+msgid "Monastic"
+msgstr ""
+
+#: templates/registration/custom_dropdown.html:11
+#: templates/registration/register.html:33
+msgid "Teacher"
+msgstr ""
+
+#: templates/registration/custom_dropdown.html:12
+#: templates/registration/register.html:34
+msgid "Student"
+msgstr ""
+
+#: templates/registration/custom_dropdown.html:13
+#: templates/registration/register.html:35
+msgid "Educated* /Dr / Prof"
+msgstr ""
+
+#: templates/registration/custom_dropdown.html:14
+#: templates/registration/register.html:36
+msgid "regular user"
 msgstr ""
 
 #: templates/registration/delete_user_account.html:4
