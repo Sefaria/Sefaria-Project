@@ -344,6 +344,8 @@ const TopicSponsorship = ({topic_slug}) => {
 }
 
 const isLinkPublished = (lang, link) => link.descriptions?.[lang]?.published !== false;
+const isLinkReviewed= (lang, link) => link.descriptions?.[lang]?.review_state !== "not reviewed";
+
 
 const doesLinkHaveAiContent = (lang, link) => link.descriptions?.[lang]?.ai_title?.length > 0 && isLinkPublished(lang, link);
 
@@ -362,7 +364,7 @@ const getLinksToGenerate = (refTopicLinks = []) => {
 const getLinksToPublish = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
     return refTopicLinks.filter(link => {
-        return !isLinkPublished(lang, link);
+        return !isLinkPublished(lang, link) && isLinkReviewed(lang, link);
     });
 };
 
