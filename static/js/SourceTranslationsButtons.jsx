@@ -12,13 +12,15 @@ function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts 
             <div
                 className={`button ${(isActive) ? "checked" : ""}`}
                 onClick={ () => setShowTexts(isPrimary, isTranslation) }
+                role="radio"
+                aria-checked={isActive}
             >
                 <InterfaceText>{text}</InterfaceText>
             </div>
         );
     }, [showPrimary, showTranslation]);
     return (
-      <div className="show-source-translation-buttons">
+      <div className="show-source-translation-buttons" role="radiogroup" aria-label="Source-translation toggle">
           {createButton(true, false, 'Source')}
           {createButton(false, true, 'Translation')}
           {!isSidePanel && createButton(true, true, 'Source with Translation')}
