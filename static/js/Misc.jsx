@@ -2906,8 +2906,10 @@ const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback
   return <div className="sheetMetaDataBox">
     <div className={`sidebarLayout`}>
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
-      {languageToggle}
-      {sheetOptions}
+      <div className="items">
+        {languageToggle}
+        {sheetOptions}
+      </div>
     </div>
     {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
                                                        className="summary"

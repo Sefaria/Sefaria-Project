@@ -5290,9 +5290,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerOptions .int-en {
   margin-right: 4px;
 }
-.sheetMetaDataBox .readerOptions {
-  margin-inline-end: 24px;
-}
 .readerOptions .int-he {
   margin-left: 8px;
 }
@@ -8538,6 +8535,16 @@ a.sheetAuthorName:hover {
 .sheetContentSidebar a.sheetAuthorName {
   display: block;
 }
+.sheetMetaDataBox .sidebarLayout .items {
+  display: flex;
+  justify-content: space-between;
+}
+.sheetMetaDataBox .sidebarLayout .items > * {
+  margin-inline-start: 15px;
+}
+.sheetMetaDataBox .sidebarLayout {
+  justify-content: space-between;
+}
 .sheetMetaDataBox .summary {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -8555,7 +8562,7 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 35.16px;
   margin-block-end: 15px;
-  flex: 0 0 80%;
+  flex: 0 0 70%;
   text-align: initial;
 }
 
@@ -14144,9 +14151,6 @@ span.ref-link-color-3 {color: blue}
   color: #666666;
   margin-inline-start: 10px;
   padding: revert;
-}
-.sheetsInPanel .sidebarLayout {
-  justify-content: space-between;
 }
 .sheetsInPanel .headerDropdownMenu {
   margin-top: 7px;
