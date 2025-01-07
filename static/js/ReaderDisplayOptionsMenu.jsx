@@ -116,8 +116,8 @@ const ReaderDisplayOptionsMenu = () => {
                     isChecked={vowelsAreShown}
                 />}
                 {showCantillationToggle() && <ToggleSwitchLine
-                    name="cantilation"
-                    text="Cantilation"
+                    name="cantillation"
+                    text="Cantillation"
                     disabled={cantillationDisabled}
                     onChange={onCantillationClick}
                     isChecked={cantillationsAreShown}
