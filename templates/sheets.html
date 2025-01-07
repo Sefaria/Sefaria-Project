@@ -515,7 +515,7 @@
         </div>
         <div id="title" role="heading" aria-level="1">
             {% autoescape off %}
-            {% with title_t=title|default:_("Loading...") %}
+            {% with title_t=title|default:("Loading...") %}
             {{ title_t }}
             {% endwith %}
             {% endautoescape %}

@@ -90,7 +90,7 @@ class Collection(abst.AbstractMongoRecord):
         assert super(Collection, self)._validate()
 
         if len(self.name) == 0:
-            raise InputError(_("Please set a name for your collection."))
+            raise InputError(_("set_collection_name_message"))
 
         return True
 

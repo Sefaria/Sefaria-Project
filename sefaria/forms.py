@@ -52,7 +52,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
     #                                         required=False)
 
     CHOICES = [
-        ('', _('Select an option')),
+        ('', _('forms.placeholder_select_option')),
         ('Monastic', _('placeholder_monastic')),
         ('Teacher', _('placeholder_teacher')),
         ('Student', _('placeholder_student')),

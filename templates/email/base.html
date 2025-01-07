@@ -16,16 +16,16 @@
 		<div style="padding:20px 0;border-top:1px solid #bbb">
 		{%  %}
             You're receiving this message because you have an account on
-        {%  %}
+        {% %}
             <a href="http://www.pecha.org">www.pecha.org</a>.
             <br>
-        {% blocktrans with settings_url="/settings/account"|absolute_url %}
+        {%  with settings_url="/settings/account"|absolute_url %}
             To change your email settings, click <a href="{{ settings_url }}">here</a>
-        {% endblocktrans %}
+        {% %}
             <br>
-        {% blocktrans with hello_email="mailto:hello@pecha.org" %}
+        {% with hello_email="mailto:hello@pecha.org" %}
             Your feedback is welcome. Feel free to send us an <a href="{{ hello_email }}">email</a>.
-        {% endblocktrans %}
+        {% %}
 		</div>
 	<tr>
 </table> 
