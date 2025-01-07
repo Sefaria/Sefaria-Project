@@ -1081,7 +1081,13 @@ class ReaderPanel extends Component {
     }
 
     let classes  = {readerPanel: 1, serif: 1, narrowColumn: this.state.width < 730};
-    classes[readerPanelContextData.language] = 1;
+    let contentLanguage;
+    if (this.state.mode === 'Sheet') {
+      contentLanguage = (Sefaria.interfaceLang === 'hebrew') ? 'hebrew' : 'bilingual';
+    } else {
+      contentLanguage = readerPanelContextData.language;
+    }
+    classes[contentLanguage] = 1;
     classes[this.currentLayout()]        = 1;
     classes[this.state.settings.color]   = 1;
     if (readerPanelContextData.language !== 'bilingual' || !this.state.data?.text?.length) {
