@@ -15,7 +15,8 @@ function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts 
                 role="radio"
                 aria-checked={isActive}
             >
-                <InterfaceText>{text}</InterfaceText>
+                <input type='radio' id={text}/>
+                <label for={text}><InterfaceText>{text}</InterfaceText></label>
             </div>
         );
     }, [showPrimary, showTranslation]);

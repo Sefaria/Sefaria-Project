@@ -13550,6 +13550,10 @@ span.ref-link-color-3 {color: blue}
   justify-content: center;
 }
 
+.show-source-translation-buttons input {
+  display: none;
+}
+
 .show-source-translation-buttons .button {
   margin: unset;
   display: flex;
