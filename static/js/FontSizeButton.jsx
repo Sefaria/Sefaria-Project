@@ -6,23 +6,21 @@ function FontSizeButtons() {
     const {setOption} = useContext(ReaderPanelContext);
     return (
         <div className="font-size-line">
-            <div
+            <button
                 onClick={()=>setOption('fontSize', 'smaller')}
                 className="font-size-button preventClosing"
-                role="button"
                 aria-label="Decrease font size"
             >
                 <img src="/static/icons/reduce_font.svg" alt=""/>
-            </div>
+            </button>
             <InterfaceText>Font Size</InterfaceText>
-            <div
+            <button
                 onClick={()=>setOption('fontSize', 'larger')}
                 className="font-size-button preventClosing"
-                role="button"
                 aria-label="Decrease font size"
             >
                 <img src="/static/icons/enlarge_font.svg" alt=""/>
-            </div>
+            </button>
         </div>
     );
 }
