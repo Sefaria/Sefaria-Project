@@ -33,7 +33,7 @@ const LayoutButton = ({layoutOption, layoutState}) => {
     const optionName = (language === 'bilingual') ? 'biLayout' : 'layout';
     const checked = layout === layoutOption;
     return (
-        <div
+        <input
             key={layoutOption}
             className={`layout-button ${checked ? 'checked' : ''}`}
             onClick={() => setOption(optionName, layoutOption)}
