@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n static %}
 
-{% block title %}{% if urlRoot == "/explore" %}{% blocktrans %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% endblocktrans %}{% else %}{% blocktrans %}Link Explorer - Visualized Connections Between {{ bottomCatTitle }} and {{ topCatTitle}} | Sefaria{% endblocktrans %}{% endif %}{% endblock %}
+{% block title %}{% if urlRoot == "/explore" %}{% %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% %}{% else %}{%  %}Link Explorer - Visualized Connections Between {{ bottomCatTitle }} and {{ topCatTitle}} | Sefaria{%  %}{% endif %}{% endblock %}
 
-{% block description %}{% if urlRoot == "/explore" %}{% blocktrans %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% else %}{% blocktrans %}Visually explore quotations and connections between {{ bottomCatTitle }} and {{ topCatTitle}}. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% endif %}{% endblock %}
+{% block description %}{% if urlRoot == "/explore" %}{% %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{%  %}{% else %}{% %}Visually explore quotations and connections between {{ bottomCatTitle }} and {{ topCatTitle}}. Zoom in to particular books either above or below to explore deeper.{% %}{% endif %}{% endblock %}
 
 {% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
 

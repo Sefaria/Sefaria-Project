@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-06 13:40-0400\n"
+"POT-Creation-Date: 2025-01-07 01:54-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,215 +16,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: reader/templatetags/sefaria_tags.py:226 sefaria/settings.py:30
-#: templates/elements/notification.html:15
-#: templates/elements/notification.html:17 templates/sheets.html:190
-#: templates/sheets.html:272
-msgid "English"
-msgstr ""
-
-#: reader/templatetags/sefaria_tags.py:227 sefaria/settings.py:31
-#: templates/elements/notification.html:15
-#: templates/elements/notification.html:17 templates/sheets.html:278
-msgid "Hebrew"
-msgstr ""
-
-#: reader/templatetags/sefaria_tags.py:228 templates/sheets.html:202
-#: templates/sheets.html:284
-msgid "Bilingual"
-msgstr ""
-
-#: reader/views.py:706
-#, python-format
-msgid "Read the text of %(book)s online with commentaries and connections."
-msgstr ""
-
-#: reader/views.py:728
-msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
-msgstr ""
-
-#: reader/views.py:733 reader/views.py:3168 templates/person.html:6
-#: templates/person.html:8
-#: templates/registration/password_reset_complete.html:3
-#: templates/registration/password_reset_confirm.html:4
-#: templates/registration/password_reset_done.html:3
-#: templates/registration/password_reset_form.html:4
-#: templates/registration/register.html:4
-msgid "Sefaria"
-msgstr ""
-
-#: reader/views.py:735
-msgid "A source sheet created with Sefaria's Source Sheet Builder"
-msgstr ""
-
-#: reader/views.py:772
-msgid "Recently Viewed"
-msgstr ""
-
-#: reader/views.py:773
-msgid "Texts that you've recently viewed on Sefaria."
-msgstr ""
-
-#: reader/views.py:785
-#, python-format
-msgid "Read %(categories)s texts online with commentaries and connections."
-msgstr ""
-
-#: reader/views.py:787
-msgid " | Sefaria"
-msgstr ""
-
-#: reader/views.py:821 reader/views.py:3208
-msgid ""
-"Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish "
-"sources."
-msgstr ""
-
-#: reader/views.py:823 reader/views.py:3210
-#, python-format
-msgid ""
-"Jewish texts and source sheets about %(topic)s from Torah, Talmud and other "
-"sources in Sefaria's library."
-msgstr ""
-
-#: reader/views.py:841
-msgid "Explore Jewish Texts by Topic"
-msgstr ""
-
-#: reader/views.py:843
-msgid ""
-"Explore Jewish texts related to traditional and contemporary topics, coming "
-"from Torah, Talmud, and more."
-msgstr ""
-
-#: reader/views.py:923
-msgid "Sefaria Search"
-msgstr ""
-
-#: reader/views.py:924
-msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
-msgstr ""
-
-#: reader/views.py:950 reader/views.py:1011
-msgid "Sefaria Collections"
-msgstr ""
-
-#: reader/views.py:1128
-msgid "Pecha - Buddhism in your own words"
-msgstr ""
-
-#: reader/views.py:1129
-msgid ""
-"The largest free library of Buddhist texts available to read online in "
-"Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, "
-"commentaries and more."
-msgstr ""
-
-#: reader/views.py:1134
-msgid "Learning Schedules"
-msgstr ""
-
-#: reader/views.py:1135
-msgid ""
-"Weekly Torah portions, Daf Yomi, and other schedules for Torah learning."
-msgstr ""
-
-#: reader/views.py:1141
-msgid "My Saved Content"
-msgstr ""
-
-#: reader/views.py:1142
-msgid "See your saved content on Sefaria"
-msgstr ""
-
-#: reader/views.py:1158
-msgid "My User History"
-msgstr ""
-
-#: reader/views.py:1159
-msgid "See your user history on Sefaria"
-msgstr ""
-
-#: reader/views.py:1164
-msgid "New Additions to the Pecha Library"
-msgstr ""
-
-#: reader/views.py:1165
-msgid ""
-"See texts, translations and connections that have been recently added to "
-"Pecha."
-msgstr ""
-
-#: reader/views.py:1171
-msgid "User Stats"
-msgstr ""
-
-#: reader/views.py:1178
-msgid "Sefaria Notifications"
-msgstr ""
-
-#: reader/views.py:1188
-msgid "Moderator Tools"
-msgstr ""
-
-#: reader/views.py:1233 reader/views.py:3168
-msgid "Topics"
-msgstr ""
-
-#: reader/views.py:1235
-msgid "Source Sheet"
-msgstr ""
-
-#: reader/views.py:1265
-msgid "Texts"
-msgstr ""
-
-#: reader/views.py:3169
-msgid "Explore Jewish Texts by Topic on Sefaria"
-msgstr ""
-
-#: reader/views.py:3627
-#, python-format
-msgid "%(full_name)s on Pecha"
-msgstr ""
-
-#: reader/views.py:3628
-#, python-format
-msgid ""
-"%(full_name)s is on Pecha. Follow to view their public source sheets, notes "
-"and translations."
-msgstr ""
-
-#: reader/views.py:3642 reader/views.py:3670 reader/views.py:3804
-msgid "You must be logged in to update your profile."
-msgstr ""
-
-#: reader/views.py:3680
-msgid "account_email_mismatch_error"
-msgstr ""
-
-#: reader/views.py:3682
-msgid "account_password_mismatch_error"
-msgstr ""
-
-#: reader/views.py:3763
-msgid "You must be logged in to update your profile photo."
-msgstr ""
-
-#: reader/views.py:3888
-msgid "You must be logged in to delete your account."
-msgstr ""
-
-#: reader/views.py:4079
-msgid "From the Community: Today on Sefaria"
-msgstr ""
-
-#: reader/views.py:4081
-msgid ""
-"New and featured source sheets, divrei torah, articles, sermons and more "
-"created by members of the Sefaria community."
-msgstr ""
 
 #: sefaria/forms.py:32
 msgid "Email Address to delete"
@@ -337,6 +128,14 @@ msgstr ""
 msgid "The email address is not valid."
 msgstr ""
 
+#: sefaria/settings.py:30
+msgid "English"
+msgstr ""
+
+#: sefaria/settings.py:31
+msgid "Hebrew"
+msgstr ""
+
 #: sefaria/settings.py:32
 msgid "Chinese"
 msgstr ""
@@ -350,7 +149,7 @@ msgid "Sorry, there was an error."
 msgstr ""
 
 #: sourcesheets/views.py:403
-msgid "You must be logged in to create a new collection."
+msgid "creating_new_collection_message"
 msgstr ""
 
 #: sourcesheets/views.py:566
@@ -649,7 +448,7 @@ msgid "Edit Collection on Sefaria"
 msgstr ""
 
 #: templates/edit_collection.html:20 templates/elements/loading.html:12
-#: templates/sheets.html:518 templates/sheets.html:750
+#: templates/sheets.html:518
 msgid "Loading..."
 msgstr ""
 
@@ -1032,55 +831,8 @@ msgstr ""
 msgid "Sign Up"
 msgstr ""
 
-#: templates/elements/login_prompt.html:8 templates/sheets.html:996
-#: templates/sheets.html:1018
+#: templates/elements/login_prompt.html:8
 msgid "Cancel"
-msgstr ""
-
-#: templates/elements/notification.html:15
-#: templates/elements/notification.html:17
-msgid "New"
-msgstr ""
-
-#: templates/elements/notification.html:15
-#: templates/elements/notification.html:17
-msgid "version of"
-msgstr ""
-
-#: templates/elements/notification.html:27
-msgid "New Text:"
-msgstr ""
-
-#: templates/elements/notification.html:36
-msgid "likes your sheet,"
-msgstr ""
-
-#: templates/elements/notification.html:41
-msgid "published a new sheet"
-msgstr ""
-
-#: templates/elements/notification.html:46
-msgid "is now following you."
-msgstr ""
-
-#: templates/elements/notification.html:52
-#: templates/elements/notification.html:57 templates/email/notification.html:26
-msgid "added you to the collection"
-msgstr ""
-
-#: templates/elements/notification.html:62 templates/email/notification.html:29
-msgid "added a note to a"
-msgstr ""
-
-#: templates/elements/notification.html:62 templates/email/notification.html:31
-msgid "discussion you follow"
-msgstr ""
-
-#: templates/email/base.html:17
-msgid ""
-"\n"
-"            You're receiving this message because you have an account on\n"
-"        "
 msgstr ""
 
 #: templates/email/base.html:22
@@ -1146,6 +898,18 @@ msgstr ""
 msgid "is now following you"
 msgstr ""
 
+#: templates/email/notification.html:26
+msgid "added you to the collection"
+msgstr ""
+
+#: templates/email/notification.html:29
+msgid "added a note to a"
+msgstr ""
+
+#: templates/email/notification.html:31
+msgid "discussion you follow"
+msgstr ""
+
 #: templates/email/notification.html:35
 msgid "This is a notification without a type, it shouldn't exist."
 msgstr ""
@@ -1157,50 +921,6 @@ msgstr ""
 
 #: templates/email/notifications_email.html:9
 msgid " Here's some new activity on Sefaria that you may have missed."
-msgstr ""
-
-#: templates/explore.html:4
-msgid ""
-"Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria"
-msgstr ""
-
-#: templates/explore.html:4
-#, python-format
-msgid ""
-"Link Explorer - Visualized Connections Between %(bottomCatTitle)s and "
-"%(topCatTitle)s | Sefaria"
-msgstr ""
-
-#: templates/explore.html:6
-msgid ""
-"Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom "
-"in to particular books either above or below to explore deeper."
-msgstr ""
-
-#: templates/explore.html:6
-#, python-format
-msgid ""
-"Visually explore quotations and connections between %(bottomCatTitle)s and "
-"%(topCatTitle)s. Zoom in to particular books either above or below to "
-"explore deeper."
-msgstr ""
-
-#: templates/gdocs_sheet.html:2218
-msgid "Source Sheet created on Pecha by"
-msgstr ""
-
-#: templates/leaderboard.html:4
-msgid "Top Contributors | Sefaria"
-msgstr ""
-
-#: templates/leaderboard.html:6
-msgid ""
-"See who has been contributing most to Sefaria in terms of texts, "
-"translations, and source sheet."
-msgstr ""
-
-#: templates/leaderboard.html:30
-msgid "Top Contributors"
 msgstr ""
 
 #: templates/people.html:5
@@ -1217,6 +937,15 @@ msgstr ""
 
 #: templates/people.html:28
 msgid "people.choejuk_author"
+msgstr ""
+
+#: templates/person.html:6 templates/person.html:8
+#: templates/registration/password_reset_complete.html:3
+#: templates/registration/password_reset_confirm.html:4
+#: templates/registration/password_reset_done.html:3
+#: templates/registration/password_reset_form.html:4
+#: templates/registration/register.html:4
+msgid "Sefaria"
 msgstr ""
 
 #: templates/person.html:38
@@ -1367,7 +1096,7 @@ msgstr ""
 msgid "Your username and password didn't match. Please try again."
 msgstr ""
 
-#: templates/registration/login.html:50 templates/sheets.html:497
+#: templates/registration/login.html:50
 msgid "Login"
 msgstr ""
 
@@ -1489,577 +1218,10 @@ msgid ""
 "this parallel sets chart."
 msgstr ""
 
-#: templates/sheets.html:7 templates/sheets_visual.html:4
-msgid "Start a New Sheet - Sefaria Source Sheet Builder"
-msgstr ""
-
-#: templates/sheets.html:9 templates/sheets.html:10
-msgid "A source sheet created with Sefaria's Source Sheet Builder."
-msgstr ""
-
-#: templates/sheets.html:9 templates/sheets.html:10
-#: templates/sheets_visual.html:6
-msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
-msgstr ""
-
-#: templates/sheets.html:31
-msgid "File"
-msgstr ""
-
-#: templates/sheets.html:38
-msgid "Copy Sheet"
-msgstr ""
-
-#: templates/sheets.html:46
-msgid "Export to Google Drive"
-msgstr ""
-
-#: templates/sheets.html:53 templates/sheets.html:1004
-msgid "Embed Sheet"
-msgstr ""
-
-#: templates/sheets.html:61
-msgid "Delete Sheet"
-msgstr ""
-
-#: templates/sheets.html:72
-msgid "Tags"
-msgstr ""
-
-#: templates/sheets.html:84 templates/sheets.html:853
-msgid "Assignments"
-msgstr ""
-
-#: templates/sheets.html:98 templates/sheets.html:779
-msgid "Print"
-msgstr ""
-
-#: templates/sheets.html:106
-msgid "Visualize"
-msgstr ""
-
-#: templates/sheets.html:114
-msgid "Highlight Mode"
-msgstr ""
-
-#: templates/sheets.html:117
-msgid "Exit Highlight Mode"
-msgstr ""
-
-#: templates/sheets.html:125
-msgid "Format"
-msgstr ""
-
-#: templates/sheets.html:130
-msgid "Number Sources"
-msgstr ""
-
-#: templates/sheets.html:136
-msgid "Box Sources"
-msgstr ""
-
-#: templates/sheets.html:149
-msgid "Reset Source Text"
-msgstr ""
-
-#: templates/sheets.html:156
-msgid "Auto-Segment Text"
-msgstr ""
-
-#: templates/sheets.html:164
-msgid "Remove Vowel Points"
-msgstr ""
-
-#: templates/sheets.html:171
-msgid "Add Source Title"
-msgstr ""
-
-#: templates/sheets.html:182
-msgid "Sheet Language"
-msgstr ""
-
-#: templates/sheets.html:196
-msgid "Tibetan"
-msgstr ""
-
-#: templates/sheets.html:213
-msgid "Sheet Layout"
-msgstr ""
-
-#: templates/sheets.html:221 templates/sheets.html:303
-msgid "Stacked"
-msgstr ""
-
-#: templates/sheets.html:227 templates/sheets.html:309
-msgid "Side-by-Side"
-msgstr ""
-
-#: templates/sheets.html:238 templates/sheets.html:320
-msgid "Side-by-Side Layout"
-msgstr ""
-
-#: templates/sheets.html:246 templates/sheets.html:328
-msgid "Tibetan Left"
-msgstr ""
-
-#: templates/sheets.html:252 templates/sheets.html:334
-msgid "Tibetan Right"
-msgstr ""
-
-#: templates/sheets.html:264
-msgid "Source Language"
-msgstr ""
-
-#: templates/sheets.html:295
-msgid "Source Layout"
-msgstr ""
-
-#: templates/sheets.html:344
-msgid "Reset to Sheet Default"
-msgstr ""
-
-#: templates/sheets.html:357
-msgid "Insert"
-msgstr ""
-
-#: templates/sheets.html:362 templates/sheets.html:625
-msgid "Source"
-msgstr ""
-
-#: templates/sheets.html:368 templates/sheets.html:635
-msgid "Text"
-msgstr ""
-
-#: templates/sheets.html:374 templates/sheets.html:645
-msgid "Comment"
-msgstr ""
-
-#: templates/sheets.html:380 templates/sheets.html:640
-msgid "Media"
-msgstr ""
-
-#: templates/sheets.html:387
-msgid "Highlight Tools"
-msgstr ""
-
-#: templates/sheets.html:392
-msgid "Paragraph View"
-msgstr ""
-
-#: templates/sheets.html:395
-msgid "Line-by-line View"
-msgstr ""
-
-#: templates/sheets.html:402
-msgid "Reset"
-msgstr ""
-
-#: templates/sheets.html:408
-msgid "Filter"
-msgstr ""
-
-#: templates/sheets.html:424
-msgid "Last Saved"
-msgstr ""
-
-#: templates/sheets.html:427
-msgid "All changes saved in Pecha"
-msgstr ""
-
-#: templates/sheets.html:430 templates/sheets.html:455
-msgid "Saving..."
-msgstr ""
-
-#: templates/sheets.html:433
-msgid "Changes Pending..."
-msgstr ""
-
-#: templates/sheets.html:442
-msgid "Highlight Mode is On"
-msgstr ""
-
-#: templates/sheets.html:452 templates/sheets.html:825
-#: templates/sheets.html:978
-msgid "Save"
-msgstr ""
-
-#: templates/sheets.html:461 templates/sheets.html:779
-#: templates/sheets.html:1089
-msgid "Share"
-msgstr ""
-
-#: templates/sheets.html:464 templates/sheets.html:468
-msgid "View in Library"
-msgstr ""
-
-#: templates/sheets.html:497
-msgid "Like this?"
-msgstr ""
-
-#: templates/sheets.html:498
-msgid "create an account"
-msgstr ""
-
-#: templates/sheets.html:498
-msgid "to build your own source sheet."
-msgstr ""
-
-#: templates/sheets.html:505
-msgid "Header Title"
-msgstr ""
-
-#: templates/sheets.html:532 templates/sheets.html:540
-#, python-format
-msgid ""
-"\n"
-"            Assignment Completed by %(owner)s\n"
-"            "
-msgstr ""
-
-#: templates/sheets.html:547
-#, python-format
-msgid ""
-"\n"
-"            Source Sheet by %(owner)s\n"
-"            "
-msgstr ""
-
-#: templates/sheets.html:557
-msgid "More info"
-msgstr ""
-
-#: templates/sheets.html:562 templates/sheets.html:974
-msgid "Edit"
-msgstr ""
-
-#: templates/sheets.html:563
-msgid "Created"
-msgstr ""
-
-#: templates/sheets.html:564 templates/sheets.html:968
-msgid "View"
-msgstr ""
-
-#: templates/sheets.html:565
-msgid "Views"
-msgstr ""
-
-#: templates/sheets.html:569
-msgid "Based on"
-msgstr ""
-
-#: templates/sheets.html:570 templates/sheets.html:841
-msgid "a sheet"
-msgstr ""
-
-#: templates/sheets.html:570 templates/sheets.html:841
-msgid "by"
-msgstr ""
-
-#: templates/sheets.html:576 templates/sheets.html:582
-msgid "Assigned by"
-msgstr ""
-
-#: templates/sheets.html:630
-msgid "Connection"
-msgstr ""
-
-#: templates/sheets.html:651
-msgid "Select a text"
-msgstr ""
-
-#: templates/sheets.html:670
-msgid "Browse Sources"
-msgstr ""
-
-#: templates/sheets.html:679
-msgid "Select connected texts"
-msgstr ""
-
-#: templates/sheets.html:683 templates/sheets.html:706
-#: templates/sheets.html:720 templates/sheets.html:742
-msgid "Add to Sheet"
-msgstr ""
-
-#: templates/sheets.html:688
-msgid "Write or paste text"
-msgstr ""
-
-#: templates/sheets.html:702
-msgid "english"
-msgstr ""
-
-#: templates/sheets.html:703
-msgid "tibetan"
-msgstr ""
-
-#: templates/sheets.html:711
-msgid "Add Image, Youtube Video, SoundCloud link, or MP3"
-msgstr ""
-
-#: templates/sheets.html:716
-msgid "Paste URL"
-msgstr ""
-
-#: templates/sheets.html:724 templates/sheets.html:788
-msgid "or"
-msgstr ""
-
-#: templates/sheets.html:729
-msgid "Upload an Image"
-msgstr ""
-
-#: templates/sheets.html:738
-msgid "Comment on this section"
-msgstr ""
-
-#: templates/sheets.html:761
-msgid "Watch a 2 minute intro video or "
-msgstr ""
-
-#: templates/sheets.html:761
-msgid "read more"
-msgstr ""
-
-#: templates/sheets.html:765
-msgid "Source Sheet Builder: How it Works"
-msgstr ""
-
-#: templates/sheets.html:771
-msgid "Add Sources"
-msgstr ""
-
-#: templates/sheets.html:771
-msgid "by typing a citation like:"
-msgstr ""
-
-#: templates/sheets.html:776
-msgid "Reorder Sources"
-msgstr ""
-
-#: templates/sheets.html:776
-msgid "by dragging and dropping."
-msgstr ""
-
-#: templates/sheets.html:779
-msgid "your sheets to paper or PDF, or just"
-msgstr ""
-
-#: templates/sheets.html:779
-msgid " the link."
-msgstr ""
-
-#: templates/sheets.html:782
-msgid "More Options"
-msgstr ""
-
-#: templates/sheets.html:782
-msgid "are available in the icons that appear when you hover over a source."
-msgstr ""
-
-#: templates/sheets.html:788
-msgid "Take a spin! But you'll need to "
-msgstr ""
-
-#: templates/sheets.html:788
-msgid "login"
-msgstr ""
-
-#: templates/sheets.html:789
-msgid "register"
-msgstr ""
-
-#: templates/sheets.html:789
-msgid "to save your work."
-msgstr ""
-
-#: templates/sheets.html:800
-msgid "Made with the Pecha Source Sheet Builder"
-msgstr ""
-
-#: templates/sheets.html:811
-msgid "Add Highlight"
-msgstr ""
-
-#: templates/sheets.html:822
-msgid "Create New"
-msgstr ""
-
-#: templates/sheets.html:837
-msgid "Source Sheet created on Pecha by "
-msgstr ""
-
-#: templates/sheets.html:841
-msgid "Based on "
-msgstr ""
-
-#: templates/sheets.html:856
-msgid ""
-"Assignments allow you to create a template that your students can fill out "
-"on their own."
-msgstr ""
-
-#: templates/sheets.html:860
-msgid "Assign this Sheet"
-msgstr ""
-
-#: templates/sheets.html:863
-msgid "Stop Collecting Assignments"
-msgstr ""
-
-#: templates/sheets.html:870
-msgid "Saved Assignments"
-msgstr ""
-
-#: templates/sheets.html:879
-msgid "Your student's saved assignments will be viewable here."
-msgstr ""
-
-#: templates/sheets.html:889
-msgid "Write a summary to help others understand your sheet..."
-msgstr ""
-
-#: templates/sheets.html:895
-msgid "Add Tags..."
-msgstr ""
-
-#: templates/sheets.html:905
-msgid "List on Pecha"
-msgstr ""
-
-#: templates/sheets.html:921
-msgid "Display Collection"
-msgstr ""
-
-#: templates/sheets.html:928
-msgid "None"
-msgstr ""
-
-#: templates/sheets.html:943
-msgid "To manage the collections this sheet appears in, visit your profile."
-msgstr ""
-
-#: templates/sheets.html:952
-msgid "Share a link"
-msgstr ""
-
-#: templates/sheets.html:963
-msgid "Anyone with access can"
-msgstr ""
-
-#: templates/sheets.html:971 templates/sheets.html:993
-msgid "Add"
-msgstr ""
-
-#: templates/sheets.html:985
-msgid ""
-"\n"
-"            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
-"            "
-msgstr ""
-
-#: templates/sheets.html:1007
-msgid ""
-"Copy and paste the embed code below. Adjust the values of width and height "
-"to best fit your design."
-msgstr ""
-
-#: templates/sheets.html:1014
-msgid "Add a Parasha to a Source Sheet"
-msgstr ""
-
-#: templates/sheets.html:1026
-msgid "Change this source's layout"
-msgstr ""
-
-#: templates/sheets.html:1042 templates/sheets.html:1078
-#: templates/sheets.html:1094
-msgid "OK"
-msgstr ""
-
-#: templates/sheets.html:1043
-msgid "Reset to sheet defaults"
-msgstr ""
-
-#: templates/sheets.html:1052
-msgid "Would you like to make your Source Sheet public?"
-msgstr ""
-
-#: templates/sheets.html:1057
-msgid ""
-"Your Source Sheet is looking great! You can share it with other members of "
-"the Pecha Community by making it public."
-msgstr ""
-
-#: templates/sheets.html:1062
-msgid "Make Public"
-msgstr ""
-
-#: templates/sheets.html:1065
-msgid "Maybe Later"
-msgstr ""
-
-#: templates/sheets.html:1070
-msgid "Your Sheet is now Public!"
-msgstr ""
-
-#: templates/sheets.html:1074
-msgid ""
-"Thank you for contributing to a free, growing resource for Jewish learning."
-msgstr ""
-
-#: templates/sheets.html:1083
-msgid "No problem, this sheet is still not listed on Sefaria."
-msgstr ""
-
-#: templates/sheets.html:1088
-msgid "You can make your sheet public in the future from the"
-msgstr ""
-
-#: templates/sheets_visual.html:4
-msgid "Visualized"
-msgstr ""
-
-#: templates/sheets_visual.html:4
-msgid "Sefaria Source Sheet Builder"
-msgstr ""
-
-#: templates/sheets_visual.html:6
-#, python-format
-msgid ""
-"Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
-"Sefaria's Source Sheet Builder."
-msgstr ""
-
-#: templates/sheets_visual.html:30
-msgid "Back to Sheet"
-msgstr ""
-
-#: templates/static/all_home.html:4 templates/static/all_home.html:6
-msgid "TBD"
-msgstr ""
-
 #: templates/static/he/about.html:4
 msgid "About Pecha"
 msgstr ""
 
 #: templates/static/he/about.html:6
-msgid ""
-"Pecha is a nonprofit organization dedicated to building the future of "
-"Buddhist learning in an open and participatory way."
-msgstr ""
-
-#: templates/static/he/ways-to-give.html:5
-msgid "Donate to Sefaria"
-msgstr ""
-
-#: templates/static/he/ways-to-give.html:7
-msgid ""
-"Support Sefaria by making a tax-deductible donation online or by check or "
-"wire transfer."
-msgstr ""
-
-#: templates/static/powered-by-sefaria-contest-2020.html:4
-#: templates/static/powered-by-sefaria-contest-2020.html:6
-msgid "Powered by Sefaria Contest 2020"
+msgid "about.about_pecha_description"
 msgstr ""
