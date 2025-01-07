@@ -5060,6 +5060,18 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+
+.topic-landing-newsletter-wrapper .subscribeErrorMessage {
+  color: var(--Halakhah-Red, #802F3E);
+  font-family: Roboto;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: normal;
+  margin-top: 10px;
+  text-align: end;
+}
+
 .topic-landing-newsletter h3.topic-landing-newsletter-text {
   width: 220px;
   color: white;
