@@ -1525,8 +1525,10 @@ div.interfaceLinks-row a {
 .readerPanel.english .contentText .he,
 .readerPanel.hebrew .contentText .en,
 .readerPanel.english .contentSpan.primary,
+.readerPanel.english .connectionsPanel .contentSpan.primary,
 .readerPanel.english .languageToggle .he,
 .readerPanel.hebrew .contentSpan.translation,
+.readerPanel.hebrew .connectionsPanel .contentSpan.translation,
 .readerPanel.hebrew .languageToggle .en {
   display: none;
 }
