@@ -589,8 +589,10 @@ class TextSegment extends Component {
     en = this.props.formatEnAsPoetry ? this.addPoetrySpans(en) : en
     he = this.props.formatHeAsPoetry ? this.addPoetrySpans(he) : he
 
-    const hasOnlyRtl = (!this.props.en && this.props?.primaryDirection === 'rtl');
-    const hasOnlyLtr = !this.props.en && this.props?.primaryDirection === 'ltr';
+    const hasNoTranslation = !this.props.en;
+
+    const hasOnlyRtl = (hasNoTranslation && this.props?.primaryDirection === 'rtl');
+    const hasOnlyLtr = hasNoTranslation && this.props?.primaryDirection === 'ltr';
     let sidebarRtl, sidebarLtr;
     if (panelMode === 'Connections') {
       const directionAttr = (language === 'hebrew') ? 'primaryDirection' : 'translationDirection';
@@ -625,14 +627,17 @@ class TextSegment extends Component {
         </div>
     ) : null;
 
-    const primary = {
+
+    const shouldPrimaryShow = language !== 'english' || hasNoTranslation;
+    const primary = shouldPrimaryShow ? {
       direction: this.props.primaryDirection,
       text: he + " ",
-    };
-    const translation = {
+    } : {};
+    const shouldTranslationShow = language !== 'hebrew';
+    const translation = shouldTranslationShow ? {
       direction: this.props.translationDirection,
       text: en + " ",
-    };
+    } : {};
 
     const classes=classNames({
       segment: 1,
@@ -642,7 +647,7 @@ class TextSegment extends Component {
       enOnly: enOnly,
       showNamedEntityLinks: !!this.props.onNamedEntityClick,
     });
-    if(!this.props.en && !this.props.he){
+    if(hasNoTranslation && !this.props.he){
         return false;
     }
     return (
