@@ -5733,7 +5733,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heLeft.bilingual .segment > p > .translation,
 .heRight.bilingual .segment > p > .primary,
 .heRight.bilingual .sheetItem.segment > .he,
-.heLeft.bilingual .sheetItem.segment > .en{
+.heLeft.bilingual .sheetItem.segment > .en,
+.heRight.bilingual .SheetSource.segment > .he,
+.heLeft.bilingual .SheetSource.segment > .en {
   float: right;
   padding-left: 20px;
 }
@@ -5742,7 +5744,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heRight.bilingual .segment > p > .translation,
 .heLeft.bilingual .segment > p > .primary,
 .heRight.bilingual .sheetItem.segment > .en,
-.heLeft.bilingual .sheetItem.segment > .he{
+.heLeft.bilingual .sheetItem.segment > .he,
+.heRight.bilingual .SheetSource.segment > .en,
+.heLeft.bilingual .SheetSource.segment > .he {
   float: left;
   padding-right: 20px;
 }
@@ -10671,6 +10675,10 @@ section.SheetOutsideBiText {
 .readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .en > .ref,
 .readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .he > .sourceContentText,
 .readerPanel.english section.SheetSource .sheetItem > .he,
+.readerPanel.hebrew .sheetItem:not(.enOnly) .SheetSource > .en,
+.readerPanel.hebrew .sheetItem.enOnly .SheetSource > .en > .ref,
+.readerPanel.hebrew .sheetItem.enOnly .SheetSource > .he > .sourceContentText,
+.readerPanel.english .sheetItem .SheetSource > .he,
 .readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .en,
 .readerPanel.english section.SheetOutsideBiText .sheetItem > .he  {
   display: none;
