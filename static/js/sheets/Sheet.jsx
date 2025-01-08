@@ -95,6 +95,7 @@ class Sheet extends Component {
                                   authorImage={sheet.ownerImageUrl}
                                   collections={sheet.collections}
                                   toggleSignUpModal={this.props.toggleSignUpModal}
+                                  topics={sheet.topics}
                               />;
         editor = <div className="sidebarLayout">
                   <div className="sheetContent">
