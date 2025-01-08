@@ -2520,8 +2520,8 @@ _media: {},
     const checkEquality = (key) => {
       //This is temporary for RTL - we check savedVersion?.[key] for old data and savedVersion?.[key]?.versionTitle for new data
       //also we currently don't check the languageFamilyName to fit old data
-      const savedVersionTitle = savedVersion?.[key]?.versionTitle || savedVersion?.[key] || '';
-      const currVersionTitle = currVersion?.[key]?.versionTitle || '';
+      const savedVersionTitle = savedVersion?.[key]?.versionTitle ?? savedVersion?.[key] ?? '';
+      const currVersionTitle = currVersion?.[key]?.versionTitle ?? '';
       return savedVersionTitle === currVersionTitle;
     }
     return checkEquality("en") && checkEquality("he");
