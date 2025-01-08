@@ -3863,7 +3863,7 @@
           },
           {
             "name": "always_consonants",
-            "description": "",
+            "description": "If this is `1`, the given word will searched both with an without its vowels. If it is not present, or `0`, then the word will only be looked up exactly as written in the request",
             "schema": {
               "type": "string"
             },
