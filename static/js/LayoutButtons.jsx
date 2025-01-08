@@ -4,11 +4,11 @@ import {layoutOptions} from "./constants";
 import {InterfaceText} from "./Misc";
 import PropTypes from "prop-types";
 
-const calculateLayoutState = (language, textsData) => {
+const calculateLayoutState = (language, textsData, panelMode) => {
     const primaryDir = textsData?.primaryDirection;
     const translationDir = textsData?.translationDirection;
     return (language !== 'bilingual') ? 'mono' //one text
-        : (primaryDir !== translationDir) ? 'mixed' //two texts with different directions
+        : (primaryDir !== translationDir || panelMode === 'Sheet') ? 'mixed' //two texts with different directions
             : (primaryDir === 'rtl') ? 'bi-rtl' //two rtl texts
                 : 'bi-ltr'; //two ltr texts
 };
@@ -46,8 +46,8 @@ LayoutButton.propTypes = {
 };
 
 const LayoutButtons = () => {
-    const {language, textsData} = useContext(ReaderPanelContext);
-    const layoutState = calculateLayoutState(language, textsData);
+    const {language, textsData, panelMode} = useContext(ReaderPanelContext);
+    const layoutState = calculateLayoutState(language, textsData, panelMode);
     return (
         <div className="layout-button-line">
             <InterfaceText>Layout</InterfaceText>
