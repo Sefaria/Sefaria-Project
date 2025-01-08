@@ -2396,7 +2396,7 @@ class TextFamily(object):
         "formatAsPoetry": { # Setup for Fox translation. Perhaps we want in other places as well?
             "he": "formatHeAsPoetry",
             "en": "formatEnAsPoetry",
-            "default": False,
+            "default": True,
         }
     }
     sourceMap = {

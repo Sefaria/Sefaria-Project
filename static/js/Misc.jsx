@@ -2042,7 +2042,7 @@ class SignUpModal extends Component {
             </a>
             <div className="sefariaModalBottomContent">
               <InterfaceText>{ Sefaria._("sign_up.already_have_account")} </InterfaceText>&nbsp;
-              <a href={"/login" + nextParam}><InterfaceText>{ Sefaria._("Sign in")}</InterfaceText></a>
+              <a href={"/login" + nextParam}><InterfaceText>{ Sefaria._("common.sign_in")}</InterfaceText></a>
             </div>
           </div>
         </div>

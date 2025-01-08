@@ -569,7 +569,7 @@ Sefaria = extend(Sefaria, {
   ISOMap: {
     "bi": {"name": "Bilingual", "i18nString": "language.bilingual", "showTranslations": 1},
     "en": {"name": "English", "i18nString": "language.english", "showTranslations": 1},
-    "he": {"name": "Tibetan", "i18nString": "language.tibetan", "showTranslations": 1},
+    "bo": {"name": "Tibetan", "i18nString": "language.tibetan", "showTranslations": 1},
     "yi": {"name": "Yiddish", "i18nString": "language.yiddish", "showTranslations": 1},
     "fi": {"name": "Finnish", "i18nString": "language.finnish", "showTranslations": 1},
     "pt": {"name": "Portuguese", "i18nString": "language.portuguese", "showTranslations": 1},
@@ -597,7 +597,7 @@ Sefaria = extend(Sefaria, {
     "tr": {"name": "Turkish", "i18nString": "language.turkish", "showTranslations": 1},
     "vi": {"name": "Vietnamese", "i18nString": "language.vietnamese", "showTranslations": 1},
     "th": {"name": "Thai", "i18nString": "language.thai", "showTranslations": 1},
-    "he": {"name": "Hebrew", "i18nString": "language.hebrew", "showTranslations": 1},
+    "he": {"name": "Hebrew", "i18nString": "language.tibetan", "showTranslations": 1},
     "ms": {"name": "Malay", "i18nString": "language.malay", "showTranslations": 1},
     "id": {"name": "Indonesian", "i18nString": "language.indonesian", "showTranslations": 1},
     "cs": {"name": "Czech", "i18nString": "language.czech", "showTranslations": 1},
