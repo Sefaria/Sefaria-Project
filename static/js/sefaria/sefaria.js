@@ -2527,7 +2527,6 @@ _media: {},
     return checkEquality("en") && checkEquality("he");
   },
   getSavedItem: ({ ref, versions }) => {
-    debugger;
     return Sefaria.saved.items.find(s => s.ref === ref && Sefaria.areVersionsEqual(s.versions, versions));
   },
   removeSavedItem: ({ ref, versions }) => {
