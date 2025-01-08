@@ -1262,9 +1262,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       ...this.state.panels[n],
       ...state,
     };
-    if (state.mode === 'Sheet') {
-      state.settings.language = (Sefaria.interfaceLang === 'hebrew') ? 'hebrew' : 'bilingual';
-    }
     if (this.didPanelRefChange(this.state.panels[n], state)) {
       this.checkPanelScrollIntentAndSaveRecent(state, n);
     }
