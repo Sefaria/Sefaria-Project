@@ -8433,7 +8433,9 @@ a .button:hover {
   border: 1000px solid white;
   border-top: 4px solid white;
   border-bottom: 120px solid white;
-  margin: -4px 0 -120px -1000px;
+  margin: -4px 0 -120px 0;
+  margin-inline-start: -1000px;
+  margin-inline-end: 0;
   width: 100%;
 }
 .collectionListing .left-content {
@@ -14137,8 +14139,10 @@ span.ref-link-color-3 {color: blue}
 
 }
 
-.interface-hebrew .profile-page .sheetsProfileList {
-  margin: -4px -1000px -120px 0;
+.profile-page .sheetsProfileList {
+  margin: -4px 0 -120px 0;
+  margin-inline-start: -1000px;
+  margin-inline-end: 0;
 }
 
 .sheetsProfileList .readerNavMenuSearchButton {
@@ -14146,8 +14150,9 @@ span.ref-link-color-3 {color: blue}
   display: inline-flex;
   top: 0;
 }
-.interface-hebrew .sheetsProfileList .readerNavMenuSearchButton {
-  margin: 0 5px 0 10px;
+.sheetsProfileList .readerNavMenuSearchButton {
+  margin-inline-start: 10px;
+  margin-inline-end: 5px;
 }
 .sheetsProfileList input {
   border: 0;
