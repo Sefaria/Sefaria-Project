@@ -628,11 +628,13 @@ class TextSegment extends Component {
     ) : null;
 
 
-    const primary = (language !== 'english' || hasNoTranslation) ? {
+    const shouldPrimaryShow = language !== 'english' || hasNoTranslation;
+    const primary = shouldPrimaryShow ? {
       direction: this.props.primaryDirection,
       text: he + " ",
     } : {};
-    const translation = (language !== 'hebrew') ? {
+    const shouldTranslationShow = language !== 'hebrew';
+    const translation = shouldTranslationShow ? {
       direction: this.props.translationDirection,
       text: en + " ",
     } : {};
