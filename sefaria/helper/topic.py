@@ -406,7 +406,6 @@ def get_trending_topics(num_topics=10):
     )
     response = client.run_report(request)
     slugs = [urllib.parse.unquote(row.dimension_values[0].value.removeprefix("/topics/")) for row in response.rows]
-    print(slugs)
     slugs = [slug for slug in slugs if not slug.startswith("category/")]
     return slugs
 
