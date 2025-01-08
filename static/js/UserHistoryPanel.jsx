@@ -119,7 +119,6 @@ UserHistoryPanel.propTypes = {
   menuOpen:            PropTypes.string.isRequired,
 };
 
-// TODO - Wrapper pass data-source to conditionally set menuOpen, to make sure component switches with tabs. 
 
 const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
   return (
