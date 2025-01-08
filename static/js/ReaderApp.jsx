@@ -134,7 +134,7 @@ class ReaderApp extends Component {
       connectionsMode:         state.connectionsMode         || "Resources",
       connectionsCategory:     state.connectionsCategory     || null,
       currVersions:            state.currVersions            || {en:null,he:null},
-      currCommVersions:        state.currCommVersions        || null,
+      currCommVersions:        state.currCommVersions        || {},
       highlightedRefs:         state.highlightedRefs         || [],
       highlightedNode:         state.highlightedNode         || null,
       scrollToHighlighted:     state.scrollToHighlighted     || false,
@@ -1536,7 +1536,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     let connectionPanel;  // in mobile, connectionPanel will remain undefined
 
     // version is from commentary; don't try to use the version of the commentary for the base ref!
-    const currCommVersions = {...panelProps.currVersions};
+    const currIndex = Sefaria.parseRef(panelProps.refs[0])?.index;
+    const currCommVersions = !!currIndex ? {[currIndex]: {...panelProps.currVersions}} : {};
     panelProps.currVersions = {'en': null, 'he': null};
 
     if (this.props.multiPanel) {
