@@ -4893,6 +4893,7 @@ h1.topic-landing-header {
 
 .topic-landing-page-content .topic-landing-section {
   margin-top: 70px;
+  width: 100%;
 }
 
 .interface-hebrew .topic-landing-page-wrapper{
@@ -5020,6 +5021,66 @@ h1.topic-landing-header {
   width: fit-content;
   padding-bottom: 10px;
 }
+.topic-landing-newsletter {
+  background-color: var(--sefaria-blue);
+  display: flex;
+  flex-direction: row;
+  padding: 36px 74px;
+  justify-content: space-between;
+}
+.topic-landing-newsletter .topic-landing-newsletter-input-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.topic-landing-newsletter .topic-landing-newsletter-input-row:first-child {
+  margin-bottom: 20px;
+}
+.topic-landing-newsletter .topic-landing-newsletter-input-row input,
+.topic-landing-newsletter .topic-landing-newsletter-input-row button {
+  border-radius: 6px;
+  border: 0;
+  flex: 1;
+  padding: 5px 12px;
+  background-color: white;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.topic-landing-newsletter .topic-landing-newsletter-input-row button {
+  flex: unset;
+  color: var(--sefaria-blue);
+}
+.topic-landing-newsletter .topic-landing-newsletter-input-row input:first-child {
+  margin-inline-end: 16px;
+}
+.topic-landing-newsletter .topic-landing-newsletter-input-row .subscribeMessage {
+  color: white;
+  margin-top: 10px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.topic-landing-newsletter-wrapper .subscribeErrorMessage {
+  color: var(--Halakhah-Red, #802F3E);
+  font-family: Roboto;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: normal;
+  margin-top: 10px;
+  text-align: end;
+}
+
+.topic-landing-newsletter h3.topic-landing-newsletter-text {
+  width: 220px;
+  color: white;
+  margin: 0;
+  font-size: 22px;
+  text-transform: unset;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
 .topic-landing-upper-rainbow{
   margin-bottom: 43px;
   z-index: 0;
@@ -5048,7 +5109,6 @@ h1.topic-landing-header {
 }
 
 .topic-salad{
-  width: 843px;
   font-size: 22px;
   font-weight: 400;
   line-height: 32px;
