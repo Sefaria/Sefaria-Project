@@ -1252,11 +1252,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     if (!this.state.panels[n]) { debugger; }
-    let langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
-    let next        = this.state.panels[n+1];
-    if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
-        next.settings.language = state.settings.language;
-    }
     // state is not always a full panel state. make sure it has necessary fields needed to run saveLastPlace()
     state = {
       ...this.state.panels[n],
