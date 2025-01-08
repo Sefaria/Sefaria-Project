@@ -110,14 +110,14 @@ class SheetContent extends Component {
 
     if (!sources.length) return null;
 
-    return sources.map((source, index) => {
+    return sources.map(source => {
       const addToSheetButton = this.props.highlightedNode === source.node &&
                                               <AddToSheetButton sheetID={this.props.sheetID}
                                                                 highlightedRefs={this.props.highlightedRefs}
                                                                 highlightedNode={this.props.highlightedNode}
                                                                 toggleSignUpModal={this.props.toggleSignUpModal}/>;
       const { highlightedNode, sheetSourceClick } = this.props;
-      let highlighted = this.props.source.node === this.props.highlightedNode;
+      let highlighted = source.node === this.props.highlightedNode;
       let ComponentToRender;
       if ("ref" in source) {
         const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
@@ -138,6 +138,7 @@ class SheetContent extends Component {
         key={source.node}
         source={source}
         sheetSourceClick={() => sheetSourceClick(source)}
+        handleKeyPress={(e) => e.charCode === 13 && sheetSourceClick(e)}
         highlighted={highlighted}
         addToSheetButton={addToSheetButton}/>;
     });

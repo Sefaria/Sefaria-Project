@@ -24,9 +24,7 @@ class SheetSource extends Component {
           data-node={this.props.source.node}
           aria-label={"Click to see connections to this source"}
           tabIndex="0"
-          onKeyPress={function(e) {
-            e.charCode === 13 ? this.props.sheetSourceClick(e):null}.bind(this)
-          } >
+          onKeyPress={this.props.handleKeyPress} >
           {this.props.source.title ?
           <div className="customSourceTitle" role="heading" aria-level="3">
             <div className="titleBox">{this.props.source.title.stripHtml()}</div>
@@ -73,7 +71,7 @@ class SheetComment extends Component {
     );
     return (
       <section className="SheetComment">
-        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={this.props.handleKeyPress} >
           <div className={lang}>
               <div
                 className="sourceContentText"
@@ -103,7 +101,7 @@ class SheetHeader extends Component {
         this.props.source.options ? this.props.source.options.indented : null
     );
     return (
-        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={this.props.handleKeyPress} >
           <div className={lang}>
               <div className="sourceContentText"><h1><span>{this.props.source.outsideText.stripHtml()}</span></h1></div>
           </div>
@@ -132,7 +130,7 @@ class SheetOutsideText extends Component {
     );
     return (
       <section className="SheetOutsideText">
-        <div className={containerClasses} data-node={this.props.source.node} onClick={(e) => this.shouldPassClick(e)} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={(e) => this.shouldPassClick(e)} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={this.props.handleKeyPress} >
           <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
               <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideText)} }></div>
           </div>
@@ -162,7 +160,7 @@ class SheetOutsideBiText extends Component {
     );
     return (
       <section className={sectionClasses}>
-        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode === 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={this.props.handleKeyPress} >
           <div className="he">
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix !== "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideBiText.he)} }></div>
@@ -231,7 +229,7 @@ class SheetMedia extends Component {
     );
     return (
       <section className="SheetMedia">
-        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={this.props.handleKeyPress} >
           <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedContent()} }></div>
           <div className="clearFix"></div>
           {this.props.source.addedBy ?
