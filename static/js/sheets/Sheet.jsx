@@ -102,8 +102,6 @@ class Sheet extends Component {
                   scrollToHighlighted={this.props.scrollToHighlighted}
                   editable={editable}
                   setSelectedWords={this.props.setSelectedWords}
-                  sheetNumbered={sheet.options.numbered}
-                  hideImages={!!sheet.hideImages}
                   sheetID={sheet.id}
                   authorStatement={sheet.ownerName}
                   authorID={sheet.owner}

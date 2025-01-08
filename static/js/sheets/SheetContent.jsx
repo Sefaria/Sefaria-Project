@@ -105,132 +105,41 @@ class SheetContent extends Component {
       }
     }
   }
-  renderSheetSource = (source, i, addToSheetButton) => {
-    const { highlightedNode, cleanHTML, sheetSourceClick, sheetNumbered, highlightedRefsInSheet } = this.props;
-    const highlightedRef = highlightedRefsInSheet ? Sefaria.normRefList(highlightedRefsInSheet) : null;
-    const highlighted = highlightedNode
-      ? highlightedNode === source.node
-      : highlightedRef ? Sefaria.refContains(source.ref, highlightedRef) : false;
-
-    return (
-      <SheetSource
-        key={i}
-        source={source}
-        sourceNum={i + 1}
-        cleanHTML={cleanHTML}
-        sheetSourceClick={() => sheetSourceClick(source)}
-        highlighted={highlighted}
-        sheetNumbered={sheetNumbered}
-        addToSheetButton={addToSheetButton}
-      />
-    );
-  }
-
-  renderSheetComment = (source, i, addToSheetButton) => {
-    const { cleanHTML, sheetSourceClick, highlightedNode, sheetNumbered } = this.props;
-    return (
-      <SheetComment
-        key={i}
-        sourceNum={i + 1}
-        source={source}
-        cleanHTML={cleanHTML}
-        sheetSourceClick={() => sheetSourceClick(source)}
-        highlightedNode={highlightedNode}
-        sheetNumbered={sheetNumbered}
-        addToSheetButton={addToSheetButton}
-      />
-    );
-  }
-
-  renderSheetHeader = (source, i, addToSheetButton) => {
-    const { sheetSourceClick, highlightedNode, sheetNumbered } = this.props;
-    return (
-      <SheetHeader
-        key={i}
-        sourceNum={i + 1}
-        source={source}
-        sheetSourceClick={() => sheetSourceClick(source)}
-        highlightedNode={highlightedNode}
-        sheetNumbered={sheetNumbered}
-        addToSheetButton={addToSheetButton}
-      />
-    );
-  }
-
-  renderSheetOutsideText = (source, i, addToSheetButton) => {
-    const { cleanHTML, sheetSourceClick, highlightedNode, sheetNumbered } = this.props;
-    return (
-      <SheetOutsideText
-        key={i}
-        sourceNum={i + 1}
-        source={source}
-        cleanHTML={cleanHTML}
-        sheetSourceClick={() => sheetSourceClick(source)}
-        highlightedNode={highlightedNode}
-        sheetNumbered={sheetNumbered}
-        addToSheetButton={addToSheetButton}
-      />
-    );
-  }
-
-  renderSheetOutsideBiText = (source, i, addToSheetButton) => {
-    const { cleanHTML, sheetSourceClick, highlightedNode, sheetNumbered } = this.props;
-    return (
-      <SheetOutsideBiText
-        key={i}
-        sourceNum={i + 1}
-        source={source}
-        clean
-        HTML={cleanHTML}
-        sheetSourceClick={() => sheetSourceClick(source)}
-        highlightedNode={highlightedNode}
-        sheetNumbered={sheetNumbered}
-        addToSheetButton={addToSheetButton}
-      />
-    );
-  }
-
-  renderSheetMedia = (source, i, addToSheetButton) => {
-    const { cleanHTML, sheetSourceClick, highlightedNode, sheetNumbered, hideImages } = this.props;
-    return (
-      <SheetMedia
-        key={i}
-        sourceNum={i + 1}
-        cleanHTML={cleanHTML}
-        source={source}
-        sheetSourceClick={() => sheetSourceClick(source)}
-        highlightedNode={highlightedNode}
-        sheetNumbered={sheetNumbered}
-        hideImages={hideImages}
-        addToSheetButton={addToSheetButton}
-      />
-    );
-  }
-
   getSources = () => {
     const { sources } = this.props;
 
     if (!sources.length) return null;
 
-    return sources.map((source, i) => {
+    return sources.map((source, index) => {
       const addToSheetButton = this.props.highlightedNode === source.node &&
                                               <AddToSheetButton sheetID={this.props.sheetID}
                                                                 highlightedRefs={this.props.highlightedRefs}
                                                                 highlightedNode={this.props.highlightedNode}
                                                                 toggleSignUpModal={this.props.toggleSignUpModal}/>;
+      const { highlightedNode, sheetSourceClick } = this.props;
+      let highlighted = this.props.source.node === this.props.highlightedNode;
+      let ComponentToRender;
       if ("ref" in source) {
-        return this.renderSheetSource(source, i, addToSheetButton);
+        const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
+        highlighted = highlightedNode ? highlightedNode === source.node : highlightedRef ? Sefaria.refContains(source.ref, highlightedRef) : false;
+        ComponentToRender = SheetSource;
       } else if ("comment" in source) {
-        return this.renderSheetComment(source, i, addToSheetButton);
+        ComponentToRender = SheetComment;
       } else if ("outsideText" in source) {
-        return source.outsideText.startsWith("<h1>")
-                              ? this.renderSheetHeader(source, i, addToSheetButton)
-                              : this.renderSheetOutsideText(source, i, addToSheetButton);
+        ComponentToRender = source.outsideText.startsWith("<h1>")
+                              ? SheetHeader
+                              : SheetOutsideText;
       } else if ("outsideBiText" in source) {
-        return this.renderSheetOutsideBiText(source, i, addToSheetButton);
+        ComponentToRender = SheetOutsideBiText;
       } else if ("media" in source) {
-        return this.renderSheetMedia(source, i, addToSheetButton);
+        ComponentToRender = SheetMedia;
       }
+      return <ComponentToRender
+        key={source.node}
+        source={source}
+        sheetSourceClick={() => sheetSourceClick(source)}
+        highlighted={highlighted}
+        addToSheetButton={addToSheetButton}/>;
     });
   }
   render() {
