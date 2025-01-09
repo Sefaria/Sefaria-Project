@@ -137,7 +137,7 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
         <div className="dlSectionTitle">
           <span className="int-en">Bulk Upload CSV</span>
-          <span className="int-he">הורדת הטקסט</span>
+          <span className="int-he">העלאה מ-CSV</span>
         </div>
          <form id="file-form">
            <input className="dlVersionSelect" type="file" id="file-select"  multiple onChange={this.handleFiles}/>
@@ -158,8 +158,13 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
           <GetLinks/>
       </div>);
+    const removeLinksFromCsv = (
+        <div className='modToolsSection'>
+            <RemoveLinksFromCsv/>
+        </div>
+    );
     return (Sefaria.is_moderator)?
-        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl}{uploadLinksFromCSV}{getLinks} </div> :
+        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl}{uploadLinksFromCSV}{getLinks}{removeLinksFromCsv} </div> :
         <div className="modTools"> Tools are only available to logged in moderators.</div>;
   }
 }
@@ -395,6 +400,69 @@ class UploadLinksFromCSV extends Component{
     );
   }
 }
+
+const RemoveLinksFromCsv = () => {
+    const [fileName, setFileName] = useState(false);
+    const [uploadMessage, setUploadMessage] = useState(null);
+    const [errorMessage, setErrorMessage] = useState(null);
+    const handleFileChange = (event) => {
+        setFileName(event.target.files[0] || null);
+    }
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        setUploadMessage("Uploading...");
+        const data = new FormData(event.target);
+        data.append('action', 'DELETE');
+        const request = new Request(
+            '/modtools/links',
+            {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+        );
+        fetch(request, {
+            method: 'POST',
+            mode: 'same-origin',
+            credentials: 'same-origin',
+            body: data
+        }).then(response => {
+            if (!response.ok) {
+                response.text().then(resp_text => {
+                  setUploadMessage(null);
+                  setErrorMessage(resp_text);
+                })
+            } else {
+                response.json().then(resp_json => {
+                    setUploadMessage(resp_json.data.message);
+                    setErrorMessage(null);
+                    if (resp_json.data.errors) {
+                        let blob = new Blob([resp_json.data.errors], {type: "text/plain;charset=utf-8"});
+                        saveAs(blob, `${fileName.name.split('.')[0]} - error report - undeleted links.csv`);
+                    }
+                });
+            }
+        }).catch(error => {
+            setUploadMessage(error.message);
+            setErrorMessage(null);
+        });
+    };
+    return (
+        <div className="remove-links-csv">
+            <div className="dlSectionTitle">Remove links</div>
+            <form id="remove-links-form" onSubmit={handleSubmit}>
+                <label>
+                    Upload file:
+                    <input type="file" name="csv_file"  onChange={handleFileChange} />
+                    <br/>
+                    Choose a csv file with two columns. First row should include titles, and the others valid refs to delete.
+                    <br/>
+                    Please note that it should be the exact ref, so 'Genesis 1' is different than 'Genesis 1:1-31'
+                </label>
+                <br/>
+                <input type="submit" value="Submit" disabled={!fileName} />
+            </form>
+            {uploadMessage && <div>{uploadMessage}</div>}
+            {errorMessage && <div dangerouslySetInnerHTML={{__html: errorMessage}}/> }
+        </div>
+    );
+};
 
 const InputRef = ({ id, value, handleChange, handleBlur, error }) => (
   <label>
