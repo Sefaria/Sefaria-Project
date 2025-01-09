@@ -29,35 +29,35 @@ SEED_GROUP = "User Seeds"
 
 
 class SefariaDeleteUserForm(EmailAuthenticationForm):
-    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address to delete")}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Admin Password")}))
+    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("placeholder_email_delete_message")}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_admin_password")}))
 
 class SefariaDeleteSheet(forms.Form):
-    sid = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'placeholder': _("Sheet ID to delete")}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Admin Password")}))
+    sid = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'placeholder': _("placeholder_sheet_id_delete_message")}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_admin_password")}))
 
 
 class SefariaLoginForm(EmailAuthenticationForm):
-    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address")}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password")}))
+    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("placeholder_email_address")}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_password")}))
 
 
 class SefariaNewUserForm(EmailUserCreationForm):
     email = forms.EmailField(max_length=75,
-                             widget=forms.EmailInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
-    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
-    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
-    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
-    # subscribe_educator = forms.BooleanField(label=_("I am an educator"), help_text=_("I am an educator"), initial=False,
+                             widget=forms.EmailInput(attrs={'placeholder': _("placeholder_email_address"), 'autocomplete': 'off'}))
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("placeholder_first_name"), 'autocomplete': 'off'}))
+    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("placeholder_last_name"), 'autocomplete': 'off'}))
+    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_password"), 'autocomplete': 'off'}))
+    # subscribe_educator = forms.BooleanField(label=("I am an educator"), help_text=("I am an educator"), initial=False,
     #                                         required=False)
 
     CHOICES = [
-        ('', _('Select an option')),
-        ('Monastic', _('Monastic')),
-        ('Teacher', _('Teacher')),
-        ('Student', _('Student')),
-        ('Educated* /Dr / Prof', _('Educated* /Dr / Prof')),
-        ('regular user', _('regular user')),
+        ('', _('forms.placeholder_select_option')),
+        ('Monastic', _('placeholder_monastic')),
+        ('Teacher', _('placeholder_teacher')),
+        ('Student', _('placeholder_student')),
+        ('Educated* /Dr / Prof', _('placeholder_Educated_Dr_Prof')),
+        ('regular user', _('placeholder_regular_user')),
     ]
     
     # Add the select field
@@ -92,7 +92,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
         if user_exists(email):
             user = get_user(email)
             if not user.groups.filter(name=SEED_GROUP).exists():
-                raise forms.ValidationError(_("A user with that email already exists."))
+                raise forms.ValidationError(_("user_already_exists_message"))
         return email
 
     def save(self, commit=True):
@@ -140,7 +140,7 @@ class SefariaNewUserFormAPI(SefariaNewUserForm):
     def clean_mobile_app_key(self):
         mobile_app_key = self.cleaned_data["mobile_app_key"]
         if mobile_app_key != MOBILE_APP_KEY:
-            raise forms.ValidationError(_("Incorrect mobile_app_key provided"))
+            raise forms.ValidationError(_("mobile_app_key_error_message"))
 
 
 # TODO: Check back on me
@@ -149,18 +149,18 @@ class SefariaNewUserFormAPI(SefariaNewUserForm):
 #
 class SefariaPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(max_length=75,
-                             widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
+                             widget=forms.TextInput(attrs={'placeholder': _("placeholder_email_address"), 'autocomplete': 'off'}))
 
 
 class SefariaSetPasswordForm(SetPasswordForm):
     new_password1 = forms.CharField(
-        label=_("New password"),
-        widget=forms.PasswordInput(attrs={'placeholder': _("Enter New Password")}),
+        label=_("form.placeholder_new_password"),
+        widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_new_password")}),
         strip=False,
         help_text=password_validation.password_validators_help_text_html(),
     )
     new_password2 = forms.CharField(
-        label=_("New password confirmation"),
+        label=_("form_placeholder_new_pw_confirmation"),
         strip=False,
-        widget=forms.PasswordInput(attrs={'placeholder': _("Repeat New Password")}),
+        widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_repeat_new_password")}),
     )

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Log in to Pecha" %}{% endblock %}
+{% block title %}{% trans "registration.login.login_in_to_pecha" %}{% endblock %}
 
-{% block description %}{% trans "Log in to your Pecha account to make source sheets, write notes, and follow other Pecha users." %}{% endblock %}
+{% block description %}{% trans "registration.login.login_in_to_pecha_description" %}{% endblock %}
 
 {% block content %}
 
@@ -11,10 +11,10 @@
     <div id="login" class="biReady registrationContent static">
         <div class="inner">
             <p id="message">
-                <span class="{{ language_font_class }}">{% trans "You are already logged in as" %}</span>
+                <span class="{{ language_font_class }}">{% trans "registration.login.you_are_already_logged_in_as" %}</span>
                 {{ user.email }}.
                 <a href="{% url "logout" %}">
-                    <span class="{{ language_font_class }}">{% trans "Logout." %}</span>
+                    <span class="{{ language_font_class }}">{% trans "common.registration.login.log_out" %}</span>
                 </a>
             </p>
         </div>
@@ -26,11 +26,11 @@
         <div class="inner">
             {% if message %}<p id="message">{{ message }}</p>{% endif %}
             <h1>
-                <span>{% trans "Log in to Pecha" %}</span>
+                <span>{% trans "registration.login.login_in_to_pecha" %}</span>
             </h1>
             {% if form.errors %}
             <p class="error">
-                <span>{% trans "Your username and password didn't match. Please try again." %}</span>
+                <span>{% trans "registration.login.username_and_password_didn't_match_message" %}</span>
             </p>
             {% endif %}
 
@@ -47,15 +47,15 @@
                 </p>
 
                 <button type="submit" class="button control-elem" id="login-submit-button">
-                    <span>{% trans "Login" %}</span>
+                    <span>{% trans "common.registration.login.log_in" %}</span>
                 </button>
                 <a class="registration-links control-elem" href="{% url "password_reset" %}" id="resetLink">
-                    <span>{% trans "Forgot your password?" %}</span>
+                    <span>{% trans "common.registration.login.forgot_your_password" %}</span>
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
             <a class="registration-links control-elem" href="{% url "register" %}{% if next %}?next={{ next }}{% endif %}">
-                <span>{% trans "Create a new account" %}</span>
+                <span>{% trans "common.registration.login.create_a_new_account" %}</span>
 
             </a>
 	    </div>

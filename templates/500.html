@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Internal Server Error" %}{% endblock %}
+{% block title %}{% trans "server_related_error_message" %}{% endblock %}
 
 {% block content %}
 <div id="errorPage" class="biReady container error static">
     <div class="inner">
         <h1>
-            <span class="{{language_font_class}}">{% trans "Internal Server Error" %}</span>
+            <span class="{{language_font_class}}">{% trans "server_related_error_message" %}</span>
         </h1>
         <div class="section">
             <p>
                 <span class="{{language_font_class}}">
-                    {% trans "Unfortunately, we've encountered an error.An email has been sent automatically to our developers.If you have any questions about the problem,or think you can help us figure out what went wrong,please email our " %}<a href="mailto:dev@pecha.org" target="_blank"> {% trans "development team" %}</a>.
+                    {% trans "send_message_to_developer_request" %}<a href="mailto:dev@pecha.org" target="_blank"> {% trans "developer_team" %}</a>.
                 </span>
             </p>
         </div>

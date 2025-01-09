@@ -27,10 +27,10 @@ SEARCH_URL = "http://localhost:9200"
 LANGUAGE_CODE = 'es'
 
 LANGUAGES = (
-    ('en', _("English")),
-    ('he', _("Hebrew")),
-    ('zh', _("Chinese")),
-    ('es', _("Spanish")),
+    ('en', "English"),
+    ('he', "Hebrew"),
+    ('zh', "Chinese"),
+    ('es', "Spanish"),
 )
 
 DATE_FORMATS = {
