@@ -590,12 +590,13 @@ class TextSegment extends Component {
     he = this.props.formatHeAsPoetry ? this.addPoetrySpans(he) : he
 
     const hasNoTranslation = !this.props.en;
+    const hasNoPrimarry = !this.props.he; //when connectionsMode is 'Translation Open) there is no he
 
     const hasOnlyRtl = (hasNoTranslation && this.props?.primaryDirection === 'rtl');
     const hasOnlyLtr = hasNoTranslation && this.props?.primaryDirection === 'ltr';
     let sidebarRtl, sidebarLtr;
     if (panelMode === 'Connections') {
-      const directionAttr = (language === 'hebrew') ? 'primaryDirection' : 'translationDirection';
+      const directionAttr = (language === 'hebrew' && !hasNoPrimarry) ? 'primaryDirection' : 'translationDirection';
       const direction = this.props?.[directionAttr];
       sidebarRtl = direction === 'rtl';
       sidebarLtr = direction === 'ltr';
@@ -633,7 +634,7 @@ class TextSegment extends Component {
       direction: this.props.primaryDirection,
       text: he + " ",
     } : {};
-    const shouldTranslationShow = language !== 'hebrew';
+    const shouldTranslationShow = language !== 'hebrew' || hasNoPrimarry;
     const translation = shouldTranslationShow ? {
       direction: this.props.translationDirection,
       text: en + " ",
