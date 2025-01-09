@@ -155,8 +155,8 @@ class CollectionPage extends Component {
     if (filter) {
       return (
         <div className="emptyMessage sans-serif">
-          <InterfaceText>{Sefaria._("collection.no_sheets_matching")} </InterfaceText>;
-          "<InterfaceText text={{en: filter, he: filter}} />".
+          <InterfaceText>{Sefaria._("collection.no_sheets_matching")} </InterfaceText>
+          "<InterfaceText text={{en: filter, he: filter}} />"
         </div>
       );
     } else if (this.isMember()) {
@@ -221,7 +221,7 @@ class CollectionPage extends Component {
         </div>
       );
       sidebarModules.push({type: "Wrapper", props: {
-        title: Sefaria._("Editors"),
+        title: Sefaria._("collection.editor"),
         content: editorsBlock}});
 
       const hasContentsTab = (collection.pinnedTags && collection.pinnedTags.length);
@@ -450,7 +450,7 @@ class CollectionInvitationBox extends Component {
   render() {
     return (<div className="collectionInvitationBox sans-serif">
               <div className="collectionInvitationBoxInner">
-                <input id="collectionInvitationInput" placeholder={Sefaria._("email")} />
+                <input id="collectionInvitationInput" placeholder={Sefaria._("common.email")} />
                 <div className="button small" onClick={this.onInviteClick}>
                   <InterfaceText>collection.invite</InterfaceText>
                 </div>
@@ -492,7 +492,7 @@ class CollectionMemberListing extends Component {
             {this.props.member.name}
           </a>
           <div className="collectionMemberListingRole">
-            <InterfaceText>{this.props.member.role}</InterfaceText>
+            <InterfaceText>{this.props.member.role == 'Owner'? 'common.owner': this.props.member.role}</InterfaceText>
           {this.props.isAdmin || this.props.isSelf ?
             <CollectionMemberListingActions
               member={this.props.member}

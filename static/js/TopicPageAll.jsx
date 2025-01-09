@@ -45,7 +45,7 @@ class TopicPageAll extends Component {
     const sidebarModules = [
       {type: "Promo"},
       {type: "TrendingTopics"},
-      {type: "JoinTheConversation"},
+      {type: "JoinTheConversation", props: {wide:multiPanel,title: 'side_nav.join_conversation'}},
       {type: "GetTheApp"},
       {type: "SupportSefaria"},
     ];

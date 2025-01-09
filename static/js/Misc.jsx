@@ -82,7 +82,7 @@ const InterfaceText = ({text, html, markdown, children, placeholder, disallowedM
   let language = {}
   language[`${Sefaria.languageClassFont()}`] = true
   let elemclasses = classNames(language);
-  let textResponse = null; 
+  let textResponse = null;
   if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case.
     let {he, en} = contentVariable;
     textResponse = isHebrew ? (he || en) : (en || he);
@@ -92,7 +92,6 @@ const InterfaceText = ({text, html, markdown, children, placeholder, disallowedM
     const chlCount = React.Children.count(children);
     if (chlCount === 1) { // Same as passing in a `en` key but with children syntax
       if (placeholder) {
-        
         textResponse = t(children, placeholder)
         console.log(textResponse)
       } else {
@@ -513,7 +512,7 @@ const FilterableList = ({
           </div>
           <div className="filter-sort-wrapper">
             <span className="systemText">
-              <InterfaceText>profile.tab.dropdown.sort_by</InterfaceText>
+              <InterfaceText>topic.tab.sort_by</InterfaceText>
             </span>
             { sortOptions.map(option =>(
               <span
@@ -634,6 +633,23 @@ TabView.propTypes = {
 
 
 class DropdownOptionList extends Component {
+
+  localeString(string) {
+
+    const stringType = {
+      Relevance: 'filter_list.relevance',
+      Chronological: 'filter_list.chronological',
+      Date_Created: "filter_list.date_created",
+      Views: "profile.tab.sheet.tag.views"
+    }
+    let objString = string.replace(/ /g, "_")
+    
+    if (stringType[objString]) {
+      return Sefaria._(stringType[objString])
+    } else {
+      return string
+    }
+  }
   render() {
     return (
       <div className={(this.props.isOpen) ? "dropdown-option-list" :"dropdown-option-list hidden"}>
@@ -641,6 +657,7 @@ class DropdownOptionList extends Component {
           <tbody>
             {
               this.props.options.map( (option, iSortTypeObj) => {
+                
                 const tempClasses = classNames({'filter-title': 1, unselected: this.props.currOptionSelected !== option.type});
                 return (
                   <tr key={option.type}  className={tempClasses} onClick={()=>{ this.props.handleClick(option.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => {e.charCode == 13 ? this.props.handleClick(option.type) : null}} aria-label={`Sort by ${option.name}`}>
@@ -648,7 +665,7 @@ class DropdownOptionList extends Component {
                       <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`}/>
                     </td>
                     <td className="dropdown-option-list-label" style={{padding:"15px 15px 15px 0"}}>
-                      <span >{option.name}</span>
+                      <span >{this.localeString(option.name)}</span>
                     </td>
                   </tr>
                 );
@@ -1476,9 +1493,11 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
 
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
+  // const altText = placeholder ? '' :
+  //     `${Sefaria._(selected ? "collection.remove" : "common.save")} "${historyObject.sheet_title ?
+  //         historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
   const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
-          historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
+       `${Sefaria._(selected ? "collection.remove" : "common.save")}`;
 
   function onClick(event) {
     if (isPosting) { return; }
@@ -1570,7 +1589,7 @@ class FollowButton extends Component {
       hovering: this.state.hovering,
       smallText: !this.props.large,
     });
-    let buttonText = this.state.following ? this.state.hovering ?  "Unfollow" : "Following" : "Follow";
+    let buttonText = this.state.following ? this.state.hovering ?  "common.unfollow" : "common.following" : "common.follow";
     buttonText = buttonText === "Follow" && this.props.followBack ? "Follow Back" : buttonText;
     return (
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
@@ -1778,7 +1797,7 @@ const SheetListing = ({
 
   const views = (
     <>
-      {sheet.views}&nbsp;<InterfaceText>profile.tab.sheet.tag.views</InterfaceText>
+      {Sefaria._("common.views_count", {count: Sefaria.interfaceLang == 'hebrew' ? Sefaria.hebrew.tibetanNumeral(sheet.views): sheet.views})}
     </>
   );
 
@@ -1833,7 +1852,7 @@ const SheetListing = ({
       </a>
     );
   });
-  const created = Sefaria.util.localeDate(sheet.created);
+  const created = <span dangerouslySetInnerHTML={{ __html: Sefaria.util.localeDate(sheet.created)}} />;
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,

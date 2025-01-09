@@ -275,11 +275,10 @@ class ConfirmAddToSheet extends Component {
     }
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
-                <span className={`${Sefaria.languageClassFont()}`}>
-                  <a href={sref}>{srefTitles["he"]}</a>
-                   &nbsp;
-                  <a href={"/sheets/" + this.props.sheet.id} target="_blank">{Sefaria._("sheet.has_been_added_to", {sheetTitle: this.props.sheet.title})}</a>.
+                <span>
+                  <a href={"/sheets/" + this.props.sheet.id} target="_blank">{Sefaria._("sheet.has_been_added_to", {text: srefTitles["en"], sheetTitle: this.props.sheet.title})}</a>.
                 </span>
+               
               </div>
             </div>);
   }
