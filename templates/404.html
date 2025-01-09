@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Page Not Found | Sefaria" %}{% endblock %}
+{% block title %}{% trans "page_not_found_title" %}{% endblock %}
 
 {% block content %}
 
 <div class="container error static biReady">
     <div class="inner">
         <h1>
-            <span class="{{language_font_class}}">{% trans "Page Not Found" %}</span>
+            <span class="{{language_font_class}}">{% trans "page_not_found_message" %}</span>
         </h1>
         <p>
             <span class="{{language_font_class}}">
-                {% trans "The requested URL couldn't be found.If you've arrived here from a link on another site,you may want to let them know their link isn't working." %}
+                {% trans "link_not_working_message" %}
             </span>
         </p>
     </div>
