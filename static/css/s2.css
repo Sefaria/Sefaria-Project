@@ -4933,9 +4933,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content: space-between;
   padding: 20px 0;
+}
+
+.readerNavMenu .sheet:not(.profile-page .sheet) {
   border-bottom: 1px solid #eee;
   color: black;
 }
+
+.sheetsProfileList .sheet {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 0;
+}
+
 .readerNavMenu .sheet:hover{
   text-decoration: none;
 }
@@ -8443,9 +8453,19 @@ a .button:hover {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+
 }
 .profile-page .collectionListing {
   padding: 20px 0;
+  margin-top: 20px;
+  background-color: white;
+  border: 1000px solid white;
+  border-top: 4px solid white;
+  border-bottom: 120px solid white;
+  margin: -4px 0 -120px 0;
+  margin-inline-start: -1000px;
+  margin-inline-end: 0;
+  width: 100%;
 }
 .collectionListing .left-content {
   display: flex;
@@ -8781,6 +8801,9 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionListingDetails {
   color: #999;
   font-size: 14px;
+  font-family: Roboto !important;
+  font-weight: 400;
+  line-height: 18px;
 }
 .collectionListingMembership {
   text-transform: capitalize;
@@ -8890,7 +8913,10 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   flex: 1;
 }
 .sheet .sheetTitleText {
-  font-family: var(--english-serif-font-family);
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
 }
 .sheetListingPinButton {
   display: none;
@@ -11512,8 +11538,8 @@ cursor: pointer;
 .sheetList .sheet .sheetTags {
   color: #999;
 }
-.sheetList .sheet .sheetTags .bullet {
-  margin: 0 5px;
+.sheetsProfileList .sheet .sheetTags .bullet {
+  padding: 0 5px;
 }
 .sheetList .sheet a {
   color: inherit;
@@ -11649,8 +11675,12 @@ cursor: pointer;
   top: -2px;
 }
 .profile-page .collectionListingName {
-  font-size: 18px;
   margin-bottom: 10px;
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+
 }
 .profile-page .collectionListing + .collectionListing {
   border-top: 0;
@@ -11699,6 +11729,10 @@ cursor: pointer;
   margin-top: 20px;
   font-size: 18px;
   line-height: 1.4;
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16.41px;
 }
 @media (max-width: 540px) {
   .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
@@ -11721,7 +11755,9 @@ cursor: pointer;
     font-size: 43.5px !important;
   }
   .profile-page .profile-summary .profile-actions {
+    display: flex;
     flex-wrap: wrap;
+    flex-direction: row;
   }
 }
 .profile-page .profile-summary .follow {
@@ -11732,11 +11768,7 @@ cursor: pointer;
 .profile-page .profile-summary .follow .follow-bull {
   padding: 0 5px;
 }
-.profile-page .profile-summary .profile-actions {
-  display: flex;
-  flex-direction: row;
-  margin: 10px 0;
-}
+
 .profile-page .resourcesLink.faded {
   color: #666;
 }
@@ -14329,6 +14361,57 @@ span.ref-link-color-3 {color: blue}
 .englishLanguageButton::after {
   content: "•";
   padding: 0px 4px;
+}
+
+.profilePicAndButtonContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.createButtons {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-evenly;
+  padding-top: 20px;
+}
+
+.sheetsProfileList {
+  margin-top: 20px;
+  background-color: white;
+  border: 1000px solid white;
+  border-top: 4px solid white;
+  border-bottom: 120px solid white;
+  margin: -4px 0 -120px -1000px;
+  width: 100%;
+
+}
+
+.profile-page .sheetsProfileList {
+  margin: -4px 0 -120px 0;
+  margin-inline-start: -1000px;
+  margin-inline-end: 0;
+}
+
+.sheetsProfileList .readerNavMenuSearchButton {
+  margin: 0 10px 0 5px;
+  display: inline-flex;
+  top: 0;
+}
+.sheetsProfileList .readerNavMenuSearchButton {
+  margin-inline-start: 10px;
+  margin-inline-end: 5px;
+}
+.sheetsProfileList input {
+  border: 0;
+  font-size: 18px;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  background-color: transparent;
+}
+.sheetsProfileList .loadingMessage {
+  margin-top: 30px;
 }
 
 @-webkit-keyframes load5 {

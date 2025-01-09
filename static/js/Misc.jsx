@@ -1663,20 +1663,6 @@ const SheetListing = ({
     );
   });
 
-  const topics = sheet.topics.map((topic, i) => {
-    const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
-    return (
-      <a href={`/topics/${topic.slug}`}
-        target={openInNewTab ? "_blank" : "_self"}
-        className="sheetTag"
-        key={i}
-        onClick={handleTopicClick.bind(null, topic.slug)}
-      >
-        <InterfaceText text={topic} />
-        {separator}
-      </a>
-    );
-  });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
@@ -1684,7 +1670,6 @@ const SheetListing = ({
       views,
       created,
       collections.length ? collections : undefined,
-      sheet.topics.length ? topics : undefined,
     ].filter(x => x !== undefined) : [topics];
 
 
@@ -1698,7 +1683,6 @@ const SheetListing = ({
       <div className="sheetLeft">
         {sheetInfo}
         <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{title}</span>
         </a>
         {sheetSummary}
@@ -1760,7 +1744,6 @@ const CollectionListing = ({data}) => {
         <div className="collectionListingText">
 
           <a href={collectionUrl} className="collectionListingName">
-            <img className="collectionListingImage" src={imageUrl} alt="Collection Icon"/>
             {data.name}
           </a>
 
