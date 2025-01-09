@@ -17,7 +17,7 @@ export const RandomTopicCardWithDescriptionRow = () => {
 
     const fetchRandomTopicDeck = async () => {
         const poolName = Sefaria.getLangSpecificTopicPoolName('general');
-        const topics = await Sefaria.getTopicsByPool(poolName, numTopics*numTopics);
+        const topics = await Sefaria.getTopicsByPool(poolName, Math.pow(numTopics, 3));
         const lang = Sefaria.interfaceLang == "hebrew"? 'he' : 'en';
         const deck = topics
           .filter(topic => topic.description?.[lang])
