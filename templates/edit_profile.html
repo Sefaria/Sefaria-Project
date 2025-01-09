@@ -2,7 +2,7 @@
 {% load sefaria_tags %}
 {% load i18n static %}
 
-{% block title %}{% trans "Edit Your Profile on Sefaria" %}{% endblock %}
+{% block title %}{% trans "edit_profile.edit_your_profile" %}{% endblock %}
 
 {% block content %}
 <div id="editProfilePage" class="static biReady">
@@ -10,57 +10,57 @@
         <h1 class="headerWithButtons" style="display: flex;flex-direction: column;">
             <div class="start"></div>
             <div>
-                <span class="{{ language_font_class }}">{% trans "Edit Your Profile" %}</span>
+                <span class="{{ language_font_class }}">{% trans "edit_profile.header" %}</span>
             </div>
             <div class="end">
                 <a class="button small transparent control-elem" href="/my/profile">
-                    <span class="{{ language_font_class }}">{% trans "Cancel" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "common.edit_profile.cancel_button" %}</span>
                 </a>
                 <div id="saveProfile" class="button small blue control-elem" tabindex="0" role="button" >
-                    <span class="{{ language_font_class }}">{% trans "Save" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "common.edit_profile.save_button" %}</span>
                 </div>
             </div>
         </h1>
         <div id="profileBox">
             <div class="field control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "First Name" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.first_name" %}</span>
                 </label>
                 <input id="firstName" value="{{ user.first_name }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "Last Name" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.last_name" %}</span>
                 </label>
                 <input id="lastName"  value="{{ user.last_name }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "Title" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.title" %}</span>
                 </label>
                 <input id="position"  value="{{ profile.position }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "Organization" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.organization" %}</span>
                 </label>
                 <input id="organization" value="{{ profile.organization }}" >
             </div>
             <div class="field control-elem">
                  <label>
-                    <span class="{{ language_font_class }}">{% trans "Website" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.website" %}</span>
                 </label>
                 <input id="website" value="{{ profile.website }}" >
             </div>
             <div class="field control-elem">
                  <label>
-                    <span class="{{ language_font_class }}">{% trans "Location" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.location" %}</span>
                 </label>
                 <input id="location" value="{{ profile.location }}" >
             </div>
             <div id="jewishEducation" class="field control-elem">
                  <label>
-                    <span class="{{ language_font_class }}">{% trans "Education" %}<span class="sub">{% trans "where have you learned" %}</span></span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.education_info" %}<span class="sub">{% trans "edit_profile.education_info_detail" %}</span></span>
                 </label>
                 <ul id="jewishEducation">
                     {% for line in profile.jewish_education %}
@@ -69,12 +69,12 @@
                     <li><input value="" /></li>
                     {% endfor %}
                 </ul>
-                <div id="addEducation"><i class="fa fa-plus"></i><span class="{{ language_font_class }}">{% trans "Add a line" %}</span></div>
+                <div id="addEducation"><i class="fa fa-plus"></i><span class="{{ language_font_class }}">{% trans "edit_profile.line_add" %}</span></div>
             </div>
         </div>
         <div id="aboutBox" class="control-elem">
             <label>
-                <span class="{{ language_font_class }}">{% trans "About Me" %}</span>
+                <span class="{{ language_font_class }}">{% trans "edit_profile.about_me" %}</span>
             </label>
             <div contenteditable="true" id="bio">
                 {% autoescape off %}
@@ -84,15 +84,15 @@
         </div>
         {% if sheets %}
         <h2>
-            <span class="{{ language_font_class }}">{% trans "Public Sheets" %}</span>
+            <span class="{{ language_font_class }}">{% trans "edit_profile.public_sheets" %}</span>
         </h2>
         <div id="sheetsBox">
             <div id="pinnedSheetsMessage" class=" control-elem">
-                <span class="{{ language_font_class }}">{% trans "You can drag and order source sheets that you want to pin to the top of your profile." %}</span>
+                <span class="{{ language_font_class }}">{% trans "edit_profile.drag_sheet_message" %}</span>
             </div>
             <div id="pinnedSheets" class="sheetSet control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "Pinned Sheets" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.pinned_sheets" %}</span>
                 </label>
                 <ul class="sortableSheets">
                     {% for id in profile.pinned_sheets %}
@@ -102,7 +102,7 @@
             </div>
             <div class="sheetSet control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "All Sheets" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.all_sheets" %}</span>
                 </label>
                 <ul class="sortableSheets">
                     {% for sheet in sheets %}
@@ -116,42 +116,42 @@
         {% endif %}
 
         <h2>
-            <span class="{{ language_font_class }}">{% trans "Contact" %}</span>
+            <span class="{{ language_font_class }}">{% trans "edit_profile.contact" %}</span>
         </h2>
         <div id="contactBox">
             <div class="field control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "Email (will be public)" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.email_privacy" %}</span>
                 </label>
                 <input id="public_email" value="{{ profile.public_email }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "Profile URL" %} <span class="sub">www.pecha.org/profile/{{ profile.slug }}</span></span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.profile_url" %} <span class="sub">www.pecha.org/profile/{{ profile.slug }}</span></span>
                 </label>
                 <input id="slug"  value="{{ profile.slug }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "Twitter Handle" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.twitter_handle" %}</span>
                 </label>
                 <input id="twitter"  value="{{ profile.twitter }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "LinkedIn" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.linkedIn" %}</span>
                 </label>
                 <input id="linkedin"  value="{{ profile.linkedin }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "Facebook" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.facebook" %}</span>
                 </label>
                 <input id="facebook"  value="{{ profile.facebook }}">
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="{{ language_font_class }}">{% trans "YouTube Channel" %}</span>
+                    <span class="{{ language_font_class }}">{% trans "edit_profile.youtube_channel" %}</span>
                 </label>
                 <input id="youtube" value="{{ profile.youtube }}">
             </div>

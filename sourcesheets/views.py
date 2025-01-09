@@ -400,7 +400,7 @@ def collections_api(request, slug=None):
         if not request.user.is_authenticated and request.method == "POST":
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": _("You must be logged in to create a new collection.")})
+                return jsonResponse({"error": _("creating_new_collection_message")})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
@@ -563,7 +563,7 @@ def collections_role_api(request, slug, uid, role):
         return jsonResponse({"error": "Unknown collection contributor role."})
     if uid == request.user.id and collection.admins == [request.user.id] and role != "admin":
         return jsonResponse({"error": _(
-            "Leaving this collection would leave it without any owners. Please appoint another owner before leaving, or delete the collection.")})
+            "error_message_when_trying_to_remove_the_last_owner_of_a_collection")})
     if role == "remove":
         collection.remove_member(uid)
     else:
@@ -1158,7 +1158,7 @@ def export_to_drive(request, credential, sheet_id):
 @catch_error_as_json
 def upload_sheet_media(request):
     if not request.user.is_authenticated:
-        return jsonResponse({"error": _("You must be logged in to access this api.")})
+        return jsonResponse({"error": _("error_message_when_trying_to_upload_media_without_logging_in")})
     if request.method == "POST":
         from PIL import Image
         from io import BytesIO

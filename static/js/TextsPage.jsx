@@ -140,7 +140,7 @@ const Dedication = () => {
 
   function get_google_sheet_data() {
     const url =
-      'https://docs.google.com/spreadsheets/d/1LtSNeecpQd8O5R77rqRSHaQUekJciRU8xsRnCjJGZNg/edit#gid=0';
+      'https://docs.google.com/spreadsheets/d/16WqaFgY3P8wEFttRRbi-Pclo1Urm5jg7sMabl7apS_Y/edit?gid=0#gid=0';
     const query = new google.visualization.Query(url);
     query.setQuery('select A, B, C');
     query.send(processSheetsData);

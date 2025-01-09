@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n cache %}
 
-{% block title %}{% trans "Top Contributors | Sefaria" %}{% endblock %}
+{% block title %}{%  "Top Contributors | Sefaria" %}{% endblock %}
 
-{% block description %}{% trans "See who has been contributing most to Sefaria in terms of texts, translations, and source sheet." %}{% endblock %}
+{% block description %}{%  "See who has been contributing most to Sefaria in terms of texts, translations, and source sheet." %}{% endblock %}
 
 {% block css %}
 
@@ -27,7 +27,7 @@
 <div id="leaderboardPage" class="static">
     <div class="inner">
         <h1>
-            <span class="{{ language_font_class }}">{% trans "Top Contributors" %}</span>
+            <span class="{{ language_font_class }}">{%  "Top Contributors" %}</span>
         </h1>
 
         <div id="boards">

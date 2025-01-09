@@ -3,9 +3,9 @@
 {% load i18n %} 
 {% load sefaria_tags %}
 
-{% block title %}{{ name }} | {% trans "Sefaria" %}{% endblock %}
+{% block title %}{{ name }} | {% "Sefaria" %}{% endblock %}
 
-{% block description %}{{ bio }} | {% trans "Sefaria" %}{% endblock %}
+{% block description %}{{ bio }} | {% "Sefaria" %}{% endblock %}
 
 
 {% block head %}
@@ -35,10 +35,10 @@
             "item": {
               {% if post_talmudic %}
                 "@id": "/people",
-                "name": "{% trans "Authors" %}"
+                "name": "{% "Authors" %}"
               {% else %}
                 "@id": "/people/talmud",
-                "name": "{% trans "People in the Talmud" %}"
+                "name": "{% "People in the Talmud" %}"
               {% endif %}
             }
           },
@@ -83,30 +83,30 @@
         <div class="section">
             <div id="external_links">
                 <h3>
-                    <span class="{{ language_font_class }}">{% trans "Learn More" %}</span>
+                    <span class="{{ language_font_class }}">{% "Learn More" %}</span>
                 </h3>
                 {% if enWikiLink and heWikiLink %}
                     <p>
-                        <span class="int-en"><a href="{{ enWikiLink }}">{% trans "Wikipedia" %}</a><i class="fa fa-external-link"></i></span>
-                        <span class="int-he"><a href="{{ heWikiLink }}">{% trans "Wikipedia" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                        <span class="int-en"><a href="{{ enWikiLink }}">{% "Wikipedia" %}</a><i class="fa fa-external-link"></i></span>
+                        <span class="int-he"><a href="{{ heWikiLink }}">{% "Wikipedia" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
                     </p>
 
                 {% elif enWikiLink %}
                     <p>
-                        <span class="int-en"><a href="{{ enWikiLink }}">{% trans "Wikipedia" %}</a><i class="fa fa-external-link"></i></span>
-                        <span class="int-he"><a href="{{ enWikiLink }}">{% trans "Wikipedia" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                        <span class="int-en"><a href="{{ enWikiLink }}">{% "Wikipedia" %}</a><i class="fa fa-external-link"></i></span>
+                        <span class="int-he"><a href="{{ enWikiLink }}">{% "Wikipedia" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
                     </p>
                 {% elif heWikiLink %}
                     <p>
-                        <span class="int-en"><a href="{{ heWikiLink }}">{% trans "Wikipedia (Hebrew)" %}</a><i class="fa fa-external-link"></i></span>
-                        <span class="int-he"><a href="{{ heWikiLink }}">{% trans "Wikipedia (Hebrew)" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                        <span class="int-en"><a href="{{ heWikiLink }}">{% "Wikipedia (Hebrew)" %}</a><i class="fa fa-external-link"></i></span>
+                        <span class="int-he"><a href="{{ heWikiLink }}">{% "Wikipedia (Hebrew)" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
                     </p>
                 {% endif %}
 
                 {% if jeLink %}
                     <p>
-                        <span class="int-en"><a href="{{ jeLink }}">{% trans "Jewish Encyclopedia" %}</a><i class="fa fa-external-link"></i></span>
-                        <span class="int-he"><a href="{{ jeLink }}">{% trans "Jewish Encyclopedia" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                        <span class="int-en"><a href="{{ jeLink }}">{% "Jewish Encyclopedia" %}</a><i class="fa fa-external-link"></i></span>
+                        <span class="int-he"><a href="{{ jeLink }}">{% "Jewish Encyclopedia" %}</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
                     </p>
                 {% endif %}
             </div>
@@ -126,7 +126,7 @@
             {% if indexes|length %}
             <div id="indexes">
                 <h3>
-                     <span class="{{ language_font_class }}">{% trans "Works" %}</span>
+                     <span class="{{ language_font_class }}">{% "Works" %}</span>
                 </h3>
                 {% for indx in indexes %}
                     <p>
@@ -138,7 +138,7 @@
             {% if places %}
             <div id="person-graphic-column">
                 <h3>
-                    <span class="{{ language_font_class }}">{% trans "Map" %}</span>
+                    <span class="{{ language_font_class }}">{% "Map" %}</span>
                 </h3>
                     <div id="place-map"></div>
             </div>
