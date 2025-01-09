@@ -223,9 +223,9 @@ def collection_link(collection_slug):
 @register.filter(is_safe=True)
 def lang_code(code):
 	codes = {
-		"en": _("English"),
-		"he": _("Hebrew"),
-		"bi": _("Bilingual"),
+		"en": "English",
+		"he": "Hebrew",
+		"bi": "Bilingual",
 	}
 	return codes.get(code, "Unknown Language")
 

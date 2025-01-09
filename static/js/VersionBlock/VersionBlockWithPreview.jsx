@@ -5,6 +5,7 @@ import {VersionBlockUtils} from './VersionBlock';
 import VersionTitleAndSelector from './VersionTitleAndSelector';
 import VersionMetadata from "./VersionMetadata";
 import {OpenConnectionTabButton} from "../TextList";
+import Sefaria from '../sefaria/sefaria';
 
 function VersionBlockWithPreview({currentRef, version, currObjectVersions, openVersionInSidebar, openVersionInReader, isSelected, srefs, onRangeClick}) {
     const opeInSidebar = VersionBlockUtils.openVersionInSidebar.bind(null, currentRef, version, currObjectVersions, openVersionInSidebar);
@@ -38,7 +39,7 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
                     <OpenConnectionTabButton
                         srefs={srefs}
                         openInTabCallback={openInTabCallback}
-                        openStrings={['Open Text', 'གཞུང་འབྱེད་པ།']}
+                        openStrings={[Sefaria._("text.translation.open_text"), Sefaria._("text.translation.open_text") ]}
                     />
                 </div>
             </details>

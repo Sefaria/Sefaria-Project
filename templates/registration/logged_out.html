@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Logged Out | Sefaria" %}{% endblock %}
+{% block title %}{% trans "registration.logged_out.logged_out_pecha" %}{% endblock %}
 
 {% block content %}
 
@@ -10,7 +10,7 @@
 <div id="loggedOut" >
 
 	<p id="message">
-		{% trans "You are now logged out." %} <a href="{% url "login" %}">{% trans "Log back in" %}</a>.
+		{% trans "registration.logged_out.you_are_now_logged_out %} <a href="{% url "login" %}">{% trans "registration.logged_out.log_back_in" %}</a>.
 	</p>
 	
 </div>

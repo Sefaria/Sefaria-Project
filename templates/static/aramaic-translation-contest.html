@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n cache humanize sefaria_tags static %}
 
-{% block title %}{% trans "Sefaria: a Living Library of Jewish Texts Online" %}{% endblock %}
+{% block title %}{%"Sefaria: a Living Library of Jewish Texts Online" %}{% endblock %}
 
-{% block description %}{% trans "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more." %}{% endblock %}
+{% block description %}{% "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more." %}{% endblock %}
 
 {% block head %}
 {% endblock %}
@@ -137,7 +137,7 @@
                         <span class="int-en">Subscribe to our mailing list</span>
                         <span class="int-he">הצטרפו לרשימת הדיוור שלנו</span>
                     </div>
-                    <input id="mailingListEmail" title="Subscribe to our mailing list by entering your email here" placeholder="{% trans 'Email Address' %}">
+                    <input id="mailingListEmail" title="Subscribe to our mailing list by entering your email here" placeholder="{% 'Email Address' %}">
                     <span id="subscribe" class="button control-elem">
                         <span class="int-en">Subscribe</span>
                         <span class="int-he">הירשמו</span>
@@ -177,19 +177,19 @@
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
                 Sefaria.track.event("Home", "Subscribe from Homepage", "");
-                $("#subscribeMsg").html('{% trans "<i>Subscribing...</i>" %}').show();
+                $("#subscribeMsg").html('{% "<i>Subscribing...</i>" %}').show();
                 var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
                 $.post("/api/subscribe/" + email + "?lists=" + list,  function(data) {
                     if ("error" in data) {
                         $("#subscribeMsg").text(data.error).show();
                     } else {
-                        $("#subscribeMsg").text('{% trans "Subscribed! Welcome to our list." %}').show();
+                        $("#subscribeMsg").text('{% "Subscribed! Welcome to our list." %}').show();
                     }
                 }).error(function(data) {
-                    $("#subscribeMsg").text('{% trans "Sorry, there was an error." %}').show();
+                    $("#subscribeMsg").text('{% "Sorry, there was an error." %}').show();
                 })
             } else {
-                $("#subscribeMsg").text('{% trans "Please enter a valid email address." %}').show();
+                $("#subscribeMsg").text('{% "Please enter a valid email address." %}').show();
             }
         });
         $("#mailingListEmail").keyup(function(e){
