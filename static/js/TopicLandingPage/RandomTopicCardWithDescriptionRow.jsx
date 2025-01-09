@@ -49,8 +49,8 @@ export const RandomTopicCardWithDescriptionRow = () => {
                   cardText={topic.description}>
                   <div className="explore-more-prompt">
                       <a href={`topics/${topic.slug}`}>
-                          <InterfaceText text={{en: `Learn More on ${topic.title?.en} ›`,
-                              he:`${Sefaria._("Learn More on")} ${topic.title?.he} ›`}}/>
+                          <InterfaceText text={{en: `Explore ${topic.title?.en} ›`,
+                              he:`${Sefaria._("Explore")} ${topic.title?.he} ›`}}/>
                       </a>
                   </div>
               </Card>
