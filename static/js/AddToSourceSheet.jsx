@@ -231,7 +231,7 @@ class AddToSourceSheetBox extends Component {
             <div className="newSheet noselect">
               <input className="newSheetInput noselect" placeholder={Sefaria._("text.name_new_sheet")}/>
               <div className="button small noselect" onClick={this.createSheet} >
-                <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("sheet.add_to_sheet")}</span>
+                <span className={`${Sefaria.languageClassFont()}`}>{ Sefaria._("text.create_sheet")}</span>
               </div>
              </div>
           </div>
