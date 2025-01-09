@@ -50,7 +50,7 @@ class TextList extends Component {
   }
   getSectionRef() {
     var ref = this.props.srefs[0]; // TODO account for selections spanning sections
-    var sectionRef = Sefaria.sectionRef(ref) || ref;
+    var sectionRef = Sefaria.sectionRef(ref, true) || ref;
     return sectionRef;
   }
   loadConnections() {
