@@ -524,13 +524,13 @@ const RelatedTopics = ({title}) => {
 };
 
 
-const JoinTheConversation = ({wide}) => {
+const JoinTheConversation = ({wide, title}) => {
   if (!Sefaria.multiPanel) { return null; } // Don't advertise create sheets on mobile (yet)
 
   return (
     <Module wide={wide}>
       <div>
-        <ModuleTitle>side_nav.join_conversation</ModuleTitle>
+        <ModuleTitle>{title}</ModuleTitle>
         <InterfaceText>topic.combine_source</InterfaceText>
       </div>
       <div>

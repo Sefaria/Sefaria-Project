@@ -8528,6 +8528,16 @@ But not to use a display block directive that might break continuous mode for ot
     margin: 19px 33px;
 }
 
+.link_title {
+    position: relative;
+    display: flex;
+    font-size: var(--sans-serif-body-font-size);
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #666;
+    padding: 20px 20px;
+    margin: 19px 33px;
+}
+
 .shareInput {
     width: calc(100% - 40px);
     box-sizing: border-box;
@@ -8596,11 +8606,11 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 .interface-hebrew .addToSourceSheetBox input {
-    width: 47%;
+    width: 100%;
 }
 
 .interface-hebrew .addToSourceSheetBox .button.small {
-    width: 50%;
+    width: 100%;
     float: left;
     white-space: nowrap;
 }

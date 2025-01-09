@@ -569,7 +569,7 @@ Sefaria = extend(Sefaria, {
   ISOMap: {
     "bi": {"name": "Bilingual", "i18nString": "language.bilingual", "showTranslations": 1},
     "en": {"name": "English", "i18nString": "language.english", "showTranslations": 1},
-    "he": {"name": "Tibetan", "i18nString": "language.tibetan", "showTranslations": 1},
+    "bo": {"name": "Tibetan", "i18nString": "language.tibetan", "showTranslations": 1},
     "yi": {"name": "Yiddish", "i18nString": "language.yiddish", "showTranslations": 1},
     "fi": {"name": "Finnish", "i18nString": "language.finnish", "showTranslations": 1},
     "pt": {"name": "Portuguese", "i18nString": "language.portuguese", "showTranslations": 1},
@@ -597,7 +597,7 @@ Sefaria = extend(Sefaria, {
     "tr": {"name": "Turkish", "i18nString": "language.turkish", "showTranslations": 1},
     "vi": {"name": "Vietnamese", "i18nString": "language.vietnamese", "showTranslations": 1},
     "th": {"name": "Thai", "i18nString": "language.thai", "showTranslations": 1},
-    "he": {"name": "Hebrew", "i18nString": "language.hebrew", "showTranslations": 1},
+    "he": {"name": "Hebrew", "i18nString": "language.tibetan", "showTranslations": 1},
     "ms": {"name": "Malay", "i18nString": "language.malay", "showTranslations": 1},
     "id": {"name": "Indonesian", "i18nString": "language.indonesian", "showTranslations": 1},
     "cs": {"name": "Czech", "i18nString": "language.czech", "showTranslations": 1},
@@ -2989,7 +2989,7 @@ _media: {},
   hebrewTerm: function(name) {
     
     // Returns a string translating `name` into Hebrew.
-    const categories = ["quoting_commentary","text.commentary","modern_commentary","sheets","notes","community"];
+    const categories = ["quoting_commentary","Commentary","modern_commentary","sheets","notes","community", ];
     if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
     } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'en')]) {
@@ -2997,7 +2997,7 @@ _media: {},
     } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]) {
         return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]["he"];
     } else if (categories.includes(name)) {
-        return  Sefaria._(name);
+        return name == 'Commentary'?  Sefaria._("text.commentary") : Sefaria._(name);
     } else if (Sefaria.index(name)) {
         return Sefaria.index(name).heTitle;
     } else {

@@ -153,11 +153,11 @@ const sheetSort = (currSortOption, a, b) => {
 const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
-  const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+  const langKey = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
   let dataSourceText = '';
 
   if (!!text.dataSources && Object.values(text.dataSources).length > 0) {
-    dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}.`;
+    dataSourceText = Sefaria._('topic.tab.sources.modal_message', {user:Object.values(text.dataSources).map(d => d[langKey]).join(' & '), topic: topicTitle && topicTitle[langKey] });
   }
 
   const afterSave = (
@@ -382,7 +382,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
     {
       key: 'popular-writing-of',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
-      sortOptions: [Sefaria._("filter_list.relevance"), 'Chronological'],
+      sortOptions: [Sefaria._("filter_list.relevance"), Sefaria._("filter_list.chronological")],
 
       filterFunc: refFilter,
       sortFunc: refSort,
@@ -391,7 +391,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
     {
       key: 'sources',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
-      sortOptions: [Sefaria._("filter_list.relevance"), 'Chronological'],
+      sortOptions: [Sefaria._("filter_list.relevance"), Sefaria._("filter_list.chronological")],
       filterFunc: refFilter,
       sortFunc: refSort,
       renderWrapper: refRenderWrapper,
@@ -491,8 +491,18 @@ const TopicPage = ({
         topic
       );
       if (topicData?.tabs?.[key]) {
+        let enTitle = topicData.tabs[key].title['en']
+        let title = {}
+        if (enTitle == 'Sources') {
+          title = {en: Sefaria._('sheet.sources'), he: Sefaria._('sheet.sources')}
+        }
+        else if (enTitle == 'Sheets') {
+          title = {en: Sefaria._('common.sheets'), he: Sefaria._('common.sheets')}
+        } else {
+          title = topicData.tabs[key].title
+        }
         displayTabs.push({
-          title: topicData.tabs[key].title,
+          title: title,
           id: key,
         });
       }
@@ -741,8 +751,7 @@ const TopicSideSection = ({ title, children, hasMore }) => {
   return (
     <div key={title.en} className="link-section">
       <h2>
-        <span className="int-en">{title.en}</span>
-        <span className="int-he">{title.he}</span>
+      {Sefaria.interfaceLang === 'hebrew' ? <span className="int-he">{title.he}</span>: <span className="int-en">{title.en}</span>}
       </h2>
       <div className="sideList">
         { React.Children.toArray(children).slice(0, showMore ? undefined : 10) }

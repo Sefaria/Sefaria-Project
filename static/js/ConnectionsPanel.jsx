@@ -1433,8 +1433,13 @@ class ShareBox extends Component {
     const classes = classNames({ textList: 1, fullPanel: this.props.fullPanel });
     return (
       <div>
+        
         <ConnectionsPanelSection title="text.share_link">
+          <div className="link_title">
+            <InterfaceText>text.link_share</InterfaceText>
+          </div>
           <div className="shareInputBox">
+
             <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
             <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>
