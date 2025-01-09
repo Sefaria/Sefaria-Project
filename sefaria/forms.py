@@ -38,13 +38,13 @@ class SefariaDeleteSheet(forms.Form):
 
 
 class SefariaLoginForm(EmailAuthenticationForm):
-    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Placeholder_email_address")}))
+    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("placeholder_email_address")}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_password")}))
 
 
 class SefariaNewUserForm(EmailUserCreationForm):
     email = forms.EmailField(max_length=75,
-                             widget=forms.EmailInput(attrs={'placeholder': _("Placeholder_email_address"), 'autocomplete': 'off'}))
+                             widget=forms.EmailInput(attrs={'placeholder': _("placeholder_email_address"), 'autocomplete': 'off'}))
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("placeholder_first_name"), 'autocomplete': 'off'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("placeholder_last_name"), 'autocomplete': 'off'}))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_password"), 'autocomplete': 'off'}))
@@ -149,7 +149,7 @@ class SefariaNewUserFormAPI(SefariaNewUserForm):
 #
 class SefariaPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(max_length=75,
-                             widget=forms.TextInput(attrs={'placeholder': _("Placeholder_email_address"), 'autocomplete': 'off'}))
+                             widget=forms.TextInput(attrs={'placeholder': _("placeholder_email_address"), 'autocomplete': 'off'}))
 
 
 class SefariaSetPasswordForm(SetPasswordForm):

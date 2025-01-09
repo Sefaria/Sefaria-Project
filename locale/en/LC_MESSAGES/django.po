@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-07 10:04-0400\n"
+"POT-Creation-Date: 2025-01-09 00:59-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,871 +19,907 @@ msgstr ""
 
 #: sefaria/forms.py:32
 msgid "placeholder_email_delete_message"
-msgstr ""
+msgstr "Email Address to delete"
 
 #: sefaria/forms.py:33 sefaria/forms.py:37
 msgid "placeholder_admin_password"
-msgstr ""
+msgstr "Admin Password"
 
 #: sefaria/forms.py:36
 msgid "placeholder_sheet_id_delete_message"
-msgstr ""
+msgstr "Sheet ID to delete"
 
 #: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
-msgid "Placeholder_email_address"
-msgstr ""
+msgid "placeholder_email_address"
+msgstr "Email Address"
 
 #: sefaria/forms.py:42 sefaria/forms.py:50
 msgid "placeholder_password"
-msgstr ""
+msgstr "Password"
 
 #: sefaria/forms.py:48
 msgid "placeholder_first_name"
-msgstr ""
+msgstr "First Name"
 
 #: sefaria/forms.py:49
 msgid "placeholder_last_name"
-msgstr ""
+msgstr "Last Name"
 
 #: sefaria/forms.py:55 templates/registration/custom_dropdown.html:5
 #: templates/registration/register.html:27
 msgid "forms.placeholder_select_option"
-msgstr ""
+msgstr "Select an option"
 
 #: sefaria/forms.py:56 templates/registration/custom_dropdown.html:10
 #: templates/registration/register.html:32
 msgid "placeholder_monastic"
-msgstr ""
+msgstr "Monastic"
 
 #: sefaria/forms.py:57 templates/registration/custom_dropdown.html:11
 #: templates/registration/register.html:33
 msgid "placeholder_teacher"
-msgstr ""
+msgstr "Teacher"
 
 #: sefaria/forms.py:58 templates/registration/custom_dropdown.html:12
 #: templates/registration/register.html:34
 msgid "placeholder_student"
-msgstr ""
+msgstr "Student"
 
 #: sefaria/forms.py:59 templates/registration/custom_dropdown.html:13
 #: templates/registration/register.html:35
 msgid "placeholder_Educated_Dr_Prof"
-msgstr ""
+msgstr "Educated* /Dr / Prof"
 
 #: sefaria/forms.py:60 templates/registration/custom_dropdown.html:14
 #: templates/registration/register.html:36
 msgid "placeholder_regular_user"
-msgstr ""
+msgstr "Regular user"
 
 #: sefaria/forms.py:95 sefaria/model/user_profile.py:283
 msgid "user_already_exists_message"
-msgstr ""
+msgstr "A user with that email already exists."
 
 #: sefaria/forms.py:143
 msgid "mobile_app_key_error_message"
-msgstr ""
+msgstr "Incorrect mobile_app_key provided"
 
 #: sefaria/forms.py:157
 msgid "form.placeholder_new_password"
-msgstr ""
+msgstr "New password"
 
 #: sefaria/forms.py:158
 msgid "placeholder_new_password"
-msgstr ""
+msgstr "Enter New Password"
 
 #: sefaria/forms.py:163
 msgid "form_placeholder_new_pw_confirmation"
-msgstr ""
+msgstr "New password confirmation"
 
 #: sefaria/forms.py:165
 msgid "placeholder_repeat_new_password"
-msgstr ""
+msgstr "Repeat New Password"
 
 #: sefaria/model/collection.py:93
 msgid "set_collection_name_message"
-msgstr ""
+msgstr "Please set a name for your collection."
 
 #: sefaria/model/collection.py:117
 msgid "collection_name_taken_message"
 msgstr ""
+"A public collection with this name already exists. Please choose a different"
+" name before publishing."
 
 #: sefaria/model/collection.py:119
 msgid "collection_image_required_message"
 msgstr ""
+"Public Collections are required to include a collection image (a square "
+"image will work best)."
 
 #: sefaria/model/collection.py:121
 msgid "collection_sheet_count_message"
-msgstr ""
+msgstr "Public Collections are required to have at least 3 public sheets."
 
 #: sefaria/model/collection.py:284
 msgid "collection_invitation_email_subject"
-msgstr ""
+msgstr "%(name)s invited you to a collection on Pecha"
 
 #: sefaria/model/user_profile.py:288
 msgid "email_invalid_message"
-msgstr ""
+msgstr "The email address is not valid."
 
 #: sourcesheets/views.py:403
 msgid "creating_new_collection_message"
-msgstr ""
+msgstr "You must be logged in to create a new collection."
 
 #: sourcesheets/views.py:566
 msgid "error_message_when_trying_to_remove_the_last_owner_of_a_collection"
 msgstr ""
+"Leaving this collection would leave it without any owners. Please appoint "
+"another owner before leaving, or delete the collection."
 
 #: sourcesheets/views.py:1161
 msgid "error_message_when_trying_to_upload_media_without_logging_in"
-msgstr ""
+msgstr "You must be logged in to access this api."
 
 #: templates/404.html:4
 msgid "page_not_found_title"
-msgstr ""
+msgstr "Page Not Found | Pecha"
 
 #: templates/404.html:11
 msgid "page_not_found_message"
-msgstr ""
+msgstr "Page Not Found"
 
 #: templates/404.html:15
 msgid "link_not_working_message"
 msgstr ""
+"The requested URL couldn't be found.If you've arrived here from a link on "
+"another site,you may want to let them know their link isn't working."
 
 #: templates/500.html:4 templates/500.html:10
 msgid "server_related_error_message"
-msgstr ""
+msgstr "Internal Server Error"
 
 #: templates/500.html:15
 msgid "send_message_to_developer_request"
 msgstr ""
+"Unfortunately, we've encountered an error.An email has been sent "
+"automatically to our developers.If you have any questions about the problem,"
+" or think you can help us figure out what went wrong,please email our"
 
 #: templates/500.html:15
 msgid "developer_team"
-msgstr ""
+msgstr "development team"
 
 #: templates/account_settings.html:12
 msgid "account_setting"
-msgstr ""
+msgstr "Account Settings"
 
 #: templates/account_settings.html:16
 msgid "common.account_setting.cancel_setting_button"
-msgstr ""
+msgstr "Cancel"
 
 #: templates/account_settings.html:19
 msgid "common.account_setting.save_request"
-msgstr ""
+msgstr "Save"
 
 #: templates/account_settings.html:25
 msgid "account_setting.rate_of_notification"
-msgstr ""
+msgstr "Notification Frequency (Maximum)"
 
 #: templates/account_settings.html:29
 msgid "account_setting.to_send_notification_daily"
-msgstr ""
+msgstr "Daily"
 
 #: templates/account_settings.html:32
 msgid "account_setting.to_send_notification_weekly"
-msgstr ""
+msgstr "Weekly"
 
 #: templates/account_settings.html:35
 msgid "account_setting.never_send_notification"
-msgstr ""
+msgstr "Never"
 
 #: templates/account_settings.html:42
 msgid "account_setting.language_selection_title"
-msgstr ""
+msgstr "Site Language"
 
 #: templates/account_settings.html:46
 msgid "account_setting.language_english_option"
-msgstr ""
+msgstr "english"
 
 #: templates/account_settings.html:49
 msgid "common.account_setting.language_tibetan_option"
-msgstr ""
+msgstr "Tibetan"
 
 #: templates/account_settings.html:56
 msgid "account_setting.user's_preferred_translation_language"
-msgstr ""
+msgstr "Preferred Translation Language"
 
 #: templates/account_settings.html:69
 msgid "account_setting.user's_reading_history"
-msgstr ""
+msgstr "Reading History"
 
 #: templates/account_settings.html:73
 msgid "account_setting.reading_history_enable"
-msgstr ""
+msgstr "On"
 
 #: templates/account_settings.html:76
 msgid "account_setting.reading_history_disable"
-msgstr ""
+msgstr "Off"
 
 #: templates/account_settings.html:84
 msgid "account_setting.login_account_email_message"
-msgstr ""
+msgstr "Account Email (This is used for login)"
 
 #: templates/account_settings.html:89
 msgid "account_setting.change_email_message"
-msgstr ""
+msgstr "Change Email"
 
 #: templates/account_settings.html:94
 msgid "account_setting.new_email"
-msgstr ""
+msgstr "New Email"
 
 #: templates/account_settings.html:95
 msgid "account_setting.confirm_new_email"
-msgstr ""
+msgstr "Confirm New Email"
 
 #: templates/account_settings.html:96
 msgid "common.account_setting.password"
-msgstr ""
+msgstr "Password"
 
 #: templates/account_settings.html:98
 msgid "account_setting.update_email"
-msgstr ""
+msgstr "Update Email"
 
 #: templates/account_settings.html:105
 msgid "account_setting.google_account_message"
-msgstr ""
+msgstr "Google Account (Allows for exporting sheets to Google Drive)"
 
 #: templates/account_settings.html:110
 msgid "account_setting.google_account_disconnect_with_pecha_acc"
-msgstr ""
+msgstr "Disconnect"
 
 #: templates/account_settings.html:117
 msgid "account_setting.google_account_disconnected_message"
-msgstr ""
+msgstr "Your Google Account has been disconnected"
 
 #: templates/account_settings.html:120
 msgid "account_setting.export_sheet_message"
-msgstr ""
+msgstr "You can link to a new Google Account the next time you export a sheet"
 
 #: templates/account_settings.html:125
 msgid "common.account_setting.save_setting_button"
-msgstr ""
+msgstr "Save"
 
 #: templates/account_settings.html:128
 msgid "common.account_setting.cancel_request"
-msgstr ""
+msgstr "Cancel"
 
-#: templates/activity.html:7
+#: templates/activity.html:7 templates/activity.html:36
 msgid "activity.revision_history"
-msgstr ""
+msgstr "Revision History of"
 
 #: templates/activity.html:9
 msgid "activity.pecha_activity_profile"
-msgstr ""
+msgstr "Pecha Activity"
 
 #: templates/activity.html:11
 msgid "activity.pecha_activity"
-msgstr ""
+msgstr "Pecha Activity"
 
 #: templates/activity.html:17
 msgid "activity.revision_history_message"
-msgstr ""
+msgstr "View the complete revision history of this text on Pecha."
 
 #: templates/activity.html:19
 msgid "activity.activity_message"
 msgstr ""
+"View a user's activitiy history on Pecha, including published source sheets,"
+" and text translations, edits or additions."
 
 #: templates/activity.html:21
 msgid "activity.view_log_message"
 msgstr ""
-
-#: templates/activity.html:36
-msgid "Revision History of"
-msgstr ""
+"View the complete log of public activity on Pecha, including published "
+"source sheets, and text translations, edits or additions."
 
 #: templates/activity.html:43
 msgid "activity.public_activity"
-msgstr ""
+msgstr "Public Activity"
 
 #: templates/activity.html:47
 msgid "activity.recent_activity"
-msgstr ""
+msgstr "Recent Activity on Pecha"
 
 #: templates/activity.html:52
 msgid "activity.all_activity_drop_down"
-msgstr ""
+msgstr "All Activity"
 
 #: templates/activity.html:53
 msgid "activity.translation_option"
-msgstr ""
+msgstr "Translations"
 
 #: templates/activity.html:54
 msgid "activity.source_sheets_option"
-msgstr ""
+msgstr "Source Sheets"
 
 #: templates/activity.html:55
 msgid "activity.new_texts_option"
-msgstr ""
+msgstr "New Texts"
 
 #: templates/activity.html:56
 msgid "activity.edit_list_option"
-msgstr ""
+msgstr "Edits"
 
 #: templates/activity.html:57
 msgid "activity.notes_option"
-msgstr ""
+msgstr "Notes"
 
 #: templates/activity.html:58
 msgid "activity.reviews_option"
-msgstr ""
+msgstr "Reviews"
 
 #: templates/activity.html:59
 msgid "activity.text_info_option_option"
-msgstr ""
+msgstr "Text Info"
 
 #: templates/activity.html:60
 msgid "activity.reversions_option"
-msgstr ""
+msgstr "Reversions"
 
 #: templates/activity.html:61
 msgid "activity.flagged_option"
-msgstr ""
+msgstr "Flagged"
 
 #: templates/delete-sheet.html:4
 msgid "admin.admin_delete_sheet"
-msgstr ""
+msgstr "Admin: Delete a Sheet"
 
 #: templates/delete-sheet.html:4
 msgid "admin.common.delete-sheet.pecha"
-msgstr ""
+msgstr "Pecha"
 
 #: templates/delete-sheet.html:11
 msgid "admin.delete_sheet"
-msgstr ""
+msgstr "Delete Sheet"
 
 #: templates/delete-sheet.html:13
 msgid "admin.caution_messsage"
-msgstr ""
+msgstr "CAUTION THIS WILL DELETE THE SHEET ID YOU INPUT"
 
 #: templates/delete-sheet.html:14
 msgid "admin.can't_undone_message"
-msgstr ""
+msgstr "IT CANNOT BE UNDONE."
 
 #: templates/delete-sheet.html:19
 msgid "admin.delete_sheet_button"
-msgstr ""
+msgstr "Delete Sheet"
 
 #: templates/edit_collection.html:9
 msgid "edit_collection.title"
-msgstr ""
+msgstr "Edit Collection on Pecha"
 
 #: templates/edit_collection.html:20
 msgid "edit_collection.loading"
-msgstr ""
+msgstr "Loading..."
 
 #: templates/edit_profile.html:5
 msgid "edit_profile.edit_your_profile"
-msgstr ""
+msgstr "Edit Your Profile on Pecha"
 
 #: templates/edit_profile.html:13
 msgid "edit_profile.header"
-msgstr ""
+msgstr "Edit Your Profile"
 
 #: templates/edit_profile.html:17
 msgid "common.edit_profile.cancel_button"
-msgstr ""
+msgstr "Cancel"
 
 #: templates/edit_profile.html:20
 msgid "common.edit_profile.save_button"
-msgstr ""
+msgstr "Save"
 
 #: templates/edit_profile.html:27
 msgid "edit_profile.first_name"
-msgstr ""
+msgstr "First Name"
 
 #: templates/edit_profile.html:33
 msgid "edit_profile.last_name"
-msgstr ""
+msgstr "Last Name"
 
 #: templates/edit_profile.html:39
 msgid "edit_profile.title"
-msgstr ""
+msgstr "Title"
 
 #: templates/edit_profile.html:45
 msgid "edit_profile.organization"
-msgstr ""
+msgstr "Organization"
 
 #: templates/edit_profile.html:51
 msgid "edit_profile.website"
-msgstr ""
+msgstr "Website"
 
 #: templates/edit_profile.html:57
 msgid "edit_profile.location"
-msgstr ""
+msgstr "Location"
 
 #: templates/edit_profile.html:63
 msgid "edit_profile.education_info"
-msgstr ""
+msgstr "Education"
 
 #: templates/edit_profile.html:63
 msgid "edit_profile.education_info_detail"
-msgstr ""
+msgstr "where have you learned"
 
 #: templates/edit_profile.html:72
 msgid "edit_profile.line_add"
-msgstr ""
+msgstr "Add a line"
 
 #: templates/edit_profile.html:77
 msgid "edit_profile.about_me"
-msgstr ""
+msgstr "About Me"
 
 #: templates/edit_profile.html:87
 msgid "edit_profile.public_sheets"
-msgstr ""
+msgstr "Public Sheets"
 
 #: templates/edit_profile.html:91
 msgid "edit_profile.drag_sheet_message"
 msgstr ""
+"You can drag and order source sheets that you want to pin to the top of your"
+" profile."
 
 #: templates/edit_profile.html:95
 msgid "edit_profile.pinned_sheets"
-msgstr ""
+msgstr "Pinned Sheets"
 
 #: templates/edit_profile.html:105
 msgid "edit_profile.all_sheets"
-msgstr ""
+msgstr "All Sheets"
 
 #: templates/edit_profile.html:119
 msgid "edit_profile.contact"
-msgstr ""
+msgstr "Contact"
 
 #: templates/edit_profile.html:124
 msgid "edit_profile.email_privacy"
-msgstr ""
+msgstr "Email (will be public)"
 
 #: templates/edit_profile.html:130
 msgid "edit_profile.profile_url"
-msgstr ""
+msgstr "Profile URL"
 
 #: templates/edit_profile.html:136
 msgid "edit_profile.twitter_handle"
-msgstr ""
+msgstr "Twitter Handle"
 
 #: templates/edit_profile.html:142
 msgid "edit_profile.linkedIn"
-msgstr ""
+msgstr "LinkedIn"
 
 #: templates/edit_profile.html:148
 msgid "edit_profile.facebook"
-msgstr ""
+msgstr "Facebook"
 
 #: templates/edit_profile.html:154
 msgid "edit_profile.youtube_channel"
-msgstr ""
+msgstr "YouTube Channel"
 
 #: templates/edit_term.html:39
 msgid "admin.terms_editor"
-msgstr ""
+msgstr "Terms Editor"
 
 #: templates/edit_term.html:40
 msgid "admin.loading"
-msgstr ""
+msgstr "Loading..."
 
 #: templates/edit_text.html:64
 msgid "edit_text.add_new_text"
-msgstr ""
+msgstr "Add a New Text"
 
 #: templates/edit_text.html:65
 msgid "edit_text.text_commentator_name"
-msgstr ""
+msgstr "Text or commentator name:"
 
 #: templates/edit_text.html:68
 msgid "edit_text.add_button"
-msgstr ""
+msgstr "Add"
 
 #: templates/edit_text.html:69 templates/edit_text.html:97
 #: templates/edit_text.html:150
 msgid "common.edit_text.cancel_button"
-msgstr ""
+msgstr "Cancel"
 
 #: templates/edit_text.html:86
 msgid "edit_text.your_review"
-msgstr ""
+msgstr "Your Review:"
 
 #: templates/edit_text.html:88
 msgid "edit_text.review_question"
-msgstr ""
+msgstr "How should I write a review?"
 
 #: templates/edit_text.html:96 templates/edit_text.html:149
 msgid "common.edit_text.save_button"
-msgstr ""
+msgstr "Save"
 
 #: templates/edit_text.html:101
-msgid "edit_text_add_review_request "
-msgstr ""
+msgid "edit_text_add_review_request"
+msgstr "To add your review,"
 
 #: templates/edit_text.html:101
 msgid "edit_text_login"
-msgstr ""
+msgstr "log in"
 
 #: templates/edit_text.html:101
 msgid "edit_text_or"
-msgstr ""
+msgstr "or"
 
 #: templates/edit_text.html:101
 msgid "edit_text_register"
-msgstr ""
+msgstr "register"
 
 #: templates/edit_text.html:104
 msgid "edit_text.close_button"
-msgstr ""
+msgstr "Close"
 
 #: templates/edit_text.html:109
 msgid "edit_text.review_message"
-msgstr ""
+msgstr "Writing Helpful Reviews"
 
 #: templates/edit_text.html:110
 msgid "edit_text_primary_text_historical_translation"
-msgstr ""
+msgstr "For primary texts and historical translations:"
 
 #: templates/edit_text.html:110
 msgid "edit_text_primary_text_historical_trans_detail"
 msgstr ""
+"Indicate what outside source (book, web page) was used to compare the text, "
+"or make clear that your review is only looking at the text present."
 
 #: templates/edit_text.html:112
 msgid "edit_text.compare_printed_edition"
-msgstr ""
+msgstr "I compared this text to X printed edition and found no problems."
 
 #: templates/edit_text.html:113
 msgid "edit_text.all_looks_good"
-msgstr ""
+msgstr "I checked this text against the edition on X website, all looks good."
 
 #: templates/edit_text.html:114
 msgid "edit_text.no_issue_message"
-msgstr ""
+msgstr "I read this text carefully and don't see anything wrong."
 
 #: templates/edit_text.html:119
 msgid "edit_text.accurate"
-msgstr ""
+msgstr "This translation seems accurate to me."
 
 #: templates/edit_text.html:120
 msgid "edit_text.translation_review"
-msgstr ""
+msgstr "The language could be improved, but the translation seems right."
 
 #: templates/edit_text.html:121
 msgid "edit_text.misunderstand_term_X"
-msgstr ""
+msgstr "This translation misunderstands the term X."
 
 #: templates/edit_text.html:125
 msgid "edit_text.score_review"
-msgstr ""
+msgstr "How to Score your Review:"
 
 #: templates/edit_text.html:127
-msgid " edit_text.compared_to_source_message"
-msgstr ""
+msgid "edit_text.compared_to_source_message"
+msgstr "Compared closesly to a source, confident there are no problems."
 
 #: templates/edit_text.html:130
-msgid " edit_text.compared_to_source_no_problem_message"
-msgstr ""
+msgid "edit_text.compared_to_source_no_problem_message"
+msgstr "Compared to a source, didn't notice any problems."
 
 #: templates/edit_text.html:133
-msgid " edit_text.proble_free_need_review"
-msgstr ""
+msgid "edit_text.proble_free_need_review"
+msgstr "Looks problem free, but could be reviewed more closely."
 
 #: templates/edit_text.html:136
-msgid " edit_text.found_small_issues_need_to_address"
-msgstr ""
+msgid "edit_text.found_small_issues_need_to_address"
+msgstr "Found some issues that need to be addressed."
 
 #: templates/edit_text.html:139
-msgid " edit_text.found_serious_issues_need_address"
-msgstr ""
+msgid "edit_text.found_serious_issues_need_address"
+msgstr "Found serious problems that need to be addressed."
 
 #: templates/edit_text.html:142
 msgid "edit_text_ok_button"
-msgstr ""
+msgstr "ok"
 
 #: templates/edit_text.html:163
 msgid "edit_text.original_translation"
-msgstr ""
+msgstr "Original Translation"
 
 #: templates/edit_text.html:167
 msgid "edit_text.copied_text"
-msgstr ""
+msgstr "Copied Text"
 
 #: templates/edit_text.html:178
 msgid "edit_text.version_title"
-msgstr ""
+msgstr "Version Title:"
 
 #: templates/edit_text.html:179
 msgid "edit_text.copied_from"
-msgstr ""
+msgstr "Copied from:"
 
 #: templates/elements/loading.html:12
 msgid "common.loading"
-msgstr ""
+msgstr "Loading..."
 
 #: templates/elements/login_prompt.html:6
 msgid "common.templates.elements.login_prompts.sign_up"
-msgstr ""
+msgstr "Sign Up"
 
 #: templates/elements/login_prompt.html:8
 msgid "common.login_prompt_cancel"
-msgstr ""
+msgstr "Cancel"
 
 #: templates/email/notification.html:8
 msgid "notification.sent_u_msg"
-msgstr ""
+msgstr "sent you a message:"
 
 #: templates/email/notification.html:13
 msgid "notification.reply_to"
-msgstr ""
+msgstr "Reply to"
 
 #: templates/email/notification.html:17
 msgid "notification.source_sheet_like"
-msgstr ""
+msgstr "likes your Source Sheet"
 
 #: templates/email/notification.html:20
 msgid "notification.published_new_source_sheet"
-msgstr ""
+msgstr "published a new Source Sheet"
 
 #: templates/email/notification.html:23
 msgid "templates.elements.notification.a_user_is_now_following_you"
-msgstr ""
+msgstr "is now following you."
 
 #: templates/email/notification.html:26
 msgid "templates.elements.notification.added_you_to_the_collection"
-msgstr ""
+msgstr "added you to the collection"
 
 #: templates/email/notification.html:29
 msgid "notification.added_note_to_a_link"
-msgstr ""
+msgstr "added a note to a"
 
 #: templates/email/notification.html:31
 msgid "notification.discussion_u_follow"
-msgstr ""
+msgstr "discussion you follow"
 
 #: templates/email/notification.html:35
 msgid "notification.notice_shouldnt_exit_message"
-msgstr ""
+msgstr "This is a notification without a type, it shouldn't exist."
 
 #: templates/people.html:5
 msgid "people.authors_on_pecha"
-msgstr ""
+msgstr "Authors on Pecha"
 
 #: templates/people.html:7
 msgid "people.biography_and_informations_about_authors"
 msgstr ""
+"Biographies and information about the authors of Buddhist texts on Pecha, "
+"together with links to their available texts."
 
 #: templates/people.html:23
 msgid "people.authors"
-msgstr ""
+msgstr "Authors"
 
 #: templates/people.html:28
 msgid "people.choejuk_author"
-msgstr ""
+msgstr "People in the Choejuk"
 
 #: templates/profile.html:4
 msgid "profile_title_pecha"
-msgstr ""
+msgstr "on Pecha"
 
 #: templates/profile.html:6
 msgid "user_profile_page_desc"
 msgstr ""
+"is on Pecha. Follow to view their public source sheets, notes and "
+"translations."
 
 #: templates/profile.html:52
 msgid "common.profile.facebook"
-msgstr ""
+msgstr "Facebook"
 
 #: templates/profile.html:58
 msgid "common.profile.twitter"
-msgstr ""
+msgstr "Twitter"
 
 #: templates/profile.html:64
-msgid "common.profile.linkedIn"
-msgstr ""
+msgid "common.profile.linkedlin"
+msgstr "LinkedIn"
 
 #: templates/profile.html:73
 msgid "profile.message"
-msgstr ""
+msgstr "Message"
 
 #: templates/profile.html:77
 msgid "common.profile.follow"
-msgstr ""
+msgstr "Follow"
 
 #: templates/profile.html:78
 msgid "common.profile.following"
-msgstr ""
+msgstr "Following"
 
 #: templates/profile.html:79
 msgid "common.profile.unfollow"
-msgstr ""
+msgstr "Unfollow"
 
 #: templates/profile.html:84
 msgid "profile.edit_profile"
-msgstr ""
+msgstr "Edit Profile"
 
 #: templates/profile.html:99
 msgid "profile.source_sheet"
-msgstr ""
+msgstr "Source Sheets"
 
 #: templates/profile.html:119
 msgid "profile_notes"
-msgstr ""
+msgstr "Notes"
 
 #: templates/profile.html:126
 msgid "profile.activity"
-msgstr ""
+msgstr "Activity"
 
 #: templates/profile.html:128
 msgid "profile.more_activity"
-msgstr ""
+msgstr "More Activity"
 
 #: templates/registration/delete_user_account.html:4
 msgid "delete_user_account.adming_delete_a_user"
-msgstr ""
+msgstr "Admin: Delete a User"
 
 #: templates/registration/delete_user_account.html:4
 msgid "common.delete_user_account.pecha"
-msgstr ""
+msgstr "Pecha"
 
 #: templates/registration/delete_user_account.html:11
 #: templates/registration/delete_user_account.html:17
 msgid "registration.delete_user_account.delete_user"
-msgstr ""
+msgstr "Delete User"
 
 #: templates/registration/delete_user_account.html:20
 msgid "delete_user_acc.long_message"
 msgstr ""
+"Note: deleting a user can take a while; once you hit \"Delete User\" please be patient as the user is deleted\n"
+"        from our system, and do not leave the page."
 
 #: templates/registration/logged_out.html:4
 msgid "registration.logged_out.logged_out_pecha"
-msgstr ""
+msgstr "Logged Out | Pecha"
 
 #: templates/registration/logged_out.html:13
 msgid "registration.logged_out.log_back_in"
-msgstr ""
+msgstr "Log back in"
 
 #: templates/registration/login.html:4 templates/registration/login.html:29
 msgid "registration.login.login_in_to_pecha"
-msgstr ""
+msgstr "Log in to Pecha"
 
 #: templates/registration/login.html:6
 msgid "registration.login.login_in_to_pecha_description"
 msgstr ""
+"Log in to your Pecha account to make source sheets, write notes, and follow "
+"other Pecha users."
 
 #: templates/registration/login.html:14
 msgid "registration.login.you_are_already_logged_in_as"
-msgstr ""
+msgstr "You are already logged in as"
 
 #: templates/registration/login.html:17
 msgid "common.registration.login.log_out"
-msgstr ""
+msgstr "Logout."
 
 #: templates/registration/login.html:33
 msgid "registration.login.username_and_password_didn't_match_message"
-msgstr ""
+msgstr "Your username and password didn't match. Please try again."
 
 #: templates/registration/login.html:50
 msgid "common.registration.login.log_in"
-msgstr ""
+msgstr "Login"
+
+#: templates/registration/login.html:53
+msgid "common.registration.login.forgot_your_password"
+msgstr "Forgot your password?"
 
 #: templates/registration/login.html:58
 msgid "common.registration.login.create_a_new_account"
-msgstr ""
+msgstr "Create a new account"
 
 #: templates/registration/password_reset_complete.html:3
 msgid "registration.password_reset_complete.password_reset"
-msgstr ""
+msgstr "Password Reset"
 
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_done.html:3
 #: templates/registration/password_reset_form.html:4
 msgid "common.name_pecha"
-msgstr ""
+msgstr "Pecha"
 
 #: templates/registration/password_reset_complete.html:10
 msgid "registration.password_reset_complete.your_new_password_has_been_saved"
-msgstr ""
+msgstr "Your new password has been saved."
 
 #: templates/registration/password_reset_complete.html:13
 msgid "registration.password_reset_complete.back_to_login"
-msgstr ""
+msgstr "Back to login"
 
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_confirm.html:11
 msgid "registration.password_reset_confirm.choose_a_new_password"
-msgstr ""
+msgstr "Choose a new password"
 
 #: templates/registration/password_reset_confirm.html:17
 msgid "registration.password_reset_confirm.save_password"
-msgstr ""
+msgstr "Save Password"
 
 #: templates/registration/password_reset_done.html:3
-msgid "Password Reset Link Sent"
-msgstr ""
+msgid "registration.password_reset_done.password_reset_link_sent"
+msgstr "Password Reset Link Sent"
 
 #: templates/registration/password_reset_done.html:10
 msgid "registration.password_reset_done.messages"
-msgstr ""
+msgstr "An email has been sent with a link to reset your password."
 
 #: templates/registration/password_reset_email.html:4
 msgid "registration.password_reset_email.password_reset_email_message"
 msgstr ""
+"A request has been made to reset the password for this email address on "
+"Pecha.org."
 
 #: templates/registration/password_reset_email.html:6
 #: templates/registration/password_reset_email.txt:5
-msgid "registration.password_reset_email.password_reset_email_to_click_on_link"
+msgid ""
+"registration.password_reset_email.password_reset_email_to_click_on_link"
 msgstr ""
+"Click this link, or copy it to your browser, to choose a new password:"
 
 #: templates/registration/password_reset_email.html:12
 #: templates/registration/password_reset_email.txt:9
 msgid "registration.password_reset_email.ignore_this_email_if_haven't_send_it"
-msgstr ""
+msgstr "If you did not request this reset, you can safely ignore this email."
 
 #: templates/registration/password_reset_email.txt:3
-msgid "A request has been made to reset the password"
-msgstr ""
+msgid "password.reset_request_made_msg"
+msgstr "A request has been made to reset the password"
 
 #: templates/registration/password_reset_form.html:4
 #: templates/registration/password_reset_form.html:13
 msgid "registration.password_reset_form.forgot_your_password"
-msgstr ""
+msgstr "Forgot Your Password"
 
 #: templates/registration/password_reset_form.html:6
-msgid "registration.password_reset_form.request_a_link_to_change_your_password"
-msgstr ""
+msgid ""
+"registration.password_reset_form.request_a_link_to_change_your_password"
+msgstr "Request a link to change your Pecha password if you've forgotten it."
 
 #: templates/registration/password_reset_form.html:19
 msgid "registration.password_reset_form.send_reset_link"
-msgstr ""
+msgstr "Send Reset Link"
 
 #: templates/registration/password_reset_form.html:23
 msgid "registration.password_reset_form.back_to_link"
-msgstr ""
+msgstr "Back to login"
 
 #: templates/registration/password_reset_subject.txt:2
-msgid "Pecha.org Password Reset"
-msgstr ""
+msgid "Pecha.org_Password_Reset"
+msgstr "Pecha.org_Password_Reset"
 
 #: templates/registration/register.html:4
 msgid "registration.register.create_an_account"
-msgstr ""
+msgstr "Create an Account"
 
 #: templates/registration/register.html:4
 msgid "common.registration.register.pecha"
-msgstr ""
+msgstr "Pecha"
 
 #: templates/registration/register.html:6
 msgid "registration.register.create_an_account_description"
 msgstr ""
+"Create an account on Pecha to make source sheets, take notes and follow "
+"other people."
 
 #: templates/registration/register.html:13
 msgid "Sign_Up_Title"
-msgstr ""
+msgstr "Sign Up"
 
 #: templates/registration/register.html:46
 msgid "Sign_Up_Button"
-msgstr ""
+msgstr "Sign Up"
 
 #: templates/registration/register.html:50
 msgid "registration.register.login_if_already_have_an_account"
-msgstr ""
+msgstr "Already have an account? Log in"
 
 #: templates/static/he/about.html:4
 msgid "about.about_pecha"
-msgstr ""
+msgstr "About Pecha"
 
 #: templates/static/he/about.html:6
 msgid "about.about_pecha_description"
 msgstr ""
+"Pecha is a nonprofit organization dedicated to building the future of "
+"Buddhist learning in an open and participatory way."
