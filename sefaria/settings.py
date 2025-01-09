@@ -138,12 +138,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
+    'reader',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
-    'reader',
     'sourcesheets',
     'sefaria.gauth',
+    'django_topics.apps.DjangoTopicsAppConfig',
     'captcha',
     'django.contrib.admin',
     'anymail',
@@ -334,6 +335,7 @@ WEBPACK_LOADER = {
     }
 
 }
+
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))

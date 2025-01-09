@@ -9,17 +9,15 @@ import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
 import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
-import ReactCrop from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
+import {ProfilePic} from "./ProfilePic";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {refSort} from "./TopicPage";
 import {TopicEditor} from "./TopicEditor";
 import {generateContentForModal, SignUpModalKind} from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
-import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
@@ -141,226 +139,6 @@ const DonateLink = ({children, classes, source, link}) => {
   );
 };
 
-/* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
-class ProfilePic extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      showDefault: !this.props.url || this.props.url.startsWith("https://www.gravatar"), // We can't know in advance if a gravatar image exists of not, so start with the default beforing trying to load image
-      src: null,
-      isFirstCropChange: true,
-      crop: {unit: "px", width: 250, aspect: 1},
-      croppedImageBlob: null,
-      error: null,
-    };
-    this.imgFile = React.createRef();
-  }
-  setShowDefault() { /* console.log("error"); */ this.setState({showDefault: true});  }
-  setShowImage() { /* console.log("load"); */ this.setState({showDefault: false});  }
-  componentDidMount() {
-    if (this.didImageLoad()) {
-      this.setShowImage();
-    } else {
-      this.setShowDefault();
-    }
-  }
-  didImageLoad(){
-    // When using React Hydrate, the onLoad event of the profile image will return before
-    // react code runs, so we check after mount as well to look replace bad images, or to
-    // swap in a gravatar image that we now know is valid.
-    const img = this.imgFile.current;
-    return (img && img.complete && img.naturalWidth !== 0);
-  }
-  onSelectFile(e) {
-    if (e.target.files && e.target.files.length > 0) {
-      if (!e.target.files[0].type.startsWith('image/')) {
-        this.setState({ error: "Error: Please upload an image with the correct file extension (e.g. jpg, png)"});
-        return;
-      }
-      const reader = new FileReader();
-      reader.addEventListener("load", () =>
-        this.setState({ src: reader.result })
-      );
-      console.log("FILE", e.target.files[0]);
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  }
-  onImageLoaded(image) {
-    this.imageRef = image;
-  }
-  onCropComplete(crop) {
-    this.makeClientCrop(crop);
-  }
-  onCropChange(crop, percentCrop) {
-    // You could also use percentCrop:
-    // this.setState({ crop: percentCrop });
-    if (this.state.isFirstCropChange) {
-      const { clientWidth:width, clientHeight:height } = this.imageRef;
-      crop.width = Math.min(width, height);
-      crop.height = crop.width;
-      crop.x = (this.imageRef.width/2) - (crop.width/2);
-      crop.y = (this.imageRef.height/2) - (crop.width/2);
-      this.setState({ crop, isFirstCropChange: false });
-    } else {
-      this.setState({ crop });
-    }
-  }
-  async makeClientCrop(crop) {
-    if (this.imageRef && crop.width && crop.height) {
-      const croppedImageBlob = await this.getCroppedImg(
-        this.imageRef,
-        crop,
-        "newFile.jpeg"
-      );
-      //console.log(croppedImageUrl);
-      this.setState({ croppedImageBlob });
-    }
-  }
-  getCroppedImg(image, crop, fileName) {
-    const canvas = document.createElement("canvas");
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    canvas.width = crop.width * scaleX;
-    canvas.height = crop.height * scaleY;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(
-      image,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
-      0,
-      0,
-      crop.width * scaleX,
-      crop.height * scaleY
-    );
-
-    return new Promise((resolve, reject) => {
-      canvas.toBlob(blob => {
-        if (!blob) {
-          console.error("Canvas is empty");
-          return;
-        }
-        blob.name = fileName;
-        resolve(blob);
-      }, "image/jpeg");
-    });
-  }
-  closePopup({ cb }) {
-    this.setState({
-      src: null,
-      crop: {unit: "px", width: 250, aspect: 1},
-      isFirstCropChange: true,
-      croppedImageBlob: null,
-      error: null,
-    }, cb);
-  }
-  async upload() {
-    const formData = new FormData();
-    formData.append('file', this.state.croppedImageBlob);
-    this.setState({ uploading: true });
-    let errored = false;
-    try {
-      const response = await Sefaria.uploadProfilePhoto(formData);
-      if (response.error) {
-        throw new Error(response.error);
-      } else {
-        this.closePopup({ cb: () => {
-          window.location = "/profile/" + Sefaria.slug; // reload to get update
-          return;
-        }});
-      }
-    } catch (e) {
-      errored = true;
-      console.log(e);
-    }
-    this.setState({ uploading: false, errored });
-  }
-  render() {
-    const { name, url, len, hideOnDefault, showButtons, outerStyle } = this.props;
-    const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
-    const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
-    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "";
-    const defaultViz = showDefault ? 'flex' : 'none';
-    const profileViz = showDefault ? 'none' : 'block';
-    const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
-
-    return (
-      <div style={outerStyle} className="profile-pic">
-        <div className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
-          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
-          { showButtons ? null : `${initials}` }
-        </div>
-        <img
-          className="img-circle profile-img"
-          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-          src={imageSrc}
-          alt="User Profile Picture"
-          ref={this.imgFile}
-          onLoad={this.setShowImage}
-          onError={this.setShowDefault}
-        />
-        {this.props.children ? this.props.children : null /*required for slate.js*/}
-        { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
-            (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
-              <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
-              <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
-                <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-                <span className="int-he">{ showDefault ? "הוספת תמונה" : "עדכון תמונה" }</span>
-              </label>
-            </div>) : null
-          }
-          { (src || !!error) && (
-            <div id="interruptingMessageBox" className="sefariaModalBox">
-              <div id="interruptingMessageOverlay" onClick={this.closePopup}></div>
-              <div id="interruptingMessage" className="profile-pic-cropper-modal">
-                <div className="sefariaModalContent profile-pic-cropper-modal-inner">
-                  { src ?
-                    (<ReactCrop
-                      src={src}
-                      crop={crop}
-                      className="profile-pic-cropper"
-                      keepSelection
-                      onImageLoaded={this.onImageLoaded}
-                      onComplete={this.onCropComplete}
-                      onChange={this.onCropChange}
-                    />) : (<div className="profile-pic-cropper-error">{ error }</div>)
-                  }
-              </div>
-              { (uploading || isFirstCropChange) ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
-                <div>
-                  <div className="smallText profile-pic-cropper-desc">
-                    <span className="int-en">Drag corners to crop image</span>
-                    <span className="int-he">לחיתוך התמונה, גרור את הפינות</span>
-                  </div>
-                  <div className="profile-pic-cropper-button-row">
-                    <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
-                      <span className="int-en">Cancel</span>
-                      <span className="int-he">בטל</span>
-                    </a>
-                    <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
-                      <span className="int-en">Save</span>
-                      <span className="int-he">שמור</span>
-                    </a>
-                  </div>
-                </div>
-                )
-              }
-            </div>
-          </div>
-          )
-        }
-      </div>
-    );
-  }
-}
-ProfilePic.propTypes = {
-  url:           PropTypes.string,
-  name:          PropTypes.string,
-  len:           PropTypes.number,
-  hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
-  showButtons:   PropTypes.bool,  // show profile pic action buttons
-};
 
 
 /**
@@ -1243,7 +1021,7 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origDeathYear: data?.properties?.deathYear?.value,
     origEra: data?.properties?.era?.value,
     origImage: data?.image,
-
+    origSecondaryImageUri: data?.secondary_image_uri,
   };
 
   const origWasCat = "displays-above" in data?.links;
@@ -1653,87 +1431,14 @@ FollowButton.propTypes = {
 
 };
 
-const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
-    /*
-    `old_filename` is passed to API so that if it exists, it is deleted
-     */
-    const fileInput = useRef(null);
+const SmallBlueButton = ({onClick, tabIndex, text}) => {
+  return (
+      <div onClick={onClick} className="button extraSmall blue control-elem" tabIndex={tabIndex} role="button">
+        <InterfaceText>{text}</InterfaceText>
+      </div>
+  );
+};
 
-    const uploadImage = function(imageData, type="POST") {
-      const formData = new FormData();
-      formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
-      if (old_filename !== "") {
-        formData.append('old_filename', old_filename);
-      }
-      const request = new Request(
-        `${Sefaria.apiHost}/api/topics/images/${slug}`,
-        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
-      );
-      fetch(request, {
-          method: 'POST',
-          mode: 'same-origin',
-          credentials: 'same-origin',
-          body: formData
-      }).then(response => {
-        if (!response.ok) {
-            response.text().then(resp_text=> {
-                alert(resp_text);
-            })
-        }else{
-            response.json().then(resp_json=>{
-                callback(resp_json.url);
-            });
-        }
-    }).catch(error => {
-        alert(error);
-    })};
-    const onFileSelect = (e) => {
-          const file = fileInput.current.files[0];
-          if (file == null)
-          return;
-          if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
-              const reader = new FileReader();
-
-              reader.addEventListener("load", function() {
-                uploadImage(reader.result);
-              }, false);
-
-              reader.addEventListener("onerror", function() {
-                alert(reader.error);
-              }, false);
-
-              reader.readAsDataURL(file);
-          } else {
-            alert('The file is not an image');
-          }
-    }
-    const deleteImage = () => {
-        const old_filename_wout_url = old_filename.split("/").slice(-1);
-        const url = `${Sefaria.apiHost}/api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
-        Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => alert("Deleted image."));
-        callback("");
-        fileInput.current.value = "";
-    }
-    return <div className="section">
-            <label><InterfaceText>Picture</InterfaceText></label>
-            <label>
-              <span className="optional"><InterfaceText>Please use horizontal, square, or only-slightly-vertical images for best results.</InterfaceText></span>
-            </label>
-            <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
-              <label htmlFor="addImageFileSelector">
-                <div className="button extraSmall blue control-elem" tabIndex="0" role="button">
-                      <InterfaceText>Upload Picture</InterfaceText>
-                    </div>
-              </label>
-              </div><input style={{display: "none"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
-              {old_filename !== "" && <div style={{"max-width": "420px"}}>
-                    <br/><ImageWithCaption photoLink={old_filename} caption={caption}/>
-                    <br/><div onClick={deleteImage} className="button extraSmall blue control-elem" tabIndex="1" role="button">
-                      <InterfaceText>Remove Picture</InterfaceText>
-                    </div></div>
-              }
-          </div>
-    }
 
 const CategoryColorLine = ({category}) =>
   <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
@@ -3507,7 +3212,6 @@ export {
   NBox,
   Note,
   ProfileListing,
-  ProfilePic,
   ReaderMessage,
   CloseButton,
   DisplaySettingsButton,
@@ -3536,9 +3240,9 @@ export {
   CategoryChooser,
   TitleVariants,
   OnInView,
-  TopicPictureUploader,
   ImageWithCaption,
   handleAnalyticsOnMarkdown,
   LangSelectInterface,
-  PencilSourceEditor
+  PencilSourceEditor,
+  SmallBlueButton,
 };

@@ -168,5 +168,5 @@ class SalesforceConnectionManager(CrmConnectionManager):
             response = self.get(endpoint + "?q=SELECT+Subscriptions__c+FROM+AC_to_SF_List_Mapping__mdt")
             records = response.json()["records"]
             return [record["Subscriptions__c"] for record in records]
-        except (requests.RequestException, KeyError, json.JSONDecodeError):
+        except (requests.RequestException, KeyError, json.JSONDecodeError, AttributeError):
             raise SalesforceNewsletterListRetrievalError("Unable to retrieve newsletter mailing lists from Salesforce CRM")

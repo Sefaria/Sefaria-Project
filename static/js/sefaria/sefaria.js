@@ -1626,12 +1626,12 @@ Sefaria = extend(Sefaria, {
     // First sort by predefined "top"
     const hebrewTopByCategory = {
       "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-      "Talmud": ["Rashi", "Tosafot"],
+      "Talmud": ["Rashi", "Rashbam", "Tosafot"],
       "Mishnah": ["Bartenura", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
     };
     const englishTopByCategory = {
       "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-      "Talmud": ["Rashi", "Tosafot"],
+      "Talmud": ["Rashi", "Rashbam", "Tosafot"],
       "Mishnah": ["Bartenura", "English Explanation of Mishnah", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
     };
     const top = (byHebrew ? hebrewTopByCategory[category] : englishTopByCategory[category]) || [];
@@ -2700,7 +2700,7 @@ _media: {},
         if (refObj.is_sheet) { continue; }
         let tabKey = linkTypeSlug;
         if (tabKey === 'about') {
-            tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) ? 'notable-sources' : 'sources';
+            tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) && refObj.descriptions?.[lang]?.published ? 'notable-sources' : 'sources';
         }
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
@@ -2786,8 +2786,8 @@ _media: {},
     this._topicTocCategory = this.topic_toc.reduce(this._initTopicTocCategoryReducer, {});
   },
   _initTopicTocCategoryReducer: function(a,c) {
+    a[c.slug] = c.parents;
     if (!c.children) {
-        a[c.slug] = c.parents;
         return a;
     }
     if (!c.parents) {

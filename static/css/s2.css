@@ -385,6 +385,9 @@ body.hasBannerMessage {
   transition: padding-top .3s;
   padding-top: 120px;
 }
+body.hasBannerMessage:not(:has(#bannerMessage)) {
+  padding-top: 0;
+}
 body.hasBannerMessage #s2.headerOnly {
   height: 180px;
 }
@@ -7619,8 +7622,10 @@ But not to use a display block directive that might break continuous mode for ot
   margin-top: 17px;
 }
 .profile-pic-cropper-modal .ReactCrop__crop-selection {
-  border-radius: 50%;
   box-shadow: 0 0 0 9999em rgba(255, 255, 255, 0.6);
+}
+.profile-page .profile-pic-cropper-modal .ReactCrop__crop-selection {
+  border-radius: 50%;
 }
 .profile-pic-cropper-modal .ReactCrop__image {
   max-width: 50vw;
@@ -7631,10 +7636,10 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .profile-pic-cropper {
 }
-.profile-page .profile-pic .profile-pic-cropper-modal .profile-pic-cropper-button {
+#interruptingMessage.profile-pic-cropper-modal .profile-pic-cropper-button {
   display: inline-flex;
 }
-.profile-page .profile-pic .profile-pic-cropper-desc {
+.profile-pic-cropper-desc {
   margin-top: 9px;
   margin-bottom: 18px;
 }
@@ -11561,7 +11566,8 @@ cursor: pointer;
 .profile-page .follow-header .follow-count {
   color: #999;
 }
-.profile-page .resourcesLink  {
+.profile-page .resourcesLink,
+.profile-pic-cropper-button.resourcesLink {
   min-height: 46px;
   height: 46px;
   overflow: visible;
@@ -11584,7 +11590,8 @@ cursor: pointer;
   line-height: 1.5;
 }
 .profile-page .profile-summary .resourcesLink + .resourcesLink,
-.profile-page .profile-summary .largeFollowButton + .resourcesLink {
+.profile-page .profile-summary .largeFollowButton + .resourcesLink,
+#interruptingMessage.profile-pic-cropper-modal .resourcesLink + .resourcesLink {
   margin: 0 0 0 10px;
 }
 .interface-hebrew .profile-page .profile-summary .largeFollowButton + .resourcesLink,

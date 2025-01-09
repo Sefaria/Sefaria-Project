@@ -6,8 +6,8 @@ import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 import {
     ColorBarBox, InterfaceText,
-    ProfilePic,
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 
 
 class SearchSheetResult extends Component {

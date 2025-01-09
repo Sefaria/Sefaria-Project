@@ -48,6 +48,7 @@ from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
 from sefaria.system.exceptions import InputError, NoVersionFoundError
+from api.api_errors import APIInvalidInputException
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
@@ -61,7 +62,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
-from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs
+from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -222,7 +223,7 @@ def get_available_newsletter_mailing_lists(request):
     try:
         return jsonResponse({"newsletter_mailing_lists": CrmMediator().get_available_lists()})
     except SalesforceNewsletterListRetrievalError as e:
-        return jsonResponse({"error": e.message}, status=502)
+        return jsonResponse({"error": str(e)}, status=502)
     except:
         return jsonResponse({"error": "Unknown error occurred"}, status=500)
 
@@ -351,7 +352,10 @@ def find_refs_report_api(request):
 @api_view(["POST"])
 def find_refs_api(request):
     from sefaria.helper.linker import make_find_refs_response
-    return jsonResponse(make_find_refs_response(request))
+    try:
+        return jsonResponse(make_find_refs_response(request))
+    except APIInvalidInputException as e:
+        return e.to_json_response()
 
 
 @api_view(["GET"])
@@ -409,13 +413,13 @@ def title_regex_api(request, titles, json_response=True):
         return jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
 
 
-def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None, english_version=None, hebrew_version=None):
+def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None, english_version=None, hebrew_version=None):
     res = {}
     for tref in refs:
         try:
             oref = model.Ref(tref)
             lang = "he" if has_hebrew(tref) else "en"
-            if useTextFamily:
+            if use_text_family:
                 text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
                                             lang="he", version=hebrew_version,
                                             lang2="en", version2=english_version)
@@ -482,7 +486,8 @@ def bulktext_api(request, refs):
         g = lambda x: request.GET.get(x, None)
         min_char = int(g("minChar")) if g("minChar") else None
         max_char = int(g("maxChar")) if g("maxChar") else None
-        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char, g("transLangPref"), g("ven"), g("vhe"))
+        use_text_family = True if g("useTextFamily") == "1" else False
+        res = bundle_many_texts(refs, use_text_family, g("asSizedString"), min_char, max_char, g("transLangPref"), g("ven"), g("vhe"))
         resp = jsonResponse(res, cb)
         return resp
 
@@ -1371,14 +1376,19 @@ def links_upload_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
     file = request.FILES['csv_file']
-    linktype = request.POST.get("linkType")
-    generated_by = request.POST.get("projectName") + ' csv upload'
     uid = request.user.id
+    if request.POST.get('action') == "DELETE":
+        func = remove_links_from_csv
+        args = (file, uid)
+    else:
+        linktype = request.POST.get("linkType")
+        generated_by = request.POST.get("projectName") + ' csv upload'
+        func = add_links_from_csv
+        args = (file, linktype, generated_by, uid)
     try:
-        res = add_links_from_csv(file, linktype, generated_by, uid)
+        return jsonResponse({"status": "ok", "data": func(*args)})
     except Exception as e:
         return HttpResponseBadRequest(e)
-    return jsonResponse({"status": "ok", "data": res})
 
 def get_csv_links_by_refs_api(request, tref1, tref2, by_segment=False):
     try:
