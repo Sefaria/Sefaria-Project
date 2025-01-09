@@ -19,7 +19,6 @@ export const RandomTopicCardWithDescriptionRow = () => {
         const poolName = Sefaria.getLangSpecificTopicPoolName('general');
         const topics = await Sefaria.getTopicsByPool(poolName, numTopics*numTopics);
         const lang = Sefaria.interfaceLang == "hebrew"? 'he' : 'en';
-        console.log(topics)
         const deck = topics
           .filter(topic => topic.description?.[lang])
           .slice(0, numTopics)
@@ -43,13 +42,21 @@ export const RandomTopicCardWithDescriptionRow = () => {
     return (
     <>
       <div className='topic-card-with-description-row'>
-          {deck.map(topic=><div className='topic-card-with-description'><Card
-        cardTitleHref={`topics/${topic.slug}`}
-        cardTitle={topic.title}
-        cardText={topic.description}
-      /></div>)}
+          {deck.map(topic=><div className='topic-card-with-description'>
+              <Card
+                  cardTitleHref={`topics/${topic.slug}`}
+                  cardTitle={topic.title}
+                  cardText={topic.description}>
+                  <div className="explore-more-prompt">
+                      <a href={`topics/${topic.slug}`}>
+                          <InterfaceText text={{en: `Learn More on ${topic.title?.en} ›`,
+                              he:`${Sefaria._("Learn More on")} ${topic.title?.he} ›`}}/>
+                      </a>
+                  </div>
+              </Card>
+          </div>)}
       </div>
     </>
 
-  );
+    );
 };

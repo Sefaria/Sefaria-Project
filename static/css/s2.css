@@ -5158,7 +5158,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 30px;
   gap: 20px;
 }
-.topic-card-with-description{
+.topic-card-with-description .card{
   flex: 1;
   border-top: 4px solid var(--Sefaria-Blue, #18345D);
   background: var(--Lightest-Grey, #FBFBFA);
@@ -5169,13 +5169,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topic-card-with-description .cardDescription{
   margin-inline-end: 30px;
   margin-inline-start: 30px;
-  width: 207.593px;
-  height: 140.617px;
+  /*width: 207.593px;*/
+  /*height: 140.617px;*/
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow-y: hidden;
-  overflow-x: visible;
+  /*overflow-x: visible;*/
   word-wrap: break-word;
+}
+.topic-card-with-description .explore-more-prompt {
+  font-size: 14px;
+  line-height: 18px;
+  color: #666;
+  margin-inline-end: 20px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  position: absolute;
+  bottom: 14px;
+  margin-inline-start: 10px;
 }
 .topic-card-with-description .cardTitle {
   margin-inline-start: 30px;
