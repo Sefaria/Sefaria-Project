@@ -4,21 +4,21 @@
 
 {% block title %}
 	{% if single %}
-{% trans "Revision History of" %} {{ ref }} ({{ version }})
+{% trans "activity.revision_history" %} {{ ref }} ({{ version }})
 	{% elif for_user %}
-{{ profile.full_name }} | {% trans "Sefaria Activity" %}
+{{ profile.full_name }} | {% trans "activity.pecha_activity_profile" %}
 	{% else %}
-{% trans "Sefaria Activity" %}
+{% trans "activity.pecha_activity" %}
 	{% endif %}
 {% endblock %}
 
 {% block description %}
 	{% if single %}
-{% trans "View the complete revision hisotry of this text on Sefaria." %}
+{% trans "activity.revision_history_message" %}
 	{% elif for_user %}
-{% trans "View a user's acitvitiy history on Sefaria, including published source sheets, and text translations, edits or additions." %}
+{% trans "activity.activity_message" %}
 	{% else %}
-{% trans "View the complete log of public activity on Sefaria, including published source sheets, and text translations, edits or additions. " %}
+{% trans "activity.view_log_message" %}
 	{% endif %}
 {% endblock %}
 
@@ -33,32 +33,32 @@
     <div class="inner">
         {% if single %}
 		    <h1>
-				<span class="{{ language_font_class }}">{% trans "Revision History of" %} {{ ref|ref_link }}</a></span>
+				<span class="{{ language_font_class }}">{% trans "activity.revision_history" %} {{ ref|ref_link }}</a></span>
 		    </h1>
 		    <h2>
 				<span class="{{ language_font_class }}">{{ version }}</span>
 		    </h2>
         {% elif for_user %}
             <h1>
-            	<span class="{{ language_font_class }}">{{ profile.id|user_link }}| {% trans "Public Activity" %}</span>            	
+            	<span class="{{ language_font_class }}">{{ profile.id|user_link }}| {% trans "activity.public_activity" %}</span>            	
         	</h1>
         {% else %}
             <h1>
-				<span class="{{ language_font_class }}">{% trans "Recent Activity on Sefaria" %}</span>
+				<span class="{{ language_font_class }}">{% trans "activity.recent_activity" %}</span>
         	</h1>
         {% endif %}
         <div class="activityFilterSection sans-serif">
             <select id="activityFilter">
-                <option value=""{% if not filter_type %} selected {% endif %}>{% trans "All Activity" %}</option>
-                <option value="translate" {% if filter_type == "translate" %} selected {% endif %}>{% trans "Translations" %}</option>
-                <option value="publish_sheet"{% if filter_type == "publish_sheet" %} selected {% endif %}>{% trans "Source Sheets" %}</option>
-                <option value="add_text"{% if filter_type == "add_text" %} selected {% endif %}>{% trans "New Texts" %}</option>
-                <option value="edit_text"{% if filter_type == "edit_text" %} selected {% endif %}>{% trans "Edits" %}</option>
-                <option value="add_note"{% if filter_type == "add_note" %} selected {% endif %}>{% trans "Notes" %}</option>
-                <option value="review"{% if filter_type == "review" %} selected {% endif %}>{% trans "Reviews" %}</option>
-                <option value="index_change"{% if filter_type == "index_change" %} selected {% endif %}>{% trans "Text Info" %}</option>
-                <option value="revert_text"{% if filter_type == "revert_text" %} selected {% endif %}>{% trans "Reversions" %}</option>
-                <option value="flagged"{% if filter_type == "flagged" %} selected {% endif %}>{% trans "Flagged" %}</option>
+                <option value=""{% if not filter_type %} selected {% endif %}>{% trans "activity.all_activity_drop_down" %}</option>
+                <option value="translate" {% if filter_type == "translate" %} selected {% endif %}>{% trans "activity.translation_option" %}</option>
+                <option value="publish_sheet"{% if filter_type == "publish_sheet" %} selected {% endif %}>{% trans "activity.source_sheets_option" %}</option>
+                <option value="add_text"{% if filter_type == "add_text" %} selected {% endif %}>{% trans "activity.new_texts_option" %}</option>
+                <option value="edit_text"{% if filter_type == "edit_text" %} selected {% endif %}>{% trans "activity.edit_list_option" %}</option>
+                <option value="add_note"{% if filter_type == "add_note" %} selected {% endif %}>{% trans "activity.notes_option" %}</option>
+                <option value="review"{% if filter_type == "review" %} selected {% endif %}>{% trans "activity.reviews_option" %}</option>
+                <option value="index_change"{% if filter_type == "index_change" %} selected {% endif %}>{% trans "activity.text_info_option_option" %}</option>
+                <option value="revert_text"{% if filter_type == "revert_text" %} selected {% endif %}>{% trans "activity.reversions_option" %}</option>
+                <option value="flagged"{% if filter_type == "flagged" %} selected {% endif %}>{% trans "activity.flagged_option" %}</option>
             </select>
         </div>
 

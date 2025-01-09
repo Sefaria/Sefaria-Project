@@ -2215,7 +2215,7 @@ a {
 
 	{% if author %}
 	<div class = "{{language_font_class}}" id="bottomAuthor">
-		{% trans "Source Sheet created on Pecha by" {{ sheet.owner|user_link|absolute_link }} %}
+		{%  "Source Sheet created on Pecha by" {{ sheet.owner|user_link|absolute_link }} %}
 		{% if sheet.via %}
 		<div id="bottomVia">Based on {{ sheet.via|sheet_via_absolute_link }} by {{ sheet.viaOwner|user_link|absolute_link }}</div>
 		{% endif %}

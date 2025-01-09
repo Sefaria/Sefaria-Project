@@ -4,10 +4,10 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
+{% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {%"Sefaria" %}{% else %}{%  "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
 
-{% block description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
-{% block soc_description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block description %}{% if sheet.owner %}{%  "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{%  "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block soc_description %}{% if sheet.owner %}{%  "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{%  "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}"/>
@@ -28,14 +28,14 @@
             <div class="sheetsMenuBarInner">
                 <div class="sheetsMenuBarCommands">
                     <div class="sheetsMenuBarItem" id="fileMenu">
-                        <span class="menuHeader {{language_font_class}}" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "File" %}</span>
+                        <span class="menuHeader {{language_font_class}}" aria-haspopup="true" role="menuitem" tabindex="0">{%  "File" %}</span>
                         <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                             {% if not new_sheet %}
                             {% if user.email %}
                             <div class="optionItem" id="copySheet" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/copy.png' %}" alt="Copy Sheet Icon">
                                 <span class="optionItemText {{language_font_class}}">
-                                    <span>{% trans "Copy Sheet" %}</span>
+                                    <span>{%  "Copy Sheet" %}</span>
                                 </span>
                             </div>
                             {% endif %}
@@ -43,14 +43,14 @@
                             <div class="optionItem" id="exportToDrive" role="menuitem" tabindex="0">
                                 <i class="fa fa-google"></i>
                                 <span class="optionItemText {{language_font_class}}">
-                                    <span>{% trans "Export to Google Drive" %}</span>
+                                    <span>{%  "Export to Google Drive" %}</span>
                                 </span>
                             </div>
                             {% endif %}
                             <div class="optionItem" id="embedSheet" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/embed.png' %}" alt="Embed Sheet Icon">
                                 <span class="optionItemText {{language_font_class}}">
-                                    <span>{% trans "Embed Sheet" %}</span>
+                                    <span>{%  "Embed Sheet" %}</span>
                                 </span>
 
                             </div>
@@ -58,7 +58,7 @@
                             <div class="optionItem" id="deleteSheet" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/delete.png' %}" alt="Delete Sheet Icon">
                                 <span class="optionItemText {{language_font_class}}">
-                                    <span>{% trans "Delete Sheet" %}</span>
+                                    <span>{%  "Delete Sheet" %}</span>
                                 </span>
 
                             </div>
@@ -69,7 +69,7 @@
                             <div class="optionItem" id="editTags" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/edittags.png' %}" alt="Edit Sheet Tags Icon">
                                 <span class="optionItemText {{language_font_class}}">
-                                    <span>{% trans "Tags" %}</span>
+                                    <span>{%  "Tags" %}</span>
                                 </span>
 
                             </div>
@@ -81,7 +81,7 @@
                                 <div class="optionTitle" id="assignmentsModalTrigger">
                                     <img src="{% static 'img/assignment.png' %}" alt="Assignment Icon">
                                     <span class="optionItemText {{language_font_class}}">
-                                        <span>{% trans "Assignments" %}</span>
+                                        <span>{%  "Assignments" %}</span>
                                     </span>
                                 </div>
                             </div>
@@ -95,7 +95,7 @@
                             <div class="optionItem" id="print" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/print.png' %}" alt="Print Icon">
                                 <span class="optionItemText {{language_font_class}}">
-                                <span>{% trans "Print" %}</span>
+                                <span>{%  "Print" %}</span>
                             </span>
                             </div>
                             {% if not new_sheet %}
@@ -103,7 +103,7 @@
                                 <i class="fa fa-picture-o"></i>
                                 <span class="optionItemText {{language_font_class}}">
                                 <a href="/sheets/visual/{{sheet.id}}">
-                                    <span>{% trans "Visualize" %}</span>
+                                    <span>{%  "Visualize" %}</span>
                                 </a>
                             </span>
                             </div>
@@ -111,10 +111,10 @@
                                 <i class="fa fa-pencil"></i>
                                 <span class="optionItemText {{language_font_class}}">
                                 <span id="highlightToggleActivate">
-                                    <span>{% trans "Highlight Mode" %}</span>
+                                    <span>{%  "Highlight Mode" %}</span>
                                 </span>
                                 <span id="highlightToggleDeactivate">
-                                    <span>{% trans "Exit Highlight Mode" %}</span>
+                                    <span>{%  "Exit Highlight Mode" %}</span>
                                 </span>
                             </span>
                             </div>
@@ -122,18 +122,18 @@
                         </div>
                     </div>
                     <div class="sheetsMenuBarItem" id="formatMenu">
-                        <span class="menuHeader {{language_font_class}}" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Format" %}</span>
+                        <span class="menuHeader {{language_font_class}}" aria-haspopup="true" role="menuitem" tabindex="0">{%  "Format" %}</span>
                         <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                             <div class="optionItem {{language_font_class}}" id="numbered" role="menuitem" tabindex="0">
                                 <i class="fa fa-check hidden"></i>
                                 <span class="optionItemText">
-                                <span>{% trans "Number Sources" %}</span>
+                                <span>{%  "Number Sources" %}</span>
                             </span>
                             </div>
                             <div class="optionItem" id="boxed" role="menuitem" tabindex="0">
                                 <i class="fa fa-check hidden"></i>
                                 <span class="optionItemText {{language_font_class}}">
-                                <span>{% trans "Box Sources" %}</span>
+                                <span>{%  "Box Sources" %}</span>
                             </span>
                             </div>
                             <!-- <div class="optionItem" id="bsd" role="menuitem" tabindex="0">
@@ -146,14 +146,14 @@
                             <div class="optionItem" id="resetText" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/reset text.png' %}" alt="Reset Source Text Icon">
                                 <span class="optionItemText {{language_font_class}}">
-                                <span>{% trans "Reset Source Text" %}</span>
+                                <span>{%  "Reset Source Text" %}</span>
                             </span>
                             </div>
 
                             <div class="optionItem" id="splitSourceToSegment" role="menuitem" tabindex="0">
                                 <i class="fa fa-file-o hidden"></i>
                                 <span class="optionItemText">
-                                <span class="{{ language_font_class }}">{% trans "Auto-Segment Text" %}</span>
+                                <span class="{{ language_font_class }}">{%  "Auto-Segment Text" %}</span>
                             </span>
                             </div>
 
@@ -161,14 +161,14 @@
                             <div class="optionItem" id="removeNikkudot" role="menuitem" tabindex="0">
                                 <i class="fa fa-file-o hidden"></i>
                                 <span class="optionItemText">
-                                <span class="{{ language_font_class }}">{% trans "Remove Vowel Points" %}</span>
+                                <span class="{{ language_font_class }}">{%  "Remove Vowel Points" %}</span>
                             </span>
                             </div>
 
                             <div class="optionItem" id="addSourceTitle" role="menuitem" tabindex="0">
                                 <i class="fa fa-pencil"></i>
                                 <span class="optionItemText">
-                                <span class="{{ language_font_class }}">{% trans "Add Source Title" %}</span>
+                                <span class="{{ language_font_class }}">{%  "Add Source Title" %}</span>
                             </span>
                             </div>
                             {% endif %}
@@ -179,7 +179,7 @@
                                          tabindex="0">
                                         <i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText {{language_font_class}}">
-                                        <span>{% trans "Sheet Language" %}</span>
+                                        <span>{%  "Sheet Language" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -187,19 +187,19 @@
                                         <div class="english optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "English" %}</span>
+                                            <span>{%  "English" %}</span>
                                         </span>
                                         </div>
                                         <div class="hebrew optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText">
-                                            <span class="{{ language_font_class }}">{% trans "Tibetan" %}</span>
+                                            <span class="{{ language_font_class }}">{%  "Tibetan" %}</span>
                                         </span>
                                         </div>
                                         <div class="bilingual optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Bilingual" %}</span>
+                                            <span>{%  "Bilingual" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -210,7 +210,7 @@
                                     <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
                                          tabindex="0"><i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText {{language_font_class}}">
-                                        <span>{% trans "Sheet Layout" %}</span>
+                                        <span>{%  "Sheet Layout" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -218,13 +218,13 @@
                                         <div class="stacked optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Stacked" %}</span>
+                                            <span>{%  "Stacked" %}</span>
                                         </span>
                                         </div>
                                         <div class="sideBySide optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Side-by-Side" %}</span>
+                                            <span>{%  "Side-by-Side" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -235,7 +235,7 @@
                                     <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
                                          tabindex="0"><i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText {{language_font_class}}">
-                                        <span>{% trans "Side-by-Side Layout" %}</span>
+                                        <span>{%  "Side-by-Side Layout" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -243,13 +243,13 @@
                                         <div class="heLeft optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Tibetan Left" %}</span>
+                                            <span>{%  "Tibetan Left" %}</span>
                                         </span>
                                         </div>
                                         <div class="heRight optionItem" role="menuitem" tabindex="0">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Tibetan Right" %}</span>
+                                            <span>{%  "Tibetan Right" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -261,7 +261,7 @@
                                     <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
                                          tabindex="0"><i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText {{language_font_class}}">
-                                        <span>{% trans "Source Language" %}</span>
+                                        <span>{%  "Source Language" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -269,19 +269,19 @@
                                         <div class="english">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "English" %}</span>
+                                            <span>{%  "English" %}</span>
                                         </span>
                                         </div>
                                         <div class="hebrew">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Hebrew" %}</span>
+                                            <span>{%  "Hebrew" %}</span>
                                         </span>
                                         </div>
                                         <div class="bilingual">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Bilingual" %}</span>
+                                            <span>{%  "Bilingual" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -292,7 +292,7 @@
                                     <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
                                          tabindex="0"><i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText {{language_font_class}}">
-                                        <span>{% trans "Source Layout" %}</span>
+                                        <span>{%  "Source Layout" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -300,13 +300,13 @@
                                         <div class="stacked">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Stacked" %}</span>
+                                            <span>{%  "Stacked" %}</span>
                                         </span>
                                         </div>
                                         <div class="sideBySide">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Side-by-Side" %}</span>
+                                            <span>{%  "Side-by-Side" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -317,7 +317,7 @@
                                     <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem"
                                          tabindex="0"><i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText {{language_font_class}}">
-                                        <span>{% trans "Side-by-Side Layout" %}</span>
+                                        <span>{%  "Side-by-Side Layout" %}</span>
                                     </span>
                                         <i class="optionItemCaret fa fa-caret"></i>
                                     </div>
@@ -325,13 +325,13 @@
                                         <div class="heLeft">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Tibetan Left" %}</span>
+                                            <span>{%  "Tibetan Left" %}</span>
                                         </span>
                                         </div>
                                         <div class="heRight">
                                             <i class="fa fa-check hidden"></i>
                                             <span class="optionItemText {{language_font_class}}">
-                                            <span>{% trans "Tibetan Right" %}</span>
+                                            <span>{%  "Tibetan Right" %}</span>
                                         </span>
                                         </div>
                                     </div>
@@ -341,7 +341,7 @@
                                     <div class="optionTitle">
                                         <i class="fa fa-file-o hidden"></i>
                                         <span class="optionItemText {{language_font_class}}">
-                                        <span>{% trans "Reset to Sheet Default" %}</span>
+                                        <span>{%  "Reset to Sheet Default" %}</span>
                                     </span>
                                     </div>
                                 </div>
@@ -354,58 +354,58 @@
                     </div>
                     {% if can_edit or can_add %}
                     <div class="sheetsMenuBarItem" id="insertMenu">
-                        <span class="menuHeader {{language_font_class}}" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Insert" %}</span>
+                        <span class="menuHeader {{language_font_class}}" aria-haspopup="true" role="menuitem" tabindex="0">{%  "Insert" %}</span>
                         <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                             <div class="optionItem" id="addSourceMenu" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/source.png' %}" alt="Add Source Icon">
                                 <span class="optionItemText {{language_font_class}}">
-                                <span>{% trans "Source" %}</span>
+                                <span>{%  "Source" %}</span>
                             </span>
                             </div>
                             <div class="optionItem" id="addCustomMenu" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/custom text.png' %}" alt="Add outside text icon">
                                 <span class="optionItemText {{language_font_class}}">
-                                <span>{% trans "Text" %}</span>
+                                <span>{%  "Text" %}</span>
                             </span>
                             </div>
                             <div class="optionItem" id="addCommentMenu" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
                                 <span class="optionItemText {{language_font_class}}">
-                                <span>{% trans "Comment" %}</span>
+                                <span>{%  "Comment" %}</span>
                             </span>
                             </div>
                             <div class="optionItem" id="addMediaMenu" role="menuitem" tabindex="0">
                                 <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
                                 <span class="optionItemText {{language_font_class}}">
-                                <span>{% trans "Media" %}</span>
+                                <span>{%  "Media" %}</span>
                             </span>
                             </div>
                         </div>
                     </div>
                     {% endif %}
                     <div class="sheetsMenuBarItem" id="highlightMenu">
-                        <span class="{{language_font_class}} menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{% trans "Highlight Tools" %}</span>
+                        <span class="{{language_font_class}} menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">{%  "Highlight Tools" %}</span>
                         <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                             <div class="optionItem segmentedContinuousToggle" data-mode="continuous">
                             <span class="optionItemText">
                                 <span class="continuousActive" role="menuitem" tabindex="0">
-                                    <span class="{{ language_font_class }}">{% trans "Paragraph View" %}</span>
+                                    <span class="{{ language_font_class }}">{%  "Paragraph View" %}</span>
                                 </span>
                                 <span class="segmentedActive" role="menuitem" tabindex="0">
-                                    <span class="{{ language_font_class }}">{% trans "Line-by-line View" %}</span>
+                                    <span class="{{ language_font_class }}">{%  "Line-by-line View" %}</span>
                                 </span>
                             </span>
                             </div>
                             {% if can_edit %}
                             <div class='optionItem resetHighlighter'>
                             <span class="optionItemText">
-                                <span class="{{ language_font_class }}">{% trans "Reset" %}</span>
+                                <span class="{{ language_font_class }}">{%  "Reset" %}</span>
                             </span>
                             </div>
                             {% endif %}
                             <div class="optionGroup">
                                 <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">
-                                <span class="optionItemText"><span class="{{ language_font_class }}">{% trans "Filter" %}</span>
+                                <span class="optionItemText"><span class="{{ language_font_class }}">{%  "Filter" %}</span>
                                     <i class="optionItemCaret fa fa-caret"></i>
                                 </div>
                                 <div class="subMenu">
@@ -421,16 +421,16 @@
                     {% if sheet.dateModified %}
                         {% if can_edit or can_add %}
                             <span class="lastSavedStamp">
-                                <span class="{{ language_font_class }}">{% trans "Last Saved" %} {{sheet.dateModified|format_date_by_language}}</span>
+                                <span class="{{ language_font_class }}">{%  "Last Saved" %} {{sheet.dateModified|format_date_by_language}}</span>
                             </span>
                             <span class="lastSavedConfirmed">
-                                <span class="{{ language_font_class }}">{% trans "All changes saved in Pecha" %}</span>
+                                <span class="{{ language_font_class }}">{%  "All changes saved in Pecha" %}</span>
                             </span>
                             <span class="saving">
-                                <span class="{{ language_font_class }}">{% trans "Saving..." %}</span>
+                                <span class="{{ language_font_class }}">{%  "Saving..." %}</span>
                             </span>
                             <span class="pending">
-                                <span class="{{ language_font_class }}">{% trans "Changes Pending..." %}</span>
+                                <span class="{{ language_font_class }}">{%  "Changes Pending..." %}</span>
                             </span>
 
                         {% endif %}
@@ -439,7 +439,7 @@
                     </div>
                     <div class="sheetsMenuBarItem" id="higlightModeMenu">
                     <span id="highlightModeDisplay">
-                        <span class="{{ language_font_class }}">{% trans "Highlight Mode is On" %}</span>
+                        <span class="{{ language_font_class }}">{%  "Highlight Mode is On" %}</span>
                     </span>
                     </div>
                 </div>
@@ -449,23 +449,23 @@
                     <a id="save" class="button" data-mode="editing" role="button" tabIndex="0">
                         <i class="fa fa-floppy-o {{language_font_class}}"></i>
                         <span id="doSave">
-                        <span>{% trans "Save" %}</span>
+                        <span>{%  "Save" %}</span>
                     </span>
                         <span id="inSave">
-                        <span>{% trans "Saving..." %}</span>
+                        <span>{%  "Saving..." %}</span>
                     </span>
                     </a>
                     {% elif is_owner %}
                     <a id="share" class="button {{language_font_class}}" role="button" tabIndex="0">
                         <img src="{% static 'img/share.png' %}" alt="Share Icon">
-                        <span>{% trans "Share" %}</span>
+                        <span>{%  "Share" %}</span>
                     </a>
                     <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button {{language_font_class}}" role="button" tabIndex="0">
-                        <span>{% trans "View in Library" %}</span>
+                        <span>{%  "View in Library" %}</span>
                     </a>
                     {% else %}
                     <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button {{language_font_class}}" role="button" tabIndex="0">
-                        <span>{% trans "View in Library" %}</span>
+                        <span>{%  "View in Library" %}</span>
                     </a>
                     {% endif %}
                 </div>
@@ -494,15 +494,15 @@
         <div id="fileControls">
             <div id="fileControlMsg">
             <span class="{{ language_font_class }}">
-                {% trans "Like this?" %} <a href="/login?next=/sheets/new">{% trans "Login" %}</a>{ % trans "or" %} <a
-                    href="/register?next=/sheets/new">{% trans "create an account" %}</a> {% trans "to build your own source sheet." %}
+                {%  "Like this?" %} <a href="/login?next=/sheets/new">{%  "Login" %}</a>{ %  "or" %} <a
+                    href="/register?next=/sheets/new">{%  "create an account" %}</a> {%  "to build your own source sheet." %}
             </span>
             </div>
         </div>
 
         {% endif %}
 
-        <div id="bsdHeader">{% trans "Header Title" %}</div>
+        <div id="bsdHeader">{%  "Header Title" %}</div>
         <div id="sheetHeader" {% if not displayed_collection %}style="display:none" {% endif %}>
             {% if displayed_collection and displayed_collection.headerUrl %}
             <a href="/collections/{{ displayed_collection.slug }}">
@@ -515,7 +515,7 @@
         </div>
         <div id="title" role="heading" aria-level="1">
             {% autoescape off %}
-            {% with title_t=title|default:_("Loading...") %}
+            {% with title_t=title|default:("Loading...") %}
             {{ title_t }}
             {% endwith %}
             {% endautoescape %}
@@ -529,24 +529,24 @@
         {% elif assigner_id %}
         <div id="author">
             {% if author %}
-            {% blocktrans with owner=sheet.owner|user_link %}
+            {%  with owner=sheet.owner|user_link %}
             Assignment Completed by {{ owner }}
-            {% endblocktrans %}
+            {%  %}
             {% endif %}
         </div>
         {% elif sheet.assigner_id %}
         <div id="author">
             {% if author %}
-            {% blocktrans with owner=sheet.owner|user_link %}
+            {% with owner=sheet.owner|user_link %}
             Assignment Completed by {{ owner }}
-            {% endblocktrans %}
+            {% %}
             {% endif %}
         </div>
         {% elif author %}
         <div id="author">
-            {% blocktrans with owner=sheet.owner|user_link %}
+            {% with owner=sheet.owner|user_link %}
             Source Sheet by {{ owner }}
-            {% endblocktrans %}
+            {% %}
         </div>
         {% endif %}
 
@@ -554,32 +554,32 @@
 
         <details id="sheetMetadata">
             <summary>
-                <span>{% trans "More info" %}</span>
+                <span>{%  "More info" %}</span>
             </summary>
             <div class="metadataOpenDetails">
                 <div>
                 {% if can_edit %}<span
-                        class="editButton">{% trans "Edit" %}</span>{% endif %}</span>
-                    <span class="{{ language_font_class }}">{% trans "Created" %} <span class="date">{{ sheet.dateCreated|format_date_by_language }}</span> · <span
-                            class="views">{% if sheet.views == 1%}{% trans "View" %} {% else %}{{ sheet.views }}
-                {% endif %}{% trans "Views" %}</span>{% if can_edit %}<span></span>{% endif %}</span>
+                        class="editButton">{%  "Edit" %}</span>{% endif %}</span>
+                    <span class="{{ language_font_class }}">{%  "Created" %} <span class="date">{{ sheet.dateCreated|format_date_by_language }}</span> · <span
+                            class="views">{% if sheet.views == 1%}{%  "View" %} {% else %}{{ sheet.views }}
+                {% endif %}{%  "Views" %}</span>{% if can_edit %}<span></span>{% endif %}</span>
                 </div>
                 {% if sheet.via %}
                 <div id="via">
-                    <span class="{{ language_font_class }}">{% trans "Based on" %} <a
-                        href="/sheets/{{ sheet.via }}">{% trans "a sheet" %}</a>{% trans "by" %} {{ sheet.viaOwner|user_link }}
+                    <span class="{{ language_font_class }}">{%  "Based on" %} <a
+                        href="/sheets/{{ sheet.via }}">{%  "a sheet" %}</a>{%  "by" %} {{ sheet.viaOwner|user_link }}
                     </span>
                 </div>
 
                 {% elif assigner_id %}
                 <div id="assignmentAttribution">
-                    <span class="{{ language_font_class }}">{% trans "Assigned by" %}</span>
+                    <span class="{{ language_font_class }}">{%  "Assigned by" %}</span>
                     {{ assigner_id|user_link }}
                 </div>
 
                 {% elif sheet.assigner_id %}
                 <div id="assignmentAttribution">
-                    <span class="{{ language_font_class }}">{% trans "Assigned by" %}</span>
+                    <span class="{{ language_font_class }}">{%  "Assigned by" %}</span>
                     {{ sheet.assigner_id|user_link }}
                 </div>
 
@@ -622,49 +622,49 @@
             <div class="buttonBar">
                 <div class="addInterfaceButton" id="sourceButton" tabindex="0" role="button"><img
                         src="{% static 'img/source.png' %}" alt="Add Source Icon">
-                    <span class="{{ language_font_class }}">{% trans "Source" %}</span>
+                    <span class="{{ language_font_class }}">{%  "Source" %}</span>
                 </div><!--
          -->
                 <div class="addInterfaceButton" id="connectionButton" tabindex="0" role="button">
                     <img src="{% static 'img/connection.png' %}" alt="Add Connections Icon">
-                    <span class="{{ language_font_class }}">{% trans "Connection" %}</span>
+                    <span class="{{ language_font_class }}">{%  "Connection" %}</span>
                 </div><!--
          -->
                 <div class="addInterfaceButton" id="customTextButton" tabindex="0" role="button">
                     <img src="{% static 'img/custom text.png' %}" alt="Add Outside Text Icon">
-                    <span class="{{ language_font_class }}">{% trans "Text" %}</span>
+                    <span class="{{ language_font_class }}">{%  "Text" %}</span>
                 </div><!--
          -->
                 <div class="addInterfaceButton" id="mediaButton" tabindex="0" role="button">
                     <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
-                    <span class="{{ language_font_class }}">{% trans "Media" %}</span>
+                    <span class="{{ language_font_class }}">{%  "Media" %}</span>
                 </div><!--
          -->
                 <div class="addInterfaceButton" id="commentButton" tabindex="0" role="button">
                     <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
-                    <span class="{{ language_font_class }}">{% trans "Comment" %}</span>
+                    <span class="{{ language_font_class }}">{%  "Comment" %}</span>
                 </div>
             </div>
             <div class="contentDiv">
                 <div id="addsourceDiv">
                     <div id="inlineAddDialogTitle" class="inlineAddDesc">
-                        <span class="{{ language_font_class }}">{% trans "Select a text" %}</span>
+                        <span class="{{ language_font_class }}">{%  "Select a text" %}</span>
                     </div>
                     <div class="blockContainer">
                         {% comment %} <input id="inlineAdd" class="inlineAddTextInput"
-                               placeholder="{% trans " Search for a Text or Commentator" %}"/> {% endcomment %}
+                               placeholder="{%  " Search for a Text or Commentator" %}"/> {% endcomment %}
                         <div class="buttonContainer">
                             {% comment %} <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                                 <div id="inlineAddSourceOK" class='button disabled' role="button" tabIndex="0">
-                                    <span class="{{ language_font_class }}">{% trans "Add Source" %}</span>
+                                    <span class="{{ language_font_class }}">{%  "Add Source" %}</span>
                                 </div>
                             </div> {% endcomment %}
                             {% comment %} <div class="inlineAddOr">
-                                <span class="{{ language_font_class }}">{% trans "or" %}</span>
+                                <span class="{{ language_font_class }}">{%  "or" %}</span>
                             </div> {% endcomment %}
                             <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                                 <div id="inlineAddBrowse" class='button' role="button" tabIndex="0">
-                                    <span class="{{ language_font_class }}">{% trans "Browse Sources" %}</span>
+                                    <span class="{{ language_font_class }}">{%  "Browse Sources" %}</span>
                                 </div>
                             </div>
                         </div>
@@ -673,16 +673,16 @@
                 </div>
                 <div id="addconnectionDiv">
                     <div class="inlineAddDesc">
-                        <span class="{{ language_font_class }}">{% trans "Select connected texts" %}</span>
+                        <span class="{{ language_font_class }}">{%  "Select connected texts" %}</span>
                     </div>
                     <div id="connectionsToAdd"></div>
                     <div class="button" role="button" tabIndex="0">
-                        <span class="{{ language_font_class }}">{% trans "Add to Sheet" %}</span>
+                        <span class="{{ language_font_class }}">{%  "Add to Sheet" %}</span>
                     </div>
                 </div>
                 <div id="addcustomTextDiv">
                     <div class="inlineAddDesc">
-                    <span class="{{ language_font_class }}">{% trans "Write or paste text" %}</span>
+                    <span class="{{ language_font_class }}">{%  "Write or paste text" %}</span>
                     </div>
                     <div id="customTextLanguageToggle" class="toggle">
                     <span id="englishCustomText" class="toggleOption">
@@ -696,34 +696,34 @@
                     </span>
                     </div>
                     <div id="customTextContainer" class="flexContainer">
-                        <div class="{{ language_font_class }} contentToAdd en customTextEditables" tabindex="0">{% trans "english" %}</div>
-                        <div class="{{ language_font_class }} contentToAdd he customTextEditables" tabindex="0">{% trans "tibetan" %}</div>
+                        <div class="{{ language_font_class }} contentToAdd en customTextEditables" tabindex="0">{%  "english" %}</div>
+                        <div class="{{ language_font_class }} contentToAdd he customTextEditables" tabindex="0">{%  "tibetan" %}</div>
                     </div>
                     <div class="{{ language_font_class }} button" role="button" tabIndex="0">
-                        <span>{% trans "Add to Sheet" %}</span>
+                        <span>{%  "Add to Sheet" %}</span>
                     </div>
                 </div>
                 <div id="addmediaDiv">
                     <div class="{{ language_font_class }} inlineAddDesc">
-                        <span>{% trans "Add Image, Youtube Video, SoundCloud link, or MP3" %}</span>
+                        <span>{%  "Add Image, Youtube Video, SoundCloud link, or MP3" %}</span>
 
                     </div>
                     <div class="blockContainer">
                         <input id="inlineAddMediaInput" class="inlineAddTextInput"
-                               placeholder="{% trans 'Paste URL' %}"/>
+                               placeholder="{%  'Paste URL' %}"/>
                         <div class="buttonContainer">
                             <div class="inlineAddSourceByttons">
                                 <div class="{{ language_font_class }} button" role="button" tabIndex="0">
-                                    <span>{% trans "Add to Sheet" %}</span>
+                                    <span>{%  "Add to Sheet" %}</span>
                                 </div>
                             </div>
                             <div class="{{ language_font_class }} inlineAddOr">
-                                <span>{% trans "or" %}</span>
+                                <span>{%  "or" %}</span>
                             </div>
                             <div class="inlineAddSourceByttons">
                                 <label for="addmediaFileSelector" class="button" role="button" tabIndex="0">
                                     <i class="{{ language_font_class }} fa fa-upload" aria-hidden="true"></i>
-                                    <span>{% trans "Upload an Image" %}</span>
+                                    <span>{%  "Upload an Image" %}</span>
                                 </label>
                                 <input id="addmediaFileSelector" type="file" style="display:none">
                             </div>
@@ -732,11 +732,11 @@
                 </div>
                 <div id="addcommentDiv">
                     <div class="{{ language_font_class }} inlineAddDesc">
-                        <span>{% trans "Comment on this section" %}</span>
+                        <span>{%  "Comment on this section" %}</span>
                     </div>
                     <div class="contentToAdd" tabindex="0" data-gramm="false"><br></div>
                     <div class="{{ language_font_class }} button" role="button" tabIndex="0">
-                        <span>{% trans "Add to Sheet" %}</span>
+                        <span>{%  "Add to Sheet" %}</span>
                     </div>
                 </div>
             </div>
@@ -744,7 +744,7 @@
         {% endif %}
 
         <div id="sheetLoading" style="display:none">
-            <span class="{{ language_font_class }}">{% trans "Loading..." %}</span>
+            <span class="{{ language_font_class }}">{%  "Loading..." %}</span>
         </div>
 
         {% if new_sheet and not hide_video %}
@@ -755,35 +755,35 @@
                     allowfullscreen></iframe>
 
             <h3>
-                <span class="{{ language_font_class }}">{% trans "Watch a 2 minute intro video or " %}<a class="empty_readmore">{% trans "read more" %}</a>.</span>
+                <span class="{{ language_font_class }}">{%  "Watch a 2 minute intro video or " %}<a class="empty_readmore">{%  "read more" %}</a>.</span>
             </h3>
             <div id="howItWorks">
                 <h1>
-                    <span class="{{ language_font_class }}">{% trans "Source Sheet Builder: How it Works" %}</span>
+                    <span class="{{ language_font_class }}">{%  "Source Sheet Builder: How it Works" %}</span>
 
                 </h1>
                 <ul>
                     <li>
                 <span class="{{ language_font_class }}">
-                    <b>{% trans "Add Sources" %}</b>{% trans "by typing a citation like:" %}
+                    <b>{%  "Add Sources" %}</b>{%  "by typing a citation like:" %}
 			        <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishnah Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
                 </span>
                     </li>
                     <li>
-                        <span class="{{ language_font_class }}"><b>{% trans "Reorder Sources" %}</b>{% trans "by dragging and dropping." %}</span>
+                        <span class="{{ language_font_class }}"><b>{%  "Reorder Sources" %}</b>{%  "by dragging and dropping." %}</span>
                     </li>
                     <li>
-                        <span class="{{ language_font_class }}"><b>{% trans "Print" %}</b>{% trans "your sheets to paper or PDF, or just" %} <b>{% trans "Share" %}</b>{% trans " the link." %}</span>
+                        <span class="{{ language_font_class }}"><b>{%  "Print" %}</b>{%  "your sheets to paper or PDF, or just" %} <b>{%  "Share" %}</b>{%  " the link." %}</span>
                     </li>
                     <li>
-                        <span class="{{ language_font_class }}"><b>{% trans "More Options" %}</b>{% trans "are available in the icons that appear when you hover over a source." %}</span>
+                        <span class="{{ language_font_class }}"><b>{%  "More Options" %}</b>{%  "are available in the icons that appear when you hover over a source." %}</span>
                     </li>
                 </ul>
             </div>
             {% if not user.email %}
             <center id="loginWarning">
-                <span class="{{ language_font_class }}">{% trans "Take a spin! But you'll need to " %}<a href="/login?next=/sheets/new">{% trans "login" %}</a> {% trans "or" %} <a
-                    href="/register?next=/sheets/new">{% trans "register" %}</a> {% trans "to save your work." %}
+                <span class="{{ language_font_class }}">{%  "Take a spin! But you'll need to " %}<a href="/login?next=/sheets/new">{%  "login" %}</a> {%  "or" %} <a
+                    href="/register?next=/sheets/new">{%  "register" %}</a> {%  "to save your work." %}
                 </span>
                 
             </center>
@@ -794,7 +794,7 @@
         <div id="printFooter {{ language_font_class }}">
             <img src="{% static 'img/pecha-icon.png' %}">
             <div style="padding: 8px;">
-                {% trans "Made with the Pecha Source Sheet Builder" %}
+                {%  "Made with the Pecha Source Sheet Builder" %}
                 <br/>
                 www.pecha.org/sheets
             </div>
@@ -805,7 +805,7 @@
                 <span class="close-button"></span>
                 <div class='tagSelector'>
                     <div class='tagSelectorTitle'>
-                        <span class="{{ language_font_class }}">{% trans "Add Highlight" %}</span>
+                        <span class="{{ language_font_class }}">{%  "Add Highlight" %}</span>
                     </div>
                     <div class='sheetHighlighterTags'></div>
                     <div class='createNewHighlighterTag'>
@@ -816,10 +816,10 @@
                         <div class='colorSwatch' style='background-color: #a4b7de'></div>
                         <div class='colorSwatch' style='background-color: #e8dde5'></div>
                         <div class='colorSwatch' style='background-color: #d2ddc9'></div>
-                        <div class='tagName {{ language_font_class }}' contenteditable='true'>{%trans "Create New" %}</div>
+                        <div class='tagName {{ language_font_class }}' contenteditable='true'>{% "Create New" %}</div>
                     </div>
                     <div class='save button {{ language_font_class }}'>
-                        <span>{% trans "Save" %}</span>
+                        <span>{%  "Save" %}</span>
                     </div>
                 </div>
             </div>
@@ -831,11 +831,11 @@
 
     {% if author %}
     <div id="bottomAuthor">
-        <span class="{{ language_font_class }}">{% trans "Source Sheet created on Pecha by " %}</span>
+        <span class="{{ language_font_class }}">{%  "Source Sheet created on Pecha by " %}</span>
         {{ sheet.owner|user_link }}
         {% if sheet.via %}
         <div id="bottomVia">
-            <span class="{{ language_font_class }}">{% trans "Based on " %}<a href="/sheets/{{ sheet.via }}">{% trans "a sheet" %}</a>{% trans "by" %}{{ sheet.viaOwner|user_link }}</span>
+            <span class="{{ language_font_class }}">{%  "Based on " %}<a href="/sheets/{{ sheet.via }}">{%  "a sheet" %}</a>{%  "by" %}{{ sheet.viaOwner|user_link }}</span>
         </div>
         {% endif %}
     </div>
@@ -847,24 +847,24 @@
     <div id="assignmentsModal" class="modal s2Modal">
         <span class="close-button"></span>
         <div class="title {{ language_font_class }}">
-            <span>{% trans "Assignments" %}</span>
+            <span>{%  "Assignments" %}</span>
         </div>
         <div class="content {{ language_font_class }}" id="assignmentDirections">
-            <span>{% trans "Assignments allow you to create a template that your students can fill out on their own." %}</span>
+            <span>{%  "Assignments allow you to create a template that your students can fill out on their own." %}</span>
         </div>
         <input id="assignmentURLLink" value="{{ request.META.HTTP_HOST }}/sheets/new?assignment={{sheet.id}}"/>
         <div class='button' id="makeSheetAssignableButton">
-            <span class="{{ language_font_class }}">{% trans "Assign this Sheet" %}</span>
+            <span class="{{ language_font_class }}">{%  "Assign this Sheet" %}</span>
         </div>
         <div class='button' id="StopCollectingAssignmentsButton">
-            <span class="{{ language_font_class }}">{% trans "Stop Collecting Assignments" %}</span>
+            <span class="{{ language_font_class }}">{%  "Stop Collecting Assignments" %}</span>
         </div>
         <br/>
         <div id="assignedSheets">
             <div class="line"></div>
 
             <div class="title">
-                <span class="{{ language_font_class }}">{% trans "Saved Assignments" %}</span>
+                <span class="{{ language_font_class }}">{%  "Saved Assignments" %}</span>
             </div>
             {% for assignment_sheet in assignments_from_sheet %}
             <a href="./{{ assignment_sheet.id }}?editor=1" target="_blank">
@@ -873,7 +873,7 @@
 
             {% empty %}
             <em>
-                <span class="{{ language_font_class }}">{% trans "Your student's saved assignments will be viewable here." %}</span>
+                <span class="{{ language_font_class }}">{%  "Your student's saved assignments will be viewable here." %}</span>
             </em>
             {% endfor %}
         </div>
@@ -883,13 +883,13 @@
     <div id="shareWithOthers" class="modal s2Modal">
         <div class="content">
             <textarea id="sheetSummaryInput"
-                      placeholder='{%trans "Write a summary to help others understand your sheet..."%}'>{{sheet.summary}}</textarea>
+                      placeholder='{% "Write a summary to help others understand your sheet..."%}'>{{sheet.summary}}</textarea>
         </div>
 
         <div class="line"></div>
 
         <div class="content">
-            <input id="addTag" placeholder='{%trans "Add Tags..."%}'/>
+            <input id="addTag" placeholder='{% "Add Tags..."%}'/>
             <ul id="tags"></ul>
             <div id="suggestedTags"></div>
         </div>
@@ -899,7 +899,7 @@
 
         <div class="content sideLabeled">
             <label class="labelforOnOffSwitch {{ language_font_class }}">
-                <span>{% trans "List on Pecha" %}</span>
+                <span>{%  "List on Pecha" %}</span>
             </label>
             <div>
                 <div class="onoffswitch">
@@ -915,14 +915,14 @@
         {% if sheet_collections %}
         <div class="content sideLabeled" id="sourceSheetGroupOptions">
             <label for="sourceSheetGroupSelect">
-                <span class="{{ language_font_class }}">{% trans "Display Collection" %}</span>
+                <span class="{{ language_font_class }}">{%  "Display Collection" %}</span>
             </label>
             
             <div>
                 <div class="custom-select {{ language_font_class }}">
                     <select id="sourceSheetShareSelect">
                         <option class="{{ language_font_class }}" value="">
-                            {% trans 'None' %}
+                            {%  'None' %}
                         </option>
     
                         {% for collection in sheet_collections %}
@@ -937,7 +937,7 @@
                     </select>
                 </div>
                 <div id="collectionsMessage">
-                    <span class="{{ language_font_class }}">{% trans "To manage the collections this sheet appears in, visit your profile." %}</span>
+                    <span class="{{ language_font_class }}">{%  "To manage the collections this sheet appears in, visit your profile." %}</span>
                 </div>
             </div>
         </div>
@@ -946,7 +946,7 @@
 
         <div class="content sideLabeled">
             <label class="{{ language_font_class }}" for="shareURL">
-                <span>{% trans "Share a link" %}</span>
+                <span>{%  "Share a link" %}</span>
             </label>
             <div>
                 <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
@@ -957,40 +957,40 @@
 
         <div class="content">
             <label class="{{ language_font_class }}" for="sourceSheetShareSelect">
-                <span>{% trans "Anyone with access can" %}</span>
+                <span>{%  "Anyone with access can" %}</span>
             </label>
             <div class="custom-select {{ language_font_class }}">
                 <select id="sourceSheetShareSelect">
                     <option value="view">
-                        {% trans "View" %}
+                        {%  "View" %}
                     </option>
                     <option value="add">
-                        {% trans "Add" %}
+                        {%  "Add" %}
                     </option>
                     <option value="edit">
-                        {% trans "Edit" %}
+                        {%  "Edit" %}
                     </option>
                 </select>
             </div>
-            <div class="ok button {{ language_font_class }}">{% trans "Save" %}</div>
+            <div class="ok button {{ language_font_class }}">{%  "Save" %}</div>
         </div>
 
     </div>
 
     <div id="addToSheetModal" class="modal s2Modal">
         <div class="header">
-            {% blocktrans %}
+            {% %}
             Add <span class="sourceName"></span> to a Source Sheet
-            {% endblocktrans %}
+            {% %}
         </div>
         <ul id="sheetList">
         </ul>
         <div class="actions">
             <div class="button ok">
-                <span class="{{ language_font_class }}">{% trans "Add" %}</span>
+                <span class="{{ language_font_class }}">{%  "Add" %}</span>
             </div>
             <div class="button white cancel">
-                <span class="{{ language_font_class }}">{% trans "Cancel" %}</span>
+                <span class="{{ language_font_class }}">{%  "Cancel" %}</span>
             </div>
         </div>
     </div>
@@ -998,21 +998,21 @@
     <div id="embedSheetModal" class="gradient modal s2Modal">
         <span class="close-button"></span>
         <div class="title">
-            <span class="{{ language_font_class }}">{% trans "Embed Sheet" %}</span>
+            <span class="{{ language_font_class }}">{%  "Embed Sheet" %}</span>
         </div>
         <div class="content center">
-            <span class="{{ language_font_class }}">{% trans "Copy and paste the embed code below. Adjust the values of width and height to best fit your design." %}</span>
+            <span class="{{ language_font_class }}">{%  "Copy and paste the embed code below. Adjust the values of width and height to best fit your design." %}</span>
         </div>
         <textarea><iframe src="https://{{ request.get_host }}{{ request.get_full_path }}?embed=1" width="600px" height="600px"></iframe></textarea>
     </div>
 
     <div id="addParashaToSheetModal" class="modal s2Modal">
         <div class="header">
-            <span class="{{ language_font_class }}">{% trans "Add a Parasha to a Source Sheet" %}</span>
+            <span class="{{ language_font_class }}">{%  "Add a Parasha to a Source Sheet" %}</span>
         </div>
         <div class="actions">
             <div class="button white cancel">
-                <span class="{{ language_font_class }}">{% trans "Cancel" %}</span>
+                <span class="{{ language_font_class }}">{%  "Cancel" %}</span>
             </div>
         </div>
     </div>
@@ -1020,7 +1020,7 @@
     <div id="overlay"></div>
 
     <div id="overrideLayoutModal" class="modal s2Modal">
-        <div class="header {{ language_font_class }}">{% trans "Change this source's layout" %}</div>
+        <div class="header {{ language_font_class }}">{%  "Change this source's layout" %}</div>
 
         <span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img
                 src="{% static 'img/backs.png' %}"></span><span id="hebRightSource" class="toggleOption"><img
@@ -1036,8 +1036,8 @@
                 src="{% static 'img/tibetan.png' %}"></span></span>
         <br/>
 
-        <div class="{{ language_font_class }} button ok">{% trans "OK" %}</div>
-        <h6 id="resetToDefaults {{ language_font_class }}"><small>{% trans "Reset to sheet defaults" %}</small></h6>
+        <div class="{{ language_font_class }} button ok">{%  "OK" %}</div>
+        <h6 id="resetToDefaults {{ language_font_class }}"><small>{%  "Reset to sheet defaults" %}</small></h6>
 
 
     </div>
@@ -1046,49 +1046,49 @@
     <div id="publishPromptModal" class="modal s2Modal">
         <div id="prompt">
             <div class="header {{ language_font_class }}">
-                <span>{% trans "Would you like to make your Source Sheet public?" %}</span>
+                <span>{%  "Would you like to make your Source Sheet public?" %}</span>
             </div>
 
             <p>
             <span class="{{ language_font_class }}">
-                {% trans "Your Source Sheet is looking great! You can share it with other members of the Pecha Community by making it public." %}
+                {%  "Your Source Sheet is looking great! You can share it with other members of the Pecha Community by making it public." %}
             </span>
             </p>
 
             <div class="{{ language_font_class }} button publish">
-                <span>{% trans "Make Public" %}</span>
+                <span>{%  "Make Public" %}</span>
             </div>
             <div class="{{ language_font_class }} button white later">
-                <span>{% trans "Maybe Later" %}</span>
+                <span>{%  "Maybe Later" %}</span>
             </div>
         </div>
         <div id="published" style="display:none;">
             <div class="header">
-                <span class="{{ language_font_class }}">{% trans "Your Sheet is now Public!" %}</span>
+                <span class="{{ language_font_class }}">{%  "Your Sheet is now Public!" %}</span>
             </div>
 
             <p>
-                <span class = "{{ language_font_class }}">{% trans "Thank you for contributing to a free, growing resource for Jewish learning." %}</span>
+                <span class = "{{ language_font_class }}">{%  "Thank you for contributing to a free, growing resource for Jewish learning." %}</span>
             </p>
 
             <div class="{{ language_font_class }} button ok">
-                <span>{% trans "OK" %}</span>
+                <span>{%  "OK" %}</span>
             </div>
         </div>
         <div id="notPublished" style="display:none;">
             <div class="{{ language_font_class }} header">
-                <span>{% trans "No problem, this sheet is still not listed on Sefaria." %}</span>
+                <span>{%  "No problem, this sheet is still not listed on Sefaria." %}</span>
             </div>
 
             <p>
             <span class="{{ language_font_class }}">
-                {% trans "You can make your sheet public in the future from the" %}
-                <span class="label">{% trans "Share" %}</span> menu.
+                {%  "You can make your sheet public in the future from the" %}
+                <span class="label">{%  "Share" %}</span> menu.
             </span>
             </p>
 
             <div class="{{ language_font_class }} button ok">
-                <span>{% trans "OK" %}</span>
+                <span>{%  "OK" %}</span>
             </div>
         </div>
     </div>

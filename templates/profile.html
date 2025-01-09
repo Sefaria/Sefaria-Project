@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n humanize sefaria_tags %}
 
-{% block title %}{{ profile.full_name }} {% trans "on Sefaria" %}{% endblock %}
+{% block title %}{{ profile.full_name }} {% trans "profile_title_pecha" %}{% endblock %}
 
-{% block description %}{{ profile.full_name }} {% trans "is on Sefaria. Follow to view their public source sheets, notes and translations." %}{% endblock %}
+{% block description %}{{ profile.full_name }} {% trans "user_profile_page_desc" %}{% endblock %}
 
 {% block content %}
 
@@ -17,7 +17,7 @@
 			{% if profile.position or profile.organization %}
 			<div id="profileTagline">
 				<span id="position">{{ profile.position }}</span>
-				<span id="at">{% if profile.organization and profile.position %}{% trans "at " %}{% endif %}</span><span id="organization">{{ profile.organization}}</span>
+				<span id="at">{% if profile.organization and profile.position %}{% "at " %}{% endif %}</span><span id="organization">{{ profile.organization}}</span>
 			</div>
 			{% endif %}
 
@@ -49,19 +49,19 @@
 
 				{% if profile.facebook %}
 				<div id="profileFacebook">
-					<a href="{{ profile.facebook|normalize_url }}" target="_blank">{% trans "Facebook" %}</a>
+					<a href="{{ profile.facebook|normalize_url }}" target="_blank">{% trans "common.profile.facebook" %}</a>
 				</div>
 				{% endif %}
 
 				{% if profile.twitter %}
 				<div id="profileTwittr">
-					<a href="http://www.twitter.com/{{ profile.twitter }}" target="_blank">{% trans "Twitter" %}</a>
+					<a href="http://www.twitter.com/{{ profile.twitter }}" target="_blank">{% trans "common.profile.twitter" %}</a>
 				</div>
 				{% endif %}
 
 				{% if profile.linkedin %}
 				<div id="profileLinkedIn">
-					<a href="{{ profile.linkedin|normalize_url }}" target="_blank">{% trans "LinkedIn" %}</a>
+					<a href="{{ profile.linkedin|normalize_url }}" target="_blank">{% trans "common.profile.linkedlin" %}</a>
 				</div>
 				{% endif %}
 
@@ -70,18 +70,18 @@
 			<div id="buttons">
 				{% if profile.id != request.user.id %}
 					<div id="messageMe" class="button white control-elem">
-						<span>{% trans "Message" %}</span>
+						<span>{% trans "profile.message" %}</span>
 					</div>
 					<div id="followMe" class="{% if following %}following{% else %}follow{% endif %} button blue control-elem">
                         <span class="{{ language_font_class }}">
-                            <span class="follow">{% trans "Follow" %}</span>
-                            <span class="state following">{% trans "Following" %}</span>
-                            <span class="unfollow">{% trans "Unfollow" %}</span>
+                            <span class="follow">{% trans "common.profile.follow" %}</span>
+                            <span class="state following">{% trans "common.profile.following" %}</span>
+                            <span class="unfollow">{% trans "common.profile.unfollow" %}</span>
                         </span>
 					</div>
 				{% endif %}
 				{% if profile.id == request.user.id %}
-					<a id="editProfile" href="/settings/profile"class="{{ language_font_class }}">{% trans "Edit Profile" %}</a>
+					<a id="editProfile" href="/settings/profile"class="{{ language_font_class }}">{% trans "profile.edit_profile" %}</a>
 				{% endif %}
 			</div>
 		</div>
@@ -96,7 +96,7 @@
 
 		{% if sheets.count %}
 		<div id="profileSheets" class="section">
-			<h2>{% trans "Source Sheets" %} - {{ sheets.count }}</h2>
+			<h2>{% trans "profile.source_sheet" %} - {{ sheets.count }}</h2>
 
 			<ul id="pinnedSheets" class="sheetsBox">
 				{% for id in profile.pinned_sheets %}
@@ -116,16 +116,16 @@
 
 		{% if notes|length %}
 		<div id="profileNotes" class="section">
-			<h2>{% trans "Notes" %} - {{ notes|length }}</h2>
+			<h2>{% trans "profile_notes" %} - {{ notes|length }}</h2>
 			{% include "elements/activity_feed.html" with activity=notes single=1 %}
 		</div>
 		{% endif %}
 
 		{% if activity|length %}
 		<div id="profileActivity" class="section">
-			<h2>{% trans "Activity" %}</h2>
+			<h2>{% trans "profile.activity" %}</h2>
 			{% include "elements/activity_feed.html" with activity=activity|slice:":3" single=1 hide_more_link=1 %}
-			<a id="moreActivity" class="page-link" href="/activity/{{ profile.slug }}/">{% trans "More Activity" %} &rsaquo;</a>
+			<a id="moreActivity" class="page-link" href="/activity/{{ profile.slug }}/">{% trans "profile.more_activity" %} &rsaquo;</a>
 		</div>
 		{% endif %}
 		<div id="overlay"></div>
@@ -175,10 +175,10 @@ $(function(){
 	sjs.composeMessage = function(recipient, name) {
 		$("#viewMessage").remove();
 		var composerHTML = "<div id='messageComposer' class='modal'>" +
-								"<div id='messageHeader'>{% trans 'Send a message to ' %}" + name + "</div>" +
+								"<div id='messageHeader'>{% 'Send a message to ' %}" + name + "</div>" +
 								"<textarea id='messageTextarea'></textarea>" +
-								"<div class='sendMessage button'>{% trans 'Send' %}</div>" +
-								"<div class='cancel button white'>{% trans 'Cancel' %}</div>" +
+								"<div class='sendMessage button'>{% 'Send' %}</div>" +
+								"<div class='cancel button white'>{% 'Cancel' %}</div>" +
 							"</div>";
 
 		$(composerHTML).appendTo("body").show()

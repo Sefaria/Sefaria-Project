@@ -505,7 +505,7 @@ const FilterableList = ({
             <SearchButton />
             <input
               type="text"
-              placeholder={Sefaria._("search")}
+              placeholder={Sefaria._("common.placeholder.search")}
               name="filterableListInput"
               value={filter}
               onChange={e => setFilter(e.target.value)}

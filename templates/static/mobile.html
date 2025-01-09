@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n static %}
 
-{% block title %}{% trans "Pecha Mobile Apps" %}{% endblock %}
+{% block title %}{% "Pecha Mobile Apps" %}{% endblock %}
 
-{% block description %}{% trans "Download the free Sefaria Apps for iOS and Android." %}{% endblock %}
+{% block description %}{% "Download the free Sefaria Apps for iOS and Android." %}{% endblock %}
 
 {% block css %}
 
@@ -316,7 +316,7 @@
             </div>
             <div class="newsletterSignUpBox">
                 <div class="inputWithNestedImageSubmit">
-                    <input id="newsletterInput" class="newsletterInput" title="Subscribe to our mailing list by entering your email here" placeholder="{% trans 'Sign up for our Newsletter' %}">
+                    <input id="newsletterInput" class="newsletterInput" title="Subscribe to our mailing list by entering your email here" placeholder="{% 'Sign up for our Newsletter' %}">
                     <input id="subscribe" type="image" src="/static/img/circled-arrow-right.svg" border="0" alt="Submit" />
                 </div>
                 <div id="newsletterInput-subscribeMessage"></div>
@@ -376,19 +376,19 @@
             const email = $("#newsletterInput").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
                 Sefaria.track.event("Educators", "Subscribe from Education Homepage", "");
-                $("#newsletterInput-subscribeMessage").html('{% trans "<i>Subscribing...</i>" %}').show();
+                $("#newsletterInput-subscribeMessage").html('{% "<i>Subscribing...</i>" %}').show();
                 let list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
                 $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
                     if ("error" in data) {
                         $("#newsletterInput-subscribeMessage").text(data.error).show();
                     } else {
-                        $("#newsletterInput-subscribeMessage").text('{% trans "Subscribed! Welcome to our list." %}').show();
+                        $("#newsletterInput-subscribeMessage").text('{% "Subscribed! Welcome to our list." %}').show();
                     }
                 }).error(function(data) {
-                    $("#newsletterInput-subscribeMessage").text('{% trans "Sorry, there was an error." %}').show();
+                    $("#newsletterInput-subscribeMessage").text('{% "Sorry, there was an error." %}').show();
                 })
             } else {
-                $("#newsletterInput-subscribeMessage").text('{% trans "Please enter a valid email address." %}').show();
+                $("#newsletterInput-subscribeMessage").text('{% "Please enter a valid email address." %}').show();
             }
         });
 
