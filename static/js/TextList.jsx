@@ -199,8 +199,10 @@ class TextList extends Component {
     var displayFilter      = filter.map(filter => filter.split("|")[0]);  // Remove filterSuffix for display
     var links              = this.getLinks();
 
-    var en = "No connections known" + (filter.length ? " for " + displayFilter.join(", ") + " here" : "") + ".";
-    var he = displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") + "ལ་འདིར་འབྲེལ་བ་གང་ཡང་ཤེས་རྟོགས་མེད།";
+    var enText = filter.length ? displayFilter.join(", "): ""
+    var en = Sefaria._('text.message.no_connection', {text: enText});
+    var heText = displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") == "Commentary" ? Sefaria._('text.commentary') : displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ")
+    var he =  Sefaria._('text.message.no_connection', {text: heText});
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length === 0 ? message :

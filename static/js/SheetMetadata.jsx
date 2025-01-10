@@ -377,12 +377,12 @@ class SheetMetadata extends Component {
                     </div> : null }
                     <div className="sheetMeta">
                       <div className="int-en">
-                        {Sefaria._("common.created")}  {Sefaria.util.naturalTime(timestampCreated, "en")} {Sefaria._("sheet.created_time.ago")} · {sheet.views} {Sefaria._("profile.tab.sheet.tag.views")} · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} {Sefaria._("common.saves")} {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>)}
+                        {Sefaria._("common.created")}  {Sefaria.util.naturalTime(timestampCreated, "en")} {Sefaria._("sheet.created_time.ago")} · {Sefaria._("common.views_count", {count: sheet.views})} · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} {Sefaria._("common.saves")} {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>)}
 
                       </div>
                       <div className="int-he">
                           <span> {Sefaria._("common.created")} {Sefaria.util.naturalTime(timestampCreated, "he")} {Sefaria._("sheet.created_time.ago")}  · </span>
-                          <span>{sheet.views} · {Sefaria._("profile.tab.sheet.tag.views")}</span>
+                          <span>{Sefaria._("common.views_count", {count: Sefaria.hebrew.tibetanNumeral(sheet.views)})}</span>
                           <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } {Sefaria._("common.saves")} </span> {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>)}                      </div>
                     </div>
 

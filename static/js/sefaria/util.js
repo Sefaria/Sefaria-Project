@@ -98,7 +98,7 @@ class Util {
             const yearString = getTibetanNumberAsString(year);
             const monthString = getTibetanNumberAsString(month);
             const dateString = getTibetanNumberAsString(date);
-            return `སྤྱི་ལོ ${yearString} ཟླ་བ ${monthString} ཚེས ${dateString}`
+            return `<span>སྤྱི་ལོ <sub>${yearString}</sub> ཟླ་ <sub>${monthString}</sub> ཚེས་ <sub>${dateString}</sub></span>`
         }
 
         function getTibetanNumberAsString(num) {

@@ -19,8 +19,10 @@ function right(string, numChars) {
 
 var tibetanNumeral = function(num) {
     if (num < 10) {
+        
         let tibNum = tibetanNumberFromEngNumber(num.toString());
-        return '༠' + tibNum;
+        num == 0 ? tibNum : '༠' + tibNum;
+        return num;
 
     }else {
         let tibetanTextArray = num
