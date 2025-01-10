@@ -21,8 +21,8 @@ def set_topic_datasource():
     tds_json = {
         "slug": SOURCE_SLUG,
         "displayName": {
-            "en": "Curation of the Sefaria Learning Team",
-            "he": "איסוף ועריכה של צוות החינוך בספריא"
+            "en": "Pecha Learning Team",
+            "he": "པེ་ཆ་སྦྱོང་ཚོགས་"
         }
     }
     tds = TopicDataSource().load({"slug": SOURCE_SLUG})

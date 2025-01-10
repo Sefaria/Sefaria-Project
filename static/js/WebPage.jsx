@@ -46,7 +46,7 @@ const WebPage = ({authors, isHebrew, favicon, url, domain, title, description, a
         <InterfaceText>text.versions.source</InterfaceText>: {articleSource.title}{articleSource.related_parts ? ` ${articleSource.related_parts}`: ''}
       </div> : null}
       <div className="citing">
-        <InterfaceText>Citing</InterfaceText>: {Sefaria._r(anchorRef)}
+        <InterfaceText placeholder={{text: Sefaria._r(anchorRef)}}>text.webpage.citing</InterfaceText>
       </div>
     </div>
   </div>);

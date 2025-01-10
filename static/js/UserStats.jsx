@@ -9,7 +9,8 @@ import {
     SimpleInterfaceBlock,
     TextBlockLink,
     NBox,
-    LoadingRing
+    LoadingRing,
+    InterfaceText
 } from './Misc';
 
 
@@ -92,16 +93,14 @@ const SiteDataBlock = ({site_data}) => (
     <div>
         <div className="chartRow centered">
             <div className="systemText statHeader">
-                <span className={`${Sefaria.languageClassFont()}`}>
-                    Looks like we haven’t seen you in a while!<br/>
-                    Discover what other people are doing on Sefaria...
-                </span>
+                <InterfaceText>profile.user_state.message.not_seen_you</InterfaceText>
+                <InterfaceText>profile.user_state.message.discover_what_other_user</InterfaceText>
             </div>
         </div>
 
         <div>
             <h2>
-                <span className={`${Sefaria.languageClassFont()}`}>What People are Reading</span>
+                <InterfaceText>profile.user_state.what_people_reading</InterfaceText>
             </h2>
             {/* <div className="chartRow centered">
                 <CategoriesDonut title="Average Sefaria User" heTitle="משתמש ממוצע בספריא" cats={site_data.categoriesRead}/>
@@ -109,7 +108,7 @@ const SiteDataBlock = ({site_data}) => (
         </div>
         <div>
             <h2>
-                <span className={`${Sefaria.languageClassFont()}`}>Top Categories</span>
+                <InterfaceText>profile.user_state.top_category</InterfaceText>
             </h2>
             <div className="chartRow">
                 <CategoryBars user_cats={site_data.categoriesRead} site_cats={site_data.categoriesRead}/>
@@ -131,8 +130,7 @@ const UserDataBlock = ({user_data, site_data}) => (
 const OverallActivityBlock = ({user_data}) => (
         <div>
             <h2>
-                <span className={`${Sefaria.languageClassFont()}`}>Your Overall Activity</span>
-                <span className={`${Sefaria.languageClassFont()}`}>གང་བྱས་ཚང་མ།</span>
+               <InterfaceText>"profile.user_state.overall_activities</InterfaceText>
             </h2>
             <div className="statcardRow">
                 <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name={Sefaria._("profile.text_read")} />
@@ -202,8 +200,7 @@ const MostPopularSheetsBlock = ({user_data}) => (
     user_data.popularSheets.length ?
         <div className="yourPopularSheetsBlock">
             <h2>
-                <span className="int-en">Your Most Popular Sheets</span>
-                <span className="int-he">דפי מקורות פופולריים שלך</span>
+                <InterfaceText>profile.user_state.most_popular_sheet</InterfaceText>
             </h2>
             {user_data.popularSheets.map((sheet, i) => <div key={i}>
                     <SimpleLinkedBlock classes="chapterText lowercase sheetLink" en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>

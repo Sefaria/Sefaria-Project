@@ -92,7 +92,7 @@ class UserProfile extends Component {
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <InterfaceText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</InterfaceText>
+          <InterfaceText>profile.tab.collection.description</InterfaceText>
         </div>
         <a href="/collections/new" className="resourcesLink sans-serif">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
@@ -615,12 +615,12 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
         }
         <div className="follow">
           <a href="" onClick={openFollowers}>
-            <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
+            <InterfaceText>{Sefaria.interfaceLang == 'hebrew' ? Sefaria.hebrew.tibetanNumeral(p.followees.length): p.followees.length }</InterfaceText>&nbsp;
             <InterfaceText>common.followers</InterfaceText>
-          </a>
+          </a> 
           <span className="follow-bull">&bull;</span>
           <a href="" onClick={openFollowing}>
-            <InterfaceText>{String(p.followees.length)}</InterfaceText>&nbsp;
+            <InterfaceText>{Sefaria.interfaceLang == 'hebrew' ? Sefaria.hebrew.tibetanNumeral(p.followees.length): p.followees.length }</InterfaceText>&nbsp;
             <InterfaceText>common.following</InterfaceText>
           </a>
         </div>

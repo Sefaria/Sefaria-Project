@@ -919,13 +919,13 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
     <ToolsButton en={copyText.en} he={copyText.he} secondaryEn={copyText.secondaryEn} secondaryHe={copyText.secondaryHe} image="copy.png" greyColor={!!copyText.secondaryEn || copyText.greyColor} onClick={() => copySheet()} />
     {/* <ToolsButton en="Add to Collection" he="תרגומים" image="add-to-collection.svg" onClick={() => toggleCollectionsModal()} /> */}
     <ToolsButton en={Sefaria._("sheet.print")}  he={Sefaria._("sheet.print")}  image="print.svg" onClick={() => window.print()} />
-    <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
-    {
+    {/* <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} /> */}
+    {/* {
       Sefaria._uses_new_editor && Sefaria._uid && (
             sheet.owner === Sefaria._uid ||
             sheet.options.collaboration === "anyone-can-edit"
         ) ?
-      <ToolsButton en={Sefaria._("connection_panel.tool_button.divine_name")} he={Sefaria._("connection_panel.tool_button.divine_name")} image="tools-translate.svg" onClick={() => setConnectionsMode("DivineName")} /> : null}
+      <ToolsButton en={Sefaria._("connection_panel.tool_button.divine_name")} he={Sefaria._("connection_panel.tool_button.divine_name")} image="tools-translate.svg" onClick={() => setConnectionsMode("DivineName")} /> : null} */}
 
   </div>
   )
@@ -1433,8 +1433,13 @@ class ShareBox extends Component {
     const classes = classNames({ textList: 1, fullPanel: this.props.fullPanel });
     return (
       <div>
+        
         <ConnectionsPanelSection title="text.share_link">
+          <div className="link_title">
+            <InterfaceText>text.link_share</InterfaceText>
+          </div>
           <div className="shareInputBox">
+
             <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
             <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>

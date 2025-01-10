@@ -14,7 +14,7 @@ function VersionTitleAndSelector({currentRef, version, currObjectVersions, openV
     }
     const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, currentRef, version, currObjectVersions, 'select-button',
         null, openVersionInReader);
-    const buttonText = isSelected ? Sefaria._('Currently Selected') : Sefaria._('select');
+    const buttonText = isSelected ? Sefaria._('text.translation.current_selected') : Sefaria._('common.select');
     return (
         <div className='version-with-preview-title-line'>
             <div className='open-details'>
