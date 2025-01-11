@@ -785,7 +785,6 @@ class JaggedArrayNode extends Component {
             en: specialHeaderText,
             he: Sefaria.hebrewTranslation(specialHeaderText)
           }}/> */}
-          <InterfaceText placeholder={{segmentNumber : ""}}>text.content.section.sabche</InterfaceText>
         </div>
     ) : null;
     return (
@@ -843,6 +842,7 @@ class JaggedArrayNodeSection extends Component {
           <div className="tocSection" key={i}>
             <div className="sectionName">
               <InterfaceText placeholder={{segmentNumber:sectionString}}>text.content.section.sabche</InterfaceText>
+            
               {/* <ContentText text={{ en:"Sapche" + " " + enSection , he: "Sapche" + " " +heSection}}/> */}
             </div>
             <JaggedArrayNodeSection

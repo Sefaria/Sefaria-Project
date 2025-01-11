@@ -601,8 +601,8 @@ SearchResultList.propTypes = {
 
 const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, currentTab}) => (
   <div className="type-buttons sans-serif">
-    <SearchTab label={"Sources"} total={textTotal} onClick={clickTextButton} active={currentTab === "text"} />
-    <SearchTab label={"Sheets"} total={sheetTotal} onClick={clickSheetButton} active={currentTab === "sheet"} />
+    <SearchTab label={Sefaria._("sheet.sources")} total={textTotal} onClick={clickTextButton} active={currentTab === "text"} />
+    <SearchTab label={Sefaria._("common.sheets")} total={sheetTotal} onClick={clickSheetButton} active={currentTab === "sheet"} />
   </div>
 );
 

@@ -104,7 +104,7 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
           recentSheets.map(s => <FeaturedSheet sheet={s} showDate={true} toggleSignUpModal={toggleSignUpModal} />);
   const joinTheConversation = (
     <div className="navBlock">
-      <Modules type={"JoinTheConversation"} props={{wide:multiPanel}} />
+      <Modules type={"JoinTheConversation"} props={{wide:multiPanel, title: 'side_nav.community.join_conversation'}} />
     </div>
   );
   if (recentSheets) {

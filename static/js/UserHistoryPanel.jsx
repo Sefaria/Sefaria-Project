@@ -29,7 +29,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     <span className="sans-serif">
       <a href="/texts/saved" className={"navTitleTab" + (menuOpen === "saved" ? " current" : "")}>
         <img src="/static/icons/bookmark.svg" />
-        <InterfaceText>common.save</InterfaceText>
+        <InterfaceText>common.saved</InterfaceText>
       </a>
       <a href="/texts/history" className={"navTitleTab" + (menuOpen === "history" ? " current" : "")}>
         <img src="/static/icons/clock.svg" />
@@ -82,7 +82,7 @@ UserHistoryPanel.propTypes = {
 
 const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
   const [items, setItems] = useState(store.loaded ? store.items : null);
-
+  console.log("store : ", items)
   // Store changes when switching tabs, reset items
   useEffect(() => {
     setItems(store.loaded ? store.items : null);

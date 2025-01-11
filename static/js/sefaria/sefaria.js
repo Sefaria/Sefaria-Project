@@ -2989,7 +2989,7 @@ _media: {},
   hebrewTerm: function(name) {
     
     // Returns a string translating `name` into Hebrew.
-    const categories = ["quoting_commentary","text.commentary","modern_commentary","sheets","notes","community"];
+    const categories = ["quoting_commentary","Commentary","modern_commentary","sheets","notes","community", ];
     if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
     } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'en')]) {
@@ -2997,7 +2997,7 @@ _media: {},
     } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]) {
         return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]["he"];
     } else if (categories.includes(name)) {
-        return  Sefaria._(name);
+        return name == 'Commentary'?  Sefaria._("text.commentary") : Sefaria._(name);
     } else if (Sefaria.index(name)) {
         return Sefaria.index(name).heTitle;
     } else {
