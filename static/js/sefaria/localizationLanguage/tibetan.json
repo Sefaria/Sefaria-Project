@@ -595,7 +595,7 @@
     "note_save_error_try_again":"སྟབས་མ་ལེགས་པ་ཞིག་ལ་མཆན་འདི་ཉར་ཚགས་བྱེད་པར་གནད་དོན་ཞིག་འདུག ཤོག་ངོས་འདི་བསྐྱར་ལེན་ནམ་ཡང་ན་བསྐྱར་དུ་ཚོད་ལྟ་ཞིག་བྱེད་རོགས།",
     "note_confirm_delete_request":"ཁྱེད་ཀྱིས་མཆན་འདི་བསུབ་རྒྱུ་གཏན་འཁེལ་ཡིན་ནམ།",
     "something_went_wrong":"ནོར་འཁྲུལ་ག་གེ་མོ་ཞིག་བྱུང་སོང་། (that's all I know)",
-    "text.reader_option_menu.font_size_lable": "Aa",
+    "text.reader_option_menu.font_size_lable": "ཀ",
     "decrease_font_size": "ཡིག་གཟུགས་ཆུང་དུ་ཐོངས།",
     "increase_font_size":"ཡིག་གཟུགས་ཆེ་རུ་ཐོངས།",
     "this_comment":"མཆན་འདི།",

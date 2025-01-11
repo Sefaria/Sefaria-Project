@@ -5885,6 +5885,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     font-style: normal;
 }
 
+.rightButtons {
+    display: flex;
+    white-space: nowrap;
+    flex-direction: row;
+    text-align: left;
+}
 .interface-english .leftButtons,
 .interface-hebrew .rightButtons {
     display: flex;
