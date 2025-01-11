@@ -1,0 +1,890 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-09 01:14-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: sefaria/forms.py:32
+msgid "placeholder_email_delete_message"
+msgstr ""
+
+#: sefaria/forms.py:33 sefaria/forms.py:37
+msgid "placeholder_admin_password"
+msgstr ""
+
+#: sefaria/forms.py:36
+msgid "placeholder_sheet_id_delete_message"
+msgstr ""
+
+#: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
+msgid "placeholder_email_address"
+msgstr ""
+
+#: sefaria/forms.py:42 sefaria/forms.py:50
+msgid "placeholder_password"
+msgstr ""
+
+#: sefaria/forms.py:48
+msgid "placeholder_first_name"
+msgstr ""
+
+#: sefaria/forms.py:49
+msgid "placeholder_last_name"
+msgstr ""
+
+#: sefaria/forms.py:55 templates/registration/custom_dropdown.html:5
+#: templates/registration/register.html:27
+msgid "forms.placeholder_select_option"
+msgstr ""
+
+#: sefaria/forms.py:56 templates/registration/custom_dropdown.html:10
+#: templates/registration/register.html:32
+msgid "placeholder_monastic"
+msgstr ""
+
+#: sefaria/forms.py:57 templates/registration/custom_dropdown.html:11
+#: templates/registration/register.html:33
+msgid "placeholder_teacher"
+msgstr ""
+
+#: sefaria/forms.py:58 templates/registration/custom_dropdown.html:12
+#: templates/registration/register.html:34
+msgid "placeholder_student"
+msgstr ""
+
+#: sefaria/forms.py:59 templates/registration/custom_dropdown.html:13
+#: templates/registration/register.html:35
+msgid "placeholder_Educated_Dr_Prof"
+msgstr ""
+
+#: sefaria/forms.py:60 templates/registration/custom_dropdown.html:14
+#: templates/registration/register.html:36
+msgid "placeholder_regular_user"
+msgstr ""
+
+#: sefaria/forms.py:95 sefaria/model/user_profile.py:283
+msgid "user_already_exists_message"
+msgstr ""
+
+#: sefaria/forms.py:143
+msgid "mobile_app_key_error_message"
+msgstr ""
+
+#: sefaria/forms.py:157
+msgid "form.placeholder_new_password"
+msgstr ""
+
+#: sefaria/forms.py:158
+msgid "placeholder_new_password"
+msgstr ""
+
+#: sefaria/forms.py:163
+msgid "form_placeholder_new_pw_confirmation"
+msgstr ""
+
+#: sefaria/forms.py:165
+msgid "placeholder_repeat_new_password"
+msgstr ""
+
+#: sefaria/model/collection.py:93
+msgid "set_collection_name_message"
+msgstr ""
+
+#: sefaria/model/collection.py:117
+msgid "collection_name_taken_message"
+msgstr ""
+
+#: sefaria/model/collection.py:119
+msgid "collection_image_required_message"
+msgstr ""
+
+#: sefaria/model/collection.py:121
+msgid "collection_sheet_count_message"
+msgstr ""
+
+#: sefaria/model/collection.py:284
+msgid "collection_invitation_email_subject"
+msgstr ""
+
+#: sefaria/model/user_profile.py:288
+msgid "email_invalid_message"
+msgstr ""
+
+#: sourcesheets/views.py:403
+msgid "creating_new_collection_message"
+msgstr ""
+
+#: sourcesheets/views.py:566
+msgid "error_message_when_trying_to_remove_the_last_owner_of_a_collection"
+msgstr ""
+
+#: sourcesheets/views.py:1161
+msgid "error_message_when_trying_to_upload_media_without_logging_in"
+msgstr ""
+
+#: templates/404.html:4
+msgid "page_not_found_title"
+msgstr ""
+
+#: templates/404.html:11
+msgid "page_not_found_message"
+msgstr ""
+
+#: templates/404.html:15
+msgid "link_not_working_message"
+msgstr ""
+
+#: templates/500.html:4 templates/500.html:10
+msgid "server_related_error_message"
+msgstr ""
+
+#: templates/500.html:15
+msgid "send_message_to_developer_request"
+msgstr ""
+
+#: templates/500.html:15
+msgid "developer_team"
+msgstr ""
+
+#: templates/account_settings.html:12
+msgid "account_setting"
+msgstr ""
+
+#: templates/account_settings.html:16
+msgid "common.account_setting.cancel_setting_button"
+msgstr ""
+
+#: templates/account_settings.html:19
+msgid "common.account_setting.save_request"
+msgstr ""
+
+#: templates/account_settings.html:25
+msgid "account_setting.rate_of_notification"
+msgstr ""
+
+#: templates/account_settings.html:29
+msgid "account_setting.to_send_notification_daily"
+msgstr ""
+
+#: templates/account_settings.html:32
+msgid "account_setting.to_send_notification_weekly"
+msgstr ""
+
+#: templates/account_settings.html:35
+msgid "account_setting.never_send_notification"
+msgstr ""
+
+#: templates/account_settings.html:42
+msgid "account_setting.language_selection_title"
+msgstr ""
+
+#: templates/account_settings.html:46
+msgid "account_setting.language_english_option"
+msgstr ""
+
+#: templates/account_settings.html:49
+msgid "common.account_setting.language_tibetan_option"
+msgstr ""
+
+#: templates/account_settings.html:56
+msgid "account_setting.user's_preferred_translation_language"
+msgstr ""
+
+#: templates/account_settings.html:69
+msgid "account_setting.user's_reading_history"
+msgstr ""
+
+#: templates/account_settings.html:73
+msgid "account_setting.reading_history_enable"
+msgstr ""
+
+#: templates/account_settings.html:76
+msgid "account_setting.reading_history_disable"
+msgstr ""
+
+#: templates/account_settings.html:84
+msgid "account_setting.login_account_email_message"
+msgstr ""
+
+#: templates/account_settings.html:89
+msgid "account_setting.change_email_message"
+msgstr ""
+
+#: templates/account_settings.html:94
+msgid "account_setting.new_email"
+msgstr ""
+
+#: templates/account_settings.html:95
+msgid "account_setting.confirm_new_email"
+msgstr ""
+
+#: templates/account_settings.html:96
+msgid "common.account_setting.password"
+msgstr ""
+
+#: templates/account_settings.html:98
+msgid "account_setting.update_email"
+msgstr ""
+
+#: templates/account_settings.html:105
+msgid "account_setting.google_account_message"
+msgstr ""
+
+#: templates/account_settings.html:110
+msgid "account_setting.google_account_disconnect_with_pecha_acc"
+msgstr ""
+
+#: templates/account_settings.html:117
+msgid "account_setting.google_account_disconnected_message"
+msgstr ""
+
+#: templates/account_settings.html:120
+msgid "account_setting.export_sheet_message"
+msgstr ""
+
+#: templates/account_settings.html:125
+msgid "common.account_setting.save_setting_button"
+msgstr ""
+
+#: templates/account_settings.html:128
+msgid "common.account_setting.cancel_request"
+msgstr ""
+
+#: templates/activity.html:7 templates/activity.html:36
+msgid "activity.revision_history"
+msgstr ""
+
+#: templates/activity.html:9
+msgid "activity.pecha_activity_profile"
+msgstr ""
+
+#: templates/activity.html:11
+msgid "activity.pecha_activity"
+msgstr ""
+
+#: templates/activity.html:17
+msgid "activity.revision_history_message"
+msgstr ""
+
+#: templates/activity.html:19
+msgid "activity.activity_message"
+msgstr ""
+
+#: templates/activity.html:21
+msgid "activity.view_log_message"
+msgstr ""
+
+#: templates/activity.html:43
+msgid "activity.public_activity"
+msgstr ""
+
+#: templates/activity.html:47
+msgid "activity.recent_activity"
+msgstr ""
+
+#: templates/activity.html:52
+msgid "activity.all_activity_drop_down"
+msgstr ""
+
+#: templates/activity.html:53
+msgid "activity.translation_option"
+msgstr ""
+
+#: templates/activity.html:54
+msgid "activity.source_sheets_option"
+msgstr ""
+
+#: templates/activity.html:55
+msgid "activity.new_texts_option"
+msgstr ""
+
+#: templates/activity.html:56
+msgid "activity.edit_list_option"
+msgstr ""
+
+#: templates/activity.html:57
+msgid "activity.notes_option"
+msgstr ""
+
+#: templates/activity.html:58
+msgid "activity.reviews_option"
+msgstr ""
+
+#: templates/activity.html:59
+msgid "activity.text_info_option_option"
+msgstr ""
+
+#: templates/activity.html:60
+msgid "activity.reversions_option"
+msgstr ""
+
+#: templates/activity.html:61
+msgid "activity.flagged_option"
+msgstr ""
+
+#: templates/delete-sheet.html:4
+msgid "admin.admin_delete_sheet"
+msgstr ""
+
+#: templates/delete-sheet.html:4
+msgid "admin.common.delete-sheet.pecha"
+msgstr ""
+
+#: templates/delete-sheet.html:11
+msgid "admin.delete_sheet"
+msgstr ""
+
+#: templates/delete-sheet.html:13
+msgid "admin.caution_messsage"
+msgstr ""
+
+#: templates/delete-sheet.html:14
+msgid "admin.can't_undone_message"
+msgstr ""
+
+#: templates/delete-sheet.html:19
+msgid "admin.delete_sheet_button"
+msgstr ""
+
+#: templates/edit_collection.html:9
+msgid "edit_collection.title"
+msgstr ""
+
+#: templates/edit_collection.html:20
+msgid "edit_collection.loading"
+msgstr ""
+
+#: templates/edit_profile.html:5
+msgid "edit_profile.edit_your_profile"
+msgstr ""
+
+#: templates/edit_profile.html:13
+msgid "edit_profile.header"
+msgstr ""
+
+#: templates/edit_profile.html:17
+msgid "common.edit_profile.cancel_button"
+msgstr ""
+
+#: templates/edit_profile.html:20
+msgid "common.edit_profile.save_button"
+msgstr ""
+
+#: templates/edit_profile.html:27
+msgid "edit_profile.first_name"
+msgstr ""
+
+#: templates/edit_profile.html:33
+msgid "edit_profile.last_name"
+msgstr ""
+
+#: templates/edit_profile.html:39
+msgid "edit_profile.title"
+msgstr ""
+
+#: templates/edit_profile.html:45
+msgid "edit_profile.organization"
+msgstr ""
+
+#: templates/edit_profile.html:51
+msgid "edit_profile.website"
+msgstr ""
+
+#: templates/edit_profile.html:57
+msgid "edit_profile.location"
+msgstr ""
+
+#: templates/edit_profile.html:63
+msgid "edit_profile.education_info"
+msgstr ""
+
+#: templates/edit_profile.html:63
+msgid "edit_profile.education_info_detail"
+msgstr ""
+
+#: templates/edit_profile.html:72
+msgid "edit_profile.line_add"
+msgstr ""
+
+#: templates/edit_profile.html:77
+msgid "edit_profile.about_me"
+msgstr ""
+
+#: templates/edit_profile.html:87
+msgid "edit_profile.public_sheets"
+msgstr ""
+
+#: templates/edit_profile.html:91
+msgid "edit_profile.drag_sheet_message"
+msgstr ""
+
+#: templates/edit_profile.html:95
+msgid "edit_profile.pinned_sheets"
+msgstr ""
+
+#: templates/edit_profile.html:105
+msgid "edit_profile.all_sheets"
+msgstr ""
+
+#: templates/edit_profile.html:119
+msgid "edit_profile.contact"
+msgstr ""
+
+#: templates/edit_profile.html:124
+msgid "edit_profile.email_privacy"
+msgstr ""
+
+#: templates/edit_profile.html:130
+msgid "edit_profile.profile_url"
+msgstr ""
+
+#: templates/edit_profile.html:136
+msgid "edit_profile.twitter_handle"
+msgstr ""
+
+#: templates/edit_profile.html:142
+msgid "edit_profile.linkedIn"
+msgstr ""
+
+#: templates/edit_profile.html:148
+msgid "edit_profile.facebook"
+msgstr ""
+
+#: templates/edit_profile.html:154
+msgid "edit_profile.youtube_channel"
+msgstr ""
+
+#: templates/edit_term.html:39
+msgid "admin.terms_editor"
+msgstr ""
+
+#: templates/edit_term.html:40
+msgid "admin.loading"
+msgstr ""
+
+#: templates/edit_text.html:64
+msgid "edit_text.add_new_text"
+msgstr ""
+
+#: templates/edit_text.html:65
+msgid "edit_text.text_commentator_name"
+msgstr ""
+
+#: templates/edit_text.html:68
+msgid "edit_text.add_button"
+msgstr ""
+
+#: templates/edit_text.html:69 templates/edit_text.html:97
+#: templates/edit_text.html:150
+msgid "common.edit_text.cancel_button"
+msgstr ""
+
+#: templates/edit_text.html:86
+msgid "edit_text.your_review"
+msgstr ""
+
+#: templates/edit_text.html:88
+msgid "edit_text.review_question"
+msgstr ""
+
+#: templates/edit_text.html:96 templates/edit_text.html:149
+msgid "common.edit_text.save_button"
+msgstr ""
+
+#: templates/edit_text.html:101
+msgid "edit_text_add_review_request"
+msgstr ""
+
+#: templates/edit_text.html:101
+msgid "edit_text_login"
+msgstr ""
+
+#: templates/edit_text.html:101
+msgid "edit_text_or"
+msgstr ""
+
+#: templates/edit_text.html:101
+msgid "edit_text_register"
+msgstr ""
+
+#: templates/edit_text.html:104
+msgid "edit_text.close_button"
+msgstr ""
+
+#: templates/edit_text.html:109
+msgid "edit_text.review_message"
+msgstr ""
+
+#: templates/edit_text.html:110
+msgid "edit_text_primary_text_historical_translation"
+msgstr ""
+
+#: templates/edit_text.html:110
+msgid "edit_text_primary_text_historical_trans_detail"
+msgstr ""
+
+#: templates/edit_text.html:112
+msgid "edit_text.compare_printed_edition"
+msgstr ""
+
+#: templates/edit_text.html:113
+msgid "edit_text.all_looks_good"
+msgstr ""
+
+#: templates/edit_text.html:114
+msgid "edit_text.no_issue_message"
+msgstr ""
+
+#: templates/edit_text.html:119
+msgid "edit_text.accurate"
+msgstr ""
+
+#: templates/edit_text.html:120
+msgid "edit_text.translation_review"
+msgstr ""
+
+#: templates/edit_text.html:121
+msgid "edit_text.misunderstand_term_X"
+msgstr ""
+
+#: templates/edit_text.html:125
+msgid "edit_text.score_review"
+msgstr ""
+
+#: templates/edit_text.html:127
+msgid "edit_text.compared_to_source_message"
+msgstr ""
+
+#: templates/edit_text.html:130
+msgid "edit_text.compared_to_source_no_problem_message"
+msgstr ""
+
+#: templates/edit_text.html:133
+msgid "edit_text.proble_free_need_review"
+msgstr ""
+
+#: templates/edit_text.html:136
+msgid "edit_text.found_small_issues_need_to_address"
+msgstr ""
+
+#: templates/edit_text.html:139
+msgid "edit_text.found_serious_issues_need_address"
+msgstr ""
+
+#: templates/edit_text.html:142
+msgid "edit_text_ok_button"
+msgstr ""
+
+#: templates/edit_text.html:163
+msgid "edit_text.original_translation"
+msgstr ""
+
+#: templates/edit_text.html:167
+msgid "edit_text.copied_text"
+msgstr ""
+
+#: templates/edit_text.html:178
+msgid "edit_text.version_title"
+msgstr ""
+
+#: templates/edit_text.html:179
+msgid "edit_text.copied_from"
+msgstr ""
+
+#: templates/elements/loading.html:12
+msgid "common.loading"
+msgstr ""
+
+#: templates/elements/login_prompt.html:6
+msgid "common.templates.elements.login_prompts.sign_up"
+msgstr ""
+
+#: templates/elements/login_prompt.html:8
+msgid "common.login_prompt_cancel"
+msgstr ""
+
+#: templates/email/notification.html:8
+msgid "notification.sent_u_msg"
+msgstr ""
+
+#: templates/email/notification.html:13
+msgid "notification.reply_to"
+msgstr ""
+
+#: templates/email/notification.html:17
+msgid "notification.source_sheet_like"
+msgstr ""
+
+#: templates/email/notification.html:20
+msgid "notification.published_new_source_sheet"
+msgstr ""
+
+#: templates/email/notification.html:23
+msgid "templates.elements.notification.a_user_is_now_following_you"
+msgstr ""
+
+#: templates/email/notification.html:26
+msgid "templates.elements.notification.added_you_to_the_collection"
+msgstr ""
+
+#: templates/email/notification.html:29
+msgid "notification.added_note_to_a_link"
+msgstr ""
+
+#: templates/email/notification.html:31
+msgid "notification.discussion_u_follow"
+msgstr ""
+
+#: templates/email/notification.html:35
+msgid "notification.notice_shouldnt_exit_message"
+msgstr ""
+
+#: templates/people.html:5
+msgid "people.authors_on_pecha"
+msgstr ""
+
+#: templates/people.html:7
+msgid "people.biography_and_informations_about_authors"
+msgstr ""
+
+#: templates/people.html:23
+msgid "people.authors"
+msgstr ""
+
+#: templates/people.html:28
+msgid "people.choejuk_author"
+msgstr ""
+
+#: templates/profile.html:4
+msgid "profile_title_pecha"
+msgstr ""
+
+#: templates/profile.html:6
+msgid "user_profile_page_desc"
+msgstr ""
+
+#: templates/profile.html:52
+msgid "common.profile.facebook"
+msgstr ""
+
+#: templates/profile.html:58
+msgid "common.profile.twitter"
+msgstr ""
+
+#: templates/profile.html:64
+msgid "common.profile.linkedlin"
+msgstr ""
+
+#: templates/profile.html:73
+msgid "profile.message"
+msgstr ""
+
+#: templates/profile.html:77
+msgid "common.profile.follow"
+msgstr ""
+
+#: templates/profile.html:78
+msgid "common.profile.following"
+msgstr ""
+
+#: templates/profile.html:79
+msgid "common.profile.unfollow"
+msgstr ""
+
+#: templates/profile.html:84
+msgid "profile.edit_profile"
+msgstr ""
+
+#: templates/profile.html:99
+msgid "profile.source_sheet"
+msgstr ""
+
+#: templates/profile.html:119
+msgid "profile_notes"
+msgstr ""
+
+#: templates/profile.html:126
+msgid "profile.activity"
+msgstr ""
+
+#: templates/profile.html:128
+msgid "profile.more_activity"
+msgstr ""
+
+#: templates/registration/delete_user_account.html:4
+msgid "delete_user_account.adming_delete_a_user"
+msgstr ""
+
+#: templates/registration/delete_user_account.html:4
+msgid "common.delete_user_account.pecha"
+msgstr ""
+
+#: templates/registration/delete_user_account.html:11
+#: templates/registration/delete_user_account.html:17
+msgid "registration.delete_user_account.delete_user"
+msgstr ""
+
+#: templates/registration/delete_user_account.html:20
+msgid "delete_user_acc.long_message"
+msgstr ""
+
+#: templates/registration/logged_out.html:4
+msgid "registration.logged_out.logged_out_pecha"
+msgstr ""
+
+#: templates/registration/logged_out.html:13
+msgid "registration.logged_out.log_back_in"
+msgstr ""
+
+#: templates/registration/login.html:4 templates/registration/login.html:29
+msgid "registration.login.login_in_to_pecha"
+msgstr ""
+
+#: templates/registration/login.html:6
+msgid "registration.login.login_in_to_pecha_description"
+msgstr ""
+
+#: templates/registration/login.html:14
+msgid "registration.login.you_are_already_logged_in_as"
+msgstr ""
+
+#: templates/registration/login.html:17
+msgid "common.registration.login.log_out"
+msgstr ""
+
+#: templates/registration/login.html:33
+msgid "registration.login.username_and_password_didn't_match_message"
+msgstr ""
+
+#: templates/registration/login.html:50
+msgid "common.registration.login.log_in"
+msgstr ""
+
+#: templates/registration/login.html:53
+msgid "common.registration.login.forgot_your_password"
+msgstr ""
+
+#: templates/registration/login.html:58
+msgid "common.registration.login.create_a_new_account"
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:3
+msgid "registration.password_reset_complete.password_reset"
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:3
+#: templates/registration/password_reset_confirm.html:4
+#: templates/registration/password_reset_done.html:3
+#: templates/registration/password_reset_form.html:4
+msgid "common.name_pecha"
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:10
+msgid "registration.password_reset_complete.your_new_password_has_been_saved"
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:13
+msgid "registration.password_reset_complete.back_to_login"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:4
+#: templates/registration/password_reset_confirm.html:11
+msgid "registration.password_reset_confirm.choose_a_new_password"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:17
+msgid "registration.password_reset_confirm.save_password"
+msgstr ""
+
+#: templates/registration/password_reset_done.html:3
+msgid "registration.password_reset_done.password_reset_link_sent"
+msgstr ""
+
+#: templates/registration/password_reset_done.html:10
+msgid "registration.password_reset_done.messages"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:4
+msgid "registration.password_reset_email.password_reset_email_message"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:6
+#: templates/registration/password_reset_email.txt:5
+msgid "registration.password_reset_email.password_reset_email_to_click_on_link"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:12
+#: templates/registration/password_reset_email.txt:9
+msgid "registration.password_reset_email.ignore_this_email_if_haven't_send_it"
+msgstr ""
+
+#: templates/registration/password_reset_email.txt:3
+msgid "password.reset_request_made_msg"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:4
+#: templates/registration/password_reset_form.html:13
+msgid "registration.password_reset_form.forgot_your_password"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:6
+msgid "registration.password_reset_form.request_a_link_to_change_your_password"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:19
+msgid "registration.password_reset_form.send_reset_link"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:23
+msgid "registration.password_reset_form.back_to_link"
+msgstr ""
+
+#: templates/registration/password_reset_subject.txt:2
+msgid "Pecha.org_Password_Reset"
+msgstr ""
+
+#: templates/registration/register.html:4
+msgid "registration.register.create_an_account"
+msgstr ""
+
+#: templates/registration/register.html:4
+msgid "common.registration.register.pecha"
+msgstr ""
+
+#: templates/registration/register.html:6
+msgid "registration.register.create_an_account_description"
+msgstr ""
+
+#: templates/registration/register.html:13
+msgid "Sign_Up_Title"
+msgstr "hi hi"
+
+#: templates/registration/register.html:46
+msgid "Sign_Up_Button"
+msgstr ""
+
+#: templates/registration/register.html:50
+msgid "registration.register.login_if_already_have_an_account"
+msgstr ""
+
+#: templates/static/he/about.html:4
+msgid "about.about_pecha"
+msgstr ""
+
+#: templates/static/he/about.html:6
+msgid "about.about_pecha_description"
+msgstr ""
