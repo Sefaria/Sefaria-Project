@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-09 01:34-0400\n"
+"POT-Creation-Date: 2025-01-09 01:17-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: sefaria/forms.py:32
 msgid "placeholder_email_delete_message"
@@ -32,49 +32,49 @@ msgstr ""
 
 #: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
 msgid "placeholder_email_address"
-msgstr "གློག་འཕྲིན།"
+msgstr ""
 
 #: sefaria/forms.py:42 sefaria/forms.py:50
 msgid "placeholder_password"
-msgstr "གསང་ཚིག"
+msgstr ""
 
 #: sefaria/forms.py:48
 msgid "placeholder_first_name"
-msgstr "མིང་སྔ་མ།"
+msgstr ""
 
 #: sefaria/forms.py:49
 msgid "placeholder_last_name"
-msgstr "མིང་ཕྱི་མ།"
+msgstr ""
 
 #: sefaria/forms.py:55 templates/registration/custom_dropdown.html:5
 #: templates/registration/register.html:27
 msgid "forms.placeholder_select_option"
-msgstr "ཡིག་ཆ་ཞིག་འདེམས།"
+msgstr ""
 
 #: sefaria/forms.py:56 templates/registration/custom_dropdown.html:10
 #: templates/registration/register.html:32
 msgid "placeholder_monastic"
-msgstr "གྲྭ་བཙུན།"
+msgstr ""
 
 #: sefaria/forms.py:57 templates/registration/custom_dropdown.html:11
 #: templates/registration/register.html:33
 msgid "placeholder_teacher"
-msgstr "དགེ་རྒན།"
+msgstr ""
 
 #: sefaria/forms.py:58 templates/registration/custom_dropdown.html:12
 #: templates/registration/register.html:34
 msgid "placeholder_student"
-msgstr "སློབ་མ།"
+msgstr ""
 
 #: sefaria/forms.py:59 templates/registration/custom_dropdown.html:13
 #: templates/registration/register.html:35
 msgid "placeholder_Educated_Dr_Prof"
-msgstr "བསླབ་པ་མཐར་སོན།"
+msgstr ""
 
 #: sefaria/forms.py:60 templates/registration/custom_dropdown.html:14
 #: templates/registration/register.html:36
 msgid "placeholder_regular_user"
-msgstr "དཀྱུས་མ།"
+msgstr ""
 
 #: sefaria/forms.py:95 sefaria/model/user_profile.py:283
 msgid "user_already_exists_message"
@@ -90,7 +90,7 @@ msgstr ""
 
 #: sefaria/forms.py:158
 msgid "placeholder_new_password"
-msgstr "གསང་ཚིག་གསར་པ།"
+msgstr ""
 
 #: sefaria/forms.py:163
 msgid "form_placeholder_new_pw_confirmation"
@@ -98,7 +98,7 @@ msgstr ""
 
 #: sefaria/forms.py:165
 msgid "placeholder_repeat_new_password"
-msgstr "ཡང་བསྐྱར།"
+msgstr ""
 
 #: sefaria/model/collection.py:93
 msgid "set_collection_name_message"
@@ -110,13 +110,11 @@ msgstr ""
 
 #: sefaria/model/collection.py:119
 msgid "collection_image_required_message"
-msgstr "ཚང་མས་མཐོང་སར་སྤེལ་ན་འདྲ་པར་དགོས། ༑འདྲ་པར་འཚམ་ཤོས་ནི་གྲུ་བཞི་ཡིན།༑"
+msgstr ""
 
 #: sefaria/model/collection.py:121
 msgid "collection_sheet_count_message"
 msgstr ""
-"ཁྱེད་ཀྱི་ཆེད་བསྒྲིགས་འདི་ཚང་མས་མཐོང་སར་སྤེལ་བ་ལ། "
-"སྔོན་དུ་ཟིན་བྲིས་གསུམ་ཆེད་བསྒྲིགས་སུ་བསྣན་ཟིན་པ་ཞིག་དགོས།"
 
 #: sefaria/model/collection.py:284
 msgid "collection_invitation_email_subject"
@@ -164,7 +162,7 @@ msgstr ""
 
 #: templates/account_settings.html:12
 msgid "account_setting"
-msgstr "ཁ་བྱང་སྒྲིག་འགོད།"
+msgstr ""
 
 #: templates/account_settings.html:16
 msgid "common.account_setting.cancel_setting_button"
@@ -176,23 +174,23 @@ msgstr ""
 
 #: templates/account_settings.html:25
 msgid "account_setting.rate_of_notification"
-msgstr "དཔེ་ཆ་དྲ་བས་གསལ་བརྡ་གཏོང་ཐེངས།"
+msgstr ""
 
 #: templates/account_settings.html:29
 msgid "account_setting.to_send_notification_daily"
-msgstr "ཉིན་རེ་བཞིན།"
+msgstr ""
 
 #: templates/account_settings.html:32
 msgid "account_setting.to_send_notification_weekly"
-msgstr "བདུན་རེ་བཞིན།"
+msgstr ""
 
 #: templates/account_settings.html:35
 msgid "account_setting.never_send_notification"
-msgstr "གསལ་བརྡ་མི་དགོས།"
+msgstr ""
 
 #: templates/account_settings.html:42
 msgid "account_setting.language_selection_title"
-msgstr "དྲ་བའི་སྐད་ཡིག།"
+msgstr ""
 
 #: templates/account_settings.html:46
 msgid "account_setting.language_english_option"
@@ -204,27 +202,27 @@ msgstr ""
 
 #: templates/account_settings.html:56
 msgid "account_setting.user's_preferred_translation_language"
-msgstr "འགྱུར་མའི་སྐད་ཡིག་གཙོ་བོ།"
+msgstr ""
 
 #: templates/account_settings.html:69
 msgid "account_setting.user's_reading_history"
-msgstr "བཀླགས་ཟིན་པའི་ཐོ།"
+msgstr ""
 
 #: templates/account_settings.html:73
 msgid "account_setting.reading_history_enable"
-msgstr "ཉར།"
+msgstr ""
 
 #: templates/account_settings.html:76
 msgid "account_setting.reading_history_disable"
-msgstr "མི་ཉར།"
+msgstr ""
 
 #: templates/account_settings.html:84
 msgid "account_setting.login_account_email_message"
-msgstr "གློག་འཕྲིན་ཁ་བྱང་། ༑ནང་འཛུལ་བྱེད་པར་བེད་སྤྱོད་གཏོང་དགོས།༑"
+msgstr ""
 
 #: templates/account_settings.html:89
 msgid "account_setting.change_email_message"
-msgstr "གློག་འཕྲིན་གཞན་པ་བེད་སྤྱོད་བྱེད།"
+msgstr ""
 
 #: templates/account_settings.html:94
 msgid "account_setting.new_email"
@@ -252,12 +250,11 @@ msgstr ""
 
 #: templates/account_settings.html:117
 msgid "account_setting.google_account_disconnected_message"
-msgstr "ཁ་བྱང་འདི་དགོས་དགུ་ལ་སྦྲེལ་མི་འདུག།"
+msgstr ""
 
 #: templates/account_settings.html:120
 msgid "account_setting.export_sheet_message"
 msgstr ""
-"ཟིན་བྲིས་ཞིག་དགོས་དགུ་ལ་འདྲེན་སྐབས་ཁ་བྱང་གཞན་པ་གང་རུང་བརྒྱུད་ནས་དགོས་དགུ་ལ་སྦྲེལ་ཆོག།"
 
 #: templates/account_settings.html:125
 msgid "common.account_setting.save_setting_button"
@@ -349,7 +346,7 @@ msgstr ""
 
 #: templates/delete-sheet.html:11
 msgid "admin.delete_sheet"
-msgstr "ཟིན་བྲིས་འདི་བསུབ།"
+msgstr ""
 
 #: templates/delete-sheet.html:13
 msgid "admin.caution_messsage"
@@ -361,7 +358,7 @@ msgstr ""
 
 #: templates/delete-sheet.html:19
 msgid "admin.delete_sheet_button"
-msgstr "ཟིན་བྲིས་འདི་བསུབ།"
+msgstr ""
 
 #: templates/edit_collection.html:9
 msgid "edit_collection.title"
@@ -369,7 +366,7 @@ msgstr ""
 
 #: templates/edit_collection.html:20
 msgid "edit_collection.loading"
-msgstr "ལེན་བཞིན་པ་་་"
+msgstr ""
 
 #: templates/edit_profile.html:5
 msgid "edit_profile.edit_your_profile"
@@ -377,7 +374,7 @@ msgstr ""
 
 #: templates/edit_profile.html:13
 msgid "edit_profile.header"
-msgstr "ངོ་སྤྲོད་རྩོམ་སྒྲིག་བྱེད་ས།"
+msgstr ""
 
 #: templates/edit_profile.html:17
 msgid "common.edit_profile.cancel_button"
@@ -389,31 +386,31 @@ msgstr ""
 
 #: templates/edit_profile.html:27
 msgid "edit_profile.first_name"
-msgstr "མིང་སྔ་མ།"
+msgstr ""
 
 #: templates/edit_profile.html:33
 msgid "edit_profile.last_name"
-msgstr "མིང་ཕྱི་མ།"
+msgstr ""
 
 #: templates/edit_profile.html:39
 msgid "edit_profile.title"
-msgstr "མཚན་གནས།"
+msgstr ""
 
 #: templates/edit_profile.html:45
 msgid "edit_profile.organization"
-msgstr "ཁོངས་གཏོགས།"
+msgstr ""
 
 #: templates/edit_profile.html:51
 msgid "edit_profile.website"
-msgstr "དྲ་ཚིགས།"
+msgstr ""
 
 #: templates/edit_profile.html:57
 msgid "edit_profile.location"
-msgstr "གནས་ཡུལ།"
+msgstr ""
 
 #: templates/edit_profile.html:63
 msgid "edit_profile.education_info"
-msgstr "ཤེས་ཚད།"
+msgstr ""
 
 #: templates/edit_profile.html:63
 msgid "edit_profile.education_info_detail"
@@ -421,11 +418,11 @@ msgstr ""
 
 #: templates/edit_profile.html:72
 msgid "edit_profile.line_add"
-msgstr "ཚན་པ་གསར་སྣོན།"
+msgstr ""
 
 #: templates/edit_profile.html:77
 msgid "edit_profile.about_me"
-msgstr "ངའི་ངོ་སྤྲོད།"
+msgstr ""
 
 #: templates/edit_profile.html:87
 msgid "edit_profile.public_sheets"
@@ -437,11 +434,11 @@ msgstr ""
 
 #: templates/edit_profile.html:95
 msgid "edit_profile.pinned_sheets"
-msgstr "ཟུར་བཀོད་ཟིན་བྲིས།"
+msgstr ""
 
 #: templates/edit_profile.html:105
 msgid "edit_profile.all_sheets"
-msgstr "ཟིན་བྲིས་ཡོངས་རྫོགས།"
+msgstr ""
 
 #: templates/edit_profile.html:119
 msgid "edit_profile.contact"
@@ -449,11 +446,11 @@ msgstr ""
 
 #: templates/edit_profile.html:124
 msgid "edit_profile.email_privacy"
-msgstr "གློག་འཕྲིན། ཚང་མས་མཐོང་ཐུབ།"
+msgstr ""
 
 #: templates/edit_profile.html:130
 msgid "edit_profile.profile_url"
-msgstr "ངོ་སྤྲོད་ཀྱི་དྲ་ཐག"
+msgstr ""
 
 #: templates/edit_profile.html:136
 msgid "edit_profile.twitter_handle"
@@ -461,15 +458,15 @@ msgstr ""
 
 #: templates/edit_profile.html:142
 msgid "edit_profile.linkedIn"
-msgstr "LinkedIn ཁ་བྱང་།"
+msgstr ""
 
 #: templates/edit_profile.html:148
 msgid "edit_profile.facebook"
-msgstr "ངོ་དེབ་ཁ་བྱང་།"
+msgstr ""
 
 #: templates/edit_profile.html:154
 msgid "edit_profile.youtube_channel"
-msgstr "YouTube བརྙན་ལམ།"
+msgstr ""
 
 #: templates/edit_term.html:39
 msgid "admin.terms_editor"
@@ -477,7 +474,7 @@ msgstr ""
 
 #: templates/edit_term.html:40
 msgid "admin.loading"
-msgstr "ལེན་བཞིན་པ་་་"
+msgstr ""
 
 #: templates/edit_text.html:64
 msgid "edit_text.add_new_text"
@@ -489,7 +486,7 @@ msgstr ""
 
 #: templates/edit_text.html:68
 msgid "edit_text.add_button"
-msgstr "སྣོན་པ་བཏབ་ཆོག།"
+msgstr ""
 
 #: templates/edit_text.html:69 templates/edit_text.html:97
 #: templates/edit_text.html:150
@@ -594,11 +591,11 @@ msgstr ""
 
 #: templates/edit_text.html:163
 msgid "edit_text.original_translation"
-msgstr "རང་གི་འགྱུར་མ།"
+msgstr ""
 
 #: templates/edit_text.html:167
 msgid "edit_text.copied_text"
-msgstr "གཞན་གྱི་འགྱུར་མ།"
+msgstr ""
 
 #: templates/edit_text.html:178
 msgid "edit_text.version_title"
@@ -610,15 +607,15 @@ msgstr ""
 
 #: templates/elements/loading.html:12
 msgid "common.loading"
-msgstr "ལེན་བཞིན་པ་་་"
+msgstr ""
 
 #: templates/elements/login_prompt.html:6
 msgid "common.templates.elements.login_prompts.sign_up"
-msgstr "ཐོ་འགོད།"
+msgstr ""
 
 #: templates/elements/login_prompt.html:8
 msgid "common.login_prompt_cancel"
-msgstr "ཕྱིར་འཐེན།"
+msgstr ""
 
 #: templates/email/notification.html:8
 msgid "notification.sent_u_msg"
@@ -682,7 +679,7 @@ msgstr ""
 
 #: templates/profile.html:52
 msgid "common.profile.facebook"
-msgstr "ངོ་དེབ་ཁ་བྱང་།"
+msgstr ""
 
 #: templates/profile.html:58
 msgid "common.profile.twitter"
@@ -690,7 +687,7 @@ msgstr ""
 
 #: templates/profile.html:64
 msgid "common.profile.linkedlin"
-msgstr "LinkedIn ཁ་བྱང་།"
+msgstr ""
 
 #: templates/profile.html:73
 msgid "profile.message"
@@ -710,7 +707,7 @@ msgstr ""
 
 #: templates/profile.html:84
 msgid "profile.edit_profile"
-msgstr "ངོ་སྤྲོད་རྩོམ་སྒྲིག"
+msgstr ""
 
 #: templates/profile.html:99
 msgid "profile.source_sheet"
@@ -734,7 +731,7 @@ msgstr ""
 
 #: templates/registration/delete_user_account.html:4
 msgid "common.delete_user_account.pecha"
-msgstr "དཔེ་ཀློག་ཁང་།"
+msgstr ""
 
 #: templates/registration/delete_user_account.html:11
 #: templates/registration/delete_user_account.html:17
@@ -755,7 +752,7 @@ msgstr ""
 
 #: templates/registration/login.html:4 templates/registration/login.html:29
 msgid "registration.login.login_in_to_pecha"
-msgstr "ནང་དུ་འཛུལ་ས།"
+msgstr ""
 
 #: templates/registration/login.html:6
 msgid "registration.login.login_in_to_pecha_description"
@@ -763,27 +760,27 @@ msgstr ""
 
 #: templates/registration/login.html:14
 msgid "registration.login.you_are_already_logged_in_as"
-msgstr "དཔེ་ཆ་དྲ་བ་ལ་སྤྱོད་བཞིན་པའི་གློག་འཕྲིན།"
+msgstr ""
 
 #: templates/registration/login.html:17
 msgid "common.registration.login.log_out"
-msgstr "གློག་འཕྲིན་གཞན་ཞིག་བཀོལ་འདོད་ན། ཕྱིར་འཐོན་གྱིས།"
+msgstr ""
 
 #: templates/registration/login.html:33
 msgid "registration.login.username_and_password_didn't_match_message"
-msgstr "ཁྱེད་ཀྱི་གློག་འཕྲིན་དང་གསང་ཚིག་རྣམས་མཐུན་གྱི་མི་འདུག་ སླར་ཡང་འཇུག་རོགས།"
+msgstr ""
 
 #: templates/registration/login.html:50
 msgid "common.registration.login.log_in"
-msgstr "ནང་འཛུལ་གྱིས།"
+msgstr ""
 
 #: templates/registration/login.html:53
 msgid "common.registration.login.forgot_your_password"
-msgstr "གསང་ཚིག་བརྗེད་སོང་ན། འདིར་སྣུན།"
+msgstr ""
 
 #: templates/registration/login.html:58
 msgid "common.registration.login.create_a_new_account"
-msgstr "ཁ་བྱང་གསར་པ་ཞིག་བཟོས།"
+msgstr ""
 
 #: templates/registration/password_reset_complete.html:3
 msgid "registration.password_reset_complete.password_reset"
@@ -794,7 +791,7 @@ msgstr ""
 #: templates/registration/password_reset_done.html:3
 #: templates/registration/password_reset_form.html:4
 msgid "common.name_pecha"
-msgstr "དཔེ་ཆ་"
+msgstr ""
 
 #: templates/registration/password_reset_complete.html:10
 msgid "registration.password_reset_complete.your_new_password_has_been_saved"
@@ -802,16 +799,16 @@ msgstr ""
 
 #: templates/registration/password_reset_complete.html:13
 msgid "registration.password_reset_complete.back_to_login"
-msgstr "ནང་འཛུལ་བྱེད་སར་ཕྱིར་ལོག།"
+msgstr ""
 
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_confirm.html:11
 msgid "registration.password_reset_confirm.choose_a_new_password"
-msgstr "གསང་ཚིག་བསྐྱར་སྒྲིག་བྱེད་ས།"
+msgstr ""
 
 #: templates/registration/password_reset_confirm.html:17
 msgid "registration.password_reset_confirm.save_password"
-msgstr "གསང་ཚིག་ཉར་ཚགས་གྱིས།"
+msgstr ""
 
 #: templates/registration/password_reset_done.html:3
 msgid "registration.password_reset_done.password_reset_link_sent"
@@ -827,15 +824,13 @@ msgstr ""
 
 #: templates/registration/password_reset_email.html:6
 #: templates/registration/password_reset_email.txt:5
-msgid ""
-"registration.password_reset_email.password_reset_email_to_click_on_link"
+msgid "registration.password_reset_email.password_reset_email_to_click_on_link"
 msgstr ""
 
 #: templates/registration/password_reset_email.html:12
 #: templates/registration/password_reset_email.txt:9
 msgid "registration.password_reset_email.ignore_this_email_if_haven't_send_it"
 msgstr ""
-"གལ་སྲིད་བསྐྱར་སྒྲིག་གི་རེ་ཞུ་འདི་ཕུལ་མཁན་ཁྱེད་མིན་ན། སྣང་མེད་བྱས་ན་འགྲིག།"
 
 #: templates/registration/password_reset_email.txt:3
 msgid "password.reset_request_made_msg"
@@ -844,20 +839,19 @@ msgstr ""
 #: templates/registration/password_reset_form.html:4
 #: templates/registration/password_reset_form.html:13
 msgid "registration.password_reset_form.forgot_your_password"
-msgstr "གསང་ཚིག་བསྐྱར་སྒྲིག་བྱེད་ས།"
+msgstr ""
 
 #: templates/registration/password_reset_form.html:6
-msgid ""
-"registration.password_reset_form.request_a_link_to_change_your_password"
+msgid "registration.password_reset_form.request_a_link_to_change_your_password"
 msgstr ""
 
 #: templates/registration/password_reset_form.html:19
 msgid "registration.password_reset_form.send_reset_link"
-msgstr "བསྐྱར་སྒྲིག་གི་དྲ་ཐག་སྐུར།"
+msgstr ""
 
 #: templates/registration/password_reset_form.html:23
 msgid "registration.password_reset_form.back_to_link"
-msgstr "ནང་འཛུལ་བྱེད་སར་ཕྱིར་ལོག།"
+msgstr ""
 
 #: templates/registration/password_reset_subject.txt:2
 msgid "Pecha.org_Password_Reset"
@@ -869,7 +863,7 @@ msgstr ""
 
 #: templates/registration/register.html:4
 msgid "common.registration.register.pecha"
-msgstr "དཔེ་ཀློག་ཁང་།"
+msgstr ""
 
 #: templates/registration/register.html:6
 msgid "registration.register.create_an_account_description"
@@ -877,15 +871,15 @@ msgstr ""
 
 #: templates/registration/register.html:13
 msgid "Sign_Up_Title"
-msgstr "ཐོ་འགོད་བྱེད་ས།"
+msgstr ""
 
 #: templates/registration/register.html:46
 msgid "Sign_Up_Button"
-msgstr "ཐོ་འགོད་གྱིས།"
+msgstr ""
 
 #: templates/registration/register.html:50
 msgid "registration.register.login_if_already_have_an_account"
-msgstr "ཁ་བྱང་བཟོས་ཡོད་ན། ནང་འཛུལ་བྱེད་ས་འདིར་སྣུན།"
+msgstr ""
 
 #: templates/static/he/about.html:4
 msgid "about.about_pecha"
