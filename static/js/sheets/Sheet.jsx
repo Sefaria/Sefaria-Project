@@ -9,8 +9,8 @@ import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
 } from '../Misc'; 
-import {SheetOptions} from "./SheetOptions";
-import {SheetContent} from "./SheetContent";
+import { SheetOptions} from "./SheetOptions";
+import { SheetContent } from "./SheetContent";
 
 class Sheet extends Component {
   constructor(props) {
@@ -93,7 +93,6 @@ class Sheet extends Component {
                   sheetOptions = {sheetOptions}
                   sources={sheet.sources}
                   title={sheet.title}
-                  onRefClick={this.props.onRefClick}
                   handleClick={this.handleClick}
                   sheetSourceClick={this.props.onSegmentClick}
                   highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet

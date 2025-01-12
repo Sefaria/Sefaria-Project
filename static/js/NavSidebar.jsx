@@ -344,7 +344,7 @@ const AboutTextCategory = ({cats}) => {
 
   return (
     <SidebarModule>
-      <ModuleTitle><InterfaceText text={{en: enTitle, he: heTitle}} /></ModuleTitle>
+      <SidebarModuleTitle><InterfaceText text={{en: enTitle, he: heTitle}} /></SidebarModuleTitle>
       <InterfaceText markdown={{en: tocObject.enDesc, he: tocObject.heDesc}} />
     </SidebarModule>
   );

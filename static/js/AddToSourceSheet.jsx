@@ -117,71 +117,103 @@ class AddToSourceSheetBox extends Component {
   normalize(text){
     return(text.replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, ''));
   }
+
+  async postToSheet(source) {
+    if (this.checkContentForImages(source.refs)) {
+      const url     = "/api/sheets/" + this.state.selectedSheet.id + "/add";
+      let postData = {source: JSON.stringify(source)};
+      if (this.props.note) {
+        postData.note = this.props.note;
+      }
+      await $.post(url, postData, this.confirmAdd);
+    }
+  }
+
+  makeSourceForEden() {
+    if (this.props.srefs) { //we are saving a ref + ref's text, generally all fields should be present.
+      source.refs = this.props.srefs;
+      source.en = this.props.en;
+      source.he = this.props.he;
+    } else { // an outside free text is being passed in. theoretically supports any interface that passes this in. In practice only legacy Gardens code.
+      if (this.props.en && this.props.he) {
+        source.outsideBiText = {he: this.props.he, en: this.props.en};
+      } else {
+        source.outsideText = this.props.en || this.props.he;
+      }
+    }
+  }
+
+  async handleSelectedWords(source, lan) {
+    // If something is highlighted and main panel language is not bilingual:
+    // Use passed in language to determine which version this highlight covers.
+    let selectedWords = this.props.selectedWords; //if there was highlighted single panel
+    const language = this.props.contentLanguage;
+    if (!selectedWords || language === "bilingual") {
+      return;
+    }
+    let segments = await sheetsUtils.getSegmentObjs(source.refs);
+    selectedWords = this.normalize(selectedWords);
+    segments = segments.map(segment => ({
+      ...segment,
+      [lan]: this.normalize(segment[lan])
+    }));
+    for (let iSegment = 0; iSegment < segments.length; iSegment++) {
+        const segment = segments[iSegment];
+        if (iSegment === 0){
+          let criticalIndex = this.longestSuffixPrefixIndex(segment[lan], selectedWords);
+          const ellipse = criticalIndex === 0 ? "" : "...";
+          segment[lan] = ellipse + segment[lan].slice(criticalIndex);
+        }
+        else if (iSegment == segments.length-1){
+          let criticalIndex = this.longestPrefixSuffixIndex(segment[lan], selectedWords);
+          const ellipse = criticalIndex === segment[lan].length-1 ? "" : "...";
+          const chunk = segment[lan].slice(0, criticalIndex)
+          segment[lan] = chunk + ellipse;
+        }
+    }
+    source[lan] = sheetsUtils.segmentsToSourceText(segments, lan);
+  }
+
+  async handleSameDirectionVersions() {
+    for (const lang of ['he', 'en']) {
+      const version = this.props.currObjectVersions[lang];
+      const source = {
+        refs: this.props.srefs,
+        [`version-${version.language}`]: version.versionTitle
+      }
+      await this.postToSheet(source);
+    }
+  }
+
   async addToSourceSheet() {
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     }
-    if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
-      const url     = "/api/sheets/" + this.state.selectedSheet.id + "/add";
-      const language = this.props.contentLanguage;
-      let source = {};
-      if(this.props.en || this.props.he){ // legacy code to support a call to this component in Gardens.
-        if(this.props.srefs){ //we are saving a ref + ref's text, generally all fields should be present.
-          source.refs = this.props.srefs;
-          source.en = this.props.en;
-          source.he = this.props.he;
-        }else{ // an outside free text is being passed in. theoretically supports any interface that passes this in. In practice only legacy Gardens code.
-          if (this.props.en && this.props.he) {
-            source.outsideBiText = {he: this.props.he, en: this.props.en};
-          } else {
-            source.outsideText = this.props.en || this.props.he;
-          }
-        }
-      } else if (this.props.srefs) { //regular use - this is currently the case when the component is loaded in the sidepanel or in the modal component via profiles and notes pages
-        source.refs = this.props.srefs;
+    if (!this.state.selectedSheet || !this.state.selectedSheet.id) {
+      return;
+    }
 
+    const source = {};
+    let en, he;
+    if (this.props.en || this.props.he) { // legacy code to support a call to this component in Gardens.
+      this.makeSourceForEden();
+    } else if (this.props.srefs) { //regular use - this is currently the case when the component is loaded in the sidepanel or in the modal component via profiles and notes pages
+      source.refs = this.props.srefs;
 
-
-        const { en, he } = this.props.currVersions ? this.props.currVersions : {"en": null, "he": null}; //the text we are adding may be non-default version
-        if (he) { source["version-he"] = he; }
-        if (en) { source["version-en"] = en; }
-
-        // If something is highlighted and main panel language is not bilingual:
-        // Use passed in language to determine which version this highlight covers.
-        let selectedWords = this.props.selectedWords; //if there was highlighted single panel
-        if (selectedWords && language != "bilingual") {
-          let lan = language.slice(0,2);
-          let segments = await sheetsUtils.getSegmentObjs(source.refs);
-          selectedWords = this.normalize(selectedWords);
-          segments = segments.map(segment => ({
-            ...segment,
-            [lan]: this.normalize(segment[lan])
-          }));
-          for (let iSegment = 0; iSegment < segments.length; iSegment++) {
-              const segment = segments[iSegment];
-              if (iSegment == 0){
-                let criticalIndex = this.longestSuffixPrefixIndex(segment[lan], selectedWords);
-                const ellipse = criticalIndex == 0 ? "" : "...";
-                segment[lan] = ellipse + segment[lan].slice(criticalIndex);
-              }
-              else if (iSegment == segments.length-1){
-                let criticalIndex = this.longestPrefixSuffixIndex(segment[lan], selectedWords);
-                const ellipse = criticalIndex == segment[lan].length-1 ? "" : "...";
-                const chunk = segment[lan].slice(0, criticalIndex)
-                segment[lan] = chunk + ellipse;
-              }
-          }
-
-          source[lan] = sheetsUtils.segmentsToSourceText(segments, lan);
-        }
+      ({ en, he } = this.props.currObjectVersions || {"en": null, "he": null}); //the text we are adding may be non-default version
+      if (en?.direction && en?.direction === he?.direction) {
+        await this.handleSameDirectionVersions();
+        return;
+      } else if (en?.direction === 'rtl' || he?.direction === 'ltr') {
+        ([en, he] = [he, en]);
       }
-      if (this.checkContentForImages(source.refs)) {
-        let postData = {source: JSON.stringify(source)};
-        if (this.props.note) {
-          postData.note = this.props.note;
-        }
-        $.post(url, postData, this.confirmAdd);
-      }
+
+      if (he) { source["version-he"] = he.versionTitle; }
+      if (en) { source["version-en"] = en.versionTitle; }
+    }
+    const contentLang = he?.language || en?.language; // this matters only if one language is shown.
+    await this.handleSelectedWords(source, contentLang);
+    await this.postToSheet(source);
   }
   checkContentForImages(refs) {
     // validate texts corresponding to refs have no images before posting them to sheet

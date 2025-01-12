@@ -1,4 +1,4 @@
-import {InterfaceText, EnglishText, HebrewText, LanguageToggleButton, CloseButton } from "./Misc";
+import {InterfaceText, EnglishText, HebrewText, LanguageToggleButton, CloseButton, DisplaySettingsButton} from "./Misc";
 import {RecentFilterSet} from "./ConnectionFilters";
 import React  from 'react';
 import ReactDOM  from 'react-dom';
@@ -7,6 +7,9 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
+import {ReaderPanelContext} from "./context";
+import {DropdownMenu} from "./common/DropdownMenu";
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 
 
 class ConnectionsPanelHeader extends Component {
@@ -113,13 +116,15 @@ class ConnectionsPanelHeader extends Component {
     if (this.props.multiPanel) {
       const toggleLang = Sefaria.util.getUrlVars()["lang2"] === "en" ? "he" : "en";
       const langUrl = Sefaria.util.replaceUrlParam("lang2", toggleLang);
+      const showOneLanguage = !Sefaria._siteSettings.TORAH_SPECIFIC || Sefaria.interfaceLang === "hebrew";
+      const toggleButton =  (showOneLanguage) ? null : (this.props.connectionsMode === 'TextList') ?
+          <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu> :
+            <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />;
       const closeUrl = Sefaria.util.removeUrlParam("with");
       return (<div className="connectionsPanelHeader">
                 {title}
                 <div className="rightButtons">
-                  {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-                    <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />
-                    : null }
+                  {toggleButton}
                   <CloseButton icon="circledX" onClick={this.props.closePanel} url={closeUrl} />
                 </div>
               </div>);
