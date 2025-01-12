@@ -3279,14 +3279,17 @@ def trending_topics_api(request):
     from sefaria.helper.topic import get_trending_topics
     n = int(request.GET.get("n"))
     pool_name = request.GET.get("pool", None)
+
     trending_slugs = get_trending_topics(n * n)
-    trending_topics = []
-    for slug in trending_slugs:
-        topic = Topic.init(slug)
-        if not topic:
-            continue
-        if not pool_name or pool_name in topic.pools:
-            trending_topics.append(topic.contents())
+    #Bulk loading of topics (for better performance) then sorting them:
+    loaded_topics = TopicSet({"slug": {"$in": trending_slugs}}).array()
+    trending_order_map = {slug: index for index, slug in enumerate(trending_slugs)}
+    sorted_loaded_topics = sorted(loaded_topics, key=lambda x: trending_order_map.get(x.slug, float('inf')))
+    trending_topics = [
+        topic.contents()
+        for topic in sorted_loaded_topics
+        if topic and (not pool_name or pool_name in topic.pools)
+    ]
     return jsonResponse(trending_topics[:n])
 
 
