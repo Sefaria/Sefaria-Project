@@ -26,10 +26,12 @@ import ExtendedNotes from './ExtendedNotes';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
-import {ContentLanguageContext} from './context';
+import {ReaderPanelContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
 
 import ReactTags from 'react-tag-autocomplete';
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
+import {DropdownMenu} from "./common/DropdownMenu";
 import Cookies from "js-cookie";
 
 
@@ -67,7 +69,7 @@ class BookPage extends Component {
   }
   getData() {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he});
+    return Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.currVersions.en?.versionTitle, heVersion: this.props.currVersions.he?.versionTitle});
   }
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed
@@ -89,7 +91,7 @@ class BookPage extends Component {
     let currObjectVersions = {en: null, he: null};
     for(let [lang,ver] of Object.entries(this.props.currVersions)){
       if(!!ver){
-        let fullVer = versions.find(version => version.versionTitle == ver && version.language == lang);
+        let fullVer = versions.find(version => version.versionTitle == ver.versionTitle && version.language == lang);
         currObjectVersions[lang] = fullVer ? fullVer : null;
       }
     }
@@ -131,17 +133,14 @@ class BookPage extends Component {
     currentVersion.merged = !!(currentVersion.sources);
     return currentVersion;
   }
-  openVersion(version, language) {
+  openVersion(version, language, versionLanguageFamily) {
     // Selects a version and closes this menu to show it.
     // Calling this functon wihtout parameters resets to default
-    this.props.selectVersion(version, language);
+    this.props.selectVersion(version, language, versionLanguageFamily);
     this.props.close();
   }
   isBookToc() {
     return (this.props.mode == "book toc")
-  }
-  isTextToc() {
-    return (this.props.mode == "text toc")
   }
   extendedNotesBack(event){
     return null;
@@ -168,7 +167,7 @@ class BookPage extends Component {
       catUrl  = "/texts/" + category;
     }
 
-    const readButton = !this.state.indexDetails || this.isTextToc() || this.props.compare ? null :
+    const readButton = !this.state.indexDetails || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ?
         <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
           <InterfaceText>Continue Reading</InterfaceText>
@@ -209,28 +208,21 @@ class BookPage extends Component {
     return (
       <div className={classes}>
         <CategoryColorLine category={category} />
-        {this.isTextToc() || this.props.compare ?
+        {this.props.compare ?
         <>
           <div className="readerControls">
             <div className="readerControlsInner">
               <div className="leftButtons">
-                {this.props.compare ?
                 <MenuButton onClick={this.props.onCompareBack} compare={true} />
-                : <CloseButton onClick={this.props.close} />}
               </div>
               <div className="readerTextToc readerTextTocHeader">
-                {this.props.compare ?
                 <div className="readerTextTocBox">
                   <InterfaceText>{title}</InterfaceText>
                 </div>
-                :
-                <div className="readerTextTocBox sans-serif">
-                  <InterfaceText>Table of Contents</InterfaceText>
-                </div>}
               </div>
               <div className="rightButtons">
                 {Sefaria.interfaceLang !== "hebrew" ?
-                  <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                  <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={(<DisplaySettingsButton/>)}><ReaderDisplayOptionsMenu/></DropdownMenu>
                   : <DisplaySettingsButton placeholder={true} />}
               </div>
             </div>

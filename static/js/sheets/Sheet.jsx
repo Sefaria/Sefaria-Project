@@ -89,7 +89,6 @@ class Sheet extends Component {
               <SheetContent
                   sources={sheet.sources}
                   title={sheet.title}
-                  onRefClick={this.props.onRefClick}
                   handleClick={this.handleClick}
                   sheetSourceClick={this.props.onSegmentClick}
                   highlightedNode={this.props.highlightedNode}
