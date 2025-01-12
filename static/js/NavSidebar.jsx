@@ -37,6 +37,7 @@ const SidebarModules = ({type, props}) => {
     "AboutTopics":            AboutTopics,
     "TrendingTopics":         TrendingTopics,
     "TopicLandingTrendingTopics": TopicLandingTrendingTopics,
+    "TopicLandingTopicCatList": TopicLandingTopicCatList,
     "RelatedTopics":          RelatedTopics,
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
@@ -632,6 +633,19 @@ const TopicLandingTrendingTopics = () => {
             )}
         </SidebarModule>
     </div>)
+};
+const TopicLandingTopicCatList = () => {
+    const topicCats = Sefaria.topicTocPage();
+    return(
+        <SidebarModule>
+            <SidebarModuleTitle>Browse Topics</SidebarModuleTitle>
+          {topicCats.map((topic, i) =>
+            <div className="navSidebarLink ref serif" key={i}>
+              <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
+            </div>
+          )}
+        </SidebarModule>
+    )
 };
 
 
