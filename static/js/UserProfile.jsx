@@ -666,4 +666,5 @@ ProfileSummary.propTypes = {
     toggleSignUpModal: PropTypes.func.isRequired,
 };
 
-export {UserProfile, UserBackground};
+export { UserProfile, UserBackground };
+
