@@ -36,6 +36,7 @@ const SidebarModules = ({type, props}) => {
     "DafYomi":                DafYomi,
     "AboutTopics":            AboutTopics,
     "TrendingTopics":         TrendingTopics,
+    "TopicLandingTrendingTopics": TopicLandingTrendingTopics,
     "RelatedTopics":          RelatedTopics,
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
@@ -607,6 +608,31 @@ const TrendingTopics = () => (
         </SidebarModule>
     </div>
 );
+const TopicLandingTrendingTopics = () => {
+    let [trendingTopics, setTrendingTopics] = useState(null);
+    useEffect(() => {
+        Sefaria.getTrendingTopics().then(result => setTrendingTopics(result));
+    }, []);
+
+    if (!trendingTopics) { return null; }
+    return(
+    <div data-anl-feature_name="Trending" data-anl-link_type="topic">
+        <SidebarModule>
+            <SidebarModuleTitle>Trending Topics</SidebarModuleTitle>
+            {trendingTopics.map((topic, i) =>
+                <div className="navSidebarLink ref serif" key={i}>
+                    <a
+                        href={"/topics/" + topic.slug}
+                        data-anl-event="navto_topic:click"
+                        data-anl-text={topic.primaryTitle.en}
+                    >
+                        <InterfaceText text={{en: topic.primaryTitle.en, he: topic.primaryTitle.he}}/>
+                    </a>
+                </div>
+            )}
+        </SidebarModule>
+    </div>)
+};
 
 
 const RelatedTopics = ({title}) => {
@@ -947,5 +973,5 @@ export {
   NavSidebar,
   SidebarModules,
   RecentlyViewed,
-  ParashahLink
+  ParashahLink,
 };

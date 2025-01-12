@@ -2799,6 +2799,14 @@ _media: {},
         store: this._seasonalTopic,
     });
   },
+  trendingTopics: {},
+  getTrendingTopics: function() {
+      return this._cachedApiPromise({
+        url: `${Sefaria.apiHost}/api/topics/trending?n=10&pool=general_${Sefaria.interfaceLang.slice(0, 2)}`,
+        key: (new Date()).toLocaleDateString(),
+        store: this.trendingTopics,
+    });
+  },
   _topicSlugsToTitles: null,
   slugsToTitles: function() {
     //initializes _topicSlugsToTitles for Topic Editor tool and adds necessary "Choose a Category" and "Main Menu" for

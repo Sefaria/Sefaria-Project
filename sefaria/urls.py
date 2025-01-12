@@ -269,6 +269,7 @@ urlpatterns += [
     url(r'^_api/topics/seasonal-topic/?$', reader_views.seasonal_topic_api),
     url(r'^api/topics/pools/(?P<pool_name>.+)$', reader_views.topic_pool_api),
     url(r'^_api/topics/featured-topic/?$', reader_views.featured_topic_api),
+    url(r'^api/topics/trending/?$', reader_views.trending_topics_api),
     url(r'^api/ref-topic-links/bulk$', reader_views.topic_ref_bulk_api),
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/v2/topics/(?P<topic>.+)$', reader_views.topics_api, {'v2': True}),

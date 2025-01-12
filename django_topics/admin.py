@@ -1,6 +1,8 @@
 from django.contrib import admin, messages
 from django_topics.models import Topic, TopicPool, FeaturedTopicEnglish, FeaturedTopicHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
 from django_topics.models.pool import PoolType
+from django.utils.html import format_html
+
 
 
 def create_add_to_pool_action(pool_name):
