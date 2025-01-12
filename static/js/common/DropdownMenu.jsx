@@ -2,7 +2,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText } from '../Misc';
 
-
 const DropdownMenuSeparator = () => {
 
   return (
@@ -33,11 +32,11 @@ const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
       {children}
     </a>
 
-      );
+  );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='Lorem ipsum dolor sit amet, lorem dolor.',
-                                  descHe='לורם איפסום דולור סיט אמט'}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='',
+                                  descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader" onClick={() => onClick()}>
@@ -93,7 +92,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             setIsOpen(false);
         }
     };
-
+  
     useEffect(() => {
         document.addEventListener('keydown', handleHideDropdown, true);
         document.addEventListener('click', handleClickOutside, true);
@@ -113,14 +112,14 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
           </div>
         </div>
     );
-}
+  }
 
   DropdownMenu.propTypes = {
     buttonComponent: PropTypes.element.isRequired,
   };
   export {
-    DropdownMenu,
-    DropdownMenuSeparator,
+    DropdownMenu, 
+    DropdownMenuSeparator, 
     DropdownMenuItemWithIcon,
     DropdownMenuItem
   };
