@@ -16,6 +16,16 @@ import {
 } from './Misc';
 
 
+const filterDataByType = (data, dataSource) => {
+  return data.filter(item => {
+    if (dataSource === "sheets") {
+      return item.is_sheet; 
+    } else {
+      return !item.is_sheet; // Keep only non-sheets (texts)
+    }
+  });
+}
+
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, dataSource}) => {
 
   const initialStore = menuOpen === "texts-saved" || menuOpen === "sheets-saved" ? Sefaria.saved : Sefaria.userHistory;
@@ -72,8 +82,11 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     </span>
   );
 
-  const sheetsDataStore = {'loaded': true, 'items': dataStore?.items?.filter(item => item.is_sheet)};
-  const libraryDataStore =  {'loaded': true, 'items': dataStore?.items?.filter(item => !item.is_sheet)};
+  const sheetsDataStore = {'loaded': true, 'items': filterDataByType(dataStore?.items, "sheets")};
+  const libraryDataStore =  {'loaded': true, 'items': filterDataByType(dataStore?.items, "library")};
+
+  console.log("sheetsDataStore", sheetsDataStore);
+  console.log("libraryDataStore", libraryDataStore);
  
   const sidebarModules = [
     {type: "Promo"},
@@ -101,7 +114,8 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
                     scrollableRef={contentRef}
                     menuOpen={menuOpen}
                     toggleSignUpModal={toggleSignUpModal}
-                    key={menuOpen}/>
+                    key={menuOpen}
+                    dataSource={dataSource}/>
             }
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
@@ -114,7 +128,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 UserHistoryPanel.propTypes = {
   toggleLanguage:      PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func.isRequired,
-  openNav:             PropTypes.func.isRequired,
+  openNav:             PropTypes.func,
   compare:             PropTypes.bool,
   menuOpen:            PropTypes.string.isRequired,
 };
@@ -162,20 +176,17 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
       }
   
       // Filter the data based on whether it's a sheet or not
-      const filteredData = data.filter(item => {
-        if (menuOpen === "sheets-saved" || menuOpen === "sheets-history") {
-          return item.is_sheet; // Keep only sheets
-        } else if (menuOpen === "texts-saved" || menuOpen === "texts-history") {
-          return !item.is_sheet; // Keep only non-sheets (texts)
-        }
-        return true; // Default: No filtering
-      });
+      const filteredData = filterDataByType(data, dataSource);
+      console.log("filteredData", filteredData);
   
       // Push the filtered data into the store
       store.items.push(...filteredData);
   
       // Update the state with the modified items array
       setItems(store.items.slice());
+
+      console.log("dataSource", dataSource);
+      console.log("items", store.items);
     },
     itemsPreLoaded: items ? items.length : 0,
   });
