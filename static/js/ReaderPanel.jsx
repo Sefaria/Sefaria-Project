@@ -3,19 +3,16 @@ import Component from 'react-class';
 import classNames  from 'classnames';
 import ReactDOM  from 'react-dom';
 import PropTypes  from 'prop-types';
-import extend  from 'extend';
 import Sefaria  from './sefaria/sefaria';
 import {ReaderPanelContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
 import TextsPage  from './TextsPage';
-import {SearchResultList} from "./SearchResultList";
 import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
 } from './ConnectionsPanel';
 import BookPage  from './BookPage';
-import SearchPage  from './SearchPage';
 import Sheet  from './sheets/Sheet';
 import SheetMetadata  from './SheetMetadata';
 import TopicPageAll  from './TopicPageAll';
@@ -24,7 +21,7 @@ import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
 import { NotificationsPanel } from './NotificationsPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
-import {UserProfile}  from './UserProfile';
+import { UserProfile }  from './UserProfile';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
@@ -39,7 +36,6 @@ import {
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
 import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
@@ -716,7 +712,6 @@ class ReaderPanel extends Component {
     }
     if (this.state.mode === "Sheet") {
       menu = <Sheet
-          adjustHighlightedAndVisible={this.adjustSheetHighlightedAndVisible}
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
           key={"sheet-"+this.state.sheetID}
@@ -725,7 +720,6 @@ class ReaderPanel extends Component {
           highlightedRefs={this.state.highlightedRefs}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           scrollToHighlighted={this.state.scrollToHighlighted}
-          onRefClick={this.handleCitationClick}
           onSegmentClick={this.handleSheetSegmentClick}
           onCitationClick={this.handleCitationClick}
           openSheet={this.openSheet}
@@ -733,10 +727,9 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
-          hasSidebar={this.props.hasSidebar}
-          historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
-          toggleSideUpModal={this.props.toggleSignUpModal}
           style={style}
+          historyObject={this.props.getHistoryObject(this.state, false)}
+          toggleSignUpModal={this.props.toggleSignUpModal}
         />;
     }
 

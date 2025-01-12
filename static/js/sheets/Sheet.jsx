@@ -9,7 +9,7 @@ import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
 } from '../Misc'; 
-import {SheetContent} from "./SheetContent";
+import { SheetContent } from "./SheetContent";
 
 class Sheet extends Component {
   constructor(props) {
@@ -131,8 +131,6 @@ class Sheet extends Component {
                 scrollToHighlighted={this.props.scrollToHighlighted}
                 editable={editable}
                 setSelectedWords={this.props.setSelectedWords}
-                sheetNumbered={sheet.options.numbered}
-                hideImages={!!sheet.hideImages}
                 sheetID={sheet.id}
                 authorStatement={sheet.ownerName}
                 authorID={sheet.owner}

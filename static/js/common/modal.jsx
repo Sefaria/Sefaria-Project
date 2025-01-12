@@ -1,4 +1,4 @@
-import {useEffect, useRef} from "react";
+import { useEffect, useRef } from "react";
 
 const Modal = ({ isOpen, children, close }) => {
   const dialogRef = useRef(null);
