@@ -9,8 +9,8 @@ import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
 } from '../Misc'; 
-import {SheetOptions} from "./SheetOptions";
-import {SheetContent} from "./SheetContent";
+import { SheetOptions} from "./SheetOptions";
+import { SheetContent } from "./SheetContent";
 
 class Sheet extends Component {
   constructor(props) {
@@ -119,29 +119,27 @@ class Sheet extends Component {
                   {sidebar}
                 </div>;
       content = (
-          <div className="sidebarLayout">
-            <SheetContent
-                sheetOptions={sheetOptions}
-                sources={sheet.sources}
-                title={sheet.title}
-                handleClick={this.handleClick}
-                sheetSourceClick={this.props.onSegmentClick}
-                highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
-                highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
-                highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-                scrollToHighlighted={this.props.scrollToHighlighted}
-                editable={editable}
-                setSelectedWords={this.props.setSelectedWords}
-                sheetNumbered={sheet.options.numbered}
-                hideImages={!!sheet.hideImages}
-                sheetID={sheet.id}
-                authorStatement={sheet.ownerName}
-                authorID={sheet.owner}
-                authorUrl={sheet.ownerProfileUrl}
-                authorImage={sheet.ownerImageUrl}
-                summary={sheet.summary}
-                toggleSignUpModal={this.props.toggleSignUpModal}
-                historyObject={this.props.historyObject}
+            <div className="sidebarLayout">
+              <SheetContent
+                  sheetOptions = {sheetOptions}
+                  sources={sheet.sources}
+                  title={sheet.title}
+                  handleClick={this.handleClick}
+                  sheetSourceClick={this.props.onSegmentClick}
+                  highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
+                  highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
+                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                  scrollToHighlighted={this.props.scrollToHighlighted}
+                  editable={editable}
+                  setSelectedWords={this.props.setSelectedWords}
+                  sheetID={sheet.id}
+                  authorStatement={sheet.ownerName}
+                  authorID={sheet.owner}
+                  authorUrl={sheet.ownerProfileUrl}
+                  authorImage={sheet.ownerImageUrl}
+                  summary={sheet.summary}
+                  toggleSignUpModal={this.props.toggleSignUpModal}
+                  historyObject={this.props.historyObject}
             />
             {sidebar}
           </div>

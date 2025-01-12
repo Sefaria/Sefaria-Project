@@ -4219,6 +4219,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item:hover{
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
   text-decoration: underline;
 }
+.singlePanel .searchContent h1 {
+  height: revert;
+}
 .searchContent h1 {
   height: 40px;
   font-size: 30px;
@@ -4962,9 +4965,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content: space-between;
   padding: 20px 0;
+}
+
+.readerNavMenu .sheet:not(.profile-page .sheet) {
   border-bottom: 1px solid #eee;
   color: black;
 }
+
+.sheetsProfileList .sheet {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 0;
+}
+
 .readerNavMenu .sheet:hover{
   text-decoration: none;
 }
@@ -5612,6 +5625,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .sheetContent .successMessage {
   color: var(--inline-link-blue);
+  margin-inline-start: 5px;
 }
 .sheetContent .modalMessage {
   --english-font: var(--english-sans-serif-font-family);
@@ -8039,7 +8053,9 @@ But not to use a display block directive that might break continuous mode for ot
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border: none;
 }
-
+.saveProfileButton{
+  background-color: var(--midrash-green);
+}
 .button.disabled{
   border: 1px solid var(--light-grey);
   background-color: var(--lightest-grey);
@@ -8473,9 +8489,19 @@ a .button:hover {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+
 }
 .profile-page .collectionListing {
   padding: 20px 0;
+  margin-top: 20px;
+  background-color: white;
+  border: 1000px solid white;
+  border-top: 4px solid white;
+  border-bottom: 120px solid white;
+  margin: -4px 0 -120px 0;
+  margin-inline-start: -1000px;
+  margin-inline-end: 0;
+  width: 100%;
 }
 .collectionListing .left-content {
   display: flex;
@@ -8856,6 +8882,9 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionListingDetails {
   color: #999;
   font-size: 14px;
+  font-family: Roboto !important;
+  font-weight: 400;
+  line-height: 18px;
 }
 .collectionListingMembership {
   text-transform: capitalize;
@@ -8965,7 +8994,10 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   flex: 1;
 }
 .sheet .sheetTitleText {
-  font-family: var(--english-serif-font-family);
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
 }
 .sheetListingPinButton {
   display: none;
@@ -10303,7 +10335,7 @@ span.purim-emoji img{
 	align-items: flex-end;
 	width: 25px;
 	height: 25px;
-	background-color: green;
+	background-color: var(--midrash-green);
 	border-radius: 50%;
 	color: white;
 	font-size: 30px;
@@ -11593,8 +11625,8 @@ cursor: pointer;
 .sheetList .sheet .sheetTags {
   color: #999;
 }
-.sheetList .sheet .sheetTags .bullet {
-  margin: 0 5px;
+.sheetsProfileList .sheet .sheetTags .bullet {
+  padding: 0 5px;
 }
 .sheetList .sheet a {
   color: inherit;
@@ -11730,8 +11762,12 @@ cursor: pointer;
   top: -2px;
 }
 .profile-page .collectionListingName {
-  font-size: 18px;
   margin-bottom: 10px;
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+
 }
 .profile-page .collectionListing + .collectionListing {
   border-top: 0;
@@ -11780,6 +11816,10 @@ cursor: pointer;
   margin-top: 20px;
   font-size: 18px;
   line-height: 1.4;
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16.41px;
 }
 @media (max-width: 540px) {
   .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
@@ -11802,7 +11842,9 @@ cursor: pointer;
     font-size: 43.5px !important;
   }
   .profile-page .profile-summary .profile-actions {
+    display: flex;
     flex-wrap: wrap;
+    flex-direction: row;
   }
 }
 .profile-page .profile-summary .follow {
@@ -11813,11 +11855,7 @@ cursor: pointer;
 .profile-page .profile-summary .follow .follow-bull {
   padding: 0 5px;
 }
-.profile-page .profile-summary .profile-actions {
-  display: flex;
-  flex-direction: row;
-  margin: 10px 0;
-}
+
 .profile-page .resourcesLink.faded {
   color: #666;
 }
@@ -14108,7 +14146,7 @@ span.ref-link-color-3 {color: blue}
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
-  line-height: 0px;
+  line-height: 0;
 }
 .sheetsInPanel .dropdownHeader {
   margin-bottom: revert;
@@ -14136,7 +14174,9 @@ span.ref-link-color-3 {color: blue}
   content: "";
   transform: scale(0.75);
 } */
-.sheetsInPanel .headerDropdownMenu a.dropdownLinks-button::after {
+
+/*.sheetsInPanel .headerDropdownMenu a.dropdownLinks-button::after {*/
+.sheetsInPanel .headerDropdownMenu a.headerDropdownMenu::after {
   display: inline-block;
   height: 10px;
   width: 12px;
@@ -14155,55 +14195,65 @@ span.ref-link-color-3 {color: blue}
   display:none;
   overflow:hidden;
 }
+
 .sheetsInPanel .dropdownItem:nth-child(n+2):nth-last-child(n+2) {
   padding: 5px 5px !important;
 }
+
 .sheetsInPanel .dropdownItem:first-child {
   padding-block-start: 10px !important;
   padding-block-end: 5px !important;
 }
+
 .sheetsInPanel .dropdownItem:last-child {
   padding-block-start: 5px !important;
   padding-block-end: 10px !important;
 }
+
 .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
   background: white;
   box-shadow: revert;
   border: 1px solid var(--light-grey);
 }
+
 .sheetsInPanel .dropdownSeparator {
   margin-block: 5px;
   border: 0.5px solid var(--light-grey);
 }
-
 
 .interface-english .header .headerDropdownMenu .dropdownLinks-menu {
   right: 0px;
   min-width: 150px;
   width: max-content;
 }
+
 .interface-english .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
   min-width: 150px;
   width: max-content;
 }
+
 .interface-hebrew .header .headerDropdownMenu .dropdownLinks-menu {
   left: 0px;
   min-width: 150px;
   width: max-content;
 }
-.interface-hebrew .sheetsInPanel .dropdownLinks .dropdownLinks-menu  {
+
+.interface-hebrew .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu  {
   min-width: 150px;
   width: max-content;
 }
+
 .dropdownLinks-options {
   display: flex;
   flex-direction: column;
   padding: 4px;
   max-width: 220px;
 }
+
 .sheetsInPanel .dropdownLinks-options {
   padding: 0;
 }
+
 .header .headerDropdownMenu .dropdownLinks-menu.open, .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu.open {
   display: block;
 }
@@ -14495,6 +14545,57 @@ span.ref-link-color-3 {color: blue}
 .englishLanguageButton::after {
   content: "•";
   padding: 0px 4px;
+}
+
+.profilePicAndButtonContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.createButtons {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-evenly;
+  padding-top: 20px;
+}
+
+.sheetsProfileList {
+  margin-top: 20px;
+  background-color: white;
+  border: 1000px solid white;
+  border-top: 4px solid white;
+  border-bottom: 120px solid white;
+  margin: -4px 0 -120px -1000px;
+  width: 100%;
+
+}
+
+.profile-page .sheetsProfileList {
+  margin: -4px 0 -120px 0;
+  margin-inline-start: -1000px;
+  margin-inline-end: 0;
+}
+
+.sheetsProfileList .readerNavMenuSearchButton {
+  margin: 0 10px 0 5px;
+  display: inline-flex;
+  top: 0;
+}
+.sheetsProfileList .readerNavMenuSearchButton {
+  margin-inline-start: 10px;
+  margin-inline-end: 5px;
+}
+.sheetsProfileList input {
+  border: 0;
+  font-size: 18px;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  background-color: transparent;
+}
+.sheetsProfileList .loadingMessage {
+  margin-top: 30px;
 }
 
 @-webkit-keyframes load5 {
