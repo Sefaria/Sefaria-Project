@@ -590,7 +590,7 @@ class TextSegment extends Component {
     he = this.props.formatHeAsPoetry ? this.addPoetrySpans(he) : he
 
     const hasNoTranslation = !this.props.en;
-    const hasNoPrimarry = !this.props.he; //when connectionsMode is 'Translation Open) there is no he
+    const hasNoPrimarry = !this.props.he; //when connectionsMode is 'Translation Open' there is no he
 
     const hasOnlyRtl = (hasNoTranslation && this.props?.primaryDirection === 'rtl');
     const hasOnlyLtr = hasNoTranslation && this.props?.primaryDirection === 'ltr';
