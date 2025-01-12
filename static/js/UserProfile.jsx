@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Component from 'react-class';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import NoteListing  from './NoteListing';
 import {
   CollectionListing,
   FilterableList,
@@ -28,23 +27,17 @@ class UserProfile extends Component {
     }
   }
   getPrivateTabState(props) {
-    const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
       { id: "sheets", text: "Sheets", icon: "/static/icons/sheet.svg" },
       { id: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
       { id: "followers", text: "Followers", invisible: true },
-      { id: "following", text: "Following", invisible: true },
-      { id: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { id: "following", text: "Following", invisible: true }
     ];
-    if (showNotes) {
-      tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/icons/note.svg" });
-    }
     if (showBio) {
       tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/icons/info.svg" });
     }
     return {
-      showNotes,
       showBio,
       tabs,
     };
@@ -93,67 +86,11 @@ class UserProfile extends Component {
         <div className="emptyListText">
           <InterfaceText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</InterfaceText>
         </div>
-        <a href="/collections/new" className="resourcesLink sans-serif">
-          <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <InterfaceText>Create a New Collection</InterfaceText>
-        </a>
       </div>);
   }
   renderCollection(collection) {
     return (
       <CollectionListing key={collection.slug} data={collection} />
-    );
-  }
-  renderCollectionHeader() {
-    if (Sefaria._uid !== this.props.profile.id) { return null; }
-    return (
-      <div className="sheet-header">
-        <a href="/collections/new" className="resourcesLink sans-serif">
-          <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <InterfaceText>Create a New Collection</InterfaceText>
-        </a>
-      </div>
-    );
-  }
-  getNotes() {
-    return new Promise((resolve, reject) => {
-      Sefaria.allPrivateNotes(notes => {
-        resolve(notes);
-      });
-    });
-  }
-  getNotesFromCache() {
-    return Sefaria.allPrivateNotes();
-  }
-  onDeleteNote() {
-    Sefaria.clearPrivateNotes();
-    this.getNotes().then(() => this.setState({ refreshNoteData: Math.random() }));
-  }
-  filterNote(currFilter, note) {
-    const n = text => text.toLowerCase();
-    currFilter = n(currFilter);
-    return n(note.text).indexOf(currFilter) > -1;
-  }
-  sortNote(currSortOption, noteA, noteB) {
-    return 0;
-  }
-  renderEmptyNoteList() {
-    return (
-      <div className="emptyList">
-        <div className="emptyListText">
-          <span className="int-en">0 Notes</span>
-          <span className="int-he">0 הערות</span>
-        </div>
-      </div>
-    );
-  }
-  renderNote(note) {
-    return (
-      <NoteListing
-        key={`${note.text}|${note.ref}`}
-        data={note}
-        onDeleteNote={this.onDeleteNote}
-      />
     );
   }
   getSheets() {
@@ -204,11 +141,6 @@ class UserProfile extends Component {
             באפשרותכם להשתמש בדפי מקורות בכדי לארגן מקורות, ליצור טקסטים חדשים, לתכנן שיעורים, הרצאות, כתבות ועוד.
           </span>
         </div>
-        <a href="/sheets/new" className="resourcesLink sans-serif">
-          <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className="int-en">Create a New Sheet</span>
-          <span className="int-he">צור דף חדש</span>
-        </a>
       </div>
     );
   }
@@ -235,18 +167,6 @@ class UserProfile extends Component {
         infoUnderneath={true}
         toggleSignUpModal={this.props.toggleSignUpModal}
       />
-    );
-  }
-  renderSheetHeader() {
-    if (Sefaria._uid !== this.props.profile.id) { return null; }
-    return (
-      <div className="sheet-header">
-        <a href="/sheets/new" className="resourcesLink sans-serif">
-          <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className="int-en">Create a New Sheet</span>
-          <span className="int-he">יצירת דף מקורות</span>
-        </a>
-      </div>
     );
   }
   getFollowers() {
@@ -351,6 +271,7 @@ class UserProfile extends Component {
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
                   toggleSignUpModal={this.props.toggleSignUpModal}
+                  inProfileView={true}
                 />
                 <TabView
                   ref={this._getTabViewRef}
@@ -359,49 +280,15 @@ class UserProfile extends Component {
                   renderTab={this.renderTab}
                   setTab={this.props.setTab}
                 >
-                  <FilterableList
-                    key="sheet"
-                    pageSize={1e6}
-                    filterFunc={this.filterSheet}
-                    sortFunc={this.sortSheet}
-                    renderItem={this.renderSheet}
-                    renderEmptyList={this.renderEmptySheetList}
-                    renderHeader={this.renderSheetHeader}
-                    sortOptions={["Recent", "Views"]}
-                    containerClass={"sheetList"}
-                    getData={this.getSheets}
-                    data={this.getSheetsFromCache()}
-                    refreshData={this.state.refreshSheetData}
-                  />
-                  <FilterableList
-                    key="collection"
-                    pageSize={1e6}
-                    filterFunc={this.filterCollection}
-                    sortFunc={this.sortCollection}
-                    renderItem={this.renderCollection}
-                    renderEmptyList={this.renderEmptyCollectionList}
-                    renderHeader={this.renderCollectionHeader}
-                    sortOptions={["Recent", "Name", "Sheets"]}
-                    getData={this.getCollections}
-                    data={this.getCollectionsFromCache()}
-                    refreshData={this.state.refreshCollectionsData}
-                  />
-                  {
-                    this.state.showNotes ? (
-                      <FilterableList
-                        key="note"
-                        pageSize={1e6}
-                        filterFunc={this.filterNote}
-                        sortFunc={this.sortNote}
-                        renderItem={this.renderNote}
-                        renderEmptyList={this.renderEmptyNoteList}
-                        sortOptions={[]}
-                        getData={this.getNotes}
-                        data={this.getNotesFromCache()}
-                        refreshData={this.state.refreshNoteData}
-                      />
-                    ) : null
-                  }
+                 {this.props.profile && 
+                    <SheetsList profile={this.props.profile} 
+                                  handleSheetDelete={this.handleSheetDelete}
+                                  handleCollectionsChange={this.handleCollectionsChange}
+                                  toggleSignUpModal={this.props.toggleSignUpModal}/>}
+
+                  {this.props.profile && 
+                    <CollectionsList profile={this.props.profile} />}
+                  
                   <FilterableList
                     key="follower"
                     pageSize={1e6}
@@ -424,7 +311,6 @@ class UserProfile extends Component {
                     sortOptions={[]}
                     getData={this.getFollowing}
                   />
-                  <div className="torahTrackerPlaceholder filterable-list" />
                   { this.state.showBio ?
                     <div className="systemText filterable-list">
                       <div  className="aboutText" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
@@ -442,6 +328,86 @@ class UserProfile extends Component {
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
+
+const SheetsList = ({profile, handleSheetDelete, handleCollectionsChange, toggleSignUpModal}) => {
+  const [sheets, setSheets] = useState(null);
+
+  useEffect(() => {
+    const fetchSheets = async () => {
+      try {
+        const fetchedSheets = await new Promise((resolve, reject) => {
+          Sefaria.sheets.userSheets(
+            profile.id,
+            sheets => resolve(sheets),
+            undefined,
+            0,
+            0
+          );
+        });
+        setSheets(fetchedSheets);
+      } catch (error) {
+        console.error("Failed to fetch sheets:", error);
+      }
+    };
+
+    fetchSheets();
+  }, [profile.id]);
+
+  if (!sheets) {
+    return <div>Loading sheets...</div>;
+  }
+
+  return (
+    <div class="sheetsProfileList">
+      {sheets.map(sheet => (
+        <SheetListing
+          key={sheet.id}
+          sheet={sheet}
+          hideAuthor={true}
+          handleSheetDelete={handleSheetDelete}
+          handleCollectionsChange={handleCollectionsChange}
+          editable={Sefaria._uid === profile.id}
+          deletable={Sefaria._uid === profile.id}
+          saveable={Sefaria._uid !== profile.id}
+          collectable={true}
+          connectedRefs={[]}
+          infoUnderneath={true}
+          toggleSignUpModal={toggleSignUpModal}
+        />
+      ))}
+    </div>
+  );
+};
+
+const CollectionsList = ({profile}) => {
+
+  const [collections, setCollections] = useState(null);
+
+  useEffect(() => {
+    const fetchCollections = async () => {
+      try {
+        const collections = await Sefaria.getUserCollections(profile.id);
+        setCollections(collections);
+      } catch (error) {
+        console.error("Failed to fetch collections:", error);
+      }
+    };
+
+    fetchCollections();
+  }, [profile.id]);
+
+  if (!collections) {
+    return <div>Loading collections...</div>;
+  }
+
+
+  return (
+    collections.map(collection =>(<CollectionListing key={collection.slug} data={collection} />))
+  );
+};
+
+
+
 
 
 const EditorToggleHeader = ({usesneweditor}) => {
@@ -552,109 +518,136 @@ const EditorToggleHeader = ({usesneweditor}) => {
 }
 
 
-const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
-  // collect info about this profile in `infoList`
-  const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
-  let infoList = [];
-  if (p.location) { infoList.push(p.location); }
-  infoList = infoList.concat(p.jewish_education);
-  if (p.website) {
-    infoList.push(<span><a href={p.website} target="_blank"><InterfaceText>Website</InterfaceText></a></span>);
-  }
-  const socialList = social.filter(s => !!p[s]);
-  if (socialList.length) {
-    infoList = infoList.concat(
-      // we only store twitter handles so twitter needs to be hardcoded
-      <span>
+const UserBackground = ({profile: p, showBio}) => {
+    // used in ProfileSummary and in SheetContentSidebar, renders user education, organization, and location info
+    // if 'showBio', render p.bio; this property corresponds to "About me" in the profile edit view
+    const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
+    let infoList = [];
+    if (showBio && p.bio) {
+        infoList.push(p.bio);
+    }
+    if (p.location) {
+        infoList.push(p.location);
+    }
+    infoList = infoList.concat(p.jewish_education);
+    if (p.website) {
+        infoList.push(<span><a href={p.website} target="_blank"><InterfaceText>Website</InterfaceText></a></span>);
+    }
+    const socialList = social.filter(s => !!p[s]);
+    if (socialList.length) {
+        infoList = infoList.concat(
+            // we only store twitter handles so twitter needs to be hardcoded
+            <span>
         {
           socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={(s === 'twitter' ? 'https://twitter.com/' : s === 'youtube' ? 'https://www.youtube.com/' : '') + p[s]}><img src={`/static/img/${s}.svg`} /></a>))
         }
       </span>
+        );
+    }
+    const subTitle = <div className="title sub-title">
+        <span>{p.position}</span>
+        {p.position && p.organization ? <span>{Sefaria._(" at ")}</span> : null}
+        <span>{p.organization}</span>
+    </div>;
+    const infoListComponent = <div className="title sub-sub-title">
+                                        {
+                                            infoList.map((i, ii) => (
+                                                <span key={ii}>
+                                                        {ii !== 0 && '\u2022'}
+                                                    <span className="small-margin">{i}</span>
+                                                </span>
+                                            ))
+                                        }
+                                    </div>;
+
+    return <>{(p.position || p.organization) && subTitle}
+             {infoList.length > 0 && infoListComponent}
+           </>;
+}
+
+
+const ProfileSummary = ({
+                            profile: p,
+                            openFollowers,
+                            openFollowing,
+                            toggleSignUpModal,
+                            inProfileView = false,
+                        }) => {
+    const followInfo = <div className="follow">
+                                 <a href="" onClick={openFollowers}>
+                                    <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
+                                    <InterfaceText>followers</InterfaceText>
+                                 </a>
+                                 <span className="follow-bull">&bull;</span>
+                                 <a href="" onClick={openFollowing}>
+                                    <InterfaceText>{String(p.followees.length)}</InterfaceText>&nbsp;
+                                    <InterfaceText>following</InterfaceText>
+                                 </a>
+                             </div>;
+    const profileButtons = Sefaria._uid === p.id ? (
+                                    <div className="profile-actions">
+                                        <a href="/settings/profile" className="resourcesLink sans-serif">
+                                            <span className="int-en">Edit Profile</span>
+                                            <span className="int-he">עריכת פרופיל</span>
+                                        </a>
+                                    </div>) : (
+                                    <div className="profile-actions">
+                                        <FollowButton
+                                            large={true}
+                                            uid={p.id}
+                                            following={Sefaria.following.indexOf(p.id) > -1}
+                                            toggleSignUpModal={toggleSignUpModal}
+                                        />
+                                    </div>);
+    const profileName = <div className="title pageTitle">
+                                    <span className="int-en">{p.full_name}</span>
+                                    <span className="int-he">{p.full_name}</span>
+                                </div>;
+
+    const tempSheetButton = (
+          <a href="/sheets/new" className="resourcesLink sans-serif">
+            <span className="int-en">Create Sheet</span>
+            <span className="int-he">יצירת דף מקורות</span>
+          </a>
+      );
+  
+  const tempCollectionButton = (
+          <a href="/collections/new" className="resourcesLink sans-serif">
+              <InterfaceText>Create Collection</InterfaceText>
+          </a>
+      );
+
+    return (
+        <div className="profile-summary sans-serif">
+            <div className="summary-column profile-summary-content start">
+                {profileName}
+                <UserBackground profile={p} showBio={false}/>
+                {followInfo}
+                {inProfileView && (
+                <div className="createButtons">
+                  {tempSheetButton}
+                  {tempCollectionButton}
+                </div>
+                )}
+            </div>
+            <div className='profilePicAndButtonContainer'>
+              <ProfilePic
+                  url={p.profile_pic_url}
+                  name={p.full_name}
+                  len={175}
+                  hideOnDefault={Sefaria._uid !== p.id}
+                  showButtons={Sefaria._uid === p.id}
+              />
+              {profileButtons}
+            </div>
+        </div>
     );
-  }
-  return (
-    <div className="profile-summary sans-serif">
-      <div className="summary-column profile-summary-content start">
-        <div className="title pageTitle">
-          <span className="int-en">{p.full_name}</span>
-          <span className="int-he">{p.full_name}</span>
-        </div>
-        { p.position || p.organization ?
-          <div className="title sub-title">
-            <span>{p.position}</span>
-            { p.position && p.organization ? <span>{ Sefaria._(" at ") }</span> : null }
-            <span>{p.organization}</span>
-          </div> : null
-        }
-        { infoList.length ?
-          <div className="title sub-sub-title">
-            {
-              infoList.map((i, ii) => (
-                <span key={ii}>
-                  { ii !== 0 ? '\u2022' : null }
-                  <span className="small-margin">{i}</span>
-                </span>
-              ))
-            }
-          </div> : null
-        }
-        {
-          Sefaria._uid === p.id ? (
-          <div className="profile-actions">
-            <a href="/settings/profile" className="resourcesLink sans-serif">
-              <span className="int-en">Edit Profile</span>
-              <span className="int-he">עריכת פרופיל</span>
-            </a>
-            <a href="/settings/account" className="resourcesLink sans-serif profile-settings">
-              <img src="/static/icons/settings.svg" alt="Profile Settings" />
-              <span className="int-en">Settings</span>
-              <span className="int-he">הגדרות</span>
-            </a>
-            <a href="/logout" className="button transparent logoutLink">
-              <span className="int-en">Log Out</span>
-              <span className="int-he">ניתוק</span>
-            </a>
-          </div>) : (
-          <div className="profile-actions">
-            <FollowButton
-              large={true}
-              uid={p.id}
-              following={Sefaria.following.indexOf(p.id) > -1}
-              toggleSignUpModal={toggleSignUpModal}
-            />
-          </div>)
-        }
-        <div className="follow">
-          <a href="" onClick={openFollowers}>
-            <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
-            <InterfaceText>followers</InterfaceText>
-          </a>
-          <span className="follow-bull">&bull;</span>
-          <a href="" onClick={openFollowing}>
-            <InterfaceText>{String(p.followees.length)}</InterfaceText>&nbsp;
-            <InterfaceText>following</InterfaceText>
-          </a>
-        </div>
-      </div>
-      <div className="summary-column end">
-        <ProfilePic
-          url={p.profile_pic_url}
-          name={p.full_name}
-          len={175}
-          hideOnDefault={Sefaria._uid !== p.id}
-          showButtons={Sefaria._uid === p.id}
-        />
-      </div>
-    </div>
-  );
 };
 ProfileSummary.propTypes = {
-  profile:       PropTypes.object.isRequired,
-  follow:        PropTypes.func.isRequired,
-  openFollowers: PropTypes.func.isRequired,
-  openFollowing: PropTypes.func.isRequired,
-  toggleSignUpModal: PropTypes.func.isRequired,
+    profile: PropTypes.object.isRequired,
+    openFollowers: PropTypes.func,
+    openFollowing: PropTypes.func,
+    toggleSignUpModal: PropTypes.func.isRequired,
 };
 
-
-export default UserProfile;
+export {UserProfile, UserBackground};
