@@ -5,12 +5,11 @@ import Component from 'react-class'
 import $  from '../sefaria/sefariaJquery';
 import Sefaria  from '../sefaria/sefaria';
 import SefariaEditor from '../Editor';
-
 import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
 } from '../Misc';
-import {SheetContent} from "./SheetContent";
+import { SheetContent } from "./SheetContent";
 
 class Sheet extends Component {
   constructor(props) {
@@ -87,7 +86,6 @@ class Sheet extends Component {
               <SheetContent
                   sources={sheet.sources}
                   title={sheet.title}
-                  onRefClick={this.props.onRefClick}
                   handleClick={this.handleClick}
                   sheetSourceClick={this.props.onSegmentClick}
                   highlightedNode={this.props.highlightedNode}
