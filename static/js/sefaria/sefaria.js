@@ -550,7 +550,8 @@ Sefaria = extend(Sefaria, {
     );
     const mergeTextInt = mergeText ? 1 : 0;
     const return_format_string = (return_format) ? `&return_format=${return_format}` : '';
-    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}${return_format_string}`;
+    const encodedRef = Sefaria.normRef(ref);
+    const url = `${host}${endPoint}${encodedRef}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}${return_format_string}`;
     return url;
   },
   _textsStore: {},
