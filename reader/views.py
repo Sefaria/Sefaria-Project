@@ -33,7 +33,6 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
-from scripts.update_parashah_descriptions import response
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
