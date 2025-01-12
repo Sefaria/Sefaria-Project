@@ -615,7 +615,6 @@ const TopicLandingTrendingTopics = () => {
     }, []);
 
     if (!trendingTopics) { return null; }
-    console.log(trendingTopics);
     return(
     <div data-anl-feature_name="Trending" data-anl-link_type="topic">
         <SidebarModule>
