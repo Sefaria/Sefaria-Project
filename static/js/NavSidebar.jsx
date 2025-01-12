@@ -37,7 +37,8 @@ const SidebarModules = ({type, props}) => {
     "AboutTopics":            AboutTopics,
     "TrendingTopics":         TrendingTopics,
     "TopicLandingTrendingTopics": TopicLandingTrendingTopics,
-    "TopicLandingTopicCatList": TopicLandingTopicCatList,
+    "TopicLandingTopicCatList":  TopicLandingTopicCatList,
+    "AZTopicsLink":           AZTopicsLink,
     "RelatedTopics":          RelatedTopics,
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
@@ -644,6 +645,15 @@ const TopicLandingTopicCatList = () => {
               <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
             </div>
           )}
+        </SidebarModule>
+    )
+};
+const AZTopicsLink = () => {
+    return(
+        <SidebarModule>
+            <a href={'/topics/all/a'}>
+            <SidebarModuleTitle>All Topics A-Z ›</SidebarModuleTitle>
+            </a>
         </SidebarModule>
     )
 };

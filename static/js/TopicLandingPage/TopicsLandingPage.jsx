@@ -15,6 +15,7 @@ export const TopicsLandingPage = ({openTopic}) => {
     const sidebarModules = [
         {type: "TopicLandingTopicCatList"},
         {type: "TopicLandingTrendingTopics"},
+        {type: "AZTopicsLink"},
     ];
     return (
         <div className="readerNavMenu" key="0">
