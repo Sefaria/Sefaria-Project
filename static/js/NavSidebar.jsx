@@ -642,7 +642,7 @@ const TopicLandingTopicCatList = () => {
             <SidebarModuleTitle>Browse Topics</SidebarModuleTitle>
           {topicCats.map((topic, i) =>
             <div className="navSidebarLink ref serif" key={i}>
-              <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
+              <a href={"/topics/category/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
             </div>
           )}
         </SidebarModule>
