@@ -31,8 +31,8 @@ const DropdownMenuItem = ({url, children, newTab}) => {
       );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='Lorem ipsum dolor sit amet, lorem dolor.',
-                                  descHe='לורם איפסום דולור סיט אמט'}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='',
+                                  descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader" onClick={() => onClick()}>

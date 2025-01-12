@@ -1,12 +1,11 @@
-import React, {useEffect, useState} from "react";
-import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon} from "../common/DropdownMenu";
-import {InterfaceText, SaveButtonWithText} from "../Misc";
+import React, { useEffect, useState } from "react";
+import { DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon } from "../common/DropdownMenu";
+import { InterfaceText, SaveButtonWithText } from "../Misc";
 import Modal from "../common/modal";
-import {ShareBox} from "../ConnectionsPanel";
+import { ShareBox } from "../ConnectionsPanel";
 import Sefaria from "../sefaria/sefaria";
-import $ from "../sefaria/sefariaJquery";
-import {SignUpModalKind} from "../sefaria/signupModalContent";
-import {CollectionsWidget} from "../CollectionsWidget";
+import { SignUpModalKind } from "../sefaria/signupModalContent";
+import { CollectionsWidget } from "../CollectionsWidget";
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
   // because in the modularization version of the sheets viewer, the UI is designed so that the sheet is saved, not a specific segment
@@ -15,6 +14,7 @@ const modifyHistoryObjectForSheetOptions = (historyObject) => {
   newHistoryObject.ref = refParts[0];
   return newHistoryObject;
 }
+
 const getExportingStatus = () => {
   const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
   return urlHashObject === "exportToDrive";
@@ -28,6 +28,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
   const [savingMode, setSavingMode] = useState(false);
   const [exportingMode, setExportingMode] = useState(getExportingStatus());
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
+
   const getSignUpModalKind = () => {
     if (savingMode) {
       return SignUpModalKind.Save;
@@ -42,6 +43,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
       return SignUpModalKind.Default;
     }
   }
+
   useEffect(() => {
     if ((collectionsMode || savingMode || copyingMode || exportingMode) && !Sefaria._uid) {
       toggleSignUpModal(getSignUpModalKind());
@@ -98,6 +100,7 @@ const ShareButton = ({onClick}) => {
               descHe={""}
               onClick={onClick}/>
 }
+
 const CollectionsButton = ({setCollectionsMode, editable}) => {
   const label = editable ? "Edit Collections" : "Add to Collection";
   return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
@@ -107,6 +110,7 @@ const CollectionsButton = ({setCollectionsMode, editable}) => {
                                       descHe={""}
                                       onClick={() => setCollectionsMode(true)}/>
 }
+
 const ShareModal = ({sheetID, close}) => {
   return <Modal isOpen={true} close={close}>
           <ShareBox
@@ -115,6 +119,7 @@ const ShareModal = ({sheetID, close}) => {
           />
         </Modal>;
 }
+
 const CollectionsModal = ({close, sheetID}) => {
   return <Modal isOpen={true} close={close}>
             <CollectionsWidget sheetID={sheetID} close={close} />
@@ -130,6 +135,7 @@ const CopyButton = ({onClick}) => {
               icon="/static/img/copy.png"
               onClick={() => onClick()} />
 }
+
 const CopyModal = ({close, sheetID}) => {
   const copyState = {
     copying: { en: "Copying Sheet...", he: "מעתיק..."},
@@ -162,6 +168,7 @@ const CopyModal = ({close, sheetID}) => {
 
     return await Sefaria.apiRequestWithBody("/api/sheets/", null, newSheet);
   }
+
   useEffect( () => {
     async function fetchData() {
       let loadedSheet = Sefaria.sheets.loadSheetByID(sheetID);
@@ -179,8 +186,9 @@ const CopyModal = ({close, sheetID}) => {
       })
     }
   })
+
   const getCopySuccessMessage = () => {
-    return <><InterfaceText>Success!</InterfaceText>&nbsp;
+    return <><InterfaceText>Success!</InterfaceText>
               <a className="successMessage" href={`/sheets/${copiedSheetId}`} target='_blank'>
               <InterfaceText>View your Copy</InterfaceText>
               </a>
@@ -282,4 +290,4 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
 
 }
 
-export {SheetOptions};
+export { SheetOptions };

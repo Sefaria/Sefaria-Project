@@ -5601,6 +5601,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .sheetContent .successMessage {
   color: var(--inline-link-blue);
+  margin-inline-start: 5px;
 }
 .sheetContent .modalMessage {
   --english-font: var(--english-sans-serif-font-family);

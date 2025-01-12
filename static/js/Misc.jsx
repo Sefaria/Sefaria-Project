@@ -8,7 +8,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
+import {AdContext, StrapiDataContext} from './context';
 import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
@@ -22,8 +22,6 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import { ReaderApp } from './ReaderApp';
-import {ToolsButton} from "./ConnectionsPanel";
 import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
 
 

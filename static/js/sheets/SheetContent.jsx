@@ -199,10 +199,12 @@ class SheetContent extends Component {
     return (
       <div className="sheetContent">
         <div className="text">
-          <SheetMetaDataBox authorStatement={this.props.authorStatement} authorUrl={this.props.authorUrl}
-                                   authorImage={this.props.authorImage} title={this.props.title}
-                                   summary={this.props.summary}
-                                   sheetOptions={this.props.sheetOptions}/>
+          <SheetMetaDataBox authorStatement={this.props.authorStatement}
+                             authorUrl={this.props.authorUrl}
+                             authorImage={this.props.authorImage}
+                             title={this.props.title}
+                             summary={this.props.summary}
+                             sheetOptions={this.props.sheetOptions}/>
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
           </div>
