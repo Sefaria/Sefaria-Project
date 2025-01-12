@@ -10263,7 +10263,7 @@ span.purim-emoji img{
 	align-items: flex-end;
 	width: 25px;
 	height: 25px;
-	background-color: green;
+	background-color: var(--midrash-green);
 	border-radius: 50%;
 	color: white;
 	font-size: 30px;

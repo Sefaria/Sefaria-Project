@@ -109,19 +109,21 @@ class SheetContent extends Component {
     const { sources } = this.props;
 
     if (!sources.length) return null;
-
+    const { highlightedNode, sheetSourceClick } = this.props;
     return sources.map(source => {
-      const addToSheetButton = this.props.highlightedNode === source.node &&
+      const addToSheetButton = highlightedNode === source.node &&
                                               <AddToSheetButton sheetID={this.props.sheetID}
                                                                 highlightedRefs={this.props.highlightedRefs}
-                                                                highlightedNode={this.props.highlightedNode}
+                                                                highlightedNode={highlightedNode}
                                                                 toggleSignUpModal={this.props.toggleSignUpModal}/>;
-      const { highlightedNode, sheetSourceClick } = this.props;
-      let highlighted = source.node === this.props.highlightedNode;
+      let highlighted = source.node === highlightedNode;
       let ComponentToRender;
       if ("ref" in source) {
-        const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
-        highlighted = highlightedNode ? highlightedNode === source.node : highlightedRef ? Sefaria.refContains(source.ref, highlightedRef) : false;
+        if (this.props.highlightedRefsInSheet && !highlightedNode) {
+          // if we're not highlighting a specific node, we should highlight all highlightedRefsInSheet;
+          // used in ConnectionsPanel to show the current reader ref in the sheet
+          highlighted = Sefaria.refContains(source.ref, Sefaria.normRefList(this.props.highlightedRefsInSheet));
+        }
         ComponentToRender = SheetSource;
       } else if ("comment" in source) {
         ComponentToRender = SheetComment;
@@ -176,13 +178,14 @@ const AddToSheetButton = ({highlightedNode, sheetID, highlightedRefs, toggleSign
   }
   const [showingModal, setShowingModal] = useState(false);
   const nodeRef = `${sheetID}.${highlightedNode}`;
+  const handleClose = () => setShowingModal(false);
   return <>
     <div onClick={handleClick} className="addToSheetButton">
       <span className="addToSheetPlus">+</span>
       <span className="addToSheetText">Add to Sheet</span>
     </div>
     {showingModal &&
-        <AddToSourceSheetModal nodeRef={nodeRef} srefs={highlightedRefs} close={() => setShowingModal(false)}/>}
+        <AddToSourceSheetModal nodeRef={nodeRef} srefs={highlightedRefs} close={handleClose}/>}
   </>;
 }
 
