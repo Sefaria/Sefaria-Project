@@ -151,6 +151,7 @@ const Strings = {
     "Untitled": "ללא שם",
     "New Source Sheet" : "דף מקורות חדש",
     "Name New Sheet" : "כותרת לדף חדש",
+    "View in Google Docs": "לפתיחה בגוגל דוקס",
     "Copy" : "העתקה",
     "Edit": "עריכה",
     "View in Editor": "לתצוגת עריכה",

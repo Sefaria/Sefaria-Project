@@ -36,7 +36,6 @@ import {
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet
 } from './Misc';
 import {ContentText} from "./ContentText";
 import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
@@ -712,7 +711,6 @@ class ReaderPanel extends Component {
     }
     if (this.state.mode === "Sheet") {
       menu = <Sheet
-          adjustHighlightedAndVisible={this.adjustSheetHighlightedAndVisible}
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
           key={"sheet-"+this.state.sheetID}
@@ -720,7 +718,6 @@ class ReaderPanel extends Component {
           highlightedNode={this.state.highlightedNode}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           scrollToHighlighted={this.state.scrollToHighlighted}
-          onRefClick={this.handleCitationClick}
           onSegmentClick={this.handleSheetSegmentClick}
           onCitationClick={this.handleCitationClick}
           openSheet={this.openSheet}
@@ -728,7 +725,7 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
-          hasSidebar={this.props.hasSidebar}
+          historyObject={this.props.getHistoryObject(this.state, false)}
           toggleSignUpModal={this.props.toggleSignUpModal}
         />;
     }
