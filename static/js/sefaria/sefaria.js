@@ -2700,7 +2700,7 @@ _media: {},
         if (refObj.is_sheet) { continue; }
         let tabKey = linkTypeSlug;
         if (tabKey === 'about') {
-            tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) && refObj.descriptions?.[lang]?.published ? 'notable-sources' : 'sources';
+            tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) && refObj.descriptions?.[lang]?.published != false ? 'notable-sources' : 'sources';
         }
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
