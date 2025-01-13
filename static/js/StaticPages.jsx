@@ -2912,7 +2912,7 @@ const JobsPageHeader = ({ jobsAreAvailable }) => {
     return (
         <>
             <header>
-                <h1 className="mobileAboutHeader">
+                <h1 className="aboutHeader">
                     <span className="int-en">Jobs at Sefaria</span>
                     <span className="int-he">משרות פנויות בספריא</span>
                 </h1>
@@ -3435,7 +3435,7 @@ const ProductsPage = memo(() => {
 
     return (
         <>
-                <h1 className="mobileAboutHeader">
+                <h1 className="aboutHeader">
                     <span className="int-en">Sefaria's Products</span>
                     <span className="int-he">המוצרים של ספריא</span>
                 </h1>
