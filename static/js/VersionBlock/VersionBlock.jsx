@@ -65,11 +65,14 @@ class VersionBlockUtils {
       }
       if (renderMode === 'book-page') {
           let urlVersionTitle = encodeURIComponent(version.versionTitle.replace(/\s/g,'_'));
-          window.location = `/${firstSectionRef}?v${version.language}=${urlVersionTitle}`;
+          const language = (version.isPrimary) ? 'he' : 'en';
+          window.location = `/${firstSectionRef}?v${language}=${version.languageFamilyName}|${urlVersionTitle}`;
       } else {
-          openVersionInReader(version.versionTitle, version.language);
+          const language = (renderMode === 'translation') ? 'en' : 'he';
+          openVersionInReader(version.versionTitle, language, version.languageFamilyName);
       }
-      Sefaria.setVersionPreference(currRef, version.versionTitle, version.language);
+      const pseudoLang = !version.isSource ? 'en' : 'he';
+      Sefaria.setVersionPreference(currRef, version.versionTitle, pseudoLang);
   }
 }
 
@@ -173,7 +176,7 @@ class VersionBlock extends Component {
   }
   openExtendedNotes(e){
     e.preventDefault();
-    this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle);
+    this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle, this.props.version.languageFamilyName);
   }
   makeVersionNotes(){
     if (!this.props.showNotes) {
