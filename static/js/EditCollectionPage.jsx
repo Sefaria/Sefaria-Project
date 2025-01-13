@@ -225,9 +225,9 @@ class EditCollectionPage extends Component {
                 <span className="onoffswitch-inner"></span>
                 <span className="onoffswitch-switch"></span>
             </label>
-            <div className="helperText">
+            {/* <div className="helperText">
               <InterfaceText>collection.message._appear_collection_in_public</InterfaceText>
-            </div>
+            </div> */}
           </div>
           : <div>
               <span className={`${Sefaria.languageClassFont()}`}>Your collection was previously made public, but our moderators determined it was not generally useful for all Sefaria users. Please contact <a href="mailto:hello@sefari.org">hello@sefaria.org</a> with any questions.</span>

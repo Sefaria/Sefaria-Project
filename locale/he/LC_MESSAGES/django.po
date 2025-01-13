@@ -86,7 +86,7 @@ msgstr ""
 
 #: sefaria/forms.py:157
 msgid "form.placeholder_new_password"
-msgstr ""
+msgstr "གསང་ཚིག་གསར་པ།"
 
 #: sefaria/forms.py:158
 msgid "placeholder_new_password"
@@ -168,11 +168,11 @@ msgstr "ཁ་བྱང་སྒྲིག་འགོད།"
 
 #: templates/account_settings.html:16
 msgid "common.account_setting.cancel_setting_button"
-msgstr ""
+msgstr "ཕྱིར་འཐེན།"
 
 #: templates/account_settings.html:19
 msgid "common.account_setting.save_request"
-msgstr ""
+msgstr "ཉར་ཚགས།"
 
 #: templates/account_settings.html:25
 msgid "account_setting.rate_of_notification"
@@ -196,11 +196,11 @@ msgstr "དྲ་བའི་སྐད་ཡིག།"
 
 #: templates/account_settings.html:46
 msgid "account_setting.language_english_option"
-msgstr ""
+msgstr "English"
 
 #: templates/account_settings.html:49
 msgid "common.account_setting.language_tibetan_option"
-msgstr ""
+msgstr "བོད་ཡིག"
 
 #: templates/account_settings.html:56
 msgid "account_setting.user's_preferred_translation_language"
@@ -236,7 +236,7 @@ msgstr ""
 
 #: templates/account_settings.html:96
 msgid "common.account_setting.password"
-msgstr ""
+msgstr "གསང་ཚིག"
 
 #: templates/account_settings.html:98
 msgid "account_setting.update_email"
@@ -261,15 +261,15 @@ msgstr ""
 
 #: templates/account_settings.html:125
 msgid "common.account_setting.save_setting_button"
-msgstr ""
+msgstr "ཉར་ཚགས།"
 
 #: templates/account_settings.html:128
 msgid "common.account_setting.cancel_request"
-msgstr ""
+msgstr "ཕྱིར་འཐེན།"
 
 #: templates/activity.html:7 templates/activity.html:36
 msgid "activity.revision_history"
-msgstr ""
+msgstr "བཟོ་བཅོས་ཀྱི་ལོ་རྒྱུས།"
 
 #: templates/activity.html:9
 msgid "activity.pecha_activity_profile"
@@ -305,11 +305,11 @@ msgstr ""
 
 #: templates/activity.html:53
 msgid "activity.translation_option"
-msgstr ""
+msgstr "འགྱུར་མ།"
 
 #: templates/activity.html:54
 msgid "activity.source_sheets_option"
-msgstr ""
+msgstr "ཟིན་བྲིས།"
 
 #: templates/activity.html:55
 msgid "activity.new_texts_option"
@@ -321,7 +321,7 @@ msgstr ""
 
 #: templates/activity.html:57
 msgid "activity.notes_option"
-msgstr ""
+msgstr "མཆན་འགོད་ས།"
 
 #: templates/activity.html:58
 msgid "activity.reviews_option"
@@ -345,7 +345,7 @@ msgstr ""
 
 #: templates/delete-sheet.html:4
 msgid "admin.common.delete-sheet.pecha"
-msgstr ""
+msgstr "དཔེ་ཆ་དྲ་བ།"
 
 #: templates/delete-sheet.html:11
 msgid "admin.delete_sheet"
@@ -381,11 +381,11 @@ msgstr "ངོ་སྤྲོད་རྩོམ་སྒྲིག་བྱེད
 
 #: templates/edit_profile.html:17
 msgid "common.edit_profile.cancel_button"
-msgstr ""
+msgstr "ཕྱིར་འཐེན།"
 
 #: templates/edit_profile.html:20
 msgid "common.edit_profile.save_button"
-msgstr ""
+msgstr "ཉར་ཚགས།"
 
 #: templates/edit_profile.html:27
 msgid "edit_profile.first_name"
@@ -417,7 +417,7 @@ msgstr "ཤེས་ཚད།"
 
 #: templates/edit_profile.html:63
 msgid "edit_profile.education_info_detail"
-msgstr ""
+msgstr "སློབ་སྦྱོང་བྱེད་ས།"
 
 #: templates/edit_profile.html:72
 msgid "edit_profile.line_add"
@@ -429,11 +429,11 @@ msgstr "ངའི་ངོ་སྤྲོད།"
 
 #: templates/edit_profile.html:87
 msgid "edit_profile.public_sheets"
-msgstr ""
+msgstr "ཚང་མས་མཐོང་བའི་ཟིན་བྲིས།"
 
 #: templates/edit_profile.html:91
 msgid "edit_profile.drag_sheet_message"
-msgstr ""
+msgstr "དམིགས་སུ་བཀར་ཏེ་སྟོན་དགོས་པའི་ཟིན་བྲིས་རྣམས་སྒང་ལ་སྤོས་ནས། གོང་འོག་ཀྱང་སྒྲིག་ཆོག་པ་ཡིན།"
 
 #: templates/edit_profile.html:95
 msgid "edit_profile.pinned_sheets"
@@ -445,7 +445,7 @@ msgstr "ཟིན་བྲིས་ཡོངས་རྫོགས།"
 
 #: templates/edit_profile.html:119
 msgid "edit_profile.contact"
-msgstr ""
+msgstr "འབྲེལ་གཏུག་བྱེད་ས།"
 
 #: templates/edit_profile.html:124
 msgid "edit_profile.email_privacy"
@@ -457,7 +457,7 @@ msgstr "ངོ་སྤྲོད་ཀྱི་དྲ་ཐག"
 
 #: templates/edit_profile.html:136
 msgid "edit_profile.twitter_handle"
-msgstr ""
+msgstr "X ཁ་བྱང་།"
 
 #: templates/edit_profile.html:142
 msgid "edit_profile.linkedIn"
@@ -494,7 +494,7 @@ msgstr "སྣོན་པ་བཏབ་ཆོག།"
 #: templates/edit_text.html:69 templates/edit_text.html:97
 #: templates/edit_text.html:150
 msgid "common.edit_text.cancel_button"
-msgstr ""
+msgstr "ཕྱིར་འཐེན།"
 
 #: templates/edit_text.html:86
 msgid "edit_text.your_review"
@@ -506,7 +506,7 @@ msgstr ""
 
 #: templates/edit_text.html:96 templates/edit_text.html:149
 msgid "common.edit_text.save_button"
-msgstr ""
+msgstr "སྤེལ།"
 
 #: templates/edit_text.html:101
 msgid "edit_text_add_review_request"
@@ -514,7 +514,7 @@ msgstr ""
 
 #: templates/edit_text.html:101
 msgid "edit_text_login"
-msgstr ""
+msgstr "ནང་འཛུལ་གྱིས།"
 
 #: templates/edit_text.html:101
 msgid "edit_text_or"
@@ -526,7 +526,7 @@ msgstr ""
 
 #: templates/edit_text.html:104
 msgid "edit_text.close_button"
-msgstr ""
+msgstr "སྒོ་རྒྱོབས།"
 
 #: templates/edit_text.html:109
 msgid "edit_text.review_message"
@@ -686,7 +686,7 @@ msgstr "ངོ་དེབ་ཁ་བྱང་།"
 
 #: templates/profile.html:58
 msgid "common.profile.twitter"
-msgstr ""
+msgstr "X ཁ་བྱང་།"
 
 #: templates/profile.html:64
 msgid "common.profile.linkedlin"
@@ -823,7 +823,7 @@ msgstr ""
 
 #: templates/registration/password_reset_email.html:4
 msgid "registration.password_reset_email.password_reset_email_message"
-msgstr ""
+msgstr "དཔེ་ཆ་དྲ་བའི་ཀློག་པ་པོ་ཞིག་གིས་གསང་ཚིག་བསྐྱར་སྒྲིག་གི་རེ་བ་ཞུས་འདུག།"
 
 #: templates/registration/password_reset_email.html:6
 #: templates/registration/password_reset_email.txt:5

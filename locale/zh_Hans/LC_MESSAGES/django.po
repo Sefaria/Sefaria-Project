@@ -374,99 +374,99 @@ msgstr ""
 
 #: templates/edit_profile.html:13
 msgid "edit_profile.header"
-msgstr ""
+msgstr "编辑个人资料"
 
 #: templates/edit_profile.html:17
 msgid "common.edit_profile.cancel_button"
-msgstr ""
+msgstr "取消"
 
 #: templates/edit_profile.html:20
 msgid "common.edit_profile.save_button"
-msgstr ""
+msgstr "保存"
 
 #: templates/edit_profile.html:27
 msgid "edit_profile.first_name"
-msgstr ""
+msgstr "名字"
 
 #: templates/edit_profile.html:33
 msgid "edit_profile.last_name"
-msgstr ""
+msgstr "姓氏"
 
 #: templates/edit_profile.html:39
 msgid "edit_profile.title"
-msgstr ""
+msgstr "职称"
 
 #: templates/edit_profile.html:45
 msgid "edit_profile.organization"
-msgstr ""
+msgstr "组织/机构"
 
 #: templates/edit_profile.html:51
 msgid "edit_profile.website"
-msgstr ""
+msgstr "网站"
 
 #: templates/edit_profile.html:57
 msgid "edit_profile.location"
-msgstr ""
+msgstr "所在地 "
 
 #: templates/edit_profile.html:63
 msgid "edit_profile.education_info"
-msgstr ""
+msgstr "教育背景"
 
 #: templates/edit_profile.html:63
 msgid "edit_profile.education_info_detail"
-msgstr ""
+msgstr "在哪里学习"
 
 #: templates/edit_profile.html:72
 msgid "edit_profile.line_add"
-msgstr ""
+msgstr "添加一行"
 
 #: templates/edit_profile.html:77
 msgid "edit_profile.about_me"
-msgstr ""
+msgstr "关于我"
 
 #: templates/edit_profile.html:87
 msgid "edit_profile.public_sheets"
-msgstr ""
+msgstr "公开表单"
 
 #: templates/edit_profile.html:91
 msgid "edit_profile.drag_sheet_message"
-msgstr ""
+msgstr "您可以拖动并排序想要置顶在个人资料顶部的源表单"
 
 #: templates/edit_profile.html:95
 msgid "edit_profile.pinned_sheets"
-msgstr ""
+msgstr "置顶表单"
 
 #: templates/edit_profile.html:105
 msgid "edit_profile.all_sheets"
-msgstr ""
+msgstr "所有表单"
 
 #: templates/edit_profile.html:119
 msgid "edit_profile.contact"
-msgstr ""
+msgstr "联系方式"
 
 #: templates/edit_profile.html:124
 msgid "edit_profile.email_privacy"
-msgstr ""
+msgstr "电子邮箱 (将公开显示 )"
 
 #: templates/edit_profile.html:130
 msgid "edit_profile.profile_url"
-msgstr ""
+msgstr "个人资料链接"
 
 #: templates/edit_profile.html:136
 msgid "edit_profile.twitter_handle"
-msgstr ""
+msgstr "推特账号"
 
 #: templates/edit_profile.html:142
 msgid "edit_profile.linkedIn"
-msgstr ""
+msgstr "领英"
 
 #: templates/edit_profile.html:148
 msgid "edit_profile.facebook"
-msgstr ""
+msgstr "脸书"
 
 #: templates/edit_profile.html:154
 msgid "edit_profile.youtube_channel"
-msgstr ""
+msgstr "油管频道"
 
 #: templates/edit_term.html:39
 msgid "admin.terms_editor"
