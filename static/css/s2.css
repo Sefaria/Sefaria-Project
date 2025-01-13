@@ -9268,7 +9268,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   opacity: 0.6;
 }
 
-.sheetCollectionsLinks ul {
+.sheetCollectionsList ul {
   list-style-type: none;
   padding-inline-start: 0;
   --english-font: var(--english-sans-serif-font-family);
@@ -9277,7 +9277,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   font-weight: 400;
   line-height: 18.75px;
 }
-.sheetCollectionsLinks ul li {
+.sheetCollectionsList ul li {
   margin-block-end: 10px;
 }
 
