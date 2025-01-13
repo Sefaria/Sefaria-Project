@@ -51,7 +51,7 @@
   font-style: normal;
   font-weight: 500;
   font-size: 22px;
-  text-align: left;
+  text-align: start;
   line-height: 26px;
   color: var(--dark-grey);
 }
@@ -3519,9 +3519,6 @@ form.globalUpdateForm + div.notificationsList {
       margin: 0 auto;
       margin-right: 20px;
     }
-}
-.interface-hebrew h1.aboutHeader, .interface-hebrew #aboutSidebar h1 {
-  text-align: right;
 }
 nav#aboutSidebar h1 {
   display: none;
