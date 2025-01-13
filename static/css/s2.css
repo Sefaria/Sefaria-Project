@@ -1527,7 +1527,8 @@ div.interfaceLinks-row a {
 .readerPanel.english .contentSpan.primary,
 .readerPanel.english .languageToggle .he,
 .readerPanel.hebrew .contentSpan.translation,
-.readerPanel.hebrew .languageToggle .en {
+.readerPanel.hebrew .languageToggle .en,
+.readerPanel.hebrew .en .englishAvailableTag {
   display: none;
 }
 .readerPanel.english .versionsTextList .primary,

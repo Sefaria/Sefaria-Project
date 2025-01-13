@@ -92,8 +92,10 @@ const RecentlyViewedItem = ({oref}) => {
    const trackItem = () => {
      gtag('event', 'recently_viewed', {link_text: oref.ref, link_type: 'ref'})
    }
+   const params = Sefaria.util.getUrlVersionsParams(oref.versions);
+   const url = "/" + Sefaria.normRef(oref.ref) + (params ? "?" + params  : "");
    return <li>
-            <a href={oref.ref} onClick={() => trackItem()}>{Sefaria._v({"he": oref.he_ref, "en": oref.ref})}</a>
+            <a href={url} onClick={() => trackItem()}>{Sefaria._v({"he": oref.he_ref, "en": oref.ref})}</a>
          </li>;
 }
 const RecentlyViewedList = ({items}) => {

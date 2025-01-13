@@ -548,10 +548,12 @@ Sefaria = extend(Sefaria, {
     const versions = requiredVersions.map(obj =>
         Sefaria.makeParamsStringForAPIV3(obj.languageFamilyName, obj.versionTitle)
     );
+    versions.sort();
+
     const mergeTextInt = mergeText ? 1 : 0;
     const return_format_string = (return_format) ? `&return_format=${return_format}` : '';
-    versions.sort();
-    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}${return_format_string}`;
+    const encodedRef = Sefaria.normRef(ref);
+    const url = `${host}${endPoint}${encodedRef}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}${return_format_string}`;
     return url;
   },
   _textsStore: {},
@@ -2529,7 +2531,7 @@ _media: {},
       //This is temporary for RTL - we check savedVersion?.[key] for old data and savedVersion?.[key]?.versionTitle for new data
       //also we currently don't check the languageFamilyName to fit old data
       const savedVersionTitle = savedVersion?.[key]?.versionTitle ?? savedVersion?.[key] ?? '';
-      const currVersionTitle = currVersion?.[key]?.versionTitle ?? '';
+      const currVersionTitle = currVersion?.[key]?.versionTitle ?? currVersion?.[key] ?? '';
       return savedVersionTitle === currVersionTitle;
     }
     return checkEquality("en") && checkEquality("he");
