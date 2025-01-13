@@ -547,15 +547,25 @@ class ReaderApp extends Component {
             hist.url = "torahtracker";
             hist.mode = "user_stats";
             break;
-          case "saved":
+          case "texts-saved":
             hist.title = Sefaria._("My Saved Content");
             hist.url = "texts/saved";
-            hist.mode = "saved";
+            hist.mode = "textsSaved";
             break;
-          case "history":
+          case "sheets-saved":
+            hist.title = Sefaria._("My Saved Content");
+            hist.url = "sheets/saved";
+            hist.mode = "sheetsSaved";
+            break;
+          case "texts-history":
             hist.title = Sefaria._("My Reading History");
             hist.url = "texts/history";
-            hist.mode = "history";
+            hist.mode = "textsHistory";
+            break;
+          case "sheets-history":
+            hist.title = Sefaria._("My Reading History");
+            hist.url = "sheets/history";
+            hist.mode = "sheetsHistory";
             break;
           case "notes":
             hist.title = Sefaria._("My Notes");
@@ -1119,13 +1129,19 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/texts/history") {
       this.showHistory();
 
+    } else if (path === "/sheets/history") {
+      this.showSheetsHistory();
+
     } else if (path === "/texts/saved") {
       this.showSaved();
 
+    } else if (path === "/sheets/saved") {
+      this.showSheetsSaved();
+
     } else if (path === "/texts/notes") {
       this.showNotes();
-
-    } else if (path.match(/\/texts\/.+/)) {
+    }  
+    else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
 
     } else if (path === "/collections") {
@@ -1754,13 +1770,19 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.setSinglePanelState({menuOpen: "community"});
   }
   showSaved() {
-    this.setSinglePanelState({menuOpen: "saved"});
+    this.setSinglePanelState({menuOpen: "texts-saved"});
+  }
+  showSheetsSaved() {
+    this.setSinglePanelState({menuOpen: "sheets-saved"});
   }
   showNotes() {
     this.setSinglePanelState({menuOpen: "notes"});
   }
   showHistory() {
-    this.setSinglePanelState({menuOpen: "history"});
+    this.setSinglePanelState({menuOpen: "texts-history"});
+  }
+  showSheetsHistory() {
+    this.setSinglePanelState({menuOpen: "sheets-history"});
   }
   showTopics() {
     this.setSinglePanelState({menuOpen: "topics", navigationTopicCategory: null, navigationTopic: null});
