@@ -136,6 +136,9 @@ class SheetContent extends Component {
       } else if ("media" in source) {
         ComponentToRender = SheetMedia;
       }
+      else {
+        return <></>;  // there are cases in DB where sheets have problematic data in sources attribute such as a node of null with no other fields
+      }
       return <ComponentToRender
         key={source.node}
         source={source}
