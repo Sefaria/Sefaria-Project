@@ -15,7 +15,7 @@
   },
   "servers": [
     {
-      "url": "https://www.sefaria.org/",
+      "url": "https://www.sefaria.org",
       "description": ""
     }
   ],
@@ -24,6 +24,7 @@
       "summary": "v3 Texts",
       "description": "The most up-to-date way to retrieve Sefaria texts, with language data that can handle displaying a right-to-left text with a right-to-left translation. ",
       "get": {
+        "operationId": "get-v3-texts",
         "tags": [
           "Text"
         ],
@@ -43,8 +44,8 @@
                           "priority": 2,
                           "license": "CC-BY-SA",
                           "versionNotes": "<i>Miqra According to the Masorah</i> (MAM) is a digital Hebrew edition of the Tanakh based on the Aleppo Codex and related manuscripts. It is designed for readers, and as such it contains added elements to aid vocalization of the text. For instance: When an accent is marked in an unstressed syllable, an extra accent is added in the proper place (<i>pashta</i>, <i>zarqa</i>, <i>segol</i>, <i>telisha</i>). <i>Legarmeih</i> and <i>paseq</i> are visibly distinguished. <i>Qamaz qatan</i> is indicated by its designated Unicode character (alternatives are documented where traditions differ about its application).<br>The text of MAM is fully documented. The <a href=\"https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94/%D7%9E%D7%99%D7%93%D7%A2_%D7%A2%D7%9C_%D7%9E%D7%94%D7%93%D7%95%D7%A8%D7%94_%D7%96%D7%95\">complete introduction</a> to the edition (Hebrew) explains the types of editorial decisions that have been made and the reasons for them (<a href=\"https://en.wikisource.org/wiki/User:Dovi/Miqra_according_to_the_Masorah#About_this_Edition_(English_Abstract)\">English abstract</a>). In addition, every word in the Bible about which there is some textual concern or ambiguity includes a documentation note; these notes can be viewed conveniently <a href=\"https://bdenckla.github.io/MAM-with-doc/\">here</a>. If an error is discovered, it may be reported to <a href=\"https://he.wikisource.org/wiki/%D7%A9%D7%99%D7%97%D7%AA_%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi\">User:Dovi</a> at Hebrew Wikisource. Please check the documentation notes before reporting an error.",
-                          "formatAsPoetry": "",
-                          "digitizedBySefaria": "",
+                          "formatAsPoetry": false,
+                          "digitizedBySefaria": false,
                           "method": "",
                           "heversionSource": "",
                           "versionUrl": "",
@@ -986,6 +987,7 @@
     },
     "/api/texts/{tref}": {
       "get": {
+        "operationId": "get-v1-texts",
         "tags": [
           "Text"
         ],
@@ -1208,7 +1210,7 @@
                       "ref": "Shabbat 22a:1",
                       "heRef": "שבת כ״ב א:א׳",
                       "isComplex": false,
-                      "text": [],
+                      "text": "",
                       "he": [],
                       "versions": [],
                       "textDepth": 2,
@@ -1313,6 +1315,7 @@
       "summary": "All Available Versions of a Text",
       "description": "This endpoint return all of the available versions of a text given an index title passed as a parameter. ",
       "get": {
+        "operationId": "get-versions",
         "tags": [
           "Text"
         ],
@@ -1337,7 +1340,7 @@
                         "status": "locked",
                         "license": "CC-BY",
                         "versionNotes": "",
-                        "digitizedBySefaria": "",
+                        "digitizedBySefaria": false,
                         "priority": 2,
                         "versionTitleInHebrew": "",
                         "versionNotesInHebrew": "",
@@ -1357,7 +1360,7 @@
                         "status": "locked",
                         "license": "CC-BY",
                         "versionNotes": "",
-                        "digitizedBySefaria": "",
+                        "digitizedBySefaria": false,
                         "priority": 2,
                         "versionTitleInHebrew": "",
                         "versionNotesInHebrew": "",
@@ -1377,7 +1380,7 @@
                         "status": "locked",
                         "license": "Public Domain",
                         "versionNotes": "",
-                        "digitizedBySefaria": "",
+                        "digitizedBySefaria": false,
                         "priority": 1,
                         "versionTitleInHebrew": "ובלכתך בדרך",
                         "versionNotesInHebrew": "",
@@ -1397,8 +1400,8 @@
                         "status": "",
                         "license": "",
                         "versionNotes": "",
-                        "digitizedBySefaria": "",
-                        "priority": "",
+                        "digitizedBySefaria": false,
+                        "priority": 4,
                         "versionTitleInHebrew": "תרגום קהילת ספריא",
                         "versionNotesInHebrew": "",
                         "extendedNotes": "",
@@ -1417,8 +1420,8 @@
                         "status": "locked",
                         "license": "CC-BY",
                         "versionNotes": "",
-                        "digitizedBySefaria": "",
-                        "priority": "",
+                        "digitizedBySefaria": false,
+                        "priority": 3,
                         "versionTitleInHebrew": "",
                         "versionNotesInHebrew": "",
                         "extendedNotes": "",
@@ -1468,6 +1471,7 @@
     },
     "/api/texts/translations": {
       "get": {
+        "operationId": "get-translations",
         "tags": [
           "Text"
         ],
@@ -1515,6 +1519,7 @@
     },
     "/api/texts/translations/{lang}": {
       "get": {
+        "operationId": "get-tanslation-by-lang",
         "tags": [
           "Text"
         ],
@@ -1590,6 +1595,7 @@
     "/api/manuscripts/{tref}": {
       "summary": "For a given `tref` (textual ref), if a manuscript exists, returns a list of all relevant data as well as the image URL for each associated manuscript.",
       "get": {
+        "operationId": "get-manuscript",
         "tags": [
           "Text"
         ],
@@ -1694,6 +1700,7 @@
     },
     "/api/texts/random": {
       "get": {
+        "operationId": "get-random",
         "tags": [
           "Text"
         ],
@@ -1735,6 +1742,7 @@
       "summary": "v2 Raw Index API",
       "description": "This API endpoint will retrieve the full mongo record of the given `Index` as it appears in the database.",
       "get": {
+        "operationId": "get-v2-index",
         "tags": [
           "Index"
         ],
@@ -2424,8 +2432,9 @@
         }
       ]
     },
-    "/api/index/": {
+    "/api/index": {
       "get": {
+        "operationId": "get-index",
         "tags": [
           "Index"
         ],
@@ -2449,7 +2458,8 @@
       "summary": "Shape",
       "description": "The shape API allows one to retrieve information about the shape of an Index on Sefaria. The shape refers some basic statistics about the Index, mostly the number of chapters, and the number of segments per chapter.",
       "get": {
-          "tags": [
+        "operationId": "get-shape",
+        "tags": [
               "Index"
           ],
           "responses": {
@@ -2925,6 +2935,7 @@
       "summary": "The Related API",
       "description": "The Related API returns all related links, sheets, notes, webpages, topics, manuscripts, and other connected media for a given `Ref`. ",
       "get": {
+        "operationId": "get-related",
         "tags": [
           "Related"
         ],
@@ -3477,6 +3488,7 @@
     },
     "/api/links/{tref}": {
       "get": {
+        "operationId": "get-links",
         "tags": [
           "Related"
         ],
@@ -3543,6 +3555,7 @@
     },
     "/api/ref-topic-links/{tref}": {
       "get": {
+        "operationId": "get-ref-topic-links",
         "tags": [
           "Related"
         ],
@@ -3629,6 +3642,7 @@
     },
     "/api/calendars": {
       "get": {
+        "operationId": "get-calendars",
         "tags": [
           "Calendars"
         ],
@@ -3708,6 +3722,7 @@
     },
     "/api/calendars/next-read/{parasha}": {
       "get": {
+        "operationId": "get-next-read",
         "tags": [
           "Calendars"
         ],
@@ -3828,6 +3843,7 @@
     },
     "/api/words/{word}": {
       "get": {
+        "operationId": "get-words",
         "tags": [
           "Lexicon"
         ],
@@ -3919,6 +3935,7 @@
     "/api/words/completion/{word}/{lexicon}": {
       "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input. \n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels.",
       "get": {
+        "operationId": "get-word-completion",
         "tags": [
           "Lexicon"
         ],
@@ -4053,6 +4070,7 @@
       "summary": "v2 Specific Topic API",
       "description": "The `v2` Topic API is identical to the `v1` Topic API, with one exception. When the API is run with the following query parameter `with_refs=1`, the list of topic links returned is grouped by `type`.  ",
       "get": {
+        "operationId": "get-v2-specific-topic",
         "tags": [
           "Topic"
         ],
@@ -4269,6 +4287,7 @@
       "summary": "The Specific Topic API",
       "description": "This API will return all of the metadata for the given topic passed in as a path parameter with its `topic_slug`. ",
       "get": {
+        "operationId": "get-specific-topic",
         "tags": [
           "Topic"
         ],
@@ -4457,6 +4476,7 @@
       "summary": "The Topics API",
       "description": "The topics API returns a list of JSON objects containing metadata for every topic in the Sefaria database. ",
       "get": {
+        "operationId": "get-all-topics",
         "tags": [
           "Topic"
         ],
@@ -4818,6 +4838,7 @@
       "summary": "Topic Graph API",
       "description": "And enpoint to retrieve links between various topics. ",
       "get": {
+        "operationId": "get-topics-graph",
         "tags": [
           "Topic"
         ],
@@ -5016,6 +5037,7 @@
     },
     "/api/recommend/topics/{ref_list}": {
       "get": {
+        "operationId": "get-recommend-topics",
         "tags": [
           "Topic"
         ],
@@ -5058,6 +5080,7 @@
       "summary": "Random By Topic API",
       "description": "Returns Texts API data for a random text taken from popular topic tags",
       "get": {
+        "operationId": "get-random-by-topic",
         "tags": [
           "Topic"
         ],
@@ -5149,6 +5172,7 @@
       "summary": "The Terms API",
       "description": "A Term is a shared title node.  It can be referenced and used by many different `Index` nodes. Terms that use the same `TermScheme` can be ordered within that scheme. So for example, _Parsha_ terms who all share the `TermScheme` of `parsha`, can be ordered within that scheme. \n\nExamples of valid terms:  `Noah`, `HaChovel`\n",
       "get": {
+        "operationId": "get-terms",
         "tags": [
           "Term"
         ],
@@ -5229,6 +5253,7 @@
     "/api/name/{name}": {
       "description": "Serves primarily as an autocompleter, returning potential keyword matches for `Ref`s, book titles, authors, topics, and collections available on Sefaria",
       "get": {
+        "operationId": "get-name",
         "tags": [
           "Term"
         ],
@@ -5283,6 +5308,7 @@
     },
     "/api/find-refs": {
       "post": {
+        "operationId": "post-find-refs",
         "requestBody": {
           "description": "",
           "content": {
@@ -5326,6 +5352,7 @@
     },
     "/api/search-wrapper": {
       "post": {
+        "operationId": "post-search-wrapper",
         "requestBody": {
           "content": {
             "application/json": {
@@ -5357,6 +5384,7 @@
     },
     "/api/img-gen/{tref}": {
       "get": {
+        "operationId": "get-img-gen",
         "tags": [
           "Misc"
         ],
@@ -5447,6 +5475,7 @@
       "summary": "Category",
       "description": "The category API takes a full category path in the request, e.g. /api/category/Tanakh/Torah/Genesis, and return the full category object found. The above request would return:",
       "get": {
+        "operationId": "get-category",
         "tags": [
           "Misc"
         ],
@@ -5543,11 +5572,11 @@
             "type": "string"
           },
           "digitizedBySefaria": {
-            "type": "string"
+            "type": "boolean"
           },
           "priority": {
-            "format": "int32",
-            "type": "integer"
+            "format": "double",
+            "type": "number"
           },
           "versionTitleInHebrew": {
             "type": "string"
@@ -5646,7 +5675,51 @@
                 }
               }
             },
-            "example": "[{\n    \"title\": \"Ruth\",\n    \"key\": \"Ruth\",\n    \"type\": \"ref\",\n    \"is_primary\": true,\n    \"order\": 1000000\n  }, {\n    \"title\": \"Ruth Rabbah\",\n    \"key\": \"Ruth Rabbah\",\n    \"type\": \"ref\",\n    \"is_primary\": true,\n    \"order\": 1000000\n  }, {\n    \"title\": \"Ruth\",\n    \"type\": \"PersonTopic\",\n    \"key\": \"ruth\",\n    \"is_primary\": true,\n    \"order\": 4999550\n  }, {\n    \"title\": \"Ruach Hakodesh\",\n    \"type\": \"Topic\",\n    \"key\": \"ruach-hakodesh1\",\n    \"is_primary\": true,\n    \"order\": 4999902\n  }, {\n    \"title\": \"Ruach\",\n    \"type\": \"Topic\",\n    \"key\": \"ruach1\",\n    \"is_primary\": true,\n    \"order\": 4999949\n  }, {\n    \"title\": \"Rubissa Sharona Hassan\",\n    \"type\": \"User\",\n    \"key\": \"sharona-hassan\",\n    \"pic\": \"https://storage.googleapis.com/sefaria-profile-pictures/sharona-hassan-1622999139-small.png\",\n    \"order\": 6999998,\n    \"is_primary\": true\n  }]"
+            "example": [
+                { 
+                  "title": "Ruth",
+                  "key":"Ruth",   
+                  "type": "ref",   
+                  "is_primary": true,
+                  "order": 1000000 
+                }, 
+                {
+                  "title": "Ruth Rabbah",
+                  "key": "Ruth Rabbah",
+                  "type": "ref",
+                  "is_primary": true,
+                  "order": 1000000  
+                }, 
+                { 
+                  "title": "Ruth",    
+                  "type":"PersonTopic",   
+                  "key": "ruth",
+                  "is_primary": true,   
+                  "order": 4999550
+                }, 
+                {
+                  "title": "Ruach Hakodesh",
+                  "type": "Topic",
+                  "key": "ruach-hakodesh1",
+                  "is_primary": true,
+                  "order": 4999902
+                }, 
+                {
+                  "title": "Ruach",    
+                  "type": "Topic",    
+                  "key": "ruach1",
+                  "is_primary": true,    
+                  "order": 4999949  
+                }, 
+                {
+                  "title": "Rubissa Sharona Hassan",    
+                  "type": "User",
+                  "key": "sharona-hassan",    
+                  "pic": "https://storage.googleapis.com/sefaria-profile-pictures/sharona-hassan-1622999139-small.png",
+                  "order": 6999998,    
+                  "is_primary": true  
+                }
+              ]
           },
           "is_book": {
             "description": "Returns `true` if the submitted text is a book level reference. e.g. (Genesis)",
@@ -6312,8 +6385,7 @@
             "$ref": "#/components/schemas/ref"
           },
           "heRef": {
-            "$ref": "#/components/schemas/ref",
-            "description": "The Hebrew `Ref`."
+            "$ref": "#/components/schemas/ref"
           },
           "isComplex": {
             "description": "Whether or not the text is a \"complex\" text or not.\n\nIn Sefaria, a complex text is any text which has a more complicated index structure beyond Chapters/Verses, (e.g. the Talmud). There are a variety of structural differences for a complex text, having to do primarily with its `Index`, and the way the data is stored. For more on complex texts, see the documentation here.",
@@ -6615,7 +6687,7 @@
               "status": "locked",
               "license": "Public Domain",
               "versionNotes": "",
-              "digitizedBySefaria": "",
+              "digitizedBySefaria": false,
               "priority": 3,
               "versionTitleInHebrew": "תורת אמת 357",
               "versionNotesInHebrew": "",
@@ -6653,7 +6725,7 @@
               "status": "locked",
               "license": "CC-BY",
               "versionNotes": "",
-              "digitizedBySefaria": "",
+              "digitizedBySefaria": false,
               "priority": 1,
               "versionTitleInHebrew": "",
               "versionNotesInHebrew": "",
@@ -6672,7 +6744,7 @@
               "status": "locked",
               "license": "Public Domain",
               "versionNotes": "Ordnung Seraïm, übers. und erklärt von Ascher Samter. 1887.<br>Ordnung Moed, von Eduard Baneth. 1887-1927.<br>Ordnung Naschim, von Marcus Petuchowski u. Simon Schlesinger. 1896-1933.<br>Ordnung Nesikin, von David Hoffmann. 1893-1898.<br>Ordnung Kodaschim, von John Cohn. 1910-1925.<br>Ordnung Toharot, von David Hoffmann, John Cohn und Moses Auerbach. 1910-1933.",
-              "digitizedBySefaria": true,
+              "digitizedBySefaria": false,
               "priority": 0.5,
               "versionTitleInHebrew": "",
               "versionNotesInHebrew": "",
@@ -6700,63 +6772,6 @@
               "purchaseInformationImage": "",
               "purchaseInformationURL": "",
               "shortVersionTitle": "Lazarus Goldschmidt, 1929 ",
-              "shortVersionTitleInHebrew": ""
-            },
-            {
-              "title": "Mishnah Peah",
-              "versionTitle": "Open Mishnah",
-              "versionSource": "http://en.wikisource.org/wiki/Mishnah",
-              "language": "en",
-              "status": "locked",
-              "license": "CC-BY-SA",
-              "versionNotes": "",
-              "digitizedBySefaria": "",
-              "priority": "",
-              "versionTitleInHebrew": "משנה פתוחה",
-              "versionNotesInHebrew": "",
-              "extendedNotes": "",
-              "extendedNotesHebrew": "",
-              "purchaseInformationImage": "",
-              "purchaseInformationURL": "",
-              "shortVersionTitle": "",
-              "shortVersionTitleInHebrew": ""
-            },
-            {
-              "title": "Mishnah Peah",
-              "versionTitle": "Le Talmud de Jérusalem, traduit par Moise Schwab, 1878-1890 [fr]",
-              "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002182155/NLI",
-              "language": "en",
-              "status": "locked",
-              "license": "Public Domain",
-              "versionNotes": "",
-              "digitizedBySefaria": "",
-              "priority": "",
-              "versionTitleInHebrew": "",
-              "versionNotesInHebrew": "",
-              "extendedNotes": "",
-              "extendedNotesHebrew": "",
-              "purchaseInformationImage": "",
-              "purchaseInformationURL": "",
-              "shortVersionTitle": "",
-              "shortVersionTitleInHebrew": ""
-            },
-            {
-              "title": "Mishnah Peah",
-              "versionTitle": "Mishnah based on the Kaufmann manuscript, edited by Dan Be'eri",
-              "versionSource": "https://archive.org/details/MishnaCorrectedKaufman00WHOLE",
-              "language": "he",
-              "status": "locked",
-              "license": "PD",
-              "versionNotes": "",
-              "digitizedBySefaria": true,
-              "priority": "",
-              "versionTitleInHebrew": "",
-              "versionNotesInHebrew": "",
-              "extendedNotes": "",
-              "extendedNotesHebrew": "",
-              "purchaseInformationImage": "",
-              "purchaseInformationURL": "",
-              "shortVersionTitle": "",
               "shortVersionTitleInHebrew": ""
             }
           ],
@@ -6886,7 +6901,7 @@
             "description": ""
           },
           "language_code": {
-            "description": "If not present, it’s Biblical.  Otherwise values could be [PBH, MH, NH, FW] - Post Biblical Hebrew, Middle Hebrew, New Hebrew, Foreign Word."
+            "description": "If not present, indicates the word is Biblical.  Otherwise values could be [PBH, MH, NH, FW] - Post Biblical Hebrew, Middle Hebrew, New Hebrew, Foreign Word."
           },
           "morphology": {
             "description": "One of [n., adj., adv., m.n., abs., art. , attrib., auxil., comp., copul., c st., def., f., f. n., imper.., Imperf., Indef art., Inf, Interj., Interr., Intr., Neut., Part., Pass., Perf., Possess., p. part., prep., pres part., pres t., p.t.., sing., Subj., Tr.]"
@@ -7100,7 +7115,7 @@
             "items": {
               "type": "string"
             },
-            "example": "\"anchorRefExpanded\": [\n    \"Esther 4:14\",\n    \"Esther 4:15\"\n]"
+            "example": ["Esther 4:14", "Esther 4:15"]
           },
           "manuscript": {
             "$ref": "#/components/schemas/ManuscriptVersionMetaData",
