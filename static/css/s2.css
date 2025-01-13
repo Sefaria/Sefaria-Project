@@ -8798,12 +8798,12 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionListingName:hover {
   color: #333;
 }
-.collectionListingDetails {
-  color: #999;
-  font-size: 14px;
+.collectionListingDetails .collectionListingSheetCount {
+  color: #999 !important;
+  font-size: 14px !important;
   font-family: Roboto !important;
-  font-weight: 400;
-  line-height: 18px;
+  font-weight: 400 !important;
+  line-height: 18px !important;
 }
 .collectionListingMembership {
   text-transform: capitalize;
@@ -11735,7 +11735,7 @@ cursor: pointer;
   line-height: 16.41px;
 }
 
-.aboutText a {
+.profile-page .aboutText a {
   font-family: Roboto;
 }
 
