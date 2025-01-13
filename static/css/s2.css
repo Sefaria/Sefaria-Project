@@ -11734,6 +11734,11 @@ cursor: pointer;
   font-weight: 400;
   line-height: 16.41px;
 }
+
+.aboutText a {
+  font-family: Roboto;
+}
+
 @media (max-width: 540px) {
   .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
     display: none !important;  /* dont allow profile pic upload on mobile b/c causes black image on iOS */
@@ -11917,7 +11922,7 @@ cursor: pointer;
   align-items: center;
   text-align: center;
   cursor: pointer;
-  background: #18345d;
+  background: var(--midrash-green);
   color: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
@@ -11935,7 +11940,7 @@ cursor: pointer;
   width: min-content;
   text-align: center;
   cursor: pointer;
-  background: var(--sefaria-blue);
+  background: var(--midrash-green);;
   color: white;
   border-radius: 3px;
   margin-inline-start: 15px;
