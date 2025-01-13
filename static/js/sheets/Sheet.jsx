@@ -1,18 +1,15 @@
 import React  from 'react';
 import ReactDOM  from 'react-dom';
-import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
-import sanitizeHtml  from 'sanitize-html';
 import Component from 'react-class'
-import $  from './sefaria/sefariaJquery';
-import Sefaria  from './sefaria/sefaria';
-import SefariaEditor from './Editor';
+import $  from '../sefaria/sefariaJquery';
+import Sefaria  from '../sefaria/sefaria';
+import SefariaEditor from '../Editor';
+import SheetContentSidebar from "./SheetContentSidebar";
 import {
-  InterfaceText,
   LoadingMessage,
-} from './Misc';
-import SheetContent from "./sheets/SheetContent";
-
+} from '../Misc';
+import { SheetContent } from "./SheetContent";
 
 class Sheet extends Component {
   constructor(props) {
@@ -79,7 +76,6 @@ class Sheet extends Component {
     }
   }
 
-
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
@@ -89,28 +85,34 @@ class Sheet extends Component {
     }
     else {
       content = (
-            <SheetContent
-                sheetNotice={sheet.sheetNotice}
-                sources={sheet.sources}
-                title={sheet.title}
-                handleClick={this.handleClick}
-                sheetSourceClick={this.props.onSegmentClick}
-                highlightedNode={this.props.highlightedNode}
-                highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-                scrollToHighlighted={this.props.scrollToHighlighted}
-                authorStatement={sheet.ownerName}
-                authorUrl={sheet.ownerProfileUrl}
-                authorImage={sheet.ownerImageUrl}
-                collectionName={sheet.collectionName}
-                collectionSlug={sheet.displayedCollection}
-                collectionImage={sheet.collectionImage}
-                editable={Sefaria._uid === sheet.owner}
-                setSelectedWords={this.props.setSelectedWords}
-                sheetNumbered={sheet.options.numbered}
-                hideImages={!!sheet.hideImages}
-                sheetID={sheet.id}
-                summary={sheet.summary}
-        />
+            <div className="sidebarLayout">
+              <SheetContent
+                  sources={sheet.sources}
+                  title={sheet.title}
+                  handleClick={this.handleClick}
+                  sheetSourceClick={this.props.onSegmentClick}
+                  highlightedNode={this.props.highlightedNode}
+                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                  scrollToHighlighted={this.props.scrollToHighlighted}
+                  editable={Sefaria._uid === sheet.owner}
+                  setSelectedWords={this.props.setSelectedWords}
+                  sheetNumbered={sheet.options.numbered}
+                  hideImages={!!sheet.hideImages}
+                  sheetID={sheet.id}
+                  authorStatement={sheet.ownerName}
+                  authorID={sheet.owner}
+                  authorUrl={sheet.ownerProfileUrl}
+                  authorImage={sheet.ownerImageUrl}
+                  summary={sheet.summary}
+            />
+              <SheetContentSidebar
+                  authorStatement={sheet.ownerName}
+                  authorUrl={sheet.ownerProfileUrl}
+                  authorImage={sheet.ownerImageUrl}
+                  collections={sheet.collections}
+                  toggleSignUpModal={this.props.toggleSignUpModal}
+              />
+          </div>
       );
     }
     return (
@@ -132,16 +134,6 @@ class Sheet extends Component {
         :
         content }
       </div>
-    );
-  }
-}
-
-class SheetNotice extends Component {
-  render() {
-    return (
-        <div className="sheetNotice sans-serif">
-          <InterfaceText>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue.</InterfaceText>
-        </div>
     );
   }
 }
