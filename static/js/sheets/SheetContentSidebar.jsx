@@ -1,7 +1,6 @@
 import { FollowButton, InterfaceText } from "../Misc";
 import { ProfilePic } from "../ProfilePic";
 import Sefaria from "../sefaria/sefaria";
-import {ProfilePic} from "../ProfilePic";
 import React, { useEffect, useState } from "react";
 import { UserBackground } from "../UserProfile";
 
