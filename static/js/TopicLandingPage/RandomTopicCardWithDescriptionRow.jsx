@@ -46,15 +46,10 @@ export const RandomTopicCardWithDescriptionRow = () => {
               <Card
                   cardTitleHref={`topics/${topic.slug}`}
                   cardTitle={topic.title}
-                  cardText={topic.description}>
-                  <div className="explore-more-prompt">
-                      <a href={`topics/${topic.slug}`}>
-                          <InterfaceText text={{en: `Explore ${topic.title?.en} ›`,
-                              he:`${Sefaria._("Explore")} ${topic.title?.he} ›`}}/>
-                      </a>
-                  </div>
-              </Card>
-          </div>)}
+                  cardText={topic.description}
+                  bottomLinkText = {{en: `Explore ${topic.title?.en} ›`, he:`${Sefaria._("Explore")} ${topic.title?.he} ›`}}
+                  bottomLinkUrl = {`topics/${topic.slug}`}/>
+            </div>)}
       </div>
     </>
 

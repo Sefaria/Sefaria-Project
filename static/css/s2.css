@@ -5246,7 +5246,7 @@ h1.topic-landing-header {
 .topic-card-with-description .cardTitle {
   margin-top: 23px;
 }
-.topic-card-with-description .explore-more-prompt {
+.topic-card-with-description .bottomCardLink {
   font-size: 14px;
   line-height: 18px;
   color: #666;
