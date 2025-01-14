@@ -1041,7 +1041,15 @@ def saved(request):
     desc = _("See your saved content on Sefaria")
     profile = UserProfile(user_obj=request.user)
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    return menu_page(request, props, page="saved", title=title, desc=desc)
+    return menu_page(request, props, page="texts-saved", title=title, desc=desc)
+
+@login_required
+def sheets_saved(request):
+    title = _("My Saved Content")
+    desc = _("See your saved content on Sefaria")
+    profile = UserProfile(user_obj=request.user)
+    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
+    return menu_page(request, props, page="sheets-saved", title=title, desc=desc)
 
 
 def get_user_history_props(request):
@@ -1056,7 +1064,13 @@ def user_history(request):
     props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
-    return menu_page(request, props, page="history", title=title, desc=desc)
+    return menu_page(request, props, page="texts-history", title=title, desc=desc)
+
+def sheets_user_history(request):
+    props = get_user_history_props(request)
+    title = _("My User History")
+    desc = _("See your user history on Sefaria")
+    return menu_page(request, props, page="sheets-history", title=title, desc=desc)
 
 @login_required
 def notes(request):

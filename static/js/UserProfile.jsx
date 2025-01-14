@@ -628,9 +628,9 @@ const ProfileSummary = ({
                 {multiPanel && followInfo}
                 {inProfileView && (
                 <div className="createButtons">
-                  { multiPanel && tempSheetButton }
-                  { multiPanel && tempCollectionButton }
-                  { !multiPanel && profileButtons }
+                  {(multiPanel && (Sefaria._uid === p.id)) && tempSheetButton}
+                  {(multiPanel && (Sefaria._uid === p.id)) && tempCollectionButton}
+                  {!multiPanel && profileButtons}
                 </div>
                 )}
             </div>
@@ -644,6 +644,7 @@ const ProfileSummary = ({
               />
               {multiPanel && profileButtons}
             </div>
+            
         </div>
     );
 };
