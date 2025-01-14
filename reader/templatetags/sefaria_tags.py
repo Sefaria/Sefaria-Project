@@ -531,7 +531,7 @@ def date_string_to_tibetan_date(value):
 
     # Create the Tibetan date and time format
     formatted_datetime = (
-        f"སྤྱི་ལོ་{value.year} "
+        f"ཕྱི་ལོ་{value.year} "
         f"ཟླ་{value.month} "
         f"ཚེས་{value.day} "
         f"ཕྱག་ཚོད་{value.hour} "
