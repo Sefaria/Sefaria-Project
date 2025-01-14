@@ -44,8 +44,8 @@
                           "priority": 2,
                           "license": "CC-BY-SA",
                           "versionNotes": "<i>Miqra According to the Masorah</i> (MAM) is a digital Hebrew edition of the Tanakh based on the Aleppo Codex and related manuscripts. It is designed for readers, and as such it contains added elements to aid vocalization of the text. For instance: When an accent is marked in an unstressed syllable, an extra accent is added in the proper place (<i>pashta</i>, <i>zarqa</i>, <i>segol</i>, <i>telisha</i>). <i>Legarmeih</i> and <i>paseq</i> are visibly distinguished. <i>Qamaz qatan</i> is indicated by its designated Unicode character (alternatives are documented where traditions differ about its application).<br>The text of MAM is fully documented. The <a href=\"https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94/%D7%9E%D7%99%D7%93%D7%A2_%D7%A2%D7%9C_%D7%9E%D7%94%D7%93%D7%95%D7%A8%D7%94_%D7%96%D7%95\">complete introduction</a> to the edition (Hebrew) explains the types of editorial decisions that have been made and the reasons for them (<a href=\"https://en.wikisource.org/wiki/User:Dovi/Miqra_according_to_the_Masorah#About_this_Edition_(English_Abstract)\">English abstract</a>). In addition, every word in the Bible about which there is some textual concern or ambiguity includes a documentation note; these notes can be viewed conveniently <a href=\"https://bdenckla.github.io/MAM-with-doc/\">here</a>. If an error is discovered, it may be reported to <a href=\"https://he.wikisource.org/wiki/%D7%A9%D7%99%D7%97%D7%AA_%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi\">User:Dovi</a> at Hebrew Wikisource. Please check the documentation notes before reporting an error.",
-                          "formatAsPoetry": false,
-                          "digitizedBySefaria": false,
+                          "formatAsPoetry": "",
+                          "digitizedBySefaria": "",
                           "method": "",
                           "heversionSource": "",
                           "versionUrl": "",
@@ -988,6 +988,7 @@
     "/api/texts/{tref}": {
       "get": {
         "operationId": "get-v1-texts",
+        "description": "Retrieve the text and some additional metadata for a specific Sefaria textual `Ref`",
         "tags": [
           "Text"
         ],
@@ -1199,88 +1200,17 @@
         ],
         "responses": {
           "200": {
+            "description": "Successful response",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/textAPIReponse"
-                },
-                "examples": {
-                  "Shabbat 22a.1": {
-                    "value": {
-                      "ref": "Shabbat 22a:1",
-                      "heRef": "שבת כ״ב א:א׳",
-                      "isComplex": false,
-                      "text": "",
-                      "he": [],
-                      "versions": [],
-                      "textDepth": 2,
-                      "sectionNames": [],
-                      "addressTypes": [],
-                      "lengths": [],
-                      "length": 314,
-                      "heTitle": "שבת כ״ב א",
-                      "titleVariants": [],
-                      "heTitleVariants": [],
-                      "type": "Talmud",
-                      "primary_category": "Talmud",
-                      "book": "Shabbat",
-                      "categories": [],
-                      "order": [],
-                      "sections": [],
-                      "toSections": [],
-                      "isDependant": false,
-                      "indexTitle": "Shabbat",
-                      "heIndexTitle": "שבת",
-                      "sectionRef": "Shabbat 22a",
-                      "firstAvailableSectionRef": "Shabbat 22a:1",
-                      "heSectionRef": "שבת כ״ב א",
-                      "isSpanning": false,
-                      "versionTitle": "William Davidson Edition - English",
-                      "versionTitleInHebrew": "מהדורת וויליאם דייוידסון - אנגלית",
-                      "shortVersionTitle": "Koren - Steinsaltz",
-                      "shortVersionTitleInHebrew": "",
-                      "versionSource": "https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1",
-                      "versionStatus": "locked",
-                      "versionNotes": "English from The William Davidson digital edition of the <a href='https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1'>Koren Noé Talmud</a>, with commentary by <a href='/adin-even-israel-steinsaltz'>Rabbi Adin Even-Israel Steinsaltz</a>",
-                      "extendedNotes": "",
-                      "extendedNotesHebrew": "",
-                      "versionNotesInHebrew": "תרגום אנגלי של תלמוד מהדורת ויליאם דיוידסון מתוך מהדורת <a href='https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1'>Noé</a> עם פירוש <a href='/adin-even-israel-steinsaltz'>הרב עדין אבן ישראל שטיינזלץ</a>, בהוצאת קורן ירושלים",
-                      "digitizedBySefaria": false,
-                      "license": "CC-BY-NC",
-                      "formatEnAsPoetry": false,
-                      "heVersionTitle": "William Davidson Edition - Vocalized Aramaic",
-                      "heVersionTitleInHebrew": "מהדורת וויליאם דייוידסון - ארמית המנוקד",
-                      "heShortVersionTitle": "",
-                      "heShortVersionTitleInHebrew": "",
-                      "heVersionSource": "https://www.sefaria.org",
-                      "heVersionStatus": "locked",
-                      "heVersionNotes": "Aramaic from The William Davidson digital edition of the <a href='https://www.korenpub.com/koren_en_usd/koren/talmud/koren-talmud-bavli-no.html'>Koren Noé Talmud</a>, with commentary by <a href='/adin-even-israel-steinsaltz'>Rabbi Adin Even-Israel Steinsaltz</a>\nNikud (vocalization) by <a href='https://dicta.org.il/'>Dicta - the Israel Center for Text Analysis</a>",
-                      "heExtendedNotes": "",
-                      "heExtendedNotesHebrew": "",
-                      "heVersionNotesInHebrew": "הטקסט הארמי של מהדורת וויליאם דייוידסון הדיגיטלית מתוך <a href='https://www.korenpub.com/koren_en_usd/koren/talmud/koren-talmud-bavli-no.html'>תלמוד קורן מהדורת נאה</a>, עם באור מאת <a href='/adin-even-israel-steinsaltz'>הרב אבן־ישראל (שטיינזלץ)</a>\nמנוקד על ידי <a href='https://dicta.org.il/'>דיקטה - המרכז הישראלי לניתוח טקסטים</a>",
-                      "heDigitizedBySefaria": false,
-                      "heLicense": "CC-BY-NC",
-                      "formatHeAsPoetry": false,
-                      "title": "Shabbat 22a",
-                      "heBook": "שבת",
-                      "alts": [],
-                      "index_offsets_by_depth": {},
-                      "next": "Shabbat 22b",
-                      "prev": "Shabbat 21b",
-                      "commentary": [],
-                      "sheets": [],
-                      "layer": []
-                    }
-                  }
                 }
-              }
-            },
-            "description": "Successful response"
+            }
           }
         },
         "deprecated": true,
         "summary": "Texts (v1)",
-        "description": "Retrieve the text and some additional metadata for a specific Sefaria textual `Ref`"
       },
       "parameters": [
         {
@@ -1311,6 +1241,7 @@
         }
       ]
     },
+    },
     "/api/texts/versions/{index}": {
       "summary": "All Available Versions of a Text",
       "description": "This endpoint return all of the available versions of a text given an index title passed as a parameter. ",
@@ -1340,7 +1271,7 @@
                         "status": "locked",
                         "license": "CC-BY",
                         "versionNotes": "",
-                        "digitizedBySefaria": false,
+                        "digitizedBySefaria": "",
                         "priority": 2,
                         "versionTitleInHebrew": "",
                         "versionNotesInHebrew": "",
@@ -1360,7 +1291,7 @@
                         "status": "locked",
                         "license": "CC-BY",
                         "versionNotes": "",
-                        "digitizedBySefaria": false,
+                        "digitizedBySefaria": "",
                         "priority": 2,
                         "versionTitleInHebrew": "",
                         "versionNotesInHebrew": "",
@@ -1380,7 +1311,7 @@
                         "status": "locked",
                         "license": "Public Domain",
                         "versionNotes": "",
-                        "digitizedBySefaria": false,
+                        "digitizedBySefaria": "",
                         "priority": 1,
                         "versionTitleInHebrew": "ובלכתך בדרך",
                         "versionNotesInHebrew": "",
@@ -1400,7 +1331,7 @@
                         "status": "",
                         "license": "",
                         "versionNotes": "",
-                        "digitizedBySefaria": false,
+                        "digitizedBySefaria": "",
                         "priority": 4,
                         "versionTitleInHebrew": "תרגום קהילת ספריא",
                         "versionNotesInHebrew": "",
@@ -1420,7 +1351,7 @@
                         "status": "locked",
                         "license": "CC-BY",
                         "versionNotes": "",
-                        "digitizedBySefaria": false,
+                        "digitizedBySefaria": "",
                         "priority": 3,
                         "versionTitleInHebrew": "",
                         "versionNotesInHebrew": "",
@@ -2930,7 +2861,7 @@
               "required": false
           }
       ]
-  },
+    },
     "/api/related/{tref}": {
       "summary": "The Related API",
       "description": "The Related API returns all related links, sheets, notes, webpages, topics, manuscripts, and other connected media for a given `Ref`. ",
@@ -6687,7 +6618,7 @@
               "status": "locked",
               "license": "Public Domain",
               "versionNotes": "",
-              "digitizedBySefaria": false,
+              "digitizedBySefaria": "",
               "priority": 3,
               "versionTitleInHebrew": "תורת אמת 357",
               "versionNotesInHebrew": "",
@@ -6706,7 +6637,7 @@
               "status": "locked",
               "license": "Public Domain",
               "versionNotes": "",
-              "digitizedBySefaria": true,
+              "digitizedBySefaria": "1",
               "priority": 2,
               "versionTitleInHebrew": "משנה, מהדורת בית דפוס ראם, וילנא 1913",
               "versionNotesInHebrew": "",
@@ -6725,7 +6656,7 @@
               "status": "locked",
               "license": "CC-BY",
               "versionNotes": "",
-              "digitizedBySefaria": false,
+              "digitizedBySefaria": "",
               "priority": 1,
               "versionTitleInHebrew": "",
               "versionNotesInHebrew": "",
@@ -6744,7 +6675,7 @@
               "status": "locked",
               "license": "Public Domain",
               "versionNotes": "Ordnung Seraïm, übers. und erklärt von Ascher Samter. 1887.<br>Ordnung Moed, von Eduard Baneth. 1887-1927.<br>Ordnung Naschim, von Marcus Petuchowski u. Simon Schlesinger. 1896-1933.<br>Ordnung Nesikin, von David Hoffmann. 1893-1898.<br>Ordnung Kodaschim, von John Cohn. 1910-1925.<br>Ordnung Toharot, von David Hoffmann, John Cohn und Moses Auerbach. 1910-1933.",
-              "digitizedBySefaria": false,
+              "digitizedBySefaria": "",
               "priority": 0.5,
               "versionTitleInHebrew": "",
               "versionNotesInHebrew": "",
@@ -6763,7 +6694,7 @@
               "status": "locked",
               "license": "Public Domain",
               "versionNotes": "",
-              "digitizedBySefaria": true,
+              "digitizedBySefaria": "1",
               "priority": 0.25,
               "versionTitleInHebrew": "",
               "versionNotesInHebrew": "",
@@ -6841,7 +6772,7 @@
           "extendedNotes": "",
           "extendedNotesHebrew": "",
           "versionNotesInHebrew": "",
-          "digitizedBySefaria": false,
+          "digitizedBySefaria": "",
           "license": "CC-BY",
           "formatEnAsPoetry": false,
           "heVersionTitle": "Torat Emet 357",
@@ -7270,12 +7201,12 @@
           "digitizedBySefaria": {
             "description": "Whether or not the text was digitized by Sefaria. We have some texts we've been able to add to our database from digital sources, and other texts that we've transfered from print to a digital medium ourselves. This field indicates if Sefaria did the digitization. ",
             "type": "boolean",
-            "example": "True"
+            "example": true
           },
           "priority": {
             "description": "The priority field is a number which indicates the priority of a version relative to all other existing versions of the same text. A value of `1` indicates the lowest priority, while the highest value among all versions of the text indicate the highest priority. \n\nPriority values can also be floating point numbers. The priority field determines how the various available versions of a text will be displayed on the Sefaria website. The texts are displayed to the user in a highest-to-lowest priority order, in many cases offering more complete or higher quality versions of the text before ones of inferior quality. ",
             "type": "number",
-            "example": "7"
+            "example": 7
           },
           "versionTitleInHebrew": {
             "description": "The title of the version in Hebrew",
@@ -7546,7 +7477,7 @@
             "type": "array",
             "items": {
               "description": "A single learning schedule for the selected date",
-              "type": "object",
+              "type": "string",
               "properties": {
                 "title": {
                   "description": "The learning schedule title in `he` and `en`",
@@ -7563,7 +7494,7 @@
                 },
                 "displayValue": {
                   "description": "The name of the reading for the selected date in the learning schedule in `en` and `he`",
-                  "type": "object",
+                  "type": "string",
                   "properties": {
                     "en": {
                       "type": "string"
@@ -7875,33 +7806,7 @@
             "example": "\"alt_ids\": {\n    \"_temp_id\": \"משה\",\n    \"wikidata\": \"Q9077\",\n    \"_old_slug\": \"-75\"\n}"
           },
           "properties": {
-            "$ref": "#/components/schemas/TopicPropertyJson",
-            "description": "The properties stores optional data relating to the topic, including links (if relevant) to where on can learn more about the topic. ",
-            "properties": {
-              "heNliLink": {
-                "type": "object",
-                "properties": {
-                  "value": {
-                    "type": "string"
-                  },
-                  "dataSource": {
-                    "type": "string"
-                  }
-                }
-              },
-              "enNliLink": {
-                "type": "object",
-                "properties": {
-                  "value": {
-                    "type": "string"
-                  },
-                  "dataSource": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "example": "\"properties\": {\n    \"heNliLink\": {\n        \"value\": \"https://www.nli.org.il/he/discover/judaism/holidays/sukkot\",\n        \"dataSource\": \"sefaria\"\n    },\n    \"enNliLink\": {\n        \"value\": \"https://www.nli.org.il/en/discover/judaism/holidays/sukkot\",\n        \"dataSource\": \"sefaria\"\n    }\n}"
+            "$ref": "#/components/schemas/TopicPropertyJson"
           },
           "description": {
             "$ref": "#/components/schemas/BillingualJSON",
@@ -8146,7 +8051,6 @@
         "type": "object",
         "properties": {
           "heNliLink": {
-            "$ref": "#/components/schemas/NLILinkJSON",
             "description": "A link to the Hebrew page on the website of the National Library of Israel which corresponds to the given topic, so users can learn more. ",
             "properties": {
               "value": {
@@ -9018,7 +8922,37 @@
             "items": {
               "$ref": "#/components/schemas/v3TextVersionsJSON"
             },
-            "example": "{\n\"status\": \"locked\",\n\"priority\": 2,\n\"license\": \"CC-BY-SA\",\n\"versionNotes\": \"<i>Miqra According to the Masorah</i> (MAM) is a digital Hebrew edition of the Tanakh based on the Aleppo Codex and related manuscripts. It is designed for readers, and as such it contains added elements to aid vocalization of the text. For instance: When an accent is marked in an unstressed syllable, an extra accent is added in the proper place (<i>pashta</i>, <i>zarqa</i>, <i>segol</i>, <i>telisha</i>). <i>Legarmeih</i> and <i>paseq</i> are visibly distinguished. <i>Qamaz qatan</i> is indicated by its designated Unicode character (alternatives are documented where traditions differ about its application).<br>The text of MAM is fully documented. The <a href=\\\"https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94/%D7%9E%D7%99%D7%93%D7%A2_%D7%A2%D7%9C_%D7%9E%D7%94%D7%93%D7%95%D7%A8%D7%94_%D7%96%D7%95\\\">complete introduction</a> to the edition (Hebrew) explains the types of editorial decisions that have been made and the reasons for them (<a href=\\\"https://en.wikisource.org/wiki/User:Dovi/Miqra_according_to_the_Masorah#About_this_Edition_(English_Abstract)\\\">English abstract</a>). In addition, every word in the Bible about which there is some textual concern or ambiguity includes a documentation note; these notes can be viewed conveniently <a href=\\\"https://bdenckla.github.io/MAM-with-doc/\\\">here</a>. If an error is discovered, it may be reported to <a href=\\\"https://he.wikisource.org/wiki/%D7%A9%D7%99%D7%97%D7%AA_%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi\\\">User:Dovi</a> at Hebrew Wikisource. Please check the documentation notes before reporting an error.\",\n\"formatAsPoetry\": \"\",\n\"digitizedBySefaria\": \"\",\n\"method\": \"\",\n\"heversionSource\": \"\",\n\"versionUrl\": \"\",\n\"versionTitleInHebrew\": \"מקרא על פי המסורה\",\n\"versionNotesInHebrew\": \"\",\n\"shortVersionTitle\": \"\",\n\"shortVersionTitleInHebrew\": \"\",\n\"extendedNotes\": \"\",\n\"extendedNotesHebrew\": \"\",\n\"purchaseInformationImage\": \"\",\n\"purchaseInformationURL\": \"\",\n\"hasManuallyWrappedRefs\": \"\",\n\"actualLanguage\": \"he\",\n\"languageFamilyName\": \"hebrew\",\n\"isSource\": true,\n\"isPrimary\": true,\n\"direction\": \"rtl\",\n\"language\": \"he\",\n\"versionSource\": \"https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94\",\n\"versionTitle\": \"Miqra according to the Masorah\",\n\"text\": [\n[\n\"חֲז֖וֹן עֹֽבַדְיָ֑ה כֹּֽה־אָמַר֩ אֲדֹנָ֨י יֱהֹוִ֜ה לֶאֱד֗וֹם שְׁמוּעָ֨ה שָׁמַ֜עְנוּ מֵאֵ֤ת יְהֹוָה֙ וְצִיר֙ בַּגּוֹיִ֣ם שֻׁלָּ֔ח ק֛וּמוּ וְנָק֥וּמָה עָלֶ֖יהָ לַמִּלְחָמָֽה׃\",\n\"הִנֵּ֥ה קָטֹ֛ן נְתַתִּ֖יךָ בַּגּוֹיִ֑ם בָּז֥וּי אַתָּ֖ה מְאֹֽד׃\",\n\"זְד֤וֹן לִבְּךָ֙ הִשִּׁיאֶ֔ךָ שֹׁכְנִ֥י בְחַגְוֵי־סֶ֖לַע מְר֣וֹם שִׁבְתּ֑וֹ אֹמֵ֣ר בְּלִבּ֔וֹ מִ֥י יוֹרִדֵ֖נִי אָֽרֶץ׃\",\n\"אִם־תַּגְבִּ֣יהַּ כַּנֶּ֔שֶׁר וְאִם־בֵּ֥ין כּֽוֹכָבִ֖ים שִׂ֣ים קִנֶּ֑ךָ מִשָּׁ֥ם אוֹרִֽידְךָ֖ נְאֻם־יְהֹוָֽה׃\",\n\"אִם־גַּנָּבִ֤ים בָּאֽוּ־לְךָ֙ אִם־שׁ֣וֹדְדֵי לַ֔יְלָה אֵ֣יךְ נִדְמֵ֔יתָה הֲל֥וֹא יִגְנְב֖וּ דַּיָּ֑ם אִם־בֹּֽצְרִים֙ בָּ֣אוּ לָ֔ךְ הֲל֖וֹא יַשְׁאִ֥ירוּ עֹלֵלֽוֹת׃\",\n\"אֵ֚יךְ נֶחְפְּשׂ֣וּ עֵשָׂ֔ו נִבְע֖וּ מַצְפֻּנָֽיו׃\",\n\"עַֽד־הַגְּב֣וּל שִׁלְּח֗וּךָ כֹּ֚ל אַנְשֵׁ֣י בְרִיתֶ֔ךָ הִשִּׁיא֛וּךָ יָכְל֥וּ לְךָ֖ אַנְשֵׁ֣י שְׁלֹמֶ֑ךָ לַחְמְךָ֗ יָשִׂ֤ימוּ מָזוֹר֙ תַּחְתֶּ֔יךָ אֵ֥ין תְּבוּנָ֖ה בּֽוֹ׃\",\n\"הֲל֛וֹא בַּיּ֥וֹם הַה֖וּא נְאֻם־יְהֹוָ֑ה וְהַאֲבַדְתִּ֤י חֲכָמִים֙ מֵֽאֱד֔וֹם וּתְבוּנָ֖ה מֵהַ֥ר עֵשָֽׂו׃\",\n\"וְחַתּ֥וּ גִבּוֹרֶ֖יךָ תֵּימָ֑ן לְמַ֧עַן יִכָּֽרֶת־אִ֛ישׁ מֵהַ֥ר עֵשָׂ֖ו מִקָּֽטֶל׃\",\n\"מֵחֲמַ֛ס אָחִ֥יךָ יַעֲקֹ֖ב תְּכַסְּךָ֣ בוּשָׁ֑ה וְנִכְרַ֖תָּ לְעוֹלָֽם׃\",\n\"בְּיוֹם֙ עֲמׇֽדְךָ֣ מִנֶּ֔גֶד בְּי֛וֹם שְׁב֥וֹת זָרִ֖ים חֵיל֑וֹ וְנׇכְרִ֞ים בָּ֣אוּ <span class=\\\"mam-kq-trivial\\\">שְׁעָרָ֗ו</span> וְעַל־יְרוּשָׁלַ֙͏ִם֙ יַדּ֣וּ גוֹרָ֔ל גַּם־אַתָּ֖ה כְּאַחַ֥ד מֵהֶֽם׃\",\n\"וְאַל־תֵּ֤רֶא בְיוֹם־אָחִ֙יךָ֙ בְּי֣וֹם נׇכְר֔וֹ וְאַל־תִּשְׂמַ֥ח לִבְנֵֽי־יְהוּדָ֖ה בְּי֣וֹם אׇבְדָ֑ם וְאַל־תַּגְדֵּ֥ל פִּ֖יךָ בְּי֥וֹם צָרָֽה׃\",\n\"אַל־תָּב֤וֹא בְשַֽׁעַר־עַמִּי֙ בְּי֣וֹם אֵידָ֔ם אַל־תֵּ֧רֶא גַם־אַתָּ֛ה בְּרָעָת֖וֹ בְּי֣וֹם אֵיד֑וֹ וְאַל־תִּשְׁלַ֥חְנָה בְחֵיל֖וֹ בְּי֥וֹם אֵידֽוֹ׃\",\n\"וְאַֽל־תַּעֲמֹד֙ עַל־הַפֶּ֔רֶק לְהַכְרִ֖ית אֶת־פְּלִיטָ֑יו וְאַל־תַּסְגֵּ֥ר שְׂרִידָ֖יו בְּי֥וֹם צָרָֽה׃\",\n\"כִּֽי־קָר֥וֹב יוֹם־יְהֹוָ֖ה עַל־כׇּל־הַגּוֹיִ֑ם כַּאֲשֶׁ֤ר עָשִׂ֙יתָ֙ יֵעָ֣שֶׂה לָּ֔ךְ גְּמֻלְךָ֖ יָשׁ֥וּב בְּרֹאשֶֽׁךָ׃\",\n\"כִּ֗י כַּֽאֲשֶׁ֤ר שְׁתִיתֶם֙ עַל־הַ֣ר קׇדְשִׁ֔י יִשְׁתּ֥וּ כׇֽל־הַגּוֹיִ֖ם תָּמִ֑יד וְשָׁת֣וּ וְלָע֔וּ וְהָי֖וּ כְּל֥וֹא הָיֽוּ׃\",\n\"וּבְהַ֥ר צִיּ֛וֹן תִּהְיֶ֥ה פְלֵיטָ֖ה וְהָ֣יָה קֹ֑דֶשׁ וְיָֽרְשׁוּ֙ בֵּ֣ית יַֽעֲקֹ֔ב אֵ֖ת מוֹרָֽשֵׁיהֶֽם׃\",\n\"וְהָיָה֩ בֵית־יַעֲקֹ֨ב אֵ֜שׁ וּבֵ֧ית יוֹסֵ֣ף לֶהָבָ֗ה וּבֵ֤ית עֵשָׂו֙ לְקַ֔שׁ וְדָלְק֥וּ בָהֶ֖ם וַאֲכָל֑וּם וְלֹֽא־יִֽהְיֶ֤ה שָׂרִיד֙ לְבֵ֣ית עֵשָׂ֔ו כִּ֥י יְהֹוָ֖ה דִּבֵּֽר׃\",\n\"וְיָרְשׁ֨וּ הַנֶּ֜גֶב אֶת־הַ֣ר עֵשָׂ֗ו וְהַשְּׁפֵלָה֙ אֶת־פְּלִשְׁתִּ֔ים וְיָרְשׁוּ֙ אֶת־שְׂדֵ֣ה אֶפְרַ֔יִם וְאֵ֖ת שְׂדֵ֣ה שֹׁמְר֑וֹן וּבִנְיָמִ֖ן אֶת־הַגִּלְעָֽד׃\",\n\"וְגָלֻ֣ת הַֽחֵל־הַ֠זֶּ֠ה לִבְנֵ֨י יִשְׂרָאֵ֤ל אֲשֶֽׁר־כְּנַעֲנִים֙ עַד־צָ֣רְפַ֔ת וְגָלֻ֥ת יְרוּשָׁלַ֖͏ִם אֲשֶׁ֣ר בִּסְפָרַ֑ד יִֽרְשׁ֕וּ אֵ֖ת עָרֵ֥י הַנֶּֽגֶב׃\",\n\"וְעָל֤וּ מֽוֹשִׁעִים֙ בְּהַ֣ר צִיּ֔וֹן לִשְׁפֹּ֖ט אֶת־הַ֣ר עֵשָׂ֑ו וְהָיְתָ֥ה לַֽיהֹוָ֖ה הַמְּלוּכָֽה׃\"\n]\n],\n\"firstSectionRef\": \"Obadiah 1\"}\n"
+            "example": [
+              {
+                "status": "locked",
+                "priority": 2,
+                "license": "CC-BY-SA",
+                "versionNotes": "<i>Miqra According to the Masorah</i> (MAM) is a digital Hebrew edition of the Tanakh based on the Aleppo Codex and related manuscripts. It is designed for readers, and as such it contains added elements to aid vocalization of the text. For instance: When an accent is marked in an unstressed syllable, an extra accent is added in the proper place (<i>pashta</i>, <i>zarqa</i>, <i>segol</i>, <i>telisha</i>). <i>Legarmeih</i> and <i>paseq</i> are visibly distinguished. <i>Qamaz qatan</i> is indicated by its designated Unicode character (alternatives are documented where traditions differ about its application).<br>The text of MAM is fully documented. The <a href=\\\"https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94/%D7%9E%D7%99%D7%93%D7%A2_%D7%A2%D7%9C_%D7%9E%D7%94%D7%93%D7%95%D7%A8%D7%94_%D7%96%D7%95\\\">complete introduction</a> to the edition (Hebrew) explains the types of editorial decisions that have been made and the reasons for them (<a href=\\\"https://en.wikisource.org/wiki/User:Dovi/Miqra_according_to_the_Masorah#About_this_Edition_(English_Abstract)\\\">English abstract</a>). In addition, every word in the Bible about which there is some textual concern or ambiguity includes a documentation note; these notes can be viewed conveniently <a href=\\\"https://bdenckla.github.io/MAM-with-doc/\\\">here</a>. If an error is discovered, it may be reported to <a href=\\\"https://he.wikisource.org/wiki/%D7%A9%D7%99%D7%97%D7%AA_%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi\\\">User:Dovi</a> at Hebrew Wikisource. Please check the documentation notes before reporting an error.",
+                "formatAsPoetry": "",
+                "digitizedBySefaria": "",
+                "method": "",
+                "heversionSource": "",
+                "versionUrl": "",
+                "versionTitleInHebrew": "מקרא על פי המסורה",
+                "versionNotesInHebrew": "",
+                "shortVersionTitle": "",
+                "shortVersionTitleInHebrew": "",
+                "extendedNotes": "",
+                "extendedNotesHebrew": "",
+                "purchaseInformationImage": "",
+                "purchaseInformationURL": "",
+                "hasManuallyWrappedRefs": "",
+                "actualLanguage": "he",
+                "languageFamilyName": "hebrew",
+                "isSource": true,
+                "isPrimary": true,
+                "direction": "rtl",
+                "language": "he",
+                "versionSource": "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94",
+                "versionTitle": "Miqra according to the Masorah",
+                "text": "חֲז֖וֹן עֹֽבַדְיָ֑ה כֹּֽה־אָמַר֩ אֲדֹנָ֨י יֱהֹוִ֜ה לֶאֱד֗וֹם שְׁמוּעָ֨ה שָׁמַ֜עְנוּ מֵאֵ֤ת יְהֹוָה֙ וְצִיר֙ בַּגּוֹיִ֣ם שֻׁלָּ֔ח ק֛וּמוּ וְנָק֥וּמָה עָלֶ֖יהָ לַמִּלְחָמָֽה׃",
+                "firstSectionRef": "Obadiah 1:1"}
+              ]
           },
           "available_versions": {
             "type": "array",
@@ -9094,7 +9028,7 @@
             "items": {
               "type": "string"
             },
-            "example": "[\n\"Tanakh\",\n\"Writings\"\n]"
+            "example": ["Tanakh", "Writings"]
           },
           "heIndexTitle": {
             "type": "string"
@@ -9154,7 +9088,7 @@
             "items": {
               "type": "string"
             },
-            "example": "[\n\"Perek\",\n\"Pasuk\"\n]"
+            "example": ["Perek", "Pasuk"]
           },
           "titleVariants": {
             "description": "Various alternative titles used for the text. ",
@@ -9162,7 +9096,7 @@
             "items": {
               "type": "string"
             },
-            "example": "[\n\"Est.\",\n\"Est\",\n\"Ester\",\n\"Esth.\",\n\"Esth\",\n\"Esther\"\n]"
+            "example": ["Est.", "Est", "Ester", "Esth.", "Esth", "Esther"]
           },
           "heTitleVariants": {
             "type": "array",
@@ -9177,9 +9111,21 @@
             "description": "A list of objects - for any version parameter that has no result there is a readable message and warning code. \n\nCodes:\n`APINoVersion = 101`\n`APINoLanguageVersion = 102`\n`APINoSourceText = 103`\n`APINoTranslationText = 104`\n",
             "type": "array",
             "items": {},
-            "example": "[\n{\n\"\\\"finnish\\\"\": {\n\"warning_code\": 102,\n\"message\": \"We do not have the language you asked for Esther 1:1. Available languages are ['english', 'esperanto', 'french', 'german', 'hebrew', 'italian', 'persian', 'polish', 'spanish', 'yiddish']\"\n}\n},\n{\n\"\\\"dutch\\\"\": {\n\"warning_code\": 102,\n\"message\": \"We do not have the language you asked for Esther 1:1. Available languages are ['english', 'esperanto', 'french', 'german', 'hebrew', 'italian', 'persian', 'polish', 'spanish', 'yiddish']\"\n}\n}\n]"
-          }
-        },
+            "example": [ 
+              { 
+                "finnish": {
+                "warning_code": 102, 
+                "message": "We do not have the language you asked for Esther 1:1. Available languages are ['english', 'esperanto', 'french', 'german', 'hebrew', 'italian', 'persian', 'polish', 'spanish', 'yiddish']"
+                }
+              },
+              {
+                "dutch": {
+                  "warning_code": 102, 
+                  "message": "We do not have the language you asked for Esther 1:1. Available languages are ['english', 'esperanto', 'french', 'german', 'hebrew', 'italian', 'persian', 'polish', 'spanish', 'yiddish']"
+                  }
+              }
+            ]
+          },
         "example": {
           "versions": [
             {
@@ -13172,5 +13118,6 @@
         }
       }
     }
+  }
   }
 }
