@@ -49,7 +49,7 @@ msgstr "མིང་ཕྱི་མ།"
 #: sefaria/forms.py:55 templates/registration/custom_dropdown.html:5
 #: templates/registration/register.html:27
 msgid "forms.placeholder_select_option"
-msgstr "ཡིག་ཆ་ཞིག་འདེམས།"
+msgstr "གནས་སྟངས་ཞིག་འདེམས།"
 
 #: sefaria/forms.py:56 templates/registration/custom_dropdown.html:10
 #: templates/registration/register.html:32
