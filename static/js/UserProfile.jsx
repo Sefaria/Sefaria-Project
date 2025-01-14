@@ -26,7 +26,6 @@ class UserProfile extends Component {
       this.setState(this.getPrivateTabState(this.props));
     }
   }
-
   getPrivateTabState(props) {
     const showBio = !!props.profile.bio;
     const tabs = [
@@ -634,7 +633,6 @@ const ProfileSummary = ({
                   { !multiPanel && profileButtons }
                 </div>
                 )}
-                
             </div>
             <div className='profilePicAndButtonContainer'>
               <ProfilePic
