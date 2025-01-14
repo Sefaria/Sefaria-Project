@@ -1148,6 +1148,7 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
     units: ['y', 'mo', 'w', 'd', 'h', 'm', 's'],
     largest: 1,
     round: true,
+    spacer: '',  // Remove default spacing
     unitMeasures: {
         y: 365 * secsInDay,
         mo: 30 * secsInDay,
@@ -1159,27 +1160,33 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
     },
     languages: {
         shortEn: {
-            y: () => "y",
-            mo: () => "mo",
-            w: () => "w",
-            d: () => "d",
-            h: () => "h",
-            m: () => "m",
-            s: () => "s",
-            ms: () => "ms",
+            y: (c) => `${c}y`,
+            mo: (c) => `${c}mo`,
+            w: (c) => `${c}w`,
+            d: (c) => `${c}d`,
+            h: (c) => `${c}h`,
+            m: (c) => `${c}m`,
+            s: (c) => `${c}s`,
+            ms: (c) => `${c}ms`,
         },
         shortBo: {
-            y: () => "ཕྱི་ལོ",
-            mo: () => "ཟླ་",
-            w: () => "བདུན་ཕྲག་",
-            d: () => "ཚེས་",
-            h: () => "ཆུ་ཚོད་",
-            m: () => "སྐར་མ་",
-            s: () => "སྐར་ཆ་",
-            ms: () => "སྟོང་ཆ་གཅིག་",
+            y: (c) => `ལོ་${Util.convertToTibetanNumeral(c)}སྔོན།`,
+            mo: (c) => `ཟླ་${Util.convertToTibetanNumeral(c)}སྔོན།`,
+            w: (c) => `བདུན་ཕྲག་${Util.convertToTibetanNumeral(c)}སྔོན།`,
+            d: (c) => `ཉིན་${Util.convertToTibetanNumeral(c)}སྔོན།`,
+            h: (c) => `ཆུ་ཚོད་${Util.convertToTibetanNumeral(c)}སྔོན།`,
+            m: (c) => `སྐར་མ་${Util.convertToTibetanNumeral(c)}སྔོན།`,
+            s: (c) => `སྐར་ཆ་${Util.convertToTibetanNumeral(c)}སྔོན།`,
+            ms: () => "སྟོང་ཆ་གཅིག་སྔོན།",
         },
     },
 });
+
+// Add this utility function to convert Arabic numerals to Tibetan numerals
+Util.convertToTibetanNumeral = function(number) {
+    const tibetanNumerals = ['༠', '༡', '༢', '༣', '༤', '༥', '༦', '༧', '༨', '༩'];
+    return number.toString().split('').map(digit => tibetanNumerals[parseInt(digit)]).join('');
+};
 
 
 export default Util;
