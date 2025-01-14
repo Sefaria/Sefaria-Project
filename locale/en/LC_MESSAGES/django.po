@@ -790,7 +790,7 @@ msgstr "You are already logged in as"
 
 #: templates/registration/login.html:17
 msgid "common.registration.login.log_out"
-msgstr "Logout."
+msgstr "To use another account: Logout."
 
 #: templates/registration/login.html:33
 msgid "registration.login.username_and_password_didn't_match_message"
