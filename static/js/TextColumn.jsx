@@ -395,7 +395,7 @@ class TextColumn extends Component {
         unsetTextHighlight={this.props.unsetTextHighlight}
         navigatePanel={this.props.navigatePanel}
         translationLanguagePreference={this.props.translationLanguagePreference}
-        key={oref.sectionRef} />);
+        key={sref} />);
     });
 
     let pre, post, bookTitle;
