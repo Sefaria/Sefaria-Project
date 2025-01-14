@@ -4987,6 +4987,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoButton {
+  border: none;
+  font-size: 16px;
   border-radius: 6px;
   background-color: white;
   padding: 5px 11px;
