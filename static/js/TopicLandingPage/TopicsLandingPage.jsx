@@ -13,7 +13,9 @@ import Sefaria from "../sefaria/sefaria";
 
 export const TopicsLandingPage = ({openTopic}) => {
     const sidebarModules = [
-        {type: "TopicLandingTrendingTopics"}
+        {type: "TopicLandingTopicCatList"},
+        {type: "TopicLandingTrendingTopics"},
+        {type: "AZTopicsLink"},
     ];
     return (
         <div className="readerNavMenu" key="0">

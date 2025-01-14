@@ -4954,6 +4954,11 @@ h1.topic-landing-header {
 .topic-landing-search-suggestion.highlighted{
   background-color: #EDEDEC;
 }
+.topic-landing-sidebar-list{
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 20px
+}
 
 .topic-landing-search-dropdown{
   background: #FFFFFF;
