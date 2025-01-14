@@ -764,12 +764,13 @@ Sefaria = extend(Sefaria, {
       Sefaria._portals[portalSlug] = response;
       return response;
   },
-  subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck) {
+  subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck, lists = []) {
       const payload = {
         language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
         educator: educatorCheck,
         firstName: firstName,
         lastName: lastName,
+        ...(lists?.length && { lists }),
       };
       return await Sefaria.apiRequestWithBody(`/api/subscribe/${email}`, null, payload);
   },
