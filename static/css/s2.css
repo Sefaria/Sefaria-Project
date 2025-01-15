@@ -5121,6 +5121,14 @@ h1.topic-landing-header {
   margin-top: 43px;
   z-index: 0;
 }
+.singlePanel .topic-landing-upper-rainbow{
+  margin-bottom: 20px;
+  z-index: 0;
+}
+.singlePanel .topic-landing-lower-rainbow{
+  margin-top: 20px;
+  z-index: 0;
+}
 /*'Dummy' font, a hack to prevent the ellipsis char from being displayed at the end of a webkit line-clamped element*/
 /*This font addresses only the ellipsis char, rendering its size 0% */
 @font-face {
@@ -5139,6 +5147,10 @@ h1.topic-landing-header {
   text-overflow: clip;
   font-family: hide-ellipsis-char-font;
 }
+.rowed-salad-container{
+  white-space: nowrap;
+  overflow-x: scroll;
+}
 
 .topic-salad{
   font-size: 22px;
@@ -5152,6 +5164,14 @@ h1.topic-landing-header {
   margin: 11px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.rowed-salad-item-container{
+  border-radius: 6px;
+  background: var(--Sefaria-Blue, #18345D);
+  margin-inline-end: 7px;
+  color: var(--White, #FFF);
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 .no-wrapping-salad-item-container{
   white-space: nowrap;
