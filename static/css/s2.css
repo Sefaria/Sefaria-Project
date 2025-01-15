@@ -5154,6 +5154,7 @@ h1.topic-landing-header {
 .rowed-salad-container{
   white-space: nowrap;
   overflow-x: scroll;
+  height: 50px;
 }
 
 .topic-salad{
