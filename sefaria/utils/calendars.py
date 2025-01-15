@@ -282,17 +282,15 @@ def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
     return haftarah_objs
 
 
-def make_parashah_response_from_calendar_entry(db_parasha):
+def make_parashah_response_from_calendar_entry(db_parasha, include_topic_slug=False):
     rf = model.Ref(db_parasha["ref"])
 
-    parashiot = db_parasha["parasha"].split("-") # Could be a double parashah
-    p_en, p_he = [], []
-    for p in parashiot:
-        parasha_topic = model.Topic().load({"parasha": p})
-        if parasha_topic:
-            p_en.append(parasha_topic.description["en"])
-            p_he.append(parasha_topic.description["he"])
-    parasha_description = {"en": "\n\n".join(p_en), "he": "\n\n".join(p_he)}
+    parasha_topic = model.Topic().load({"parasha": db_parasha['parasha']})
+    p_en = p_he = ""
+    if parasha_topic:
+        p_en = parasha_topic.description["en"]
+        p_he = parasha_topic.description["he"]
+    parasha_description = {"en": p_en, "he": p_he}
 
     parasha = {
         'title': {'en': 'Parashat Hashavua', 'he': 'פרשת השבוע'},
@@ -305,6 +303,8 @@ def make_parashah_response_from_calendar_entry(db_parasha):
         'extraDetails': {'aliyot': db_parasha["aliyot"]},
         'description': parasha_description
     }
+    if include_topic_slug and parasha_topic:
+        parasha['topic'] = parasha_topic.slug   # include the slug so that the Sheets Homepage has access to the parasha's topic link
     return [parasha]
 
 

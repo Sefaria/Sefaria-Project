@@ -1,7 +1,23 @@
 from django.db import models
 from django_topics.models import Topic
 from django.core.exceptions import ValidationError
+from django.utils.timezone import now
+from datetime import datetime
 
+class SeasonalTopicManager(models.Manager):
+    def get_seasonal_topic(self, lang: str, date: datetime = None) -> 'SeasonalTopic':
+        """
+        Return seasonal topic for given date or closest date that is less than or equal to given date
+        @param lang: language code, "en" or "he"
+        @param date: datetime object
+        @return:
+        """
+        date = date or now().date()
+        return (
+            self.filter(start_date__lte=date, lang=lang)
+            .order_by('-start_date')
+            .first()
+        )
 
 class SeasonalTopic(models.Model):
     topic = models.ForeignKey(
@@ -25,6 +41,7 @@ class SeasonalTopic(models.Model):
     display_date_prefix = models.CharField(max_length=255, blank=True, null=True)
     display_date_suffix = models.CharField(max_length=255, blank=True, null=True)
     lang = models.CharField(max_length=2, choices=[('en', 'English'), ('he', 'Hebrew')])
+    objects = SeasonalTopicManager()
 
     class Meta:
         unique_together = ('topic', 'start_date')
@@ -60,6 +77,12 @@ class SeasonalTopic(models.Model):
 
     def __str__(self):
         return f"{self.topic.slug} ({self.start_date})"
+
+    def get_display_start_date(self, diaspora=True):
+        return self.display_start_date_diaspora if diaspora else self.display_start_date_israel
+
+    def get_display_end_date(self, diaspora=True):
+        return self.display_end_date_diaspora if diaspora else self.display_end_date_israel
 
 
 class SeasonalTopicEnglish(SeasonalTopic):
