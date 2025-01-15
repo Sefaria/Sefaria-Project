@@ -4994,6 +4994,10 @@ h1.topic-landing-header {
   overflow-y: scroll;
   position: absolute;
 }
+.singlePanel .topic-landing-search-dropdown{
+  width: auto;
+  margin-top: 38px;
+}
 .topic-landing-search-dropdown:empty {
   padding: 0;
   visibility: hidden;
