@@ -548,6 +548,8 @@ Sefaria = extend(Sefaria, {
     const versions = requiredVersions.map(obj =>
         Sefaria.makeParamsStringForAPIV3(obj.languageFamilyName, obj.versionTitle)
     );
+    versions.sort();
+
     const mergeTextInt = mergeText ? 1 : 0;
     const return_format_string = (return_format) ? `&return_format=${return_format}` : '';
     const encodedRef = Sefaria.normRef(ref);
@@ -555,13 +557,19 @@ Sefaria = extend(Sefaria, {
     return url;
   },
   _textsStore: {},
+  _textsStoreSet: function(key, value) {
+    this._textsStore[key] = value;
+  },
   getTextsFromAPIV3: async function(ref, requiredVersions, mergeText, return_format) {
     // ref is segment ref or bottom level section ref
-    // requiredVersions is array of objects that can have languageFamilyName and versionTitle
+    // requiredVersions is an array of objects that can have languageFamilyName and versionTitle
     const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
     const apiObject = await Sefaria._cachedApiPromise({url: url, key: url, store: Sefaria._textsStore});
-    this._textsStore[ref] = apiObject;
     return apiObject;
+  },
+  _makeV3VersionsUrlCacheKey: function(ref, versions) {
+    versions.map(version => version.isPrimary ? { languageFamilyName: 'primary' } : version);
+    return Sefaria.makeUrlForAPIV3Text(ref, versions, true, 'wrap_all_entities')
   },
   getAllTranslationsWithText: async function(ref) {
     let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{languageFamilyName: 'translation', versionTitle: 'all'}], false);
@@ -756,12 +764,13 @@ Sefaria = extend(Sefaria, {
       Sefaria._portals[portalSlug] = response;
       return response;
   },
-  subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck) {
+  subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck, lists = []) {
       const payload = {
         language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
         educator: educatorCheck,
         firstName: firstName,
         lastName: lastName,
+        ...(lists?.length && { lists }),
       };
       return await Sefaria.apiRequestWithBody(`/api/subscribe/${email}`, null, payload);
   },
@@ -2522,7 +2531,7 @@ _media: {},
       //This is temporary for RTL - we check savedVersion?.[key] for old data and savedVersion?.[key]?.versionTitle for new data
       //also we currently don't check the languageFamilyName to fit old data
       const savedVersionTitle = savedVersion?.[key]?.versionTitle ?? savedVersion?.[key] ?? '';
-      const currVersionTitle = currVersion?.[key]?.versionTitle ?? '';
+      const currVersionTitle = currVersion?.[key]?.versionTitle ?? currVersion?.[key] ?? '';
       return savedVersionTitle === currVersionTitle;
     }
     return checkEquality("en") && checkEquality("he");
@@ -3352,10 +3361,13 @@ Sefaria.unpackDataFromProps = function(props) {
   for (let i = 0; i < initialPanels.length; i++) {
       let panel = initialPanels[i];
       if (panel.text) {
+        const urlKey = Sefaria._makeV3VersionsUrlCacheKey(panel.text.ref, panel.text.versions)
+        Sefaria._textsStoreSet(urlKey, panel.text);
+
         let settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         //save versions first, so their new format is also saved on text cache
         if(panel.text?.versions?.length){
-            let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.available_versions);
+            let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
             panel.text.versions = Sefaria._makeVersions(versions, false);
         }
 
