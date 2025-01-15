@@ -4890,10 +4890,17 @@ h1.topic-landing-header {
   color: var(--dark-grey);
   margin: 0;
 }
+.singlePanel h1.topic-landing-header{
+  font-size: 22px;
+  margin-bottom: -52px;
+}
 
 .topic-landing-page-content .topic-landing-section {
   margin-top: 70px;
   width: 100%;
+}
+.singlePanel .topic-landing-page-content .topic-landing-section{
+
 }
 
 .interface-hebrew .topic-landing-page-wrapper{
@@ -4911,10 +4918,20 @@ h1.topic-landing-header {
   width: 634px;
   height: 60px;
 }
+.singlePanel .topic-landing-search-container{
+  width: 344px;
+  height: 47.262px;
+}
 
 .topic-landing-search-input-box-wrapper{
   display: flex;
   margin-top: 15px;
+}
+.singlePanel .topic-landing-search-input-box-wrapper{
+  display: flex;
+  margin-top: 9px;
+  font-style: normal;
+  margin-inline-start: 277px;
 }
 
 .topic-landing-search-input{
@@ -4928,6 +4945,11 @@ h1.topic-landing-header {
   font-weight: 500;
   border: none;
   width: 600px;
+}
+.singlePanel .topic-landing-search-input{
+  font-family: Roboto;
+  font-size: 14px;
+  margin-top: 2px;
 }
 
 .topic-landing-search-suggestion{
