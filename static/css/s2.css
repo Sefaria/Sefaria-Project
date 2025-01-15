@@ -5099,10 +5099,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: center;
  }
  .leftButtons {
-   text-align: start;
+  text-align: start;
  }
  .rightButtons {
-   text-align: end;
+  text-align: end;
  }
 /* icons need a little nudge in flipped hebrew mode */
 .interface-hebrew .rightButtons {
