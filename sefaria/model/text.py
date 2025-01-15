@@ -1029,7 +1029,11 @@ class AbstractTextRecord(object):
 
     def word_count(self):
         """ Returns the number of words in this text """
-        return self.ja(remove_html=True).word_count()
+        try:
+            wc = self.ja(remove_html=True).word_count()
+        except AttributeError:
+            wc = 0
+        return wc
 
     def char_count(self):
         """ Returns the number of characters in this text """
