@@ -17,7 +17,14 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
   return (
       <div className="navBlock">
-        <a href={`/topics/category/${cat.slug}`} className="navBlockTitle" onClick={openCat}>
+        <a
+            href={`/topics/category/${cat.slug}`}
+            className="navBlockTitle"
+            onClick={openCat}
+            data-anl-event="navto_topic:click"
+            data-anl-link_type="category"
+            data-anl-text={cat.en}
+        >
           <InterfaceText text={cat} />
         </a>
         <div className="navBlockDescription">
@@ -55,10 +62,15 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
 
 
   return (
-    <div className="readerNavMenu noLangToggleInHebrew" key="0">
+    <div
+        className="readerNavMenu noLangToggleInHebrew"
+        key="0"
+        data-anl-project="topics"
+        data-anl-panel_category="NULL"
+    >
       <div className="content">
         <div className="sidebarLayout">
-          <div className="contentInner">
+          <div className="contentInner" data-anl-feature_name="Main">
               <div className="navTitle tight sans-serif">
                   <CategoryHeader type="topics" toggleButtonIDs={["subcategory", "reorder"]}>
                     <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
