@@ -193,6 +193,7 @@ class TextRequestAdapter:
             version['text'] = ja.modify_by_function(composite_func)
 
     def get_versions_for_query(self) -> dict:
+        self.oref = self.oref.default_child_ref()
         for lang, vtitle in self.versions_params:
             self._append_required_versions(lang, vtitle)
         self._add_ref_data_to_return_obj()
