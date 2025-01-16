@@ -2604,6 +2604,14 @@ _media: {},
       store: Sefaria._profiles
     });
   },
+  _plugins: {},
+  getPlugins: () => {
+    return Sefaria._cachedApiPromise({
+      url: Sefaria.apiHost + "/plugin/all",
+      key: "plugins",
+      store: Sefaria._plugins
+    });
+  },
   userHistory: {loaded: false, items: []},
   loadUserHistory: function (limit, callback) {
       const skip = Sefaria.userHistory.items.length;

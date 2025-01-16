@@ -69,6 +69,7 @@ undecorated==0.3.0
 unicodecsv==0.14.1
 unidecode==1.1.1
 user-agents==2.2.0
+cryptography==44.0.0
 pytest-django==4.9.*
 
 #opentelemetry-distro

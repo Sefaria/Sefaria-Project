@@ -12,6 +12,7 @@ from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 import reader.views as reader_views
 import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
+import plugins.views as plugins_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 import api.views as api_views
@@ -473,6 +474,13 @@ urlpatterns += staticfiles_urlpatterns()
 urlpatterns += [
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
     url(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
+]
+
+# Plugin API
+urlpatterns += [
+    url(r'^plugin/dev/?$', plugins_views.dev),
+    url(r'^plugin/(?P<plugin_id>.+)/user/?$', plugins_views.get_user_plugin_secret),
+    url(r'^plugin/all?$', plugins_views.all_plugins),
 ]
 
 if DOWN_FOR_MAINTENANCE:
