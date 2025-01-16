@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "about.about_pecha" %}{% endblock %}
+
+{% block description %}{% trans "about.about_pecha_description" %}{% endblock %}
+
+{% block css %}
+    #top #languageToggle {
+        display: inline;
+    }
+    #top #languageToggle #bilingual {
+        display: none;
+    }
+    #aboutPage a {
+        text-decoration: underline;
+    }
+{% endblock %}
+
+{% block content %}
+<main id="aboutPage" class="biReady container static sans-serif">
+    <div id="aboutCover">
+        <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
+            <source src="/static/img/home-video.webm" type="video/webm">
+            <source src="/static/img/home-video.mp4" type="video/mp4">
+            Video of sofer writing letters of the Torah
+        </video>
+    </div>
+    <div class="inner">
+        <header id="aboutHeader" class="sans-serif-in-hebrew">
+        <h1 id="aboutTitle">
+            <span class="int-he">关于贝加</span>
+        </h1>
+        <div id="aboutTitleSub">
+            <span class="int-he">佛教文献在线活库</span>
+        </div>
+        </header>
+        <section class="about section">
+            <p class="first">
+                <span class="int-he">Pecha是一家非营利组织，致力于以开放和参与的方式构建佛教学习的未来。我们正在建立一个免费的佛教文献活库，收集藏文原典及其译文，并展示它们之间的联系。通过这些数字化文献，我们能够为网页、平板电脑和移动设备创建新的互动界面，让更多人能够接触到我们传统中的文献瑰宝。
+                </span>
+            </p>
+            
+        </section>
+    </div>
+</main>
+{% endblock %}
