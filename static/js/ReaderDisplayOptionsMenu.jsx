@@ -15,7 +15,6 @@ const ReaderDisplayOptionsMenu = () => {
     const [HEBREW, ENGLISH, BILINGUAL] = ['hebrew', 'english', 'bilingual'];
 
     const showLangaugeToggle = () => {
-      if (isPanelModeSheet) { return false; }
       if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
       const hasHebrew = !!textsData.he.length;
@@ -32,8 +31,8 @@ const ReaderDisplayOptionsMenu = () => {
     const borderLine = <div className="text-menu-border"/>;
 
     const showLayoutsToggle = () => {
-        return !((isPanelModeSheet && Sefaria.interfaceLang === HEBREW) || //sheets in hebrew interface are hebrew
-            (width <= 600 && language === BILINGUAL));
+        return  !((width <= 600 && language === BILINGUAL) ||
+            (isPanelModeSheet && language !== BILINGUAL));
     }
 
     const hasAliyot = () => {
@@ -89,7 +88,7 @@ const ReaderDisplayOptionsMenu = () => {
     };
 
     return (
-        <div className="texts-properties-menu">
+        <div className="texts-properties-menu" role="dialog">
             {showLangaugeToggle() && <>
                 <SourceTranslationsButtons
                     showPrimary={showPrimary}
@@ -116,8 +115,8 @@ const ReaderDisplayOptionsMenu = () => {
                     isChecked={vowelsAreShown}
                 />}
                 {showCantillationToggle() && <ToggleSwitchLine
-                    name="cantilation"
-                    text="Cantilation"
+                    name="cantillation"
+                    text="Cantillation"
                     disabled={cantillationDisabled}
                     onChange={onCantillationClick}
                     isChecked={cantillationsAreShown}
