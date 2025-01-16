@@ -136,6 +136,10 @@ class SheetContent extends Component {
       } else if ("media" in source) {
         ComponentToRender = SheetMedia;
       }
+      else {
+        console.log(source);
+        return <></>;  // handle bad data in sheet.sources
+      }
       return <ComponentToRender
         key={source.node}
         source={source}
