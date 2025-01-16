@@ -5092,19 +5092,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
-.interface-english .leftButtons,
-.interface-hebrew .rightButtons {
+.leftButtons,
+.rightButtons {
   display: flex;
   flex-direction: row;
-  text-align: left;
   align-items: center;
 }
-.interface-english .rightButtons,
-.interface-hebrew .leftButtons {
-  display: flex;
-  flex-direction: row;
-  text-align: right;
-  align-items: center;
+.leftButtons {
+  text-align: start;
+}
+.rightButtons {
+  text-align: end;
 }
 /* icons need a little nudge in flipped hebrew mode */
 .interface-hebrew .rightButtons {
