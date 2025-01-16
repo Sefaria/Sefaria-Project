@@ -1253,17 +1253,18 @@ WebPagesList.propTypes = {
 const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode, masterPanelLanguage, toggleSignUpModal}) => {
     const {textsData} = useContext(ReaderPanelContext);
     const editText = canEditText && textsData ? function () {
-      const {primaryLang, translationLang} = textsData;
       let refString = srefs[0];
-      let currentPath = Sefaria.util.currentPath();
-      const language =  (masterPanelLanguage === 'english') ? translationLang : primaryLang;
-      const langCode = language.slice(0, 2);
-      const currVersionsLangCode = masterPanelLanguage.slice(0, 2);
-      const {versionTitle} = currVersions[currVersionsLangCode];
+      const {primaryDirection, translationDirection} = textsData;
+      const currVersionsLangCode = masterPanelLanguage.slice(0,2);
+      const versionTitle = currVersions[currVersionsLangCode]?.versionTitle;
+      const direction = (masterPanelLanguage === 'english') ? translationDirection : primaryDirection;
+      const langCode = direction === 'rtl' ? 'he': 'en';
       if (versionTitle) {
         refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(versionTitle);
       }
+
       let path = "/edit/" + refString;
+      let currentPath = Sefaria.util.currentPath();
       let nextParam = "?next=" + encodeURIComponent(currentPath);
       path += nextParam;
       //console.log(path);

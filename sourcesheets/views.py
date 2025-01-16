@@ -2,7 +2,7 @@
 import json
 import httplib2
 from urllib3.exceptions import NewConnectionError
-from urllib.parse import unquote, urlencode
+from urllib.parse import unquote
 from elasticsearch.exceptions import AuthorizationException
 from datetime import datetime
 from io import StringIO, BytesIO
@@ -201,15 +201,6 @@ def view_sheet(request, sheet_id, editorMode = False):
     """
     editor = request.GET.get('editor', '0')
     embed = request.GET.get('embed', '0')
-
-    interface_lang = request.interfaceLang
-    content_lang = request.GET.get("lang", request.contentLang)
-    fixed_content_lang = 'he' if interface_lang == 'hebrew' else 'bi'
-    if content_lang != fixed_content_lang:
-        query_params = request.GET.dict()
-        query_params['lang'] = fixed_content_lang
-        new_url = f"/sheets/{sheet_id}?{urlencode(query_params)}"
-        return redirect(new_url, permanent=True)
 
     if editor != '1' and embed !='1' and editorMode is False:
         return catchall(request, sheet_id, True)

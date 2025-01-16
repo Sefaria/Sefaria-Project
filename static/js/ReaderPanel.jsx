@@ -154,8 +154,8 @@ class ReaderPanel extends Component {
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
     } else if ((mode === "Connections" && connectionsMode !== 'TextList') || !!menuOpen){
-      // Always Hebrew for Hebrew interface, treat bilingual as English for English interface
-      contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
+      // Default bilingual to interface language
+      contentLangOverride = (originalLanguage === "bilingual") ? Sefaria.interfaceLang : originalLanguage;
     }
     return contentLangOverride;
   }
@@ -639,15 +639,21 @@ class ReaderPanel extends Component {
     highlighted.click();
   }
   getPanelType() {
-    const {menuOpen, tab} = this.state;
+    const {menuOpen, tab, navigationTopic, navigationTopicCategory} = this.state;
     if (menuOpen === "topics") {
-      return `${menuOpen}_${tab}`;
+      if (navigationTopicCategory) {
+        return "Topic Navigation";
+      } else if (navigationTopic) {
+        return `${menuOpen}_${tab}`;
+      } else {
+        return "Topic Landing";
+      }
     }
   }
   getPanelName() {
     const {menuOpen, navigationTopic, navigationTopicCategory} = this.state;
     if (menuOpen === "topics") {
-      return navigationTopicCategory || navigationTopic;
+      return navigationTopicCategory || navigationTopic || "Explore by Topic";
     }
   }
   getPanelNumber() {
