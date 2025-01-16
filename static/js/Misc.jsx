@@ -23,6 +23,9 @@ import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
 
+
+const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -1887,18 +1890,12 @@ const replaceNewLinesWithLinebreaks = (content) => {
 }
 
 const SheetsEditorWarning = () => {
-  const [profile, setProfile] = useState(null);
-  useEffect(() => {
-    Sefaria.profileAPI(Sefaria.slug).then(profile => {
-      setProfile(profile);
-    });
-  }, []);
+  const [hasAcknowledgedFinalWarning, toggleHasAcknowledgedFinalWarning] = useState(Boolean(cookie("hasAcknowledgedFinalWarning")));
   const handleClick = () => {
-    profile.show_editor_final_warning = false;
-    setProfile({ ...profile});
-    Sefaria.editProfileAPI(profile);
+    cookie("hasAcknowledgedFinalWarning", "true", { path: "/", expires: 50 });
+    toggleHasAcknowledgedFinalWarning(true);
   }
-  if (!profile || !profile.show_editor_final_warning) {
+  if (!!hasAcknowledgedFinalWarning) {
     return null;
   }
   else {
