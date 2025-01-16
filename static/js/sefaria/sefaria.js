@@ -2527,12 +2527,14 @@ _media: {},
     return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
   },
   areVersionsEqual(savedVersion, currVersion) {
+    const getVersionTitle = (version) => {
+      return typeof (version === 'string' //old data (before rtl)
+        ? version
+        : version?.versionTitle) //new data
+        || '';
+    }
     const checkEquality = (key) => {
-      //This is temporary for RTL - we check savedVersion?.[key] for old data and savedVersion?.[key]?.versionTitle for new data
-      //also we currently don't check the languageFamilyName to fit old data
-      const savedVersionTitle = savedVersion?.[key]?.versionTitle ?? savedVersion?.[key] ?? '';
-      const currVersionTitle = currVersion?.[key]?.versionTitle ?? currVersion?.[key] ?? '';
-      return savedVersionTitle === currVersionTitle;
+      return getVersionTitle(savedVersion?.[key]) === getVersionTitle(currVersion?.[key]);
     }
     return checkEquality("en") && checkEquality("he");
   },
