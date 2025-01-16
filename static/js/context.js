@@ -163,6 +163,14 @@ function StrapiDataProvider({ children }) {
                 showTo
                 startTime
                 updatedAt
+                isNewsletterSubscriptionInputForm
+                newsletterMailingLists {
+                  data {
+                    attributes {
+                      newsletterName
+                    }
+                  }
+                }
               }
             }
           }

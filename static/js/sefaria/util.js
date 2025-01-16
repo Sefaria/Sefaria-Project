@@ -105,19 +105,6 @@ class Util {
         const postData = {json: JSON.stringify(feedback)};
         $.post('/api/send_feedback', postData);
     }
-     static subscribeToNbList(email, lists) {
-        if (Sefaria.util.isValidEmailAddress(email)) {
-            $.post("/api/subscribe/" + email + "?lists=" + lists, function(data) {
-                if ("error" in data) {
-                    console.log(data.error);
-                } else {
-                    console.log("Subscribed! Welcome to our list.");
-                }
-            }).error(data => console.log("Sorry, there was an error."));
-        } else {
-        console.log("not valid email address")
-        }
-    }
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;
     }

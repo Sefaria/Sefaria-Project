@@ -159,7 +159,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # ElasticSearch server
 # URL to connect to ES server.
-# Set this to https://sefaria.org/api/search to connect to production search.
+# Set this to https://sefaria.org:443/api/search to connect to production search.
 # If ElasticSearch server has a password use the following format: http(s)://{username}:{password}@{base_url}
 SEARCH_URL = "http://localhost:9200"
 

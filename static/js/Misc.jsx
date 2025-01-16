@@ -20,7 +20,6 @@ import {refSort} from "./TopicPage";
 import {TopicEditor} from "./TopicEditor";
 import {generateContentForModal, SignUpModalKind} from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
-import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
@@ -1024,7 +1023,7 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origDeathYear: data?.properties?.deathYear?.value,
     origEra: data?.properties?.era?.value,
     origImage: data?.image,
-
+    origSecondaryImageUri: data?.secondary_image_uri,
   };
 
   const origWasCat = "displays-above" in data?.links;
@@ -1434,87 +1433,14 @@ FollowButton.propTypes = {
 
 };
 
-const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
-    /*
-    `old_filename` is passed to API so that if it exists, it is deleted
-     */
-    const fileInput = useRef(null);
+const SmallBlueButton = ({onClick, tabIndex, text}) => {
+  return (
+      <div onClick={onClick} className="button extraSmall blue control-elem" tabIndex={tabIndex} role="button">
+        <InterfaceText>{text}</InterfaceText>
+      </div>
+  );
+};
 
-    const uploadImage = function(imageData, type="POST") {
-      const formData = new FormData();
-      formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
-      if (old_filename !== "") {
-        formData.append('old_filename', old_filename);
-      }
-      const request = new Request(
-        `${Sefaria.apiHost}/api/topics/images/${slug}`,
-        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
-      );
-      fetch(request, {
-          method: 'POST',
-          mode: 'same-origin',
-          credentials: 'same-origin',
-          body: formData
-      }).then(response => {
-        if (!response.ok) {
-            response.text().then(resp_text=> {
-                alert(resp_text);
-            })
-        }else{
-            response.json().then(resp_json=>{
-                callback(resp_json.url);
-            });
-        }
-    }).catch(error => {
-        alert(error);
-    })};
-    const onFileSelect = (e) => {
-          const file = fileInput.current.files[0];
-          if (file == null)
-          return;
-          if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
-              const reader = new FileReader();
-
-              reader.addEventListener("load", function() {
-                uploadImage(reader.result);
-              }, false);
-
-              reader.addEventListener("onerror", function() {
-                alert(reader.error);
-              }, false);
-
-              reader.readAsDataURL(file);
-          } else {
-            alert('The file is not an image');
-          }
-    }
-    const deleteImage = () => {
-        const old_filename_wout_url = old_filename.split("/").slice(-1);
-        const url = `${Sefaria.apiHost}/api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
-        Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => alert("Deleted image."));
-        callback("");
-        fileInput.current.value = "";
-    }
-    return <div className="section">
-            <label><InterfaceText>Picture</InterfaceText></label>
-            <label>
-              <span className="optional"><InterfaceText>Please use horizontal, square, or only-slightly-vertical images for best results.</InterfaceText></span>
-            </label>
-            <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
-              <label htmlFor="addImageFileSelector">
-                <div className="button extraSmall blue control-elem" tabIndex="0" role="button">
-                      <InterfaceText>Upload Picture</InterfaceText>
-                    </div>
-              </label>
-              </div><input style={{display: "none"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
-              {old_filename !== "" && <div style={{"max-width": "420px"}}>
-                    <br/><ImageWithCaption photoLink={old_filename} caption={caption}/>
-                    <br/><div onClick={deleteImage} className="button extraSmall blue control-elem" tabIndex="1" role="button">
-                      <InterfaceText>Remove Picture</InterfaceText>
-                    </div></div>
-              }
-          </div>
-    }
 
 const CategoryColorLine = ({category}) =>
   <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
@@ -3327,9 +3253,9 @@ export {
   CategoryChooser,
   TitleVariants,
   OnInView,
-  TopicPictureUploader,
   ImageWithCaption,
   handleAnalyticsOnMarkdown,
   LangSelectInterface,
-  PencilSourceEditor
+  PencilSourceEditor,
+  SmallBlueButton,
 };
