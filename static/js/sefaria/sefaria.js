@@ -24,6 +24,8 @@ let Sefaria = Sefaria || {
   apiHost: "" // Defaults to localhost, override to talk another server
 };
 
+console.log("sefiara: ", Sefaria);
+
 if (typeof window !== 'undefined') {
     window.Sefaria = Sefaria; // allow access to `Sefaria` from console
 }
@@ -55,7 +57,7 @@ Sefaria = extend(Sefaria, {
 
       let book, index, nums;
       for (let i = first.length; i >= 0; i--) {
-          book   = first.slice(0, i);
+          book  = first.slice(0, i);
           if (Sefaria.virtualBooks.includes(book)) {
               // todo: This assumes that this is a depth one integer indexed node
               const numberMatch = first.match(/([\d ]+)$/);
@@ -1086,7 +1088,9 @@ Sefaria = extend(Sefaria, {
     // Cache:
     // - Index Data
     // - Search TOC order
+    console.log("hehe; ", tocBranch)
     for (let i = 0; i < tocBranch.length; i++) {
+      
       let thisOrder = parentsOrders.concat([i]) ;
       let thisPath =  (parentsPath ? parentsPath + "/" : "") + ("category" in tocBranch[i] ? tocBranch[i].category : tocBranch[i].title);
 
@@ -3308,6 +3312,7 @@ Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(re
 Sefaria = extend(Sefaria, Strings);
 
 Sefaria.setup = function(data, props = null) {
+  console.log("server data : ", data, props)
     Sefaria.loadServerData(data);
     let baseProps = props !=null ? props : (typeof DJANGO_VARS === "undefined" ? undefined : DJANGO_VARS.props);
     Sefaria.unpackBaseProps(baseProps);

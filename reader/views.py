@@ -5060,3 +5060,39 @@ def rollout_health_api(request):
         logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
 
     return http.JsonResponse(resp, status=statusCode)
+
+@catch_error_as_json
+@csrf_exempt
+def text_permission_groups_api(request, user_email):
+    """
+    Returns a list of permission groups for the given user.
+    """
+    if request.method == "GET":
+        user_response = get_user_by_email(user_email)
+        
+        if user_response["status"] == 200:
+            return jsonResponse(user_response["data"])
+        else:
+            return jsonResponse(user_response["data"], status=user_response["status"])
+    
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)  # Parse the JSON data from the request body
+            print("Received POST data:", data)
+            if not data["json"]:
+                return jsonResponse({"error": "Invalid JSON"})
+            return jsonResponse(data["json"])
+        except json.JSONDecodeError:
+            return jsonResponse({"error": "Invalid JSON format."})
+
+def get_user_by_email(email):
+    try:
+        user = User.objects.get(email=email)
+        user_data = {
+            "id": user.id,
+            "email": user.email
+        }
+        return {"data": user_data, "status": 200}
+    except User.DoesNotExist:
+        return {"data": {"error": "User not found"}, "status": 404}
+    

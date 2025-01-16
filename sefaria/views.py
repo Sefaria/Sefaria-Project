@@ -89,6 +89,13 @@ def process_register_form(request, auth_method='session'):
                                 password=form.cleaned_data['password1'])
             profile = UserProfile(id=user.id, user_registration=True)
             user_type = form.cleaned_data['user_type']
+            # Add user to group ("dafault")
+            update_operation = {
+                "$push": {
+                    "members": {"user_id":user.id, "email": form.cleaned_data["email"]}
+                }
+            }
+            db.text_permission_groups.update_one({ "name": "default" }, update_operation)
             # add analytics
             add_signup_info(email=profile.email,first_name=profile.first_name,last_name=profile.last_name)
             profile.assign_slug()
@@ -146,7 +153,7 @@ def register(request):
 
     if request.method == 'POST':
         errors, _, form = process_register_form(request)
-        print("form >>>>>>>>>>>>>>>>>", form)
+        print("form >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", form)
         if len(errors) == 0:
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
