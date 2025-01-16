@@ -8,6 +8,7 @@ import {
   InterfaceText, SheetMetaDataBox,
 } from '../Misc';
 
+
 class SheetContent extends Component {
   componentDidMount() {
       this.$container = $(ReactDOM.findDOMNode(this).parentNode);
@@ -199,11 +200,11 @@ class SheetContent extends Component {
       <div className="sheetContent">
         <div className="text">
           <SheetMetaDataBox authorStatement={this.props.authorStatement}
-                            authorUrl={this.props.authorUrl}
-                            authorImage={this.props.authorImage}
-                            title={this.props.title}
-                            summary={this.props.summary}
-          />
+                             authorUrl={this.props.authorUrl}
+                             authorImage={this.props.authorImage}
+                             title={this.props.title}
+                             summary={this.props.summary}
+                             sheetOptions={this.props.sheetOptions}/>
           <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
             {sources}
           </div>
