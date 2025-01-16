@@ -155,6 +155,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
         'image',
+        'secondary_image_uri',
         "portal_slug",  # slug to relevant Portal object
     ]
 

@@ -1041,7 +1041,15 @@ def saved(request):
     desc = _("See your saved content on Sefaria")
     profile = UserProfile(user_obj=request.user)
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    return menu_page(request, props, page="saved", title=title, desc=desc)
+    return menu_page(request, props, page="texts-saved", title=title, desc=desc)
+
+@login_required
+def sheets_saved(request):
+    title = _("My Saved Content")
+    desc = _("See your saved content on Sefaria")
+    profile = UserProfile(user_obj=request.user)
+    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
+    return menu_page(request, props, page="sheets-saved", title=title, desc=desc)
 
 
 def get_user_history_props(request):
@@ -1056,7 +1064,13 @@ def user_history(request):
     props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
-    return menu_page(request, props, page="history", title=title, desc=desc)
+    return menu_page(request, props, page="texts-history", title=title, desc=desc)
+
+def sheets_user_history(request):
+    props = get_user_history_props(request)
+    title = _("My User History")
+    desc = _("See your user history on Sefaria")
+    return menu_page(request, props, page="sheets-history", title=title, desc=desc)
 
 @login_required
 def notes(request):
@@ -3681,36 +3695,33 @@ def profile_follow_api(request, ftype, slug):
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+
 @staff_member_required
-def topic_upload_photo(request, topic):
-    from io import BytesIO
+def topic_upload_photo(request, slug, secondary=False):
+    from sefaria.helper.topic import add_image_to_topic, delete_image_from_topic, add_secondary_image_to_topic, delete_secondary_image_from_topic
     import uuid
-    import base64
     if request.method == "DELETE":
         old_filename = request.GET.get("old_filename")
         if old_filename is None:
             return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
         old_filename = f"topics/{old_filename.split('/')[-1]}"
         GoogleStorageManager.delete_filename(old_filename, GoogleStorageManager.TOPICS_BUCKET)
-        topic = Topic.init(topic)
-        if hasattr(topic, "image"):
-            del topic.image
-            topic.save()
+        if secondary:
+            delete_secondary_image_from_topic(slug)
+        else:
+            delete_image_from_topic(slug)
         return jsonResponse({"success": "You have successfully removed the image."})
     elif request.method == "POST":
-        file = request.POST.get('file')
         old_filename = request.POST.get('old_filename')  # delete file from google storage if there is one there
         if old_filename:
             old_filename = f"topics/{old_filename.split('/')[-1]}"
-        img_file_in_mem = BytesIO(base64.b64decode(file))
-        img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
-                                                    GoogleStorageManager.TOPICS_BUCKET, old_filename=old_filename)
-        topic = Topic.init(topic)
-        if not hasattr(topic, "image"):
-            topic.image = {"image_uri": img_url, "image_caption": {"en": "", "he": ""}}
+
+        to_filename = f"topics/{slug}-{'secondary-' if secondary else ''}{uuid.uuid1()}.png"
+        img_url = GoogleStorageManager.upload_file(request.FILES.get('file'), to_filename, GoogleStorageManager.TOPICS_BUCKET, old_filename=old_filename)
+        if secondary:
+            add_secondary_image_to_topic(slug, img_url)
         else:
-            topic.image["image_uri"] = img_url
-        topic.save()
+            add_image_to_topic(slug, img_url)
         return jsonResponse({"url": img_url})
     return jsonResponse({"error": "Unsupported HTTP method."})
 

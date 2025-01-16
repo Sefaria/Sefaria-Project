@@ -1,6 +1,6 @@
 import {useContext} from "react";
 import {ReaderPanelContext} from "./context";
-import {layoutOptions} from "./constants";
+import {layoutOptions, layoutLabels} from "./constants";
 import {InterfaceText} from "./Misc";
 import PropTypes from "prop-types";
 
@@ -31,12 +31,16 @@ const LayoutButton = ({layoutOption, layoutState}) => {
     const {language, textsData, setOption, layout} = useContext(ReaderPanelContext);
     const path = getPath(layoutOption, layoutState, textsData);
     const optionName = (language === 'bilingual') ? 'biLayout' : 'layout';
+    const checked = layout === layoutOption;
     return (
-        <button
+        <input
             key={layoutOption}
-            className={`layout-button ${layout === layoutOption ? 'checked' : ''}`}
+            className={`layout-button ${checked ? 'checked' : ''}`}
             onClick={() => setOption(optionName, layoutOption)}
             style={{"--url": `url(${path})`}}
+            role="radio"
+            aria-label={layoutLabels[layoutOption]}
+            aria-checked={checked}
         />
     );
 };
@@ -49,7 +53,7 @@ const LayoutButtons = () => {
     const {language, textsData, panelMode} = useContext(ReaderPanelContext);
     const layoutState = calculateLayoutState(language, textsData, panelMode);
     return (
-        <div className="layout-button-line">
+        <div className="layout-button-line" role="radiogroup" aria-label="text layout toggle">
             <InterfaceText>Layout</InterfaceText>
             <div className="layout-options">
                 {layoutOptions[layoutState].map(option => <LayoutButton
