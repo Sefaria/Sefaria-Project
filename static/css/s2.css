@@ -5015,6 +5015,9 @@ h1.topic-landing-header {
   flex-direction: column;
   align-items: center;
 }
+.singlePanel .featuredTopicImgWrapper .imageWithCaptionPhoto{
+  max-width: calc(80.67vw);
+}
 .featuredTopicContent {
   display: flex;
   flex-direction: row;
@@ -5064,14 +5067,33 @@ h1.topic-landing-header {
   padding: 36px 74px;
   justify-content: space-between;
 }
+.singlePanel .topic-landing-newsletter {
+  padding: 36px 36px;
+  flex-direction: column;
+  align-items: center;
+}
 .topic-landing-newsletter .topic-landing-newsletter-input-row {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
 }
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row{
+  flex-direction: column;
+  /*padding-inline: 19px;*/
+  align-items: center;
+}
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 .topic-landing-newsletter .topic-landing-newsletter-input-row:first-child {
   margin-bottom: 20px;
+}
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row:first-child {
+  margin-bottom: 0px;
 }
 .topic-landing-newsletter .topic-landing-newsletter-input-row input,
 .topic-landing-newsletter .topic-landing-newsletter-input-row button {
@@ -5083,6 +5105,13 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row button {
+  width: 100%;
+}
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input,
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row button {
+  margin-bottom: 20px;
+}
 .topic-landing-newsletter .topic-landing-newsletter-input-row button {
   flex: unset;
   color: var(--sefaria-blue);
@@ -5090,6 +5119,13 @@ h1.topic-landing-header {
 .topic-landing-newsletter .topic-landing-newsletter-input-row input:first-child {
   margin-inline-end: 16px;
 }
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input:first-child {
+  margin-inline-end: 0px;
+}
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input {
+  width: 90%;
+}
+
 .topic-landing-newsletter .topic-landing-newsletter-input-row .subscribeMessage {
   color: white;
   margin-top: 10px;
@@ -5116,6 +5152,9 @@ h1.topic-landing-header {
   text-transform: unset;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.singlePanel .topic-landing-newsletter h3.topic-landing-newsletter-text {
+  margin-bottom: 20px;
 }
 .topic-landing-upper-rainbow{
   margin-bottom: 43px;
