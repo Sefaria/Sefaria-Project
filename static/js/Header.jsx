@@ -113,7 +113,7 @@ const LoggedInDropdown = () => {
                   </DropdownMenuItem>
               </div>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/notifications'}>
+              <DropdownMenuItem url={'/updates'}>
                   <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
               </DropdownMenuItem>
               <DropdownMenuItem preventClose={true} url={'/help'}>

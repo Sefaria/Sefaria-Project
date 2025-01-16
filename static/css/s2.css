@@ -1571,7 +1571,8 @@ div.interfaceLinks-row a {
 .readerPanel.english .contentSpan.primary,
 .readerPanel.english .languageToggle .he,
 .readerPanel.hebrew .contentSpan.translation,
-.readerPanel.hebrew .languageToggle .en {
+.readerPanel.hebrew .languageToggle .en,
+.readerPanel.hebrew .en .englishAvailableTag {
   display: none;
 }
 .readerPanel.english .versionsTextList .primary,
@@ -5218,19 +5219,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
-.interface-english .leftButtons,
-.interface-hebrew .rightButtons {
+ .leftButtons,
+ .rightButtons {
   display: flex;
   flex-direction: row;
-  text-align: left;
-}
-.interface-english .rightButtons,
-.interface-hebrew .leftButtons {
-  display: flex;
-  flex-direction: row;
-  text-align: right;
   align-items: center;
-}
+ }
+ .leftButtons {
+  text-align: start;
+ }
+ .rightButtons {
+  text-align: end;
+ }
 /* icons need a little nudge in flipped hebrew mode */
 .interface-hebrew .rightButtons {
   margin-left: -3px;
@@ -5884,7 +5884,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heLeft.bilingual .segment > p > .translation,
 .heRight.bilingual .segment > p > .primary,
 .heRight.bilingual .sheetItem.segment > .he,
-.heLeft.bilingual .sheetItem.segment > .en{
+.heLeft.bilingual .sheetItem.segment > .en,
+.heRight.bilingual .SheetSource.segment > .he,
+.heLeft.bilingual .SheetSource.segment > .en {
   float: right;
   padding-left: 20px;
 }
@@ -5893,7 +5895,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heRight.bilingual .segment > p > .translation,
 .heLeft.bilingual .segment > p > .primary,
 .heRight.bilingual .sheetItem.segment > .en,
-.heLeft.bilingual .sheetItem.segment > .he{
+.heLeft.bilingual .sheetItem.segment > .he,
+.heRight.bilingual .SheetSource.segment > .en,
+.heLeft.bilingual .SheetSource.segment > .he {
   float: left;
   padding-right: 20px;
 }
@@ -7778,8 +7782,10 @@ But not to use a display block directive that might break continuous mode for ot
   margin-top: 17px;
 }
 .profile-pic-cropper-modal .ReactCrop__crop-selection {
-  border-radius: 50%;
   box-shadow: 0 0 0 9999em rgba(255, 255, 255, 0.6);
+}
+.profile-page .profile-pic-cropper-modal .ReactCrop__crop-selection {
+  border-radius: 50%;
 }
 .profile-pic-cropper-modal .ReactCrop__image {
   max-width: 50vw;
@@ -7790,10 +7796,10 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .profile-pic-cropper {
 }
-.profile-page .profile-pic .profile-pic-cropper-modal .profile-pic-cropper-button {
+#interruptingMessage.profile-pic-cropper-modal .profile-pic-cropper-button {
   display: inline-flex;
 }
-.profile-page .profile-pic .profile-pic-cropper-desc {
+.profile-pic-cropper-desc {
   margin-top: 9px;
   margin-bottom: 18px;
 }
@@ -8865,12 +8871,12 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionListingName:hover {
   color: #333;
 }
-.collectionListingDetails {
-  color: #999;
-  font-size: 14px;
+.collectionListingDetails .collectionListingSheetCount {
+  color: #999 !important;
+  font-size: 14px !important;
   font-family: Roboto !important;
-  font-weight: 400;
-  line-height: 18px;
+  font-weight: 400 !important;
+  line-height: 18px !important;
 }
 .collectionListingMembership {
   text-transform: capitalize;
@@ -10942,6 +10948,10 @@ section.SheetOutsideBiText {
 .readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .en > .ref,
 .readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .he > .sourceContentText,
 .readerPanel.english section.SheetSource .sheetItem > .he,
+.readerPanel.hebrew .sheetItem:not(.enOnly) .SheetSource > .en,
+.readerPanel.hebrew .sheetItem.enOnly .SheetSource > .en > .ref,
+.readerPanel.hebrew .sheetItem.enOnly .SheetSource > .he > .sourceContentText,
+.readerPanel.english .sheetItem .SheetSource > .he,
 .readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .en,
 .readerPanel.english section.SheetOutsideBiText .sheetItem > .he  {
   display: none;
@@ -11807,6 +11817,11 @@ cursor: pointer;
   font-weight: 400;
   line-height: 16.41px;
 }
+
+.profile-page .aboutText a {
+  font-family: Roboto;
+}
+
 @media (max-width: 540px) {
   .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
     display: none !important;  /* dont allow profile pic upload on mobile b/c causes black image on iOS */
@@ -11880,7 +11895,8 @@ cursor: pointer;
 .profile-page .follow-header .follow-count {
   color: #999;
 }
-.profile-page .resourcesLink  {
+.profile-page .resourcesLink,
+.profile-pic-cropper-button.resourcesLink {
   min-height: 46px;
   height: 46px;
   overflow: visible;
@@ -11903,7 +11919,8 @@ cursor: pointer;
   line-height: 1.5;
 }
 .profile-page .profile-summary .resourcesLink + .resourcesLink,
-.profile-page .profile-summary .largeFollowButton + .resourcesLink {
+.profile-page .profile-summary .largeFollowButton + .resourcesLink,
+#interruptingMessage.profile-pic-cropper-modal .resourcesLink + .resourcesLink {
   margin: 0 0 0 10px;
 }
 .interface-hebrew .profile-page .profile-summary .largeFollowButton + .resourcesLink,
@@ -11990,7 +12007,7 @@ cursor: pointer;
   align-items: center;
   text-align: center;
   cursor: pointer;
-  background: #18345d;
+  background: var(--midrash-green);
   color: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
@@ -12008,7 +12025,7 @@ cursor: pointer;
   width: min-content;
   text-align: center;
   cursor: pointer;
-  background: var(--sefaria-blue);
+  background: var(--midrash-green);;
   color: white;
   border-radius: 3px;
   margin-inline-start: 15px;
@@ -13831,6 +13848,10 @@ span.ref-link-color-3 {color: blue}
   flex-direction: column;
   height: 170px;
   justify-content: center;
+}
+
+.show-source-translation-buttons input {
+  display: none;
 }
 
 .show-source-translation-buttons .button {
