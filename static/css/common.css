@@ -23,6 +23,19 @@
   font-style: italic;
   font-weight: bold;
 }
+@font-face {
+    /*Tibetan | Monlam-bodyig regular */
+    font-family: 'Monlam-bodyig Regular';
+    src: url('/static/fonts/Monlam-bodyig Regular.ttf');
+    unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
+}
+
+@font-face {
+    /*Tibetan | wujin+gangbi*/
+    font-family: 'Monlam Uni OuChan2';
+    src: url('/static/fonts/Monlam Uni OuChan2.ttf');
+    unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
+}
 /* Avoid Flash of Unstyled Text with Google Web Font Loader */
 .wf-loading {
   visibility: hidden;
@@ -733,7 +746,8 @@ a:active {
   box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   border: none;
   color: #666;
-  font-size: 14px;
+  font-size: 18px;
+  font-family: ;
   background-color: white;
   -webkit-appearance: none;
 }
