@@ -5236,11 +5236,9 @@ h1.topic-landing-header {
   margin-inline-start: 30px;
   margin-top: 19px;
   width: 207.593px;
-  /*height: 140.617px;*/
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow-y: hidden;
-  /*overflow-x: visible;*/
   word-wrap: break-word;
 }
 .topic-card-with-description .cardTitle {
