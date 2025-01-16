@@ -271,8 +271,8 @@ class UserProfile extends Component {
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
                   toggleSignUpModal={this.props.toggleSignUpModal}
-                  inProfileView={true}
                   multiPanel={this.props.multiPanel}
+                  inProfileView={true}
                 />
                 <TabView
                   ref={this._getTabViewRef}
@@ -572,8 +572,8 @@ const ProfileSummary = ({
                             openFollowers,
                             openFollowing,
                             toggleSignUpModal,
-                            inProfileView = false,
                             multiPanel,
+                            inProfileView = false,
                         }) => {
 
     const followInfo = <div className="follow">
