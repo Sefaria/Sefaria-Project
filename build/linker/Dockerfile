@@ -25,15 +25,12 @@ RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/
 
 RUN apt-get update -qq \
  && apt-get install --no-install-recommends -y \
-    # install cuda toolkit
-    cuda-libraries-11-6 \
-    libnpp-11-6 \
-    cuda-nvtx-11-6 \
-    libcublas-11-6 \
+    cuda-libraries-12-2 \
+    libnpp-12-2 \
+    cuda-nvtx-12-2 \
+    libcublas-12-2 \
     libnccl2 \
-    # install cudnn
-    libcudnn8=8.4.0.27-1+cuda11.6 \
- && apt-mark hold libcublas-11-6 \
+    libcudnn8 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -49,5 +46,5 @@ ENV PATH=/usr/local/nvidia/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64/
 ENV LD_PRELOAD=/usr/local/nvidia/lib64/libnvidia-ml.so
 
-RUN pip install spacy[cuda116]~=3.7.0
+RUN pip install spacy[cuda122]~=3.7.0
 

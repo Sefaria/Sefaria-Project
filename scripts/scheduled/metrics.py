@@ -21,10 +21,10 @@ contributors = contributors.union(set(db.sheets.find({"status": "public"}).disti
 contributors = len(contributors)
 
 # Number of Links
-links = db.links.count()
+links = db.links.count_documents({})
 
 # Number of Source sheets
-sheets = db.sheets.count()
+sheets = db.sheets.count_documents({})
 
 metrics = {
     "timestamp": datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
@@ -37,6 +37,6 @@ metrics = {
 }
 
 try:
-    db.metrics.save(metrics)
+    db.metrics.insert_one(metrics)
 except DuplicateKeyError:
     pass

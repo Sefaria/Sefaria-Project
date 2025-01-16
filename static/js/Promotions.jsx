@@ -4,6 +4,7 @@ import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import {EnglishText, HebrewText, InterfaceText, OnInView} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
+import { NewsletterSignUpForm } from "./NewsletterSignUpForm";
 
 const Promotions = () => {
   const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
@@ -36,6 +37,11 @@ const Promotions = () => {
             buttonIcon: sidebarAd.buttonIcon,
             buttonLocation: sidebarAd.buttonAboveOrBelow,
             hasBlueBackground: sidebarAd.hasBlueBackground,
+            isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
+            newsletterMailingLists:
+              sidebarAd.newsletterMailingLists?.data.map(
+                (mailingLists) => mailingLists.attributes.newsletterName
+              ) ?? [],
             trigger: {
               showTo: sidebarAd.showTo,
               interfaceLang: "english",
@@ -209,40 +215,47 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
     );
   }
 
-  return (
-    <OnInView onVisible={() => trackSidebarAdImpression(matchingAd)}>
-      <div className={classes}>
-        <h3
-          className={context.interfaceLang === "hebrew" ? "int-he" : "int-en"}
-        >
-          {matchingAd.title}
-        </h3>
-        {matchingAd.buttonLocation === "below" ? (
-          <>
-            <p
-              className={
-                context.interfaceLang === "hebrew" ? "int-he" : "int-en"
-              }
-            >
-              {matchingAd.bodyText}
-            </p>
-            {getButton()}
-          </>
-        ) : (
-          <>
-            {getButton()}
-            <p
-              className={
-                context.interfaceLang === "hebrew" ? "int-he" : "int-en"
-              }
-            >
-              {matchingAd.bodyText}
-            </p>
-          </>
-        )}
-      </div>
-    </OnInView>
-  );
+    const isHebrew = context.interfaceLang === "hebrew";
+    const getLanguageClass = () => (isHebrew ? "int-he" : "int-en");
+
+    return (
+      <OnInView onVisible={() => trackSidebarAdImpression(matchingAd)}>
+        <div className={classes}>
+          <h3 className={getLanguageClass()}>{matchingAd.title}</h3>
+          {matchingAd.buttonLocation === "below" ? (
+            matchingAd.isNewsletterSubscriptionInputForm ? (
+              <>
+                <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+                <NewsletterSignUpForm
+                  context={"Sidebar Ad: " + context.keywordTargets.toString()}
+                  includeEducatorOption={false}
+                  additionalNewsletterMailingLists={matchingAd.newsletterMailingLists}
+                />
+              </>
+            ) : (
+              <>
+                <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+                {getButton()}
+              </>
+            )
+          ) : matchingAd.isNewsletterSubscriptionInputForm ? (
+            <>
+              <NewsletterSignUpForm
+                context={"Sidebar Ad: " + context.keywordTargets.toString()}
+                includeEducatorOption={false}
+                additionalNewsletterMailingLists={matchingAd.newsletterMailingLists}
+              />
+              <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+            </>
+          ) : (
+            <>
+              {getButton()}
+              <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+            </>
+          )}
+        </div>
+      </OnInView>
+    );
 });
 
 export { Promotions, GDocAdvertBox };

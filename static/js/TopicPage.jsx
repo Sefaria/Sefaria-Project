@@ -246,6 +246,9 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         return (
             <div className="navBlock">
               <a href={`/topics/${children ? 'category/' : ''}${slug}`}
+                 data-anl-event="navto_topic:click"
+                 data-anl-link_type={children ? "category" : "topic"}
+                 data-anl-text={en}
                  className="navBlockTitle"
                  onClick={openTopic}
                  key={i}>
@@ -271,10 +274,14 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     }
 
     return (
-        <div className="readerNavMenu noLangToggleInHebrew">
+        <div
+            className="readerNavMenu noLangToggleInHebrew"
+            data-anl-project="topics"
+            data-anl-panel_category={getPanelCategory(topic) || "Topic Landing"}
+        >
             <div className="content readerTocTopics">
                 <div className="sidebarLayout">
-                  <div className="contentInner">
+                  <div className="contentInner" data-anl-feature_name="Main">
                       <div className="navTitle tight">
                         <CategoryHeader type="topics" data={topicData}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
@@ -335,6 +342,8 @@ const TopicSponsorship = ({topic_slug}) => {
 }
 
 const isLinkPublished = (lang, link) => link.descriptions?.[lang]?.published !== false;
+const isLinkReviewed= (lang, link) => link.descriptions?.[lang]?.review_state !== "not reviewed";
+
 
 const doesLinkHaveAiContent = (lang, link) => link.descriptions?.[lang]?.ai_title?.length > 0 && isLinkPublished(lang, link);
 
@@ -353,7 +362,7 @@ const getLinksToGenerate = (refTopicLinks = []) => {
 const getLinksToPublish = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
     return refTopicLinks.filter(link => {
-        return !isLinkPublished(lang, link);
+        return !isLinkPublished(lang, link) && isLinkReviewed(lang, link);
     });
 };
 
@@ -544,11 +553,15 @@ const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
     )
 };
 
+const getPanelCategory = (slug) => {
+    return Sefaria.topicTocCategories(slug)?.map(({slug}) => slug)?.join('|');
+}
+
 const getTopicPageAnalyticsData = (slug, langPref) => {
     return {
         project: "topics",
         content_lang: langPref || "bilingual",
-        panel_category: Sefaria.topicTocCategories(slug)?.map(({slug}) => slug)?.join('|'),
+        panel_category: getPanelCategory(slug),
     };
 };
 
@@ -600,7 +613,7 @@ const TopicPage = ({
 
     useEffect( ()=> {
     // hack to redirect to temporary sheet content on topics page for those topics that only have sheet content.
-if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0 && topicData.subclass != "author"){
+    if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0 && topicData.subclass != "author"){
         const interfaceIsHe = Sefaria.interfaceLang === "hebrew";
         const interfaceLang = interfaceIsHe ? 'he' : 'en';
         const coInterfaceLang = interfaceIsHe ? 'en' : 'he';
