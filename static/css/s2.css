@@ -5224,6 +5224,9 @@ h1.topic-landing-header {
   display: flex;
   margin-top: 30px;
 }
+.singlePanel .topic-landing-temporal {
+  flex-direction: column;
+}
 
 .topic-landing-parasha{
 
@@ -5251,7 +5254,16 @@ h1.topic-landing-header {
     padding-inline-start: 67px;
     flex: 1;
 }
-
+.singlePanel .topic-landing-temporal > .topic-landing-parasha {
+    border-bottom: 1px solid #ccc;
+    border-inline-end: 0px;
+    padding-bottom: 30px;
+}
+.singlePanel .topic-landing-temporal > .topic-landing-seasonal {
+    border-top: 1px solid #ccc;
+    padding-inline-start: 0px;
+    padding-top: 30px;
+}
 
 .topic-landing-calendar .calendar-header{
   color: var(--Dark-Grey, #666);
