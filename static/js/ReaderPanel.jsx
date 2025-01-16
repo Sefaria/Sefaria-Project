@@ -24,7 +24,7 @@ import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
 import { NotificationsPanel } from './NotificationsPanel';
 import {SheetsUserHistoryPanelWrapper, LibraryUserHistoryPanelWrapper}  from './UserHistoryPanel';
-import UserProfile  from './UserProfile';
+import { UserProfile }  from './UserProfile';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';

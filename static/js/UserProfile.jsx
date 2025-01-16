@@ -271,6 +271,7 @@ class UserProfile extends Component {
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
                   toggleSignUpModal={this.props.toggleSignUpModal}
+                  multiPanel={this.props.multiPanel}
                   inProfileView={true}
                 />
                 <TabView
@@ -518,7 +519,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
 }
 
 
-const UserBackground = ({profile: p, showBio}) => {
+const UserBackground = ({profile: p, showBio, multiPanel}) => {
     // used in ProfileSummary and in SheetContentSidebar, renders user education, organization, and location info
     // if 'showBio', render p.bio; this property corresponds to "About me" in the profile edit view
     const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
@@ -561,7 +562,7 @@ const UserBackground = ({profile: p, showBio}) => {
                                     </div>;
 
     return <>{(p.position || p.organization) && subTitle}
-             {infoList.length > 0 && infoListComponent}
+             {infoList.length > 0 && multiPanel && infoListComponent}
            </>;
 }
 
@@ -571,8 +572,10 @@ const ProfileSummary = ({
                             openFollowers,
                             openFollowing,
                             toggleSignUpModal,
+                            multiPanel,
                             inProfileView = false,
                         }) => {
+
     const followInfo = <div className="follow">
                                  <a href="" onClick={openFollowers}>
                                     <InterfaceText>{String(p.followers.length)}</InterfaceText>&nbsp;
@@ -621,13 +624,13 @@ const ProfileSummary = ({
         <div className="profile-summary sans-serif">
             <div className="summary-column profile-summary-content start">
                 {profileName}
-                <UserBackground profile={p} showBio={false}/>
-                {followInfo}
+                <UserBackground profile={p} showBio={false} multiPanel={multiPanel}/>
+                {multiPanel && followInfo}
                 {inProfileView && (
                 <div className="createButtons">
-                  {(Sefaria._uid === p.id) && tempSheetButton}
-                  {(Sefaria._uid === p.id) && tempCollectionButton}
-                  {(Sefaria._uid !== p.id) && profileButtons}
+                  {(multiPanel && (Sefaria._uid === p.id)) && tempSheetButton}
+                  {(multiPanel && (Sefaria._uid === p.id)) && tempCollectionButton}
+                  {!multiPanel && profileButtons}
                 </div>
                 )}
             </div>
@@ -639,7 +642,7 @@ const ProfileSummary = ({
                   hideOnDefault={Sefaria._uid !== p.id}
                   showButtons={Sefaria._uid === p.id}
               />
-              {(Sefaria._uid === p.id) && profileButtons}
+              {multiPanel && profileButtons}
             </div>
             
         </div>
