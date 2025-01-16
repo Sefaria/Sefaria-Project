@@ -25,6 +25,9 @@ import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
 
+
+const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -1888,6 +1891,31 @@ const replaceNewLinesWithLinebreaks = (content) => {
   );
 }
 
+const SheetsEditorWarning = () => {
+  const [hasAcknowledgedFinalWarning, toggleHasAcknowledgedFinalWarning] = useState(Boolean(cookie("hasAcknowledgedFinalWarning")));
+  const handleClick = () => {
+    cookie("hasAcknowledgedFinalWarning", "true", { path: "/", expires: 50 });
+    toggleHasAcknowledgedFinalWarning(true);
+  }
+  if (!!hasAcknowledgedFinalWarning) {
+    return null;
+  }
+  else {
+    return <div id="interruptingMessageBox">
+          <div id="interruptingMessageOverlay"></div>
+          <div id="interruptingMessage" className="sheetsWarning">
+              <h1>End of Life for the Original Sefaria Source Sheet Editor</h1>
+          <p>As of "Dec. 1, 2024" the original sheets editor created by Sefaria for the
+          benefit of its users back in 2015, will no longer be available.</p>
+          <p>In your Profile, you will have the ability to switch between the 2 editors until
+          the deadline.</p>
+          <p>Please take the time to learn more about this important change by reading
+            this <a href="https://sefaria.org/sheets/eol-old-editor" target="_blank">help article.</a></p>
+          <div className="button" onClick={handleClick}>Thank you, I understand.</div>
+          </div>
+    </div>
+  }
+}
 const InterruptingMessage = ({
   onClose,
 }) => {
@@ -3247,4 +3275,5 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
+  SheetsEditorWarning
 };

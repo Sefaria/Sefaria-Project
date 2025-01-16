@@ -6908,6 +6908,45 @@ But not to use a display block directive that might break continuous mode for ot
   color: #999;
   text-decoration: underline;
 }
+#interruptingMessage.sheetsWarning {
+  height: 70%;
+  width: 70%;
+  border: 5px solid black;
+}
+#interruptingMessage.sheetsWarning  .button {
+  color: black;
+  background: var(--highlight-blue);
+  margin-top: 120px;
+  border: 5px solid black;
+  border-radius: revert;
+}
+#interruptingMessage.sheetsWarning a {
+  color: var(--inline-link-blue);
+  text-decoration: underline;
+}
+#interruptingMessage.sheetsWarning h1 {
+  font-weight: 500;
+  font-style: normal;
+  margin-bottom: 60px;
+}
+#interruptingMessage.sheetsWarning p {
+  margin-bottom: 30px;
+}
+@media screen and (max-width: 800px) {
+  #interruptingMessage.sheetsWarning {
+    font-size: smaller;
+  }
+  #interruptingMessage.sheetsWarning  .button {
+    margin-top: 40px;
+  }
+  #interruptingMessage.sheetsWarning h1 {
+    margin-bottom: 20px;
+    font-size: large;
+  }
+  #interruptingMessage.sheetsWarning p {
+    margin-bottom: 15px;
+  }
+}
 .manuscriptImage {
   width: auto;
   max-height: 180px;
@@ -11235,6 +11274,17 @@ cursor: pointer;
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
+#staticContentWrapper .editorToggleHeader {
+  width: 100%;
+  background-color: #18345D;
+  color: white;
+  height: 60px;
+  font-size: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: revert;
+}
 .editorToggleHeader {
   width: 100%;
   background-color: #18345D;
@@ -11244,7 +11294,7 @@ cursor: pointer;
   margin-top: -60px;
   margin-left: -12px;
   margin-bottom: 80px;
-  padding-right: 12px;
+  padding: 0 100px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -11255,11 +11305,23 @@ cursor: pointer;
   direction: rtl;
 }
 .editorToggleHeader .button {
+  white-space: nowrap;
   padding: 5px 8px;
   margin-inline-start: 15px;
   margin-top: 5px;
   height: 30px;
   letter-spacing: 0;
+}
+.editorToggleHeader > span.int-he:first-child {
+  margin-inline-start: 250px;
+}
+.editorToggleHeader .learnMore {
+  text-decoration: underline;
+  color: white;
+  margin-inline-end: 200px;
+  margin-inline-start: 20px;
+  width: 15%;
+  padding: revert;
 }
 .feedbackOverlay {
   position: fixed;
