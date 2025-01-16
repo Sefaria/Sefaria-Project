@@ -411,7 +411,7 @@ const Strings = {
     "Aliyot" : "עליות לתורה",
     "Taamim and Nikkud" : "טעמים וניקוד",
     "Punctuation" : "פיסוק",
-    'Cantilation': 'טעמים',
+    'Cantillation': 'טעמים',
     "Show Punctuation": "הצגת סימני פיסוק",
     "Hide Punctuation": "הסתרת סימני פיסוק",
     "Show Vowels and Cantillation": "הצג טקסט עם טעמי מקרא וניקוד",
@@ -502,6 +502,7 @@ const Strings = {
     "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
     "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
     "Sorry, there was an error.": "סליחה, ארעה שגיאה",
+    "Please enter a valid first and last name.": "נא להוסיף שם פרטי ושם משפחה.",
 
     // Footer
     "Connect": "צרו קשר",
