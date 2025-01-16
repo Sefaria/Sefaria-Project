@@ -623,8 +623,9 @@ const ProfileSummary = ({
                 {followInfo}
                 {inProfileView && (
                 <div className="createButtons">
-                  {tempSheetButton}
-                  {tempCollectionButton}
+                  {(Sefaria._uid === p.id) && tempSheetButton}
+                  {(Sefaria._uid === p.id) && tempCollectionButton}
+                  {(Sefaria._uid !== p.id) && profileButtons}
                 </div>
                 )}
             </div>
@@ -636,8 +637,9 @@ const ProfileSummary = ({
                   hideOnDefault={Sefaria._uid !== p.id}
                   showButtons={Sefaria._uid === p.id}
               />
-              {profileButtons}
+              {(Sefaria._uid === p.id) && profileButtons}
             </div>
+            
         </div>
     );
 };

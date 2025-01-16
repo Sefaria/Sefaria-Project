@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-function ToggleSwitch({name, disabled, onChange, isChecked}) {
+function ToggleSwitch({name, disabled, onChange, isChecked, ariaLabelledBy}) {
     return (
         <div className="toggle-switch-container">
           <div className="toggle-switch">
@@ -13,6 +13,9 @@ function ToggleSwitch({name, disabled, onChange, isChecked}) {
                 disabled={disabled}
                 onChange={onChange}
                 checked={isChecked && !disabled}
+                aria-checked={isChecked}
+                aria-labelledby={ariaLabelledBy}
+                role="switch"
             />
             <label className="toggle-switch-label" htmlFor={name}>
               <span className="toggle-switch-inner" />
@@ -27,5 +30,6 @@ ToggleSwitch.propTypes = {
     disabled: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
     isChecked: PropTypes.bool.isRequired,
+    ariaLabelledBy: PropTypes.string,
 };
 export default ToggleSwitch;

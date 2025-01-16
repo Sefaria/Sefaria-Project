@@ -20,8 +20,8 @@ class CrmMediator:
         except:
             return False
 
-    def subscribe_to_lists(self, email, first_name, last_name, educator=False, lang="en"):
-        return self._crm_connection.subscribe_to_lists(email, first_name, last_name, educator, lang)
+    def subscribe_to_lists(self, email, first_name, last_name, educator=False, lang="en", mailing_lists=None):
+        return self._crm_connection.subscribe_to_lists(email, first_name, last_name, educator, lang, mailing_lists)
 
     def sync_sustainers(self):
         current_sustainers = CrmInfoStore.get_current_sustainers()
@@ -71,3 +71,6 @@ class CrmMediator:
             CrmInfoStore.save_crm_id(crm_id, email)
         else:
             return False
+
+    def get_available_lists(self):
+        return self._crm_connection.get_available_lists()

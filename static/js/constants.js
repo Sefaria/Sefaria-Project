@@ -4,3 +4,10 @@ export const layoutOptions = {
     'bi-ltr': ['stacked', 'heLeft'],
     'mixed': ['stacked', 'heLeft', 'heRight'],
 };
+export const layoutLabels = {
+    'continuous': 'Show Text as a paragram',
+    'segmented': 'Show Text segmented',
+    'stacked': 'Show Source & Translation Stacked',
+    'heRight': 'Show RTL Text Right of LTR Text',
+    'heLeft': 'Show RTL Text Left of LTR Text',
+}
