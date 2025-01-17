@@ -4658,7 +4658,7 @@ details .open-details::before {
     font-weight: normal;
     font-family: var(--hebrew-font-conditional);
     font-family: var(--chinese-font-conditional);
-    font-size: 26px;
+    font-size: 17px;
     line-height: 20px;
     color: #666666;
 }
