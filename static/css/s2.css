@@ -6521,7 +6521,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .segment .segmentText .poetry.indentWhenWrap {
-    text-indent: -30px;
+    text-indent: 0px;
     padding-inline-start: 30px;
     display: inline-block;
 }
