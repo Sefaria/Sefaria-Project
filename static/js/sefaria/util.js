@@ -4,7 +4,6 @@ import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
 import Sefaria from './sefaria';
 import {HDate} from '@hebcal/core';
-import '../../css/s2.css';
 
 var INBROWSER = (typeof document !== 'undefined');
 
@@ -99,7 +98,7 @@ class Util {
             const yearString = getTibetanNumberAsString(year);
             const monthString = getTibetanNumberAsString(month);
             const dateString = getTibetanNumberAsString(date);
-            return `<span className="bo-date"> ཕྱི་ལོ་ <sub>${yearString}</sub> ཟླ་ <sub>${monthString}</sub> ཚེས་ <sub>${dateString}</sub></span>`
+            return `<span>སྤྱི་ལོ <sub>${yearString}</sub> ཟླ་ <sub>${monthString}</sub> ཚེས་ <sub>${dateString}</sub></span>`
         }
 
         function getTibetanNumberAsString(num) {
@@ -1149,7 +1148,6 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
     units: ['y', 'mo', 'w', 'd', 'h', 'm', 's'],
     largest: 1,
     round: true,
-    spacer: '',  // Remove default spacing
     unitMeasures: {
         y: 365 * secsInDay,
         mo: 30 * secsInDay,
@@ -1161,33 +1159,27 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
     },
     languages: {
         shortEn: {
-            y: (c) => `${c}y`,
-            mo: (c) => `${c}mo`,
-            w: (c) => `${c}w`,
-            d: (c) => `${c}d`,
-            h: (c) => `${c}h`,
-            m: (c) => `${c}m`,
-            s: (c) => `${c}s`,
-            ms: (c) => `${c}ms`,
+            y: () => "y",
+            mo: () => "mo",
+            w: () => "w",
+            d: () => "d",
+            h: () => "h",
+            m: () => "m",
+            s: () => "s",
+            ms: () => "ms",
         },
         shortBo: {
-            y: (c) => `ལོ་${Util.convertToTibetanNumeral(c)}སྔོན།`,
-            mo: (c) => `ཟླ་${Util.convertToTibetanNumeral(c)}སྔོན།`,
-            w: (c) => `བདུན་ཕྲག་${Util.convertToTibetanNumeral(c)}སྔོན།`,
-            d: (c) => `ཉིན་${Util.convertToTibetanNumeral(c)}སྔོན།`,
-            h: (c) => `ཆུ་ཚོད་${Util.convertToTibetanNumeral(c)}སྔོན།`,
-            m: (c) => `སྐར་མ་${Util.convertToTibetanNumeral(c)}སྔོན།`,
-            s: (c) => `སྐར་ཆ་${Util.convertToTibetanNumeral(c)}སྔོན།`,
-            ms: () => "སྟོང་ཆ་གཅིག་སྔོན།",
+            y: () => "ཕྱི་ལོ",
+            mo: () => "ཟླ་",
+            w: () => "བདུན་ཕྲག་",
+            d: () => "ཚེས་",
+            h: () => "ཆུ་ཚོད་",
+            m: () => "སྐར་མ་",
+            s: () => "སྐར་ཆ་",
+            ms: () => "སྟོང་ཆ་གཅིག་",
         },
     },
 });
-
-// Add this utility function to convert Arabic numerals to Tibetan numerals
-Util.convertToTibetanNumeral = function(number) {
-    const tibetanNumerals = ['༠', '༡', '༢', '༣', '༤', '༥', '༦', '༧', '༨', '༩'];
-    return number.toString().split('').map(digit => tibetanNumerals[parseInt(digit)]).join('');
-};
 
 
 export default Util;
