@@ -6577,7 +6577,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .bilingual .segment > .en,
 .bilingual .segment > p > .en {
-    display: block;
+    /* display: block; */
 }
 
 .bilingual .segment > .en,
