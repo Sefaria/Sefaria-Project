@@ -244,16 +244,16 @@ body, .sans-serif {
 /* edited to yakpotibetanUni from wujin */
 
 .navSidebarModule > h1 > .int-he{
-    font-size: 18px;
+    font-size: 23px;
     font-family: var(--hebrew-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
 
-.navSidebarModule > .int-he{
-    font-size: 19px;
-    font-family: var(--hebrew-sans-serif-font-family) !important;
+/* .navSidebarModule > .int-he{
+    font-size: 19px; !important;
+    font-family: var(--hebrew-serif-font-family) !important;
     color: var(--selected-option) !important;
-}
+} */
 
 .headerNavSection > a > .int-he{
     font-family: var(--hebrew-serif-font-family) !important;
@@ -273,13 +273,13 @@ body, .sans-serif {
 
 .connectionsHeaderTitle > .int-he{
     font-size: 18px;
-    font-family: var(--hebrew-serif-font-family) !important;
+    font-family: var(--hebrew-sans-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
 
 .connectionPanelSectionHeaderInner > .int-he{
     font-size: 16px;
-    font-family: var(--hebrew-serif-font-family) !important;
+    font-family: var(--hebrew-sans-serif-font-family) !important;
     color: var(--selected-option) !important;
 }
 
@@ -574,7 +574,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 
 .systemText .int-he,
 .systemText .int-en.heInEn {
-    font-family: "Heebo", sans-serif;
+    font-family: var(--hebrew-sans-serif-font-family);
     font-size: 16px;
     font-weight: normal;
     color: #000;
@@ -805,6 +805,15 @@ input.noselect {
     font-size: 16px;
     color: #666;
     margin-inline-end: 30px;
+    font-weight: 500;
+    line-height: 26px;
+    vertical-align: middle;
+}
+
+.headerInner .headerNavSection a .int-he{
+    font-size: 18px;
+    color: #666;
+    margin-inline-end: 10px;
     font-weight: 500;
     line-height: 26px;
     vertical-align: middle;
@@ -1289,7 +1298,7 @@ div.interfaceLinks-row a {
 }
 
 .header .interfaceLinks .interfaceLinks-row.logout {
-    font-size: 14px;
+    font-size: 17px;
     color: #666666;
     padding-top: 5px;
     margin-top: 5px;
@@ -2219,7 +2228,7 @@ div.interfaceLinks-row a {
 }
 
 .navSidebarModule {
-    font-size: 16px;
+    font-size: 17px;
     color: #666;
     margin-bottom: 34px;
     padding: 0 44px;
@@ -2773,6 +2782,7 @@ span .asterisk {
 
 .topicPanel h2 span {
     font-size: 22px;
+    font-family: var(--hebrew-serif-font-family);
     font-weight: normal;
     color: #666;
     text-align: unset;
@@ -2816,7 +2826,7 @@ span .asterisk {
 }
 
 .topicPanel .sideColumn .sideList a.relatedTopic .int-he {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .topicPanel .sideColumn .topicCategory {
@@ -3278,6 +3288,7 @@ a.navBlockTitle:hover {
 
 .hebrew .navBlockDescription {
     line-height: 24px;
+    font-size: 16px;
 }
 
 .categoryFilter:not(.withBooks) .sidebarDescription {
@@ -3802,9 +3813,16 @@ a.navBlockTitle:hover {
     padding-bottom: 15px;
 }
 
-.bookPage .tocCategory {
+.bookPage .tocCategory .en{
     color: #999;
     font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.bookPage .tocCategory .he{
+    color: #999;
+    font-size: 17px;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -3826,6 +3844,7 @@ a.navBlockTitle:hover {
     font-size: 30px;
     line-height: 1.3;
     unicode-bidi: plaintext;
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .bookPage.fullBookPage .tocTitle {
@@ -4574,6 +4593,8 @@ details .open-details::before {
     background: #EDEDEC;
     border-radius: 25px;
     padding: 5px 10px;
+    font-family: var(--hebrew-sans-serif-font-family)
+
 }
 
 .versionDetails .status {
@@ -4583,6 +4604,7 @@ details .open-details::before {
     font-style: normal;
     font-weight: normal;
     font-size: 14px;
+    font-family: var(--hebrew-sans-serif-font-family);
     height: 18px;
     color: #ffffff;
     background: var(--pecha-red);
@@ -4636,7 +4658,7 @@ details .open-details::before {
     font-weight: normal;
     font-family: var(--hebrew-font-conditional);
     font-family: var(--chinese-font-conditional);
-    font-size: 16px;
+    font-size: 17px;
     line-height: 20px;
     color: #666666;
 }
@@ -5342,6 +5364,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .dropdown-option-list-label span {
     white-space: nowrap;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .interface-english .dropdown-option-list {
@@ -5485,7 +5508,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .searchContent .result-title .int-he {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family);
     font-size: 22px;
 }
 
@@ -5534,6 +5557,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .snippet {
     font-size: 18px;
     color: #000;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .searchContent .sheet_result .snippet:hover {
@@ -5548,7 +5572,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sidebarSearch .result .version {
     color: #999;
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    font-size: 13px;
+    font-size: 16px;
+    margin: 15px 0 5px;
+    display: flex;
+    align-items: center;
+}
+
+.searchContent .result .version,
+.sidebarSearch .result .version .int-he{
+    color: #999;
+    font-family: var(--hebrew-serif-font-family);
+    font-size: 16px;
     margin: 15px 0 5px;
     display: flex;
     align-items: center;
@@ -5842,6 +5876,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     font-weight: unset;
     margin-block-start: unset;
     margin-block-end: unset;
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .readerControls .readerTextToc .readerTextTocBox a {
@@ -6500,7 +6535,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .segment .segmentText .poetry.indentWhenWrap {
-    text-indent: -30px;
+    text-indent: 0px;
     padding-inline-start: 30px;
     display: inline-block;
 }
@@ -8986,7 +9021,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 .profile-page .logoutLink .int-he {
-    font-family: "Heebo", sans-serif;
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .notificationsTopContainer {
@@ -9267,7 +9302,7 @@ But not to use a display block directive that might break continuous mode for ot
     line-height: 19px;
     text-align: center;
     --english-font: var(--english-sans-serif-font-family);
-    --hebrew-font: var(--hebrew-sans-serif-font-family);
+    --hebrew-font: var(--hebrew-serif-font-family);
     --chinese-font: var(--chinese-sans-serif-font-family);
     border: none;
 }
@@ -10199,6 +10234,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     text-transform: uppercase;
     color: #666;
     font-size: 16px;
+    font-family: var(--hebrew-serif-font-family);
     letter-spacing: 2px;
     display: block;
     margin-bottom: 25px;
@@ -10218,6 +10254,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .collectionPage .collectionDescription {
     font-size: 16px;
+    font-family: var(--hebrew-sans-serif-font-family);
     color: #666;
     line-height: 1.3;
 }
@@ -10304,6 +10341,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .sheet .sheetTitleText {
     font-family: var(--english-serif-font-family);
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .sheetListingPinButton {
@@ -10346,7 +10384,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .collectionPage .collectionMemberListing {
     padding-bottom: 24px;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: var(--hebrew-sans-serif-font-family);
     font-size: 16px;
     color: #666;
     display: flex;
@@ -11103,6 +11141,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
     margin-bottom: 11px;
 }
 
+.addToSourceSheetBoxTitle {
+    font-style: normal;
+    font-weight: normal;
+    font-size: 18px;
+    line-height: 15px;
+    color: #999999;
+    margin-bottom: 11px;
+}
+
 .addToSourceSheetBox .selectedRef {
     padding: 16px 22px;
     font-size: 16px;
@@ -11575,6 +11622,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
     font-style: normal;
     font-weight: normal;
     font-size: 16px;
+    font-family: var(--hebrew-sans-serif-font-family);
     line-height: 19px;
     color: #666666;
 }
@@ -12787,7 +12835,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .tab-view .tab-list .tab {
-    font-size: 20px;
+    font-size: 19px;
     color: black;
     text-align: center;
     padding: 10px 10px;
@@ -12878,6 +12926,11 @@ section.SheetSource .SheetOutsideBiText {
 .tab-view.largeTabs .tab-list .tab {
     font-size: 14px;
     font-family: --var(hebrew-sans-serif-font-family);
+}
+
+.tab-view.largeTabs .tab-list .tab .int-he{
+    font-size: 20px;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .tab-view.largeTabs .tab-list .active .tab {
@@ -13058,7 +13111,7 @@ section.SheetSource .SheetOutsideBiText {
 .interface-hebrew textarea,
 .interface-hebrew textarea::placeholder,
 .interface-hebrew input {
-    font-family: var(--hebrew-sans-serif-font-family);
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .feedbackOverlay textarea::placeholder {
@@ -13095,6 +13148,21 @@ section.SheetSource .SheetOutsideBiText {
 
 .sheetList .sheet .sheetTags {
     color: #999;
+    font-family: var(--hebrew-sans-serif-font-family);
+    font-size: 18px;
+}
+
+.not-published {
+    font-family: var(--hebrew-serif-font-family);
+}
+
+.sheetTags .views-count {
+    font-size: 20px;
+    font-family: var(--hebrew-serif-font-family);
+}
+
+.bo-date {
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .sheetList .sheet .sheetTags .bullet {
@@ -13358,6 +13426,13 @@ section.SheetSource .SheetOutsideBiText {
     color: #999;
     font-size: 13px;
     letter-spacing: 1px;
+}
+
+.profile-page .profile-summary .follow .int-he{
+    color: #999;
+    font-size: 15px;
+    letter-spacing: 1px;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .profile-page .profile-summary .follow .follow-bull {

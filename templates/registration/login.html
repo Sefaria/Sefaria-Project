@@ -1,7 +1,20 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}  
 
 {% block title %}{% trans "registration.login.login_in_to_pecha" %}{% endblock %}
+
+{% block head %}
+<style>
+    @font-face {
+        font-family: 'Monlam Uni OuChan2';
+        src: url("{% static 'fonts/Monlam Uni OuChan2.ttf' %}") format('truetype');
+    }
+    .monlam-font {
+        font-family: 'Monlam Uni OuChan2', sans-serif;
+    }
+</style>
+{% endblock %}
 
 {% block description %}{% trans "registration.login.login_in_to_pecha_description" %}{% endblock %}
 
@@ -11,10 +24,10 @@
     <div id="login" class="biReady registrationContent static">
         <div class="inner">
             <p id="message">
-                <span class="{{ language_font_class }}">{% trans "registration.login.you_are_already_logged_in_as" %}</span>
+                <span class="{{ language_font_class }} monlam-font">{% trans "registration.login.you_are_already_logged_in_as" %}</span>
                 {{ user.email }}.
                 <a href="{% url "logout" %}">
-                    <span class="{{ language_font_class }}">{% trans "common.registration.login.log_out" %}</span>
+                    <span class="{{ language_font_class }} monlam-font">{% trans "common.registration.login.log_out" %}</span>
                 </a>
             </p>
         </div>
@@ -26,11 +39,11 @@
         <div class="inner">
             {% if message %}<p id="message">{{ message }}</p>{% endif %}
             <h1>
-                <span>{% trans "registration.login.login_in_to_pecha" %}</span>
+                <span class="monlam-font">{% trans "registration.login.login_in_to_pecha" %}</span>
             </h1>
             {% if form.errors %}
             <p class="error">
-                <span>{% trans "registration.login.username_and_password_didn't_match_message" %}</span>
+                <span class="monlam-font">{% trans "registration.login.username_and_password_didn't_match_message" %}</span>
             </p>
             {% endif %}
 
@@ -47,15 +60,15 @@
                 </p>
 
                 <button type="submit" class="button control-elem" id="login-submit-button">
-                    <span>{% trans "common.registration.login.log_in" %}</span>
+                    <span class="monlam-font">{% trans "common.registration.login.log_in" %}</span>
                 </button>
                 <a class="registration-links control-elem" href="{% url "password_reset" %}" id="resetLink">
-                    <span>{% trans "common.registration.login.forgot_your_password" %}</span>
+                    <span class="monlam-font">{% trans "common.registration.login.forgot_your_password" %}</span>
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
             <a class="registration-links control-elem" href="{% url "register" %}{% if next %}?next={{ next }}{% endif %}">
-                <span>{% trans "common.registration.login.create_a_new_account" %}</span>
+                <span class="monlam-font">{% trans "common.registration.login.create_a_new_account" %}</span>
 
             </a>
 	    </div>

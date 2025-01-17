@@ -1544,8 +1544,8 @@ class ReaderDisplayOptionsMenu extends Component {
   render() {
     let languageOptions = [
       {name: "english",   content: `<span class='en'>A</span>`, role: "radio", ariaLabel: "Show English Text" },
-      {name: "bilingual", content: `<span class='en'>A</span> <span>${Sefaria._('text.reader_option_menu.font_size_lable')}</span>`, role: "radio", ariaLabel: "Show English & Hebrew Text" },
-      {name: "hebrew",    content: `<span>${Sefaria._('text.reader_option_menu.font_size_lable')}</span>`, role: "radio", ariaLabel: "Show Hebrew Text" }
+      {name: "bilingual", content: `<span class='he'>A</span> <span>${Sefaria.interfaceLang !== "english"? Sefaria._('text.reader_option_menu.font_size_lable'):'ཀ'}</span>`, role: "radio", ariaLabel: "Show English & Hebrew Text" },
+      {name: "hebrew",    content: `<span>${Sefaria.interfaceLang !== "english"? Sefaria._('text.reader_option_menu.font_size_lable'): 'ཀ'}</span>`, role: "radio", ariaLabel: "Show Hebrew Text" }
     ];
     let languageToggle = this.showLangaugeToggle() ? (
         <ToggleSet

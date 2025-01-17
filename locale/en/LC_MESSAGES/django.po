@@ -121,7 +121,7 @@ msgstr "Public Collections are required to have at least 3 public sheets."
 
 #: sefaria/model/collection.py:284
 msgid "collection_invitation_email_subject"
-msgstr "%(name)s invited you to a collection on Pecha"
+msgstr "invited you to a collection on Pecha"
 
 #: sefaria/model/user_profile.py:288
 msgid "email_invalid_message"
@@ -790,7 +790,7 @@ msgstr "You are already logged in as"
 
 #: templates/registration/login.html:17
 msgid "common.registration.login.log_out"
-msgstr "Logout."
+msgstr "To use another account: Logout."
 
 #: templates/registration/login.html:33
 msgid "registration.login.username_and_password_didn't_match_message"

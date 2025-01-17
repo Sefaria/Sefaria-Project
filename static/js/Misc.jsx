@@ -1375,14 +1375,10 @@ class DisplaySettingsButton extends Component {
     let style = this.props.placeholder ? {visibility: "hidden"} : {};
     let icon;
 
-    if (Sefaria._siteSettings.TORAH_SPECIFIC) {
-      icon =
-        <InterfaceText>
-          text.reader_option_menu.font_size_lable
-        </InterfaceText>;
-    } else {
-      icon = <span className="textIcon">Aa</span>;
-    }
+  
+      icon = Sefaria.interfaceLang == 'english' ? <span className="textIcon">A</span>: <InterfaceText>
+      text.reader_option_menu.font_size_lable
+    </InterfaceText>;
     return (<a
               className="readerOptions"
               tabIndex="0"
@@ -1794,11 +1790,15 @@ const SheetListing = ({
     <div className="sheetViews sans-serif"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
     : <div className="sheetViews sans-serif"><i className="fa fa-lock" title="Private"></i></div>;
 
-  const views = (
-    <>
-      {Sefaria._("common.views_count", {count: Sefaria.interfaceLang == 'hebrew' ? Sefaria.hebrew.tibetanNumeral(sheet.views): sheet.views})}
-    </>
-  );
+    const views = (
+      <span className="views-count">
+        {Sefaria._("common.views_count", {
+          count: Sefaria.interfaceLang == 'hebrew' 
+            ? Sefaria.hebrew.tibetanNumeral(sheet.views)
+            : sheet.views
+        })}
+      </span>
+    );
 
   const sheetSummary = showSheetSummary && sheet.summary?
   <DangerousInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
@@ -1851,9 +1851,10 @@ const SheetListing = ({
       </a>
     );
   });
-  const created = <span dangerouslySetInnerHTML={{ __html: Sefaria.util.localeDate(sheet.created)}} />;
+  let dateClass = Sefaria.interfaceLang == "hebrew"? "bo-date" : "en-date";
+  const created = <span className={dateClass} dangerouslySetInnerHTML={{ __html: Sefaria.util.localeDate(sheet.created)}} />;
   const underInfo = infoUnderneath ? [
-      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>) : undefined,
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span className='not-published'>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
@@ -1878,13 +1879,16 @@ const SheetListing = ({
         {sheetSummary}
         <div className="sheetTags sans-serif">
           {
-            underInfo.map((item, i) => (
+            underInfo.map((item, i) => {
+            console.log('itemlklk', item);
+            return (
               <span key={i}>
                 { i !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
                 {item}
               </span>
-            ))
-          }
+            );
+          })
+        }
         </div>
       </div>
       <div className="sheetRight">
