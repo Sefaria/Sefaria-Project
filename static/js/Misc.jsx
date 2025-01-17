@@ -1851,7 +1851,8 @@ const SheetListing = ({
       </a>
     );
   });
-  const created = <span dangerouslySetInnerHTML={{ __html: Sefaria.util.localeDate(sheet.created)}} />;
+  let dateClass = Sefaria.interfaceLang == "hebrew"? "bo-date" : "en-date";
+  const created = <span className={dateClass} dangerouslySetInnerHTML={{ __html: Sefaria.util.localeDate(sheet.created)}} />;
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
