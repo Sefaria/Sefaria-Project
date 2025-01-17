@@ -4,6 +4,7 @@ import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
 import Sefaria from './sefaria';
 import {HDate} from '@hebcal/core';
+import '../../css/s2.css';
 
 var INBROWSER = (typeof document !== 'undefined');
 
@@ -98,7 +99,7 @@ class Util {
             const yearString = getTibetanNumberAsString(year);
             const monthString = getTibetanNumberAsString(month);
             const dateString = getTibetanNumberAsString(date);
-            return `<span> ཕྱི་ལོ་ <sub>${yearString}</sub> ཟླ་ <sub>${monthString}</sub> ཚེས་ <sub>${dateString}</sub></span>`
+            return `<span className="bo-date"> ཕྱི་ལོ་ <sub>${yearString}</sub> ཟླ་ <sub>${monthString}</sub> ཚེས་ <sub>${dateString}</sub></span>`
         }
 
         function getTibetanNumberAsString(num) {

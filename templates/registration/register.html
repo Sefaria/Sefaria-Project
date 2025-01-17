@@ -1,7 +1,20 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %} 
 
 {% block title %}{% trans "registration.register.create_an_account" %} | {% trans "common.registration.register.pecha" %}{% endblock %}
+
+{% block head %}
+<style>
+    @font-face {
+        font-family: 'Monlam Uni OuChan2';
+        src: url("{% static 'fonts/Monlam Uni OuChan2.ttf' %}") format('truetype');
+    }
+    .monlam-font {
+        font-family: 'Monlam Uni OuChan2', sans-serif;
+    }
+</style>
+{% endblock %}
 
 {% block description %}{% trans "registration.register.create_an_account_description" %}{% endblock %}
 
@@ -10,7 +23,7 @@
 <div id="register" class="biReady registrationContent static">
     <div class="inner">
         <h1>
-          <span>{% trans "Sign_Up_Title" %}</span>
+          <span class="monlam-font">{% trans "Sign_Up_Title" %}</span>
         </h1>
           <form id="register-form" action="{% url "register" %}" method="post" autocomplete="false">
             <div style="overflow: visible;">
@@ -24,16 +37,16 @@
             <label for="password1">{{ form.password1.label }}</label>
             {{ form.password1 }}
             <div class="dropdown">
-                <input type="text" id="user_type_display" placeholder={% trans "forms.placeholder_select_option" %} readonly required>
+                <input type="text" id="user_type_display" placeholder={% trans "forms.placeholder_select_option" %} readonly required >
                 <span id="dropdownArrow" class="dropdown-arrow">
                   <i class="fas fa-chevron-down"></i> <!-- Down arrow icon initially -->
                 </span>
                 <div class="dropdown-content" id="dropdownContent">
-                    <div class="dropdown-item" data-value="Monastic">{% trans "placeholder_monastic" %}</div>
-                    <div class="dropdown-item" data-value="Teacher">{% trans "placeholder_teacher" %}</div>
-                    <div class="dropdown-item" data-value="Student">{% trans "placeholder_student" %}</div>
-                    <div class="dropdown-item" data-value="Educated* /Dr / Prof">{% trans "placeholder_Educated_Dr_Prof" %}</div>
-                    <div class="dropdown-item" data-value="regular user">{% trans "placeholder_regular_user" %}</div>
+                    <div class="dropdown-item monlam-font" data-value="Monastic">{% trans "placeholder_monastic" %}</div>
+                    <div class="dropdown-item monlam-font" data-value="Teacher">{% trans "placeholder_teacher" %}</div>
+                    <div class="dropdown-item monlam-font" data-value="Student">{% trans "placeholder_student" %}</div>
+                    <div class="dropdown-item monlam-font" data-value="Educated* /Dr / Prof">{% trans "placeholder_Educated_Dr_Prof" %}</div>
+                    <div class="dropdown-item monlam-font" data-value="regular user">{% trans "placeholder_regular_user" %}</div>
                 </div>
             </div>
             <input type="hidden" name="user_type" id="user_type" required>
@@ -43,14 +56,14 @@
               <input type="hidden" name="next" value="{{ next }}" />
             {% endif %}
             <button type="submit" class="control-elem button">
-                <span>{% trans "Sign_Up_Button" %}</span>
+                <span class="monlam-font">{% trans "Sign_Up_Button" %}</span>
             </button>
         </form>
         <a class="registration-links control-elem" href="{% url "login" %}{% if next %}?next={{ next }}{% endif %}">
-          <span>{% trans "registration.register.login_if_already_have_an_account" %}</span>
+          <span class="monlam-font">{% trans "registration.register.login_if_already_have_an_account" %}</span>
         </a>
         {% comment %} <p class="registration-links control-elem" href="{% url "login" %}{% if next %}?next={{ next }}{% endif %}">
-          <span>{% trans "register.sign_up_agreement" %} <a href="/terms" target="_blank">{% trans "templates.static.terms.terms_of_use" %}</a> & <a href="privacy-policy" target="_blank">{% trans "templates.static.privacy_policy.privacy_policy_title" %}</a></span>
+          <span class="monlam-font">{% trans "register.sign_up_agreement" %} <a href="/terms" target="_blank">{% trans "templates.static.terms.terms_of_use" %}</a> & <a href="privacy-policy" target="_blank">{% trans "templates.static.privacy_policy.privacy_policy_title" %}</a></span>
         </p> {% endcomment %}
     </div>
 </div>

@@ -44,8 +44,8 @@ class SefariaLoginForm(EmailAuthenticationForm):
 
 class SefariaNewUserForm(EmailUserCreationForm):
     email = forms.EmailField(max_length=75,
-                             widget=forms.EmailInput(attrs={'placeholder': _("placeholder_email_address"), 'autocomplete': 'off'}))
-    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("placeholder_first_name"), 'autocomplete': 'off'}))
+                             widget=forms.EmailInput(attrs={'placeholder': _("placeholder_email_address"), 'autocomplete': 'off', 'class': 'monlam-font'}))
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("placeholder_first_name"), 'autocomplete': 'off', 'class': 'monlam-font'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("placeholder_last_name"), 'autocomplete': 'off'}))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_password"), 'autocomplete': 'off'}))
     # subscribe_educator = forms.BooleanField(label=("I am an educator"), help_text=("I am an educator"), initial=False,

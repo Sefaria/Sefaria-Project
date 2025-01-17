@@ -26,12 +26,20 @@
 .interface-hebrew .static .int-en, .interface-hebrew .static .en {
   display: none;
 }
+
+@font-face {
+  /*Tibetan | Monlam-bodyig regular */
+  font-family: 'Monlam-bodyig Regular';
+  src: url('/static/fonts/Monlam-bodyig Regular.ttf');
+  unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
+}
+
 .static h1 {
   position: relative;
   font-weight: lighter;
   letter-spacing: 1px;
   text-align: center;
-  font-size: 30px;
+  font-size: 35px;
   margin: 0 0 60px 0;
   height: auto;
 }
