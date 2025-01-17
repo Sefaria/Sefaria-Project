@@ -5572,7 +5572,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sidebarSearch .result .version {
     color: #999;
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    font-size: 13px;
+    font-size: 16px;
+    margin: 15px 0 5px;
+    display: flex;
+    align-items: center;
+}
+
+.searchContent .result .version,
+.sidebarSearch .result .version .int-he{
+    color: #999;
+    font-family: var(--hebrew-serif-font-family);
+    font-size: 16px;
     margin: 15px 0 5px;
     display: flex;
     align-items: center;
