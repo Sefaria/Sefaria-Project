@@ -9011,7 +9011,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 .profile-page .logoutLink .int-he {
-    font-family: "Heebo", sans-serif;
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .notificationsTopContainer {
