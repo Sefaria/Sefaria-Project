@@ -13418,6 +13418,13 @@ section.SheetSource .SheetOutsideBiText {
     letter-spacing: 1px;
 }
 
+.profile-page .profile-summary .follow .int-he{
+    color: #999;
+    font-size: 15px;
+    letter-spacing: 1px;
+    font-family: var(--hebrew-serif-font-family);
+}
+
 .profile-page .profile-summary .follow .follow-bull {
     padding: 0 5px;
 }
