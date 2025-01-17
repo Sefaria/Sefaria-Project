@@ -34,7 +34,7 @@ LANGUAGES = (
 
 DATE_FORMATS = {
     'en': 'N j, Y g:i A',  # English: January 5, 2024 2:30 PM
-    'he': 'སྤྱི་ལོ།Y ཟླ་m ཚེས།j ཆུ་ཚོད།g',  # Tibetan: སྤྱི་ལོ་2024 ཟླ་1 ཚེས་5 ཆུ་2 སྐར་30 སྔོན་PM
+    'he': 'ཕྱི་ལོ་Y ཟླ་m ཚེས།j ཆུ་ཚོད།g',  # Tibetan: ཕྱི་ལོ་2024 ཟླ་1 ཚེས་5 ཆུ་2 སྐར་30 སྔོན་PM
     'ch': 'Y年 m月 j日 g:i A',  # Chinese: 2024年1月5日 2:30 PM
     'es': 'Y年 m月 j日 g:i A',  # Spanish: 2024年1月5日 2:30 PM
 }
