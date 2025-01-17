@@ -1794,11 +1794,15 @@ const SheetListing = ({
     <div className="sheetViews sans-serif"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
     : <div className="sheetViews sans-serif"><i className="fa fa-lock" title="Private"></i></div>;
 
-  const views = (
-    <>
-      {Sefaria._("common.views_count", {count: Sefaria.interfaceLang == 'hebrew' ? Sefaria.hebrew.tibetanNumeral(sheet.views): sheet.views})}
-    </>
-  );
+    const views = (
+      <span className="views-count">
+        {Sefaria._("common.views_count", {
+          count: Sefaria.interfaceLang == 'hebrew' 
+            ? Sefaria.hebrew.tibetanNumeral(sheet.views)
+            : sheet.views
+        })}
+      </span>
+    );
 
   const sheetSummary = showSheetSummary && sheet.summary?
   <DangerousInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
@@ -1878,13 +1882,16 @@ const SheetListing = ({
         {sheetSummary}
         <div className="sheetTags sans-serif">
           {
-            underInfo.map((item, i) => (
+            underInfo.map((item, i) => {
+            console.log('itemlklk', item);
+            return (
               <span key={i}>
                 { i !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
                 {item}
               </span>
-            ))
-          }
+            );
+          })
+        }
         </div>
       </div>
       <div className="sheetRight">

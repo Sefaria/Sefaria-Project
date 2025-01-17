@@ -3844,6 +3844,7 @@ a.navBlockTitle:hover {
     font-size: 30px;
     line-height: 1.3;
     unicode-bidi: plaintext;
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .bookPage.fullBookPage .tocTitle {
@@ -5363,6 +5364,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .dropdown-option-list-label span {
     white-space: nowrap;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .interface-english .dropdown-option-list {
@@ -5389,7 +5391,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .interface-hebrew .dropdown-option-list tr {
-    font-family: "Heebo", sans-serif;
+    font-family: '"Heebo", sans-serif;'
 }
 
 .dropdown-option-list tr:hover {
@@ -5506,7 +5508,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .searchContent .result-title .int-he {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family);
     font-size: 22px;
 }
 
@@ -5555,6 +5557,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .snippet {
     font-size: 18px;
     color: #000;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .searchContent .sheet_result .snippet:hover {
@@ -5863,6 +5866,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     font-weight: unset;
     margin-block-start: unset;
     margin-block-end: unset;
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .readerControls .readerTextToc .readerTextTocBox a {
@@ -10240,7 +10244,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .collectionPage .collectionDescription {
     font-size: 16px;
-    font-family: var(--hebrew-serif-font-family);
+    font-family: var(--hebrew-sans-serif-font-family);
     color: #666;
     line-height: 1.3;
 }
@@ -13136,6 +13140,15 @@ section.SheetSource .SheetOutsideBiText {
     color: #999;
     font-family: var(--hebrew-serif-font-family);
     font-size: 18px;
+}
+
+.sheetTags .views-count {
+    font-size: 20px;
+    font-family: var(--hebrew-serif-font-family);
+}
+
+.bo-date {
+    font-size: 40px;
 }
 
 .sheetList .sheet .sheetTags .bullet {
