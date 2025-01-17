@@ -13152,7 +13152,7 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .bo-date {
-    font-size: 40px;
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .sheetList .sheet .sheetTags .bullet {
