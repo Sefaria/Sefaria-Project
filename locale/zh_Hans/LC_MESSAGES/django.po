@@ -607,7 +607,7 @@ msgstr ""
 
 #: templates/elements/loading.html:12
 msgid "common.loading"
-msgstr ""
+msgstr "正在加载..."
 
 #: templates/elements/login_prompt.html:6
 msgid "common.templates.elements.login_prompts.sign_up"
