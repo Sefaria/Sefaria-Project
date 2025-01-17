@@ -1375,14 +1375,10 @@ class DisplaySettingsButton extends Component {
     let style = this.props.placeholder ? {visibility: "hidden"} : {};
     let icon;
 
-    if (Sefaria._siteSettings.TORAH_SPECIFIC) {
-      icon =
-        <InterfaceText>
-          text.reader_option_menu.font_size_lable
-        </InterfaceText>;
-    } else {
-      icon = <span className="textIcon">Aa</span>;
-    }
+  
+      icon = Sefaria.interfaceLang == 'english' ? <span className="textIcon">A</span>: <InterfaceText>
+      text.reader_option_menu.font_size_lable
+    </InterfaceText>;
     return (<a
               className="readerOptions"
               tabIndex="0"
