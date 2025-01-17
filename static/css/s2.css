@@ -13138,8 +13138,12 @@ section.SheetSource .SheetOutsideBiText {
 
 .sheetList .sheet .sheetTags {
     color: #999;
-    font-family: var(--hebrew-serif-font-family);
+    font-family: var(--hebrew-sans-serif-font-family);
     font-size: 18px;
+}
+
+.not-published {
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .sheetTags .views-count {

@@ -1853,7 +1853,7 @@ const SheetListing = ({
   });
   const created = <span dangerouslySetInnerHTML={{ __html: Sefaria.util.localeDate(sheet.created)}} />;
   const underInfo = infoUnderneath ? [
-      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>) : undefined,
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span className='not-published'>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
