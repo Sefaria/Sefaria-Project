@@ -4999,6 +4999,8 @@ h1.topic-landing-header {
   position: absolute;
   width: 92vw;
   margin-top: 38px;
+  max-height: calc(1.9em * 5 + 1em);
+
 }
 .topic-landing-search-dropdown:empty {
   padding: 0;
