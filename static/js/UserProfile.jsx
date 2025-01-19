@@ -280,7 +280,7 @@ class UserProfile extends Component {
         key={item.id}
         uid={item.id}
         slug={item.slug}
-        url={`/profile/${item.slug}`}
+        url={`/sheets/profile/${item.slug}`}
         name={item.full_name}
         image={item.profile_pic_url}
         is_followed={Sefaria.following.indexOf(item.id) > -1}
