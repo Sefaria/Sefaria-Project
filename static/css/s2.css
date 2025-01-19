@@ -4995,7 +4995,7 @@ h1.topic-landing-header {
   position: absolute;
 }
 .singlePanel .topic-landing-search-dropdown{
-  width: auto;
+  width: 90%;
   margin-top: 38px;
 }
 .topic-landing-search-dropdown:empty {
