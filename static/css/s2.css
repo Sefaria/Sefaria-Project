@@ -4931,7 +4931,7 @@ h1.topic-landing-header {
   display: flex;
   margin-top: 9px;
   font-style: normal;
-  margin-inline-start: 277px;
+  width: 100%
 }
 
 .topic-landing-search-input{
@@ -5013,7 +5013,6 @@ h1.topic-landing-header {
 .singlePanel .featuredTopicContent {
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 .singlePanel .featuredTopicImgWrapper .imageWithCaptionPhoto{
   max-width: calc(80.67vw);
@@ -5043,6 +5042,10 @@ h1.topic-landing-header {
   flex-direction: column;
   color: var(--dark-grey);
   margin-inline-start: 30px;
+}
+.singlePanel .featuredTopicText .int-en,
+.singlePanel .featuredTopicText .int-he {
+  margin-inline-start: 0px;
 }
 .featuedTopicText h3 {
   text-transform: none;
