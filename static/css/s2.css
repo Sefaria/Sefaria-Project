@@ -4904,6 +4904,7 @@ h1.topic-landing-header {
   display: flex;
   align-items: center;
   flex-direction: column;
+  position: relative;
   padding: 0;
   text-align: inherit;
   background: #EDEDEC;
@@ -4968,7 +4969,7 @@ h1.topic-landing-header {
   padding: 10px;
   max-height: calc(1.9em * 10 + 2em); /* 2.5em is an estimate of the height per suggestion, and 2em for padding */
   z-index: 2;
-  margin-top: 62px;
+  margin-top: 47px;
   overflow-y: scroll;
   position: absolute;
 }
