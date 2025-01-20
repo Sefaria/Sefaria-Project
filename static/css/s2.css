@@ -14195,8 +14195,6 @@ span.ref-link-color-3 {color: blue}
   content: "";
   transform: scale(0.75);
 } */
-
-/*.sheetsInPanel .headerDropdownMenu a.dropdownLinks-button::after {*/
 .sheetsInPanel .headerDropdownMenu a.headerDropdownMenu::after {
   display: inline-block;
   height: 10px;
