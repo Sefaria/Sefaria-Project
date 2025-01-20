@@ -95,13 +95,12 @@ class Sheet extends Component {
                   title={sheet.title}
                   handleClick={this.handleClick}
                   sheetSourceClick={this.props.onSegmentClick}
-                  highlightedNode={this.props.highlightedNode}
+                  highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
+                  highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
                   highlightedRefsInSheet={this.props.highlightedRefsInSheet}
                   scrollToHighlighted={this.props.scrollToHighlighted}
                   editable={editable}
                   setSelectedWords={this.props.setSelectedWords}
-                  sheetNumbered={sheet.options.numbered}
-                  hideImages={!!sheet.hideImages}
                   sheetID={sheet.id}
                   authorStatement={sheet.ownerName}
                   authorID={sheet.owner}
