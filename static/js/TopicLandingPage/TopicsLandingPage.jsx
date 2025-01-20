@@ -9,6 +9,7 @@ import {TopicLandingSeasonal} from "./TopicLandingSeasonal";
 import {TopicLandingNewsletter} from "./TopicLandingNewsletter";
 import {InterfaceText} from "../Misc";
 import Sefaria from "../sefaria/sefaria";
+import {RandomTopicCardWithDescriptionRow} from "./RandomTopicCardWithDescriptionRow";
 
 
 export const TopicsLandingPage = ({openTopic}) => {
@@ -36,6 +37,9 @@ export const TopicsLandingPage = ({openTopic}) => {
                         </div>
                         <div className="topic-landing-section">
                             <TopicLandingNewsletter />
+                        </div>
+                        <div className="topic-landing-section">
+                            <RandomTopicCardWithDescriptionRow/>
                         </div>
                         <div className="topic-landing-section topic-landing-temporal">
                             <TopicLandingParasha/>
