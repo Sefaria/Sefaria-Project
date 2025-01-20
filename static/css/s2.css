@@ -5200,7 +5200,11 @@ h1.topic-landing-header {
 .rowed-salad-container{
   white-space: nowrap;
   overflow-x: scroll;
-  height: 50px;
+  display: flex;
+  scrollbar-width: none; /* For Firefox */
+}
+.rowed-salad-container::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Edge */
 }
 
 .topic-salad{
