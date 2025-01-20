@@ -2652,60 +2652,8 @@ const SefariaEditor = (props) => {
 
 
   useEffect(() => {
-    if(!props.hasSidebar) {
-      editor.highlightedNode = null;
-    }
-  }, [props.hasSidebar]);
-
-
-  useEffect(() => {
-      let scrollTimeOutId = null;
-      const onScrollListener = () => {
-          clearTimeout(scrollTimeOutId);
-          scrollTimeOutId = setTimeout(
-              () => {
-                  if(props.hasSidebar) {
-                      onEditorSidebarToggleClick()
-                  }
-              }, 200
-          );
-      };
-
-      let clickTimeOutId = null;
-      const onClickListener = (e) => {
-        clearTimeout(clickTimeOutId);
-        clickTimeOutId = setTimeout(
-          () => {
-            if(props.hasSidebar) {
-            let sheetElementTypes = Object.values(sheet_item_els);
-              for(const node of Node.ancestors(editor, editor.selection.focus.path)) {
-                  if (sheetElementTypes.includes(node[0].type)) {
-                      if (node[0].node != editor.highlightedNode) {
-                        updateSidebar(node[0].node, node[0].ref)
-                        if (node[0].type != "SheetSource") {
-                          Transforms.select(editor, editor.blurSelection);
-                          ReactEditor.focus(editor);
-                        }
-                      }
-                      break;
-                  }
-              }
-            }
-          }, 20);
-      };
-
-
-
-     editorContainer.current.parentNode.parentNode.addEventListener("scroll", onScrollListener);
-     editorContainer.current.parentNode.parentNode.addEventListener("click", onClickListener);
-
-
-      return () => {
-          editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener);
-          editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener);
-      }
-    }, [props.highlightedNode, props.hasSidebar]
-  );
+    editor.highlightedNode = null;
+  }, []);
 
   useEffect(() => {
       if(canUseDOM) {
@@ -2980,31 +2928,6 @@ const SefariaEditor = (props) => {
         }, true)
     }
 
-    const updateSidebar = (sheetNode, sheetRef) => {
-      let source = {
-          'node': sheetNode,
-      };
-      if (!!sheetRef) {
-          source["ref"] = sheetRef
-      }
-      editor.highlightedNode = sheetNode
-      props.sheetSourceClick(source)
-
-    };
-
-    const onEditorSidebarToggleClick = event => {
-        const segmentToHighlight = getHighlightedByScrollPos()
-        if (!segmentToHighlight) {
-            updateSidebar(sheet.id, null)
-        }
-        else {
-            const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
-            const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
-            updateSidebar(sheetNode, sheetRef)
-        }
-    };
-
-
     const editor = useMemo(
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
@@ -3021,7 +2944,6 @@ const SefariaEditor = (props) => {
 
         }
 
-            <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
             <SheetAuthorStatement
