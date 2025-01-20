@@ -263,9 +263,10 @@ class ReaderPanel extends Component {
     e.preventDefault();
     this.conditionalSetState({
       mode: "Sheet",
-      sheetID: sheet.id,
+      sheetID: typeof sheet === 'object' ? sheet.id : sheet, // latter case is for when 'sheet' passed is ID
       highlightedNode,
-      highlightedRefsInSheet
+      highlightedRefsInSheet,
+      menuOpen: null,
     });
   }
   setPreviousSettings(backButtonSettings) {
@@ -872,7 +873,7 @@ class ReaderPanel extends Component {
                                  updateAppliedOptionSort={this.props.updateSearchOptionSort}
                                  registerAvailableFilters={this.props.registerAvailableFilters}
                                  resetSearchFilters={this.props.resetSearchFilters}
-                                 onResultClick={this.props.onSearchResultClick}/>);
+                                 onResultClick={this.handleSheetClick}/>);
     } else if (this.state.menuOpen === "sheet meta") {
       menu = (<SheetMetadata
                     mode={this.state.menuOpen}
