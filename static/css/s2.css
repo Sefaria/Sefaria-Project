@@ -5343,11 +5343,18 @@ h1.topic-landing-header {
   gap: 20px;
 }
 .singlePanel .topic-card-with-description-row {
-  max-width: 100vw;
   overflow-x: scroll;
+  overflow-y: visible;
   box-sizing: border-box;
-  padding-bottom: 10px;
+  scrollbar-width: none; /* For Firefox */
+  padding-bottom: 5px;
+  padding-inline-start: 5px;
+  padding-inline-end: 5px;
 }
+.singlePanel .topic-card-with-description-row::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and Edge */
+}
+
 .topic-card-with-description .card{
   flex: 1;
   border-top: 4px solid var(--sefaria-blue);
