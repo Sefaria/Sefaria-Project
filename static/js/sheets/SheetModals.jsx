@@ -15,16 +15,15 @@ const ShareModal = ({sheetID, close}) => {
         </Modal>;
 }
 
-const CollectionsModal = ({close, sheetID}) => {
+const CollectionsModal = ({close, sheetID, handleCollectionsChange, editable}) => {
   return <Modal isOpen={true} close={close}>
-            <CollectionsWidget sheetID={sheetID} close={close} />
+            <CollectionsWidget sheetID={sheetID} close={close} handleCollectionsChange={handleCollectionsChange} />
         </Modal>;
 }
 
 const AddToSourceSheetModal = ({nodeRef, srefs, close}) => {
   return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs} hideGDocAdvert={true}/></Modal>
 }
-
 const CopyModal = ({close, sheetID}) => {
   const copyState = {
     copying: { en: "Copying Sheet...", he: "מעתיק..."},
@@ -94,6 +93,7 @@ const CopyModal = ({close, sheetID}) => {
   return <GenericSheetModal title={<InterfaceText>Copy</InterfaceText>} message={copyMessage} close={handleClose}/>;
 }
 
+
 const GenericSheetModal = ({title, message, close}) => {
   return <Modal isOpen={true} close={close}>
             <div className="modalTitle">{title}</div>
@@ -116,6 +116,7 @@ const SaveModal = ({historyObject, close}) => {
   });
   return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={close}/>;
 }
+
 
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
@@ -165,7 +166,15 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   return <GenericSheetModal title={<InterfaceText>Export</InterfaceText>}
                             message={getExportMessage()}
                             close={close}/>;
-
 }
 
-export { ShareModal, CollectionsModal, AddToSourceSheetModal, CopyModal, SaveModal, GoogleDocExportModal };
+const DeleteModal = ({close, sheetID, authorUrl}) => {
+  useEffect( () => {
+    Sefaria.sheets.deleteSheetById(sheetID).then(() => {
+      window.location.href = authorUrl;
+    });
+  });
+  return <GenericSheetModal title={<InterfaceText>Deleting...</InterfaceText>} close={close}/>;
+}
+
+export { ShareModal, CollectionsModal, AddToSourceSheetModal, CopyModal, SaveModal, GoogleDocExportModal, DeleteModal };
