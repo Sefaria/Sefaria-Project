@@ -2,7 +2,8 @@ import Component from "react-class";
 import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "../sefaria/sefaria";
-import {AddToSourceSheetModal, SheetOptions} from "./SheetOptions";
+import {AddToSourceSheetModal} from "./SheetModals";
+import { SheetOptions } from "./SheetOptions";
 import {
   SheetComment,
   SheetHeader,
