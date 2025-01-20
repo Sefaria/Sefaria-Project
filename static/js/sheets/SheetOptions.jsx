@@ -89,6 +89,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
         <>
         {editable && status === 'unlisted' && publishModalButton}
         <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
+          <div className="dropdownLinks-options">
           <DropdownMenuItem>
             <SaveButtonWithText
                 historyObject={historyObjectForSheet}
@@ -121,6 +122,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
                         </DropdownMenuItem>
                       </>
           }
+          </div>
         </DropdownMenu>
         </>
     );
