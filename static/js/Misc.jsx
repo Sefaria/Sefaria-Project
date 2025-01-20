@@ -3123,7 +3123,7 @@ const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const [lang, setLang] = useState(defaultVal);
   const buttonData = [
-  { buttonTitle: "Source Language", buttonId: "source" },
+  { buttonTitle: "Source", buttonId: "source" },
   { buttonTitle: "Translation", buttonId: "translation" },
   { buttonTitle: "Source with Translation", buttonId: "sourcewtrans" }
 ];
@@ -3162,7 +3162,6 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
         }
       }
     >
-      <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
        {buttonData.map((button, index) => (
         <LangRadioButton
           key={button.buttonId}
