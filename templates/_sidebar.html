@@ -1,8 +1,10 @@
 {% load i18n %}
 
     <nav id="aboutSidebar">
-        <h1 class="int-en">{{title}}</h1>
-        <h1 class="int-he">{{heTitle}}</h1>
+        {% if mobile %}
+            <h1 class="int-en">{{title}}</h1>
+            <h1 class="int-he">{{heTitle}}</h1>
+        {% endif %}
         <ul>
             <li><a id="about" href="/about">
                     <span class="int-en">What is Sefaria?<i class="fa fa-chevron-right"></i></span>

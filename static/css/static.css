@@ -3520,13 +3520,8 @@ form.globalUpdateForm + div.notificationsList {
       margin-right: 20px;
     }
 }
-nav#aboutSidebar h1 {
-  display: none;
-}
+
 @media (max-width: 480px) {
-  .interface-english nav#aboutSidebar h1.int-en, .interface-hebrew nav#aboutSidebar h1.int-he {
-    display: block;
-  }
   .container.doc.legal.static .inner, #annualReport .inner, #metricsPage .inner, #supportersPage .inner,
   #testimonialsPage .inner, #aboutPage .inner, #teamPage .inner, #jobsPage .inner {
     margin-inline-start: auto;
