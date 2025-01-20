@@ -13440,6 +13440,7 @@ span.ref-link-color-3 {color: blue}
   background-color: white;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
 }
 
 .dropdownButton {
