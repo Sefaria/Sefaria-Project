@@ -6253,7 +6253,7 @@ class Library(object):
             if replacement is None:
                 return match.group(0)
             return replacement
-        except InputError as e:
+        except (InputError, KeyError) as e:
             logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
             return match.group(0)
 
