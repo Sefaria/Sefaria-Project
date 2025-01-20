@@ -5019,7 +5019,7 @@ h1.topic-landing-header {
   flex-direction: column;
 }
 .singlePanel .featuredTopicImgWrapper .imageWithCaptionPhoto{
-  max-width: calc(80.67vw);
+  max-width: calc(100vw);
 }
 .featuredTopicContent {
   display: flex;
