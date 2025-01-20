@@ -2928,19 +2928,6 @@ const SefariaEditor = (props) => {
         }, true)
     }
 
-    const updateSidebar = (sheetNode, sheetRef) => {
-      let source = {
-          'node': sheetNode,
-      };
-      if (!!sheetRef) {
-          source["ref"] = sheetRef
-      }
-      editor.highlightedNode = sheetNode
-      props.sheetSourceClick(source)
-
-    };
-
-
     const editor = useMemo(
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
