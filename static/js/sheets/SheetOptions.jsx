@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator } from "../common/DropdownMenu";
 import { SaveButtonWithText } from "../Misc";
 import Sefaria from "../sefaria/sefaria";
+import Button from "../common/Button";
+import ReactTags from "react-tag-autocomplete";
 import { SignUpModalKind } from "../sefaria/signupModalContent";
 import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal } from "./SheetModals";
 
@@ -19,7 +21,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, authorUrl, handleCollectionsChange}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, postSheet, status, handleCollectionsChange}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -27,6 +29,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
   const [savingMode, setSavingMode] = useState(false);
   const [exportingMode, setExportingMode] = useState(getExportingStatus());
   const [deletingMode, setDeletingMode] = useState(false);
+  const [publishingMode, setPublishingMode] = useState(false);
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
 
   const getSignUpModalKind = () => {
@@ -75,7 +78,16 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
   else if (deletingMode) {
     return <DeleteModal close={() => setDeletingMode(false)} sheetID={sheetID} authorUrl={authorUrl}/>;
   }
+  else if (publishingMode) {
+    return <PublishModal close={() => setPublishingMode(false)}
+                         sheetID={sheetID}
+                         status={status}
+                         postSheet={postSheet}/>;
+  }
+  const publishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
   return (
+        <>
+        {editable && status === 'unlisted' && publishModalButton}
         <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
           <DropdownMenuItem>
             <SaveButtonWithText
@@ -95,6 +107,13 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
           <DropdownMenuItem>
             <ShareButton onClick={() => setSharingMode(true)}/>
           </DropdownMenuItem>
+          {editable && status === 'public' && <>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem>
+                                                  <UnpublishButton onClick={() => setPublishingMode(true)}/>
+                                                </DropdownMenuItem>
+                                              </>
+          }
           {editable && <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>
@@ -103,6 +122,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
                       </>
           }
         </DropdownMenu>
+        </>
     );
 }
 
@@ -127,6 +147,15 @@ const DeleteButton = ({onClick}) => {
               descEn={""}
               descHe={""}
               onClick={handleClick}/>
+}
+
+const UnpublishButton = ({onClick}) => {
+  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"}
+                                   textEn={'Unpublish'}
+                                   textHe={""}
+                                   descEn={""}
+                                   descHe={""}
+                                   onClick={onClick}/>
 }
 
 const CollectionsButton = ({setCollectionsMode, editable}) => {
