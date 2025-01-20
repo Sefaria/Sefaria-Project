@@ -730,7 +730,6 @@ const GetStartedButton = () => {
     return <Button className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
 }
 const CreateSheetsButton = () => {
-  // #sheetsButton
   return <Button icon={"/static/icons/new-sheet-black.svg"} className="small" onClick={() => window.location.href="/sheets/new"}>Create</Button>
 }
 const CreateASheet = () => (

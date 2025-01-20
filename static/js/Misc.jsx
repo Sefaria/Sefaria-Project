@@ -24,6 +24,9 @@ import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
+import { ToolsButton } from "./ConnectionsPanel";
+import {DropdownMenu, DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1243,22 +1246,40 @@ InterfaceLanguageMenu.propTypes = {
   translationLanguagePreference: PropTypes.string,
 };
 
+const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
+const getSaveButtonMessage = (selected) => Sefaria._(selected ? "Remove" : "Save");
+const getSaveButtonImage = (selected) => {
+  return selected ? "/static/icons/bookmark-filled.svg" : "/static/icons/bookmark.svg";
+}
+const SaveButtonWithText = ({historyObject, onClick}) => {
+  const selected = isSaveButtonSelected(historyObject);
+  return <DropdownMenuItemWithIcon
+                    textEn={getSaveButtonMessage(selected)}
+                    textHe={getSaveButtonMessage(selected)}
+                    descEn={""}
+                    descHe={""}
+                    icon={getSaveButtonImage(selected)}
+                    onClick={() => onClick()}/>;
+}
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
-  if (!historyObject) { placeholder = true; }
-  const isSelected = () => !!Sefaria.getSavedItem(historyObject);
-  const [selected, setSelected] = useState(placeholder || isSelected());
+  if (!historyObject) {
+    placeholder = true;
+  }
+  const [selected, setSelected] = useState(placeholder || isSaveButtonSelected(historyObject));
   useEffect(() => {
-    if (placeholder) { return; }
-    setSelected(isSelected())
+    if (placeholder) {
+      return;
+    }
+    setSelected(isSaveButtonSelected(historyObject));
   }, [historyObject && historyObject.ref]);
 
   const [isPosting, setPosting] = useState(false);
 
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-  const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+  const message = getSaveButtonMessage(selected);
+  const altText = placeholder ? '' : `${message} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {
@@ -1267,15 +1288,13 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
-        .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
+        .then(() => { setSelected(isSaveButtonSelected(historyObject)); }) // since request is async, check if it's selected from data
+        .catch(e => { if (e === 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
         .finally(() => { setPosting(false); });
   }
-
   return (
     <ToolTipped {...{ altText, classes, style, onClick }}>
-      { selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
-        <img src="/static/icons/bookmark.svg" alt={altText}/> }
+      {<img src={`${getSaveButtonImage(selected)}`} alt={altText}/>}
     </ToolTipped>
   );
 }
@@ -2620,6 +2639,29 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
+const SheetMetaDataBoxSegment = (props) => {
+  const handleBlur = (e) => {
+    let content = e.target.textContent.trim();
+    // On blur, if the content only contains a <br> or is empty (it seems browsers insert a <br> tag when div content is deleted by user)
+    if (content === '') {
+      e.target.innerHTML = ''; // Clear the inner HTML
+      content = ''; // Ensure content is set to an empty string
+    }
+    if (props.blurCallback) {
+      props.blurCallback(content);
+    }
+  }
+  return <div className={props.className}
+              role="heading"
+              aria-level="1"
+              contentEditable={props.editable}
+              suppressContentEditableWarning={true}
+              onBlur={props.editable && handleBlur}
+  >
+    {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+  </div>
+}
+
 
 const SheetAuthorStatement = (props) => (
   <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
@@ -2768,12 +2810,22 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-
-const SheetMetaDataBox = (props) => (
-  <div className="sheetMetaDataBox">
-    {props.children}
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+  const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
+  return <div className="sheetMetaDataBox">
+    <div className={`sidebarLayout`}>
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
+      <div className="items">
+        {languageToggle}
+        {sheetOptions}
+      </div>
+    </div>
+    {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
+                                                       className="summary"
+                                                       editable={editable}
+                                                       blurCallback={summaryCallback}/>}
   </div>
-);
+}
 
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
@@ -3203,6 +3255,7 @@ export {
   MenuButton,
   SearchButton,
   SaveButton,
+  SaveButtonWithText,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,
@@ -3217,6 +3270,7 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
+  SheetMetaDataBoxSegment,
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,

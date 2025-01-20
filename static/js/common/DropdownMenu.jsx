@@ -2,7 +2,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText } from '../Misc';
 
-
 const DropdownMenuSeparator = () => {
 
   return (
@@ -12,13 +11,21 @@ const DropdownMenuSeparator = () => {
 }
 
 const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
+  const dropDownClasses = `interfaceLinks-option int-bi dropdownItem`;
+  if (!url) {
+      return (
+          <div className={dropDownClasses}>
+              {children}
+          </div>
+      );
+  }
 
   if (!newTab){
     newTab = false;
   }
 
   return (
-    <a className={`interfaceLinks-option int-bi dropdownItem`}
+    <a className={dropDownClasses}
        href={url}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}>
@@ -28,17 +35,18 @@ const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
   );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='',
+                                  descHe=''}) => {
   return (
     <>
-      <div className="dropdownHeader">
+      <div className="dropdownHeader" onClick={() => onClick()}>
         <img src={icon} />
         <span className='dropdownHeaderText'>
           <InterfaceText text={{'en': textEn, 'he': textHe}} />
         </span>
       </div>
       <div className='dropdownDesc'>
-        <InterfaceText text={{'en': 'Lorem ipsum dolor sit amet, lorem dolor.', 'he': 'לורם איפסום דולור סיט אמט'}} />
+        <InterfaceText text={{'en': descEn, 'he': descHe}} />
       </div>
   </>
   );
@@ -84,7 +92,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             setIsOpen(false);
         }
     };
-
+  
     useEffect(() => {
         document.addEventListener('keydown', handleHideDropdown, true);
         document.addEventListener('click', handleClickOutside, true);
@@ -93,12 +101,12 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             document.removeEventListener('click', handleClickOutside, true);
         };
     }, []);
-  
+
     return (
         <div className={positioningClass} ref={wrapperRef}>
-           <a className="dropdownLinks-button" onClick={handleButtonClick}>
+           <div className="dropdownLinks-button" onClick={handleButtonClick}>
               {buttonComponent}
-          </a>
+          </div>
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} onClick={handleContentsClick}>
               {children}
           </div>
@@ -110,8 +118,8 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     buttonComponent: PropTypes.element.isRequired,
   };
   export {
-    DropdownMenu,
-    DropdownMenuSeparator,
+    DropdownMenu, 
+    DropdownMenuSeparator, 
     DropdownMenuItemWithIcon,
     DropdownMenuItem
   };
