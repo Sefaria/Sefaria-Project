@@ -505,12 +505,12 @@ class ReaderApp extends Component {
               hist.mode  = "topics";
             break;
           case "community":
-            hist.title = Sefaria._("From the Community: Today on Sefaria");
+            hist.title = Sefaria._("From the Community: Today on Pecha");
             hist.url   = "community";
             hist.mode  = "community";
             break;
           case "profile":
-            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
+            hist.title = `${state.profile.full_name} ${Sefaria._("on Pecha")}`;
             hist.url   = `profile/${state.profile.slug}`;
             hist.mode = "profile";
             break;
