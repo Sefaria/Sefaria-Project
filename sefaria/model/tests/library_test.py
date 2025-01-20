@@ -302,6 +302,7 @@ class Test_he_get_refs_in_text(object):
         wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=True)
 
     def test_bad_refs(self):
+        # We want to make sure that bad refs don't get wrapped in a tags nor error out
         trefs = ["סנהדרין ב, ב ו-ג, ב"]
         orefs = [Ref(tref) for tref in trefs]
         st = reduce(lambda a, b: a + "({}) בלה בלה ".format(b), trefs, "")
