@@ -43,7 +43,7 @@ export const TopicLandingNewsletter = () => {
                 <h3 className="topic-landing-newsletter-text">
                     <InterfaceText>Stay curious. Sign up for our free Topic of the Week Newsletter.</InterfaceText>
                 </h3>
-                <div>
+                <div className="topic-landing-newsletter-input-wrapper">
                     <div className="topic-landing-newsletter-input-row">
                         <input
                             type="text"

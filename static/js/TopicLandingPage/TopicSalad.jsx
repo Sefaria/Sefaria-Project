@@ -4,11 +4,14 @@ import {WordSalad} from "../WordSalad";
 import Sefaria from "../sefaria/sefaria";
 import {InterfaceText} from "../Misc";
 import {RainbowLine} from "../RainbowLine";
+import {RowedWordSalad} from "../RowedWordSalad";
 
 
 export const TopicSalad = () => {
 
     const [salad, setSalad] = useState([]);
+
+    const isMultiPanel = Sefaria.multiPanel;
 
     const renderSaladItem = (item) => {
         return(<a href={`/topics/${item.slug}`} className="topic-salad-item">
@@ -36,9 +39,12 @@ export const TopicSalad = () => {
     <>
     <RainbowLine rainbowClassname={"topic-landing-upper-rainbow"}/>
       <div className='topic-salad'>
-                  <WordSalad renderItem={renderSaladItem}
+          {isMultiPanel ? <WordSalad renderItem={renderSaladItem}
                        numLines={5}
                        salad={salad}/>
+              :
+              <RowedWordSalad renderItem={renderSaladItem}
+                              salad={salad}/>}
       </div>
     <RainbowLine rainbowClassname={"topic-landing-lower-rainbow"}/>
     </>
