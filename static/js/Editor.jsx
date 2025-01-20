@@ -2560,9 +2560,6 @@ const SefariaEditor = (props) => {
     const [summary, setSummary] = useState(sheet.summary || "");
     const [title, setTitle] = useState(sheet.title || "");
 
-    useEffect(() => {
-        saveDocument(currentDocument);
-    }, [title, summary]);
 
     useEffect(
         () => {
