@@ -123,7 +123,7 @@ const SaveModal = ({historyObject, close}) => {
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
     exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
-    exportComplete: { en: "Success!", he: "ייצוא הסתיים"}
+    exportComplete: {en: "Success!", he: "ייצוא הסתיים"}
   }
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
@@ -152,22 +152,23 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   }
 
   useEffect(() => {
-      exportToDrive();
-    }, [googleDriveText]);
+    exportToDrive();
+  }, [googleDriveText]);
   const getExportMessage = () => {
     if (googleDriveText.en === googleDriveState.exporting.en) {
       return <InterfaceText text={googleDriveText}/>;
-    }
-    else {
+    } else {
       return <>
-                <InterfaceText text={googleDriveText}/>&nbsp;
-                <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google Docs</InterfaceText></a>
-             </>
+        <InterfaceText text={googleDriveText}/>&nbsp;
+        <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google
+          Docs</InterfaceText></a>
+      </>
     }
   }
   return <GenericSheetModal title={<InterfaceText>Export</InterfaceText>}
                             message={getExportMessage()}
                             close={close}/>;
+}
 
 const DeleteModal = ({close, sheetID, authorUrl}) => {
   useEffect( () => {
