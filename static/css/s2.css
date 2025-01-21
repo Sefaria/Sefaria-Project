@@ -10322,17 +10322,17 @@ span.purim-emoji img{
   }
 }
 .sheetContent .addToSheetPlus {
-	display: inline-flex;
-	justify-content: center;
-	align-items: flex-end;
-	width: 25px;
-	height: 25px;
-	background-color: var(--midrash-green);
-	border-radius: 50%;
-	color: white;
-	font-size: 30px;
-	line-height: 1;
-	cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 25px;
+  height: 25px;
+  background-color: var(--midrash-green);
+  border-radius: 50%;
+  color: white;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
 }
 .SheetOutsideBiText .addToSheetButton, .SheetSource .addToSheetButton {
   margin-inline-start: 15px;

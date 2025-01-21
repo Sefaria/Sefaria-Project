@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon } from "../common/DropdownMenu";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuItemWithCallback,
+  DropdownMenuItemWithIcon
+} from "../common/DropdownMenu";
 import { SaveButtonWithText } from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 import { SignUpModalKind } from "../sefaria/signupModalContent";
@@ -69,66 +74,59 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
   }
   return (
         <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
-          <DropdownMenuItem>
-            <SaveButtonWithText
-                historyObject={historyObjectForSheet}
-                onClick={() => setSavingMode(true)}
-            />
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CopyButton onClick={() => setCopyingMode(true)}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CollectionsButton setCollectionsMode={setCollectionsMode} editable={editable}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <GoogleDocExportButton sheetID={sheetID} onClick={() => setExportingMode(true)}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <ShareButton onClick={() => setSharingMode(true)}/>
-          </DropdownMenuItem>
+          <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
+            <SaveButtonWithText historyObject={historyObjectForSheet}/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setCopyingMode(true)}>
+            <CopyButton/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setCollectionsMode(true)}>
+            <CollectionsButton editable={editable}/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setExportingMode(true)}>
+            <GoogleDocExportButton sheetID={sheetID}/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setSharingMode(true)}>
+            <ShareButton/>
+          </DropdownMenuItemWithCallback>
         </DropdownMenu>
     );
 }
 
-const ShareButton = ({onClick}) => {
+const ShareButton = () => {
   return <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
               textEn={'Share'}
               textHe={'שיתוף'}
               descEn={""}
-              descHe={""}
-              onClick={onClick}/>
+              descHe={""}/>
 }
 
-const CollectionsButton = ({setCollectionsMode, editable}) => {
+const CollectionsButton = ({editable}) => {
   const label = editable ? "Edit Collections" : "Add to Collection";
   return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
-                                      textEn={label}
-                                      textHe={Sefaria._(label)}
-                                      descEn={""}
-                                      descHe={""}
-                                      onClick={() => setCollectionsMode(true)}/>
+                                    textEn={label}
+                                    textHe={Sefaria._(label)}
+                                    descEn={""}
+                                    descHe={""}/>
 }
 
-const CopyButton = ({onClick}) => {
+const CopyButton = () => {
   return <DropdownMenuItemWithIcon
               textEn={"Copy"}
               textHe={"העתקה"}
               descEn={""}
               descHe={""}
-              icon="/static/img/copy.png"
-              onClick={() => onClick()} />
+              icon="/static/img/copy.png"/>
 }
 
-const GoogleDocExportButton = ({ onClick }) => {
+const GoogleDocExportButton = () => {
   const googleDriveText = { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" };
   return <DropdownMenuItemWithIcon
                          textEn={googleDriveText.en}
                          textHe={googleDriveText.he}
                          descEn={""}
                          descHe={""}
-                         icon="/static/img/googledrivecolor.png"
-                         onClick={() => onClick()} />;
+                         icon="/static/img/googledrivecolor.png"/>;
 }
 
 export { SheetOptions };
