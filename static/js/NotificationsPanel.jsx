@@ -79,17 +79,32 @@ class NotificationsPanel extends Component {
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
-            <div className="notificationsTopContainer">
-              <div className="notificationsHeaderBox"><h1>
-                <img className="notificationsTitleIcon" src="/static/icons/notification.svg" />
-                <InterfaceText>Notifications</InterfaceText>
-              </h1></div>{ Sefaria.notificationCount > 0 ? <button className="button small white" onClick={this.markAllAsRead}>Mark all as Read</button> : null}
+              <div className="notificationsTopContainer">
+                <div className="notificationsHeaderBox">
+                  <h1>
+                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" />
+                    <InterfaceText>Notifications</InterfaceText>
+                  </h1>
+                  <div>
+                    {Sefaria.notificationCount > 0 ? (
+                      <button className="button small white" onClick={this.markAllAsRead}>
+                        Mark all as Read
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+                {Sefaria._uid ? (
+                  Sefaria.notificationCount < 0 ? (
+                    notifications
+                  ) : (
+                    <EmptyNotificationsMessage />
+                  )
+                ) : (
+                  <LoginPrompt fullPanel={true} />
+                )}
               </div>
-              { Sefaria._uid ?
-              notifications :
-              <LoginPrompt fullPanel={true} /> }
+              <NavSidebar sidebarModules={sidebarModules} />
             </div>
-            <NavSidebar sidebarModules={sidebarModules} />
           </div>
         </div>
       </div>
@@ -116,6 +131,21 @@ const Notifications = ({type, props}) => {
   if (!type || !notificationTypes[type]) { return null; }
   const NotificationType = notificationTypes[type];
   return <NotificationType {...props} />
+};
+
+const EmptyNotificationsMessage = () => {
+  return (
+    <div className="readerNavMenu">
+      <div className="emptyNoticationPage">
+        <div className="emptyNotificationsTitle">
+            Looks like you don’t have any notifications yet.
+        </div>
+        <div className="emptyNotificationsMessage">
+        Try following sheet creators to get notified when they publish a new sheet.
+        </div>
+      </div>
+    </div>
+  )
 };
 
 

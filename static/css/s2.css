@@ -14439,6 +14439,26 @@ span.ref-link-color-3 {color: blue}
   margin-top: 30px;
 }
 
+.emptyNotificationsTitle{
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+}
+
+.emptyNotificationsMessage{
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: left;
+}
+
+.emptyNoticationPage{
+  display: flex;
+  flex-direction: column;
+}
+
 @-webkit-keyframes load5 {
 0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
 12.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.7),1.8em -1.8em 0 0 #ffffff,2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.5)}
