@@ -5087,7 +5087,6 @@ h1.topic-landing-header {
 }
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row{
   flex-direction: column;
-  /*padding-inline: 19px;*/
   align-items: center;
 }
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-wrapper {
