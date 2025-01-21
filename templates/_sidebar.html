@@ -1,7 +1,7 @@
 {% load i18n %}
 
     <nav id="aboutSidebar">
-        {% if mobile %}
+        {% if request.user_agent.is_mobile %}
             <h1 class="int-en">{{title}}</h1>
             <h1 class="int-he">{{heTitle}}</h1>
         {% endif %}
@@ -42,7 +42,7 @@
         </ul>
     </nav>
 <script>
-  const mobile = "{{mobile}}" === "1";
+  const mobile = "{{request.user_agent.is_mobile}}" === "True";
   if (!mobile) {
       const whichPage = "{{whichPage}}";
       const item = document.getElementById(whichPage);
