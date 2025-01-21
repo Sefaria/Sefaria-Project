@@ -1,28 +1,24 @@
 import { useEffect, useRef } from "react";
 
-const Modal = ({ isOpen, children, close }) => {
+const Modal = ({ children, close }) => {
   const dialogRef = useRef(null);
 
-  if (isOpen && dialogRef.current) {
-    dialogRef.current.show();
-  } else if (!isOpen && dialogRef.current) {
-    dialogRef.current.close();
-  }
   useEffect(() => {
-          return () => {
-              if (dialogRef.current) {
-                dialogRef.current.close();
-              }
+    if (dialogRef.current) {
+      dialogRef.current.showModal();
+    }
+    return () => {
+      if (dialogRef.current) {
+        dialogRef.current.close();
+      }
   }}, []);
 
   return (
-    <div className="overlayDialogModal" onClick={() => {close();}}>
-      <dialog ref={dialogRef} className="dialogModal">
-        <div className="modal-content" onClick={(e) => {e.stopPropagation()}}>
-          {children}
-        </div>
-      </dialog>
-    </div>
+    <dialog ref={dialogRef} className="dialogModal" onClick={(e) => e.preventDefault()}>
+      <div className="modal-content" onClick={() => close()}>
+        {children}
+      </div>
+    </dialog>
   );
 }
 
