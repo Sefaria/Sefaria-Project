@@ -6,6 +6,7 @@ from random import choice
 import json
 import urllib.request, urllib.parse, urllib.error
 from bson.json_util import dumps
+from bson import ObjectId
 import socket
 import bleach
 from collections import OrderedDict
@@ -158,6 +159,7 @@ def robot(request):
 
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None,
                     status=None, using=None):
+    
     """
     This is a general purpose custom function that serves to render all the templates in the project and provide a central point for all similar processing.
     It can take props that are meant for the Node render of ReaderApp (and will properly combine them with base_props() and serialize
@@ -5069,22 +5071,110 @@ def text_permission_groups_api(request, user_email):
     """
     if request.method == "GET":
         user_response = get_user_by_email(user_email)
-        
+        user_groups = []
         if user_response["status"] == 200:
-            return jsonResponse(user_response["data"])
+            groups = db.text_permission_groups.find({
+                "members": {
+                    "$in": [user_response['data']['email']]
+                }
+            })
+            for group in groups:
+                user_groups.append({
+                    'name': group["name"],
+                    'texts': group["texts"],
+                    'members': group["members"],
+                    'admin_email': group["admin_email"]
+                })
+                
+            return jsonResponse({"user_groups":user_groups})
         else:
             return jsonResponse(user_response["data"], status=user_response["status"])
     
     if request.method == "POST":
         try:
             data = json.loads(request.body)  # Parse the JSON data from the request body
-            print("Received POST data:", data)
             if not data["json"]:
-                return jsonResponse({"error": "Invalid JSON"})
-            return jsonResponse(data["json"])
+                return jsonResponse({"error": "Invalid input JSON"})
+            if not request.user.is_authenticated:
+                key = data['apikey']
+                if not key:
+                    return jsonResponse({"error": "You must be logged in or use an API key to save a permission group."})
+                apikey = db.apikeys.find_one({"key": key})
+                if not apikey:
+                    return jsonResponse({"error": "Unrecognized API key."})
+                input_json = data['json']
+                return create_group(input_json)
+            else:
+                @csrf_protect
+                def protected_post(request):
+                    input_json = data['json']
+                    return create_group(input_json)
+                return protected_post(request)
         except json.JSONDecodeError:
             return jsonResponse({"error": "Invalid JSON format."})
+        
+    if request.method == "PUT":
+        try:
+            update_set = {"$set": {}, "$push": {}}
+            data = json.loads(request.body)
+            input_json = data['json']
 
+            # Update admin_email if provided
+            if 'admin_email' in input_json:
+                update_set['$set']["admin_email"] = input_json['admin_email']
+
+            # Push members if provided
+            if 'members' in input_json:
+                update_set['$push']["members"] = {'$each': input_json['members']}
+
+            # Push texts if provided
+            if 'texts' in input_json:
+                update_set['$push']["texts"] = {'$each': input_json['texts']}
+
+            # Perform the update operation
+            result = db.text_permission_groups.update_one({"name": data['name']}, update_set)
+            # Check if any document was modified
+            if result.modified_count > 0:
+                return http.JsonResponse({"message": "Collection updated successfully"}, status=200)
+            else:
+                return http.JsonResponse({"error": "No changes made or collection not found"}, status=404)
+
+        except KeyError as e:
+            return http.JsonResponse({"error": f"Invalid data: {e}"}, status=400)
+        except Exception as e:
+            return http.JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
+
+            
+            
+
+def create_group(input_json):
+    try:
+        # Check if a group with the same name already exists
+        has_group = db.text_permission_groups.find_one({"name": input_json["name"]})
+        
+        if not has_group:
+            # Create a new group
+            new_group = {
+                "id": str(ObjectId()),
+                "name": input_json["name"],
+                "texts": input_json.get("texts", []),  # Default to empty list if not provided
+                "members": input_json.get("members", []),  # Default to empty list if not provided
+                "admin_email": input_json["admin_email"]
+            }
+            
+            db.text_permission_groups.insert_one(new_group)
+            return jsonResponse({"data": "Permission group saved successfully."}, status=200)
+        
+        else:
+            return jsonResponse({"error": "Group already exists."}, status=400)
+    
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {e.args[0]}"}, status=400)
+    
+    except Exception as e:
+        return jsonResponse({"error": f"An error occurred: {str(e)}"}, status=400)
+    
+        
 def get_user_by_email(email):
     try:
         user = User.objects.get(email=email)
@@ -5094,5 +5184,5 @@ def get_user_by_email(email):
         }
         return {"data": user_data, "status": 200}
     except User.DoesNotExist:
-        return {"data": {"error": "User not found"}, "status": 404}
+        return {"data": {"error": f"User:({email}) not found"}, "status": 404}
     

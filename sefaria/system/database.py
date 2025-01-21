@@ -54,7 +54,7 @@ def ensure_indices(active_db=None):
         ('groups', ["privateSlug"], {'unique': True}),
         ('groups', ["members"], {}),
         ('groups', ["admins"], {}),
-        ('text_permission_groups', ["name"], {}),
+        ('text_permission_groups', ["name"], {'unique': True}),
         ('text_permission_groups', ["id"], {'unique': True}),
         ('text_permission_groups', ["texts"], {}),
         ('text_permission_groups', ["members"], {}),

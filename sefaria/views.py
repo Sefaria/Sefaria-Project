@@ -92,7 +92,7 @@ def process_register_form(request, auth_method='session'):
             # Add user to group ("dafault")
             update_operation = {
                 "$push": {
-                    "members": {"user_id":user.id, "email": form.cleaned_data["email"]}
+                    "members": form.cleaned_data["email"]
                 }
             }
             db.text_permission_groups.update_one({ "name": "default" }, update_operation)
@@ -153,7 +153,6 @@ def register(request):
 
     if request.method == 'POST':
         errors, _, form = process_register_form(request)
-        print("form >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", form)
         if len(errors) == 0:
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
