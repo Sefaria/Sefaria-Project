@@ -7,7 +7,7 @@ import Sefaria from "../sefaria/sefaria";
 import { InterfaceText } from "../Misc";
 
 const ShareModal = ({sheetID, close}) => {
-  return <Modal isOpen={true} close={close}>
+  return <Modal close={close}>
           <ShareBox
               sheetID={sheetID}
               url={window.location.href}
@@ -16,13 +16,13 @@ const ShareModal = ({sheetID, close}) => {
 }
 
 const CollectionsModal = ({close, sheetID}) => {
-  return <Modal isOpen={true} close={close}>
+  return <Modal close={close}>
             <CollectionsWidget sheetID={sheetID} close={close} />
         </Modal>;
 }
 
 const AddToSourceSheetModal = ({nodeRef, srefs, close}) => {
-  return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs} hideGDocAdvert={true}/></Modal>
+  return <Modal close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs} hideGDocAdvert={true}/></Modal>
 }
 
 const CopyModal = ({close, sheetID}) => {
@@ -95,7 +95,7 @@ const CopyModal = ({close, sheetID}) => {
 }
 
 const GenericSheetModal = ({title, message, close}) => {
-  return <Modal isOpen={true} close={close}>
+  return <Modal close={close}>
             <div className="modalTitle">{title}</div>
             <div className="modalMessage">{message}</div>
         </Modal>;
@@ -143,7 +143,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
           setGoogleDriveText(googleDriveState.exportComplete);
         }
       } catch (error) {
-        setGoogleDriveText(data.error);
+        setGoogleDriveText(error);
       }
     }
   }
