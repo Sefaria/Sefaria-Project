@@ -130,6 +130,8 @@ router.post('/ReaderApp/:cachekey', function(req, res) {
       res.end(resphtml);
     } catch (render_e){
       logger.error(render_e);
+      // Return an HTTP 500 for the client
+      return res.status(500).end('Error rendering ReaderApp: ' + render_e.message);
     }
   }).catch(error => {
     res.status(500).end('Data required for render is missing:  ' + error.message);
