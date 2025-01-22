@@ -52,25 +52,8 @@ class Sheet extends Component {
   handleClick(e) {
     const target = e.target.closest('a')
     if (target) {
-      let url;
-      try {
-        url = new URL(target.href);
-      } catch {
-        return false;
-      }
-      const path = url.pathname;
-      const params = url.searchParams;
-
-      if (path.match(/^\/sheets\/\d+/)) {
-        e.preventDefault()
-        console.log();
-        this.props.onCitationClick(`Sheet ${path.slice(8)}`, `Sheet ${this.props.id}`, true)
-      }
-
-      else if (Sefaria.isRef(path.slice(1))) {
-        e.preventDefault();
-        Sefaria.util.openInNewTab(target.href);
-      }
+      e.preventDefault();
+      Sefaria.util.openInNewTab(target.href);
     }
   }
 
