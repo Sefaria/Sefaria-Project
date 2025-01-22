@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText } from '../Misc';
 
+
 const DropdownMenuSeparator = () => {
 
   return (
@@ -11,21 +12,13 @@ const DropdownMenuSeparator = () => {
 }
 
 const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
-  const dropDownClasses = `interfaceLinks-option int-bi dropdownItem`;
-  if (!url) {
-      return (
-          <div className={dropDownClasses}>
-              {children}
-          </div>
-      );
-  }
 
   if (!newTab){
     newTab = false;
   }
 
   return (
-    <a className={dropDownClasses}
+    <a className={`interfaceLinks-option int-bi dropdownItem`}
        href={url}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}>
@@ -35,11 +28,18 @@ const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
   );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe, onClick, descEn='',
-                                  descHe=''}) => {
+const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false}) => {
+  return (
+    <div className={'interfaceLinks-option int-bi dropdownItem'} onClick={onClick} data-prevent-close={preventClose}>
+        {children}
+    </div>
+  );
+}
+
+const DropdownMenuItemWithIcon = ({icon, textEn, textHe, descEn='', descHe=''}) => {
   return (
     <>
-      <div className="dropdownHeader" onClick={() => onClick()}>
+      <div className="dropdownHeader">
         <img src={icon} />
         <span className='dropdownHeaderText'>
           <InterfaceText text={{'en': textEn, 'he': textHe}} />
@@ -92,7 +92,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             setIsOpen(false);
         }
     };
-  
+
     useEffect(() => {
         document.addEventListener('keydown', handleHideDropdown, true);
         document.addEventListener('click', handleClickOutside, true);
@@ -118,8 +118,9 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     buttonComponent: PropTypes.element.isRequired,
   };
   export {
-    DropdownMenu, 
-    DropdownMenuSeparator, 
+    DropdownMenu,
+    DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
-    DropdownMenuItem
+    DropdownMenuItem,
+    DropdownMenuItemWithCallback
   };

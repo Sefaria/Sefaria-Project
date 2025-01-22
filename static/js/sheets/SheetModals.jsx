@@ -7,7 +7,7 @@ import Sefaria from "../sefaria/sefaria";
 import { InterfaceText } from "../Misc";
 
 const ShareModal = ({sheetID, close}) => {
-  return <Modal isOpen={true} close={close}>
+  return <Modal close={close}>
           <ShareBox
               sheetID={sheetID}
               url={window.location.href}
@@ -16,14 +16,18 @@ const ShareModal = ({sheetID, close}) => {
 }
 
 const CollectionsModal = ({close, sheetID, handleCollectionsChange, editable}) => {
-  return <Modal isOpen={true} close={close}>
-            <CollectionsWidget sheetID={sheetID} close={close} handleCollectionsChange={handleCollectionsChange} />
+  return <Modal close={close}>
+            <CollectionsWidget
+                sheetID={sheetID}
+                close={close}
+                handleCollectionsChange={handleCollectionsChange}/>
         </Modal>;
 }
 
 const AddToSourceSheetModal = ({nodeRef, srefs, close}) => {
-  return <Modal isOpen={true} close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs} hideGDocAdvert={true}/></Modal>
+  return <Modal close={close}><AddToSourceSheetBox nodeRef={nodeRef} srefs={srefs} hideGDocAdvert={true}/></Modal>
 }
+
 const CopyModal = ({close, sheetID}) => {
   const copyState = {
     copying: { en: "Copying Sheet...", he: "מעתיק..."},
@@ -93,9 +97,8 @@ const CopyModal = ({close, sheetID}) => {
   return <GenericSheetModal title={<InterfaceText>Copy</InterfaceText>} message={copyMessage} close={handleClose}/>;
 }
 
-
 const GenericSheetModal = ({title, message, close}) => {
-  return <Modal isOpen={true} close={close}>
+  return <Modal close={close}>
             <div className="modalTitle">{title}</div>
             <div className="modalMessage">{message}</div>
         </Modal>;
@@ -117,11 +120,10 @@ const SaveModal = ({historyObject, close}) => {
   return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={close}/>;
 }
 
-
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
     exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
-    exportComplete: { en: "Success!", he: "ייצוא הסתיים"}
+    exportComplete: {en: "Success!", he: "ייצוא הסתיים"}
   }
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
@@ -144,23 +146,23 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
           setGoogleDriveText(googleDriveState.exportComplete);
         }
       } catch (error) {
-        setGoogleDriveText(data.error);
+        setGoogleDriveText(error);
       }
     }
   }
 
   useEffect(() => {
-      exportToDrive();
-    }, [googleDriveText]);
+    exportToDrive();
+  }, [googleDriveText]);
   const getExportMessage = () => {
     if (googleDriveText.en === googleDriveState.exporting.en) {
       return <InterfaceText text={googleDriveText}/>;
-    }
-    else {
+    } else {
       return <>
-                <InterfaceText text={googleDriveText}/>&nbsp;
-                <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google Docs</InterfaceText></a>
-             </>
+        <InterfaceText text={googleDriveText}/>&nbsp;
+        <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google
+          Docs</InterfaceText></a>
+      </>
     }
   }
   return <GenericSheetModal title={<InterfaceText>Export</InterfaceText>}
