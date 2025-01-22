@@ -50,6 +50,12 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
     }
   }
 
+  const handleDelete = () => {
+      if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+        setDeletingMode(true);
+      }
+    }
+
   useEffect(() => {
     if ((collectionsMode || savingMode || copyingMode || exportingMode) && !Sefaria._uid) {
       toggleSignUpModal(getSignUpModalKind());
@@ -100,9 +106,9 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
           </DropdownMenuItemWithCallback>
           {editable && <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <DeleteButton onClick={() => setDeletingMode(true)}/>
-                        </DropdownMenuItem>
+                        <DropdownMenuItemWithCallback onClick={handleDelete}>
+                          <DeleteButton/>
+                        </DropdownMenuItemWithCallback>
                       </>
           }
         </DropdownMenu>
@@ -117,18 +123,12 @@ const ShareButton = () => {
               descHe={""}/>
 }
 
-const DeleteButton = ({onClick}) => {
-    const handleClick = () => {
-      if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
-        onClick();
-      }
-    }
+const DeleteButton = () => {
     return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"}
               textEn={'Delete Sheet'}
               textHe={''}
               descEn={""}
-              descHe={""}
-              onClick={handleClick}/>
+              descHe={""}/>
 }
 
 const CollectionsButton = ({editable}) => {
