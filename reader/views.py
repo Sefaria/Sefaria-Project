@@ -114,18 +114,18 @@ def render_template(request, template_name='base.html', app_props=None, template
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
-        html = render_react_component("ReaderApp", propsJSON)
+        html = render_react_component("ReaderApp", propsJSON, skip_node=hasattr(request, "regenerating"))
         template_context["html"] = html
     return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
 
 
-def render_react_component(component, props):
+def render_react_component(component, props, skip_node=False):
     """
     Asks the Node Server to render `component` with `props`.
     `props` may either be JSON (to save reencoding) or a dictionary.
     Returns HTML.
     """
-    if not USE_NODE:
+    if not USE_NODE or skip_node:
         return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
     propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props

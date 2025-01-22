@@ -45,6 +45,14 @@ const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDI
 const getAsync = promisify(cache.get).bind(cache);
 
 
+const refreshCache = function() {
+  // if 3 minutes have passed, delete last_cached from cache
+  const last_cached = sharedCacheData["last_cached"];
+  if (last_cached && (new Date() - last_cached) > 180000) {
+    cache.del("last_cached");
+  }
+}
+
 const loadSharedData = async function({ last_cached_to_compare = null, startup = false } = {}){
     logger.debug("Load Shared Data - Input last cached timestamp to compare: " + last_cached_to_compare);
     //TODO: If the data wasnt placed in Redis by django to begin with, well, we're screwed.
@@ -55,6 +63,8 @@ const loadSharedData = async function({ last_cached_to_compare = null, startup =
         //console.log("Fetching: " + key + "|" + value )
         redisCalls.push(getAsync(value).then(resp => {
           if(!resp){
+            // Remove last_cached so that we regenerate the cache
+            refreshCache();
             throw new Error(`Error with ${key}: ${value} not found in cache`);
           }else{
             sharedCacheData[key] = JSON.parse(resp);

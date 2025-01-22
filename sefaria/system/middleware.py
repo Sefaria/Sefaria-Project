@@ -25,6 +25,7 @@ class SharedCacheMiddleware(MiddlewareMixin):
         last_cached = get_shared_cache_elem("last_cached")
         if not last_cached:
             regen_in_progress = get_shared_cache_elem("regenerating")
+            request.regenerating = True
             if not regen_in_progress:
                 set_shared_cache_elem("regenerating", True)
                 request.init_shared_cache = True
