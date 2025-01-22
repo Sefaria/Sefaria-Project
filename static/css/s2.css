@@ -4165,6 +4165,7 @@ a.navBlockTitle:hover {
     line-height: 50px;
     vertical-align: middle;
     font-size: 18px;
+    font-family: var(--hebrew-serif-font-family);
     font-weight: lighter;
     margin: 3px;
     text-align: center;
@@ -4656,11 +4657,13 @@ details .open-details::before {
     justify-content: space-between;
     font-style: normal;
     font-weight: normal;
-    font-family: var(--hebrew-font-conditional);
-    font-family: var(--chinese-font-conditional);
     font-size: 17px;
     line-height: 20px;
     color: #666666;
+}
+
+.review-history-text {
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .bookPage .versionBlock .versionDetails {

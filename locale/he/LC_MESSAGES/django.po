@@ -301,7 +301,7 @@ msgstr ""
 
 #: templates/activity.html:52
 msgid "activity.all_activity_drop_down"
-msgstr ""
+msgstr "All Activity"
 
 #: templates/activity.html:53
 msgid "activity.translation_option"
@@ -313,11 +313,11 @@ msgstr "ཟིན་བྲིས།"
 
 #: templates/activity.html:55
 msgid "activity.new_texts_option"
-msgstr ""
+msgstr "New Texts"
 
 #: templates/activity.html:56
 msgid "activity.edit_list_option"
-msgstr ""
+msgstr "Edits"
 
 #: templates/activity.html:57
 msgid "activity.notes_option"
@@ -325,23 +325,23 @@ msgstr "མཆན་འགོད་ས།"
 
 #: templates/activity.html:58
 msgid "activity.reviews_option"
-msgstr ""
+msgstr "Reviews"
 
 #: templates/activity.html:59
 msgid "activity.text_info_option_option"
-msgstr ""
+msgstr "Text Info"
 
 #: templates/activity.html:60
 msgid "activity.reversions_option"
-msgstr ""
+msgstr "Reversions"
 
 #: templates/activity.html:61
 msgid "activity.flagged_option"
-msgstr ""
+msgstr "Flagged"
 
 #: templates/delete-sheet.html:4
 msgid "admin.admin_delete_sheet"
-msgstr ""
+msgstr "Admin: Delete a Sheet"
 
 #: templates/delete-sheet.html:4
 msgid "admin.common.delete-sheet.pecha"

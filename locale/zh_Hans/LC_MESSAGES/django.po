@@ -298,7 +298,7 @@ msgstr ""
 
 #: templates/activity.html:52
 msgid "activity.all_activity_drop_down"
-msgstr ""
+msgstr "所有活动"
 
 #: templates/activity.html:53
 msgid "activity.translation_option"
