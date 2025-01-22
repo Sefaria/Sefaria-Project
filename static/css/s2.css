@@ -11121,11 +11121,11 @@ cursor: pointer;
   cursor: pointer;
 }
 
-.langSelectPopover .radioChoice:nth-of-type(2) {
+.langSelectPopover .radioChoice:nth-of-type(1) {
   border-radius: 6px 6px 0px 0px;
 }
 
-.langSelectPopover .radioChoice:nth-of-type(4) {
+.langSelectPopover .radioChoice:nth-of-type(3) {
   border-radius: 0px 0px 6px 6px;
 }
 
