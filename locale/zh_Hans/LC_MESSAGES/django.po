@@ -86,47 +86,47 @@ msgstr ""
 
 #: sefaria/forms.py:157
 msgid "form.placeholder_new_password"
-msgstr ""
+msgstr "新密码"
 
 #: sefaria/forms.py:158
 msgid "placeholder_new_password"
-msgstr ""
+msgstr "输入新密码"
 
 #: sefaria/forms.py:163
 msgid "form_placeholder_new_pw_confirmation"
-msgstr ""
+msgstr "确认新密码"
 
 #: sefaria/forms.py:165
 msgid "placeholder_repeat_new_password"
-msgstr ""
+msgstr "重复新密码"
 
 #: sefaria/model/collection.py:93
 msgid "set_collection_name_message"
-msgstr ""
+msgstr "请为您的收藏设置一个名称"
 
 #: sefaria/model/collection.py:117
 msgid "collection_name_taken_message"
-msgstr ""
+msgstr "以下是该句子的中文翻译：已存在同名的公开收藏。请在发布前选择一个不同的名称。"
 
 #: sefaria/model/collection.py:119
 msgid "collection_image_required_message"
-msgstr ""
+msgstr "以下是该句子的中文翻译：公开收藏必须包含一张收藏图片（方形图片效果最佳）。"
 
 #: sefaria/model/collection.py:121
 msgid "collection_sheet_count_message"
-msgstr ""
+msgstr "公开收藏必须包含至少3个公开表单。"
 
 #: sefaria/model/collection.py:284
 msgid "collection_invitation_email_subject"
-msgstr ""
+msgstr "邀请您加入Pecha上的一个收藏。"
 
 #: sefaria/model/user_profile.py:288
 msgid "email_invalid_message"
-msgstr ""
+msgstr "电子邮件地址无效。"
 
 #: sourcesheets/views.py:403
 msgid "creating_new_collection_message"
-msgstr ""
+msgstr "您必须登录才能创建新的收藏"
 
 #: sourcesheets/views.py:566
 msgid "error_message_when_trying_to_remove_the_last_owner_of_a_collection"
@@ -138,59 +138,59 @@ msgstr ""
 
 #: templates/404.html:4
 msgid "page_not_found_title"
-msgstr ""
+msgstr "页面未找到 | Pecha"
 
 #: templates/404.html:11
 msgid "page_not_found_message"
-msgstr ""
+msgstr "页面未找到"
 
 #: templates/404.html:15
 msgid "link_not_working_message"
-msgstr ""
+msgstr "以下是该句子的中文翻译：无法找到请求的网址。如果您是通过其他网站的链接到达此处，您可能需要告知他们他们的链接无法正常工作。"
 
 #: templates/500.html:4 templates/500.html:10
 msgid "server_related_error_message"
-msgstr ""
+msgstr "内部服务器错误"
 
 #: templates/500.html:15
 msgid "send_message_to_developer_request"
-msgstr ""
+msgstr "抱歉，系统出错。我们已通知开发人员。如有疑问或建议，请联系我们的 注意：原文最后一句未完成，所以翻译也相应保留了未完成的状态。这个简短版本保留了原文的主要信息，包括出错通知、开发人员已被告知，以及如何联系的指示"
 
 #: templates/500.html:15
 msgid "developer_team"
-msgstr ""
+msgstr "开发团队"
 
 #: templates/account_settings.html:12
 msgid "account_setting"
-msgstr ""
+msgstr "账户设置"
 
 #: templates/account_settings.html:16
 msgid "common.account_setting.cancel_setting_button"
-msgstr ""
+msgstr "取消"
 
 #: templates/account_settings.html:19
 msgid "common.account_setting.save_request"
-msgstr ""
+msgstr "保存"
 
 #: templates/account_settings.html:25
 msgid "account_setting.rate_of_notification"
-msgstr ""
+msgstr "通知频率（最大）"
 
 #: templates/account_settings.html:29
 msgid "account_setting.to_send_notification_daily"
-msgstr ""
+msgstr "每日"
 
 #: templates/account_settings.html:32
 msgid "account_setting.to_send_notification_weekly"
-msgstr ""
+msgstr "每周"
 
 #: templates/account_settings.html:35
 msgid "account_setting.never_send_notification"
-msgstr ""
+msgstr "从不"
 
 #: templates/account_settings.html:42
 msgid "account_setting.language_selection_title"
-msgstr ""
+msgstr "网站语言"
 
 #: templates/account_settings.html:46
 msgid "account_setting.language_english_option"
@@ -784,53 +784,53 @@ msgstr "创建新账号"
 
 #: templates/registration/password_reset_complete.html:3
 msgid "registration.password_reset_complete.password_reset"
-msgstr ""
+msgstr "密码重置"
 
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_done.html:3
 #: templates/registration/password_reset_form.html:4
 msgid "common.name_pecha"
-msgstr ""
+msgstr "Pecha"
 
 #: templates/registration/password_reset_complete.html:10
 msgid "registration.password_reset_complete.your_new_password_has_been_saved"
-msgstr ""
+msgstr "的中文翻译是： 您的新密码已保存。"
 
 #: templates/registration/password_reset_complete.html:13
 msgid "registration.password_reset_complete.back_to_login"
-msgstr ""
+msgstr "的中文翻译是：返回登录"
 
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_confirm.html:11
 msgid "registration.password_reset_confirm.choose_a_new_password"
-msgstr ""
+msgstr "选择新密码"
 
 #: templates/registration/password_reset_confirm.html:17
 msgid "registration.password_reset_confirm.save_password"
-msgstr ""
+msgstr "保存密码"
 
 #: templates/registration/password_reset_done.html:3
 msgid "registration.password_reset_done.password_reset_link_sent"
-msgstr ""
+msgstr "密码重置链接已发送"
 
 #: templates/registration/password_reset_done.html:10
 msgid "registration.password_reset_done.messages"
-msgstr ""
+msgstr "已发送一封包含重置密码链接的电子邮件。"
 
 #: templates/registration/password_reset_email.html:4
 msgid "registration.password_reset_email.password_reset_email_message"
-msgstr ""
+msgstr "已请求重置此电子邮件地址在 Pecha.org 上的密码。"
 
 #: templates/registration/password_reset_email.html:6
 #: templates/registration/password_reset_email.txt:5
 msgid "registration.password_reset_email.password_reset_email_to_click_on_link"
-msgstr ""
+msgstr "点击此链接，或将其复制到您的浏览器，以选择新密码："
 
 #: templates/registration/password_reset_email.html:12
 #: templates/registration/password_reset_email.txt:9
 msgid "registration.password_reset_email.ignore_this_email_if_haven't_send_it"
-msgstr ""
+msgstr "如果您没有请求重置密码，可以安全地忽略此电子邮件。"
 
 #: templates/registration/password_reset_email.txt:3
 msgid "password.reset_request_made_msg"
@@ -855,7 +855,7 @@ msgstr "返回登录"
 
 #: templates/registration/password_reset_subject.txt:2
 msgid "Pecha.org_Password_Reset"
-msgstr ""
+msgstr "Pecha.org 密码重置"
 
 #: templates/registration/register.html:4
 msgid "registration.register.create_an_account"
