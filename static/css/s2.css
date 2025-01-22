@@ -5220,9 +5220,9 @@ h1.topic-landing-header {
 }
 .rowed-salad-item-container{
   border-radius: 6px;
-  background: var(--Sefaria-Blue, #18345D);
+  background: var(--sefaria-blue);
   margin-inline-end: 7px;
-  color: var(--White, #FFF);
+  color: white;
   padding-top: 4px;
   padding-bottom: 4px;
 }
