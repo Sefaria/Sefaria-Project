@@ -2512,7 +2512,7 @@ span .asterisk {
 }
 
 .readerNavTop .readerNavTopCategory .he {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .readerNavMenu .readerSearch {
@@ -2522,7 +2522,7 @@ span .asterisk {
     border: none;
     background-color: inherit;
     font-size: 18px;
-    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+    font-family: var(--hebrew-serif-font-family);
     height: 48px;
 }
 
@@ -4433,6 +4433,7 @@ a.navBlockTitle:hover {
     --line-height: 22px;
     line-height: var(--line-height);
     text-decoration: none;
+    font-family: var(--hebrew-serif-font-family)
 }
 
 .versionBlock .versionPreview big {
@@ -4469,6 +4470,7 @@ a.navBlockTitle:hover {
     display: inline;
     margin-inline-end: 5px;
     font-style: italic;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .versionBlock.with-preview summary {
@@ -4504,6 +4506,7 @@ details .open-details::before {
 
 .version-with-preview-title-line .selectButton {
     text-decoration: none;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .version-with-preview-title-line .selectButton.currSelectButton {
@@ -4528,6 +4531,7 @@ details .open-details::before {
 
 .versionDetails-version-title {
     color: black;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .bookPage .versionBlock .versionTitle {
@@ -4657,13 +4661,13 @@ details .open-details::before {
     justify-content: space-between;
     font-style: normal;
     font-weight: normal;
-    font-size: 17px;
+    font-size: 15px;
     line-height: 20px;
     color: #666666;
 }
 
 .review-history-text {
-    font-family: var(--hebrew-serif-font-family);
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .bookPage .versionBlock .versionDetails {
@@ -6209,6 +6213,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .toggleSet .toggle-set-label {
+    font-family: var(--hebrew-serif-font-family);
     font-size: 13px;
     display: block;
     text-align: center;
@@ -7422,6 +7427,10 @@ But not to use a display block directive that might break continuous mode for ot
     font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 
+.recentFilterSet.filterSet .textFilter, .recentFilterSet.filterSet .textFilter span .he{
+    font-family: var(--hebrew-serif-font-family);
+}
+
 .hebrew .textList .recentFilterSet.filterSet {
     direction: ltr;
 }
@@ -8293,7 +8302,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 .connection-buttons .connection-button .int-he {
-    font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .toolsMessage {
@@ -9326,7 +9335,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 a.button {
-    font-size: 16px;
+    font-size: 18px;
     color: white;
 }
 
@@ -10514,7 +10523,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     box-sizing: border-box;
     border: none;
     background: transparent;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .topicsFilterReset {
