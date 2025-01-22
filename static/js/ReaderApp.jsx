@@ -655,7 +655,7 @@ class ReaderApp extends Component {
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         hist.url = i == 0 ? "sheets/" + sheetURLSlug : "sheet&s=" + sheetURLSlug;
-        hist.mode     = "Sheet"
+        hist.mode     = "Sheet";
       }
 
       if (!state.settings) { debugger; }
