@@ -727,7 +727,6 @@ class ReaderPanel extends Component {
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           scrollToHighlighted={this.state.scrollToHighlighted}
           onSegmentClick={this.handleSheetSegmentClick}
-          onCitationClick={this.handleCitationClick}
           openSheet={this.openSheet}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
