@@ -5,11 +5,11 @@
 <div id="appLoading">
     <div class='loadingMessage'>
         {% if SITE_SETTINGS.TORAH_SPECIFIC %}
-        <img class="int-en" src="{% static 'img/pecha-logo.svg' %}" alt="Sefaria Loading Icon"/>
+        <img src="{% static 'img/pecha-logo.svg' %}" alt="Sefaria Loading Icon"/>
         <br>
         {% endif %}
         <div class="smallText">
-            <span class="int-en">{% trans 'common.loading' %}</span>
+            <span>{% trans 'common.loading' %}</span>
         </div>
     </div>
 </div>
