@@ -2523,8 +2523,8 @@ div.interfaceLinks-row a {
 @media (max-width: 600px) {
   .imageWithCaptionPhoto{
     height: auto;
-    max-width: calc(66.67vw);
-    max-height: calc(66.67vw);
+    max-width: 66.67vw;
+    max-height: 66.67vw;
     margin: 0 auto 10px;
     display: block;
   }
@@ -5018,7 +5018,8 @@ h1.topic-landing-header {
   flex-direction: column;
 }
 .singlePanel .featuredTopicImgWrapper .imageWithCaptionPhoto{
-  max-width: calc(100vw);
+  max-width: 92vw;
+  max-height: unset;
 }
 .featuredTopicContent {
   display: flex;
@@ -5171,11 +5172,9 @@ h1.topic-landing-header {
 }
 .singlePanel .topic-landing-upper-rainbow{
   margin-bottom: 20px;
-  z-index: 0;
 }
 .singlePanel .topic-landing-lower-rainbow{
   margin-top: 20px;
-  z-index: 0;
 }
 /*'Dummy' font, a hack to prevent the ellipsis char from being displayed at the end of a webkit line-clamped element*/
 /*This font addresses only the ellipsis char, rendering its size 0% */
