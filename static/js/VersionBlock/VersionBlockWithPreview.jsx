@@ -9,7 +9,8 @@ import {OpenConnectionTabButton} from "../TextList";
 function VersionBlockWithPreview({currentRef, version, currObjectVersions, openVersionInSidebar, openVersionInReader, isSelected, srefs, onRangeClick}) {
     const opeInSidebar = VersionBlockUtils.openVersionInSidebar.bind(null, currentRef, version, currObjectVersions, openVersionInSidebar);
     function openInTabCallback(sref) {
-        onRangeClick(sref, false, {[version.language]: version.versionTitle});
+        const {versionTitle, languageFamilyName} = version;
+        onRangeClick(sref, false, {[version.language]: {versionTitle, languageFamilyName}});
     }
     return (
         <div className='versionBlock with-preview'>
