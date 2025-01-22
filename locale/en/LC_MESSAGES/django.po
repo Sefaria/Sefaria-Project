@@ -886,7 +886,7 @@ msgstr "Back to login"
 
 #: templates/registration/password_reset_subject.txt:2
 msgid "Pecha.org_Password_Reset"
-msgstr "Pecha.org_Password_Reset"
+msgstr "Pecha.org Password Reset"
 
 #: templates/registration/register.html:4
 msgid "registration.register.create_an_account"
