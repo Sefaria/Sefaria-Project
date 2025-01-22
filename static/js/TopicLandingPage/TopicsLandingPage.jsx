@@ -26,7 +26,7 @@ export const TopicsLandingPage = ({openTopic}) => {
                         <h1 className="topic-landing-header">
                             <InterfaceText>Let Your Curiosity Lead The Way</InterfaceText>
                         </h1>
-                        <div className="topic-landing-section">
+                        <div className="topic-landing-section first-section">
                             <TopicLandingSearch openTopic={openTopic} numOfTopics={Sefaria.numLibraryTopics}/>
                         </div>
                         <div className="topic-landing-section">
