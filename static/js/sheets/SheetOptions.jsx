@@ -8,9 +8,8 @@ import {
 import { SaveButtonWithText } from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 import Button from "../common/Button";
-import ReactTags from "react-tag-autocomplete";
 import { SignUpModalKind } from "../sefaria/signupModalContent";
-import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal } from "./SheetModals";
+import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal, PublishModal } from "./SheetModals";
 
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
