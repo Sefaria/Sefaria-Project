@@ -10332,6 +10332,8 @@ span.purim-emoji img{
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
+  border: none;
+  background-color: white;
 }
 .SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
   margin-block-start: -10px;

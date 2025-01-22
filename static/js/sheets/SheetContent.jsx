@@ -137,7 +137,6 @@ class SheetContent extends Component {
         ComponentToRender = SheetMedia;
       }
       else {
-        console.log(source);
         return <></>;  // handle bad data in sheet.sources
       }
       return <ComponentToRender
@@ -186,10 +185,10 @@ const AddToSheetButton = ({highlightedNode, sheetID, highlightedRefs, toggleSign
   const nodeRef = `${sheetID}.${highlightedNode}`;
   const handleClose = () => setShowingModal(false);
   return <>
-    <div onClick={handleClick} className="addToSheetButton">
+    <button onClick={handleClick} className="addToSheetButton">
       <span className="addToSheetPlus">+</span>
       <span className="addToSheetText">Add to Sheet</span>
-    </div>
+    </button>
     {showingModal &&
         <AddToSourceSheetModal nodeRef={nodeRef} srefs={highlightedRefs} close={handleClose}/>}
   </>;
