@@ -819,7 +819,7 @@ msgstr ""
 
 #: templates/registration/password_reset_done.html:10
 msgid "registration.password_reset_done.messages"
-msgstr ""
+msgstr "ཁྱེད་ཀྱི་གློག་འཕྲིན་ནང་། གསང་ཚིག་བསྐྱར་སྒྲིག་གི་དྲ་ཐག་བསྐུར་ཡོད།"
 
 #: templates/registration/password_reset_email.html:4
 msgid "registration.password_reset_email.password_reset_email_message"
@@ -829,7 +829,7 @@ msgstr "དཔེ་ཆ་དྲ་བའི་ཀློག་པ་པོ་ཞ
 #: templates/registration/password_reset_email.txt:5
 msgid ""
 "registration.password_reset_email.password_reset_email_to_click_on_link"
-msgstr ""
+msgstr "གསང་ཚིག་བསྐྱར་སྒྲིག་བྱེད་པ་ལ། བཤམ་གྱི་དྲ་ཐག་ལ་བསྣུན་པའམ། ཡང་ན། དྲ་ཐག་འདི་བཤུས་ནས། འཚོལ་བཤེར་མཉེན་ཆས་གཞན་གྱི་ནང་ཁ་ཕྱེ་རོགས།"
 
 #: templates/registration/password_reset_email.html:12
 #: templates/registration/password_reset_email.txt:9
@@ -861,7 +861,7 @@ msgstr "ནང་འཛུལ་བྱེད་སར་ཕྱིར་ལོག
 
 #: templates/registration/password_reset_subject.txt:2
 msgid "Pecha.org_Password_Reset"
-msgstr ""
+msgstr "དཔེ་ཆ་དྲ་བའི་གསང་ཚིག་བསྐྱར་སྒྲིག།"
 
 #: templates/registration/register.html:4
 msgid "registration.register.create_an_account"

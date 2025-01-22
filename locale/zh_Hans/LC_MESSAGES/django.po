@@ -839,7 +839,7 @@ msgstr ""
 #: templates/registration/password_reset_form.html:4
 #: templates/registration/password_reset_form.html:13
 msgid "registration.password_reset_form.forgot_your_password"
-msgstr ""
+msgstr "忘记密码"
 
 #: templates/registration/password_reset_form.html:6
 msgid "registration.password_reset_form.request_a_link_to_change_your_password"
@@ -847,11 +847,11 @@ msgstr ""
 
 #: templates/registration/password_reset_form.html:19
 msgid "registration.password_reset_form.send_reset_link"
-msgstr ""
+msgstr "发送重置链接"
 
 #: templates/registration/password_reset_form.html:23
 msgid "registration.password_reset_form.back_to_link"
-msgstr ""
+msgstr "返回登录"
 
 #: templates/registration/password_reset_subject.txt:2
 msgid "Pecha.org_Password_Reset"
