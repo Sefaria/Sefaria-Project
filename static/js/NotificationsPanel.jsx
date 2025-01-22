@@ -93,18 +93,15 @@ class NotificationsPanel extends Component {
                     ) : null}
                   </div>
                 </div>
-                {Sefaria._uid ? (
-                  Sefaria.notificationCount < 0 ? (
-                    notifications
-                  ) : (
-                    <EmptyNotificationsMessage />
-                  )
+                {(Sefaria._uid) ? (
+                     Sefaria.notificationCount > 0 && notifications
                 ) : (
                   <LoginPrompt fullPanel={true} />
                 )}
               </div>
-              <NavSidebar sidebarModules={sidebarModules} />
+              {Sefaria._uid && Sefaria.notificationCount < 1 && <EmptyNotificationsMessage /> } 
             </div>
+            <NavSidebar sidebarModules={sidebarModules} />
           </div>
         </div>
       </div>
@@ -135,16 +132,14 @@ const Notifications = ({type, props}) => {
 
 const EmptyNotificationsMessage = () => {
   return (
-    <div className="readerNavMenu">
-      <div className="emptyNoticationPage">
-        <div className="emptyNotificationsTitle">
+        <div className="emptyNotificationPage">
+          <div className="emptyNotificationsTitle">
             Looks like you don’t have any notifications yet.
+          </div>
+          <div className="emptyNotificationsMessage">
+            Try following sheet creators to get notified when they publish a new sheet.
+          </div>
         </div>
-        <div className="emptyNotificationsMessage">
-        Try following sheet creators to get notified when they publish a new sheet.
-        </div>
-      </div>
-    </div>
   )
 };
 
