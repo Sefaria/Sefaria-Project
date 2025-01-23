@@ -695,7 +695,7 @@ const EducatorsPage = () => (
 
     <Feature
       enTitle="Educator Spotlight"
-      enText="Shifra Elman uses translations & topic pages to widen the lens.<br> <ul style=&quot;padding-inline-start: 0; list-style-position: outside;&quot;><li><b>Who?</b> Shifra Elman, Dean of Jewish Studies at The Kehillah School in Palo Alto, CA</li><li><b>How?</b> In our introductory ninth-grade class, we emphasize the many Torah translations available on Sefaria. This helps students who don’t know Hebrew avoid over-reliance on a single definition.</li><li><b>Shifra's Top Tip:</b> Topic pages are a valuable starting point for my students. Even if they’re not sure where to begin with a topic, seeing the base text alongside a variety of commentaries and other resources from the Jewish bookshelf helps guide their research.</li></ul>"
+      enText="<p>Shifra Elman uses translations and topic pages to widen the lens.</p> <p><b>Who?</b> Shifra Elman, Dean of Jewish Studies at The Kehillah School in Palo Alto, CA</p><p><b>How?</b> In our introductory ninth-grade class, we emphasize the many Torah translations available on Sefaria. This helps students who don’t know Hebrew avoid over-reliance on a single definition.</p><p><b>Shifra's Top Tip:</b> Topic pages are a valuable starting point for my students. Even if they’re not sure where to begin with a topic, seeing the base text alongside a variety of commentaries and other resources from the Jewish bookshelf helps guide their research.</p>"
       enImg="/static/img/educators-landing-page/shifra-elman-headshot.png"
       enImgAlt="Shifra Elman Headshot"
       heTitle="איך להשתמש באתר?"
@@ -708,7 +708,7 @@ const EducatorsPage = () => (
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
           ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
-          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets", "https://www.sefaria.org.il/collections/KGMlHrvA"],
+          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/KGMlHrvA"],
           ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
       ].map(i =>
           <SimpleButton
@@ -726,7 +726,7 @@ const EducatorsPage = () => (
 
      <Feature
       enTitle="Resources for Educators"
-      enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Keep up to date with all of the new texts added to the library and teach your students to be effective Sefaria users using the student course."
+      enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Get informed about all of the new texts added to the library and teach your students to be effective Sefaria users using the student course."
       enImg="/static/img/educators-landing-page/sefaria-for-educators.png"
       enImgAlt="Resources for Educators"
       heTitle="מערכי שיעור וחומרי הוראה"
@@ -739,8 +739,8 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Get New Text Updates", "10 רעיונות להערכה חלופית", "https://sefaria.formstack.com/forms/monthly_new_text_roundup", "https://www.sefaria.org.il/sheets/281661?lang=he"],
-          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
+          ["Get New Text Updates", "10 רעיונות להערכה חלופית", "https://sefaria.formstack.com/forms/monthly_new_text_roundup?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/sheets/281661?lang=he"],
+          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
           ["For Your Students", "מערכי שיעור", "/sheets/311291?lang=bi", "https://www.sefaria.org.il/sheets/361593?lang=he"]
       ].map(i =>
           <SimpleButton
@@ -769,9 +769,9 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "אסופות מומלצות", "/collections/sefaria-faqs?tab=sheets","https://www.sefaria.org.il/sheets/360599?lang=he"],
-          ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback","https://www.sefaria.org.il/community"],
-          ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
+          ["Help Center", "אסופות מומלצות", "/collections/sefaria-faqs?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
+          ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
           <SimpleButton
               white={true}
