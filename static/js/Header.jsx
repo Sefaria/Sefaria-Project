@@ -200,6 +200,9 @@ class Header extends Component {
             openURL={this.props.openURL}
         />
 
+        { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
+
+
         { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
@@ -308,7 +311,7 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
           <InterfaceText>Log in</InterfaceText>
         </a>
       </span>}
-      {/* { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null} */}
+      
     </div>
   );
 }
