@@ -5274,7 +5274,7 @@ h1.topic-landing-header {
 }
 
 .topic-landing-calendar .calendar-header{
-  color: var(--Dark-Grey, #666);
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
@@ -5284,7 +5284,7 @@ h1.topic-landing-header {
 }
 
 .topic-landing-seasonal .explore-calendar-prompt{
-  color: var(--Commentary-Blue, #4B71B7);
+  color: var(--commentary-blue);
   margin-top: 14px;
 }
 .topic-landing-seasonal .explore-calendar-prompt span{
@@ -5308,7 +5308,7 @@ h1.topic-landing-header {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .topic-landing-temporal .display-date-message{
-  color: var(--Darkest-Grey, #333);
+  color: var(--darkest-grey);
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
@@ -5338,6 +5338,7 @@ h1.topic-landing-header {
   display: flex;
   margin-top: 30px;
   gap: 20px;
+  justify-content: center;
 }
 .singlePanel .topic-card-with-description-row {
   overflow-x: scroll;
@@ -5357,14 +5358,14 @@ h1.topic-landing-header {
   border-top: 4px solid var(--sefaria-blue);
   background: var(--lightest-grey);
   box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
-  width: 268px;
   height: 345px;
 }
 .topic-card-with-description .cardDescription{
   margin-inline-end: 30px;
   margin-inline-start: 30px;
   margin-top: 19px;
-  width: 207.593px;
+  max-width: 208px;
+  max-height: 201px;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow-y: hidden;
