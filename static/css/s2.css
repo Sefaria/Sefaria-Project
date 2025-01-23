@@ -5228,20 +5228,21 @@ h1.topic-landing-header {
   display: flex;
   margin-top: 30px;
   gap: 20px;
+  justify-content: center;
 }
 .topic-card-with-description .card{
   flex: 1;
   border-top: 4px solid var(--sefaria-blue);
   background: var(--lightest-grey);
   box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
-  width: 268px;
   height: 345px;
 }
 .topic-card-with-description .cardDescription{
   margin-inline-end: 30px;
   margin-inline-start: 30px;
   margin-top: 19px;
-  width: 207.593px;
+  max-width: 208px;
+  max-height: 201px;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow-y: hidden;
