@@ -582,8 +582,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            versionEn = _extract_version_params(request, "ven{}".format(i))
-            versionHe = _extract_version_params(request, "vhe{}".format(i))
+            versionEn = _extract_version_params(request, f"ven{i}")
+            versionHe = _extract_version_params(request, f"vhe{i}")
             versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
