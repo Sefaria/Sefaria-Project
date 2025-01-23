@@ -8,7 +8,7 @@ const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSig
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     useEffect(() => {
-        Sefaria.profileAPI(authorUrl.replace("/profile/", "")).then(profile => {
+        Sefaria.profileAPI(authorUrl.replace("/sheets/profile/", "")).then(profile => {
             setProfile(profile);
             setLoading(false);
         })

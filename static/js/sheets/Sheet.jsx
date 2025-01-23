@@ -49,7 +49,7 @@ class Sheet extends Component {
     this.props.setDivineNameReplacement(sheet.options.divineNames)
   }
   handleClick(e) {
-    const target = e.target.closest('a')
+    const target = e.target.closest('a');
     if (target) {
       e.preventDefault();
       Sefaria.util.openInNewTab(target.href);
