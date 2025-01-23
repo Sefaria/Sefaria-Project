@@ -24,8 +24,6 @@ let Sefaria = Sefaria || {
   apiHost: "" // Defaults to localhost, override to talk another server
 };
 
-console.log("sefiara: ", Sefaria);
-
 if (typeof window !== 'undefined') {
     window.Sefaria = Sefaria; // allow access to `Sefaria` from console
 }
@@ -849,6 +847,7 @@ Sefaria = extend(Sefaria, {
     return licenseMap;
   },
   _textUrl: function(ref, settings) {
+    console.log("text url:", ref)
     // copy the parts of settings that are used as parameters, but not other
     const params = param({
       commentary: settings.commentary,
@@ -1088,7 +1087,6 @@ Sefaria = extend(Sefaria, {
     // Cache:
     // - Index Data
     // - Search TOC order
-    console.log("hehe; ", tocBranch)
     for (let i = 0; i < tocBranch.length; i++) {
       
       let thisOrder = parentsOrders.concat([i]) ;
@@ -3312,7 +3310,6 @@ Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(re
 Sefaria = extend(Sefaria, Strings);
 
 Sefaria.setup = function(data, props = null) {
-  console.log("server data : ", data, props)
     Sefaria.loadServerData(data);
     let baseProps = props !=null ? props : (typeof DJANGO_VARS === "undefined" ? undefined : DJANGO_VARS.props);
     Sefaria.unpackBaseProps(baseProps);

@@ -77,6 +77,7 @@ import sefaria.tracker as tracker
 
 from sefaria.settings import NODE_TIMEOUT, DEBUG
 from sefaria.model.category import TocCollectionNode
+from sefaria.system.middleware import get_current_user
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.utils.calendars import parashat_hashavua_and_haftara
 import sefaria.model.story as sefaria_story
@@ -546,15 +547,20 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_pa
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
     """
     panels = []
-    # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
-    if filter is not None and multi_panel:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Connections", **kwargs)]
-    elif filter is not None and not multi_panel:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
-    else:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
+    user_email = get_current_user()   
+    text_list = library.get_text_permission_group(user_email)  
+    for text in text_list:
+        if str(oref) == str(text['title']):
+            # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
+            if filter is not None and multi_panel:
+                panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
+                panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Connections", **kwargs)]
+            elif filter is not None and not multi_panel:
+                panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
+            else:
+                panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
 
+            return panels
     return panels
 
 
@@ -571,7 +577,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 ref = '.'.join(map(str, primary_ref.sections))
         except InputError:
             raise Http404
-
     panels = []
     multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
     # Handle first panel which has a different signature in params
@@ -1127,6 +1132,7 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
+    print()
     title = ("Pecha - Buddhism in your own words")
     desc = ("The largest free library of Buddhist texts available to read online in Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more.")
     return menu_page(request, page="navigation", title=title, desc=desc)
@@ -1481,7 +1487,6 @@ def modify_bulk_text_api(request, title):
 def texts_api(request, tref):
     oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
     tref = oref.url()
-
     if request.method == "GET":
         uref = oref.url()
         if uref and tref != uref:  # This is very similar to reader.reader_redirect subfunction, above.
@@ -1553,32 +1558,69 @@ def texts_api(request, tref):
                 text["layer"] = []
 
             return text
+        
+        text_ref = Ref(tref)
+        text_title = text_ref.index.get_title("en")
+        if request.user.is_authenticated:
+            user_group_text_list = library.get_text_permission_group(request.user.email)
+            for user_text in user_group_text_list:
+                if text_title == user_text['title']:
+                    if not multiple or abs(multiple) == 1:
+                        text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
+                                         pad=pad,
+                                         alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                        return jsonResponse(text, cb)
+                    else:
+                        # Return list of many sections
+                        assert multiple != 0
+                        direction = "next" if multiple > 0 else "prev"
+                        target_count = abs(multiple)
 
-        if not multiple or abs(multiple) == 1:
-            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
-                             pad=pad,
-                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
-            return jsonResponse(text, cb)
+                        current = 0
+                        texts = []
+
+                        while current < target_count:
+                            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
+                                             pad=pad,
+                                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                            texts += [text]
+                            if not text[direction]:
+                                break
+                            oref = Ref(text[direction])
+                            current += 1
+                        return jsonResponse(texts, cb)
         else:
-            # Return list of many sections
-            assert multiple != 0
-            direction = "next" if multiple > 0 else "prev"
-            target_count = abs(multiple)
+            email = request.GET.get("email", None)
+            group_text_list = library.get_text_permission_group(email)
+            for text in group_text_list:
+                if text_title == text['title']:
+                    if not multiple or abs(multiple) == 1:
+                        text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
+                                         pad=pad,
+                                         alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                        return jsonResponse(text, cb)
+                    else:
+                        # Return list of many sections
+                        assert multiple != 0
+                        direction = "next" if multiple > 0 else "prev"
+                        target_count = abs(multiple)
 
-            current = 0
-            texts = []
+                        current = 0
+                        texts = []
 
-            while current < target_count:
-                text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
-                                 pad=pad,
-                                 alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
-                texts += [text]
-                if not text[direction]:
-                    break
-                oref = Ref(text[direction])
-                current += 1
-
-            return jsonResponse(texts, cb)
+                        while current < target_count:
+                            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
+                                             pad=pad,
+                                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                            texts += [text]
+                            if not text[direction]:
+                                break
+                            oref = Ref(text[direction])
+                            current += 1
+                        return jsonResponse(texts, cb)
+                
+                
+            return jsonResponse({"error": "you dont have access permission"}, cb)
 
     if request.method == "POST":
         j = request.POST.get("json")
@@ -1765,14 +1807,34 @@ def index_api(request, title, raw=False):
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        with_content_counts = bool(request.GET.get("with_content_counts", False))
-        i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
+        if request.user.is_authenticated:
+            user_group_text_list = library.get_text_permission_group(request.user.email)
+            for user_text in user_group_text_list:
+                if title == user_text['title']:
+                    with_content_counts = bool(request.GET.get("with_content_counts", False))
+                    i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
-        if request.GET.get("with_related_topics", False):
-            i["relatedTopics"] = get_topics_for_book(title, annotate=True)
+                    if request.GET.get("with_related_topics", False):
+                        i["relatedTopics"] = get_topics_for_book(title, annotate=True)
 
-        return jsonResponse(i, callback=request.GET.get("callback", None))
+                    return jsonResponse(i, callback=request.GET.get("callback", None))
+            return jsonResponse({"error":f"Either Index is not available OR You are not allowed to access."}, callback=request.GET.get("callback", None))
+        else:
+            email = request.GET.get("email", None)
+            user_group_text_list = library.get_text_permission_group(email)
+            for user_text in user_group_text_list:
+                if title == user_text['title']:
+                    with_content_counts = bool(request.GET.get("with_content_counts", False))
+                    i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
+                    if request.GET.get("with_related_topics", False):
+                        i["relatedTopics"] = get_topics_for_book(title, annotate=True)
+
+                    return jsonResponse(i, callback=request.GET.get("callback", None))
+            return jsonResponse({"error":f"Either Index is not available OR You are not allowed to access."}, callback=request.GET.get("callback", None))
+        
+            
+            
     if request.method == "POST":
         # use the update function if update is in the params
 
@@ -2316,9 +2378,26 @@ def versions_api(request, tref):
     API for retrieving available text versions list of a ref.
     """
     oref = Ref(tref)
-    versions = oref.version_list()
+    email = request.GET.get("email", None)
+    versions = []
+    if request.user.is_authenticated:
+        group_text_list = library.get_text_permission_group(request.user.email)
+        for text in group_text_list:
+            if str(text['title']) == str(oref):
+                
+                versions = oref.version_list()
+                return jsonResponse(versions, callback=request.GET.get("callback", None))
+        return jsonResponse(versions, callback=request.GET.get("callback", None))
 
-    return jsonResponse(versions, callback=request.GET.get("callback", None))
+    else:
+        email = request.GET.get("email", None)
+        group_text_list = library.get_text_permission_group(email)
+        for text in group_text_list:
+            if str(text['title']) == str(oref):
+                versions = oref.version_list()
+                return jsonResponse(versions, callback=request.GET.get("callback", None))
+            
+        return jsonResponse(versions, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json

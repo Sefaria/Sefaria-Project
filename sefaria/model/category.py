@@ -315,85 +315,18 @@ class TocTree(object):
         
         return TocTextIndex(d, index_object=index)
     
-    def get_text_categories(self, groups):
-    # Track text occurrences across all groups
-        text_counts = {}
-        text_details = {}
-
-        for group in groups:
-            for text in group['texts']:
-                title = text['title']
-                categories = text['text_category']
-            
-                # Update text_counts and store details
-                text_counts[title] = text_counts.get(title, 0) + 1
-                if title not in text_details:
-                    text_details[title] = categories
-
-        # Extract text_category for unique texts
-        unique_text_categories = [
-            text_details[title]
-            for title, count in text_counts.items() if count == 1
-        ]
-
-        # Extract non-duplicate text categories for texts appearing more than once
-        other_text_categories = list({
-            tuple(text_details[title]) for title, count in text_counts.items() if count > 1
-        })
-
-        # Convert tuples back to lists for consistency
-        other_text_categories = [list(categories) for categories in other_text_categories]
-
-        # Combine both lists
-        return unique_text_categories + other_text_categories
-
-
-    def get_text_in_default_group(self):
-        groups = db.text_permission_groups.find()
-        # Separate texts in "default" group and others
-        default_texts = {}
-        other_texts = set()
-        for group in groups:
-            for text in group['texts']:
-                title = text['title']
-                categories = text['text_category']
-                
-                if group["name"] == "default":
-                    default_texts[title] = categories
-                    
-                else:
-                    other_texts.add(title)
-        # Find texts unique to the "default" group
-        unique_to_default = [
-            categories for title, categories in default_texts.items() if title not in other_texts
-        ]
-        return unique_to_default
-
     def _add_category(self, cat):
         try:
+            from sefaria.model import library
             tc = TocCategory(category_object=cat)
-            user_email = get_current_user()
-            if user_email:
-                groups = db.text_permission_groups.find({
-                    "members": {
-                        "$in": [user_email]
-                    }
-                })
-                text_list = self.get_text_categories(groups)
-                for c in text_list:
-                    cat_subsets = [c[:i] for i in range(1, len(c) + 1)]
-                    if cat.path in cat_subsets:
-                        parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
-                        parent.append(tc)
-                        self._path_hash[tuple(cat.path)] = tc
-            else:
-                text_list = self.get_text_in_default_group()
-                for text in text_list:
-                    cat_subsets = [text[:i] for i in range(1, len(text) + 1)]
-                    if cat.path in cat_subsets:
-                        parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
-                        parent.append(tc)
-                        self._path_hash[tuple(cat.path)] = tc
+            user_email = get_current_user()   
+            text_list = library.get_text_permission_group(user_email)
+            for c in text_list:
+                cat_subsets = [c['category'][:i] for i in range(1, len(c['category']) + 1)]
+                if cat.path in cat_subsets:
+                    parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
+                    parent.append(tc)
+                    self._path_hash[tuple(cat.path)] = tc
         except KeyError:
             logger.warning(f"Failed to find parent category for {'/'.join(cat.path)}")
 
@@ -581,6 +514,7 @@ class TocTextIndex(TocNode):
             self.order = self._index_object.order[0]
 
     def get_index_object(self):
+        print("index >>>>>>>>>>>>>>>>>>>>>>>>", self._index_object)
         return self._index_object
 
     optional_param_keys = [
