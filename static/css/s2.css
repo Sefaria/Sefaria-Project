@@ -2523,8 +2523,8 @@ div.interfaceLinks-row a {
 @media (max-width: 600px) {
   .imageWithCaptionPhoto{
     height: auto;
-    max-width: calc(66.67vw);
-    max-height: calc(66.67vw);
+    max-width: 66.67vw;
+    max-height: 66.67vw;
     margin: 0 auto 10px;
     display: block;
   }
@@ -4890,10 +4890,16 @@ h1.topic-landing-header {
   color: var(--dark-grey);
   margin: 0;
 }
+.singlePanel h1.topic-landing-header{
+  font-size: 22px;
+}
 
 .topic-landing-page-content .topic-landing-section {
   margin-top: 70px;
   width: 100%;
+}
+.singlePanel .topic-landing-page-content .topic-landing-section.first-section {
+  margin-top: 18px;
 }
 
 .interface-hebrew .topic-landing-page-wrapper{
@@ -4912,10 +4918,20 @@ h1.topic-landing-header {
   width: 634px;
   height: 60px;
 }
+.singlePanel .topic-landing-search-container{
+  width: 344px;
+  height: 47px;
+}
 
 .topic-landing-search-input-box-wrapper{
   display: flex;
   margin-top: 15px;
+}
+.singlePanel .topic-landing-search-input-box-wrapper{
+  display: flex;
+  margin-top: 9px;
+  font-style: normal;
+  width: 100%
 }
 
 .topic-landing-search-input{
@@ -4929,6 +4945,11 @@ h1.topic-landing-header {
   font-weight: 500;
   border: none;
   width: 600px;
+}
+.singlePanel .topic-landing-search-input{
+  font-family: Roboto;
+  font-size: 14px;
+  margin-top: 2px;
 }
 
 .topic-landing-search-suggestion{
@@ -4973,6 +4994,13 @@ h1.topic-landing-header {
   overflow-y: scroll;
   position: absolute;
 }
+.singlePanel .topic-landing-search-dropdown{
+  position: absolute;
+  width: 92vw;
+  margin-top: 38px;
+  max-height: calc(1.9em * 5 + 1em);
+
+}
 .topic-landing-search-dropdown:empty {
   padding: 0;
   visibility: hidden;
@@ -4984,6 +5012,14 @@ h1.topic-landing-header {
 .featuredTopic {
   display: flex;
   flex-direction: column;
+}
+.singlePanel .featuredTopicContent {
+  display: flex;
+  flex-direction: column;
+}
+.singlePanel .featuredTopicImgWrapper .imageWithCaptionPhoto{
+  max-width: 92vw;
+  max-height: unset;
 }
 .featuredTopicContent {
   display: flex;
@@ -5011,6 +5047,10 @@ h1.topic-landing-header {
   color: var(--dark-grey);
   margin-inline-start: 30px;
 }
+.singlePanel .featuredTopicText .int-en,
+.singlePanel .featuredTopicText .int-he {
+  margin-inline-start: 0px;
+}
 .featuedTopicText h3 {
   text-transform: none;
   margin: 0 0 15px 0;
@@ -5034,14 +5074,32 @@ h1.topic-landing-header {
   padding: 36px 74px;
   justify-content: space-between;
 }
+.singlePanel .topic-landing-newsletter {
+  padding: 36px 36px;
+  flex-direction: column;
+  align-items: center;
+}
 .topic-landing-newsletter .topic-landing-newsletter-input-row {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
 }
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row{
+  flex-direction: column;
+  align-items: center;
+}
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 .topic-landing-newsletter .topic-landing-newsletter-input-row:first-child {
   margin-bottom: 20px;
+}
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row:first-child {
+  margin-bottom: 0px;
 }
 .topic-landing-newsletter .topic-landing-newsletter-input-row input,
 .topic-landing-newsletter .topic-landing-newsletter-input-row button {
@@ -5053,6 +5111,13 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row button {
+  width: 100%;
+}
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input,
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row button {
+  margin-bottom: 20px;
+}
 .topic-landing-newsletter .topic-landing-newsletter-input-row button {
   flex: unset;
   color: var(--sefaria-blue);
@@ -5060,6 +5125,13 @@ h1.topic-landing-header {
 .topic-landing-newsletter .topic-landing-newsletter-input-row input:first-child {
   margin-inline-end: 16px;
 }
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input:first-child {
+  margin-inline-end: 0px;
+}
+.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input {
+  width: 90%;
+}
+
 .topic-landing-newsletter .topic-landing-newsletter-input-row .subscribeMessage {
   color: white;
   margin-top: 10px;
@@ -5087,6 +5159,9 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.singlePanel .topic-landing-newsletter h3.topic-landing-newsletter-text {
+  margin-bottom: 20px;
+}
 .topic-landing-upper-rainbow{
   margin-bottom: 43px;
   z-index: 0;
@@ -5094,6 +5169,12 @@ h1.topic-landing-header {
 .topic-landing-lower-rainbow{
   margin-top: 43px;
   z-index: 0;
+}
+.singlePanel .topic-landing-upper-rainbow{
+  margin-bottom: 20px;
+}
+.singlePanel .topic-landing-lower-rainbow{
+  margin-top: 20px;
 }
 /*'Dummy' font, a hack to prevent the ellipsis char from being displayed at the end of a webkit line-clamped element*/
 /*This font addresses only the ellipsis char, rendering its size 0% */
@@ -5113,6 +5194,15 @@ h1.topic-landing-header {
   text-overflow: clip;
   font-family: hide-ellipsis-char-font;
 }
+.rowed-salad-container{
+  white-space: nowrap;
+  overflow-x: scroll;
+  display: flex;
+  scrollbar-width: none; /* For Firefox */
+}
+.rowed-salad-container::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Edge */
+}
 
 .topic-salad{
   font-size: 22px;
@@ -5127,12 +5217,23 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.rowed-salad-item-container{
+  border-radius: 6px;
+  background: var(--sefaria-blue);
+  margin-inline-end: 7px;
+  color: white;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
 .no-wrapping-salad-item-container{
   white-space: nowrap;
 }
 .topic-landing-temporal{
   display: flex;
   margin-top: 30px;
+}
+.singlePanel .topic-landing-temporal {
+  flex-direction: column;
 }
 
 .topic-landing-parasha{
@@ -5161,7 +5262,16 @@ h1.topic-landing-header {
     padding-inline-start: 67px;
     flex: 1;
 }
-
+.singlePanel .topic-landing-temporal > .topic-landing-parasha {
+    border-bottom: 1px solid #ccc;
+    border-inline-end: 0px;
+    padding-bottom: 30px;
+}
+.singlePanel .topic-landing-temporal > .topic-landing-seasonal {
+    border-top: 1px solid #ccc;
+    padding-inline-start: 0px;
+    padding-top: 30px;
+}
 
 .topic-landing-calendar .calendar-header{
   color: var(--Dark-Grey, #666);
@@ -5229,6 +5339,19 @@ h1.topic-landing-header {
   margin-top: 30px;
   gap: 20px;
 }
+.singlePanel .topic-card-with-description-row {
+  overflow-x: scroll;
+  overflow-y: visible;
+  box-sizing: border-box;
+  scrollbar-width: none; /* For Firefox */
+  padding-bottom: 5px;
+  padding-inline-start: 5px;
+  padding-inline-end: 5px;
+}
+.singlePanel .topic-card-with-description-row::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and Edge */
+}
+
 .topic-card-with-description .card{
   flex: 1;
   border-top: 4px solid var(--sefaria-blue);
