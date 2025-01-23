@@ -11888,6 +11888,10 @@ cursor: pointer;
     flex-direction: row;
   }
 }
+.profilePicAndButtonContainer .profile-actions {
+  margin-top: 10px;
+}
+
 .profile-page .profile-summary .follow {
   color: #999;
   font-size: 13px;
