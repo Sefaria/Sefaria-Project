@@ -771,7 +771,7 @@ const EducatorsPage = () => (
       { [
           ["Help Center", "אסופות מומלצות", "/collections/sefaria-faqs?tab=sheets","https://www.sefaria.org.il/sheets/360599?lang=he"],
           ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback","https://www.sefaria.org.il/community"],
-          ["Webinars for Educators", "הסודות של ספריא", "/sheets/529099?lang=bi","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
+          ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
           <SimpleButton
               white={true}
