@@ -129,15 +129,9 @@ router.post('/ReaderApp/:cachekey', function(req, res, next) {
 
       res.end(resphtml);
     } catch (render_e) {
-      logger.error("Error in renderReaderApp");
-      logger.error(render_e);
-      res.status(500)
       return next(render_e);
     }
   }).catch(error => {
-      logger.error("Error in loadSharedData");
-      logger.error(error);
-      res.status(500)
       return next(error);
   });
 });
