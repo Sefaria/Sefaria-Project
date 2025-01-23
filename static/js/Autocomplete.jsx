@@ -95,7 +95,7 @@ const getURLForObject = function(type, key) {
     } else if (type === "ref") {
       return `/${key.replace(/ /g, '_')}`;
     } else if (type === "User") {
-      return `/profile/${key}`;
+      return `/sheets/profile/${key}`;
     }
 };
 
