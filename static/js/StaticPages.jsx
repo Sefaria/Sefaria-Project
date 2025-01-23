@@ -695,7 +695,7 @@ const EducatorsPage = () => (
 
     <Feature
       enTitle="Educator Spotlight"
-      enText="Shifra Elman uses translations & topic pages to widen the lens.<br> <ul style=&quot;padding-inline-start: 0; list-style-position: outside;&quot;><li><b>Who?</b> Shifra Elman, Dean of Jewish Studies at The Kehillah School in Palo Alto, CA</li><li><b>How?</b> In our introductory ninth-grade class, we emphasize the many Torah translations available on Sefaria. This helps students who don’t know Hebrew avoid over-reliance on a single definition.</li><li><b>Shifra's Top Tip:</b> Topic pages are a valuable starting point for my students. Even if they’re not sure where to begin with a topic, seeing the base text alongside a variety of commentaries and other resources from the Jewish bookshelf helps guide their research.</li></ul>"
+      enText="<ul style=&quot;padding-inline-start: 0; list-style-position: outside;&quot;><li><b>Who?</b> Shifra Elman, Dean of Jewish Studies at The Kehillah School in Palo Alto, CA</li><li><b>How?</b> In our introductory ninth-grade class, we emphasize the many Torah translations available on Sefaria. This helps students who don’t know Hebrew avoid over-reliance on a single definition.</li><li><b>Shifra's Top Tip:</b> Topic pages are a valuable starting point for my students. Even if they’re not sure where to begin with a topic, seeing the base text alongside a variety of commentaries and other resources from the Jewish bookshelf helps guide their research.</li></ul>"
       enImg="/static/img/educators-landing-page/shifra-elman-headshot.png"
       enImgAlt="Shifra Elman Headshot"
       heTitle="איך להשתמש באתר?"
