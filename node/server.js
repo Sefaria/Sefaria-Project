@@ -46,11 +46,7 @@ const getAsync = promisify(cache.get).bind(cache);
 
 
 const refreshCache = function() {
-  // if 3 minutes have passed, delete last_cached from cache
-  const last_cached = sharedCacheData["last_cached"];
-  if (last_cached && (new Date() - last_cached) > 180000) {
-    cache.del("last_cached");
-  }
+  cache.del("last_cached");
 }
 
 const loadSharedData = async function({ last_cached_to_compare = null, startup = false } = {}){
