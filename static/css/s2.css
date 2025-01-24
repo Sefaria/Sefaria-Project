@@ -4689,6 +4689,7 @@ details .open-details::before {
 
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover {
     text-decoration: none;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img {
@@ -8780,7 +8781,7 @@ But not to use a display block directive that might break continuous mode for ot
     box-sizing: border-box;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     font-size: 18px;
-    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+    font-family: var(--hebrew-serif-font-family);
     margin-bottom: 10px
 }
 
@@ -11183,7 +11184,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
 }
 
 .readerPanel.hebrew .addToSourceSheetBox .selectedRef span {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family), "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
     font-size: 1.2em;
 }
 
