@@ -233,6 +233,10 @@ a, a:hover {
     --inline-link-red: #cc5454;
 }
 
+.back-button-icon {
+    font-size: 16px; /* Adjust the size as needed */
+  }
+
 /* Font Family */
 body, .sans-serif {
     --english-font: var(--english-sans-serif-font-family);
