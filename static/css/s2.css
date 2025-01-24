@@ -2882,7 +2882,7 @@ span .asterisk {
 }
 
 .readerTocTopics .topicTitle .int-he {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .readerTocTopics .topicDescription.systemText .int-en,
@@ -2926,7 +2926,7 @@ span .asterisk {
 }
 
 .topicPanel .resourcesLink.blue .int-he {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family);
     margin-bottom: -3px;
 }
 
@@ -3064,7 +3064,7 @@ h1 div.languageToggle .en {
 }
 
 h1 .languageToggle .he {
-    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+    font-family: var(--hebrew-serif-font-family);
     font-size: 22px;
 }
 
@@ -11696,6 +11696,7 @@ span.purim-emoji img {
     width: 100%;
     box-sizing: border-box;
     font-size: 2.2em;
+    font-family: var(--hebrew-serif-font-family);
     line-height: 1.6;
     text-align: justify;
     background-color: inherit;
@@ -13173,8 +13174,8 @@ section.SheetSource .SheetOutsideBiText {
     font-family: var(--hebrew-serif-font-family);
 }
 
-.bo-date {
-    font-family: var(--hebrew-sans-serif-font-family);
+.hi-date {
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .sheetList .sheet .sheetTags .bullet {
