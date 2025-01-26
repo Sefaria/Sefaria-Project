@@ -532,9 +532,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     if sheet == None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
-
-        # versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe) #TODO
-
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
