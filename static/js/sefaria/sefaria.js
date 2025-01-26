@@ -847,7 +847,6 @@ Sefaria = extend(Sefaria, {
     return licenseMap;
   },
   _textUrl: function(ref, settings) {
-    console.log("text url:", ref)
     // copy the parts of settings that are used as parameters, but not other
     const params = param({
       commentary: settings.commentary,

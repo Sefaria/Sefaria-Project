@@ -168,6 +168,8 @@
     "feedback.request_feature": "请求功能",
     "feedback.give_thanks": "表示感谢",
     "feedback.other": "其他",
+    "text.error.message.something_went_wrong": "發生錯誤！請使用返回按鈕或上方選單繼續操作。",
+    "text.error.message.text_not_accessible": "您無權存取此文字",
     "feedback.please_select_type": "请选择反馈类型",
     "feedback.message.error_sending_feedback": "很遗憾，发送反馈时发生错误。请重试或重新加载此页面。",
     "common.select_type": "选择类型",

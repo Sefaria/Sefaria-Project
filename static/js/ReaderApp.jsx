@@ -2072,10 +2072,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
-    console.log(
-      "print>>>",
-      panelStates
-    )
+                                  
     for (var i = 0; i < panelStates.length; i++) {
       const panel                        = this.clonePanel(panelStates[i]);
       if (!("settings" in panel )) { debugger; }
@@ -2188,13 +2185,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     panels = panels.length ?
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
-                 </div>) : <MessageModel
-                  onClose={this.toggleSignUpModal}
-                  show={true}
-                  errorType={Sefaria._('model.message_model.message_type')}
-                  message={Sefaria._('model.message_model.message')}
-                />;
-
+                 </div>) : null;
+    // <MessageModel
+      // onClose={this.toggleSignUpModal}
+      // show={true}
+      // errorType={Sefaria._('model.message_model.message_type')}
+      // message={Sefaria._('model.message_model.message')}
+    // />
     const signUpModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}

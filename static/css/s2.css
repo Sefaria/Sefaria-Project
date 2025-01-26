@@ -1899,7 +1899,8 @@ div.interfaceLinks-row a {
 
 .readerContent .readerError .readerErrorText {
     padding-top: 20px;
-    font-size: .8em;
+    font-size: 1.2em;
+    color:red;
 }
 
 .textColumn {

@@ -41,8 +41,6 @@ class TextColumn extends Component {
         console.log("primary: ", Sefaria.index(this.props.bookTitle))
        gtag("event", "select_content", params)
       } else {
-        console.log("primary: ", Sefaria.index(this.props.bookTitle))
-        alert ("you dont have permission")
         gtag("event", "select_content", {})
       }
        

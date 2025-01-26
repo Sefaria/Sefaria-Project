@@ -333,7 +333,7 @@ def catchall(request, tref, sheet=None):
     def reader_redirect(uref):
         # Redirect to standard URLs
         url = "/" + uref
-
+        print("url>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", url)
         response = redirect(iri_to_uri(url), permanent=True)
         params = request.GET.urlencode()
         response['Location'] += "?%s" % params if params else ""
@@ -547,20 +547,18 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_pa
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
     """
     panels = []
-    user_email = get_current_user()   
-    text_list = library.get_text_permission_group(user_email)  
-    for text in text_list:
-        if str(oref) == str(text['title']):
-            # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
-            if filter is not None and multi_panel:
-                panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
-                panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Connections", **kwargs)]
-            elif filter is not None and not multi_panel:
-                panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
-            else:
-                panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
-
-            return panels
+    # user_email = get_current_user()   
+    # text_list = library.get_text_permission_group(user_email)  
+    # for text in text_list:
+    # if str(oref) == str(text['title']):
+    # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
+    if filter is not None and multi_panel:
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Connections", **kwargs)]
+    elif filter is not None and not multi_panel:
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
+    else:
+        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
     return panels
 
 
@@ -1620,7 +1618,7 @@ def texts_api(request, tref):
                         return jsonResponse(texts, cb)
                 
                 
-            return jsonResponse({"error": "you dont have access permission"}, cb)
+            return jsonResponse({"error": f"You do not have access permission to this text"}, cb)
 
     if request.method == "POST":
         j = request.POST.get("json")

@@ -168,6 +168,8 @@
     "feedback.request_feature":"མཉེན་ཆས་ཀྱི་བྱེད་ནུས་གསར་པ་དགོས་མཁོ།",
     "feedback.give_thanks":"ཐུགས་རྗེ་ཆེ་ཞུ་བ།",
     "feedback.other":"གནས་ཚུལ་གཞན།",
+    "text.error.message.something_went_wrong": "ཅི་རིགས་ནོར་བ་བྱུང་འདུག། ཕྱིར་འདྲེན་མ་ལག་གམ་སྟེང་གི་འགུལ་བཞུད་ཀྱི་ཐབས་ལམ་བེད་སྤྱོད་གྱིས།",
+    "text.error.message.text_not_accessible": "ཁྱེད་ལ་བརྡ་ཡིག་འདི་ལ་ཐོབ་ཐང་མེད།",
     "feedback.please_select_type":"བསམ་འཆར་གྱི་རིགས་ཤིག་འདེམ་རོགས།",
     "feedback.message.error_sending_feedback":"སྟབས་མ་ལེགས་པ་ཞིག་ལ་བསམ་འཆར་འདི་གཏོང་བ་ལ་གནད་དོན་ཞིག་བྱུང་སོང་། ཤོག་ངོས་འདི་བསྐྱར་ལེན་ནམ་ཡང་ན་བསྐྱར་དུ་ཚོད་ལྟ་ཞིག་བྱེད་རོགས།",
     "common.select_type":"རིགས་དབྱེ།",
