@@ -4914,6 +4914,8 @@ class Library(object):
 
         self.langs = ["en", "he"]
 
+        self._build_topic_slug_to_pools_mapping()
+
         # Maps, keyed by language, from index key to array of titles
         self._index_title_maps = {lang:{} for lang in self.langs}
 
@@ -4962,6 +4964,8 @@ class Library(object):
 
         # Topics
         self._topic_mapping = {}
+        #Topic to Pools
+        self._topic_slug_to_pools = {}
 
         # Virtual books
         self._virtual_books = []
@@ -5009,6 +5013,7 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
+        self._build_topic_slug_to_pools_mapping()
         self.get_simple_term_mapping_json(rebuild=True)
         self._build_topic_mapping()
         self._build_index_maps()
@@ -5680,6 +5685,14 @@ class Library(object):
         from .topic import Topic, TopicSet
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
+
+    def get_topic_pools_mapping(self, slug):
+        return self._topic_slug_to_pools[slug]
+
+    def _build_topic_slug_to_pools_mapping(self):
+        from django_topics.models import Topic as DjangoTopic
+        self._topic_slug_to_pools = DjangoTopic.objects.get_pools_for_all_topic_slugs()
+        return self._topic_slug_to_pools
 
     def get_linker(self, lang: str, rebuild=False):
         linker = self._linker_by_lang.get(lang)

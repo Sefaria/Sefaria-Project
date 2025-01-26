@@ -21,6 +21,18 @@ class TopicManager(models.Manager):
     def get_topic_slugs_by_pool(self, pool: str) -> QuerySet:
         return self.filter(pools__name=pool).values_list("slug", flat=True)
 
+    def get_pools_for_all_topic_slugs(self) -> dict[str, list[str]]:
+        from collections import defaultdict
+        """
+        Returns a dictionary mapping each topic slug in the database to its list of pools.
+        """
+        slug_to_pools = defaultdict(list)
+        topics = self.values_list('slug', 'pools__name')  # Fetch all slugs and their pools
+        for slug, pool_name in topics:
+            if pool_name:  # Avoid adding None values
+                slug_to_pools[slug].append(pool_name)
+        return dict(slug_to_pools)
+
 
 class Topic(models.Model):
     slug = models.CharField(max_length=255, primary_key=True)
