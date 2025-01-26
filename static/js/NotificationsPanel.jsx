@@ -134,10 +134,12 @@ const EmptyNotificationsMessage = () => {
   return (
         <div className="emptyNotificationPage">
           <div className="emptyNotificationsTitle">
-            <InterfaceText en={"Looks like you don’t have any notifications yet."} he={""}/>
+            <InterfaceText en={"Looks like you don’t have any notifications yet."} 
+                           he={"נראה שעדיין אין לך התראות"}/>
           </div>
           <div className="emptyNotificationsMessage">
-            <InterfaceText en={"Try following sheet creators to get notified when they publish a new sheet."} he={""}/> 
+            <InterfaceText en={"Try following sheet creators to get notified when they publish a new sheet."} 
+                           he={"מומלץ לעקוב אחרי יוצרים של דפי מקורות כדי לקבל התראה כאשר יפרסמו דף מקורות חדש"}/> 
           </div>
         </div>
   )
