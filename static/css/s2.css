@@ -11654,7 +11654,6 @@ cursor: pointer;
   cursor: pointer;
   position: relative;
   line-height: normal;
-  position: relative; /* Ensure positioning context for absolute pseudo-element */
   outline: none; /* Ensure the button itself can receive focus */
 }
 .tooltip-toggle svg {
