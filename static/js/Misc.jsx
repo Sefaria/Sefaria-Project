@@ -23,7 +23,7 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import { ReaderApp } from './ReaderApp';
+import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1243,22 +1243,39 @@ InterfaceLanguageMenu.propTypes = {
   translationLanguagePreference: PropTypes.string,
 };
 
+const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
+const getSaveButtonMessage = (selected) => Sefaria._(selected ? "Remove" : "Save");
+const getSaveButtonImage = (selected) => {
+  return selected ? "/static/icons/bookmark-filled.svg" : "/static/icons/bookmark.svg";
+}
+const SaveButtonWithText = ({historyObject}) => {
+  const selected = isSaveButtonSelected(historyObject);
+  return <DropdownMenuItemWithIcon
+                    textEn={getSaveButtonMessage(selected)}
+                    textHe={getSaveButtonMessage(selected)}
+                    descEn={""}
+                    descHe={""}
+                    icon={getSaveButtonImage(selected)}/>;
+}
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
-  if (!historyObject) { placeholder = true; }
-  const isSelected = () => !!Sefaria.getSavedItem(historyObject);
-  const [selected, setSelected] = useState(placeholder || isSelected());
+  if (!historyObject) {
+    placeholder = true;
+  }
+  const [selected, setSelected] = useState(placeholder || isSaveButtonSelected(historyObject));
   useEffect(() => {
-    if (placeholder) { return; }
-    setSelected(isSelected())
+    if (placeholder) {
+      return;
+    }
+    setSelected(isSaveButtonSelected(historyObject));
   }, [historyObject && historyObject.ref]);
 
   const [isPosting, setPosting] = useState(false);
 
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-  const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+  const message = getSaveButtonMessage(selected);
+  const altText = placeholder ? '' : `${message} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {
@@ -1267,15 +1284,13 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
-        .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
+        .then(() => { setSelected(isSaveButtonSelected(historyObject)); }) // since request is async, check if it's selected from data
+        .catch(e => { if (e === 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
         .finally(() => { setPosting(false); });
   }
-
   return (
     <ToolTipped {...{ altText, classes, style, onClick }}>
-      { selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
-        <img src="/static/icons/bookmark.svg" alt={altText}/> }
+      {<img src={`${getSaveButtonImage(selected)}`} alt={altText}/>}
     </ToolTipped>
   );
 }
@@ -2784,21 +2799,13 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-
-const SheetMetaDataBox = ({title, summary, authorUrl, authorStatement, authorImage, editable}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable}) => {
   return <div className="sheetMetaDataBox">
-    <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
-    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
-    <div className="user">
-      <ProfilePic
-          url={authorImage}
-          len={30}
-          name={authorStatement}
-      />
-      <a href={authorUrl} className="sheetAuthorName">
-        <InterfaceText>{authorStatement}</InterfaceText>
-      </a>
+    <div className="sidebarLayout">
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
+      {sheetOptions}
     </div>
+    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
   </div>
 }
 
@@ -3230,6 +3237,7 @@ export {
   MenuButton,
   SearchButton,
   SaveButton,
+  SaveButtonWithText,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,

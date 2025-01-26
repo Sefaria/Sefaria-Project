@@ -1045,6 +1045,22 @@ div.interfaceLinks-row a {
   position: fixed;
   z-index: 1001;
 }
+.dialogModal {
+  border: none;
+  background: transparent;
+  display: block;
+  top: -20%;
+}
+.dialogModal::backdrop {
+  background-color: rgba(1, 1, 1, 0.7);
+}
+.dialogModal .modal-content {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+}
 .sefariaModalBox {
   transition: none;
 }
@@ -5588,6 +5604,33 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: relative;
   padding: 0 30px;
 }
+.sheetContent .modalTitle {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  text-align: center;
+  color: var(--dark-grey);
+  padding-block-end: 15px;
+  border-bottom: 1px solid var(--lighter-grey);
+}
+.sheetContent .successMessage {
+  color: var(--inline-link-blue);
+  margin-inline-start: 5px;
+}
+.dialogModal .modal-content > * {
+   padding: 20px;
+}
+.sheetContent .modalMessage {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  text-align: center;
+  color: black;
+}
 .singlePanel .textRange.basetext,
 .singlePanel .sheetContent {
   padding: 0;
@@ -5679,7 +5722,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   display: block;
   background-color: inherit;
-  margin-bottom: 14px;
 }
 .continuous .segment {
   display: inline;
@@ -5877,27 +5919,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #444;
 }
 .basetext .segment.highlight,
-.sheetContent .segment.highlight .en,
-.sheetContent .segment.highlight .he,
-.sheetContent .textPreviewSegment.highlight,
 .editTextInfo .textPreviewSegment.highlight,
-.readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
-.readerPanel.bilingual.heRight .sheetContent .segment.highlight,
 .editorContent .sheetItem.highlight,
 .editorContent .sheetItem.highlight .SheetSource .en,
 .editorContent .sheetItem.highlight .SheetSource::after
 {
   background-color: #F0F7FF;
-}
-.sheetContent .segment.highlight .linkCount .en,
-.sheetContent .segment.highlight .linkCount .he,
-.sheetContent .segment.highlight .segmentNumber .en,
-.sheetContent .segment.highlight .segmentNumber .he {
-  background-color: transparent;
-}
-.sheetContent .segment.highlight .en div,
-.sheetContent .segment.highlight .he div {
-  background-color: inherit;
 }
 .sheetContent .segment a {
   color: #4B71B7;
@@ -5906,21 +5933,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment .sourceContentText a {
   text-decoration: underline;
 }
-.readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
-  padding-bottom: 1px;
-}
 .basetext .segment.highlight .segmentNumber,
-.basetext .segment.highlight .linkCount,
-.sheetContent .segment.highlight .linkCount,
-.sheetContent .segment.highlight .segmentNumber {
+.basetext .segment.highlight .linkCount {
   background-color: transparent;
 }
-.sepia .basetext .segment.highlight,
-.sepia .sheetContent .segment.highlight {
+.sepia .basetext .segment.highlight {
   background-color: #E3E3E1;
 }
-.dark .basetext .segment.highlight,
-.dark .sheetContent .segment.highlight {
+.dark .basetext .segment.highlight {
   background-color: #444;
 }
 .textRange {
@@ -7205,7 +7225,9 @@ But not to use a display block directive that might break continuous mode for ot
 .connection-buttons .add-to-sheet-link::before{
   background-image: url("/static/icons/add-to-sheet.svg");
 }
-
+.sheetContent .toolsButtonContainer {
+  letter-spacing: 0;
+}
 .toolsButtonContainer {
   display: flex;
   justify-content: flex-start;
@@ -8523,7 +8545,7 @@ a.sheetAuthorName {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 18.75px;
   display: inline;
   margin-block-end: 10px;
@@ -8541,7 +8563,8 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 18.75px;
   color: var(--dark-grey);
-  margin-block-end: 15px;
+  margin-block-end: 25px;
+  text-align: initial;
 }
 .sheetMetaDataBox .title {
   --english-font: var(--english-sans-serif-font-family);
@@ -8550,6 +8573,8 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 35.16px;
   margin-block-end: 15px;
+  flex: 1 0 95%;
+  text-align: initial;
 }
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
   content: "ללא שם";
@@ -10052,6 +10077,19 @@ span.purim-emoji img{
   box-sizing: border-box;
   position: relative;
 }
+.sheetContent .collectionsWidgetDone .button, .sheetContentSidebar .largeFollowButton {
+  background-color: var(--midrash-green);
+}
+.sheetContentSidebar .largeFollowButton {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  min-height: 31px;
+  height: 31px;
+}
+
 .sheetContent {
   width: 100%;
   box-sizing: border-box;
@@ -10063,7 +10101,6 @@ span.purim-emoji img{
   max-width: 760px;
   position: relative;
   padding: 0 30px;
-  counter-reset: css-counter 0;
 }
 .sheetContent .ref {
   cursor: pointer;
@@ -10278,6 +10315,40 @@ span.purim-emoji img{
     height: 150px;
     padding: 130px 0;
   }
+}
+.sheetContent .addToSheetPlus {
+  display: inline-flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 25px;
+  height: 25px;
+  background-color: var(--midrash-green);
+  border-radius: 50%;
+  color: white;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
+.SheetOutsideBiText .addToSheetButton, .SheetSource .addToSheetButton {
+  margin-inline-start: 15px;
+  padding-block-start: 10px;
+  padding-block-end: 10px;
+  border: none;
+  background-color: white;
+}
+.SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
+  margin-block-start: -10px;
+  margin-block-end: 30px;
+}
+.sheetContent .addToSheetText {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  color: var(--dark-grey);
+  margin-inline-start: 10px;
+  cursor: pointer;
 }
 @media screen and (min-width: 900px) {
   .contentInner .table {
@@ -10856,44 +10927,12 @@ section.SheetOutsideBiText .en {
 section.SheetSource,
 section.SheetOutsideBiText {
   border-inline-start: 4px solid;
-  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+  border-inline-end: 1px solid #DDDDDD;
+  border-block-start: 1px solid #DDDDDD;
+  border-block-end: 1px solid #DDDDDD;
+  border-radius: 4px;
   margin-bottom: 30px;
 }
-
-.SheetOutsideBiText, .SheetSource {
-    counter-increment: css-counter 1;
-}
-
-.SheetOutsideBiText:before,
-.SheetSource:before {
-  position: absolute;
-  color:  var(--medium-grey);
-  font-size: 12px;
-}
-
-.english .SheetOutsideBiText:before,
-.english .SheetSource:before {
-  content: counter(css-counter);
-  left: -34px;
-  font-family: var(--english-sans-serif-font-family);
-}
-
-.bilingual .SheetOutsideBiText:before,
-.bilingual .SheetSource:before {
-  content: counter(css-counter);
-  right: -34px;
-  font-family: var(--english-sans-serif-font-family);
-
-}
-
-
-.hebrew .SheetOutsideBiText:before,
-.hebrew .SheetSource:before {
-  content: counter(css-counter, hebrew);
-  right: -34px;
-  font-family: var(--hebrew-sans-serif-font-family);
-}
-
 
 .readerPanel.hebrew section.SheetSource .sheetItem > .he,
 .readerPanel.english section.SheetSource .sheetItem > .en,
@@ -10920,29 +10959,26 @@ section.SheetOutsideBiText {
 .interface-english section.SheetOutsideBiText .sheetItem > .en {
   padding: 15px 20px 15px 16px;
 }
+.interface-english section.SheetSource .sheetItem > .en {
+  border-block-start: 1px solid #DDDDDD;
+  border-block-end: 1px solid #DDDDDD;
+}
 .interface-hebrew section.SheetSource .sheetItem > .he,
 .interface-hebrew section.SheetSource .sheetItem > .en,
 .interface-hebrew section.SheetOutsideBiText .sheetItem > .he,
 .interface-hebrew section.SheetOutsideBiText .sheetItem > .en {
   padding: 15px 16px 15px 20px;
 }
-.readerPanel.bilingual.stacked .sheetContent section.SheetSource .segment.highlight .he,
-.readerPanel.bilingual.stacked .sheetContent section.SheetOutsideBiText .segment.highlight .he {
-  padding-bottom: 15px;
-}
-section.SheetSource.highlight,
-section.SheetOutsideBiText.highlight {
-  background-color: #E9E9E7;
-}
 section.SheetSource .segmentNumber,
 section.SheetSource .SheetOutsideBiText {
   display: none;
 }
-.sheetContent section.SheetSource.highlight .sheetItem.segment.highlight .sourceContentText,
 .sheetContent section.SheetSource .sheetItem.segment .sourceContentText,
-.sheetContent section.SheetOutsideBiText.highlight .sheetItem.segment.highlight .sourceContentText,
 .sheetContent section.SheetOutsideBiText .sheetItem.segment .sourceContentText {
   margin: 0;
+}
+.sheetContent section.SheetSource .sheetItem.segment {
+  margin-block-end: 0;
 }
 .sheetItem .SheetSource,
 .sheetItem .SheetOutsideBiText {
@@ -14063,6 +14099,12 @@ span.ref-link-color-3 {color: blue}
 .dropdownSeparator {
   border: 1px solid var(--light-grey);
 }
+.sheetMetaDataBox a.dropdownLinks-button {
+  font-weight: bold;
+}
+.sheetMetaDataBox a.dropdownLinks-button:hover {
+  text-decoration: none;
+}
 .header .headerDropdownMenu {
   display: block;
   align-items: center;
@@ -14075,7 +14117,45 @@ span.ref-link-color-3 {color: blue}
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
 }
-.header .headerDropdownMenu img {
+.headerDropdownMenu .toolsButtonContainer {
+  margin: revert;
+}
+.headerDropdownMenu #saveButtonText {
+  padding-inline-start: 15px;
+}
+.sheetsInPanel .dropdownDesc {
+  display: none;
+}
+.sheetsInPanel .toolsButtonText,
+.sheetsInPanel .dropdownHeaderText,
+.sheetsInPanel #saveButtonText {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #666666;
+  margin-inline-start: 10px;
+  padding: revert;
+}
+.sheetsInPanel .sidebarLayout {
+  justify-content: space-between;
+}
+.sheetsInPanel .headerDropdownMenu {
+  min-width: 50%;
+  margin-top: 10px;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  -webkit-margin-start: 20px;
+  -moz-margin-start: 20px;
+  margin-inline-start: 10px;
+  line-height: 0;
+}
+.sheetsInPanel .dropdownHeader {
+  margin-bottom: revert;
+}
+.header .headerDropdownMenu img, .sheetsInPanel .headerDropdownMenu img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
@@ -14098,7 +14178,15 @@ span.ref-link-color-3 {color: blue}
   content: "";
   transform: scale(0.75);
 } */
-.header .headerDropdownMenu .dropdownLinks-menu {
+.sheetsInPanel .headerDropdownMenu a.headerDropdownMenu::after {
+  display: inline-block;
+  height: 10px;
+  width: 12px;
+  vertical-align: middle;
+  content: "";
+  transform: scale(0.75);
+}
+.header .headerDropdownMenu .dropdownLinks-menu, .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
   top: 35px;
   position: absolute;
   z-index: 1;
@@ -14109,13 +14197,33 @@ span.ref-link-color-3 {color: blue}
   display:none;
   overflow:hidden;
 }
+
+.sheetsInPanel .dropdownItem {
+  padding: 5px 5px !important;
+}
+
+.sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  background: white;
+  box-shadow: revert;
+  border: 1px solid #CCCCCC;
+}
+
 .interface-english .header .headerDropdownMenu .dropdownLinks-menu {
   right: 0px;
   min-width: 150px;
   width: max-content;
 }
+.interface-english .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  min-width: 150px;
+  width: max-content;
+}
+
 .interface-hebrew .header .headerDropdownMenu .dropdownLinks-menu {
   left: 0px;
+  min-width: 150px;
+  width: max-content;
+}
+.interface-hebrew .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu  {
   min-width: 150px;
   width: max-content;
 }
@@ -14125,7 +14233,8 @@ span.ref-link-color-3 {color: blue}
   padding: 4px;
   max-width: 220px;
 }
-.header .headerDropdownMenu .dropdownLinks-menu.open {
+
+.header .headerDropdownMenu .dropdownLinks-menu.open, .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu.open {
   display: block;
 }
 

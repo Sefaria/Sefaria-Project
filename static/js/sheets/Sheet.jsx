@@ -8,7 +8,8 @@ import SefariaEditor from '../Editor';
 import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
-} from '../Misc';
+} from '../Misc'; 
+import { SheetOptions} from "./SheetOptions";
 import { SheetContent } from "./SheetContent";
 
 class Sheet extends Component {
@@ -67,43 +68,47 @@ class Sheet extends Component {
       }
 
       else if (Sefaria.isRef(path.slice(1))) {
-        e.preventDefault()
-        const currVersions = {en: params.get("ven"), he: params.get("vhe")};
-        const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
-        this.props.onCitationClick(path.slice(1), `Sheet ${this.props.sheetID}`, true, currVersions)
+        e.preventDefault();
+        Sefaria.util.openInNewTab(target.href);
       }
-
     }
   }
 
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
+    const editable = Sefaria._uid === sheet?.owner;
     let content;
     if (!sheet) {
       content = (<LoadingMessage />);
     }
     else {
+      const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
+                                                 sheetID={sheet.id}
+                                                 historyObject={this.props.historyObject}
+                                                 editable={editable}/>;
       content = (
             <div className="sidebarLayout">
               <SheetContent
+                  sheetOptions = {sheetOptions}
                   sources={sheet.sources}
                   title={sheet.title}
                   handleClick={this.handleClick}
                   sheetSourceClick={this.props.onSegmentClick}
-                  highlightedNode={this.props.highlightedNode}
+                  highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
+                  highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
                   highlightedRefsInSheet={this.props.highlightedRefsInSheet}
                   scrollToHighlighted={this.props.scrollToHighlighted}
-                  editable={Sefaria._uid === sheet.owner}
+                  editable={editable}
                   setSelectedWords={this.props.setSelectedWords}
-                  sheetNumbered={sheet.options.numbered}
-                  hideImages={!!sheet.hideImages}
                   sheetID={sheet.id}
                   authorStatement={sheet.ownerName}
                   authorID={sheet.owner}
                   authorUrl={sheet.ownerProfileUrl}
                   authorImage={sheet.ownerImageUrl}
                   summary={sheet.summary}
+                  toggleSignUpModal={this.props.toggleSignUpModal}
+                  historyObject={this.props.historyObject}
             />
               <SheetContentSidebar
                   authorStatement={sheet.ownerName}
@@ -117,7 +122,7 @@ class Sheet extends Component {
     }
     return (
       <div className={classes}>
-        { sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor ?
+        { sheet && editable && Sefaria._uses_new_editor ?
         <div className="sheetContent">
           <SefariaEditor
             data={sheet}
