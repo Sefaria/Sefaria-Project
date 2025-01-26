@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import {InterfaceText} from "../Misc";
 
-export default function RadioButton  ({isActive, onClick, value, name, text, ...rest}) {
+export default function RadioButton  ({isActive, onClick, value, name, label, ...rest}) {
     return (
         <div
             className='button'
@@ -10,7 +10,7 @@ export default function RadioButton  ({isActive, onClick, value, name, text, ...
             role='radio'
             aria-checked={isActive}
         >
-            <label htmlFor={value}><InterfaceText>{text}</InterfaceText></label>
+            <label htmlFor={value}><InterfaceText>{label}</InterfaceText></label>
             <input
                 type='radio'
                 id={value}
@@ -27,5 +27,5 @@ RadioButton.propTypes = {
     onClick: PropTypes.func.isRequired,
     value: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    text: PropTypes.string,
+    label: PropTypes.string,
 }
