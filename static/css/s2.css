@@ -11654,6 +11654,8 @@ cursor: pointer;
   cursor: pointer;
   position: relative;
   line-height: normal;
+  position: relative; /* Ensure positioning context for absolute pseudo-element */
+  outline: none; /* Ensure the button itself can receive focus */
 }
 .tooltip-toggle svg {
   height: 18px;
@@ -11681,17 +11683,13 @@ cursor: pointer;
     right: -165px;
   }
 }
-
-.tooltip-toggle {
-  position: relative; /* Ensure positioning context for absolute pseudo-element */
-}
 .tooltip-toggle::before {
   content: attr(aria-label);
   color: #000;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   opacity: 0;
-  /*pointer-events: none;*/
+  pointer-events: none;
   text-align: center;
   position: absolute;
   top: 30px;
@@ -11718,14 +11716,9 @@ cursor: pointer;
 @media (pointer: coarse) {
   .tooltip-toggle::before {
     /* Mobile-specific styles */
-    display: none; /* or alternative mobile-friendly behavior */
+    display: none;
   }
 }
-/* Ensure the button itself can receive focus */
-.tooltip-toggle {
-  outline: none; /* Optional: removes default focus outline */
-}
-
 .largeFollowButton {
   display: inline-flex;
   min-height: 46px;
