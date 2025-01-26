@@ -18,17 +18,15 @@
 {% block content %}
 <div class="superAbout">
     {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='team' title="Team" heTitle="צוות ספריא" %}
+        {% include '_sidebar.html' with whichPage='team' %}
     {% endif %}
     <main id="teamPage" class="container static sans-serif">
         <div class="inner">
             <header>
-                {% if request.user_agent.is_mobile %}
-                    <h1 class="mobileAboutHeader">
+                    <h1 class="aboutHeader">
                         <span class="int-en">Team</span>
                         <span class="int-he">צוות ספריא</span>
                     </h1>
-                {% endif %}
             <header>
 
             </header>
