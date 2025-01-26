@@ -3,6 +3,7 @@ import tempfile
 import cProfile
 import pstats
 from io import StringIO
+import threading
 
 from django.conf import settings
 from django.utils import translation
@@ -16,6 +17,7 @@ from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_terri
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 
+_thread_local = threading.local()
 
 class SharedCacheMiddleware(MiddlewareMixin):
     def process_request(self, request):
@@ -168,6 +170,32 @@ def current_domain_lang(request):
         if full_domain in DOMAIN_LANGUAGES:
             domain_lang = DOMAIN_LANGUAGES[full_domain]
     return domain_lang
+
+
+
+class CurrentUserMiddleware:
+    """
+    Middleware to store the current user in thread-local storage for global access.
+    """
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated:
+            _thread_local.user = request.user.email
+        else:
+            _thread_local.__dict__.clear()
+          # Set the current user in thread-local storage
+        response = self.get_response(request)
+        
+        return response
+
+def get_current_user():
+    """
+    Retrieve the current user from thread-local storage.
+    """
+    return getattr(_thread_local, 'user', None)
 
 
 class CORSDebugMiddleware(MiddlewareMixin):

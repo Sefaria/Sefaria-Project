@@ -292,7 +292,6 @@ const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDes
 
 const TextMenuItem = ({item, categories, nestLevel, onClick}) => {
   const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
-  console.log("title : ", title, heTitle)
   return (
     <MenuItem
       href        = {"/" + Sefaria.normRef(item.title)}

@@ -195,6 +195,8 @@ urlpatterns += [
     url(r'^api/site_stats/?$', reader_views.site_stats_api),
     url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
     url(r'^api/background-data', reader_views.background_data_api),
+     url(r'^api/text_permission_groups/?(?P<user_email>.+)?$', reader_views.text_permission_groups_api),
+    
 
 ]
 

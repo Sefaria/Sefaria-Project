@@ -40,6 +40,7 @@ import {
   CategoryColorLine,
   CategoryAttribution,
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
+  MessageModel,
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -624,21 +625,42 @@ class ReaderPanel extends Component {
     const highlighted = this.getHighlightedByScrollPos();
     highlighted.click();
   }
+
+  errorMessage(error){
+    if(error.includes('You do not have access permission')) {
+      return <InterfaceText>text.error.message.text_not_accessible</InterfaceText>
+    } else {
+      return <InterfaceText>{error}</InterfaceText>
+    }
+  }
+ 
   render() {
+    console.log("book ref:",Sefaria.index(this.state.bookRef))
     if (this.state.error) {
       return (
         <div
         ref={this.readerContentRef}
         className="readerContent">
           <div className="readerError">
-            <span className={`${Sefaria.languageClassFont()}`}>Something went wrong! Please use the back button or the menus above to get back on track.</span>
+          <img src='../static/icons/warning-sign.svg' /><br/>
+            <span className={`${Sefaria.languageClassFont()}`}><InterfaceText>text.error.message.something_went_wrong</InterfaceText></span>
             <div className="readerErrorText">
-              <span className={`${Sefaria.languageClassFont()}`}>Error Message: </span>
-              {this.state.error}
+              <span className={`${Sefaria.languageClassFont()}`}>{this.errorMessage(this.state.error)}</span>
             </div>
           </div>
         </div>
       );
+    }
+
+    if(this.state.bookRef !=null && !Sefaria.index(this.state.bookRef)) {
+      return (
+        <MessageModel
+          onClose={this.toggleSignUpModal}
+          show={true}
+          errorType={Sefaria._('model.message_model.message_type')}
+          message={Sefaria._('model.message_model.message')}
+      />
+      )
     }
 
     let items = [];

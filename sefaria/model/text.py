@@ -1927,7 +1927,6 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
             )
         else:
             self.full_version = Version().load({"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle})
-            print("version:: >>>>>>>>>>>>", self.full_version)
             assert self.full_version, "Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
             if self.versionSource:
                 self.full_version.versionSource = self.versionSource  # hack
@@ -5116,6 +5115,83 @@ class Library(object):
             self._toc_tree = TocTree(self, mobile=mobile)
         self._toc_tree_is_ready = True
         return self._toc_tree
+    
+    def get_text_permission_group(self, user_email=None):
+        if user_email:
+            groups = db.text_permission_groups.find({
+                "members": {
+                    "$in": [user_email]
+                }
+            })
+            text_list = self.get_user_group_text(groups)
+            return text_list
+        else:
+            text_list = self.get_text_in_default_group()
+            return text_list
+            
+    def get_user_group_text(self, groups=[]):
+        # Track text occurrences and details across all groups
+        text_counts = {}
+        text_details = {}
+
+        for group in groups:
+            for text in group['texts']:
+                title = text['title']
+                categories = text['text_category']
+
+                # Update text_counts and store details
+                text_counts[title] = text_counts.get(title, 0) + 1
+                if title not in text_details:
+                    text_details[title] = categories
+
+        # Extract unique texts (appear exactly once) with their categories
+        unique_text_categories = [
+            {
+                "title": title,
+                "category": text_details[title]
+            }
+            for title, count in text_counts.items() if count == 1
+        ]
+
+        # Collect non-duplicate categories for texts appearing more than once
+        other_text_categories = [
+            {
+                "title": title,
+                "category": text_details[title]
+            }
+            for title, count in text_counts.items() if count > 1
+        ]
+
+        # Combine both lists
+        combined_categories = unique_text_categories + other_text_categories
+
+        return combined_categories
+
+    def get_text_in_default_group(self):
+        groups = db.text_permission_groups.find()
+        # Separate texts in "default" group and others
+        default_texts = {}
+        other_texts = set()
+        for group in groups:
+            for text in group['texts']:
+                title = text['title']
+                categories = text['text_category']
+                
+                if group["name"] == "default":
+                    default_texts[title] = categories
+                    
+                else:
+                    other_texts.add(title)
+        # Find texts unique to the "default" group
+        unique_to_default = [
+            {
+                "title": title,
+                "category": categories
+            } 
+            for title, categories in default_texts.items() if title not in other_texts
+        ]
+        return unique_to_default
+
 
     def get_topic_toc(self, rebuild=False):
         """

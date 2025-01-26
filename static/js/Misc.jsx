@@ -93,7 +93,6 @@ const InterfaceText = ({text, html, markdown, children, placeholder, disallowedM
     if (chlCount === 1) { // Same as passing in a `en` key but with children syntax
       if (placeholder) {
         textResponse = t(children, placeholder)
-        console.log(textResponse)
       } else {
         textResponse = t(children)
       }
@@ -2050,6 +2049,37 @@ LoginPrompt.propTypes = {
   fullPanel: PropTypes.bool,
 };
 
+class MessageModel extends Component {
+  render() {
+    return (
+      this.props.show ? <div id="interruptingMessageBox" className="sefariaModalBox">
+        <div id="interruptingMessageOverlay"></div>
+        <div id="interruptingMessage" className="sefariaModalContentBox">
+          <div className="sefariaModalContent">
+            <h2 className="serif sans-serif-in-hebrew">
+              {this.props.errorType}
+            </h2>
+            <div className="sefariaModalInnerContent">
+              { this.props.message }
+            </div>
+            <a className="button white control-elem" href="/">
+              <InterfaceText>model.message_model.explore_other_text</InterfaceText>
+            </a>
+          </div>
+        </div>
+      </div> : null
+    )
+  }
+}
+
+MessageModel.propTypes = {
+  errorType: PropTypes.string,
+  show: PropTypes.bool,
+  onClose: PropTypes.func.isRequired,
+  message: PropTypes.string,
+}
+
+
 class SignUpModal extends Component {
   render() {
     let modalContent = !this.props.modalContentKind ? generateContentForModal() : generateContentForModal(this.props.modalContentKind);
@@ -3365,6 +3395,7 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
+  MessageModel,
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,

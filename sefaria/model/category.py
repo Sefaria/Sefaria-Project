@@ -9,6 +9,7 @@ from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 from . import collection as collection
+from sefaria.system.middleware import get_current_user
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
@@ -48,7 +49,10 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
             # which should then propagate to the `lastPath` and `sharedTitle`
             self.change_key_name(self.path[-1])
         self._load_title_group()
-
+        
+    def get_category_path(self):
+        return self.path
+    
     def change_key_name(self, name):
         # Doesn't yet support going from shared term to local or vise-versa.
         if self.sharedTitle and schema.Term().load({"name": name}):
@@ -310,13 +314,24 @@ class TocTree(object):
                 }
         
         return TocTextIndex(d, index_object=index)
-
+    
     def _add_category(self, cat):
         try:
+            from sefaria.model import library
             tc = TocCategory(category_object=cat)
-            parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
-            parent.append(tc)
-            self._path_hash[tuple(cat.path)] = tc
+            user_email = get_current_user()   
+            all_cats = [] # store previously loaded path
+            text_list = library.get_text_permission_group(user_email)
+            for c in text_list:
+                cat_subsets = [c['category'][:i] for i in range(1, len(c['category']) + 1)]
+                if cat.path in cat_subsets and cat.path not in all_cats:
+                    all_cats.append(cat.path)
+                    parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
+                    parent.append(tc)
+                    self._path_hash[tuple(cat.path)] = tc
+            # parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
+            # parent.append(tc)
+            # self._path_hash[tuple(cat.path)] = tc
         except KeyError:
             logger.warning(f"Failed to find parent category for {'/'.join(cat.path)}")
 
@@ -504,6 +519,7 @@ class TocTextIndex(TocNode):
             self.order = self._index_object.order[0]
 
     def get_index_object(self):
+        print("index >>>>>>>>>>>>>>>>>>>>>>>>", self._index_object)
         return self._index_object
 
     optional_param_keys = [
