@@ -134,10 +134,10 @@ const EmptyNotificationsMessage = () => {
   return (
         <div className="emptyNotificationPage">
           <div className="emptyNotificationsTitle">
-            Looks like you don’t have any notifications yet.
+            <InterfaceText en={"Looks like you don’t have any notifications yet."} he={""}/>
           </div>
           <div className="emptyNotificationsMessage">
-            Try following sheet creators to get notified when they publish a new sheet.
+            <InterfaceText en={"Try following sheet creators to get notified when they publish a new sheet."} he={""}/> 
           </div>
         </div>
   )
