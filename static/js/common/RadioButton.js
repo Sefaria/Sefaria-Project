@@ -13,7 +13,7 @@ export default function RadioButton  ({isActive, onClick, value, name, text, ...
             <label htmlFor={value}><InterfaceText>{text}</InterfaceText></label>
             <input
                 type='radio'
-                id={text}
+                id={value}
                 checked={isActive}
                 name={name}
                 value={value}
