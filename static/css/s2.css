@@ -233,6 +233,10 @@ a, a:hover {
     --inline-link-red: #cc5454;
 }
 
+.back-button-icon {
+    font-size: 16px; /* Adjust the size as needed */
+  }
+
 /* Font Family */
 body, .sans-serif {
     --english-font: var(--english-sans-serif-font-family);
@@ -2883,7 +2887,7 @@ span .asterisk {
 }
 
 .readerTocTopics .topicTitle .int-he {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .readerTocTopics .topicDescription.systemText .int-en,
@@ -2927,7 +2931,7 @@ span .asterisk {
 }
 
 .topicPanel .resourcesLink.blue .int-he {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family);
     margin-bottom: -3px;
 }
 
@@ -3065,7 +3069,7 @@ h1 div.languageToggle .en {
 }
 
 h1 .languageToggle .he {
-    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+    font-family: var(--hebrew-serif-font-family);
     font-size: 22px;
 }
 
@@ -4690,6 +4694,7 @@ details .open-details::before {
 
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover {
     text-decoration: none;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img {
@@ -8781,7 +8786,7 @@ But not to use a display block directive that might break continuous mode for ot
     box-sizing: border-box;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     font-size: 18px;
-    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+    font-family: var(--hebrew-serif-font-family);
     margin-bottom: 10px
 }
 
@@ -11184,7 +11189,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
 }
 
 .readerPanel.hebrew .addToSourceSheetBox .selectedRef span {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family), "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
     font-size: 1.2em;
 }
 
@@ -11697,6 +11702,7 @@ span.purim-emoji img {
     width: 100%;
     box-sizing: border-box;
     font-size: 2.2em;
+    font-family: var(--hebrew-serif-font-family);
     line-height: 1.6;
     text-align: justify;
     background-color: inherit;
@@ -13174,8 +13180,8 @@ section.SheetSource .SheetOutsideBiText {
     font-family: var(--hebrew-serif-font-family);
 }
 
-.bo-date {
-    font-family: var(--hebrew-sans-serif-font-family);
+.hi-date {
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .sheetList .sheet .sheetTags .bullet {
