@@ -27,9 +27,9 @@ class TopicManager(models.Manager):
         Returns a dictionary mapping each topic slug in the database to its list of pools.
         """
         slug_to_pools = defaultdict(list)
-        topics = self.values_list('slug', 'pools__name')  # Fetch all slugs and their pools
+        topics = self.values_list('slug', 'pools__name')
         for slug, pool_name in topics:
-            if pool_name:  # Avoid adding None values
+            if pool_name:
                 slug_to_pools[slug].append(pool_name)
         return dict(slug_to_pools)
 
