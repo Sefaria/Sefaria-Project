@@ -5077,7 +5077,7 @@ class Library(object):
         self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
         scache.set_shared_cache_elem("last_cached", self.last_cached)
 
-    def get_toc(self, rebuild=False):
+    def get_toc(self, rebuild=True):
         """
         Returns the ToC Tree from the cache, DB or by generating it, as needed.
         """
@@ -5090,7 +5090,7 @@ class Library(object):
                 self.set_last_cached_time()
         return self._toc
 
-    def get_toc_json(self, rebuild=False):
+    def get_toc_json(self, rebuild=True):
         """
         Returns as JSON representation of the ToC. This is generated on Library start up as an
         optimization for the API, to allow retrieval of the data with a single call.
@@ -5104,7 +5104,7 @@ class Library(object):
                 self.set_last_cached_time()
         return self._toc_json
 
-    def get_toc_tree(self, rebuild=False, mobile=False):
+    def get_toc_tree(self, rebuild=True, mobile=False):
         """
         :param mobile: (Aug 30, 2021) Added as a patch after navigation redesign launch. Currently only adds
         'firstSection' to toc for mobile export. This field is no longer required on prod but is still required
