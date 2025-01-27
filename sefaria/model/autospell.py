@@ -562,7 +562,7 @@ class TitleTrie(datrie.Trie):
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": False,
                     "order": base_order + sub_order,
-                    "topic_pools": obj.pools() if isinstance(obj, Topic) else []
+                    "topic_pools": obj.pools if isinstance(obj, Topic) else []
                 }
 
 
