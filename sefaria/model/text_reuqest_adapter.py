@@ -98,7 +98,6 @@ class TextRequestAdapter:
             'heSectionRef': oref.section_ref().he_normal(),
             'firstAvailableSectionRef': oref.first_available_section_ref().normal(),
             'isSpanning': oref.is_spanning(),
-            'spanningRefs': [r.normal() for r in oref.split_spanning_ref()],
             'next': oref.next_section_ref().normal() if oref.next_section_ref() else None,
             'prev': oref.prev_section_ref().normal() if oref.prev_section_ref() else None,
             'title': oref.context_ref().normal(),
@@ -107,6 +106,8 @@ class TextRequestAdapter:
             'primary_category': oref.primary_category,
             'type': oref.primary_category, #same as primary category
         })
+        if self.return_obj['isSpanning']:
+            self.return_obj['spanningRefs'] = [r.normal() for r in oref.split_spanning_ref()]
 
     def _add_index_data_to_return_obj(self) -> None:
         index = self.oref.index
@@ -192,6 +193,7 @@ class TextRequestAdapter:
             version['text'] = ja.modify_by_function(composite_func)
 
     def get_versions_for_query(self) -> dict:
+        self.oref = self.oref.default_child_ref()
         for lang, vtitle in self.versions_params:
             self._append_required_versions(lang, vtitle)
         self._add_ref_data_to_return_obj()
