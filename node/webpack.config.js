@@ -55,27 +55,29 @@ var baseConfig = {
     ],
     module: {
         rules: [
-            //a regexp that tells webpack use the following loaders on all
-            //.js and .jsx files
-            {
-                test: /\.jsx?$/,
-                //we definitely don't want babel to transpile all the files in
-                //node_modules. That would take a long time.
-                exclude: /node_modules/,                
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        //specify that we will be dealing with React code
-                        presets: ['@babel/react', '@babel/preset-env'],
-                        plugins: ['@babel/plugin-transform-destructuring', '@babel/plugin-proposal-object-rest-spread', '@babel/plugin-transform-async-to-generator']
-                    }
-                }
-            },
-            {
-              test: /\.css$/i,
-              use: ['style-loader', 'css-loader'],
+    {
+        test: /\.jsx?$/,
+        exclude: /node_modules/,
+        use: {
+            loader: 'babel-loader',
+            options: {
+                presets: [
+                    ['@babel/react', { runtime: 'automatic' }],
+                    '@babel/preset-env'
+                ],
+                plugins: [
+                    '@babel/plugin-transform-destructuring',
+                    '@babel/plugin-proposal-object-rest-spread',
+                    '@babel/plugin-transform-async-to-generator'
+                ]
             }
-        ]
+        }
+    },
+    {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
+    }
+]
     },
     externals: {
        react: 'React',
