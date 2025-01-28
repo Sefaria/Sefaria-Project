@@ -72,7 +72,7 @@ export const TopicLandingSeasonal = () => {
     return (
         <div className='topic-landing-seasonal'>
             <TopicLandingCalendar
-                header={<InterfaceText>Upcoming Holiday on the Jewish Calendar</InterfaceText>}
+                header={<InterfaceText>From the Jewish Calendar</InterfaceText>}
                 title={title}
                 description={description}
                 link={link}

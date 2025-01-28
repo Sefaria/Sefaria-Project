@@ -559,7 +559,7 @@ const Strings = {
     "Learn More about": "לקריאה נוספת על",
     "Read the Portion": "לקריאת הפרשה",
     "Browse all Parshayot": "לצפייה בכל הפרשות",
-    "Upcoming Holiday on the Jewish Calendar": "החג הבא בלוח השנה",
+    "From the Jewish Calendar": "מלוח השנה",
 
     //Module Names
     "Download Text": "הורדת טקסט",
