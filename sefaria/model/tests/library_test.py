@@ -301,6 +301,15 @@ class Test_he_get_refs_in_text(object):
         st = "(סוכה מ\' א\' – ב\')"
         wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=True)
 
+    def test_bad_refs(self):
+        # We want to make sure that bad refs don't get wrapped in a tags nor error out
+        trefs = ["סנהדרין ב, ב ו-ג, ב"]
+        orefs = [Ref(tref) for tref in trefs]
+        st = reduce(lambda a, b: a + "({}) בלה בלה ".format(b), trefs, "")
+        res = reduce(lambda a, b: a + '(<a class ="refLink" href="/{}" data-ref="{}">{}</a>) בלה בלה '.format(b[0].url(), b[0].normal(), b[1]), list(zip(orefs, trefs)), "")
+        wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=True)
+        assert wrapped != res and wrapped == st
+
 
 class Test_get_titles_in_text(object):
 

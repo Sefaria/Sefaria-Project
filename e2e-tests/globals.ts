@@ -5,6 +5,12 @@ export const LANGUAGES = {
     'HE': 'hebrew',
 }
 
+export const SOURCE_LANGUAGES = {
+    'EN': /^(תרגום|Translation)$/,
+    'HE': /^(מקור|Source)$/,
+    'BI': /^(מקור ותרגום|Source with Translation)$/
+}
+
 export const cookieObject = {
     "name": "interfaceLang",
     "value": DEFAULT_LANGUAGE,
@@ -12,6 +18,11 @@ export const cookieObject = {
 }
 
 export const testUser = {
-    email: 'test@example.com',
-    password: 'test',
+    email: process.env.PLAYWRIGHT_USER_EMAIL,
+    password: process.env.PLAYWRIGHT_USER_PASSWORD,
 }
+
+export const testAdminUser = {
+    email: process.env.PLAYWRIGHT_SUPERUSER_EMAIL,
+    password: process.env.PLAYWRIGHT_SUPERUSER_PASSWORD,
+};

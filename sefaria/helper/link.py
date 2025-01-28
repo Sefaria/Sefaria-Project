@@ -552,7 +552,32 @@ def add_links_from_csv(file, linktype, generated_by, uid):
                     invalidate_ref(Ref(ref), purge=True)
         except Exception as e:
             logger.error(e)
-    return {'message': f'{success} links succefully saved', 'errors': output.getvalue()}
+    return {'message': f'{success} links successfully saved', 'errors': output.getvalue()}
+
+
+def remove_links_from_csv(file, uid):
+    csv.field_size_limit(sys.maxsize)
+    reader = csv.DictReader(StringIO(file.read().decode()))
+    links_removed = 0
+    output = StringIO()
+    errors_writer = csv.DictWriter(output, fieldnames=['ref1', 'ref2'])
+    errors_writer.writeheader()
+    for row in reader:
+        refs = sorted(row.values())
+        try:
+            link = Link().load({'refs': refs})
+            tracker.delete(uid, Link, link._id)
+            links_removed += 1
+        except Exception as e:
+            errors_writer.writerow({'ref1': refs[0], 'ref2': refs[1]})
+        try:
+            if USE_VARNISH:
+                for ref in refs:
+                    invalidate_ref(Ref(ref), purge=True)
+        except Exception as e:
+            logger.error(e)
+    return {'message': f'{links_removed} links successfully removed', 'errors': output.getvalue()}
+
 
 def make_link_query(trefs, **additional_query):
     query = additional_query
