@@ -3432,7 +3432,7 @@ Sefaria.unpackDataFromProps = function(props) {
         let settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         //save versions first, so their new format is also saved on text cache
         if(panel.text?.versions?.length){
-            let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
+            let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.available_versions);
             panel.text.versions = Sefaria._makeVersions(versions, false);
         }
 
