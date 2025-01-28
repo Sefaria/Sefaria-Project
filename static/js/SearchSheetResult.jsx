@@ -4,18 +4,23 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
-import {
-    ColorBarBox, InterfaceText,
-} from './Misc';
-import {ProfilePic} from "./ProfilePic";
+import { ProfilePic } from "./ProfilePic";
 
 
 class SearchSheetResult extends Component {
     handleSheetClick(e) {
       const s = this.props.metadata;
       if (this.props.onResultClick) {
-        e.preventDefault()
-        this.props.onResultClick("Sheet " + s.sheetId);
+        const queryIsRef = !Sefaria.parseRef(this.props.query)?.error;
+        e.preventDefault();
+        if (queryIsRef) {
+          // This is called from SheetsWithRefPage which has a ref query.  In this case, onResultClick is handleSheetClick in ReaderPanel.jsx
+          this.props.onResultClick(e, s.sheetId, null, [this.props.query]);
+        }
+        else {
+          // This is called from ElasticSearchQuerier which has a text query. In this case, onResultClick is the panel's onSearchResultClick
+          this.props.onResultClick(`Sheet ${s.sheetId}`);
+        }
       }
       Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`);
     }
