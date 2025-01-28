@@ -4960,6 +4960,8 @@ class Library(object):
         self._simple_term_mapping_json = None
         self._linker_by_lang = {}
 
+        #Topic to Pools
+        self._topic_slug_to_pools = {}
         # Topics
         self._topic_mapping = {}
 
@@ -5009,6 +5011,7 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
+        self._build_topic_slug_to_pools_mapping()
         self.get_simple_term_mapping_json(rebuild=True)
         self._build_topic_mapping()
         self._build_index_maps()
@@ -5035,6 +5038,7 @@ class Library(object):
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc = self.get_toc(rebuild=True)
+        self._topic_slug_to_pools = self.get_topic_pools_mapping(rebuild=True)
         self._toc_json = self.get_toc_json(rebuild=True)
         self._topic_toc = self.get_topic_toc(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
@@ -5045,6 +5049,7 @@ class Library(object):
         self._full_title_list_jsons = {}
 
     def init_shared_cache(self, rebuild=False):
+        self.get_topic_pools_mapping(rebuild=rebuild)
         self.get_toc(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
         self.get_topic_mapping(rebuild=rebuild)
@@ -5680,6 +5685,20 @@ class Library(object):
         from .topic import Topic, TopicSet
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
+
+    def get_topic_pools_mapping(self, rebuild=False):
+        tpm = self._topic_slug_to_pools
+        if not tpm or rebuild:
+            tpm = self._build_topic_slug_to_pools_mapping()
+        return tpm
+
+    def get_topic_pools_by_slug(self, slug):
+        return self._topic_slug_to_pools.get(slug, [])
+
+    def _build_topic_slug_to_pools_mapping(self):
+        from django_topics.models import Topic as DjangoTopic
+        self._topic_slug_to_pools = DjangoTopic.objects.get_pools_for_all_topic_slugs()
+        return self._topic_slug_to_pools
 
     def get_linker(self, lang: str, rebuild=False):
         linker = self._linker_by_lang.get(lang)

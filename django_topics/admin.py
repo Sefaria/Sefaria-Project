@@ -72,6 +72,12 @@ class TopicAdmin(admin.ModelAdmin):
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
 
+    def save_related(self, request, form, formsets, change):
+        from sefaria.model.text import library
+        super().save_related(request, form, formsets, change)
+        library.get_topic_pools_mapping(rebuild=True)
+
+
     def has_add_permission(self, request):
         return False
 
