@@ -100,7 +100,7 @@ class UpdatesPanel extends Component {
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
-              <h1 className="mobileAboutHeader"><InterfaceText>Updates</InterfaceText></h1>
+              <h1 className="aboutHeader"><InterfaceText>Updates</InterfaceText></h1>
 
               {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
 

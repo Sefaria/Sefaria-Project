@@ -9,18 +9,16 @@
 {% block content %}
 <div class="superAbout">
     {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='metrics' title="Metrics" heTitle="מדדים" %}
+        {% include '_sidebar.html' with whichPage='metrics' %}
     {% endif %}
     <div id="metricsPage" class="biReady container static">
 
 
         <div class="inner">
-            {% if request.user_agent.is_mobile %}
-                <h1 class="mobileAboutHeader">
+                <h1 class="aboutHeader">
                     <span class="int-en">Metrics</span>
                     <span class="int-he">מדדים</span>
                 </h1>
-            {% endif %}
             <div id="metricsBox">
                 {% trans "Loading..." %}
             </div>

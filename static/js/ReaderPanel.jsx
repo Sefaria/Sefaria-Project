@@ -150,8 +150,8 @@ class ReaderPanel extends Component {
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
     } else if ((mode === "Connections" && connectionsMode !== 'TextList') || !!menuOpen){
-      // Default bilingual to interface language
-      contentLangOverride = (originalLanguage === "bilingual") ? Sefaria.interfaceLang : originalLanguage;
+      // Always Hebrew for Hebrew interface, treat bilingual as English for English interface
+      contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
     }
     return contentLangOverride;
   }
@@ -230,9 +230,10 @@ class ReaderPanel extends Component {
     e.preventDefault();
     this.conditionalSetState({
       mode: "Sheet",
-      sheetID: sheet.id,
+      sheetID: typeof sheet === 'object' ? sheet.id : sheet, // latter case is for when 'sheet' passed is ID
       highlightedNode,
-      highlightedRefsInSheet
+      highlightedRefsInSheet,
+      menuOpen: null,
     });
   }
   setPreviousSettings(backButtonSettings) {
@@ -834,7 +835,7 @@ class ReaderPanel extends Component {
                                  updateAppliedOptionSort={this.props.updateSearchOptionSort}
                                  registerAvailableFilters={this.props.registerAvailableFilters}
                                  resetSearchFilters={this.props.resetSearchFilters}
-                                 onResultClick={this.props.onSearchResultClick}/>);
+                                 onResultClick={this.handleSheetClick}/>);
     } else if (this.state.menuOpen === "sheet meta") {
       menu = (<SheetMetadata
                     mode={this.state.menuOpen}
