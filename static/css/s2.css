@@ -5359,6 +5359,12 @@ h1.topic-landing-header {
   padding-inline-start: 5px;
   padding-inline-end: 5px;
 }
+.singlePanel .topic-card-with-description-row .topic-card-with-description .card {
+  width: 268px;
+}
+.singlePanel .topic-card-with-description-row{
+  justify-content: unset;
+}
 .singlePanel .topic-card-with-description-row::-webkit-scrollbar {
     display: none; /* For Chrome, Safari, and Edge */
 }

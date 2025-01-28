@@ -6,14 +6,9 @@ import {Card} from "../common/Card";
 
 
 export const RandomTopicCardWithDescriptionRow = () => {
-    const numTopics = 3;
+    const isMultiPanel = Sefaria.multiPanel;
+    const numTopics = isMultiPanel ? 3 : 10;
     const [deck, setDeck] = useState([]);
-
-    const renderSaladItem = (item) => {
-        return(<a href={`/topics/${item.slug}`} className="topic-salad-item">
-                <InterfaceText text={item.text}/>
-                </a>)
-    }
 
     const fetchRandomTopicDeck = async () => {
         const poolName = Sefaria.getLangSpecificTopicPoolName('general');
