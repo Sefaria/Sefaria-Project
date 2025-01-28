@@ -6911,43 +6911,37 @@ But not to use a display block directive that might break continuous mode for ot
   color: #999;
   text-decoration: underline;
 }
-#interruptingMessage.sheetsWarning {
-  height: 70%;
-  width: 70%;
-  border: 5px solid black;
+
+dialog#sheetsWarningDialog {
+  border: none;
+  border-radius: 6px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  margin: auto;
+  text-align: center;
 }
-#interruptingMessage.sheetsWarning  .button {
-  color: black;
-  background: var(--highlight-blue);
-  margin-top: 120px;
-  border: 5px solid black;
-  border-radius: revert;
-}
-#interruptingMessage.sheetsWarning a {
+
+dialog#sheetsWarningDialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+} 
+
+dialog#sheetsWarningDialog a {
   color: var(--inline-link-blue);
   text-decoration: underline;
 }
-#interruptingMessage.sheetsWarning h1 {
+
+dialog#sheetsWarningDialog h1 {
   font-weight: 500;
   font-style: normal;
-  margin-bottom: 60px;
 }
-#interruptingMessage.sheetsWarning p {
-  margin-bottom: 30px;
-}
+
 @media screen and (max-width: 800px) {
-  #interruptingMessage.sheetsWarning {
+  dialog#sheetsWarningDialog {
     font-size: smaller;
   }
-  #interruptingMessage.sheetsWarning  .button {
-    margin-top: 40px;
-  }
-  #interruptingMessage.sheetsWarning h1 {
-    margin-bottom: 20px;
+  dialog#sheetsWarningDialog h1 {
     font-size: large;
-  }
-  #interruptingMessage.sheetsWarning p {
-    margin-bottom: 15px;
   }
 }
 .manuscriptImage {

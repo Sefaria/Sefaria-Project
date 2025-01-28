@@ -1893,32 +1893,45 @@ const replaceNewLinesWithLinebreaks = (content) => {
 
 const SheetsEditorWarning = () => {
   const [hasAcknowledgedFinalWarning, toggleHasAcknowledgedFinalWarning] = useState(Boolean(cookie("hasAcknowledgedFinalWarning")));
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    if (dialogRef.current) {
+      dialogRef.current.showModal();
+    }
+  }, []);
   const handleClick = () => {
     cookie("hasAcknowledgedFinalWarning", "true", { path: "/", expires: 50 });
     toggleHasAcknowledgedFinalWarning(true);
-  }
+    dialogRef.current.close();
+  };
+
+  const en_msg = <><h2>End of Life for the Original Sefaria Source Sheet Editor</h2>
+                        <p>As of March 15, 2025 the original sheets editor created by Sefaria for the benefit of its users back in 2015, will
+                          no longer be available.</p>
+                        <p>In your Profile, you will have the ability to switch between the 2 editors until the deadline.</p>
+                        <p>Please take the time to learn more about this important change by reading this <a
+                            href="https://sefaria.org/sheets/eol-old-editor" target="_blank">help article.</a></p>
+                        <div className="button" onClick={handleClick}>Thank you, I understand.</div></>;
+  const he_msg = <><h2>סוף החיים לעורך גיליון המקור של ספריה המקורי</h2>
+                        <p>החל מה-15 במרץ 2025, עורך הגיליונות המקורי שנוצר על ידי ספריא לטובת המשתמשים שלה עוד בשנת 2015, לא יהיה זמין יותר.</p>
+                        <p>בפרופיל שלך, תהיה לך אפשרות לעבור בין 2 העורכים עד המועד האחרון.</p>
+                        <p>אנא הקדישו זמן כדי ללמוד עוד על השינוי החשוב הזה על ידי קריאת <a
+                            href="https://sefaria.org/sheets/eol-old-editor" target="_blank">מאמר עזרה</a> זה</p>
+                        <div className="button" onClick={handleClick}>תודה, הבנתי</div></>;
+  const msg = Sefaria._v({"en": en_msg, "he": he_msg});
+
   if (!!hasAcknowledgedFinalWarning) {
     return null;
-  }
-  else {
-    return <div id="interruptingMessageBox">
-          <div id="interruptingMessageOverlay"></div>
-          <div id="interruptingMessage" className="sheetsWarning">
-              <h1>End of Life for the Original Sefaria Source Sheet Editor</h1>
-          <p>As of "Dec. 1, 2024" the original sheets editor created by Sefaria for the
-          benefit of its users back in 2015, will no longer be available.</p>
-          <p>In your Profile, you will have the ability to switch between the 2 editors until
-          the deadline.</p>
-          <p>Please take the time to learn more about this important change by reading
-            this <a href="https://sefaria.org/sheets/eol-old-editor" target="_blank">help article.</a></p>
-          <div className="button" onClick={handleClick}>Thank you, I understand.</div>
-          </div>
-    </div>
+  } else {
+    return <dialog id="sheetsWarningDialog" ref={dialogRef}>
+      <div>{msg}</div>
+    </dialog>;
   }
 }
 const InterruptingMessage = ({
-  onClose,
-}) => {
+                               onClose,
+                             }) => {
   const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
