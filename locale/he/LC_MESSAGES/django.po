@@ -798,7 +798,7 @@ msgstr "དཔེ་ཆ་"
 
 #: templates/registration/password_reset_complete.html:10
 msgid "registration.password_reset_complete.your_new_password_has_been_saved"
-msgstr ""
+msgstr "ཁྱེད་ཀྱི་གསང་ཚིག་གསར་པ་ཉར་ཚགས་བྱས་ཚར།"
 
 #: templates/registration/password_reset_complete.html:13
 msgid "registration.password_reset_complete.back_to_login"
