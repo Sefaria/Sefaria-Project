@@ -5350,6 +5350,9 @@ h1.topic-landing-header {
   gap: 20px;
   justify-content: center;
 }
+.topic-card-with-description-row > * {
+  flex: 1 1 0; /* All children will have equal width */
+}
 .singlePanel .topic-card-with-description-row {
   overflow-x: scroll;
   overflow-y: visible;
