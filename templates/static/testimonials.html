@@ -96,15 +96,13 @@
 {% block content %}
 <div class="superAbout">
     {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='testimonials' title="Testimonials" heTitle="המלצות על ספריא" %}
+        {% include '_sidebar.html' with whichPage='testimonials' %}
     {% endif %}
     <div id="testimonialsPage" class="biReady container static">
         <div class="inner">
-            {% if request.user_agent.is_mobile %}
-                <h1 class="mobileAboutHeader">
+                <h1 class="aboutHeader">
                     <span>Sefaria’s Impact – Reflections and Insights from Users</span>
                 </h1>
-            {% endif %}
 
             <div class="testimonial section">
                 <p>

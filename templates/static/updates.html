@@ -18,7 +18,7 @@
 {% block content %}
 <div class="superAbout">
     {% if not request.user_agent.is_mobile %}
-      {% include '_sidebar.html' with whichPage='updates' title="Updates" heTitle="עדכונים" %}
+      {% include '_sidebar.html' with whichPage='updates' %}
     {% endif %}
     <main id="updatesPage">
         <div id="updatesPanelContent">
