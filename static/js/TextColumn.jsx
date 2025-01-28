@@ -33,12 +33,17 @@ class TextColumn extends Component {
 
     // Set on mount, so placeholders aren't rendered server side to prevent intial layout shift
     this.setState({showScrollPlaceholders: true});
-
-       const params = {
-         content_type: Sefaria.index(this.props.bookTitle).primary_category,
-         item_id: this.props.bookTitle
-       }
-      gtag("event", "select_content", params)
+      if (Sefaria.index(this.props.bookTitle)) {
+        const params = {
+          content_type: Sefaria.index(this.props.bookTitle).primary_category,
+          item_id: this.props.bookTitle
+        }
+        console.log("primary: ", Sefaria.index(this.props.bookTitle))
+       gtag("event", "select_content", params)
+      } else {
+        gtag("event", "select_content", {})
+      }
+       
 
     this.node.addEventListener("scroll", this.handleScroll);
   }

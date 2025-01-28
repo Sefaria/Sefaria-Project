@@ -6,6 +6,7 @@ from random import choice
 import json
 import urllib.request, urllib.parse, urllib.error
 from bson.json_util import dumps
+from bson import ObjectId
 import socket
 import bleach
 from collections import OrderedDict
@@ -76,6 +77,7 @@ import sefaria.tracker as tracker
 
 from sefaria.settings import NODE_TIMEOUT, DEBUG
 from sefaria.model.category import TocCollectionNode
+from sefaria.system.middleware import get_current_user
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.utils.calendars import parashat_hashavua_and_haftara
 import sefaria.model.story as sefaria_story
@@ -158,6 +160,7 @@ def robot(request):
 
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None,
                     status=None, using=None):
+    
     """
     This is a general purpose custom function that serves to render all the templates in the project and provide a central point for all similar processing.
     It can take props that are meant for the Node render of ReaderApp (and will properly combine them with base_props() and serialize
@@ -330,7 +333,7 @@ def catchall(request, tref, sheet=None):
     def reader_redirect(uref):
         # Redirect to standard URLs
         url = "/" + uref
-
+        print("url>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", url)
         response = redirect(iri_to_uri(url), permanent=True)
         params = request.GET.urlencode()
         response['Location'] += "?%s" % params if params else ""
@@ -544,6 +547,10 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_pa
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
     """
     panels = []
+    # user_email = get_current_user()   
+    # text_list = library.get_text_permission_group(user_email)  
+    # for text in text_list:
+    # if str(oref) == str(text['title']):
     # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
     if filter is not None and multi_panel:
         panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
@@ -552,7 +559,6 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_pa
         panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
     else:
         panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
-
     return panels
 
 
@@ -569,7 +575,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 ref = '.'.join(map(str, primary_ref.sections))
         except InputError:
             raise Http404
-
     panels = []
     multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
     # Handle first panel which has a different signature in params
@@ -1125,6 +1130,7 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
+    print()
     title = ("Pecha - Buddhism in your own words")
     desc = ("The largest free library of Buddhist texts available to read online in Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more.")
     return menu_page(request, page="navigation", title=title, desc=desc)
@@ -1479,7 +1485,6 @@ def modify_bulk_text_api(request, title):
 def texts_api(request, tref):
     oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
     tref = oref.url()
-
     if request.method == "GET":
         uref = oref.url()
         if uref and tref != uref:  # This is very similar to reader.reader_redirect subfunction, above.
@@ -1551,32 +1556,69 @@ def texts_api(request, tref):
                 text["layer"] = []
 
             return text
+        
+        text_ref = Ref(tref)
+        text_title = text_ref.index.get_title("en")
+        if request.user.is_authenticated:
+            user_group_text_list = library.get_text_permission_group(request.user.email)
+            for user_text in user_group_text_list:
+                if text_title == user_text['title']:
+                    if not multiple or abs(multiple) == 1:
+                        text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
+                                         pad=pad,
+                                         alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                        return jsonResponse(text, cb)
+                    else:
+                        # Return list of many sections
+                        assert multiple != 0
+                        direction = "next" if multiple > 0 else "prev"
+                        target_count = abs(multiple)
 
-        if not multiple or abs(multiple) == 1:
-            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
-                             pad=pad,
-                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
-            return jsonResponse(text, cb)
+                        current = 0
+                        texts = []
+
+                        while current < target_count:
+                            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
+                                             pad=pad,
+                                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                            texts += [text]
+                            if not text[direction]:
+                                break
+                            oref = Ref(text[direction])
+                            current += 1
+                        return jsonResponse(texts, cb)
         else:
-            # Return list of many sections
-            assert multiple != 0
-            direction = "next" if multiple > 0 else "prev"
-            target_count = abs(multiple)
+            email = request.GET.get("email", None)
+            group_text_list = library.get_text_permission_group(email)
+            for text in group_text_list:
+                if text_title == text['title']:
+                    if not multiple or abs(multiple) == 1:
+                        text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
+                                         pad=pad,
+                                         alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                        return jsonResponse(text, cb)
+                    else:
+                        # Return list of many sections
+                        assert multiple != 0
+                        direction = "next" if multiple > 0 else "prev"
+                        target_count = abs(multiple)
 
-            current = 0
-            texts = []
+                        current = 0
+                        texts = []
 
-            while current < target_count:
-                text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
-                                 pad=pad,
-                                 alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
-                texts += [text]
-                if not text[direction]:
-                    break
-                oref = Ref(text[direction])
-                current += 1
-
-            return jsonResponse(texts, cb)
+                        while current < target_count:
+                            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
+                                             pad=pad,
+                                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                            texts += [text]
+                            if not text[direction]:
+                                break
+                            oref = Ref(text[direction])
+                            current += 1
+                        return jsonResponse(texts, cb)
+                
+                
+            return jsonResponse({"error": f"You do not have access permission to this text"}, cb)
 
     if request.method == "POST":
         j = request.POST.get("json")
@@ -1763,14 +1805,34 @@ def index_api(request, title, raw=False):
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        with_content_counts = bool(request.GET.get("with_content_counts", False))
-        i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
+        if request.user.is_authenticated:
+            user_group_text_list = library.get_text_permission_group(request.user.email)
+            for user_text in user_group_text_list:
+                if title == user_text['title']:
+                    with_content_counts = bool(request.GET.get("with_content_counts", False))
+                    i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
-        if request.GET.get("with_related_topics", False):
-            i["relatedTopics"] = get_topics_for_book(title, annotate=True)
+                    if request.GET.get("with_related_topics", False):
+                        i["relatedTopics"] = get_topics_for_book(title, annotate=True)
 
-        return jsonResponse(i, callback=request.GET.get("callback", None))
+                    return jsonResponse(i, callback=request.GET.get("callback", None))
+            return jsonResponse({"error":f"Either Index is not available OR You are not allowed to access."}, callback=request.GET.get("callback", None))
+        else:
+            email = request.GET.get("email", None)
+            user_group_text_list = library.get_text_permission_group(email)
+            for user_text in user_group_text_list:
+                if title == user_text['title']:
+                    with_content_counts = bool(request.GET.get("with_content_counts", False))
+                    i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
+                    if request.GET.get("with_related_topics", False):
+                        i["relatedTopics"] = get_topics_for_book(title, annotate=True)
+
+                    return jsonResponse(i, callback=request.GET.get("callback", None))
+            return jsonResponse({"error":f"Either Index is not available OR You are not allowed to access."}, callback=request.GET.get("callback", None))
+        
+            
+            
     if request.method == "POST":
         # use the update function if update is in the params
 
@@ -2314,9 +2376,26 @@ def versions_api(request, tref):
     API for retrieving available text versions list of a ref.
     """
     oref = Ref(tref)
-    versions = oref.version_list()
+    email = request.GET.get("email", None)
+    versions = []
+    if request.user.is_authenticated:
+        group_text_list = library.get_text_permission_group(request.user.email)
+        for text in group_text_list:
+            if str(text['title']) == str(oref):
+                
+                versions = oref.version_list()
+                return jsonResponse(versions, callback=request.GET.get("callback", None))
+        return jsonResponse(versions, callback=request.GET.get("callback", None))
 
-    return jsonResponse(versions, callback=request.GET.get("callback", None))
+    else:
+        email = request.GET.get("email", None)
+        group_text_list = library.get_text_permission_group(email)
+        for text in group_text_list:
+            if str(text['title']) == str(oref):
+                versions = oref.version_list()
+                return jsonResponse(versions, callback=request.GET.get("callback", None))
+            
+        return jsonResponse(versions, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -5060,3 +5139,127 @@ def rollout_health_api(request):
         logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
 
     return http.JsonResponse(resp, status=statusCode)
+
+@catch_error_as_json
+@csrf_exempt
+def text_permission_groups_api(request, user_email):
+    """
+    Returns a list of permission groups for the given user.
+    """
+    if request.method == "GET":
+        user_response = get_user_by_email(user_email)
+        user_groups = []
+        if user_response["status"] == 200:
+            groups = db.text_permission_groups.find({
+                "members": {
+                    "$in": [user_response['data']['email']]
+                }
+            })
+            for group in groups:
+                user_groups.append({
+                    'name': group["name"],
+                    'texts': group["texts"],
+                    'members': group["members"],
+                    'admin_email': group["admin_email"]
+                })
+                
+            return jsonResponse({"user_groups":user_groups})
+        else:
+            return jsonResponse(user_response["data"], status=user_response["status"])
+    
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)  # Parse the JSON data from the request body
+            if not data["json"]:
+                return jsonResponse({"error": "Invalid input JSON"})
+            if not request.user.is_authenticated:
+                key = data['apikey']
+                if not key:
+                    return jsonResponse({"error": "You must be logged in or use an API key to save a permission group."})
+                apikey = db.apikeys.find_one({"key": key})
+                if not apikey:
+                    return jsonResponse({"error": "Unrecognized API key."})
+                input_json = data['json']
+                return create_group(input_json)
+            else:
+                @csrf_protect
+                def protected_post(request):
+                    input_json = data['json']
+                    return create_group(input_json)
+                return protected_post(request)
+        except json.JSONDecodeError:
+            return jsonResponse({"error": "Invalid JSON format."})
+        
+    if request.method == "PUT":
+        try:
+            update_set = {"$set": {}, "$push": {}}
+            data = json.loads(request.body)
+            input_json = data['json']
+
+            # Update admin_email if provided
+            if 'admin_email' in input_json:
+                update_set['$set']["admin_email"] = input_json['admin_email']
+
+            # Push members if provided
+            if 'members' in input_json:
+                update_set['$push']["members"] = {'$each': input_json['members']}
+
+            # Push texts if provided
+            if 'texts' in input_json:
+                update_set['$push']["texts"] = {'$each': input_json['texts']}
+
+            # Perform the update operation
+            result = db.text_permission_groups.update_one({"name": data['name']}, update_set)
+            # Check if any document was modified
+            if result.modified_count > 0:
+                return http.JsonResponse({"message": "Collection updated successfully"}, status=200)
+            else:
+                return http.JsonResponse({"error": "No changes made or collection not found"}, status=404)
+
+        except KeyError as e:
+            return http.JsonResponse({"error": f"Invalid data: {e}"}, status=400)
+        except Exception as e:
+            return http.JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
+
+            
+            
+
+def create_group(input_json):
+    try:
+        # Check if a group with the same name already exists
+        has_group = db.text_permission_groups.find_one({"name": input_json["name"]})
+        
+        if not has_group:
+            # Create a new group
+            new_group = {
+                "id": str(ObjectId()),
+                "name": input_json["name"],
+                "texts": input_json.get("texts", []),  # Default to empty list if not provided
+                "members": input_json.get("members", []),  # Default to empty list if not provided
+                "admin_email": input_json["admin_email"]
+            }
+            
+            db.text_permission_groups.insert_one(new_group)
+            return jsonResponse({"data": "Permission group saved successfully."}, status=200)
+        
+        else:
+            return jsonResponse({"error": "Group already exists."}, status=400)
+    
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {e.args[0]}"}, status=400)
+    
+    except Exception as e:
+        return jsonResponse({"error": f"An error occurred: {str(e)}"}, status=400)
+    
+        
+def get_user_by_email(email):
+    try:
+        user = User.objects.get(email=email)
+        user_data = {
+            "id": user.id,
+            "email": user.email
+        }
+        return {"data": user_data, "status": 200}
+    except User.DoesNotExist:
+        return {"data": {"error": f"User:({email}) not found"}, "status": 404}
+    

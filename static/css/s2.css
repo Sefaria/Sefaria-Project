@@ -1903,7 +1903,8 @@ div.interfaceLinks-row a {
 
 .readerContent .readerError .readerErrorText {
     padding-top: 20px;
-    font-size: .8em;
+    font-size: 1.5em;
+    color:red;
 }
 
 .textColumn {
@@ -10098,6 +10099,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
     box-sizing: border-box;
     box-shadow: none;
     padding: 9px 10px;
+    white-space: nowrap;
 }
 
 .publishBox .react-tags__suggestions ul {
@@ -10167,10 +10169,10 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
 
-.interface-hebrew .editorSidebarToggle {
+/* .interface-hebrew .editorSidebarToggle {
     left: 30px;
     right: auto;
-}
+} */
 
 
 .editorSidebarToggle:active {
@@ -12500,16 +12502,20 @@ section.SheetOutsideBiText {
 .bilingual .SheetOutsideBiText:before,
 .bilingual .SheetSource:before {
     content: counter(css-counter);
-    right: -34px;
+    left: -34px;
     font-family: var(--english-sans-serif-font-family);
 
 }
 
+@counter-style tibetan-numbers {
+    system: numeric;
+    symbols: '༠' '༡' '༢' '༣' '༤' '༥' '༦' '༧' '༨' '༩';
+}
 
 .hebrew .SheetOutsideBiText:before,
 .hebrew .SheetSource:before {
-    content: counter(css-counter, hebrew);
-    right: -34px;
+    content: counter(css-counter, tibetan-numbers);
+    left: -34px;
     font-family: var(--hebrew-sans-serif-font-family);
 }
 

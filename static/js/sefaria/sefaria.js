@@ -55,7 +55,7 @@ Sefaria = extend(Sefaria, {
 
       let book, index, nums;
       for (let i = first.length; i >= 0; i--) {
-          book   = first.slice(0, i);
+          book  = first.slice(0, i);
           if (Sefaria.virtualBooks.includes(book)) {
               // todo: This assumes that this is a depth one integer indexed node
               const numberMatch = first.match(/([\d ]+)$/);
@@ -1087,6 +1087,7 @@ Sefaria = extend(Sefaria, {
     // - Index Data
     // - Search TOC order
     for (let i = 0; i < tocBranch.length; i++) {
+      
       let thisOrder = parentsOrders.concat([i]) ;
       let thisPath =  (parentsPath ? parentsPath + "/" : "") + ("category" in tocBranch[i] ? tocBranch[i].category : tocBranch[i].title);
 
