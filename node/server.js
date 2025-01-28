@@ -1,3 +1,9 @@
+// IMPORTANT: Make sure to import `instrument.js` at the top of your file.
+// If you're using ECMAScript Modules (ESM) syntax, use `import "./instrument.js";`
+require("./instrument.js");
+
+const Sentry = require("@sentry/node");
+
 // Initially copypasta'd from https://github.com/mhart/react-server-example
 // https://github.com/mhart/react-server-example/blob/master/server.js
 import "core-js/stable";
@@ -156,6 +162,9 @@ router.get('/healthz', function(req, res) {
 server.use(expressLogger);    // express-winston logger makes sense BEFORE the router
 server.use(router);
 server.use(errorLogger);      // express-winston errorLogger makes sense AFTER the router.
+
+// The error handler must be registered before any other error middleware and after all controllers
+Sentry.setupExpressErrorHandler(server);
 
 const main = async function(){
   logger.info("Startup. Prefetching cached data:");
