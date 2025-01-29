@@ -3497,6 +3497,7 @@ a.navBlockTitle:hover {
     font-size: 24px;
     color: var(--medium-grey);
     font-size: 14px;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .communityPage .recentlyPublished {
