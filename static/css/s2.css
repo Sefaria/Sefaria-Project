@@ -11245,7 +11245,7 @@ cursor: pointer;
   padding-inline: 10%;
   background-color: var(--sefaria-blue);
   color: white;
-  height: 60px;
+  height: 72px;
   font-size: 16px;
   margin-top: -60px;
   margin-bottom: 80px;
@@ -11254,16 +11254,13 @@ cursor: pointer;
   gap: 5px;
   align-items: center;
 }
-.editorToggleHeader span {
-  margin-top: 10px;
-}
+
 .interface-hebrew .editorToggleHeader {
   direction: rtl;
 }
 .editorToggleHeader .button {
   white-space: nowrap;
   padding: 5px 8px;
-  margin-top: 10px;
   height: 30px;
   letter-spacing: 0;
   margin-inline-end: 15px;
@@ -11273,7 +11270,7 @@ cursor: pointer;
   text-decoration: underline;
   color: white;
   white-space: nowrap;
-  margin-top: 5px;
+  margin-top: -5px;
 }
 .feedbackOverlay {
   position: fixed;
