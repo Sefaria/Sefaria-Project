@@ -448,8 +448,8 @@ UserProfile.propTypes = {
 
 const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
- const old_editor_msg = "Sefaria's original source sheet editor will no longer be supported after March 15, 2025. Start using the new editor now or click to learn more about this important change.";
- const new_editor_msg = "You are currently using the new source sheet editor. The old editor will no longer be available after March 15, 2025. Click to learn more about this important change.";
+ const old_editor_msg = "You are currently using an outdated version of Sefaria's source sheet editor. This version will no longer be supported starting March 17, 2025. Start using the new editor now, or learn more about this important change.";
+ const new_editor_msg = "You are currently using the most up-to-date source sheet editor. Starting March 17 2025, you will no longer be able to switch to an older version.";
  const text = <InterfaceText>{usesneweditor ? new_editor_msg : old_editor_msg}</InterfaceText>;
  const buttonText = <InterfaceText>{usesneweditor ? "Go Back to Old Version" : "Switch to New Editor"}</InterfaceText>;
 
@@ -542,15 +542,15 @@ const EditorToggleHeader = ({usesneweditor}) => {
      setFeedbackHeaderState("enableOverlay")
    }
  }
- const buttonLink = (usesneweditor ? "/disable_new_editor" : "");
+ const learn_more_link = Sefaria._v({"en": "https://www.sefaria.org/sheets/621008", "he": "https://www.sefaria.org/sheets/621013"})
 
  return (
    <>
    <div className="editorToggleHeader sans-serif">{text}
      <a href="#" onClick={()=>toggleFeedbackOverlayState()} className="button white" role="button">{buttonText}</a>
-       <a href="https://sefaria.org/sheets/eol-old-editor" className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
+       <a href={learn_more_link} className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
    </div>
-   {feedbackHeaderState != "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
+   {feedbackHeaderState !== "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
    </>
  )
 }
