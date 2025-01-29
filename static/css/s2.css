@@ -668,7 +668,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   opacity: 0.4;
 }
 .mobileNavMenu a.blue {
-  background-color: #18345D;
+  background-color: var(--sefaria-blue);
   color: white;
   border-bottom: unset;
 }
@@ -1064,7 +1064,7 @@ div.interfaceLinks-row a {
   color: #666;
 }
 #interruptingMessage.sefariaModalContentBox {
-  background-color: #18345D;
+  background-color: var(--sefaria-blue);
   color: white;
   padding: 50px 70px;
   border-color: transparent;
@@ -3907,7 +3907,7 @@ details .open-details::before {
   margin-top: 5px;
 }
 .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a{
-  color: #18345D;
+  color: var(--sefaria-blue);
 }
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover{
   text-decoration: none;
@@ -8124,8 +8124,8 @@ a .button:hover {
 }
 .button.appButton {
   box-shadow: none;
-  border: 2px solid #18345D;
-  color: #18345D;
+  border: 2px solid var(--sefaria-blue);
+  color: var(--sefaria-blue);
 }
 .button.appButton img {
   margin-inline-end: 5px;
@@ -11272,31 +11272,23 @@ cursor: pointer;
   opacity: 0.6;
 }
 #staticContentWrapper .editorToggleHeader {
-  width: 100%;
-  background-color: #18345D;
-  color: white;
-  height: 60px;
-  font-size: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   margin: revert;
 }
 .editorToggleHeader {
-  width: 100%;
-  background-color: #18345D;
+  padding-inline: 10%;
+  background-color: var(--sefaria-blue);
   color: white;
   height: 60px;
   font-size: 16px;
   margin-top: -60px;
-  margin-left: -12px;
   margin-bottom: 80px;
-  padding: 0 100px;
   display: flex;
   justify-content: center;
+  gap: 5px;
   align-items: center;
-  position: relative;
-  left: 0;
+}
+.editorToggleHeader span {
+  margin-top: 10px;
 }
 .interface-hebrew .editorToggleHeader {
   direction: rtl;
@@ -11304,28 +11296,17 @@ cursor: pointer;
 .editorToggleHeader .button {
   white-space: nowrap;
   padding: 5px 8px;
-  margin-inline-start: 15px;
-  margin-top: 5px;
+  margin-top: 10px;
   height: 30px;
   letter-spacing: 0;
-}
-.editorToggleHeader > span.int-he:first-child {
-  margin-inline-start: 250px;
-}
-.interface-hebrew .editorToggleHeader .learnMore {
-  margin-inline-end: 40px;
-}
-.interface-hebrew .editorToggleHeader {
-  padding-inline-start: 20px;
+  margin-inline-end: 15px;
 }
 
 .editorToggleHeader .learnMore {
   text-decoration: underline;
   color: white;
-  margin-inline-end: 200px;
-  margin-inline-start: 20px;
-  width: 15%;
-  padding: revert;
+  white-space: nowrap;
+  margin-top: 5px;
 }
 .feedbackOverlay {
   position: fixed;
@@ -11636,7 +11617,7 @@ cursor: pointer;
 }
 .resourcesLink.blue {
   color: white;
-  background-color: #18345d;
+  background-color: var(--sefaria-blue);
 }
 .resourcesLink.studyCompanion {
   margin-inline-start: 10px;
@@ -11781,7 +11762,7 @@ cursor: pointer;
   align-items: center;
   text-align: center;
   cursor: pointer;
-  background: #18345d;
+  background: var(--sefaria-blue);
   color: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
@@ -12850,7 +12831,7 @@ a.topicLexiconTitle.contentText {
   right: 0;
   color: white;
   z-index: 9999;
-  background-color: #18345D;
+  background-color: var(--sefaria-blue);
   padding: 20px;
   line-height: 1.6;
   text-align: center;
