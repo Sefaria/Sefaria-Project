@@ -1906,18 +1906,16 @@ const SheetsEditorWarning = () => {
     dialogRef.current.close();
   };
 
-  const en_msg = <><h2>End of Life for the Original Sefaria Source Sheet Editor</h2>
-                        <p>As of March 15, 2025 the original sheets editor created by Sefaria for the benefit of its users back in 2015, will
-                          no longer be available.</p>
-                        <p>In your Profile, you will have the ability to switch between the 2 editors until the deadline.</p>
-                        <p>Please take the time to learn more about this important change by reading this <a
-                            href="https://sefaria.org/sheets/eol-old-editor" target="_blank">help article.</a></p>
-                        <div className="button" onClick={handleClick}>Thank you, I understand.</div></>;
-  const he_msg = <><h2>סוף החיים לעורך גיליון המקור של ספריה המקורי</h2>
-                        <p>החל מה-15 במרץ 2025, עורך הגיליונות המקורי שנוצר על ידי ספריא לטובת המשתמשים שלה עוד בשנת 2015, לא יהיה זמין יותר.</p>
-                        <p>בפרופיל שלך, תהיה לך אפשרות לעבור בין 2 העורכים עד המועד האחרון.</p>
-                        <p>אנא הקדישו זמן כדי ללמוד עוד על השינוי החשוב הזה על ידי קריאת <a
-                            href="https://sefaria.org/sheets/eol-old-editor" target="_blank">מאמר עזרה</a> זה</p>
+  const en_msg = <><h2>Upcoming Changes to Sefaria’s Source Sheet Editor</h2>
+    <p> To best serve source sheet creators, our sheet editor
+      will soon update for all users. The first-generation editor, originally
+      released in 2015, will no longer be available as of March 17, 2025.
+      You can continue switching between the two editors via your profile until that
+      date. Please take time to <a href="https://www.sefaria.org/sheets/621008" target="_blank">learn more</a> about this important change.</p>
+    <div className="button" onClick={handleClick}>Thank you, I understand.</div></>;
+  const he_msg = <><h2>שימו לב! שינויים קרבים ליוצרי דפי מקורות בספריא</h2>
+      <p>בעוד מספר שבועות נעדכן את התוכנה לעריכת דפי מקורות בספריא. לאחר עדכון זה, שיתקיים ב-17.3.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת הגרסה המוקדמת יותר של תוכנת העריכה. עד אז, יהיה אפשר להמשיך להשתמש בשתי גרסאות התוכנה.</p>
+      <p>אנחנו ממליצים <a href="https://www.sefaria.org/sheets/621013" target="_blank">ללמוד עוד</a>  על עדכון חשוב זה.</p>
                         <div className="button" onClick={handleClick}>תודה, הבנתי</div></>;
   const msg = Sefaria._v({"en": en_msg, "he": he_msg});
 
