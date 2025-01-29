@@ -71,6 +71,10 @@ class TopicAdmin(admin.ModelAdmin):
         create_remove_from_pool_action('general_he'),
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        Topic.objects.build_slug_to_pools_cache(rebuild=True)
+
 
     def has_add_permission(self, request):
         return False
