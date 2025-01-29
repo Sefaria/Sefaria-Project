@@ -11279,6 +11279,13 @@ cursor: pointer;
 .editorToggleHeader > span.int-he:first-child { 
   margin-inline-start: 250px;
 }
+.interface-hebrew .editorToggleHeader .learnMore {
+  margin-inline-end: 40px;
+}
+.interface-hebrew .editorToggleHeader {
+  padding-inline-start: 20px;
+}
+
 .editorToggleHeader .learnMore {
   text-decoration: underline;
   color: white;
