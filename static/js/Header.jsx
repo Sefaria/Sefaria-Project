@@ -202,13 +202,11 @@ class Header extends Component {
 
         { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
 
-
         { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
-
 
           <ModuleSwitcher /> 
 
