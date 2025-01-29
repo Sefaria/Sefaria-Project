@@ -88,7 +88,7 @@ class NotificationsPanel extends Component {
                   <div>
                     {Sefaria.notificationCount > 0 ? (
                       <button className="button small white" onClick={this.markAllAsRead}>
-                        Mark all as Read
+                        <InterfaceText en={"Mark all as Read"} he={"סימון כל ההודעות כהודעות שנקראו"} />
                       </button>
                     ) : null}
                   </div>
