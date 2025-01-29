@@ -14570,6 +14570,10 @@ body .homeFeedWrapper.userStats {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+.user_state {
+    font-family: var(--hebrew-serif-font-family);
+}
+
 .userStatModeButton {
     background-color: #fff;
     color: #666;
