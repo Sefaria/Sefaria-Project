@@ -20,15 +20,15 @@ msgstr ""
 
 #: sefaria/forms.py:32
 msgid "placeholder_email_delete_message"
-msgstr ""
+msgstr "电子邮件地址删除"
 
 #: sefaria/forms.py:33 sefaria/forms.py:37
 msgid "placeholder_admin_password"
-msgstr ""
+msgstr "管理员密码"
 
 #: sefaria/forms.py:36
 msgid "placeholder_sheet_id_delete_message"
-msgstr ""
+msgstr "删除表ID"
 
 #: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
 msgid "placeholder_email_address"
@@ -78,11 +78,11 @@ msgstr "普通用户"
 
 #: sefaria/forms.py:95 sefaria/model/user_profile.py:283
 msgid "user_already_exists_message"
-msgstr ""
+msgstr "带有该电子邮件的用户已经存在。"
 
 #: sefaria/forms.py:143
 msgid "mobile_app_key_error_message"
-msgstr ""
+msgstr "提供了不正确的Mobile_app_key"
 
 #: sefaria/forms.py:157
 msgid "form.placeholder_new_password"
@@ -130,11 +130,11 @@ msgstr "您必须登录才能创建新的收藏"
 
 #: sourcesheets/views.py:566
 msgid "error_message_when_trying_to_remove_the_last_owner_of_a_collection"
-msgstr ""
+msgstr "离开这个收藏将使没有任何所有者。请在离开前任命另一个所有者，或删除收藏品。"
 
 #: sourcesheets/views.py:1161
 msgid "error_message_when_trying_to_upload_media_without_logging_in"
-msgstr ""
+msgstr "您必须登录才能访问此API。"
 
 #: templates/404.html:4
 msgid "page_not_found_title"
@@ -154,7 +154,9 @@ msgstr "内部服务器错误"
 
 #: templates/500.html:15
 msgid "send_message_to_developer_request"
-msgstr "抱歉，系统出错。我们已通知开发人员。如有疑问或建议，请联系我们的 注意：原文最后一句未完成，所以翻译也相应保留了未完成的状态。这个简短版本保留了原文的主要信息，包括出错通知、开发人员已被告知，以及如何联系的指示"
+msgstr ""
+"抱歉，系统出错。我们已通知开发人员。如有疑问或建议，请联系我们的 "
+"注意：原文最后一句未完成，所以翻译也相应保留了未完成的状态。这个简短版本保留了原文的主要信息，包括出错通知、开发人员已被告知，以及如何联系的指示"
 
 #: templates/500.html:15
 msgid "developer_team"
@@ -194,107 +196,107 @@ msgstr "网站语言"
 
 #: templates/account_settings.html:46
 msgid "account_setting.language_english_option"
-msgstr ""
+msgstr "英语"
 
 #: templates/account_settings.html:49
 msgid "common.account_setting.language_tibetan_option"
-msgstr ""
+msgstr "藏"
 
 #: templates/account_settings.html:56
 msgid "account_setting.user's_preferred_translation_language"
-msgstr ""
+msgstr "首选翻译语言"
 
 #: templates/account_settings.html:69
 msgid "account_setting.user's_reading_history"
-msgstr ""
+msgstr "阅读历史"
 
 #: templates/account_settings.html:73
 msgid "account_setting.reading_history_enable"
-msgstr ""
+msgstr "在"
 
 #: templates/account_settings.html:76
 msgid "account_setting.reading_history_disable"
-msgstr ""
+msgstr "离开"
 
 #: templates/account_settings.html:84
 msgid "account_setting.login_account_email_message"
-msgstr ""
+msgstr "帐户电子邮件（用于登录）"
 
 #: templates/account_settings.html:89
 msgid "account_setting.change_email_message"
-msgstr ""
+msgstr "更改电子邮件"
 
 #: templates/account_settings.html:94
 msgid "account_setting.new_email"
-msgstr ""
+msgstr "新电子邮件"
 
 #: templates/account_settings.html:95
 msgid "account_setting.confirm_new_email"
-msgstr ""
+msgstr "确认新电子邮件"
 
 #: templates/account_settings.html:96
 msgid "common.account_setting.password"
-msgstr ""
+msgstr "密码"
 
 #: templates/account_settings.html:98
 msgid "account_setting.update_email"
-msgstr ""
+msgstr "更新电子邮件"
 
 #: templates/account_settings.html:105
 msgid "account_setting.google_account_message"
-msgstr ""
+msgstr "Google帐户（允许将床单导出到Google Drive）"
 
 #: templates/account_settings.html:110
 msgid "account_setting.google_account_disconnect_with_pecha_acc"
-msgstr ""
+msgstr "断开"
 
 #: templates/account_settings.html:117
 msgid "account_setting.google_account_disconnected_message"
-msgstr ""
+msgstr "您的Google帐户已断开连接"
 
 #: templates/account_settings.html:120
 msgid "account_setting.export_sheet_message"
-msgstr ""
+msgstr "您可以在下次导出表格时链接到新的Google帐户"
 
 #: templates/account_settings.html:125
 msgid "common.account_setting.save_setting_button"
-msgstr ""
+msgstr "节省"
 
 #: templates/account_settings.html:128
 msgid "common.account_setting.cancel_request"
-msgstr ""
+msgstr "取消"
 
 #: templates/activity.html:7 templates/activity.html:36
 msgid "activity.revision_history"
-msgstr ""
+msgstr "修订历史"
 
 #: templates/activity.html:9
 msgid "activity.pecha_activity_profile"
-msgstr ""
+msgstr "PECHA活动"
 
 #: templates/activity.html:11
 msgid "activity.pecha_activity"
-msgstr ""
+msgstr "PECHA活动"
 
 #: templates/activity.html:17
 msgid "activity.revision_history_message"
-msgstr ""
+msgstr "在Pecha上查看本文的完整修订历史记录。"
 
 #: templates/activity.html:19
 msgid "activity.activity_message"
-msgstr ""
+msgstr "查看用户在PECHA上的活动历史记录，包括已发布的源表以及文本翻译，编辑或添加。"
 
 #: templates/activity.html:21
 msgid "activity.view_log_message"
-msgstr ""
+msgstr "查看PECHA上的公共活动的完整日志，包括已发表的源表以及文本翻译，编辑或添加。"
 
 #: templates/activity.html:43
 msgid "activity.public_activity"
-msgstr ""
+msgstr "公共活动"
 
 #: templates/activity.html:47
 msgid "activity.recent_activity"
-msgstr ""
+msgstr "最近关于Pecha的活动"
 
 #: templates/activity.html:52
 msgid "activity.all_activity_drop_down"
@@ -302,75 +304,75 @@ msgstr "所有活动"
 
 #: templates/activity.html:53
 msgid "activity.translation_option"
-msgstr ""
+msgstr "翻译"
 
 #: templates/activity.html:54
 msgid "activity.source_sheets_option"
-msgstr ""
+msgstr "源表"
 
 #: templates/activity.html:55
 msgid "activity.new_texts_option"
-msgstr ""
+msgstr "新文字"
 
 #: templates/activity.html:56
 msgid "activity.edit_list_option"
-msgstr ""
+msgstr "编辑"
 
 #: templates/activity.html:57
 msgid "activity.notes_option"
-msgstr ""
+msgstr "笔记"
 
 #: templates/activity.html:58
 msgid "activity.reviews_option"
-msgstr ""
+msgstr "评论"
 
 #: templates/activity.html:59
 msgid "activity.text_info_option_option"
-msgstr ""
+msgstr "文字信息"
 
 #: templates/activity.html:60
 msgid "activity.reversions_option"
-msgstr ""
+msgstr "恢复"
 
 #: templates/activity.html:61
 msgid "activity.flagged_option"
-msgstr ""
+msgstr "标记"
 
 #: templates/delete-sheet.html:4
 msgid "admin.admin_delete_sheet"
-msgstr ""
+msgstr "管理员：删除表"
 
 #: templates/delete-sheet.html:4
 msgid "admin.common.delete-sheet.pecha"
-msgstr ""
+msgstr "关闭"
 
 #: templates/delete-sheet.html:11
 msgid "admin.delete_sheet"
-msgstr ""
+msgstr "删除表"
 
 #: templates/delete-sheet.html:13
 msgid "admin.caution_messsage"
-msgstr ""
+msgstr "注意这将删除您输入的表ID"
 
 #: templates/delete-sheet.html:14
 msgid "admin.can't_undone_message"
-msgstr ""
+msgstr "它不能撤消。"
 
 #: templates/delete-sheet.html:19
 msgid "admin.delete_sheet_button"
-msgstr ""
+msgstr "删除表"
 
 #: templates/edit_collection.html:9
 msgid "edit_collection.title"
-msgstr ""
+msgstr "在Pecha上编辑收集"
 
 #: templates/edit_collection.html:20
 msgid "edit_collection.loading"
-msgstr ""
+msgstr "加载中..."
 
 #: templates/edit_profile.html:5
 msgid "edit_profile.edit_your_profile"
-msgstr ""
+msgstr "在Pecha上编辑您的个人资料"
 
 #: templates/edit_profile.html:13
 msgid "edit_profile.header"
@@ -470,140 +472,140 @@ msgstr "油管频道"
 
 #: templates/edit_term.html:39
 msgid "admin.terms_editor"
-msgstr ""
+msgstr "术语编辑器"
 
 #: templates/edit_term.html:40
 msgid "admin.loading"
-msgstr ""
+msgstr "加载中..."
 
 #: templates/edit_text.html:64
 msgid "edit_text.add_new_text"
-msgstr ""
+msgstr "添加新文字"
 
 #: templates/edit_text.html:65
 msgid "edit_text.text_commentator_name"
-msgstr ""
+msgstr "文字或评论员名称："
 
 #: templates/edit_text.html:68
 msgid "edit_text.add_button"
-msgstr ""
+msgstr "添加"
 
 #: templates/edit_text.html:69 templates/edit_text.html:97
 #: templates/edit_text.html:150
 msgid "common.edit_text.cancel_button"
-msgstr ""
+msgstr "取消"
 
 #: templates/edit_text.html:86
 msgid "edit_text.your_review"
-msgstr ""
+msgstr "您的评论："
 
 #: templates/edit_text.html:88
 msgid "edit_text.review_question"
-msgstr ""
+msgstr "我应该如何写评论？"
 
 #: templates/edit_text.html:96 templates/edit_text.html:149
 msgid "common.edit_text.save_button"
-msgstr ""
+msgstr "节省"
 
 #: templates/edit_text.html:101
 msgid "edit_text_add_review_request"
-msgstr ""
+msgstr "要添加您的评论，"
 
 #: templates/edit_text.html:101
 msgid "edit_text_login"
-msgstr ""
+msgstr "登录"
 
 #: templates/edit_text.html:101
 msgid "edit_text_or"
-msgstr ""
+msgstr "或者"
 
 #: templates/edit_text.html:101
 msgid "edit_text_register"
-msgstr ""
+msgstr "登记"
 
 #: templates/edit_text.html:104
 msgid "edit_text.close_button"
-msgstr ""
+msgstr "关闭"
 
 #: templates/edit_text.html:109
 msgid "edit_text.review_message"
-msgstr ""
+msgstr "写有用的评论"
 
 #: templates/edit_text.html:110
 msgid "edit_text_primary_text_historical_translation"
-msgstr ""
+msgstr "对于主要文本和历史翻译："
 
 #: templates/edit_text.html:110
 msgid "edit_text_primary_text_historical_trans_detail"
-msgstr ""
+msgstr "指出使用了哪些外部来源（书籍，网页）来比较文本，或者清楚您的评论仅在查看存在的文字。"
 
 #: templates/edit_text.html:112
 msgid "edit_text.compare_printed_edition"
-msgstr ""
+msgstr "我将此文本与X印刷版进行了比较，发现没有问题。"
 
 #: templates/edit_text.html:113
 msgid "edit_text.all_looks_good"
-msgstr ""
+msgstr "我在X网站上对该版本进行了检查，看上去都不错。"
 
 #: templates/edit_text.html:114
 msgid "edit_text.no_issue_message"
-msgstr ""
+msgstr "我仔细阅读了这段文字，看不到任何错误。"
 
 #: templates/edit_text.html:119
 msgid "edit_text.accurate"
-msgstr ""
+msgstr "这种翻译对我来说似乎是准确的。"
 
 #: templates/edit_text.html:120
 msgid "edit_text.translation_review"
-msgstr ""
+msgstr "该语言可以改进，但翻译似乎是正确的。"
 
 #: templates/edit_text.html:121
 msgid "edit_text.misunderstand_term_X"
-msgstr ""
+msgstr "这种翻译误解了X一词。"
 
 #: templates/edit_text.html:125
 msgid "edit_text.score_review"
-msgstr ""
+msgstr "如何评分您的评论："
 
 #: templates/edit_text.html:127
 msgid "edit_text.compared_to_source_message"
-msgstr ""
+msgstr "与来源相比，有信心没有问题。"
 
 #: templates/edit_text.html:130
 msgid "edit_text.compared_to_source_no_problem_message"
-msgstr ""
+msgstr "与来源相比，没有注意到任何问题。"
 
 #: templates/edit_text.html:133
 msgid "edit_text.proble_free_need_review"
-msgstr ""
+msgstr "看起来没有问题，但可以更仔细地进行审查。"
 
 #: templates/edit_text.html:136
 msgid "edit_text.found_small_issues_need_to_address"
-msgstr ""
+msgstr "发现一些需要解决的问题。"
 
 #: templates/edit_text.html:139
 msgid "edit_text.found_serious_issues_need_address"
-msgstr ""
+msgstr "发现需要解决的严重问题。"
 
 #: templates/edit_text.html:142
 msgid "edit_text_ok_button"
-msgstr ""
+msgstr "好的"
 
 #: templates/edit_text.html:163
 msgid "edit_text.original_translation"
-msgstr ""
+msgstr "原始翻译"
 
 #: templates/edit_text.html:167
 msgid "edit_text.copied_text"
-msgstr ""
+msgstr "复制的文字"
 
 #: templates/edit_text.html:178
 msgid "edit_text.version_title"
-msgstr ""
+msgstr "版本标题："
 
 #: templates/edit_text.html:179
 msgid "edit_text.copied_from"
-msgstr ""
+msgstr "复制从："
 
 #: templates/elements/loading.html:12
 msgid "common.loading"
@@ -611,144 +613,146 @@ msgstr "正在加载..."
 
 #: templates/elements/login_prompt.html:6
 msgid "common.templates.elements.login_prompts.sign_up"
-msgstr ""
+msgstr "报名"
 
 #: templates/elements/login_prompt.html:8
 msgid "common.login_prompt_cancel"
-msgstr ""
+msgstr "取消"
 
 #: templates/email/notification.html:8
 msgid "notification.sent_u_msg"
-msgstr ""
+msgstr "给您发送消息："
 
 #: templates/email/notification.html:13
 msgid "notification.reply_to"
-msgstr ""
+msgstr "回复"
 
 #: templates/email/notification.html:17
 msgid "notification.source_sheet_like"
-msgstr ""
+msgstr "喜欢您的源表"
 
 #: templates/email/notification.html:20
 msgid "notification.published_new_source_sheet"
-msgstr ""
+msgstr "发布了新的源表"
 
 #: templates/email/notification.html:23
 msgid "templates.elements.notification.a_user_is_now_following_you"
-msgstr ""
+msgstr "现在正在关注你。"
 
 #: templates/email/notification.html:26
 msgid "templates.elements.notification.added_you_to_the_collection"
-msgstr ""
+msgstr "将您添加到集合中"
 
 #: templates/email/notification.html:29
 msgid "notification.added_note_to_a_link"
-msgstr ""
+msgstr "在"
 
 #: templates/email/notification.html:31
 msgid "notification.discussion_u_follow"
-msgstr ""
+msgstr "讨论您关注"
 
 #: templates/email/notification.html:35
 msgid "notification.notice_shouldnt_exit_message"
-msgstr ""
+msgstr "这是没有类型的通知，不应该存在。"
 
 #: templates/people.html:5
 msgid "people.authors_on_pecha"
-msgstr ""
+msgstr "Pecha的作者"
 
 #: templates/people.html:7
 msgid "people.biography_and_informations_about_authors"
-msgstr ""
+msgstr "关于Pecha佛教文本的作者的传记和信息，以及指向其可用文本的链接。"
 
 #: templates/people.html:23
 msgid "people.authors"
-msgstr ""
+msgstr "作者"
 
 #: templates/people.html:28
 msgid "people.choejuk_author"
-msgstr ""
+msgstr "chojuk的人"
 
 #: templates/profile.html:4
 msgid "profile_title_pecha"
-msgstr ""
+msgstr "他是监狱"
 
 #: templates/profile.html:6
 msgid "user_profile_page_desc"
-msgstr ""
+msgstr "在Pecha上。关注他们的公共资源表，笔记和翻译。"
 
 #: templates/profile.html:52
 msgid "common.profile.facebook"
-msgstr ""
+msgstr "Facebook"
 
 #: templates/profile.html:58
 msgid "common.profile.twitter"
-msgstr ""
+msgstr "叽叽喳喳"
 
 #: templates/profile.html:64
 msgid "common.profile.linkedlin"
-msgstr ""
+msgstr "LinkedIn"
 
 #: templates/profile.html:73
 msgid "profile.message"
-msgstr ""
+msgstr "信息"
 
 #: templates/profile.html:77
 msgid "common.profile.follow"
-msgstr ""
+msgstr "跟随"
 
 #: templates/profile.html:78
 msgid "common.profile.following"
-msgstr ""
+msgstr "下列的"
 
 #: templates/profile.html:79
 msgid "common.profile.unfollow"
-msgstr ""
+msgstr "取消关注"
 
 #: templates/profile.html:84
 msgid "profile.edit_profile"
-msgstr ""
+msgstr "编辑个人资料"
 
 #: templates/profile.html:99
 msgid "profile.source_sheet"
-msgstr ""
+msgstr "源表"
 
 #: templates/profile.html:119
 msgid "profile_notes"
-msgstr ""
+msgstr "笔记"
 
 #: templates/profile.html:126
 msgid "profile.activity"
-msgstr ""
+msgstr "活动"
 
 #: templates/profile.html:128
 msgid "profile.more_activity"
-msgstr ""
+msgstr "更多活动"
 
 #: templates/registration/delete_user_account.html:4
 msgid "delete_user_account.adming_delete_a_user"
-msgstr ""
+msgstr "管理员：删除用户"
 
 #: templates/registration/delete_user_account.html:4
 msgid "common.delete_user_account.pecha"
-msgstr ""
+msgstr "关闭"
 
 #: templates/registration/delete_user_account.html:11
 #: templates/registration/delete_user_account.html:17
 msgid "registration.delete_user_account.delete_user"
-msgstr ""
+msgstr "删除用户"
 
 #: templates/registration/delete_user_account.html:20
 msgid "delete_user_acc.long_message"
 msgstr ""
+"注意：删除用户可能需要一段时间；点击“删除用户”后，请耐心等待，因为用户被删除\n"
+"        从我们的系统中，不要离开页面。"
 
 #: templates/registration/logged_out.html:4
 msgid "registration.logged_out.logged_out_pecha"
-msgstr ""
+msgstr "登录| Pecha"
 
 #: templates/registration/logged_out.html:13
 msgid "registration.logged_out.log_back_in"
-msgstr ""
+msgstr "登录"
 
 #: templates/registration/login.html:4 templates/registration/login.html:29
 msgid "registration.login.login_in_to_pecha"
@@ -756,7 +760,7 @@ msgstr "登录到 Pecha"
 
 #: templates/registration/login.html:6
 msgid "registration.login.login_in_to_pecha_description"
-msgstr ""
+msgstr "登录到您的PECHA帐户以制作源表，写笔记并关注其他Pecha用户。"
 
 #: templates/registration/login.html:14
 msgid "registration.login.you_are_already_logged_in_as"
@@ -824,7 +828,8 @@ msgstr "已请求重置此电子邮件地址在 Pecha.org 上的密码。"
 
 #: templates/registration/password_reset_email.html:6
 #: templates/registration/password_reset_email.txt:5
-msgid "registration.password_reset_email.password_reset_email_to_click_on_link"
+msgid ""
+"registration.password_reset_email.password_reset_email_to_click_on_link"
 msgstr "点击此链接，或将其复制到您的浏览器，以选择新密码："
 
 #: templates/registration/password_reset_email.html:12
@@ -834,7 +839,7 @@ msgstr "如果您没有请求重置密码，可以安全地忽略此电子邮件
 
 #: templates/registration/password_reset_email.txt:3
 msgid "password.reset_request_made_msg"
-msgstr ""
+msgstr "已经提出了重置密码的请求"
 
 #: templates/registration/password_reset_form.html:4
 #: templates/registration/password_reset_form.html:13
@@ -842,8 +847,9 @@ msgid "registration.password_reset_form.forgot_your_password"
 msgstr "忘记密码"
 
 #: templates/registration/password_reset_form.html:6
-msgid "registration.password_reset_form.request_a_link_to_change_your_password"
-msgstr ""
+msgid ""
+"registration.password_reset_form.request_a_link_to_change_your_password"
+msgstr "如果您忘记了PECHA密码，请求更改您的PECHA密码。"
 
 #: templates/registration/password_reset_form.html:19
 msgid "registration.password_reset_form.send_reset_link"
@@ -859,15 +865,15 @@ msgstr "Pecha.org 密码重置"
 
 #: templates/registration/register.html:4
 msgid "registration.register.create_an_account"
-msgstr ""
+msgstr "创建一个帐户"
 
 #: templates/registration/register.html:4
 msgid "common.registration.register.pecha"
-msgstr ""
+msgstr "关闭"
 
 #: templates/registration/register.html:6
 msgid "registration.register.create_an_account_description"
-msgstr ""
+msgstr "在Pecha上创建一个帐户，以制作源表，记笔记并关注其他人。"
 
 #: templates/registration/register.html:13
 msgid "Sign_Up_Title"
@@ -883,8 +889,8 @@ msgstr "已有账号？登录"
 
 #: templates/static/he/about.html:4
 msgid "about.about_pecha"
-msgstr ""
+msgstr "关于Pecha"
 
 #: templates/static/he/about.html:6
 msgid "about.about_pecha_description"
-msgstr ""
+msgstr "Pecha是一个非营利组织，致力于以公开和参与的方式建立佛教学习的未来。"
