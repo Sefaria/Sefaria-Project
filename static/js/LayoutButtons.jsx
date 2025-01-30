@@ -1,3 +1,4 @@
+import React  from 'react';
 import {useContext} from "react";
 import {ReaderPanelContext} from "./context";
 import {layoutOptions, layoutLabels} from "./constants";
