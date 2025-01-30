@@ -2805,13 +2805,63 @@ def terms_api(request, name):
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+def convert_tibetan_text_segment_number(input_string):
+    
+    english_numerals = None
+    # Extract the Tibetan text (non-numeral part)
+    tibetan_text = re.sub(r'[༠-༩]+[:.,]?[༠-༩]*', '', input_string).strip()
 
-def get_name_completions(name, limit, ref_only, topic_override=False):
-    lang = "he" if has_tibetan(name) else "en"
+    # Extract the Tibetan numerals (both integer and decimal parts)
+    tibetan_numerals_match = re.findall(r'[༠-༩]+[:.,]?[༠-༩]*', input_string)
+    
+    if tibetan_numerals_match:
+        tibetan_numerals = tibetan_numerals_match[0]
+
+        # Mapping Tibetan numerals to English numerals
+        tibetan_to_english = {
+            '༠': '0', '༡': '1', '༢': '2', '༣': '3', '༤': '4',
+            '༥': '5', '༦': '6', '༧': '7', '༨': '8', '༩': '9'
+        }
+
+        # Convert Tibetan numerals to English numerals
+        english_numerals = ''.join([tibetan_to_english.get(char, char) for char in tibetan_numerals])
+
+        # Replace Tibetan separators with English decimal point
+        english_numerals = english_numerals.replace(':', '.').replace(',', '.')
+
+        # Split into integer and decimal parts (if any)
+        if '.' in english_numerals:
+            integer_part, decimal_part = english_numerals.split('.')
+            # Remove leading zeros in the integer part
+            integer_part = integer_part.lstrip('0') or '0'
+            # Remove leading zeros in the decimal part
+            decimal_part = decimal_part.lstrip('0') or '0'
+            # Combine the parts
+            english_numerals = f"{integer_part}.{decimal_part}" if decimal_part != '0' else integer_part
+        else:
+            # Remove leading zeros in the integer part
+            english_numerals = english_numerals.lstrip('0') or '0'
+
+    # Return the Tibetan text and the converted number as a string in a list
+    return [tibetan_text, english_numerals]
+
+def get_name_completions(sting_name, limit, ref_only, topic_override=False):
+    name = sting_name
+    lang = "he" if has_tibetan(name) else "en"        
     completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
     object_data = None
     ref = None
     topic = None
+   
+    
+    if lang == "he":
+        segment = convert_tibetan_text_segment_number(name)
+        if segment[1]:
+            enRef = Ref(segment[0])
+            name = f"{enRef}.{segment[1]}"
+        else :
+            ref = None
+        
     if topic_override:
         topic_set = TopicSet({"titles.text": re.compile(fr'^{re.escape(name)}$', flags=re.IGNORECASE)},
                              sort=[("numSources", -1)], limit=1)

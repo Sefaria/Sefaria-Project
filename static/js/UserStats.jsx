@@ -130,7 +130,7 @@ const UserDataBlock = ({user_data, site_data}) => (
 const OverallActivityBlock = ({user_data}) => (
         <div>
             <h2>
-               <InterfaceText>"profile.user_state.overall_activities</InterfaceText>
+               <InterfaceText>profile.user_state.overall_activities</InterfaceText>
             </h2>
             <div className="statcardRow">
                 <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name={Sefaria._("profile.text_read")} />
@@ -175,8 +175,7 @@ const YourFavoriteTextsBlock = ({user_data}) => (
     user_data.mostViewedRefs.length ?
         <div className="yourFavoriteTextsBlock">
             <h2>
-                <span className="int-en">Your Favorite Texts</span>
-                <span className="int-he">ཁྱེད་རང་དགའ་ཤོས་ཀྱི་ཡིག་ཆ།</span>
+                <InterfaceText>profile.buddhist_tracker.favorite_texts</InterfaceText>
             </h2>
             <NBox n={3} content={user_data.mostViewedRefs.map((r,i) =>
                 <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book} intlang={true}/>)}/>
@@ -187,8 +186,7 @@ const YourFavoriteSheetsBlock = ({user_data}) => (
     user_data.mostViewedSheets.length ?
         <div className="yourFavoriteSheetsBlock">
             <h2>
-                <span className="int-en">Your Favorite Sheets</span>
-                <span className="int-he">דפי מקורות מועדפים</span>
+                <InterfaceText>profile.buddhist_tracker.favorite_sheets</InterfaceText>
             </h2>
             <div className="story">
                 <StorySheetList sheets={user_data.mostViewedSheets} compact={true} smallfonts={true}/>

@@ -452,6 +452,17 @@ Sefaria = extend(Sefaria, {
     }
     return null;
   },
+  isTibetan: (text) => {
+      // Tibetan Unicode range: U+0F00 to U+0FFF
+      const tibetanPattern = /^[\u0F00-\u0FFF]+$/;
+      return tibetanPattern.test(text);
+  },
+
+  isEnglish: (text) => {
+      // English uses basic Latin alphabet (A-Z, a-z) and spaces
+      const englishPattern = /^[A-Za-z\s]+$/;
+      return englishPattern.test(text);
+  },
   getText: function(ref, settings) {
     // returns a promise
     settings = this._complete_text_settings(settings);
@@ -1208,6 +1219,9 @@ Sefaria = extend(Sefaria, {
     // If no open calls found, call the texts API.
     // Called with context:1 because this is our most common mode, maximize change of saving an API Call
     return Sefaria.getText(ref, {context: 1});
+  },
+  getEnRefForBO: (boRef)  => {
+
   },
   ref: function(ref, callback) {
       if (callback) {

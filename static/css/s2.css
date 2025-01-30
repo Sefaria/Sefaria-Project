@@ -12166,6 +12166,7 @@ span.purim-emoji img {
 }
 
 .addInterfaceInput {
+    padding: 10px;
     pointer-events: none;
     display: inline-block;
 }
@@ -12220,6 +12221,7 @@ span.purim-emoji img {
 .addInterfaceInput select.suggestionBox {
     overflow: scroll;
     font-size: 22px;
+    pointer-events: auto;
 }
 
 
