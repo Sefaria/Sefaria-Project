@@ -1775,7 +1775,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False, language_family_name=None):
         """
         :param oref:
         :type oref: Ref
@@ -1796,6 +1796,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         self._saveable = False  # Can this TextChunk be saved?
 
         self.lang = lang
+        self.language_family_name = language_family_name
         self.is_merged = False
         self.sources = []
         self.text = self._original_text = self.empty_text()
@@ -1815,6 +1816,8 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                     self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
                 except TypeError:
                     raise MissingKeyError(f'The version {vtitle} exists but has no key for the node {self._oref.index_node}')
+        elif language_family_name:
+            self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang, prioritized_vtitle=vtitle, language_family_name=language_family_name)
         elif lang:
             if actual_lang is not None:
                 self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang, prioritized_vtitle=vtitle)
@@ -1823,10 +1826,10 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         else:
             raise Exception("TextChunk requires a language.")
 
-    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang: str = None, prioritized_vtitle: str = None) -> None:
+    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang: str = None, prioritized_vtitle: str = None, language_family_name=None) -> None:
         if prioritized_vtitle:
             actual_lang = None
-        vset = VersionSet(self._oref.condition_query(lang, actual_lang), proj=self._oref.part_projection())
+        vset = VersionSet(self._oref.condition_query(lang, actual_lang, language_family_name), proj=self._oref.part_projection())
         if len(vset) == 0:
             if VersionSet({"title": self._oref.index.title}).count() == 0:
                 raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
@@ -4504,7 +4507,7 @@ class Ref(object, metaclass=RefCacheType):
 
         return projection
 
-    def condition_query(self, lang=None, actual_lang=None):
+    def condition_query(self, lang=None, actual_lang=None, language_family_name=None):
         """
         Return condition to select only versions with content at the location of this Ref.
         `actual_lang` is a 2 letter ISO lang code that represents the actual language of the version
@@ -4532,6 +4535,8 @@ class Ref(object, metaclass=RefCacheType):
             d.update({"versionTitle": pyre.compile(pattern)})
         if lang:
             d.update({"language": lang})
+        if language_family_name:
+            d.update({"languageFamilyName": language_family_name})
 
         if self.index_node.is_virtual:
             try:
@@ -4708,13 +4713,13 @@ class Ref(object, metaclass=RefCacheType):
             setattr(self, normal_attr, normal_form)
         return getattr(self, normal_attr)
 
-    def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
+    def text(self, lang="en", vtitle=None, exclude_copyrighted=False, language_family_name=None):
         """
         :param lang: "he" or "en"
         :param vtitle: optional. text title of the Version to get the text from
         :return: :class:`TextChunk` corresponding to this Ref
         """
-        return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted)
+        return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted, language_family_name=language_family_name)
 
     def url(self):
         """
