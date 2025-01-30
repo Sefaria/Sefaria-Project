@@ -1522,9 +1522,20 @@ div.interfaceLinks-row a {
 .readerPanel.bilingual .readerNavMenu .gridBox {
   direction: ltr;
 }
-.readerPanel.english .he {
+.readerPanel.english .contentText .he,
+.readerPanel.hebrew .contentText .en,
+.readerPanel.english .contentSpan.primary,
+.readerPanel.english .languageToggle .he,
+.readerPanel.hebrew .contentSpan.translation,
+.readerPanel.hebrew .languageToggle .en,
+.readerPanel.hebrew .en .englishAvailableTag {
   display: none;
 }
+.readerPanel.english .versionsTextList .primary,
+.readerPanel.hebrew .versionsTextList .translation {
+  display: block;
+}
+
 .readerPanel.english .he.heOnly{
   display: inline;
   text-align: right;
@@ -1536,11 +1547,10 @@ div.interfaceLinks-row a {
   display: inline;
   text-align: right;
 }
-.readerPanel.hebrew .en {
-  display: none;
-}
 .readerPanel.english .heOnly .he,
-.readerPanel.bilingual .heOnly .he {
+.readerPanel.bilingual .heOnly .he,
+.readerPanel.english .enOnly .en,
+.readerPanel.bilingual .enOnly .en {
   display: inline;
 }
 .languageToggle {
@@ -4896,6 +4906,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .tagsList .enOnly {
   direction: ltr;
 }
+.readerControlsOuter {
+  position: relative;
+  z-index: 103;
+}
 .readerControls {
   position: relative;
   top: 0;
@@ -4903,7 +4917,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 100%;
   box-sizing: border-box;
   text-align: center;
-  z-index: 100;
   height: 60px;
   line-height: 60px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -4932,13 +4945,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #EDEDED;
 }
 .readerControls .connectionsPanelHeader .connectionsHeaderTitle {
-  text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 16px;
   font-weight: lighter;
 }
+.readerControls .connectionsPanelHeader .connectionsHeaderTitle:not(.active) {
+  text-transform: uppercase;
+}
 .connectionsPanelHeader .connectionsHeaderTitle.active {
-  text-transform: none;
   cursor: pointer;
 }
 .connectionsHeaderTitle .fa-chevron-left {
@@ -4968,7 +4982,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls.transLangPrefSuggBann {
   background-color: #EDEDEC;
-  z-index: 99;
+  z-index: 2;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner {
   justify-content: center;
@@ -4987,6 +5001,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoButton {
+  border: none;
+  font-size: 16px;
   border-radius: 6px;
   background-color: white;
   padding: 5px 11px;
@@ -5058,7 +5074,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
   color: #666;
   width: 100%;
 }
@@ -5090,6 +5105,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: row;
   text-align: right;
+  align-items: center;
 }
 /* icons need a little nudge in flipped hebrew mode */
 .interface-hebrew .rightButtons {
@@ -5507,7 +5523,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .sheetContent .title .he {
   display: none;
 }
-.interface-hebrew .readerPanel.english .textRange,
+.interface-hebrew .readerPanel.ltr .textRange,
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
 .interface-hebrew .readerPanel.english .essayGroup,
@@ -5516,6 +5532,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .readerPanel.bilingual .textTableOfContents {
   direction: ltr;
 }
+.interface-english .readerPanel.rtl .textRange,
 .interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
 .interface-english .readerPanel.hebrew .essayGroup,
@@ -5624,7 +5641,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline;
 }*/
 .bilingual .segment > .he,
-.bilingual .segment > p > .he{
+.bilingual .segment > p > .he {
   display: block;
 }
 .bilingual .segment > .en,
@@ -5652,10 +5669,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .stacked.bilingual .sheetContent .segment > p > .en {
   margin-top: 0;
 }
-.stacked.bilingual .basetext .segment > .en ,
-.stacked.bilingual .basetext .segment > p > .en {
+.stacked.bilingual .basetext .segment > .translation ,
+.stacked.bilingual .basetext .segment > p > .translation {
   margin: 10px 0 20px;
   color: #666;
+}
+.stacked.bilingual .basetext .segment > p > .he.translation {
+  color: black;
 }
 .stacked.bilingual .segment.heOnly > .he,
 .stacked.bilingual .segment.enOnly > .en,
@@ -5711,19 +5731,31 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerPanel.english .SheetSource .sheetItem.segment .en {
   background-color: white;
 }
-.heLeft.bilingual .segment > .en,
-.heRight.bilingual .segment > .he ,
-.heLeft.bilingual .segment > p > .en,
-.heRight.bilingual .segment > p > .he {
+.heLeft.bilingual .segment > .translation,
+.heRight.bilingual .segment > .primary,
+.heLeft.bilingual .segment > p > .translation,
+.heRight.bilingual .segment > p > .primary,
+.heRight.bilingual .sheetItem.segment > .he,
+.heLeft.bilingual .sheetItem.segment > .en,
+.heRight.bilingual .SheetSource.segment > .he,
+.heLeft.bilingual .SheetSource.segment > .en {
   float: right;
   padding-left: 20px;
 }
-.heRight.bilingual .segment > .en,
-.heLeft.bilingual .segment > .he,
-.heRight.bilingual .segment > p > .en,
-.heLeft.bilingual .segment > p > .he {
+.heRight.bilingual .segment > .translation,
+.heLeft.bilingual .segment > .primary,
+.heRight.bilingual .segment > p > .translation,
+.heLeft.bilingual .segment > p > .primary,
+.heRight.bilingual .sheetItem.segment > .en,
+.heLeft.bilingual .sheetItem.segment > .he,
+.heRight.bilingual .SheetSource.segment > .en,
+.heLeft.bilingual .SheetSource.segment > .he {
   float: left;
   padding-right: 20px;
+}
+.segment > p > .he.translation {
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 100%;
 }
 .basetext .segment:active,
 .basetext .segment:focus {
@@ -5813,6 +5845,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment.heOnly .en{
   display: none;
 }
+/*in the text reader we don't have enOnly anymore. it always hvae primary (which is one the meaning of heOnly) maybe this is useful for other cases*/
 .segment.enOnly .he{
   display: none;
 }
@@ -7622,8 +7655,10 @@ But not to use a display block directive that might break continuous mode for ot
   margin-top: 17px;
 }
 .profile-pic-cropper-modal .ReactCrop__crop-selection {
-  border-radius: 50%;
   box-shadow: 0 0 0 9999em rgba(255, 255, 255, 0.6);
+}
+.profile-page .profile-pic-cropper-modal .ReactCrop__crop-selection {
+  border-radius: 50%;
 }
 .profile-pic-cropper-modal .ReactCrop__image {
   max-width: 50vw;
@@ -7634,10 +7669,10 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .profile-pic-cropper {
 }
-.profile-page .profile-pic .profile-pic-cropper-modal .profile-pic-cropper-button {
+#interruptingMessage.profile-pic-cropper-modal .profile-pic-cropper-button {
   display: inline-flex;
 }
-.profile-page .profile-pic .profile-pic-cropper-desc {
+.profile-pic-cropper-desc {
   margin-top: 9px;
   margin-bottom: 18px;
 }
@@ -10634,12 +10669,19 @@ section.SheetOutsideBiText {
 
 .readerPanel.hebrew section.SheetSource .sheetItem > .he,
 .readerPanel.english section.SheetSource .sheetItem > .en,
+.readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .en > .sourceContentText,
 .readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .he,
 .readerPanel.english section.SheetOutsideBiText .sheetItem > .en {
   display: block;
 }
-.readerPanel.hebrew section.SheetSource .sheetItem > .en,
+.readerPanel.hebrew section.SheetSource .sheetItem:not(.enOnly) > .en,
+.readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .en > .ref,
+.readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .he > .sourceContentText,
 .readerPanel.english section.SheetSource .sheetItem > .he,
+.readerPanel.hebrew .sheetItem:not(.enOnly) .SheetSource > .en,
+.readerPanel.hebrew .sheetItem.enOnly .SheetSource > .en > .ref,
+.readerPanel.hebrew .sheetItem.enOnly .SheetSource > .he > .sourceContentText,
+.readerPanel.english .sheetItem .SheetSource > .he,
 .readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .en,
 .readerPanel.english section.SheetOutsideBiText .sheetItem > .he  {
   display: none;
@@ -11564,7 +11606,8 @@ cursor: pointer;
 .profile-page .follow-header .follow-count {
   color: #999;
 }
-.profile-page .resourcesLink  {
+.profile-page .resourcesLink,
+.profile-pic-cropper-button.resourcesLink {
   min-height: 46px;
   height: 46px;
   overflow: visible;
@@ -11587,7 +11630,8 @@ cursor: pointer;
   line-height: 1.5;
 }
 .profile-page .profile-summary .resourcesLink + .resourcesLink,
-.profile-page .profile-summary .largeFollowButton + .resourcesLink {
+.profile-page .profile-summary .largeFollowButton + .resourcesLink,
+#interruptingMessage.profile-pic-cropper-modal .resourcesLink + .resourcesLink {
   margin: 0 0 0 10px;
 }
 .interface-hebrew .profile-page .profile-summary .largeFollowButton + .resourcesLink,
@@ -13369,6 +13413,228 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 
+.dropdownMenu {
+  position: relative;
+  display: flex;
+  flex-direction: row-reverse;
+  z-index: 3;
+}
+
+.dropdownLinks-menu {
+  display: contents;
+}
+
+.dropdownLinks-menu.closed {
+  display: none;
+}
+
+.texts-properties-menu {
+  width: 256px;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 5px;
+  box-shadow: 0px 2px 4px var(--lighter-grey);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 100%;
+  background-color: white;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.dropdownButton {
+  border: none;
+  background-color: inherit;
+}
+
+.rightButtons .dropdownButton {
+  text-align: end;
+}
+
+.toggle-switch-container {
+  align-items: center;
+  display: flex;
+  direction: ltr;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 46px;
+  display: inline-block;
+  text-align: left;
+}
+
+.toggle-switch-checkbox {
+  display: none;
+}
+
+.toggle-switch-label {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border: 0 solid var(--light-grey);
+  border-radius: 20px;
+}
+
+.toggle-switch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+
+.toggle-switch-inner:before,
+.toggle-switch-inner:after {
+  float: left;
+  width: 50%;
+  height: 24px;
+  padding: 0;
+  line-height: 24px;
+  color: white;
+  font-weight: bold;
+  box-sizing: border-box;
+  content: "";
+  color: white;
+}
+
+.toggle-switch-inner:before {
+  padding-left: 10px;
+  background-color: var(--sefaria-blue);
+}
+
+.toggle-switch-inner:after {
+  padding-right: 10px;
+  background-color: var(--light-grey);
+}
+
+.toggle-switch-switch {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: white;
+  position: absolute;
+  top: 50%;
+  bottom: 0;
+  right: 24px;
+  border: 0 solid var(--light-grey);
+  border-radius: 20px;
+  transition: all 0.3s ease-in 0s;
+  transform: translateY(-50%);
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-inner {
+  margin-left: 0;
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-switch {
+  right: 2px;
+}
+
+.toggle-switch-checkbox:disabled + .toggle-switch-label .toggle-switch-inner:after {
+  background-color: var(--lighter-grey);
+}
+
+.toggle-switch-line {
+  display: flex;
+  width: 216px;
+  height: 49px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-switch-line:is(.disabled) .int-en,
+.toggle-switch-line:is(.disabled) .int-he {
+  color: var(--light-grey);
+}
+
+.texts-properties-menu .int-en,
+.texts-properties-menu .int-he {
+  align-content: center;
+}
+
+.show-source-translation-buttons {
+  display: flex;
+  flex-direction: column;
+  height: 170px;
+  justify-content: center;
+}
+
+.show-source-translation-buttons input {
+  display: none;
+}
+
+.show-source-translation-buttons .button {
+  margin: unset;
+  display: flex;
+  height: 46px;
+  width: 235px;
+  align-items: center;
+  justify-content: center;
+  margin: 3px 0;
+}
+
+.show-source-translation-buttons .button:not(.checked) {
+  background-color: var(--lighter-grey);
+  color: black;
+}
+
+.layout-button-line {
+  height: 57px;
+  width: 216px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.layout-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.layout-button {
+  border: none;
+  width: 28px;
+  height: 24px;
+  -webkit-mask: var(--url) no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 100% 100%;
+  background-color: var(--medium-grey);
+  cursor: pointer;
+}
+
+.layout-button.checked {
+  background-color: var(--sefaria-blue);
+}
+
+.text-menu-border {
+  width: 100%;
+  height: 1px;
+  background-color: var(--lighter-grey);
+}
+
+.font-size-line {
+  width: 230px;
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  direction: ltr;
+}
+
+.font-size-button {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border: none;
+  cursor: pointer;
+}
+
 #currentlyReadingContainer {
   margin: 5px 30px;
   flex-grow: 1;
@@ -13421,9 +13687,16 @@ span.ref-link-color-3 {color: blue}
 }
 
 #productsPageContent {
-  margin-inline-start: 70px;
-  margin-top: 165px;
+  margin-inline-start: 100px;
+  margin-top: 140px;
   margin-bottom: 165px;
+}
+#productsPageContent .loadingMessage {
+  margin-block-start: 230px;
+}
+
+#jobsPageContent .loadingMessage {
+  margin-block-start: 20px;
 }
 
 .productInner {
