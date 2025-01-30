@@ -1348,32 +1348,33 @@ MenuButton.propTypes = {
 
 
 class CloseButton extends Component {
-  onClick(e) {
-    e.preventDefault();
-    window.history.go(-1); // Go back one page in browser history
+  onClick = (e) => {
+    e.preventDefault(); // Prevent the default anchor behavior
+    e.stopPropagation(); // Stop event bubbling
     
-    // If you also want to call the original onClick prop (if provided)
-    if (this.props.onClick) {
-      this.props.onClick();
-    }
+    // Use a small timeout to ensure onClick completes
+    setTimeout(() => {
+      window.history.go(-1);
+    }, 0);
   }
 
   render() {
     let icon;
-    if (this.props.icon == "circledX"){
-      icon = <img src="/static/icons/circled-x.svg" />;
+    if (this.props.icon == "circledX") {
+      icon = <img src="/static/icons/circled-x.svg" alt="Close" />;
     } else if (this.props.icon == "chevron") {
-      icon = <i className="fa fa-chevron-left"></i>
+      icon = <i className="fa fa-chevron-left"></i>;
     } else {
       icon = <i className="fa fa-arrow-left back-button-icon"></i>;
     }
     
     const classes = classNames({
-      readerNavMenuCloseButton: 1, 
+      readerNavMenuCloseButton: 1,
       circledX: this.props.icon === "circledX"
     });
     
-    const url = this.props.url || "";
+    const url = this.props.url || "#"; // Use # as fallback to prevent page reload
+    
     return (
       <a href={url} className={classes} onClick={this.onClick}>
         {icon}

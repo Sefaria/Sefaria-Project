@@ -3497,6 +3497,7 @@ a.navBlockTitle:hover {
     font-size: 24px;
     color: var(--medium-grey);
     font-size: 14px;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .communityPage .recentlyPublished {
@@ -14570,6 +14571,10 @@ body .homeFeedWrapper.userStats {
     background: white;
     border-radius: 5px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.user_state {
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .userStatModeButton {
