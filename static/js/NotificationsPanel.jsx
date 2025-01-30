@@ -85,13 +85,13 @@ class NotificationsPanel extends Component {
                     <img className="notificationsTitleIcon" src="/static/icons/notification.svg" />
                     <InterfaceText>Notifications</InterfaceText>
                   </h1>
-                  <div>
+                  <>
                     {Sefaria.notificationCount > 0 ? (
                       <button className="button small white" onClick={this.markAllAsRead}>
                         <InterfaceText en={"Mark all as Read"} he={"סימון כל ההודעות כהודעות שנקראו"} />
                       </button>
                     ) : null}
-                  </div>
+                  </>
                 </div>
                 {(Sefaria._uid) ? (
                      Sefaria.notificationCount > 0 && notifications
