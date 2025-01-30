@@ -375,6 +375,46 @@ class KovetzYesodotEntry(DictionaryEntry):
         return ['<br>'.join(strings)]
 
 
+class KrupnikEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+    optional_attrs = DictionaryEntry.optional_attrs + ['biblical', 'no_binyan_kal', 'emendation', 'used_in', 'equals', 'pos_list']
+
+    @staticmethod
+    def format_headword(hw, is_primary):
+        getter = lambda x, y: getattr(x, y, None) if is_primary else x.get(y)
+        hw_string = ''
+        map_attrs_to_funcs = {
+            'headword' if is_primary else 'word': lambda x: re.sub("[²³⁴]", "", x),
+            'biblical': lambda _: f'{hw_string}·–',
+            'no_binyan_kal': lambda _: f'({hw_string})',
+            'emendation': lambda x: f'{hw_string} [{x}]',
+            'used_in': lambda x: f'{hw_string}; {x}',
+            'equals': lambda x: f'{hw_string} = {x}',
+        }
+        for attr, func in map_attrs_to_funcs.items():
+            value = getter(hw, attr)
+            if value:
+                hw_string = func(value)
+        hw_string = f'<big><big>{hw_string}</big></big>'
+        pos_list = getter(hw, 'pos_list')
+        if pos_list:
+            pos_string = ' '.join(pos_list)
+            hw_string = f'{hw_string} {pos_string}'
+        return hw_string
+
+    def headword_string(self):
+        headwords = [self] + getattr(self, "alt_headwords", [])
+        formatted_headwords = [self.format_headword(hw, i == 0) for i, hw in enumerate(headwords)]
+        return ', '.join(formatted_headwords)
+
+    def get_alt_headwords(self):
+        alts = getattr(self, "alt_headwords", [])
+        return [a['word'] for a in alts]
+
+    def as_strings(self, with_headword=True):
+        return self.headword_string() + ' ' + self.content
+
+
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
         'BDB Augmented Strong': StrongsDictionaryEntry,
@@ -387,6 +427,7 @@ class LexiconEntrySubClassMapping(object):
         'BDB Dictionary': BDBEntry,
         'BDB Aramaic Dictionary': BDBEntry,
         'Kovetz Yesodot VaChakirot': KovetzYesodotEntry,
+        'Krupnik Dictionary': KrupnikEntry,
     }
 
     @classmethod
