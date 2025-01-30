@@ -82,12 +82,12 @@ class NotificationsPanel extends Component {
               <div className="notificationsTopContainer">
                 <div className="notificationsHeaderBox">
                   <h1>
-                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" />
+                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt="Notification icon"/>
                     <InterfaceText>Notifications</InterfaceText>
                   </h1>
                   <>
                     {Sefaria.notificationCount > 0 ? (
-                      <button className="button small white" onClick={this.markAllAsRead}>
+                      <button className="button small white" onClick={this.markAllAsRead} aria-label="Mark all as Read">
                         <InterfaceText en={"Mark all as Read"} he={"סימון כל ההודעות כהודעות שנקראו"} />
                       </button>
                     ) : null}
@@ -133,11 +133,11 @@ const Notifications = ({type, props}) => {
 const EmptyNotificationsMessage = () => {
   return (
         <div className="emptyNotificationPage">
-          <div className="emptyNotificationsTitle">
+          <div className="emptyNotificationsTitle" aria-label="No notifications message title">
             <InterfaceText en={"Looks like you don’t have any notifications yet."} 
                            he={"נראה שעדיין אין לך התראות"}/>
           </div>
-          <div className="emptyNotificationsMessage">
+          <div className="emptyNotificationsMessage" aria-label="No notifications message body">
             <InterfaceText en={"Try following sheet creators to get notified when they publish a new sheet."} 
                            he={"מומלץ לעקוב אחרי יוצרים של דפי מקורות כדי לקבל התראה כאשר יפרסמו דף מקורות חדש"}/> 
           </div>
