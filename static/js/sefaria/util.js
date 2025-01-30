@@ -31,6 +31,9 @@ class Util {
             target.scrollIntoView(scrollIntoViewOptions);
         }
     }
+    static parseInt(str) {
+       return str.match(/\d+[ab]/) ? Sefaria.hebrew.dafToInt(str) : parseInt(str);
+    }
     static selectElementContents(el) {
       //source: https://stackoverflow.com/questions/4183401/can-you-set-and-or-change-the-user-s-text-selection-in-javascript
       if (window.getSelection && document.createRange) {
