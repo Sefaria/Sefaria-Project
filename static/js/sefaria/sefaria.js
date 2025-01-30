@@ -292,6 +292,10 @@ Sefaria = extend(Sefaria, {
     return oref ? oref.sectionRef : null;
 
   },
+  zoomOutRef: function(ref, zoom=1) {
+    const humanRefForm = Sefaria.humanRef(ref);
+    return humanRefForm.split(":").slice(0, -zoom).join(":");
+  },
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
       return ref.split("-");
