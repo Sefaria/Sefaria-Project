@@ -117,15 +117,15 @@
     </script>
     <script src="https://www.gstatic.com/charts/loader.js"></script>
 
-    <link rel="stylesheet" href="{% static 'css/common.css' %}">
-    <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
+    <link rel="stylesheet" href="{% versioned_static 'css/common.css' %}">
+    <link rel="stylesheet" href="{%  versioned_static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% versioned_static 'css/keyboard.css' %}">
     <link rel="stylesheet" href="{% versioned_static 'css/s2.css' %}">
-    <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
+    <link rel="stylesheet" href="{%  versioned_static 'css/s2-print.css' %}" media="print" />
 
     {% block static_css %}
     {% if not html %}
-    <link rel="stylesheet" href="{%  static 'css/static.css' %}">
+    <link rel="stylesheet" href="{%  versioned_static 'css/static.css' %}">
     {% endif %}
     {% endblock %}
 

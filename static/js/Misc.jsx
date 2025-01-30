@@ -789,8 +789,7 @@ class TextBlockLink extends Component {
     }
     const subtitle = displayValue ? (
         <span className="blockLinkSubtitle">
-            <span className={elang}>{displayValue}</span>
-            <span className={hlang}>{heDisplayValue}</span>
+            <span className={elang}>{Sefaria.interfaceLang != 'hebrew' ? displayValue: heDisplayValue}</span>
         </span>
     ) : null;
 
@@ -828,8 +827,7 @@ class TextBlockLink extends Component {
     }
     return (
       <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
-        <span className={elang}>{title}</span>
-        <span className={hlang}>{heTitle}</span>
+        <span >{Sefaria.interfaceLang != 'hebrew'? title: heTitle }</span>
         {subtitle}
       </a>
     );
@@ -3234,6 +3232,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
 
   const generatePreviewText = (ref) => {
+    console.log("getText", ref)
         Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
            let segments = Sefaria.makeSegments(text, true);
            segments = Sefaria.stripImagesFromSegments(segments);
