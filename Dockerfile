@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.7-slim
+FROM python:3.9-slim
 
 # Set the working directory to /app
 WORKDIR /app
@@ -9,6 +9,9 @@ COPY . /app
 
 # Install psycopg2 dependencies
 RUN apt-get update && apt-get install -y libpq-dev
+
+# Install git because docker can't fucking preinstall it and i've been trying to debug this for one fucking hour fml
+RUN apt-get update && apt-get install -y git
 
 # Install gcc
 RUN apt-get update && apt-get install -y gcc
