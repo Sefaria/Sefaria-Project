@@ -1348,38 +1348,21 @@ MenuButton.propTypes = {
 
 
 class CloseButton extends Component {
-  onClick = (e) => {
-    e.preventDefault(); // Prevent the default anchor behavior
-    e.stopPropagation(); // Stop event bubbling
-    
-    // Use a small timeout to ensure onClick completes
-    setTimeout(() => {
-      window.history.go(-1);
-    }, 0);
+  onClick(e) {
+    e.preventDefault();
+    this.props.onClick();
   }
-
   render() {
-    let icon;
-    if (this.props.icon == "circledX") {
-      icon = <img src="/static/icons/circled-x.svg" alt="Close" />;
+    if (this.props.icon == "circledX"){
+      var icon = <img src="/static/icons/circled-x.svg" />;
     } else if (this.props.icon == "chevron") {
-      icon = <i className="fa fa-chevron-left"></i>;
+      var icon = <i className="fa fa-chevron-left"></i>
     } else {
-      icon = <i className="fa fa-arrow-left back-button-icon"></i>;
+      var icon = "×";
     }
-    
-    const classes = classNames({
-      readerNavMenuCloseButton: 1,
-      circledX: this.props.icon === "circledX"
-    });
-    
-    const url = this.props.url || "#"; // Use # as fallback to prevent page reload
-    
-    return (
-      <a href={url} className={classes} onClick={this.onClick}>
-        {icon}
-      </a>
-    );
+    var classes = classNames({readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX"});
+    var url = this.props.url || "";
+    return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
   }
 }
 
