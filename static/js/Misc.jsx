@@ -93,7 +93,6 @@ const InterfaceText = ({text, html, markdown, children, placeholder, disallowedM
     if (chlCount === 1) { // Same as passing in a `en` key but with children syntax
       if (placeholder) {
         textResponse = t(children, placeholder)
-        console.log(textResponse)
       } else {
         textResponse = t(children)
       }
@@ -790,8 +789,7 @@ class TextBlockLink extends Component {
     }
     const subtitle = displayValue ? (
         <span className="blockLinkSubtitle">
-            <span className={elang}>{displayValue}</span>
-            <span className={hlang}>{heDisplayValue}</span>
+            <span className={elang}>{Sefaria.interfaceLang != 'hebrew' ? displayValue: heDisplayValue}</span>
         </span>
     ) : null;
 
@@ -829,8 +827,7 @@ class TextBlockLink extends Component {
     }
     return (
       <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
-        <span className={elang}>{title}</span>
-        <span className={hlang}>{heTitle}</span>
+        <span >{Sefaria.interfaceLang != 'hebrew'? title: heTitle }</span>
         {subtitle}
       </a>
     );
@@ -1368,6 +1365,7 @@ class CloseButton extends Component {
     return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
   }
 }
+
 
 
 class DisplaySettingsButton extends Component {
@@ -2032,6 +2030,37 @@ class LoginPrompt extends Component {
 LoginPrompt.propTypes = {
   fullPanel: PropTypes.bool,
 };
+
+class MessageModel extends Component {
+  render() {
+    return (
+      this.props.show ? <div id="interruptingMessageBox" className="sefariaModalBox">
+        <div id="interruptingMessageOverlay"></div>
+        <div id="interruptingMessage" className="sefariaModalContentBox">
+          <div className="sefariaModalContent">
+            <h2 className="serif sans-serif-in-hebrew">
+              {this.props.errorType}
+            </h2>
+            <div className="sefariaModalInnerContent">
+              { this.props.message }
+            </div>
+            <a className="button white control-elem" href="/">
+              <InterfaceText>model.message_model.explore_other_text</InterfaceText>
+            </a>
+          </div>
+        </div>
+      </div> : null
+    )
+  }
+}
+
+MessageModel.propTypes = {
+  errorType: PropTypes.string,
+  show: PropTypes.bool,
+  onClose: PropTypes.func.isRequired,
+  message: PropTypes.string,
+}
+
 
 class SignUpModal extends Component {
   render() {
@@ -3186,6 +3215,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
 
   const generatePreviewText = (ref) => {
+    console.log("getText", ref)
         Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
            let segments = Sefaria.makeSegments(text, true);
            segments = Sefaria.stripImagesFromSegments(segments);
@@ -3348,6 +3378,7 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
+  MessageModel,
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,

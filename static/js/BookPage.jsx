@@ -92,7 +92,6 @@ class BookPage extends Component {
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed
     Sefaria.getIndexDetails(this.props.title).then(data => this.setState({indexDetails: data}));
-
     if (this.isBookToc() && !this.props.compare) {
       if(!this.state.versionsLoaded){
         Sefaria.getVersions(this.props.title).then(result => {
@@ -175,7 +174,7 @@ class BookPage extends Component {
     const heTitle   = index ? index.heTitle : title;
     const category  = this.props.category;
     const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
-    const categories = Sefaria.index(this.props.title).categories;
+    const categories = Sefaria.index(this.props.title)? Sefaria.index(this.props.title).categories : [];
     let currObjectVersions = this.state.currObjectVersions;
     let catUrl;
     if (category == "Commentary") {

@@ -55,7 +55,7 @@ Sefaria = extend(Sefaria, {
 
       let book, index, nums;
       for (let i = first.length; i >= 0; i--) {
-          book   = first.slice(0, i);
+          book  = first.slice(0, i);
           if (Sefaria.virtualBooks.includes(book)) {
               // todo: This assumes that this is a depth one integer indexed node
               const numberMatch = first.match(/([\d ]+)$/);
@@ -451,6 +451,17 @@ Sefaria = extend(Sefaria, {
         return this._getOrBuildTextData(key, settings);
     }
     return null;
+  },
+  isTibetan: (text) => {
+      // Tibetan Unicode range: U+0F00 to U+0FFF
+      const tibetanPattern = /^[\u0F00-\u0FFF]+$/;
+      return tibetanPattern.test(text);
+  },
+
+  isEnglish: (text) => {
+      // English uses basic Latin alphabet (A-Z, a-z) and spaces
+      const englishPattern = /^[A-Za-z\s]+$/;
+      return englishPattern.test(text);
   },
   getText: function(ref, settings) {
     // returns a promise
@@ -1087,6 +1098,7 @@ Sefaria = extend(Sefaria, {
     // - Index Data
     // - Search TOC order
     for (let i = 0; i < tocBranch.length; i++) {
+      
       let thisOrder = parentsOrders.concat([i]) ;
       let thisPath =  (parentsPath ? parentsPath + "/" : "") + ("category" in tocBranch[i] ? tocBranch[i].category : tocBranch[i].title);
 
@@ -1207,6 +1219,9 @@ Sefaria = extend(Sefaria, {
     // If no open calls found, call the texts API.
     // Called with context:1 because this is our most common mode, maximize change of saving an API Call
     return Sefaria.getText(ref, {context: 1});
+  },
+  getEnRefForBO: (boRef)  => {
+
   },
   ref: function(ref, callback) {
       if (callback) {

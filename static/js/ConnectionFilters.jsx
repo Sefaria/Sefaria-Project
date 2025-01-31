@@ -53,13 +53,26 @@ class CategoryFilter extends Component {
     const catDesc = Sefaria.getDescriptionDict(this.props.category, []);
     const catEnDesc = catDesc[0];
     const catHeDesc = catDesc[1];
+    const is_commentary = (this.props.category == "Commentary")
+    const isRootORcommentary = this.props.showBooks && !is_commentary ? 
+      `${Sefaria._("text.root_text")}` 
+      : 
+      is_commentary && this.props.showBooks  ? 
+        `${Sefaria._("connection_panel.related_text.all_commentary")}`
+        : 
+        is_commentary && !this.props.showBooks ? 
+          `${Sefaria._("text.commentary")}`
+          : 
+          `${Sefaria._("text.root_text")}`
     return (
       <div className={outerClasses} style={style}>
         <a href={url} onClick={handleClick}>
           <div className={innerClasses} data-name={this.props.category}>
             <span className="filterInner">
               <span className="filterText">
-                <ContentText text={{en:this.props.showBooks ? `${Sefaria._("connection_panel.related_text.all_commentary")}` : `${Sefaria._("text.commentary")}` , he:this.props.showBooks ? `${Sefaria._("connection_panel.related_text.all_commentary")} ` : `${Sefaria._("text.commentary")}` }} />
+
+                <ContentText text={{en:isRootORcommentary, he:isRootORcommentary}} />
+
                 <span className="connectionsCount"> ({this.props.count})</span>
               </span>
               <span className="en">

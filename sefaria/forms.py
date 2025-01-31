@@ -38,8 +38,9 @@ class SefariaDeleteSheet(forms.Form):
 
 
 class SefariaLoginForm(EmailAuthenticationForm):
-    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("placeholder_email_address")}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_password")}))
+    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("placeholder_email_address"),'class': 'hiii'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_password"),'class': 'form-input monlam-font'
+}))
 
 
 class SefariaNewUserForm(EmailUserCreationForm):

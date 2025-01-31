@@ -233,6 +233,10 @@ a, a:hover {
     --inline-link-red: #cc5454;
 }
 
+.back-button-icon {
+    font-size: 16px; /* Adjust the size as needed */
+  }
+
 /* Font Family */
 body, .sans-serif {
     --english-font: var(--english-sans-serif-font-family);
@@ -1899,7 +1903,8 @@ div.interfaceLinks-row a {
 
 .readerContent .readerError .readerErrorText {
     padding-top: 20px;
-    font-size: .8em;
+    font-size: 1.5em;
+    color:red;
 }
 
 .textColumn {
@@ -2882,7 +2887,7 @@ span .asterisk {
 }
 
 .readerTocTopics .topicTitle .int-he {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .readerTocTopics .topicDescription.systemText .int-en,
@@ -2926,7 +2931,7 @@ span .asterisk {
 }
 
 .topicPanel .resourcesLink.blue .int-he {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family);
     margin-bottom: -3px;
 }
 
@@ -3064,7 +3069,7 @@ h1 div.languageToggle .en {
 }
 
 h1 .languageToggle .he {
-    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+    font-family: var(--hebrew-serif-font-family);
     font-size: 22px;
 }
 
@@ -3492,6 +3497,7 @@ a.navBlockTitle:hover {
     font-size: 24px;
     color: var(--medium-grey);
     font-size: 14px;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .communityPage .recentlyPublished {
@@ -4689,6 +4695,7 @@ details .open-details::before {
 
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover {
     text-decoration: none;
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img {
@@ -8780,7 +8787,7 @@ But not to use a display block directive that might break continuous mode for ot
     box-sizing: border-box;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     font-size: 18px;
-    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+    font-family: var(--hebrew-serif-font-family);
     margin-bottom: 10px
 }
 
@@ -10093,6 +10100,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
     box-sizing: border-box;
     box-shadow: none;
     padding: 9px 10px;
+    white-space: nowrap;
 }
 
 .publishBox .react-tags__suggestions ul {
@@ -10162,10 +10170,10 @@ body.interface-english .publishBox .react-tags__suggestions ul {
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
 
-.interface-hebrew .editorSidebarToggle {
+/* .interface-hebrew .editorSidebarToggle {
     left: 30px;
     right: auto;
-}
+} */
 
 
 .editorSidebarToggle:active {
@@ -11183,7 +11191,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
 }
 
 .readerPanel.hebrew .addToSourceSheetBox .selectedRef span {
-    font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    font-family: var(--hebrew-serif-font-family), "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
     font-size: 1.2em;
 }
 
@@ -11696,6 +11704,7 @@ span.purim-emoji img {
     width: 100%;
     box-sizing: border-box;
     font-size: 2.2em;
+    font-family: var(--hebrew-serif-font-family);
     line-height: 1.6;
     text-align: justify;
     background-color: inherit;
@@ -12158,6 +12167,7 @@ span.purim-emoji img {
 }
 
 .addInterfaceInput {
+    padding: 10px;
     pointer-events: none;
     display: inline-block;
 }
@@ -12212,6 +12222,7 @@ span.purim-emoji img {
 .addInterfaceInput select.suggestionBox {
     overflow: scroll;
     font-size: 22px;
+    pointer-events: auto;
 }
 
 
@@ -12494,16 +12505,20 @@ section.SheetOutsideBiText {
 .bilingual .SheetOutsideBiText:before,
 .bilingual .SheetSource:before {
     content: counter(css-counter);
-    right: -34px;
+    left: -34px;
     font-family: var(--english-sans-serif-font-family);
 
 }
 
+@counter-style tibetan-numbers {
+    system: numeric;
+    symbols: '༠' '༡' '༢' '༣' '༤' '༥' '༦' '༧' '༨' '༩';
+}
 
 .hebrew .SheetOutsideBiText:before,
 .hebrew .SheetSource:before {
-    content: counter(css-counter, hebrew);
-    right: -34px;
+    content: counter(css-counter, tibetan-numbers);
+    left: -34px;
     font-family: var(--hebrew-sans-serif-font-family);
 }
 
@@ -13173,8 +13188,8 @@ section.SheetSource .SheetOutsideBiText {
     font-family: var(--hebrew-serif-font-family);
 }
 
-.bo-date {
-    font-family: var(--hebrew-sans-serif-font-family);
+.hi-date {
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .sheetList .sheet .sheetTags .bullet {
@@ -14556,6 +14571,10 @@ body .homeFeedWrapper.userStats {
     background: white;
     border-radius: 5px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.user_state {
+    font-family: var(--hebrew-serif-font-family);
 }
 
 .userStatModeButton {

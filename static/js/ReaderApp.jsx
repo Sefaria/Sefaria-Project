@@ -28,6 +28,7 @@ import {
 } from './StaticPages';
 import {
   SignUpModal,
+  MessageModel,
   InterruptingMessage,
   Banner,
   CookiesNotification,
@@ -1074,7 +1075,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   openURL(href, replace=true, overrideContentLang=false) {
     // Attempts to open `href` in app, return true if successful.
-    href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
+    href = href.startsWith("/") ? "https://www.pecha.org" + href : href;
     let url;
     try {
       url = new URL(href);
@@ -1083,7 +1084,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     // Open non-Sefaria urls in new tab/window
     // TODO generalize to any domain of current deploy.
-    if (url.hostname.indexOf("www.sefaria.org") === -1) {
+    if (url.hostname.indexOf("www.pecha.org") === -1) {
       window.open(url, '_blank')
       return true;
     }
@@ -1108,6 +1109,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.showSaved();
 
     } else if (path.match(/\/texts\/.+/)) {
+      console.log("my",path)
       this.showLibrary(path.slice(7).split("/"));
 
     } else if (path === "/collections") {
@@ -2070,7 +2072,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
-
+                                  
     for (var i = 0; i < panelStates.length; i++) {
       const panel                        = this.clonePanel(panelStates[i]);
       if (!("settings" in panel )) { debugger; }
@@ -2184,7 +2186,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
                  </div>) : null;
-
+    // <MessageModel
+      // onClose={this.toggleSignUpModal}
+      // show={true}
+      // errorType={Sefaria._('model.message_model.message_type')}
+      // message={Sefaria._('model.message_model.message')}
+    // />
     const signUpModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}

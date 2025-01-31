@@ -1052,7 +1052,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
         """
         parentheses = kwargs.get("parentheses", False)
-        prefixes = 'בכ|וב|וה|וכ|ול|ומ|וש|כב|ככ|כל|כמ|כש|לכ|מב|מה|מכ|מל|מש|שב|שה|שכ|של|שמ|ב|כ|ל|מ|ש|ה|ו|ד' if lang == 'he' else ''
+        prefixes = '' if lang == 'he' else ''
         prefix_group = rf'(?:{prefixes})?'
         key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"),
                kwargs.get("terminated"), kwargs.get("escape_titles"), parentheses)
@@ -2599,7 +2599,8 @@ class AddressInteger(AddressType):
         if lang == "en":
             reg += r"\d+)"
         elif lang == "he":
-            reg += self.hebrew_number_regex() + r")"
+            # reg += self.hebrew_number_regex() + r")"
+            reg += r"\d+)" # todo: implement tibetan number regex
 
         return reg
 
