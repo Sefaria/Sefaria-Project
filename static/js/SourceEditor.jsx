@@ -101,7 +101,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
                             getSuggestions={getSuggestions}
                             inputValue={displayRef}
                             changeInputValue={handleChange}
-                            inputPlaceholder="Search for a Text or Commentator."
+                            inputPlaceholder={Sefaria._('sheet.editor.source.input_field.placeholder')}
                             buttonTitle="Select Source"
                             autocompleteClassNames="addInterfaceInput"
                             showSuggestionsOnSelect={true}

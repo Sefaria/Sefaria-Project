@@ -70,7 +70,9 @@ class CategoryFilter extends Component {
           <div className={innerClasses} data-name={this.props.category}>
             <span className="filterInner">
               <span className="filterText">
-                <ContentText text={{en: isRootORcommentary , he:isRootORcommentary}} />
+
+                <ContentText text={{en:isRootORcommentary, he:isRootORcommentary}} />
+
                 <span className="connectionsCount"> ({this.props.count})</span>
               </span>
               <span className="en">
