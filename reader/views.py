@@ -568,12 +568,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         if ref == "search":
             panelDisplayLanguage = request.GET.get("lang{}".format(i), request.contentLang)
             panels += [make_search_panel_dict(request.GET, i, **{"panelDisplayLanguage": panelDisplayLanguage})]
-
-        elif ref == "sheet":
-            sheet_id = request.GET.get("s{}".format(i))
-            panelDisplayLanguage = request.GET.get("lang", request.contentLang)
-            panels += make_sheet_panel_dict(sheet_id, None, **{"panelDisplayLanguage": panelDisplayLanguage})
-
         else:
             try:
                 oref = Ref(ref)
