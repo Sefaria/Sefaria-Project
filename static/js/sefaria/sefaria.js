@@ -1754,12 +1754,12 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSortHebrew: function(category, a, b) {
     return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
-  commentarySectionRef: function(commentator, baseRef, tooManySections = 5) {
+  commentarySectionRef: function(commentator, baseRef, numSectionsLimit = 5) {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
     // Even though most commentaries have a 1:1 structural match to basetexts, this is not always so.
     // Works by examining links available on baseRef, returns null if no links are in cache.
-    // Also returns null if there are more sections between the start and end of the commentary ref than `tooManySections`
+    // Also returns null if there are more sections between the start and end of the commentary ref than `numSectionsLimit`
     var links = Sefaria.getLinksFromCache(baseRef);
     links = Sefaria._filterLinks(links, [commentator]);
     if (!links || !links.length || links[0].isSheet) { return null; }
@@ -1785,7 +1785,7 @@ Sefaria = extend(Sefaria, {
     const start = startSections.sort(sorter)[0];
     const end = endSections.sort(sorter).reverse()[0];
 
-    if (Sefaria.util.parseInt(end) - Sefaria.util.parseInt(start) > tooManySections) {
+    if (Sefaria.util.parseInt(end) - Sefaria.util.parseInt(start) > numSectionsLimit) {
       return null; // Too many sections in between
     }
     else {
