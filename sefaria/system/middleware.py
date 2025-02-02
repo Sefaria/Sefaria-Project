@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils import translation
 from django.shortcuts import redirect
 from django.http import HttpResponse
+from django.urls import resolve
 
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
@@ -18,6 +19,27 @@ from django.utils.deprecation import MiddlewareMixin
 
 import structlog
 logger = structlog.get_logger(__name__)
+
+
+
+class MiddlewareURLMixin:
+    excluded_url_names = set()  # Set of URL names to exclude
+    excluded_url_prefixes = set()  # Set of URL path prefixes to exclude
+
+    def should_process_request(self, request):
+        # Check URL name
+        try:
+            url_name = resolve(request.path_info).url_name
+            if url_name in self.excluded_url_names:
+                return False
+        except:
+            pass
+
+        # Check path prefixes
+        if any(request.path.startswith(prefix) for prefix in self.excluded_url_prefixes):
+            return False
+
+        return True
 
 
 class SharedCacheMiddleware(MiddlewareMixin):
@@ -220,7 +242,15 @@ class ProfileMiddleware(MiddlewareMixin):
         return response
 
 
-class ModuleMiddleware:
+class ModuleMiddleware(MiddlewareURLMixin):
+    excluded_url_prefixes = {
+        '/linker.js',
+        '/api/',
+        '/interface/',
+        '/apple-app-site-association',
+        '/static/',
+    }
+
     MODULE_ROUTES = {
         '/sheets/': 'sheets',
         # Add more route prefixes and their modules
@@ -230,17 +260,22 @@ class ModuleMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Find the matching route prefix
         active_module = 'library'  # default active_module
+
+        if not self.should_process_request(request):
+            # Set defaults or return immediately
+            request.active_module = active_module
+            return self.get_response(request)
+
+        # Find the matching route prefix
         for route_prefix, module_name in self.MODULE_ROUTES.items():
-            if request.path.startswith(route_prefix):
+            route_base_path = route_prefix.removesuffix('/')
+            if request.path.startswith(route_prefix) or request.path == route_base_path:
                 active_module = module_name
                 break
 
         request.active_module = active_module
-
-        response = self.get_response(request)
-        return response
+        return self.get_response(request)
 
     #TODO: Maybe during Django upgrade, investigate why this doesnt get called and try to recall why we arent using
     # a TemplateResponse in our reader.views.render
