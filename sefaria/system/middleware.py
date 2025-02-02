@@ -218,3 +218,32 @@ class ProfileMiddleware(MiddlewareMixin):
 
             response = HttpResponse('<pre>%s</pre>' % io.getvalue())
         return response
+
+
+class ModuleMiddleware:
+    MODULE_ROUTES = {
+        '/sheets/': 'sheets',
+        # Add more route prefixes and their modules
+    }
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Find the matching route prefix
+        active_module = 'library'  # default active_module
+        for route_prefix, module_name in self.MODULE_ROUTES.items():
+            if request.path.startswith(route_prefix):
+                active_module = module_name
+                break
+
+        request.active_module = active_module
+
+        response = self.get_response(request)
+        return response
+
+    def process_template_response(self, request, response):
+        # For template responses, add active_module to context
+        if hasattr(response, 'context_data'):
+            response.context_data['active_module'] = request.active_module
+        return response

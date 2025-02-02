@@ -116,6 +116,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.LocationSettingsMiddleware',
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
+    'sefaria.system.middleware.ModuleMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
     'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.middleware.SharedCacheMiddleware',
