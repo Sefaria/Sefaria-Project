@@ -643,7 +643,7 @@ const TopicLandingTopicCatList = () => {
     const topicCats = Sefaria.topicTocPage();
     return(
         <SidebarModule>
-            <SidebarModuleTitle>Browse Topics</SidebarModuleTitle>
+            <span id="browseTopics"><SidebarModuleTitle>Browse Topics</SidebarModuleTitle></span>
             <div className="topic-landing-sidebar-list">
                 {topicCats.map((topic, i) =>
                     <div className="navSidebarLink ref serif" key={i}>

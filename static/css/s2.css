@@ -5019,6 +5019,20 @@ h1.topic-landing-header {
   top: 6px;
   padding-inline-start: 11px;
 }
+.explore-all-topics-prompt{
+  display: none;
+}
+.singlePanel .explore-all-topics-prompt{
+  display: block;
+  color: var(--darkest-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: center;
+  margin-top: 15px
+}
 .featuredTopic {
   display: flex;
   flex-direction: column;
