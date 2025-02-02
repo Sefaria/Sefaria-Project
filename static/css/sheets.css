@@ -1628,12 +1628,9 @@ body.hasBannerMessage .sheetsEditNavTop {
 	padding: 16px 20px;
 	margin-bottom: 0;
 }
-.sheetsEditNavTop .button {
+.sheetsEditNavTop #save {
 	background-color: #212e50;
 	border-color: #212e50;
-	padding: 12px 24px;
-}
-.sheetsEditNavTop .button {
     padding: 5px 12px;
 }
 #customTextLanguageToggle {
