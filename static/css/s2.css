@@ -791,13 +791,19 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .accountLinks.anon .help {
   margin-top: 6px;
 }
-.header .interfaceLinks {
-  display: block;
+.headerLinksSection .help {
+  display: flex;
+  justify-content: center;
   align-items: center;
-  margin-top: 2px;
+  height: 100%;
+  margin-top: 4px;
+}
+.header .interfaceLinks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   color: #666;
   cursor: pointer;
-  position: relative;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
@@ -807,6 +813,11 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   width: 18px;
   vertical-align: middle;
   margin-inline-end: 2px;
+}
+.header .interfaceLinks a.interfaceLinks-button{
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .header .interfaceLinks a.interfaceLinks-button::after {
   display: inline-block;
@@ -4772,6 +4783,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .search-container{
   position: relative;
+  padding-right: 10px;
 }
 .autocomplete-dropdown{
   background: #FFFFFF;
