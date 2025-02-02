@@ -242,6 +242,8 @@ class ModuleMiddleware:
         response = self.get_response(request)
         return response
 
+    #TODO: Maybe during Django upgrade, investigate why this doesnt get called and try to recall why we arent using
+    # a TemplateResponse in our reader.views.render
     def process_template_response(self, request, response):
         # For template responses, add active_module to context
         if hasattr(response, 'context_data'):
