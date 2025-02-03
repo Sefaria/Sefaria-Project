@@ -532,9 +532,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     if sheet == None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
-
-        # versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe) #TODO
-
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
@@ -582,15 +579,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            versionEn  = request.GET.get("ven{}".format(i)).replace("_", " ") if request.GET.get("ven{}".format(i)) else None
-            versionHe  = request.GET.get("vhe{}".format(i)).replace("_", " ") if request.GET.get("vhe{}".format(i)) else None
-            if not versionEn and not versionHe:
-                # potential link using old version format
-                language = request.GET.get("l{}".format(i))
-                if language == "en":
-                    versionEn = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
-                else: # he
-                    versionHe = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
+            versionEn = _extract_version_params(request, f"ven{i}")
+            versionHe = _extract_version_params(request, f"vhe{i}")
             versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
@@ -606,13 +596,13 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             kwargs["sidebarSearchQuery"] = request.GET.get(f"sbsq{i}", None)
             kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
             kwargs["selectedNamedEntityText"] = request.GET.get(f"namedEntityText{i}", None)
-            if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
-                (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
+            if (versionEn['versionTitle'] and not Version().load({"versionTitle": versionEn['versionTitle'], "language": "en"})) or \
+                (versionHe['versionTitle'] and not Version().load({"versionTitle": versionHe['versionTitle'], "language": "he"})):
                 i += 1
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
+            panels += make_panel_dicts(oref, versionHe, versionEn, filter, versionFilter, multi_panel, **kwargs)
         i += 1
 
     props = {
@@ -811,9 +801,9 @@ def override_version_with_preference(oref, request, versionEn, versionHe):
         if Version().load({"versionTitle": vtitle, "language": lang, "title": oref.index.title}):
             # vpref exists and the version exists for this text
             if lang == "en" and not versionEn:
-                versionEn = vtitle
+                versionEn['versionTitle'] = vtitle
             elif lang == "he" and not versionHe:
-                versionHe = vtitle
+                versionHe['versionTitle'] = vtitle
     return versionEn, versionHe
 
 
