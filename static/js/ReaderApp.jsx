@@ -134,6 +134,7 @@ class ReaderApp extends Component {
       connectionsMode:         state.connectionsMode         || "Resources",
       connectionsCategory:     state.connectionsCategory     || null,
       currVersions:            state.currVersions            || {en:null,he:null},
+      currCommVersions:        state.currCommVersions        || {},
       highlightedRefs:         state.highlightedRefs         || [],
       highlightedNode:         state.highlightedNode         || null,
       scrollToHighlighted:     state.scrollToHighlighted     || false,
@@ -1515,11 +1516,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   makePanelWithConnectionsState(panelProps) {
     // in the case of multipanel, create two panels based on panelProps
     let connectionPanel;  // in mobile, connectionPanel will remain undefined
+
+    // version is from commentary; don't try to use the version of the commentary for the base ref!
+    const currIndex = Sefaria.parseRef(panelProps.refs[0])?.index;
+    const currCommVersions = !!currIndex ? {[currIndex]: {...panelProps.currVersions}} : {};
+    panelProps.currVersions = {'en': null, 'he': null};
+
     if (this.props.multiPanel) {
-        const connectionPanelProps = {...panelProps, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
+        const connectionPanelProps = {...panelProps, currCommVersions: currCommVersions, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
         connectionPanel = this.makePanelState(connectionPanelProps);
     } else {
-        panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
+        panelProps = {...panelProps, currCommVersions: currCommVersions, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
     }
     const panel = this.makePanelState(panelProps);
     panel.showHighlight = true;
