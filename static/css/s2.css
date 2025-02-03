@@ -4911,6 +4911,9 @@ h1.topic-landing-header {
 .singlePanel .topic-landing-page-content .topic-landing-section.first-section {
   margin-top: 18px;
 }
+.singlePanel .topic-landing-page-content .topic-landing-section.following-search-section {
+  margin-top: 18px;
+}
 
 .interface-hebrew .topic-landing-page-wrapper{
   direction: rtl;

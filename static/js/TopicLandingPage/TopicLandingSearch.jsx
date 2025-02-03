@@ -116,8 +116,7 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
 }
 
 const scrollBrowseTopicsIntoView = (e) =>{
-    console.log("click")
-    document.getElementById("browseTopics")?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById("browseTopics")?.scrollIntoView({block: 'center', inline: 'center', behavior: 'auto'});
 }
 
 export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
@@ -135,7 +134,7 @@ export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
             />
         </div>
     <div className="explore-all-topics-prompt" onClick={scrollBrowseTopicsIntoView}>
-        <InterfaceText>Explore all topics></InterfaceText>
+        <InterfaceText>Explore all topics ›</InterfaceText>
     </div>
             </>
     );
