@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
+
+from django.utils.http import is_safe_url
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
@@ -33,6 +35,7 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
+import sefaria.settings
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.text_reuqest_adapter import TextRequestAdapter
@@ -1298,8 +1301,13 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
-    next = request.GET.get("next", "/")
-    next = "/" if next == "undefined" else next
+    next = request.GET.get("next")
+    if not next or not is_safe_url(
+        url=next,
+        host=request.get_host(),
+        allowed_hosts=set(sefaria.settings.ALLOWED_HOSTS)
+    ):
+        next = "/"
 
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
