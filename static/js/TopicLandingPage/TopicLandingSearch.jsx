@@ -2,7 +2,7 @@ import React from 'react';
 import classNames  from 'classnames';
 import {GeneralAutocomplete} from "../GeneralAutocomplete";
 import Sefaria from "../sefaria/sefaria";
-import {SearchButton} from "../Misc";
+import {InterfaceText, SearchButton} from "../Misc";
 
 const getSuggestions = async (input) => {
     if (input.length <=1) {
@@ -115,9 +115,23 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
     )
 }
 
+function _scrollTo(element, scrollableParent=window, yOffset = 0){
+  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+  scrollableParent.scrollTo({top: y, behavior: 'smooth'});
+}
+
+const scrollBrowseTopicsIntoView = (e) =>{
+    const scrollToElement = document.querySelector("#browseTopics");
+    const scrollableParent = document.querySelector('.content');
+    const headerInner = document.querySelector('.headerInner');
+    const height = headerInner.offsetHeight;
+    _scrollTo(scrollToElement, scrollableParent,  -height)
+}
+
 export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
 
     return (
+        <>
         <div className="topic-landing-search-wrapper">
             <GeneralAutocomplete
                 getSuggestions={getSuggestions}
@@ -128,5 +142,9 @@ export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
                 // shouldDisplaySuggestions={()=>true}
             />
         </div>
+    <div className="explore-all-topics-prompt" onClick={scrollBrowseTopicsIntoView}>
+        <InterfaceText>Explore all topics ›</InterfaceText>
+    </div>
+            </>
     );
 };

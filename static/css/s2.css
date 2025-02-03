@@ -4911,6 +4911,9 @@ h1.topic-landing-header {
 .singlePanel .topic-landing-page-content .topic-landing-section.first-section {
   margin-top: 18px;
 }
+.singlePanel .topic-landing-page-content .topic-landing-section.following-search-section {
+  margin-top: 18px;
+}
 
 .interface-hebrew .topic-landing-page-wrapper{
   direction: rtl;
@@ -5018,6 +5021,20 @@ h1.topic-landing-header {
 .topic-landing-search-container .readerNavMenuSearchButton{
   top: 6px;
   padding-inline-start: 11px;
+}
+.explore-all-topics-prompt{
+  display: none;
+}
+.singlePanel .explore-all-topics-prompt{
+  display: block;
+  color: var(--darkest-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: center;
+  margin-top: 15px
 }
 .featuredTopic {
   display: flex;
