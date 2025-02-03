@@ -2316,26 +2316,8 @@ def versions_api(request, tref):
     API for retrieving available text versions list of a ref.
     """
     oref = Ref(tref)
-    email = request.GET.get("email", None)
-    versions = []
-    if request.user.is_authenticated:
-        group_text_list = library.get_text_permission_group(request.user.email)
-        for text in group_text_list:
-            if str(text['title']) == str(oref):
-                
-                versions = oref.version_list()
-                return jsonResponse(versions, callback=request.GET.get("callback", None))
-        return jsonResponse(versions, callback=request.GET.get("callback", None))
-
-    else:
-        email = request.GET.get("email", None)
-        group_text_list = library.get_text_permission_group(email)
-        for text in group_text_list:
-            if str(text['title']) == str(oref):
-                versions = oref.version_list()
-                return jsonResponse(versions, callback=request.GET.get("callback", None))
-            
-        return jsonResponse(versions, callback=request.GET.get("callback", None))
+    versions = oref.version_list()
+    return jsonResponse(versions, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
