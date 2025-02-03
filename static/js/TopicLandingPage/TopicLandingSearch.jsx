@@ -115,8 +115,17 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
     )
 }
 
+function _scrollTo(element, scrollableParent=window, yOffset = 0){
+  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+  scrollableParent.scrollTo({top: y, behavior: 'smooth'});
+}
+
 const scrollBrowseTopicsIntoView = (e) =>{
-    document.getElementById("browseTopics")?.scrollIntoView({block: 'center', inline: 'center', behavior: 'auto'});
+    const scrollToElement = document.querySelector("#browseTopics");
+    const scrollableParent = document.querySelector('.content');
+    const headerInner = document.querySelector('.headerInner');
+    const height = headerInner.offsetHeight;
+    _scrollTo(scrollToElement, scrollableParent,  -height)
 }
 
 export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
