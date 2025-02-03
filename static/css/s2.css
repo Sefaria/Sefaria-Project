@@ -5211,18 +5211,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
- .leftButtons,
- .rightButtons {
+.interface-english .leftButtons,
+.interface-hebrew .rightButtons {
   display: flex;
   flex-direction: row;
+  text-align: left;
+}
+.interface-english .rightButtons,
+.interface-hebrew .leftButtons {
+  display: flex;
+  flex-direction: row;
+  text-align: right;
   align-items: center;
- }
- .leftButtons {
-  text-align: start;
- }
- .rightButtons {
-  text-align: end;
- }
+}
 /* icons need a little nudge in flipped hebrew mode */
 .interface-hebrew .rightButtons {
   margin-left: -3px;
@@ -11416,7 +11417,7 @@ cursor: pointer;
   box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.25);
   text-align: start;
   width: 266px;
-  padding-bottom: 15px;
+  padding: 15px 0;
 }
 
 .interface-hebrew .singlePanel .langSelectPopover {
@@ -11446,11 +11447,11 @@ cursor: pointer;
   cursor: pointer;
 }
 
-.langSelectPopover .radioChoice:nth-of-type(2) {
+.langSelectPopover .radioChoice:nth-of-type(1) {
   border-radius: 6px 6px 0px 0px;
 }
 
-.langSelectPopover .radioChoice:nth-of-type(4) {
+.langSelectPopover .radioChoice:nth-of-type(3) {
   border-radius: 0px 0px 6px 6px;
 }
 
@@ -13793,11 +13794,17 @@ span.ref-link-color-3 {color: blue}
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
+.texts-properties-menu,
+.texts-properties-menu .button {
+  font-size: 14px;
+}
+
 .dropdownLinks-button {
   border: none;
   background-color: inherit;
   cursor: default;
 }
+
 .dropdownLinks-button img {
   cursor: pointer;
 }
@@ -13826,7 +13833,14 @@ span.ref-link-color-3 {color: blue}
 }
 
 .toggle-switch-checkbox {
-  display: none;
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: none;
+}
+
+.focus-visible:has(input:focus) {
+  outline: auto;
 }
 
 .toggle-switch-label {
@@ -13916,27 +13930,67 @@ span.ref-link-color-3 {color: blue}
 .show-source-translation-buttons {
   display: flex;
   flex-direction: column;
-  height: 170px;
+  height: 140px;
   justify-content: center;
-}
-
-.show-source-translation-buttons input {
-  display: none;
 }
 
 .show-source-translation-buttons .button {
   margin: unset;
   display: flex;
-  height: 46px;
+  height: 35px;
   width: 235px;
   align-items: center;
-  justify-content: center;
-  margin: 3px 0;
+  justify-content: space-between;
+  box-shadow: unset;
+  padding-inline-start: 10px;
+  padding-inline-end: 0;
 }
 
-.show-source-translation-buttons .button:not(.checked) {
+.show-source-translation-buttons .button:has(input:not(:checked)) {
   background-color: var(--lighter-grey);
   color: black;
+}
+
+.show-source-translation-buttons input[type=radio] {
+  appearance: none;
+  background-color: #fff;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--medium-grey);
+  border-radius: 20px;
+  margin-top: 0;
+  margin-inline-end: 10px;
+  display: inline-grid;
+  place-content: center;
+}
+
+.show-source-translation-buttons input[type=radio]:checked {
+  border: 0;
+}
+
+.show-source-translation-buttons input[type=radio],
+.show-source-translation-buttons label {
+  cursor: unset;
+}
+
+.show-source-translation-buttons > div:first-of-type {
+    border-radius: 6px 6px 0 0;
+}
+
+.show-source-translation-buttons > div:last-of-type {
+    border-radius: 0 0 6px 6px;
+}
+
+.show-source-translation-buttons > div:not(:first-of-type):not(:last-of-type) {
+    border-radius: 0;
+}
+
+.show-source-translation-buttons input[type=radio]:checked::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background-color: var(--sefaria-blue);
+  clip-path: polygon(13% 50%, 34% 66%, 81% 2%, 100% 18%, 39% 100%, 0 71%);
 }
 
 .layout-button-line {
@@ -13954,7 +14008,7 @@ span.ref-link-color-3 {color: blue}
   gap: 16px;
 }
 
-.layout-button {
+.layout-button input {
   border: none;
   width: 28px;
   height: 24px;
@@ -13965,10 +14019,19 @@ span.ref-link-color-3 {color: blue}
   -webkit-mask-size: 100% 100%;
   background-color: var(--medium-grey);
   cursor: pointer;
+  appearance: unset;
+  transition: border 0.3s ease, outline 0.3s ease, background-color 0.3s ease;
 }
 
-.layout-button.checked {
+.layout-button input:checked {
   background-color: var(--sefaria-blue);
+}
+
+.layout-button .button {
+  background-color: unset;
+  box-shadow: unset;
+  padding: unset;
+  margin: unset;
 }
 
 .text-menu-border {
@@ -14343,6 +14406,13 @@ span.ref-link-color-3 {color: blue}
   margin-inline-start: 70px;
   margin-top: 165px;
   margin-bottom: 165px;
+}
+#productsPageContent .loadingMessage {
+  margin-block-start: 230px;
+}
+
+#jobsPageContent .loadingMessage {
+  margin-block-start: 20px;
 }
 
 .productInner {
