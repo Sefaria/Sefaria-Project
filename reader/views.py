@@ -1557,69 +1557,29 @@ def texts_api(request, tref):
 
             return text
         
-        text_ref = Ref(tref)
-        text_title = text_ref.index.get_title("en")
-        if request.user.is_authenticated:
-            user_group_text_list = library.get_text_permission_group(request.user.email)
-            for user_text in user_group_text_list:
-                if text_title == user_text['title']:
-                    if not multiple or abs(multiple) == 1:
-                        text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
-                                         pad=pad,
-                                         alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
-                        return jsonResponse(text, cb)
-                    else:
-                        # Return list of many sections
-                        assert multiple != 0
-                        direction = "next" if multiple > 0 else "prev"
-                        target_count = abs(multiple)
-
-                        current = 0
-                        texts = []
-
-                        while current < target_count:
-                            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
-                                             pad=pad,
-                                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
-                            texts += [text]
-                            if not text[direction]:
-                                break
-                            oref = Ref(text[direction])
-                            current += 1
-                        return jsonResponse(texts, cb)
+        if not multiple or abs(multiple) == 1:
+            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
+                             pad=pad,
+                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+            return jsonResponse(text, cb)
         else:
-            email = request.GET.get("email", None)
-            group_text_list = library.get_text_permission_group(email)
-            for text in group_text_list:
-                if text_title == text['title']:
-                    if not multiple or abs(multiple) == 1:
-                        text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
-                                         pad=pad,
-                                         alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
-                        return jsonResponse(text, cb)
-                    else:
-                        # Return list of many sections
-                        assert multiple != 0
-                        direction = "next" if multiple > 0 else "prev"
-                        target_count = abs(multiple)
-
-                        current = 0
-                        texts = []
-
-                        while current < target_count:
-                            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
-                                             pad=pad,
-                                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
-                            texts += [text]
-                            if not text[direction]:
-                                break
-                            oref = Ref(text[direction])
-                            current += 1
-                        return jsonResponse(texts, cb)
-                
-                
-            return jsonResponse({"error": f"You do not have access permission to this text"}, cb)
-
+            # Return list of many sections
+            assert multiple != 0
+            direction = "next" if multiple > 0 else "prev"
+            target_count = abs(multiple)
+            current = 0
+            texts = []
+            while current < target_count:
+                text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context,
+                                 pad=pad,
+                                 alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                texts += [text]
+                if not text[direction]:
+                    break
+                oref = Ref(text[direction])
+                current += 1
+            return jsonResponse(texts, cb)
+        
     if request.method == "POST":
         j = request.POST.get("json")
         if not j:
@@ -1805,33 +1765,13 @@ def index_api(request, title, raw=False):
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        if request.user.is_authenticated:
-            user_group_text_list = library.get_text_permission_group(request.user.email)
-            for user_text in user_group_text_list:
-                if title == user_text['title']:
-                    with_content_counts = bool(request.GET.get("with_content_counts", False))
-                    i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
-
-                    if request.GET.get("with_related_topics", False):
-                        i["relatedTopics"] = get_topics_for_book(title, annotate=True)
-
-                    return jsonResponse(i, callback=request.GET.get("callback", None))
-            return jsonResponse({"error":f"Either Index is not available OR You are not allowed to access."}, callback=request.GET.get("callback", None))
-        else:
-            email = request.GET.get("email", None)
-            user_group_text_list = library.get_text_permission_group(email)
-            for user_text in user_group_text_list:
-                if title == user_text['title']:
-                    with_content_counts = bool(request.GET.get("with_content_counts", False))
-                    i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
-
-                    if request.GET.get("with_related_topics", False):
-                        i["relatedTopics"] = get_topics_for_book(title, annotate=True)
-
-                    return jsonResponse(i, callback=request.GET.get("callback", None))
-            return jsonResponse({"error":f"Either Index is not available OR You are not allowed to access."}, callback=request.GET.get("callback", None))
         
-            
+        with_content_counts = bool(request.GET.get("with_content_counts", False))
+        i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
+        if request.GET.get("with_related_topics", False):
+            i["relatedTopics"] = get_topics_for_book(title, annotate=True)
+        return jsonResponse(i, callback=request.GET.get("callback", None))
+  
             
     if request.method == "POST":
         # use the update function if update is in the params
