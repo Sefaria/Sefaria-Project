@@ -14,7 +14,7 @@ function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts 
             onClick={() => setShowTexts(isPrimary, isTranslation)}
             value={text}
             name='languageOptions'
-            text={text}
+            label={text}
         />);
     }, [showPrimary, showTranslation]);
 
