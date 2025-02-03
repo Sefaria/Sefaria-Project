@@ -196,10 +196,6 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             if node_depth is None or len(source_ref.sections) + 1 < node_depth:
                 continue
             
-            linkPos   = (pos + 1) % 2
-            linkTref  = link.refs[linkPos]
-            linkRef   = Ref(linkTref)
-            
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
             logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
@@ -289,12 +285,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                             com[versionAttr] = versions
                             com[licenseAttr] = licenses
                             com[vtitleInHeAttr] = versionTitlesInHebrew
-                            
-            user_email = get_current_user()  
-            text_list = library.get_text_permission_group(user_email)  
-            for text in text_list:
-                if linkRef.index.get_title("en") == text['title']:     
-                    links.append(com)
+            links.append(com)
         except NoVersionFoundError as e:
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
