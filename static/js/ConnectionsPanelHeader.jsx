@@ -117,7 +117,7 @@ class ConnectionsPanelHeader extends Component {
       const toggleLang = Sefaria.util.getUrlVars()["lang2"] === "en" ? "he" : "en";
       const langUrl = Sefaria.util.replaceUrlParam("lang2", toggleLang);
       const closeUrl = Sefaria.util.removeUrlParam("with");
-      const showOneLanguage = !Sefaria._siteSettings.TORAH_SPECIFIC;
+      const showOneLanguage = !Sefaria._siteSettings.TORAH_SPECIFIC || Sefaria.interfaceLang === "hebrew";
       const toggleButton =  (showOneLanguage) ? null : (this.props.connectionsMode === 'TextList') ?
           <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu> :
             <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />;
