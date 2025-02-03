@@ -508,7 +508,6 @@ class TocTextIndex(TocNode):
             self.order = self._index_object.order[0]
 
     def get_index_object(self):
-        print("index >>>>>>>>>>>>>>>>>>>>>>>>", self._index_object)
         return self._index_object
 
     optional_param_keys = [

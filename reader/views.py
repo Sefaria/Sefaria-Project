@@ -333,7 +333,6 @@ def catchall(request, tref, sheet=None):
     def reader_redirect(uref):
         # Redirect to standard URLs
         url = "/" + uref
-        print("url>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", url)
         response = redirect(iri_to_uri(url), permanent=True)
         params = request.GET.urlencode()
         response['Location'] += "?%s" % params if params else ""
