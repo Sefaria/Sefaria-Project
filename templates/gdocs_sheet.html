@@ -2112,7 +2112,7 @@ a {
 						{% elif source.options.sourceLanguage == "english" %}
 							{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
 						{% else %}
-							{% if source.options.sourceLayout == "stacked" %}
+							{% if source.options.sourceLangLayout == "stacked" %}
 								{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
 								{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
 							{% else %}
@@ -2142,12 +2142,12 @@ a {
 							{% endif %}
 
 							<div class="text">
-								{% if sheet.options.layout == "stacked" %}
+								{% if sheet.options.sourceLangLayout == "stacked" %}
 									<div class="he">{{ source.outsideBiText.he }}</div>
 									<div class="en">{{ source.outsideBiText.en }}</div>
 								{% else %}
 									<table border="0"><tr><td>
-									{% if sheet.options.langLayout == "heLeft" %}
+									{% if sheet.options.sourceLangLayout == "heLeft" %}
 										<div class="he">{{ source.outsideBiText.he }}</div>
 										</td><td>
 										<div class="en">{{ source.outsideBiText.en }}</div>

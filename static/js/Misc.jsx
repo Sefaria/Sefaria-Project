@@ -23,7 +23,10 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import { ReaderApp } from './ReaderApp';
+import { ToolsButton } from "./ConnectionsPanel";
+import {DropdownMenu, DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -2635,21 +2638,26 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
-const SheetMetaDataBoxSegment = (props) => (
-  <div className={props.className}
-    role="heading"
-    aria-level="1"
-    contentEditable={props.editable}
-    suppressContentEditableWarning={true}
-    onBlur={props.editable ? props.blurCallback : null}
-    style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" :"ltr"}}
+const SheetMetaDataBoxSegment = (props) => {
+  const handleBlur = (e) => {
+    let content = e.target.textContent.trim(); // It seems browsers insert a <br> tag when div content is deleted by user, so we need to trim it.
+    if (content === '') {
+      e.target.innerHTML = ''; 
+    }
+    if (props.blurCallback) {
+      props.blurCallback(content);
+    }
+  }
+  return <div className={props.className}
+              role="heading"
+              aria-level="1"
+              contentEditable={props.editable}
+              suppressContentEditableWarning={true}
+              onBlur={props.editable && handleBlur}
   >
-  {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+    {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
   </div>
-);
-SheetMetaDataBoxSegment.propTypes = {
-  title: PropTypes.string,
-};
+}
 
 
 const SheetAuthorStatement = (props) => (
@@ -2799,13 +2807,20 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, sheetOptions, editable}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+  const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
-    <div className="sidebarLayout">
-      <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
-      {sheetOptions}
+    <div className={`sidebarLayout`}>
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
+      <div className="items">
+        {languageToggle}
+        {sheetOptions}
+      </div>
     </div>
-    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
+    {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
+                                                       className="summary"
+                                                       editable={editable}
+                                                       blurCallback={summaryCallback}/>}
   </div>
 }
 
@@ -3140,7 +3155,7 @@ const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const [lang, setLang] = useState(defaultVal);
   const buttonData = [
-  { buttonTitle: "Source Language", buttonId: "source" },
+  { buttonTitle: "Source", buttonId: "source" },
   { buttonTitle: "Translation", buttonId: "translation" },
   { buttonTitle: "Source with Translation", buttonId: "sourcewtrans" }
 ];
@@ -3179,7 +3194,6 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
         }
       }
     >
-      <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
        {buttonData.map((button, index) => (
         <LangRadioButton
           key={button.buttonId}
