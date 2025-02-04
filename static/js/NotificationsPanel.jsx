@@ -211,7 +211,7 @@ const FollowNotification = ({date, content}) => {
   const topLine = (
     <>
       <a href={content.profileUrl}>{content.name}</a>&nbsp;
-      <InterfaceText>notifcation.is_following_you"</InterfaceText>
+      <InterfaceText>notifcation.is_following_you</InterfaceText>
     </>
   );
 

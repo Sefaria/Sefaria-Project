@@ -635,7 +635,6 @@ class ReaderPanel extends Component {
   }
  
   render() {
-    console.log("book ref:",Sefaria.index(this.state.bookRef))
     if (this.state.error) {
       return (
         <div
