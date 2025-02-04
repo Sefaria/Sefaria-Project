@@ -1,0 +1,16 @@
+.button.sefaria-common-button {
+  background-color: var(--theme-button-background);
+  color: var(--theme-button-text);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+}
+
+.panel {
+  background-color: var(--theme-background);
+  color: var(--theme-text);
+}
+
+.button.sefaria-common-button.secondary {
+  background-color: var(--theme-secondary);
+}

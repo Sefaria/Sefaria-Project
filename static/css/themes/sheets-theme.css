@@ -1,0 +1,30 @@
+[data-active-module="sheets"] {
+  /* Define default theme variables */
+  --theme-primary: var(--sheets-green);
+  --theme-background: var(--lightest-grey); /** just an example **/
+  --theme-text: var(--beit-midrash-grey);  /** just an example **/
+  --theme-button-background: var(--theme-primary);
+  --theme-button-text: white;
+
+  /* font stacks */
+  --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
+
+  --english-serif-font-family: "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
+  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+
+  --serif-h1-font-size: 48px;
+  --serif-h2-font-size: 30px;
+  --serif-h3-font-size: 24px;
+  --serif-body-font-size: 18px;
+  --serif-small-font-size: 14px;
+
+  --sans-serif-h1-font-size: 40px;
+  --sans-serif-h2-font-size: 30px;
+  --sans-serif-h3-font-size: 22px;
+  --sans-serif-body-font-size: 16px;
+  --sans-serif-small-font-size: 14px;
+}
+
+/* placeholder for dark theme colors */
+@media (prefers-color-scheme: dark) {}
