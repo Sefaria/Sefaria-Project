@@ -199,7 +199,6 @@ class TextList extends Component {
     var filter             = this.props.filter; // Remove filterSuffix for display
     var displayFilter      = filter.map(filter => filter.split("|")[0]);  // Remove filterSuffix for display
     var links              = this.getLinks();
-    console.log("links : ", links, this.state.waitForText,this.state.textLoaded)
 
     // this.state.waitForText && !this.state.textLoaded
     var enText = filter.length ? displayFilter.join(", "): ""
@@ -209,7 +208,7 @@ class TextList extends Component {
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length === 0 ? message :
-                  this.state.waitForText ?
+                  this.state.waitForText && this.state.textLoaded ?
                     (<LoadingMessage />) :
                     links.map(function(link, i) {
                         if (link.isSheet) {
