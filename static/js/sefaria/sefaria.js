@@ -601,6 +601,7 @@ Sefaria = extend(Sefaria, {
     "bn": {"name": "Bengali", "i18nString": "language.bengali", "showTranslations": 1},
     "ur": {"name": "Urdu", "i18nString": "language.urdu", "showTranslations": 1},
     "sv": {"name": "Swedish", "i18nString": "language.swedish", "showTranslations": 1},
+    "sa": {"name": "Sanskrit", "i18nString": "language.sanskrit", "showTranslations": 1},
     "da": {"name": "Danish", "i18nString": "language.danish", "showTranslations": 1},
     "no": {"name": "Norwegian", "i18nString": "language.norwegian", "showTranslations": 1},
     "nl": {"name": "Dutch", "i18nString": "language.dutch", "showTranslations": 1},
