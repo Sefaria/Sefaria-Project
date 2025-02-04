@@ -5122,6 +5122,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoButton {
+  border: none;
+  font-size: 16px;
   border-radius: 6px;
   background-color: white;
   padding: 5px 11px;
@@ -14406,8 +14408,8 @@ span.ref-link-color-3 {color: blue}
 }
 
 #productsPageContent {
-  margin-inline-start: 70px;
-  margin-top: 165px;
+  margin-inline-start: 100px;
+  margin-top: 140px;
   margin-bottom: 165px;
 }
 #productsPageContent .loadingMessage {
