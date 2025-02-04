@@ -125,7 +125,8 @@ const scrollBrowseTopicsIntoView = (e) =>{
     const scrollableParent = document.querySelector('.content');
     const headerInner = document.querySelector('.headerInner');
     const height = headerInner.offsetHeight;
-    _scrollTo(scrollToElement, scrollableParent,  -height)
+    const extraBuffer = 10;
+    _scrollTo(scrollToElement, scrollableParent,  -(height+extraBuffer))
 }
 
 export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
