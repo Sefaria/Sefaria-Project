@@ -1347,50 +1347,6 @@ MenuButton.propTypes = {
 };
 
 
-// class NavigateBackButton extends Component {
-//   onClick(e) {
-//     e.preventDefault();
-//     window.history.back(); 
-//   }
-
-//   render() {
-//     return (
-//       <a href="#" className="navigateBackButton" onClick={this.onClick.bind(this)}>
-//         <i className="fa fa-chevron-left"></i> {/* Font Awesome chevron-left icon */}
-//       </a>
-//     );
-//   }
-// }
-
-class NavigateBackButton extends Component {
-  onClick(e) {
-    e.preventDefault();
-    let newCurrentRef = this.props.currentRef;
-    
-    // Remove trailing numbers from currentRef
-    currentRef = newCurrentRef.replace(/\d+$/, '');
-
-    const currentRef = this.props.currentRef;
-    if (currentRef) {
-      window.location.href = `/${currentRef}?tab=contents`;
-    }
-    console.log("this is currentRef", currentRef)
-  }
-
-  render() {
-    return (
-      <a href="#" className="navigationBackButton" onClick={this.onClick.bind(this)}>
-        <i className="fa fa-arrow-left"></i>
-      </a>
-    );
-  }
-}
-
-NavigateBackButton.propTypes = {
-  currentRef: PropTypes.string
-};
-
-
 class CloseButton extends Component {
   onClick(e) {
     e.preventDefault();
@@ -3404,7 +3360,6 @@ export {
   ProfileListing,
   ProfilePic,
   ReaderMessage,
-  NavigateBackButton,
   CloseButton,
   DisplaySettingsButton,
   MenuButton,
