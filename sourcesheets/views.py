@@ -1088,9 +1088,7 @@ def sheet_to_html_string(sheet, options):
     for source in sheet['sources']:
         if 'text' not in source:
             continue
-        source['options']['sourceLanguage'] = options['lang']
-        source['options']['sourceLayout'] = options['layout']
-        source['options']['sourceLangLayout'] = options['langLayout']
+        source['options'] = options
 
     try:
         owner = User.objects.get(id=sheet["owner"])
@@ -1126,10 +1124,8 @@ def export_to_drive(request, credential, sheet_id):
     service = build('drive', 'v3', credentials=credential, cache_discovery=False)
     user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
 
-    options = {}
-    options['lang'] = request.GET.get("lang", "bilingual")
-    options['layout'] = request.GET.get("layout", "sideBySide")  # if 'lang' is not bilingual, this is irrelevant; can be sideBySide or stacked
-    options['langLayout'] = request.GET.get("langLayout", "heRight")  # if 'lang' is not bilingual, this is irrelevant; determines lang order for bilingual text
+    options = {'sourceLanguage': request.GET.get("lang", "bilingual"),
+               'sourceLangLayout': request.GET.get("langLayout", "heRight")}
 
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:

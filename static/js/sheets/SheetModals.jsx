@@ -2,11 +2,13 @@ import Modal from "../common/modal";
 import { ShareBox } from "../ConnectionsPanel";
 import { CollectionsWidget } from "../CollectionsWidget";
 import { AddToSourceSheetBox } from "../AddToSourceSheet";
-import React, { useEffect, useState } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
 import { InterfaceText } from "../Misc";
 import Button from "../common/Button";
 import ReactTags from "react-tag-autocomplete";
+import {layoutOptions} from "../constants";
+import {ReaderPanelContext} from "../context";
 
 const ShareModal = ({sheetID, close}) => {
   return <Modal close={close}>
@@ -127,13 +129,19 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
     exportComplete: {en: "Success!", he: "ייצוא הסתיים"}
   }
+  const {language, layout} = useContext(ReaderPanelContext);
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
   const exportToDrive = async () => {
     if (googleDriveText.en === googleDriveState.exporting.en) {
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       try {
-        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive`, null, {}, "POST", false);
+        let langLayout = '';
+        if (language === "bilingual") {
+          langLayout = layoutOptions["mixed"].find(option => option === layout);
+        }
+
+        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?lang=${language}&langLayout=${langLayout}`, null, {}, "POST", false);
         if (response.status === 401) {
           // couldn't authenticate, so forward to google authentication
           window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
