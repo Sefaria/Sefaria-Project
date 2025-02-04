@@ -1365,12 +1365,10 @@ MenuButton.propTypes = {
 class NavigateBackButton extends Component {
   onClick(e) {
     e.preventDefault();
-    let newCurrentRef = this.props.currentRef;
+    let currentRef = this.props.currentRef;
     
     // Remove trailing numbers from currentRef
-    currentRef = newCurrentRef.replace(/\d+$/, '');
-
-    const currentRef = this.props.currentRef;
+    currentRef = currentRef.replace(/\d+$/, '');
     if (currentRef) {
       window.location.href = `/${currentRef}?tab=contents`;
     }
@@ -1380,7 +1378,7 @@ class NavigateBackButton extends Component {
   render() {
     return (
       <a href="#" className="navigationBackButton" onClick={this.onClick.bind(this)}>
-        <i className="fa fa-arrow-left"></i>
+        <i className="fa fa-chevron-left" style={{ color: 'grey' }}></i>
       </a>
     );
   }
