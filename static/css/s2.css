@@ -227,7 +227,7 @@ a, a:hover {
     --miscelaneous-green: #3B5849;
     --selected-option: #000000;
     --select-blue: #0B71E7;
-    --pecha-red: #b5343c;
+    --pecha-red: #C39F48;
     --highlight-red: #cc7273;
     --highlight-red-light: #eccbcc;
     --inline-link-red: #cc5454;
@@ -11256,7 +11256,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed {
     padding: 5px 10px;
     font-size: 12px;
     font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-    background-color: #b84045;
+    background-color: #C39F48;
     color: white;
     border: var(--talmud-gold) 1px solid;
     border-radius: 5px;
@@ -13478,7 +13478,7 @@ section.SheetSource .SheetOutsideBiText {
 
 .resourcesLink.blue {
     color: white;
-    background-color: #18345d;
+    background-color: #C39F48;
 }
 
 .resourcesLink.blue img {
@@ -14590,7 +14590,7 @@ body .homeFeedWrapper.userStats {
 }
 
 .userStatModeButton.active {
-    background-color: #19365d;
+    background-color: #C39F48;
     color: #fff;
 }
 
