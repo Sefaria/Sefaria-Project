@@ -3,6 +3,7 @@ from django.db.models.query import QuerySet
 import random
 from django_topics.models.pool import TopicPool
 from collections import defaultdict
+from django.contrib.postgres.fields import JSONField
 
 
 class TopicManager(models.Manager):
@@ -41,11 +42,12 @@ class Topic(models.Model):
     en_title = models.CharField(max_length=255, blank=True, default="")
     he_title = models.CharField(max_length=255, blank=True, default="")
     pools = models.ManyToManyField(TopicPool, related_name="topics", blank=True)
+    metadata = JSONField(blank=True, default=dict)
     objects = TopicManager()
 
     class Meta:
         verbose_name = "Topic Pool Management"
         verbose_name_plural = "Topic Pool Management"
 
-    def __str__(self):
+    def _str_(self):
         return self.slug
