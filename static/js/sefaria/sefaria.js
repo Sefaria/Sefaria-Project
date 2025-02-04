@@ -244,7 +244,7 @@ Sefaria = extend(Sefaria, {
     //We need numerical representations of the sections, and not to trip up on talmud sections
     if (oRef2.index !== oRef2.index || oRef1.book !== oRef2.book) { return false; }
     const [oRef1sections, oRef1toSections, oRef2sections, oRef2toSections] = [oRef1.sections, oRef1.toSections, oRef2.sections, oRef2.toSections].map(arr =>
-        arr.map(x => x.match(/\d+[ab]/) ? Sefaria.hebrew.dafToInt(x) : parseInt(x))
+        arr.map(x => Sefaria.util.parseInt(x))
     )
 
     const sectionsLen = Math.min(oRef1sections.length, oRef2sections.length);
@@ -1754,14 +1754,12 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSortHebrew: function(category, a, b) {
     return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
-  commentarySectionRef: function(commentator, baseRef) {
+  commentarySectionRef: function(commentator, baseRef, numSectionsLimit = 5) {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
-    // Even though most commentaries have a 1:1 structural match to basetexts, this is not alway so.
+    // Even though most commentaries have a 1:1 structural match to basetexts, this is not always so.
     // Works by examining links available on baseRef, returns null if no links are in cache.
-    if (commentator == "Abarbanel") {
-      return null; // This text is too giant, optimizing up to section level is too slow. TODO: generalize.
-    }
+    // Also returns null if there are more sections between the start and end of the commentary ref than `numSectionsLimit`
     var links = Sefaria.getLinksFromCache(baseRef);
     links = Sefaria._filterLinks(links, [commentator]);
     if (!links || !links.length || links[0].isSheet) { return null; }
@@ -1769,30 +1767,35 @@ Sefaria = extend(Sefaria, {
     var pRefs = links.map(link => Sefaria.parseRef(link.sourceRef));
     if (pRefs.some(pRef => "error" in pRef)) { return null; } // Give up on bad refs
 
-    var books = pRefs.map(pRef => pRef.book).unique();
+    const books = pRefs.map(pRef => pRef.book).unique();
     if (books.length > 1) { return null; } // Can't handle multiple index titles or schemaNodes
 
+    let startSections, endSections;
     try {
-      var startSections = pRefs.map(pRef => pRef.sections[0]);
-      var endSections   = pRefs.map(pRef => pRef.toSections[0]);
+      startSections = pRefs.map(pRef => pRef.sections[0]);
+      endSections   = pRefs.map(pRef => pRef.toSections[0]);
     } catch(e) {
       return null;
     }
 
     const sorter = (a, b) => {
-      return a.match(/\d+[ab]/) ?
-        Sefaria.hebrew.dafToInt(a) - Sefaria.hebrew.dafToInt(b)
-        : parseInt(a) - parseInt(b);
+      return Sefaria.util.parseInt(a) - Sefaria.util.parseInt(b);
     };
 
-    var commentaryRef = {
-      book: books[0],
-      sections: startSections.sort(sorter).slice(0,1),
-      toSections: endSections.sort(sorter).reverse().slice(0,1)
-    };
-    var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryRef));
+    const start = startSections.sort(sorter)[0];
+    const end = endSections.sort(sorter).reverse()[0];
 
-    return ref;
+    if (Sefaria.util.parseInt(end) - Sefaria.util.parseInt(start) > numSectionsLimit) {
+      return null; // Too many sections in between
+    }
+    else {
+      const commentaryRef = {
+        book: books[0],
+        sections: [start],
+        toSections: [end]
+      };
+      return Sefaria.humanRef(Sefaria.makeRef(commentaryRef));
+    }
   },
     _descDict: {}, // cache for the description dictionary
       getDescriptions: function(keyName, categoryList) {
