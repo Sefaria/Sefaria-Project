@@ -116,8 +116,11 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
 }
 
 function _scrollTo(element, scrollableParent=window, yOffset = 0){
-  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-  scrollableParent.scrollTo({top: y, behavior: 'smooth'});
+  const elementRect = element.getBoundingClientRect();
+  const parentRect = scrollableParent.getBoundingClientRect();
+  const scrollY = scrollableParent.scrollTop;
+  const y = elementRect.top + scrollY - parentRect.top + yOffset;
+  scrollableParent.scrollTo({ top: y, behavior: 'smooth' })
 }
 
 const scrollBrowseTopicsIntoView = (e) =>{
@@ -125,7 +128,7 @@ const scrollBrowseTopicsIntoView = (e) =>{
     const scrollableParent = document.querySelector('.content');
     const headerInner = document.querySelector('.headerInner');
     const height = headerInner.offsetHeight;
-    const extraBuffer = 10;
+    const extraBuffer = 16;
     _scrollTo(scrollToElement, scrollableParent,  -(height+extraBuffer))
 }
 
