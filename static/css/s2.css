@@ -8564,7 +8564,7 @@ a.sheetAuthorName:hover {
   display: flex;
   justify-content: space-between;
 }
-.sheetMetaDataBox .sidebarLayout .items > * {
+.sheetMetaDataBox .sidebarLayout .items > :not(dialog)  {
   margin-inline-start: 15px;
 }
 .sheetMetaDataBox .texts-properties-menu {
