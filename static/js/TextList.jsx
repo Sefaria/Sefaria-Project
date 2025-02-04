@@ -95,6 +95,7 @@ class TextList extends Component {
     var commentator       = filter[0];
     var basetext          = this.getSectionRef();
     var commentarySection = Sefaria.commentarySectionRef(commentator, basetext);
+    console.log("commentary text,, ", commentator, basetext, commentarySection);
     if (!commentarySection) {
       this.setState({waitForText: false});
       return;
@@ -198,6 +199,7 @@ class TextList extends Component {
     var filter             = this.props.filter; // Remove filterSuffix for display
     var displayFilter      = filter.map(filter => filter.split("|")[0]);  // Remove filterSuffix for display
     var links              = this.getLinks();
+    console.log("links : ", links, this.state.waitForText,this.state.textLoaded)
 
     
     var enText = filter.length ? displayFilter.join(", "): ""
@@ -207,7 +209,7 @@ class TextList extends Component {
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length === 0 ? message :
-                  this.state.waitForText && !this.state.textLoaded ?
+                  this.state.waitForText ?
                     (<LoadingMessage />) :
                     links.map(function(link, i) {
                         if (link.isSheet) {
