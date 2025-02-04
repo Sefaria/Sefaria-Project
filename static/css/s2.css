@@ -13478,7 +13478,7 @@ section.SheetSource .SheetOutsideBiText {
 
 .resourcesLink.blue {
     color: white;
-    background-color: #18345d;
+    background-color: #c44c54;
 }
 
 .resourcesLink.blue img {
@@ -14590,7 +14590,7 @@ body .homeFeedWrapper.userStats {
 }
 
 .userStatModeButton.active {
-    background-color: #19365d;
+    background-color: #c44c54;
     color: #fff;
 }
 
