@@ -201,7 +201,7 @@ class TextList extends Component {
     var links              = this.getLinks();
     console.log("links : ", links, this.state.waitForText,this.state.textLoaded)
 
-    
+    // this.state.waitForText && !this.state.textLoaded
     var enText = filter.length ? displayFilter.join(", "): ""
     var en = Sefaria._('text.message.no_connection', {text: enText});
     var heText = displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") == "Commentary" ? Sefaria._('text.commentary') : displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ")
