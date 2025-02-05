@@ -1,13 +1,11 @@
 from django.db import models
-from django.db.models.query import QuerySet
 import random
+import pandas as pd
 from django_topics.models.pool import TopicPool
-from collections import defaultdict
 
 
 class TopicManager(models.Manager):
-    slug_to_pools = {}
-
+    slug_pools_dataframe: pd.DataFrame = None
 
     def sample_topic_slugs(self, order, pool: str = None, limit=10) -> list[str]:
         if pool:
@@ -19,22 +17,12 @@ class TopicManager(models.Manager):
         else:
             raise Exception("Invalid order: '{}'".format(order))
 
-    def get_pools_by_topic_slug(self, topic_slug: str) -> QuerySet:
-        if not self.slug_to_pools:
-            self.build_slug_to_pools_cache()
-        return self.slug_to_pools.get(topic_slug, [])
+    def get_pools_by_topic_slug(self, topic_slug: str) -> list:
+        return self.slug_pools_dataframe[self.slug_pools_dataframe['slug'] == topic_slug]['pool'].tolist()
 
-    def get_topic_slugs_by_pool(self, pool: str) -> QuerySet:
-        return self.filter(pools__name=pool).values_list("slug", flat=True)
+    def get_topic_slugs_by_pool(self, pool: str) -> list:
+        return self.slug_pools_dataframe[self.slug_pools_dataframe['pool'] == pool]['slug'].tolist()
 
-    def build_slug_to_pools_cache(self, rebuild=False):
-        if rebuild or not self.slug_to_pools:
-            new_slug_to_pools = defaultdict(list)
-            topics = self.model.objects.values_list('slug', 'pools__name')
-            for slug, pool_name in topics:
-                if pool_name:
-                    new_slug_to_pools[slug].append(pool_name)
-            self.slug_to_pools = new_slug_to_pools
 
 class Topic(models.Model):
     slug = models.CharField(max_length=255, primary_key=True)
