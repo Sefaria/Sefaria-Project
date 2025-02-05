@@ -5,6 +5,11 @@ from django_topics.models.pool import TopicPool
 
 
 class TopicManager(models.Manager):
+    SLUG_COLUMN       = 'slug'
+    POOL_COLUMN       = 'pool'
+    EN_DESCRIPTION    = 'en_description'
+    HE_DESCRIPTION    = 'he_description'
+    
     slug_pools_dataframe: pd.DataFrame = pd.DataFrame
 
     def sample_topic_slugs(self, order, pool: str = None, limit=10) -> list[str]:

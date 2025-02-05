@@ -1,4 +1,4 @@
-from django_topics.models.topic_cache import TopicPoolsCacheManager
+from django_topics.models.topic_cache import build_slug_to_pools_cache
 
 def init_library_cache():
     import django
@@ -10,7 +10,7 @@ def init_library_cache():
     from sefaria.system.multiserver.coordinator import server_coordinator
     from django.conf import settings
     logger.info("Initializing topic pools cache")
-    TopicPoolsCacheManager().build_slug_to_pools_cache()
+    build_slug_to_pools_cache()
     logger.info("Initializing library objects.")
     logger.info("Initializing TOC Tree")
     library.get_toc_tree()
