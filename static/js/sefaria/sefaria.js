@@ -764,7 +764,7 @@ Sefaria = extend(Sefaria, {
       Sefaria._portals[portalSlug] = response;
       return response;
   },
-    getTopicLandingNewsletterLists: function(){
+    getTopicLandingNewsletterMailingLists: function(){
       return this.interfaceLang === "english" ? ["Weekly Topics Newsletter"] : []
     },
   subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck, lists=[]) {
