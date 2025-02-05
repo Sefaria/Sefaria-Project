@@ -1,6 +1,9 @@
 # Use node-python image as the base image
 FROM beevk/node-python:0.2
 
+RUN python --version
+RUN which python
+
 # Set the working directory inside the container
 WORKDIR /app
 
