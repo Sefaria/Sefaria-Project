@@ -18,7 +18,7 @@ function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts 
     };
 
     return (
-      <div className="show-source-translation-buttons" role="radiogroup" aria-label="Source-translation toggle">
+      <div className="show-source-translation-buttons" aria-label="Source-translation toggle">
           {createButton(true, false, 'Source')}
           {createButton(false, true, 'Translation')}
           {!isSidePanel && createButton(true, true, 'Source with Translation')}
