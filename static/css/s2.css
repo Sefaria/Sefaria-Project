@@ -2191,7 +2191,7 @@ div.interfaceLinks-row a {
   left: -180px;
 }
 .guideHeader .ai-info-tooltip .ai-info-icon {
-    margin-top: 5px;
+  margin-top: 5px;
 }
 .ai-info-last-message {
   align-items: center;
@@ -2220,6 +2220,7 @@ div.interfaceLinks-row a {
 
 .ai-info-tooltip .ai-info-icon{
   margin-top: 12px;
+  margin-inline-end: -2px;
 }
 .ai-info-tooltip{
   position: relative;
