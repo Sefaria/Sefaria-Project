@@ -145,8 +145,8 @@ const TextColumnBannerButton = ({ button, closeBanner }) => {
         if (button.sideEffect === "close") { closeBanner(true); }
     }
     return (
-        <a className="yesNoButton" onClick={onClick}>
+        <button tabIndex="0" className="yesNoButton" aria-label={button.text} onClick={onClick}>
             <InterfaceText>{button.text}</InterfaceText>
-        </a>
+        </button>
     );
 }

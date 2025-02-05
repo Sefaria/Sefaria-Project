@@ -39,6 +39,22 @@
   margin: 0 0 60px 0;
   height: auto;
 }
+.interface-hebrew h1.aboutHeader {
+  padding-top: 5px;
+}
+.interface-english h1.aboutHeader {
+  padding-top: 2px;
+}
+#aboutSidebar.mobileAbout h1, h1.aboutHeader {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 22px;
+  text-align: start;
+  line-height: 26px;
+  color: var(--dark-grey);
+}
 .static h2 {
   font-weight: lighter;
   font-size: 16px;
@@ -1317,7 +1333,6 @@ p.registration-links a:hover{
   font-size: 18px;
 }
 .static.legal iframe {
-  margin-top: -600px;
   width: 100%;
   height: 600px;
   border: 1px solid #aaa;
@@ -3240,23 +3255,11 @@ display: none;
   filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
 }
 
-#aboutPage .inner {
-  margin-top: 45px;
-}
 div .notificationsList {
   margin-top: -20px;
 }
 form.globalUpdateForm + div.notificationsList {
   margin-top: 20px;
-}
-#teamPage .inner {
-  margin-top: 90px;
-}
-.interface-hebrew #jobsPage .inner {
-  margin-top: 70px;
-}
-.interface-english #jobsPage .inner {
-  margin-top: 65px;
 }
 #aboutHeader {
   color: white;
@@ -3312,7 +3315,7 @@ form.globalUpdateForm + div.notificationsList {
 }
 
 #aboutSidebar {
-  margin-top: 70px;
+  margin-top: 120px;
 }
 .interface-hebrew #aboutSidebar.updates {
   left: revert;
@@ -3371,9 +3374,6 @@ form.globalUpdateForm + div.notificationsList {
 }
 #aboutSidebar a:hover {
   text-decoration: underline;
-}
-.annualReport {
-  padding-top: 85px;
 }
 .interface-hebrew .annualReport {
   padding-top: 95px;
@@ -3437,20 +3437,8 @@ form.globalUpdateForm + div.notificationsList {
   padding: 5px;
   margin-left: -5px;
 }
-#testimonialsPage .inner {
-  margin-top: 80px;
-}
-.interface-hebrew #testimonialsPage .inner {
-  margin-top: 90px;
-}
-#supportersPage .inner {
-  margin-top: 85px;
-}
-#metricsPage .inner {
-  margin-top: 60px;
-}
 #updatesPanelContent .readerNavMenu .content .contentInner {
-    margin-top: 160px;
+    margin-top: 80px;
 }
 #updatesPage .readerNavMenu {
     position: relative;
@@ -3459,12 +3447,6 @@ form.globalUpdateForm + div.notificationsList {
     margin-left: 200px;
 }
 
-.mobileAboutHeader, .updatesHeader, .jobsHeader {
-  display: none;
-}
-.container.doc.legal.static .inner {
-  margin-top: 675px;
-}
 .container.doc.legal.static .inner,
 #annualReport .inner,
 #metricsPage .inner,
@@ -3476,7 +3458,7 @@ form.globalUpdateForm + div.notificationsList {
   margin-inline-start: 100px;
 }
 #updatesPanelContent .readerNavMenu .content .contentInner {
-  margin-inline-start: 100px;
+  margin-inline-start: 70px;
 }
 .interface-hebrew #testimonialsPage .inner {
   margin-inline-start: auto;
@@ -3507,6 +3489,7 @@ form.globalUpdateForm + div.notificationsList {
       margin-right: 20px;
     }
 }
+
 @media (max-width: 480px) {
   .container.doc.legal.static .inner, #annualReport .inner, #metricsPage .inner, #supportersPage .inner,
   #testimonialsPage .inner, #aboutPage .inner, #teamPage .inner, #jobsPage .inner {
@@ -3561,9 +3544,6 @@ form.globalUpdateForm + div.notificationsList {
   .interface-english #teamPage .inner {
     margin-top: -75px;
   }
-  .interface-hebrew .about.section {
-    padding-top: 50px;
-  }
   div #metricsBox {
     margin-top: 50px;
   }
@@ -3598,20 +3578,12 @@ form.globalUpdateForm + div.notificationsList {
     margin: 0;
     padding-top: 55px;
   }
-  #aboutSidebar.mobileAbout h1, h1.mobileAboutHeader {
-    font-family: 'Roboto', sans-serif;
-    font-style: normal;
-    font-weight: 500;
-    font-size: 22px;
-    text-align: left;
-    line-height: 26px;
-    color: var(--dark-grey);
+  h1.aboutHeader {
+    margin: 40px 0 40px 0;
+    padding-top: 0;
   }
-  .interface-hebrew h1.mobileAboutHeader, .interface-hebrew #aboutSidebar h1 {
-    text-align: right;
-  }
-  h1.mobileAboutHeader {
-    margin: 40px 0 0 0;
+  div#productsPageContent h1.aboutHeader {
+    margin: revert;
   }
   .interface-english #aboutSidebar li {
     margin-left: 5px;
@@ -3628,20 +3600,10 @@ form.globalUpdateForm + div.notificationsList {
   div .section.leading-supporters {
     margin-top: 40px;
   }
-
-  .updatesHeader, .jobsHeader, .mobileAboutHeader {
-    display: block;
-  }
-  .static.legal iframe {
-    margin-top: 60px;
-  }
 }
 #metricsBox {
   margin-top: 30px;
 }
 .updateTextarea {
   width: 100%;
-}
-.about.section {
-  padding-top: 40px;
 }

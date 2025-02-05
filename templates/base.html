@@ -71,7 +71,7 @@
     <script>
         WebFont.load({
           google: {
-            families: ['Crimson Text:400,700'],
+            families: ['Crimson Text:100,200,300,400,500,600,700,800,900'],
             text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗęîїìi̧ ̆̄'
           },
           typekit: {
@@ -80,7 +80,7 @@
         });
         WebFont.load({
           google: {
-            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew'] // The dotted h causes Heebo not to load.
+            families: ['Roboto:100,200,300,400,500,600,700,800,900', 'Heebo:100,200,300,400,500,600,700,800,900:hebrew'] // The dotted h causes Heebo not to load.
           }
         });
         WebFont.load({
@@ -259,7 +259,8 @@
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', '{{ GOOGLE_GTAG }}', {
-              'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null
+              'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null,
+              'traffic_type': DJANGO_VARS.props && DJANGO_VARS.props._email.includes('sefaria.org') ? 'sefariaemail' : null
             });
 
             <!-- attach analyticsEventTracker -->

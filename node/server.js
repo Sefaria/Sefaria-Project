@@ -99,7 +99,7 @@ router.get('/error', function(req, res, next) {
   return next(new Error("This is an error and it should be logged to the console"));
 });
 
-router.post('/ReaderApp/:cachekey', function(req, res) {
+router.post('/ReaderApp/:cachekey', function(req, res, next) {
   // timing stored on locals so that it gets returned with the result to be logged
   const timer = res.locals.timing = {
     start: new Date(),
@@ -128,11 +128,11 @@ router.post('/ReaderApp/:cachekey', function(req, res) {
       delete res.locals.timing.elapsed;  // no need to pass this around
 
       res.end(resphtml);
-    } catch (render_e){
-      logger.error(render_e);
+    } catch (render_e) {
+      return next(render_e);
     }
   }).catch(error => {
-    res.status(500).end('Data required for render is missing:  ' + error.message);
+    return next(error);
   });
 });
 

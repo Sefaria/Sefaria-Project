@@ -154,8 +154,8 @@ class ReaderPanel extends Component {
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
     } else if ((mode === "Connections" && connectionsMode !== 'TextList') || !!menuOpen){
-      // Default bilingual to interface language
-      contentLangOverride = (originalLanguage === "bilingual") ? Sefaria.interfaceLang : originalLanguage;
+      // Always Hebrew for Hebrew interface, treat bilingual as English for English interface
+      contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
     }
     return contentLangOverride;
   }

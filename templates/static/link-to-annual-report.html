@@ -7,14 +7,12 @@
 {% block content %}
 <div class="superAbout">
     {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='annualreport' title="Annual Report" heTitle='דו"ח שנתי' %}
+        {% include '_sidebar.html' with whichPage='annualreport' %}
     {% endif %}
     <main id="annualReport" class="container biReady static">
         <div class="inner">
-            {% if request.user_agent.is_mobile %}
-                <h1 class="mobileAboutHeader"><span class="int-en">Annual Report</span>
+                <h1 class="aboutHeader"><span class="int-en">Annual Report</span>
                 <span class="int-he">דו"ח שנתי</span></h1>
-            {% endif %}
             <div class="annualReport"><a href="/annualreport">Open the Current Annual Report (PDF)</a></div>
         </div>
     </main>
