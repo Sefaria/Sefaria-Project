@@ -1,7 +1,8 @@
 from django.contrib import admin, messages
-from django.utils.html import format_html
-from django_topics.models import Topic, TopicPool, TopicOfTheDayEnglish, TopicOfTheDayHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
+from django_topics.models import Topic, TopicPool, FeaturedTopicEnglish, FeaturedTopicHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
 from django_topics.models.pool import PoolType
+from django.utils.html import format_html
+
 
 
 def create_add_to_pool_action(pool_name):
@@ -70,6 +71,10 @@ class TopicAdmin(admin.ModelAdmin):
         create_remove_from_pool_action('general_he'),
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        Topic.objects.build_slug_to_pools_cache(rebuild=True)
+
 
     def has_add_permission(self, request):
         return False
@@ -102,7 +107,7 @@ class TopicAdmin(admin.ModelAdmin):
     sefaria_link.short_description = "Sefaria Link"
 
 
-class TopicOfTheDayAdmin(admin.ModelAdmin):
+class FeaturedTopicAdmin(admin.ModelAdmin):
     exclude = ("lang",)  # not for manual editing
     list_display = ('start_date', 'topic')
     list_filter = ('start_date',)
@@ -123,16 +128,16 @@ class TopicOfTheDayAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-@admin.register(TopicOfTheDayEnglish)
-class TopicOfTheDayAdminEnglish(TopicOfTheDayAdmin):
+@admin.register(FeaturedTopicEnglish)
+class FeaturedTopicAdminEnglish(FeaturedTopicAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.filter(lang="en")
 
 
-@admin.register(TopicOfTheDayHebrew)
-class TopicOfTheDayAdminHebrew(TopicOfTheDayAdmin):
+@admin.register(FeaturedTopicHebrew)
+class FeaturedTopicAdminHebrew(FeaturedTopicAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

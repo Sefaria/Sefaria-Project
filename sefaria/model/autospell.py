@@ -12,6 +12,7 @@ from unidecode import unidecode
 from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
+from sefaria.model.tests.topic_test import topic_pool
 from sefaria.utils import hebrew
 from sefaria.model.following import aggregate_profiles
 import re2 as re
@@ -201,7 +202,7 @@ class AutoCompleter(object):
         except KeyError:
             return None
 
-    def complete(self, instring, limit=0, redirected=False):
+    def complete(self, instring, limit=0, redirected=False, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
         """
         Wrapper for Completions object - prioritizes and aggregates completion results.
         In the case where there are no results, tries to swap keyboards and get completion results from the other language.
@@ -215,13 +216,13 @@ class AutoCompleter(object):
         if len(instring) >= self.max_completion_length:
             return [], []
         cm = Completions(self, self.lang, instring, limit,
-                         do_autocorrect=len(instring) < self.max_autocorrect_length)
+                         do_autocorrect=len(instring) < self.max_autocorrect_length, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
         cm.process()
         if cm.has_results():
             return cm.get_completion_strings(), cm.get_completion_objects()
 
         # No results. Try letter swap
-        if not redirected and self.other_lang_ac:
+        if not redirected and self.other_lang_ac and not exact_continuations:
             swapped_string = hebrew.swap_keyboards_for_string(instring)
             return self.other_lang_ac.complete(swapped_string, limit, redirected=True)
 
@@ -247,7 +248,18 @@ class AutoCompleter(object):
 
 
 class Completions(object):
-    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True):
+
+    _type_norm_map = {
+        "Collection": "Collection",
+        "AuthorTopic": "Topic",
+        "TocCategory": "TocCategory",
+        "PersonTopic": "Topic",
+        "Topic": "Topic",
+        "ref": "ref",
+        "Term": "Term",
+        "User": "User"}
+
+    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
         """
         An object that contains a single search, delegates to different methods of completions, and aggregates results.
         :param auto_completer:
@@ -272,6 +284,10 @@ class Completions(object):
         self._completion_objects = []
         self._candidate_type_counters = defaultdict(int)
         self._type_limit = 3
+        self.type = type
+        self.topic_pool = topic_pool
+        self.exact_continuations = exact_continuations
+        self.order_by_matched_length = order_by_matched_length
 
     def has_results(self):
         return len(self._completion_objects) > 0
@@ -319,14 +335,42 @@ class Completions(object):
         else:
             return c[1]["order"] * 100
 
+    def _filter_completions_by_type(self, completion_strings, completion_objects):
+        filtered_completions = [
+            (cs, co)
+            for cs, co in zip(completion_strings, completion_objects)
+            if self._has_required_type(co)
+        ]
+        list1, list2 = zip(*filtered_completions) if filtered_completions else ([], [])
+        return list(list1), list(list2)
+
+    def _has_required_type(self, completion_object):
+        if not self.type:
+            return True
+
+        co_type = completion_object["type"]
+        normalized_type = self._type_norm_map[co_type]
+
+        if normalized_type != self.type:
+            return False
+
+        if normalized_type == 'Topic' and self.topic_pool:
+            return self.topic_pool in completion_object["topic_pools"]
+
+        return True
+
+
     def _collect_candidates(self):
         # Match titles that begin exactly this way
-        [cs, co] = self.get_new_continuations_from_string(self.normal_string)
+        cs, co = self.get_new_continuations_from_string(self.normal_string)
+        cs, co = self._filter_completions_by_type(cs, co)
 
         joined = list(zip(cs, co))
         if len(joined):
             # joined.sort(key=lambda w: w[1]["order"])
             joined.sort(key=self._candidate_order)
+            if self.order_by_matched_length:
+                joined.sort(key=lambda i: len(i[0]))
             self._raw_completion_strings, self._completion_objects = [list(_) for _ in zip(*joined)]
         else:
             self._raw_completion_strings, self._completion_objects = [], []
@@ -343,10 +387,12 @@ class Completions(object):
         # single misspellings
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
-            [cs, co] = self.get_new_continuations_from_string(edit)
+            cs, co =  self.get_new_continuations_from_string(edit)
+            cs, co = self._filter_completions_by_type(cs, co)
+
             self._raw_completion_strings += cs
             self._completion_objects += co
-            if self._is_past_limit():
+            if self._is_past_limit() or self.exact_continuations:
                 return
 
         # A minor variations of this string of characters deeper in the string
@@ -368,6 +414,7 @@ class Completions(object):
                 k = normalizer(self.lang)(suggestion)
                 try:
                     all_v = self.auto_completer.title_trie[k]
+                    _, all_v = self._filter_completions_by_type(all_v, all_v)
                 except KeyError:
                     all_v = []
                 for v in all_v:
@@ -499,7 +546,8 @@ class TitleTrie(datrie.Trie):
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": True,
-                    "order": base_order + sub_order
+                    "order": base_order + sub_order,
+                    "topic_pools": obj.pools if isinstance(obj, Topic) else []
                 }
 
             titles = getattr(obj, all_names_method)(self.lang)
@@ -513,7 +561,8 @@ class TitleTrie(datrie.Trie):
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
                     "is_primary": False,
-                    "order": base_order + sub_order
+                    "order": base_order + sub_order,
+                    "topic_pools": obj.pools if isinstance(obj, Topic) else []
                 }
 
 
