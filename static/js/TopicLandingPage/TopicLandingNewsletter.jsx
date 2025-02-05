@@ -30,7 +30,8 @@ export const TopicLandingNewsletter = () => {
     function handleSubscribe() {
         if (!validateInputs()) { return; }
         setSubscribeMessage("Subscribing...");
-        Sefaria.subscribeSefariaNewsletter(firstNameRef.current?.value, lastNameRef.current?.value, emailRef.current?.value, false, []).then(res => {
+        const mailingLists = Sefaria.getTopicLandingNewsletterMailingLists();
+        Sefaria.subscribeSefariaNewsletter(firstNameRef.current?.value, lastNameRef.current?.value, emailRef.current?.value, false, mailingLists).then(res => {
             setSubscribeMessage("Subscribed! Welcome to our list.");
         }).catch(error => {
             setSubscribeErrorMessage(error?.message || "Sorry, there was an error.");
