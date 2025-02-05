@@ -120,6 +120,7 @@ function buildFrame() {
     svg = d3.select("#linkExplorerPage").insert("svg", "#svgBefore")
         .attr("width", w + margin[1] + margin[3] - 16)
         .attr("height", h + margin[0] + margin[2])
+        .style("direction", "ltr")
       .append("g")
         .attr("transform", "translate(" + margin[3] + "," + margin[0] + ")");
 
