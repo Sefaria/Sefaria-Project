@@ -3402,7 +3402,6 @@ export {
   ProfileListing,
   ProfilePic,
   ReaderMessage,
-  NavigateBackButton,
   CloseButton,
   DisplaySettingsButton,
   MenuButton,

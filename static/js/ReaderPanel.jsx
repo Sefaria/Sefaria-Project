@@ -33,7 +33,6 @@ import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
 import { TextColumnBannerChooser } from './TextColumnBanner';
 import {
-  NavigateBackButton,
   CloseButton,
   MenuButton,
   DisplaySettingsButton,
@@ -636,7 +635,6 @@ class ReaderPanel extends Component {
   }
  
   render() {
-    console.log("book ref:",Sefaria.index(this.state.bookRef))
     if (this.state.error) {
       return (
         <div
@@ -1443,7 +1441,7 @@ class ReaderControls extends Component {
     let leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons"> 
           
-          {this.props.multiPanel ? (<NavigateBackButton currentRef={this.props.currentRef}/>) : null}
+          {this.props.multiPanel ? (<CloseButton onClick={this.props.closePanel} />) : null}
           {this.props.multiPanel ? null : (<MenuButton onClick={this.props.openMobileNavMenu}/>)}
           <div className='textStatus'>
             {this.setTextCompletionStatus(status)}
