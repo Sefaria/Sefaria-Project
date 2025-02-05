@@ -41,7 +41,7 @@ const getSuggestions = async (input) => {
           : e.title;
 
         return {
-          title: `#${_capitalizeFirstLetter(title)}`,
+          title: _capitalizeFirstLetter(title),
           categoryPathTitle: _getFormattedPath(e.key, lang),
           key: e.key,
         };
@@ -67,13 +67,15 @@ const renderItem = (openTopic, item, index, highlightedIndex, getItemProps)=>{
     });
     return (
       <div onClick={openTopic.bind(null, item.slug)}>
-        <div
-          className={`topic-landing-search-suggestion ${highlightedClassString}`}
-          key={item.slug}
-          {...getItemProps({index})}
-        >
-            <span className="topic-landing-search-suggestion-title">{item.text}</span> <span className="topic-landing-search-suggestion-category-path">&nbsp;{item.categoryText}</span>
-        </div>
+          <div
+              className={`topic-landing-search-suggestion ${highlightedClassString}`}
+              key={item.slug}
+              {...getItemProps({index})}
+          >
+              <img alt="Topic" className="type-icon" src="/static/icons/iconmonstr-hashtag-1.svg"/>
+              <span className="topic-landing-search-suggestion-title">{item.text}</span> <span
+              className="topic-landing-search-suggestion-category-path">&nbsp;{item.categoryText}</span>
+          </div>
       </div>
     );
 };
@@ -81,8 +83,8 @@ const renderItem = (openTopic, item, index, highlightedIndex, getItemProps)=>{
 const renderItems = (openTopic, suggestions, highlightedIndex, getItemProps) => {
     return (
         <>
-          {suggestions.map((item, index) =>
-            renderItem(openTopic, item, index, highlightedIndex, getItemProps)
+            {suggestions.map((item, index) =>
+                renderItem(openTopic, item, index, highlightedIndex, getItemProps)
           )}
         </>
     );

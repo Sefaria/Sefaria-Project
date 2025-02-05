@@ -4969,7 +4969,6 @@ h1.topic-landing-header {
   display: flex;
   list-style-type: none;
   padding: 6px 12px;
-  font-family: 'Adobe Garamond Pro';
   font-style: normal;
   font-weight: 400;
   font-size: 18px;
@@ -4979,8 +4978,15 @@ h1.topic-landing-header {
   max-width: 100%;
   min-height: 10px;
 }
+.topic-landing-search-suggestion .type-icon{
+  display: inline-block;
+  opacity: .4;
+  height: 18px;
+  width: 18px;
+  margin-top: 2px;
+}
 .topic-landing-search-suggestion-title{
-  font-weight: 600;
+  font-family: 'EB Garamond';;
 }
 .topic-landing-search-suggestion-category-path{
   color: #333333;
