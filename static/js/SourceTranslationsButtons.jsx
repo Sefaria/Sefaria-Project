@@ -1,13 +1,12 @@
-import React, {useCallback, useContext} from "react";
+import React, {useContext} from "react";
 import PropTypes from "prop-types";
-import {InterfaceText} from "./Misc";
 import {ReaderPanelContext} from "./context";
 import RadioButton from "./common/RadioButton";
 
 function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts }) {
     const {panelMode} = useContext(ReaderPanelContext);
     const isSidePanel = !['Text', 'Sheet'].includes(panelMode);
-    const createButton = useCallback((isPrimary, isTranslation, text) => {
+    const createButton = (isPrimary, isTranslation, text) => {
         const isActive = (isPrimary === showPrimary && isTranslation === showTranslation);
         return (<RadioButton
             isActive={isActive}
@@ -16,7 +15,7 @@ function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts 
             name='languageOptions'
             label={text}
         />);
-    }, [showPrimary, showTranslation]);
+    };
 
     return (
       <div className="show-source-translation-buttons" role="radiogroup" aria-label="Source-translation toggle">
