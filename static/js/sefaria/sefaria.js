@@ -2528,11 +2528,14 @@ _media: {},
   },
   areVersionsEqual(savedVersion, currVersion) {
     const checkEquality = (key) => {
-      //This is temporary for RTL - we check savedVersion?.[key] for old data and savedVersion?.[key]?.versionTitle for new data
-      //also we currently don't check the languageFamilyName to fit old data
-      const savedVersionTitle = savedVersion?.[key]?.versionTitle ?? savedVersion?.[key] ?? '';
-      const currVersionTitle = currVersion?.[key]?.versionTitle ?? currVersion?.[key] ?? '';
-      return savedVersionTitle === currVersionTitle;
+      const versions = [savedVersion, currVersion].map(version => version?.[key]);
+      const versionTitles = versions.map(version => {
+        // We don't know what format the data is in so consider both old and new format.
+        // New format is an object with two props: 'versionTitle' and 'languageFamilyName', while old format is a string.
+        const versionTitle = typeof version === 'string' ? version : version?.versionTitle;
+        return versionTitle ?? "";
+      });
+      return versionTitles[0] === versionTitles[1];
     }
     return checkEquality("en") && checkEquality("he");
   },
