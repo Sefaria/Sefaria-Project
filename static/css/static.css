@@ -34,6 +34,13 @@
   unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
 }
 
+@font-face {
+    /*Tibetan | wujin+gangbi*/
+    font-family: 'Monlam Uni OuChan2';
+    src: url('/static/fonts/Monlam Uni OuChan2.ttf');
+    unicode-range: U+0F00-0FFF, U+10300-1032F, U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
+}
+
 .static h1 {
   position: relative;
   font-weight: lighter;
@@ -1265,7 +1272,9 @@ p.registration-links a:hover{
 #activityPage #activityFeed a {
   color: #333;
   font-weight: normal;
+  font-family: "Monlam-bodyig Regular";
 }
+
 #activityPage #activityFeed #moreActivity {
   display: block;
   margin-top: 30px;

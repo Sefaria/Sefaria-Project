@@ -1,5 +1,18 @@
 {% load i18n humanize sefaria_tags %}
 {% load custom_filters %}
+{% load static %}
+
+{% block head %}
+<style>
+    @font-face {
+        font-family: 'Monlam Uni OuChan2';
+        src: url("{% static 'fonts/Monlam Uni OuChan2.ttf' %}") format('truetype');
+    }
+    .monlam-font {
+        font-family: 'Monlam Uni OuChan2', sans-serif;
+    }
+</style>
+{% endblock %}
 
 <ul id="activityList">
 {% for event in activity %}
@@ -152,7 +165,7 @@
         {% endif %}
 
 
-    	<div class="time">
+    	<div class="time monlam-font">
             {{ event.date|custom_time_format }}
         </div>
         {% if event.summary %}
