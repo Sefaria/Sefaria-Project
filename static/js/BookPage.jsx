@@ -174,7 +174,7 @@ class BookPage extends Component {
     const heTitle   = index ? index.heTitle : title;
     const category  = this.props.category;
     const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
-    const categories = Sefaria.index(this.props.title)? Sefaria.index(this.props.title).categories : [];
+    const categories = Sefaria.index(this.props.title).categories;
     let currObjectVersions = this.state.currObjectVersions;
     let catUrl;
     if (category == "Commentary") {

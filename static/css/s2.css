@@ -4594,7 +4594,8 @@ details .open-details::before {
 }
 
 .bookPage .versionBlock .versionBlockHeading .versionLanguage {
-    display: initial;
+    display: inline-flex;          /* Change from initial to inline-flex */
+    align-items: center;           /* Center items vertically */
     margin-inline-start: auto;
     font-style: normal;
     font-weight: normal;
@@ -4604,7 +4605,9 @@ details .open-details::before {
     background: #EDEDEC;
     border-radius: 25px;
     padding: 5px 10px;
-    font-family: var(--hebrew-sans-serif-font-family)
+    font-family: var(--hebrew-sans-serif-font-family);
+    white-space: nowrap;           /* Prevent text wrapping */
+
 
 }
 

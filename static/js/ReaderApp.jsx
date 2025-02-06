@@ -1109,7 +1109,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.showSaved();
 
     } else if (path.match(/\/texts\/.+/)) {
-      console.log("my",path)
       this.showLibrary(path.slice(7).split("/"));
 
     } else if (path === "/collections") {

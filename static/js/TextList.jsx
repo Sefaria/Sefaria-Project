@@ -82,10 +82,11 @@ class TextList extends Component {
       this.preloadSingleCommentaryText(filter);
 
     } else if (filter.length == 1 && filter[0] == "Commentary") {
+      
       this.preloadAllCommentaryText(filter);
 
     } else {
-      this.setState({waitForText: false, textLoaded: false});
+      this.setState({waitForText: false, textLoaded: true});
     }
   }
   preloadSingleCommentaryText(filter) {
@@ -102,7 +103,7 @@ class TextList extends Component {
     this.setState({waitForText: true});
     Sefaria.text(commentarySection, {}, function() {
       if (this._isMounted) {
-        this.setState({textLoaded: true});
+        this.setState({textLoaded: false});
       }
     }.bind(this));
   }
@@ -117,38 +118,38 @@ class TextList extends Component {
       });
 
       if (commentators.length) {
+        
         var commentarySections = commentators.map(function(commentator) {
+
           return Sefaria.commentarySectionRef(commentator, basetext);
         }).filter(function(commentarySection) {
           return !!commentarySection;
         });
         this.waitingFor = Sefaria.util.clone(commentarySections);
+        
         this.target = 0;
         for (var i = 0; i < commentarySections.length; i++) {
           Sefaria.text(commentarySections[i], {}, function(data) {
             var index = this.waitingFor.indexOf(data.commentator);
             if (index == -1) {
                 // console.log("Failed to clear commentator:");
-                // console.log(data);
                 this.target += 1;
             }
             if (index > -1) {
                 this.waitingFor.splice(index, 1);
             }
-            if (this.waitingFor.length == this.target) {
-              if (this._isMounted) {
-                this.setState({textLoaded: true});
-              }
+            if (this._isMounted ) {
+                this.setState({textLoaded: false})
             }
           }.bind(this));
         }
       } else {
         // All commentaries have been loaded already
-        this.setState({textLoaded: true});
+        this.setState({textLoaded: false});
       }
     } else {
       // There were no commentaries to load
-      this.setState({textLoaded: true});
+      this.setState({textLoaded: false});
     }
   }
   getLinks() {
@@ -198,8 +199,10 @@ class TextList extends Component {
     var filter             = this.props.filter; // Remove filterSuffix for display
     var displayFilter      = filter.map(filter => filter.split("|")[0]);  // Remove filterSuffix for display
     var links              = this.getLinks();
+    var isComplexText = Sefaria.normRef(oref).isComplex
 
-    
+    var loadingState = isComplexText ? this.state.textLoaded : !this.state.textLoaded
+    // this.state.waitForText && !this.state.textLoaded
     var enText = filter.length ? displayFilter.join(", "): ""
     var en = Sefaria._('text.message.no_connection', {text: enText});
     var heText = displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") == "Commentary" ? Sefaria._('text.commentary') : displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ")
@@ -207,7 +210,7 @@ class TextList extends Component {
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
     var content = links.length === 0 ? message :
-                  this.state.waitForText && !this.state.textLoaded ?
+                  this.state.textLoaded ?
                     (<LoadingMessage />) :
                     links.map(function(link, i) {
                         if (link.isSheet) {
