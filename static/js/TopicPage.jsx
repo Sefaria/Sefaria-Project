@@ -670,7 +670,8 @@ const TopicPage = ({
         },
         id: 'filter',
         icon: `/static/icons/filter.svg`,
-        justifyright: true
+        justifyright: true,
+        altText: "Click to filter texts"
       });
       onClickFilterIndex = displayTabs.length - 1;
     }
@@ -683,7 +684,8 @@ const TopicPage = ({
         },
         id: 'langToggle',
         popover: true,
-        justifyright: tab==="notable-sources"
+        justifyright: tab==="notable-sources",
+        altText: "Click to customize language of texts"
       });
       onClickLangToggleIndex = displayTabs.length - 1;
     }
@@ -758,8 +760,8 @@ const TopicPage = ({
                           tabs={displayTabs}
                           renderTab={t => (
                             <div tabIndex="0" onKeyDown={(e)=>handleKeyDown(e)} className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
-                              <div data-anl-event={t.popover && "lang_toggle_click:click"}><InterfaceText text={t.title} /></div>
-                              { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} data-anl-event="filter:click" data-anl-text={topicSort}/> : null }
+                              <div data-anl-event={t.popover && "lang_toggle_click:click"} aria-label={t.altText}><InterfaceText text={t.title} /></div>
+                              { t.icon ? <img src={t.icon} alt={t.altText} data-anl-event="filter:click" data-anl-text={topicSort}/> : null }
                               {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result)} closeInterface={()=>{setShowLangSelectInterface(false)}}/> : null}
                             </div>
                           )}
