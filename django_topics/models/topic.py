@@ -12,9 +12,9 @@ class TopicManager(models.Manager):
     
     slug_pools_dataframe: pd.DataFrame = pd.DataFrame
 
-    def sample_topic_slugs(self, order, pool: str = None, limit=10) -> list[str]:
+    def sample_topic_slugs(self, order, pool: str = None, limit=10, require_en_description=None, require_he_description=None) -> list[str]:
         if pool:
-            topics = self.get_topic_slugs_by_pool(pool)
+            topics = self.get_topics_slugs_by_pools_with_description(pool, require_en_description, require_he_description)
         else:
             topics = self.all().values_list('slug', flat=True)
         if order == 'random':

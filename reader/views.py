@@ -3277,7 +3277,9 @@ def topic_pool_api(request, pool_name):
     from django_topics.models import Topic as DjangoTopic
     n_samples = int(request.GET.get("n"))
     order = request.GET.get("order", "random")
-    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, pool_name, n_samples)
+    require_en_description = request.GET.get("require_en_description", None)
+    require_he_description = request.GET.get("require_he_description", None)
+    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, pool_name, n_samples, require_en_description, require_he_description)
     response = [Topic.init(slug).contents() for slug in topic_slugs]
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
