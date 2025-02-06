@@ -1528,6 +1528,40 @@ Sefaria = extend(Sefaria, {
   }
   ,
   _linkSummaries: {},
+  shouldBuildLinkSummaries: function(cacheKey, links) {
+    // check _linkSummaries[cacheKey]: does this cacheKey (1) exist and (2) is it up-to-date with links
+    // if it doesn't exist or isn't up-to-date, need to build _linkSummaries for cacheKey
+    if (cacheKey in this._linkSummaries) {
+      const countFromLinkSummariesCache = this._linkSummaries[cacheKey].reduce((sum, current) => {
+        return sum + current.count;
+      }, 0);
+      if (countFromLinkSummariesCache < links.length) {  // the _linkSummaries cache is not up-to-date with the _links cache
+        delete this._linkSummaries[cacheKey];
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return true;
+    }
+  },
+  getLinksFromCacheAndPreprocess: function(ref, excludedSheet) {
+    let links = [];
+    if (typeof ref == "string") {
+      links = this.getLinksFromCache(ref);
+    } else {
+      links = [];
+      ref.map(function(r) {
+        const newlinks = Sefaria.getLinksFromCache(r);
+        links = links.concat(newlinks);
+      });
+      links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
+    }
+    links = excludedSheet ? this._filterSheetFromLinks(links, excludedSheet) : links;
+    return links.filter(link => link.type !== "essay");
+  },
   linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
@@ -1600,32 +1634,19 @@ Sefaria = extend(Sefaria, {
 
         ],
     };
-    const oref          = (typeof ref == "string") ? Sefaria.ref(ref) : Sefaria.ref(ref[0]);
-    const categoryOverridesForRef = (oref && oref.hasOwnProperty("primary_category")) ?  ((categoryOrderOverrides.hasOwnProperty(oref.primary_category)) ? categoryOrderOverrides[oref.primary_category] : null) : null;
-    let links = [];
     if (!this.linksLoaded(ref)) { return []; }
+    const links = this.getLinksFromCacheAndPreprocess(ref, excludedSheet);
     const normRef = Sefaria.humanRef(ref);
     const cacheKey = normRef + "/" + excludedSheet;
-    if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
-    if (typeof ref == "string") {
-      links = this.getLinksFromCache(ref);
-    } else {
-      links = [];
-      ref.map(function(r) {
-        const newlinks = Sefaria.getLinksFromCache(r);
-        links = links.concat(newlinks);
-      });
-      links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
+    if (!this.shouldBuildLinkSummaries(cacheKey, links)) {  // don't need to build _linkSummaries for this ref
+      return this._linkSummaries[cacheKey];
     }
 
-    links = excludedSheet ? this._filterSheetFromLinks(links, excludedSheet) : links;
-
+    const oref          = (typeof ref == "string") ? Sefaria.ref(ref) : Sefaria.ref(ref[0]);
+    const categoryOverridesForRef = (oref && oref.hasOwnProperty("primary_category")) ?  ((categoryOrderOverrides.hasOwnProperty(oref.primary_category)) ? categoryOrderOverrides[oref.primary_category] : null) : null;
     const summary = {};
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
-      if (link["type"] === "essay") {
-        continue;
-      }
       // Count Category
       if (link.category in summary) {
         summary[link.category].count += 1;
