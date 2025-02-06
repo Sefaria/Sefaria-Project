@@ -1,4 +1,5 @@
 {% load i18n humanize sefaria_tags %}
+{% load custom_filters %}
 
 <ul id="activityList">
 {% for event in activity %}
@@ -152,8 +153,8 @@
 
 
     	<div class="time">
-    		{{ event.date|naturaltime }}
-    	</div>
+            {{ event.date|custom_time_format }}
+        </div>
         {% if event.summary %}
             <a class="showAllActivity bottom" href="{{ event.history_url }}">{{ event.updates_count }} related &raquo;</a>
         {% endif %}
