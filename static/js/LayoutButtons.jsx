@@ -4,6 +4,7 @@ import {ReaderPanelContext} from "./context";
 import {layoutOptions, layoutLabels} from "./constants";
 import {InterfaceText} from "./Misc";
 import PropTypes from "prop-types";
+import RadioButton from "./common/RadioButton";
 
 const calculateLayoutState = (language, textsData, panelMode) => {
     const primaryDir = textsData?.primaryDirection;
@@ -34,15 +35,15 @@ const LayoutButton = ({layoutOption, layoutState}) => {
     const optionName = (language === 'bilingual') ? 'biLayout' : 'layout';
     const checked = layout === layoutOption;
     return (
-        <input
-            key={layoutOption}
-            className={`layout-button ${checked ? 'checked' : ''}`}
-            onClick={() => setOption(optionName, layoutOption)}
-            style={{"--url": `url(${path})`}}
-            role="radio"
-            aria-label={layoutLabels[layoutOption]}
-            aria-checked={checked}
-        />
+        <div className='layout-button focus-visible' key={layoutOption}>
+            <RadioButton
+                onClick={() => setOption(optionName, layoutOption)}
+                name='layout-options'
+                isActive={checked}
+                value={layoutOption}
+                style={{"--url": `url(${path})`}}
+            />
+        </div>
     );
 };
 LayoutButton.propTypes = {
