@@ -1,4 +1,4 @@
-
+from django_topics.models import Topic as DjangoTopic
 
 def init_library_cache():
     import django
@@ -9,6 +9,8 @@ def init_library_cache():
     from sefaria.model.text import library
     from sefaria.system.multiserver.coordinator import server_coordinator
     from django.conf import settings
+    logger.info("Initializing topic pools cache")
+    DjangoTopic.objects.build_slug_to_pools_cache()
     logger.info("Initializing library objects.")
     logger.info("Initializing TOC Tree")
     library.get_toc_tree()
@@ -20,8 +22,6 @@ def init_library_cache():
         logger.info("Initializing Full Auto Completer")
         library.build_full_auto_completer()
 
-        logger.info("Initializing Ref Auto Completer")
-        library.build_ref_auto_completer()
 
         logger.info("Initializing Lexicon Auto Completers")
         library.build_lexicon_auto_completers()
@@ -29,8 +29,6 @@ def init_library_cache():
         logger.info("Initializing Cross Lexicon Auto Completer")
         library.build_cross_lexicon_auto_completer()
 
-        logger.info("Initializing Topic Auto Completer")
-        library.build_topic_auto_completer()
 
     if settings.ENABLE_LINKER:
         logger.info("Initializing Linker")

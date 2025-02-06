@@ -68,7 +68,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
     const updateSuggestedTags = (input) => {
         if (input == "") return
-        Sefaria.getName(input, false, 0).then(d => {
+        Sefaria.getName(input, 0).then(d => {
             const topics = d.completion_objects
                 .filter(obj => obj.type === "Topic")
                 .map((filteredObj, index) => ({

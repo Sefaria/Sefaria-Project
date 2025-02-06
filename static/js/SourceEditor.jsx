@@ -73,7 +73,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         if (input === "") {  // this occurs when there was text in the inputbox and user just erased it
             return results;
         }
-        const d = await Sefaria.getName(input, true, 5);
+        const d = await Sefaria.getName(input, 0, 'ref');
         if (d.is_section || d.is_segment) {
             results.helperPromptText = null;
             results.currentSuggestions = null;

@@ -821,7 +821,7 @@ class Util {
                 }.bind(this))
             .autocomplete({
                 source: function(request, response) {
-                  Sefaria.getName(request.term, true)
+                  Sefaria.getName(request.term, undefined, 'ref')
                          .then(d => d.completions)
                          .then(response);
                 },
@@ -917,7 +917,7 @@ Util.RefValidator.prototype = {
   },
   _lookupAndRoute: function(inString) {
       if (this.current_lookup_ajax) {this.current_lookup_ajax.cancel();}
-      this.current_lookup_ajax = Sefaria.makeCancelable(Sefaria.getName(inString, true));
+      this.current_lookup_ajax = Sefaria.makeCancelable(Sefaria.getName(inString, undefined, 'ref'));
       this.current_lookup_ajax.promise.then(data => {
               // If this query has been outpaced by typing, just return.
               if (this.$input.val() != inString) { this.current_lookup_ajax = null; return; }

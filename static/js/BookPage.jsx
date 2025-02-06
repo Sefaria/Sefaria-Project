@@ -1211,8 +1211,8 @@ const EditTextInfo = function({initTitle, close}) {
   }
   const addAuthor = function (newAuthor) {
     const lowerCaseName = newAuthor.name.toLowerCase();
-    Sefaria._ApiPromise(Sefaria.apiHost + "/api/topic/completion/" + newAuthor.name).then(d => {
-      const matches = d[1].filter((t) => t.type === 'AuthorTopic');
+    Sefaria._ApiPromise(Sefaria.apiHost + "/api/name/" + newAuthor.name).then(d => {
+      const matches = d['completion_objects'].filter((t) => t.type === 'AuthorTopic');
       const exactMatch = matches.find((t) => t.title.toLowerCase() === lowerCaseName);
       if (!exactMatch) {
         const closestMatches = matches.map((t) => t.title);

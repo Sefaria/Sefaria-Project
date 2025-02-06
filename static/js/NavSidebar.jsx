@@ -36,6 +36,9 @@ const SidebarModules = ({type, props}) => {
     "DafYomi":                DafYomi,
     "AboutTopics":            AboutTopics,
     "TrendingTopics":         TrendingTopics,
+    "TopicLandingTrendingTopics": TopicLandingTrendingTopics,
+    "TopicLandingTopicCatList":  TopicLandingTopicCatList,
+    "AZTopicsLink":           AZTopicsLink,
     "RelatedTopics":          RelatedTopics,
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
@@ -609,6 +612,59 @@ const TrendingTopics = () => (
         </SidebarModule>
     </div>
 );
+const TopicLandingTrendingTopics = () => {
+    let [trendingTopics, setTrendingTopics] = useState(null);
+    useEffect(() => {
+        Sefaria.getTrendingTopics().then(result => setTrendingTopics(result));
+    }, []);
+
+    if (!trendingTopics) { return null; }
+    return(
+    <div data-anl-feature_name="Trending" data-anl-link_type="topic">
+        <SidebarModule>
+            <SidebarModuleTitle>Trending Topics</SidebarModuleTitle>
+            <div className="topic-landing-sidebar-list">
+            {trendingTopics.map((topic, i) =>
+                <div className="navSidebarLink ref serif" key={i}>
+                    <a
+                        href={"/topics/" + topic.slug}
+                        data-anl-event="navto_topic:click"
+                        data-anl-text={topic.primaryTitle.en}
+                    >
+                        <InterfaceText text={{en: topic.primaryTitle.en, he: topic.primaryTitle.he}}/>
+                    </a>
+                </div>
+            )}
+            </div>
+        </SidebarModule>
+    </div>)
+};
+const TopicLandingTopicCatList = () => {
+    const topicCats = Sefaria.topicTocPage();
+    return(
+        <SidebarModule>
+            <SidebarModuleTitle>
+                <span id="browseTopics">Browse Topics</span>
+            </SidebarModuleTitle>
+            <div className="topic-landing-sidebar-list">
+                {topicCats.map((topic, i) =>
+                    <div className="navSidebarLink ref serif" key={i}>
+                        <a href={"/topics/category/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
+                    </div>
+                )}
+            </div>
+        </SidebarModule>
+    )
+};
+const AZTopicsLink = () => {
+    return (
+        <SidebarModule>
+            <a href={'/topics/all/a'}>
+            <SidebarModuleTitle>All Topics A-Z ›</SidebarModuleTitle>
+            </a>
+        </SidebarModule>
+    )
+};
 
 
 const RelatedTopics = ({title}) => {
@@ -948,5 +1004,6 @@ const PortalNewsletter = ({title, description}) => {
 export {
   NavSidebar,
   SidebarModules,
-  RecentlyViewed
+  RecentlyViewed,
+  ParashahLink,
 };
