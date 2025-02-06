@@ -1440,8 +1440,7 @@ class ReaderControls extends Component {
 
     let leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons"> 
-          
-          {this.props.multiPanel ? (<CloseButton onClick={this.props.closePanel} />) : null}
+          {this.props.multiPanel ? (<NavigateBackButton currentRef={this.props.currentRef}/>) : null}
           {this.props.multiPanel ? null : (<MenuButton onClick={this.props.openMobileNavMenu}/>)}
           <div className='textStatus'>
             {this.setTextCompletionStatus(status)}
