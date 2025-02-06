@@ -206,7 +206,7 @@ class NewUpdateForm extends Component {
         </div>
         <div>
           <textarea
-            placeholder="Hebrew Description (optional for Index and Version)"
+            placeholder="Tibetan Description (optional for Index and Version)"
             onChange={this.handleHeChange}
             rows="3"
             cols="80"
