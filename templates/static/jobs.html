@@ -17,13 +17,12 @@
 {% block content %}
 <div class="superAbout">
     {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='jobs' title="Jobs at Sefaria" heTitle="משרות פנויות בספריא" %}
+        {% include '_sidebar.html' with whichPage='jobs' %}
     {% endif %}
     <main id="jobsPage" class="container biReady static">
         <div class="inner">
 
             <div id="jobsPageContent">
-                <h1 id="appLoading">Loading...</h1>
             </div>
 
             <aside class="solicitationNotice">

@@ -791,13 +791,19 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .accountLinks.anon .help {
   margin-top: 6px;
 }
-.header .interfaceLinks {
-  display: block;
+.headerLinksSection .help {
+  display: flex;
+  justify-content: center;
   align-items: center;
-  margin-top: 2px;
+  height: 100%;
+  margin-top: 4px;
+}
+.header .interfaceLinks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   color: #666;
   cursor: pointer;
-  position: relative;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
@@ -807,6 +813,11 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   width: 18px;
   vertical-align: middle;
   margin-inline-end: 2px;
+}
+.header .interfaceLinks a.interfaceLinks-button{
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .header .interfaceLinks a.interfaceLinks-button::after {
   display: inline-block;
@@ -4797,6 +4808,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .search-container{
   position: relative;
+  padding-right: 10px;
 }
 .autocomplete-dropdown{
   background: #FFFFFF;
@@ -5121,6 +5133,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner .yesNoButton {
+  border: none;
+  font-size: 16px;
   border-radius: 6px;
   background-color: white;
   padding: 5px 11px;
@@ -5212,18 +5226,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
- .leftButtons,
- .rightButtons {
+.interface-english .leftButtons,
+.interface-hebrew .rightButtons {
   display: flex;
   flex-direction: row;
+  text-align: left;
+}
+.interface-english .rightButtons,
+.interface-hebrew .leftButtons {
+  display: flex;
+  flex-direction: row;
+  text-align: right;
   align-items: center;
- }
- .leftButtons {
-  text-align: start;
- }
- .rightButtons {
-  text-align: end;
- }
+}
 /* icons need a little nudge in flipped hebrew mode */
 .interface-hebrew .rightButtons {
   margin-left: -3px;
@@ -14252,9 +14267,16 @@ span.ref-link-color-3 {color: blue}
 }
 
 #productsPageContent {
-  margin-inline-start: 70px;
-  margin-top: 165px;
+  margin-inline-start: 100px;
+  margin-top: 140px;
   margin-bottom: 165px;
+}
+#productsPageContent .loadingMessage {
+  margin-block-start: 230px;
+}
+
+#jobsPageContent .loadingMessage {
+  margin-block-start: 20px;
 }
 
 .productInner {
@@ -14580,6 +14602,27 @@ span.ref-link-color-3 {color: blue}
 }
 .sheetsProfileList .loadingMessage {
   margin-top: 30px;
+}
+
+.emptyNotificationsTitle{
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+  padding-bottom: 10px;
+}
+
+.emptyNotificationsMessage{
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: start;
+}
+
+.emptyNoticationPage{
+  display: flex;
+  flex-direction: column;
 }
 
 @-webkit-keyframes load5 {
