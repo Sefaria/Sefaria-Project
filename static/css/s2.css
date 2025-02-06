@@ -5395,20 +5395,37 @@ h1.topic-landing-header {
   background: var(--lightest-grey);
   box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
   height: 345px;
+  /* justify-content: flex-start; */
 }
 .topic-card-with-description .cardDescription{
   margin-inline-end: 30px;
   margin-inline-start: 30px;
   margin-top: 19px;
-  max-width: 208px;
-  max-height: 201px;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
+  display: flex;
+  max-width: 200px;
+  min-height: 135px;
+  max-height: 153px;
+  /* display: -webkit-box; */
+  /* -webkit-box-orient: vertical; */
   overflow-y: hidden;
+  overflow: hidden;
   word-wrap: break-word;
 }
 .topic-card-with-description .cardTitle {
   margin-top: 23px;
+}
+.topic-card-with-description .cardTop {
+  display: flex;
+  flex-direction: column;
+  /* height: 290px; */
+  max-height: 282px;
+  /* overflow: hidden; */
+  text-overflow: ellipsis;
+  /* justify-content: flex-start; */
+  /* align-content: flex-start; */
+  /* height: 81%; */
+  /* align-content: flex-start; */
+  /* align-items: flex-start; */
 }
 .topic-card-with-description .bottomCardLink {
   font-size: 14px;
