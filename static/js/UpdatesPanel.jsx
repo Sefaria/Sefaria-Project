@@ -159,7 +159,7 @@ class NewUpdateForm extends Component {
     };
     if (this.state.type == "general") {
       if (!this.state.en || !this.state.he) {
-        this.setState({"error": "Both Hebrew and English are required"});
+        this.setState({"error": "Both Tibetan and English are required"});
         return;
       }
     } else {
@@ -193,7 +193,7 @@ class NewUpdateForm extends Component {
           {(this.state.type == "version")?<input type="text" placeholder="Version Title" onChange={this.handleVersionChange}/>:""}
           {(this.state.type == "version")?<select type="text" placeholder="Version Language" onChange={this.handleLanguageChange}>
             <option value="en">English</option>
-            <option value="he">Hebrew</option>
+            <option value="he">Tibetan</option>
           </select>:""}
         </div>
         <div>
@@ -206,7 +206,7 @@ class NewUpdateForm extends Component {
         </div>
         <div>
           <textarea
-            placeholder="Hebrew Description (optional for Index and Version)"
+            placeholder="Tibetan Description (optional for Index and Version)"
             onChange={this.handleHeChange}
             rows="3"
             cols="80"
