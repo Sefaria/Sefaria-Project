@@ -71,7 +71,7 @@ unicodecsv==0.14.1
 unidecode==1.1.1
 user-agents==2.2.0
 pytest-django==4.9.*
-pandas==2.2.3
+
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp

@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django_topics.models import Topic, TopicPool, FeaturedTopicEnglish, FeaturedTopicHebrew, SeasonalTopicEnglish, SeasonalTopicHebrew
 from django_topics.models.pool import PoolType
 from django.utils.html import format_html
-from django_topics.models.topic_cache import build_slug_to_pools_cache
+
 
 
 def create_add_to_pool_action(pool_name):
@@ -73,7 +73,7 @@ class TopicAdmin(admin.ModelAdmin):
     ]
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
-        build_slug_to_pools_cache(rebuild=True)
+        Topic.objects.build_slug_to_pools_cache(rebuild=True)
 
 
     def has_add_permission(self, request):
