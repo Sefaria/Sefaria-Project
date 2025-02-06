@@ -16,7 +16,7 @@ RUN pip install -r requirements.txt
 RUN npm install --unsafe-perm
 
 # compile django inbuild po hebrew translation
-RUN msgfmt /usr/local/bin/python/site-packages/django/contrib/auth/locale/he/LC_MESSAGES/django.po -o /usr/local/bin/python/site-packages/django/contrib/auth/locale/he/LC_MESSAGES/django.mo
+# RUN msgfmt /usr/local/bin/python/site-packages/django/contrib/auth/locale/he/LC_MESSAGES/django.po -o /usr/local/bin/python/site-packages/django/contrib/auth/locale/he/LC_MESSAGES/django.mo
 
 # Check the installed version of Pillow after installing requirements
 RUN python -m pip show Pillow
