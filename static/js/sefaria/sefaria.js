@@ -2056,10 +2056,14 @@ _media: {},
     return topics && topics.length;
   },
   _TopicsByPool: {},
-  getTopicsByPool: function(poolName, numOfTopics, order) {
+  getTopicsByPool: function(poolName, numOfTopics, order, requireDescription=undefined) {
     let params = {};
     if (numOfTopics != undefined) { params["n"] = numOfTopics; }
     if (order != undefined) { params["order"] = order; }
+    if(requireDescription != undefined) {
+        const paramName = this.interfaceLang == 'hebrew'? "require_he_description" : "require_en_description";
+        params[paramName] = requireDescription;
+    }
     let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
     queryString = (queryString ? "?" + queryString : "");
     const url = this.apiHost + "/api/topics/pools/" + encodeURIComponent(poolName) + queryString;
