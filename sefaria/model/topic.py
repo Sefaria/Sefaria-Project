@@ -1,4 +1,6 @@
 from typing import Union, Optional
+
+from django_topics.models.topic import TopicManager
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
@@ -240,12 +242,14 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         DjangoTopic.objects.get(slug=self.slug).pools.add(pool)
         if not self.has_pool(pool_name):
             self.get_pools().append(pool_name)
+        TopicManager.build_slug_to_pools_cache(TopicSet(), rebuild=True)
 
     def remove_pool(self, pool_name) -> None:
         pool = TopicPool.objects.get(name=pool_name)
         DjangoTopic.objects.get(slug=self.slug).pools.remove(pool)
         if self.has_pool(pool_name):
             self.get_pools().remove(pool_name)
+        TopicManager.build_slug_to_pools_cache(TopicSet(), rebuild=True)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)

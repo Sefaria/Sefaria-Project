@@ -1,11 +1,13 @@
 import pytest
 
+from django_topics.models.topic import SLUG_COLUMN, SLUG_COLUMN, POOL_COLUMN, EN_DESCRIPTION, HE_DESCRIPTION, TopicManager
 from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, TopicLinkHelper, IntraTopicLinkSet, RefTopicLinkSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db as mongo_db
 from sefaria.system.exceptions import SluggedMongoRecordMissingError
 from django_topics.models import Topic as DjangoTopic, TopicPool
 from django_topics.models.pool import PoolType
+import pandas as pd
 
 
 def _ms(slug_suffix):
@@ -16,6 +18,21 @@ def _ms(slug_suffix):
     """
     return 'this-is-a-test-slug-'+slug_suffix
 
+def build_slug_to_pools_mock_cache():
+    """
+    Build a mock DataFrame that mimics the structure and content of the actual DataFrame.
+    """
+    mock_data = [
+        {'slug': _ms(str(x)), 'pool': 'poolA', 'en_description': True, 'he_description': False} for x in range(1, 100)
+    ]
+    # Convert mock data to DataFrame
+    df_mock = pd.DataFrame(mock_data, columns=[SLUG_COLUMN, POOL_COLUMN, EN_DESCRIPTION, HE_DESCRIPTION])
+
+    # Assign the mock DataFrame to the TopicManager's slug_pools_dataframe
+    TopicManager.slug_pools_dataframe = df_mock
+
+# Example usage
+build_slug_to_pools_mock_cache()
 
 def make_topic(slug_suffix):
     slug = _ms(slug_suffix)
@@ -134,6 +151,7 @@ def topic_pool(django_db_setup, django_db_blocker):
         pool.delete()
 
 
+@pytest.mark.django_db
 class TestTopics(object):
 
     def test_graph_funcs(self, topic_graph):
@@ -245,7 +263,7 @@ class TestTopicLinkHelper(object):
         obj = TopicLinkHelper.init_by_class(l1, context_slug=_ms('1'))
         assert obj.topic == _ms('2')
 
-
+@pytest.mark.django_db
 class TestIntraTopicLink(object):
 
     def test_validate(self, topic_graph):
