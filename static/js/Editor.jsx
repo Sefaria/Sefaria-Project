@@ -594,7 +594,6 @@ function transformSheetJsonToSlate(sheet) {
           children: [{text: ""}]
         })
     }
-
     let initValue = [
         {
             type: 'Sheet',
@@ -614,7 +613,7 @@ function transformSheetJsonToSlate(sheet) {
             authorUrl: sheet.ownerProfileUrl,
             authorStatement: sheet.ownerName,
             authorImage: sheet.ownerImageUrl,
-            title: sheet.title,
+            title: sheetTitle,
             displayedCollection: sheet.displayedCollection || "",
             collectionName: sheet.collectionName || "",
             collectionImage: sheet.collectionImage || "",
@@ -2558,6 +2557,9 @@ const SefariaEditor = (props) => {
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
+    const [summary, setSummary] = useState(sheet.summary || "");
+    const [title, setTitle] = useState(sheet.title || "");
+
 
     useEffect(
         () => {
@@ -2669,7 +2671,6 @@ const SefariaEditor = (props) => {
   }, [canUseDOM])
 
     function saveSheetContent(doc, lastModified) {
-        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
         const docContent = doc.children.find(el => el.type == "SheetContent")
         if (!docContent) {
             return false
@@ -2768,11 +2769,11 @@ const SefariaEditor = (props) => {
             id: doc.id,
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
-            summary: doc.summary,
+            summary: summary,
             options: { ...doc.options, divineNames: props.divineNameReplacement },
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
-            title: sheetTitle === "" ? "Untitled" : sheetTitle,
+            title: title,
             sources: sources.filter(x => !!x),
             nextNode: doc.nextNode,
         };
@@ -2793,7 +2794,8 @@ const SefariaEditor = (props) => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false);
-
+            setTitle(res.title);
+            setSummary(res.summary);
             const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
             Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
         });
@@ -2934,39 +2936,18 @@ const SefariaEditor = (props) => {
     );
 
     return (
-        <div ref={editorContainer} onClick={props.handleClick}>
-        {
-          /* debugger */
-
-          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
-          // {JSON.stringify(editor.children[0,0], null, 4)}
-          // </div>
-
-        }
-
-        <SheetMetaDataBox>
-            <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
-            <SheetAuthorStatement
-                authorUrl={sheet.ownerProfileUrl}
-                authorStatement={sheet.ownerName}
-            >
-              <ProfilePic
-                url={sheet.ownerImageUrl}
-                len={30}
-                name={sheet.ownerName}
-                outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
-              />
-              <a href={sheet.ownerProfileUrl}>
-                <InterfaceText>{sheet.ownerName}</InterfaceText>
-              </a>
-            </SheetAuthorStatement>
-            <CollectionStatement
-                name={sheet.collectionName}
-                slug={sheet.displayedCollection}
-                image={sheet.collectionImage}
-            />
-        </SheetMetaDataBox>
-            {canUseDOM ?
+        <>
+          <div ref={editorContainer} onClick={props.handleClick}>
+              <SheetMetaDataBox authorStatement={props.authorStatement}
+                            authorUrl={props.authorUrl}
+                            authorImage={props.authorImage}
+                            title={props.title}
+                            summary={props.summary}
+                            editable={true}
+                            titleCallback={(newTitle) => setTitle(newTitle)}
+                            summaryCallback={(newSummary) => setSummary(newSummary)}
+                            sheetOptions={props.sheetOptions}/>
+          {canUseDOM ?
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
                 <Editable
@@ -2983,8 +2964,10 @@ const SefariaEditor = (props) => {
                   onDOMBeforeInput={beforeInput}
                   autoFocus
                 />
-            </Slate> : null }
-        </div>
+            </Slate> : null
+          }
+          </div>
+        </>
     )
 };
 

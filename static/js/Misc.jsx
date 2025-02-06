@@ -2635,21 +2635,27 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
-const SheetMetaDataBoxSegment = (props) => (
-  <div className={props.className}
-    role="heading"
-    aria-level="1"
-    contentEditable={props.editable}
-    suppressContentEditableWarning={true}
-    onBlur={props.editable ? props.blurCallback : null}
-    style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" :"ltr"}}
+const SheetMetaDataBoxSegment = (props) => {
+  const handleBlur = (e) => {
+    let content = e.target.textContent.trim(); // It seems browsers insert a <br> tag when div content is deleted by user, so we need to trim it.
+    if (content === '') {
+      e.target.innerHTML = ''; 
+    }
+    if (props.blurCallback) {
+      props.blurCallback(content);
+    }
+  }
+  return <div className={props.className}
+              role="heading"
+              aria-level="1"
+              contentEditable={props.editable}
+              suppressContentEditableWarning={true}
+              onBlur={props.editable && handleBlur}
+              style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" : "ltr"}}
   >
-  {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+    {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
   </div>
-);
-SheetMetaDataBoxSegment.propTypes = {
-  title: PropTypes.string,
-};
+}
 
 
 const SheetAuthorStatement = (props) => (
@@ -2799,13 +2805,16 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, sheetOptions, editable}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
   return <div className="sheetMetaDataBox">
     <div className="sidebarLayout">
-      <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
       {sheetOptions}
     </div>
-    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
+    {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
+                                                       className="summary"
+                                                       editable={editable}
+                                                       blurCallback={summaryCallback}/>}
   </div>
 }
 

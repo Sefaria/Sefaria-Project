@@ -8578,6 +8578,20 @@ a.sheetAuthorName:hover {
   flex: 1 0 95%;
   text-align: initial;
 }
+.sheetMetaDataBox .title:empty:before {
+  content: "Untitled";
+  color: #999;
+  position: relative;
+  pointer-events: none;
+  width: auto;
+}
+.sheetMetaDataBox .summary:empty:before {
+  content: "Add a description...";
+  color: #999;
+  position: relative;
+  pointer-events: none;
+  width: auto;
+}
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
   content: "ללא שם";
 }
