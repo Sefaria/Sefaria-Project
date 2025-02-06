@@ -2947,15 +2947,6 @@ const SefariaEditor = (props) => {
                             titleCallback={(newTitle) => setTitle(newTitle)}
                             summaryCallback={(newSummary) => setSummary(newSummary)}
                             sheetOptions={props.sheetOptions}/>
-          {
-          /* debugger */
-
-          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
-          // {JSON.stringify(editor.children[0,0], null, 4)}
-          // </div>
-
-          }
-
           {canUseDOM ?
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
