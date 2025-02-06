@@ -33,6 +33,7 @@ import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
 import { TextColumnBannerChooser } from './TextColumnBanner';
 import {
+  NavigateBackButton,
   CloseButton,
   MenuButton,
   DisplaySettingsButton,
