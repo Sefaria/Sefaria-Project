@@ -28,7 +28,15 @@ const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
   );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
+const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false}) => {
+  return (
+    <div className={'interfaceLinks-option int-bi dropdownItem'} onClick={onClick} data-prevent-close={preventClose}>
+        {children}
+    </div>
+  );
+}
+
+const DropdownMenuItemWithIcon = ({icon, textEn, textHe, descEn='', descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader">
@@ -38,7 +46,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn, textHe}) => {
         </span>
       </div>
       <div className='dropdownDesc'>
-        <InterfaceText text={{'en': 'Lorem ipsum dolor sit amet, lorem dolor.', 'he': 'לורם איפסום דולור סיט אמט'}} />
+        <InterfaceText text={{'en': descEn, 'he': descHe}} />
       </div>
   </>
   );
@@ -93,7 +101,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             document.removeEventListener('click', handleClickOutside, true);
         };
     }, []);
-  
+
     return (
         <div className={positioningClass} ref={wrapperRef}>
            <a className="dropdownLinks-button" onClick={handleButtonClick}>
@@ -113,5 +121,6 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     DropdownMenu,
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
-    DropdownMenuItem
+    DropdownMenuItem,
+    DropdownMenuItemWithCallback
   };
