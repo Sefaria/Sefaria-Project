@@ -133,6 +133,12 @@ class Sheet extends Component {
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}
             setDivineNameReplacement={this.props.setDivineNameReplacement}
             divineNameReplacement={this.props.divineNameReplacement}
+            authorStatement={sheet.ownerName}
+            authorUrl={sheet.ownerProfileUrl}
+            authorImage={sheet.ownerImageUrl}
+            title={sheet.title || ""}
+            summary={sheet.summary || ""}
+            sheetOptions={<></>}
           />
         </div>
         :
