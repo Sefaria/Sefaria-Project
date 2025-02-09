@@ -70,7 +70,7 @@ export const TopicLandingSeasonal = () => {
 
 
     return (
-        <div className='topic-landing-seasonal'>
+        <div className='topic-landing-seasonal' data-anl-feature_name="Calendar">
             <TopicLandingCalendar
                 header={<InterfaceText>From the Jewish Calendar</InterfaceText>}
                 title={title}
@@ -78,7 +78,11 @@ export const TopicLandingSeasonal = () => {
                 link={link}
             />
             <div className="learn-more-prompt">
-                <a href={link}>
+                <a href={link}
+                   data-anl-link_type="topic"
+                   data-anl-text={learnMorePrompt.en}
+                   data-anl-event="navto_topic:click"
+                >
                     <InterfaceText text={learnMorePrompt}/>
                 </a>
             </div>

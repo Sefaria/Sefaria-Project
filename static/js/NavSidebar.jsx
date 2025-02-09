@@ -628,6 +628,7 @@ const TopicLandingTrendingTopics = () => {
                 <div className="navSidebarLink ref serif" key={i}>
                     <a
                         href={"/topics/" + topic.slug}
+                        data-anl-link_type="topic"
                         data-anl-event="navto_topic:click"
                         data-anl-text={topic.primaryTitle.en}
                     >
@@ -649,7 +650,13 @@ const TopicLandingTopicCatList = () => {
             <div className="topic-landing-sidebar-list">
                 {topicCats.map((topic, i) =>
                     <div className="navSidebarLink ref serif" key={i}>
-                        <a href={"/topics/category/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
+                        <a href={"/topics/category/" + topic.slug}
+                            data-anl-link_type="category"
+                            data-anl-text={topic.en}
+                            data-anl-event="navto_topic:click"
+                        >
+                            <InterfaceText text={{en: topic.en, he: topic.he}}/>
+                        </a>
                     </div>
                 )}
             </div>
@@ -658,11 +665,19 @@ const TopicLandingTopicCatList = () => {
 };
 const AZTopicsLink = () => {
     return (
+        <span
+            data-anl-feature_name="Browse A-Z"
+        >
         <SidebarModule>
-            <a href={'/topics/all/a'}>
+            <a href={'/topics/all/a'}
+            data-anl-link_type="see all"
+            data-anl-text="All Topics A-Z ›"
+            data-anl-event="navto_topic:click"
+            >
             <SidebarModuleTitle>All Topics A-Z ›</SidebarModuleTitle>
             </a>
         </SidebarModule>
+        </span>
     )
 };
 

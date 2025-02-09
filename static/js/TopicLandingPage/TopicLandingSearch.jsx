@@ -71,6 +71,10 @@ const renderItem = (openTopic, item, index, highlightedIndex, getItemProps)=>{
               className={`topic-landing-search-suggestion ${highlightedClassString}`}
               key={item.slug}
               {...getItemProps({index})}
+              data-anl-link_type="topic"
+              data-anl-text={item.text}
+              data-anl-event="navto_topic:click"
+
           >
               <img alt="Topic" className="type-icon" src="/static/icons/iconmonstr-hashtag-1.svg"/>
               <span className="topic-landing-search-suggestion-title">{item.text}</span> <span
@@ -138,7 +142,7 @@ export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
 
     return (
         <>
-        <div className="topic-landing-search-wrapper">
+        <div className="topic-landing-search-wrapper" data-anl-feature_name="Search">
             <GeneralAutocomplete
                 getSuggestions={getSuggestions}
                 renderItems={renderItems.bind(null, openTopic)}
