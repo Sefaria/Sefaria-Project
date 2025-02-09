@@ -643,6 +643,7 @@ const TopicLandingTrendingTopics = () => {
 const TopicLandingTopicCatList = () => {
     const topicCats = Sefaria.topicTocPage();
     return(
+        <span data-anl-feature_name="Browse Topics">
         <SidebarModule>
             <SidebarModuleTitle>
                 <span id="browseTopics">Browse Topics</span>
@@ -661,6 +662,7 @@ const TopicLandingTopicCatList = () => {
                 )}
             </div>
         </SidebarModule>
+        </span>
     )
 };
 const AZTopicsLink = () => {
