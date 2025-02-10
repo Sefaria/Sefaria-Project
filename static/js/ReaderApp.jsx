@@ -1535,8 +1535,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // in the case of multipanel, create two panels based on panelProps
     let connectionPanel;  // in mobile, connectionPanel will remain undefined
 
-    const currIndex = Sefaria.parseRef(panelProps.refs[0])?.index;
-    const currCommVersions = !!currIndex ? {[currIndex]: {...panelProps.currVersions}} : {};  // 'currVersions' is for commentary, not base text
+    // 'currVersions' is for commentary, not base text.  In addition, we want to specify currCommVersions to be only relevant to a specific filter
+    const currCommVersions = panelProps.filter.length === 1 ? {[panelProps.filter[0]]: {...panelProps.currVersions}} : {};
     panelProps.currVersions = {'en': null, 'he': null};  // don't try to use the 'currVersions' of the commentary for the base ref!
 
     if (this.props.multiPanel) {
