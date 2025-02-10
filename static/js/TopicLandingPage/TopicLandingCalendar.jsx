@@ -13,6 +13,8 @@ export const TopicLandingCalendar = ({ header, title, description, link, childre
         cardTitleHref={link}
         cardTitle={title}
         cardText={description}
+        analyticsEventName = "navto_topic"
+        analyticsLinkType= "topic"
       />
       {children && <div className="calendar-children">{children}</div>}
     </div>

@@ -93,7 +93,13 @@ export const TopicLandingSeasonal = () => {
                 <InterfaceText text={{en: formattedDateEn, he: formattedDateHe}}/>
             </div>
             <div className="explore-calendar-prompt">
-                <a href='/topics/category/jewish-calendar2'><InterfaceText>Explore the Jewish Calendar</InterfaceText></a>
+                <a href='/topics/category/jewish-calendar2'
+                   data-anl-link_type="category"
+                   data-anl-text="Explore the Jewish Calendar"
+                   data-anl-event="navto_topic:click"
+                >
+                    <InterfaceText>Explore the Jewish Calendar</InterfaceText>
+                </a>
             </div>
         </div>
     );

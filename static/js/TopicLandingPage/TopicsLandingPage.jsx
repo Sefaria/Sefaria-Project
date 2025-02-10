@@ -21,7 +21,7 @@ export const TopicsLandingPage = ({openTopic}) => {
     const pageTitle = "Let Your Curiosity Lead The Way"
     return (
         <div className="readerNavMenu" key="0"
-             data-anl-panel_project="topics"
+             data-anl-project="topics"
              data-anl-panel_name={pageTitle}
              data-anl-panel_type="Topic Landing">
             <div className="content">
