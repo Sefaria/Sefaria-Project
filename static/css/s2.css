@@ -669,7 +669,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   opacity: 0.4;
 }
 .mobileNavMenu a.blue {
-  background-color: #18345D;
+  background-color: var(--sefaria-blue);
   color: white;
   border-bottom: unset;
 }
@@ -1065,7 +1065,7 @@ div.interfaceLinks-row a {
   color: #666;
 }
 #interruptingMessage.sefariaModalContentBox {
-  background-color: #18345D;
+  background-color: var(--sefaria-blue);
   color: white;
   padding: 50px 70px;
   border-color: transparent;
@@ -2192,7 +2192,7 @@ div.interfaceLinks-row a {
   left: -180px;
 }
 .guideHeader .ai-info-tooltip .ai-info-icon {
-    margin-top: 5px;
+  margin-top: 5px;
 }
 .ai-info-last-message {
   align-items: center;
@@ -2221,6 +2221,7 @@ div.interfaceLinks-row a {
 
 .ai-info-tooltip .ai-info-icon{
   margin-top: 12px;
+  margin-inline-end: -2px;
 }
 .ai-info-tooltip{
   position: relative;
@@ -3943,7 +3944,7 @@ details .open-details::before {
   margin-top: 5px;
 }
 .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a{
-  color: #18345D;
+  color: var(--sefaria-blue);
 }
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover{
   text-decoration: none;
@@ -8687,8 +8688,8 @@ a .button:hover {
 }
 .button.appButton {
   box-shadow: none;
-  border: 2px solid #18345D;
-  color: #18345D;
+  border: 2px solid var(--sefaria-blue);
+  color: var(--sefaria-blue);
 }
 .button.appButton img {
   margin-inline-end: 5px;
@@ -11689,7 +11690,7 @@ cursor: pointer;
   box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.25);
   text-align: start;
   width: 266px;
-  padding-bottom: 15px;
+  padding: 15px 0;
 }
 
 .interface-hebrew .singlePanel .langSelectPopover {
@@ -11719,11 +11720,11 @@ cursor: pointer;
   cursor: pointer;
 }
 
-.langSelectPopover .radioChoice:nth-of-type(2) {
+.langSelectPopover .radioChoice:nth-of-type(1) {
   border-radius: 6px 6px 0px 0px;
 }
 
-.langSelectPopover .radioChoice:nth-of-type(4) {
+.langSelectPopover .radioChoice:nth-of-type(3) {
   border-radius: 0px 0px 6px 6px;
 }
 
@@ -11834,31 +11835,39 @@ cursor: pointer;
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
+#staticContentWrapper .editorToggleHeader {
+  margin: revert;
+}
 .editorToggleHeader {
-  width: 100%;
-  background-color: #18345D;
+  padding-inline: 10%;
+  background-color: var(--sefaria-blue);
   color: white;
-  height: 60px;
+  height: 72px;
   font-size: 16px;
   margin-top: -60px;
-  margin-left: -12px;
   margin-bottom: 80px;
-  padding-right: 12px;
   display: flex;
   justify-content: center;
+  gap: 5px;
   align-items: center;
-  position: relative;
-  left: 0;
 }
+
 .interface-hebrew .editorToggleHeader {
   direction: rtl;
 }
 .editorToggleHeader .button {
+  white-space: nowrap;
   padding: 5px 8px;
-  margin-inline-start: 15px;
-  margin-top: 5px;
   height: 30px;
   letter-spacing: 0;
+  margin-inline-end: 15px;
+}
+
+.editorToggleHeader .learnMore {
+  text-decoration: underline;
+  color: white;
+  white-space: nowrap;
+  margin-top: -5px;
 }
 .feedbackOverlay {
   position: fixed;
@@ -12169,7 +12178,7 @@ cursor: pointer;
 }
 .resourcesLink.blue {
   color: white;
-  background-color: #18345d;
+  background-color: var(--sefaria-blue);
 }
 .resourcesLink.studyCompanion {
   margin-inline-start: 10px;
@@ -12314,7 +12323,7 @@ cursor: pointer;
   align-items: center;
   text-align: center;
   cursor: pointer;
-  background: #18345d;
+  background: var(--sefaria-blue);
   color: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
@@ -13383,7 +13392,7 @@ a.topicLexiconTitle.contentText {
   right: 0;
   color: white;
   z-index: 9999;
-  background-color: #18345D;
+  background-color: var(--sefaria-blue);
   padding: 20px;
   line-height: 1.6;
   text-align: center;
@@ -14040,6 +14049,11 @@ span.ref-link-color-3 {color: blue}
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
+.texts-properties-menu,
+.texts-properties-menu .button {
+  font-size: 14px;
+}
+
 .dropdownButton {
   border: none;
   background-color: inherit;
@@ -14063,7 +14077,14 @@ span.ref-link-color-3 {color: blue}
 }
 
 .toggle-switch-checkbox {
-  display: none;
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: none;
+}
+
+.focus-visible:has(input:focus) {
+  outline: auto;
 }
 
 .toggle-switch-label {
@@ -14153,27 +14174,67 @@ span.ref-link-color-3 {color: blue}
 .show-source-translation-buttons {
   display: flex;
   flex-direction: column;
-  height: 170px;
+  height: 140px;
   justify-content: center;
-}
-
-.show-source-translation-buttons input {
-  display: none;
 }
 
 .show-source-translation-buttons .button {
   margin: unset;
   display: flex;
-  height: 46px;
+  height: 35px;
   width: 235px;
   align-items: center;
-  justify-content: center;
-  margin: 3px 0;
+  justify-content: space-between;
+  box-shadow: unset;
+  padding-inline-start: 10px;
+  padding-inline-end: 0;
 }
 
-.show-source-translation-buttons .button:not(.checked) {
+.show-source-translation-buttons .button:has(input:not(:checked)) {
   background-color: var(--lighter-grey);
   color: black;
+}
+
+.show-source-translation-buttons input[type=radio] {
+  appearance: none;
+  background-color: #fff;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--medium-grey);
+  border-radius: 20px;
+  margin-top: 0;
+  margin-inline-end: 10px;
+  display: inline-grid;
+  place-content: center;
+}
+
+.show-source-translation-buttons input[type=radio]:checked {
+  border: 0;
+}
+
+.show-source-translation-buttons input[type=radio],
+.show-source-translation-buttons label {
+  cursor: unset;
+}
+
+.show-source-translation-buttons > div:first-of-type {
+    border-radius: 6px 6px 0 0;
+}
+
+.show-source-translation-buttons > div:last-of-type {
+    border-radius: 0 0 6px 6px;
+}
+
+.show-source-translation-buttons > div:not(:first-of-type):not(:last-of-type) {
+    border-radius: 0;
+}
+
+.show-source-translation-buttons input[type=radio]:checked::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background-color: var(--sefaria-blue);
+  clip-path: polygon(13% 50%, 34% 66%, 81% 2%, 100% 18%, 39% 100%, 0 71%);
 }
 
 .layout-button-line {
@@ -14191,7 +14252,7 @@ span.ref-link-color-3 {color: blue}
   gap: 16px;
 }
 
-.layout-button {
+.layout-button input {
   border: none;
   width: 28px;
   height: 24px;
@@ -14202,10 +14263,19 @@ span.ref-link-color-3 {color: blue}
   -webkit-mask-size: 100% 100%;
   background-color: var(--medium-grey);
   cursor: pointer;
+  appearance: unset;
+  transition: border 0.3s ease, outline 0.3s ease, background-color 0.3s ease;
 }
 
-.layout-button.checked {
+.layout-button input:checked {
   background-color: var(--sefaria-blue);
+}
+
+.layout-button .button {
+  background-color: unset;
+  box-shadow: unset;
+  padding: unset;
+  margin: unset;
 }
 
 .text-menu-border {
