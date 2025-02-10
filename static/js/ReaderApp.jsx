@@ -1535,10 +1535,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // in the case of multipanel, create two panels based on panelProps
     let connectionPanel;  // in mobile, connectionPanel will remain undefined
 
-    // version is from commentary; don't try to use the version of the commentary for the base ref!
     const currIndex = Sefaria.parseRef(panelProps.refs[0])?.index;
-    const currCommVersions = !!currIndex ? {[currIndex]: {...panelProps.currVersions}} : {};
-    panelProps.currVersions = {'en': null, 'he': null};
+    const currCommVersions = !!currIndex ? {[currIndex]: {...panelProps.currVersions}} : {};  // 'currVersions' is for commentary, not base text
+    panelProps.currVersions = {'en': null, 'he': null};  // don't try to use the 'currVersions' of the commentary for the base ref!
 
     if (this.props.multiPanel) {
         const connectionPanelProps = {...panelProps, currCommVersions: currCommVersions, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
@@ -2247,6 +2246,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       divineNameReplacement={this.state.divineNameReplacement}
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
+                      currCommVersions={currCommVersions}
                     />
                   </div>);
     }

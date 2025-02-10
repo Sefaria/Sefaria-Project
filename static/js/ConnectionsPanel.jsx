@@ -748,6 +748,7 @@ ConnectionsPanel.propTypes = {
   setPreviousSettings: PropTypes.func,
   filterRef: PropTypes.string,
   backButtonSettings:      PropTypes.object,
+  currCommVersions: PropTypes.object,
 };
 
 
