@@ -762,7 +762,7 @@ class ReaderPanel extends Component {
           title={this.currentBook()}
           currentlyVisibleRef={this.state.currentlyVisibleRef}
           currVersions={this.state.currVersions}
-          currCommVersions={this.props.currCommVersions}
+          currCommVersions={this.props.initialState.currCommVersions}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
           allOpenRefs={this.props.allOpenRefs}
@@ -1234,7 +1234,6 @@ ReaderPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   topicTestVersion:            PropTypes.string,
-  currCommVersions:           PropTypes.object,
 };
 
 
