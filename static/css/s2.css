@@ -672,7 +672,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   opacity: 0.4;
 }
 .mobileNavMenu a.blue {
-  background-color: #18345D;
+  background-color: var(--sefaria-blue);
   color: white;
   border-bottom: unset;
 }
@@ -791,13 +791,19 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .accountLinks.anon .help {
   margin-top: 6px;
 }
-.header .interfaceLinks {
-  display: block;
+.headerLinksSection .help {
+  display: flex;
+  justify-content: center;
   align-items: center;
-  margin-top: 2px;
+  height: 100%;
+  margin-top: 4px;
+}
+.header .interfaceLinks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   color: #666;
   cursor: pointer;
-  position: relative;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
@@ -807,6 +813,11 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   width: 18px;
   vertical-align: middle;
   margin-inline-end: 2px;
+}
+.header .interfaceLinks a.interfaceLinks-button{
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .header .interfaceLinks a.interfaceLinks-button::after {
   display: inline-block;
@@ -1100,7 +1111,7 @@ div.interfaceLinks-row a {
   color: #666;
 }
 #interruptingMessage.sefariaModalContentBox {
-  background-color: #18345D;
+  background-color: var(--sefaria-blue);
   color: white;
   padding: 50px 70px;
   border-color: transparent;
@@ -2228,7 +2239,7 @@ div.interfaceLinks-row a {
   left: -180px;
 }
 .guideHeader .ai-info-tooltip .ai-info-icon {
-    margin-top: 5px;
+  margin-top: 5px;
 }
 .ai-info-last-message {
   align-items: center;
@@ -2257,6 +2268,7 @@ div.interfaceLinks-row a {
 
 .ai-info-tooltip .ai-info-icon{
   margin-top: 12px;
+  margin-inline-end: -2px;
 }
 .ai-info-tooltip{
   position: relative;
@@ -3988,7 +4000,7 @@ details .open-details::before {
   margin-top: 5px;
 }
 .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a{
-  color: #18345D;
+  color: var(--sefaria-blue);
 }
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover{
   text-decoration: none;
@@ -4798,6 +4810,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .search-container{
   position: relative;
+  padding-right: 10px;
 }
 .autocomplete-dropdown{
   background: #FFFFFF;
@@ -8222,8 +8235,8 @@ a .button:hover {
 }
 .button.appButton {
   box-shadow: none;
-  border: 2px solid #18345D;
-  color: #18345D;
+  border: 2px solid var(--sefaria-blue);
+  color: var(--sefaria-blue);
 }
 .button.appButton img {
   margin-inline-end: 5px;
@@ -11578,31 +11591,39 @@ cursor: pointer;
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
+#staticContentWrapper .editorToggleHeader {
+  margin: revert;
+}
 .editorToggleHeader {
-  width: 100%;
-  background-color: #18345D;
+  padding-inline: 10%;
+  background-color: var(--sefaria-blue);
   color: white;
-  height: 60px;
+  height: 72px;
   font-size: 16px;
   margin-top: -60px;
-  margin-left: -12px;
   margin-bottom: 80px;
-  padding-right: 12px;
   display: flex;
   justify-content: center;
+  gap: 5px;
   align-items: center;
-  position: relative;
-  left: 0;
 }
+
 .interface-hebrew .editorToggleHeader {
   direction: rtl;
 }
 .editorToggleHeader .button {
+  white-space: nowrap;
   padding: 5px 8px;
-  margin-inline-start: 15px;
-  margin-top: 5px;
   height: 30px;
   letter-spacing: 0;
+  margin-inline-end: 15px;
+}
+
+.editorToggleHeader .learnMore {
+  text-decoration: underline;
+  color: white;
+  white-space: nowrap;
+  margin-top: -5px;
 }
 .feedbackOverlay {
   position: fixed;
@@ -11928,7 +11949,7 @@ cursor: pointer;
 }
 .resourcesLink.blue {
   color: white;
-  background-color: #18345d;
+  background-color: var(--sefaria-blue);
 }
 .resourcesLink.studyCompanion {
   margin-inline-start: 10px;
@@ -12073,7 +12094,7 @@ cursor: pointer;
   align-items: center;
   text-align: center;
   cursor: pointer;
-  background: var(--midrash-green);
+  background: var(--sefaria-blue);
   color: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
@@ -13142,7 +13163,7 @@ a.topicLexiconTitle.contentText {
   right: 0;
   color: white;
   z-index: 9999;
-  background-color: #18345D;
+  background-color: var(--sefaria-blue);
   padding: 20px;
   line-height: 1.6;
   text-align: center;
@@ -14743,6 +14764,27 @@ span.ref-link-color-3 {color: blue}
 }
 .sheetsProfileList .loadingMessage {
   margin-top: 30px;
+}
+
+.emptyNotificationsTitle{
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+  padding-bottom: 10px;
+}
+
+.emptyNotificationsMessage{
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: start;
+}
+
+.emptyNoticationPage{
+  display: flex;
+  flex-direction: column;
 }
 
 @-webkit-keyframes load5 {
