@@ -9875,15 +9875,11 @@ a .button:hover {
 }
 
 .sheetMetaDataBox .title:empty:before {
-    content: "Untitled";
+    content: attr(data-content);
     color: #999;
     position: relative;
     pointer-events: none;
     width: auto;
-}
-
-.interface-hebrew .sheetMetaDataBox .title:empty:before {
-    content: "མཚན་བྱང་།";
 }
 
 .publishBox {
@@ -10018,13 +10014,16 @@ div.transparentBackground.publishBox {
 
 .publishBox .react-tags__search-input::placeholder {
     font-size: 16px;
+    width: 100px;
     font-style: normal;
     font-family: var(--english-sans-serif-font-family);
 }
 
+
 body.interface-hebrew .publishBox .react-tags__search-input::placeholder,
 body.interface-hebrew .publishBox textarea::placeholder {
     font-family: var(--hebrew-sans-serif-font-family);
+    width: 100px;
 
 }
 
@@ -12103,13 +12102,13 @@ span.purim-emoji img {
     pointer-events: none;
 } 
 
-.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:before,
-.interface-english .spacer:only-of-type.empty:before,
-.interface-english .spacer:only-of-type.empty:before {
-    content: "Write something... ";
+.sheetItem:only-of-type.empty .SheetOutsideText:before,
+.spacer:only-of-type.empty:before,
+.spacer:only-of-type.empty:before {
+    content: attr(data-placeholder)
 }
 
-.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
+/* .interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .interface-hebrew .spacer:only-of-type.empty:before,
 .interface-hebrew .spacer:only-of-type.empty:before {
     content:"འདིར་རྩོམ་འབྲི...";
@@ -12119,7 +12118,7 @@ span.purim-emoji img {
 .int-zh .spacer:only-of-type.empty:before,
 .int-zh .spacer:only-of-type.empty:before {
     content:"在这里写文章...";
-}
+} */
 
 
 .editorAddInterface {
