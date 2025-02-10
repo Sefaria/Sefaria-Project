@@ -352,7 +352,7 @@ class NotificationSet(abst.AbstractMongoSet):
         self.__init__(query={"uid": uid, "read": False, "is_global": False, "suspected_spam": {'$in': [False, None]}})
         return self
 
-    def recent_for_user(self, uid, page=0, limit=10, sheets_mode=0):
+    def recent_for_user(self, uid, page=0, limit=10, module='library'):
         """
         Loads recent notifications for uid.
         """
@@ -362,7 +362,7 @@ class NotificationSet(abst.AbstractMongoSet):
         query = {
             "uid": uid,
             "suspected_spam": {"$in": [False, None]},
-            "type": {"$in" if sheets_mode == 1 else "$nin": sheets_notification_types}
+            "type": {"$in" if module == 'sheets' else "$nin": sheets_notification_types}
         }
 
         self.__init__(query=query, page=page, limit=limit)

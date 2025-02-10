@@ -58,7 +58,9 @@ class NotificationsPanel extends Component {
     }
   }
   getMoreNotifications() {
-    $.getJSON("/api/notifications?page=" + this.state.page, this.loadMoreNotifications);
+    // TODO - make knowledge of sheets mode dynamic, for now hardcoded
+    const curModule = "sheets";
+    $.getJSON(`/api/notifications?page=${this.state.page}&module=${curModule}`, this.loadMoreNotifications);
     this.setState({loading: true});
   }
   loadMoreNotifications(data) {
@@ -93,13 +95,10 @@ class NotificationsPanel extends Component {
                     ) : null}
                   </>
                 </div>
-                {(Sefaria._uid) ? (
-                     Sefaria.notificationCount > 0 && notifications
-                ) : (
-                  <LoginPrompt fullPanel={true} />
-                )}
+                {!Sefaria._uid && <LoginPrompt fullPanel={true} />}
               </div>
-              {Sefaria._uid && Sefaria.notificationCount < 1 && <EmptyNotificationsMessage /> } 
+              {Sefaria._uid && notifications.length < 1 && <EmptyNotificationsMessage /> } 
+              {Sefaria._uid && notifications.length > 0 && notifications}
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>

@@ -592,9 +592,9 @@ class UserProfile(object):
         """Returns true if this user is followed by uid"""
         return uid in self.followers.uids
 
-    def recent_notifications(self):
+    def recent_notifications(self, module="library"):
         from sefaria.model.notification import NotificationSet
-        return NotificationSet().recent_for_user(self.id)
+        return NotificationSet().recent_for_user(self.id, module=module)
 
     def unread_notification_count(self):
         from sefaria.model.notification import NotificationSet

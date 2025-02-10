@@ -185,7 +185,8 @@ def base_props(request):
             "blocking": profile.blockees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
-            "notifications": profile.recent_notifications().client_contents(),
+            ## TODO - refactor the below to getattr(request, 'active_module', "library") as per Ephraim's activeModule. For now hardcoded
+            "notifications": profile.recent_notifications(module="sheets").client_contents(),
             "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
             "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True)
         }
@@ -1082,7 +1083,8 @@ def user_stats(request):
 def notifications(request):
     # Notifications content is not rendered server side
     title = _("Sefaria Notifications")
-    notifications = UserProfile(user_obj=request.user).recent_notifications()
+    ## TODO - refactor the below to getattr(request, 'active_module', "library") as per Ephraim's activeModule. For now hardcoded
+    notifications = UserProfile(user_obj=request.user).recent_notifications(module="sheets")
     props = {
         "notifications": notifications.client_contents(),
     }
@@ -2921,9 +2923,9 @@ def notifications_api(request):
 
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
-    sheets_mode = int(request.GET.get("sheets_mode", 0))
+    module = str(request.GET.get("module", "library"))
 
-    notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page, sheets_mode=sheets_mode)
+    notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page, module=module)
 
     return jsonResponse({
         "notifications": notifications.client_contents(),
