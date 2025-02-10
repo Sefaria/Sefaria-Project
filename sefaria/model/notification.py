@@ -357,16 +357,13 @@ class NotificationSet(abst.AbstractMongoSet):
         Loads recent notifications for uid.
         """
         self._add_global_messages(uid)
-        if sheets_mode == 1:
-            query = {"uid": uid, "suspected_spam": {'$in': [False, None]}, "type": {'$in': ["collection add",
-                                                                                            "follow",
-                                                                                            "sheet like",
-                                                                                            "sheet publish"]}}
-        else:
-            query = {"uid": uid, "suspected_spam": {'$in': [False, None]}, "type": {'$nin': ["collection add",
-                                                                                            "follow",
-                                                                                            "sheet like",
-                                                                                            "sheet publish"]}}
+        sheets_notification_types = ["collection add", "follow", "sheet like", "sheet publish"]
+
+        query = {
+            "uid": uid,
+            "suspected_spam": {"$in": [False, None]},
+            "type": {"$in" if sheets_mode == 1 else "$nin": sheets_notification_types}
+        }
 
         self.__init__(query=query, page=page, limit=limit)
         return self
