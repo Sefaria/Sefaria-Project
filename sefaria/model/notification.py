@@ -352,12 +352,23 @@ class NotificationSet(abst.AbstractMongoSet):
         self.__init__(query={"uid": uid, "read": False, "is_global": False, "suspected_spam": {'$in': [False, None]}})
         return self
 
-    def recent_for_user(self, uid, page=0, limit=10):
+    def recent_for_user(self, uid, page=0, limit=10, sheets_mode=0):
         """
         Loads recent notifications for uid.
         """
         self._add_global_messages(uid)
-        self.__init__(query={"uid": uid, "suspected_spam": {'$in': [False, None]}}, page=page, limit=limit)
+        if sheets_mode == 1:
+            query = {"uid": uid, "suspected_spam": {'$in': [False, None]}, "type": {'$in': ["collection add",
+                                                                                            "follow",
+                                                                                            "sheet like",
+                                                                                            "sheet publish"]}}
+        else:
+            query = {"uid": uid, "suspected_spam": {'$in': [False, None]}, "type": {'$nin': ["collection add",
+                                                                                            "follow",
+                                                                                            "sheet like",
+                                                                                            "sheet publish"]}}
+
+        self.__init__(query=query, page=page, limit=limit)
         return self
 
     def mark_read(self, via="site"):

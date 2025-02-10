@@ -2921,8 +2921,9 @@ def notifications_api(request):
 
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
+    sheets_mode = int(request.GET.get("sheets_mode", 0))
 
-    notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)
+    notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page, sheets_mode=sheets_mode)
 
     return jsonResponse({
         "notifications": notifications.client_contents(),
