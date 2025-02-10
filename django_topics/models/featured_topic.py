@@ -32,7 +32,7 @@ class TopicOfTheDay(models.Model):
     objects = FeaturedTopicManager()
 
     class Meta:
-        unique_together = ('topic', 'start_date')
+        unique_together = ('topic', 'start_date', 'lang')
         verbose_name = "Landing Page - Featured Topic"
         verbose_name_plural = "Landing Page - Featured Topic"
 
