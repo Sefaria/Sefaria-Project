@@ -4984,6 +4984,7 @@ h1.topic-landing-header {
   height: 18px;
   width: 18px;
   margin-top: 2px;
+  margin-inline-end: 8px;
 }
 .topic-landing-search-suggestion-title{
   font-family: 'EB Garamond';;
