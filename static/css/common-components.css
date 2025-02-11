@@ -32,27 +32,45 @@ button.sefaria-common-button::-moz-focus-inner {
 
 /** general sized button **/
 button.sefaria-common-button {
-  background-color: var(--theme-button-background);
-  color: var(--theme-button-text);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
+    background-color: var(--theme-button-background);
+    color: var(--theme-button-text);
+    border: 1px solid var(--theme-button-border);
+    padding: 10px 20px;
+    border-radius: 6px;
+    height: 39px;
+    min-width: 39px;
+    width: fit-content;
+    text-align: center;
+    text-align-last: center;
+    cursor: pointer;
+    font-size: 16px;
+    box-sizing: border-box;
+    line-height: 19px;
+    --english-font: var(--english-sans-serif-font-family);
+    --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+/** large button **/
+button.sefaria-common-button.large {
+    height: 53px;
+    min-width: 39px;
+}
+/** full width button **/
+button.sefaria-common-button.fullwidth {
+    height: 53px;
+    width: 100%;
 }
 /** button children **/
 button.sefaria-common-button,
 button.sefaria-common-button *{
   /*extra make sure color is applied to text if its in nested elements  */
-  color: var(--theme-button-text);
+    color: var(--theme-button-text);
 }
-
-/** large button **/
-button.sefaria-common-button.large {
-  padding: 5px 10px;
-}
-
-/** full width button **/
-button.sefaria-common-button.full-width {
-  width: 100%;
+/** button icon **/
+button.sefaria-common-button img.button-icon {
+    filter: var(--theme-button-icon-filter);
+    margin-inline-end: 5px;
+    height: 18px;
+    vertical-align: -15%;
 }
 
 
