@@ -14,7 +14,11 @@ export const TopicSalad = () => {
     const isMultiPanel = Sefaria.multiPanel;
 
     const renderSaladItem = (item) => {
-        return(<a href={`/topics/${item.slug}`} className="topic-salad-item">
+        return(<a href={`/topics/${item.slug}`} className="topic-salad-item"
+                  data-anl-link_type="topic"
+                  data-anl-text={item.text.en}
+                  data-anl-event="navto_topic:click"
+                >
                 <InterfaceText text={item.text}/>
                 </a>)
     }
@@ -36,7 +40,7 @@ export const TopicSalad = () => {
     }, []);
 
     return (
-    <>
+    <span  data-anl-feature_name="Topic Salad">
     <RainbowLine rainbowClassname={"topic-landing-upper-rainbow"}/>
       <div className='topic-salad'>
           {isMultiPanel ? <WordSalad renderItem={renderSaladItem}
@@ -47,7 +51,7 @@ export const TopicSalad = () => {
                               salad={salad}/>}
       </div>
     <RainbowLine rainbowClassname={"topic-landing-lower-rainbow"}/>
-    </>
+    </span>
 
   );
 };

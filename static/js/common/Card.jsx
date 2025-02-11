@@ -1,8 +1,11 @@
 import {InterfaceText} from "../Misc";
 import React from "react";
-const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkText, bottomLinkUrl}) => {
+const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkText, bottomLinkUrl, analyticsEventName, analyticsLinkType}) => {
     return <div className="card">
-                <a href={cardTitleHref} className="cardTitle" onClick={oncardTitleClick}>
+                <a href={cardTitleHref} className="cardTitle" onClick={oncardTitleClick}
+                data-anl-text={cardTitle?.en}
+                data-anl-event={analyticsEventName ? `${analyticsEventName}:click` : null}
+                >
                     <InterfaceText text={cardTitle}/>
                 </a>
                 <div className="cardDescription">
@@ -10,7 +13,10 @@ const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkT
                 </div>
                 {bottomLinkText &&
                     <div className="bottomCardLink">
-                      <a href={bottomLinkUrl}>
+                      <a href={bottomLinkUrl}
+                        data-anl-text={bottomLinkText.en}
+                        data-anl-event={analyticsEventName ? `${analyticsEventName}:click` : null}
+                      >
                         <InterfaceText text={bottomLinkText}/>
                       </a>
                     </div>
