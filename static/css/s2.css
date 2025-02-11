@@ -5404,19 +5404,19 @@ h1.topic-landing-header {
   height: 345px;
 }
 .topic-card-with-description .cardDescription{
+  top: 95px;
   margin-inline-end: 30px;
   margin-inline-start: 30px;
-  margin-top: 19px;
   max-width: 208px;
   max-height: 201px;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow-y: hidden;
   word-wrap: break-word;
+  -webkit-line-clamp: 10;
+  position: absolute;
 }
-.topic-card-with-description .cardTitle {
-  margin-top: 23px;
-}
+
 .topic-card-with-description .bottomCardLink {
   font-size: 14px;
   line-height: 18px;
@@ -5425,11 +5425,18 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   position: absolute;
-  bottom: 41px;
+  top: 298px;
   margin-inline-start: 30px;
 }
 .topic-card-with-description .cardTitle {
-  margin-inline-start: 30px;
+  margin-inline: 30px;
+  margin-top: 23px;
+  padding: unset;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  display: -webkit-box;
+  line-height: 1.1;
 }
 .readerNavMenu .sheet {
   display: flex;
