@@ -18,7 +18,7 @@ export const TopicsLandingPage = ({openTopic}) => {
         {type: "TopicLandingTrendingTopics"},
         {type: "AZTopicsLink"},
     ];
-    const pageTitle = "Let Your Curiosity Lead The Way"
+    const pageTitle = "Explore by Topic"
     return (
         <div className="readerNavMenu" key="0"
              data-anl-project="topics"

@@ -645,9 +645,11 @@ const TopicLandingTopicCatList = () => {
     return(
         <span data-anl-feature_name="Browse Topics">
         <SidebarModule>
+            <span id="browseTopics">
             <SidebarModuleTitle>
-                <span id="browseTopics">Browse Topics</span>
+                Browse Topics
             </SidebarModuleTitle>
+            </span>
             <div className="topic-landing-sidebar-list">
                 {topicCats.map((topic, i) =>
                     <div className="navSidebarLink ref serif" key={i}>

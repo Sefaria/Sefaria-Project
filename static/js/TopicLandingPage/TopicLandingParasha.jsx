@@ -50,10 +50,10 @@ export const TopicLandingParasha = () => {
                 <div className="browse-all-parashot-prompt">
                     <a href='/topics/category/torah-portions'
                     data-anl-link_type="category"
-                    data-anl-text="Browse all Parshayot"
+                    data-anl-text="Browse All Torah Portions"
                     data-anl-event="navto_topic:click"
                     >
-                        <InterfaceText>Browse all Parshayot</InterfaceText></a >
+                        <InterfaceText>Browse All Torah Portions</InterfaceText></a >
                 </div>
             </TopicLandingCalendar>
         </div>

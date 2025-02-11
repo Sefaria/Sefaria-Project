@@ -81,7 +81,7 @@ export const TopicLandingSeasonal = () => {
     return (
         <div className='topic-landing-seasonal' data-anl-feature_name="Calendar">
             <TopicLandingCalendar
-                header={<InterfaceText>From the Jewish Calendar</InterfaceText>}
+                header={<InterfaceText>On the Jewish Calendar</InterfaceText>}
                 title={title}
                 description={description}
                 link={link}
