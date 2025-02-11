@@ -5417,9 +5417,6 @@ h1.topic-landing-header {
   position: absolute;
 }
 
-.topic-card-with-description .cardTitle {
-  margin-top: 23px;
-}
 .topic-card-with-description .bottomCardLink {
   font-size: 14px;
   line-height: 18px;
@@ -5432,7 +5429,13 @@ h1.topic-landing-header {
   margin-inline-start: 30px;
 }
 .topic-card-with-description .cardTitle {
-  margin-inline-start: 30px;
+  margin-inline: 30px;
+  margin-top: 23px;
+  padding: unset;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  display: -webkit-box;
 }
 .readerNavMenu .sheet {
   display: flex;
