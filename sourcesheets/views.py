@@ -175,7 +175,7 @@ def get_user_collections_for_sheet(uid, sheet_id):
     return collections
 
 
-def make_sheet_class_string(sheet, options={}):
+def make_sheet_class_string(sheet, options=None):
     """
     Returns a string of class names corresponding to the options of sheet.
     """
@@ -1124,8 +1124,8 @@ def export_to_drive(request, credential, sheet_id):
     service = build('drive', 'v3', credentials=credential, cache_discovery=False)
     user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
 
-    options = {'sourceLanguage': request.GET.get("lang", "bilingual"),
-               'sourceLangLayout': request.GET.get("langLayout", "heRight")}
+    options = {'language': request.GET.get("lang", "bilingual"),
+               'langLayout': request.GET.get("langLayout", "heRight")}
 
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
