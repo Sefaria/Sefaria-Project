@@ -37,7 +37,7 @@ export const RandomTopicCardWithDescriptionRow = () => {
     return (
     <>
       <div className='topic-card-with-description-row' data-anl-feature_name="Multi-Cards">
-          {deck.map(topic=><div className='topic-card-with-description'>
+          {deck.map(topic=><div className='topic-card-with-description' data-anl-link_type="topic">
               <Card
                   cardTitleHref={`topics/${topic.slug}`}
                   cardTitle={topic.title}
@@ -45,7 +45,6 @@ export const RandomTopicCardWithDescriptionRow = () => {
                   bottomLinkText = {{en: `Explore ${topic.title?.en} ›`, he:`${Sefaria._("Explore")} ${topic.title?.he} ›`}}
                   bottomLinkUrl = {`topics/${topic.slug}`}
                   analyticsEventName = "navto_topic"
-                  analyticsLinkType= "topic"
               />
             </div>)}
       </div>
