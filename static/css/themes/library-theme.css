@@ -1,10 +1,8 @@
 [data-active-module="library"]{
-    /* Define default theme variables */
+  /* Define default theme variables */
   --theme-primary: var(--sefaria-blue);
   --theme-background: var(--lightest-grey); /** just an example **/
-  --theme-text: var(--beit-midrash-grey);  /** just an example **/
-  --theme-button-background: var(--theme-primary);
-  --theme-button-text: white;
+  --theme-text: black;  /** just an example **/
 
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -24,7 +22,38 @@
   --sans-serif-h3-font-size: 22px;
   --sans-serif-body-font-size: 16px;
   --sans-serif-small-font-size: 14px;
+
+    /** button colors **/
+  --theme-button-background: var(--theme-primary);
+  --theme-button-text: white;
+  --theme-button-icon-fill: white;
+  --theme-button-border: transparent;
+  --theme-button-dropshadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 
+/**
+either a secondary button inside active module or a button with active module on it explicitly
+**/
+[data-active-module="sheets"] button.secondary,
+button.secondary[data-active-module="sheets"]
+{
+  /** light button colors **/
+  --theme-button-background: white;
+  --theme-button-text: var(--dark-grey);
+  --theme-button-icon-fill: var(--dark-grey);
+  --theme-button-border: transparent;
+  --theme-button-dropshadow: none;
+}
+[data-active-module="sheets"] button:disabled,
+[data-active-module="sheets"] button.secondary:disabled,
+button:disabled[data-active-module="sheets"],
+button.secondary:disabled[data-active-module="sheets"]{
+  /** disabled button colors (NOTE: button property must be set to disabled not a css class) **/
+  --theme-button-background: var(--lightest-grey);
+  --theme-buttontext: var(--medium-grey);
+  --theme-button-icon-fill: var(--medium-grey);
+  --theme-button-border: var(--light-grey);
+  --theme-button-dropshadow: none;
+}
 /* placeholder for dark theme colors */
 @media (prefers-color-scheme: dark) {}
