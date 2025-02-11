@@ -93,7 +93,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             document.removeEventListener('click', handleClickOutside, true);
         };
     }, []);
-  
+
     return (
         <div className={positioningClass} ref={wrapperRef}>
            <a className="dropdownLinks-button" onClick={handleButtonClick}>
