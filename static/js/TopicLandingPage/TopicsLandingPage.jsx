@@ -18,13 +18,17 @@ export const TopicsLandingPage = ({openTopic}) => {
         {type: "TopicLandingTrendingTopics"},
         {type: "AZTopicsLink"},
     ];
+    const pageTitle = "Explore by Topic"
     return (
-        <div className="readerNavMenu" key="0">
+        <div className="readerNavMenu" key="0"
+             data-anl-project="topics"
+             data-anl-panel_name={pageTitle}
+             data-anl-panel_type="Topic Landing">
             <div className="content">
                 <div className="sidebarLayout">
                     <div className="contentInner mainColumn topic-landing-page-content">
                         <h1 className="topic-landing-header">
-                            <InterfaceText>Let Your Curiosity Lead The Way</InterfaceText>
+                            <InterfaceText>{pageTitle}</InterfaceText>
                         </h1>
                         <div className="topic-landing-section first-section">
                             <TopicLandingSearch openTopic={openTopic} numOfTopics={Sefaria.numLibraryTopics}/>

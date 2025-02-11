@@ -4,15 +4,24 @@ import {useState, useEffect} from "react";
 import Sefaria from "../sefaria/sefaria";
 import {InterfaceText} from "../Misc";
 
-const createDisplayDateMessage =(displayDatePrefix, link, secondaryTopicTitleString, displayDateSuffix)=> {
+const createDisplayDateMessage = (displayDatePrefix, link, secondaryTopicTitleString, displayDateSuffix) => {
   return (
     <>
       {displayDatePrefix ?? ''}{' '}
-      {secondaryTopicTitleString ? <a href={link}>{secondaryTopicTitleString}</a> : ''}{' '}
+      {secondaryTopicTitleString ? (
+        <a
+          href={link}
+          data-anl-link_type="topic"
+          data-anl-text={secondaryTopicTitleString}
+          data-anl-event="navto_topic:click"
+        >
+          {secondaryTopicTitleString}
+        </a>
+      ) : ''}{' '}
       {displayDateSuffix ?? ''}
     </>
   );
-}
+};
 
 const useSeasonalTopic = () => {
   const [seasonal, setSeasonal] = useState(null);
@@ -70,15 +79,19 @@ export const TopicLandingSeasonal = () => {
 
 
     return (
-        <div className='topic-landing-seasonal'>
+        <div className='topic-landing-seasonal' data-anl-feature_name="Calendar">
             <TopicLandingCalendar
-                header={<InterfaceText>From the Jewish Calendar</InterfaceText>}
+                header={<InterfaceText>On the Jewish Calendar</InterfaceText>}
                 title={title}
                 description={description}
                 link={link}
             />
             <div className="learn-more-prompt">
-                <a href={link}>
+                <a href={link}
+                   data-anl-link_type="topic"
+                   data-anl-text={learnMorePrompt.en}
+                   data-anl-event="navto_topic:click"
+                >
                     <InterfaceText text={learnMorePrompt}/>
                 </a>
             </div>
@@ -89,7 +102,13 @@ export const TopicLandingSeasonal = () => {
                 <InterfaceText text={{en: formattedDateEn, he: formattedDateHe}}/>
             </div>
             <div className="explore-calendar-prompt">
-                <a href='/topics/category/jewish-calendar2'><InterfaceText>Explore the Jewish Calendar</InterfaceText></a>
+                <a href='/topics/category/jewish-calendar2'
+                   data-anl-link_type="category"
+                   data-anl-text="Explore the Jewish Calendar"
+                   data-anl-event="navto_topic:click"
+                >
+                    <InterfaceText>Explore the Jewish Calendar</InterfaceText>
+                </a>
             </div>
         </div>
     );

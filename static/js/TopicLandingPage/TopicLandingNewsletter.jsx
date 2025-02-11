@@ -39,10 +39,10 @@ export const TopicLandingNewsletter = () => {
         });
     }
     return (
-        <div className="topic-landing-newsletter-wrapper">
+        <div className="topic-landing-newsletter-wrapper" data-anl-feature_name="Newsletter Signup Form">
             <div className="topic-landing-newsletter">
                 <h3 className="topic-landing-newsletter-text">
-                    <InterfaceText>Stay curious. Sign up for our free Topic of the Week Newsletter.</InterfaceText>
+                    <InterfaceText>Stay curious. Get the Timeless Topics newsletter every Tuesday.</InterfaceText>
                 </h3>
                 <div className="topic-landing-newsletter-input-wrapper">
                     <div className="topic-landing-newsletter-input-row">
@@ -66,7 +66,7 @@ export const TopicLandingNewsletter = () => {
                             ref={emailRef}
                             onKeyUp={handleSubscribeKeyUp}
                         />
-                        <button type="submit" onKeyUp={handleSubscribeKeyUp} onClick={handleSubscribe}>Sign Up</button>
+                        <button type="submit" onKeyUp={handleSubscribeKeyUp} onClick={handleSubscribe}>{Sefaria._("Sign Up")}</button>
                     </div>
                     <div className="topic-landing-newsletter-input-row">
                         {subscribeMessage ?

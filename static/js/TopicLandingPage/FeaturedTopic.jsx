@@ -10,9 +10,10 @@ export const FeaturedTopic = () => {
     }, []);
 
     if (!topic) { return null; }
+    const topicNavPrompt = "Go to topic ›"
 
     return (
-        <div className="featuredTopic">
+        <div className="featuredTopic" data-anl-feature_name="Featured Topic">
             <h1><InterfaceText>Featured Topic</InterfaceText></h1>
             <div className="featuredTopicContent">
                 <div className="featuredTopicImgWrapper">
@@ -24,7 +25,12 @@ export const FeaturedTopic = () => {
                         <InterfaceText markdown={topic.description}/>
                         <div className="featuredTopicGoToLink">
                             <br/>
-                            <SimpleLinkedBlock url={`/topics/${topic.slug}`}  en="Go to topic >" he={Sefaria._("Go to topic >")} />
+                            <span
+                              data-anl-link_type="link"
+                              data-anl-text={topicNavPrompt}
+                              data-anl-event="navto_topic:click">
+                            <SimpleLinkedBlock url={`/topics/${topic.slug}`}  en={topicNavPrompt} he={Sefaria._(topicNavPrompt)} />
+                            </span>
                         </div>
                     </div>
                 </div>
