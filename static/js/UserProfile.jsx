@@ -281,15 +281,15 @@ class UserProfile extends Component {
                   renderTab={this.renderTab}
                   setTab={this.props.setTab}
                 >
-                 {this.props.profile && 
-                    <SheetsList profile={this.props.profile} 
+                 {this.props.profile &&
+                    <SheetsList profile={this.props.profile}
                                   handleSheetDelete={this.handleSheetDelete}
                                   handleCollectionsChange={this.handleCollectionsChange}
                                   toggleSignUpModal={this.props.toggleSignUpModal}/>}
 
-                  {this.props.profile && 
+                  {this.props.profile &&
                     <CollectionsList profile={this.props.profile} />}
-                  
+
                   <FilterableList
                     key="follower"
                     pageSize={1e6}
@@ -615,7 +615,7 @@ const ProfileSummary = ({
             <span className="int-he">יצירת דף מקורות</span>
           </a>
       );
-  
+
   const tempCollectionButton = (
           <a href="/collections/new" className="resourcesLink sans-serif">
               <InterfaceText>Create Collection</InterfaceText>
@@ -646,7 +646,7 @@ const ProfileSummary = ({
               />
               {multiPanel && profileButtons}
             </div>
-            
+
         </div>
     );
 };
