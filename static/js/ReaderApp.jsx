@@ -32,7 +32,7 @@ import {
   InterruptingMessage,
   Banner,
   CookiesNotification,
-  CommunityPagePreviewControls, SheetsEditorWarning
+  CommunityPagePreviewControls
 } from './Misc';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
@@ -2257,7 +2257,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           <div id="readerAppWrap">
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
-            <SheetsEditorWarning/>
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {panels}

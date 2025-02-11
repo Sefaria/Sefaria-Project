@@ -342,7 +342,6 @@ class UserProfile extends Component {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu">
         <div className="content noOverflowX">
-          {(this.props.profile.id === Sefaria._uid && this.props.profile.show_editor_toggle)  ? <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
               <div>
@@ -444,117 +443,6 @@ class UserProfile extends Component {
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
-
-
-const EditorToggleHeader = ({usesneweditor}) => {
- const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
- const old_editor_msg = "You are currently using an outdated version of Sefaria's source sheet editor. This version will no longer be supported starting March 17, 2025. Start using the new editor now, or learn more about this important change.";
- const new_editor_msg = "You are currently using the most up-to-date source sheet editor. Starting March 17, 2025, you will no longer be able to switch to an older version.";
- const text = <InterfaceText>{usesneweditor ? new_editor_msg : old_editor_msg}</InterfaceText>;
- const buttonText = <InterfaceText>{usesneweditor ? "Go Back to Old Version" : "Switch to New Editor"}</InterfaceText>;
-
- const sendFeedback = () => {
-
-   const feedback = {
-       type: "new_editor",
-       email: null,
-       msg: $("#feedbackText").val(),
-       url: "",
-       uid: Sefaria._uid || null
-   };
-   if (!feedback.msg) {
-     setFeedbackHeaderState("thanks")
-     return;
-   }
-   var postData = {json: JSON.stringify(feedback)};
-   var url = "/api/send_feedback";
-
-   $.post(url, postData, function (data) {
-       if (data.error) {
-           alert(data.error);
-       } else {
-           console.log(data);
-           $("#feedbackText").val("");
-           Sefaria.track.event("New Editor", "Send Feedback", null);
-           setFeedbackHeaderState("thanks")
-
-       }
-   }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-       alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
-   });
- }
-
- const disableOverlayContent = (
-   <div class="sans-serif-in-hebrew">
-      <h2><InterfaceText>Request for Feedback</InterfaceText></h2>
-      <p><InterfaceText>Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.</InterfaceText></p>
-      <p><InterfaceText>Did you encounter any issues while using the new editor? For example:</InterfaceText></p>
-      <ul>
-        <li><InterfaceText>Technical problems</InterfaceText></li>
-        <li><InterfaceText>Difficulties using the editor</InterfaceText></li>
-        <li><InterfaceText>Missing features</InterfaceText></li>
-      </ul>
-
-      <p>
-        <textarea className="feedbackText" placeholder={Sefaria._("Tell us about it...")} id="feedbackText"></textarea>
-      </p>
-      <p>
-        <a href="#" className="button" role="button" onClick={()=>sendFeedback()}>
-            <InterfaceText>Submit Feedback</InterfaceText>
-        </a>
-      </p>
-
-   </div>
- )
- const enableOverlayContent = (
-   <div class="sans-serif-in-hebrew">
-      <h2><InterfaceText>Thanks for Trying the New Editor!</InterfaceText></h2>
-      <p><InterfaceText>Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></p>
-      <div className="buttonContainer"><a href="/enable_new_editor" onClick={()=>toggleFeedbackOverlayState()} className="button" role="button"><InterfaceText>Back to Profile</InterfaceText></a></div>
-   </div>
- )
- const thankYouContent = (
-   <div class="sans-serif-in-hebrew">
-      <h2><InterfaceText>Thank you!</InterfaceText></h2>
-      <p><InterfaceText>Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
-      <div className="buttonContainer"><a href="/disable_new_editor" className="button" role="button"><InterfaceText>Back to Profile</InterfaceText></a></div>
-   </div>
- )
-
- let overlayContent;
- switch (feedbackHeaderState) {
-   case "disableOverlay":
-     overlayContent = disableOverlayContent;
-     break;
-   case "enableOverlay":
-     overlayContent = enableOverlayContent;
-     break;
-   case "thanks":
-     overlayContent = thankYouContent;
-     break;
- }
-
- const toggleFeedbackOverlayState = () => {
-   if (usesneweditor) {
-     setFeedbackHeaderState("disableOverlay")
-   }
-   else {
-     setFeedbackHeaderState("enableOverlay")
-   }
- }
- const learn_more_link = Sefaria._v({"en": "https://www.sefaria.org/sheets/621008", "he": "https://www.sefaria.org/sheets/621013"})
-
- return (
-   <>
-   <div className="editorToggleHeader sans-serif">{text}
-     <a href="#" onClick={()=>toggleFeedbackOverlayState()} className="button white" role="button">{buttonText}</a>
-       <a href={learn_more_link} className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
-   </div>
-   {feedbackHeaderState !== "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
-   </>
- )
-}
-
 
 const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`

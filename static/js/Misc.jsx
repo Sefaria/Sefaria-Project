@@ -1891,42 +1891,6 @@ const replaceNewLinesWithLinebreaks = (content) => {
   );
 }
 
-const SheetsEditorWarning = () => {
-  const [hasAcknowledgedFinalWarning, toggleHasAcknowledgedFinalWarning] = useState(Boolean(cookie("hasAcknowledgedFinalWarning")));
-  const dialogRef = useRef(null);
-
-  useEffect(() => {
-    if (dialogRef.current) {
-      dialogRef.current.showModal();
-    }
-  }, []);
-  const handleClick = () => {
-    cookie("hasAcknowledgedFinalWarning", "true", { path: "/", expires: 50 });
-    toggleHasAcknowledgedFinalWarning(true);
-    dialogRef.current.close();
-  };
-
-  const en_msg = <><h2>Upcoming Changes to Sefaria’s Source Sheet Editor</h2>
-    <p> To best serve source sheet creators, our sheet editor
-      will soon update for all users. The first-generation editor, originally
-      released in 2015, will no longer be available as of March 17, 2025.
-      You can continue switching between the two editors via your profile until that
-      date. Please take time to <a href="https://www.sefaria.org/sheets/621008" target="_blank">learn more</a> about this important change.</p>
-    <div className="button" onClick={handleClick}>Thank you, I understand.</div></>;
-  const he_msg = <><h2>שימו לב! שינויים קרבים ליוצרי דפי מקורות בספריא</h2>
-      <p>בעוד מספר שבועות נעדכן את התוכנה לעריכת דפי מקורות בספריא. לאחר עדכון זה, שיתקיים ב-17.3.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת הגרסה המוקדמת יותר של תוכנת העריכה. עד אז, יהיה אפשר להמשיך להשתמש בשתי גרסאות התוכנה.</p>
-      <p>אנחנו ממליצים <a href="https://www.sefaria.org/sheets/621013" target="_blank">ללמוד עוד</a>  על עדכון חשוב זה.</p>
-                        <div className="button" onClick={handleClick}>תודה, הבנתי</div></>;
-  const msg = Sefaria._v({"en": en_msg, "he": he_msg});
-
-  if (!!hasAcknowledgedFinalWarning) {
-    return null;
-  } else {
-    return <dialog id="sheetsWarningDialog" ref={dialogRef}>
-      <div>{msg}</div>
-    </dialog>;
-  }
-}
 const InterruptingMessage = ({
                                onClose,
                              }) => {
@@ -3288,6 +3252,5 @@ export {
   handleAnalyticsOnMarkdown,
   LangSelectInterface,
   PencilSourceEditor,
-  SmallBlueButton,
-  SheetsEditorWarning
+  SmallBlueButton
 };

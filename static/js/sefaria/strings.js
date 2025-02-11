@@ -514,7 +514,6 @@ const Strings = {
     "on Sefaria": " בספריא",
 
     //New Editor Flow
-    "Thanks for Trying the New Editor!": "תודה שבחרת לנסות את העורך החדש שלנו!",
     "Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at" : "כדי להתנסות בחוויית העריכה החדשה, יש להיכנס לפרופיל האישי שלך וליצור דף מקורות חדש או לערוך דף מקורות קיים. נשמח מאוד לקבל ממך משוב אחרי השימוש. אפשר ליצור איתנו קשר בדוא\"ל",
     "Back to Profile": "חזרה לפרופיל האישי שלך",
     "Go back to old version": "חזרה לגרסה הישנה",
@@ -526,13 +525,9 @@ const Strings = {
     "Missing features": "תכונות חסרות",
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
-    "You are currently using the most up-to-date source sheet editor. Starting March 17, 2025, you will no longer be able to switch to an older version.":    "הנכם משתמשים בגרסה העדכנית ביותר של התוכנה לעריכת דפי מקורות בספריא. החל מה-17.3.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת גרסאות מוקדמות יותר של תוכנת העריכה.",
-    "You are currently using an outdated version of Sefaria's source sheet editor. This version will no longer be supported starting March 17, 2025. Start using the new editor now, or learn more about this important change.": "הנכם משתמשים בגרסה מוקדמת של התוכנה לעריכת דפי מקורות בספריא. החל מה-17.3.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת גרסה זו של תוכנת העריכה. אנו ממליצים להתחיל להשתמש בגרסה המעודכנת של התוכנה.",
     "Go Back to Old Version": "חזור לגרסה הישנה",
-    "Switch to New Editor": "עבור לעורך חדש",
     "Thank you!": "תודה רבה!",
     "Try the new version": "להתנסוּת בגרסה החדשה",
-    "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
 
     //TextTableofContents
     "Contents": "תוכן",
