@@ -5416,6 +5416,10 @@ h1.topic-landing-header {
   -webkit-line-clamp: 10;
   position: absolute;
 }
+.interface-hebrew .topic-card-with-description .cardDescription{
+  -webkit-line-clamp: 8;
+}
+
 
 .topic-card-with-description .bottomCardLink {
   font-size: 14px;
