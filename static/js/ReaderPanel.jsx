@@ -969,9 +969,16 @@ class ReaderPanel extends Component {
           />
         );
       } else {
-        menu = (
+        menu = Sefaria.is_moderator ? (
            <TopicsLandingPage openTopic={this.props.openTopic}/>
-        );
+        ) :
+            <TopicsPage
+            key={"TopicsPage"}
+            setNavTopic={this.setNavigationTopic}
+            multiPanel={this.props.multiPanel}
+            initialWidth={this.state.width}
+          />
+        ;
       }
 
     } else if (this.state.menuOpen === "allTopics") {
