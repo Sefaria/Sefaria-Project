@@ -701,6 +701,7 @@ class JaggedArrayNode extends Component {
     const offset = this.props.schema?.index_offsets_by_depth?.['1'] || 0;
     if ("toc_zoom" in this.props.schema) {
       let zoom = this.props.schema.toc_zoom - 1;
+      const zoomedOutRef = this.props.currentlyVisibleSectionRef && Sefaria.zoomOutRef(this.props.currentlyVisibleSectionRef);
       return (<JaggedArrayNodeSection
                 depth={this.props.schema.depth - zoom}
                 sectionNames={this.props.schema.sectionNames.slice(0, -zoom)}
@@ -708,7 +709,7 @@ class JaggedArrayNode extends Component {
                 contentCounts={this.props.schema.content_counts}
                 refPath={this.props.refPath}
                 currentlyVisibleRef={this.props.currentlyVisibleRef}
-                currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+                currentlyVisibleSectionRef={zoomedOutRef}
                 offset={offset}
               />);
     }
