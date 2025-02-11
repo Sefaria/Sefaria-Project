@@ -5436,6 +5436,7 @@ h1.topic-landing-header {
   -webkit-box-orient: vertical;
   overflow: hidden;
   display: -webkit-box;
+  line-height: 1.1;
 }
 .readerNavMenu .sheet {
   display: flex;
