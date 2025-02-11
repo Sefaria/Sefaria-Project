@@ -1437,6 +1437,150 @@ DisplaySettingsButton.propTypes = {
   placeholder: PropTypes.bool,
 };
 
+const FontSizeButtons =() => {
+  const {setOption} = useContext(ContentLanguageContext);
+  return (
+      <div className="font-size-line">
+          <button
+              onClick={()=>setOption('fontSize', 'smaller')}
+              className="font-size-button preventClosing"
+              aria-label="Decrease font size"
+          >
+              <img src="/static/icons/reduce_font.svg" alt=""/>
+          </button>
+          <InterfaceText>Font Size</InterfaceText>
+          <button
+              onClick={()=>setOption('fontSize', 'larger')}
+              className="font-size-button preventClosing"
+              aria-label="Decrease font size"
+          >
+              <img src="/static/icons/enlarge_font.svg" alt=""/>
+          </button>
+      </div>
+  );
+}
+export default FontSizeButtons;
+
+const layoutOptions = {
+  'mono': ['continuous', 'segmented'],
+  'bi-rtl': ['stacked', 'heRight'],
+  'bi-ltr': ['stacked', 'heLeft'],
+  'mixed': ['stacked', 'heLeft', 'heRight'],
+};
+const layoutLabels = {
+  'continuous': 'Show Text as a paragram',
+  'segmented': 'Show Text segmented',
+  'stacked': 'Show Source & Translation Stacked',
+  'heRight': 'Show RTL Text Right of LTR Text',
+  'heLeft': 'Show RTL Text Left of LTR Text',
+}
+
+const ToggleSwitchLine = ({name, onChange, isChecked, text, disabled=false}) => {
+  return (
+      <div className={`toggle-switch-line ${disabled ? 'disabled' : ''}`}>
+          <InterfaceText>{text}</InterfaceText>
+          <ToggleSwitch
+              name={name}
+              id={name}
+              disabled={disabled}
+              onChange={onChange}
+              isChecked={isChecked}
+              ariaLabelledBy={`${name}-label`}
+          />
+      </div>
+  );
+}
+ToggleSwitchLine.propTypes = {
+  name: PropTypes.string,
+  disabled: PropTypes.bool,
+  text: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  isChecked: PropTypes.bool.isRequired,
+};
+
+const  RadioButton = ({isActive, onClick, value, name, label, ...rest}) => {
+  return (
+      <div
+          className='button'
+          onClick={onClick}
+      >
+          <label htmlFor={value}><InterfaceText>{label}</InterfaceText></label>
+          <input
+              type='radio'
+              id={value}
+              checked={isActive}
+              name={name}
+              value={value}
+              {...rest}
+          />
+      </div>
+  );
+}
+RadioButton.propTypes = {
+  isActive: PropTypes.bool.isRequired,
+  onClick: PropTypes.func.isRequired,
+  value: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  label: PropTypes.string,
+}
+const DropdownMenu = ({children, buttonContent}) => {
+  /**
+   * buttonContent is a React component for the opening/closing of a button.
+   * the menu will be closed in click anywhere except in an element with classname 'preventClosing'.
+   * this class is using useRef for open/close rather than useState, for changing state triggers re-rendering of the
+   * component and all its children, so when clicking on children their onClick won't be executed.
+   */
+
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  const handleButtonClick = (e) => {
+    e.stopPropagation();
+    setIsOpen(isOpen => !isOpen);
+  };
+  const handleContentsClick = (e) => {
+    e.stopPropagation();
+    const preventClose = e.target.closest('.preventClosing');
+    // Only toggle if no preventClose element was found
+    if (!preventClose) {
+      setIsOpen(false);
+    }
+  }
+  const handleHideDropdown = (event) => {
+    if (event.key === 'Escape') {
+        setIsOpen(false);
+    }
+  };
+  const handleClickOutside = (event) => {
+      if (
+          wrapperRef.current &&
+          !wrapperRef.current.contains(event.target)
+      ) {
+          setIsOpen(false);
+      }
+  };
+
+  useEffect(() => {
+      document.addEventListener('keydown', handleHideDropdown, true);
+      document.addEventListener('click', handleClickOutside, true);
+      return () => {
+          document.removeEventListener('keydown', handleHideDropdown, true);
+          document.removeEventListener('click', handleClickOutside, true);
+      };
+  }, []);
+
+return (
+  <div className="dropdownMenu" ref={wrapperRef}>
+    <button className="dropdownButton" onClick={handleButtonClick}>{buttonContent}</button>
+    <div className={ `dropdownLinks-menu ${isOpen ? 'open' : 'closed'}`} onClick={handleContentsClick}>
+      {children}
+    </div>
+  </div>
+);
+};
+DropdownMenu.propTypes = {
+  buttonContent: PropTypes.elementType.isRequired,
+};
 
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
   const [isOpen, setIsOpen] = useState(false);
@@ -3366,6 +3510,10 @@ export {
   ContentText,
   AppStoreButton,
   CategoryHeader,
+  DropdownMenu,
+  RadioButton,
+  FontSizeButtons,
+  ToggleSwitchLine,
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
   SimpleContentBlock,
@@ -3432,5 +3580,7 @@ export {
   requestWithCallBack,
   OnInView,
   TopicPictureUploader,
-  ImageWithCaption
+  ImageWithCaption, 
+  layoutOptions,
+  layoutLabels
 };
