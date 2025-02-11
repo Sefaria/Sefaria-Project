@@ -6,7 +6,7 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
-import SearchResultList  from './SearchResultList';
+import {SearchResultList} from './SearchResultList';
 import SearchFilters from './SearchFilters';
 import Component from 'react-class';
 import {
@@ -14,7 +14,6 @@ import {
   InterfaceText,
   LoadingMessage,
 } from './Misc';
-import Footer from "./Footer";
 
 class SearchPage extends Component {
   constructor(props) {
