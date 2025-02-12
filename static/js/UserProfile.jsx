@@ -36,7 +36,7 @@ class UserProfile extends Component {
       { id: "collections", text: Sefaria._("profile.tab.collection"), icon: "/static/icons/collection.svg" },
       { id: "followers", text: Sefaria._("common.followers"), invisible: true },
       { id: "following", text: Sefaria._("common.following"), invisible: true },
-      { id: "torah-tracker", text: Sefaria._("profile.buddhish_text_tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { id: "torah-tracker", text: Sefaria._("profile.buddhish_text_tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/pechatracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
       tabs.splice(2, 0, { id: "notes", text: Sefaria._("user_profile.notes"), icon: "/static/icons/note.svg" });
@@ -416,7 +416,7 @@ class UserProfile extends Component {
                     sortOptions={[]}
                     getData={this.getFollowing}
                   />
-                  <div className="torahTrackerPlaceholder filterable-list" />
+                  <div className="pechatrackerPlaceholder filterable-list" />
                   { this.state.showBio ?
                     <div className="systemText filterable-list">
                       <div  className="aboutText" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />

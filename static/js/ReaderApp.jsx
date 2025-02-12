@@ -555,7 +555,7 @@ class ReaderApp extends Component {
             break;
           case "user_stats":
             hist.title = Sefaria._("Torah Tracker");
-            hist.url = "torahtracker";
+            hist.url = "pechatracker";
             hist.mode = "user_stats";
             break;
           case "saved":
@@ -1126,7 +1126,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/calendars") {
       this.showCalendars();
 
-    } else if (path === "/torahtracker") {
+    } else if (path === "/pechatracker") {
       this.showUserStats();
 
     } else if (path.match(/^\/sheets\/\d+/)) {
