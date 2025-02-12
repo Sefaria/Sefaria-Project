@@ -38,6 +38,9 @@ const SidebarModules = ({type, props}) => {
     "DafYomi":                DafYomi,
     "AboutTopics":            AboutTopics,
     "TrendingTopics":         TrendingTopics,
+    "TopicLandingTrendingTopics": TopicLandingTrendingTopics,
+    "TopicLandingTopicCatList":  TopicLandingTopicCatList,
+    "AZTopicsLink":           AZTopicsLink,
     "RelatedTopics":          RelatedTopics,
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
@@ -266,8 +269,8 @@ const Resources = () => (
   </SidebarModule>
 );
 
-const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'}, 
-                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'}, 
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'},
+                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'},
                                     {'he': 'צרו קשר','en':'Contact Us', 'url': 'www.example.com'},
                                     {'he': 'ניוזלטר','en':'Newsletter', 'url': 'www.example.com'},
                                     {'he': 'בלוג','en':'Blog', 'url': 'www.example.com'},
@@ -287,7 +290,7 @@ const SidebarFooter = () => {
     <div className = "stickySidebarFooter navSidebarModule">
         <h3/>
         <div className="footerContainer">
-          {data.map(footerLink => 
+          {data.map(footerLink =>
             <a href={footerLink.url}>
               <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
             </a>
@@ -423,7 +426,7 @@ const ParashahLink = () => {
   return (
     <div className="navSidebarLink ref serif">
       <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-      <a href={"/" + parashah.url}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
+      <a href={"/" + parashah.url} data-anl-text={parashah.ref}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
     </div>
   );
 };
@@ -638,6 +641,78 @@ const TrendingTopics = () => (
         </SidebarModule>
     </div>
 );
+const TopicLandingTrendingTopics = () => {
+    let [trendingTopics, setTrendingTopics] = useState(null);
+    useEffect(() => {
+        Sefaria.getTrendingTopics().then(result => setTrendingTopics(result));
+    }, []);
+
+    if (!trendingTopics) { return null; }
+    return(
+    <div data-anl-feature_name="Trending" data-anl-link_type="topic">
+        <SidebarModule>
+            <SidebarModuleTitle>Trending Topics</SidebarModuleTitle>
+            <div className="topic-landing-sidebar-list">
+            {trendingTopics.map((topic, i) =>
+                <div className="navSidebarLink ref serif" key={i}>
+                    <a
+                        href={"/topics/" + topic.slug}
+                        data-anl-link_type="topic"
+                        data-anl-event="navto_topic:click"
+                        data-anl-text={topic.primaryTitle.en}
+                    >
+                        <InterfaceText text={{en: topic.primaryTitle.en, he: topic.primaryTitle.he}}/>
+                    </a>
+                </div>
+            )}
+            </div>
+        </SidebarModule>
+    </div>)
+};
+const TopicLandingTopicCatList = () => {
+    const topicCats = Sefaria.topicTocPage();
+    return(
+        <span data-anl-feature_name="Browse Topics">
+        <SidebarModule>
+            <span id="browseTopics">
+            <SidebarModuleTitle>
+                Browse Topics
+            </SidebarModuleTitle>
+            </span>
+            <div className="topic-landing-sidebar-list">
+                {topicCats.map((topic, i) =>
+                    <div className="navSidebarLink ref serif" key={i}>
+                        <a href={"/topics/category/" + topic.slug}
+                            data-anl-link_type="category"
+                            data-anl-text={topic.en}
+                            data-anl-event="navto_topic:click"
+                        >
+                            <InterfaceText text={{en: topic.en, he: topic.he}}/>
+                        </a>
+                    </div>
+                )}
+            </div>
+        </SidebarModule>
+        </span>
+    )
+};
+const AZTopicsLink = () => {
+    return (
+        <span
+            data-anl-feature_name="Browse A-Z"
+        >
+        <SidebarModule>
+            <a href={'/topics/all/a'}
+            data-anl-link_type="see all"
+            data-anl-text="All Topics A-Z ›"
+            data-anl-event="navto_topic:click"
+            >
+            <SidebarModuleTitle>All Topics A-Z ›</SidebarModuleTitle>
+            </a>
+        </SidebarModule>
+        </span>
+    )
+};
 
 
 const RelatedTopics = ({title}) => {
@@ -979,5 +1054,6 @@ export {
   NavSidebar,
   SidebarFooter,
   SidebarModules,
-  RecentlyViewed
+  RecentlyViewed,
+  ParashahLink,
 };

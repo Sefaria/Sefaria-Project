@@ -103,7 +103,7 @@ const validateMarkdownLinks = async (input) => {
             d = await Sefaria.getTopicCompletions(name, (x) => x[1]);
         }
         else {
-            d = await Sefaria.getName(name, false);
+            d = await Sefaria.getName(name);
             if (d.is_ref) {
                 continue;
             }
