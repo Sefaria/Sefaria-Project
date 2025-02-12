@@ -178,7 +178,7 @@ const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
 const SheetPublishNotification = ({date, content}) => {
   const topLine = (
     <>
-      <a href={content.profileUrl}>{content.name}</a>&nbsp;
+      <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>published a new sheet</InterfaceText>
     </>
   );
@@ -208,7 +208,7 @@ const SheetPublishNotification = ({date, content}) => {
 const SheetLikeNotification = ({date, content}) => {
   const topLine = (
     <>
-      <a href={content.profileUrl}>{content.name}</a>&nbsp;
+      <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>liked your sheet</InterfaceText>
     </>
   );
@@ -234,7 +234,7 @@ const FollowNotification = ({date, content}) => {
 
   const topLine = (
     <>
-      <a href={content.profileUrl}>{content.name}</a>&nbsp;
+      <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>is now following you</InterfaceText>
     </>
   );

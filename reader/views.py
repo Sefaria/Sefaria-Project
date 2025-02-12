@@ -1084,6 +1084,7 @@ def notifications(request):
     # Notifications content is not rendered server side
     title = _("Sefaria Notifications")
     ## TODO - refactor the below to getattr(request, 'active_module', "library") as per Ephraim's activeModule. For now hardcoded
+    ## Todo - Rename "filter" vs module, module is more of an arch concept.
     notifications = UserProfile(user_obj=request.user).recent_notifications(module="sheets")
     props = {
         "notifications": notifications.client_contents(),
