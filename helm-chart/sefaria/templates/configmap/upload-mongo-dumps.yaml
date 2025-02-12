@@ -10,12 +10,6 @@ data:
   upload-dumps.sh: |-
     #!/usr/bin/env bash
     set -x
-    {{- if .Values.backup.mongo.serviceAccount }}
-
-    {{- else }}
-
-    gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS}
-    {{- end }}
 
     cd "/mongodumps/shared_volume"
     today="$(date +'%d.%m.%y')"

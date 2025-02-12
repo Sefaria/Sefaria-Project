@@ -41,6 +41,7 @@ import {ContentText} from "./ContentText";
 import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
 import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
 import {SheetsHomePage} from "./sheets/SheetsHomePage";
+import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu} from "./common/DropdownMenu";
 
@@ -954,12 +955,7 @@ class ReaderPanel extends Component {
         );
       } else {
         menu = (
-          <TopicsPage
-            key={"TopicsPage"}
-            setNavTopic={this.setNavigationTopic}
-            multiPanel={this.props.multiPanel}
-            initialWidth={this.state.width}
-          />
+           <TopicsLandingPage openTopic={this.props.openTopic}/>
         );
       }
 
