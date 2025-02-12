@@ -3297,7 +3297,7 @@ def trending_topics_api(request):
     trending_topics = [
         topic.contents()
         for topic in sorted_loaded_topics
-        if topic and (not pool_name or pool_name in topic.pools)
+        if topic and (not pool_name or pool_name in topic.get_pools())
     ]
     return jsonResponse(trending_topics[:n])
 
