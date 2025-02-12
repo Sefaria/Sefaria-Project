@@ -5,6 +5,7 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
+import Footer  from './Footer';
 import { Notifications } from './NotificationsPanel';
 import { NavSidebar }from './NavSidebar';
 import {
@@ -119,6 +120,7 @@ class UpdatesPanel extends Component {
               </div>
             </div>
           </div>
+          <Footer />
         </div>
       </div>
     );

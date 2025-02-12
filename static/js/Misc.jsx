@@ -2256,7 +2256,11 @@ TwoOrThreeBox.defaultProps = {
 const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, threshold3=1500, gap=0}) => {
   //above threshold2, there will be 2 columns
   //above threshold3, there will be 3 columns
-  initialWidth = initialWidth || (window ? window.innerWidth : 1000);
+  initialWidth = initialWidth || (
+    typeof window !== 'undefined' && window.innerWidth
+    ? window.innerWidth
+    : 1000
+  );
   const [width, setWidth] = useState(initialWidth);
   const ref = useRef(null);
 
@@ -3053,17 +3057,19 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 }
 
 const getImgAltText = (caption) => {
-return Sefaria._v(caption) || Sefaria._('Illustrative image');
+  return (caption && Sefaria._v(caption)) || Sefaria._('Illustrative image');
 }
 const ImageWithCaption = ({photoLink, caption }) => {
   return (
     <div>
-        <img className="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
+        <ImageWithAltText photoLink={photoLink} altText={caption} />
         <div className="imageCaption">
           <InterfaceText text={caption} />
         </div>
       </div>);
 }
+
+const ImageWithAltText = ({photoLink, altText}) => (<img className="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(altText)}/>);
 
 const AppStoreButton = ({ platform, href, altText }) => {
   const isIOS = platform === 'ios';
@@ -3140,7 +3146,7 @@ const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const [lang, setLang] = useState(defaultVal);
   const buttonData = [
-  { buttonTitle: "Source Language", buttonId: "source" },
+  { buttonTitle: "Source", buttonId: "source" },
   { buttonTitle: "Translation", buttonId: "translation" },
   { buttonTitle: "Source with Translation", buttonId: "sourcewtrans" }
 ];
@@ -3179,7 +3185,6 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
         }
       }
     >
-      <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
        {buttonData.map((button, index) => (
         <LangRadioButton
           key={button.buttonId}
@@ -3262,6 +3267,7 @@ export {
   TitleVariants,
   OnInView,
   ImageWithCaption,
+  ImageWithAltText,
   handleAnalyticsOnMarkdown,
   LangSelectInterface,
   PencilSourceEditor,

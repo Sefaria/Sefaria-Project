@@ -16,7 +16,7 @@ test('Navigate to bereshit', async ({ context }) => {
 
 test('Verify translations', async ({ context }) => {
   const page = await goToPageWithLang(context, '/Berakhot.28b.4?vhe=hebrew|Wikisource_Talmud_Bavli&lang=bi&with=all&lang2=he');
-  await page.getByRole('link', { name: 'Translations (4)' }).click();
+  await page.getByRole('link', { name: /^Translations/ }).click();
   await page.locator('#panel-1').getByText('Loading...').waitFor({ state: 'detached' });
   page.getByText('A. Cohen, Cambridge University Press, 1921', { exact: true })
 });

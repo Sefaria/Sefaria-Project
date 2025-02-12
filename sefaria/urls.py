@@ -6,8 +6,6 @@ from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
-
-import sourcesheets
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
@@ -37,7 +35,6 @@ urlpatterns = [
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
-    url(r'sheets/sheets-with-ref/(?P<tref>.+)$', sourcesheets.views.sheets_with_ref),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^calendars/?$', reader_views.calendars),
     url(r'^collections/?$', reader_views.public_collections),
@@ -79,7 +76,6 @@ urlpatterns += [
 
 # Source Sheet Builder
 urlpatterns += [
-    url(r'^sheets/?$', sheets_views.sheets_home_page),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
@@ -109,7 +105,6 @@ urlpatterns += [
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/b/(?P<topic>.+)$', reader_views.topic_page_b),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
-    url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api),
     url(r'^_api/topics/images/secondary/(?P<slug>.+)$', reader_views.topic_upload_photo, {"secondary": True}),
     url(r'^_api/topics/images/(?P<slug>.+)$', reader_views.topic_upload_photo)
 
@@ -274,7 +269,10 @@ urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
     url(r'^api/topics/generate-prompts/(?P<slug>.+)$', reader_views.generate_topic_prompts_api),
     url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
+    url(r'^_api/topics/seasonal-topic/?$', reader_views.seasonal_topic_api),
     url(r'^api/topics/pools/(?P<pool_name>.+)$', reader_views.topic_pool_api),
+    url(r'^_api/topics/featured-topic/?$', reader_views.featured_topic_api),
+    url(r'^api/topics/trending/?$', reader_views.trending_topics_api),
     url(r'^api/ref-topic-links/bulk$', reader_views.topic_ref_bulk_api),
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/v2/topics/(?P<topic>.+)$', reader_views.topics_api, {'v2': True}),
