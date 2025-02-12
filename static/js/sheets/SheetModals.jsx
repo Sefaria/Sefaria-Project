@@ -136,12 +136,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     if (googleDriveText.en === googleDriveState.exporting.en) {
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       try {
-        let langLayout = '';
-        if (language === "bilingual") {
-          langLayout = layoutOptions["mixed"].find(option => option === layout);
-        }
-
-        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?lang=${language}&langLayout=${langLayout}`, null, {}, "POST", false);
+        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?language=${language}&layout=${layout}`, null, {}, "POST", false);
         if (response.status === 401) {
           // couldn't authenticate, so forward to google authentication
           window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
