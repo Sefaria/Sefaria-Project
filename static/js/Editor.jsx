@@ -1233,7 +1233,7 @@ const Element = (props) => {
             );
         case 'SheetContent':
             return (
-                <div className="text editorContent" {...attributes}>
+                <div className="editorContent" {...attributes}>
                     {children}
                 </div>
             );
@@ -2936,8 +2936,7 @@ const SefariaEditor = (props) => {
     );
 
     return (
-        <>
-          <div ref={editorContainer} onClick={props.handleClick}>
+          <div ref={editorContainer} onClick={props.handleClick} className="text">
               <SheetMetaDataBox authorStatement={props.authorStatement}
                             authorUrl={props.authorUrl}
                             authorImage={props.authorImage}
@@ -2947,7 +2946,8 @@ const SefariaEditor = (props) => {
                             titleCallback={(newTitle) => setTitle(newTitle)}
                             summaryCallback={(newSummary) => setSummary(newSummary)}
                             sheetOptions={props.sheetOptions}/>
-          {canUseDOM ?
+                            
+          {canUseDOM &&
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
                 <Editable
@@ -2964,10 +2964,9 @@ const SefariaEditor = (props) => {
                   onDOMBeforeInput={beforeInput}
                   autoFocus
                 />
-            </Slate> : null
+            </Slate>
           }
-          </div>
-        </>
+        </div>
     )
 };
 
