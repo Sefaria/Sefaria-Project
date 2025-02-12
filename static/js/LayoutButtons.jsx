@@ -8,7 +8,7 @@ const calculateLayoutState = (language, textsData, panelMode) => {
     const primaryDir = textsData?.primaryDirection;
     const translationDir = textsData?.translationDirection;
     return (language !== 'bilingual') ? 'mono' //one text
-        : (primaryDir !== translationDir || panelMode === 'Sheet') ? 'mixed' //two texts with different directions
+        : (primaryDir == translationDir || panelMode === 'Sheet') ? 'mixed' //two texts with different directions
             : (primaryDir === 'rtl') ? 'bi-rtl' //two rtl texts
                 : 'bi-ltr'; //two ltr texts
 };
