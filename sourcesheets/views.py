@@ -166,11 +166,12 @@ def get_user_collections_for_sheet(uid, sheet_id):
     return collections
 
 
-def make_sheet_class_string(sheet):
+def make_sheet_class_string(sheet, options=None):
     """
     Returns a string of class names corresponding to the options of sheet.
     """
-    o = sheet["options"]
+
+    o = sheet["options"] | options if options else sheet["options"]
     classes = []
     classes.append(o.get("language", "bilingual"))
     classes.append(o.get("layout", "sideBySide"))
@@ -1048,12 +1049,15 @@ def make_sheet_from_text_api(request, ref, sources=None):
     return redirect("/sheets/%d" % sheet["id"])
 
 
-def sheet_to_html_string(sheet):
+def sheet_to_html_string(sheet, options):
     """
     Create the html string of sheet with sheet_id.
     """
     sheet["sources"] = annotate_user_links(sheet["sources"])
-    sheet = resolve_options_of_sources(sheet)
+    for source in sheet['sources']:
+        if 'text' not in source:
+            continue
+        source['options'] = options
 
     try:
         owner = User.objects.get(id=sheet["owner"])
@@ -1064,7 +1068,7 @@ def sheet_to_html_string(sheet):
     context = {
         "sheetJSON": json.dumps(sheet),
         "sheet": sheet,
-        "sheet_class": make_sheet_class_string(sheet),
+        "sheet_class": make_sheet_class_string(sheet, options),
         "can_edit": False,
         "can_add": False,
         "title": sheet["title"],
@@ -1079,23 +1083,6 @@ def sheet_to_html_string(sheet):
     return render_to_string('gdocs_sheet.html', context)
 
 
-def resolve_options_of_sources(sheet):
-    for source in sheet['sources']:
-        if 'text' not in source:
-            continue
-        options = source.setdefault('options', {})
-        if not options.get('sourceLanguage'):
-            source['options']['sourceLanguage'] = sheet['options'].get(
-                'language', 'bilingual')
-        if not options.get('sourceLayout'):
-            source['options']['sourceLayout'] = sheet['options'].get(
-                'layout', 'sideBySide')
-        if not options.get('sourceLangLayout'):
-            source['options']['sourceLangLayout'] = sheet['options'].get(
-                'langLayout', 'heRight')
-    return sheet
-
-
 
 @gauth_required(scope=['openid', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'], ajax=True)
 def export_to_drive(request, credential, sheet_id):
@@ -1106,6 +1093,9 @@ def export_to_drive(request, credential, sheet_id):
     service = build('drive', 'v3', credentials=credential, cache_discovery=False)
     user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
 
+    options = {'language': request.GET.get("lang", "bilingual"),
+               'langLayout': request.GET.get("langLayout", "heRight")}
+
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
         return jsonResponse({'error': {'message': sheet["error"]}})
@@ -1115,7 +1105,7 @@ def export_to_drive(request, credential, sheet_id):
         'mimeType': 'application/vnd.google-apps.document'
     }
 
-    html_string = bytes(sheet_to_html_string(sheet), "utf8")
+    html_string = bytes(sheet_to_html_string(sheet, options), "utf8")
 
     media = MediaIoBaseUpload(
         BytesIO(html_string),

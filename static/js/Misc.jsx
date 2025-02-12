@@ -23,7 +23,10 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import { ReaderApp } from './ReaderApp';
+import { ToolsButton } from "./ConnectionsPanel";
+import {DropdownMenu, DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1603,6 +1606,20 @@ const SheetListing = ({
       </a>
     );
   });
+  const topics = sheet.topics.map((topic, i) => {
+    const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
+    return (
+      <a href={`/topics/${topic.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+        onClick={handleTopicClick.bind(null, topic.slug)}
+      >
+        <InterfaceText text={topic} />
+        {separator}
+      </a>
+    );
+  });
 
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
@@ -2655,7 +2672,6 @@ const SheetMetaDataBoxSegment = (props) => {
               contentEditable={props.editable}
               suppressContentEditableWarning={true}
               onBlur={props.editable && handleBlur}
-              style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" : "ltr"}}
   >
     {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
   </div>
@@ -2810,10 +2826,14 @@ const TitleVariants = function({titles, update, options}) {
          </div>
 }
 const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+  const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
-    <div className="sidebarLayout">
+    <div className={`sidebarLayout`}>
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
-      {sheetOptions}
+      <div className="items">
+        {languageToggle}
+        {sheetOptions}
+      </div>
     </div>
     {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
                                                        className="summary"
