@@ -14,9 +14,8 @@ import {
   DonateLink
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
-import {Autocomplete} from './Autocomplete'
+import {HeaderAutocomplete} from './HeaderAutocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
-
 
 const LoggedOutDropdown = () => {
   const [isClient, setIsClient] = useState(false);
@@ -193,12 +192,14 @@ class Header extends Component {
         </div>
 
         <div className="headerLinksSection">
-        <Autocomplete
+        <HeaderAutocomplete
             onRefClick={this.props.onRefClick}
             showSearch={this.props.showSearch}
             openTopic={this.props.openTopic}
             openURL={this.props.openURL}
         />
+
+        { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
 
         { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
@@ -206,11 +207,10 @@ class Header extends Component {
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
 
-
-          <ModuleSwitcher /> 
+          <ModuleSwitcher />
 
           { Sefaria._uid ?
-            <LoggedInDropdown /> 
+            <LoggedInDropdown />
             : <LoggedOutDropdown currentLang={Sefaria.interfaceLang}/>
           }
 
@@ -308,7 +308,7 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
           <InterfaceText>Log in</InterfaceText>
         </a>
       </span>}
-      {/* { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null} */}
+
     </div>
   );
 }
@@ -345,7 +345,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
   return (
     <div className={classes}>
       <div className="searchLine">
-        <Autocomplete
+        <HeaderAutocomplete
             onRefClick={onRefClick}
             showSearch={showSearch}
             openTopic={openTopic}

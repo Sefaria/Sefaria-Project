@@ -41,6 +41,7 @@ import {ContentText} from "./ContentText";
 import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
 import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
 import {SheetsHomePage} from "./sheets/SheetsHomePage";
+import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu} from "./common/DropdownMenu";
 
@@ -230,9 +231,10 @@ class ReaderPanel extends Component {
     e.preventDefault();
     this.conditionalSetState({
       mode: "Sheet",
-      sheetID: sheet.id,
+      sheetID: typeof sheet === 'object' ? sheet.id : sheet, // latter case is for when 'sheet' passed is ID
       highlightedNode,
-      highlightedRefsInSheet
+      highlightedRefsInSheet,
+      menuOpen: null,
     });
   }
   setPreviousSettings(backButtonSettings) {
@@ -836,7 +838,7 @@ class ReaderPanel extends Component {
                                  updateAppliedOptionSort={this.props.updateSearchOptionSort}
                                  registerAvailableFilters={this.props.registerAvailableFilters}
                                  resetSearchFilters={this.props.resetSearchFilters}
-                                 onResultClick={this.props.onSearchResultClick}/>);
+                                 onResultClick={this.handleSheetClick}/>);
     } else if (this.state.menuOpen === "sheet meta") {
       menu = (<SheetMetadata
                     mode={this.state.menuOpen}
@@ -955,12 +957,7 @@ class ReaderPanel extends Component {
         );
       } else {
         menu = (
-          <TopicsPage
-            key={"TopicsPage"}
-            setNavTopic={this.setNavigationTopic}
-            multiPanel={this.props.multiPanel}
-            initialWidth={this.state.width}
-          />
+           <TopicsLandingPage openTopic={this.props.openTopic}/>
         );
       }
 
