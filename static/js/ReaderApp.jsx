@@ -2202,7 +2202,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
                       hasSidebar={this.doesPanelHaveSidebar(i)}
-                      masterPanelLayout={panel.mode === "Connections" ? panelStates[i-1].settings.layout : ""}
+                      masterPanelLayout={panel.mode === "Connections" ? panelStates[i-1].settings.biLayout : ""}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       masterPanelMode={panel.mode === "Connections" ? panelStates[i-1].mode : null}
                       masterPanelSheetId={panel.mode === "Connections" ? panelStates[i-1].sheetID : null}
