@@ -17,6 +17,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.65.6-sheets-viewer-final.1.tgz
     version: 0.65.6-sheets-viewer-final.1
   - apiVersion: v2
+    appVersion: v5.131.1
+    created: "2025-02-12T08:10:57.744467878Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 1a9fc6fd0748ddf0bd70a32e3ada606e2a1b33a9c35a6991f19c2b856519f189
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.65.6-sheets-editor-final.1.tgz
+    version: 0.65.6-sheets-editor-final.1
+  - apiVersion: v2
     appVersion: v5.131.0
     created: "2025-02-10T13:49:14.765906776Z"
     description: Chart to deploy complete Sefaria environment
@@ -7440,4 +7455,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-02-12T08:09:30.762528654Z"
+generated: "2025-02-12T08:10:57.741596716Z"
