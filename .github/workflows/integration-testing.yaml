@@ -158,9 +158,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends curl unzip
       - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4
       - name: setup helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
       - name: Set up yq
         run: |
           curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
@@ -200,7 +200,7 @@ jobs:
           PLAYWRIGHT_USER_PASSWORD: "${{ secrets.PLAYWRIGHT_USER_PASSWORD }}"
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
@@ -215,7 +215,7 @@ jobs:
       - run-tests
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: '14'
       - run: npm ci

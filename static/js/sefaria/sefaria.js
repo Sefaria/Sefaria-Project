@@ -10,8 +10,6 @@ import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
-import SearchState from "./searchState";
-import FilterNode from "./FilterNode";
 
 
 let Sefaria = Sefaria || {
@@ -766,13 +764,16 @@ Sefaria = extend(Sefaria, {
       Sefaria._portals[portalSlug] = response;
       return response;
   },
-  subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck, lists = []) {
+    getTopicLandingNewsletterMailingLists: function(){
+      return this.interfaceLang === "english" ? ["Weekly Topics Newsletter"] : []
+    },
+  subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck, lists=[]) {
       const payload = {
         language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
         educator: educatorCheck,
         firstName: firstName,
         lastName: lastName,
-        ...(lists?.length && { lists }),
+        lists: lists,
       };
       return await Sefaria.apiRequestWithBody(`/api/subscribe/${email}`, null, payload);
   },
@@ -1250,7 +1251,7 @@ Sefaria = extend(Sefaria, {
   },
   postSegment: function(ref, versionTitle, language, text, success, error) {
     if (!versionTitle || !language) { return; }
-    this.getName(ref, true)
+    this.getName(ref, undefined, 'ref')
         .then(data => {
             if (!data.is_segment) { return; }
             var d = {json: JSON.stringify({
@@ -1313,11 +1314,15 @@ Sefaria = extend(Sefaria, {
   _lookups: {},
 
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  getName: function(name, refOnly = false, limit = undefined) {
+  getName: function(name, limit = undefined, type=undefined, topicPool=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
     const trimmed_name = name.trim();
     let params = {};
-    if (refOnly) { params["ref_only"] = 1; }
+    // if (refOnly) { params["ref_only"] = 1; }
     if (limit != undefined) { params["limit"] = limit; }
+    if (type != undefined) { params["type"] = type; }
+    if (topicPool != undefined) { params["topic_pool"] = topicPool; }
+    if (exactContinuations) { params["exact_continuations"] = 1; }
+    if (orderByMatchedLength) { params["order_by_matched_length"] = 1; }
     let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
     queryString = (queryString ? "?" + queryString : "");
     return this._cachedApiPromise({
@@ -1342,14 +1347,6 @@ Sefaria = extend(Sefaria, {
               callback(data);
           }.bind(this)
       });
-  },
-  _topicCompletions: {},
-  getTopicCompletions: function (word, callback) {
-       return this._cachedApiPromise({
-          url: `${Sefaria.apiHost}/api/topic/completion/${word}`, key: word,
-          store: Sefaria._topicCompletions,
-          processor: callback
-      });   // this API is used instead of api/name because when we want all topics. api/name only gets topics with a minimum amount of sources
   },
   _lexiconLookups: {},
   getLexiconWords: function(words, ref) {
@@ -2052,6 +2049,28 @@ _media: {},
     const topics = Sefaria.topicsByRef(refs);
     return topics && topics.length;
   },
+  _TopicsByPool: {},
+  getTopicsByPool: function(poolName, numOfTopics, order) {
+    let params = {};
+    if (numOfTopics != undefined) { params["n"] = numOfTopics; }
+    if (order != undefined) { params["order"] = order; }
+    let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
+    queryString = (queryString ? "?" + queryString : "");
+    const url = this.apiHost + "/api/topics/pools/" + encodeURIComponent(poolName) + queryString;
+
+    const shouldBeCached = order != undefined && order != 'random';
+    if (!shouldBeCached) {return this._ApiPromise(url)}
+
+    return this._cachedApiPromise({
+        url:   url,
+        key:   poolName + queryString,
+        store: this._TopicsByPool
+    });
+  },
+    getLangSpecificTopicPoolName: function(poolName){
+      const lang = this.interfaceLang == 'hebrew' ? 'he' : 'en';
+      return `${poolName}_${lang}`
+    },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
@@ -2871,6 +2890,30 @@ _media: {},
       const key = this._getTopicCacheKey(slug, {annotated, with_html});
       return this._topics[key];
   },
+  _featuredTopic: {},
+  getFeaturedTopic: function() {
+    return this._cachedApiPromise({
+        url: `${Sefaria.apiHost}/_api/topics/featured-topic?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
+        key: (new Date()).toLocaleDateString(),
+        store: this._featuredTopic,
+    });
+  },
+  _seasonalTopic: {},
+  getSeasonalTopic: function() {
+    return this._cachedApiPromise({
+        url: `${Sefaria.apiHost}/_api/topics/seasonal-topic?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
+        key: (new Date()).toLocaleDateString(),
+        store: this._seasonalTopic,
+    });
+  },
+  trendingTopics: {},
+  getTrendingTopics: function() {
+      return this._cachedApiPromise({
+        url: `${Sefaria.apiHost}/api/topics/trending?n=10&pool=general_${Sefaria.interfaceLang.slice(0, 2)}`,
+        key: (new Date()).toLocaleDateString(),
+        store: this.trendingTopics,
+    });
+  },
   _topicSlugsToTitles: null,
   slugsToTitles: function() {
     //initializes _topicSlugsToTitles for Topic Editor tool and adds necessary "Choose a Category" and "Main Menu" for
@@ -2958,56 +3001,6 @@ _media: {},
     return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
-    getSheetsByRef: function(srefs, callback) {
-        return Sefaria._cachedApiPromise({
-          url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}?include_collections=1`,
-          key: `include_collections|${srefs}`,
-          store: Sefaria.sheets._sheetsByRef,
-          processor: callback
-        });
-      },
-    sheetsWithRefFilterNodes(sheets) {
-      /*
-      This function is used to generate the SearchState with its relevant
-      FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
-       */
-      const newFilter = (item, type) => {
-          let title, heTitle;
-          if (type === 'topics') {
-              [title, heTitle] = [item.en, item.he];
-              type = 'topics_en';
-          }
-          else if (type === 'collections') {
-              [title, heTitle] = [item.name, item.name];
-          }
-          return {
-              title, heTitle,
-              docCount: 0, aggKey: item.slug,
-              selected: 0, aggType: type,
-          };
-      }
-
-      let filters = {};
-      sheets.forEach(sheet => {
-        let slugsFound = new Set();  // keep track of slugs in this sheet\n
-        ['topics', 'collections'].forEach(itemsType => {
-            sheet[itemsType]?.forEach(item => {
-              const key = `${item.slug}|${itemsType}`;
-              if (!slugsFound.has(key)) { // we don't want to increase docCount when one sheet already
-                                              // has a topic/collection with the same slug as the current topic/collection
-                let filter = filters[key];
-                if (!filter) {
-                  filter = newFilter(item, itemsType);
-                  filters[key] = filter;
-                }
-                slugsFound.add(key);
-                filter.docCount += 1;
-              }
-            })
-        })
-      })
-      return Object.values(filters).map(f => new FilterNode(f));;
-    },
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {
       if (reset) {
@@ -3172,10 +3165,10 @@ _media: {},
     },
     sheetsTotalCount: function(refs) {
       // Returns the total number of private and public sheets on `refs` without double counting my public sheets.
-      let sheets = Sefaria.sheets.sheetsByRef(refs) || [];
+      var sheets = Sefaria.sheets.sheetsByRef(refs) || [];
       if (Sefaria._uid) {
-        const mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
-        sheets = mySheets.concat(sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }));
+        var mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
+        sheets = sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }).concat(mySheets);
       }
       return sheets.length;
     },
@@ -3497,6 +3490,7 @@ Sefaria.unpackBaseProps = function(props){
       "community",
       "followRecommendations",
       "trendingTopics",
+      "numLibraryTopics",
       "_siteSettings",
       "_debug"
   ];

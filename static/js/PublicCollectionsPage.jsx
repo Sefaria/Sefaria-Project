@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
+import Footer  from './Footer';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 import { NavSidebar, SidebarModules } from './NavSidebar';
@@ -90,6 +91,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
         </div>
+        <Footer />
       </div>
     </div>
   );
