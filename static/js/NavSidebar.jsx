@@ -216,7 +216,7 @@ const AboutTextCategory = ({cats}) => {
 
   return (
     <Module>
-      <h3><InterfaceText text={{en: enTitle, he: heTitle}} /></h3>
+      <h3><InterfaceText text={{en: Sefaria._("side_nav.catetory.about_category", {category_name:tocObject.category}), he: Sefaria._("side_nav.catetory.about_category", {category_name:tocObject.heCategory})}} /></h3>
       <InterfaceText markdown={{en: tocObject.enDesc, he: tocObject.heDesc}} />
     </Module>
   );
