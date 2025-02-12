@@ -10,16 +10,14 @@
 {% block content %}
 <div class="superAbout">
     {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='supporters' title="Our Supporters" heTitle="התומכים שלנו" %}
+        {% include '_sidebar.html' with whichPage='supporters' %}
     {% endif %}
     <div id="supportersPage" class="container static biReady">
         <div class="inner">
-            {% if request.user_agent.is_mobile %}
-                <h1 class="mobileAboutHeader">
+                <h1 class="aboutHeader">
                     <span class="int-en">Our Supporters</span>
                     <span class="int-he">התומכים שלנו</span>
                 </h1>
-            {% endif %}
             <div class="section leading-supporters">
                 <p class="tagline">
                     <span class="int-en">

@@ -7,8 +7,6 @@ export default function RadioButton  ({isActive, onClick, value, name, label, ..
         <div
             className='button'
             onClick={onClick}
-            role='radio'
-            aria-checked={isActive}
         >
             <label htmlFor={value}><InterfaceText>{label}</InterfaceText></label>
             <input
