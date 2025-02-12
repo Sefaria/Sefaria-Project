@@ -1448,7 +1448,7 @@ const FontSizeButtons =() => {
           >
               <img src="/static/icons/reduce_font.svg" alt=""/>
           </button>
-          <InterfaceText>Font Size</InterfaceText>
+          <InterfaceText>text.reader_option_menu.font_size</InterfaceText>
           <button
               onClick={()=>setOption('fontSize', 'larger')}
               className="font-size-button preventClosing"

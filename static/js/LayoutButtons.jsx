@@ -54,7 +54,7 @@ const LayoutButtons = () => {
     const layoutState = calculateLayoutState(language, textsData, panelMode);
     return (
         <div className="layout-button-line" role="radiogroup" aria-label="text layout toggle">
-            <InterfaceText>Layout</InterfaceText>
+            <InterfaceText>text.reader_option_menu.layout</InterfaceText>
             <div className="layout-options">
                 {layoutOptions[layoutState].map((option, index) => <LayoutButton
                     key={index}
