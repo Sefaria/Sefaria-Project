@@ -331,7 +331,7 @@ class AddToSourceSheetBox extends Component {
           <span className="int-en noselect">Add to Sheet</span>
           <span className="int-he noselect">הוספה לדף המקורות</span>
         </div>
-        <GDocAdvertBox/>
+        {!this.props.hideGDocAdvert && <GDocAdvertBox/>}
       </div>);
   }
 }
