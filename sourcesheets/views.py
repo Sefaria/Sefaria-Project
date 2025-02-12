@@ -17,7 +17,6 @@ from django.http import Http404
 
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
-from django.utils.translation import ugettext as _
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
@@ -36,7 +35,7 @@ from sefaria.model.collection import Collection, CollectionSet, process_sheet_de
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
-from reader.views import render_template, catchall, get_search_params
+from reader.views import render_template, catchall
 from sefaria.sheets import clean_source, bleach_text
 from bs4 import BeautifulSoup
 
@@ -46,7 +45,6 @@ import sefaria.model.dependencies
 
 
 from sefaria.gauth.decorators import gauth_required
-from reader.views import menu_page
 
 def annotate_user_links(sources):
     """
@@ -59,13 +57,6 @@ def annotate_user_links(sources):
             source["subsources"] = annotate_user_links(source["subsources"])
 
     return sources
-
-from django.utils.translation import ugettext as _
-from reader.views import menu_page
-def sheets_home_page(request):
-    title = _("Sheets on Sefaria")
-    desc  = _("Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos.")
-    return menu_page(request, page="sheets", title=title, desc=desc)
 
 @login_required
 @ensure_csrf_cookie
@@ -1030,30 +1021,8 @@ def sheets_by_ref_api(request, ref):
     """
     API to get public sheets by ref.
     """
-    include_collections = bool(int(request.GET.get("include_collections", 0)))
-    sheets = get_sheets_for_ref(ref)
-    if include_collections:
-        sheets = annotate_sheets_with_collections(sheets)
-    return jsonResponse(sheets)
+    return jsonResponse(get_sheets_for_ref(ref))
 
-def sheets_with_ref(request, tref):
-    """
-    Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
-    """
-    search_params = get_search_params(request.GET)
-
-    props={
-        "initialSearchType": "sheet",
-        "initialSearchField": search_params["field"],
-        "initialSearchFilters": search_params["filters"],
-        "initialSearchFilterAggTypes": search_params["filterAggTypes"],
-        "initialSearchSortType": search_params["sort"]
-    }
-    he_tref = Ref(tref).he_normal()
-    normal_ref = tref if request.interfaceLang == "english" else he_tref
-    title = _(f"Sheets with ")+normal_ref+_(" on Sefaria")
-    props["sheetsWithRef"] = {"en": tref, "he": he_tref}
-    return menu_page(request, page="sheetsWithRef", title=title, props=props)
 
 def get_aliyot_by_parasha_api(request, parasha):
     response = {"ref":[]};

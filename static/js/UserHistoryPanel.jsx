@@ -5,7 +5,7 @@ import Sefaria  from './sefaria/sefaria';
 import { useScrollToLoad } from "./Hooks";
 import { NavSidebar } from './NavSidebar';
 import { NotesList } from './NoteListing';
-import { 
+import {
   SheetBlock,
   TextPassage
 } from './Story';
@@ -19,7 +19,7 @@ import {
 const filterDataByType = (data, dataSource) => {
   return data.filter(item => {
     if (dataSource === 'sheets') {
-      return item.is_sheet; 
+      return item.is_sheet;
     } else {
       return !item.is_sheet; // Keep only non-sheets (texts)
     }
@@ -32,7 +32,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const [notes, setNotes] = useState(null);
   const [dataStore, setDataStore] = useState(initialStore);
-  
+
   const contentRef = useRef();
 
   useEffect(() => {
@@ -42,25 +42,25 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
           ref: note.ref,
           text: note.text
         }));
-        setNotes(flattenedNotes); 
+        setNotes(flattenedNotes);
       } else {
         console.error('Unexpected data format:', data);
       }
     });
   }, []);
-  
+
   useEffect(() => {
     // Switch dataStore whenever menuOpen changes
     const newDataStore = menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? Sefaria.saved : Sefaria.userHistory;
     setDataStore(newDataStore);
-  }, [menuOpen, Sefaria.saved, Sefaria.userHistory]); 
+  }, [menuOpen, Sefaria.saved, Sefaria.userHistory]);
 
   const libraryURLs = {
-    "saved": "/texts/saved", 
+    "saved": "/texts/saved",
     "history": "/texts/history"
   };
   const sheetsURLs = {
-    "saved": "/sheets/saved", 
+    "saved": "/sheets/saved",
     "history": "/sheets/history"
   };
 
@@ -74,9 +74,9 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         <img src="/static/icons/clock.svg" />
         <InterfaceText>History</InterfaceText>
       </a>
-      { dataSource === "library" && 
-        <a href="/texts/notes" className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}> 
-        <img src="/static/icons/notes-icon.svg" /> 
+      { dataSource === "library" &&
+        <a href="/texts/notes" className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}>
+        <img src="/static/icons/notes-icon.svg" />
         <InterfaceText>Notes</InterfaceText>
       </a> }
     </span>
@@ -84,7 +84,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const sheetsDataStore = {'loaded': true, 'items': filterDataByType(dataStore?.items, 'sheets')};
   const libraryDataStore =  {'loaded': true, 'items': filterDataByType(dataStore?.items, 'library')};
- 
+
   const sidebarModules = [
     {type: "Promo"},
     {type: "GetTheApp"},
@@ -133,11 +133,11 @@ UserHistoryPanel.propTypes = {
 
 const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
   return (
-    <UserHistoryPanel menuOpen={menuOpen.menuOpen} 
-                      toggleLanguage={toggleLanguage} 
-                      openDisplaySettings={openDisplaySettings} 
-                      openNav={openNav} 
-                      compare={compare} 
+    <UserHistoryPanel menuOpen={menuOpen.menuOpen}
+                      toggleLanguage={toggleLanguage}
+                      openDisplaySettings={openDisplaySettings}
+                      openNav={openNav}
+                      compare={compare}
                       toggleSignUpModal={toggleSignUpModal}
                       dataSource={'library'} />
   )
@@ -145,11 +145,11 @@ const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySet
 
 const SheetsUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
   return (
-    <UserHistoryPanel menuOpen={menuOpen.menuOpen} 
-                      toggleLanguage={toggleLanguage} 
-                      openDisplaySettings={openDisplaySettings} 
-                      openNav={openNav} 
-                      compare={compare} 
+    <UserHistoryPanel menuOpen={menuOpen.menuOpen}
+                      toggleLanguage={toggleLanguage}
+                      openDisplaySettings={openDisplaySettings}
+                      openNav={openNav}
+                      compare={compare}
                       toggleSignUpModal={toggleSignUpModal}
                       dataSource={'sheets'} />
   )
@@ -171,20 +171,20 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
         store.items = []; // Initialize items only once
         store.loaded = true;
       }
-  
+
       // Filter the data based on whether it's a sheet or not
       const filteredData = filterDataByType(data, dataSource);
-  
+
       // Push the filtered data into the store
       store.items.push(...filteredData);
-  
+
       // Update the state with the modified items array
       setItems(store.items.slice());
 
     },
     itemsPreLoaded: items ? items.length : 0,
   });
-  
+
 
   if ((menuOpen === 'texts-history' || menuOpen === 'sheets-history') && !Sefaria.is_history_enabled) {
     return (

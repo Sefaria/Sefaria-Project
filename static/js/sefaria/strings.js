@@ -25,7 +25,7 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
 
-    //Autocomplete
+    //HeaderAutocomplete
     "Books": "ספרים",
     "Terms": "מונחים",
     "Users": "משתמשים",
@@ -75,12 +75,10 @@ const Strings = {
     "Add a description.": "הוסף תיאור",
     "Add a title.": "הוסף שם כותר",
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
-    "Explore by Topic": "לימוד לפי נושאים",
+    "Explore by Topic": "למדו לפי נושא",
     "About Topics": "אודות \"נושאים\"",
-    "Trending Topics": "נושאים נפוצים",
     "More": "עוד",
     "Less": "פחות",
-    "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
@@ -114,6 +112,21 @@ const Strings = {
     // Topic Images
     "Illustrative image" : "תמונה להמחשה",
 
+    // Topic Landing Page
+    "Featured Topic": "נושא לדוגמא",
+    "Go to topic ›": "לפתיחת הנושא ›",
+    "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "אל תפספסו את החדשות המרעישות! הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
+    "Learn more about": "למדו עוד על",
+    "Read the Portion": "לקריאת הפרשה",
+    "On the Jewish Calendar": "מועדים קרובים בלוח השנה העברי",
+    "Explore the Jewish Calendar": "לעוד מועדים בלוח השנה העברי",
+    "Browse Topics": "לדפדוף בנושאים השונים",
+    "Trending Topics": "נושאים פופולריים",
+    "All Topics A-Z ›": "כל הנושאים מא׳ עד ת׳ ›",
+    "Browse All Torah Portions": "לרשימת כל הפרשות",
+    "First Name": "שם פרטי",
+    "Last Name": "שם משפחה",
+    "Explore": "למדו עוד על",
 
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
@@ -463,7 +476,6 @@ const Strings = {
     "by": "על ידי",
     "based on": "ע“פ",
     "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
-    "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
     "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
@@ -554,6 +566,12 @@ const Strings = {
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
     "National Library of Israel": "הספרייה הלאומית",
     "Works on Sefaria": "חיבורים וכתבים בספריא",
+    "Learn More on Parashat": "לקריאה נוספת על פרשת",
+    "This Week’s Torah Portion": "פרשת השבוע",
+    "Learn More on": "לקריאה נוספת על",
+    "Learn More about": "לקריאה נוספת על",
+    "Browse all Parshayot": "לצפייה בכל הפרשות",
+    "From the Jewish Calendar": "מלוח השנה",
 
     //Module Names
     "Download Text": "הורדת טקסט",
