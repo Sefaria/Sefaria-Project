@@ -821,6 +821,7 @@ class ReaderPanel extends Component {
           clearSelectedWords={this.clearSelectedWords}
           clearNamedEntity={this.props.clearNamedEntity}
           setSidebarSearchQuery={this.props.setSidebarSearchQuery}
+          masterPanelLayout={this.props.masterPanelLayout}
           masterPanelLanguage={this.props.masterPanelLanguage}
           masterPanelMode={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? "Sheet" : this.props.masterPanelMode}
           masterPanelSheetId={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? this.props.initialState.sheetID : this.props.masterPanelSheetId}
@@ -1189,6 +1190,7 @@ ReaderPanel.propTypes = {
   highlightedRefs:             PropTypes.array,
   multiPanel:                  PropTypes.bool,
   masterPanelLanguage:         PropTypes.string,
+  masterPanelLayout:           PropTypes.string,
   panelsOpen:                  PropTypes.number,
   allOpenRefs:                 PropTypes.array,
   hasSidebar:                  PropTypes.bool,

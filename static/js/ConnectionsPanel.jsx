@@ -374,6 +374,8 @@ class ConnectionsPanel extends Component {
             {this.props.masterPanelMode === "Sheet" ? <SheetToolsList
               toggleSignUpModal={this.props.toggleSignUpModal}
               setConnectionsMode={this.props.setConnectionsMode}
+              masterPanelLanguage={this.props.masterPanelLanguage}
+              masterPanelLayout={this.props.masterPanelLayout}
               masterPanelSheetId={this.props.masterPanelSheetId} /> : null}
             <ToolsList
               setConnectionsMode={this.props.setConnectionsMode}
@@ -712,6 +714,7 @@ ConnectionsPanel.propTypes = {
   interfaceLang: PropTypes.string,
   contentLang: PropTypes.string,
   masterPanelLanguage: PropTypes.oneOf(["english", "bilingual", "hebrew"]),
+  masterPanelLayout: PropTypes.string,
   masterPanelMode: PropTypes.string,
   masterPanelSheetId: PropTypes.number,
   versionFilter: PropTypes.array,
@@ -799,7 +802,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
   </div>);
 }
 
-const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsMode }) => {
+const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsMode, masterPanelLanguage, masterPanelLayout }) => {
 
   // const [isOwner, setIsOwner] = useState(false);
   // const [isPublished, setIsPublished] = useState(false);
@@ -827,7 +830,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       $.ajax({
         type: "POST",
-        url: "/api/sheets/" + sheet.id + "/export_to_drive",
+        url: "/api/sheets/" + sheet.id + `/export_to_drive?language=${masterPanelLanguage}&layout=${masterPanelLayout}`,
         success: function (data) {
           if ("error" in data) {
             console.log(data.error.message);

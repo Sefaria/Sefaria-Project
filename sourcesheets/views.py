@@ -1099,7 +1099,6 @@ def export_to_drive(request, credential, sheet_id):
         'name': strip_tags(sheet['title'].strip()),
         'mimeType': 'application/vnd.google-apps.document'
     }
-    print(sheet_to_html_string(sheet))
     html_string = bytes(sheet_to_html_string(sheet), "utf8")
 
     media = MediaIoBaseUpload(
