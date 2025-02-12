@@ -1363,21 +1363,28 @@ MenuButton.propTypes = {
 // }
 
 class NavigateBackButton extends Component {
-  onClick(e) {
-    e.preventDefault();
-    let currentRef = this.props.currentRef;
-    
+
+  constructor(props) {
+    super(props);
+    this.url = "#"
+  }
+
+  componentDidMount() {
+    let currentRef = this.props.currentRef; 
+    console.log("ref : ", currentRef)
     // Remove trailing numbers from currentRef
-    currentRef = currentRef.replace(/\d+$/, '');
+    
     if (currentRef) {
-      window.location.href = `/${currentRef}?tab=contents`;
+      let oref = currentRef.replace(/\s*\d+(:\d+)*/, '');
+     this.url = `/${oref}?tab=contents`;
+    } else {
+      this.url = `/community`;
     }
-    console.log("this is currentRef", currentRef)
   }
 
   render() {
     return (
-      <a href="#" className="navigationBackButton" onClick={this.onClick.bind(this)}>
+      <a href={this.url} className="navigationBackButton">
         <i className="fa fa-chevron-left" style={{ color: 'grey' }}></i>
       </a>
     );
