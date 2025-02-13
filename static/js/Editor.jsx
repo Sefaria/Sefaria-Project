@@ -1078,7 +1078,7 @@ const Element = (props) => {
             empty: 1
           }
           return (
-            <div className={classNames(spacerClasses, Sefaria.languageClassFont())} {...attributes} >
+            <div className={classNames(spacerClasses, Sefaria.languageClassFont())} {...attributes} data-placeholder={Sefaria._("sheet.editor.write_something")}>
               {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
             </div>
           );
@@ -2652,7 +2652,13 @@ const SefariaEditor = (props) => {
   }, [canUseDOM])
 
     function saveSheetContent(doc, lastModified) {
-        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
+        const titleElement = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title")
+        if (titleElement) {
+            if (!titleElement.textContent.trim()) {
+                titleElement.setAttribute("data-content", Sefaria._("sheet.editor.untitled"));
+            }
+        }
+        const sheetTitle = titleElement ? titleElement.textContent : "Untitled"
         const docContent = doc.children.find(el => el.type == "SheetContent")
         if (!docContent) {
             return false
