@@ -31,5 +31,5 @@ plugins: [
 ]
 branches: [
   {"name": "master"},
-  {"name": "beta", "prerelease": "beta"},
+  {"name": "beta", "prerelease": "next"},
 ]
