@@ -684,7 +684,7 @@ const EducatorsPage = () => (
     <GreyBox>
       <H2Block en="Empower and Engage" he="מסע של גילוי"/>
       <EnBlock padded={true}>
-        <p>Empower your students with Sefaria’s free library of digital texts, in Hebrew and English translation, and use our teaching materials to spark creativity and foster independence. Learn new ways of teaching and engaging your students in the centuries-old conversation around Jewish texts, and join Sefaria’s Educator community.</p>
+        <p>Empower your students with Sefaria’s free library of digital texts — in Hebrew, English, and many other languages — and use our resources to spark creativity and foster learners’ facility in the Jewish library. Discover new ways of teaching and engaging your students in the centuries-old conversation around Jewish texts.</p>
       </EnBlock>
       <HeBlock padded={true}>
         <p>            דמיינו את התלמידים שלכם  מטיילים במסדרונות ספריית ענק ושולפים ספרים עתיקים וחדשים בהם מתגלים דמויות, רעיונות ומחשבות מתוך העולם היהודי שנכתבו במשך 3000 שנה. בספריא החלום הופך למציאות. הובילו את התלמידים למסע של גילוי ולמידה בין המקורות של ארון הספרים היהודי.</p>
@@ -694,10 +694,10 @@ const EducatorsPage = () => (
 
 
     <Feature
-      enTitle="Professional Development"
-      enText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
-      enImg="/static/img/educators-landing-page/teaching-with-sefaria-library.png"
-      enImgAlt="Professional Development"
+      enTitle="Educator Spotlight"
+      enText="<p>Shifra Elman uses translations and topic pages to widen the lens.</p> <p><b>Who?</b> Shifra Elman, Dean of Jewish Studies at The Kehillah School in Palo Alto, CA</p><p><b>How?</b> In our introductory ninth-grade class, we emphasize the many Torah translations available on Sefaria. This helps students who don’t know Hebrew avoid over-reliance on a single definition.</p><p><b>Shifra's Top Tip:</b> Topic pages are a valuable starting point for my students. Even if they’re not sure where to begin with a topic, seeing the base text alongside a variety of commentaries and other resources from the Jewish bookshelf helps guide their research.</p>"
+      enImg="/static/img/educators-landing-page/shifra-elman-headshot.png"
+      enImgAlt="Shifra Elman Headshot"
       heTitle="איך להשתמש באתר?"
       heText='נתחיל בהתחלה: "המדריך למשתמש בספריא" מורכב מיחידות מודרכות בהן נלמדות צעד אחר צעד האפשרויות השונות באתר ספריא. באסופה "ספריא לתלמידים" נמצאות הדרכות על השימוש באתר שמותאמות במיוחד עבור למידה עצמאית של תלמידים. כדי ללמוד ולהכיר חלק מסוים באתר תוכלו להשתמש באסופה של "שאלות נפוצות".'
       heImg="/static/img/educators-landing-page/teaching-with-sefaria-library-heb.png"
@@ -707,9 +707,9 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Online Educator Course", "מדריך למשתמש בספריא", "https://sefaria.typeform.com/to/tJVexqpG", "https://www.sefaria.org.il/sheets/361600?lang=he"],
-          ["Lesson Plans on Sefaria", "ספריא לתלמידים", "/collections/pedagogy-on-sefaria-exemplary-lesson-plans", "https://www.sefaria.org.il/collections/KGMlHrvA"],
-          ["Schedule A Workshop", "שאלות נפוצות", "https://sefaria.typeform.com/to/Pl3biam8", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
+          ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
+          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/KGMlHrvA"],
+          ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -726,8 +726,8 @@ const EducatorsPage = () => (
 
      <Feature
       enTitle="Resources for Educators"
-      enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Discover our adaptable lesson plans and resources, or find learning materials and activities ready-to-go for your classroom!"
-      enImg="/static/img/educators-landing-page/megillah-activity.png"
+      enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Get informed about all of the new texts added to the library and teach your students to be effective Sefaria users using the student course."
+      enImg="/static/img/educators-landing-page/sefaria-for-educators.png"
       enImgAlt="Resources for Educators"
       heTitle="מערכי שיעור וחומרי הוראה"
       heText="צוות החינוך של ספריא יצר ואסף עבורכם המורים, חומרי הוראה בעזרתם תוכלו להעשיר ולהעמיק את הלמידה. <br><br>לפניכם אסופה של מערכי שיעור בנושאים שונים, הצעה לתהליך של עבודת חקר באמצעות ספריא ורעיונות להערכה חלופית."
@@ -739,8 +739,8 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Past Educator Newsletters", "10 רעיונות להערכה חלופית", "/collections/qZ0UWi5y", "https://www.sefaria.org.il/sheets/281661?lang=he"],
-          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
+          ["Get New Text Updates", "10 רעיונות להערכה חלופית", "https://sefaria.formstack.com/forms/monthly_new_text_roundup?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/sheets/281661?lang=he"],
+          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
           ["For Your Students", "מערכי שיעור", "/sheets/311291?lang=bi", "https://www.sefaria.org.il/sheets/361593?lang=he"]
       ].map(i =>
           <SimpleButton
@@ -757,8 +757,8 @@ const EducatorsPage = () => (
     </ButtonRow>
     <Feature
       enTitle="Sefaria for Educators How-Tos"
-      enText="Browse our FAQ’s and learn more about how to use Sefaria’s tools to study and to teach. Sefaria’s Learning Team is always available to support you and your students or answer any questions you might have. If there are texts, translations, lesson plans, or student materials that would enhance your teaching, please share that with us as well."
-      enImg="/static/img/educators-landing-page/tutorials-for-educators.png"
+      enText="Explore our Help Center to find answers to your questions about Sefaria. Have a text or translation you'd like to see added to the library? Fill out our text request form. For a convenient way to create materials, try Sefaria for Google Docs, an extension for adding sources from the library directly into your Docs."
+      enImg="/static/img/educators-landing-page/help-center-for-educators.png"
       enImgAlt="Sefaria for Educators How-Tos"
       heTitle="גם את זה יש בספריא! אל תחמיצו!"
       heText='מאגר ספריא הוא גדול ובתוכו אפשרויות לימוד רבות. מוזמנים לעיין באסופות מעניינות ושימושיות, להכיר את עמוד הקהילה והתכנים שבו וגם לגלות את "הסודות של ספריא"'
@@ -769,9 +769,9 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Educator FAQ", "אסופות מומלצות", "/collections/tutorials-for-educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
-          ["Request New Resources", "עמוד הקהילה", "https://sefaria.typeform.com/to/aaZmi4JD","https://www.sefaria.org.il/community"],
-          ["Webinars for Educators", "הסודות של ספריא", "/collections/qJLU68HQ","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
+          ["Help Center", "אסופות מומלצות", "/collections/sefaria-faqs?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
+          ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -789,7 +789,7 @@ const EducatorsPage = () => (
     <GreyBox>
       <H2Block en="Get in touch" he="אנחנו רוצים לשמוע מכם"/>
       <EnBlock padded={true}>
-          <p>Was your teaching enhanced by Sefaria? Did you have a “Sefaria moment” with your students? Share it with us! We love to hear how educators are using Sefaria in the field and we learn from the feedback we receive. We are also available to answer all of your Sefaria questions. Write to us at education@sefaria.org.</p>
+          <p>Was your teaching enhanced by Sefaria? Did you have a “Sefaria moment” with your students? Share it with us! We love to hear how educators are using Sefaria in the field and we learn from the feedback we receive. We are also available to answer all of your Sefaria questions. Write to us at <a href="mailto:education@sefaria.org">education@sefaria.org</a>.</p>
       </EnBlock>
       <HeBlock padded={true}>
           <p>אנחנו לומדים רבות ממורים ותלמידים שמספרים לנו על ההתנסות שלהם עם ספריא. נשמח מאד אם תשתפו אותנו בחוויית הלימוד שלכם. אתם מוזמנים ליצור איתנו קשר כדי לתאם הדרכה למורים וגם לתלמידים,  לספר לנו על חוויית הלמידה עם ספריא ולהתייעץ איתנו בכל דבר ועניין</p>
@@ -865,7 +865,9 @@ const EducatorsPage = () => (
     <div className="staticPageCallToActionFooter">
       <div className="staticPageBlockInner flexContainer">
         <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="קבלו עדכונים והפניות למקורות מעניינים" />
-        <NewsletterSignUpForm contextName="educators" />
+        <div style={{ width: '200px', textAlign: 'end' }}>
+            <NewsletterSignUpForm contextName="educators" />
+        </div>
       </div>
     </div>
 
@@ -2400,7 +2402,6 @@ const HeaderForEducatorsPage = () => {
           <span className="int-he">{heTitle}</span>
         </h1>
         <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
-        <NewsletterSignUpForm contextName="educators" />
       </div>
     </div>
   </div>
@@ -2912,7 +2913,7 @@ const JobsPageHeader = ({ jobsAreAvailable }) => {
     return (
         <>
             <header>
-                <h1 className="mobileAboutHeader">
+                <h1 className="aboutHeader">
                     <span className="int-en">Jobs at Sefaria</span>
                     <span className="int-he">משרות פנויות בספריא</span>
                 </h1>
@@ -3115,7 +3116,6 @@ const JobsPage = memo(() => {
             ) : loading ? (
                 <>
                     <LoadingMessage />
-                    <LoadingRing />
                 </>
             ) : (
                 <>
@@ -3253,9 +3253,11 @@ const Product = ({product}) => {
 const ProductsPage = memo(() => {
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         loadProducts();
+        setLoading(false);
     }, []);
 
     // GraphQL query to Strapi
@@ -3432,10 +3434,10 @@ const ProductsPage = memo(() => {
     const devBoxPosition = 2;
     const initialProducts = ProductList.slice(0, devBoxPosition);
     const remainingProducts = ProductList.slice(devBoxPosition);
-
     return (
-        <>
-                <h1 className="mobileAboutHeader">
+        loading ? <LoadingMessage/> :
+            <>
+                 <h1 className="aboutHeader">
                     <span className="int-en">Sefaria's Products</span>
                     <span className="int-he">המוצרים של ספריא</span>
                 </h1>

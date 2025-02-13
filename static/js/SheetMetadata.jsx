@@ -255,7 +255,7 @@ class SheetMetadata extends Component {
 
   updateSuggestedTags(input) {
     if (input == "") return
-    Sefaria.getName(input, false, 0).then(d => {
+    Sefaria.getName(input, 0).then(d => {
       const topics = d.completion_objects
           .filter(obj => obj.type === "Topic")
           .map((filteredObj, index) => ({
@@ -511,8 +511,6 @@ SheetMetadata.propTypes = {
   narrowPanel:      PropTypes.bool,
   close:            PropTypes.func.isRequired,
   openNav:          PropTypes.func.isRequired,
-  showBaseText:     PropTypes.func.isRequired,
-  selectVersion:    PropTypes.func,
   interfaceLang:    PropTypes.string,
 };
 
