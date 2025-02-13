@@ -580,6 +580,15 @@ class ReaderPanel extends Component {
       return (Sefaria.index(book) ? Sefaria.index(book)['primary_category'] : null);
     }
   }
+  textCategory() {
+    if (this.state.mode == "Sheet") {
+      return "Sheets"
+    }
+    else {
+      const book = this.currentBook();
+      return (Sefaria.index(book) ? Sefaria.index(book)['categories'] : []);
+    }
+  }
   currentLayout() {
     if (this.state.settings.language == "bilingual") {
       return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
@@ -1138,6 +1147,7 @@ class ReaderPanel extends Component {
         <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
           {hideReaderControls ? null :
           <ReaderControls 
+            textCategory={this.textCategory()}
             showBaseText={this.showBaseText}
             hasSidebar={this.state.hasSidebar}
             toggleSheetEditMode={this.toggleSheetEditMode}
@@ -1258,6 +1268,7 @@ ReaderPanel.propTypes = {
 
 
 class ReaderControls extends Component {
+
   // The Header of a Reader panel when looking at a text
   // contains controls for display, navigation etc.
   constructor(props) {
@@ -1455,7 +1466,7 @@ class ReaderControls extends Component {
 
     let leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons"> 
-          {this.props.multiPanel ? (<NavigateBackButton currentRef={this.props.currentRef}/>) : null}
+          {this.props.multiPanel ? (<NavigateBackButton category={this.props.textCategory} currentRef={this.props.currentRef}/>) : null}
           {this.props.multiPanel ? null : (<MenuButton onClick={this.props.openMobileNavMenu}/>)}
           <div className='textStatus'>
             {this.setTextCompletionStatus(status)}
@@ -1510,6 +1521,7 @@ class ReaderControls extends Component {
 }
 
 ReaderControls.propTypes = {
+  textCategory:            PropTypes.array,
   settings:                PropTypes.object.isRequired,
   showBaseText:            PropTypes.func.isRequired,
   setOption:               PropTypes.func.isRequired,

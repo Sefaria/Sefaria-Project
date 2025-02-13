@@ -1363,36 +1363,43 @@ MenuButton.propTypes = {
 // }
 
 class NavigateBackButton extends Component {
-
   constructor(props) {
     super(props);
-    this.url = "#"
+    this.state = {
+      url: "#",
+      icon: null,
+    };
+
   }
 
   componentDidMount() {
-    let currentRef = this.props.currentRef; 
-    console.log("ref : ", currentRef)
-    // Remove trailing numbers from currentRef
-    
-    if (currentRef) {
-      let oref = currentRef.replace(/\s*\d+(:\d+)*/, '');
-     this.url = `/${oref}?tab=contents`;
-    } else {
-      this.url = `/community`;
+    let url = "#";
+
+    if (this.props.category === "Sheets") {
+      url = "/community";
+    } else if (this.props.category) {
+      let path = this.props.category.slice(0, -2).join("/");
+      url = `/texts/${path}`;
     }
+
+    
+
+    this.state.url = url;
   }
+
 
   render() {
     return (
-      <a href={this.url} className="navigationBackButton">
-        <i className="fa fa-chevron-left" style={{ color: 'grey' }}></i>
+      <a href={this.state.url}  style={{ border: "none", background: "none" }}>
+        <i className="fa-solid fa-xmark" style={{ color: "grey" }}></i>
       </a>
     );
   }
 }
 
 NavigateBackButton.propTypes = {
-  currentRef: PropTypes.string
+  currentRef: PropTypes.string,
+  category: PropTypes.array
 };
 
 
@@ -1505,24 +1512,25 @@ ToggleSwitchLine.propTypes = {
   isChecked: PropTypes.bool.isRequired,
 };
 
-const  RadioButton = ({isActive, onClick, value, name, label, ...rest}) => {
+const RadioButton = ({ isActive, onClick, value, name, label, ...rest }) => {
   return (
-      <div
-          className='button'
-          onClick={onClick}
-      >
-          <label htmlFor={value}><InterfaceText>{label}</InterfaceText></label>
-          <input
-              type='radio'
-              id={value}
-              checked={isActive}
-              name={name}
-              value={value}
-              {...rest}
-          />
-      </div>
+    <div className="button" onClick={onClick}>
+      <label htmlFor={value}>
+        <InterfaceText>{label}</InterfaceText>
+      </label>
+      <input
+        type="radio"
+        id={value}
+        checked={isActive}
+        name={name}
+        value={value}
+        onChange={() => {}} // Add an empty onChange to suppress the warning
+        {...rest}
+      />
+    </div>
   );
-}
+};
+
 RadioButton.propTypes = {
   isActive: PropTypes.bool.isRequired,
   onClick: PropTypes.func.isRequired,
@@ -1586,7 +1594,7 @@ return (
 );
 };
 DropdownMenu.propTypes = {
-  buttonContent: PropTypes.elementType.isRequired,
+  buttonContent: PropTypes.object.isRequired,
 };
 
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
