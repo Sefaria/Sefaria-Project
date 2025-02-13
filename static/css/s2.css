@@ -11746,6 +11746,10 @@ cursor: pointer;
   display: flex;
 }
 
+.bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
+  flex-direction: row-reverse;
+}
+
 .boxedSheetItem + .spacer {
   margin-top: -30px;
   transition: all .5s ease-in-out;
