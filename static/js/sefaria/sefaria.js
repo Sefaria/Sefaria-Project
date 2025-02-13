@@ -1528,13 +1528,11 @@ Sefaria = extend(Sefaria, {
   ,
   _linkSummaries: {},
   shouldBuildLinkSummaries: function(cacheKey, links) {
-    // check _linkSummaries[cacheKey]: does this cacheKey (1) exist and (2) is it up-to-date with links
+    // check _linkSummaries[cacheKey]: does this cacheKey (1) exist and (2) is the 'total' up-to-date with links length
     // if it doesn't exist or isn't up-to-date, need to build _linkSummaries for cacheKey
     if (cacheKey in this._linkSummaries) {
-      const countFromLinkSummariesCache = this._linkSummaries[cacheKey].reduce((sum, current) => {
-        return sum + current.count;
-      }, 0);
-      if (countFromLinkSummariesCache < links.length) {  // the _linkSummaries cache is not up-to-date with the _links cache
+      const linkSummariesTotal = this._linkSummaries[cacheKey].total;
+      if (linkSummariesTotal < links.length) {  // the _linkSummaries cache is not up-to-date with the _links cache
         delete this._linkSummaries[cacheKey];
         return true;
       }
@@ -1638,7 +1636,7 @@ Sefaria = extend(Sefaria, {
     const normRef = Sefaria.humanRef(ref);
     const cacheKey = normRef + "/" + excludedSheet;
     if (!this.shouldBuildLinkSummaries(cacheKey, links)) {  // don't need to build _linkSummaries for this ref
-      return this._linkSummaries[cacheKey];
+      return this._linkSummaries[cacheKey].data;
     }
 
     const oref          = (typeof ref == "string") ? Sefaria.ref(ref) : Sefaria.ref(ref[0]);
@@ -1741,7 +1739,10 @@ Sefaria = extend(Sefaria, {
       orderB = orderB === -1 ? categoryOrder.length : orderB;
       return orderA - orderB;
     });
-    Sefaria._linkSummaries[cacheKey] = summaryList;
+    const total = summaryList.reduce((sum, current) => {
+        return sum + current.count;
+    }, 0);
+    Sefaria._linkSummaries[cacheKey] = {"data": summaryList, "total": total};
     return summaryList;
   },
   linkSummaryBookSort: function(category, a, b, byHebrew) {
