@@ -27,7 +27,7 @@ const interfaceTextEN = 'Texts';
         expectedSourceText: 'When God began to create', expectedBilingualText: '', expectedInterfaceText: interfaceTextEN },
 
     // English Interface and Bilingual Source
-    {interfaceLanguage: 'English', sinterfaceLanguageToggle: LANGUAGES.EN, 
+    {interfaceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN,
         sourceLanguage: 'Bilingual', sourceLanguageToggle: SOURCE_LANGUAGES.BI, 
         expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: 'When God began to create',
         expectedInterfaceText: interfaceTextEN },
