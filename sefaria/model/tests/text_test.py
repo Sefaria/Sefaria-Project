@@ -354,7 +354,7 @@ def test_text_helpers():
         'Akeidat Yitzchak',
         'Berakhot']
      ],
-    ['Exodus', None, False, ['Ibn Ezra on Exodus; Perush HaArokh',
+    ['Exodus', None, False, ['Ibn Ezra on Exodus',
                              'Ramban on Exodus',
                              'Abarbanel on Torah',
                              'Meshekh Chokhmah',
@@ -364,7 +364,7 @@ def test_text_helpers():
                              ], ['Exodus',
                                  'Rashi on Genesis']
      ],
-    ['Exodus', 'Commentary', False, ['Ibn Ezra on Exodus; Perush HaArokh',
+    ['Exodus', 'Commentary', False, ['Ibn Ezra on Exodus',
                              'Ramban on Exodus',
                              'Abarbanel on Torah',
                              'Meshekh Chokhmah',
@@ -374,7 +374,7 @@ def test_text_helpers():
                                  'Exodus',
                                  'Rashi on Genesis']
      ],
-    ['Exodus', 'Commentary', True, ['Ibn Ezra on Exodus; Perush HaArokh',
+    ['Exodus', 'Commentary', True, ['Ibn Ezra on Exodus',
                                     'Ramban on Exodus'
                                     ], ['Abarbanel on Torah',
                                         'Meshekh Chokhmah',
