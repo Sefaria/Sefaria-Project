@@ -337,10 +337,9 @@ CACHES = {
 
 GLOBAL_INTERRUPTING_MESSAGE = None
 
-REMOTE_HOSTS = os.getenv('REMOTE_HOSTS', 'staging.pecha.org').replace(" ", "")
+REMOTE_HOSTS = os.getenv('REMOTE_HOSTS', 'staging.pecha.org','sefaria-docker.onrender.com').replace(" ", "")
 
 LOCAL_HOSTS = [
-    'sefaria-docker.onrender.com'
     'localhost',
     '127.0.0.1',
     "0.0.0.0",
