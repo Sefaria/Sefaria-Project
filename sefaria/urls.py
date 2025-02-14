@@ -54,7 +54,7 @@ urlpatterns = [
     url(r'^modtools/links$', sefaria_views.links_upload_api),
     url(r'^modtools/links/(?P<tref1>.+)/(?P<tref2>.+)$', sefaria_views.get_csv_links_by_refs_api),
     url(r'^modtools/index_links/(?P<tref1>.+)/(?P<tref2>.+)$', partial(sefaria_views.get_csv_links_by_refs_api, by_segment=True)),
-    url(r'^torahtracker/?$', reader_views.user_stats),
+    url(r'^pechatracker/?$', reader_views.user_stats),
 ] 
 
 # People Pages
@@ -119,10 +119,10 @@ urlpatterns += [
 ]
 
 # Calendar Redirects
-urlpatterns += [
-    url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
-    url(r'^todays-daf-yomi$', reader_views.daf_yomi_redirect),
-]
+# urlpatterns += [
+#     url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
+#     url(r'^todays-daf-yomi$', reader_views.daf_yomi_redirect),
+# ]
 
 # Texts Add / Edit / Translate
 urlpatterns += [

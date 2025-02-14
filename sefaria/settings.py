@@ -32,11 +32,16 @@ LANGUAGES = (
     ('zh-hans', "Chinese"),
 )
 
-DATE_FORMATS = {
-    'en': 'N j, Y g:i A',  # English: January 5, 2024 2:30 PM
-    'he': 'ཕྱི་ལོ་Y ཟླ་m ཚེས།j ཆུ་ཚོད།g',  # Tibetan: ཕྱི་ལོ་2024 ཟླ་1 ཚེས་5 ཆུ་2 སྐར་30 སྔོན་PM
-    'ch': 'Y年 m月 j日 g:i A',  # Chinese: 2024年1月5日 2:30 PM
-    'es': 'Y年 m月 j日 g:i A',  # Spanish: 2024年1月5日 2:30 PM
+DATE_FORMATS_REVISION_PAGE = {
+    'en': '%b %d, %Y',  # English: Jan 05, 2024
+    'he': 'ཕྱི་ལོ་%Y ཟླ་%m ཚེས་%d',  # Tibetan: ཕྱི་ལོ་2024 ཟླ་01 ཚེས་05
+    'ch': '%Y年%m月%d日',  # Chinese: 2024年01月05日
+}
+
+DATE_FORMATS_REVISION_PAGE = {
+    'en': '%b %d, %Y',  # English: Jan 05, 2024
+    'he': 'ཕྱི་ལོ་%Y ཟླ་%m ཚེས་%d',  # Tibetan: ཕྱི་ལོ་༢༠༢༤ ཟླ་༠༡ ཚེས་༠༥
+    'ch': '%Y年%m月%d日',  # Chinese: 2024年01月05日
 }
 
 SITE_ID = 1
