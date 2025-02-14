@@ -1930,30 +1930,35 @@ const InterruptingMessage = ({
 
     let shouldShowModal = false;
 
-    let noUserKindIsSet = ![
-      strapi.modal.showToReturningVisitors,
-      strapi.modal.showToNewVisitors,
-      strapi.modal.showToSustainers,
-      strapi.modal.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer &&
-        strapi.modal.showToSustainers) ||
-        (!Sefaria.is_sustainer &&
-          strapi.modal.showToNonSustainers))
+      (Sefaria._uid && strapi.modal.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.modal.showTo === "logged_out_only")
     )
       shouldShowModal = true;
-    else if (
-      (Sefaria.isReturningVisitor() &&
-        strapi.modal.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
-    )
-      shouldShowModal = true;
-    else if (noUserKindIsSet) shouldShowModal = true;
+    else if (strapi.modal.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.modal.showToReturningVisitors,
+        strapi.modal.showToNewVisitors,
+        strapi.modal.showToSustainers,
+        strapi.modal.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.modal.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.modal.showToNonSustainers))
+      )
+        shouldShowModal = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.modal.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
+      )
+        shouldShowModal = true;
+      else if (noUserKindIsSet) 
+        shouldShowModal = true;
+    }
     if (!shouldShowModal) return false;
-    // Don't show the modal on pages where the button link goes to since you're already there
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    // Don't show the modal on pages where the button link goes to since you're already there
     if (strapi.modal.buttonURL) {
       if (strapi.modal.buttonURL.en) {
         excludedPaths.push(new URL(strapi.modal.buttonURL.en).pathname);

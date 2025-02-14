@@ -115,6 +115,7 @@ function StrapiDataProvider({ children }) {
                 showToNonSustainers
                 showToReturningVisitors
                 showToSustainers
+                showTo
                 updatedAt
               }
             }
