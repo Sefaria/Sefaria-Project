@@ -2104,26 +2104,33 @@ const Banner = ({ onClose }) => {
 
     let shouldShowBanner = false;
 
-    let noUserKindIsSet = ![
-      strapi.banner.showToReturningVisitors,
-      strapi.banner.showToNewVisitors,
-      strapi.banner.showToSustainers,
-      strapi.banner.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
-        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      (Sefaria._uid && strapi.banner.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.banner.showTo === "logged_out_only")
     )
       shouldShowBanner = true;
-    else if (
-      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
-    )
-      shouldShowBanner = true;
-    else if (noUserKindIsSet) shouldShowBanner = true;
+    else if (strapi.banner.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.banner.showToReturningVisitors,
+        strapi.banner.showToNewVisitors,
+        strapi.banner.showToSustainers,
+        strapi.banner.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      )
+        shouldShowBanner = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
+      )
+        shouldShowBanner = true;
+      else if (noUserKindIsSet) 
+        shouldShowBanner = true;
+    }
     if (!shouldShowBanner) return false;
-
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
     // Don't show the banner on pages where the button link goes to since you're already there
     if (strapi.banner.buttonURL) {
