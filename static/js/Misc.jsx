@@ -1919,7 +1919,7 @@ const SheetsEditorWarning = () => {
                         <div className="button" onClick={handleClick}>תודה, הבנתי</div></>;
   const msg = Sefaria._v({"en": en_msg, "he": he_msg});
 
-  if (!!hasAcknowledgedFinalWarning) {
+  if (!!hasAcknowledgedFinalWarning || !Sefaria._uid) {
     return null;
   } else {
     return <dialog id="sheetsWarningDialog" ref={dialogRef}>
