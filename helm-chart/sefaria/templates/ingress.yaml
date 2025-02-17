@@ -102,4 +102,4 @@ spec:
           - pathType: ImplementationSpecific
             path: /sheets(/|$)(.*)
     {{- end }}
-{{- end }
+{{- end }}
