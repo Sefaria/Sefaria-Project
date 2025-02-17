@@ -1,4 +1,4 @@
-import {DEFAULT_LANGUAGE, LANGUAGES, testUser} from './globals'
+import {DEFAULT_LANGUAGE, LANGUAGES, SOURCE_LANGUAGES, testUser} from './globals'
 import {BrowserContext}  from 'playwright-core';
 import type { Page } from 'playwright-core';
 
@@ -6,6 +6,7 @@ let langCookies: any = [];
 let loginCookies: any = [];
 
 const hideModals = async (page: Page) => {
+    await page.waitForLoadState('networkidle');
     await page.evaluate(() => {
         const style = document.createElement('style');
         style.innerHTML = '#interruptingMessageBox {display: none;}';
@@ -23,13 +24,16 @@ export const changeLanguage = async (page: Page, language: string) => {
 }
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
-    if (!langCookies.length) {
-        const page: Page = await context.newPage();
-        await page.goto('');
-        await changeLanguage(page, language);
-        langCookies = await context.cookies();
-    }
+    // If a cookie already has contents, clear it so that the language cookie can be reset
+    if (langCookies.length) {
+        await context.clearCookies()
+    }   
+    const page: Page = await context.newPage();
+    await page.goto('');
+    await changeLanguage(page, language);
+    langCookies = await context.cookies();
     await context.addCookies(langCookies);
+    
     // this is a hack to get the cookie to work
     const newPage: Page = await context.newPage();
     await newPage.goto(url);
@@ -65,4 +69,26 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
 export const getPathAndParams = (url: string) => {
     const urlObj = new URL(url);
     return urlObj.pathname + urlObj.search;
+}
+
+export const changeLanguageOfText = async (page: Page, sourceLanguage: RegExp) => {
+    // Clicking on the Source Language toggle
+    await page.getByAltText('Toggle Reader Menu Display Settings').click()
+
+    // Selecting Source Language
+    await page.locator('div').filter({ hasText: sourceLanguage }).click()
+}
+
+export const getCountryByIp = async (page: Page) => {
+    const data = await page.evaluate(() => {
+        return fetch('https://ipapi.co/json/')
+            .then(response => response.json())
+            .then(data => data)
+    })
+    return data.country;
+}
+
+export const isIsraelIp = async (page: Page) => {
+    const country = await getCountryByIp(page);
+    return country === "IL";
 }

@@ -12,7 +12,7 @@ class APIWarningCode(Enum):
 
 """
 classes for data warnings in API calls.
-used when part of the data that was requested exists and returned, and part is missing.  
+used when part of the data that was requested exists and returned, and part is missing. 
 """
 
 class APIDatawarning():

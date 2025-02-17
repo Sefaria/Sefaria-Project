@@ -10,7 +10,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
 from sefaria.system.cache import django_cache
-
+from django_topics.models import Topic as DjangoTopic
 import structlog
 from sefaria import tracker
 from sefaria.helper.descriptions import create_era_link
@@ -239,6 +239,11 @@ def get_all_topics(limit=1000, displayableOnly=True):
     query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
     return TopicSet(query, limit=limit, sort=[('numSources', -1)]).array()
 
+@django_cache(timeout=24 * 60 * 60)
+def get_num_library_topics():
+    all_topics = DjangoTopic.objects.get_topic_slugs_by_pool('library')
+    return len(all_topics)
+
 
 def get_topic_by_parasha(parasha:str) -> Topic:
     """
@@ -366,6 +371,36 @@ def get_topics_for_ref(tref, lang="english", annotate=False):
     serialized.sort(key=cmp_to_key(partial(sort_refs_by_relevance, lang=lang)))
     return serialized
 
+@django_cache(timeout=24 * 60 * 60)
+def get_trending_topics(num_topics=10):
+    from google.analytics.data_v1beta import BetaAnalyticsDataClient
+    from google.analytics.data_v1beta.types import DateRange, Metric, Dimension, RunReportRequest, FilterExpression, Filter, OrderBy
+    from sefaria.settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
+    import urllib.parse
+    sefaria_analytics_mobile_and_web_property_id = 204095655
+    PROPERTY_ID = sefaria_analytics_mobile_and_web_property_id
+    client = BetaAnalyticsDataClient.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
+    request = RunReportRequest(
+        property=f"properties/{PROPERTY_ID}",
+        date_ranges=[DateRange(start_date="28daysAgo", end_date="yesterday")],
+        dimensions=[Dimension(name="pagePath")],
+        metrics=[Metric(name="screenPageViews")],
+        dimension_filter=FilterExpression(
+            filter=Filter(
+                field_name="pagePath",
+                string_filter=Filter.StringFilter(
+                    match_type=Filter.StringFilter.MatchType.BEGINS_WITH,
+                    value="/topics/"
+                )
+            )
+        ),
+        order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="screenPageViews"), desc=True)],
+        limit=num_topics,
+    )
+    response = client.run_report(request)
+    slugs = [urllib.parse.unquote(row.dimension_values[0].value.removeprefix("/topics/")) for row in response.rows]
+    filtered_slugs = [slug for slug in slugs if not slug.startswith("category/")]
+    return filtered_slugs
 
 @django_cache(timeout=24 * 60 * 60, cache_prefix="get_topics_for_book")
 def get_topics_for_book(title: str, annotate=False, n=18) -> list:
@@ -1318,7 +1353,7 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
             return {"error": f"Cannot delete link between {tref} and {to_topic}."}
 
 
-def add_image_to_topic(topic_slug, image_uri, en_caption, he_caption):
+def add_image_to_topic(topic_slug: str, image_uri: str, en_caption: str = "", he_caption: str =""):
     """
     A function to add an image to a Topic in the database. Helper for data migration.
     This function queries the desired Topic, adds the image data, and then saves.
@@ -1329,9 +1364,32 @@ def add_image_to_topic(topic_slug, image_uri, en_caption, he_caption):
     :param he_caption String: The Hebrew caption for a Topic image
     """
     topic = Topic.init(topic_slug)
-    topic.image = {"image_uri": image_uri,
-                   "image_caption": {
-                       "en": en_caption,
-                       "he": he_caption
-                   }}
+    if not hasattr(topic, "image"):
+        topic.image = {"image_uri": image_uri, "image_caption": {"en": en_caption, "he": he_caption}}
+    else:
+        topic.image["image_uri"] = image_uri
+        if en_caption:
+            topic.image["image_caption"]["en"] = en_caption
+        if he_caption:
+            topic.image["image_caption"]["he"] = he_caption
     topic.save()
+
+
+def add_secondary_image_to_topic(topic_slug: str, image_uri: str):
+    topic = Topic.init(topic_slug)
+    topic.secondary_image_uri = image_uri
+    topic.save()
+
+
+def delete_image_from_topic(topic_slug: str):
+    topic = Topic.init(topic_slug)
+    if hasattr(topic, "image"):
+        del topic.image
+        topic.save()
+
+
+def delete_secondary_image_from_topic(topic_slug: str):
+    topic = Topic.init(topic_slug)
+    if hasattr(topic, "secondary_image_uri"):
+        del topic.secondary_image_uri
+        topic.save()

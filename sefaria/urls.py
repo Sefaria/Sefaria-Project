@@ -102,8 +102,8 @@ urlpatterns += [
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/b/(?P<topic>.+)$', reader_views.topic_page_b),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
-    url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api),
-    url(r'^api/topics/images/(?P<topic>.+)$', reader_views.topic_upload_photo)
+    url(r'^_api/topics/images/secondary/(?P<slug>.+)$', reader_views.topic_upload_photo, {"secondary": True}),
+    url(r'^_api/topics/images/(?P<slug>.+)$', reader_views.topic_upload_photo)
 
 ]
 
@@ -172,6 +172,8 @@ urlpatterns += [
     url(r'^api/terms/(?P<name>.+)$', reader_views.terms_api),
     url(r'^api/calendars/next-read/(?P<parasha>.+)$', reader_views.parasha_next_read_api),
     url(r'^api/calendars/?$', reader_views.calendars_api),
+    url(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
+    url(r'^api/calendars/topics/holiday/?$', reader_views.next_holiday),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     url(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
@@ -264,7 +266,10 @@ urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
     url(r'^api/topics/generate-prompts/(?P<slug>.+)$', reader_views.generate_topic_prompts_api),
     url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
+    url(r'^_api/topics/seasonal-topic/?$', reader_views.seasonal_topic_api),
     url(r'^api/topics/pools/(?P<pool_name>.+)$', reader_views.topic_pool_api),
+    url(r'^_api/topics/featured-topic/?$', reader_views.featured_topic_api),
+    url(r'^api/topics/trending/?$', reader_views.trending_topics_api),
     url(r'^api/ref-topic-links/bulk$', reader_views.topic_ref_bulk_api),
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/v2/topics/(?P<topic>.+)$', reader_views.topics_api, {'v2': True}),
@@ -397,10 +402,11 @@ urlpatterns += [
     url(r'^api/send_feedback$', sefaria_views.generate_feedback),
 ]
 
-# Email Subscribe
+# Email Newsletter Subscriptions
 urlpatterns += [
     url(r'^api/subscribe/(?P<org>.+)/(?P<email>.+)$', sefaria_views.generic_subscribe_to_newsletter_api),
     url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe_sefaria_newsletter_view),
+    url(r'^api/newsletter_mailing_lists/?$', sefaria_views.get_available_newsletter_mailing_lists),
 ]
 
 # Admin

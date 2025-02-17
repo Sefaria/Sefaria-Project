@@ -8,7 +8,7 @@ concurrency: integration_environment
 
 jobs:
   variables:
-    if: ${{ github.event_name == 'merge_group' }}
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     outputs:
       date: ${{ steps.data.outputs.date }}
@@ -29,7 +29,7 @@ jobs:
           echo "current_branch=merge-queue"
           >> $GITHUB_OUTPUT
   build-generic:
-    if: ${{ github.event_name == 'merge_group' }}
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     name: "Integration Image Build"
     needs:
       - variables
@@ -82,8 +82,9 @@ jobs:
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          
   build-derived:
-    if: ${{ github.event_name == 'merge_group' }}
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     name: "Integration Image Build Stage 2"
     permissions:
@@ -140,7 +141,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   run-tests:
-    if: ${{ github.event_name == 'merge_group' }}
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     name: "Playwright"   # This name is referenced when slacking status
     needs:
       - build-derived
@@ -158,9 +159,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends curl unzip
       - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4
       - name: setup helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
       - name: Set up yq
         run: |
           curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
@@ -193,9 +194,14 @@ jobs:
       
       - name: Run Playwright tests
         run: npx playwright test
-      
+        env:
+          PLAYWRIGHT_SUPERUSER_EMAIL: "${{ secrets.PLAYWRIGHT_SUPERUSER_EMAIL }}"
+          PLAYWRIGHT_SUPERUSER_PASSWORD: "${{ secrets.PLAYWRIGHT_SUPERUSER_PASSWORD }}"
+          PLAYWRIGHT_USER_EMAIL: "${{ secrets.PLAYWRIGHT_USER_EMAIL }}"
+          PLAYWRIGHT_USER_PASSWORD: "${{ secrets.PLAYWRIGHT_USER_PASSWORD }}"
+
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
@@ -204,13 +210,13 @@ jobs:
       - name: Uninstall
         run: helm delete integration-${{ needs.variables.outputs.commit }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
   ending-notification:
-    if: ${{ github.event_name == 'merge_group' }}
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     needs:
       - run-tests
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: '14'
       - run: npm ci

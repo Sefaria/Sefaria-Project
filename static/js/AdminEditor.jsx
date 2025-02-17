@@ -103,7 +103,7 @@ const validateMarkdownLinks = async (input) => {
             d = await Sefaria.getTopicCompletions(name, (x) => x[1]);
         }
         else {
-            d = await Sefaria.getName(name, false);
+            d = await Sefaria.getName(name);
             if (d.is_ref) {
                 continue;
             }
@@ -123,7 +123,7 @@ const validateMarkdownLinks = async (input) => {
     return true;
 }
 
-const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, savingStatus,
+const AdminEditor = ({title, data, close, catMenu, pictureUploader, secondaryPictureCropper, updateData, savingStatus,
                              validate, deleteObj, items = [], isNew = true,
                              extras = [], path = []}) => {
     const [validatingLinks, setValidatingLinks] = useState(false);
@@ -213,6 +213,8 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
                             return catMenu;
                         } else if (x === "Picture Uploader") {
                             return pictureUploader;
+                        } else if (x === "Secondary Picture Cropper") {
+                            return secondaryPictureCropper;
                         }
                         else {
                             return item({...options_for_form[x]});

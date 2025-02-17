@@ -36,6 +36,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
+from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
@@ -61,7 +62,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
-from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs
+from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -204,16 +205,27 @@ def subscribe_sefaria_newsletter_view(request, email):
 
 def subscribe_sefaria_newsletter(request, email, first_name, last_name):
     """
-    API for subscribing to mailing lists, in `lists` url param.
-    Currently active lists are:
-    "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
+    API for subscribing to mailing lists
+    * By default, the user's email address is subscribed to the default lists: "Master," "General Updates" (or the one for Hebrew), and "Educator Updates" (if the user is an educator).
+    * If the user's email address already exists, the email address to those lists is not resubscribed to those lists
+    * When you provide additional newsletter mailing lists, the email address will be subscribed to those lists, along with the default ones, if the email address does not already exist.
+    * However, if we pass the email address with any of those default newsletter lists as additional ones, Salesforce will resubscribe the email address to those lists.
     """
     body = json.loads(request.body)
     language = body.get("language", "")
     educator = body.get("educator", False)
+    mailing_lists = body.get("lists", [])
     crm_mediator = CrmMediator()
-    return crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language)
+    return crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language, mailing_lists=mailing_lists)
 
+@csrf_exempt
+def get_available_newsletter_mailing_lists(request):
+    try:
+        return jsonResponse({"newsletter_mailing_lists": CrmMediator().get_available_lists()})
+    except SalesforceNewsletterListRetrievalError as e:
+        return jsonResponse({"error": str(e)}, status=502)
+    except:
+        return jsonResponse({"error": "Unknown error occurred"}, status=500)
 
 def subscribe_steinsaltz(request, email, first_name, last_name):
     """
@@ -401,13 +413,13 @@ def title_regex_api(request, titles, json_response=True):
         return jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
 
 
-def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None, english_version=None, hebrew_version=None):
+def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None, english_version=None, hebrew_version=None):
     res = {}
     for tref in refs:
         try:
             oref = model.Ref(tref)
             lang = "he" if has_hebrew(tref) else "en"
-            if useTextFamily:
+            if use_text_family:
                 text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
                                             lang="he", version=hebrew_version,
                                             lang2="en", version2=english_version)
@@ -474,7 +486,8 @@ def bulktext_api(request, refs):
         g = lambda x: request.GET.get(x, None)
         min_char = int(g("minChar")) if g("minChar") else None
         max_char = int(g("maxChar")) if g("maxChar") else None
-        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char, g("transLangPref"), g("ven"), g("vhe"))
+        use_text_family = True if g("useTextFamily") == "1" else False
+        res = bundle_many_texts(refs, use_text_family, g("asSizedString"), min_char, max_char, g("transLangPref"), g("ven"), g("vhe"))
         resp = jsonResponse(res, cb)
         return resp
 
@@ -677,14 +690,11 @@ def rebuild_toc(request):
 @staff_member_required
 def rebuild_auto_completer(request):
     library.build_full_auto_completer()
-    library.build_ref_auto_completer()
     library.build_lexicon_auto_completers()
     library.build_cross_lexicon_auto_completer()
-    library.build_topic_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
-        server_coordinator.publish_event("library", "build_ref_auto_completer")
         server_coordinator.publish_event("library", "build_lexicon_auto_completers")
         server_coordinator.publish_event("library", "build_cross_lexicon_auto_completer")
 
@@ -1363,14 +1373,19 @@ def links_upload_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
     file = request.FILES['csv_file']
-    linktype = request.POST.get("linkType")
-    generated_by = request.POST.get("projectName") + ' csv upload'
     uid = request.user.id
+    if request.POST.get('action') == "DELETE":
+        func = remove_links_from_csv
+        args = (file, uid)
+    else:
+        linktype = request.POST.get("linkType")
+        generated_by = request.POST.get("projectName") + ' csv upload'
+        func = add_links_from_csv
+        args = (file, linktype, generated_by, uid)
     try:
-        res = add_links_from_csv(file, linktype, generated_by, uid)
+        return jsonResponse({"status": "ok", "data": func(*args)})
     except Exception as e:
         return HttpResponseBadRequest(e)
-    return jsonResponse({"status": "ok", "data": res})
 
 def get_csv_links_by_refs_api(request, tref1, tref2, by_segment=False):
     try:

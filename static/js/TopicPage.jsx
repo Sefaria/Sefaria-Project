@@ -219,7 +219,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 
 
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth,
-  openDisplaySettings, openSearch}) => {
+  openSearch}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
@@ -247,6 +247,9 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         return (
             <div className="navBlock">
               <a href={`/topics/${children ? 'category/' : ''}${slug}`}
+                 data-anl-event="navto_topic:click"
+                 data-anl-link_type={children ? "category" : "topic"}
+                 data-anl-text={en}
                  className="navBlockTitle"
                  onClick={openTopic}
                  key={i}>
@@ -272,10 +275,14 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     }
 
     return (
-        <div className="readerNavMenu noLangToggleInHebrew">
+        <div
+            className="readerNavMenu noLangToggleInHebrew"
+            data-anl-project="topics"
+            data-anl-panel_category={getPanelCategory(topic) || "Topic Landing"}
+        >
             <div className="content readerTocTopics">
                 <div className="sidebarLayout">
-                  <div className="contentInner">
+                  <div className="contentInner" data-anl-feature_name="Main">
                       <div className="navTitle tight">
                         <CategoryHeader type="topics" data={topicData}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
@@ -300,26 +307,6 @@ const TopicSponsorship = ({topic_slug}) => {
             "en": "Parashat Bereshit, or Genesis, is dedicated to the [Sefaria Pioneers](/pioneers), Sefaria's earliest champions whose immense generosity was essential to the genesis of Sefaria and the digital future of Torah.",
             "he": "פרשת בראשית מוקדשת [לחלוצי ספריא](/pioneers), מי שעודדו ותמכו בנו בראשית דרכנו ושבזכות נדיבותם הרבה עלה באפשרותנו ליצור את העתיד הדיגיטלי של התורה ושאר המקורות."
         },
-        "parashat-lech-lecha": {
-            "en": "Sponsored by The Rita J. & Stanley H. Kaplan Family Foundation in honor of Scott and Erica Belsky’s wedding anniversary.",
-            "he": "נתרם על-ידי קרן משפחת ריטה ג’. וסטנלי ה. קפלן, לכבוד יום הנישואים של סקוט ואריקה בלסקי."
-        },
-        "parashat-toldot" : {
-            "en": "Dedicated by Nancy (née Ackerman) and Alex Warshofsky in gratitude for Jewish learning as their daughter, Avigayil, is called to the Torah as a bat mitzvah, and in loving memory of Freydl Gitl who paved the way in her Jewish life.",
-            "he": "מוקדש על-ידי ננסי (שם נעורים: אקרמן) ואלכס ורשופסקי בתודה על לימודי היהדות, לציון עלייתה של בתם אביגיל לתורה לרגל בת המצווה שלה ולזכרה האהוב של פריידי גיטל שסללה את הדרך בחייה היהודיים."
-        },
-        "parashat-vayigash": {
-            "en": "Dedicated by Linda and Leib Koyfman in memory of Dr. Douglas Rosenman, z\"l, beloved father of Hilary Koyfman, and father-in-law of Mo Koyfman.",
-            "he": "נתרם על-ידי לינדה ולייב קויפמן לזכר ד\"ר דאגלס רוזנמן ז\"ל, אביה האהוב של הילארי קויפמן וחותנו של מו קויפמן"
-        },
-        "parashat-achrei-mot": {
-            "en": "Dedicated by Kevin Waldman in loving memory of his grandparents, Rose and Morris Waldman, who helped nurture his commitment to Jewish life.",
-            "he": "מוקדש על-ידי קווין ולדמן לזכרם האהוב של סביו, רוז ומוריס ולדמן, שעזרו לטפח את מחויבותו לחיים יהודיים."
-        },
-        "parashat-vaetchanan": {
-            "en": "Shabbat Nachamu learning is dedicated in memory of Jerome L. Stern, Yehuda Leib ben David Shmuel, z\"l.",
-            "he": "הלימוד לשבת נחמו מוקדש לזכרו של ג'רום ל. שטרן, יהודה לייב בן דוד שמואל ז\"ל."
-        },
         "parashat-vzot-haberachah": {
             "en": "Parashat VeZot HaBerakhah is dedicated to the victims of the October 7th, 2023, terrorist attack in Israel.",
             "he": "פרשת ״וזאת הברכה״ מוקדשת לקורבנות מתקפת הטרור והטבח הנורא שאירע ב-7 באוקטובר 2023."
@@ -337,6 +324,8 @@ const TopicSponsorship = ({topic_slug}) => {
 }
 
 const isLinkPublished = (lang, link) => link.descriptions?.[lang]?.published !== false;
+const isLinkReviewed= (lang, link) => link.descriptions?.[lang]?.review_state !== "not reviewed";
+
 
 const doesLinkHaveAiContent = (lang, link) => link.descriptions?.[lang]?.ai_title?.length > 0 && isLinkPublished(lang, link);
 
@@ -355,7 +344,7 @@ const getLinksToGenerate = (refTopicLinks = []) => {
 const getLinksToPublish = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
     return refTopicLinks.filter(link => {
-        return !isLinkPublished(lang, link);
+        return !isLinkPublished(lang, link) && isLinkReviewed(lang, link);
     });
 };
 
@@ -405,7 +394,7 @@ const getTopicHeaderAdminActionButtons = (topicSlug, refTopicLinks) => {
     return actionButtons;
 };
 
-const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
+const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const category = !!topicData ? Sefaria.displayTopicTocCategory(topicData.slug) : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
@@ -470,10 +459,10 @@ const AuthorIndexItem = ({
     return (
         <div className="authorIndex">
             <a href={url} className="navBlockTitle">
-                <ContentText text={title} defaultToInterfaceOnBilingual/>
+                <InterfaceText text={title} defaultToInterfaceOnBilingual/>
             </a>
             <div className="navBlockDescription">
-        <ContentText text={description} defaultToInterfaceOnBilingual />
+        <InterfaceText text={description} defaultToInterfaceOnBilingual />
       </div>
     </div>
   );
@@ -546,17 +535,21 @@ const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
     )
 };
 
+const getPanelCategory = (slug) => {
+    return Sefaria.topicTocCategories(slug)?.map(({slug}) => slug)?.join('|');
+}
+
 const getTopicPageAnalyticsData = (slug, langPref) => {
     return {
         project: "topics",
         content_lang: langPref || "bilingual",
-        panel_category: Sefaria.topicTocCategories(slug)?.map(({slug}) => slug)?.join('|'),
+        panel_category: getPanelCategory(slug),
     };
 };
 
 const TopicPage = ({
-  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome,
-  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref,
+  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, navHome,
+  toggleSignUpModal, setTab, openSearch, translationLanguagePreference, versionPref,
   topicTestVersion, onSetTopicSort, topicSort
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
@@ -602,7 +595,7 @@ const TopicPage = ({
 
     useEffect( ()=> {
     // hack to redirect to temporary sheet content on topics page for those topics that only have sheet content.
-if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0 && topicData.subclass != "author"){
+    if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0 && topicData.subclass != "author"){
         const interfaceIsHe = Sefaria.interfaceLang === "hebrew";
         const interfaceLang = interfaceIsHe ? 'he' : 'en';
         const coInterfaceLang = interfaceIsHe ? 'en' : 'he';
@@ -737,7 +730,7 @@ if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs)
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
-                    <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} topicImage={topicImage} />
+                    <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} topicImage={topicImage} />
                     {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
                           currTabName={tab}
@@ -807,9 +800,7 @@ TopicPage.propTypes = {
   openTopics:          PropTypes.func.isRequired,
   setTab:              PropTypes.func.isRequired,
   multiPanel:          PropTypes.bool,
-  showBaseText:        PropTypes.func,
   navHome:             PropTypes.func,
-  openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,
   topicTestVersion:    PropTypes.string
 };
@@ -965,8 +956,8 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
 
   return (
     <div className={"topicSideColumn"}>
-      { readingsComponent }
       { topicMetaData }
+      { readingsComponent }
       { linksComponent }
       <LinkToSheetsSearchComponent/>
     </div>
