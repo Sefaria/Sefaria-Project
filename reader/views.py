@@ -57,7 +57,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError, ComplexBookLevelRefError
-from sefaria.system.cache import django_cache
+from sefaria.system.cache import django_cache, get_shared_cache_elem
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -114,18 +114,18 @@ def render_template(request, template_name='base.html', app_props=None, template
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
-        html = render_react_component("ReaderApp", propsJSON, skip_node=hasattr(request, "regenerating"))
+        html = render_react_component("ReaderApp", propsJSON)
         template_context["html"] = html
     return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
 
 
-def render_react_component(component, props, skip_node=False):
+def render_react_component(component, props):
     """
     Asks the Node Server to render `component` with `props`.
     `props` may either be JSON (to save reencoding) or a dictionary.
     Returns HTML.
     """
-    if not USE_NODE or skip_node:
+    if not USE_NODE or get_shared_cache_elem("regenerating"):
         return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
     propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
