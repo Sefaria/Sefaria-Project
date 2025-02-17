@@ -307,26 +307,6 @@ const TopicSponsorship = ({topic_slug}) => {
             "en": "Parashat Bereshit, or Genesis, is dedicated to the [Sefaria Pioneers](/pioneers), Sefaria's earliest champions whose immense generosity was essential to the genesis of Sefaria and the digital future of Torah.",
             "he": "פרשת בראשית מוקדשת [לחלוצי ספריא](/pioneers), מי שעודדו ותמכו בנו בראשית דרכנו ושבזכות נדיבותם הרבה עלה באפשרותנו ליצור את העתיד הדיגיטלי של התורה ושאר המקורות."
         },
-        "parashat-lech-lecha": {
-            "en": "Sponsored by The Rita J. & Stanley H. Kaplan Family Foundation in honor of Scott and Erica Belsky’s wedding anniversary.",
-            "he": "נתרם על-ידי קרן משפחת ריטה ג’. וסטנלי ה. קפלן, לכבוד יום הנישואים של סקוט ואריקה בלסקי."
-        },
-        "parashat-toldot" : {
-            "en": "Dedicated by Nancy (née Ackerman) and Alex Warshofsky in gratitude for Jewish learning as their daughter, Avigayil, is called to the Torah as a bat mitzvah, and in loving memory of Freydl Gitl who paved the way in her Jewish life.",
-            "he": "מוקדש על-ידי ננסי (שם נעורים: אקרמן) ואלכס ורשופסקי בתודה על לימודי היהדות, לציון עלייתה של בתם אביגיל לתורה לרגל בת המצווה שלה ולזכרה האהוב של פריידי גיטל שסללה את הדרך בחייה היהודיים."
-        },
-        "parashat-vayigash": {
-            "en": "Dedicated by Linda and Leib Koyfman in memory of Dr. Douglas Rosenman, z\"l, beloved father of Hilary Koyfman, and father-in-law of Mo Koyfman.",
-            "he": "נתרם על-ידי לינדה ולייב קויפמן לזכר ד\"ר דאגלס רוזנמן ז\"ל, אביה האהוב של הילארי קויפמן וחותנו של מו קויפמן"
-        },
-        "parashat-achrei-mot": {
-            "en": "Dedicated by Kevin Waldman in loving memory of his grandparents, Rose and Morris Waldman, who helped nurture his commitment to Jewish life.",
-            "he": "מוקדש על-ידי קווין ולדמן לזכרם האהוב של סביו, רוז ומוריס ולדמן, שעזרו לטפח את מחויבותו לחיים יהודיים."
-        },
-        "parashat-vaetchanan": {
-            "en": "Shabbat Nachamu learning is dedicated in memory of Jerome L. Stern, Yehuda Leib ben David Shmuel, z\"l.",
-            "he": "הלימוד לשבת נחמו מוקדש לזכרו של ג'רום ל. שטרן, יהודה לייב בן דוד שמואל ז\"ל."
-        },
         "parashat-vzot-haberachah": {
             "en": "Parashat VeZot HaBerakhah is dedicated to the victims of the October 7th, 2023, terrorist attack in Israel.",
             "he": "פרשת ״וזאת הברכה״ מוקדשת לקורבנות מתקפת הטרור והטבח הנורא שאירע ב-7 באוקטובר 2023."
@@ -976,8 +956,8 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
 
   return (
     <div className={"topicSideColumn"}>
-      { readingsComponent }
       { topicMetaData }
+      { readingsComponent }
       { linksComponent }
       <LinkToSheetsSearchComponent/>
     </div>
