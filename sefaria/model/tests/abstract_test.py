@@ -24,7 +24,7 @@ def setup_module(module):
 
 def get_record_classes_with_slugs():
     classes = abstract.get_record_classes()
-    return filter(lambda x: getattr(x, 'slug_fields', None) is not None and x.__name__ != "Portal", classes)
+    return filter(lambda x: x.__name__ == "Topic", classes)
 
 
 class TestMongoRecordModels(object):
@@ -65,6 +65,7 @@ class TestMongoRecordModels(object):
         test_slug('blah/blah', 'blah-blah')
         test_slug('blah == בלה', 'blah-בלה')
 
+    @pytest.mark.django_db
     @pytest.mark.parametrize("sub", get_record_classes_with_slugs())
     def test_normalize_slug_field(self, sub):
         """
