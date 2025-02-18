@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from functools import partial
-from django.conf.urls import include, url
-from django.conf.urls import handler404, handler500
+from django.urls import re_path, include
+from django.conf.urls import url, handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
@@ -442,7 +442,7 @@ urlpatterns += [
     url(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
     url(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     url(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
-    url(fr'^{ADMIN_PATH}/?', include(admin.site.urls)),
+    re_path(f'^{ADMIN_PATH}/?', admin.site.urls),
 ]
 
 # Stats API - return CSV
