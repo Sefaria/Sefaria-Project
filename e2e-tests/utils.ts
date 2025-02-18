@@ -29,22 +29,33 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
         await context.clearCookies()
     }   
     const page: Page = await context.newPage();
-    await page.goto('');
-    await changeLanguage(page, language);
-    langCookies = await context.cookies();
-    await context.addCookies(langCookies);
-    
-    // this is a hack to get the cookie to work
-    const newPage: Page = await context.newPage();
-    await newPage.goto(url);
-    await hideModals(newPage);
-    return newPage;
-}
+    await page.goto(url);
 
+    // Only change language if the IP address doesn't match the specified language.
+    const inIsrael = await isIsraelIp(page)
+    if( ( inIsrael && language == LANGUAGES.EN) || 
+        ( !inIsrael && language == LANGUAGES.HE)){
+        await changeLanguage(page, language);
+    }
+
+    langCookies = await context.cookies();
+
+    await context.addCookies(langCookies);
+    await page.reload()
+    return page
+
+}
 
 export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANGUAGE) => {
     await page.goto('/login');
-    await changeLanguage(page, language);
+
+    // Only change language if we need to
+    const inIsrael = await isIsraelIp(page)
+    if( ( inIsrael && language == LANGUAGES.EN) || 
+        ( !inIsrael && language == LANGUAGES.HE)){
+        await changeLanguage(page, language);
+    }
+
     await page.getByPlaceholder('Email Address').fill(user.email);
     await page.getByPlaceholder('Password').fill(user.password);
     await page.getByRole('button', { name: 'Login' }).click();
