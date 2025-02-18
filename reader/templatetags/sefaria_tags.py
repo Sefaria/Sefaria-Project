@@ -32,10 +32,6 @@ from sefaria.model.text import library, AbstractIndex
 
 register = template.Library()
 
-current_site = Site.objects.get_current()
-domain       = current_site.domain
-
-
 ref_link_cache = {} # simple cache for ref links
 @register.filter(is_safe=True)
 @stringfilter
@@ -305,6 +301,7 @@ def absolute_link(value):
 	Takes a string with a single <a> tag a replaces the href with absolute URL.
 	<a href='/Job.3.4'>Job 3:4</a> --> <a href='http://www.sefaria.org/Job.3.4'>Job 3:4</a>
 	"""
+	domain = Site.objects.get_current().domain
 	# run twice to account for either single or double quotes
 	absolute = value.replace("href='/", "href='https://%s/" % domain)
 	absolute = absolute.replace('href="/', 'href="https://%s/' % domain)
@@ -316,6 +313,7 @@ def absolute_url(value):
 	"""
 	Takes a string with path starting with "/" and returls url with domain and protocol.
 	"""
+	domain = Site.objects.get_current().domain
 	# run twice to account for either single or double quotes
 	absolute = "https://%s%s" % (domain, value)
 	return mark_safe(absolute)
