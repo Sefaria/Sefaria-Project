@@ -557,9 +557,30 @@ class SchemaNode extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // Collapse nodes below top level, and those that aren't default or makred includedSections
-      collapsed: "nodes" in props.schema && !(props.topLevel || props.disableSubCollapse) ? props.schema.nodes.map(node => !(node.default || node.includeSections)) : []
+      collapsed: this.getCollapsedState(this.props.schema, this.props.topLevel, this.props.disableSubCollapse)
     };
+  }
+  componentDidUpdate(prevProps) {
+    if (this.props.currentlyVisibleRef !== prevProps.currentlyVisibleRef) {
+      this.setState({collapsed: this.getCollapsedState(this.props.schema, this.props.topLevel, this.props.disableSubCollapse)});
+    }
+  }
+  shouldNodeCollapse(node) {
+    // Determine 'collapsed' state for node.
+    // A node should be collapsed if it is not the currently visible node and if it is not a default node.
+    const fullNodeRef = this.props.refPath + (node.default ? "" : ", " + node.title);
+    const currentlyVisible = Sefaria.refContains(fullNodeRef, this.props.currentlyVisibleRef);
+    return !currentlyVisible && !node.default && !node.includeSections;
+  }
+  getCollapsedState(schema, topLevel, disableSubCollapse) {
+    // Determine 'collapsed' state for each node in schema.
+    // If no children or topLevel, return [] which is equivalent to no nodes collapsed.
+    // Otherwise, return array of booleans based on call to `shouldNodeCollapse` for each node.
+    if ("nodes" in schema && !topLevel && !disableSubCollapse) {
+      return schema.nodes.map(this.shouldNodeCollapse);
+    } else {
+      return [];
+    }
   }
   toggleCollapse(i) {
     if(this.props.disableSubCollapse) return;
@@ -598,7 +619,7 @@ class SchemaNode extends Component {
     } else { //we do have subcontent
       let content = this.props.schema.nodes.map(function(node, i) {
         let path;
-        if (node.nodeType == "ArrayMapNode") {
+        if (node.nodeType === "ArrayMapNode") {
           //ArrayMapNode content
           path = this.props.refPath + ", " + node.title;
           return <ArrayMapNode schema={node} currentlyVisibleRef={this.props.currentlyVisibleRef}  currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={path}/>;
@@ -700,8 +721,8 @@ class JaggedArrayNode extends Component {
   render() {
     const offset = this.props.schema?.index_offsets_by_depth?.['1'] || 0;
     if ("toc_zoom" in this.props.schema) {
-      let zoom = this.props.schema.toc_zoom - 1;
-      const zoomedOutRef = this.props.currentlyVisibleSectionRef && Sefaria.zoomOutRef(this.props.currentlyVisibleSectionRef);
+      const zoom = this.props.schema.toc_zoom - 1;
+      const zoomedOutRef = this.props.currentlyVisibleSectionRef && Sefaria.zoomOutRef(this.props.currentlyVisibleSectionRef, zoom);
       return (<JaggedArrayNodeSection
                 depth={this.props.schema.depth - zoom}
                 sectionNames={this.props.schema.sectionNames.slice(0, -zoom)}

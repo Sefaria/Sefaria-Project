@@ -293,6 +293,8 @@ Sefaria = extend(Sefaria, {
 
   },
   zoomOutRef: function(ref, zoom=1) {
+    // go up `zoom` levels in the ref
+    // for example, if ref == "Genesis 2:3" and zoom == 2, this returns "Genesis"
     const humanRefForm = Sefaria.humanRef(ref);
     return humanRefForm.split(":").slice(0, -zoom).join(":");
   },
