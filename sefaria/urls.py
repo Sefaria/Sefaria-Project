@@ -105,6 +105,8 @@ urlpatterns += [
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/b/(?P<topic>.+)$', reader_views.topic_page_b),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
+    url(r'^sheets/topics/(?P<topic>.+)$', reader_views.topic_page),
+    url(r'^sheets/topics/?$', reader_views.topics_page),
     url(r'^_api/topics/images/secondary/(?P<slug>.+)$', reader_views.topic_upload_photo, {"secondary": True}),
     url(r'^_api/topics/images/(?P<slug>.+)$', reader_views.topic_upload_photo)
 

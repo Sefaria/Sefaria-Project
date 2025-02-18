@@ -54,10 +54,8 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
     <SidebarModules type={"AboutTopics"} props={{hideTitle: true}} />;
 
   const sidebarModules = [
-    multiPanel ? {type: "AboutTopics"} : {type: null},
     {type: "TrendingTopics"},
-    {type: "GetTheApp"},
-    {type: "SupportSefaria"},
+    {type: "JoinTheDiscussion"},
   ];
 
 
