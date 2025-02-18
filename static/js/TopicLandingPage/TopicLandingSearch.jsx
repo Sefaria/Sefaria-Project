@@ -105,7 +105,7 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
         }
     };
     const numOfTopicsString = numOfTopics.toLocaleString()
-    const placeHolder = Sefaria._v({"he": `תתחילו להתעניין! ${numOfTopicsString} נושאים מ-א׳ עד ת׳`, "en": `Find ${numOfTopicsString} Topics A-Z`})
+    const placeHolder = Sefaria._v({"he": "חפשו לפי נושא מא׳ עד ת׳", "en": `Find ${numOfTopicsString} Topics A-Z`})
     return (
         <div className="topic-landing-search-input-box-wrapper">
         <SearchButton/>
