@@ -10,7 +10,7 @@ export const FeaturedTopic = () => {
     }, []);
 
     if (!topic) { return null; }
-    const topicNavPrompt = "Go to topic ›"
+    const topicNavPrompt = "Go to Topic ›"
 
     return (
         <div className="featuredTopic" data-anl-feature_name="Featured Topic">

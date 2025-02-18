@@ -74,8 +74,8 @@ export const TopicLandingSeasonal = () => {
 
   const formattedDateEn = secondaryTopicSlug  && enDateFormat.formatRange(displayStartDate, displayEndDate);
   const formattedDateHe = secondaryTopicSlug && heDateFormat.formatRange(displayStartDate, displayEndDate);
-  const learnMorePrompt = {en: `Learn More on ${title?.en} ›`,
-      he:`${Sefaria._("Learn More on")} ${title?.he} ›`}
+  const learnMorePrompt = {en: `Learn more about ${title?.en} ›`,
+      he:`${Sefaria._("Learn more about")} ${title?.he} ›`}
 
 
     return (
