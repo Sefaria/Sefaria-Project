@@ -1698,6 +1698,14 @@ div.interfaceLinks-row a {
     flex-direction: column;
   }
 }
+@media (max-width: 920px) {
+  .topicLandingPanel .sidebarLayout {
+    flex-direction: column;
+  }
+  .topicLandingPanel .navSidebar {
+    margin-top: -40px;
+  }
+}
 @media (min-width: 1485px) {
   .sidebarLayout {
     max-width: 1485px; /*assuming inner is 665 and sidebar 420*/
