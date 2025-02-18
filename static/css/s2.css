@@ -2531,7 +2531,7 @@ div.interfaceLinks-row a {
     padding-left: 0;
     padding-right: 0;
 }
-@media (max-width: 600px) {
+@media (max-width: 540px) {
   .imageWithCaptionPhoto{
     height: auto;
     max-width: 66.67vw;
