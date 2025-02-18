@@ -2121,7 +2121,7 @@ a {
 									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
 									</td><td>
 									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
-								{% else %}
+								{% elif sheet.options.layout == "heRight" %}
 									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
 									</td><td>
 									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
@@ -2156,7 +2156,7 @@ a {
 										<div class="he">{{ source.outsideBiText.he }}</div>
 										</td><td>
 										<div class="en">{{ source.outsideBiText.en }}</div>
-									{% else %}
+									{% elif sheet.options.layout == "heRight" %}
 										<div class="en">{{ source.outsideBiText.en }}</div>
 										</td><td>
 										<div class="he">{{ source.outsideBiText.he }}</div>

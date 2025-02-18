@@ -934,6 +934,14 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
   </div>
   )
 }
+SheetToolsList.propTypes = {
+  toggleSignUpModal: PropTypes.func.isRequired,
+  masterPanelSheetId: PropTypes.string.isRequired,
+  setConnectionsMode: PropTypes.func.isRequired,
+  masterPanelLanguage: PropTypes.string.isRequired,
+  masterPanelLayout: PropTypes.string.isRequired
+};
+
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {

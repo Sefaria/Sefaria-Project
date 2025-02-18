@@ -170,7 +170,6 @@ def make_sheet_class_string(sheet):
     """
     Returns a string of class names corresponding to the options of sheet.
     """
-
     o = sheet["options"]
     classes = []
     classes.append(o.get("language", "bilingual"))
