@@ -2548,17 +2548,24 @@ _media: {},
     return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
   },
   areVersionsEqual(savedVersion, currVersion) {
-    const checkEquality = (key) => {
-      const versions = [savedVersion, currVersion].map(version => version?.[key]);
-      const versionTitles = versions.map(version => {
+    const checkEquality = (lang, prop) => {
+      const propValues = [savedVersion, currVersion].map(version => {
+        version = version?.[lang];
         // We don't know what format the data is in so consider both old and new format.
         // New format is an object with two props: 'versionTitle' and 'languageFamilyName', while old format is a string.
-        const versionTitle = typeof version === 'string' ? version : version?.versionTitle;
-        return versionTitle ?? "";
+        const propValue = typeof version === 'string' ? version : version?.[prop];
+        return propValue ?? "";
       });
-      return versionTitles[0] === versionTitles[1];
+      return propValues[0] === propValues[1];
     }
-    return checkEquality("en") && checkEquality("he");
+    for (const prop of ["versionTitle", "languageFamilyName"]) {
+      for (const lang of ["he", "en"]) {
+        if (!checkEquality(lang, prop)) {
+          return false;
+        }
+      }
+    }
+    return true;
   },
   getSavedItem: ({ ref, versions }) => {
     return Sefaria.saved.items.find(s => s.ref === ref && Sefaria.areVersionsEqual(s.versions, versions));
