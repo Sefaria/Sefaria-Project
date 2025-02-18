@@ -115,7 +115,7 @@ const Strings = {
     // Topic Landing Page
     "Featured Topic": "נושא לדוגמא",
     "Go to topic ›": "לפתיחת הנושא ›",
-    "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "אל תפספסו את החדשות המרעישות! הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
+    "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
     "Learn more about": "למדו עוד על",
     "Read the Portion": "לקריאת הפרשה",
     "On the Jewish Calendar": "מועדים קרובים בלוח השנה העברי",
@@ -127,6 +127,7 @@ const Strings = {
     "First Name": "שם פרטי",
     "Last Name": "שם משפחה",
     "Explore": "למדו עוד על",
+    "Explore all topics ›": "לדפדוף בכל הנושאים ›",
 
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
