@@ -14,7 +14,6 @@ from sefaria.model import *
 def setup_module(module):
     library.get_toc_tree()
     library.build_full_auto_completer()
-    library.build_ref_auto_completer()
     library.build_lexicon_auto_completers()
     library.build_cross_lexicon_auto_completer()
 
