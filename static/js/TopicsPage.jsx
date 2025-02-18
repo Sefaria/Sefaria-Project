@@ -55,7 +55,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
 
   const sidebarModules = [
     {type: "TrendingTopics"},
-    {type: "JoinTheDiscussion"},
+    {type: "JoinTheConversation"},
   ];
 
 

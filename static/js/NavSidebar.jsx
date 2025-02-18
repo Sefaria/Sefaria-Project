@@ -45,6 +45,7 @@ const SidebarModules = ({type, props}) => {
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
     "JoinTheCommunity":       JoinTheCommunity,
+    "JoinTheConversation":    JoinTheConversation,
     "GetTheApp":              GetTheApp,
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
@@ -756,6 +757,20 @@ const JoinTheCommunity = ({wide}) => {
   );
 };
 
+const JoinTheConversation = ({wide}) => {
+  return (
+    <SidebarModule wide={wide}>
+      <div>
+        <SidebarModuleTitle>Join the Conversation</SidebarModuleTitle>
+        <InterfaceText>Mix and match sources from our library, along with outside sources, comments, images and videos.</InterfaceText>
+      </div>
+      <div>
+        <CreateSheetsButton/>
+      </div>
+    </SidebarModule>
+  );
+};
+
 
 const GetTheApp = () => (
   <SidebarModule>
@@ -805,7 +820,6 @@ const GetStartedButton = () => {
     return <Button className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
 }
 const CreateSheetsButton = () => {
-  // #sheetsButton
   return <Button icon={"/static/icons/new-sheet-black.svg"} className="small" onClick={() => window.location.href="/sheets/new"}>Create</Button>
 }
 const CreateASheet = () => (
