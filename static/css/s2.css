@@ -1041,6 +1041,7 @@ div.interfaceLinks-row a {
   border: none;
   background: transparent;
   display: block;
+  top: -20%;
 }
 .dialogModal::backdrop {
   background-color: rgba(1, 1, 1, 0.7);
@@ -10904,6 +10905,8 @@ span.purim-emoji img{
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
+  border: none;
+  background-color: white;
 }
 .SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
   margin-block-start: -10px;
@@ -10949,6 +10952,7 @@ span.purim-emoji img{
     flex-direction: column;
   }
 }
+
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
