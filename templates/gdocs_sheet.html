@@ -2107,17 +2107,17 @@ a {
 					<li class="source sheetItem {{ source.options.indented }}">
 						<div class="customTitle">{{ source.title }}</div>
 
-						{% if source.options.sourceLanguage == "hebrew" %}
+						{% if sheet.options.language == "hebrew" %}
 							{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
-						{% elif source.options.sourceLanguage == "english" %}
+						{% elif sheet.options.language == "english" %}
 							{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
 						{% else %}
-							{% if source.options.sourceLayout == "stacked" %}
+							{% if sheet.options.layout == "stacked" %}
 								{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
 								{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
 							{% else %}
 								<table border="0"><tr><td>
-								{% if source.options.sourceLangLayout == "heLeft" %}
+								{% if sheet.options.layout == "heLeft" %}
 									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
 									</td><td>
 									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
@@ -2147,7 +2147,7 @@ a {
 									<div class="en">{{ source.outsideBiText.en }}</div>
 								{% else %}
 									<table border="0"><tr><td>
-									{% if sheet.options.langLayout == "heLeft" %}
+									{% if sheet.options.layout == "heLeft" %}
 										<div class="he">{{ source.outsideBiText.he }}</div>
 										</td><td>
 										<div class="en">{{ source.outsideBiText.en }}</div>

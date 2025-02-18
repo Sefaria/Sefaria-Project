@@ -1041,6 +1041,7 @@ div.interfaceLinks-row a {
   border: none;
   background: transparent;
   display: block;
+  top: -20%;
 }
 .dialogModal::backdrop {
   background-color: rgba(1, 1, 1, 0.7);
@@ -9091,7 +9092,7 @@ a.sheetAuthorName:hover {
   display: flex;
   justify-content: space-between;
 }
-.sheetMetaDataBox .sidebarLayout .items > * {
+.sheetMetaDataBox .sidebarLayout .items > :not(dialog)  {
   margin-inline-start: 15px;
 }
 .sheetMetaDataBox .texts-properties-menu {
@@ -10917,6 +10918,7 @@ span.purim-emoji img{
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
+  border: none;
   background-color: white;
 }
 .SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
@@ -10963,6 +10965,7 @@ span.purim-emoji img{
     flex-direction: column;
   }
 }
+
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
@@ -11743,6 +11746,11 @@ cursor: pointer;
 .bilingual.heLeft .sheetContent .sheetItem .SheetSource.segment,
 .bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
   margin-bottom: 0;
+  display: flex;
+}
+
+.bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
+  flex-direction: row-reverse;
 }
 
 .boxedSheetItem + .spacer {

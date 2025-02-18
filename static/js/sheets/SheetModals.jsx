@@ -2,11 +2,13 @@ import Modal from "../common/modal";
 import { ShareBox } from "../ConnectionsPanel";
 import { CollectionsWidget } from "../CollectionsWidget";
 import { AddToSourceSheetBox } from "../AddToSourceSheet";
-import React, { useEffect, useState } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
 import { InterfaceText } from "../Misc";
 import Button from "../common/Button";
 import ReactTags from "react-tag-autocomplete";
+import {layoutOptions} from "../constants";
+import {ReaderPanelContext} from "../context";
 
 const ShareModal = ({sheetID, close}) => {
   return <Modal close={close}>
@@ -89,8 +91,8 @@ const CopyModal = ({close, sheetID}) => {
           </>;
   }
   const handleClose = () => {
-    if (copyText.en !== copyState.copying) { // don't allow user to close modal while copying is taking place
-      setLoaded(false);
+    if (copyText.en !== copyState.copying.en) { // don't allow user to close modal while copying is taking place
+      setLoaded(false);  // allow for another copy attempt
       close();
     }
   }
@@ -111,15 +113,25 @@ const SaveModal = ({historyObject, close}) => {
   const savingMessage = "Saving...";
   const [message, setMessage] = useState(savingMessage);
   const savedMessage = isSaved ? "Sheet no longer saved." : "Saved sheet.";
+
+  const currentlySaving = () => message === savingMessage;
+
+  const handleClose = () => {
+    if (!currentlySaving())
+    {
+      close();
+    }
+  }
+
   useEffect(() => {
-    if (message === savingMessage) {
+    if (currentlySaving()) {
       Sefaria.toggleSavedItem(historyObject)
           .finally(() => {
             setMessage(savedMessage);
           });
     }
   });
-  return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={close}/>;
+  return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={handleClose}/>;
 }
 
 const GoogleDocExportModal = ({ sheetID, close }) => {
@@ -127,13 +139,16 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
     exportComplete: {en: "Success!", he: "ייצוא הסתיים"}
   }
+  const {language, layout} = useContext(ReaderPanelContext);
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
+
+  const currentlyExporting = () => googleDriveText.en === googleDriveState.exporting.en;
   const exportToDrive = async () => {
-    if (googleDriveText.en === googleDriveState.exporting.en) {
+    if (currentlyExporting()) {
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       try {
-        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive`, null, {}, "POST", false);
+        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?language=${language}&layout=${layout}`, null, {}, "POST", false);
         if (response.status === 401) {
           // couldn't authenticate, so forward to google authentication
           window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
@@ -157,7 +172,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     exportToDrive();
   }, [googleDriveText]);
   const getExportMessage = () => {
-    if (googleDriveText.en === googleDriveState.exporting.en) {
+    if (currentlyExporting()) {
       return <InterfaceText text={googleDriveText}/>;
     } else {
       return <>
