@@ -126,7 +126,7 @@ const ShareButton = () => {
 const DeleteButton = () => {
     return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"}
               textEn={'Delete Sheet'}
-              textHe={''}
+              textHe={"מחיקה דף מקורות"}
               descEn={""}
               descHe={""}/>
 }
