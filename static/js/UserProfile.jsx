@@ -267,7 +267,6 @@ class UserProfile extends Component {
               <div>
                 <ProfileSummary
                   profile={this.props.profile}
-                  follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
                   toggleSignUpModal={this.props.toggleSignUpModal}
@@ -526,9 +525,6 @@ const UserBackground = ({profile: p, showBio, multiPanel}) => {
     // if 'showBio', render p.bio; this property corresponds to "About me" in the profile edit view
     const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
     let infoList = [];
-    if (showBio && p.bio) {
-        infoList.push(p.bio);
-    }
     if (p.location) {
         infoList.push(p.location);
     }
@@ -547,6 +543,7 @@ const UserBackground = ({profile: p, showBio, multiPanel}) => {
       </span>
         );
     }
+    const aboutMe = <div className="title sub-title" dangerouslySetInnerHTML={{ __html: p.bio }}/>;
     const subTitle = <div className="title sub-title">
         <span>{p.position}</span>
         {p.position && p.organization ? <span>{Sefaria._(" at ")}</span> : null}
@@ -563,7 +560,8 @@ const UserBackground = ({profile: p, showBio, multiPanel}) => {
                                         }
                                     </div>;
 
-    return <>{(p.position || p.organization) && subTitle}
+    return <>{showBio && aboutMe}
+             {(p.position || p.organization) && subTitle}
              {infoList.length > 0 && multiPanel && infoListComponent}
            </>;
 }
@@ -657,4 +655,5 @@ ProfileSummary.propTypes = {
     toggleSignUpModal: PropTypes.func.isRequired,
 };
 
-export {UserProfile, UserBackground};
+export { UserProfile, UserBackground };
+

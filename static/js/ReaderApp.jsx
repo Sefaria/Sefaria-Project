@@ -119,7 +119,7 @@ class ReaderApp extends Component {
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
-      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections", "Sheet", "SheetAndConnection", "Menu"
+      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections", "Sheet", "Menu"
       refs:                    state.refs                    || [], // array of ref strings
       filter:                  state.filter                  || [],
       versionFilter:           state.versionFilter           || [],
@@ -391,6 +391,7 @@ class ReaderApp extends Component {
           (!prevSearchState.isEqual({ other: nextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.navigationTopicCategory !== next.navigationTopicCategory) ||
+          (prev.highlightedNode !== next.highlightedNode) || // necessary for Sheets because the Resources Panel was removed. `currentlyVisibleRef` gets set on Resources Panel
           (prev.settings.aliyotTorah != next.settings.aliyotTorah) ||
            prev.navigationTopic != next.navigationTopic) {
         return true;
@@ -654,20 +655,7 @@ class ReaderApp extends Component {
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         hist.url = i == 0 ? "sheets/" + sheetURLSlug : "sheet&s=" + sheetURLSlug;
-        hist.mode     = "Sheet"
-
-      } else if (state.mode === "SheetAndConnections") {
-        const filter    = state.filter.length ? state.filter :
-                          (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
-        hist.sources  = filter.join("+");
-        if (["Translation Open", "Version Open"].includes(state.connectionsMode) && state.versionFilter.length) {
-          hist.versionFilter = state.versionFilter[0];
-        }
-        const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
-        const title = sheet ? sheet.title.stripHtml() : "";
-        hist.title  = title + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
-        hist.url    = i == 0 ? "sheets/" + state.sheetID : "sheet&s=" + state.sheetID + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
-        hist.mode   = "SheetAndConnections";
+        hist.mode     = "Sheet";
       }
 
       if (!state.settings) { debugger; }
@@ -695,7 +683,7 @@ class ReaderApp extends Component {
 
     var url   = "/" + (histories.length ? histories[0].url : "");
     url += Sefaria.util.getUrlVersionsParams(histories[0].currVersions, 0);
-    if (histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections") {
+    if (histories[0].mode === "TextAndConnections") {
         url += "&with=" + histories[0].sources;
     }
     if(histories[0].lang) {
@@ -705,7 +693,7 @@ class ReaderApp extends Component {
         url += "&aliyot=" + histories[0].aliyot;
     }
     hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
-    let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections";
+    let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections";
     for (var i = 1; i < histories.length || (isMobileConnectionsOpen && i===1); i++) {
       let isMultiPanelConnectionsOpen = ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
         (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections"));
@@ -935,24 +923,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
-  handleSegmentClick(n, ref, sheetNode) {
+  handleSegmentClick(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
     const refs = typeof ref == "string" ? [ref] : ref;
-
-    if (sheetNode) {
-      this.setSheetHighlight(n, sheetNode);
-    }
-    else {
-      this.setTextListHighlight(n, refs);
-    }
-
-    const nodeRef = sheetNode ? this.state.panels[n].sheetID + "." + sheetNode : null;
-
+    this.setTextListHighlight(n, refs);
     if (this.currentlyConnecting()) { return }
-
-    this.openTextListAt(n+1, refs, nodeRef);
-
+    this.openTextListAt(n+1, refs);
     if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed && window.getSelection().anchorNode.nodeType !== 3) {
       //Focus on the first focusable element of the newly loaded panel if text not selected and not actively typing
       // in editor. Exists for a11y
@@ -1621,13 +1598,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.openTextListAt(n+1, refs);
     }
   }
-  setSheetHighlight(n, node) {
-    // Set the sheetListHighlight for panel `n` to `node`
-    node = typeof node === "string" ? [node] : node;
-    this.state.panels[n].highlightedNode = node;
-    this.state.panels[n].scrollToHighlighted = false;
-    this.setState({panels: this.state.panels});
-    }
   setDivineNameReplacement(mode) {
     this.setState({divineNameReplacement: mode})
   }
@@ -1838,7 +1808,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
     let ref, sheet_owner, sheet_title;
-    if (panel.mode === 'Sheet' || panel.mode === "SheetAndConnections") {
+    if (panel.mode === 'Sheet') {
       const sheet = Sefaria.sheets.loadSheetByID(panel.sheetID);
       if (!sheet) { return null; }
       ref = `Sheet ${sheet.id}${panel.highlightedNode ? `:${panel.highlightedNode}`: ''}`;
@@ -1894,7 +1864,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     return false;
   }
   getDisplayString(mode) {
-    const learningStatus = ["book toc", "Text", "TextAndConnections", "SheetAndConnections"];
+    const learningStatus = ["book toc", "Text", "TextAndConnections"];
     const topicStatus = ["topicCat", "topic"]
     if(mode.includes("sheet")) {
       return "learning the Sheet"
@@ -1909,7 +1879,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   generateCurrentlyReading() {
     const currentHistoryState = this.makeHistoryState();
-    const inBeitMidrash = ["navigation", "book toc", "topics", "topic", "topicCat", "Text", "TextAndConnections", "Sheet", "SheetAndConnections"];
+    const inBeitMidrash = ["navigation", "book toc", "topics", "topic", "topicCat", "Text", "TextAndConnections", "Sheet"];
     currentHistoryState.title = currentHistoryState.title.match(/[^|]*/)[0];
     if (inBeitMidrash.includes(currentHistoryState.mode)) {
       return {title: currentHistoryState.title, url: currentHistoryState.url, mode: currentHistoryState.mode, display: this.getDisplayString(currentHistoryState.mode)};
@@ -2127,7 +2097,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // Header should not show box-shadow over panels that have color line
     const menuOpen = this.state.panels?.[0]?.menuOpen;
     const hasColorLine = [null, "book toc", "sheets", "sheets meta"];
-    const headerHasBoxShadow = hasColorLine.indexOf(menuOpen) === -1 || !this.props.multiPanel;
+    const headerHasBoxShadow = hasColorLine.indexOf(menuOpen) === -1 || !this.props.multiPanel || this.state.panels?.[0]?.mode === "Sheet";
     // Header is hidden on certain mobile panels, but still rendered so the mobileNavMenu can be opened
     const hideHeader = !this.props.multiPanel && !this.state.headerMode && !menuOpen;
     const header = (
@@ -2241,7 +2211,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       hasSidebar={this.doesPanelHaveSidebar(i)}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       masterPanelMode={panel.mode === "Connections" ? panelStates[i-1].mode : null}
-                      masterPanelSheetId={panel.mode === "Connections" ? panelStates[i-1].sheetID : null}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       saveLastPlace={this.saveLastPlace}
