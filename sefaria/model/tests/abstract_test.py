@@ -24,7 +24,7 @@ def setup_module(module):
 
 def get_record_classes_with_slugs():
     classes = abstract.get_record_classes()
-    return filter(lambda x: x.__name__ == "Topic", classes)
+    return filter(lambda x: getattr(x, 'slug_fields', None) is not None and x.__name__ != "Portal", classes)
 
 
 class TestMongoRecordModels(object):
