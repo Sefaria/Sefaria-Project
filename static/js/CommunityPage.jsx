@@ -75,15 +75,11 @@ CommunityPage.propTypes = {
 
 
 const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
-  // const options = Sefaria.interfaceLang === "hebrew" ? {"lang": "hebrew"} : {};
-  const options =  {};
-  // options["filtered"] = true;
-  const pageSize = 10;
-  const [nSheetsLoaded, setNSheetsLoded] = useState(0); // counting sheets loaded from the API, may be different than sheets displayed
-  // Start with recent sheets in the cache, if any
+  const options = {};
+  const pageSize = 16;
+  const [nSheetsLoaded, setNSheetsLoaded] = useState(0);
   const [recentSheets, setRecentSheets] = useState(collapseSheets(Sefaria.sheets.publicSheets(0, pageSize, options)));
 
-  // But also make an API call immeditately to check for updates
   useEffect(() => {
     loadMore();
   }, []);
@@ -93,7 +89,7 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
       const collapsedSheets = collapseSheets(data);
       const newSheets = recentSheets ? recentSheets.concat(collapsedSheets) : collapsedSheets;
       setRecentSheets(newSheets);
-      setNSheetsLoded(nSheetsLoaded + pageSize);
+      setNSheetsLoaded(nSheetsLoaded + pageSize);
       if (collapsedSheets.length < until && collapsedSheets.length !== 0) {
         loadMore(null, until - collapsedSheets.length);
       }
@@ -101,24 +97,17 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
   };
 
   const recentSheetsContent = !recentSheets ? [<LoadingMessage />] :
-          recentSheets.map(s => <FeaturedSheet sheet={s} showDate={true} toggleSignUpModal={toggleSignUpModal} />);
-  const joinTheConversation = (
-    <div className="navBlock">
-      <Modules type={"JoinTheConversation"} props={{wide:multiPanel, title: 'side_nav.community.join_conversation'}} />
-    </div>
-  );
-  if (recentSheets) {
-    recentSheetsContent.splice(6, 0, joinTheConversation);
-    recentSheetsContent.push(
-      <a className="button small white loadMore" onClick={loadMore}>
-        <InterfaceText>{ Sefaria._("common.load_more")}</InterfaceText>
-      </a>
-    );
-  }
+          recentSheets.slice(0, 16).map(s => <FeaturedSheet sheet={s} showDate={true} toggleSignUpModal={toggleSignUpModal} />);
+
   return (
     <div className="recentlyPublished">            
       <h2><InterfaceText>{ Sefaria._("community.sheets.recently_published")}</InterfaceText></h2>
       <NBox content={recentSheetsContent} n={1} />
+      {recentSheets && recentSheets.length >= 16 && (
+        <a className="button small white loadMore" onClick={loadMore}>
+          <InterfaceText>{ Sefaria._("common.load_more")}</InterfaceText>
+        </a>
+      )}
     </div>
   );
 };
