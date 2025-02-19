@@ -4905,12 +4905,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 843px;
 }
 h1.topic-landing-header {
-  font-size: 40px;
+  font-size: 32px;
   color: var(--dark-grey);
   margin: 0;
 }
 .singlePanel h1.topic-landing-header{
-  font-size: 22px;
+  font-size: 30px;
+  font-weight: 600;
 }
 
 .topic-landing-page-content .topic-landing-section {
@@ -5055,6 +5056,9 @@ h1.topic-landing-header {
 .featuredTopic {
   display: flex;
   flex-direction: column;
+}
+.singlePanel .featuredTopicHeader{
+  font-size: 22px;
 }
 .singlePanel .featuredTopicContent {
   display: flex;
