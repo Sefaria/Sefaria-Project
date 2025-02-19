@@ -17,7 +17,7 @@ export const FeaturedTopic = () => {
             <h1 className="featuredTopicHeader"><InterfaceText>Featured Topic</InterfaceText></h1>
             <div className="featuredTopicContent">
                 <div className="featuredTopicImgWrapper">
-                    <ImageWithAltText photoLink={topic.secondary_image_uri} altText={topic?.image?.image_caption}/>
+                    <a href={`/topics/${topic.slug}`}><ImageWithAltText photoLink={topic.secondary_image_uri} altText={topic?.image?.image_caption}/></a>
                 </div>
                 <div className="featuredTopicText">
                     <h3><InterfaceText text={topic.primaryTitle} /></h3>
