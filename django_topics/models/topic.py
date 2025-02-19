@@ -40,6 +40,11 @@ class Topic(models.Model):
     pools = models.ManyToManyField(TopicPool, related_name="topics", blank=True)
     objects = TopicManager()
 
+    def save(self, *args, **kwargs):
+        self.slug = self.slug.lower()
+        super().save(*args, **kwargs)
+        Topic.objects.build_slug_to_pools_cache(rebuild=True)
+
     class Meta:
         verbose_name = "Topic Pool Management"
         verbose_name_plural = "Topic Pool Management"
