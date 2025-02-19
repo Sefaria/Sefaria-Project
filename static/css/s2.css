@@ -2531,7 +2531,7 @@ div.interfaceLinks-row a {
     padding-left: 0;
     padding-right: 0;
 }
-@media (max-width: 600px) {
+@media (max-width: 540px) {
   .imageWithCaptionPhoto{
     height: auto;
     max-width: 66.67vw;
@@ -12545,6 +12545,10 @@ body .homeFeedWrapper .content {
 
 .story.topicPassageStory {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.topicTabContents .story.topicPassageStory .contentSpan {
+  display: block;
 }
 
 .story.topicPassageStory .storyBody {
