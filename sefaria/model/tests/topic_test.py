@@ -133,7 +133,7 @@ def topic_pool(django_db_setup, django_db_blocker):
         yield pool
         pool.delete()
 
-
+@pytest.mark.django_db
 class TestTopics(object):
 
     def test_graph_funcs(self, topic_graph):
