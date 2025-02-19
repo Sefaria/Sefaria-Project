@@ -5259,6 +5259,7 @@ h1.topic-landing-header {
   text-underline-position: from-font;
   text-decoration-skip-ink: none;
 }
+
 .topic-salad-item{
   margin: 11px;
   --english-font: var(--english-sans-serif-font-family);
@@ -5274,6 +5275,10 @@ h1.topic-landing-header {
 }
 .no-wrapping-salad-item-container{
   white-space: nowrap;
+}
+.no-wrapping-salad-item-container.has-bullet::after {
+  content: '•';
+  margin-inline-start: 0.2em; /* space bullet away from text */
 }
 .topic-landing-temporal{
   display: flex;

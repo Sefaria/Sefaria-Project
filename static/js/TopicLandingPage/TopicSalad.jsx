@@ -44,8 +44,9 @@ export const TopicSalad = () => {
     <RainbowLine rainbowClassname={"topic-landing-upper-rainbow"}/>
       <div className='topic-salad'>
           {isMultiPanel ? <WordSalad renderItem={renderSaladItem}
-                       numLines={5}
-                       salad={salad}/>
+                            numLines={5}
+                            salad={salad}
+                            addBullets={true}/>
               :
               <RowedWordSalad renderItem={renderSaladItem}
                               salad={salad}/>}
