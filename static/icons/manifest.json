@@ -1,18 +1,26 @@
 {
     "name": "Sefaria Web",
+    "short_name": "Sefaria",
     "icons": [
         {
-            "src": "/android-chrome-192x192.png?v=xQzLlLp7oR",
+            "src": "/static/icons/android-chrome-192x192.png?v=xQzLlLp7oR",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "/android-chrome-256x256.png?v=xQzLlLp7oR",
+            "src": "/static/icons/android-chrome-256x256.png?v=xQzLlLp7oR",
             "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icons/android-chrome-512x512.png?v=xQzLlLp7oR",
+            "sizes": "512x512",
             "type": "image/png"
         }
     ],
     "theme_color": "#273557",
     "background_color": "#273557",
-    "display": "standalone"
+    "display": "minimal-ui",
+    "start_url": "/",
+    "description": "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more."
 }
