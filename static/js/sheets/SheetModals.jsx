@@ -15,9 +15,12 @@ const ShareModal = ({sheetID, close}) => {
         </Modal>;
 }
 
-const CollectionsModal = ({close, sheetID}) => {
+const CollectionsModal = ({close, sheetID, handleCollectionsChange, editable}) => {
   return <Modal close={close}>
-            <CollectionsWidget sheetID={sheetID} close={close} />
+            <CollectionsWidget
+                sheetID={sheetID}
+                close={close}
+                handleCollectionsChange={handleCollectionsChange}/>
         </Modal>;
 }
 
@@ -130,7 +133,7 @@ const SaveModal = ({historyObject, close}) => {
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
     exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
-    exportComplete: { en: "Success!", he: "ייצוא הסתיים"}
+    exportComplete: {en: "Success!", he: "ייצוא הסתיים"}
   }
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
@@ -161,30 +164,36 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   }
 
   useEffect(() => {
-      exportToDrive();
-    }, [googleDriveText]);
-
+    exportToDrive();
+  }, [googleDriveText]);
+  const getExportMessage = () => {
+    if (currentlyExporting()) {
+      return <InterfaceText text={googleDriveText}/>;
+    } else {
+      return <>
+        <InterfaceText text={googleDriveText}/>&nbsp;
+        <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google
+          Docs</InterfaceText></a>
+      </>
+    }
+  }
   const handleClose = () => {
     if (!currentlyExporting()) {
       close();
     }
   }
-
-  const getExportMessage = () => {
-    if (currentlyExporting()) {
-      return <InterfaceText text={googleDriveText}/>;
-    }
-    else {
-      return <>
-                <InterfaceText text={googleDriveText}/>&nbsp;
-                <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google Docs</InterfaceText></a>
-             </>
-    }
-  }
   return <GenericSheetModal title={<InterfaceText>Export</InterfaceText>}
                             message={getExportMessage()}
                             close={handleClose}/>;
-
 }
 
-export { ShareModal, CollectionsModal, AddToSourceSheetModal, CopyModal, SaveModal, GoogleDocExportModal };
+const DeleteModal = ({close, sheetID, authorUrl}) => {
+  useEffect( () => {
+    Sefaria.sheets.deleteSheetById(sheetID).then(() => {
+      window.location.href = authorUrl;
+    });
+  });
+  return <GenericSheetModal title={<InterfaceText>Deleting...</InterfaceText>} close={() => {}}/>; // don't allow user to close modal while deleting
+}
+
+export { ShareModal, CollectionsModal, AddToSourceSheetModal, CopyModal, SaveModal, GoogleDocExportModal, DeleteModal };
