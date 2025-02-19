@@ -7762,7 +7762,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 11px;
   text-transform: uppercase;
   border: 1px solid var(--light-grey);
-  border-radius: 6px;
+  border-radius: 4px;
   float: inline-end;
   padding: 2px 6px;
   background: var(--lightest-grey);
