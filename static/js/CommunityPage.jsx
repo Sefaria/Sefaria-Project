@@ -93,7 +93,7 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
       const collapsedSheets = collapseSheets(data);
       const newSheets = recentSheets ? recentSheets.concat(collapsedSheets) : collapsedSheets;
       setRecentSheets(newSheets);
-      // console.log("sheets to be displayed", newSheets)
+      console.log("sheets to be displayed", newSheets)
       setNSheetsLoded(nSheetsLoaded + pageSize);
       if (collapsedSheets.length < until && collapsedSheets.length !== 0) {
         loadMore(null, until - collapsedSheets.length);
