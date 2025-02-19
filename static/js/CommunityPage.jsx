@@ -76,7 +76,7 @@ CommunityPage.propTypes = {
 
 const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
   const options = {};
-  const pageSize = 10;
+  const pageSize = 16;
   const [nSheetsLoaded, setNSheetsLoded] = useState(0);
   // Start with recent sheets in the cache, if any
   const [recentSheets, setRecentSheets] = useState(Sefaria.sheets.publicSheets(0, pageSize, options));
