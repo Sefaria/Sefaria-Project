@@ -836,7 +836,7 @@ const propKeys = [
 
 const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, properties={} }) => {
   const tpSection = !!timePeriod ? (
-    <TopicSideSection title={{en: "Lived", he: "תקופת פעילות"}}>
+    <TopicSideSection title={{en: "Lived", he: "ཚེ་ཚད།"}}>
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.name} /></div>
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.yearRange} /></div>
     </TopicSideSection>
