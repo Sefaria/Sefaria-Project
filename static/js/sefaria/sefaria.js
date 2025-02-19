@@ -2548,11 +2548,11 @@ _media: {},
     return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
   },
   areVersionsEqual(savedVersion, currVersion) {
+    // Determines if two versions are equal, but we don't know what format the data is in so consider both old and new format.
+    // New format is an object with two props: 'versionTitle' and 'languageFamilyName', while old format is a string.
     const checkEquality = (lang, prop) => {
       const propValues = [savedVersion, currVersion].map(version => {
         version = version?.[lang];
-        // We don't know what format the data is in so consider both old and new format.
-        // New format is an object with two props: 'versionTitle' and 'languageFamilyName', while old format is a string.
         const propValue = typeof version === 'string' ? version : version?.[prop];
         return propValue ?? "";
       });
