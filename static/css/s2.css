@@ -5132,6 +5132,19 @@ h1.topic-landing-header {
   justify-content: space-between;
   align-items: center;
 }
+.topic-landing-newsletter-input-row input,
+.topic-landing-newsletter-input-row button {
+  /*height: 48px; !* Adjust as needed *!*/
+  /*padding: 10px; !* Optional for better spacing *!*/
+  /*line-height: 30px;*/
+}
+.singlePanel .topic-landing-newsletter-input-row input{
+  font-size: 18px;
+}
+.singlePanel .topic-landing-newsletter-input-row button{
+  font-size: 18px;
+  height: 31px;
+}
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row{
   flex-direction: column;
   align-items: center;
