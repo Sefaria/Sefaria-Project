@@ -3466,6 +3466,7 @@ Sefaria.unpackBaseProps = function(props){
           return;
       }
       const dataPassedAsProps = [
+      "activeModule",
       "_uid",
       "_email",
       "_uses_new_editor",
