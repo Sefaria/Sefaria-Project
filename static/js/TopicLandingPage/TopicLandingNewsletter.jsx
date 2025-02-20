@@ -17,7 +17,7 @@ export const TopicLandingNewsletter = () => {
 
     function validateInputs() {
         if (firstNameRef.current?.value.length === 0 || lastNameRef.current?.value.length === 0) {
-            setSubscribeMessage(Sefaria._("Please enter a valid first and last name"));
+            setSubscribeMessage(Sefaria._("Please enter a valid first and last name."));
             return false;
         }
         if (!Sefaria.util.isValidEmailAddress(emailRef.current?.value)) {

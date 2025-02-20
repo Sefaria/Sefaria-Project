@@ -27,9 +27,7 @@ export const TopicLandingParasha = () => {
                       data-anl-link_type="topic"
                       data-anl-text={`Learn More about ${parashah.displayValue?.en} ›`}
                       data-anl-event="navto_topic:click">
-                        <InterfaceText text={{en: `Learn More about ${parashah.displayValue?.en} ›`,
-                            he:`${Sefaria._("Learn More about")} ${parashah.displayValue?.he} ›`}}
-                        />
+                        <InterfaceText>Learn more…</InterfaceText>
                     </a>
                 </div>
                 <div className="parashah-link">
