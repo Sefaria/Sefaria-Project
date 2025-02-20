@@ -87,6 +87,9 @@ class VersionBlock extends Component {
       "priority",
       "digitizedBySefaria",
       "status",
+      "direction",
+      "isSource",
+      "isPrimary",
       "versionTitleInHebrew",
       "shortVersionTitle",
       "shortVersionTitleInHebrew",
@@ -224,45 +227,73 @@ class VersionBlock extends Component {
 
             <label htmlFor="versionTitle" className="">Version Title</label>
             {close_icon}
-            <input id="versionTitle" name="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.handleInputChange} />
+            <input id="versionTitle" name="versionTitle" className="" type="text" value={this.state.versionTitle}
+                   onChange={this.handleInputChange}/>
 
             <label htmlFor="versionTitleInHebrew" className="">Hebrew Version Title</label>
-            <input id="versionTitleInHebrew" name="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.handleInputChange} />
+            <input id="versionTitleInHebrew" name="versionTitleInHebrew" className="" type="text"
+                   value={this.state.versionTitleInHebrew} onChange={this.handleInputChange}/>
 
             <label htmlFor="shortVersionTitle" className="">Short Version Title</label>
-            <input id="shortVersionTitle" name="shortVersionTitle" className="" type="text" value={this.state.shortVersionTitle} onChange={this.handleInputChange} />
+            <input id="shortVersionTitle" name="shortVersionTitle" className="" type="text"
+                   value={this.state.shortVersionTitle} onChange={this.handleInputChange}/>
 
             <label htmlFor="shortVersionTitleInHebrew" className="">Short Hebrew Version Title</label>
-            <input id="shortVersionTitleInHebrew" name="shortVersionTitleInHebrew" className="" type="text" value={this.state.shortVersionTitleInHebrew} onChange={this.handleInputChange} />
+            <input id="shortVersionTitleInHebrew" name="shortVersionTitleInHebrew" className="" type="text"
+                   value={this.state.shortVersionTitleInHebrew} onChange={this.handleInputChange}/>
 
             <label htmlFor="versionSource">Version Source</label>
-            <input id="versionSource" name="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.handleInputChange} />
+            <input id="versionSource" name="versionSource" className="" type="text" value={this.state.versionSource}
+                   onChange={this.handleInputChange}/>
 
             <label id="license_label" htmlFor="license">License</label>
-            <select id="license" name="license" className=""  value={this.state.license} onChange={this.handleInputChange}>
-              {licenses.map(v => <option key={v} value={v}>{v?v:"(None Listed)"}</option>)}
+            <select id="license" name="license" className="" value={this.state.license}
+                    onChange={this.handleInputChange}>
+              {licenses.map(v => <option key={v} value={v}>{v ? v : "(None Listed)"}</option>)}
             </select>
 
+            <label id="direction_label" htmlFor="direction">Direction</label>
+            <select id="direction" name="direction" className="" value={this.state.direction}
+                    onChange={this.handleInputChange}>
+              <option value="ltr">Left to Right</option>
+              <option value="rtl">Right to Left</option>
+            </select>
+
+            <label id="isSource_label" htmlFor="isSource">isSource</label>
+            <input type="checkbox" id="isSource" name="isSource"
+                   checked={this.state.isSource} onChange={this.handleInputChange}/>
+
+            <label id="isPrimary_label" htmlFor="isPrimary">isPrimary</label>
+            <input type="checkbox" id="isPrimary" name="isPrimary"
+                   checked={this.state.isPrimary} onChange={this.handleInputChange}/>
+
             <label id="digitzedBySefaria_label" htmlFor="digitzedBySefaria">Digitized by Sefaria</label>
-            <input type="checkbox" id="digitzedBySefaria" name="digitizedBySefaria" checked={this.state.digitizedBySefaria} onChange={this.handleInputChange}/>
+            <input type="checkbox" id="digitzedBySefaria" name="digitizedBySefaria"
+                   checked={this.state.digitizedBySefaria} onChange={this.handleInputChange}/>
 
             <label id="priority_label" htmlFor="priority">Priority</label>
-            <input id="priority" name="priority" className="" type="text" value={this.state.priority} onChange={this.handleInputChange} />
+            <input id="priority" name="priority" className="" type="text" value={this.state.priority}
+                   onChange={this.handleInputChange}/>
 
             <label id="locked_label" htmlFor="locked">Locked</label>
-            <input type="checkbox" id="locked" name="status" checked={this.state.status == "locked"} onChange={this.handleInputChange}/>
+            <input type="checkbox" id="locked" name="status" checked={this.state.status == "locked"}
+                   onChange={this.handleInputChange}/>
 
             <label id="versionNotes_label" htmlFor="versionNotes">VersionNotes</label>
-            <textarea id="versionNotes" name="versionNotes" placeholder="Version Notes" onChange={this.handleInputChange} value={this.state.versionNotes} rows="5" cols="40"/>
+            <textarea id="versionNotes" name="versionNotes" placeholder="Version Notes"
+                      onChange={this.handleInputChange} value={this.state.versionNotes} rows="5" cols="40"/>
 
             <label id="versionNotesInHebrew_label" htmlFor="versionNotes_in_hebrew">Hebrew VersionNotes</label>
-            <textarea id="versionNotesInHebrew" name="versionNotesInHebrew" placeholder="Hebrew Version Notes" onChange={this.handleInputChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
+            <textarea id="versionNotesInHebrew" name="versionNotesInHebrew" placeholder="Hebrew Version Notes"
+                      onChange={this.handleInputChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
             <div>
               <h3>Purchase Information</h3>
               <label htmlFor="purchase_url">Buy URL (Link to Store Item):</label>
-              <input id="purchase_url" name="purchaseInformationURL" className="" type="text" value={this.state.purchaseInformationURL}  onChange={this.handleInputChange} />
+              <input id="purchase_url" name="purchaseInformationURL" className="" type="text"
+                     value={this.state.purchaseInformationURL} onChange={this.handleInputChange}/>
               <label htmlFor="purchase_image">Buy Image (Image to Display for Link)</label>
-              <input id="purchase_image" name="purchaseInformationImage" className="" type="text" value={this.state.purchaseInformationImage} onChange={this.handleInputChange} />
+              <input id="purchase_image" name="purchaseInformationImage" className="" type="text"
+                     value={this.state.purchaseInformationImage} onChange={this.handleInputChange}/>
             </div>
             <div>
               <div id="delete_button" onClick={this.deleteVersion}>Delete Version</div>
@@ -272,15 +303,14 @@ class VersionBlock extends Component {
           </div>
         </div>
       );
-    }
-    else {
+    } else {
       return (
-        <div className="versionBlock">
+          <div className="versionBlock">
             <div className="versionBlockHeading">
               <div className="versionTitle" role="heading">
-                <VersionBlockHeader
-                  text={vtitle["text"]}
-                  onClick={this.props.rendermode === 'book-page' ? openVersionInMainPanel : openVersionInSidebar}
+              <VersionBlockHeader
+                    text={vtitle["text"]}
+                    onClick={this.props.rendermode === 'book-page' ? openVersionInMainPanel : openVersionInSidebar}
                   renderMode='versionTitle'
                   link={VersionBlockUtils.makeVersionLink(this.props.currentRef, this.props.version,
                       this.props.currObjectVersions, this.props.rendermode === 'book-page')}

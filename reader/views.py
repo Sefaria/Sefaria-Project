@@ -2371,7 +2371,7 @@ def flag_text_api(request, title, lang, version):
         vobj.save()
         return jsonResponse({"status": "ok"})
 
-    _attributes_to_save = Version.optional_attrs + ["versionSource"]
+    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
 
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
