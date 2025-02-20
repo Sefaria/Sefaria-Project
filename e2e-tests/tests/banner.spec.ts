@@ -5,11 +5,68 @@
 */
 
 import {test, expect} from '@playwright/test';
-import {goToPageWithLang, getPathAndParams} from "../utils";
-import {LANGUAGES} from '../globals'
+import {goToPageWithLang, getPathAndParams, isIsraelIp} from "../utils";
+import {LANGUAGES} from '../globals';
+import { PageManager } from '../pages/pageManager';
 
-test('Banner links exist - English', async ({ context }) => {
+/***** NEW TESTS *****/
+const testLanguageConfigs = [
+    {testLanguage: "English", interfaceLanguage: LANGUAGES.EN},
+    {testLanguage: "Hebrew", interfaceLanguage: LANGUAGES.HE}
+]
+
+testLanguageConfigs.forEach(({testLanguage, interfaceLanguage}) => {
+    test(`Banner links with PageManager - ${testLanguage}`, async({ context }) =>{
+        const page = await goToPageWithLang(context,'/texts', interfaceLanguage)
+        
+        const pm = new PageManager(page, interfaceLanguage)
+
+        await pm.navigateTo().textsPageFromLogo()
+
+        await pm.navigateTo().textsPageFromLink()
+
+        await pm.navigateTo().topicsPage()
+
+        await pm.navigateTo().communityPage()
+
+        const donatePage = await pm.navigateTo().donatePage()
+        await donatePage.close()
+
+    })
+})
+
+testLanguageConfigs.forEach(({testLanguage, interfaceLanguage}) => {
+    test(`Search Functionality from Banner with PageManager - ${testLanguage}`, async({ context }) => {
+        const page = await goToPageWithLang(context,'/texts', interfaceLanguage)
+        
+        const pm = new PageManager(page, LANGUAGES.EN)
+
+        if(interfaceLanguage == LANGUAGES.HE){
+            await pm.onSearchPage().searchFor('אהבה')
+        }
+        else{
+            await pm.onSearchPage().searchFor('Love')
+            await pm.onSearchPage().validateVirtualKeyboardForEnglish('א')
+        }
+    })
+})
+
+test('Toggle Language Based on Locale with PageManager', async({ context }) => {
+    const page = await goToPageWithLang(context,'/texts', LANGUAGES.HE)
+    const pm = new PageManager(page, LANGUAGES.HE)
     
+    const inIsrael = await isIsraelIp(page)
+
+    if(inIsrael){
+        await pm.toggleLanguage(LANGUAGES.EN)
+    }
+})
+
+
+/***** OLD TESTS *****/
+test('Banner links exist - English', async ({ context }) => {
+    console.log(await context.cookies())
+
     const page = await goToPageWithLang(context,'/texts',LANGUAGES.EN);
 
     // Testing Sefaria logo

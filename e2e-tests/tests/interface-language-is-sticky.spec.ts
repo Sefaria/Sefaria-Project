@@ -1,11 +1,12 @@
 import {test, expect} from '@playwright/test';
 import {changeLanguageOfText, goToPageWithLang, isIsraelIp} from "../utils";
 import {LANGUAGES, SOURCE_LANGUAGES} from '../globals'
+import { PageManager } from '../pages/pageManager';
 
 const interfaceTextHE = 'מקורות';
 const interfaceTextEN = 'Texts';
 
-[
+const languageInterfaceAndSourceConfig = [
     // Hebrew Interface and English Source
     {interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, 
         sourceLanguage: 'English', sourceLanguageToggle: SOURCE_LANGUAGES.EN, 
@@ -37,7 +38,28 @@ const interfaceTextEN = 'Texts';
         sourceLanguage: 'Hebrew', sourceLanguageToggle: SOURCE_LANGUAGES.HE, 
         expectedSourceText: 'רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃', expectedBilingualText: '', expectedInterfaceText: interfaceTextEN }
 
-].forEach(({interfaceLanguage, interfaceLanguageToggle, sourceLanguage, sourceLanguageToggle, expectedSourceText, expectedBilingualText, expectedInterfaceText}) => {
+]
+
+/***** NEW TESTS *****/
+languageInterfaceAndSourceConfig.forEach(({interfaceLanguage, interfaceLanguageToggle, sourceLanguage, sourceLanguageToggle, expectedSourceText, expectedBilingualText, expectedInterfaceText}) => {
+    test(`${interfaceLanguage} Interface Language with ${sourceLanguage} Source with PageManager`, async ({ context }) => {
+
+        // Navigating to Bereshit with selected Interface Language, Hebrew or English
+        const page = await goToPageWithLang(context,'/Genesis.1',`${interfaceLanguageToggle}`)
+        
+        const pm = new PageManager(page, `${interfaceLanguageToggle}`)
+        
+        await pm.onSourceTextPage().changeTextLanguage(sourceLanguageToggle)
+        
+        await pm.onSourceTextPage().validateFirstLineOfContent(expectedSourceText)
+
+        // Validate Hebrew interface language is still toggled
+        await pm.onSourceTextPage().validateLinkExistsBanner(expectedInterfaceText)
+    })
+})
+
+/***** OLD TESTS *****/
+languageInterfaceAndSourceConfig.forEach(({interfaceLanguage, interfaceLanguageToggle, sourceLanguage, sourceLanguageToggle, expectedSourceText, expectedBilingualText, expectedInterfaceText}) => {
     test(`${interfaceLanguage} Interface Language with ${sourceLanguage} Source`, async ({ context }) => {
 
         // Navigating to Bereshit with selected Interface Language, Hebrew or English
