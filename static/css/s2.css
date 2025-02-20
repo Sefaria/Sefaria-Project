@@ -5118,7 +5118,7 @@ h1.topic-landing-header {
   background-color: var(--sefaria-blue);
   display: flex;
   flex-direction: row;
-  padding: 36px 74px;
+  padding: 36px 65px;
   justify-content: space-between;
 }
 .singlePanel .topic-landing-newsletter {
@@ -5205,7 +5205,7 @@ h1.topic-landing-header {
 }
 
 .topic-landing-newsletter h3.topic-landing-newsletter-text {
-  width: 220px;
+  width: 256px;
   color: white;
   margin: 0;
   font-size: 22px;
