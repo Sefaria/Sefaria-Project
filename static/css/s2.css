@@ -7716,16 +7716,17 @@ But not to use a display block directive that might break continuous mode for ot
   flex-wrap: wrap;
 }
 
-.toolsButtonContainer.blue {
-  background-color: var(--sefaria-blue);
+.toolsButtonContainer.highlighted {
+  background-color: var(--responsa-red);
   color: white;
-  margin: -29px 34px 20px;
-  margin-inline-start: -34px;
-  margin-inline-end: -34px;
-  padding-inline-start: 68px;
-  padding-inline-end: 34px;
+  margin-inline-start: 6px;
+  margin-inline-end: 8px;
+  padding-inline-start: 28px;
+  padding-inline-end: 14px;
   padding-top: 18px;
   padding-bottom: 18px;
+  border-radius: 8px;
+  line-height: 1;
 }
 
 .toolsButtonContainer .toolsButtonText,
@@ -7755,15 +7756,16 @@ But not to use a display block directive that might break continuous mode for ot
   align-self: flex-start;
 }
 
-.toolsButtonContainer.blue .experimentLabel {
+.toolsButtonContainer.highlighted .experimentLabel {
   --english-font: var(--english-sans-serif-font-family);
-  color: var(--light-grey);
-  font-size: 14px;
+  color: var(--dark-grey);
+  font-size: 11px;
+  text-transform: uppercase;
   border: 1px solid var(--light-grey);
-  border-radius: 6px;
+  border-radius: 4px;
   float: inline-end;
-  padding: 2px;
-  line-height: 14px;
+  padding: 2px 6px;
+  background: var(--lightest-grey);
 }
 
 .linkArrow {
@@ -7875,7 +7877,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 122%;
 }
-.blue .toolsButton .toolsButtonIcon {
+.highlighted .toolsButton .toolsButtonIcon {
   filter: invert(1);
 }
 .toolsButton .toolsButtonIcon {
