@@ -1359,6 +1359,10 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         if index is None:
             raise InputError("Versions cannot be created for non existing Index records")
         assert self._check_node_offsets(self.chapter, index.nodes), 'there are more sections than index_offsets_by_depth'
+        if getattr(self, "direction", None) not in ["rtl", "ltr"]:
+            raise InputError("Version direction must be either 'rtl' or 'ltr'")
+        assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
+        assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
 
         return True
 
