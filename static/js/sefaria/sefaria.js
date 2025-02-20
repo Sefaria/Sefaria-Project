@@ -719,6 +719,7 @@ Sefaria = extend(Sefaria, {
     "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
     "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
+    "ro": {"name": "Romanian", "nativeName": "română", "title": "Texte evreiești în limba română", "showTranslations": 1},
     "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
     "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
     "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
