@@ -5277,6 +5277,7 @@ h1.topic-landing-header {
   margin: 11px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  line-height: 40px;
 }
 .rowed-salad-item-container{
   border-radius: 6px;
