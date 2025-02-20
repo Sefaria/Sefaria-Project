@@ -115,7 +115,6 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
             placeholder={placeHolder}
             onKeyDown={onKeyDownOverride}
             maxLength={75}
-            title={Sefaria._("Search for Texts or Keywords Here")}
             {...otherInputDownshiftProps}
         />
         </div>
