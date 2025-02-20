@@ -95,20 +95,22 @@ export const TopicLandingSeasonal = () => {
                     <InterfaceText text={learnMorePrompt}/>
                 </a>
             </div>
-            <div className="display-date-message">
-                <InterfaceText text={{en: displayDateMessageEn, he: displayDateMessageHe}}/>
-            </div>
-            <div className='display-date'>
-                <InterfaceText text={{en: formattedDateEn, he: formattedDateHe}}/>
-            </div>
-            <div className="explore-calendar-prompt">
-                <a href='/topics/category/jewish-calendar2'
-                   data-anl-link_type="category"
-                   data-anl-text="Explore the Jewish Calendar"
-                   data-anl-event="navto_topic:click"
-                >
-                    <InterfaceText>Explore the Jewish Calendar</InterfaceText>
-                </a>
+            <div className="seasonal-bottom-section">
+                <div className="display-date-message">
+                    <InterfaceText text={{en: displayDateMessageEn, he: displayDateMessageHe}}/>
+                </div>
+                <div className='display-date'>
+                    <InterfaceText text={{en: formattedDateEn, he: formattedDateHe}}/>
+                </div>
+                <div className="explore-calendar-prompt">
+                    <a href='/topics/category/jewish-calendar2'
+                       data-anl-link_type="category"
+                       data-anl-text="Explore the Jewish Calendar"
+                       data-anl-event="navto_topic:click"
+                    >
+                        <InterfaceText>Explore the Jewish Calendar</InterfaceText>
+                    </a>
+                </div>
             </div>
         </div>
     );

@@ -5319,6 +5319,7 @@ h1.topic-landing-header {
 .topic-landing-temporal > .topic-landing-seasonal {
     padding-inline-start: 67px;
     flex: 1;
+    position: relative;
 }
 .singlePanel .topic-landing-temporal > .topic-landing-parasha {
     border-bottom: 1px solid #ccc;
@@ -5365,13 +5366,16 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.topic-landing-seasonal .seasonal-bottom-section{
+  position: absolute;
+  bottom: 71px;
+}
 .topic-landing-temporal .display-date-message{
   color: var(--darkest-grey);
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
   line-height: 18px;
-  margin-top: 136px;
 }
 .topic-landing-temporal .display-date-message span {
   font-family: Roboto;
