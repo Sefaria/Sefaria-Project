@@ -304,6 +304,8 @@ CACHES = {
 try:
     if os.getenv("CI_RUN"):
         from sefaria.local_settings_ci import *
+    elif os.getenv("DOCKER"):
+        from sefaria.local_settings_docker import *
     else:
         from sefaria.local_settings import *
 except ImportError:
