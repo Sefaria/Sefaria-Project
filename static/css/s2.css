@@ -5110,7 +5110,6 @@ h1.topic-landing-header {
 }
 .featuredTopic h1 {
   font-size: var(--sans-serif-h2-font-size);
-  border-bottom: 1px solid #ccc;
   width: fit-content;
   padding-bottom: 10px;
 }
