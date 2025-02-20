@@ -121,7 +121,7 @@ const Strings = {
     "Read the Portion": "לקריאת הפרשה",
     "On the Jewish Calendar": "מועדים קרובים בלוח השנה העברי",
     "Explore the Jewish Calendar": "לעוד מועדים בלוח השנה העברי",
-    "Browse Topics": "לדפדוף בנושאים השונים",
+    "Browse Topics": "לדפדוף במגוון נושאים",
     "Trending Topics": "נושאים פופולריים",
     "All Topics A-Z ›": "כל הנושאים מא׳ עד ת׳ ›",
     "Browse All Torah Portions": "לרשימת כל הפרשות",
