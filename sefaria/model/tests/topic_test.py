@@ -57,8 +57,8 @@ def clean_links(a):
 @pytest.fixture(scope='module', autouse=True)
 def library_and_sheets_topic_pools(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        TopicPool.objects.create(name=PoolType.LIBRARY.value)
-        TopicPool.objects.create(name=PoolType.SHEETS.value)
+        TopicPool.objects.get_or_create(name=PoolType.LIBRARY.value)
+        TopicPool.objects.get_or_create(name=PoolType.SHEETS.value)
 
 
 @pytest.fixture(scope='module')
