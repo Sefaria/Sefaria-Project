@@ -46,19 +46,6 @@ def cache_get_key(key_arr):
     return hashlib.md5("".join(key_arr).encode('utf-8')).hexdigest()
 
 
-def redis_exists(cache_instance, keys: list):
-    """
-    Check if multiple keys exist in the Redis cache efficiently using a singlelookup command.
-    """
-    client = cache_instance.client._clients[0]
-    if client:
-        # Django cache client prefixing
-        prefix = f":{cache_instance.version}:"
-        prefixed_keys = [f"{prefix}{key}" for key in keys]
-        return client.exists(*prefixed_keys) == len(keys)
-    return False
-
-
 def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, default_on_miss=False, default_on_miss_value=None, cache_type=None, decorate_data_with_key=False):
     """
     Easily add caching to a function in django
@@ -119,15 +106,10 @@ def get_cache_elem(key, cache_type=None):
     cache_instance = get_cache_factory(cache_type)
     return cache_instance.get(key)
 
-def check_multiple_keys(keys, cache_type=None):
-    cache_instance = get_cache_factory(cache_type)
-    return redis_exists(cache_instance, keys)
 
 def get_shared_cache_elem(key):
     return get_cache_elem(key, cache_type=SHARED_DATA_CACHE_ALIAS)
 
-def check_shared_multiple_keys(keys: list):
-    return check_multiple_keys(keys, cache_type=SHARED_DATA_CACHE_ALIAS)
 
 def set_cache_elem(key, value, timeout = None, cache_type=None):
     cache_instance = get_cache_factory(cache_type)

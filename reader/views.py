@@ -57,7 +57,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError, ComplexBookLevelRefError
-from sefaria.system.cache import check_shared_multiple_keys, django_cache, get_shared_cache_elem, set_shared_cache_elem
+from sefaria.system.cache import django_cache, get_shared_cache_elem
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -125,25 +125,7 @@ def render_react_component(component, props):
     `props` may either be JSON (to save reencoding) or a dictionary.
     Returns HTML.
     """
-    SHARED_CACHE_KEYS = [
-        "books_en_json",
-        "topic_toc_json",
-        "last_cached",
-        "term_mapping_json",
-        "toc_json",
-        "term_mapping",
-        "topic_toc_category_mapping",
-        "topic_toc",
-        "toc",
-        "books_en",
-        "virtualBooks",
-    ]
-
-    if not USE_NODE or not check_shared_multiple_keys(SHARED_CACHE_KEYS):
-        regenerating = get_shared_cache_elem("regenerating")
-        if not regenerating:
-            set_shared_cache_elem("regenerating", True)
-            library.init_shared_cache(rebuild=True)
+    if not USE_NODE or get_shared_cache_elem("regenerating"):
         return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
     propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
