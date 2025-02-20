@@ -5124,7 +5124,7 @@ h1.topic-landing-header {
 .singlePanel .topic-landing-newsletter {
   padding: 36px 36px;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
 }
 .topic-landing-newsletter .topic-landing-newsletter-input-row {
   display: flex;
