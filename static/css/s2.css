@@ -6944,6 +6944,7 @@ dialog#sheetsWarningDialog h1 {
 @media screen and (max-width: 800px) {
   dialog#sheetsWarningDialog {
     font-size: smaller;
+    margin-inline: 15px;
   }
   dialog#sheetsWarningDialog h1 {
     font-size: large;
