@@ -5368,8 +5368,7 @@ h1.topic-landing-header {
 }
 .topic-landing-seasonal .seasonal-bottom-section{
   position: absolute;
-  bottom: 71px;
-  transform: translateY(-100%);
+  top: calc(100% - 128px);;
 }
 .topic-landing-temporal .display-date-message{
   color: var(--darkest-grey);
