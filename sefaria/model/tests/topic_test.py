@@ -387,4 +387,3 @@ class TestRefTopicLink(object):
         with pytest.raises(DuplicateRecordError):
             l2.save()
         l1.delete()
-
