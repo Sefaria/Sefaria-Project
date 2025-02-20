@@ -5147,7 +5147,7 @@ h1.topic-landing-header {
 }
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row{
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
 }
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-wrapper {
   display: flex;
@@ -5171,9 +5171,6 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row button {
-  width: 100%;
-}
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input,
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row button {
   margin-bottom: 20px;
@@ -5187,9 +5184,6 @@ h1.topic-landing-header {
 }
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input:first-child {
   margin-inline-end: 0px;
-}
-.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input {
-  width: 90%;
 }
 
 .topic-landing-newsletter .topic-landing-newsletter-input-row .subscribeMessage {
