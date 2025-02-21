@@ -48,7 +48,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   } else {
     featuredContent = <LoadingMessage />
   }
-  console.log("load data from recentlyPUblished component")
+
   return (
     <div className="readerNavMenu communityPage sans-serif" key="0">
       <div className="content">
@@ -75,24 +75,29 @@ CommunityPage.propTypes = {
 
 
 const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
-  const options = {};
-  const pageSize = 16;
-  const [nSheetsLoaded, setNSheetsLoded] = useState(0);
+  // const options = Sefaria.interfaceLang === "hebrew" ? {"lang": "hebrew"} : {};
+  const options =  {};
+  // options["filtered"] = true;
+  const pageSize = 60;
+  const [nSheetsLoaded, setNSheetsLoded] = useState(0); // counting sheets loaded from the API, may be different than sheets displayed
   // Start with recent sheets in the cache, if any
-  const [recentSheets, setRecentSheets] = useState(Sefaria.sheets.publicSheets(0, pageSize, options));
+  const [recentSheets, setRecentSheets] = useState(collapseSheets(Sefaria.sheets.publicSheets(0, pageSize, options)));
 
+  // But also make an API call immeditately to check for updates
   useEffect(() => {
     loadMore();
   }, []);
 
   const loadMore = (e, until=pageSize) => {
     Sefaria.sheets.publicSheets(nSheetsLoaded, pageSize, options, true, (data) => {
-      const newSheets = recentSheets ? recentSheets.concat(data) : data;
+      console.log("Raw Sheets Data:", data);
+      const collapsedSheets = collapseSheets(data);
+      const newSheets = recentSheets ? recentSheets.concat(collapsedSheets) : collapsedSheets;
       setRecentSheets(newSheets);
-      console.log("Sheets to be displayed:", newSheets);
+      console.log("sheets to be displayed", newSheets)
       setNSheetsLoded(nSheetsLoaded + pageSize);
-      if (data.length < until && data.length !== 0) {
-        loadMore(null, until - data.length);
+      if (collapsedSheets.length < until && collapsedSheets.length !== 0) {
+        loadMore(null, until - collapsedSheets.length);
       }
     });
   };
@@ -121,24 +126,24 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
 };
 
 
-// const collapseSheets = (sheets) => {
-//   // Collapses consecutive sheets with the same author
-//   if (!sheets) { return null; }
+const collapseSheets = (sheets) => {
+  // Collapses consecutive sheets with the same author
+  if (!sheets) { return null; }
 
-//   return sheets.reduce((accum, sheet) => {
-//     if (!accum.length) {
-//       return [sheet];
-//     }
-//     const prev = accum[accum.length-1];
-//     if (prev.author === sheet.author) {
-//       prev.moreSheets = prev.moreSheets || [];
-//       prev.moreSheets.push(sheet);
-//     } else {
-//       accum.push(sheet);
-//     }
-//     return accum;
-//   }, []);
-// }
+  return sheets.reduce((accum, sheet) => {
+    if (!accum.length) {
+      return [sheet];
+    }
+    const prev = accum[accum.length-1];
+    if (prev.author === sheet.author) {
+      prev.moreSheets = prev.moreSheets || [];
+      prev.moreSheets.push(sheet);
+    } else {
+      accum.push(sheet);
+    }
+    return accum;
+  }, []);
+}
 
 const FeaturedSheet = ({sheet, showDate, trackClicks, toggleSignUpModal}) => {
   if (!sheet) { return null; }
