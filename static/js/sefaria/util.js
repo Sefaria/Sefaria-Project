@@ -201,16 +201,26 @@ class Util {
     }
 
     static naturalTime(timeStamp, {lang, short} = {}) {
-        // given epoch time stamp, return string of time delta between `timeStamp` and now
         const now = Util.epoch_time();
+        const duration = now - timeStamp; // Calculate duration in milliseconds
         let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
         let spacer = " ";
         if (short) {
             language = language === "en" ? "shortEn" : "shortBo";
-            spacer = language === "shortEn" ? "" : " ";
+            spacer = ""; // Apply empty spacer to both shortEn and shortBo
         }
-        return Util.sefariaHumanizeDuration(now - timeStamp, {"language": language, "spacer": spacer});
+        let result = Util.sefariaHumanizeDuration(duration, {"language": language, "spacer": spacer});
+        if (language === "shortBo") {
+            const match = result.match(/^(\d+)(.*)/);
+            if (match) {
+                const number = match[1]; // Leading digits, e.g., "5"
+                const unit = match[2];   // Remainder, e.g., "ཆུ་ཚོད་"
+                result = unit + number;  // Combine without space, e.g., "ཆུ་ཚོད་5"
+            }
+        }
+        return result;
     }
+    
 
     static object_equals(a, b) {
         // simple object equality assuming values are primitive. see here
@@ -1169,9 +1179,9 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
             ms: () => "ms",
         },
         shortBo: {
-            y: () => "ཕྱི་ལོ",
+            y: () => "ལོ་",
             mo: () => "ཟླ་",
-            w: () => "བདུན་ཕྲག་",
+            w: () => "བདུན་",
             d: () => "ཚེས་",
             h: () => "ཆུ་ཚོད་",
             m: () => "སྐར་མ་",
