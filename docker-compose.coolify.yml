@@ -22,16 +22,19 @@ services:
     command: >
       sh -c "python manage.py migrate sites &&
       python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    restart: unless-stopped
 
   db:
     image: "us-east1-docker.pkg.dev/development-205018/sefaria-public/sefaria-mongo:latest"
     ports:
       - "27017:27017"
+    restart: unless-stopped
 
   cache:
     image: "redis:latest"
     ports:
       - "6379:6379"
+    restart: unless-stopped
 
   postgres:
     image: "postgres:latest"
@@ -43,6 +46,7 @@ services:
       - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/sefaria_data
+    restart: unless-stopped
 
 volumes:
   mongo-data:
