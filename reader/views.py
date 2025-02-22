@@ -35,7 +35,6 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
-import sefaria.settings
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.text_reuqest_adapter import TextRequestAdapter
@@ -55,7 +54,7 @@ from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -1294,8 +1293,7 @@ def interface_language_redirect(request, language):
     next = request.GET.get("next")
     if not next or not is_safe_url(
         url=next,
-        host=request.get_host(),
-        allowed_hosts=set(sefaria.settings.ALLOWED_HOSTS)
+        allowed_hosts=set(ALLOWED_HOSTS)
     ):
         next = "/"
 
