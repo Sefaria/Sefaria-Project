@@ -8,7 +8,7 @@ services:
       context: .
       dockerfile: dev_docker/Dockerfile
     ports:
-      - "8000:8000"
+      - "8001:8000"  # Change the external port to 8001
     volumes:
       - .:/app
     depends_on:
