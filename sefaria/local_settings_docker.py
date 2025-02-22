@@ -50,7 +50,7 @@ SEARCH_URL = "http://localhost:9200"
 ################ These are things you can change! ###########################################################################
 SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0", os.getenv("ALLOWED_HOST", "localhost")]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0", "coolifydev.sefaria.org"]
 
 ADMINS = (
      ('Your Name', 'you@example.com'),
