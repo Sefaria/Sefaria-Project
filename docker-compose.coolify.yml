@@ -1,0 +1,49 @@
+version: '3'
+
+# This is a docker setup with the database preloaded
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: dev_docker/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - cache
+      - postgres
+    networks:
+      - default
+    environment:
+      - DOCKER=True
+    command: >
+      sh -c "python manage.py migrate sites &&
+      python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+
+  db:
+    image: "us-east1-docker.pkg.dev/development-205018/sefaria-public/sefaria-mongo:latest"
+    ports:
+      - "27017:27017"
+
+  cache:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: "postgres:latest"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: sefaria
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/sefaria_data
+
+volumes:
+  mongo-data:
+  postgres-data:
