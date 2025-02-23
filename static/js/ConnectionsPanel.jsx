@@ -294,6 +294,7 @@ class ConnectionsPanel extends Component {
               <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
           </div>
+
           {showConnectionSummary ?
             <ConnectionsPanelSection title="Related Texts">
               <ConnectionsSummary
@@ -1026,7 +1027,7 @@ AdvancedToolsList.propTypes = {
 
 const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
                        count = null, control = "interface", typeface = "system", alwaysShow = false,
-                       secondaryHe, secondaryEn, greyColor=false, blueBackground=false, experiment=false }) => {
+                       secondaryHe, secondaryEn, greyColor=false, highlighted=false, experiment=false }) => {
   const clickHandler = (e) => {
     e.preventDefault();
     gtag("event", "feature_clicked", {name: `tools_button_${en}`})
@@ -1047,7 +1048,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
   const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
   return (
     count == null || count > 0 || alwaysShow ?
-    <div className={classNames({toolsButtonContainer: 1, blue: blueBackground})}>
+    <div className={classNames({toolsButtonContainer: 1, highlighted: highlighted})}>
       <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
         {iconElem}
         <span className="toolsButtonText">
@@ -1069,7 +1070,7 @@ ToolsButton.propTypes = {
   count: PropTypes.number,
   onClick: PropTypes.func,
   greyColor: PropTypes.bool,
-  blueBackground: PropTypes.bool,
+  highlighted: PropTypes.bool,
   experiment: PropTypes.bool,
   secondaryEn: PropTypes.string,
   secondaryHe: PropTypes.string

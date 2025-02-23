@@ -44,7 +44,7 @@ class SeasonalTopic(models.Model):
     objects = SeasonalTopicManager()
 
     class Meta:
-        unique_together = ('topic', 'start_date')
+        unique_together = ('topic', 'start_date', 'lang')
         verbose_name = "Landing Page - Calendar"
         verbose_name_plural = "Landing Page - Calendar"
 
