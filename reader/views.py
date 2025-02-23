@@ -1117,7 +1117,7 @@ def sheet_crumbs(request, sheet=None):
         _crumb(3, f"/sheets/{sheet['id']}", _("Source Sheet"))
     ]
     return json.dumps({
-        "@context": "http://schema.org",
+        "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": breadcrumbJsonList
     })
@@ -1178,7 +1178,7 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
                 nextPosition += 1
 
     return json.dumps({
-        "@context": "http://schema.org",
+        "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": breadcrumbJsonList
     })
