@@ -5370,12 +5370,19 @@ h1.topic-landing-header {
   position: absolute;
   top: calc(100% - 128px);;
 }
+.singlePanel .topic-landing-seasonal .seasonal-bottom-section{
+  position: unset;
+  top: unset;
+}
 .topic-landing-temporal .display-date-message{
   color: var(--darkest-grey);
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
   line-height: 18px;
+}
+.singlePanel .topic-landing-temporal .display-date-message {
+  margin-top: 55px;
 }
 .topic-landing-temporal .display-date-message span {
   font-family: Roboto;
