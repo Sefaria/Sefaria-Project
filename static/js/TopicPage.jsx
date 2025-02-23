@@ -704,7 +704,7 @@ const TopicPage = ({
     const handleLangSelectInterfaceChange = (selection) => {
       if (selection === "source") {setLangPref("hebrew")}
       else if (selection === "translation") {setLangPref("english")}
-      else setLangPref(null);
+      else setLangPref("bilingual");
     }
 
     const getCurrentLang = () => {
