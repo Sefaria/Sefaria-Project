@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n sefaria_tags %}
+
+{% block title %}Texts Digitized by Pecha{% endblock %}
+
+{% block description %}{% endblock %}
+
+{% block content %}
+
+<div id="digitizedBySefaria" class="container doc static">
+    <div class="inner">
+
+        <h1>
+            <span class="int-en">Texts Digitized by Pecha</span>
+            <span class="int-he">དཔེ་ཆ་དྲ་བས་ཨང་བསྒྱུར་བྱས་པ།</span>
+        </h1>
+
+        <p>
+            <span class="int-en">Description coming soon ...</span>
+            <span class="int-he">Description coming soon ...</span>
+        </p>
+
+
+        <ul id="texts">
+            {% for text in texts %}
+                <li>
+                    {% if request.interfaceLang == "hebrew" %}
+                    
+                    <div>{{ text.title|he_ref_link }}</div>
+                    <div class='sub'>{{ text.heVersionTitle|default:text.versionTitle }} ({{ text.language|lang_code }})</div>
+
+                    {% else %}
+
+                    <div>{{ text.title|ref_link }}</div>
+                    <div class='sub'>{{ text.versionTitle }} ({{ text.language|lang_code }})</div>
+
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+
+    </div>
+</div>
+
+{% endblock %}

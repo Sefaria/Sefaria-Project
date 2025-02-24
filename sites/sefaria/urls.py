@@ -61,7 +61,7 @@ site_urlpatterns = [
     url(r'^enable_new_editor/?$', reader_views.enable_new_editor),
     url(r'^disable_new_editor/?$', reader_views.disable_new_editor),
     url(r'^metrics/?$', reader_views.metrics),
-    url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
+    url(r'^digitized-by-pecha/?$', reader_views.digitized_by_sefaria),
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^\.well-known/apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^\.well-known/assetlinks.json/?$', reader_views.android_asset_links_json),

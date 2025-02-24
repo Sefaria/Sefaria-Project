@@ -4,7 +4,7 @@ SITE_SETTINGS = {
 	"TORAH_SPECIFIC": True,
 	"SITE_NAME": {
 		"en": "Pecha",
-		"he": "དཔེ་ཆ།"
+		"he": "Pecha",
 	},
 	"LIBRARY_NAME": {
 		"en": "The Pecha Library",
