@@ -60,7 +60,7 @@ spec:
     {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
-    - host: sheets.{{ tpl .host $ | quote }}
+    - host: sheets.{{ tpl .host $ }}
       http:
         paths:
           - pathType: ImplementationSpecific
@@ -79,7 +79,7 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
   annotations:
     kubernetes.io/ingress.class: nginx-ingress
-    nginx.ingress.kubernetes.io/rewrite-target: "sheets.{{ first .Values.ingress.hosts }}/$2"
+    nginx.ingress.kubernetes.io/rewrite-target: "sheets.{{ tpl ( first .Values.ingress.hosts ).host . }}/$2"
   {{- if .Values.instrumentation.enabled }}
     nginx.ingress.kubernetes.io/enable-opentracing: "true"
     nginx.ingress.kubernetes.io/jaeger-service-name: {{ .Values.deployEnv }}-ingress
