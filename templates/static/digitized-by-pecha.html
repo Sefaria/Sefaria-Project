@@ -20,25 +20,6 @@
             <span class="int-he">Description coming soon ...</span>
         </p>
 
-
-        <ul id="texts">
-            {% for text in texts %}
-                <li>
-                    {% if request.interfaceLang == "hebrew" %}
-                    
-                    <div>{{ text.title|he_ref_link }}</div>
-                    <div class='sub'>{{ text.heVersionTitle|default:text.versionTitle }} ({{ text.language|lang_code }})</div>
-
-                    {% else %}
-
-                    <div>{{ text.title|ref_link }}</div>
-                    <div class='sub'>{{ text.versionTitle }} ({{ text.language|lang_code }})</div>
-
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-
     </div>
 </div>
 
