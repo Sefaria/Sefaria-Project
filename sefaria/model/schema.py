@@ -2470,7 +2470,7 @@ class AddressFolio(AddressType):
             reg += r"\d+[abcdᵃᵇᶜᵈ]?)"
         elif lang == "he":
             # todo: How do these references look in Hebrew?
-            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
+            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0-\u05d3])?)'''
 
         return reg
 
@@ -2506,7 +2506,7 @@ class AddressFolio(AddressType):
             # check for each amud letter in reverse order (dalet, gimmel, bet, alef)
             # if the amud matches that amud letter, subtract the appropriate offset
             for amud_offset, amud_letter in enumerate(("\u05d3", "\u05d2", "\u05d1", "\u05d0")):
-                if re.search(fr"^(?::|,?\s?(?:{amud_letter}|\\u05e2(?:''|\"|\\u05f4){amud_letter}))$", rest):
+                if re.search(fr"^(?::|,?\s?(?:{amud_letter}|ע(?:''|\"|״){amud_letter}))$", rest):
                     return daf - amud_offset
             # if no match, guess it's amud alef
             logger.warn(f"Couldn't parse folio amud from {s}. Assuming it's amud alef.")
