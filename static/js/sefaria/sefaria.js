@@ -2900,10 +2900,6 @@ _media: {},
           tabs.sources = {refMap: {}, shouldDisplay: true, refs: []};
       }
       tabs.sources.title = {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')};
-      // Filter out refs in tabs.sources.refs that are already in tabs["notable-sources"].refs
-     tabs.sources.refs = tabs.sources.refs.filter(sourceRef => {
-     return !tabs["notable-sources"].refs.some(notableRef => notableRef.ref === sourceRef.ref);
-     });
       //turn "sources" tab into 'super-set', containing all refs from all tabs:
       const allRefs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
       tabs.sources.refs = allRefs;
