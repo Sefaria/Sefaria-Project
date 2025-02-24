@@ -107,7 +107,7 @@
     <link rel="stylesheet" href="{%  static 'css/unbounce-banner.css' %}">
 
     {% block static_css %}
-    {% if not html %}
+    {% if renderStatic %}
     <link rel="stylesheet" href="{%  static 'css/static.css' %}">
     {% endif %}
     {% endblock %}
@@ -232,7 +232,7 @@
 
       var DJANGO_VARS = {
         props:         {{ propsJSON|default:"null" }},
-        inReaderApp:   {% if html %}true{% else %}false{% endif %},
+        inReaderApp:   {% if renderStatic %}false{% else %}true{% endif %},
       };
 
       {% if STRAPI_LOCATION and STRAPI_PORT %}
