@@ -23,7 +23,7 @@ function VersionInformation({currentRef, version}) {
               <span className="versionDetailsLabel">
                 {`${Sefaria._("text.version.information.digitization")}: `}
               </span>
-              <a className="versionDetailsLink" href="/digitized-by-sefaria" target="_blank">
+              <a className="versionDetailsLink" href="/digitized-by-pecha" target="_blank">
                 {Sefaria._("Pecha")}
               </a>
             </div>

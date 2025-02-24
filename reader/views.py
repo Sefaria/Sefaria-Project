@@ -4264,7 +4264,7 @@ def digitized_by_sefaria(request):
     Metrics page. Shows graphs of core metrics.
     """
     texts = VersionSet({"digitizedBySefaria": True}, sort=[["title", 1]])
-    return render_template(request, 'static/digitized-by-sefaria.html', None, {
+    return render_template(request, 'static/digitized-by-pecha.html', None, {
         "texts": texts,
     })
 
