@@ -11866,14 +11866,15 @@ cursor: pointer;
   gap: 5px;
   align-items: center;
 }
+
 .genericBanner {
-  margin-top: revert;
+  margin-block: revert;
 }
 
 .interface-hebrew .editorToggleHeader, .interface-hebrew .genericBanner {
   direction: rtl;
 }
-.editorToggleHeader .button {
+.editorToggleHeader .button, .genericBanner .button {
   white-space: nowrap;
   padding: 5px 8px;
   height: 30px;
