@@ -395,6 +395,16 @@ body.hasBannerMessage #s2.headerOnly {
 .interface-hebrew #bannerMessage {
   direction: rtl;
 }
+.genericBanner #bannerMessageClose {
+  font-size: 40px;
+  opacity: revert;
+  right: 30px;
+  top: revert;
+}
+.interface-hebrew .genericBanner #bannerMessageClose {
+  right: auto;
+  left: 30px;
+}
 #bannerMessageClose {
   position: absolute;
   top: -3px;
@@ -9254,7 +9264,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle {
   position: fixed;
-  top: 150px;
+  top: 200px;
   right: 30px;
   height: 30px;
   width: 30px;
@@ -11841,7 +11851,7 @@ cursor: pointer;
 #staticContentWrapper .editorToggleHeader {
   margin: revert;
 }
-.editorToggleHeader {
+.editorToggleHeader, .genericBanner {
   padding-inline: 10%;
   background-color: var(--sefaria-blue);
   color: white;
@@ -11851,11 +11861,16 @@ cursor: pointer;
   margin-bottom: 80px;
   display: flex;
   justify-content: center;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   gap: 5px;
   align-items: center;
 }
+.genericBanner {
+  margin-top: revert;
+}
 
-.interface-hebrew .editorToggleHeader {
+.interface-hebrew .editorToggleHeader, .interface-hebrew .genericBanner {
   direction: rtl;
 }
 .editorToggleHeader .button {
