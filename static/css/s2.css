@@ -8660,7 +8660,14 @@ a .button:hover {
   width: -moz-fit-content;
   width: fit-content;
 }
-
+.button.small.publish {
+  color: #666666;
+  background-color: white;
+  font-weight: 500;
+  min-height: 31px;
+  height: 31px;
+  padding: 0 10px;
+}
 .headerWithAdminButtonsContainer{
   display: flex;
   justify-content: space-between;
@@ -9104,6 +9111,7 @@ a.sheetAuthorName:hover {
   flex: 1 0 95%;
   text-align: initial;
 }
+
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
   color: #999;
@@ -9123,13 +9131,23 @@ a.sheetAuthorName:hover {
 }
 .publishBox {
   text-align: start;
-  background-color: #EDEDEC;
   border-radius: 6px;
   padding: 10px 20px;
   max-width: 540px;
   margin: 20px -20px;
   font-size: 16px;
   color: #666;
+}
+.publishBox .publishLabel {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  color: var(--dark-grey);
+  margin-bottom: 10px;
 }
 
 div.transparentBackground.publishBox {
@@ -9151,6 +9169,38 @@ div.transparentBackground.publishBox {
 .publishBox .error .react-tags,
 .publishBox textarea.error {
   border: 1px solid red;
+}
+.sheetMetaDataBox .publishBox .react-tags__selected {
+  display: inline;
+}
+.sheetMetaDataBox .publishBox .react-tags__selected-tag {
+  display: inline-block;
+  box-sizing: border-box;
+  margin: 0 6px 6px 0;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #000;
+  /* match the font styles */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+.sheetMetaDataBox .publishBox textarea, .sheetMetaDataBox .publishBox input, .sheetMetaDataBox .publishBox .react-tags {
+  border-radius: 6px;
+  border: none;
+  width: 98%;
+  padding: 7px;
+  background: #EDEDEC;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  margin-bottom: 10px;
 }
 .publishBox p strong {
   color: black;
@@ -9174,26 +9224,6 @@ div.transparentBackground.publishBox {
 }
 .publishBox .smallText {
   color: #666666
-}
-.publishBox textarea {
-  width: 100%;
-  height: 100px;
-  resize: none;
-  box-sizing: border-box;
-  font-size: 16px;
-  color: #000;
-  border: none;
-  border-radius: 6px;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  font-style: normal;
-  padding: 10px 10px 4px 10px;
-  margin-bottom: 0px;
-}
-.publishBox textarea::placeholder {
-  font-size: 16px;
-  color: #666;
-  font-style: normal;
-  font-family: var(--english-sans-serif-font-family);
 }
 .publishBox .react-tags {
   position: relative;
@@ -11090,6 +11120,8 @@ span.purim-emoji img{
 }
 .sheetContent .spacer:only-of-type.empty {
   line-height: inherit;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .sheetContent .spacer:only-of-type.empty:before {
@@ -14657,8 +14689,8 @@ span.ref-link-color-3 {color: blue}
 }
 .sheetsInPanel .headerDropdownMenu {
   min-width: 50%;
-  margin-top: 10px;
-  color: #666;
+  margin-top: 7px;
+  color: var(--dark-grey);
   cursor: pointer;
   position: relative;
   -webkit-margin-start: 20px;

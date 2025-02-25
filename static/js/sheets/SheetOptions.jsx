@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import {
   DropdownMenu,
-  DropdownMenuItem,
   DropdownMenuItemWithCallback,
   DropdownMenuItemWithIcon,
   DropdownMenuSeparator
 } from "../common/DropdownMenu";
 import { SaveButtonWithText } from "../Misc";
 import Sefaria from "../sefaria/sefaria";
+import Button from "../common/Button";
 import { SignUpModalKind } from "../sefaria/signupModalContent";
-import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal } from "./SheetModals";
+import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal, PublishModal } from "./SheetModals";
 
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
@@ -25,7 +25,7 @@ const getExportingStatus = () => {
   return urlHashObject === "exportToDrive";
 }
 
-const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, authorUrl, handleCollectionsChange}) => {
+const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, editable, postSheet, status, handleCollectionsChange}) => {
   // `editable` -- whether the sheet belongs to the current user
   const [sharingMode, setSharingMode] = useState(false); // Share Modal open or closed
   const [collectionsMode, setCollectionsMode] = useState(false);  // Collections Modal open or closed
@@ -33,6 +33,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
   const [savingMode, setSavingMode] = useState(false);
   const [exportingMode, setExportingMode] = useState(getExportingStatus());
   const [deletingMode, setDeletingMode] = useState(false);
+  const [publishingMode, setPublishingMode] = useState(false);
   const historyObjectForSheet = modifyHistoryObjectForSheetOptions(historyObject);
 
   const getSignUpModalKind = () => {
@@ -87,7 +88,16 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
   else if (deletingMode) {
     return <DeleteModal close={() => setDeletingMode(false)} sheetID={sheetID} authorUrl={authorUrl}/>;
   }
+  else if (publishingMode) {
+    return <PublishModal close={() => setPublishingMode(false)}
+                         sheetID={sheetID}
+                         status={status}
+                         postSheet={postSheet}/>;
+  }
+  const publishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
   return (
+        <>
+        {editable && status === 'unlisted' && publishModalButton}
         <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
           <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
             <SaveButtonWithText historyObject={historyObjectForSheet}/>
@@ -104,6 +114,13 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
           <DropdownMenuItemWithCallback onClick={() => setSharingMode(true)}>
             <ShareButton/>
           </DropdownMenuItemWithCallback>
+          {editable && status === 'public' && <>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItemWithCallback onClick={() => setPublishingMode(true)}>
+                                                  <UnpublishButton/>
+                                                </DropdownMenuItemWithCallback>
+                                              </>
+          }
           {editable && <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItemWithCallback onClick={handleDelete}>
@@ -112,6 +129,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable, auth
                       </>
           }
         </DropdownMenu>
+        </>
     );
 }
 
@@ -129,6 +147,14 @@ const DeleteButton = () => {
               textHe={"מחיקת דף מקורות"}
               descEn={""}
               descHe={""}/>
+}
+
+const UnpublishButton = () => {
+  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"}
+                                   textEn={'Unpublish'}
+                                   textHe={""}
+                                   descEn={""}
+                                   descHe={""}/>
 }
 
 const CollectionsButton = ({editable}) => {
