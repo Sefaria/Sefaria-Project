@@ -96,12 +96,13 @@ const renderItems = (openTopic, suggestions, highlightedIndex, getItemProps) => 
 
 
 
-const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSuggestion, getInputProps) =>{
+const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSuggestion, getInputProps, setInputValue, suggestions) =>{
     const { onKeyDown, ...otherInputDownshiftProps } = getInputProps();
     const onKeyDownOverride = (event) => {
         onKeyDown(event);
         if (event.key === 'Enter') {
-            highlightedIndex >= 0 && openTopic(highlightedSuggestion.slug)
+            if (highlightedIndex >= 0) {openTopic(highlightedSuggestion.slug)}
+            else if (suggestions.length > 0) {openTopic(suggestions[0].slug)}
         }
     };
     const numOfTopicsString = numOfTopics.toLocaleString()
