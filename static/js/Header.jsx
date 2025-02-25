@@ -81,12 +81,10 @@ const LoggedInDropdown = () => {
   }
 
   return (
-      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<ProfilePic
-          url={Sefaria.profile_pic_url}
-          name={Sefaria.full_name}
-          len={25}
-      />
-      }>
+      <DropdownMenu positioningClass="headerDropdownMenu" 
+                    buttonComponent={<ProfilePic url={Sefaria.profile_pic_url}
+                                                 name={Sefaria.full_name}
+                                                 len={25}/>}>
           <div className='dropdownLinks-options'>
               <DropdownMenuItem preventClose={true}>
                   <strong>{Sefaria.full_name}</strong>
