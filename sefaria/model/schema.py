@@ -2507,12 +2507,11 @@ class AddressFolio(AddressType):
             # note: amud_dots for gimmel and dalet are a best guess at what might be used. should be refined as real examples are found.
             # if the amud matches that amud letter, subtract the appropriate offset
             quotes = "(?:''|\"|״)"
-            for amud_offset, (amud_letter, amud_dots) in enumerate((("א", "."), ("ב", ":"), ("ג", "∵"), ("ד", "⁘"))):
+            for amud_offset, (amud_letter, amud_dots) in enumerate((("ד", "⁘"), ("ג", "∵"), ("ב", ":"), ("א", "."))):
                 if re.search(fr"^(?:{amud_dots}|,?\s?(?:{amud_letter}|ע{quotes}{amud_letter}))$", rest):
                     return daf - amud_offset
-            # if no match, guess it's amud alef
-            logger.warn(f"Couldn't parse folio amud from {s}. Assuming it's amud alef.")
-            return daf - 3
+            # no match
+            raise ValueError(f"Couldn't parse Folio address: {s} for lang {lang}")
 
 
     @classmethod
