@@ -293,10 +293,13 @@ Sefaria = extend(Sefaria, {
 
   },
   zoomOutRef: function(ref, zoom=1) {
-    // go up `zoom` levels in the ref
-    // for example, if ref == "Genesis 2:3" and zoom == 2, this returns "Genesis"
-    const humanRefForm = Sefaria.humanRef(ref);
-    return humanRefForm.split(":").slice(0, -zoom).join(":");
+    // go up `zoom` levels in the ref's sections and toSections
+    // for example, if ref == "Ramban on Genesis, Introduction 2" and zoom == 1, this returns "Ramabn on Genesis, Introduction"
+    // if ref == "Ramban on Genesis, Introduction 2" and zoom == 2, this returns "Ramban on Genesis, Introduction" because we're only zooming out on the ref's sections/toSections
+    const pRef = Sefaria.util.clone(Sefaria.parseRef(ref));
+    pRef.sections = pRef.sections.slice(0, -zoom);
+    pRef.toSections = pRef.toSections.slice(0, -zoom);
+    return Sefaria.makeRef(pRef);
   },
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
