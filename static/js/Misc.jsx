@@ -2064,7 +2064,11 @@ const InterruptingMessage = ({
 };
 InterruptingMessage.displayName = "InterruptingMessage";
 
-const GenericBanner = ({bannerText, buttonLinkURL, buttonLinkText, cookieName, expires}) => {
+const GenericBanner = ({bannerMessage, buttonLinkURL, buttonLinkText, cookieName, expires}) => {
+  /*
+    * A generic banner that displays a message, a button, and an "X" to close the banner.
+    * Clicking on the button or closing the banner sets a cookie based on `cookieName` so that the banner won't appear again.
+   */
   const [showNotification, toggleShowNotification] = useState(Sefaria._inBrowser && !document.cookie.includes(cookieName));
   const setCookie = () => {
     $.cookie(cookieName, 1, {path: "/", expires});
@@ -2074,7 +2078,7 @@ const GenericBanner = ({bannerText, buttonLinkURL, buttonLinkText, cookieName, e
     return null;
   } else {
     return <div className="genericBanner">
-      { bannerText }
+      { bannerMessage }
       { <GenericBannerButton url={buttonLinkURL} text={buttonLinkText} onClick={setCookie}/> }
       <div
           id="bannerMessageClose"
@@ -2100,9 +2104,9 @@ const GenericBannerButton = ({text, url, onClick}) => {
 
 const LearnAboutNewEditorBanner = () => {
   const linkURL = Sefaria._v({en: "/sheets/393695", he: "/sheets/399333"});
-  const bannerText = <InterfaceText text={{en: "Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface.",
+  const bannerMessage = <InterfaceText text={{en: "Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface.",
                                     he: "תחדשו! הנכם משתמשים כעת בתוכנה העדכנית לעריכת דפי מקורות בספריא. למדו עוד על השימוש בתוכנה בעזרת המדריך המלא למשתמשים חדשים."}}/>;
-  return <GenericBanner bannerText={bannerText}
+  return <GenericBanner bannerMessage={bannerMessage}
                         expires={20*365}
                         buttonLinkText="Get Started"
                         buttonLinkURL={linkURL}
