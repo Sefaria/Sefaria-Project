@@ -22,6 +22,7 @@ import {SourceEditor} from "./SourceEditor";
 import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import TrackG4 from "./sefaria/trackG4";
 import { languages } from 'humanize-duration';
 import { useTranslation } from 'react-i18next';
@@ -3040,6 +3041,28 @@ class CookiesNotification extends Component {
   }
 }
 
+const VersionStatusLong = ({version, markdownString}) => {
+  console.log("data : ", "section1-"+version )
+  return (
+    <div className="accordion" >
+        <div className="accordion-item" >
+            <input type="checkbox" id={"section1-"+version.versionTitle} className="accordion-input"></input>
+            <label htmlFor={"section1-"+version.versionTitle} className="accordion-label">
+                Other details
+                <i className="fa fa-angle-down" aria-hidden="true"></i>
+            </label>
+            <div className="accordion-content">
+            <ReactMarkdown className={'reactMarkdown'} remarkPlugins={[remarkGfm]} children={markdownString} ></ReactMarkdown>
+            </div>
+        </div>
+    </div>
+  )
+}
+
+VersionStatusLong.propTypes = {
+  version: PropTypes.object.isRequired,
+  markdownString: PropTypes.string.isRequired
+}
 
 const CommunityPagePreviewControls = ({date}) => {
 
@@ -3523,6 +3546,7 @@ const AppStoreButton = ({ platform, href, altText }) => {
 
 export {
   ContentText,
+  VersionStatusLong,
   AppStoreButton,
   CategoryHeader,
   DropdownMenu,
