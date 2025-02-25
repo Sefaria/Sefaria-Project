@@ -179,9 +179,14 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
       </>
     }
   }
+  const handleClose = () => {
+    if (!currentlyExporting()) {
+      close();
+    }
+  }
   return <GenericSheetModal title={<InterfaceText>Export</InterfaceText>}
                             message={getExportMessage()}
-                            close={close}/>;
+                            close={handleClose}/>;
 }
 
 const DeleteModal = ({close, sheetID, authorUrl}) => {
@@ -190,7 +195,7 @@ const DeleteModal = ({close, sheetID, authorUrl}) => {
       window.location.href = authorUrl;
     });
   });
-  return <GenericSheetModal title={<InterfaceText>Deleting...</InterfaceText>} close={close}/>;
+  return <GenericSheetModal title={<InterfaceText>Deleting...</InterfaceText>} close={() => {}}/>; // don't allow user to close modal while deleting
 }
 
 const PublishModal = ({close, status, sheetID, postSheet}) => {
