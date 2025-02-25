@@ -568,7 +568,7 @@ class SchemaNode extends Component {
   shouldNodeCollapse(node) {
     // Determine 'collapsed' state for node.
     // A node should be collapsed if it is not the currently visible node and if it is not a default node.
-    const fullNodeRef = this.props.refPath + (node.default ? "" : ", " + node.title);
+    const fullNodeRef = this.props.refPath + (node.default ? "" : `, ${node.title}`);
     const currentlyVisible = Sefaria.refContains(fullNodeRef, this.props.currentlyVisibleRef);
     return !currentlyVisible && !node.default && !node.includeSections;
   }
@@ -576,10 +576,10 @@ class SchemaNode extends Component {
     // Determine 'collapsed' state for each node in schema.
     // If no children or topLevel, return [] which is equivalent to no nodes collapsed.
     // Otherwise, return array of booleans based on call to `shouldNodeCollapse` for each node.
-    if ("nodes" in schema && !topLevel && !disableSubCollapse) {
-      return schema.nodes.map(this.shouldNodeCollapse);
-    } else {
+    if (topLevel || disableSubCollapse || !("nodes" in schema)) {
       return [];
+    } else {
+      return schema.nodes.map(this.shouldNodeCollapse);
     }
   }
   toggleCollapse(i) {
@@ -722,7 +722,7 @@ class JaggedArrayNode extends Component {
     const offset = this.props.schema?.index_offsets_by_depth?.['1'] || 0;
     if ("toc_zoom" in this.props.schema) {
       const zoom = this.props.schema.toc_zoom - 1;
-      const zoomedOutRef = this.props.currentlyVisibleSectionRef && Sefaria.zoomOutRef(this.props.currentlyVisibleSectionRef, zoom);
+      const currentZoomedOutRef = this.props.currentlyVisibleSectionRef && Sefaria.zoomOutRef(this.props.currentlyVisibleSectionRef, zoom);
       return (<JaggedArrayNodeSection
                 depth={this.props.schema.depth - zoom}
                 sectionNames={this.props.schema.sectionNames.slice(0, -zoom)}
@@ -730,7 +730,7 @@ class JaggedArrayNode extends Component {
                 contentCounts={this.props.schema.content_counts}
                 refPath={this.props.refPath}
                 currentlyVisibleRef={this.props.currentlyVisibleRef}
-                currentlyVisibleSectionRef={zoomedOutRef}
+                currentlyVisibleSectionRef={currentZoomedOutRef}
                 offset={offset}
               />);
     }
