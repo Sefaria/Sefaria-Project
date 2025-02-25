@@ -2504,9 +2504,11 @@ class AddressFolio(AddressType):
             rest = s[len(num):]
 
             # check for each amud letter in reverse order (dalet, gimmel, bet, alef)
+            # note: amud_dots for gimmel and dalet are a best guess at what might be used. should be refined as real examples are found.
             # if the amud matches that amud letter, subtract the appropriate offset
-            for amud_offset, amud_letter in enumerate(("\u05d3", "\u05d2", "\u05d1", "\u05d0")):
-                if re.search(fr"^(?::|,?\s?(?:{amud_letter}|ע(?:''|\"|״){amud_letter}))$", rest):
+            quotes = "(?:''|\"|״)"
+            for amud_offset, (amud_letter, amud_dots) in enumerate((("א", "."), ("ב", ":"), ("ג", "∵"), ("ד", "⁘"))):
+                if re.search(fr"^(?:{amud_dots}|,?\s?(?:{amud_letter}|ע{quotes}{amud_letter}))$", rest):
                     return daf - amud_offset
             # if no match, guess it's amud alef
             logger.warn(f"Couldn't parse folio amud from {s}. Assuming it's amud alef.")
