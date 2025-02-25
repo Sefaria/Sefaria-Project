@@ -39,7 +39,7 @@ testLanguageConfigs.forEach(({testLanguage, interfaceLanguage}) => {
     test(`Search Functionality from Banner with PageManager - ${testLanguage}`, async({ context }) => {
         const page = await goToPageWithLang(context,'/texts', interfaceLanguage)
         
-        const pm = new PageManager(page, LANGUAGES.EN)
+        const pm = new PageManager(page, interfaceLanguage)
 
         if(interfaceLanguage == LANGUAGES.HE){
             await pm.onSearchPage().searchFor('אהבה')
