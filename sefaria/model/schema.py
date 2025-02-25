@@ -2469,8 +2469,8 @@ class AddressFolio(AddressType):
         if lang == "en":
             reg += r"\d+[abcdᵃᵇᶜᵈ]?)"
         elif lang == "he":
-            # todo: How do these references look in Hebrew?
-            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0-\u05d3])?)'''
+            # either dots for amud (add dots from amud gimmel and dalet) or ayin followed by some type of quote followed by alef, bet, gimmel, or dalet
+            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:ע(?:"|״|''))?[א-ד])?)'''
 
         return reg
 
