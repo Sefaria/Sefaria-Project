@@ -2128,7 +2128,7 @@ class AddressType(object):
                 if addr.is_special_case(curr_s):
                     section_str = curr_s
                 else:
-                    strict = SuperClass not in {AddressAmud, AddressTalmud, AddressFolio}  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
+                    strict = SuperClass not in {AddressAmud, AddressTalmud, AddressFolio}  # HACK: these address types don't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
                     regex_str = addr.regex(lang, strict=strict, group_id='section', with_roman_numerals=True) + "$"  # must match entire string
                     if regex_str is None: continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
