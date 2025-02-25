@@ -50,7 +50,8 @@ SEARCH_URL = "http://localhost:9200"
 ################ These are things you can change! ###########################################################################
 SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0", "coolifydev.sefaria.org"]
+DYNAMIC_HOSTS = os.getenv("DYNAMIC_HOSTS", "").split(",")
+ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"] + DYNAMIC_HOSTS
 
 ADMINS = (
      ('Your Name', 'you@example.com'),
@@ -115,7 +116,6 @@ SITE_PACKAGE = "sites.sefaria"
 
 ################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
