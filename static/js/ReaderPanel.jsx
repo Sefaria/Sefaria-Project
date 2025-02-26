@@ -41,6 +41,7 @@ import {
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import DropdownMenu from "./common/DropdownMenu";
 
@@ -969,14 +970,16 @@ class ReaderPanel extends Component {
           />
         );
       } else {
-        menu = (
-          <TopicsPage
+        menu = Sefaria.is_moderator ? (
+           <TopicsLandingPage openTopic={this.props.openTopic}/>
+        ) :
+            <TopicsPage
             key={"TopicsPage"}
             setNavTopic={this.setNavigationTopic}
             multiPanel={this.props.multiPanel}
             initialWidth={this.state.width}
           />
-        );
+        ;
       }
 
     } else if (this.state.menuOpen === "allTopics") {
