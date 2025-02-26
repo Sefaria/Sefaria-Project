@@ -55,7 +55,25 @@ export const VersionsTextList = ({
         return <LoadingMessage/>;
     }
 
-    const {languageFamilyName, versionTitle, language, isPrimary} = getVersion()
+    const recentFilters = <RecentFilterSet
+        srefs={srefs}
+        asHeader={false}
+        filter={vFilter}
+        recentFilters={recentVFilters}
+        setFilter={setFilter}
+    />
+
+    const version = getVersion();
+    if (!version) {
+        // If no version is found, display the recent filters and return
+        // TODO: handle this case better
+        return (
+        <div className="versionsTextList">
+            {recentFilters}
+        </div>
+        ) 
+    }
+    const {languageFamilyName, versionTitle, language, isPrimary} = version;
     const pseudoLanguage = (isPrimary) ? 'he' : 'en';
     const currSelectedVersions = {[pseudoLanguage]: {versionTitle, languageFamilyName}};
     const handleRangeClick = (sref) => {
@@ -64,13 +82,7 @@ export const VersionsTextList = ({
 
     return (
         <div className="versionsTextList">
-            <RecentFilterSet
-                srefs={srefs}
-                asHeader={false}
-                filter={vFilter}
-                recentFilters={recentVFilters}
-                setFilter={setFilter}
-            />
+            {recentFilters}
             <TextRange
                 sref={Sefaria.humanRef(srefs)}
                 currVersions={currSelectedVersions}
