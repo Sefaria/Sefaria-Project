@@ -7090,7 +7090,7 @@ But not to use a display block directive that might break continuous mode for ot
 
 .segment sup.footnote-marker,
 .segment sup.endFootnote {
-    color: var(--inline-link-red);
+    color: var(--select-blue);
 }
 
 .segment .he sup {
