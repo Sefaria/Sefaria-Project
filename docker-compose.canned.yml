@@ -1,5 +1,7 @@
 version: '3'
 
+# This is a docker setup with the database preloaded
+
 services:
   web:
     build:
@@ -13,7 +15,6 @@ services:
       - db
       - cache
       - postgres
-      # - es8
     networks:
       - default
     environment:
@@ -23,11 +24,9 @@ services:
       python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
 
   db:
-    image: "mongo:4.4"
+    image: "us-east1-docker.pkg.dev/development-205018/sefaria-public/sefaria-mongo:latest"
     ports:
       - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
 
   cache:
     image: "redis:latest"
@@ -42,22 +41,6 @@ services:
     command: sh dev_docker/node_entrypoint.sh
     ports:
       - "3000:3000"
-
-  # es8:
-  #   image: "elasticsearch:8.8.2"
-  #   ports:
-  #     - "9200:9200"
-  #     - "9300:9300"
-  #   environment:
-  #     - discovery.type=single-node
-  #     - xpack.security.http.ssl.enabled=false
-  #     - xpack.security.enabled=false
-  #     - xpack.security.enrollment.enabled=false
-  #   command: >
-  #     sh -c "bin/elasticsearch-plugin install --batch analysis-icu &&
-  #           bin/elasticsearch-plugin install --batch https://github.com/Sefaria/Sefaria-ElasticSearch/releases/download/v1.1.6/sefaria-naive-lemmatizer-v1.1.6.zip &&
-  #           bin/elasticsearch-plugin install --batch https://github.com/Sefaria/Sefaria-ElasticSearch/releases/download/v1.1.6/sefaria-naive-lemmatizer-less-prefixes-v1.1.6.zip &&
-  #           bin/elasticsearch"
 
   postgres:
     image: "postgres:latest"
