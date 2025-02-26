@@ -301,17 +301,14 @@ CACHES = {
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
-try:
-    if os.getenv("CI_RUN"):
-        from sefaria.local_settings_ci import *
-    elif os.getenv("DOCKER"):
-        from sefaria.local_settings_docker import *
-    elif os.getenv("COOLIFY"):
-        from sefaria.local_settings_coolify import *
-    else:
-        from sefaria.local_settings import *
-except ImportError:
-    from sefaria.local_settings_example import *
+if os.getenv("CI_RUN"):
+    from sefaria.local_settings_ci import *
+elif os.getenv("DOCKER"):
+    from sefaria.local_settings_docker import *
+elif os.getenv("COOLIFY"):
+    from sefaria.local_settings_coolify import *
+else:
+    from sefaria.local_settings import *
 
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
