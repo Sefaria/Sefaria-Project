@@ -12,22 +12,13 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - db
       - cache
       - postgres
     networks:
       - default
-    environment:
-      - DOCKER=True
     command: >
       sh -c "python manage.py migrate sites &&
       python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
-    restart: unless-stopped
-
-  db:
-    image: "us-east1-docker.pkg.dev/development-205018/sefaria-public/sefaria-mongo:latest"
-    ports:
-      - "27017:27017"
     restart: unless-stopped
 
   cache:
@@ -49,5 +40,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  mongo-data:
   postgres-data:

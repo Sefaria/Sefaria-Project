@@ -306,6 +306,8 @@ try:
         from sefaria.local_settings_ci import *
     elif os.getenv("DOCKER"):
         from sefaria.local_settings_docker import *
+    elif os.getenv("COOLIFY"):
+        from sefaria.local_settings_coolify import *
     else:
         from sefaria.local_settings import *
 except ImportError:
