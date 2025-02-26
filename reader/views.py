@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
+
+from django.utils.http import is_safe_url
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
@@ -52,12 +54,12 @@ from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError, ComplexBookLevelRefError
-from sefaria.system.cache import django_cache, get_shared_cache_elem
+from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -125,7 +127,7 @@ def render_react_component(component, props):
     `props` may either be JSON (to save reencoding) or a dictionary.
     Returns HTML.
     """
-    if not USE_NODE or get_shared_cache_elem("regenerating"):
+    if not USE_NODE:
         return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
     propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
@@ -1289,8 +1291,12 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
-    next = request.GET.get("next", "/")
-    next = "/" if next == "undefined" else next
+    next = request.GET.get("next")
+    if not next or not is_safe_url(
+        url=next,
+        allowed_hosts=set(ALLOWED_HOSTS)
+    ):
+        next = "/"
 
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
