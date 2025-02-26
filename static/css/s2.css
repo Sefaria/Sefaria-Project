@@ -5301,12 +5301,6 @@ h1.topic-landing-header {
   flex-direction: column;
 }
 
-.topic-landing-parasha{
-
-}
-.topic-landing-seasonal{
-
-}
 .topic-landing-parasha .browse-all-parashot-prompt{
   color: var(--Commentary-Blue, #4B71B7);
   margin-top: 14px
@@ -5327,6 +5321,12 @@ h1.topic-landing-header {
     padding-inline-start: 67px;
     flex: 1;
     position: relative;
+}
+.topic-landing-temporal > .topic-landing-seasonal .cardDescription {
+  display: -webkit-box;
+  -webkit-line-clamp: 9;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .singlePanel .topic-landing-temporal > .topic-landing-parasha {
     border-bottom: 1px solid #ccc;
