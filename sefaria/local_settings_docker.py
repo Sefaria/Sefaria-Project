@@ -50,8 +50,7 @@ SEARCH_URL = "http://localhost:9200"
 ################ These are things you can change! ###########################################################################
 SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
-DYNAMIC_HOSTS = os.getenv("DYNAMIC_HOSTS", "").split(",")
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"] + DYNAMIC_HOSTS
+ALLOWED_HOSTS = ["*"]
 
 ADMINS = (
      ('Your Name', 'you@example.com'),
