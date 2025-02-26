@@ -804,7 +804,7 @@ Sefaria = extend(Sefaria, {
           return result;
       }
   },
-  apiRequestWithBody: async function(url, urlParams, payload, method="POST") {
+  apiRequestWithBody: async function(url, urlParams, payload, method="POST", convertResponseToJSON=true) {
     /**
      * Generic function for performing an API request with a payload. Payload and urlParams are optional and will not be used if falsy.
      */
@@ -822,17 +822,18 @@ Sefaria = extend(Sefaria, {
         credentials: 'same-origin',
         body: payload && JSON.stringify(payload)
     });
-
-    if (!response.ok) {
-        throw new Error("Error posting to API");
+    if (convertResponseToJSON) {
+        if (!response.ok) {
+            throw new Error("Error posting to API");
+        }
+        const json = await response.json();
+        if (json.error) {
+            throw new Error(json.error);
+        }
+        return json;
+    } else {
+        return response;
     }
-
-    const json = await response.json();
-    if (json.error) {
-        throw new Error(json.error);
-    }
-
-    return json;
 },
   subscribeSefariaAndSteinsaltzNewsletter: async function(firstName, lastName, email, educatorCheck) {
       const responses = await Promise.all([
@@ -1486,10 +1487,6 @@ Sefaria = extend(Sefaria, {
               Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
     });
   },
-  _filterSheetFromLinks: function(links, sheetID) {
-    links = links.filter(link => !link.isSheet || link.id !== sheetID );
-    return links;
-  },
   _dedupeLinks: function(links) {
     const key = (link) => [link.anchorRef, link.sourceRef, link.type].join("|");
     let dedupedLinks = {};
@@ -1562,7 +1559,6 @@ Sefaria = extend(Sefaria, {
   linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
-    // If `excludedSheet` is present, exclude links to that sheet ID.
     const categoryOrderOverrides = {
         "Tanakh": [
             "Talmud",

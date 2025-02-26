@@ -9,7 +9,7 @@ import {
   SearchButton,
 } from './Misc';
 import {ContentText} from "./ContentText";
-import DropdownMenu from "./common/DropdownMenu";
+import {DropdownMenu} from "./common/DropdownMenu";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {ReaderPanelContext} from "./context";
 
@@ -37,7 +37,7 @@ const ComparePanelHeader = ({ search, category, openDisplaySettings, navHome, ca
           </div>
         </div>
         {Sefaria.interfaceLang !== "hebrew" ? 
-            <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>
+            <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={(<DisplaySettingsButton/>)}><ReaderDisplayOptionsMenu/></DropdownMenu>
         : null}
       </div>
     );
@@ -52,7 +52,7 @@ const ComparePanelHeader = ({ search, category, openDisplaySettings, navHome, ca
         
         {(Sefaria.interfaceLang === "hebrew") ?
         <DisplaySettingsButton placeholder={true} />
-        : <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>}
+        : <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={(<DisplaySettingsButton/>)}><ReaderDisplayOptionsMenu/></DropdownMenu>}
       </div>
     );
   }

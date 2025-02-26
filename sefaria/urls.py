@@ -28,7 +28,10 @@ urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
     url(r'^texts/saved/?$', reader_views.saved),
+    url(r'^texts/notes/?$', reader_views.notes),
     url(r'^texts/history/?$', reader_views.user_history),
+    url(r'^sheets/saved/?$', reader_views.sheets_saved),
+    url(r'^sheets/history/?$', reader_views.sheets_user_history),
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
@@ -81,7 +84,7 @@ urlpatterns += [
 # Profiles & Settings
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
-    url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
+    url(r'^sheets/profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^settings/account/user$', reader_views.account_user_update),
