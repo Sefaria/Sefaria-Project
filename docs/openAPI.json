@@ -5242,12 +5242,11 @@
             "in": "query"
           },
           {
-            "name": "ref_only",
-            "description": "By default `0` the Name API returns `Ref`s, book titles, authors, topics, and collections. If true, the response will only contain text references.",
+            "name": "type",
+            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If `type=ref`, the response will only contain text references.",
             "schema": {
               "enum": [
-                "0",
-                "1"
+                "ref"
               ],
               "type": "string"
             },
@@ -5611,9 +5610,9 @@
             ],
             "type": "string"
           },
-          "is_ref": {
-            "description": "Returns `true` if the submitted text is a valid Sefaria textual reference",
-            "type": "boolean"
+          "type": {
+            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If `type=ref`, the response will only contain text references.",
+            "type": "string"
           },
           "completions": {
             "description": "A list of autocompletion responses for the submitted text.",
@@ -5679,15 +5678,15 @@
             "type": "string"
           },
           "ref": {
-            "description": "If `is_ref` is `true`, this returns the cannonical ref for the submitted text.",
+            "description": "If `type=ref`, this returns the cannonical ref for the submitted text.",
             "type": "string"
           },
           "url": {
-            "description": "If `is_ref` is `true`, this returns the URL path to link to the submitted text on [Sefaria.org](sefaria.org)",
+            "description": "If `type=ref`, this returns the URL path to link to the submitted text on [Sefaria.org](sefaria.org)",
             "type": "string"
           },
           "index": {
-            "description": "If `is_ref` is `true`, this returns the cannonical name of the `index` of the submitted text.",
+            "description": "If `type=ref`, this returns the cannonical name of the `index` of the submitted text.",
             "type": "string"
           },
           "book": {
@@ -5755,7 +5754,7 @@
         },
         "example": {
           "lang": "en",
-          "is_ref": true,
+          "type": "ref",
           "completions": [
             "Job",
             "Rashi on Job",
