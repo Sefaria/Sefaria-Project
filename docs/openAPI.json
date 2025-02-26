@@ -5678,7 +5678,7 @@
             "type": "string"
           },
           "ref": {
-            "description": "If `type=ref`, this returns the cannonical ref for the submitted text.",
+            "description": "If `type=ref`, this returns the canonical ref for the submitted text.",
             "type": "string"
           },
           "url": {
@@ -5686,7 +5686,7 @@
             "type": "string"
           },
           "index": {
-            "description": "If `type=ref`, this returns the cannonical name of the `index` of the submitted text.",
+            "description": "If `type=ref`, this returns the canonical name of the `index` of the submitted text.",
             "type": "string"
           },
           "book": {
@@ -7377,7 +7377,7 @@
                     "type": "object",
                     "properties": {
                       "heRef": {
-                        "description": "The Hebrew equivalent of the cannonical ref",
+                        "description": "The Hebrew equivalent of the canonical ref",
                         "type": "string"
                       },
                       "url": {
@@ -7437,7 +7437,7 @@
                     "type": "object",
                     "properties": {
                       "heRef": {
-                        "description": "The Hebrew equivalent of the cannonical ref",
+                        "description": "The Hebrew equivalent of the canonical ref",
                         "type": "string"
                       },
                       "url": {
@@ -9552,7 +9552,7 @@
             "type": "string"
           },
           "index_title": {
-            "description": "The cannonical title of the text in the Sefaria library.",
+            "description": "The canonical title of the text in the Sefaria library.",
             "type": "string"
           },
           "category": {
