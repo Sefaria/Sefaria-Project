@@ -213,7 +213,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText text={{en: "Explore", he: "נושאים"}}/>
+        <InterfaceText context="Header">Explore</InterfaceText>
       </a>
       <a href="/community" onClick={close}>
         <img src="/static/icons/community.svg" />
