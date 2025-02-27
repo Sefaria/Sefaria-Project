@@ -75,7 +75,8 @@ export const TopicLandingSeasonal = () => {
   const formattedDateEn = secondaryTopicSlug  && enDateFormat.formatRange(displayStartDate, displayEndDate);
   const formattedDateHe = secondaryTopicSlug && heDateFormat.formatRange(displayStartDate, displayEndDate);
   const learnMorePrompt = {en: `Learn more about ${title?.en} ›`,
-      he:`${Sefaria._("Learn more about")} ${title?.he} ›`}
+      he:`${Sefaria._("Learn more about")} ${title?.he} ›`};
+  const exploreCalendarPrompt = "Explore the Jewish Calendar";
 
 
     return (
@@ -105,10 +106,10 @@ export const TopicLandingSeasonal = () => {
                 <div className="explore-calendar-prompt">
                     <a href='/topics/category/jewish-calendar2'
                        data-anl-link_type="category"
-                       data-anl-text="Explore the Jewish Calendar"
+                       data-anl-text={exploreCalendarPrompt}
                        data-anl-event="navto_topic:click"
                     >
-                        <InterfaceText>Explore the Jewish Calendar</InterfaceText>
+                        <InterfaceText>{exploreCalendarPrompt}</InterfaceText>
                     </a>
                 </div>
             </div>
