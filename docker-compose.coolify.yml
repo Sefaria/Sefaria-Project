@@ -1,0 +1,34 @@
+version: '3'
+
+# This is a docker setup with the database preloaded
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: dev_docker/Dockerfile
+    ports:
+      - "8001:8000"  # Change the external port to 8001
+    depends_on:
+      - postgres
+    networks:
+      - default
+    command: >
+      sh -c "python manage.py migrate sites &&
+      python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    restart: unless-stopped
+
+  postgres:
+    image: "postgres:latest"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: sefaria
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/sefaria_data
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
