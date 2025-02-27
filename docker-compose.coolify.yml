@@ -12,19 +12,12 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - cache
       - postgres
     networks:
       - default
     command: >
       sh -c "python manage.py migrate sites &&
       python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
-    restart: unless-stopped
-
-  cache:
-    image: "redis:latest"
-    ports:
-      - "6379:6379"
     restart: unless-stopped
 
   postgres:
