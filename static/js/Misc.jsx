@@ -1304,7 +1304,7 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
 const AiLearnMoreLink = ({lang}) => {
   const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
   return (
-      <a href={"/sheets/583824?lang=bi"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
+      <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
         {text}
       </a>
   );
