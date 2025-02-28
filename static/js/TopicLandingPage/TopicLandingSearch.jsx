@@ -96,16 +96,17 @@ const renderItems = (openTopic, suggestions, highlightedIndex, getItemProps) => 
 
 
 
-const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSuggestion, getInputProps) =>{
+const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSuggestion, getInputProps, setInputValue, suggestions) =>{
     const { onKeyDown, ...otherInputDownshiftProps } = getInputProps();
     const onKeyDownOverride = (event) => {
         onKeyDown(event);
         if (event.key === 'Enter') {
-            highlightedIndex >= 0 && openTopic(highlightedSuggestion.slug)
+            if (highlightedIndex >= 0) {openTopic(highlightedSuggestion.slug)}
+            else if (suggestions.length > 0) {openTopic(suggestions[0].slug)}
         }
     };
     const numOfTopicsString = numOfTopics.toLocaleString()
-    const placeHolder = Sefaria._v({"he": `תתחילו להתעניין! ${numOfTopicsString} נושאים מ-א׳ עד ת׳`, "en": `Find ${numOfTopicsString} Topics A-Z`})
+    const placeHolder = Sefaria._v({"he": "חיפוש לפי נושא", "en": `Search ${numOfTopicsString} Topics A-Z`})
     return (
         <div className="topic-landing-search-input-box-wrapper">
         <SearchButton/>
@@ -115,7 +116,6 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
             placeholder={placeHolder}
             onKeyDown={onKeyDownOverride}
             maxLength={75}
-            title={Sefaria._("Search for Texts or Keywords Here")}
             {...otherInputDownshiftProps}
         />
         </div>
@@ -154,7 +154,7 @@ export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
             />
         </div>
     <div className="explore-all-topics-prompt" onClick={scrollBrowseTopicsIntoView}>
-        <InterfaceText>Explore all topics ›</InterfaceText>
+        <InterfaceText>Explore all Topics ›</InterfaceText>
     </div>
             </>
     );
