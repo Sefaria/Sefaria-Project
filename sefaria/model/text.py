@@ -4247,9 +4247,9 @@ class Ref(object, metaclass=RefCacheType):
             return self.index_node.is_ancestor_of(other.index_node)
 
         if len(self.sections) > len(other.sections): # other is less specific than self
-            if len(other.sections) == 0:  # other is a whole book
-                if any([x != 1 for x in self.sections]):  # self is not a whole book
-                    return False  # performance optimization to avoid call to as_ranged_segment_ref
+            additional_depth = len(self.sections) - len(other.sections)
+            if any([x != 1 for x in self.sections[-additional_depth:]]):  # self is not whole at some depth
+                return False  # performance optimization to avoid call to as_ranged_segment_ref
             # we need to get the true extent of other
             other = other.as_ranged_segment_ref()
 
