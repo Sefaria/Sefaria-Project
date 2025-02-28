@@ -140,10 +140,11 @@ def render_react_component(component, props):
     ]
 
     if not USE_NODE or not check_shared_multiple_keys(SHARED_CACHE_KEYS):
-        regenerating = get_shared_cache_elem("regenerating")
-        if not regenerating:
-            set_shared_cache_elem("regenerating", True)
-            library.init_shared_cache(rebuild=True)
+        if USE_NODE:
+            regenerating = get_shared_cache_elem("regenerating")
+            if not regenerating:
+                set_shared_cache_elem("regenerating", True)
+                library.init_shared_cache(rebuild=True)
         return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
     propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
