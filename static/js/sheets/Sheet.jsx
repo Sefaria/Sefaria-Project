@@ -9,7 +9,6 @@ import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
 } from '../Misc'; 
-import { SheetOptions} from "./SheetOptions";
 import { SheetContent } from "./SheetContent";
 
 class Sheet extends Component {
@@ -56,6 +55,12 @@ class Sheet extends Component {
       Sefaria.util.openInNewTab(target.href);
     }
   }
+  handleCollectionsChange() {
+    // when editing a sheet and user makes (through SheetOptions) a change in sheet's collections data we need to forceUpdate because
+    // sheet is stored not in this component's state but rather in Sefaria module's cache
+     Sefaria.sheets._loadSheetByID[this.props.id].collections = Sefaria.getUserCollectionsForSheetFromCache(this.props.id);
+     this.forceUpdate();
+  }
 
   render() {
     const classes = classNames({sheetsInPanel: 1});
@@ -67,12 +72,6 @@ class Sheet extends Component {
       editor = (<LoadingMessage />);
     }
     else {
-      const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
-                                                 sheetID={sheet.id}
-                                                 historyObject={this.props.historyObject}
-                                                 editable={editable}
-                                                 authorUrl={sheet.ownerProfileUrl}
-                                                 handleCollectionsChange={editable && this.handleCollectionsChange}/>;
       const sidebar = <SheetContentSidebar
                                   authorStatement={sheet.ownerName}
                                   authorUrl={sheet.ownerProfileUrl}
@@ -84,6 +83,7 @@ class Sheet extends Component {
                   <div className="sheetContent">
                     <SefariaEditor
                         data={sheet}
+                        style={this.props.style}
                         handleClick={this.handleClick}
                         multiPanel={this.props.multiPanel}
                         sheetSourceClick={this.props.onSegmentClick}
@@ -91,38 +91,36 @@ class Sheet extends Component {
                         highlightedRefsInSheet={this.props.highlightedRefsInSheet}
                         setDivineNameReplacement={this.props.setDivineNameReplacement}
                         divineNameReplacement={this.props.divineNameReplacement}
-                        sheetOptions={sheetOptions}
-                        authorStatement={sheet.ownerName}
-                        authorUrl={sheet.ownerProfileUrl}
-                        authorImage={sheet.ownerImageUrl}
-                        title={sheet.title || ""}
-                        summary={sheet.summary || ""}
+                        toggleSignUpModal={this.props.toggleSignUpModal}
+                        historyObject={this.props.historyObject}
+                        editable={true}
+                        handleCollectionsChange={this.handleCollectionsChange}
                     />
                   </div>
                   {sidebar}
                 </div>;
       content = (
-            <div className="sidebarLayout">
-              <SheetContent
-                  sheetOptions = {sheetOptions}
-                  sources={sheet.sources}
-                  title={sheet.title}
-                  handleClick={this.handleClick}
-                  sheetSourceClick={this.props.onSegmentClick}
-                  highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
-                  highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
-                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-                  scrollToHighlighted={this.props.scrollToHighlighted}
-                  editable={editable}
-                  setSelectedWords={this.props.setSelectedWords}
-                  sheetID={sheet.id}
-                  authorStatement={sheet.ownerName}
-                  authorID={sheet.owner}
-                  authorUrl={sheet.ownerProfileUrl}
-                  authorImage={sheet.ownerImageUrl}
-                  summary={sheet.summary}
-                  toggleSignUpModal={this.props.toggleSignUpModal}
-                  historyObject={this.props.historyObject}
+          <div className="sidebarLayout">
+            <SheetContent
+                style={this.props.style}
+                sources={sheet.sources}
+                title={sheet.title}
+                handleClick={this.handleClick}
+                sheetSourceClick={this.props.onSegmentClick}
+                highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
+                highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
+                highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                scrollToHighlighted={this.props.scrollToHighlighted}
+                editable={editable}
+                setSelectedWords={this.props.setSelectedWords}
+                sheetID={sheet.id}
+                authorStatement={sheet.ownerName}
+                authorID={sheet.owner}
+                authorUrl={sheet.ownerProfileUrl}
+                authorImage={sheet.ownerImageUrl}
+                summary={sheet.summary}
+                toggleSignUpModal={this.props.toggleSignUpModal}
+                historyObject={this.props.historyObject}
             />
             {sidebar}
           </div>
