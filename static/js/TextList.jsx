@@ -222,6 +222,7 @@ class TextList extends Component {
                           const classes = classNames({ textListTextRangeBox: 1,  typeQF: link.type.startsWith('quotation_auto')});
                           return (<div className={classes} key={i + link.sourceRef}>
                                     <TextRange
+                                      currVersions={this.props.currVersions}
                                       panelPosition ={this.props.panelPosition}
                                       sref={link.sourceRef}
                                       hideTitle={hideTitle}
@@ -234,7 +235,10 @@ class TextList extends Component {
                                       filterRef={this.props.filterRef}
                                     />
                                     <ConnectionButtons>
-                                      <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
+                                      <OpenConnectionTabButton srefs={[link.sourceRef]}
+                                                               openInTabCallback={this.props.onTextClick}
+                                                               currVersions={this.props.currVersions}
+                                      />
                                       <AddConnectionToSheetButton srefs={[link.sourceRef]} addToSheetCallback={this.props.setConnectionsMode}/>
                                       {Sefaria.is_moderator ?
                                       <DeleteConnectionButton delUrl={"/api/links/" + link._id} connectionDeleteCallback={this.onDataChange}/> : null
@@ -278,7 +282,8 @@ TextList.propTypes = {
   selectedWords:           PropTypes.string,
   checkVisibleSegments:    PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
-  filterRef:             PropTypes.string
+  filterRef:             PropTypes.string,
+  currVersions:          PropTypes.object,
 };
 
 const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
@@ -314,7 +319,7 @@ const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
 }
 
 
-const OpenConnectionTabButton = ({srefs, openInTabCallback, openStrings}) =>{
+const OpenConnectionTabButton = ({srefs, openInTabCallback, openStrings, currVersions={'en': null, 'he': null}}) =>{
   /*
   ConnectionButton composite element. Goes inside a ConnectionButtons
   Takes a ref(s) for opening as a link and callback for opening in-app
@@ -325,7 +330,7 @@ const OpenConnectionTabButton = ({srefs, openInTabCallback, openStrings}) =>{
     if (openInTabCallback) {
       event.preventDefault();
       //Click on the body of the TextRange itself from TextList
-      openInTabCallback(srefs);
+      openInTabCallback(srefs, false, currVersions);
       Sefaria.track.event("Reader", "Click Text from TextList", sref);
     }
   }
