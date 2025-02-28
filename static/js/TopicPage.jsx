@@ -93,6 +93,13 @@ const sheetFilter = (currFilter, sheet) => {
 
 const refSort = (currSortOption, a, b) => {
   a = a[1]; b = b[1];
+  // Prioritize "learning-team" data sources
+  if (a.dataSources?.['learning-team'] && !b.dataSources?.['learning-team']) {
+    return -1;
+  }
+  if (!a.dataSources?.['learning-team'] && b.dataSources?.['learning-team']) {
+    return 1;
+  }
   if (!a.order && !b.order) { return 0; }
   if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
   if (currSortOption === 'Chronological') {
