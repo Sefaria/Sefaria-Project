@@ -93,12 +93,6 @@ const sheetFilter = (currFilter, sheet) => {
 
 const refSort = (currSortOption, a, b) => {
   a = a[1]; b = b[1];
-    if (
-      (a.ref.includes("Genesis 12:13-17") && a.dataSources?.["learning-team"]) ||
-      (b.ref.includes("Genesis 12:13-17") && b.dataSources?.["learning-team"])
-    ) {
-        console.log("halt")
-  }
   if (!a.order && !b.order) { return 0; }
   if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
   if (currSortOption === 'Chronological') {
