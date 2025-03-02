@@ -13,17 +13,22 @@ const DropdownMenuSeparator = () => {
 
 const DropdownMenuItem = ({url, children, newTab, onClick = null, customCSS = null, preventClose = false}) => {
 
+  const className = customCSS ? customCSS : 'interfaceLinks-option int-bi dropdownItem';
+  const commonProps = {
+    className,
+    'data-prevent-close': preventClose,
+    target: (newTab ? '_blank' : null),
+  };
+
   if (!newTab){
     newTab = false;
   }
 
-  if (onClick) {
+  if (onClick && url) {
     return (
-      <a className={ customCSS ? `${customCSS}` : `interfaceLinks-option int-bi dropdownItem`}
+      <a {...commonProps}
          href={url}
-         target={newTab ? '_blank' : null}
-         onClick={onClick}
-         data-prevent-close={preventClose}>
+         onClick={onClick}>
         {children}
       </a>
   
@@ -31,24 +36,26 @@ const DropdownMenuItem = ({url, children, newTab, onClick = null, customCSS = nu
 
   }
 
-  return (
-    <a className={ customCSS ? `${customCSS}` : `interfaceLinks-option int-bi dropdownItem`}
-       href={url}
-       target={newTab ? '_blank' : null}
-       data-prevent-close={preventClose}>
-      {children}
-    </a>
+  else if (onClick){
+    return (
+      <div {...commonProps} onClick={onClick} >
+          {children}
+      </div>
+    );
+  }
 
-  );
-}
-
-// Todo - remove?
-const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false}) => {
-  return (
-    <div className={'interfaceLinks-option int-bi dropdownItem'} onClick={onClick} data-prevent-close={preventClose}>
+  else if (url){
+    return (
+      <a {...commonProps}
+         href={url}>
         {children}
-    </div>
-  );
+      </a>
+    );
+  }
+
+  return null;
+
+
 }
 
 const DropdownMenuItemWithIcon = ({icon, textEn, textHe, descEn='', descHe=''}) => {
@@ -136,6 +143,5 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     DropdownMenu,
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
-    DropdownMenuItem,
-    DropdownMenuItemWithCallback
+    DropdownMenuItem
   };
