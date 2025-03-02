@@ -17,7 +17,7 @@ class Passage(abst.AbstractMongoRecord):
         "ref_list"   # []
     ]
     optional_attrs = [
-        "same_as"    # []
+        "same_as",    # []
         "source"
     ]
 
