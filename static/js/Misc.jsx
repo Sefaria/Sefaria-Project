@@ -1172,47 +1172,17 @@ DisplaySettingsButton.propTypes = {
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
   // TODO:
   // Fix the CSS (more spacing between elements, the spacing of the checkmark ::before class)
-
   const [isOpen, setIsOpen] = useState(false);
   const [curLang, setCurLang] = useState(currentLang);
-  const wrapperRef = useRef(null);
 
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
   }
-  const handleClick = (e) => {
-    e.stopPropagation();
-    setIsOpen(isOpen => !isOpen);
-  }
-  const saveLangPref = (lang) => {
-    setCurLang(lang);
-  }
+
   const handleTransPrefResetClick = (e) => {
     e.stopPropagation();
     setTranslationLanguagePreference(null);
   };
-  const handleHideDropdown = (event) => {
-      if (event.key === 'Escape') {
-          setIsOpen(false);
-      }
-  };
-  const handleClickOutside = (event) => {
-      if (
-          wrapperRef.current &&
-          !wrapperRef.current.contains(event.target)
-      ) {
-          setIsOpen(false);
-      }
-  };
-
-  useEffect(() => {
-      document.addEventListener('keydown', handleHideDropdown, true);
-      document.addEventListener('click', handleClickOutside, true);
-      return () => {
-          document.removeEventListener('keydown', handleHideDropdown, true);
-          document.removeEventListener('click', handleClickOutside, true);
-      };
-  }, []);
 
   return (
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
@@ -1222,10 +1192,10 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
         </div>
         <DropdownMenuSeparator />
         <div className='languageFlex'>
-          <DropdownMenuItem  url={`/interface/hebrew?next=${getCurrentPage()}`} onClick={() => setCurLang("hebrew")} customCSS={`interfaceLinks-option int-bi ${(currentLang == 'hebrew') ? 'active':''}`}>
+          <DropdownMenuItem  url={`/interface/hebrew?next=${getCurrentPage()}`} onClick={() => setCurLang("hebrew")} customCSS={`interfaceLinks-option int-bi ${(curLang === 'hebrew') ? 'active':''}`}>
             עברית
           </DropdownMenuItem>
-          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} onClick={() => setCurLang("english")} customCSS={`interfaceLinks-option int-bi ${(currentLang == 'english') ? 'active' : ''}`}>
+          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} onClick={() => setCurLang("english")} customCSS={`interfaceLinks-option int-bi ${(curLang === 'english') ? 'active' : ''}`}>
             English
           </DropdownMenuItem>
         </div>
