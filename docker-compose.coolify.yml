@@ -1,18 +1,20 @@
 version: '3'
 
-# This is a docker setup with the database preloaded
-
 services:
   web:
     build:
       context: .
       dockerfile: dev_docker/Dockerfile
     ports:
-      - "8001:8000"  # Change the external port to 8001
+      - "8001:8000"
     depends_on:
       - postgres
+      - node
     networks:
       - default
+    volumes:
+      - .:/app
+      - webpack-shared:/app/node
     command: >
       sh -c "python manage.py migrate sites &&
       python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
@@ -35,9 +37,11 @@ services:
     working_dir: /app
     volumes:
       - .:/app
+      - webpack-shared:/app/node
     command: sh dev_docker/node_entrypoint.sh
     ports:
-      - "4040:4040"
+      - "3001:3000"
 
 volumes:
   postgres-data:
+  webpack-shared:
