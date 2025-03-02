@@ -18,6 +18,7 @@ class Passage(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         "same_as"    # []
+        "source"
     ]
 
     @classmethod
