@@ -6,9 +6,9 @@ services:
       context: .
       dockerfile: dev_docker/Dockerfile
     ports:
-      - "8001:8000"  # Change the external port to 8001
+      - "8001:8000"
     volumes:
-      - app-shared
+      - app-shared:/app/shared
     depends_on:
       - postgres
     networks:
@@ -34,7 +34,7 @@ services:
     image: "node:latest"
     working_dir: /app
     volumes:
-      - app-shared
+      - app-shared:/app/shared
     command: sh dev_docker/node_entrypoint.sh
     ports:
       - "3001:3000"
