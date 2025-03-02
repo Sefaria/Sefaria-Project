@@ -14,8 +14,6 @@ services:
     command: >
       sh -c "
       npm install &&
-      npm run setup &&
-      npm run build-client &&
       npm run build &&
       python manage.py migrate sites &&
       python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
