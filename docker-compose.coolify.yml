@@ -6,15 +6,13 @@ services:
       context: .
       dockerfile: dev_docker/Dockerfile
     ports:
-      - "8001:8000"
-    depends_on:
-      - postgres
-      - node
-    networks:
-      - default
+      - "8001:8000"  # Change the external port to 8001
     volumes:
       - .:/app
-      - webpack-shared:/app/node
+    depends_on:
+      - postgres
+    networks:
+      - default
     command: >
       sh -c "python manage.py migrate sites &&
       python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
@@ -37,11 +35,9 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-      - webpack-shared:/app/node
     command: sh dev_docker/node_entrypoint.sh
     ports:
       - "3001:3000"
 
 volumes:
   postgres-data:
-  webpack-shared:
