@@ -21,7 +21,7 @@ class Passage(abst.AbstractMongoRecord):
         "source"
     ]
 
-    possible_types = ["Mishnah", "Sugya", "passage", "biblical_story"]
+    possible_types = ["Mishnah", "Sugya", "passage", "biblical-story"]
 
     @classmethod
     def containing_segment(cls, ref):
