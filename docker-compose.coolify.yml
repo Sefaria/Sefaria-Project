@@ -8,7 +8,7 @@ services:
     ports:
       - "8001:8000"  # Change the external port to 8001
     volumes:
-      - webpack-shared:/app/node
+      - app-shared
     depends_on:
       - postgres
     networks:
@@ -34,11 +34,11 @@ services:
     image: "node:latest"
     working_dir: /app
     volumes:
-      - webpack-shared:/app/node
+      - app-shared
     command: sh dev_docker/node_entrypoint.sh
     ports:
       - "3001:3000"
 
 volumes:
   postgres-data:
-  webpack-shared:
+  app-shared:
