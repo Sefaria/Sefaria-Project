@@ -304,6 +304,8 @@ CACHES = {
 try:
     if os.getenv("CI_RUN"):
         from sefaria.local_settings_ci import *
+    elif os.getenv("COOLIFY"):
+        from sefaria.local_settings_coolify import *
     else:
         from sefaria.local_settings import *
 except ImportError:
