@@ -8,7 +8,7 @@ services:
     ports:
       - "8001:8000"  # Change the external port to 8001
     volumes:
-      - .:/app
+      - .:/app:delegated
     depends_on:
       - postgres
     networks:
@@ -34,7 +34,7 @@ services:
     image: "node:latest"
     working_dir: /app
     volumes:
-      - .:/app
+      - .:/app:delegated
     command: sh dev_docker/node_entrypoint.sh
     ports:
       - "3001:3000"
