@@ -21,6 +21,8 @@ class Passage(abst.AbstractMongoRecord):
         "source"
     ]
 
+    possible_types = ["Mishnah", "Sugya", "passage", "biblical_story"]
+
     @classmethod
     def containing_segment(cls, ref):
         assert isinstance(ref, text.Ref)
@@ -36,7 +38,7 @@ class Passage(abst.AbstractMongoRecord):
 
     def _validate(self):
         super(Passage, self)._validate()
-        assert self.type == "Mishnah" or self.type == "Sugya" or self.type == "passage"
+        assert self.type in self.possible_types
 
     def ref(self):
         return text.Ref(self.full_ref)
