@@ -17,7 +17,8 @@ class Passage(abst.AbstractMongoRecord):
         "ref_list"   # []
     ]
     optional_attrs = [
-        "same_as"    # []
+        "same_as",    # []
+        "source"
     ]
 
     @classmethod
@@ -35,7 +36,7 @@ class Passage(abst.AbstractMongoRecord):
 
     def _validate(self):
         super(Passage, self)._validate()
-        assert self.type == "Mishnah" or self.type == "Sugya"
+        assert self.type == "Mishnah" or self.type == "Sugya" or self.type == "passage"
 
     def ref(self):
         return text.Ref(self.full_ref)
