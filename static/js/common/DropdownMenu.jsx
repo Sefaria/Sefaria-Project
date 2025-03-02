@@ -11,14 +11,28 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
+const DropdownMenuItem = ({url, children, newTab, onClick = null, customCSS = null, preventClose = false}) => {
 
   if (!newTab){
     newTab = false;
   }
 
+  if (onClick) {
+    return (
+      <a className={ customCSS ? `${customCSS}` : `interfaceLinks-option int-bi dropdownItem`}
+         href={url}
+         target={newTab ? '_blank' : null}
+         onClick={onClick}
+         data-prevent-close={preventClose}>
+        {children}
+      </a>
+  
+    );
+
+  }
+
   return (
-    <a className={`interfaceLinks-option int-bi dropdownItem`}
+    <a className={ customCSS ? `${customCSS}` : `interfaceLinks-option int-bi dropdownItem`}
        href={url}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}>
@@ -28,6 +42,7 @@ const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
   );
 }
 
+// Todo - remove?
 const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false}) => {
   return (
     <div className={'interfaceLinks-option int-bi dropdownItem'} onClick={onClick} data-prevent-close={preventClose}>

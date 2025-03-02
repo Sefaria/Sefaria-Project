@@ -1171,11 +1171,10 @@ DisplaySettingsButton.propTypes = {
 
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
   // TODO:
-  // Check if noah's code still relevant, how to integrate?
-  // Fix the CSS
-  // Need to re-integrate the checkmarks that appear when a language is selected
-  
+  // Fix the CSS (more spacing between elements, the spacing of the checkmark ::before class)
+
   const [isOpen, setIsOpen] = useState(false);
+  const [curLang, setCurLang] = useState(currentLang);
   const wrapperRef = useRef(null);
 
   const getCurrentPage = () => {
@@ -1184,6 +1183,9 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
   const handleClick = (e) => {
     e.stopPropagation();
     setIsOpen(isOpen => !isOpen);
+  }
+  const saveLangPref = (lang) => {
+    setCurLang(lang);
   }
   const handleTransPrefResetClick = (e) => {
     e.stopPropagation();
@@ -1215,37 +1217,36 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
   return (
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
       <div className="dropdownLinks-options">
-        <DropdownMenuItem>
-          <div className="interfaceLinks interfaceLinks-menu interfaceLinks-header">
-            <InterfaceText>Site Language</InterfaceText>
-          </div>
-        </DropdownMenuItem>
+        <div className="interfaceLinks interfaceLinks-menu interfaceLinks-header">
+          <InterfaceText>Site Language</InterfaceText>
+        </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
-          עברית
-        </DropdownMenuItem>
-        <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
-          English
-        </DropdownMenuItem>
+        <div className='languageFlex'>
+          <DropdownMenuItem  url={`/interface/hebrew?next=${getCurrentPage()}`} onClick={() => setCurLang("hebrew")} customCSS={`interfaceLinks-option int-bi ${(currentLang == 'hebrew') ? 'active':''}`}>
+            עברית
+          </DropdownMenuItem>
+          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} onClick={() => setCurLang("english")} customCSS={`interfaceLinks-option int-bi ${(currentLang == 'english') ? 'active' : ''}`}>
+            English
+          </DropdownMenuItem>
+        </div>
       </div>
+      { !!translationLanguagePreference ? (
+            <>
+              <div className="interfaceLinks-header">
+                <InterfaceText>Preferred Translation</InterfaceText>
+              </div>
+              <div className="interfaceLinks-options trans-pref-header-container">
+                <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
+                <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
+                  <img src="/static/img/circled-x.svg" className="reset-btn" />
+                  <span className="smallText">
+                    <InterfaceText>Reset</InterfaceText>
+                  </span>
+                </a>
+              </div>
+            </>
+          ) : null}
     </DropdownMenu>
-
-          // { !!translationLanguagePreference ? (
-          //   <>
-          //     <div className="interfaceLinks-header">
-          //       <InterfaceText>Preferred Translation</InterfaceText>
-          //     </div>
-          //     <div className="interfaceLinks-options trans-pref-header-container">
-          //       <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
-          //       <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
-          //         <img src="/static/img/circled-x.svg" className="reset-btn" />
-          //         <span className="smallText">
-          //           <InterfaceText>Reset</InterfaceText>
-          //         </span>
-          //       </a>
-          //     </div>
-          //   </>
-          // ) : null}
   );
 }
 InterfaceLanguageMenu.propTypes = {

@@ -949,7 +949,7 @@ div.interfaceLinks-row a {
 .header .profile-menu-he {
   color: #666666;
 }
-.header .interfaceLinks .interfaceLinks-option::before {
+.header .interfaceLinks-option::before {
   content: "";
   font-family: FontAwesome;
   color: #999;
@@ -958,10 +958,10 @@ div.interfaceLinks-row a {
   font-style: normal;
   padding: 0 15px;
 }
-.header .interfaceLinks .interfaceLinks-option.active {
+.header  .interfaceLinks-option.active {
   order: -1;
 }
-.header .interfaceLinks .interfaceLinks-option.active::before {
+.header .interfaceLinks-option.active::before {
   content: "\f00c";
   padding: 0 8px;
 }
@@ -15124,7 +15124,12 @@ span.ref-link-color-3 {color: blue}
   text-align: start;
 }
 
-.emptyNoticationPage{
+.emptyNotificationPage{
+  display: flex;
+  flex-direction: column;
+}
+
+.languageFlex {
   display: flex;
   flex-direction: column;
 }
