@@ -37,7 +37,7 @@ services:
       - .:/app
     command: sh dev_docker/node_entrypoint.sh
     ports:
-      - "3000:3000"
+      - "3001:3000"
 
 volumes:
   postgres-data:
