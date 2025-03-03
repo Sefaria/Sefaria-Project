@@ -398,12 +398,12 @@ body.hasBannerMessage #s2.headerOnly {
 .genericBanner #bannerMessageClose {
   font-size: 40px;
   opacity: revert;
-  right: 30px;
+  right: 60px;
   top: revert;
 }
 .interface-hebrew .genericBanner #bannerMessageClose {
   right: auto;
-  left: 30px;
+  left: 60px;
 }
 #bannerMessageClose {
   position: absolute;
