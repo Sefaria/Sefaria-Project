@@ -304,13 +304,12 @@ CACHES = {
 try:
     if os.getenv("CI_RUN"):
         from sefaria.local_settings_ci import *
-    elif os.getenv("COOLIFY"):
-        from sefaria.local_settings_coolify import *
     else:
         from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
-
+if os.getenv("COOLIFY"):
+    from sefaria.local_settings_coolify import *
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 WEBPACK_LOADER = {
