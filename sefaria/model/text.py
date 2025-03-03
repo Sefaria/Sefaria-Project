@@ -1319,6 +1319,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     """
     optional_attrs = [
         "iscompleted",
+        "versionOtherDesc",
         "status",
         "priority",
         "license",
@@ -1813,7 +1814,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         self.completestatus = completestatus
         self.version_notes = version_notes
         self.version_notes_he = version_notes_he
-        self.version_long_notes = version_other_desc
+        self.version_other_desc = version_other_desc
 
         self.full_version = None
         self.versionSource = None  # handling of source is hacky

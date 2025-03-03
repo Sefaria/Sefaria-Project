@@ -90,7 +90,7 @@ class VersionBlock extends Component {
       "versionNotesInHebrew",
       "purchaseInformationImage",
       "purchaseInformationURL",
-
+      "versionOtherDesc",
     ];
     let s = {
       editing: false,
@@ -104,7 +104,6 @@ class VersionBlock extends Component {
     const target = event.target;
     const name = target.name;
     const value = target.type === 'checkbox' ? (name === "status" ? (target.checked ? "locked" : null) : target.checked ) : target.value;
-
     this.setState({
       [name]: value,
       error: null
@@ -279,6 +278,9 @@ class VersionBlock extends Component {
             <br></br>
             <label id="versionNotesInHebrew_label" htmlFor="versionNotes_in_hebrew">Tibetan VersionNotes</label>
             <textarea id="versionNotesInHebrew" name="versionNotesInHebrew" placeholder="Tibetan Version Notes" onChange={this.handleInputChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
+            
+            <label id="versionOtherDetail_label" htmlFor="versionOtherDetail">Other detail in Markdown</label>
+            <textarea id="versionOtherDesc" name="versionOtherDesc" placeholder="version Other detail" onChange={this.handleInputChange} value={this.state.versionOtherDesc} rows="5" cols="40"/>
             <div>
               <h3>Purchase Information</h3>
               <label htmlFor="purchase_url">Buy URL (Link to Store Item):</label>

@@ -43,11 +43,7 @@ function VersionInformation({currentRef, version}) {
                 {`${Sefaria._("text.version.information.digitization")}: `}
               </span>
               <a className="versionDetailsLink" href="/digitized-by-pecha" target="_blank">
-<<<<<<< HEAD
                 {Sefaria._("Pecha")}
-=======
-                Pecha.org
->>>>>>> ec48bac0f (version display post)
               </a>
             </div>
             <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionLicense": 1, "versionDetailsElement": 1}, "license" ))}>
@@ -70,8 +66,8 @@ function VersionInformation({currentRef, version}) {
                 {Sefaria._("text.version.information.buy_in_print")}
                </a>
             </div>
-            <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "digitizedBySefaria"))}>
-              <VersionStatusLong id={version.versionTitle} version={version} markdownString={markdownText} />
+            <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "versionOtherDesc"))}>
+              <VersionStatusLong version={version} markdownString={markdownText} />
             </div>
         </div>
     );

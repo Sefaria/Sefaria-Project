@@ -3042,7 +3042,6 @@ class CookiesNotification extends Component {
 }
 
 const VersionStatusLong = ({version, markdownString}) => {
-  console.log("data : ", "section1-"+version )
   return (
     <div className="accordion" >
         <div className="accordion-item" >
@@ -3052,7 +3051,7 @@ const VersionStatusLong = ({version, markdownString}) => {
                 <i className="fa fa-angle-down" aria-hidden="true"></i>
             </label>
             <div className="accordion-content">
-            <ReactMarkdown className={'reactMarkdown'} remarkPlugins={[remarkGfm]} children={markdownString} ></ReactMarkdown>
+            <ReactMarkdown className='reactMarkdown' unwrapDisallowed={true} remarkPlugins={[remarkGfm]} >{markdownString}</ReactMarkdown>
             </div>
         </div>
     </div>
