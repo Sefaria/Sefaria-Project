@@ -15132,6 +15132,11 @@ span.ref-link-color-3 {color: blue}
 .languageFlex {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+.languageHeader {
+  padding: 10px;
 }
 
 @-webkit-keyframes load5 {

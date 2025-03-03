@@ -1187,7 +1187,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
   return (
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
       <div className="dropdownLinks-options">
-        <div className="interfaceLinks interfaceLinks-menu interfaceLinks-header">
+        <div className="interfaceLinks interfaceLinks-menu interfaceLinks-header languageHeader">
           <InterfaceText>Site Language</InterfaceText>
         </div>
         <DropdownMenuSeparator />
