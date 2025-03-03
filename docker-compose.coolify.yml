@@ -7,8 +7,6 @@ services:
       dockerfile: dev_docker/Dockerfile
     ports:
       - "8001:8000"
-    depends_on:
-      - postgres
     networks:
       - default
     command: >
@@ -18,18 +16,3 @@ services:
       python manage.py migrate sites &&
       python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     restart: unless-stopped
-
-  postgres:
-    image: "postgres:latest"
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: sefaria
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/sefaria_data
-    restart: unless-stopped
-
-volumes:
-  postgres-data:
