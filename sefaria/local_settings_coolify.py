@@ -1,5 +1,6 @@
 import os
 
+SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 ALLOWED_HOSTS = ['*']
 
 MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
