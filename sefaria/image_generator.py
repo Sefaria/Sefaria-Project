@@ -176,7 +176,7 @@ def make_img_http_response(text, category, ref_str, lang, platform):
         buffered = io.BytesIO()
         img.save(buffered, format="PNG")
         img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
-        print(f"Image as Base64: {img_base64[:100]}... (truncated)")  # Truncate for readability
+        print(f"Image as Base64: {img_base64}")  # Truncate for readability
         # img = generate_image(text, category, ref_str, lang, platform)
     except Exception as e:
         print(e)
