@@ -128,6 +128,8 @@ class SyntheticImageGenerator:
 
 
 def clean_text(text):
+    if len(text) > 180:
+        text = text[:180] + " ..."
     """Remove HTML break tags and clean up the text"""
     # Replace </br> with space or newline depending on your preference
     cleaned_text = text.replace('</br>', ' ').replace('<br>', ' ').replace('<br/>', ' ')
