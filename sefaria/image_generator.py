@@ -6,6 +6,7 @@ from django.http import HttpResponse
 import io
 import subprocess
 import os
+import base64
 
 palette = { # [(bg), (font)]
     "Commentary": [(37, 150, 190), (255, 255, 255)],
@@ -170,7 +171,12 @@ def make_img_http_response(text, category, ref_str, lang, platform):
         # subprocess.run(["/pillow-env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env, check=True) 
 
         img = Image.open("output.png")
-        # print("H"*100)
+        print("H"*100)
+        # Convert to Base64 for logging
+        buffered = io.BytesIO()
+        img.save(buffered, format="PNG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        print(f"Image as Base64: {img_base64[:100]}... (truncated)")  # Truncate for readability
         # img = generate_image(text, category, ref_str, lang, platform)
     except Exception as e:
         print(e)
