@@ -1,5 +1,5 @@
 # coding=utf-8
-from . import abstract as abst
+from . import abstract as abst, Ref
 from . import text
 import structlog
 logger = structlog.get_logger(__name__)
@@ -47,4 +47,10 @@ class Passage(abst.AbstractMongoRecord):
 class PassageSet(abst.AbstractMongoSet):
     recordClass = Passage
 
-
+    @classmethod
+    def from_tref(cls, tref):
+        ref = Ref(tref)
+        all_passages = cls().array()
+        containing_full_refs = [p.full_ref for p in all_passages if Ref(p.full_ref).contains(ref)]
+        query = {"full_ref": {"$in": containing_full_refs}}
+        return cls(query)
