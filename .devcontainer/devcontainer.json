@@ -1,0 +1,5 @@
+{
+    "name": "Sefaria Codespace",
+    "postStartCommand": "docker-compose -f docker-compose.canned.yml up"
+  }
+  
