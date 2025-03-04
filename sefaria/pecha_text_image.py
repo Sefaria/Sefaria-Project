@@ -132,7 +132,7 @@ def clean_text(text):
         text = text[:180] + " ..."
     """Remove HTML break tags and clean up the text"""
     # Replace </br> with space or newline depending on your preference
-    cleaned_text = text.replace('</br>', ' ').replace('<br>', ' ').replace('<br/>', ' ')
+    cleaned_text = text.replace('</br>', ' ').replace('<br>', ' ').replace('<br/>', ' ').replace('<b', ' ').replace('</', ' ').replace('<', ' ').replace('>', ' ')
     # Remove multiple spaces that might have been created
     cleaned_text = ' '.join(cleaned_text.split())
     return cleaned_text
@@ -140,6 +140,8 @@ def clean_text(text):
 
 def create_synthetic_data(text, ref_str, logo_path=None):
     cleaned_text = clean_text(text)
+    print(f"Cleaned text: {cleaned_text}")
+    print("-"*150, len(cleaned_text))
     synthetic_image_generator = SyntheticImageGenerator(
         image_width=700,
         image_height=400,

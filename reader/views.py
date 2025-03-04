@@ -1683,7 +1683,7 @@ def social_image_api(request, tref):
     print(f"Query params: {request.GET}")
     lang = request.GET.get("lang", "en")
     if lang == "bi":
-        lang = "en"
+        lang = "he"
     version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
     platform = request.GET.get("platform", "facebook")
 
