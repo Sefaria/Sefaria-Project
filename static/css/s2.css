@@ -5253,6 +5253,7 @@ h1.topic-landing-header {
   -webkit-line-clamp: var(--num-lines);
   text-overflow: clip;
   font-family: hide-ellipsis-char-font;
+  min-height: calc(var(--num-lines)* 1.2em);
 }
 .rowed-salad-container{
   white-space: nowrap;
