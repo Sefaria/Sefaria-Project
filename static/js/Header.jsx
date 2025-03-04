@@ -256,7 +256,9 @@ class Header extends Component {
           showSearch={this.props.showSearch}
           openTopic={this.props.openTopic}
           openURL={this.props.openURL}
-          close={this.props.onMobileMenuButtonClick} />
+          close={this.props.onMobileMenuButtonClick} 
+          // TODO - replace hardcoded value with inherited header logic
+          module={"sheets"}/>
         }
         <GlobalWarningMessage />
       </div>
