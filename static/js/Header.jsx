@@ -383,16 +383,18 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <InterfaceText>Donate</InterfaceText>
       </DonateLink>
 
-      {Sefaria._uid ?
+      <div className="mobileAccountLinks">
+
+      {Sefaria._uid && module === "sheets"?
         <>
           <a href="/my/profile" onClick={close}>
-          {/* TODO: Add profile image logic */}
-            <img src="/static/icons/bookmarks.svg" /> 
+          <div className="mobileProfileFlexContainer">
+            <ProfilePic url={Sefaria.profile_pic_url} name={Sefaria.full_name} len={25}/>
             <InterfaceText>Profile</InterfaceText>
+          </div>
           </a>
         </> : null }
 
-      <div className="mobileAccountLinks">
         {Sefaria._uid ?
         <>
           <a href={module === "library" ? "/texts/saved" : "sheets/saved" } onClick={close}>
@@ -444,7 +446,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       { module === "sheets" &&
         <a href="/texts" target="_blank">
           <img src="/static/icons/book.svg" />
-          <InterfaceText>Sefaria Library</InterfaceText>
+          <InterfaceText text={{en: "Sefaria Library", he: "ספריית ספריא"}} />
         </a>
         } 
 
