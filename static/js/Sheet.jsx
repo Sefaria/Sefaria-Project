@@ -131,25 +131,27 @@ class Sheet extends Component {
         </div>
       );
     }
-    const editor = <>
-                            <LearnAboutNewEditorBanner/>
-                            <div className={classes}>
-                              <div className="sheetContent">
-                                <SefariaEditor
-                                  data={sheet}
-                                  hasSidebar={this.props.hasSidebar}
-                                  handleClick={this.handleClick}
-                                  multiPanel={this.props.multiPanel}
-                                  sheetSourceClick={this.props.onSegmentClick}
-                                  highlightedNode={this.props.highlightedNode}
-                                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-                                  setDivineNameReplacement={this.props.setDivineNameReplacement}
-                                  divineNameReplacement={this.props.divineNameReplacement}
-                                />
-                              </div>
-                            </div>
-                          </>;
-    return ( sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor ? editor : content )
+    const editor = (
+        <>
+            <LearnAboutNewEditorBanner/>
+            <div className={classes}>
+              <div className="sheetContent">
+                <SefariaEditor
+                  data={sheet}
+                  hasSidebar={this.props.hasSidebar}
+                  handleClick={this.handleClick}
+                  multiPanel={this.props.multiPanel}
+                  sheetSourceClick={this.props.onSegmentClick}
+                  highlightedNode={this.props.highlightedNode}
+                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                  setDivineNameReplacement={this.props.setDivineNameReplacement}
+                  divineNameReplacement={this.props.divineNameReplacement}
+                />
+              </div>
+            </div>
+         </>);
+    const usingEditor = sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor;
+    return ( usingEditor ? editor : content )
   }
 }
 

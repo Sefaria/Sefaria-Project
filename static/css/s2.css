@@ -398,25 +398,19 @@ body.hasBannerMessage #s2.headerOnly {
 .genericBanner #bannerMessageClose {
   font-size: 40px;
   opacity: revert;
-  right: 60px;
+  inset-inline-end: 60px;
   top: revert;
-}
-.interface-hebrew .genericBanner #bannerMessageClose {
-  right: auto;
-  left: 60px;
+  border: none;
+  background: none;
 }
 #bannerMessageClose {
   position: absolute;
   top: -3px;
-  right: 7px;
+  inset-inline-end: 7px;
   color: white;
   opacity: 0.5;
   font-size: 26px;
   cursor: pointer;
-}
-.interface-hebrew #bannerMessageClose {
-  right: auto;
-  left: 7px;
 }
 #bannerMessageContent {
   display: flex;

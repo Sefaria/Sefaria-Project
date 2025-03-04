@@ -532,6 +532,7 @@ const Strings = {
     "Go back to old version": "חזרה לגרסה הישנה",
     "Request for Feedback": "נא למלא משוב",
     "Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.": "תודה שניסית את עורך ספריא החדש! נשמח מאוד לשמוע את דעתך עליו. אנו מבקשים ממך להקדיש כמה דקות למילוי משוב על חוויית השימוש שלך.",
+    "Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface.": "תחדשו! הנכם משתמשים כעת בתוכנה העדכנית לעריכת דפי מקורות בספריא. למדו עוד על השימוש בתוכנה בעזרת המדריך המלא למשתמשים חדשים.",
     "Did you encounter any issues while using the new editor? For example:": "האם נתקלת בבעיות בעת השימוש בעורך החדש? למשל...",
     "Technical problems": "בעיות טכניות",
     "Get Started": "התחילו כאן",
