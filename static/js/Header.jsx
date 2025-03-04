@@ -74,7 +74,7 @@ const LoggedOutDropdown = () => {
 }
 
 
-const LoggedInDropdown = () => {
+const LoggedInDropdown = ({module}) => {
 
   const getCurrentPage = () => {
     return encodeURIComponent(Sefaria.util.currentPath());
@@ -90,12 +90,34 @@ const LoggedInDropdown = () => {
                   <strong>{Sefaria.full_name}</strong>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
+
+              { module === 'library' && 
+              <>
               <DropdownMenuItem url={'/settings/account'}>
                   <InterfaceText>Account Settings</InterfaceText>
               </DropdownMenuItem>
               <DropdownMenuItem url={'/torahtracker'}>
                   <InterfaceText text={{'en': 'Torah Tracker', 'he': 'לימוד במספרים'}}/>
               </DropdownMenuItem>
+              </> }
+
+
+              { module === 'sheets' && 
+              <>
+              <DropdownMenuItem url={'/my/profile'}>
+                  <InterfaceText>Profile</InterfaceText>
+              </DropdownMenuItem>
+              <DropdownMenuItem url={'/sheets/saved'}>
+                <InterfaceText>Saved</InterfaceText>
+              </DropdownMenuItem>
+              <DropdownMenuItem url={'/sheets/history'}>
+                <InterfaceText>History</InterfaceText>
+              </DropdownMenuItem>
+              <DropdownMenuItem url={'/settings/account'}>
+                  <InterfaceText>Account Settings</InterfaceText>
+              </DropdownMenuItem>
+              </> }
+              
               <DropdownMenuSeparator/>
               <div className="languageHeader">
                   <InterfaceText>Site Language</InterfaceText>
@@ -110,9 +132,12 @@ const LoggedInDropdown = () => {
                   </DropdownMenuItem>
               </div>
               <DropdownMenuSeparator/>
+              
+              {module === 'library' && 
               <DropdownMenuItem url={'/updates'}>
                   <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItem>}
+              
               <DropdownMenuItem preventClose={true} url={'/help'}>
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
               </DropdownMenuItem>
@@ -208,7 +233,7 @@ class Header extends Component {
           <ModuleSwitcher />
 
           { Sefaria._uid ?
-            <LoggedInDropdown />
+            <LoggedInDropdown module={'sheets'}/>
             : <LoggedOutDropdown currentLang={Sefaria.interfaceLang}/>
           }
 
