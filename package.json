@@ -81,6 +81,8 @@
     "react-tag-autocomplete": "^6.1.0",
     "redis": "^2.8.0",
     "regenerator-runtime": "^0.13.7",
+    "remark": "^15.0.1",
+    "remark-gfm": "^1.0.0",
     "request": "^2.72.0",
     "sanitize-html": "^1.16.3",
     "slate": "0.78.0",

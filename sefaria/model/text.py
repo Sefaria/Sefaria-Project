@@ -1319,6 +1319,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     """
     optional_attrs = [
         "iscompleted",
+        "versionOtherDesc",
         "status",
         "priority",
         "license",
@@ -1783,7 +1784,9 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, completestatus="done", exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
+    def __init__(self, oref, lang="en", vtitle=None, completestatus="done",version_notes="",
+        version_notes_he="",
+        version_other_desc="", exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
         """
         :param oref:
         :type oref: Ref
@@ -1809,6 +1812,9 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         self.text = self._original_text = self.empty_text()
         self.vtitle = vtitle
         self.completestatus = completestatus
+        self.version_notes = version_notes
+        self.version_notes_he = version_notes_he
+        self.version_other_desc = version_other_desc
 
         self.full_version = None
         self.versionSource = None  # handling of source is hacky
@@ -1922,6 +1928,9 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                     "versionSource": self.versionSource,
                     "language": self.lang,
                     "iscompleted": self.completestatus,
+                    "versionNotes":self.version_notes,
+                    "versionNotesInHebrew":self.version_notes_he,
+                    "versionOtherDesc":self.version_other_desc,
                     "title": self._oref.index.title
                 }
             )

@@ -90,7 +90,7 @@ class VersionBlock extends Component {
       "versionNotesInHebrew",
       "purchaseInformationImage",
       "purchaseInformationURL",
-
+      "versionOtherDesc",
     ];
     let s = {
       editing: false,
@@ -104,7 +104,6 @@ class VersionBlock extends Component {
     const target = event.target;
     const name = target.name;
     const value = target.type === 'checkbox' ? (name === "status" ? (target.checked ? "locked" : null) : target.checked ) : target.value;
-
     this.setState({
       [name]: value,
       error: null
@@ -197,12 +196,17 @@ class VersionBlock extends Component {
   }
   
   setTextCompletionStatus( version ){
-    if (version.iscompleted=="done") {
-      return null
-    } else {
-      return (
-        <div className="status sans-serif danger">{Sefaria._("text.versions.in_progress")}</div>
-      )
+    switch(version.iscompleted) {
+      case "in_progress":
+        return <div className="status sans-serif danger">{Sefaria._("text.versions.in_progress")}</div>
+      case "done":
+        return null;
+      case "ai_draft":
+        return <div className="status"><img src="/static/icons/ai_draft.svg" /></div>
+      case "ai_adaptation":
+        return <div className="status"><img src="/static/icons/ai_draft.svg" /></div>
+      default:
+        return null;
     } 
   }
 
@@ -236,7 +240,7 @@ class VersionBlock extends Component {
             {close_icon}
             <input id="versionTitle" name="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.handleInputChange} />
             <br></br>
-            <label htmlFor="versionTitleInHebrew" className="">Hebrew Version Title</label>
+            <label htmlFor="versionTitleInHebrew" className="">Tibetan Version Title</label>
             <input id="versionTitleInHebrew" name="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.handleInputChange} />
             <br></br>
             <label htmlFor="shortVersionTitle" className="">Short Version Title</label>
@@ -246,9 +250,10 @@ class VersionBlock extends Component {
             <select id="iscompleted" name="iscompleted" className="" value={this.state.iscompleted} onChange={this.handleInputChange}>
               <option key="in_progress"  value="in_progress">in_progress</option>
               <option key="done"  value="done">{Sefaria._("collection.done")}</option>
+              <option key="ai_draft"  value="ai_draft">ai_draft</option>
             </select>
             <br></br>
-            <label htmlFor="shortVersionTitleInHebrew" className="">Short Hebrew Version Title</label>
+            <label htmlFor="shortVersionTitleInHebrew" className="">Short Tibetan Version Title</label>
             <input id="shortVersionTitleInHebrew" name="shortVersionTitleInHebrew" className="" type="text" value={this.state.shortVersionTitleInHebrew} onChange={this.handleInputChange} />
             <br></br>
             <label htmlFor="versionSource">Version Source</label>
@@ -271,8 +276,11 @@ class VersionBlock extends Component {
             <label id="versionNotes_label" htmlFor="versionNotes">VersionNotes</label>
             <textarea id="versionNotes" name="versionNotes" placeholder="Version Notes" onChange={this.handleInputChange} value={this.state.versionNotes} rows="5" cols="40"/>
             <br></br>
-            <label id="versionNotesInHebrew_label" htmlFor="versionNotes_in_hebrew">Hebrew VersionNotes</label>
-            <textarea id="versionNotesInHebrew" name="versionNotesInHebrew" placeholder="Hebrew Version Notes" onChange={this.handleInputChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
+            <label id="versionNotesInHebrew_label" htmlFor="versionNotes_in_hebrew">Tibetan VersionNotes</label>
+            <textarea id="versionNotesInHebrew" name="versionNotesInHebrew" placeholder="Tibetan Version Notes" onChange={this.handleInputChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
+            
+            <label id="versionOtherDetail_label" htmlFor="versionOtherDetail">Other detail in Markdown</label>
+            <textarea id="versionOtherDesc" name="versionOtherDesc" placeholder="version Other detail" onChange={this.handleInputChange} value={this.state.versionOtherDesc} rows="5" cols="40"/>
             <div>
               <h3>Purchase Information</h3>
               <label htmlFor="purchase_url">Buy URL (Link to Store Item):</label>

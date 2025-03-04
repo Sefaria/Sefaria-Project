@@ -1155,7 +1155,7 @@ const secsInDay = 24 * 60 * 60;
 Util._cookies = {};
 Util._scrollbarWidth = null;
 Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
-    units: ['y', 'mo', 'w', 'd', 'h', 'm', 's'],
+    units: ['y', 'mo', 'w', 'd', 'm', 'h', 's'],
     largest: 1,
     round: true,
     unitMeasures: {
