@@ -137,7 +137,7 @@ const LoggedInDropdown = ({module}) => {
               <DropdownMenuItem url={'/updates'}>
                   <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
               </DropdownMenuItem>}
-              
+
               <DropdownMenuItem preventClose={true} url={'/help'}>
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
               </DropdownMenuItem>
@@ -232,6 +232,7 @@ class Header extends Component {
 
           <ModuleSwitcher />
 
+          {/* TODO: Replace the hardcoded module passed in with the logic inherited from ReaderApp via the header */}
           { Sefaria._uid ?
             <LoggedInDropdown module={'sheets'}/>
             : <LoggedOutDropdown currentLang={Sefaria.interfaceLang}/>
