@@ -17,7 +17,7 @@ import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
 
-const LoggedOutDropdown = () => {
+const LoggedOutDropdown = ({module}) => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
@@ -62,9 +62,10 @@ const LoggedOutDropdown = () => {
                   </DropdownMenuItem>
               </div>
               <DropdownMenuSeparator/>
+              {module === 'library' &&
               <DropdownMenuItem url={'/updates'}>
                   <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItem>}
               <DropdownMenuItem url={'/help'}>
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
               </DropdownMenuItem>
@@ -207,9 +208,10 @@ class Header extends Component {
 
           <ModuleSwitcher />
 
+          {/* TODO: Replace the hardcoded module passed in with the logic inherited from ReaderApp via the header */}
           { Sefaria._uid ?
             <LoggedInDropdown />
-            : <LoggedOutDropdown currentLang={Sefaria.interfaceLang}/>
+            : <LoggedOutDropdown module={'sheets'}/>
           }
 
         </div>
