@@ -10,6 +10,7 @@ import {RowedWordSalad} from "../RowedWordSalad";
 export const TopicSalad = () => {
 
     const [salad, setSalad] = useState([]);
+    const [animatedLoadingRainbow, setAnimatedLoadingRainbow] = useState(true);
 
     const isMultiPanel = Sefaria.multiPanel;
 
@@ -33,6 +34,7 @@ export const TopicSalad = () => {
     const loadSalad = async () => {
         const saladItems = await fetchRandomSaladItems();
         setSalad(saladItems);
+        setAnimatedLoadingRainbow(false)
     };
 
     useEffect(() => {
@@ -41,7 +43,7 @@ export const TopicSalad = () => {
 
     return (
     <span  data-anl-feature_name="Topic Salad">
-    <RainbowLine rainbowClassname={"topic-landing-upper-rainbow"}/>
+    <RainbowLine animated={animatedLoadingRainbow} rainbowClassname={"topic-landing-upper-rainbow"}/>
       <div className='topic-salad'>
           {isMultiPanel ? <WordSalad renderItem={renderSaladItem}
                             numLines={5}
@@ -51,7 +53,7 @@ export const TopicSalad = () => {
               <RowedWordSalad renderItem={renderSaladItem}
                               salad={salad}/>}
       </div>
-    <RainbowLine rainbowClassname={"topic-landing-lower-rainbow"}/>
+    {!animatedLoadingRainbow && <RainbowLine rainbowClassname={"topic-landing-lower-rainbow"}/>}
     </span>
 
   );

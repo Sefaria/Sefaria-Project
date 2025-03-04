@@ -1,7 +1,8 @@
 import React from "react";
 
-export const RainbowLine = ({rainbowClassname}) => {
+export const RainbowLine = ({rainbowClassname, animated=false}) => {
+    const baseRainbowClassname = animated ? 'animatedCategoryColorLineRainbow' : 'categoryColorLineRainbow';
     return (
-        <div className={`categoryColorLineRainbow ${rainbowClassname}`}/>
+        <div className={`${baseRainbowClassname} ${rainbowClassname}`}/>
     );
 };
