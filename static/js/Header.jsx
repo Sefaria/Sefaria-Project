@@ -335,7 +335,7 @@ const LoggedInButtons = ({headerMode}) => {
   );
 }
 
-const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible}) => {
+const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible, module}) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
@@ -352,26 +352,45 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             hideHebrewKeyboard={true}
         />
       </div>
+      {module === "library" && 
       <a href="/texts" onClick={close} className="textsPageLink">
         <img src="/static/icons/book.svg" />
         <InterfaceText context="Header">Texts</InterfaceText>
       </a>
-      <a href="/topics" onClick={close}>
+      }
+      <a href={module === "library" ? "/topics" : "/sheets/topics"} onClick={close}>
         <img src="/static/icons/topic.svg" />
         <InterfaceText>Topics</InterfaceText>
       </a>
+      {module === "sheets" && 
+      <a href="/sheets/collections" onClick={close} className="textsPageLink">
+        <img src="/static/icons/collection.svg" />
+        <InterfaceText context="Header">Collections</InterfaceText>
+      </a>
+      }
+
+     { module === "library" && 
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
         <InterfaceText>Learning Schedules</InterfaceText>
       </a>
-
+    }
       <DonateLink classes={"blue"} source="MobileNavMenu">
         <img src="/static/img/heart.png" alt="donation icon" />
         <InterfaceText>Donate</InterfaceText>
       </DonateLink>
 
       <div className="mobileAccountLinks">
-        {Sefaria._uid ?
+        {Sefaria._uid && module === "library" ?
+        <>
+          <a href="/texts/saved" onClick={close}>
+            <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
+            <InterfaceText text={{en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות"}} />
+
+          </a>
+        </> : null }
+
+        {Sefaria._uid && module === "sheets" ?
         <>
           <a href="/texts/saved" onClick={close}>
             <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
