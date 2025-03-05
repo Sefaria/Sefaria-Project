@@ -1028,6 +1028,20 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
     display: inline;
 }
 
+.language-toggle-box {
+    display: flex;            
+    justify-content: center;    
+    align-items: center;        
+    width: 35px;              
+    height: 35px;              
+    padding: 0;               
+    border: 1px solid #ccc;   
+    border-radius: 8px;       
+    margin-top: 3px;          
+    margin-bottom: 3px;       
+    margin-left: auto;         
+  }
+
 .mobileInterfaceLanguageToggle a {
     display: inline;
     padding: 0;
@@ -4621,7 +4635,6 @@ details .open-details::before {
     font-family: var(--hebrew-sans-serif-font-family);
     height: 18px;
     color: #ffffff;
-    background: var(--pecha-red);
     border-radius: 25px;
     padding: 5px 10px;
 }
@@ -7090,7 +7103,7 @@ But not to use a display block directive that might break continuous mode for ot
 
 .segment sup.footnote-marker,
 .segment sup.endFootnote {
-    color: var(--inline-link-red);
+    color: var(--select-blue);
 }
 
 .segment .he sup {
@@ -15794,7 +15807,69 @@ span.ref-link-color-3 {
     margin: unset;
   }
 
-  
+/* Accordion container */
+.accordion {
+    width: 100%;
+    max-width: 100%;
+    margin: 20px auto;
+    border-radius:200px;
+}
+
+/* Accordion item */
+.accordion-item {
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    overflow: hidden;
+    border-radius: 5px;
+}
+
+/* Hide the checkbox */
+.accordion-input {
+    display: none;
+}
+
+/* Style the label */
+.accordion-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f7f7f7;
+    cursor: pointer;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+}
+
+/* Style the FontAwesome icon */
+.accordion-label .fa {
+    transition: transform 0.3s ease;
+}
+
+/* Rotate icon when the section is open */
+.accordion-input:checked ~ .accordion-label .fa {
+    transform: rotate(180deg); /* Rotate to point up */
+}
+
+/* Change label background on hover */
+.accordion-label:hover {
+    background-color: #e7e7e7;
+}
+
+/* Style the content */
+.accordion-content {
+    padding: 0 15px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+/* Show content when checkbox is checked */
+.accordion-input:checked ~ .accordion-content {
+    max-height: 500px; /* Adjust based on your content */
+    padding: 15px;
+}
   
   
   

@@ -504,9 +504,9 @@ const LoggedInButtons = ({headerMode}) => {
         <img src="/static/icons/notification.svg" />
       </a>
       { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
-      <a aria-label="feedback" onClick={loadFeedBucket}>
+      {/* <a aria-label="feedback" onClick={loadFeedBucket}>
         <img src="/static/icons/feedback.svg" />
-      </a>
+      </a> */}
       <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
     </div>
   );

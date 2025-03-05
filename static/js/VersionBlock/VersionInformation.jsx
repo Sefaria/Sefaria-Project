@@ -3,12 +3,31 @@ import PropTypes from 'prop-types';
 import classNames from "classnames";
 import Sefaria from "../sefaria/sefaria";
 import {VersionBlockUtils} from './VersionBlock';
+import { VersionStatusLong } from '../Misc'
 
 function VersionInformation({currentRef, version}) {
     function makeLicenseLink() {
         const license_map = Sefaria.getLicenseMap();
         return (version.license in license_map) ? license_map[version.license] : "#";
     }
+    const markdownText = `
+    # React Markdown Example
+    
+    - Some text
+    - Some other text
+    
+    ## Subtitle
+    
+    ### Additional info
+    
+    | Column 1 | Column 2 | Column 3 |
+    |----------|----------|----------|
+    | Row 1    | Data 1   | Data 2   |
+    | Row 2    | Data 3   | Data 4   |
+    | Row 3    | Data 5   | Data 6   |
+    
+    This is a [link](https://github.com/remarkjs/react-markdown)
+    `
     return (
         <div className="versionDetailsInformation">
             <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionSource": 1, "versionDetailsElement": 1}, "versionSource"))}>
@@ -46,6 +65,9 @@ function VersionInformation({currentRef, version}) {
                <a className="versionDetailsLink" href={version.purchaseInformationURL} target="_blank">
                 {Sefaria._("text.version.information.buy_in_print")}
                </a>
+            </div>
+            <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "versionOtherDesc"))}>
+              <VersionStatusLong version={version} markdownString={markdownText} />
             </div>
         </div>
     );
