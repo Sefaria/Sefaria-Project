@@ -16,8 +16,7 @@ import {
   InterfaceText,
   CategoryHeader
 } from './Misc';
-import {ContentText} from "./ContentText";
-
+import { ContentText } from "./ContentText";
 
 const TextsPage = ({ categories, settings, setCategories, onCompareBack, openSearch,
   toggleLanguage, openTextTOC, openDisplaySettings, multiPanel, initialWidth, compare }) => {
@@ -46,11 +45,11 @@ const TextsPage = ({ categories, settings, setCategories, onCompareBack, openSea
 
     return (
       <div className="navBlock withColorLine" style={style} key={i}>
-        <a  href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
-          <ContentText  key={{ en: cat.category, he: cat.heCategory }} text={{ en: cat.category, he: cat.heCategory }} defaultToInterfaceOnBilingual={true} />
+        <a href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
+          <ContentText key={{ en: cat.category, he: cat.heCategory }} text={{ en: cat.category, he: cat.heCategory }} defaultToInterfaceOnBilingual={true} />
         </a>
         <div className="navBlockDescription">
-          <ContentText key={{ en: cat.enShortDesc, he: cat.heShortDesc }}  text={{ en: cat.enShortDesc, he: cat.heShortDesc }} defaultToInterfaceOnBilingual={true} />
+          <ContentText key={{ en: cat.enShortDesc, he: cat.heShortDesc }} text={{ en: cat.enShortDesc, he: cat.heShortDesc }} defaultToInterfaceOnBilingual={true} />
         </div>
       </div>
     );
@@ -59,7 +58,8 @@ const TextsPage = ({ categories, settings, setCategories, onCompareBack, openSea
   categoryListings = (
     <div className="readerNavCategories">
       <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
-    </div>);
+    </div>
+  );
 
   const comparePanelHeader = compare ?
     <ComparePanelHeader
@@ -69,19 +69,24 @@ const TextsPage = ({ categories, settings, setCategories, onCompareBack, openSea
       openSearch={openSearch}
     /> : null;
 
+  // Adjusted title without LanguageToggleButton
   const title = compare ? null :
     <div className="navTitle tight sans-serif">
-        <CategoryHeader type="cats" buttonsToDisplay={["subcategory", "reorder"]}>
-            {/* <h1><InterfaceText>home.browse_text</InterfaceText></h1> */}
-        </CategoryHeader>
-      { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-      <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
-    </div>
+      <CategoryHeader type="cats" buttonsToDisplay={["subcategory", "reorder"]}>
+        {/* <h1><InterfaceText>home.browse_text</InterfaceText></h1> */}
+      </CategoryHeader>
+    </div>;
 
   const about = compare || multiPanel ? null :
     <Modules type={"AboutSefaria"} props={{ hideTitle: true }} />;
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;
+
+  // Moved LanguageToggleButton here, below dedication
+  const languageToggle = multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC && !compare ?
+    <div className="language-toggle-box">
+      <LanguageToggleButton toggleLanguage={toggleLanguage} />
+    </div> : null;
 
   const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare ?
     <div className="libraryMessage" dangerouslySetInnerHTML={{ __html: Sefaria._siteSettings.LIBRARY_MESSAGE }}></div>
@@ -89,15 +94,16 @@ const TextsPage = ({ categories, settings, setCategories, onCompareBack, openSea
 
   const sidebarModules = [
     multiPanel ? { type: "AboutSefaria" } : { type: null },
-    {type: "Promo"},
-    {type: "Translations"},
+    { type: "Promo" },
+    { type: "Translations" },
     // {type: "LearningSchedules"},
-    {type: "JoinTheCommunity"},
-    {type: "Resources"},
+    { type: "JoinTheCommunity" },
+    { type: "Resources" },
   ];
 
   const footer = compare ? null : <Footer />;
   const classes = classNames({ readerNavMenu: 1, compare: compare, noLangToggleInHebrew: 1 });
+
   return (
     <div className={classes} key="0">
       {comparePanelHeader}
@@ -107,6 +113,7 @@ const TextsPage = ({ categories, settings, setCategories, onCompareBack, openSea
             {title}
             {about}
             {dedication}
+            {languageToggle} {/* Moved here, below dedication */}
             {libraryMessage}
             {categoryListings}
           </div>
@@ -117,6 +124,7 @@ const TextsPage = ({ categories, settings, setCategories, onCompareBack, openSea
     </div>
   );
 };
+
 TextsPage.propTypes = {
   categories: PropTypes.array.isRequired,
   settings: PropTypes.object.isRequired,
@@ -128,9 +136,8 @@ TextsPage.propTypes = {
   compare: PropTypes.bool,
 };
 
-
+// Dedication component remains unchanged
 const Dedication = () => {
-  //Get the local date 6 hours from now (so that dedication changes at 6pm local time
   let dedDate = new Date();
   dedDate.setHours(dedDate.getHours() + 6);
   const tzoffset = (new Date()).getTimezoneOffset() * 60000;
@@ -178,6 +185,5 @@ const Dedication = () => {
       : null
   );
 };
-
 
 export default TextsPage;

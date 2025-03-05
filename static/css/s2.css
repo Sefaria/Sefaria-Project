@@ -1028,6 +1028,20 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
     display: inline;
 }
 
+.language-toggle-box {
+    display: flex;            
+    justify-content: center;    
+    align-items: center;        
+    width: 35px;              
+    height: 35px;              
+    padding: 0;               
+    border: 1px solid #ccc;   
+    border-radius: 8px;       
+    margin-top: 3px;          
+    margin-bottom: 3px;       
+    margin-left: auto;         
+  }
+
 .mobileInterfaceLanguageToggle a {
     display: inline;
     padding: 0;
