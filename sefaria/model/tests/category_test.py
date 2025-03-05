@@ -80,7 +80,7 @@ class Test_Category_Editor(object):
 
         yield books
         for b in books:
-            library.get_index(b.title).delete()  # need to reload this due to caching
+            library.get_index(b.title).delete() # need to reload this due to caching
 
     @pytest.fixture(scope='module', autouse=True)
     def create_new_main_cat_shared_title(self):
