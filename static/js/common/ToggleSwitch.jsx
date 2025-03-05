@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-function ToggleSwitch({name, disabled, onChange, isChecked, ariaLabelledBy}) {
+function ToggleSwitch({name, disabled, onChange, isChecked}) {
     return (
         <div className="toggle-switch-container">
           <div className="toggle-switch focus-visible">

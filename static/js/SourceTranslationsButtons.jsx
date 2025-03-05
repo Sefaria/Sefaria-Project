@@ -4,7 +4,7 @@ import {ReaderPanelContext} from "./context";
 import RadioButton from "./common/RadioButton";
 
 function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts }) {
-    const {panelMode} = useContext(ReaderPanelContext);
+    const {panelMode, panelPosition} = useContext(ReaderPanelContext);
     const isSidePanel = !['Text', 'Sheet'].includes(panelMode);
     const createButton = (isPrimary, isTranslation, text) => {
         const isActive = (isPrimary === showPrimary && isTranslation === showTranslation);
@@ -12,8 +12,9 @@ function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts 
             isActive={isActive}
             onClick={() => setShowTexts(isPrimary, isTranslation)}
             value={text}
-            name='languageOptions'
+            name={`languageOptions${panelPosition}`}
             label={text}
+            id={`${text}${panelPosition}`}
         />);
     };
 
