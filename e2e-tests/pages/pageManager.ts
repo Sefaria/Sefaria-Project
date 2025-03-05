@@ -40,8 +40,8 @@ export class PageManager{
         this.sourceTextPage = new SourceTextPage(page, language)
     }
 
-    async toggleLanguage(newLanguage: string){
-        await changeLanguage(this.page, LANGUAGES.HE)
+    async toggleLanguage(newLanguage: any){
+        await changeLanguage(this.page, newLanguage)
         this.banner.toggleLanguage(newLanguage)
         this.textsPage.toggleLanguage(newLanguage)
     }
