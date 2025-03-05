@@ -208,7 +208,7 @@ class Header extends Component {
         { Sefaria._uid && this.props.module ==="library" ?
         <div className='librarySavedIcon'>
           <a href="/texts/saved" >
-            <img src='/static/icons/bookmarks.svg' />
+            <img src='/static/icons/bookmarks.svg' alt='Saved items' />
           </a>
           </div>
         : null }
