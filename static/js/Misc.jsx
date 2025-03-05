@@ -1480,7 +1480,7 @@ const layoutOptions = {
   'mono': ['continuous', 'segmented'],
   'bi-rtl': ['stacked', 'heRight'],
   'bi-ltr': ['stacked', 'heLeft'],
-  'mixed': ['stacked', 'heLeft', 'heRight'],
+  'mixed': ['stacked', 'heLeft'],
 };
 const layoutLabels = {
   'continuous': 'Show Text as a paragram',
