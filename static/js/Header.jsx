@@ -205,6 +205,14 @@ class Header extends Component {
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
 
+        { Sefaria._uid && this.props.module ==="library" ?
+        <div className='librarySavedIcon'>
+          <a href="/texts/saved" >
+            <img src='/static/icons/bookmarks.svg' />
+          </a>
+          </div>
+        : null }
+
           <ModuleSwitcher />
 
           { Sefaria._uid ?
@@ -271,6 +279,7 @@ Header.propTypes = {
   openTopic:    PropTypes.func.isRequired,
   openURL:      PropTypes.func.isRequired,
   hasBoxShadow: PropTypes.bool.isRequired,
+  module:       PropTypes.string.isRequired,
 };
 
 const LoggedOutButtons = ({mobile, loginOnly}) => {
