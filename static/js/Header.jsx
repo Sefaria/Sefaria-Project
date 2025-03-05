@@ -205,10 +205,10 @@ class Header extends Component {
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
 
-        { Sefaria._uid && this.props.module ==="library" ?
-        <div className='librarySavedIcon'>
-          <a href="/texts/saved" >
-            <img src='/static/icons/bookmarks.svg' />
+        { Sefaria._uid && this.props.module ==="sheets" ?
+        <div className='sheetsNotificationsHeaderIcon'>
+          <a href="/sheets/notifications" >
+            <img src='/static/icons/notification.svg' />
           </a>
           </div>
         : null }
