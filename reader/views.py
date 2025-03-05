@@ -1596,15 +1596,39 @@ def texts_api(request, tref):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], completestatus=t["completestatus"],
-                                method="API", skip_links=skip_links, count_after=count_after)
+            tracker.modify_text(apikey["uid"], 
+                                oref, 
+                                t["versionTitle"], 
+                                t["language"],
+                                t["text"], 
+                                t["versionSource"],
+                                completestatus=t["completestatus"],
+                                version_notes=t["versionNotes"],
+                                version_notes_he=t["versionNotesInTibetan"],
+                                version_other_desc=t["versionLongNotes"],
+                                method="API", 
+                                skip_links=skip_links, 
+                                count_after=count_after
+            )
             return jsonResponse({"status": "ok"})
         else:
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"],
-                                    t.get("versionSource", None), completestatus=t["completestatus"], skip_links=skip_links, count_after=count_after)
+                print(t)
+                tracker.modify_text(request.user.id, 
+                                    oref, 
+                                    t["versionTitle"], 
+                                    t["language"], 
+                                    t["text"],
+                                    t.get("versionSource", None),
+                                    completestatus=t["completestatus"], 
+                                    version_notes=t["versionNotes"],
+                                    version_notes_he=t["versionNotesInTibetan"],
+                                    version_other_desc=t["versionLongNotes"],
+                                    skip_links=skip_links, 
+                                    count_after=count_after
+                )
                 return jsonResponse({"status": "ok"})
 
             return protected_post(request)
@@ -1659,7 +1683,7 @@ def social_image_api(request, tref):
     print(f"Query params: {request.GET}")
     lang = request.GET.get("lang", "en")
     if lang == "bi":
-        lang = "en"
+        lang = "he"
     version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
     platform = request.GET.get("platform", "facebook")
 
