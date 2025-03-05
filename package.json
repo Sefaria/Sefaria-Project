@@ -43,6 +43,8 @@
   },
   "dependencies": {
     "@playwright/test": "^1.42.1",
+    "@sentry/node": "^8.51.0",
+    "@sentry/profiling-node": "^8.51.0",
     "@sentry/react": "^7.57.0",
     "body-parser": "^1.15.1",
     "buffer": "^6.0.3",
