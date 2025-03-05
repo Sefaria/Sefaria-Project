@@ -34,7 +34,7 @@ export class Banner{
 
     async topicsPage(){
         if(this.language == LANGUAGES.EN){
-            await this.page.getByRole('banner').getByRole('link', { name: 'Topics' }).click();
+            await this.page.getByRole('banner').getByRole('link', { name: 'Explore' }).click();
         }
         else{
             await this.page.getByRole('banner').getByRole('link', { name: 'נושאים' }).click();
