@@ -25,6 +25,7 @@ class Passage(abst.AbstractMongoRecord):
 
     @classmethod
     def containing_segment(cls, ref):
+        #get shortest passage containing this segment ref
         assert isinstance(ref, text.Ref)
         assert ref.is_segment_level()
         passages = PassageSet({"ref_list": ref.starting_ref().normal()})
