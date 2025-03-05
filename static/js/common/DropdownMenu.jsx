@@ -11,51 +11,31 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, onClick = null, customCSS = null, preventClose = false}) => {
-
-  const className = customCSS ? customCSS : 'interfaceLinks-option int-bi dropdownItem';
-  const commonProps = {
-    className,
-    'data-prevent-close': preventClose,
-    target: (newTab ? '_blank' : null),
-  };
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false}) => {
 
   if (!newTab){
     newTab = false;
   }
 
-  if (onClick && url) {
-    return (
-      <a {...commonProps}
-         href={url}
-         onClick={onClick}>
+  const cssClasses = customCSS ? customCSS : 'interfaceLinks-option int-bi dropdownItem';
+
+  return (
+    <a className={cssClasses}
+       href={url}
+       target={newTab ? '_blank' : null}
+       data-prevent-close={preventClose}>
+      {children}
+    </a>
+
+  );
+}
+
+const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false}) => {
+  return (
+    <div className={'interfaceLinks-option int-bi dropdownItem'} onClick={onClick} data-prevent-close={preventClose}>
         {children}
-      </a>
-  
-    );
-
-  }
-
-  else if (onClick){
-    return (
-      <div {...commonProps} onClick={onClick} >
-          {children}
-      </div>
-    );
-  }
-
-  else if (url){
-    return (
-      <a {...commonProps}
-         href={url}>
-        {children}
-      </a>
-    );
-  }
-
-  return null;
-
-
+    </div>
+  );
 }
 
 const DropdownMenuItemWithIcon = ({icon, textEn, textHe, descEn='', descHe=''}) => {
@@ -143,5 +123,6 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     DropdownMenu,
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
-    DropdownMenuItem
+    DropdownMenuItem, 
+    DropdownMenuItemWithCallback
   };

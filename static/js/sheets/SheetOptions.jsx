@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   DropdownMenu,
-  DropdownMenuItem,
+  DropdownMenuItemWithCallback,
   DropdownMenuItemWithIcon
 } from "../common/DropdownMenu";
 import { SaveButtonWithText } from "../Misc";
@@ -73,21 +73,21 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, editable}) => 
   }
   return (
         <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
-          <DropdownMenuItem onClick={() => setSavingMode(true)}>
+          <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
             <SaveButtonWithText historyObject={historyObjectForSheet}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setCopyingMode(true)}>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setCopyingMode(true)}>
             <CopyButton/>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setCollectionsMode(true)}>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setCollectionsMode(true)}>
             <CollectionsButton editable={editable}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setExportingMode(true)}>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setExportingMode(true)}>
             <GoogleDocExportButton sheetID={sheetID}/>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setSharingMode(true)}>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setSharingMode(true)}>
             <ShareButton/>
-          </DropdownMenuItem>
+          </DropdownMenuItemWithCallback>
         </DropdownMenu>
     );
 }

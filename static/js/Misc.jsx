@@ -1170,10 +1170,8 @@ DisplaySettingsButton.propTypes = {
 
 
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
-  // TODO:
-  // Fix the CSS (more spacing between elements, the spacing of the checkmark ::before class)
+
   const [isOpen, setIsOpen] = useState(false);
-  const [curLang, setCurLang] = useState(currentLang);
 
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
@@ -1192,10 +1190,10 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
         </div>
         <DropdownMenuSeparator />
         <div className='languageFlex'>
-          <DropdownMenuItem  url={`/interface/hebrew?next=${getCurrentPage()}`} onClick={() => setCurLang("hebrew")} customCSS={`interfaceLinks-option int-bi ${(curLang === 'hebrew') ? 'active':''}`}>
+          <DropdownMenuItem  url={`/interface/hebrew?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'hebrew') ? 'active':''}`}>
             עברית
           </DropdownMenuItem>
-          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} onClick={() => setCurLang("english")} customCSS={`interfaceLinks-option int-bi ${(curLang === 'english') ? 'active' : ''}`}>
+          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'english') ? 'active' : ''}`}>
             English
           </DropdownMenuItem>
         </div>
