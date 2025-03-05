@@ -41,7 +41,7 @@ const languageInterfaceAndSourceConfig = [
 ]
 
 /***** NEW TESTS *****/
-languageInterfaceAndSourceConfig.forEach(({interfaceLanguage, interfaceLanguageToggle, sourceLanguage, sourceLanguageToggle, expectedSourceText, expectedBilingualText, expectedInterfaceText}) => {
+languageInterfaceAndSourceConfig.forEach(({interfaceLanguage, interfaceLanguageToggle, sourceLanguage, sourceLanguageToggle, expectedSourceText, expectedInterfaceText}) => {
     test(`${interfaceLanguage} Interface Language with ${sourceLanguage} Source with PageManager`, async ({ context }) => {
 
         // Navigating to Bereshit with selected Interface Language, Hebrew or English
@@ -54,7 +54,7 @@ languageInterfaceAndSourceConfig.forEach(({interfaceLanguage, interfaceLanguageT
         await pm.onSourceTextPage().validateFirstLineOfContent(expectedSourceText)
 
         // Validate Hebrew interface language is still toggled
-        await pm.onSourceTextPage().validateLinkExistsBanner(expectedInterfaceText)
+        await pm.onSourceTextPage().validateLinkExistsInBanner(expectedInterfaceText)
     })
 })
 
