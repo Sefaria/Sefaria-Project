@@ -722,7 +722,7 @@ const TopicPage = ({
     const handleLangSelectInterfaceChange = (selection) => {
       if (selection === "source") {setLangPref("hebrew")}
       else if (selection === "translation") {setLangPref("english")}
-      else setLangPref(null);
+      else setLangPref("bilingual");
     }
 
     const getCurrentLang = () => {
@@ -973,8 +973,8 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
 
   return (
     <div className={"topicSideColumn"}>
-      { readingsComponent }
       { topicMetaData }
+      { readingsComponent }
       { linksComponent }
       <LinkToSheetsSearchComponent/>
     </div>

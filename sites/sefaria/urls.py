@@ -52,7 +52,8 @@ static_pages = [
     "link-to-annual-report",
     'mobile-about-menu',
     "updates",
-    "pioneers"
+    "pioneers",
+    "ai"
 ]
 
 static_pages_by_lang = [

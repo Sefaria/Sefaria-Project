@@ -5,7 +5,7 @@ import Sefaria  from './sefaria/sefaria';
 import { useScrollToLoad } from "./Hooks";
 import { NavSidebar } from './NavSidebar';
 import { NotesList } from './NoteListing';
-import { 
+import {
   SheetBlock,
   TextPassage
 } from './Story';
@@ -19,7 +19,7 @@ import {
 const filterDataByType = (data, dataSource) => {
   return data.filter(item => {
     if (dataSource === 'sheets') {
-      return item.is_sheet; 
+      return item.is_sheet;
     } else {
       return !item.is_sheet; // Keep only non-sheets (texts)
     }
@@ -32,7 +32,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const [notes, setNotes] = useState(null);
   const [dataStore, setDataStore] = useState(initialStore);
-  
+
   const contentRef = useRef();
 
   useEffect(() => {
@@ -42,25 +42,25 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
           ref: note.ref,
           text: note.text
         }));
-        setNotes(flattenedNotes); 
+        setNotes(flattenedNotes);
       } else {
         console.error('Unexpected data format:', data);
       }
     });
   }, []);
-  
+
   useEffect(() => {
     // Switch dataStore whenever menuOpen changes
     const newDataStore = menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? Sefaria.saved : Sefaria.userHistory;
     setDataStore(newDataStore);
-  }, [menuOpen, Sefaria.saved, Sefaria.userHistory]); 
+  }, [menuOpen, Sefaria.saved, Sefaria.userHistory]);
 
   const libraryURLs = {
-    "saved": "/texts/saved", 
+    "saved": "/texts/saved",
     "history": "/texts/history"
   };
   const sheetsURLs = {
-    "saved": "/sheets/saved", 
+    "saved": "/sheets/saved",
     "history": "/sheets/history"
   };
 
