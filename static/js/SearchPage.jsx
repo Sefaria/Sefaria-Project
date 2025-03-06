@@ -103,7 +103,6 @@ class SearchPage extends Component {
                   </div>
                   : null}
             </div>
-            {this.props.panelsOpen === 1 ? <Footer/> : null}
           </div>
         </div>
     );
