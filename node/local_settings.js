@@ -31,6 +31,14 @@ const local_settings = {
     } else {
       return false; // default
     }
+  }(),
+
+  SENTRY_DSN: function(){
+    if ('SENTRY_DSN' in process.env) {
+      return process.env.SENTRY_DSN;
+    } else {
+      return ""; // default
+    }
   }()
 }
 
