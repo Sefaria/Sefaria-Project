@@ -19,3 +19,5 @@ DATABASES = {
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
+
+ADMIN_PATH = 'admin'
