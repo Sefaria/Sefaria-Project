@@ -14,7 +14,8 @@ import {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
-  CollectionStatement, LearnAboutNewEditorBanner,
+  CollectionStatement,
+  LearnAboutNewEditorBanner,
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 

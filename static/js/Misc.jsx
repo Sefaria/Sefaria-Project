@@ -2074,16 +2074,20 @@ const GenericBanner = ({message, children}) => {
 
 const LearnAboutNewEditorBanner = () => {
   const cookieName = "learned_about_new_editor";
-  const linkURL = Sefaria._v({en: "/sheets/393695", he: "/sheets/399333"});
+  const shouldShowNotification = Sefaria._inBrowser && !document.cookie.includes(cookieName);
+  const [showNotification, toggleShowNotification] = useState(shouldShowNotification);
+  const [enURL, heURL] = ["/sheets/393695", "/sheets/399333"];
+  const linkURL = Sefaria._v({en: enURL, he: heURL});
+
   const handleLearnMoreClick = () => {
     window.open(linkURL, '_blank');
   };
-  const shouldShowNotification = Sefaria._inBrowser && !document.cookie.includes(cookieName);
-  const [showNotification, toggleShowNotification] = useState(shouldShowNotification);
+
   const setCookie = () => {
     $.cookie(cookieName, 1, {path: "/", expires: 20*365});
     toggleShowNotification(false);
   }
+
   if (!showNotification) {
     return null;
   }
