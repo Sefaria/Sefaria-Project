@@ -258,7 +258,7 @@ def test_nodes_missing_content():
     root_node.validate()
     test_index = Index({
         'title': 'test text',
-        'categories': ['Other'],
+        'categories': ['Tanakh'],
         'schema': root_node.serialize()
     })
     test_index.save()
