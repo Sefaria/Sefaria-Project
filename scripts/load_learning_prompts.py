@@ -31,12 +31,17 @@ def set_topic_datasource():
 
 
 def import_descriptions(filename, lang):
-    high_primacy = 100
-    default_primacy = 50
+    top_primacy = 100
+    step = 2
+    current_topic = None
+
     with open(filename, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             topic_slug = row['Topic Slug'].strip()
+            if topic_slug != current_topic:
+                current_topic = topic_slug
+                current_primacy = top_primacy
             try:
                 ref = Ref(row['Ref']).normal()
             except:
@@ -45,10 +50,12 @@ def import_descriptions(filename, lang):
                 continue
             title = row['Title']
             prompt = row['Prompt']
-            if row['Intro'] == "Y" or row['Intro'] == "y":
-                primacy = high_primacy
-            else:
-                primacy = default_primacy
+            '''
+            All sources will be in order for now, so the below flag is ignored. 
+                if row['Intro'] == "Y" or row['Intro'] == "y":
+            '''
+            primacy = current_primacy
+            current_primacy -= step
             if not topic_slug or not ref or not title or not prompt:
                 print("Skipping row with missing data: {}".format(row))
                 continue
