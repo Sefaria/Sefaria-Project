@@ -33,3 +33,10 @@ spec:
         ports:
         - containerPort: 6379
         resources: {{ toYaml .Values.redis.resources | nindent 10 }}
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-pvc
