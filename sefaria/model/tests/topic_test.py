@@ -57,8 +57,8 @@ def clean_links(a):
 @pytest.fixture(scope='module', autouse=True)
 def library_and_sheets_topic_pools(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        TopicPool.objects.create(name=PoolType.LIBRARY.value)
-        TopicPool.objects.create(name=PoolType.SHEETS.value)
+        TopicPool.objects.get_or_create(name=PoolType.LIBRARY.value)
+        TopicPool.objects.get_or_create(name=PoolType.SHEETS.value)
 
 
 @pytest.fixture(scope='module')
@@ -133,7 +133,7 @@ def topic_pool(django_db_setup, django_db_blocker):
         yield pool
         pool.delete()
 
-
+@pytest.mark.django_db
 class TestTopics(object):
 
     def test_graph_funcs(self, topic_graph):
@@ -199,6 +199,7 @@ class TestTopics(object):
         dt1 = DjangoTopic.objects.get(slug=ts['1'].slug)
         assert dt1.en_title == ts['1'].get_primary_title('en')
 
+    @pytest.mark.django_db
     def test_pools(self, topic_graph, topic_pool):
         ts = topic_graph['topics']
         t1 = ts['1']
@@ -386,4 +387,3 @@ class TestRefTopicLink(object):
         with pytest.raises(DuplicateRecordError):
             l2.save()
         l1.delete()
-
