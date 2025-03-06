@@ -5880,7 +5880,7 @@ class Library(object):
         q = {'corpora': corpus}
         if not include_dependant:
             q['dependence'] = {'$in': [False, None]}
-        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+        return IndexSet(q, sort="order.0") if full_records else IndexSet(q, sort="order.0").distinct("title")
 
     def get_indices_by_collective_title(self, collective_title, full_records=False):
         q = {'collective_title': collective_title}

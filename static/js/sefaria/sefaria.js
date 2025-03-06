@@ -10,6 +10,8 @@ import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
+import SearchState from "./searchState";
+import FilterNode from "./FilterNode";
 
 
 let Sefaria = Sefaria || {
@@ -773,7 +775,7 @@ Sefaria = extend(Sefaria, {
         educator: educatorCheck,
         firstName: firstName,
         lastName: lastName,
-        lists: lists,
+        ...(lists?.length && { lists }),
       };
       return await Sefaria.apiRequestWithBody(`/api/subscribe/${email}`, null, payload);
   },
@@ -1524,7 +1526,39 @@ Sefaria = extend(Sefaria, {
   }
   ,
   _linkSummaries: {},
-  linkSummary: function(ref) {
+  shouldBuildLinkSummaries: function(cacheKey, links) {
+    // check _linkSummaries[cacheKey]: does this cacheKey (1) exist and (2) is the 'total' up-to-date with links length
+    // if it doesn't exist or isn't up-to-date, need to build _linkSummaries for cacheKey
+    if (cacheKey in this._linkSummaries) {
+      const linkSummariesTotal = this._linkSummaries[cacheKey].total;
+      if (linkSummariesTotal < links.length) {  // the _linkSummaries cache is not up-to-date with the _links cache
+        delete this._linkSummaries[cacheKey];
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return true;
+    }
+  },
+  getLinksFromCacheAndPreprocess: function(ref, excludedSheet) {
+    let links = [];
+    if (typeof ref == "string") {
+      links = this.getLinksFromCache(ref);
+    } else {
+      links = [];
+      ref.map(function(r) {
+        const newlinks = Sefaria.getLinksFromCache(r);
+        links = links.concat(newlinks);
+      });
+      links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
+    }
+    links = excludedSheet ? this._filterSheetFromLinks(links, excludedSheet) : links;
+    return links.filter(link => link.type !== "essay");
+  },
+  linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
     const categoryOrderOverrides = {
@@ -1595,30 +1629,19 @@ Sefaria = extend(Sefaria, {
 
         ],
     };
-    const oref          = (typeof ref == "string") ? Sefaria.ref(ref) : Sefaria.ref(ref[0]);
-    const categoryOverridesForRef = (oref && oref.hasOwnProperty("primary_category")) ?  ((categoryOrderOverrides.hasOwnProperty(oref.primary_category)) ? categoryOrderOverrides[oref.primary_category] : null) : null;
-    let links = [];
     if (!this.linksLoaded(ref)) { return []; }
+    const links = this.getLinksFromCacheAndPreprocess(ref, excludedSheet);
     const normRef = Sefaria.humanRef(ref);
-    const cacheKey = normRef;
-    if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
-    if (typeof ref == "string") {
-      links = this.getLinksFromCache(ref);
-    } else {
-      links = [];
-      ref.map(function(r) {
-        const newlinks = Sefaria.getLinksFromCache(r);
-        links = links.concat(newlinks);
-      });
-      links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
+    const cacheKey = normRef + "/" + excludedSheet;
+    if (!this.shouldBuildLinkSummaries(cacheKey, links)) {  // don't need to build _linkSummaries for this ref
+      return this._linkSummaries[cacheKey].data;
     }
 
+    const oref          = (typeof ref == "string") ? Sefaria.ref(ref) : Sefaria.ref(ref[0]);
+    const categoryOverridesForRef = (oref && oref.hasOwnProperty("primary_category")) ?  ((categoryOrderOverrides.hasOwnProperty(oref.primary_category)) ? categoryOrderOverrides[oref.primary_category] : null) : null;
     const summary = {};
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
-      if (link["type"] === "essay") {
-        continue;
-      }
       // Count Category
       if (link.category in summary) {
         summary[link.category].count += 1;
@@ -1714,7 +1737,10 @@ Sefaria = extend(Sefaria, {
       orderB = orderB === -1 ? categoryOrder.length : orderB;
       return orderA - orderB;
     });
-    Sefaria._linkSummaries[cacheKey] = summaryList;
+    const total = summaryList.reduce((sum, current) => {
+        return sum + current.count;
+    }, 0);
+    Sefaria._linkSummaries[cacheKey] = {"data": summaryList, "total": total};
     return summaryList;
   },
   linkSummaryBookSort: function(category, a, b, byHebrew) {
@@ -2987,7 +3013,7 @@ _media: {},
     a[c.slug] = {en: c.en, he: c.he};
 
     for (let sub_c of c.children) {
-      Sefaria._initTopicTocCategoryReducer(a, sub_c);
+      Sefaria._initTopicTocCategoryTitlesReducer(a, sub_c);
     }
     return a;
   },
@@ -3001,6 +3027,56 @@ _media: {},
     return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
+    getSheetsByRef: function(srefs, callback) {
+        return Sefaria._cachedApiPromise({
+          url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}?include_collections=1`,
+          key: `include_collections|${srefs}`,
+          store: Sefaria.sheets._sheetsByRef,
+          processor: callback
+        });
+      },
+    sheetsWithRefFilterNodes(sheets) {
+      /*
+      This function is used to generate the SearchState with its relevant
+      FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
+       */
+      const newFilter = (item, type) => {
+          let title, heTitle;
+          if (type === 'topics') {
+              [title, heTitle] = [item.en, item.he];
+              type = 'topics_en';
+          }
+          else if (type === 'collections') {
+              [title, heTitle] = [item.name, item.name];
+          }
+          return {
+              title, heTitle,
+              docCount: 0, aggKey: item.slug,
+              selected: 0, aggType: type,
+          };
+      }
+
+      let filters = {};
+      sheets.forEach(sheet => {
+        let slugsFound = new Set();  // keep track of slugs in this sheet\n
+        ['topics', 'collections'].forEach(itemsType => {
+            sheet[itemsType]?.forEach(item => {
+              const key = `${item.slug}|${itemsType}`;
+              if (!slugsFound.has(key)) { // we don't want to increase docCount when one sheet already
+                                              // has a topic/collection with the same slug as the current topic/collection
+                let filter = filters[key];
+                if (!filter) {
+                  filter = newFilter(item, itemsType);
+                  filters[key] = filter;
+                }
+                slugsFound.add(key);
+                filter.docCount += 1;
+              }
+            })
+        })
+      })
+      return Object.values(filters).map(f => new FilterNode(f));;
+    },
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {
       if (reset) {
@@ -3165,10 +3241,10 @@ _media: {},
     },
     sheetsTotalCount: function(refs) {
       // Returns the total number of private and public sheets on `refs` without double counting my public sheets.
-      var sheets = Sefaria.sheets.sheetsByRef(refs) || [];
+      let sheets = Sefaria.sheets.sheetsByRef(refs) || [];
       if (Sefaria._uid) {
-        var mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
-        sheets = sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }).concat(mySheets);
+        const mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
+        sheets = mySheets.concat(sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }));
       }
       return sheets.length;
     },

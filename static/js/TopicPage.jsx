@@ -5,7 +5,6 @@ import Sefaria  from './sefaria/sefaria';
 import { useIncrementalLoad } from './Hooks';
 import { Promotions } from './Promotions';
 import { NavSidebar } from './NavSidebar';
-import Footer from './Footer';
 import {TopicEditor} from './TopicEditor';
 import {AdminEditorButton, useEditToggle} from './AdminEditor';
 import {
@@ -294,7 +293,6 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                   </div>
                   <NavSidebar sidebarModules={sidebarModules} />
                 </div>
-                <Footer />
             </div>
         </div>
     );
@@ -724,7 +722,7 @@ const TopicPage = ({
     const handleLangSelectInterfaceChange = (selection) => {
       if (selection === "source") {setLangPref("hebrew")}
       else if (selection === "translation") {setLangPref("english")}
-      else setLangPref(null);
+      else setLangPref("bilingual");
     }
 
     const getCurrentLang = () => {
@@ -807,7 +805,6 @@ const TopicPage = ({
                 </div>
                 {sidebar}
             </div>
-            <Footer />
           </div>
         </div>
     );
@@ -976,8 +973,8 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
 
   return (
     <div className={"topicSideColumn"}>
-      { readingsComponent }
       { topicMetaData }
+      { readingsComponent }
       { linksComponent }
       <LinkToSheetsSearchComponent/>
     </div>
