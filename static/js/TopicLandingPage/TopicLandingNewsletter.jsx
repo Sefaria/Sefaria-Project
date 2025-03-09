@@ -44,7 +44,7 @@ export const TopicLandingNewsletter = () => {
                 <h3 className="topic-landing-newsletter-text">
                     <InterfaceText>Stay curious. Get the Timeless Topics newsletter every Tuesday.</InterfaceText>
                 </h3>
-                <div className="topic-landing-newsletter-input-wrapper">
+                <div className="topic-landing-newsletter-input-wrapper" data-anl-event="form_start:inputStart">
                     <div className="topic-landing-newsletter-input-row">
                         <input
                             type="text"

@@ -9,6 +9,7 @@ const AnalyticsEventTracker = (function() {
     const FIELD_ATTR_PREFIX = 'data-anl-';
     const BATCH_ATTR = 'data-anl-batch';
     const SCROLL_INTO_VIEW_SELECTOR ='[data-anl-event*=":scrollIntoView"]';
+    const INPUT_START_SELECTOR ='[data-anl-event*=":inputStart"]';
     const TOGGLE_NODE_SELECTOR = 'details';
     const NON_BUBBLING_EVENT_DELEGATES = {
         'bubblingToggle': 'toggle',
@@ -182,6 +183,19 @@ const AnalyticsEventTracker = (function() {
         });
     }
 
+    function _addInputStartListener(element) {
+        const handleInputStart = function(event) {
+            const inputStartEvent = new CustomEvent('inputStart', {
+                bubbles: true,
+                detail: { originalEvent: event }
+            });
+            event.target.dispatchEvent(inputStartEvent);
+            // remove it after first input so it doesn't fire again
+            element.removeEventListener('input', handleInputStart);
+        }
+        element.addEventListener('input', handleInputStart);
+    }
+
     function _runFunctionOnSelector(root, selector, fn) {
         /**
          * Runs `fn(node)` on any node that matches `selector`.
@@ -260,6 +274,8 @@ const AnalyticsEventTracker = (function() {
                 } else if (eventType === 'scrollIntoView') {
                     onMutationFns.push(node => _runFunctionOnSelector(node, SCROLL_INTO_VIEW_SELECTOR, _observeForScrollIntoView));
                     eventType = _observeScrollIntoViewEvent(selector);
+                } else if (eventType === 'inputStart') {
+                    onMutationFns.push(node => _runFunctionOnSelector(node, INPUT_START_SELECTOR, _addInputStartListener));
                 }
                 elements.forEach(element => {
                     element.addEventListener(eventType, _handleAnalyticsEvent);
