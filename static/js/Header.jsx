@@ -178,6 +178,12 @@ class Header extends Component {
       <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
       <img src="/static/img/logo.svg" alt="Sefaria Logo"/>;
 
+      const librarySavedIcon = <div className='librarySavedIcon'>
+                                  <a href="/texts/saved" >
+                                    <img src='/static/icons/bookmarks.svg' alt='Saved items' />
+                                  </a>
+                                </div>;
+
     const headerContent = (
       <>
 
@@ -205,13 +211,7 @@ class Header extends Component {
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
 
-        { Sefaria._uid && this.props.module ==="library" ?
-        <div className='librarySavedIcon'>
-          <a href="/texts/saved" >
-            <img src='/static/icons/bookmarks.svg' alt='Saved items' />
-          </a>
-          </div>
-        : null }
+        { Sefaria._uid && this.props.module ==="library" ? librarySavedIcon : null }
 
           <ModuleSwitcher />
 
