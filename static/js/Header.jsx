@@ -403,7 +403,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       }
       <a href={module === "library" ? "/topics" : "/sheets/topics"} onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText>Topics</InterfaceText>
+        <InterfaceText context="Header">Explore</InterfaceText>
       </a>
       {module === "sheets" && 
       <a href="/sheets/collections" onClick={close} className="textsPageLink">

@@ -1,7 +1,6 @@
 import React, { useRef }  from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
-import Footer  from './Footer';
 import ReactDOM  from 'react-dom';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
@@ -92,7 +91,6 @@ class NotificationsPanel extends Component {
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>
-          <Footer />
         </div>
       </div>
     );

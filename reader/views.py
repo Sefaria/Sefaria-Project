@@ -424,7 +424,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
     panel = {
         "menuOpen": "search",
         "searchQuery": search_params["query"],
-        "searchTab": search_params["tab"],
+        "searchType": search_params["tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -762,24 +762,28 @@ def get_search_params(get_dict, i=None):
         return [urllib.parse.unquote(f) for f in get_dict.get(get_param(prefix+filter_type+"Filters", i)).split("|")] if get_dict.get(get_param(prefix+filter_type+"Filters", i), "") else []
 
     sheet_filters_types = ("collections", "topics_en", "topics_he")
-    sheet_filters = []
-    sheet_agg_types = []
-    for filter_type in sheet_filters_types:
-        filters = get_filters("s", filter_type)
-        sheet_filters += filters
-        sheet_agg_types += [filter_type] * len(filters)
-    text_filters = get_filters("t", "path")
+    filters = []
+    agg_types = []
+    sort = None
+    field = None
+    if get_dict.get('tab') == 'text':
+        filters = get_filters("t", "path")
+        sort = get_dict.get(get_param("tsort", i), None)
+        agg_types = [None for _ in filters] # currently unused. just needs to be equal len as filters
+        field = ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else ""
+    else:
+        for filter_type in sheet_filters_types:
+            filters += get_filters("s", filter_type)
+            agg_types += [filter_type] * len(filters)
+        sort = get_dict.get(get_param("ssort", i), None)
 
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
-        "textField": ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else "",
-        "textSort": get_dict.get(get_param("tsort", i), None),
-        "textFilters": text_filters,
-        "textFilterAggTypes": [None for _ in text_filters],  # currently unused. just needs to be equal len as text_filters
-        "sheetSort": get_dict.get(get_param("ssort", i), None),
-        "sheetFilters": sheet_filters,
-        "sheetFilterAggTypes": sheet_agg_types,
+        "field": field,
+        "sort": sort,
+        "filters": filters,
+        "filterAggTypes": agg_types,
     }
 
 
@@ -816,14 +820,11 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
-        "initialSearchTab": search_params["tab"],
-        "initialTextSearchFilters": search_params["textFilters"],
-        "initialTextSearchFilterAggTypes": search_params["textFilterAggTypes"],
-        "initialTextSearchField": search_params["textField"],
-        "initialTextSearchSortType": search_params["textSort"],
-        "initialSheetSearchFilters": search_params["sheetFilters"],
-        "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
-        "initialSheetSearchSortType": search_params["sheetSort"]
+        "initialSearchType": search_params["tab"],
+        "initialSearchFilters": search_params["filters"],
+        "initialSearchFilterAggTypes": search_params["filterAggTypes"],
+        "initialSearchField": search_params["field"],
+        "initialSearchSortType": search_params["sort"],
     }
     return render_template(request,'base.html', props, {
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),

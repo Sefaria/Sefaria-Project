@@ -37,7 +37,6 @@ static_pages = [
     "dicta-thanks",
     "daf-yomi",
     "remote-learning",
-    "sheets",
     "powered-by-sefaria-contest-2020",
     "powered-by-sefaria-contest-2021",
     "ramban-sponsorships",
@@ -53,7 +52,8 @@ static_pages = [
     "link-to-annual-report",
     'mobile-about-menu',
     "updates",
-    "pioneers"
+    "pioneers",
+    "ai"
 ]
 
 static_pages_by_lang = [
