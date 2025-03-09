@@ -1,0 +1,76 @@
+/* CSS Reset for Button */
+button.sefaria-common-button {
+    all: unset; /* Resets all properties */
+    display: inline-block; /* Ensure button remains an inline element */
+    box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
+    margin: 0; /* Reset margin */
+    padding: 0; /* Reset padding */
+    background: none; /* Reset background */
+    border: none; /* Reset border */
+    color: inherit; /* Inherit text color from parent */
+    font: inherit; /* Inherit font properties from parent */
+    text-align: center; /* Center text */
+    text-decoration: none; /* Remove text decoration */
+    cursor: pointer; /* Ensure pointer cursor */
+    user-select: none; /* Prevent text selection */
+    -webkit-appearance: none; /* Remove default appearance in Webkit browsers */
+    -moz-appearance: none; /* Remove default appearance in Mozilla browsers */
+    appearance: none; /* Remove default appearance */
+}
+
+button.sefaria-common-button:focus {
+    outline: none; /* Remove focus outline */
+}
+
+button.sefaria-common-button::-moz-focus-inner {
+    border: 0; /* Remove inner border in Firefox */
+    padding: 0; /* Remove inner padding in Firefox */
+}
+/* end reset */
+
+/* Button Styles */
+
+/** general sized button **/
+button.sefaria-common-button {
+    background-color: var(--theme-button-background);
+    color: var(--theme-button-text);
+    border: 1px solid var(--theme-button-border);
+    padding: 10px 20px;
+    border-radius: 6px;
+    height: 39px;
+    min-width: 39px;
+    width: fit-content;
+    text-align: center;
+    text-align-last: center;
+    cursor: pointer;
+    font-size: 16px;
+    box-sizing: border-box;
+    line-height: 19px;
+    --english-font: var(--english-sans-serif-font-family);
+    --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+/** large button **/
+button.sefaria-common-button.large {
+    height: 53px;
+    min-width: 39px;
+}
+/** full width button **/
+button.sefaria-common-button.fullwidth {
+    height: 53px;
+    width: 100%;
+}
+/** button children **/
+button.sefaria-common-button,
+button.sefaria-common-button *{
+  /*extra make sure color is applied to text if its in nested elements  */
+    color: var(--theme-button-text);
+}
+/** button icon **/
+button.sefaria-common-button img.button-icon {
+    filter: var(--theme-button-icon-filter);
+    margin-inline-end: 5px;
+    height: 18px;
+    vertical-align: -15%;
+}
+
+
