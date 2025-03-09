@@ -2117,8 +2117,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         hasBoxShadow={headerHasBoxShadow}
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
-        // TODO: This hardcoded value needs to be replaced with the header logic for modules
-        module={"sheets"}/>
+        module={Sefaria.activeModule}/>
     );
 
     var panels = [];

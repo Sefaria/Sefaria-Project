@@ -249,10 +249,9 @@ class Header extends Component {
 
           <ModuleSwitcher />
 
-          {/* TODO: Replace the hardcoded module passed in with the logic inherited from ReaderApp via the header */}
           { Sefaria._uid ?
-            <LoggedInDropdown module={'sheets'}/>
-            : <LoggedOutDropdown module={'sheets'}/>
+            <LoggedInDropdown module={this.props.module}/>
+            : <LoggedOutDropdown module={this.props.module}/>
           }
 
         </div>
@@ -300,8 +299,7 @@ class Header extends Component {
           openTopic={this.props.openTopic}
           openURL={this.props.openURL}
           close={this.props.onMobileMenuButtonClick}
-          // TODO - remove hardcoded value and integrate with header logic more generally
-          module={'sheets'} />
+          module={this.props.module} />
         }
         <GlobalWarningMessage />
       </div>
