@@ -30,7 +30,7 @@ const getPath = (layoutOption, layoutState, textsData) => {
 };
 
 const LayoutButton = ({layoutOption, layoutState}) => {
-    const {language, textsData, setOption, layout} = useContext(ReaderPanelContext);
+    const {language, textsData, setOption, layout, panelPosition} = useContext(ReaderPanelContext);
     const path = getPath(layoutOption, layoutState, textsData);
     const optionName = (language === 'bilingual') ? 'biLayout' : 'layout';
     const checked = layout === layoutOption;
@@ -42,6 +42,7 @@ const LayoutButton = ({layoutOption, layoutState}) => {
                 isActive={checked}
                 value={layoutOption}
                 style={{"--url": `url(${path})`}}
+                id={`${layoutOption}${panelPosition}`}
             />
         </div>
     );
@@ -59,6 +60,7 @@ const LayoutButtons = () => {
             <InterfaceText>Layout</InterfaceText>
             <div className="layout-options">
                 {layoutOptions[layoutState].map(option => <LayoutButton
+                    key={option}
                     layoutOption={option}
                     layoutState={layoutState}
                 />)}
