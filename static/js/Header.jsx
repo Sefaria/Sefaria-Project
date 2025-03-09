@@ -400,12 +400,19 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a>
       }
 
-     {module === "library" && 
+      {module === "sheets" && 
+      <a href="/sheets/collections" onClick={close} className="textsPageLink">
+        <img src="/static/icons/collection.svg" />
+        <InterfaceText context="Header">Collections</InterfaceText>
+      </a>
+      }
+
+     { module === "library" && 
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
         <InterfaceText>Learning Schedules</InterfaceText>
       </a>
-      }
+    }
 
       <DonateLink classes={"blue"} source="MobileNavMenu">
         <img src="/static/img/heart.png" alt="donation icon" />
