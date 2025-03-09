@@ -23,7 +23,7 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import { ReaderApp } from './ReaderApp';
+import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1243,22 +1243,39 @@ InterfaceLanguageMenu.propTypes = {
   translationLanguagePreference: PropTypes.string,
 };
 
+const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
+const getSaveButtonMessage = (selected) => Sefaria._(selected ? "Remove" : "Save");
+const getSaveButtonImage = (selected) => {
+  return selected ? "/static/icons/bookmark-filled.svg" : "/static/icons/bookmark.svg";
+}
+const SaveButtonWithText = ({historyObject}) => {
+  const selected = isSaveButtonSelected(historyObject);
+  return <DropdownMenuItemWithIcon
+                    textEn={getSaveButtonMessage(selected)}
+                    textHe={getSaveButtonMessage(selected)}
+                    descEn={""}
+                    descHe={""}
+                    icon={getSaveButtonImage(selected)}/>;
+}
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
-  if (!historyObject) { placeholder = true; }
-  const isSelected = () => !!Sefaria.getSavedItem(historyObject);
-  const [selected, setSelected] = useState(placeholder || isSelected());
+  if (!historyObject) {
+    placeholder = true;
+  }
+  const [selected, setSelected] = useState(placeholder || isSaveButtonSelected(historyObject));
   useEffect(() => {
-    if (placeholder) { return; }
-    setSelected(isSelected())
+    if (placeholder) {
+      return;
+    }
+    setSelected(isSaveButtonSelected(historyObject));
   }, [historyObject && historyObject.ref]);
 
   const [isPosting, setPosting] = useState(false);
 
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-  const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+  const message = getSaveButtonMessage(selected);
+  const altText = placeholder ? '' : `${message} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {
@@ -1267,15 +1284,13 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
-        .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
+        .then(() => { setSelected(isSaveButtonSelected(historyObject)); }) // since request is async, check if it's selected from data
+        .catch(e => { if (e === 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
         .finally(() => { setPosting(false); });
   }
-
   return (
     <ToolTipped {...{ altText, classes, style, onClick }}>
-      { selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
-        <img src="/static/icons/bookmark.svg" alt={altText}/> }
+      {<img src={`${getSaveButtonImage(selected)}`} alt={altText}/>}
     </ToolTipped>
   );
 }
@@ -1589,20 +1604,6 @@ const SheetListing = ({
     );
   });
 
-  const topics = sheet.topics.map((topic, i) => {
-    const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
-    return (
-      <a href={`/topics/${topic.slug}`}
-        target={openInNewTab ? "_blank" : "_self"}
-        className="sheetTag"
-        key={i}
-        onClick={handleTopicClick.bind(null, topic.slug)}
-      >
-        <InterfaceText text={topic} />
-        {separator}
-      </a>
-    );
-  });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
@@ -1610,7 +1611,6 @@ const SheetListing = ({
       views,
       created,
       collections.length ? collections : undefined,
-      sheet.topics.length ? topics : undefined,
     ].filter(x => x !== undefined) : [topics];
 
 
@@ -1624,7 +1624,6 @@ const SheetListing = ({
       <div className="sheetLeft">
         {sheetInfo}
         <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{title}</span>
         </a>
         {sheetSummary}
@@ -1686,7 +1685,6 @@ const CollectionListing = ({data}) => {
         <div className="collectionListingText">
 
           <a href={collectionUrl} className="collectionListingName">
-            <img className="collectionListingImage" src={imageUrl} alt="Collection Icon"/>
             {data.name}
           </a>
 
@@ -2653,6 +2651,22 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
+const SheetMetaDataBoxSegment = (props) => (
+  <div className={props.className}
+    role="heading"
+    aria-level="1"
+    contentEditable={props.editable}
+    suppressContentEditableWarning={true}
+    onBlur={props.editable ? props.blurCallback : null}
+    style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" :"ltr"}}
+  >
+  {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+  </div>
+);
+SheetMetaDataBoxSegment.propTypes = {
+  title: PropTypes.string,
+};
+
 
 const SheetAuthorStatement = (props) => (
   <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
@@ -2801,12 +2815,15 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-
-const SheetMetaDataBox = (props) => (
-  <div className="sheetMetaDataBox">
-    {props.children}
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable}) => {
+  return <div className="sheetMetaDataBox">
+    <div className="sidebarLayout">
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
+      {sheetOptions}
+    </div>
+    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
   </div>
-);
+}
 
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
@@ -3237,6 +3254,7 @@ export {
   MenuButton,
   SearchButton,
   SaveButton,
+  SaveButtonWithText,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,
@@ -3251,6 +3269,7 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
+  SheetMetaDataBoxSegment,
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,

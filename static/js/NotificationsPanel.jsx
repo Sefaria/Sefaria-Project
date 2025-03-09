@@ -1,7 +1,6 @@
 import React, { useRef }  from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
-import Footer  from './Footer';
 import ReactDOM  from 'react-dom';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
@@ -37,11 +36,6 @@ class NotificationsPanel extends Component {
     if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
       this.getMoreNotifications();
     }
-  }
-  markAllAsRead() {
-    $.post("/api/notifications/read", {notifications: "all"}, function(data) {
-      this.props.setUnreadNotificationsCount(data.unreadCount);
-    }.bind(this));
   }
   markAsRead() {
     // Marks each notification that is loaded into the page as read via API call
@@ -80,19 +74,23 @@ class NotificationsPanel extends Component {
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
-            <div className="notificationsTopContainer">
-              <div className="notificationsHeaderBox"><h1>
-                <img className="notificationsTitleIcon" src="/static/icons/notification.svg" />
-                <InterfaceText>Notifications</InterfaceText>
-              </h1></div>{ Sefaria.notificationCount > 0 ? <button className="button small white" onClick={this.markAllAsRead}>Mark all as Read</button> : null}
+              <div className="notificationsTopContainer">
+                <div className="notificationsHeaderBox">
+                  <h1>
+                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt="Notification icon"/>
+                    <InterfaceText>Notifications</InterfaceText>
+                  </h1>
+                </div>
+                {(Sefaria._uid) ? (
+                     Sefaria.notificationCount > 0 && notifications
+                ) : (
+                  <LoginPrompt fullPanel={true} />
+                )}
               </div>
-              { Sefaria._uid ?
-              notifications :
-              <LoginPrompt fullPanel={true} /> }
+              {Sefaria._uid && Sefaria.notificationCount < 1 && <EmptyNotificationsMessage /> } 
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>
-          <Footer />
         </div>
       </div>
     );
@@ -118,6 +116,21 @@ const Notifications = ({type, props}) => {
   if (!type || !notificationTypes[type]) { return null; }
   const NotificationType = notificationTypes[type];
   return <NotificationType {...props} />
+};
+
+const EmptyNotificationsMessage = () => {
+  return (
+        <div className="emptyNotificationPage">
+          <div className="emptyNotificationsTitle" aria-label="No notifications message title">
+            <InterfaceText en={"Looks like you don’t have any notifications yet."} 
+                           he={"נראה שעדיין אין לך התראות"}/>
+          </div>
+          <div className="emptyNotificationsMessage" aria-label="No notifications message body">
+            <InterfaceText en={"Try following sheet creators to get notified when they publish a new sheet."} 
+                           he={"מומלץ לעקוב אחרי יוצרים של דפי מקורות כדי לקבל התראה כאשר יפרסמו דף מקורות חדש"}/> 
+          </div>
+        </div>
+  )
 };
 
 
