@@ -15129,6 +15129,12 @@ span.ref-link-color-3 {color: blue}
   flex-direction: column;
 }
 
+.mobileProfileFlexContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+}
+
 .librarySavedIcon{
   width: 20px;
   height: 20px;
