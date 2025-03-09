@@ -12,7 +12,6 @@ function ToggleSwitchLine({name, onChange, isChecked, text, disabled=false}) {
                 disabled={disabled}
                 onChange={onChange}
                 isChecked={isChecked}
-                ariaLabelledBy={`${name}-label`}
             />
         </div>
     );
