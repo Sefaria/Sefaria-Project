@@ -434,20 +434,22 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         </> : null }
 
         {Sefaria._uid && module === "sheets" ?
-        <>
-          <a href="/sheets/notifications">
-          <img src="/static/icons/notification.svg" />
-          <InterfaceText>Notifications</InterfaceText>
-        </a>
-        </> : null }
+          <>
+            <a href="/sheets/notifications">
+            <img src="/static/icons/notification.svg" />
+            <InterfaceText>Notifications</InterfaceText>
+          </a>
+          </> : null 
+        }
 
         {Sefaria._uid ?
-        <>
-          <a href="/settings/account">
-          <img src="/static/icons/settings.svg" />
-          <InterfaceText>Account Settings</InterfaceText>
-        </a>
-        </> : null }
+          <>
+            <a href="/settings/account">
+            <img src="/static/icons/settings.svg" />
+            <InterfaceText>Account Settings</InterfaceText>
+          </a>
+          </> : null 
+        }
 
         <MobileInterfaceLanguageToggle />
 
