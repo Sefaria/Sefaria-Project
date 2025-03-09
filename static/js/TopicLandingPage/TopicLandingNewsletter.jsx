@@ -2,6 +2,20 @@ import React, { useRef, useState } from 'react';
 import Sefaria from '../sefaria/sefaria';
 import {InterfaceText} from "../Misc";
 
+const NEWSLETTER_TEASER_TEXT = "Stay curious. Get the Timeless Topics newsletter every Tuesday."
+
+const getNewsletterAnalyticsData = () => {
+    const lang = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
+    const newsletterName = Sefaria.getTopicLandingNewsletterMailingLists().join(", ");
+    return {
+        text: NEWSLETTER_TEASER_TEXT,
+        feature_name: "Newsletter Signup Form",
+        version: lang,
+        form_name: "newsletter_topics",
+        form_destination: newsletterName,
+    };
+};
+
 export const TopicLandingNewsletter = () => {
     const firstNameRef = useRef();
     const lastNameRef = useRef();
@@ -39,10 +53,13 @@ export const TopicLandingNewsletter = () => {
         });
     }
     return (
-        <div className="topic-landing-newsletter-wrapper" data-anl-feature_name="Newsletter Signup Form">
+        <div
+            className="topic-landing-newsletter-wrapper"
+            data-anl-batch={JSON.stringify(getNewsletterAnalyticsData())}
+        >
             <div className="topic-landing-newsletter">
                 <h3 className="topic-landing-newsletter-text">
-                    <InterfaceText>Stay curious. Get the Timeless Topics newsletter every Tuesday.</InterfaceText>
+                    <InterfaceText>{NEWSLETTER_TEASER_TEXT}</InterfaceText>
                 </h3>
                 <div className="topic-landing-newsletter-input-wrapper" data-anl-event="form_start:inputStart">
                     <div className="topic-landing-newsletter-input-row">
@@ -66,7 +83,14 @@ export const TopicLandingNewsletter = () => {
                             ref={emailRef}
                             onKeyUp={handleSubscribeKeyUp}
                         />
-                        <button type="submit" onKeyUp={handleSubscribeKeyUp} onClick={handleSubscribe}>{Sefaria._("Sign Up")}</button>
+                        <button
+                            type="submit"
+                            onKeyUp={handleSubscribeKeyUp}
+                            onClick={handleSubscribe}
+                            data-anl-event="form_submit:click"
+                        >
+                            {Sefaria._("Sign Up")}
+                        </button>
                     </div>
                     <div className="topic-landing-newsletter-input-row">
                         {subscribeMessage ?
