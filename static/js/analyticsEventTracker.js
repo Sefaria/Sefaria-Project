@@ -4,6 +4,7 @@ const AnalyticsEventTracker = (function() {
         'content_id', 'content_type', 'panel_name', 'panel_category', 'position', 'ai',
         'text', 'experiment', 'feature_name', 'from', 'to', 'action', 'engagement_value',
         'engagement_type', 'logged_in', 'site_lang', 'traffic_type', 'promotion_name', 'link_type',
+        'form_name', 'form_destination',
     ]);
     const EVENT_ATTR = 'data-anl-event';
     const FIELD_ATTR_PREFIX = 'data-anl-';
