@@ -217,15 +217,14 @@ class Header extends Component {
                                         </a>
                                       </div>;
 
-
     const headerContent = (
       <>
 
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
-          <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
-          <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
+          <a href={this.props.module === 'library' ? '/texts' : '/sheets/topics'} className="textLink"><InterfaceText context="Header">{this.props.module === 'library' ? 'Texts' : 'Topics'}</InterfaceText></a>
+          <a href={this.props.module === 'library' ? '/topics' : '/sheets/collections'} className="textLink"><InterfaceText>{this.props.module === 'library' ? 'Topics' : 'Collections'}</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
@@ -245,7 +244,7 @@ class Header extends Component {
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
 
-        { Sefaria._uid && this.props.module ==="library" ? librarySavedIcon : sheetsNotificationsIcon }
+        { Sefaria._uid && (this.props.module ==="library" ? librarySavedIcon : sheetsNotificationsIcon) }
 
           <ModuleSwitcher />
 
