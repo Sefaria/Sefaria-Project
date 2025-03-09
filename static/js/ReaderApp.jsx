@@ -2116,7 +2116,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
         hasBoxShadow={headerHasBoxShadow}
         translationLanguagePreference={this.state.translationLanguagePreference}
-        setTranslationLanguagePreference={this.setTranslationLanguagePreference} />
+        setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
+        // TODO: This hardcoded value needs to be replaced with the header logic for modules
+        module={"library"}/>
     );
 
     var panels = [];
