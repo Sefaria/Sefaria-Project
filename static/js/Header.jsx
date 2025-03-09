@@ -93,31 +93,33 @@ const LoggedInDropdown = ({module}) => {
               <DropdownMenuSeparator/>
 
               { module === 'library' && 
-              <>
-              <DropdownMenuItem url={'/settings/account'}>
-                  <InterfaceText>Account Settings</InterfaceText>
-              </DropdownMenuItem>
-              <DropdownMenuItem url={'/torahtracker'}>
-                  <InterfaceText text={{'en': 'Torah Tracker', 'he': 'לימוד במספרים'}}/>
-              </DropdownMenuItem>
-              </> }
+                <>
+                <DropdownMenuItem url={'/settings/account'}>
+                    <InterfaceText>Account Settings</InterfaceText>
+                </DropdownMenuItem>
+                <DropdownMenuItem url={'/torahtracker'}>
+                    <InterfaceText text={{'en': 'Torah Tracker', 'he': 'לימוד במספרים'}}/>
+                </DropdownMenuItem>
+                </> 
+              }
 
 
               { module === 'sheets' && 
-              <>
-              <DropdownMenuItem url={'/my/profile'}>
-                  <InterfaceText>Profile</InterfaceText>
-              </DropdownMenuItem>
-              <DropdownMenuItem url={'/sheets/saved'}>
-                <InterfaceText>Saved</InterfaceText>
-              </DropdownMenuItem>
-              <DropdownMenuItem url={'/sheets/history'}>
-                <InterfaceText>History</InterfaceText>
-              </DropdownMenuItem>
-              <DropdownMenuItem url={'/settings/account'}>
-                  <InterfaceText>Account Settings</InterfaceText>
-              </DropdownMenuItem>
-              </> }
+                <>
+                <DropdownMenuItem url={'/my/profile'}>
+                    <InterfaceText>Profile</InterfaceText>
+                </DropdownMenuItem>
+                <DropdownMenuItem url={'/sheets/saved'}>
+                  <InterfaceText>Saved</InterfaceText>
+                </DropdownMenuItem>
+                <DropdownMenuItem url={'/sheets/history'}>
+                  <InterfaceText>History</InterfaceText>
+                </DropdownMenuItem>
+                <DropdownMenuItem url={'/settings/account'}>
+                    <InterfaceText>Account Settings</InterfaceText>
+                </DropdownMenuItem>
+                </> 
+              }
               
               <DropdownMenuSeparator/>
               <div className="languageHeader">
