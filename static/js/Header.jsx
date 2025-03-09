@@ -211,6 +211,12 @@ class Header extends Component {
                                     <img src='/static/icons/bookmarks.svg' alt='Saved items' />
                                   </a>
                                 </div>;
+      const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
+                                        <a href="/sheets/notifications" >
+                                          <img src='/static/icons/notification.svg' />
+                                        </a>
+                                      </div>;
+
 
     const headerContent = (
       <>
@@ -239,7 +245,7 @@ class Header extends Component {
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
 
-        { Sefaria._uid && this.props.module ==="library" ? librarySavedIcon : null }
+        { Sefaria._uid && this.props.module ==="library" ? librarySavedIcon : sheetsNotificationsIcon }
 
           <ModuleSwitcher />
 

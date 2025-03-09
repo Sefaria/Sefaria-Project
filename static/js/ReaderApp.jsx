@@ -2118,7 +2118,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
         // TODO: This hardcoded value needs to be replaced with the header logic for modules
-        module={"library"}/>
+        module={"sheets"}/>
     );
 
     var panels = [];
