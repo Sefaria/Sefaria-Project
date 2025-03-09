@@ -285,7 +285,9 @@ class Header extends Component {
           showSearch={this.props.showSearch}
           openTopic={this.props.openTopic}
           openURL={this.props.openURL}
-          close={this.props.onMobileMenuButtonClick} />
+          close={this.props.onMobileMenuButtonClick}
+          // TODO - remove hardcoded value and integrate with header logic more generally
+          module={'sheets'} />
         }
         <GlobalWarningMessage />
       </div>
@@ -364,7 +366,7 @@ const LoggedInButtons = ({headerMode}) => {
   );
 }
 
-const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible}) => {
+const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible, module}) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
@@ -381,18 +383,29 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             hideHebrewKeyboard={true}
         />
       </div>
+      {module === "library" && 
       <a href="/texts" onClick={close} className="textsPageLink">
         <img src="/static/icons/book.svg" />
         <InterfaceText context="Header">Texts</InterfaceText>
       </a>
-      <a href="/topics" onClick={close}>
+      }
+      <a href={module === "library" ? "/topics" : "/sheets/topics"} onClick={close}>
         <img src="/static/icons/topic.svg" />
         <InterfaceText>Topics</InterfaceText>
       </a>
+      {module === "sheets" && 
+      <a href="/sheets/collections" onClick={close} className="textsPageLink">
+        <img src="/static/icons/collection.svg" />
+        <InterfaceText context="Header">Collections</InterfaceText>
+      </a>
+      }
+
+     {module === "library" && 
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
         <InterfaceText>Learning Schedules</InterfaceText>
       </a>
+      }
 
       <DonateLink classes={"blue"} source="MobileNavMenu">
         <img src="/static/img/heart.png" alt="donation icon" />
@@ -400,13 +413,32 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </DonateLink>
 
       <div className="mobileAccountLinks">
+
+      {Sefaria._uid && module === "sheets"?
+        <>
+          <a href="/my/profile" onClick={close}>
+          <div className="mobileProfileFlexContainer">
+            <ProfilePic url={Sefaria.profile_pic_url} name={Sefaria.full_name} len={25}/>
+            <InterfaceText>Profile</InterfaceText>
+          </div>
+          </a>
+        </> : null }
+
         {Sefaria._uid ?
         <>
-          <a href="/texts/saved" onClick={close}>
+          <a href={module === "library" ? "/texts/saved" : "/sheets/saved" } onClick={close}>
             <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
-            <InterfaceText text={{en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות"}} />
-
+            {module === "library" && <InterfaceText text={{en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות"}} />}
+            {module === "sheets" && <InterfaceText text={{en: "Saved & History", he: "שמורים והיסטוריה"}} />}
           </a>
+        </> : null }
+
+        {Sefaria._uid && module === "sheets" ?
+        <>
+          <a href="/sheets/notifications">
+          <img src="/static/icons/notification.svg" />
+          <InterfaceText>Notifications</InterfaceText>
+        </a>
         </> : null }
 
         {Sefaria._uid ?
@@ -432,11 +464,20 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         </a>
 
         <hr />
-
-        <a href="sheets.sefaria.org" target="_blank">
+        
+        { module === "library" &&
+        <a href="/sheets/" target="_blank">
           <img src="/static/icons/sheets-mobile-icon.svg" />
           <InterfaceText>Sheets</InterfaceText>
         </a>
+        } 
+
+      { module === "sheets" &&
+        <a href="/texts" target="_blank">
+          <img src="/static/icons/book.svg" />
+          <InterfaceText text={{en: "Sefaria Library", he: "ספריית ספריא"}} />
+        </a>
+        } 
 
         <a href="developers.sefaria.org" target="_blank">
           <img src="/static/icons/dev-portal-mobile-icon.svg" />
