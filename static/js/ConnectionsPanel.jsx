@@ -936,7 +936,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
 }
 SheetToolsList.propTypes = {
   toggleSignUpModal: PropTypes.func.isRequired,
-  masterPanelSheetId: PropTypes.string.isRequired,
+  masterPanelSheetId: PropTypes.number.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
   masterPanelLanguage: PropTypes.string.isRequired,
   masterPanelLayout: PropTypes.string.isRequired
