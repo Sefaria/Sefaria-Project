@@ -5243,10 +5243,15 @@
           },
           {
             "name": "type",
-            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If `type=ref`, the response will only contain text references.",
+            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If the `type` is set, the response will only contain items of that type. Note: `Topic` includes authors, topics and people without differentiation.",
             "schema": {
               "enum": [
-                "ref"
+                "ref", 
+                "Collection", 
+                "Topic", 
+                "TocCategory",
+                "Term", 
+                "User"
               ],
               "type": "string"
             },
@@ -5611,7 +5616,7 @@
             "type": "string"
           },
           "type": {
-            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If `type=ref`, the response will only contain text references.",
+            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If `type` is set, the response will only contain items of that type.",
             "type": "string"
           },
           "completions": {
