@@ -12203,6 +12203,7 @@ span.purim-emoji img {
     padding-bottom: 5px;
     height: 30px;
     position: absolute;
+    width: 95px;
 }
 
 .addInterfaceInput .textPreviewSegment {
@@ -12270,8 +12271,8 @@ span.purim-emoji img {
 }
 
 .addInterfaceInput input {
-    min-width: 350px;
-    max-width: 450px;
+    min-width: 550px;
+    max-width: 850px;
     border-radius: 250px;
     border: none;
     box-shadow: none;
