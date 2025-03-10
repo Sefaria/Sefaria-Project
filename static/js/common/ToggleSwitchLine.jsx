@@ -9,7 +9,6 @@ function ToggleSwitchLine({name, onChange, isChecked, text, disabled=false}) {
             <InterfaceText>{text}</InterfaceText>
             <ToggleSwitch
                 name={name}
-                id={name}
                 disabled={disabled}
                 onChange={onChange}
                 isChecked={isChecked}
