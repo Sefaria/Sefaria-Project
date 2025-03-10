@@ -12272,7 +12272,7 @@ span.purim-emoji img {
 
 .addInterfaceInput input {
     min-width: 550px;
-    max-width: 850px;
+    max-width: 50px;
     border-radius: 250px;
     border: none;
     box-shadow: none;
