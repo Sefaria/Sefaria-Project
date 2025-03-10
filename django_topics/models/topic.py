@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models.query import QuerySet
-import random
 from django_topics.models.pool import TopicPool
 from collections import defaultdict
 
@@ -41,8 +40,13 @@ class Topic(models.Model):
     objects = TopicManager()
 
     def save(self, *args, **kwargs):
+        """
+        On save of a topics, update the cache of slugs to pools.
+        """
         self.slug = self.slug.lower()
         super().save(*args, **kwargs)
+        
+        # Update cache of slugs to pools
         Topic.objects.build_slug_to_pools_cache(rebuild=True)
 
     class Meta:
