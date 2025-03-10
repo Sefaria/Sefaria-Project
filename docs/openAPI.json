@@ -5301,12 +5301,16 @@
             "in": "query"
           },
           {
-            "name": "ref_only",
-            "description": "By default `0` the Name API returns `Ref`s, book titles, authors, topics, and collections. If true, the response will only contain text references.",
+            "name": "type",
+            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If the `type` is set, the response will only contain items of that type. Note: `Topic` includes authors, topics and people without differentiation.",
             "schema": {
               "enum": [
-                "0",
-                "1"
+                "ref", 
+                "Collection", 
+                "Topic", 
+                "TocCategory",
+                "Term", 
+                "User"
               ],
               "type": "string"
             },
@@ -5674,9 +5678,9 @@
             ],
             "type": "string"
           },
-          "is_ref": {
-            "description": "Returns `true` if the submitted text is a valid Sefaria textual reference",
-            "type": "boolean"
+          "type": {
+            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If `type` is set, the response will only contain items of that type.",
+            "type": "string"
           },
           "completions": {
             "description": "A list of autocompletion responses for the submitted text.",
@@ -5786,15 +5790,15 @@
             "type": "string"
           },
           "ref": {
-            "description": "If `is_ref` is `true`, this returns the cannonical ref for the submitted text.",
+            "description": "If `type=ref`, this returns the canonical ref for the submitted text.",
             "type": "string"
           },
           "url": {
-            "description": "If `is_ref` is `true`, this returns the URL path to link to the submitted text on [Sefaria.org](sefaria.org)",
+            "description": "If `type=ref`, this returns the URL path to link to the submitted text on [Sefaria.org](sefaria.org)",
             "type": "string"
           },
           "index": {
-            "description": "If `is_ref` is `true`, this returns the cannonical name of the `index` of the submitted text.",
+            "description": "If `type=ref`, this returns the canonical name of the `index` of the submitted text.",
             "type": "string"
           },
           "book": {
@@ -5862,7 +5866,7 @@
         },
         "example": {
           "lang": "en",
-          "is_ref": true,
+          "type": "ref",
           "completions": [
             "Job",
             "Rashi on Job",
@@ -7503,7 +7507,7 @@
                     "type": "object",
                     "properties": {
                       "heRef": {
-                        "description": "The Hebrew equivalent of the cannonical ref",
+                        "description": "The Hebrew equivalent of the canonical ref",
                         "type": "string"
                       },
                       "url": {
@@ -7563,7 +7567,7 @@
                     "type": "object",
                     "properties": {
                       "heRef": {
-                        "description": "The Hebrew equivalent of the cannonical ref",
+                        "description": "The Hebrew equivalent of the canonical ref",
                         "type": "string"
                       },
                       "url": {
@@ -9767,7 +9771,7 @@
             "type": "string"
           },
           "index_title": {
-            "description": "The cannonical title of the text in the Sefaria library.",
+            "description": "The canonical title of the text in the Sefaria library.",
             "type": "string"
           },
           "category": {
