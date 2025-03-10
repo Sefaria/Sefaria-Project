@@ -213,6 +213,7 @@ def base_props(request):
             "last_place": []
         }
     user_data.update({
+        "activeModule": getattr(request, 'active_module', "library"),
         "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
@@ -4454,14 +4455,14 @@ def serve_static(request, page):
     """
     Serve a static page whose template matches the URL
     """
-    return render_template(request,'static/%s.html' % page, None, {})
+    return render_template(request,'static/%s.html' % page, {"headerMode": True}, {"renderStatic": True})
 
 @ensure_csrf_cookie
 def serve_static_by_lang(request, page):
     """
     Serve a static page whose template matches the URL
     """
-    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), None, {})
+    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), {"headerMode": True}, {"renderStatic": True})
 
 
 # TODO: This really should be handled by a CMS :)

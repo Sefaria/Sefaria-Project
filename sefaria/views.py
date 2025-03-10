@@ -157,7 +157,7 @@ def register(request):
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", None, {'form': form, 'next': next})
+    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next, "renderStatic": True})
 
 
 def maintenance_message(request):
