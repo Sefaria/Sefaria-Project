@@ -21,6 +21,7 @@ class TextList extends Component {
       linksLoaded: false, // has the list of refs been loaded
       textLoaded:  false, // has the text of those refs been loaded
       waitForText: true,  // should we delay rendering texts until preload is finished
+      links: []
     }
   }
   componentDidMount() {
@@ -30,15 +31,15 @@ class TextList extends Component {
   componentWillUnmount() {
     this._isMounted = false;
   }
-  componentWillReceiveProps(nextProps) {
-    if (!Sefaria.util.object_equals(this.props.filter, nextProps.filter)) {
-      this.preloadText(nextProps.filter);
-    }
-  }
+  // componentWillReceiveProps(nextProps) {
+  //   if (!Sefaria.util.object_equals(this.props.filter, nextProps.filter)) {
+  //     this.preloadText(nextProps.filter);
+  //   }
+  // }
   componentWillUpdate(nextProps) {
   }
   componentDidUpdate(prevProps, prevState) {
-    if (!prevProps.srefs.compare(this.props.srefs)) {
+    if (!prevProps.srefs.compare(this.props.srefs) || !Sefaria.util.object_equals(this.props.filter, prevProps.filter)) {
       this.loadConnections();
     }
     const didRender = prevState.linksLoaded && (!prevState.waitForText || prevState.textLoaded);
@@ -55,13 +56,15 @@ class TextList extends Component {
   }
   loadConnections() {
     // Load connections data from server for this section
-    var sectionRef = this.getSectionRef();
+    const sectionRef = this.getSectionRef();
     if (!sectionRef) { return; }
     Sefaria.related(sectionRef, function(data) {
       if (this._isMounted) {
-        this.preloadText(this.props.filter);
         this.setState({
           linksLoaded: true,
+          links: this.getLinks()
+        }, () => {
+          this.preloadText(this.props.filter);
         });
       }
     }.bind(this));
@@ -72,6 +75,8 @@ class TextList extends Component {
     this.loadConnections();
   }
   preloadText(filter) {
+    const sourceRefs = [...new Set(this.state.links.map(link => Sefaria.humanRef(Sefaria.zoomOutRef(link.sourceRef))))];
+    console.log("preloadtext", sourceRefs);
     // Preload text of links if `filter` is a single commentary, or all commentary
     if (filter.length == 1 &&
         Sefaria.index(filter[0]) && // filterSuffix for quoting commmentary prevents this path for QC
@@ -198,16 +203,15 @@ class TextList extends Component {
     var oref               = Sefaria.ref(refs[0]);
     var filter             = this.props.filter; // Remove filterSuffix for display
     var displayFilter      = filter.map(filter => filter.split("|")[0]);  // Remove filterSuffix for display
-    var links              = this.getLinks();
 
     var en = "No connections known" + (filter.length ? " for " + displayFilter.join(", ") + " here" : "") + ".";
     var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
-    var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
-    var content = links.length === 0 ? message :
+    var message = !this.state.linksLoaded ? (<LoadingMessage />) : (this.state.links.length === 0 ? noResultsMessage : null);
+    var content = this.state.links.length === 0 ? message :
                   this.state.waitForText && !this.state.textLoaded ?
                     (<LoadingMessage />) :
-                    links.map(function(link, i) {
+                    this.state.links.map(function(link, i) {
                         if (link.isSheet) {
                           var hideAuthor = link.index_title == this.props.filter[0];
                           return (<SheetListing
