@@ -53,10 +53,7 @@ export const TopicLandingNewsletter = () => {
         });
     }
     return (
-        <div
-            className="topic-landing-newsletter-wrapper"
-            data-anl-batch={JSON.stringify(getNewsletterAnalyticsData())}
-        >
+        <div className="topic-landing-newsletter-wrapper" data-anl-batch={JSON.stringify(getNewsletterAnalyticsData())}>
             <div className="topic-landing-newsletter">
                 <h3 className="topic-landing-newsletter-text">
                     <InterfaceText>{NEWSLETTER_TEASER_TEXT}</InterfaceText>
