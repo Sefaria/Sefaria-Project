@@ -8,7 +8,7 @@ import FontSizeButtons from "./FontSizeButton";
 import ToggleSwitchLine from "./common/ToggleSwitchLine";
 
 const ReaderDisplayOptionsMenu = () => {
-    const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width} = useContext(ReaderPanelContext);
+    const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width, panelPosition} = useContext(ReaderPanelContext);
 
     const isPanelModeSheet = panelMode === 'Sheet';
     const isSidePanel = !isPanelModeSheet && panelMode !== 'Text';
@@ -100,7 +100,7 @@ const ReaderDisplayOptionsMenu = () => {
             {!isSidePanel && <>
                 {showLayoutsToggle() && <LayoutButtons/>}
                 {showAliyotToggle() && <ToggleSwitchLine
-                    name="aliyot"
+                    name={`aliyot${panelPosition}`}
                     text="Aliyot"
                     onChange={onAliyotClick}
                     isChecked={aliyotAreShown}
@@ -109,20 +109,20 @@ const ReaderDisplayOptionsMenu = () => {
                 <FontSizeButtons/>
                 {borderLine}
                 {showVowelsToggle() && <ToggleSwitchLine
-                    name="vowels"
+                    name={`vowels${panelPosition}`}
                     text="Vowels"
                     onChange={onVowelsClick}
                     isChecked={vowelsAreShown}
                 />}
                 {showCantillationToggle() && <ToggleSwitchLine
-                    name="cantillation"
+                    name={`cantillation${panelPosition}`}
                     text="Cantillation"
                     disabled={cantillationDisabled}
                     onChange={onCantillationClick}
                     isChecked={cantillationsAreShown}
                 />}
                 {showPunctuationToggle() && <ToggleSwitchLine
-                    name="punctuation"
+                    name={`punctuation${panelPosition}`}
                     text="Punctuation"
                     onChange={onPunctuationClick}
                     isChecked={punctuationsAreShown}
