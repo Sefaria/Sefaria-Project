@@ -292,6 +292,15 @@ Sefaria = extend(Sefaria, {
     return oref ? oref.sectionRef : null;
 
   },
+  zoomOutRef: function(ref, zoom=1) {
+    // go up `zoom` levels in the ref's sections and toSections
+    // for example, if ref == "Ramban on Genesis, Introduction 2" and zoom == 1, this returns "Ramabn on Genesis, Introduction"
+    // if ref == "Ramban on Genesis, Introduction 2" and zoom == 2, this returns "Ramban on Genesis, Introduction" because we're only zooming out on the ref's sections/toSections
+    const pRef = Sefaria.util.clone(Sefaria.parseRef(ref));
+    pRef.sections = pRef.sections.slice(0, -zoom);
+    pRef.toSections = pRef.toSections.slice(0, -zoom);
+    return Sefaria.makeRef(pRef);
+  },
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
       return ref.split("-");
@@ -1775,48 +1784,8 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSortHebrew: function(category, a, b) {
     return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
-  commentarySectionRef: function(commentator, baseRef) {
-    // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
-    // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
-    // Even though most commentaries have a 1:1 structural match to basetexts, this is not alway so.
-    // Works by examining links available on baseRef, returns null if no links are in cache.
-    if (commentator == "Abarbanel") {
-      return null; // This text is too giant, optimizing up to section level is too slow. TODO: generalize.
-    }
-    var links = Sefaria.getLinksFromCache(baseRef);
-    links = Sefaria._filterLinks(links, [commentator]);
-    if (!links || !links.length || links[0].isSheet) { return null; }
-
-    var pRefs = links.map(link => Sefaria.parseRef(link.sourceRef));
-    if (pRefs.some(pRef => "error" in pRef)) { return null; } // Give up on bad refs
-
-    var books = pRefs.map(pRef => pRef.book).unique();
-    if (books.length > 1) { return null; } // Can't handle multiple index titles or schemaNodes
-
-    try {
-      var startSections = pRefs.map(pRef => pRef.sections[0]);
-      var endSections   = pRefs.map(pRef => pRef.toSections[0]);
-    } catch(e) {
-      return null;
-    }
-
-    const sorter = (a, b) => {
-      return a.match(/\d+[ab]/) ?
-        Sefaria.hebrew.dafToInt(a) - Sefaria.hebrew.dafToInt(b)
-        : parseInt(a) - parseInt(b);
-    };
-
-    var commentaryRef = {
-      book: books[0],
-      sections: startSections.sort(sorter).slice(0,1),
-      toSections: endSections.sort(sorter).reverse().slice(0,1)
-    };
-    var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryRef));
-
-    return ref;
-  },
-    _descDict: {}, // cache for the description dictionary
-      getDescriptions: function(keyName, categoryList) {
+  _descDict: {}, // cache for the description dictionary
+  getDescriptions: function(keyName, categoryList) {
       const catlist = Sefaria.tocItemsByCategories(categoryList)
         let catmap = catlist.map((e) => [e.category || e.title, e.enShortDesc, e.heShortDesc])
         let d = {}
@@ -1835,7 +1804,7 @@ Sefaria = extend(Sefaria, {
         let heShortDesc = descs && descs[1]? descs[1]: null;
         return [enShortDesc, heShortDesc];
   },
-    getDescriptionDict: function(keyName, categoryList){
+  getDescriptionDict: function(keyName, categoryList){
         let desc = this._cachedApi([keyName, categoryList], this._descDict, null);
         if (Object.keys(this._descDict).length === 0){
             //Init of the Dict with the Category level descriptions
@@ -1858,9 +1827,8 @@ Sefaria = extend(Sefaria, {
         {
             return [null, null];
         }
-    },
-
-    _notes: {},
+  },
+  _notes: {},
   notes: function(ref, callback) {
     var notes = null;
     if (typeof ref == "string") {
