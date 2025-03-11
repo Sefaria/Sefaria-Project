@@ -30,7 +30,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -80,6 +80,18 @@ class CustomLoginView(LoginView):
         return context
 
 class CustomLogoutView(LogoutView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['renderStatic'] = True
+        return context
+
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['renderStatic'] = True
+        return context
+
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['renderStatic'] = True
