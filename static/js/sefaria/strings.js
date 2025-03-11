@@ -114,19 +114,22 @@ const Strings = {
 
     // Topic Landing Page
     "Featured Topic": "נושא לדוגמא",
-    "Go to topic ›": "לפתיחת הנושא ›",
-    "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "אל תפספסו את החדשות המרעישות! הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
+    "Go to Topic ›": "לפתיחת הנושא ›",
+    "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
     "Learn more about": "למדו עוד על",
+    "Learn more on": "למדו עוד על",
     "Read the Portion": "לקריאת הפרשה",
     "On the Jewish Calendar": "מועדים קרובים בלוח השנה העברי",
     "Explore the Jewish Calendar": "לעוד מועדים בלוח השנה העברי",
-    "Browse Topics": "לדפדוף בנושאים השונים",
+    "Browse Topics": "לדפדוף במגוון נושאים",
     "Trending Topics": "נושאים פופולריים",
     "All Topics A-Z ›": "כל הנושאים מא׳ עד ת׳ ›",
     "Browse All Torah Portions": "לרשימת כל הפרשות",
     "First Name": "שם פרטי",
     "Last Name": "שם משפחה",
     "Explore": "למדו עוד על",
+    "Explore all Topics ›": "לדפדוף בכל הנושאים ›",
+    "Learn more…": "למדו עוד…",
 
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
@@ -650,6 +653,7 @@ const Strings = {
     },
     "Header": {
       "Texts": "מקורות",
+      "Explore": "נושאים",
     },
     "RecentlyPublished": {
       "Load More": "דפי מקורות נוספים",
