@@ -954,18 +954,18 @@ const AddInterface = ({ attributes, children, element }) => {
     const editor = useSlate();
     const [active, setActive] = useState(false)
     const [itemToAdd, setItemToAdd] = useState(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
     const resetInterface = () => {
         setActive(false);
         setItemToAdd(null);
     }
 
-
     const toggleEditorAddInterface = (e) => {
         setActive(!active)
         setItemToAdd(null);
-
     }
+
     const addInterfaceClasses = {
         active: active,
         editorAddInterface: 1,
@@ -974,20 +974,29 @@ const AddInterface = ({ attributes, children, element }) => {
     const addSourceClicked = (e) => {
         e.stopPropagation();
         setItemToAdd('source');
-          // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
-          setTimeout(() => {
-              document.querySelector(".addInterfaceInput input").focus()
-          }, 100);
+        // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+        setTimeout(() => {
+            document.querySelector(".addInterfaceInput input").focus()
+        }, 100);
+    }
 
+    const openModal = (e) => {
+        e.stopPropagation();
+        setIsModalOpen(true);
+    }
+
+    const closeModal = (e) => {
+        if (e) e.stopPropagation();
+        setIsModalOpen(false);
     }
 
     const addMediaClicked = (e) => {
         e.stopPropagation();
         setItemToAdd("media");
-          // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
-          setTimeout(() => {
-              document.querySelector(".addInterfaceInput input").focus()
-          }, 100);
+        // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+        setTimeout(() => {
+            document.querySelector(".addInterfaceInput input").focus()
+        }, 100);
     }
 
     const addImageClicked = (e) => {
@@ -1048,15 +1057,45 @@ const AddInterface = ({ attributes, children, element }) => {
               </div>
               <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
               <div role="button" title={Sefaria._("Add media")} aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
-          </> :
-
-              <AddInterfaceInput
-                inputType={itemToAdd}
-                resetInterface={resetInterface}
-              />
-
+          </> : 
+              <>
+                {itemToAdd === 'source' && (
+                  <div role="button" title={Sefaria._("Open Source Modal")} aria-label="Open Source Modal" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => openModal(e)} id="openModalButton">
+                    <span>📑</span>
+                  </div>
+                )}
+                
+                <AddInterfaceInput
+                  inputType={itemToAdd}
+                  resetInterface={resetInterface}
+                />
+              </>
           }
           <div className="cursorHolder" contentEditable={true} suppressContentEditableWarning={true}>{children}</div>
+          
+          {isModalOpen && (
+            <div className="modal-overlay" onClick={(e) => closeModal(e)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>GETTING SOURCE CORRECTLY</h3>
+                </div>
+                <div className="modal-body">
+                  <p>- type the name of the text</p>
+                  <p>- leave a space</p>
+                  <p>- type it's chapter and segment</p>
+                  <p>Example : Prayer of Kuntu Zangpo 1.4</p>
+                </div>
+                <div className="modal-footer">
+                <button 
+                    onClick={closeModal} // Simplified, since closeModal already handles e.stopPropagation()
+                    className="got-it-button"
+                >
+                    Got It
+                </button>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
     )
 }
