@@ -3015,7 +3015,7 @@ _media: {},
     a[c.slug] = {en: c.en, he: c.he};
 
     for (let sub_c of c.children) {
-      Sefaria._initTopicTocCategoryReducer(a, sub_c);
+      Sefaria._initTopicTocCategoryTitlesReducer(a, sub_c);
     }
     return a;
   },
