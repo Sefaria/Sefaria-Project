@@ -213,7 +213,7 @@ def base_props(request):
             "last_place": []
         }
     user_data.update({
-        "activeModule": getattr(request, 'active_module', "library"),
+        "activeModule": getattr(request, "active_module", "library"),
         "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
