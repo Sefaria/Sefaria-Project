@@ -94,7 +94,7 @@ const LoggedInDropdown = ({module}) => {
                 </DropdownMenuItem>
               }
                { module === 'sheets' && 
-                <DropdownMenuItemLink preventClose={true}>
+                <DropdownMenuItemLink url={'/my/profile'} preventClose={true}>
                     <strong>{Sefaria.full_name}</strong>
                 </DropdownMenuItemLink>
               }
