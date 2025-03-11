@@ -51,7 +51,7 @@ class TextList extends Component {
   }
   loadConnections() {
     // Load connections data from server for this section, and updates links based on current filter and current ref
-    // Finally, preload text so that it's ready when the user clicks to open a connections panel link in a main panel
+    // Finally, preload commentary texts so that it's ready when the user clicks to open a connections panel link in a main panel
     const sectionRef = this.getSectionRef();
     if (!sectionRef) { return; }
     Sefaria.related(sectionRef, function(data) {
@@ -60,7 +60,7 @@ class TextList extends Component {
           linksLoaded: true,
           links: this.getLinksAndFilter()
         }, () => {
-          this.preloadText(this.props.filter);
+          this.preloadCommentaryText(this.props.filter);
         });
       }
     }.bind(this));
@@ -70,86 +70,28 @@ class TextList extends Component {
     this.setState({linksLoaded: false});
     this.loadConnections();
   }
-  preloadText(filter) {
-    const sourceRefs = [...new Set(this.state.links.map(link => Sefaria.humanRef(Sefaria.zoomOutRef(link.sourceRef))))];
-    console.log("preloadtext", sourceRefs);
-    // Preload text of links if `filter` is a single commentary, or all commentary
-    if (filter.length == 1 &&
-        Sefaria.index(filter[0]) && // filterSuffix for quoting commmentary prevents this path for QC
-        (Sefaria.index(filter[0]).categories[0] == "Commentary"||
-         Sefaria.index(filter[0]).primary_category == "Commentary")) {
-      // Individual commentator names ("Rashi") are put into Sefaria.index with "Commentary" as first category
-      // Intentionally fails when looking up "Rashi on Genesis", which indicates we're looking at a quoting commentary.
-      this.preloadSingleCommentaryText(filter);
-
-    } else if (filter.length == 1 && filter[0] == "Commentary") {
-      this.preloadAllCommentaryText(filter);
-
+  preloadCommentaryText(filter) {
+    // Preload text of links if `filter` is a single commentary
+    // Terms like "Rashi" or "Ibn Ezra" are currently in the Sefaria._index cache.
+    // categories[0] === "Commentary" only for these terms, whereas a real index like "Rashi on Genesis" has categories[0] === "Tanakh".
+    // We don't want to include "Rashi on Genesis" case because that's a "Quoting Commentary" case.
+    const isCommentary = filter.length === 1 &&
+                          Sefaria.index(filter[0]) &&
+                          (Sefaria.index(filter[0]).categories[0] === "Commentary");
+    if (isCommentary) {
+      const sourceRefs = [...new Set(this.state.links.map(link => Sefaria.humanRef(Sefaria.zoomOutRef(link.sourceRef))))];
+      this.setState({waitForText: true});
+      let howManyTextsLoaded = 0;
+      sourceRefs.map(ref => {
+        Sefaria.getTextFromCurrVersions(ref, this.props.currVersions, this.props.translationLanguagePreference, this.props.withContext).then(data =>{
+         howManyTextsLoaded += 1;
+       });
+      });
+      if (howManyTextsLoaded === sourceRefs.length) {
+        this.setState({textLoaded: true, waitForText: false});
+      }
     } else {
       this.setState({waitForText: false, textLoaded: false});
-    }
-  }
-  preloadSingleCommentaryText(filter) {
-    //console.log('preloading single commentary')
-    // Preload commentary for an entire section of text.
-    this.setState({textLoaded: false});
-    var commentator       = filter[0];
-    var basetext          = this.getSectionRef();
-    var commentarySection = Sefaria.commentarySectionRef(commentator, basetext);
-    if (!commentarySection) {
-      this.setState({waitForText: false});
-      return;
-    }
-    this.setState({waitForText: true});
-    Sefaria.text(commentarySection, {}, function() {
-      if (this._isMounted) {
-        this.setState({textLoaded: true});
-      }
-    }.bind(this));
-  }
-  preloadAllCommentaryText() {
-    var basetext   = this.getSectionRef();
-    var summary    = Sefaria.linkSummary(basetext);
-    if (summary.length && summary[0].category == "Commentary") {
-      this.setState({textLoaded: false, waitForText: true});
-      // Get a list of commentators on this section that we need don't have in the cache
-      var commentators = summary[0].books.map(function(item) {
-        return item.book;
-      });
-
-      if (commentators.length) {
-        var commentarySections = commentators.map(function(commentator) {
-          return Sefaria.commentarySectionRef(commentator, basetext);
-        }).filter(function(commentarySection) {
-          return !!commentarySection;
-        });
-        this.waitingFor = Sefaria.util.clone(commentarySections);
-        this.target = 0;
-        for (var i = 0; i < commentarySections.length; i++) {
-          Sefaria.text(commentarySections[i], {}, function(data) {
-            var index = this.waitingFor.indexOf(data.commentator);
-            if (index == -1) {
-                // console.log("Failed to clear commentator:");
-                // console.log(data);
-                this.target += 1;
-            }
-            if (index > -1) {
-                this.waitingFor.splice(index, 1);
-            }
-            if (this.waitingFor.length == this.target) {
-              if (this._isMounted) {
-                this.setState({textLoaded: true});
-              }
-            }
-          }.bind(this));
-        }
-      } else {
-        // All commentaries have been loaded already
-        this.setState({textLoaded: true});
-      }
-    } else {
-      // There were no commentaries to load
-      this.setState({textLoaded: true});
     }
   }
   getLinksAndFilter() {
