@@ -30,7 +30,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -92,6 +92,24 @@ class CustomPasswordResetDoneView(PasswordResetDoneView):
         return context
 
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['renderStatic'] = True
+        return context
+
+class CustomPasswordResetView(PasswordResetView):
+    form_class = SefariaPasswordResetForm
+    email_template_name = 'registration/password_reset_email.txt'
+    html_email_template_name = 'registration/password_reset_email.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['renderStatic'] = True
+        return context
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    form_class = SefariaSetPasswordForm
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['renderStatic'] = True
