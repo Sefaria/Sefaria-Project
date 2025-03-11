@@ -31,11 +31,6 @@ class TextList extends Component {
   componentWillUnmount() {
     this._isMounted = false;
   }
-  // componentWillReceiveProps(nextProps) {
-  //   if (!Sefaria.util.object_equals(this.props.filter, nextProps.filter)) {
-  //     this.preloadText(nextProps.filter);
-  //   }
-  // }
   componentWillUpdate(nextProps) {
   }
   componentDidUpdate(prevProps, prevState) {
@@ -50,19 +45,20 @@ class TextList extends Component {
     }
   }
   getSectionRef() {
-    var ref = this.props.srefs[0]; // TODO account for selections spanning sections
-    var sectionRef = Sefaria.sectionRef(ref, true) || ref;
+    const ref = this.props.srefs[0]; // TODO account for selections spanning sections
+    const sectionRef = Sefaria.sectionRef(ref, true) || ref;
     return sectionRef;
   }
   loadConnections() {
-    // Load connections data from server for this section
+    // Load connections data from server for this section, and updates links based on current filter and current ref
+    // Finally, preload text so that it's ready when the user clicks to open a connections panel link in a main panel
     const sectionRef = this.getSectionRef();
     if (!sectionRef) { return; }
     Sefaria.related(sectionRef, function(data) {
       if (this._isMounted) {
         this.setState({
           linksLoaded: true,
-          links: this.getLinks()
+          links: this.getLinksAndFilter()
         }, () => {
           this.preloadText(this.props.filter);
         });
@@ -156,13 +152,13 @@ class TextList extends Component {
       this.setState({textLoaded: true});
     }
   }
-  getLinks() {
-    var refs               = this.props.srefs;
-    var filter             = this.props.filter;
-    var excludedSheet      = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
-    var sectionRef         = this.getSectionRef();
+  getLinksAndFilter() {
+    const refs               = this.props.srefs;
+    const filter             = this.props.filter;
+    const excludedSheet      = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
+    const sectionRef         = this.getSectionRef();
 
-    var sortConnections = function(a, b) {
+    const sortConnections = function(a, b) {
       // Sort according this which verse the link connects to
       if (a.anchorVerse !== b.anchorVerse) {
         return a.anchorVerse - b.anchorVerse;
