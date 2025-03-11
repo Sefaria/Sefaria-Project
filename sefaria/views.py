@@ -30,6 +30,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
+from django.contrib.auth.views import LoginView, LogoutView
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -63,6 +64,7 @@ from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
+from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -70,6 +72,18 @@ if USE_VARNISH:
 import structlog
 logger = structlog.get_logger(__name__)
 
+class CustomLoginView(LoginView):
+    authentication_form = SefariaLoginForm
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['renderStatic'] = True
+        return context
+
+class CustomLogoutView(LogoutView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['renderStatic'] = True
+        return context
 
 def process_register_form(request, auth_method='session'):
     from sefaria.utils.util import epoch_time
