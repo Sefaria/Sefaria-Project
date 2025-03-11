@@ -11,7 +11,18 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, preventClose = false}) => {
+const DropdownMenuItem = ({children, preventClose = false}) => {
+
+  return (
+    <div className={`interfaceLinks-option int-bi dropdownItem`}
+       data-prevent-close={preventClose}>
+      {children}
+    </div>
+
+  );
+}
+
+const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => {
 
   if (!newTab){
     newTab = false;
@@ -122,5 +133,6 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
     DropdownMenuItem,
+    DropdownMenuItemLink,
     DropdownMenuItemWithCallback
   };
