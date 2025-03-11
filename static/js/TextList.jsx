@@ -81,15 +81,11 @@ class TextList extends Component {
     if (isCommentary) {
       const sourceRefs = [...new Set(this.state.links.map(link => Sefaria.humanRef(Sefaria.zoomOutRef(link.sourceRef))))];
       this.setState({waitForText: true});
-      let howManyTextsLoaded = 0;
       sourceRefs.map(ref => {
-        Sefaria.getTextFromCurrVersions(ref, this.props.currVersions, this.props.translationLanguagePreference, this.props.withContext).then(data =>{
-         howManyTextsLoaded += 1;
-       });
+        Sefaria.getTextFromCurrVersions(ref, {}, this.props.translationLanguagePreference, false).then(data =>{
+          this.setState({textLoaded: true, waitForText: false});
+        });
       });
-      if (howManyTextsLoaded === sourceRefs.length) {
-        this.setState({textLoaded: true, waitForText: false});
-      }
     } else {
       this.setState({waitForText: false, textLoaded: false});
     }
@@ -105,7 +101,7 @@ class TextList extends Component {
       if (a.anchorVerse !== b.anchorVerse) {
         return a.anchorVerse - b.anchorVerse;
       }
-      if (a.index_title == b.index_title) {
+      if (a.index_title === b.index_title) {
         // For Sheet links of the same group sort by title
         if (a.isSheet && b.isSheet) {
           return a.title > b.title ? 1 : -1;
@@ -113,7 +109,7 @@ class TextList extends Component {
         // For text links of same text/commentary use content order, set by server
         return a.commentaryNum - b.commentaryNum;
       }
-      if (this.props.contentLang == "hebrew") {
+      if (this.props.contentLang === "hebrew") {
         return a.sourceHeRef > b.sourceHeRef ? 1 : -1;
       } else {
         return a.sourceRef > b.sourceRef ? 1 : -1;
