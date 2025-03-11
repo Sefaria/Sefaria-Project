@@ -72,48 +72,31 @@ if USE_VARNISH:
 import structlog
 logger = structlog.get_logger(__name__)
 
-class CustomLoginView(LoginView):
+class StaticViewMixin:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['renderStatic'] = True
+        return context
+
+class CustomLoginView(StaticViewMixin, LoginView):
     authentication_form = SefariaLoginForm
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['renderStatic'] = True
-        return context
 
-class CustomLogoutView(LogoutView):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['renderStatic'] = True
-        return context
+class CustomLogoutView(StaticViewMixin, LogoutView):
+    pass
 
-class CustomPasswordResetDoneView(PasswordResetDoneView):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['renderStatic'] = True
-        return context
+class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
+    pass
 
-class CustomPasswordResetCompleteView(PasswordResetCompleteView):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['renderStatic'] = True
-        return context
+class CustomPasswordResetCompleteView(StaticViewMixin, PasswordResetCompleteView):
+    pass
 
-class CustomPasswordResetView(PasswordResetView):
+class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
     form_class = SefariaPasswordResetForm
     email_template_name = 'registration/password_reset_email.txt'
     html_email_template_name = 'registration/password_reset_email.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['renderStatic'] = True
-        return context
-
-class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+class CustomPasswordResetConfirmView(StaticViewMixin, PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['renderStatic'] = True
-        return context
 
 def process_register_form(request, auth_method='session'):
     from sefaria.utils.util import epoch_time
