@@ -1,7 +1,6 @@
 import React, { useRef }  from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
-import Footer  from './Footer';
 import ReactDOM  from 'react-dom';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
@@ -37,11 +36,6 @@ class NotificationsPanel extends Component {
     if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
       this.getMoreNotifications();
     }
-  }
-  markAllAsRead() {
-    $.post("/api/notifications/read", {notifications: "all"}, function(data) {
-      this.props.setUnreadNotificationsCount(data.unreadCount);
-    }.bind(this));
   }
   markAsRead() {
     // Marks each notification that is loaded into the page as read via API call
@@ -86,13 +80,6 @@ class NotificationsPanel extends Component {
                     <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt="Notification icon"/>
                     <InterfaceText>Notifications</InterfaceText>
                   </h1>
-                  <>
-                    {Sefaria.notificationCount > 0 ? (
-                      <button className="button small white" onClick={this.markAllAsRead} aria-label="Mark all as Read">
-                        <InterfaceText en={"Mark all as Read"} he={"סימון כל ההודעות כהודעות שנקראו"} />
-                      </button>
-                    ) : null}
-                  </>
                 </div>
                 {(Sefaria._uid) ? (
                      Sefaria.notificationCount > 0 && notifications
@@ -104,7 +91,6 @@ class NotificationsPanel extends Component {
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>
-          <Footer />
         </div>
       </div>
     );
