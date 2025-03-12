@@ -774,6 +774,26 @@ a:active {
     var(--chasidut-green) 90% 100%
     );
 }
-.categoryColorLineRainbow.fixedBar{
+.animatedCategoryColorLineRainbow.fixedBar{
   position: fixed;
+}
+
+@keyframes rainbowAnimation {
+  0% {
+      background-position: 0% 50%;
+  }
+  100% {
+      background-position: 100% 50%;
+  }
+}
+
+.animatedCategoryColorLineRainbow {
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 101;
+  background: linear-gradient(90deg, var(--tanakh-teal) 0% 10%, var(--commentary-blue) 10% 20%, var(--mussar-purple) 20% 30%, var(--mishnah-blue) 30% 40%, var(--talmud-gold) 40% 50%, var(--midrash-green) 50% 60%, var(--halakhah-red) 60% 70%, var(--philosophy-purple) 70% 80%, var(--taanitic-green) 80% 90%, var(--chasidut-green) 90% 100%);
+  background-size: 200% 100%; /* Expand the size so we can animate */
+  animation: rainbowAnimation 1s linear infinite;
 }

@@ -8,6 +8,7 @@ import {ReaderPanelContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
 import TextsPage  from './TextsPage';
+import {SearchResultList} from "./SearchResultList";
 import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
@@ -839,21 +840,6 @@ class ReaderPanel extends Component {
                                  registerAvailableFilters={this.props.registerAvailableFilters}
                                  resetSearchFilters={this.props.resetSearchFilters}
                                  onResultClick={this.handleSheetClick}/>);
-    } else if (this.state.menuOpen === "sheet meta") {
-      menu = (<SheetMetadata
-                    mode={this.state.menuOpen}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                    interfaceLang={this.props.interfaceLang}
-                    close={this.closeSheetMetaData}
-                    id={this.state.sheetID}
-                    versionLanguage={this.state.versionLanguage}
-                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
-                    narrowPanel={!this.props.multiPanel}
-                    currentRef={this.state.currentlyVisibleRef}
-                    openNav={this.openMenu.bind(null, "navigation")}
-                    openDisplaySettings={this.openDisplaySettings}
-                    selectVersion={this.props.selectVersion}
-                    showBaseText={this.showBaseText} />);
     } else if (this.state.menuOpen === "book toc") {
       const onCompareBack = () => {
         this.conditionalSetState({
@@ -956,9 +942,7 @@ class ReaderPanel extends Component {
           />
         );
       } else {
-        menu = (
-           <TopicsLandingPage openTopic={this.props.openTopic}/>
-        );
+        menu = <TopicsLandingPage openTopic={this.props.openTopic}/>
       }
 
     } else if (this.state.menuOpen === "allTopics") {
