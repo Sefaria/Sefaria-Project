@@ -8,7 +8,7 @@ const getNewsletterAnalyticsData = () => {
     const lang = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
     const newsletterName = Sefaria.getTopicLandingNewsletterMailingLists().join(", ");
     return {
-        text: NEWSLETTER_TEASER_TEXT,
+        text: Sefaria._(NEWSLETTER_TEASER_TEXT),
         feature_name: "Newsletter Signup Form",
         version: lang,
         form_name: "newsletter_topics",
