@@ -14,24 +14,24 @@ import Component from 'react-class';
 // The root topics page listing topic categories to browse
 const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   let categoryListings = Sefaria.topic_toc.map(cat => {
-  const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
-  return (
-      <div className="navBlock">
-        <a
-            href={`/topics/category/${cat.slug}`}
-            className="navBlockTitle"
-            onClick={openCat}
-            data-anl-event="navto_topic:click"
-            data-anl-link_type="category"
-            data-anl-text={cat.en}
-        >
-          <InterfaceText text={cat} />
-        </a>
-        <div className="navBlockDescription">
-          <InterfaceText text={cat.categoryDescription} />
+    const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
+    return (
+        <div className="navBlock">
+          <a
+              href={`/topics/category/${cat.slug}`}
+              className="navBlockTitle"
+              onClick={openCat}
+              data-anl-event="navto_topic:click"
+              data-anl-link_type="category"
+              data-anl-text={cat.en}
+          >
+            <InterfaceText text={cat} />
+          </a>
+          <div className="navBlockDescription">
+            <InterfaceText text={cat.categoryDescription} />
+          </div>
         </div>
-      </div>
-    );
+      );
   });
   const letter = Sefaria.interfaceLang === "hebrew" ? "א" : "a";
   categoryListings.push(
@@ -54,10 +54,8 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
     <SidebarModules type={"AboutTopics"} props={{hideTitle: true}} />;
 
   const sidebarModules = [
-    multiPanel ? {type: "AboutTopics"} : {type: null},
     {type: "TrendingTopics"},
-    {type: "GetTheApp"},
-    {type: "SupportSefaria"},
+    {type: "JoinTheConversation"},
   ];
 
 

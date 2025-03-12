@@ -45,6 +45,7 @@ const SidebarModules = ({type, props}) => {
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
     "JoinTheCommunity":       JoinTheCommunity,
+    "JoinTheConversation":    JoinTheConversation,
     "GetTheApp":              GetTheApp,
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
@@ -86,7 +87,9 @@ const SidebarModuleTitle = ({children, en, he}) => {
 const TitledText = ({children, title, text}) => {
   return <SidebarModule>
             <SidebarModuleTitle en={title.en} he={title.he}/>
-            <InterfaceText markdown={{en: text.en, he: text.he}} />
+            <p class="sidebarModuleText">
+                 <InterfaceText markdown={{en: text.en, he: text.he}} />
+            </p>
             {children}
         </SidebarModule>
 };
@@ -757,6 +760,20 @@ const JoinTheCommunity = ({wide}) => {
   );
 };
 
+const JoinTheConversation = ({wide}) => {
+  return (
+    <SidebarModule wide={wide}>
+      <div className="joinTheConversation">
+        <SidebarModuleTitle>Join the Conversation</SidebarModuleTitle>
+        <InterfaceText>Mix and match sources from our library, along with outside sources, comments, images and videos.</InterfaceText>
+      </div>
+      <div>
+        <CreateSheetsButton/>
+      </div>
+    </SidebarModule>
+  );
+};
+
 
 const GetTheApp = () => (
   <SidebarModule>
@@ -803,11 +820,14 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
 
 const GetStartedButton = () => {
     const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
-    return <Button className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
+    return <Button variant="secondary" className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
 }
 const CreateSheetsButton = () => {
-  // #sheetsButton
-  return <Button icon={"/static/icons/new-sheet-black.svg"} className="small" onClick={() => window.location.href="/sheets/new"}>Create</Button>
+  return (
+    <Button icon={"new-sheet-black"} onClick={() => window.location.href="/sheets/new"}>
+      <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
+    </Button>
+  ) // hebrew is placeholder
 }
 const CreateASheet = () => (
   <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
