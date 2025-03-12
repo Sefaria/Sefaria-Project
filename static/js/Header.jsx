@@ -202,9 +202,19 @@ class Header extends Component {
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
-    const logo = Sefaria.interfaceLang == "hebrew" ?
+    const libraryLogo = (
+      Sefaria.interfaceLang == "hebrew"  ?
       <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
-      <img src="/static/img/logo.svg" alt="Sefaria Logo"/>;
+      <img src="/static/img/logo.svg" alt="Sefaria Logo"/>
+    );
+
+    const sheetsLogo = (
+      Sefaria.interfaceLang == "hebrew"  ?
+      <img src="/static/img/he_sheets_logo.svg" alt="Sefaria Sheets Logo"/> :
+      <img src="/static/img/en_sheets_logo.svg" alt="Sefaria Sheets Logo"/>
+    );
+
+
 
       const librarySavedIcon = <div className='librarySavedIcon'>
                                   <a href="/texts/saved" >
@@ -222,7 +232,10 @@ class Header extends Component {
 
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <a className="home" href="/" >{logo}</a> : null }
+          (this.props.module === "library" ? 
+              <a className="home" href="/" >{libraryLogo}</a> 
+              : <a className="home" href="/sheets" >{sheetsLogo}</a>
+          ) : null }
           <a href={this.props.module === 'library' ? '/texts' : '/sheets/topics'} className="textLink"><InterfaceText context="Header">{this.props.module === 'library' ? 'Texts' : 'Topics'}</InterfaceText></a>
           <a href={this.props.module === 'library' ? '/topics' : '/sheets/collections'} className="textLink"><InterfaceText>{this.props.module === 'library' ? 'Topics' : 'Collections'}</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
@@ -266,8 +279,11 @@ class Header extends Component {
         </div>
 
         <div className="mobileHeaderCenter">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <a className="home" href="/texts" >{logo}</a> : null }
+        { Sefaria._siteSettings.TORAH_SPECIFIC ?
+          (this.props.module === "library" ? 
+              <a className="home" href="/" >{libraryLogo}</a> 
+              : <a className="home" href="/sheets" >{sheetsLogo}</a>
+          ) : null }
         </div>
 
         {this.props.hasLanguageToggle ?
