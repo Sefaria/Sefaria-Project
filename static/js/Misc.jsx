@@ -2273,7 +2273,7 @@ const TopicsLaunchBanner = ({ onClose }) => {
           document.body.classList.add("hasBannerMessage");
         }
         setBannerShowDelayHasElapsed(true);
-      }, 0);
+      }, 2000);
       return () => clearTimeout(timeoutId);
     }
   }, []);
