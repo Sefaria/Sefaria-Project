@@ -269,8 +269,9 @@ const Resources = () => (
   </SidebarModule>
 );
 
-const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'},
-                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'},
+
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'}, 
+                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'}, 
                                     {'he': 'צרו קשר','en':'Contact Us', 'url': 'www.example.com'},
                                     {'he': 'ניוזלטר','en':'Newsletter', 'url': 'www.example.com'},
                                     {'he': 'בלוג','en':'Blog', 'url': 'www.example.com'},
@@ -426,7 +427,7 @@ const ParashahLink = () => {
   return (
     <div className="navSidebarLink ref serif">
       <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-      <a href={"/" + parashah.url} data-anl-text={parashah.ref}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
+      <a href={"/" + parashah.url}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
     </div>
   );
 };
@@ -805,7 +806,6 @@ const GetStartedButton = () => {
     return <Button className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
 }
 const CreateSheetsButton = () => {
-  // #sheetsButton
   return <Button icon={"/static/icons/new-sheet-black.svg"} className="small" onClick={() => window.location.href="/sheets/new"}>Create</Button>
 }
 const CreateASheet = () => (

@@ -4,7 +4,6 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import { ReaderPanelContext } from './context';
 import { NavSidebar } from './NavSidebar';
-import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   CategoryAttribution,
@@ -76,7 +75,6 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
       heCatTitle={heCatTitle} />
   ) : null;
 
-  const footer         = compare ? null : <Footer />;
   const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
   return (
     <div className={navMenuClasses}>
@@ -102,7 +100,6 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
           </div>
           {!compare ? <NavSidebar sidebarModules={sidebarModules} /> : null}
         </div>
-        {footer}
       </div>
     </div>
   );
