@@ -10,7 +10,7 @@ import sefaria.model.category as c
 from sefaria.helper.category import update_order_of_category_children
 import datetime
 class Test_Category_Editor(object):
-    @pytest.fixture(autouse=True, scope='module')
+    @pytest.fixture(scope='function')
     def create_new_terms(self):
         terms = []
         for title in ["New Fake Category 1", "New Fake Category 2"]:
