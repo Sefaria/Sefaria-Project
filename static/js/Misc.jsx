@@ -3366,7 +3366,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
         generatePreviewText(results.previewText);
       }
       if (!!results.helperPromptText) {
-        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
+        document.querySelector('.addInterfaceInput input').style.insetInlineStart = `${getWidthOfInput()}px`;
       }
     });
   }

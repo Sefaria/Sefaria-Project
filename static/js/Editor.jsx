@@ -960,12 +960,11 @@ const AddInterface = ({ attributes, children, element }) => {
         setItemToAdd(null);
     }
 
-
     const toggleEditorAddInterface = (e) => {
         setActive(!active)
         setItemToAdd(null);
-
     }
+
     const addInterfaceClasses = {
         active: active,
         editorAddInterface: 1,
@@ -974,20 +973,19 @@ const AddInterface = ({ attributes, children, element }) => {
     const addSourceClicked = (e) => {
         e.stopPropagation();
         setItemToAdd('source');
-          // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
-          setTimeout(() => {
-              document.querySelector(".addInterfaceInput input").focus()
-          }, 100);
-
+        // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+        setTimeout(() => {
+            document.querySelector(".addInterfaceInput input").focus()
+        }, 100);
     }
 
     const addMediaClicked = (e) => {
         e.stopPropagation();
         setItemToAdd("media");
-          // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
-          setTimeout(() => {
-              document.querySelector(".addInterfaceInput input").focus()
-          }, 100);
+        // Timeout required b/c it takes a moment for react to rerender before focusing on the new input
+        setTimeout(() => {
+            document.querySelector(".addInterfaceInput input").focus()
+        }, 100);
     }
 
     const addImageClicked = (e) => {
@@ -1048,15 +1046,88 @@ const AddInterface = ({ attributes, children, element }) => {
               </div>
               <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
               <div role="button" title={Sefaria._("Add media")} aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
-          </> :
-
-              <AddInterfaceInput
-                inputType={itemToAdd}
-                resetInterface={resetInterface}
-              />
-
+          </> : 
+              <>
+                {itemToAdd === 'source' && (
+                  <div 
+                    role="button" 
+                    aria-label="Source format help" 
+                    className="editorAddInterfaceButton" 
+                    contentEditable={false}
+                    onMouseEnter={(e) => {
+                      const tooltip = e.currentTarget.querySelector('.custom-tooltip');
+                      if (tooltip) tooltip.style.display = 'block';
+                    }}
+                    onMouseLeave={(e) => {
+                      const tooltip = e.currentTarget.querySelector('.custom-tooltip');
+                      if (tooltip) tooltip.style.display = 'none';
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: '-25px',
+                      right: '5px',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      backgroundColor: '#C39F48',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      fontFamily: 'Roboto'
+                    }}
+                  >
+                    i
+                    <div style={{ position: 'relative' }}>
+                      <div 
+                        className="custom-tooltip"
+                        style={{
+                          display: 'none',
+                          position: 'absolute',
+                          bottom: '35px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          padding: '8px 12px',
+                          backgroundColor: '#C39F48',
+                          color: 'white',
+                          borderRadius: '12px',
+                          whiteSpace: 'nowrap',
+                          fontSize: '13px',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                          zIndex: 1000
+                        }}
+                      >
+                        Type the name of the text and its chapter and segment.<br/>
+                        Example: Prayer of Kuntu Zangpo 1.4
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: '-6px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: '0',
+                            height: '0',
+                            borderLeft: '6px solid transparent',
+                            borderRight: '6px solid transparent',
+                            borderTop: '6px solid #C39F48'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <AddInterfaceInput
+                  inputType={itemToAdd}
+                  resetInterface={resetInterface}
+                />
+              </>
           }
           <div className="cursorHolder" contentEditable={true} suppressContentEditableWarning={true}>{children}</div>
+          
+
       </div>
     )
 }
