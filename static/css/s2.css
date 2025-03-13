@@ -6566,7 +6566,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .segment .segmentText .poetry.indentWhenWrap {
     text-indent: 0px;
-    padding-inline-start: 30px;
+    padding-inline-start: 2px;
     display: inline-block;
 }
 
@@ -12234,7 +12234,7 @@ span.purim-emoji img {
   
   .got-it-button {
     padding: 8px 20px;
-    background-color: #f0f0f0;
+    background-color: #C39F48;
     border: 1px solid #ccc;
     border-radius: 4px;
     cursor: pointer;
