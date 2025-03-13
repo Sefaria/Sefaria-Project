@@ -2579,14 +2579,24 @@ _media: {},
     return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
   },
   areVersionsEqual(savedVersion, currVersion) {
-    const checkEquality = (key) => {
-      //This is temporary for RTL - we check savedVersion?.[key] for old data and savedVersion?.[key]?.versionTitle for new data
-      //also we currently don't check the languageFamilyName to fit old data
-      const savedVersionTitle = savedVersion?.[key]?.versionTitle ?? savedVersion?.[key] ?? '';
-      const currVersionTitle = currVersion?.[key]?.versionTitle ?? currVersion?.[key] ?? '';
-      return savedVersionTitle === currVersionTitle;
+    // Determines if two versions are equal, but we don't know what format the data is in so consider both old and new format.
+    // New format is an object with two props: 'versionTitle' and 'languageFamilyName', while old format is a string.
+    const checkEquality = (lang, prop) => {
+      const propValues = [savedVersion, currVersion].map(version => {
+        version = version?.[lang];
+        const propValue = typeof version === 'string' ? version : version?.[prop];
+        return propValue ?? "";
+      });
+      return propValues[0] === propValues[1];
     }
-    return checkEquality("en") && checkEquality("he");
+    for (const prop of ["versionTitle", "languageFamilyName"]) {
+      for (const lang of ["he", "en"]) {
+        if (!checkEquality(lang, prop)) {
+          return false;
+        }
+      }
+    }
+    return true;
   },
   getSavedItem: ({ ref, versions }) => {
     return Sefaria.saved.items.find(s => s.ref === ref && Sefaria.areVersionsEqual(s.versions, versions));
