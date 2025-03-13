@@ -214,7 +214,7 @@ class Header extends Component {
       <img src={sheetsLogoPath} alt="Sefaria Sheets Logo"/>
     );
 
-
+    const logo = this.props.module === "library" ? libraryLogo : sheetsLogo;
 
       const librarySavedIcon = <div className='librarySavedIcon'>
                                   <a href="/texts/saved" >
@@ -231,11 +231,7 @@ class Header extends Component {
       <>
 
         <div className="headerNavSection">
-          { Sefaria._siteSettings.TORAH_SPECIFIC &&
-            (this.props.module === "library" ?
-              <a className="home" href="/" >{libraryLogo}</a> 
-              : <a className="home" href="/sheets" >{sheetsLogo}</a>
-          )}
+          { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
           <a href={this.props.module === 'library' ? '/texts' : '/sheets/topics'} className="textLink"><InterfaceText context="Header">{this.props.module === 'library' ? 'Texts' : 'Topics'}</InterfaceText></a>
           <a href={this.props.module === 'library' ? '/topics' : '/sheets/collections'} className="textLink"><InterfaceText>{this.props.module === 'library' ? 'Topics' : 'Collections'}</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
@@ -279,11 +275,7 @@ class Header extends Component {
         </div>
 
         <div className="mobileHeaderCenter">
-        { Sefaria._siteSettings.TORAH_SPECIFIC ?
-          (this.props.module === "library" ? 
-              <a className="home" href="/" >{libraryLogo}</a> 
-              : <a className="home" href="/sheets" >{sheetsLogo}</a>
-          ) : null }
+          { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
         </div>
 
         {this.props.hasLanguageToggle ?
