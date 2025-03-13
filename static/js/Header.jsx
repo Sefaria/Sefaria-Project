@@ -203,13 +203,13 @@ class Header extends Component {
       return null;
     }
     const libraryLogo = (
-      Sefaria.interfaceLang == "hebrew"  ?
+      Sefaria.interfaceLang === "hebrew"  ?
       <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
       <img src="/static/img/logo.svg" alt="Sefaria Logo"/>
     );
 
     const sheetsLogo = (
-      Sefaria.interfaceLang == "hebrew"  ?
+      Sefaria.interfaceLang === "hebrew"  ?
       <img src="/static/img/he_sheets_logo.svg" alt="Sefaria Sheets Logo"/> :
       <img src="/static/img/en_sheets_logo.svg" alt="Sefaria Sheets Logo"/>
     );
