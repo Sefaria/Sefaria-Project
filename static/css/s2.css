@@ -1817,8 +1817,11 @@ div.interfaceLinks-row a {
 .navSidebar .linkList {
   margin-top: 20px;
 }
-.navSidebarModule .button {
+.navSidebarModule .button{
   margin: 12px 0 0 0;
+}
+.navSidebarModule .sidebarModuleText{
+  margin-bottom: 12px;
 }
 .navSidebarModule .button img {
   filter: invert(1);
