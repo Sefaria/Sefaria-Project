@@ -651,9 +651,9 @@ const HelpButton = () => {
 
 const SignUpButton = () => {
   return (
-    <Button onClick={() => window.location.href="/register"}>
+    <a href="/register">
       <InterfaceText>Sign Up</InterfaceText>
-    </Button>
+    </a>
   )
 };
 
