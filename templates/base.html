@@ -95,13 +95,19 @@
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
+        
+    <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/color-palette.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/themes/library-theme.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/themes/sheets-theme.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/common-components.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
     <!-- Specific styling to correct behavior of Unbounce banners -->
     <link rel="stylesheet" href="{%  static 'css/unbounce-banner.css' %}">
 
     {% block static_css %}
-    {% if not html %}
+    {% if renderStatic %}
     <link rel="stylesheet" href="{%  static 'css/static.css' %}">
     {% endif %}
     {% endblock %}
@@ -179,28 +185,17 @@
     </script>
     <!--End Sentry error reporting config-->
 
-    {% if html %}
+    {% if html and not renderStatic %}
     <!-- React will complain about whitespace -->
     <div id="s2">{{ html }}</div>
-    {% else %}
-    <div id="s2" class="headerOnly">
-        {% if request.user_agent.is_mobile %}
-            {% if request.user.is_authenticated %}
-                {{ logged_in_mobile_header }}
-            {% else %}
-                {{ logged_out_mobile_header }}
-            {% endif %}
-        {% elif request.user.is_authenticated %}
-            {{ logged_in_header }}
-        {% else %}
-            {{ logged_out_header }}
-        {% endif %}
-    </div>
+    {% elif renderStatic %}
+    <!-- Meant to only be the html of the header React component, rendered by passing headerMode: true to ReaderApp  -->
+    <div id="s2" class="headerOnly">{{ html }}</div>
     {% endif %}
     {% endautoescape %}
 
-    {% if not html %}
-    <div id="staticContentWrapper">
+    {% if renderStatic %}
+    <div data-active-module="{{ active_module }}" id="staticContentWrapper">
         <div id="content" class="interface-{{ request.interfaceLang }}">
             {% block content %}{% endblock %}
         </div>
@@ -237,9 +232,7 @@
 
       var DJANGO_VARS = {
         props:         {{ propsJSON|default:"null" }},
-        contentLang:   "{{ request.contentLang }}",
-        inReaderApp:   {% if html %}true{% else %}false{% endif %},
-        static_url:    {{ STATIC_PREFIX }},
+        inReaderApp:   {% if renderStatic %}false{% else %}true{% endif %},
       };
 
       {% if STRAPI_LOCATION and STRAPI_PORT %}
