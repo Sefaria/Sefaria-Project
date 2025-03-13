@@ -202,16 +202,16 @@ class Header extends Component {
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
+    const short_lang = Sefaria.interfaceLang.slice(0,2);
+
+    const libraryLogoPath = Sefaria.interfaceLang === "hebrew"  ? "logo-hebrew.png" : "logo.svg";
     const libraryLogo = (
-      Sefaria.interfaceLang === "hebrew"  ?
-      <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
-      <img src="/static/img/logo.svg" alt="Sefaria Logo"/>
+      <img src={`/static/img/${libraryLogoPath}`} alt="Sefaria Logo"/>
     );
 
+    const sheetsLogoPath = `/static/img/${short_lang}_sheets_logo.svg`;
     const sheetsLogo = (
-      Sefaria.interfaceLang === "hebrew"  ?
-      <img src="/static/img/he_sheets_logo.svg" alt="Sefaria Sheets Logo"/> :
-      <img src="/static/img/en_sheets_logo.svg" alt="Sefaria Sheets Logo"/>
+      <img src={sheetsLogoPath} alt="Sefaria Sheets Logo"/>
     );
 
 
