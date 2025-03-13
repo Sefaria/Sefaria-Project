@@ -95,6 +95,7 @@ def cache_timestamp(request):
 
 @data_only
 def large_data(request):
+    # Make sure dat alisted here also gets passed to node, see data.js for instructions and server.js for implementation. 
     return {
         "toc": library.get_toc(),
         "toc_json": library.get_toc_json(),
