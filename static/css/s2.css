@@ -3867,6 +3867,27 @@ a.navBlockTitle:hover {
     font-family: var(--hebrew-sans-serif-font-family);
 }
 
+/* Tablet screens (up to 768px) */
+@media screen and (max-width: 768px) {
+    .bookPage .tocTitle,
+    .sheetContent .title,
+    .bookMetaDataBox .title {
+        font-size: 26px;    /* Slightly smaller for tablets */
+        line-height: 1.25;
+    }
+}
+
+/* Mobile screens (up to 480px) */
+@media screen and (max-width: 480px) {
+    .bookPage .tocTitle,
+    .sheetContent .title,
+    .bookMetaDataBox .title {
+        font-size: 22px;    /* Smaller for mobile */
+        line-height: 1.2;
+        text-align: center; /* Maintained, but could be left if preferred */
+    }
+}
+
 .bookPage.fullBookPage .tocTitle {
     text-align: start;
     margin-bottom: 8px;
