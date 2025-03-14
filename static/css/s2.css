@@ -6424,7 +6424,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 /* Tablet screens (up to 768px) */
 @media screen and (max-width: 768px) {
     .textRange.basetext {
-        font-size: 2.0em;    /* Increased from 1.8em, slightly less than base */
+        font-size: 2.1em;    /* Increased from 1.8em, slightly less than base */
         padding: 0 20px;
         max-width: 100%;
     }
@@ -6433,18 +6433,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 /* Mobile screens (up to 480px) */
 @media screen and (max-width: 480px) {
     .textRange.basetext {
-        font-size: 1.6em;    /* Increased from 1.4em, proportional adjustment */
+        font-size: 1.7em;    /* Increased from 1.4em, proportional adjustment */
         line-height: 1.4;
         padding: 0 15px;
         text-align: left;
-    }
-}
-
-/* Large screens (above 1200px) */
-@media screen and (min-width: 1201px) {
-    .textRange.basetext {
-        max-width: 900px;
-        font-size: 2.6em;    /* Increased from 2.4em, slightly more than base */
     }
 }
 
