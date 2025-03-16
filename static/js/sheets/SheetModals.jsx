@@ -354,7 +354,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
       publishCallback(true);
     }
   }
-  return <div>
+  return <>
         <div className={"publishBox sans-serif"}>
             <div className="publishLabel">
                 <InterfaceText>Title</InterfaceText>
@@ -395,7 +395,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
                 <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
             <Button className="small" onClick={handlePublish}>Publish</Button>
         </div>
-    </div>
+    </>
 }
 
 export { ShareModal, CollectionsModal, AddToSourceSheetModal, CopyModal, SaveModal, GoogleDocExportModal, DeleteModal,

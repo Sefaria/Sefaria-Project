@@ -36,13 +36,13 @@ const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false})
   );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe, descEn='', descHe=''}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader">
         <img src={icon} />
         <span className='dropdownHeaderText'>
-          <InterfaceText text={{'en': textEn, 'he': textHe}} />
+          <InterfaceText>{textEn}</InterfaceText>
         </span>
       </div>
       <div className='dropdownDesc'>

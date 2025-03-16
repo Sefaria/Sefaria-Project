@@ -134,54 +134,30 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
 }
 
 const ShareButton = () => {
-  return <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
-              textEn={'Share'}
-              textHe={'שיתוף'}
-              descEn={""}
-              descHe={""}/>
+  return <DropdownMenuItemWithIcon icon={"/static/img/share.svg"} textEn={'Share'}/>
 }
 
 const DeleteButton = () => {
-    return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"}
-              textEn={'Delete Sheet'}
-              textHe={"מחיקת דף מקורות"}
-              descEn={""}
-              descHe={""}/>
+    return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"} textEn={'Delete Sheet'}/>
 }
 
 const UnpublishButton = () => {
-  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"}
-                                   textEn={'Unpublish'}
-                                   textHe={""}
-                                   descEn={""}
-                                   descHe={""}/>
+  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"} textEn={'Unpublish'}/>
 }
 
 const CollectionsButton = ({editable}) => {
   const label = editable ? "Edit Collections" : "Add to Collection";
-  return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
-                                    textEn={label}
-                                    textHe={Sefaria._(label)}
-                                    descEn={""}
-                                    descHe={""}/>
+  return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"} textEn={label}/>
 }
 
 const CopyButton = () => {
-  return <DropdownMenuItemWithIcon
-              textEn={"Copy"}
-              textHe={"העתקה"}
-              descEn={""}
-              descHe={""}
-              icon="/static/img/copy.png"/>
+  return <DropdownMenuItemWithIcon textEn={"Copy"} icon="/static/img/copy.png"/>
 }
 
 const GoogleDocExportButton = () => {
   const googleDriveText = { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" };
   return <DropdownMenuItemWithIcon
                          textEn={googleDriveText.en}
-                         textHe={googleDriveText.he}
-                         descEn={""}
-                         descHe={""}
                          icon="/static/img/googledrivecolor.png"/>;
 }
 
