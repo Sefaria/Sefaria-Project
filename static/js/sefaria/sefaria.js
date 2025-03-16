@@ -2852,14 +2852,12 @@ _media: {},
       return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
   processTopicsData: function(data) {
-    const lang = Sefaria.interfaceLang == "hebrew" ? 'he' : 'en'
+    const lang = Sefaria.interfaceLang === "hebrew" ? 'he' : 'en'
     if (!data) { return null; }
     if (!data.refs) { return data; }
     const tabs = {};
     for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
       for (let refObj of linkTypeObj.refs) {
-        // sheets are no longer displayed on topic pages
-        if (refObj.is_sheet) { continue; }
         let tabKey = linkTypeSlug;
         if (tabKey === 'about') {
             // Mark as notable if it has a prompt, title, and isn't explicitly unpublished (happens when returns from LLM pod);
@@ -2879,13 +2877,14 @@ _media: {},
             shouldDisplay: linkTypeObj.shouldDisplay,
           };
         }
+        const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
         if (refObj.order) {
             refObj.order = {...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
                                 numDatasource: refObj?.order?.numDatasource || 1,
                                 tfidf: refObj?.order?.tfidf || 0,
                                 pr: refObj?.order?.pr || 0,
                                 curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}}}
-        tabs[tabKey].refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
+        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
       }
     }
     for (let tabObj of Object.values(tabs)) {
