@@ -17,8 +17,11 @@ class Passage(abst.AbstractMongoRecord):
         "ref_list"   # []
     ]
     optional_attrs = [
-        "same_as"    # []
+        "same_as",    # []
+        "source"
     ]
+
+    possible_types = ["Mishnah", "Sugya", "passage", "biblical-story"]
 
     @classmethod
     def containing_segment(cls, ref):
@@ -35,7 +38,7 @@ class Passage(abst.AbstractMongoRecord):
 
     def _validate(self):
         super(Passage, self)._validate()
-        assert self.type == "Mishnah" or self.type == "Sugya"
+        assert self.type in self.possible_types
 
     def ref(self):
         return text.Ref(self.full_ref)

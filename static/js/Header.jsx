@@ -14,9 +14,8 @@ import {
   DonateLink
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
-import {Autocomplete} from './Autocomplete'
+import {HeaderAutocomplete} from './HeaderAutocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
-
 
 const LoggedOutDropdown = () => {
   const [isClient, setIsClient] = useState(false);
@@ -82,12 +81,10 @@ const LoggedInDropdown = () => {
   }
 
   return (
-      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<ProfilePic
-          url={Sefaria.profile_pic_url}
-          name={Sefaria.full_name}
-          len={25}
-      />
-      }>
+      <DropdownMenu positioningClass="headerDropdownMenu" 
+                    buttonComponent={<ProfilePic url={Sefaria.profile_pic_url}
+                                                 name={Sefaria.full_name}
+                                                 len={25}/>}>
           <div className='dropdownLinks-options'>
               <DropdownMenuItem preventClose={true}>
                   <strong>{Sefaria.full_name}</strong>
@@ -188,12 +185,12 @@ class Header extends Component {
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
-          <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
+          <a href="/topics" className="textLink"><InterfaceText context="Header">Explore</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
         <div className="headerLinksSection">
-        <Autocomplete
+        <HeaderAutocomplete
             onRefClick={this.props.onRefClick}
             showSearch={this.props.showSearch}
             openTopic={this.props.openTopic}
@@ -208,10 +205,10 @@ class Header extends Component {
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
 
-          <ModuleSwitcher /> 
+          <ModuleSwitcher />
 
           { Sefaria._uid ?
-            <LoggedInDropdown /> 
+            <LoggedInDropdown />
             : <LoggedOutDropdown currentLang={Sefaria.interfaceLang}/>
           }
 
@@ -309,7 +306,7 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
           <InterfaceText>Log in</InterfaceText>
         </a>
       </span>}
-      
+
     </div>
   );
 }
@@ -346,7 +343,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
   return (
     <div className={classes}>
       <div className="searchLine">
-        <Autocomplete
+        <HeaderAutocomplete
             onRefClick={onRefClick}
             showSearch={showSearch}
             openTopic={openTopic}
@@ -361,7 +358,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText>Topics</InterfaceText>
+        <InterfaceText context="Header">Explore</InterfaceText>
       </a>
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />

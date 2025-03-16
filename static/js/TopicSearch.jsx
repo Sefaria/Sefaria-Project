@@ -26,17 +26,18 @@ class TopicSearch extends Component {
       return results;
     }
     const word = input.trim();
-    const callback = (d) => {
+    const parseCompletions = (rawCompletionsObjs) => {
         let topics = [];
-        if (d[1].length > 0) {
-          topics = d[1].slice(0, 4).map(function (e) {
+        if (rawCompletionsObjs.length > 0) {
+          topics = rawCompletionsObjs.slice(0, 4).map(function (e) {
                 return {title: e.title, key: e.key}
               });
             }
         topics.push({title: this.props.createNewTopicStr+word, key: ""})
         return topics;
      };
-    const completion_objects = await Sefaria.getTopicCompletions(word, callback);
+    const rawCompletions = await Sefaria.getName(word, undefined, 'Topic');
+    const completion_objects = parseCompletions(rawCompletions['completion_objects'])
     results.currentSuggestions = completion_objects
         .map(suggestion => ({
           name: suggestion.title,
@@ -68,7 +69,7 @@ class TopicSearch extends Component {
       const srefs = this.props.srefs;
       const update = this.props.update;
       const reset = this.reset;
-      Sefaria.postRefTopicLink(Sefaria.normRef(this.props.srefs), postJSON).then(async () => {
+      Sefaria.postRefTopicLink(Sefaria.normRef(this.props.srefs), postJSON).then(async (data) => {
           const sectionRef = await Sefaria.getRef(Sefaria.normRef(srefs)).sectionRef;
           srefs.map(sref => {
               if (!Sefaria._refTopicLinks[sref]) {

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
+
+from django.utils.http import is_safe_url
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
@@ -52,7 +54,7 @@ from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -63,9 +65,9 @@ from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
-                                get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
-                                get_random_topic_source, edit_topic_source, \
-                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time
+    get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
+    get_random_topic_source, edit_topic_source, \
+    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -230,6 +232,7 @@ def base_props(request):
             "fontSize":          request.COOKIES.get("fontSize", 62.5),
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
+        "numLibraryTopics": get_num_library_topics(),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG
     })
@@ -533,9 +536,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     if sheet == None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
-
-        # versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe) #TODO
-
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
@@ -577,15 +577,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            versionEn  = request.GET.get("ven{}".format(i)).replace("_", " ") if request.GET.get("ven{}".format(i)) else None
-            versionHe  = request.GET.get("vhe{}".format(i)).replace("_", " ") if request.GET.get("vhe{}".format(i)) else None
-            if not versionEn and not versionHe:
-                # potential link using old version format
-                language = request.GET.get("l{}".format(i))
-                if language == "en":
-                    versionEn = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
-                else: # he
-                    versionHe = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
+            versionEn = _extract_version_params(request, f"ven{i}")
+            versionHe = _extract_version_params(request, f"vhe{i}")
             versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
@@ -601,13 +594,13 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             kwargs["sidebarSearchQuery"] = request.GET.get(f"sbsq{i}", None)
             kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
             kwargs["selectedNamedEntityText"] = request.GET.get(f"namedEntityText{i}", None)
-            if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
-                (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
+            if (versionEn['versionTitle'] and not Version().load({"versionTitle": versionEn['versionTitle'], "language": "en"})) or \
+                (versionHe['versionTitle'] and not Version().load({"versionTitle": versionHe['versionTitle'], "language": "he"})):
                 i += 1
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
+            panels += make_panel_dicts(oref, versionHe, versionEn, filter, versionFilter, multi_panel, **kwargs)
         i += 1
 
     props = {
@@ -810,9 +803,9 @@ def override_version_with_preference(oref, request, versionEn, versionHe):
         if Version().load({"versionTitle": vtitle, "language": lang, "title": oref.index.title}):
             # vpref exists and the version exists for this text
             if lang == "en" and not versionEn:
-                versionEn = vtitle
+                versionEn['versionTitle'] = vtitle
             elif lang == "he" and not versionHe:
-                versionHe = vtitle
+                versionHe['versionTitle'] = vtitle
     return versionEn, versionHe
 
 
@@ -1313,8 +1306,12 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
-    next = request.GET.get("next", "/")
-    next = "/" if next == "undefined" else next
+    next = request.GET.get("next")
+    if not next or not is_safe_url(
+        url=next,
+        allowed_hosts=set(ALLOWED_HOSTS)
+    ):
+        next = "/"
 
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
@@ -1692,7 +1689,7 @@ def search_autocomplete_redirecter(request):
     query = request.GET.get("q", "")
     topic_override = query.startswith('#')
     query = query[1:] if topic_override else query
-    completions_dict = get_name_completions(query, 1, False, topic_override)
+    completions_dict = get_name_completions(query, 1, topic_override)
     ref = completions_dict['ref']
     object_data = completions_dict['object_data']
     if ref:
@@ -1710,7 +1707,7 @@ def search_autocomplete_redirecter(request):
 def opensearch_suggestions_api(request):
     # see here for docs: http://www.opensearch.org/Specifications/OpenSearch/Extensions/Suggestions/1.1
     query = request.GET.get("q", "")
-    completions_dict = get_name_completions(query, 5, False)
+    completions_dict = get_name_completions(query, 5)
     ret_data = [
         query,
         completions_dict["completions"]
@@ -2667,9 +2664,19 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, ref_only, topic_override=False):
+def get_name_completions(name, limit, topic_override=False, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
+    """
+    Function to get completions (objects and titles) for a given name.
+    :param name: string to get completions for
+    :param limit: int number of items to return
+    :param topic_override: bool
+    :param type: string - get only completions of objects of this specific type
+    :param topic_pool: string - get completions of topic-objects of this specific topic pool
+    :param exact_continuations: bool - if ture get only completions of objects whose title contains an exact match to 'name'
+    :param order_by_matched_length: bool - if true return completion objects by ascending order of length - such that shorter titles whose greater part is a match to 'name' will appear first.
+    """
     lang = "he" if has_hebrew(name) else "en"
-    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
+    completer = library.full_auto_completer(lang)
     object_data = None
     ref = None
     topic = None
@@ -2693,7 +2700,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
             completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
         else:
-            completions, completion_objects = completer.complete(name, limit)
+            completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
             object_data = completer.get_object(name)
 
     except DictionaryEntryNotFoundError as e:
@@ -2703,7 +2710,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
         completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
     except InputError:  # Not a Ref
-        completions, completion_objects = completer.complete(name, limit)
+        completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
         object_data = completer.get_object(name)
 
     return {
@@ -2717,13 +2724,6 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
 
 
 @catch_error_as_json
-def topic_completion_api(request, topic):
-    limit = int(request.GET.get("limit", 10))
-    result = library.topic_auto_completer().complete(topic, limit=limit)
-    return jsonResponse(result)
-
-
-@catch_error_as_json
 def name_api(request, name):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -2731,8 +2731,11 @@ def name_api(request, name):
     name = name[1:] if topic_override else name
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
-    ref_only = bool(int(request.GET.get("ref_only", False)))
-    completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override)
+    type = request.GET.get("type", None)
+    topic_pool = request.GET.get("topic_pool", None)
+    exact_continuations = bool(int(request.GET.get("exact_continuations", False)))
+    order_by_matched_length = bool(int(request.GET.get("order_by_matched_length", False)))
+    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
     d = {
@@ -3202,7 +3205,7 @@ def add_new_topic_api(request):
             t.image = data["image"]
 
         t.save()
-        library.build_topic_auto_completer()
+        library.build_full_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
         library.get_topic_toc_category_mapping(rebuild=True)
@@ -3219,7 +3222,7 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            library.build_topic_auto_completer()
+            library.build_full_auto_completer()
             library.get_topic_toc(rebuild=True)
             library.get_topic_toc_json(rebuild=True)
             library.get_topic_toc_category_mapping(rebuild=True)
@@ -3254,7 +3257,7 @@ def topics_api(request, topic, v2=False):
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
         topic = update_topic(topic, **topic_data)
         if author_status_changed:
-            library.build_topic_auto_completer()
+            library.build_full_auto_completer()
 
         def protected_index_post(request):
             return jsonResponse(topic.contents())
@@ -3290,6 +3293,36 @@ def topic_pool_api(request, pool_name):
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
+@catch_error_as_json
+def featured_topic_api(request):
+    from django_topics.models import TopicOfTheDay
+
+    lang = request.GET.get("lang")
+    featured_topic = TopicOfTheDay.objects.get_featured_topic(lang)
+    if not featured_topic:
+        return jsonResponse({'error': f'No featured topic found for lang "{lang}"'}, status=404)
+    mongo_topic = Topic.init(featured_topic.topic.slug)
+    response = {'topic': mongo_topic.contents(), 'date': featured_topic.start_date.isoformat()}
+    return jsonResponse(response)
+
+def trending_topics_api(request):
+    from sefaria.helper.topic import get_trending_topics
+    n = int(request.GET.get("n"))
+    pool_name = request.GET.get("pool", None)
+
+    trending_slugs = get_trending_topics(n * n)
+    #Bulk loading of topics (for better performance) then sorting them:
+    loaded_topics = TopicSet({"slug": {"$in": trending_slugs}}).array()
+    trending_order_map = {slug: index for index, slug in enumerate(trending_slugs)}
+    sorted_loaded_topics = sorted(loaded_topics, key=lambda x: trending_order_map.get(x.slug, float('inf')))
+    trending_topics = [
+        topic.contents()
+        for topic in sorted_loaded_topics
+        if topic and (not pool_name or pool_name in topic.get_pools())
+    ]
+    return jsonResponse(trending_topics[:n])
+
+
 @staff_member_required
 def reorder_topics(request):
     topics = json.loads(request.POST["json"]).get("topics", [])
@@ -3321,6 +3354,27 @@ def topic_ref_bulk_api(request):
         all_links_touched.append(ref_topic_dict)
     return jsonResponse(all_links_touched)
 
+@catch_error_as_json
+def seasonal_topic_api(request):
+    from django_topics.models import SeasonalTopic
+
+    lang = request.GET.get("lang")
+    cb = request.GET.get("callback", None)
+    diaspora = request.GET.get("diaspora", False)
+
+    stopic = SeasonalTopic.objects.get_seasonal_topic(lang)
+    if not stopic:
+        return jsonResponse({'error': f'No seasonal topic found for lang "{lang}"'}, status=404)
+    mongo_topic = Topic.init(stopic.topic.slug)
+    mongo_secondary_topic = Topic.init(stopic.secondary_topic.slug) if stopic.secondary_topic else None
+    response = {'topic': mongo_topic.contents(),
+                'secondary_topic': mongo_secondary_topic.contents() if mongo_secondary_topic else None,
+                'display_start_date': stopic.get_display_start_date(diaspora).isoformat() if mongo_secondary_topic else None,
+                'display_end_date': stopic.get_display_end_date(diaspora).isoformat() if mongo_secondary_topic else None,
+                'display_date_prefix': stopic.display_date_prefix,
+                'display_date_suffix': stopic.display_date_suffix,
+                }
+    return jsonResponse(response, callback=cb)
 
 
 @catch_error_as_json

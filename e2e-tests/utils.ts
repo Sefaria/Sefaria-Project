@@ -6,6 +6,7 @@ let langCookies: any = [];
 let loginCookies: any = [];
 
 const hideModals = async (page: Page) => {
+    await page.waitForLoadState('networkidle');
     await page.evaluate(() => {
         const style = document.createElement('style');
         style.innerHTML = '#interruptingMessageBox {display: none;}';
