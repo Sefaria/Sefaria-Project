@@ -798,6 +798,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   align-items: center;
   height: 100%;
   margin-top: 4px;
+  margin-inline-start: 4px;
 }
 .header .interfaceLinks {
   display: flex;
