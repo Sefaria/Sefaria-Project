@@ -16,6 +16,8 @@ import {
 import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemLink, DropdownMenuItemWithIcon, DropdownMenuItemWithCallback } from './common/DropdownMenu';
+import Button from './common/Button';
+
 
 const LoggedOutDropdown = ({module}) => {
   const [isClient, setIsClient] = useState(false);
@@ -244,6 +246,8 @@ class Header extends Component {
             openTopic={this.props.openTopic}
             openURL={this.props.openURL}
         />
+
+        {this.props.module === "sheets" && <CreateButton />}
 
         { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
 
@@ -652,6 +656,15 @@ const HelpButton = () => {
         <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
       </a>
     </div>
+  );
+};
+
+const CreateButton = () => {
+  return (
+    <Button variant={"secondary"} onClick={() => window.location.href="/sheets/new"}>
+      {/* Hebrew is a placeholder */}
+      <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} /> 
+    </Button>
   );
 };
 
