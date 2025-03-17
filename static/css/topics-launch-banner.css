@@ -3,6 +3,7 @@
   width: 100%;
   display: block;
   overflow: hidden;
+  padding: 0;
 }
 
 .topicsLaunchBannerDesktop {
