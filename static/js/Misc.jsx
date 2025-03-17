@@ -24,7 +24,6 @@ import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
-import TopicsLaunchBannerGraphics from './TopicsLaunchBannerGraphics';
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -2224,116 +2223,6 @@ const Banner = ({ onClose }) => {
   }
 };
 
-Banner.displayName = "Banner";
-
-const TopicsLaunchBanner = ({ onClose }) => {
-  const bannerName = "2025-topics_launch";
-
-  const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
-    useState(false);
-  const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
-
-  const markBannerAsHasBeenInteractedWith = () => {
-    localStorage.setItem("banner_" + bannerName, "true");
-  };
-
-  const hasBannerBeenInteractedWith = () => {
-    return JSON.parse(localStorage.getItem("banner_" + bannerName));
-  };
-
-  const trackBannerInteraction = (eventDescription) => {
-    gtag("event", "banner_interacted_with_" + eventDescription, {
-      campaignID: bannerName,
-      adType: "banner",
-    });
-  };
-
-  const trackBannerImpression = () => {
-    gtag("event", "banner_viewed", {
-      campaignID: bannerName,
-      adType: bannerName,
-    });
-  };
-
-  const shouldShow = () => {
-    return Sefaria.interfaceLang !== "hebrew" && !hasBannerBeenInteractedWith(bannerName) && window.location.pathname !== "/topics";
-  };
-
-  const closeBanner = (eventDescription) => {
-    if (onClose) onClose();
-    markBannerAsHasBeenInteractedWith(bannerName);
-    setHasInteractedWithBanner(true);
-    trackBannerInteraction(eventDescription);
-  };
-
-  useEffect(() => {
-    if (shouldShow()) {
-      const timeoutId = setTimeout(() => {
-        if (document.getElementById("s2").classList.contains("headerOnly")) {
-          document.body.classList.add("hasBannerMessage");
-        }
-        setBannerShowDelayHasElapsed(true);
-      }, 2000);
-      return () => clearTimeout(timeoutId);
-    }
-  }, []);
-
-  if (!bannerShowDelayHasElapsed) return null;
-
-  if (!hasInteractedWithBanner) {
-    return (
-      <OnInView onVisible={trackBannerImpression}>
-        <div
-          id="bannerMessage"
-          className={bannerShowDelayHasElapsed ? "" : "hidden"}
-        >
-            <div id="topicsLaunchBanner">
-                {/*<img src="/static/img/topics-launch-banner2.svg" className="beautifulBannerDesktop" />*/}
-                <TopicsLaunchBannerGraphics onExploreButtonClick={() => { closeBanner("banner_button_clicked"); }} />
-                <img src="/static/img/topics-launch-banner-mobile.svg" className="beautifulBannerMobile" />
-            </div>
-
-          {/* <div id="bannerMessageContent">
-
-            <div id="bannerButtonBox">
-              <a
-                className="button white int-en"
-                href={strapi.banner.buttonURL.en}
-                onClick={() => {
-                  closeBanner("banner_button_clicked");
-                }}
-              >
-                <span>{strapi.banner.buttonText.en}</span>
-              </a>
-              <a
-                className="button white int-he"
-                href={strapi.banner.buttonURL.he}
-                onClick={() => {
-                  closeBanner("banner_button_clicked");
-                }}
-              >
-                <span>{strapi.banner.buttonText.he}</span>
-              </a>
-            </div>
-          </div> */}
-          <div
-            id="topicsLaunchBannerMessageClose"
-            onClick={() => {
-              closeBanner("close_clicked");
-            }}
-          >
-              <img src="/static/img/topics-launch-banner-close-button-final.svg" />
-          </div>
-        </div>
-      </OnInView>
-    );
-  } else {
-    return null;
-  }
-};
-
-Banner.displayName = "Banner";
-
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
   // If `stretch`, extend the final row into any remaining empty columns
@@ -3328,7 +3217,6 @@ export {
   GlobalWarningMessage,
   InterruptingMessage,
   Banner,
-  TopicsLaunchBanner,
   InterfaceText,
   EnglishText,
   HebrewText,

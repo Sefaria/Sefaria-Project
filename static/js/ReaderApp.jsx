@@ -31,10 +31,10 @@ import {
   SignUpModal,
   InterruptingMessage,
   Banner,
-  TopicsLaunchBanner,
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
+import { TopicsLaunchBanner } from './TopicsLaunchBanner';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';

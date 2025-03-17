@@ -371,41 +371,14 @@ body:not(.inApp).nochrome #footerContainer {
   display: none;
 }
 #bannerMessage {
-  background-color: white;
+  color: white;
+  background-color: #4871bf;
   height: 120px;
-  width: 100%;
   box-sizing: border-box;
-  display: block;
+  padding: 0 36px;
+  display: flex;
   transition: .5s;
-  overflow: hidden;
 }
-
-.beautifulBannerDesktop {
-  width: 100%;
-  height: 120px;
-  display: block;
-  object-fit: cover;
-}
-.beautifulBannerMobile {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  display: none;
-}
-@media (max-width: 540px) {
-  .beautifulBannerDesktop {
-    display: none;
-  }
-  .beautifulBannerMobile {
-    display: block;
-  }
-}
-@media (max-width: 1200px) {
-  .beautifulBannerDesktop {
-    width: auto;
-  }
-}
-
 #bannerMessage.hidden {
   height: 0;
 }
@@ -429,14 +402,6 @@ body.hasBannerMessage #s2.headerOnly {
   color: white;
   opacity: 0.5;
   font-size: 26px;
-  cursor: pointer;
-}
-#topicsLaunchBannerMessageClose {
-  position: absolute;
-  top: 1%;
-  right: 22px;
-  color: var(--sefaria-blue);
-  opacity: 1;
   cursor: pointer;
 }
 .interface-hebrew #bannerMessageClose {
