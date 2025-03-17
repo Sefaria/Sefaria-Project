@@ -4,11 +4,13 @@ const AnalyticsEventTracker = (function() {
         'content_id', 'content_type', 'panel_name', 'panel_category', 'position', 'ai',
         'text', 'experiment', 'feature_name', 'from', 'to', 'action', 'engagement_value',
         'engagement_type', 'logged_in', 'site_lang', 'traffic_type', 'promotion_name', 'link_type',
+        'form_name', 'form_destination',
     ]);
     const EVENT_ATTR = 'data-anl-event';
     const FIELD_ATTR_PREFIX = 'data-anl-';
     const BATCH_ATTR = 'data-anl-batch';
     const SCROLL_INTO_VIEW_SELECTOR ='[data-anl-event*=":scrollIntoView"]';
+    const INPUT_START_SELECTOR ='[data-anl-event*=":inputStart"]';
     const TOGGLE_NODE_SELECTOR = 'details';
     const NON_BUBBLING_EVENT_DELEGATES = {
         'bubblingToggle': 'toggle',
@@ -182,6 +184,19 @@ const AnalyticsEventTracker = (function() {
         });
     }
 
+    function _addInputStartListener(element) {
+        const handleInputStart = function(event) {
+            const inputStartEvent = new CustomEvent('inputStart', {
+                bubbles: true,
+                detail: { originalEvent: event }
+            });
+            event.target.dispatchEvent(inputStartEvent);
+            // remove it after first input so it doesn't fire again
+            element.removeEventListener('input', handleInputStart);
+        }
+        element.addEventListener('input', handleInputStart);
+    }
+
     function _runFunctionOnSelector(root, selector, fn) {
         /**
          * Runs `fn(node)` on any node that matches `selector`.
@@ -260,6 +275,8 @@ const AnalyticsEventTracker = (function() {
                 } else if (eventType === 'scrollIntoView') {
                     onMutationFns.push(node => _runFunctionOnSelector(node, SCROLL_INTO_VIEW_SELECTOR, _observeForScrollIntoView));
                     eventType = _observeScrollIntoViewEvent(selector);
+                } else if (eventType === 'inputStart') {
+                    onMutationFns.push(node => _runFunctionOnSelector(node, INPUT_START_SELECTOR, _addInputStartListener));
                 }
                 elements.forEach(element => {
                     element.addEventListener(eventType, _handleAnalyticsEvent);
