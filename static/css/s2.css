@@ -12287,11 +12287,11 @@ span.purim-emoji img {
 
 .addInterfaceInput .button {
     font-size: 14px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    height: 30px;
+    padding: 5px 10px; /* Adjusted padding for better spacing */
+    height: auto; /* Let height adjust to content */
     position: absolute;
-    width: 95px;
+    width: auto; /* Let width adjust to content */
+    white-space: nowrap; /* Prevents text from wrapping or stacking */
 }
 
 .addInterfaceInput .textPreviewSegment {
