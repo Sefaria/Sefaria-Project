@@ -514,9 +514,31 @@ function renderSheetItem(source) {
         }
     }
 }
+function flattenLists(htmlString) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlString, 'text/html');
+
+  function flattenList(list) {
+    [...list.querySelectorAll('li')].forEach(item => {
+      const nestedList = item.querySelector('ul, ol');
+      if (nestedList) {
+        [...nestedList.querySelectorAll('li')].forEach(nestedItem => {
+          item.parentNode.insertBefore(nestedItem, item.nextSibling);
+        });
+        nestedList.remove();
+      }
+    });
+  }
+
+  doc.querySelectorAll('ul, ol').forEach(flattenList);
+
+  return doc.body.innerHTML;
+}
 
 function parseSheetItemHTML(rawhtml) {
-    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r|\t)/gm, "");
+    let preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r|\t)/gm, "");
+    // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
+    preparseHtml = flattenLists(preparseHtml);
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
