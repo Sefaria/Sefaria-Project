@@ -21,3 +21,5 @@ DATABASES = {
 }
 
 ADMIN_PATH = 'admin'
+
+STAFF_PASSCODE = os.getenv("STAFF_PASSCODE")

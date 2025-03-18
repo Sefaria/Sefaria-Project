@@ -33,14 +33,15 @@ from django.urls.exceptions import Resolver404
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from sefaria.decorators import passcode_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import in_memory_cache
+from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, STAFF_PASSCODE
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
@@ -757,6 +758,14 @@ def rebuild_citation_links(request, title):
     rebuild(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Rebuilt-on-%s" % title)
 
+@passcode_or_staff_required(passcode=STAFF_PASSCODE)
+def rebuild_shared_cache(request):
+    regenerating = get_shared_cache_elem("regenerating")
+    status = "build in progress" if regenerating else "start rebuilding"
+    if not regenerating:
+        set_shared_cache_elem("regenerating", True)
+        library.init_shared_cache(rebuild=True)
+    return jsonResponse({"status": status})
 
 @staff_member_required
 def delete_citation_links(request, title):
