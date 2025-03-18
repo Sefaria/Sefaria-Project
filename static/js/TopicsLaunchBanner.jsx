@@ -5,6 +5,7 @@ import { OnInView } from "./Misc";
 
 const TopicsLaunchBanner = ({ onClose }) => {
   const bannerName = "2025-topics_launch";
+  const bannerKey = `banner_${bannerName}`;
 
   const [bannerVisibility, setBannerVisibility] = useState("hidden");
   const [shouldRender, setShouldRender] = useState(false);
@@ -14,16 +15,18 @@ const TopicsLaunchBanner = ({ onClose }) => {
   const desktopButtonRef = useRef(null);
   const mobileButtonRef = useRef(null);
 
+  const bannerVisibilityRef = useRef("hidden");
+
   const markBannerAsHasBeenInteractedWith = () => {
-    sessionStorage.setItem("banner_" + bannerName, "true");
+    sessionStorage.setItem(bannerKey, "true");
   };
 
   const hasBannerBeenInteractedWith = () => {
-    return JSON.parse(sessionStorage.getItem("banner_" + bannerName));
+    return sessionStorage.getItem(bannerKey) === "true";
   };
 
   const trackBannerInteraction = (eventDescription) => {
-    gtag("event", "banner_interacted_with_" + eventDescription, {
+    gtag("event", `banner_interacted_with_${eventDescription}`, {
       campaignID: bannerName,
       adType: "banner",
     });
@@ -72,6 +75,7 @@ const TopicsLaunchBanner = ({ onClose }) => {
 
     trackBannerInteraction(eventDescription);
   };
+
 
   useEffect(() => {
     const bannerElement = bannerRef.current;
