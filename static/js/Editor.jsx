@@ -808,7 +808,15 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 const AddInterfaceInput = ({ inputType, resetInterface }) => {
     const editor = useSlate();
     const [inputValue, setInputValue] = useState("");
+    const [displayValue, setDisplayValue] = useState(""); // Truncated value for display
     const [showAddMediaButton, setShowAddMediaButton] = useState(false);
+
+    const truncateText = (text) => {
+        if (text.length > 50) {
+            return `${text.slice(0, 20)}.............${text.slice(-30)}`;
+        }
+        return text;
+    };
 
     const isMediaLink = (url) => {
         console.log(url)
@@ -873,40 +881,52 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
     const getSuggestions = async (input) => {
         let results = {
-            "previewText": null, "helperPromptText": null, "currentSuggestions": null,
+            "previewText": null,
+            "helperPromptText": null,
+            "currentSuggestions": null,
             "showAddButton": false
         };
         setInputValue(input);
+        const truncatedInput = truncateText(input);
+        setDisplayValue(truncatedInput);
         if (input === "") {
             return results;
         }
         const d = await Sefaria.getName(input, true, 5);
         if (d.is_section || d.is_segment) {
+            // Truncate the input if longer than 50 characters
+            let previewText = input;
+            if (input.length > 50) {
+                previewText = truncateText(input);
+                console.log("getSuggestions - Truncated input for previewText:", previewText);
+            }
             results.helperPromptText = null;
             results.currentSuggestions = null;
-            results.previewText = input;
+            results.previewText = previewText; // Assign the truncated or original value
+            console.log("getSuggestions - preview_text:", results.previewText); // Log the final previewText
             results.showAddButton = true;
             return results;
         } else {
             results.showAddButton = false;
             results.previewText = null;
         }
-
-        //We want to show address completions when book exists but not once we start typing further
+    
+        // We want to show address completions when book exists but not once we start typing further
         if (d.is_book && isNaN(input.trim().slice(-1)) && !!d?.addressExamples) {
-            results.helperPromptText = <InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}}/>;
+            results.helperPromptText = <InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}} />;
         } else {
             results.helperPromptText = null;
         }
-
+    
         results.currentSuggestions = d.completion_objects
             .map(suggestion => ({
                 name: suggestion.title,
                 key: suggestion.key,
-                border_color: Sefaria.palette.refColor(suggestion.key)
-            }))
+                border_color: Sefaria.palette.refColor(suggestion.key),
+                displayText: truncateText(suggestion.title) // Truncate suggestion display text
+            }));
         return results;
-    }
+    };
 
     const selectedCallback = () => {
           insertSource(editor, inputValue)
@@ -937,8 +957,13 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
             <Autocompleter
                 selectedCallback={selectedCallback}
                 getSuggestions={getSuggestions}
-                inputValue={inputValue}
-                changeInputValue={setInputValue}
+                inputValue={displayValue} // Use truncated value for display
+                changeInputValue={(value) => {
+                    setInputValue(value); // Store the full value
+                    const truncatedValue = truncateText(value);
+                    setDisplayValue(truncatedValue); // Always display truncated value
+                    console.log("Autocompleter - Input value changed:", value);
+                }}
                 inputPlaceholder={Sefaria._('sheet.editor.source.input_field.placeholder')}
                 buttonTitle="Add Source"
                 autocompleteClassNames="addInterfaceInput"
@@ -1099,8 +1124,9 @@ const AddInterface = ({ attributes, children, element }) => {
                           zIndex: 1000
                         }}
                       >
-                        Type the name of the text and its chapter and segment.<br/>
-                        Example: Prayer of Kuntu Zangpo 1.4
+                        <InterfaceText >add_source.tool_tip_1</InterfaceText>
+                        <br/>
+                        <InterfaceText >add_source.tool_tip_2</InterfaceText>
                         <div
                           style={{
                             position: 'absolute',

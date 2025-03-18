@@ -3438,7 +3438,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
 
   const generatePreviewText = (ref) => {
-    console.log("getText", ref)
         Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
            let segments = Sefaria.makeSegments(text, true);
            segments = Sefaria.stripImagesFromSegments(segments);

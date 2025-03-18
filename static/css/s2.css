@@ -12287,11 +12287,11 @@ span.purim-emoji img {
 
 .addInterfaceInput .button {
     font-size: 14px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    height: 30px;
+    padding: 5px 10px; /* Adjusted padding for better spacing */
+    height: auto; /* Let height adjust to content */
     position: absolute;
-    width: 95px;
+    width: auto; /* Let width adjust to content */
+    white-space: nowrap; /* Prevents text from wrapping or stacking */
 }
 
 .addInterfaceInput .textPreviewSegment {
@@ -12360,17 +12360,23 @@ span.purim-emoji img {
 
 .addInterfaceInput input {
     min-width: 550px;
-    max-width: 50px;
+    max-width: 550px; /* Fix conflict: match min-width or remove max-width if not needed */
     border-radius: 250px;
     border: none;
     box-shadow: none;
     box-sizing: border-box;
     font-size: 22px;
-    padding-inline-start: 30px;
-    padding-top: revert;
+    padding-inline-start: 40px; /* Increase to ensure icon doesn’t overlap text */
+    padding-top: 10px; /* Increase to provide space for ascenders */
+    padding-bottom: 10px; /* Add to provide space for descenders */
     margin-inline-end: 20px;
-    background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
+    background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 10px top 50% / 24px 24px; /* Center icon vertically, adjust size */
     background-color: var(--lighter-grey);
+    height: 50px; /* Set explicit height to accommodate Tibetan text */
+    line-height: 30px; /* Increase line-height for better vertical spacing */
+    overflow: hidden; /* Prevent text from overflowing */
+    display: flex; /* Ensure proper alignment */
+    align-items: center; /* Center text vertically */
 }
 
 .topicSearch.addInterfaceInput {
