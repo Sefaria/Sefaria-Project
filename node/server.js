@@ -44,7 +44,6 @@ let sharedCacheData = {
 const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDIS_PORT}`, {prefix: ':1:'});
 const getAsync = promisify(cache.get).bind(cache);
 
-
 const loadSharedData = async function({ last_cached_to_compare = null, startup = false } = {}){
     logger.debug("Load Shared Data - Input last cached timestamp to compare: " + last_cached_to_compare);
     //TODO: If the data wasnt placed in Redis by django to begin with, well, we're screwed.
