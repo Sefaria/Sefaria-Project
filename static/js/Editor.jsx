@@ -1099,8 +1099,9 @@ const AddInterface = ({ attributes, children, element }) => {
                           zIndex: 1000
                         }}
                       >
-                        Type the name of the text and its chapter and segment.<br/>
-                        Example: Prayer of Kuntu Zangpo 1.4
+                        <InterfaceText >add_source.tool_tip_1</InterfaceText>
+                        <br/>
+                        <InterfaceText >add_source.tool_tip_2</InterfaceText>
                         <div
                           style={{
                             position: 'absolute',
