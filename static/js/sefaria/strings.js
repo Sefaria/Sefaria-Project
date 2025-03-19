@@ -356,6 +356,7 @@ const Strings = {
     "Add to Collection": "צירוף לאסופה",
 
     // Edit Collection page
+    "Edit Collections": "עריכת אסופות",
     "Edit Collection": "עריכת אסופה",
     "Collection Name": "שם האסופה",
     "Website": "כתובת אתר",
@@ -666,6 +667,12 @@ const Strings = {
       "Tanakh": "",
       "Talmud": ""
     },
+    "Share": "שיתוף",
+    "Library": "ספריה",
+    "Delete Sheet": "מחיקת דף מקורות",
+    "Developers": "מפתחים",
+    "Export to Google Docs": "ייצוא לגוגל דוקס",
+
     "Sheet Share": {
       "View": "לצפות",
       "Add": "להוסיף",
