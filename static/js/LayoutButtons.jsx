@@ -59,6 +59,7 @@ const LayoutButtons = () => {
             <InterfaceText>Layout</InterfaceText>
             <div className="layout-options">
                 {layoutOptions[layoutState].map(option => <LayoutButton
+                    key={option}
                     layoutOption={option}
                     layoutState={layoutState}
                 />)}

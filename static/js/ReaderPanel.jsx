@@ -698,6 +698,7 @@ class ReaderPanel extends Component {
       vowelsAndCantillationState: this.state.settings.vowels,
       punctuationState: this.state.settings.punctuationTalmud,
       width: this.state.width,
+      panelPosition: this.props.panelPosition,
     };
     const contextContentLang = {"language": this.getContentLanguageOverrideStateful()};
 
