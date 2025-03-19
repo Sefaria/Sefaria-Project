@@ -9,7 +9,8 @@ import { SaveButtonWithText } from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 import Button from "../common/Button";
 import { SignUpModalKind } from "../sefaria/signupModalContent";
-import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal, PublishModal } from "./SheetModals";
+import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal } from "./SheetModals";
+import PublishModal from "./PublishMenu";
 
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
@@ -137,54 +138,30 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
 }
 
 const ShareButton = () => {
-  return <DropdownMenuItemWithIcon icon={"/static/img/share.svg"}
-              textEn={'Share'}
-              textHe={'שיתוף'}
-              descEn={""}
-              descHe={""}/>
+  return <DropdownMenuItemWithIcon icon={"/static/img/share.svg"} textEn={'Share'}/>
 }
 
 const DeleteButton = () => {
-    return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"}
-              textEn={'Delete Sheet'}
-              textHe={''}
-              descEn={""}
-              descHe={""}/>
+    return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"} textEn={'Delete Sheet'}/>
 }
 
 const UnpublishButton = () => {
-  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"}
-                                   textEn={'Unpublish'}
-                                   textHe={""}
-                                   descEn={""}
-                                   descHe={""}/>
+  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"} textEn={'Unpublish'}/>
 }
 
 const CollectionsButton = ({editable}) => {
   const label = editable ? "Edit Collections" : "Add to Collection";
-  return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"}
-                                    textEn={label}
-                                    textHe={Sefaria._(label)}
-                                    descEn={""}
-                                    descHe={""}/>
+  return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"} textEn={label}/>
 }
 
 const CopyButton = () => {
-  return <DropdownMenuItemWithIcon
-              textEn={"Copy"}
-              textHe={"העתקה"}
-              descEn={""}
-              descHe={""}
-              icon="/static/img/copy.png"/>
+  return <DropdownMenuItemWithIcon textEn={"Copy"} icon="/static/img/copy.png"/>
 }
 
 const GoogleDocExportButton = () => {
   const googleDriveText = { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" };
   return <DropdownMenuItemWithIcon
                          textEn={googleDriveText.en}
-                         textHe={googleDriveText.he}
-                         descEn={""}
-                         descHe={""}
                          icon="/static/img/googledrivecolor.png"/>;
 }
 

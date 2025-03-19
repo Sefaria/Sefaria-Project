@@ -131,17 +131,15 @@ const ModuleSwitcher = () => {
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
               <DropdownMenuItem url={'/'} newTab={true}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}
-                                            textHe={'ספריה'}/>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
               <DropdownMenuItem url={'/sheets'} newTab={true}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
               <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}
-                                            textHe={'מפתחים'}/>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
               <DropdownMenuItem url={'/products'} newTab={true}>
