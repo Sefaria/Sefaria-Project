@@ -5,6 +5,8 @@ import { AddToSourceSheetBox } from "../AddToSourceSheet";
 import React, { useEffect, useState } from "react";
 import Sefaria from "../sefaria/sefaria";
 import { InterfaceText } from "../Misc";
+import Button from "../common/Button";
+import ReactTags from "react-tag-autocomplete";
 
 const ShareModal = ({sheetID, close}) => {
   return <Modal close={close}>
@@ -196,4 +198,4 @@ const DeleteModal = ({close, sheetID, authorUrl}) => {
   return <GenericSheetModal title={<InterfaceText>Deleting...</InterfaceText>} close={() => {}}/>; // don't allow user to close modal while deleting
 }
 
-export { ShareModal, CollectionsModal, AddToSourceSheetModal, CopyModal, SaveModal, GoogleDocExportModal, DeleteModal };
+export { ShareModal, CollectionsModal, AddToSourceSheetModal, CopyModal, SaveModal, GoogleDocExportModal, DeleteModal};

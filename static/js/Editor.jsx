@@ -10,9 +10,7 @@ import * as sheetsUtils from './sefaria/sheetsUtils'
 
 import {
     SheetMetaDataBox,
-    SheetAuthorStatement,
     SheetTitle,
-    CollectionStatement,
     InterfaceText,
     Autocompleter,
 } from './Misc';
@@ -21,6 +19,7 @@ import {ProfilePic} from "./ProfilePic";
 import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
+import {SheetOptions} from "./sheets/SheetOptions";
 
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
@@ -597,7 +596,7 @@ function transformSheetJsonToSlate(sheet) {
     let initValue = [
         {
             type: 'Sheet',
-            status: sheet.status,
+            status: status,
             views: sheet.views,
             tags: sheet.tags || [],
             includedRefs: sheet.includedRefs,
@@ -2546,14 +2545,14 @@ const BlockButton = ({format, icon}) => {
 }
 
 const SefariaEditor = (props) => {
-    const editorContainer = useRef();
+    const editorContainer = useRef(null);
     const [sheet, setSheet] = useState(props.data);
+    const [status, setStatus] = useState(sheet?.status || "unlisted");
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
-    const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
@@ -2569,7 +2568,7 @@ const SefariaEditor = (props) => {
 
             setUnsavedChanges(true);
             // Update debounced value after delay
-            const handler = setTimeout(() => {
+            const handler = setTimeout( () => {
                 saveDocument(currentDocument);
             }, 500);
 
@@ -2580,7 +2579,7 @@ const SefariaEditor = (props) => {
                 clearTimeout(handler);
             };
         },
-        [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
+        [currentDocument[0].children[0], title, summary] // Only re-call effect if value or delay changes
     );
 
     useEffect(
@@ -2596,6 +2595,7 @@ const SefariaEditor = (props) => {
 
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
+
         }, []
     )
 
@@ -2630,7 +2630,7 @@ const SefariaEditor = (props) => {
                 if (node.text && props.divineNameReplacement) {
                     const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
                     if (newStr != node.text) {
-                        Transforms.insertText(editor, newStr, { at: path })
+                        Transforms.insertText(editor, newStr, {at: path})
                     }
                 }
             }
@@ -2641,8 +2641,8 @@ const SefariaEditor = (props) => {
             const temp_select = editor.selection
 
             Transforms.select(editor, {
-              anchor: {path: [0, 0], offset: 0},
-              focus: {path: [0, 0], offset: 0},
+                anchor: {path: [0, 0], offset: 0},
+                focus: {path: [0, 0], offset: 0},
             });
 
             Transforms.select(editor, temp_select)
@@ -2765,7 +2765,7 @@ const SefariaEditor = (props) => {
 
         });
         let sheet = {
-            status: doc.status,
+            status: status,
             id: doc.id,
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
@@ -2777,28 +2777,33 @@ const SefariaEditor = (props) => {
             sources: sources.filter(x => !!x),
             nextNode: doc.nextNode,
         };
-
-        return JSON.stringify(sheet);
-
+        return sheet;
     }
 
-
-    function saveDocument(doc) {
+    function getLastModified() {
+      return Sefaria.sheets._loadSheetByID[props.data.id]?.dateModified || props.data.dateModified;
+    }
+    async function saveDocument(doc) {
+        const lastModified = getLastModified();
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {
             return
         }
         // console.log('saving...');
+        try {
+            await postSheet(json);
+        } catch(error) {
+            console.log(`Error: ${error.message}`)
+        }
+    }
 
-        $.post("/api/sheets/", {"json": json}, res => {
-            setlastModified(res.dateModified);
-            // console.log("saved at: "+ res.dateModified);
-            setUnsavedChanges(false);
-            setTitle(res.title);
-            setSummary(res.summary);
-            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
-            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
-        });
+    const postSheet = async (sheet) => {
+        const data = await Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST");
+        setStatus(data.status);
+        setTitle(data.title);
+        setSummary(data.summary);
+        const updatedSheet = {...Sefaria.sheets._loadSheetByID[props.data.id], ...data};
+        Sefaria.sheets._loadSheetByID[props.data.id] = updatedSheet;
     }
 
     function onChange(value) {
@@ -2934,19 +2939,26 @@ const SefariaEditor = (props) => {
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
     );
-
+    const sheetOptions = <SheetOptions toggleSignUpModal={props.toggleSignUpModal}
+                                       sheetID={sheet.id}
+                                       postSheet={postSheet}
+                                       historyObject={props.historyObject}
+                                       editable={true}
+                                       authorUrl={sheet.ownerProfileUrl}
+                                       status={status}
+                                       handleCollectionsChange={props.handleCollectionsChange}
+                                       />;
     return (
           <div ref={editorContainer} onClick={props.handleClick} className="text">
-              <SheetMetaDataBox authorStatement={props.authorStatement}
-                            authorUrl={props.authorUrl}
-                            authorImage={props.authorImage}
-                            title={props.title}
-                            summary={props.summary}
+              <SheetMetaDataBox authorStatement={sheet.ownerName}
+                            authorUrl={sheet.ownerProfileUrl}
+                            authorImage={sheet.ownerImageUrl}
+                            title={title}
+                            summary={summary}
                             editable={true}
                             titleCallback={(newTitle) => setTitle(newTitle)}
                             summaryCallback={(newSummary) => setSummary(newSummary)}
-                            sheetOptions={props.sheetOptions}/>
-                            
+                            sheetOptions={sheetOptions}/>
           {canUseDOM &&
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
