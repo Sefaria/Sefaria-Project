@@ -56,7 +56,7 @@ export const VersionsTextList = ({
     }
 
     const version = getVersion();
-    let textRange, conectionButtons, currSelectedVersions;
+    let textRange, connectionButtons, currSelectedVersions;
     if (version) {
         const {languageFamilyName, versionTitle, language, isPrimary} = version;
         const pseudoLanguage = (isPrimary) ? 'he' : 'en';
@@ -75,7 +75,7 @@ export const VersionsTextList = ({
                 onCitationClick={onCitationClick}
                 translationLanguagePreference={translationLanguagePreference}
             />);
-     conectionButtons = (
+        connectionButtons = (
             <ConnectionButtons>
                 <OpenConnectionTabButton 
                     srefs={srefs} 
@@ -99,7 +99,7 @@ export const VersionsTextList = ({
                 recentFilters={recentVFilters}
                 setFilter={setFilter}
             />
-            {conectionButtons}
+            {connectionButtons}
             {textRange}
         </div>
     );
