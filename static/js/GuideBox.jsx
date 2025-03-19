@@ -178,7 +178,7 @@ class GuideBox extends Component {
     return (
       <section className="guideBox">
         <h2 className="guideHeader">
-          <span className="int-en">Learning Guide</span>
+          <span className="int-en">Guided Learning</span>
           <span className="int-he">מדריך למידה</span>
           <AiInfoTooltip/>
         </h2>

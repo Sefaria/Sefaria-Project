@@ -74,8 +74,9 @@ export const TopicLandingSeasonal = () => {
 
   const formattedDateEn = secondaryTopicSlug  && enDateFormat.formatRange(displayStartDate, displayEndDate);
   const formattedDateHe = secondaryTopicSlug && heDateFormat.formatRange(displayStartDate, displayEndDate);
-  const learnMorePrompt = {en: `Learn More on ${title?.en} ›`,
-      he:`${Sefaria._("Learn More on")} ${title?.he} ›`}
+  const learnMorePrompt = {en: `Learn more about ${title?.en} ›`,
+      he:`${Sefaria._("Learn more about")} ${title?.he} ›`};
+  const exploreCalendarPrompt = "Explore the Jewish Calendar";
 
 
     return (
@@ -95,20 +96,22 @@ export const TopicLandingSeasonal = () => {
                     <InterfaceText text={learnMorePrompt}/>
                 </a>
             </div>
-            <div className="display-date-message">
-                <InterfaceText text={{en: displayDateMessageEn, he: displayDateMessageHe}}/>
-            </div>
-            <div className='display-date'>
-                <InterfaceText text={{en: formattedDateEn, he: formattedDateHe}}/>
-            </div>
-            <div className="explore-calendar-prompt">
-                <a href='/topics/category/jewish-calendar2'
-                   data-anl-link_type="category"
-                   data-anl-text="Explore the Jewish Calendar"
-                   data-anl-event="navto_topic:click"
-                >
-                    <InterfaceText>Explore the Jewish Calendar</InterfaceText>
-                </a>
+            <div className="seasonal-bottom-section">
+                <div className="display-date-message">
+                    <InterfaceText text={{en: displayDateMessageEn, he: displayDateMessageHe}}/>
+                </div>
+                <div className='display-date'>
+                    <InterfaceText text={{en: formattedDateEn, he: formattedDateHe}}/>
+                </div>
+                <div className="explore-calendar-prompt">
+                    <a href='/topics/category/jewish-calendar2'
+                       data-anl-link_type="category"
+                       data-anl-text={exploreCalendarPrompt}
+                       data-anl-event="navto_topic:click"
+                    >
+                        <InterfaceText>{exploreCalendarPrompt}</InterfaceText>
+                    </a>
+                </div>
             </div>
         </div>
     );

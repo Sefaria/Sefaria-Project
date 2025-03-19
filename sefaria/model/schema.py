@@ -2128,7 +2128,7 @@ class AddressType(object):
                 if addr.is_special_case(curr_s):
                     section_str = curr_s
                 else:
-                    strict = SuperClass not in {AddressAmud, AddressTalmud}  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
+                    strict = SuperClass not in {AddressAmud, AddressTalmud, AddressFolio}  # HACK: these address types don't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
                     regex_str = addr.regex(lang, strict=strict, group_id='section', with_roman_numerals=True) + "$"  # must match entire string
                     if regex_str is None: continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
@@ -2469,8 +2469,8 @@ class AddressFolio(AddressType):
         if lang == "en":
             reg += r"\d+[abcdᵃᵇᶜᵈ]?)"
         elif lang == "he":
-            # todo: How do these references look in Hebrew?
-            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
+            # either dots for amud (add dots from amud gimmel and dalet) or ayin followed by some type of quote followed by alef, bet, gimmel, or dalet
+            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:ע(?:"|״|''))?[א-ד])?)'''
 
         return reg
 
@@ -2499,21 +2499,20 @@ class AddressFolio(AddressType):
                 indx -= 1
             return indx
         elif lang == "he":
-            # todo: This needs work
             num = re.split(r"[.:,\s]", s)[0]
-            daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (
-                    s[-1] == "\u05d1"    #bet
-                        and
-                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
-                     or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
-                     or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
-                    )
-            ):
-                return daf  # amud B
-            return daf - 1
+            daf = decode_hebrew_numeral(num) * 4
+            rest = s[len(num):]
 
-            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+            # check for each amud letter in reverse order (dalet, gimmel, bet, alef)
+            # note: amud_dots for gimmel and dalet are a best guess at what might be used. should be refined as real examples are found.
+            # if the amud matches that amud letter, subtract the appropriate offset
+            quotes = "(?:''|\"|״)"
+            for amud_offset, (amud_letter, amud_dots) in enumerate((("ד", "⁘"), ("ג", "∵"), ("ב", ":"), ("א", "."))):
+                if re.search(fr"^(?:{amud_dots}|,?\s?(?:{amud_letter}|ע{quotes}{amud_letter}))$", rest):
+                    return daf - amud_offset
+            # no match
+            raise ValueError(f"Couldn't parse Folio address: {s} for lang {lang}")
+
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):

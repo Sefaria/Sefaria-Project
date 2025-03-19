@@ -23,7 +23,7 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import { ReaderApp } from './ReaderApp';
+import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1243,22 +1243,39 @@ InterfaceLanguageMenu.propTypes = {
   translationLanguagePreference: PropTypes.string,
 };
 
+const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
+const getSaveButtonMessage = (selected) => Sefaria._(selected ? "Remove" : "Save");
+const getSaveButtonImage = (selected) => {
+  return selected ? "/static/icons/bookmark-filled.svg" : "/static/icons/bookmark.svg";
+}
+const SaveButtonWithText = ({historyObject}) => {
+  const selected = isSaveButtonSelected(historyObject);
+  return <DropdownMenuItemWithIcon
+                    textEn={getSaveButtonMessage(selected)}
+                    textHe={getSaveButtonMessage(selected)}
+                    descEn={""}
+                    descHe={""}
+                    icon={getSaveButtonImage(selected)}/>;
+}
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
-  if (!historyObject) { placeholder = true; }
-  const isSelected = () => !!Sefaria.getSavedItem(historyObject);
-  const [selected, setSelected] = useState(placeholder || isSelected());
+  if (!historyObject) {
+    placeholder = true;
+  }
+  const [selected, setSelected] = useState(placeholder || isSaveButtonSelected(historyObject));
   useEffect(() => {
-    if (placeholder) { return; }
-    setSelected(isSelected())
+    if (placeholder) {
+      return;
+    }
+    setSelected(isSaveButtonSelected(historyObject));
   }, [historyObject && historyObject.ref]);
 
   const [isPosting, setPosting] = useState(false);
 
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-  const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+  const message = getSaveButtonMessage(selected);
+  const altText = placeholder ? '' : `${message} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {
@@ -1267,15 +1284,13 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
-        .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
+        .then(() => { setSelected(isSaveButtonSelected(historyObject)); }) // since request is async, check if it's selected from data
+        .catch(e => { if (e === 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
         .finally(() => { setPosting(false); });
   }
-
   return (
     <ToolTipped {...{ altText, classes, style, onClick }}>
-      { selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
-        <img src="/static/icons/bookmark.svg" alt={altText}/> }
+      {<img src={`${getSaveButtonImage(selected)}`} alt={altText}/>}
     </ToolTipped>
   );
 }
@@ -1304,7 +1319,7 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
 const AiLearnMoreLink = ({lang}) => {
   const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
   return (
-      <a href={"/sheets/583824?lang=bi"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
+      <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
         {text}
       </a>
   );
@@ -1913,30 +1928,35 @@ const InterruptingMessage = ({
 
     let shouldShowModal = false;
 
-    let noUserKindIsSet = ![
-      strapi.modal.showToReturningVisitors,
-      strapi.modal.showToNewVisitors,
-      strapi.modal.showToSustainers,
-      strapi.modal.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer &&
-        strapi.modal.showToSustainers) ||
-        (!Sefaria.is_sustainer &&
-          strapi.modal.showToNonSustainers))
+      (Sefaria._uid && strapi.modal.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.modal.showTo === "logged_out_only")
     )
       shouldShowModal = true;
-    else if (
-      (Sefaria.isReturningVisitor() &&
-        strapi.modal.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
-    )
-      shouldShowModal = true;
-    else if (noUserKindIsSet) shouldShowModal = true;
+    else if (strapi.modal.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.modal.showToReturningVisitors,
+        strapi.modal.showToNewVisitors,
+        strapi.modal.showToSustainers,
+        strapi.modal.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.modal.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.modal.showToNonSustainers))
+      )
+        shouldShowModal = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.modal.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
+      )
+        shouldShowModal = true;
+      else if (noUserKindIsSet) 
+        shouldShowModal = true;
+    }
     if (!shouldShowModal) return false;
-    // Don't show the modal on pages where the button link goes to since you're already there
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    // Don't show the modal on pages where the button link goes to since you're already there
     if (strapi.modal.buttonURL) {
       if (strapi.modal.buttonURL.en) {
         excludedPaths.push(new URL(strapi.modal.buttonURL.en).pathname);
@@ -2082,26 +2102,33 @@ const Banner = ({ onClose }) => {
 
     let shouldShowBanner = false;
 
-    let noUserKindIsSet = ![
-      strapi.banner.showToReturningVisitors,
-      strapi.banner.showToNewVisitors,
-      strapi.banner.showToSustainers,
-      strapi.banner.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
-        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      (Sefaria._uid && strapi.banner.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.banner.showTo === "logged_out_only")
     )
       shouldShowBanner = true;
-    else if (
-      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
-    )
-      shouldShowBanner = true;
-    else if (noUserKindIsSet) shouldShowBanner = true;
+    else if (strapi.banner.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.banner.showToReturningVisitors,
+        strapi.banner.showToNewVisitors,
+        strapi.banner.showToSustainers,
+        strapi.banner.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      )
+        shouldShowBanner = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
+      )
+        shouldShowBanner = true;
+      else if (noUserKindIsSet) 
+        shouldShowBanner = true;
+    }
     if (!shouldShowBanner) return false;
-
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
     // Don't show the banner on pages where the button link goes to since you're already there
     if (strapi.banner.buttonURL) {
@@ -2624,6 +2651,22 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
+const SheetMetaDataBoxSegment = (props) => (
+  <div className={props.className}
+    role="heading"
+    aria-level="1"
+    contentEditable={props.editable}
+    suppressContentEditableWarning={true}
+    onBlur={props.editable ? props.blurCallback : null}
+    style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" :"ltr"}}
+  >
+  {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+  </div>
+);
+SheetMetaDataBoxSegment.propTypes = {
+  title: PropTypes.string,
+};
+
 
 const SheetAuthorStatement = (props) => (
   <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
@@ -2772,12 +2815,15 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-
-const SheetMetaDataBox = (props) => (
-  <div className="sheetMetaDataBox">
-    {props.children}
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable}) => {
+  return <div className="sheetMetaDataBox">
+    <div className="sidebarLayout">
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
+      {sheetOptions}
+    </div>
+    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
   </div>
-);
+}
 
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
@@ -3208,6 +3254,7 @@ export {
   MenuButton,
   SearchButton,
   SaveButton,
+  SaveButtonWithText,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,
@@ -3222,6 +3269,7 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
+  SheetMetaDataBoxSegment,
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,
