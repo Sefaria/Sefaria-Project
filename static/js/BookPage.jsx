@@ -23,7 +23,6 @@ import { NavSidebar, SidebarModules } from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';
 import VersionBlock  from './VersionBlock/VersionBlock';
 import ExtendedNotes from './ExtendedNotes';
-import Footer  from './Footer';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
@@ -297,8 +296,6 @@ class BookPage extends Component {
             {this.isBookToc() && ! this.props.compare ? 
             <NavSidebar sidebarModules={sidebarModules} /> : null}
           </div>
-          {this.isBookToc() && ! this.props.compare ?
-          <Footer /> : null}
         </div>
       </div>
     );

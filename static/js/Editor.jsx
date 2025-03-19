@@ -2960,7 +2960,8 @@ const SefariaEditor = (props) => {
                             summaryCallback={(newSummary) => setSummary(newSummary)}
                             sheetOptions={sheetOptions}/>
           {canUseDOM &&
-            <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
+            <div style={props.style}>
+              <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
                 <Editable
                   renderLeaf={props => <Leaf {...props} />}
@@ -2976,7 +2977,8 @@ const SefariaEditor = (props) => {
                   onDOMBeforeInput={beforeInput}
                   autoFocus
                 />
-            </Slate>
+             </Slate>
+            </div>
           }
         </div>
     )

@@ -23,7 +23,10 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import { ReaderApp } from './ReaderApp';
+import { ToolsButton } from "./ConnectionsPanel";
+import {DropdownMenu, DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1314,7 +1317,7 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
 const AiLearnMoreLink = ({lang}) => {
   const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
   return (
-      <a href={"/sheets/583824?lang=bi"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
+      <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
         {text}
       </a>
   );
@@ -1594,6 +1597,20 @@ const SheetListing = ({
         key={i}
       >
         {collection.name}
+        {separator}
+      </a>
+    );
+  });
+  const topics = sheet.topics.map((topic, i) => {
+    const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
+    return (
+      <a href={`/topics/${topic.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+        onClick={handleTopicClick.bind(null, topic.slug)}
+      >
+        <InterfaceText text={topic} />
         {separator}
       </a>
     );
@@ -1923,30 +1940,35 @@ const InterruptingMessage = ({
 
     let shouldShowModal = false;
 
-    let noUserKindIsSet = ![
-      strapi.modal.showToReturningVisitors,
-      strapi.modal.showToNewVisitors,
-      strapi.modal.showToSustainers,
-      strapi.modal.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer &&
-        strapi.modal.showToSustainers) ||
-        (!Sefaria.is_sustainer &&
-          strapi.modal.showToNonSustainers))
+      (Sefaria._uid && strapi.modal.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.modal.showTo === "logged_out_only")
     )
       shouldShowModal = true;
-    else if (
-      (Sefaria.isReturningVisitor() &&
-        strapi.modal.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
-    )
-      shouldShowModal = true;
-    else if (noUserKindIsSet) shouldShowModal = true;
+    else if (strapi.modal.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.modal.showToReturningVisitors,
+        strapi.modal.showToNewVisitors,
+        strapi.modal.showToSustainers,
+        strapi.modal.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.modal.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.modal.showToNonSustainers))
+      )
+        shouldShowModal = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.modal.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
+      )
+        shouldShowModal = true;
+      else if (noUserKindIsSet) 
+        shouldShowModal = true;
+    }
     if (!shouldShowModal) return false;
-    // Don't show the modal on pages where the button link goes to since you're already there
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    // Don't show the modal on pages where the button link goes to since you're already there
     if (strapi.modal.buttonURL) {
       if (strapi.modal.buttonURL.en) {
         excludedPaths.push(new URL(strapi.modal.buttonURL.en).pathname);
@@ -2092,26 +2114,33 @@ const Banner = ({ onClose }) => {
 
     let shouldShowBanner = false;
 
-    let noUserKindIsSet = ![
-      strapi.banner.showToReturningVisitors,
-      strapi.banner.showToNewVisitors,
-      strapi.banner.showToSustainers,
-      strapi.banner.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
-        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      (Sefaria._uid && strapi.banner.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.banner.showTo === "logged_out_only")
     )
       shouldShowBanner = true;
-    else if (
-      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
-    )
-      shouldShowBanner = true;
-    else if (noUserKindIsSet) shouldShowBanner = true;
+    else if (strapi.banner.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.banner.showToReturningVisitors,
+        strapi.banner.showToNewVisitors,
+        strapi.banner.showToSustainers,
+        strapi.banner.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      )
+        shouldShowBanner = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
+      )
+        shouldShowBanner = true;
+      else if (noUserKindIsSet) 
+        shouldShowBanner = true;
+    }
     if (!shouldShowBanner) return false;
-
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
     // Don't show the banner on pages where the button link goes to since you're already there
     if (strapi.banner.buttonURL) {
@@ -2650,7 +2679,6 @@ const SheetMetaDataBoxSegment = (props) => {
               contentEditable={props.editable}
               suppressContentEditableWarning={true}
               onBlur={props.editable && handleBlur}
-              style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" : "ltr"}}
   >
     {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
   </div>
@@ -2805,10 +2833,14 @@ const TitleVariants = function({titles, update, options}) {
          </div>
 }
 const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+  const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
-    <div className="sidebarLayout">
+    <div className={`sidebarLayout`}>
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
-      {sheetOptions}
+      <div className="items">
+        {languageToggle}
+        {sheetOptions}
+      </div>
     </div>
     {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
                                                        className="summary"

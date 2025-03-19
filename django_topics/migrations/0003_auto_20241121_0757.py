@@ -12,13 +12,13 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='topic',
-            name='id',
-        ),
-        migrations.AlterField(
-            model_name='topic',
-            name='slug',
-            field=models.CharField(max_length=255, primary_key=True, serialize=False),
-        ),
+        # migrations.RemoveField(
+        #     model_name='topic',
+        #     name='id',
+        # ),
+        # migrations.AlterField(
+        #     model_name='topic',
+        #     name='slug',
+        #     field=models.CharField(max_length=255, primary_key=True, serialize=False),
+        # ),
     ]

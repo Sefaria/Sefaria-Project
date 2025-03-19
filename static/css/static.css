@@ -742,35 +742,10 @@ p.registration-links a:hover{
   margin: 0;
   width: 100%;
 }
-#aboutCover {
-  height: 440px;
-  margin-left: 250px;
-  padding: 180px 0;
-  background-color: #ADA99B;
-  box-sizing: border-box;
-  text-align: center;
-  overflow: hidden;
-  position: relative;
-}
-#aboutVideo {
-  position: absolute;
-  top: -90px;
-  left: 0;
-  min-width: 1200px;
-  z-index: 0;
-  width: 100%;
-}
 
 @media (max-width: 450px) {
   #aboutPage #aboutHeader {
     margin-bottom: 130px;
-  }
-  #aboutPage #aboutCover {
-    height: 270px;
-    padding: 180px 0;
-  }
-  #aboutPage #aboutVideo {
-    min-width: 900px;
   }
 }
 #donatePage pre{
@@ -1755,6 +1730,15 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 #koschitzky.static {
   margin-top: 60px;
+}
+.static .categoryColorLineRainbow {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 101;
+  background: linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)
 }
 
 /******* mobile landing page ****/
@@ -3446,7 +3430,7 @@ form.globalUpdateForm + div.notificationsList {
 }
 #about.selected, #team.selected, #jobs.selected, #updates.selected, #testimonials.selected,
 #supporters.selected, #metrics.selected, #annualreport.selected, #terms.selected, 
-#privacy.selected, #products.selected {
+#privacy.selected, #products.selected, #ai.selected {
   background-color: var(--lighter-grey);
   color: var(--selected-option);
   border-radius: 6px;
