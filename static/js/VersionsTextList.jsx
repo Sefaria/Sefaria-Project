@@ -37,7 +37,7 @@ export const VersionsTextList = ({
         };
 
         preloadText(vFilter);
-    }, [vFilter]);
+    }, [vFilter, currSelectedVersions]);
 
 
     const getSectionRef = () => {
@@ -55,34 +55,16 @@ export const VersionsTextList = ({
         return <LoadingMessage/>;
     }
 
-    const recentFilters = <RecentFilterSet
-        srefs={srefs}
-        asHeader={false}
-        filter={vFilter}
-        recentFilters={recentVFilters}
-        setFilter={setFilter}
-    />
-
     const version = getVersion();
-    if (!version) {
-        // If no version is found, display the recent filters and return
-        // TODO: handle this case better
-        return (
-        <div className="versionsTextList">
-            {recentFilters}
-        </div>
-        ) 
-    }
-    const {languageFamilyName, versionTitle, language, isPrimary} = version;
-    const pseudoLanguage = (isPrimary) ? 'he' : 'en';
-    const currSelectedVersions = {[pseudoLanguage]: {versionTitle, languageFamilyName}};
-    const handleRangeClick = (sref) => {
-        onRangeClick(sref, false, currSelectedVersions);
-    };
-
-    return (
-        <div className="versionsTextList">
-            {recentFilters}
+    let textRange, conectionButtons, currSelectedVersions;
+    if (version) {
+        const {languageFamilyName, versionTitle, language, isPrimary} = version;
+        const pseudoLanguage = (isPrimary) ? 'he' : 'en';
+        currSelectedVersions = {[pseudoLanguage]: {versionTitle, languageFamilyName}};
+        const handleRangeClick = (sref) => {
+            onRangeClick(sref, false, currSelectedVersions);
+        };    
+        textRange = (
             <TextRange
                 sref={Sefaria.humanRef(srefs)}
                 currVersions={currSelectedVersions}
@@ -92,13 +74,33 @@ export const VersionsTextList = ({
                 basetext={false}
                 onCitationClick={onCitationClick}
                 translationLanguagePreference={translationLanguagePreference}
-            />
+            />);
+     conectionButtons = (
             <ConnectionButtons>
-                <OpenConnectionTabButton srefs={srefs} openInTabCallback={handleRangeClick}/>
-                <AddConnectionToSheetButton srefs={srefs} versions={{[language]: versionTitle}}
-                                            addToSheetCallback={setConnectionsMode}/>
-                                            {/*use language for sheets because there language means direction*/}
-            </ConnectionButtons>
+                <OpenConnectionTabButton 
+                    srefs={srefs} 
+                    openInTabCallback={handleRangeClick} 
+                />
+                <AddConnectionToSheetButton 
+                    srefs={srefs} 
+                    versions={{ [language]: versionTitle }}
+                    addToSheetCallback={setConnectionsMode} 
+                />
+                {/* use language for sheets because there language means direction */}
+            </ConnectionButtons>);
+   }
+
+    return (
+        <div className="versionsTextList">
+            <RecentFilterSet
+                srefs={srefs}
+                asHeader={false}
+                filter={vFilter}
+                recentFilters={recentVFilters}
+                setFilter={setFilter}
+            />
+            {conectionButtons}
+            {textRange}
         </div>
     );
 };
