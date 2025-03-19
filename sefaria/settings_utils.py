@@ -24,6 +24,7 @@ def init_sentry(sentry_dsn, sentry_code_version, sentry_environment):
         environment=sentry_environment,
         integrations=[DjangoIntegration()],
         traces_sample_rate=0.1,
+        profiles_sample_rate=0.1,
         send_default_pii=False,
         before_send=before_send,
         max_breadcrumbs=30,
