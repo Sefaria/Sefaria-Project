@@ -95,6 +95,12 @@
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
+        
+    <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/color-palette.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/themes/library-theme.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/themes/sheets-theme.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/common-components.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
     <!-- Specific styling to correct behavior of Unbounce banners -->
@@ -157,7 +163,7 @@
     <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script> 
 </head>
 
-<body class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
+<body data-active-module="{{ active_module }}" class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
@@ -237,9 +243,7 @@
 
       var DJANGO_VARS = {
         props:         {{ propsJSON|default:"null" }},
-        contentLang:   "{{ request.contentLang }}",
         inReaderApp:   {% if html %}true{% else %}false{% endif %},
-        static_url:    {{ STATIC_PREFIX }},
       };
 
       {% if STRAPI_LOCATION and STRAPI_PORT %}

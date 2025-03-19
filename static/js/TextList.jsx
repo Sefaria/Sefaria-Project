@@ -235,7 +235,7 @@ class TextList extends Component {
                                     />
                                     <ConnectionButtons>
                                       <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
-                                      <AddConnectionToSheetButton srefs={[link.sourceRef]} addToSheetCallback={this.props.setConnectionsMode}/>
+                                      {Sefaria._uid && <AddConnectionToSheetButton srefs={[link.sourceRef]} addToSheetCallback={this.props.setConnectionsMode}/>}
                                       {Sefaria.is_moderator ?
                                       <DeleteConnectionButton delUrl={"/api/links/" + link._id} connectionDeleteCallback={this.onDataChange}/> : null
                                       }
