@@ -1247,18 +1247,13 @@ InterfaceLanguageMenu.propTypes = {
 };
 
 const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
-const getSaveButtonMessage = (selected) => Sefaria._(selected ? "Remove" : "Save");
+const getSaveButtonMessage = (selected) => selected ? "Remove" : "Save";
 const getSaveButtonImage = (selected) => {
   return selected ? "/static/icons/bookmark-filled.svg" : "/static/icons/bookmark.svg";
 }
 const SaveButtonWithText = ({historyObject}) => {
   const selected = isSaveButtonSelected(historyObject);
-  return <DropdownMenuItemWithIcon
-                    textEn={getSaveButtonMessage(selected)}
-                    textHe={getSaveButtonMessage(selected)}
-                    descEn={""}
-                    descHe={""}
-                    icon={getSaveButtonImage(selected)}/>;
+  return <DropdownMenuItemWithIcon textEn={getSaveButtonMessage(selected)} icon={getSaveButtonImage(selected)}/>;
 }
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
