@@ -2556,12 +2556,13 @@ def category_api(request, path=None):
     """
     if request.method == "DELETE":
         cat = Category().load({"path": path.split("/")})
-        if cat and cat.can_delete():
-            cat.delete()
-            library.rebuild(include_toc=True)
-            return jsonResponse({"status": "OK"})
-        else:
+        if not cat:
             return jsonResponse({"error": "Category {} doesn't exist".format(path)})
+        if not cat.can_delete():
+            return jsonResponse({"error": "Cannot delete category {} because it contains subcategories or texts".format(path)})
+        cat.delete()
+        library.rebuild(include_toc=True)
+        return jsonResponse({"status": "OK"})
     elif request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
