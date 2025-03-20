@@ -83,6 +83,7 @@ class Sheet extends Component {
                   <div className="sheetContent">
                     <SefariaEditor
                         data={sheet}
+                        style={this.props.style}
                         handleClick={this.handleClick}
                         multiPanel={this.props.multiPanel}
                         sheetSourceClick={this.props.onSegmentClick}
@@ -99,26 +100,27 @@ class Sheet extends Component {
                   {sidebar}
                 </div>;
       content = (
-            <div className="sidebarLayout">
-              <SheetContent
-                  sources={sheet.sources}
-                  title={sheet.title}
-                  handleClick={this.handleClick}
-                  sheetSourceClick={this.props.onSegmentClick}
-                  highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
-                  highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
-                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-                  scrollToHighlighted={this.props.scrollToHighlighted}
-                  editable={editable}
-                  setSelectedWords={this.props.setSelectedWords}
-                  sheetID={sheet.id}
-                  authorStatement={sheet.ownerName}
-                  authorID={sheet.owner}
-                  authorUrl={sheet.ownerProfileUrl}
-                  authorImage={sheet.ownerImageUrl}
-                  summary={sheet.summary}
-                  toggleSignUpModal={this.props.toggleSignUpModal}
-                  historyObject={this.props.historyObject}
+          <div className="sidebarLayout">
+            <SheetContent
+                style={this.props.style}
+                sources={sheet.sources}
+                title={sheet.title}
+                handleClick={this.handleClick}
+                sheetSourceClick={this.props.onSegmentClick}
+                highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
+                highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
+                highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                scrollToHighlighted={this.props.scrollToHighlighted}
+                editable={editable}
+                setSelectedWords={this.props.setSelectedWords}
+                sheetID={sheet.id}
+                authorStatement={sheet.ownerName}
+                authorID={sheet.owner}
+                authorUrl={sheet.ownerProfileUrl}
+                authorImage={sheet.ownerImageUrl}
+                summary={sheet.summary}
+                toggleSignUpModal={this.props.toggleSignUpModal}
+                historyObject={this.props.historyObject}
             />
             {sidebar}
           </div>

@@ -99,39 +99,42 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
   return (
         <>
         {editable && status === 'unlisted' && publishModalButton}
-        <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
-          <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
-            <SaveButtonWithText historyObject={historyObjectForSheet}/>
-          </DropdownMenuItemWithCallback>
-          <DropdownMenuItemWithCallback onClick={() => setCopyingMode(true)}>
-            <CopyButton/>
-          </DropdownMenuItemWithCallback>
-          <DropdownMenuItemWithCallback onClick={() => setCollectionsMode(true)}>
-            <CollectionsButton editable={editable}/>
-          </DropdownMenuItemWithCallback>
-          <DropdownMenuItemWithCallback onClick={() => setExportingMode(true)}>
-            <GoogleDocExportButton sheetID={sheetID}/>
-          </DropdownMenuItemWithCallback>
-          <DropdownMenuItemWithCallback onClick={() => setSharingMode(true)}>
-            <ShareButton/>
-          </DropdownMenuItemWithCallback>
-          {editable && status === 'public' && <>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItemWithCallback onClick={() => setPublishingMode(true)}>
-                                                  <UnpublishButton/>
-                                                </DropdownMenuItemWithCallback>
-                                              </>
-          }
-          {editable && <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItemWithCallback onClick={handleDelete}>
-                          <DeleteButton/>
-                        </DropdownMenuItemWithCallback>
-                      </>
-          }
-        </DropdownMenu>
+          <DropdownMenu positioningClass="headerDropdownMenu"
+                        buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
+            <div className="dropdownLinks-options">
+              <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
+                <SaveButtonWithText historyObject={historyObjectForSheet}/>
+              </DropdownMenuItemWithCallback>
+              <DropdownMenuItemWithCallback onClick={() => setCopyingMode(true)}>
+                <CopyButton/>
+              </DropdownMenuItemWithCallback>
+              <DropdownMenuItemWithCallback onClick={() => setCollectionsMode(true)}>
+                <CollectionsButton editable={editable}/>
+              </DropdownMenuItemWithCallback>
+              <DropdownMenuItemWithCallback onClick={() => setExportingMode(true)}>
+                <GoogleDocExportButton sheetID={sheetID}/>
+              </DropdownMenuItemWithCallback>
+              <DropdownMenuItemWithCallback onClick={() => setSharingMode(true)}>
+                <ShareButton/>
+              </DropdownMenuItemWithCallback>
+              {editable && status === 'public' && <>
+                <DropdownMenuSeparator/>
+                <DropdownMenuItemWithCallback onClick={() => setPublishingMode(true)}>
+                  <UnpublishButton/>
+                </DropdownMenuItemWithCallback>
+              </>
+              }
+              {editable && <>
+                <DropdownMenuSeparator/>
+                <DropdownMenuItemWithCallback onClick={handleDelete}>
+                  <DeleteButton/>
+                </DropdownMenuItemWithCallback>
+              </>
+              }
+            </div>
+          </DropdownMenu>
         </>
-    );
+  );
 }
 
 const ShareButton = () => {

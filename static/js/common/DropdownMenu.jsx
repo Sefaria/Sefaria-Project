@@ -104,9 +104,9 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
     return (
         <div className={positioningClass} ref={wrapperRef}>
-           <a className="dropdownLinks-button" onClick={handleButtonClick}>
+           <div className="dropdownLinks-button" onClick={handleButtonClick}>
               {buttonComponent}
-          </a>
+          </div>
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} onClick={handleContentsClick}>
               {children}
           </div>
