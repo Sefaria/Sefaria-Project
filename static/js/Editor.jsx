@@ -468,7 +468,7 @@ function renderSheetItem(source) {
                 {
                     type: sheet_item_els[sheetItemType],
                     options: source.options,
-                    children: parseSheetItemHTML(source.outsideText),
+                    children: parseSheetItemHTML(source.outsideText, true),
                     node: source.node,
                     lang: lang
                 }
