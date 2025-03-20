@@ -654,7 +654,7 @@ const TopicPage = ({
       if (topicData?.indexes?.length && !authorWorksAdded) {
         displayTabs.push({
           title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
-          id: 'author-works-on-sefaria',
+          id: 'Author Works on Sefaria',
         });
         authorWorksAdded = true
       }
@@ -666,7 +666,7 @@ const TopicPage = ({
         });
       }
     }
-    if (displayTabs.length && tab!="notable-sources" && tab!="author-works-on-sefaria") {
+    if (displayTabs.length && tab !== "Notable Sources" && tab !== "Author Works on Sefaria") {
       displayTabs.push({
         title: {
           en: "",
@@ -679,7 +679,7 @@ const TopicPage = ({
       onClickFilterIndex = displayTabs.length - 1;
     }
 
-    if (displayTabs.length && tab!="author-works-on-sefaria") {
+    if (displayTabs.length && tab != "Author Works on Sefaria" && Sefaria.activeModule == 'library') {
       displayTabs.push({
         title: {
           en: "A",
@@ -687,7 +687,7 @@ const TopicPage = ({
         },
         id: 'langToggle',
         popover: true,
-        justifyright: tab==="notable-sources"
+        justifyright: tab === "Notable Sources"
       });
       onClickLangToggleIndex = displayTabs.length - 1;
     }
