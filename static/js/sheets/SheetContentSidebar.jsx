@@ -4,11 +4,11 @@ import Sefaria from "../sefaria/sefaria";
 import React, { useEffect, useState } from "react";
 import { UserBackground } from "../UserProfile";
 
-const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections}) => {
+const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections, topics}) => {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     useEffect(() => {
-        Sefaria.profileAPI(authorUrl.replace("/profile/", "")).then(profile => {
+        Sefaria.profileAPI(authorUrl.replace("/sheets/profile/", "")).then(profile => {
             setProfile(profile);
             setLoading(false);
         })
@@ -24,7 +24,8 @@ const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSig
             />
             {authorName}
             {!loading && <SheetProfileInfo profile={profile} toggleSignUpModal={toggleSignUpModal}/>}
-            {<SheetCollectionsList collections={collections}/>}
+            {topics.length > 0 && <SheetSidebarList items={topics} type={"topics"}/>}
+            {collections.length > 0 && <SheetSidebarList items={collections} type={"collections"}/>}
     </div>;
 }
 
@@ -44,19 +45,31 @@ const SheetProfileInfo = ({profile, toggleSignUpModal}) => {
              }
            </span>;
 }
-const SheetCollectionsList = ({collections}) => {
-    return collections.length > 0 &&
-                <div>
-                    <h3 className="sheetCollections"><InterfaceText>Part of Collections</InterfaceText></h3>
-                    <div>
-                        <ul className="sheetCollectionsLinks">
-                            {collections.map((collection, i) => (
-                                <li key={i}><a
-                                    href={"/collections/" + collection.slug}><InterfaceText>{collection.name}</InterfaceText></a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>;
+const SheetSidebarList = ({items, type}) => {
+    const title = type === "topics" ? "Topics" : "Part of Collections";
+    const styleClass = type === "topics" ? "sheetTopicsList" : "sheetCollectionsList";
+    const renderItems = () => {
+      if (type === "topics") {
+        return items.map((item, i) => (
+            <li key={i}><a
+                href={"/topics/" + item.slug}><InterfaceText text={{en: item.en, he: item.he}}></InterfaceText></a>
+            </li>
+        ))
+      } else {
+        return items.map((item, i) => (
+            <li key={i}><a
+                href={"/collections/" + item.slug}><InterfaceText>{item.name}</InterfaceText></a>
+            </li>
+        ))
+      }
+    }
+    return <div>
+              <h3><InterfaceText>{title}</InterfaceText></h3>
+              <div className={styleClass}>
+                  <ul>
+                    {renderItems()}
+                  </ul>
+              </div>
+          </div>;
 }
 export default SheetContentSidebar;
