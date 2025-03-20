@@ -454,7 +454,7 @@ function renderSheetItem(source) {
                 {
                     type: sheet_item_els[sheetItemType],
                     options: source.options,
-                    children: parseSheetItemHTML(source.comment),
+                    children: parseSheetItemHTML(source.comment, true),
                     node: source.node,
                     lang: commentLang
                 }
@@ -462,13 +462,13 @@ function renderSheetItem(source) {
             return content
         }
         case 'outsideText': {
-            const lang = Sefaria.hebrew.isHebrew(source.outsideText, true) ? 'he' : 'en';
+            const lang = Sefaria.hebrew.isHebrew(source.outsideText) ? 'he' : 'en';
 
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
                     options: source.options,
-                    children: parseSheetItemHTML(source.outsideText, true),
+                    children: parseSheetItemHTML(source.outsideText),
                     node: source.node,
                     lang: lang
                 }
@@ -479,8 +479,8 @@ function renderSheetItem(source) {
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
-                    heText: parseSheetItemHTML(source.outsideBiText.he, true),
-                    enText: parseSheetItemHTML(source.outsideBiText.en, true),
+                    heText: parseSheetItemHTML(source.outsideBiText.he),
+                    enText: parseSheetItemHTML(source.outsideBiText.en),
                     options: source.options,
                     children: [
                         {text: ""},
