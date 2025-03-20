@@ -1838,7 +1838,14 @@ def index_api(request, title, raw=False):
         return protected_index_post(request)
 
     if request.method == "DELETE":
-        if not request.user.is_staff:
+        if not request.user.is_authenticated:
+            key = request.META.get("HTTP_APIKEY")
+            if not key:
+                return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return jsonResponse({"error": "Unrecognized API key."})
+        elif not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can delete texts indices."})
 
         title = title.replace("_", " ")
@@ -2728,7 +2735,7 @@ def terms_api(request, name):
                 return tracker.delete(uid, Term, t._id)
 
         if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
+            key = request.POST.get("apikey") or request.META.get("HTTP_APIKEY")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete terms."})
             apikey = db.apikeys.find_one({"key": key})
