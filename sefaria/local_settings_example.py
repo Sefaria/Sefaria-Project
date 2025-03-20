@@ -338,3 +338,5 @@ CLIENT_SENTRY_DSN = None
 FAIL_GRACEFULLY = False
 if "pytest" in sys.modules:
     FAIL_GRACEFULLY = False
+
+STAFF_PASSCODE = os.getenv("STAFF_PASSCODE")

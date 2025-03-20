@@ -347,3 +347,5 @@ data:
     FAIL_GRACEFULLY = os.getenv("FAIL_GRACEFULLY").lower() == "true"
     if "pytest" in sys.modules:
         FAIL_GRACEFULLY = False
+
+    STAFF_PASSCODE = os.getenv("STAFF_PASSCODE")
