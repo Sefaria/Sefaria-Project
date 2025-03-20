@@ -462,7 +462,7 @@ function renderSheetItem(source) {
             return content
         }
         case 'outsideText': {
-            const lang = Sefaria.hebrew.isHebrew(source.outsideText) ? 'he' : 'en';
+            const lang = Sefaria.hebrew.isHebrew(source.outsideText, true) ? 'he' : 'en';
 
             const content = (
                 {
@@ -479,8 +479,8 @@ function renderSheetItem(source) {
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
-                    heText: parseSheetItemHTML(source.outsideBiText.he),
-                    enText: parseSheetItemHTML(source.outsideBiText.en),
+                    heText: parseSheetItemHTML(source.outsideBiText.he, true),
+                    enText: parseSheetItemHTML(source.outsideBiText.en, true),
                     options: source.options,
                     children: [
                         {text: ""},
@@ -535,10 +535,10 @@ function flattenLists(htmlString) {
   return doc.body.innerHTML;
 }
 
-function parseSheetItemHTML(rawhtml) {
+function parseSheetItemHTML(rawhtml, DoFlattenLists=false) {
     let preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r|\t)/gm, "");
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
-    preparseHtml = flattenLists(preparseHtml);
+    DoFlattenLists && (preparseHtml = flattenLists(preparseHtml));
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
