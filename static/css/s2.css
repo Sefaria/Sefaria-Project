@@ -3867,6 +3867,27 @@ a.navBlockTitle:hover {
     font-family: var(--hebrew-sans-serif-font-family);
 }
 
+/* Tablet screens (up to 768px) */
+@media screen and (max-width: 768px) {
+    .bookPage .tocTitle,
+    .sheetContent .title,
+    .bookMetaDataBox .title {
+        font-size: 26px;    /* Slightly smaller for tablets */
+        line-height: 1.25;
+    }
+}
+
+/* Mobile screens (up to 480px) */
+@media screen and (max-width: 480px) {
+    .bookPage .tocTitle,
+    .sheetContent .title,
+    .bookMetaDataBox .title {
+        font-size: 22px;    /* Smaller for mobile */
+        line-height: 1.2;
+        text-align: center; /* Maintained, but could be left if preferred */
+    }
+}
+
 .bookPage.fullBookPage .tocTitle {
     text-align: start;
     margin-bottom: 8px;
@@ -6421,6 +6442,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     padding: 0 30px;
 }
 
+/* Tablet screens (up to 768px) */
+@media screen and (max-width: 768px) {
+    .textRange.basetext {
+        font-size: 2.30em;    /* Increased from 2.1em, very close to base */
+        padding: 0 20px;
+        max-width: 100%;
+    }
+}
+
+/* Mobile screens (up to 480px) */
+@media screen and (max-width: 480px) {
+    .textRange.basetext {
+        font-size: 2.0em;    /* Increased from 1.7em, bigger step up */
+        line-height: 1.4;
+        padding: 0 15px;
+        text-align: left;
+    }
+}
+
 .singlePanel .textRange.basetext,
 .singlePanel .sheetContent {
     padding: 0;
@@ -6566,7 +6606,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .segment .segmentText .poetry.indentWhenWrap {
     text-indent: 0px;
-    padding-inline-start: 30px;
+    padding-inline-start: 2px;
     display: inline-block;
 }
 
@@ -12234,7 +12274,7 @@ span.purim-emoji img {
   
   .got-it-button {
     padding: 8px 20px;
-    background-color: #f0f0f0;
+    background-color: #C39F48;
     border: 1px solid #ccc;
     border-radius: 4px;
     cursor: pointer;
@@ -12247,11 +12287,11 @@ span.purim-emoji img {
 
 .addInterfaceInput .button {
     font-size: 14px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    height: 30px;
+    padding: 5px 10px; /* Adjusted padding for better spacing */
+    height: auto; /* Let height adjust to content */
     position: absolute;
-    width: 95px;
+    width: auto; /* Let width adjust to content */
+    white-space: nowrap; /* Prevents text from wrapping or stacking */
 }
 
 .addInterfaceInput .textPreviewSegment {
@@ -12363,6 +12403,7 @@ span.purim-emoji img {
 
 .addInterfaceInput .suggestion {
     font-size: 20px;
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .topicSearch.addInterfaceInput select.suggestionBox {

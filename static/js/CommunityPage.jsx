@@ -90,11 +90,9 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
 
   const loadMore = (e, until=pageSize) => {
     Sefaria.sheets.publicSheets(nSheetsLoaded, pageSize, options, true, (data) => {
-      console.log("Raw Sheets Data:", data);
       const collapsedSheets = collapseSheets(data);
       const newSheets = recentSheets ? recentSheets.concat(collapsedSheets) : collapsedSheets;
       setRecentSheets(newSheets);
-      console.log("sheets to be displayed", newSheets)
       setNSheetsLoded(nSheetsLoaded + pageSize);
       if (collapsedSheets.length < until && collapsedSheets.length !== 0) {
         loadMore(null, until - collapsedSheets.length);

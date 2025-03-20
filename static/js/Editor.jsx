@@ -808,7 +808,15 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 const AddInterfaceInput = ({ inputType, resetInterface }) => {
     const editor = useSlate();
     const [inputValue, setInputValue] = useState("");
+    const [displayValue, setDisplayValue] = useState(""); // Truncated value for display
     const [showAddMediaButton, setShowAddMediaButton] = useState(false);
+
+    const truncateText = (text) => {
+        if (text.length > 50) {
+            return `${text.slice(0, 20)}.............${text.slice(-30)}`;
+        }
+        return text;
+    };
 
     const isMediaLink = (url) => {
         console.log(url)
@@ -873,40 +881,52 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
     const getSuggestions = async (input) => {
         let results = {
-            "previewText": null, "helperPromptText": null, "currentSuggestions": null,
+            "previewText": null,
+            "helperPromptText": null,
+            "currentSuggestions": null,
             "showAddButton": false
         };
         setInputValue(input);
+        const truncatedInput = truncateText(input);
+        setDisplayValue(truncatedInput);
         if (input === "") {
             return results;
         }
         const d = await Sefaria.getName(input, true, 5);
         if (d.is_section || d.is_segment) {
+            // Truncate the input if longer than 50 characters
+            let previewText = input;
+            if (input.length > 50) {
+                previewText = truncateText(input);
+                console.log("getSuggestions - Truncated input for previewText:", previewText);
+            }
             results.helperPromptText = null;
             results.currentSuggestions = null;
-            results.previewText = input;
+            results.previewText = previewText; // Assign the truncated or original value
+            console.log("getSuggestions - preview_text:", results.previewText); // Log the final previewText
             results.showAddButton = true;
             return results;
         } else {
             results.showAddButton = false;
             results.previewText = null;
         }
-
-        //We want to show address completions when book exists but not once we start typing further
+    
+        // We want to show address completions when book exists but not once we start typing further
         if (d.is_book && isNaN(input.trim().slice(-1)) && !!d?.addressExamples) {
-            results.helperPromptText = <InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}}/>;
+            results.helperPromptText = <InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}} />;
         } else {
             results.helperPromptText = null;
         }
-
+    
         results.currentSuggestions = d.completion_objects
             .map(suggestion => ({
                 name: suggestion.title,
                 key: suggestion.key,
-                border_color: Sefaria.palette.refColor(suggestion.key)
-            }))
+                border_color: Sefaria.palette.refColor(suggestion.key),
+                displayText: truncateText(suggestion.title) // Truncate suggestion display text
+            }));
         return results;
-    }
+    };
 
     const selectedCallback = () => {
           insertSource(editor, inputValue)
@@ -937,8 +957,13 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
             <Autocompleter
                 selectedCallback={selectedCallback}
                 getSuggestions={getSuggestions}
-                inputValue={inputValue}
-                changeInputValue={setInputValue}
+                inputValue={displayValue} // Use truncated value for display
+                changeInputValue={(value) => {
+                    setInputValue(value); // Store the full value
+                    const truncatedValue = truncateText(value);
+                    setDisplayValue(truncatedValue); // Always display truncated value
+                    console.log("Autocompleter - Input value changed:", value);
+                }}
                 inputPlaceholder={Sefaria._('sheet.editor.source.input_field.placeholder')}
                 buttonTitle="Add Source"
                 autocompleteClassNames="addInterfaceInput"
@@ -954,7 +979,6 @@ const AddInterface = ({ attributes, children, element }) => {
     const editor = useSlate();
     const [active, setActive] = useState(false)
     const [itemToAdd, setItemToAdd] = useState(null)
-    const [isModalOpen, setIsModalOpen] = useState(false)
 
     const resetInterface = () => {
         setActive(false);
@@ -978,16 +1002,6 @@ const AddInterface = ({ attributes, children, element }) => {
         setTimeout(() => {
             document.querySelector(".addInterfaceInput input").focus()
         }, 100);
-    }
-
-    const openModal = (e) => {
-        e.stopPropagation();
-        setIsModalOpen(true);
-    }
-
-    const closeModal = (e) => {
-        if (e) e.stopPropagation();
-        setIsModalOpen(false);
     }
 
     const addMediaClicked = (e) => {
@@ -1060,8 +1074,74 @@ const AddInterface = ({ attributes, children, element }) => {
           </> : 
               <>
                 {itemToAdd === 'source' && (
-                  <div role="button" title={Sefaria._("Open Source Modal")} aria-label="Open Source Modal" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => openModal(e)} id="openModalButton">
-                    <span>📑</span>
+                  <div 
+                    role="button" 
+                    aria-label="Source format help" 
+                    className="editorAddInterfaceButton" 
+                    contentEditable={false}
+                    onMouseEnter={(e) => {
+                      const tooltip = e.currentTarget.querySelector('.custom-tooltip');
+                      if (tooltip) tooltip.style.display = 'block';
+                    }}
+                    onMouseLeave={(e) => {
+                      const tooltip = e.currentTarget.querySelector('.custom-tooltip');
+                      if (tooltip) tooltip.style.display = 'none';
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: '-25px',
+                      right: '5px',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      backgroundColor: '#C39F48',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      fontFamily: 'Roboto'
+                    }}
+                  >
+                    i
+                    <div style={{ position: 'relative' }}>
+                      <div 
+                        className="custom-tooltip"
+                        style={{
+                          display: 'none',
+                          position: 'absolute',
+                          bottom: '35px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          padding: '8px 12px',
+                          backgroundColor: '#C39F48',
+                          color: 'white',
+                          borderRadius: '12px',
+                          whiteSpace: 'nowrap',
+                          fontSize: '13px',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                          zIndex: 1000
+                        }}
+                      >
+                        <InterfaceText >add_source.tool_tip_1</InterfaceText>
+                        <br/>
+                        <InterfaceText >add_source.tool_tip_2</InterfaceText>
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: '-6px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: '0',
+                            height: '0',
+                            borderLeft: '6px solid transparent',
+                            borderRight: '6px solid transparent',
+                            borderTop: '6px solid #C39F48'
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
                 
@@ -1073,29 +1153,7 @@ const AddInterface = ({ attributes, children, element }) => {
           }
           <div className="cursorHolder" contentEditable={true} suppressContentEditableWarning={true}>{children}</div>
           
-          {isModalOpen && (
-            <div className="modal-overlay" onClick={(e) => closeModal(e)}>
-              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                  <h3>GETTING SOURCE CORRECTLY</h3>
-                </div>
-                <div className="modal-body">
-                  <p>- type the name of the text</p>
-                  <p>- leave a space</p>
-                  <p>- type it's chapter and segment</p>
-                  <p>Example : Prayer of Kuntu Zangpo 1.4</p>
-                </div>
-                <div className="modal-footer">
-                <button 
-                    onClick={closeModal} // Simplified, since closeModal already handles e.stopPropagation()
-                    className="got-it-button"
-                >
-                    Got It
-                </button>
-                </div>
-              </div>
-            </div>
-          )}
+
       </div>
     )
 }
