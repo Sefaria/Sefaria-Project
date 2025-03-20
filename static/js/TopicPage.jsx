@@ -504,7 +504,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: refRenderWrapper,
     },
     {
-      key: 'admin',
+      key: 'Admin',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
@@ -512,7 +512,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: adminRefRenderWrapper,
     },
     {
-      key: 'notable-sources',
+      key: 'Notable Sources',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
@@ -520,7 +520,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: notableSourcesRefRenderWrapper,
     },
     {
-      key: 'sources',
+      key: 'Sources',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
@@ -528,7 +528,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: allSourcesRefRenderWrapper,
     },
     {
-      key: 'sheets',
+      key: 'Sheets',
       fetcher: fetchBulkSheet,
       sortOptions: ['Relevance', 'Views', 'Newest'],
       filterFunc: sheetFilter,
@@ -773,39 +773,15 @@ const TopicPage = ({
                             [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
                           }}
                         >
-
-                        {topicData?.indexes?.length ? (
-                          <div className="authorIndexList">
-                            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
-                          </div>
-                          ) : null }
-
-                          {
-                            tabDisplayData.map(tabObj => {
-                              const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
-                              const displayTab = displayTabs.find(x => x.id === key);
-                              if (!displayTab) { return null; }
-                              return (
-                                <TopicPageTab
-                                  key={key}
-                                  scrollableElement={scrollableElement}
-                                  showFilterHeader={showFilterHeader}
-                                  data={loadedData[key]}
-                                  sortOptions={sortOptions}
-                                  filterFunc={filterFunc}
-                                  sortFunc={sortFunc}
-                                  onDisplayedDataChange={data => {
-                                    if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
-                                    topicData._refsDisplayedByTab[key] = data.length;
-                                  }}
-                                  initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-                                  renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
-                                  onSetTopicSort={onSetTopicSort}
-                                  topicSort={topicSort}
-                                />
-                              );
-                            })
-                          }
+                        <TopicTabViewChildren topicData={topicData}
+                                              tabDisplayData={tabDisplayData}
+                                              displayTabs={displayTabs}
+                                              scrollableElement={scrollableElement}
+                                              showFilterHeader={showFilterHeader}
+                                              loadedData={loadedData}
+                                              onSetTopicSort={onSetTopicSort}
+                                              langPref={langPref}
+                                              topicSort={topicSort}/>
                         </TabView>
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
@@ -828,6 +804,46 @@ TopicPage.propTypes = {
   topicTestVersion:    PropTypes.string
 };
 
+
+const TopicTabViewChildren = ({topicData, tabDisplayData, displayTabs, scrollableElement, showFilterHeader,
+                              loadedData, onSetTopicSort, topicSort, toggleSignUpModal, langPref, topicTestVersion}) => {
+  const authorIndexes = topicData?.indexes?.length && (
+                          <div className="authorIndexList">
+                            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
+                          </div>
+                          );
+  const renderTopicPageTab = (tabObj) => {
+    const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
+    const displayTab = displayTabs.find(x => x.id === key);
+    if (!displayTab) { return null; }
+    return (
+      <TopicPageTab
+        key={key}
+        scrollableElement={scrollableElement}
+        showFilterHeader={showFilterHeader}
+        data={loadedData[key]}
+        sortOptions={sortOptions}
+        filterFunc={filterFunc}
+        sortFunc={sortFunc}
+        onDisplayedDataChange={data => {
+          if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
+          topicData._refsDisplayedByTab[key] = data.length;
+        }}
+        initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
+        renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
+        onSetTopicSort={onSetTopicSort}
+        topicSort={topicSort}
+      />
+    );
+  }
+  const topicPageTabs = tabDisplayData.map(tabObj => renderTopicPageTab(tabObj));
+  return (
+      <>
+      {authorIndexes}
+      {topicPageTabs}
+      </>
+  )
+}
 
 const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader,

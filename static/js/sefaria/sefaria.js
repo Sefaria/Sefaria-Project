@@ -2876,34 +2876,35 @@ _media: {},
     if (!data.refs) { return data; }
     const tabs = {};
     for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
+      linkTypeObj.refs = linkTypeObj.refs.filter(ref =>
+        (Sefaria.activeModule === 'sheets' && ref.is_sheet) ||
+        (Sefaria.activeModule === 'library' && !ref.is_sheet));
       for (let refObj of linkTypeObj.refs) {
         let tabKey = linkTypeSlug;
-        if (tabKey === 'about') {
-            // Mark as notable if it has a prompt, title, and isn't explicitly unpublished (happens when returns from LLM pod);
-            tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) && refObj.descriptions?.[lang]?.published != false ? 'notable-sources' : 'sources';
+        if (Sefaria.activeModule === 'sheets') {
+          tabKey = 'Sheets';
         }
+        else if (tabKey === 'about') {
+          // Mark as notable if it has a prompt, title, and isn't explicitly unpublished (happens when returns from LLM pod);
+          tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) && refObj.descriptions?.[lang]?.published != false ? 'Notable Sources' : 'Sources';
+        }
+
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
-          if (tabKey === 'notable-sources') {
-            title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
-          }
-          if (tabKey === 'sources') {
-            title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
-          }
+          title = {en: tabKey, he: Sefaria.translation('hebrew', tabKey)};
           tabs[tabKey] = {
             refMap: {},
             title,
             shouldDisplay: linkTypeObj.shouldDisplay,
           };
         }
-        const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
         if (refObj.order) {
             refObj.order = {...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
                                 numDatasource: refObj?.order?.numDatasource || 1,
                                 tfidf: refObj?.order?.tfidf || 0,
                                 pr: refObj?.order?.pr || 0,
                                 curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}}}
-        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
+        tabs[tabKey].refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
       }
     }
     for (let tabObj of Object.values(tabs)) {
@@ -2911,21 +2912,20 @@ _media: {},
       delete tabObj.refMap;
     }
 
-    if (tabs["notable-sources"]) {
+    if (tabs["Notable Sources"]) {
       if (!tabs.sources) {
           tabs.sources = {refMap: {}, shouldDisplay: true, refs: []};
       }
       tabs.sources.title = {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')};
       //turn "sources" tab into 'super-set', containing all refs from all tabs:
-      const allRefs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
+      const allRefs = [...tabs["Notable Sources"].refs, ...tabs.sources.refs];
       tabs.sources.refs = allRefs;
     }
-    if (Sefaria.is_moderator){
-        tabs["admin"] = {...tabs["sources"]};
+
+    if (Sefaria.is_moderator && Sefaria.activeModule === 'library') {
+        tabs["admin"] = {...tabs["Sources"]};
         tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
-
     }
-
 
     data.tabs = tabs;
     return data;
