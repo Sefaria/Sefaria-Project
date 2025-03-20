@@ -1441,9 +1441,31 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
   );
 };
 
+const useThemeColor = (color) => {
+  useEffect(() => {
+    let themeColor = document.querySelector('meta[name="theme-color"]');
+    if (!themeColor) {
+      themeColor = document.createElement("meta");
+      themeColor.name = "theme-color";
+      document.head.appendChild(themeColor);
+    }
 
-const CategoryColorLine = ({category}) =>
-  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
+    themeColor.setAttribute("content", color);
+  }, [color]);
+};
+
+const resolveColor = (cssPropertyValue) => {
+  const variableName = cssPropertyValue.replace(/var\((.*?)\)/, '$1').trim();
+  const rootStyles = getComputedStyle(document.documentElement);
+  return rootStyles.getPropertyValue(variableName).trim();
+};
+
+const CategoryColorLine = ({ category }) => {
+  const categoryColor = Sefaria.palette.categoryColor(category);
+  useThemeColor(resolveColor(categoryColor));
+
+  return <div className="categoryColorLine" style={{ background: categoryColor }} />;
+};
 
 
 class ProfileListing extends Component {
