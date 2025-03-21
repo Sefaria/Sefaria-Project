@@ -1838,7 +1838,14 @@ def index_api(request, title, raw=False):
         return protected_index_post(request)
 
     if request.method == "DELETE":
-        if not request.user.is_staff:
+        if not request.user.is_authenticated:
+            key = request.META.get("HTTP_APIKEY")
+            if not key:
+                return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return jsonResponse({"error": "Unrecognized API key."})
+        elif not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can delete texts indices."})
 
         title = title.replace("_", " ")
@@ -2549,12 +2556,13 @@ def category_api(request, path=None):
     """
     if request.method == "DELETE":
         cat = Category().load({"path": path.split("/")})
-        if cat and cat.can_delete():
-            cat.delete()
-            library.rebuild(include_toc=True)
-            return jsonResponse({"status": "OK"})
-        else:
+        if not cat:
             return jsonResponse({"error": "Category {} doesn't exist".format(path)})
+        if not cat.can_delete():
+            return jsonResponse({"error": "Cannot delete category {} because it contains subcategories or texts".format(path)})
+        cat.delete()
+        library.rebuild(include_toc=True)
+        return jsonResponse({"status": "OK"})
     elif request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
@@ -2728,7 +2736,7 @@ def terms_api(request, name):
                 return tracker.delete(uid, Term, t._id)
 
         if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
+            key = request.POST.get("apikey") or request.META.get("HTTP_APIKEY")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete terms."})
             apikey = db.apikeys.find_one({"key": key})

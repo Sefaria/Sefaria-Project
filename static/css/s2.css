@@ -12403,6 +12403,7 @@ span.purim-emoji img {
 
 .addInterfaceInput .suggestion {
     font-size: 20px;
+    font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .topicSearch.addInterfaceInput select.suggestionBox {
