@@ -54,21 +54,27 @@ class VersionBlockUtils {
       openVersionInSidebar(version.versionTitle, version.language);
   }
   static openVersionInMainPanel(currRef, version, currObjectVersions, renderMode, firstSectionRef, openVersionInReader, e) {
-      e.preventDefault();
-      try {
-        gtag("event", "onClick_select_version", {element_name: `select_version`,
-        change_to: `${version.versionTitle}`, change_from: `${currObjectVersions[version.language]['versionTitle']}`,
-        categories: `${Sefaria.refCategories(currRef)}`, book: `${Sefaria.parseRef(currRef).index}` })
-      }
-      catch(err) {
-        console.log(err);
-      }
-      if (renderMode === 'book-page') {
-          window.location = `/${firstSectionRef}?v${version.language}=${version.versionTitle.replace(/\s/g,'_')}`;
-      } else {
-          openVersionInReader(version.versionTitle, version.language);
-      }
-      Sefaria.setVersionPreference(currRef, version.versionTitle, version.language);
+    e.preventDefault();
+    try {
+      gtag("event", "onClick_select_version", {element_name: `select_version`,
+      change_to: `${version.versionTitle}`, change_from: `${currObjectVersions[version.language]['versionTitle']}`,
+      categories: `${Sefaria.refCategories(currRef)}`, book: `${Sefaria.parseRef(currRef).index}` })
+    }
+    catch(err) {
+      console.log(err);
+    }
+    if (renderMode === 'book-page') {
+        // Map the version language to the correct parameter name
+        const langParam = version.language === 'en' ? 'ven' : 
+                        version.language === 'he' ? 'vhe' : 
+                        `v${version.language}`;
+        // Set interface language based on version.actualLanguage
+        const interfaceLang = version.actualLanguage === 'he' ? 'he' : 'bi';
+        window.location = `/${firstSectionRef}?${langParam}=${version.versionTitle.replace(/\s/g,'_')}&lang=${interfaceLang}`;
+    } else {
+        openVersionInReader(version.versionTitle, version.language);
+    }
+    Sefaria.setVersionPreference(currRef, version.versionTitle, version.language);
   }
 }
 
