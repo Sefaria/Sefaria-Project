@@ -46,7 +46,7 @@ import {
   DropdownMenu
 } from './Misc';
 import {ContentText} from "./ContentText";
-
+import Plans from './Plans';
 
 class ReaderPanel extends Component {
   constructor(props) {
@@ -114,7 +114,7 @@ class ReaderPanel extends Component {
     // Because it's called in the constructor, assume state isnt necessarily defined and pass
     // variables mode and menuOpen manually
     let contentLangOverride = originalLanguage;
-    if (["topics", "allTopics", "calendars", "community", "collection" ].includes(menuOpen)) {   //  "story_editor",
+    if (["topics", "allTopics", "calendars", "community", "collection", "plans" ].includes(menuOpen)) {   //  "story_editor",
       // Always bilingual for English interface, always Hebrew for Hebrew interface
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
@@ -1077,7 +1077,19 @@ class ReaderPanel extends Component {
           initialWidth={this.state.width} />
       );
 
-    } else if (this.state.menuOpen === "updates") {
+    } 
+    
+    else if (this.state.menuOpen === "plans") {
+      menu = (
+        <Plans
+          multiPanel={this.props.multiPanel}
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          initialWidth={this.state.width}
+        />
+      );
+    } 
+    
+    else if (this.state.menuOpen === "updates") {
       menu = (
         <UpdatesPanel
           interfaceLang={this.props.interfaceLang}
