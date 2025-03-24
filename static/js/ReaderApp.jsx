@@ -1117,7 +1117,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/community") {
       this.showCommunity();
 
-    } else if (path === "/my/profile") {
+    } else if (path === "/plans") {
+      this.showPlans(); 
+    }
+    else if (path === "/my/profile") {
       this.openProfile(Sefaria.slug, params.get("tab"));
 
     } else if (path === "/notifications") {
@@ -1687,6 +1690,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showCommunity() {
     this.setSinglePanelState({menuOpen: "community"});
+  }
+  showPlans() {
+    this.setSinglePanelState({menuOpen: "plans"});
   }
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});
