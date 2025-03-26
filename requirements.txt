@@ -73,4 +73,3 @@ python-dotenv
 #opentelemetry-propagator-jaeger
 
 mixpanel~=4.10.1
-whitenoise==6.5.0
