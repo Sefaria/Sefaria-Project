@@ -33,7 +33,7 @@ from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError
 from sefaria.utils.hebrew import hebrew_term
-from sefaria.utils.tibetan import has_tibetan,is_all_tibetan
+from sefaria.utils.tibetan import has_tibetan,is_all_tibetan, convert_to_tibetan_numerals
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
@@ -2814,7 +2814,7 @@ class Ref(object, metaclass=RefCacheType):
 
         # don't replace : in Hebrew, where it can indicate amud
         if lang == "he":
-            return tref
+            return convert_to_tibetan_numerals(tref)
 
         tref = tref.replace(":", ".")
 
