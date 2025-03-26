@@ -17,12 +17,57 @@
   box-sizing: border-box; /* Ensure padding doesn’t affect width */
 }
 
-.contentInner {
+.contentInnerr {
   display: flex;
   flex-direction: column;
   min-height: 100%; /* Ensure the inner content can grow */
-  padding-bottom: 60px; /* Add padding to ensure the button is visible */
   width: 100%; /* Ensure full width */
+}
+
+.readerNavMenu .content .contentInnerr {
+  margin: 0 auto;
+  min-height: 520px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding-bottom: 70px;
+  padding-inline-start: 30px;
+  padding-inline-end: 30px;
+}
+
+.searchBarContainer {
+  margin-bottom: 30px;
+}
+
+.searchBarWrapper {
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #666;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 15px 10px 40px; /* Extra padding on the left for the icon */
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 16px;
+  color: #333;
+  background-color: #f9f9f9;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.searchInput:focus {
+  border-color: #C39F48;
+  box-shadow: 0 0 5px rgba(195, 159, 72, 0.3);
 }
 
 .plansCategoriesHeader {
@@ -33,11 +78,13 @@
   font-size: 16px;
   font-weight: 600;
   color: #333;
+  text-align: center; /* Center the header text */
 }
 
 .plansCategories {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center; /* Center the category buttons */
   gap: 10px;
   margin-bottom: 30px;
 }
@@ -71,16 +118,6 @@
   font-size: 24px;
   font-weight: 600;
   color: #333;
-}
-
-.readerNavMenu .content .contentInnerr {
-  margin: 0 auto;
-  min-height: 520px;
-  max-width: 100%;
-  box-sizing: border-box;
-  padding-bottom: 70px;
-  padding-inline-start: 30px;
-  padding-inline-end: 30px;
 }
 
 .viewAllLink {
@@ -217,6 +254,20 @@
   .content {
     padding: 15px 10px; /* Adjust padding for smaller screens */
     padding-bottom: 50px;
+  }
+
+  .searchBarWrapper {
+    max-width: 100%;
+  }
+
+  .searchInput {
+    font-size: 14px;
+    padding: 8px 15px 8px 35px;
+  }
+
+  .searchIcon {
+    font-size: 14px;
+    left: 12px;
   }
 
   .plansCategoriesHeader h2 {

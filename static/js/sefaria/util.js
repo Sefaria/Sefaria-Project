@@ -205,10 +205,6 @@ class Util {
         const now = Util.epoch_time();           // Current time in seconds (frontend)
         let duration = now - timeStamp;          // Time difference in seconds
     
-        // Log for debugging
-        console.log("timeStamp (from server):", timeStamp);
-        console.log("now (from frontend):", now);
-        console.log("original duration (seconds):", duration);
     
         // Correct the 510-minute (30,600 seconds) offset and start at 1 minute (60 seconds)
         const initialOffset = 30600; // 510 minutes in seconds

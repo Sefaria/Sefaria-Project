@@ -142,6 +142,20 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                 path="/"
                 render={() => (
                   <>
+                    {/* Search Bar */}
+                    <div className="searchBarContainer">
+                      <div className="searchBarWrapper">
+                        <span className="searchIcon">🔍</span>
+                        <input
+                          type="text"
+                          placeholder="Search plans..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="searchInput"
+                        />
+                      </div>
+                    </div>
+
                     {/* Categories */}
                     <div className="plansCategoriesHeader">
                       <h2>Explore by Category</h2>
