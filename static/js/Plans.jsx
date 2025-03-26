@@ -133,81 +133,85 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
 
   return (
     <Router basename="/plans">
-      <div className="plansPage sans-serif">
-        <Switch>
-          <Route
-            exact
-            path="/"
-            render={() => (
-              <>
-                {/* Categories */}
-                <div className="plansCategoriesHeader">
-                  <h2>Explore by Category</h2>
-                </div>
-                <div className="plansCategories">
-                  {categories.map(category => (
-                    <button
-                      key={category}
-                      className={classNames('categoryButton', { active: selectedCategory === category })}
-                      onClick={() => setSelectedCategory(category)}
-                    >
-                      <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
-                    </button>
-                  ))}
-                </div>
+      <div className="readerNavMenu plansPage sans-serif">
+        <div className="content">
+          <div className="contentInnerr">
+            <Switch>
+              <Route
+                exact
+                path="/"
+                render={() => (
+                  <>
+                    {/* Categories */}
+                    <div className="plansCategoriesHeader">
+                      <h2>Explore by Category</h2>
+                    </div>
+                    <div className="plansCategories">
+                      {categories.map(category => (
+                        <button
+                          key={category}
+                          className={classNames('categoryButton', { active: selectedCategory === category })}
+                          onClick={() => setSelectedCategory(category)}
+                        >
+                          <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
+                        </button>
+                      ))}
+                    </div>
 
-                {/* Plans List */}
-                <div className="plansListHeader">
-                  <h1>Featured Plans</h1>
-                  <Link to="/all" className="viewAllLink">View all plans</Link>
-                </div>
-                <div className="plansList">
-                  {filteredPlans.length > 0 ? (
-                    filteredPlans.map(plan => (
-                      <div key={plan.id} className="planCard">
-                        <Link to={`/${plan.id}`}>
-                          <img src={plan.image} alt={plan.title} className="planImage" />
-                        </Link>
-                        <div className="planCategories">
-                          {plan.categories.map((category, index) => (
-                            <span key={index} className="planCategory">
-                              <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
-                              {index < plan.categories.length - 1 && <span className="categorySeparator"> • </span>}
-                            </span>
-                          ))}
-                          <span className="categoryCount">+{plan.categories.length - 2 > 0 ? plan.categories.length - 2 : 1}</span>
-                        </div>
-                        <h3 className="planTitle">
-                          <Link to={`/${plan.id}`}>
-                            <InterfaceText>{plan.title}</InterfaceText>
-                          </Link>
-                        </h3>
-                        <p className="planDescription"><InterfaceText>{plan.description}</InterfaceText></p>
-                        <div className="planFooter">
-                          <span className="planDuration">{plan.total_days} days</span>
-                          <Link to={`/${plan.id}`} className="readMoreLink">Read more</Link>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p>No plans found.</p>
-                  )}
-                </div>
+                    {/* Plans List */}
+                    <div className="plansListHeader">
+                      <h1>Featured Plans</h1>
+                      <Link to="/all" className="viewAllLink">View all plans</Link>
+                    </div>
+                    <div className="plansList">
+                      {filteredPlans.length > 0 ? (
+                        filteredPlans.map(plan => (
+                          <div key={plan.id} className="planCard">
+                            <Link to={`/${plan.id}`}>
+                              <img src={plan.image} alt={plan.title} className="planImage" />
+                            </Link>
+                            <div className="planCategories">
+                              {plan.categories.map((category, index) => (
+                                <span key={index} className="planCategory">
+                                  <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
+                                  {index < plan.categories.length - 1 && <span className="categorySeparator"> • </span>}
+                                </span>
+                              ))}
+                              <span className="categoryCount">+{plan.categories.length - 2 > 0 ? plan.categories.length - 2 : 1}</span>
+                            </div>
+                            <h3 className="planTitle">
+                              <Link to={`/${plan.id}`}>
+                                <InterfaceText>{plan.title}</InterfaceText>
+                              </Link>
+                            </h3>
+                            <p className="planDescription"><InterfaceText>{plan.description}</InterfaceText></p>
+                            <div className="planFooter">
+                              <span className="planDuration">{plan.total_days} days</span>
+                              <Link to={`/${plan.id}`} className="readMoreLink">Read more</Link>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p>No plans found.</p>
+                      )}
+                    </div>
 
-                {/* Browse all Plans Button */}
-                <div className="browseAllContainer">
-                  <Link to="/all" className="browseAllButton">
-                    <InterfaceText>Browse all Plans</InterfaceText>
-                  </Link>
-                </div>
-              </>
-            )}
-          />
-          {/* Placeholder routes for detail and progression pages */}
-          <Route path="/:planId" render={() => <div>Plan Detail Page (To be implemented)</div>} />
-          <Route path="/:planId/progress" render={() => <div>Plan Progression Page (To be implemented)</div>} />
-          <Route path="/all" render={() => <div>All Plans Page (To be implemented)</div>} />
-        </Switch>
+                    {/* Browse all Plans Button */}
+                    <div className="browseAllContainer">
+                      <Link to="/all" className="browseAllButton">
+                        <InterfaceText>Browse all Plans</InterfaceText>
+                      </Link>
+                    </div>
+                  </>
+                )}
+              />
+              {/* Placeholder routes for detail and progression pages */}
+              <Route path="/:planId" render={() => <div>Plan Detail Page (To be implemented)</div>} />
+              <Route path="/:planId/progress" render={() => <div>Plan Progression Page (To be implemented)</div>} />
+              <Route path="/all" render={() => <div>All Plans Page (To be implemented)</div>} />
+            </Switch>
+          </div>
+        </div>
       </div>
     </Router>
   );

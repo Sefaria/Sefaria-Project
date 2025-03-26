@@ -1,12 +1,28 @@
+.readerNavMenu {
+  height: 100vh; /* Take up the full viewport height */
+  overflow: hidden; /* Prevent scrolling on the outer container */
+  width: 100%; /* Ensure full width */
+}
+
 .plansPage {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: 100vh;
+  height: 100%; /* Take up the full height of the parent */
+  width: 100%; /* Ensure full width */
+}
+
+.content {
+  height: 100%; /* Take up the full height of the parent */
+  overflow-y: auto; /* Enable vertical scrolling */
+  padding: 20px 15px; /* Adjust padding for full-width layout */
+  width: 100%; /* Ensure full width */
+  box-sizing: border-box; /* Ensure padding doesn’t affect width */
+}
+
+.contentInner {
   display: flex;
   flex-direction: column;
-  overflow: auto;
-  padding-bottom: 60px;
+  min-height: 100%; /* Ensure the inner content can grow */
+  padding-bottom: 60px; /* Add padding to ensure the button is visible */
+  width: 100%; /* Ensure full width */
 }
 
 .plansCategoriesHeader {
@@ -57,6 +73,16 @@
   color: #333;
 }
 
+.readerNavMenu .content .contentInnerr {
+  margin: 0 auto;
+  min-height: 520px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding-bottom: 70px;
+  padding-inline-start: 30px;
+  padding-inline-end: 30px;
+}
+
 .viewAllLink {
   font-size: 14px;
   font-weight: 500;
@@ -72,7 +98,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
-  flex-grow: 1;
+  flex-grow: 1; /* Allow the plans list to grow and push the button down */
 }
 
 .planCard {
@@ -188,8 +214,8 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .plansPage {
-    padding: 15px;
+  .content {
+    padding: 15px 10px; /* Adjust padding for smaller screens */
     padding-bottom: 50px;
   }
 
@@ -211,7 +237,7 @@
   }
 
   .plansList {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Single column on smaller screens */
   }
 
   .planImage {
