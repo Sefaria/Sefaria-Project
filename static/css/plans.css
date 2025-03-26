@@ -150,37 +150,53 @@
   transform: translateY(-2px);
 }
 
+.planImageWrapper {
+  position: relative;
+  display: block; /* Ensure the Link behaves as a block for proper positioning */
+}
+
 .planImage {
   width: 100%;
   height: 150px;
   object-fit: cover;
+  display: block; /* Remove any inline spacing */
 }
 
 .planCategories {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  padding: 10px 15px 5px;
   font-size: 12px;
-  color: #666;
 }
 
 .planCategory {
+  background-color: rgba(255, 255, 255, 0.9); /* White background with slight transparency */
+  padding: 4px 8px;
+  border-radius: 12px;
   font-weight: 500;
+  color: #666;
 }
 
 .categorySeparator {
+  color: #666;
   margin: 0 5px;
+  line-height: 1.5; /* Align with category text */
 }
 
 .categoryCount {
+  background-color: rgba(255, 255, 255, 0.9); /* White background with slight transparency */
+  padding: 4px 8px;
+  border-radius: 12px;
   font-weight: 500;
   color: #666;
 }
 
 .planTitle {
   margin: 0;
-  padding: 0 15px;
+  padding: 10px 15px 0; /* Adjust padding to reduce space */
   font-size: 18px;
   font-weight: 600;
   color: #333;
@@ -193,14 +209,6 @@
 
 .planTitle a:hover {
   color: #C39F48;
-}
-
-.planDescription {
-  padding: 0 15px;
-  font-size: 14px;
-  color: #666;
-  line-height: 1.5;
-  margin: 5px 0 10px;
 }
 
 .planFooter {
@@ -225,6 +233,137 @@
 
 .readMoreLink:hover {
   text-decoration: underline;
+}
+
+/* Plan Detail Styles */
+.planDetail {
+  max-width: 1200px; /* Wider max-width for side-by-side layout */
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.planDetailBackLink {
+  margin-bottom: 20px;
+}
+
+.backLink {
+  font-size: 16px;
+  color: #666;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.backLink:hover {
+  color: #C39F48;
+}
+
+.backArrow {
+  margin-right: 5px;
+}
+
+.planDetailHeader {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.planDetailImageWrapper {
+  flex: 1;
+}
+
+.planDetailImage {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+
+.planDetailCategories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.planDetailCategory {
+  background-color: #f0f0f0;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+  color: #666;
+}
+
+.planDetailInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.planDetailTitle {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.planDetailDescription {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.planDetailMeta {
+  margin-bottom: 20px;
+}
+
+.planDetailDuration {
+  font-size: 16px;
+  color: #666;
+}
+
+.planDetailActions {
+  display: flex;
+}
+
+.startPlanButton {
+  padding: 12px 24px;
+  background-color: #C39F48;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.3s;
+}
+
+.startPlanButton:hover {
+  background-color: #a3853b;
+}
+
+.planDetailContent {
+  border-top: 1px solid #eee;
+  padding-top: 30px;
+}
+
+.planDetailContent h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.planDetailLearnDescription {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
 }
 
 /* Responsive Design */
@@ -277,12 +416,87 @@
     font-size: 16px;
   }
 
-  .planDescription {
-    font-size: 13px;
-  }
-
   .planDuration,
   .readMoreLink {
     font-size: 12px;
+  }
+
+  .planCategories {
+    bottom: 8px;
+    left: 8px;
+    font-size: 10px;
+  }
+
+  .planCategory,
+  .categoryCount {
+    padding: 3px 6px;
+  }
+
+  /* Plan Detail Responsive Styles */
+  .planDetail {
+    padding: 15px 0;
+  }
+
+  .planDetailBackLink {
+    margin-bottom: 15px;
+  }
+
+  .backLink {
+    font-size: 14px;
+  }
+
+  .planDetailHeader {
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .planDetailImage {
+    height: 200px;
+  }
+
+  .planDetailCategories {
+    font-size: 12px;
+    gap: 8px;
+  }
+
+  .planDetailCategory {
+    padding: 4px 8px;
+  }
+
+  .planDetailTitle {
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .planDetailDescription {
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .planDetailMeta {
+    display: flex;
+    justify-content: center;
+  }
+
+  .planDetailDuration {
+    font-size: 14px;
+  }
+
+  .planDetailActions {
+    justify-content: center;
+  }
+
+  .startPlanButton {
+    font-size: 14px;
+    padding: 10px 20px;
+  }
+
+  .planDetailContent h2 {
+    font-size: 20px;
+  }
+
+  .planDetailLearnDescription {
+    font-size: 14px;
   }
 }

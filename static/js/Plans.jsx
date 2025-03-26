@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import classNames from 'classnames';
 import { InterfaceText } from './Misc';
+import PlanDetail from './PlanDetail';
 import '../css/plans.css';
 
 // Mock data for now
@@ -12,7 +13,7 @@ const MOCK_PLANS = [
     title: "Mindful Breathing",
     categories: ["mindfulness", "meditation"],
     description: "A 7-day journey exploring the practice of mindful breathing, connecting with the present moment.",
-    image: "/static/images/plans/mindful-breathing.jpg",
+    image: "/static/img/plans/meditation.jpeg",
     total_days: 7,
     content: [
       "Day 1: Introduction to mindfulness and breathing exercises.",
@@ -29,7 +30,7 @@ const MOCK_PLANS = [
     title: "Loving-Kindness Meditation",
     categories: ["love", "compassion"],
     description: "A 5-day practice to cultivate compassion and loving-kindness toward yourself and others, transforming.",
-    image: "/static/images/plans/loving-kindness.jpg",
+    image: "/static/img/plans/meditation.jpeg",
     total_days: 5,
     content: [
       "Day 1: Understanding compassion and its importance.",
@@ -44,7 +45,7 @@ const MOCK_PLANS = [
     title: "Transforming Anger",
     categories: ["anger", "peace"],
     description: "A 6-day exploration of understanding and transforming anger through Buddhist principles and.",
-    image: "/static/images/plans/transforming-anger.jpg",
+    image: "/static/img/plans/meditation.jpeg",
     total_days: 6,
     content: ["Day 1: Identify triggers.", "Day 2: Practice calming techniques.", "Day 3: Reflect on progress.", "Day 4: Deepen understanding.", "Day 5: Apply techniques.", "Day 6: Conclude."]
   },
@@ -53,7 +54,7 @@ const MOCK_PLANS = [
     title: "Cultivating Love",
     categories: ["love"],
     description: "A 4-day plan to foster love in your life.",
-    image: "/static/images/plans/cultivating-love.jpg",
+    image: "/static/img/plans/meditation.jpeg",
     total_days: 4,
     content: ["Day 1: Self-love.", "Day 2: Love for family.", "Day 3: Love for friends.", "Day 4: Universal love."]
   },
@@ -62,7 +63,7 @@ const MOCK_PLANS = [
     title: "Wisdom Path",
     categories: ["wisdom"],
     description: "A 6-day plan to gain wisdom through Buddhist teachings.",
-    image: "/static/images/plans/wisdom-path.jpg",
+    image: "/static/img/plans/meditation.jpeg",
     total_days: 6,
     content: ["Day 1: Introduction.", "Day 2: Study.", "Day 3: Reflect.", "Day 4: Apply.", "Day 5: Share.", "Day 6: Conclude."]
   },
@@ -71,7 +72,7 @@ const MOCK_PLANS = [
     title: "Gratitude Practice",
     categories: ["gratitude"],
     description: "A 5-day plan to cultivate gratitude.",
-    image: "/static/images/plans/gratitude-practice.jpg",
+    image: "/static/img/plans/meditation.jpeg",
     total_days: 5,
     content: ["Day 1: Start.", "Day 2: Reflect.", "Day 3: Share.", "Day 4: Deepen.", "Day 5: Conclude."]
   },
@@ -80,7 +81,7 @@ const MOCK_PLANS = [
     title: "Finding Peace",
     categories: ["peace"],
     description: "A 4-day plan to find inner peace.",
-    image: "/static/images/plans/finding-peace.jpg",
+    image: "/static/img/plans/meditation.jpeg",
     total_days: 4,
     content: ["Day 1: Begin.", "Day 2: Meditate.", "Day 3: Reflect.", "Day 4: Sustain."]
   },
@@ -89,7 +90,7 @@ const MOCK_PLANS = [
     title: "Forgiveness Journey",
     categories: ["forgiveness"],
     description: "A 3-day plan to practice forgiveness.",
-    image: "/static/images/plans/forgiveness-journey.jpg",
+    image: "/static/img/plans/meditation.jpeg",
     total_days: 3,
     content: ["Day 1: Self-forgiveness.", "Day 2: Forgive others.", "Day 3: Move forward."]
   },
@@ -98,7 +99,7 @@ const MOCK_PLANS = [
     title: "Equanimity Practice",
     categories: ["equanimity"],
     description: "A 5-day plan to develop equanimity.",
-    image: "/static/images/plans/equanimity-practice.jpg",
+    image: "/static/img/plans/meditation.jpeg",
     total_days: 5,
     content: ["Day 1: Understand.", "Day 2: Practice.", "Day 3: Reflect.", "Day 4: Deepen.", "Day 5: Conclude."]
   },
@@ -107,7 +108,7 @@ const MOCK_PLANS = [
     title: "Meditation Basics",
     categories: ["meditation"],
     description: "A 7-day plan to learn meditation.",
-    image: "/static/images/plans/meditation-basics.jpg",
+    image: "/static/img/plans/meditation.jpeg",
     total_days: 7,
     content: ["Day 1: Start.", "Day 2: Focus.", "Day 3: Breathe.", "Day 4: Observe.", "Day 5: Deepen.", "Day 6: Reflect.", "Day 7: Conclude."]
   }
@@ -181,24 +182,23 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                       {filteredPlans.length > 0 ? (
                         filteredPlans.map(plan => (
                           <div key={plan.id} className="planCard">
-                            <Link to={`/${plan.id}`}>
+                            <Link to={`/${plan.id}`} className="planImageWrapper">
                               <img src={plan.image} alt={plan.title} className="planImage" />
+                              <div className="planCategories">
+                                {plan.categories.map((category, index) => (
+                                  <span key={index} className="planCategory">
+                                    <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
+                                    {index < plan.categories.length - 1 && <span className="categorySeparator"> • </span>}
+                                  </span>
+                                ))}
+                                <span className="categoryCount">+{plan.categories.length - 2 > 0 ? plan.categories.length - 2 : 1}</span>
+                              </div>
                             </Link>
-                            <div className="planCategories">
-                              {plan.categories.map((category, index) => (
-                                <span key={index} className="planCategory">
-                                  <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
-                                  {index < plan.categories.length - 1 && <span className="categorySeparator"> • </span>}
-                                </span>
-                              ))}
-                              <span className="categoryCount">+{plan.categories.length - 2 > 0 ? plan.categories.length - 2 : 1}</span>
-                            </div>
                             <h3 className="planTitle">
                               <Link to={`/${plan.id}`}>
                                 <InterfaceText>{plan.title}</InterfaceText>
                               </Link>
                             </h3>
-                            <p className="planDescription"><InterfaceText>{plan.description}</InterfaceText></p>
                             <div className="planFooter">
                               <span className="planDuration">{plan.total_days} days</span>
                               <Link to={`/${plan.id}`} className="readMoreLink">Read more</Link>
@@ -212,8 +212,13 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                   </>
                 )}
               />
-              {/* Placeholder routes for detail and progression pages */}
-              <Route path="/:planId" render={() => <div>Plan Detail Page (To be implemented)</div>} />
+              {/* Plan Detail Route */}
+              <Route
+                path="/:planId"
+                exact
+                render={() => <PlanDetail plans={plans} />}
+              />
+              {/* Placeholder route for progression page */}
               <Route path="/:planId/progress" render={() => <div>Plan Progression Page (To be implemented)</div>} />
               <Route path="/all" render={() => <div>All Plans Page (To be implemented)</div>} />
             </Switch>
