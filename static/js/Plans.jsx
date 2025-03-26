@@ -209,13 +209,6 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                         <p>No plans found.</p>
                       )}
                     </div>
-
-                    {/* Browse all Plans Button */}
-                    <div className="browseAllContainer">
-                      <Link to="/all" className="browseAllButton">
-                        <InterfaceText>Browse all Plans</InterfaceText>
-                      </Link>
-                    </div>
                   </>
                 )}
               />

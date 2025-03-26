@@ -135,7 +135,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
-  flex-grow: 1; /* Allow the plans list to grow and push the button down */
+  flex-grow: 1; /* Allow the plans list to grow */
 }
 
 .planCard {
@@ -227,28 +227,6 @@
   text-decoration: underline;
 }
 
-.browseAllContainer {
-  display: flex;
-  justify-content: center;
-  margin-top: 30px;
-}
-
-.browseAllButton {
-  padding: 10px 20px;
-  background-color: #C39F48;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-size: 16px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background-color 0.3s;
-}
-
-.browseAllButton:hover {
-  background-color: #a3853b;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .content {
@@ -306,10 +284,5 @@
   .planDuration,
   .readMoreLink {
     font-size: 12px;
-  }
-
-  .browseAllButton {
-    font-size: 14px;
-    padding: 8px 16px;
   }
 }
