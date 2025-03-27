@@ -37,6 +37,7 @@ COPY ./static/js ./static/js
 COPY ./staticfiles ./staticfiles
 
 RUN npm run setup
+RUN npm run build-client
 RUN npm run build-prod
 
 
