@@ -20,6 +20,9 @@ COPY ./sefaria/local_settings.py ./sefaria/local_settings.py
 COPY requirements.txt ./
 COPY package*.json ./
 
+# Collect static files with WhiteNoise
+RUN python manage.py collectstatic --noinput
+
 # Install global Python and Node.js dependencies
 RUN pip install -r requirements.txt
 RUN npm install --unsafe-perm
@@ -38,8 +41,6 @@ COPY ./static/js ./static/js
 RUN npm run setup
 RUN npm run build-prod
 
-# Collect static files with WhiteNoise
-RUN python manage.py collectstatic --noinput
 
 # Copy application source code
 COPY . ./
