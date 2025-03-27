@@ -41,6 +41,8 @@ RUN npm run build-prod
 # Copy application source code
 COPY . ./
 
+RUN chmod -R 755 /app/staticfiles
+
 # Collect static files with WhiteNoise
 RUN python manage.py collectstatic --noinput
 
