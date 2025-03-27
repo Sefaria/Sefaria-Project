@@ -38,12 +38,11 @@ COPY ./static/js ./static/js
 RUN npm run setup
 RUN npm run build-prod
 
-# Copy application source code
-COPY . ./
-
-
 # Collect static files with WhiteNoise
 RUN python manage.py collectstatic --noinput
+
+# Copy application source code
+COPY . ./
 
 # Run Django migrations and start the server
 CMD ["bash", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
