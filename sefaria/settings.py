@@ -81,6 +81,13 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Where collectstatic will copy files
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Additional static directories
 
+# WhiteNoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise settings for production
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = False  # Set to True only for local development
+WHITENOISE_MANIFEST_STRICT = False
+
 
 # List of finder classes that know how to find static files in
 # various locations.

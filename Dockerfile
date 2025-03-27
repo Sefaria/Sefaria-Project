@@ -20,9 +20,6 @@ COPY ./sefaria/local_settings.py ./sefaria/local_settings.py
 COPY requirements.txt ./
 COPY package*.json ./
 
-# Collect static files with WhiteNoise
-RUN python manage.py collectstatic --noinput
-
 # Install global Python and Node.js dependencies
 RUN pip install -r requirements.txt
 RUN npm install --unsafe-perm
@@ -44,6 +41,10 @@ RUN npm run build-prod
 
 # Copy application source code
 COPY . ./
+
+
+# Collect static files with WhiteNoise
+RUN python manage.py collectstatic --noinput
 
 # Run Django migrations and start the server
 CMD ["bash", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
