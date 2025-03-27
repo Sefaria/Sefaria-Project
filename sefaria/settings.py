@@ -76,9 +76,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 
+# settings.py or production.py
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Where collectstatic will copy files
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Additional static directories
 
 
 # List of finder classes that know how to find static files in
