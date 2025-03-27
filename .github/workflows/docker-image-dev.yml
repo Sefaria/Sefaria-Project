@@ -3,7 +3,7 @@ name: Docker Publish Trigger
 on:
   push:
     branches:
-      - dev  # Change this to your main branch name, e.g., prodcution-master
+      - whitenoise_setup  # Change this to your main branch name, e.g., prodcution-master
 
 jobs:
   build-and-publish:
