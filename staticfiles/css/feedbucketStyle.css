@@ -1,0 +1,47 @@
+.feedback_container {
+    position:absolute;
+    top:50%;
+    place-items: center;
+    height: min-content;
+    cursor: pointer;
+    right:0px;
+    max-height: 50vh;
+    z-index: 99999;
+  }
+  #messageImage{
+    width:20px;
+    height:20px;
+    margin-right: 10px;
+    background-color: #b83c64;
+    border-radius: 50%;
+    padding: 10px;
+  }
+  #crossImage{
+    width:20px;
+    height:20px;
+    margin-right: 10px;
+    position:relative;
+    top:120px;
+    left:0px;
+    border:1px grey solid;
+    border-radius: 50%;
+    padding: 7px;
+  } 
+  #crossImage:hover{
+    background-color: lightgrey;
+    border: none;
+    transition: 0.5s ease all;
+  }
+  .hidden {
+    display: none;
+    visibility: hidden;
+  }
+  
+  #feedbucketContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  
+  

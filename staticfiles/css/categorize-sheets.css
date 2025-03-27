@@ -1,0 +1,78 @@
+html, body, .wrapper, #content, .categorizer, .sheet {
+    height: 100%;
+    margin: 0;
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: normal;
+}
+
+body {
+    height: calc(100% - 60px);
+}
+
+#staticContentWrapper {
+    height: 100%;
+    margin-top: 60px;
+}
+
+.categorizer {
+    display: flex;
+    flex-direction: row;
+    order: 0;
+    flex: 0 0 auto;
+    align-self: auto;
+    border: 0;
+}
+
+a {
+    color: #666666;
+}
+
+#edit-pane {
+    min-height: 100%;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-content: stretch;
+    align-items: flex-start;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+#iframeContainer {
+    order: 0;
+    flex: 1 1 auto;
+    align-self: stretch;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+iframe.sheet {
+    width: 100%
+}
+
+div.categorize-section {
+    margin: 0 0 10px 0;
+}
+
+fieldset {
+    border: 0;
+    padding: 0;
+}
+
+.publishBox {
+    min-width: calc(100% - 50px);
+}
+
+div.left-pane-bottom {
+    margin-top: auto;
+}
+
+#save-and-next {
+    font-size: 20px;
+}

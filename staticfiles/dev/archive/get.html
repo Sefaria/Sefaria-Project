@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+	<title></title>
+	
+	<link rel="stylesheet" href="/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+	
+	<style>
+	
+		#title {
+			padding-top: 50px;
+			font-size: 28px;
+			margin-bottom: 20px;
+		}
+		
+		#title, #text {
+			width: 500px;
+			margin-left:  auto;
+			margin-right: auto;
+		}
+		
+		#text {
+			font-size: 18px;
+		}
+		
+		.verse {
+			margin-bottom: 10px;
+		}
+		
+		#goto {
+			font-size: 18px;
+			float: right;
+			width: 240px;
+			margin: 20px;
+		}
+	</style>
+</head>
+
+<body>
+
+<input id="goto">
+
+<div id="title"></div>
+<div id="text"></div>
+
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.7/jquery-ui.min.js"></script>
+	<script type="text/javascript">
+	
+	books = ["Amos", "Chronicles 1", "Chronicles 2", "Daniel", "Deuteronomy", "Ecclesiastes", "Esther", "Exodus", "Ezekiel", "Ezra Nehemiah", "Genesis", "Habakkuk", "Haggai", "Hosea", "Isaiah", "Jeremiah", "Job", "Joel", "Jonah", "Joshua", "Judges", "Kings 1", "Kings 2", "Lamenstaions", "Leviticus", "Malachi", "Nahum", "Numbers", "Obadiah", "Proverbs", "Psalms", "Ruth", "Samuel 1", "Samuel 2", "Song of Songs", "Zechariah", "Zephaniah"]
+	
+	function parseQuery(q) {
+		response = {book: false, chapter: false, verse: false}
+		p = q.split(" ")
+		if (p[0] in {Ezra: 1, Kings:1, Samuel: 1, Chronicles: 1}) {
+			response.book = p[0] + " " + p[1]
+			if (typeof(p[2] != "undefined")) response.chapter = p[2]
+			if (typeof(p[3] != "undefined")) response.verse = p[3]
+		} else {
+			response.book = p[0]
+			if (typeof(p[1] != "undefined")) response.chapter = p[1]
+			if (typeof(p[2] != "undefined")) response.verse = p[2]
+		}
+		return response;
+	}
+	
+	$(function(){
+		
+
+		
+		$("#goto").keypress(function(e) {
+			if (e.keyCode == 13) {
+				q = parseQuery($("#goto").val());
+				$("#title").html("")
+				if ($.inArray(q.book, books) < 0) {
+					$("#text").html("Unknown book: <i>" + q.book + "</i>")
+					return
+				}
+				$("#text").html("Loading...")
+				getStr = "/cgi-bin/get.py?book=" + q.book
+				if (q.chapter) getStr += "&chapter=" + q.chapter
+				if (q.verse) getStr += "&verse=" + q.verse
+				$("#goto").val("")
+				$.getJSON(getStr, function(data) {
+					$("#text").html("")
+					$("#title").html(data.title)
+					if (typeof(data.text)=="string") {
+						$("#text").append("<div class='verse'>" + data.text + "</div>")
+					} else {
+						for (var i = 0; i < data.text.length; i++) {
+							$("#text").append("<div class='verse'>" + data.text[i] + "</div>")
+						}
+					}
+				})
+				
+			}
+		})
+		
+		$("input#goto").autocomplete({ source: books });
+		
+
+	})
+	</script>
+</body>
+</html>
