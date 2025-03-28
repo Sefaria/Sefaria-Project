@@ -3,7 +3,7 @@ name: Docker Publish Trigger
 on:
   push:
     branches:
-      - chore/plan_page  # Change this to your main branch name, e.g., prodcution-master
+      - chore/plan_page  # Change this to your main branch name, e.g., prodcution-masterr
 
 jobs:
   build-and-publish:
