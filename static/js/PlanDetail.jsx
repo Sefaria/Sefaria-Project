@@ -38,7 +38,7 @@ const PlanDetail = ({ plans }) => {
             <span className="planDetailDuration">{plan.total_days} days</span>
           </div>
           <div className="planDetailActions">
-            <Link to={`/plans/${plan.id}/progress`} className="startPlanButton">
+            <Link to={`/${plan.id}/progress`} className="startPlanButton">
               <InterfaceText>Start the Plan</InterfaceText>
             </Link>
           </div>
