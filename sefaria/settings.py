@@ -71,13 +71,23 @@ MEDIA_URL = ''
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 
+# settings.py or production.py
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Where collectstatic will copy files
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Additional static directories
+
+# WhiteNoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise settings for production
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = False  # Set to True only for local development
+WHITENOISE_MANIFEST_STRICT = False
+
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -147,6 +157,8 @@ MIDDLEWARE = [
     'sefaria.system.middleware.CurrentUserMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
     'django_structlog.middlewares.RequestMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
@@ -402,5 +414,5 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # Use the app password y
 EMAIL_USE_TLS = True
 
 
-RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY")
-RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY")
+RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY") if os.getenv("RECAPTCHA_PUBLIC_KEY") else ""
+RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY") if os.getenv("RECAPTCHA_PRIVATE_KEY") else ""
