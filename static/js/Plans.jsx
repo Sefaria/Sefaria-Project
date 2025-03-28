@@ -140,7 +140,7 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
             <Switch>
               <Route
                 exact
-                path="/"
+                path=""
                 render={() => (
                   <>
                     {/* Search Bar */}
