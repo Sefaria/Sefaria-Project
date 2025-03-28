@@ -202,9 +202,17 @@ class Util {
 
     static naturalTime(timeStamp, {lang, short} = {}) {
         const now = Util.epoch_time();
-        const duration = now - timeStamp; // Calculate duration in milliseconds
+        const duration = now - timeStamp; // Calculate duration in seconds
+        const hours12InSeconds = 12 * 60 * 60; // 12 hours in seconds
+    
         let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
+        console.log("language", language)
         let spacer = " ";
+        // Check if the timestamp is within the last 12 hours
+        if (duration <= hours12InSeconds) {
+            return language === 'he' ? "དེ་རིང་བརྩམས།" : "published today";
+        }
+
         if (short) {
             language = language === "en" ? "shortEn" : "shortBo";
             spacer = ""; // Apply empty spacer to both shortEn and shortBo

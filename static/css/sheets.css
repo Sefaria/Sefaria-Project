@@ -1513,7 +1513,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 	z-index: 3;
 }
 .inlineAddButtonIcon::before {
-	content: url("../img/add pecha-icon.png");
+	content: "pecha";
 }
 .inlineAddButtonIcon.active {
 	content: url("../img/add icon active.png");
