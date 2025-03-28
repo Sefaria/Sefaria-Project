@@ -12,7 +12,7 @@ msgstr ""
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Language: zh-Hant-TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -32,11 +32,11 @@ msgstr "删除表ID"
 
 #: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
 msgid "placeholder_email_address"
-msgstr "电子邮件地址"
+msgstr "電子郵件地址"
 
 #: sefaria/forms.py:42 sefaria/forms.py:50
 msgid "placeholder_password"
-msgstr "密码"
+msgstr "密碼"
 
 #: sefaria/forms.py:48
 msgid "placeholder_first_name"
@@ -54,17 +54,17 @@ msgstr "请选择一个选项"
 #: sefaria/forms.py:56 templates/registration/custom_dropdown.html:10
 #: templates/registration/register.html:32
 msgid "placeholder_monastic"
-msgstr "僧侣"
+msgstr "僧侶"
 
 #: sefaria/forms.py:57 templates/registration/custom_dropdown.html:11
 #: templates/registration/register.html:33
 msgid "placeholder_teacher"
-msgstr "教师"
+msgstr "教師"
 
 #: sefaria/forms.py:58 templates/registration/custom_dropdown.html:12
 #: templates/registration/register.html:34
 msgid "placeholder_student"
-msgstr "学生"
+msgstr "學生"
 
 #: sefaria/forms.py:59 templates/registration/custom_dropdown.html:13
 #: templates/registration/register.html:35
@@ -74,7 +74,7 @@ msgstr "博士"
 #: sefaria/forms.py:60 templates/registration/custom_dropdown.html:14
 #: templates/registration/register.html:36
 msgid "placeholder_regular_user"
-msgstr "普通用户"
+msgstr "普通用戶"
 
 #: sefaria/forms.py:95 sefaria/model/user_profile.py:283
 msgid "user_already_exists_message"
@@ -164,7 +164,7 @@ msgstr "开发团队"
 
 #: templates/account_settings.html:12
 msgid "account_setting"
-msgstr "账户设置"
+msgstr "帳戶設定"
 
 #: templates/account_settings.html:16
 msgid "common.account_setting.cancel_setting_button"
@@ -172,11 +172,11 @@ msgstr "取消"
 
 #: templates/account_settings.html:19
 msgid "common.account_setting.save_request"
-msgstr "保存"
+msgstr "儲存"
 
 #: templates/account_settings.html:25
 msgid "account_setting.rate_of_notification"
-msgstr "通知频率（最大）"
+msgstr "通知頻率（最高）"
 
 #: templates/account_settings.html:29
 msgid "account_setting.to_send_notification_daily"
@@ -184,63 +184,63 @@ msgstr "每日"
 
 #: templates/account_settings.html:32
 msgid "account_setting.to_send_notification_weekly"
-msgstr "每周"
+msgstr "每週"
 
 #: templates/account_settings.html:35
 msgid "account_setting.never_send_notification"
-msgstr "从不"
+msgstr "從不"
 
 #: templates/account_settings.html:42
 msgid "account_setting.language_selection_title"
-msgstr "网站语言"
+msgstr "網站語言"
 
 #: templates/account_settings.html:46
 msgid "account_setting.language_english_option"
-msgstr "英语"
+msgstr "英語"
 
 #: templates/account_settings.html:49
 msgid "common.account_setting.language_tibetan_option"
-msgstr "藏"
+msgstr "藏文"
 
 #: templates/account_settings.html:56
 msgid "account_setting.user's_preferred_translation_language"
-msgstr "首选翻译语言"
+msgstr "首選翻譯語言"
 
 #: templates/account_settings.html:69
 msgid "account_setting.user's_reading_history"
-msgstr "阅读历史"
+msgstr "閱讀歷史"
 
 #: templates/account_settings.html:73
 msgid "account_setting.reading_history_enable"
-msgstr "在"
+msgstr "開啟"
 
 #: templates/account_settings.html:76
 msgid "account_setting.reading_history_disable"
-msgstr "离开"
+msgstr "關閉"
 
 #: templates/account_settings.html:84
 msgid "account_setting.login_account_email_message"
-msgstr "帐户电子邮件（用于登录）"
+msgstr "帳戶電子信箱（用於登入）"
 
 #: templates/account_settings.html:89
 msgid "account_setting.change_email_message"
-msgstr "更改电子邮件"
+msgstr "更改電子信箱"
 
 #: templates/account_settings.html:94
 msgid "account_setting.new_email"
-msgstr "新电子邮件"
+msgstr "新電子邮件"
 
 #: templates/account_settings.html:95
 msgid "account_setting.confirm_new_email"
-msgstr "确认新电子邮件"
+msgstr "確認新電子信箱"
 
 #: templates/account_settings.html:96
 msgid "common.account_setting.password"
-msgstr "密码"
+msgstr "密碼"
 
 #: templates/account_settings.html:98
 msgid "account_setting.update_email"
-msgstr "更新电子邮件"
+msgstr "更新電子信箱"
 
 #: templates/account_settings.html:105
 msgid "account_setting.google_account_message"
@@ -252,15 +252,15 @@ msgstr "断开"
 
 #: templates/account_settings.html:117
 msgid "account_setting.google_account_disconnected_message"
-msgstr "您的Google帐户已断开连接"
+msgstr "您的 Google 帳戶已斷開連接"
 
 #: templates/account_settings.html:120
 msgid "account_setting.export_sheet_message"
-msgstr "您可以在下次导出表格时链接到新的Google帐户"
+msgstr "您可以在下次匯出工作表時關聯到新的 Google 帳戶"
 
 #: templates/account_settings.html:125
 msgid "common.account_setting.save_setting_button"
-msgstr "节省"
+msgstr "儲存"
 
 #: templates/account_settings.html:128
 msgid "common.account_setting.cancel_request"
@@ -268,7 +268,7 @@ msgstr "取消"
 
 #: templates/activity.html:7 templates/activity.html:36
 msgid "activity.revision_history"
-msgstr "修订历史"
+msgstr "修訂歷史"
 
 #: templates/activity.html:9
 msgid "activity.pecha_activity_profile"
@@ -300,11 +300,11 @@ msgstr "最近关于Pecha的活动"
 
 #: templates/activity.html:52
 msgid "activity.all_activity_drop_down"
-msgstr "所有活动"
+msgstr "所有活動"
 
 #: templates/activity.html:53
 msgid "activity.translation_option"
-msgstr "翻译"
+msgstr "翻譯"
 
 #: templates/activity.html:54
 msgid "activity.source_sheets_option"
@@ -316,15 +316,15 @@ msgstr "新文字"
 
 #: templates/activity.html:56
 msgid "activity.edit_list_option"
-msgstr "编辑"
+msgstr "編輯"
 
 #: templates/activity.html:57
 msgid "activity.notes_option"
-msgstr "笔记"
+msgstr "筆記"
 
 #: templates/activity.html:58
 msgid "activity.reviews_option"
-msgstr "评论"
+msgstr "評論"
 
 #: templates/activity.html:59
 msgid "activity.text_info_option_option"
@@ -332,11 +332,11 @@ msgstr "文字信息"
 
 #: templates/activity.html:60
 msgid "activity.reversions_option"
-msgstr "恢复"
+msgstr "恢復"
 
 #: templates/activity.html:61
 msgid "activity.flagged_option"
-msgstr "标记"
+msgstr "標記"
 
 #: templates/delete-sheet.html:4
 msgid "admin.admin_delete_sheet"
@@ -376,7 +376,7 @@ msgstr "在Pecha上编辑您的个人资料"
 
 #: templates/edit_profile.html:13
 msgid "edit_profile.header"
-msgstr "编辑个人资料"
+msgstr "編輯個人資料"
 
 #: templates/edit_profile.html:17
 msgid "common.edit_profile.cancel_button"
@@ -384,7 +384,7 @@ msgstr "取消"
 
 #: templates/edit_profile.html:20
 msgid "common.edit_profile.save_button"
-msgstr "保存"
+msgstr "儲存"
 
 #: templates/edit_profile.html:27
 msgid "edit_profile.first_name"
@@ -396,19 +396,19 @@ msgstr "姓氏"
 
 #: templates/edit_profile.html:39
 msgid "edit_profile.title"
-msgstr "职称"
+msgstr "職稱"
 
 #: templates/edit_profile.html:45
 msgid "edit_profile.organization"
-msgstr "组织/机构"
+msgstr "組織/機構"
 
 #: templates/edit_profile.html:51
 msgid "edit_profile.website"
-msgstr "网站"
+msgstr "網站"
 
 #: templates/edit_profile.html:57
 msgid "edit_profile.location"
-msgstr "所在地 "
+msgstr "所在地"
 
 #: templates/edit_profile.html:63
 msgid "edit_profile.education_info"
@@ -416,7 +416,7 @@ msgstr "教育背景"
 
 #: templates/edit_profile.html:63
 msgid "edit_profile.education_info_detail"
-msgstr "在哪里学习"
+msgstr "在哪裡學習"
 
 #: templates/edit_profile.html:72
 msgid "edit_profile.line_add"
@@ -424,51 +424,51 @@ msgstr "添加一行"
 
 #: templates/edit_profile.html:77
 msgid "edit_profile.about_me"
-msgstr "关于我"
+msgstr "關於我"
 
 #: templates/edit_profile.html:87
 msgid "edit_profile.public_sheets"
-msgstr "公开表单"
+msgstr "公開表單"
 
 #: templates/edit_profile.html:91
 msgid "edit_profile.drag_sheet_message"
-msgstr "您可以拖动并排序想要置顶在个人资料顶部的源表单"
+msgstr "您可以拖曳並排序想要置頂在個人檔案頂端的來源表。"
 
 #: templates/edit_profile.html:95
 msgid "edit_profile.pinned_sheets"
-msgstr "置顶表单"
+msgstr "置頂表單"
 
 #: templates/edit_profile.html:105
 msgid "edit_profile.all_sheets"
-msgstr "所有表单"
+msgstr "所有表單"
 
 #: templates/edit_profile.html:119
 msgid "edit_profile.contact"
-msgstr "联系方式"
+msgstr "聯繫方式"
 
 #: templates/edit_profile.html:124
 msgid "edit_profile.email_privacy"
-msgstr "电子邮箱 (将公开显示 )"
+msgstr "電子信箱（將公開顯示）"
 
 #: templates/edit_profile.html:130
 msgid "edit_profile.profile_url"
-msgstr "个人资料链接"
+msgstr "個人資料連結"
 
 #: templates/edit_profile.html:136
 msgid "edit_profile.twitter_handle"
-msgstr "推特账号"
+msgstr "Twitter 帳號"
 
 #: templates/edit_profile.html:142
 msgid "edit_profile.linkedIn"
-msgstr "领英"
+msgstr "LinkedIn"
 
 #: templates/edit_profile.html:148
 msgid "edit_profile.facebook"
-msgstr "脸书"
+msgstr "Facebook"
 
 #: templates/edit_profile.html:154
 msgid "edit_profile.youtube_channel"
-msgstr "油管频道"
+msgstr "YouTube 頻道"
 
 #: templates/edit_term.html:39
 msgid "admin.terms_editor"
@@ -513,7 +513,7 @@ msgstr "要添加您的评论，"
 
 #: templates/edit_text.html:101
 msgid "edit_text_login"
-msgstr "登录"
+msgstr "登入"
 
 #: templates/edit_text.html:101
 msgid "edit_text_or"
@@ -532,11 +532,11 @@ msgid "edit_text.review_message"
 msgstr "写有用的评论"
 
 #: templates/edit_text.html:110
-msgid "edit_text_primary_text_historical_translation"
+msgid "edit_text.primary_text_historical_translation"
 msgstr "对于主要文本和历史翻译："
 
 #: templates/edit_text.html:110
-msgid "edit_text_primary_text_historical_trans_detail"
+msgid "edit_text.primary_text_historical_trans_detail"
 msgstr "指出使用了哪些外部来源（书籍，网页）来比较文本，或者清楚您的评论仅在查看存在的文字。"
 
 #: templates/edit_text.html:112
@@ -588,7 +588,7 @@ msgid "edit_text.found_serious_issues_need_address"
 msgstr "发现需要解决的严重问题。"
 
 #: templates/edit_text.html:142
-msgid "edit_text_ok_button"
+msgid "edit_text.ok_button"
 msgstr "好的"
 
 #: templates/edit_text.html:163
@@ -613,7 +613,7 @@ msgstr "正在加载..."
 
 #: templates/elements/login_prompt.html:6
 msgid "common.templates.elements.login_prompts.sign_up"
-msgstr "报名"
+msgstr "報名"
 
 #: templates/elements/login_prompt.html:8
 msgid "common.login_prompt_cancel"
@@ -697,11 +697,11 @@ msgstr "信息"
 
 #: templates/profile.html:77
 msgid "common.profile.follow"
-msgstr "跟随"
+msgstr "關注"
 
 #: templates/profile.html:78
 msgid "common.profile.following"
-msgstr "下列的"
+msgstr "關注中"
 
 #: templates/profile.html:79
 msgid "common.profile.unfollow"
@@ -709,7 +709,7 @@ msgstr "取消关注"
 
 #: templates/profile.html:84
 msgid "profile.edit_profile"
-msgstr "编辑个人资料"
+msgstr "編輯個人資料"
 
 #: templates/profile.html:99
 msgid "profile.source_sheet"
@@ -717,7 +717,7 @@ msgstr "源表"
 
 #: templates/profile.html:119
 msgid "profile_notes"
-msgstr "笔记"
+msgstr "筆記"
 
 #: templates/profile.html:126
 msgid "profile.activity"
@@ -756,7 +756,7 @@ msgstr "登录"
 
 #: templates/registration/login.html:4 templates/registration/login.html:29
 msgid "registration.login.login_in_to_pecha"
-msgstr "登录到 Pecha"
+msgstr "登錄到 Pecha"
 
 #: templates/registration/login.html:6
 msgid "registration.login.login_in_to_pecha_description"
@@ -764,11 +764,11 @@ msgstr "登录到您的PECHA帐户以制作源表，写笔记并关注其他Pech
 
 #: templates/registration/login.html:14
 msgid "registration.login.you_are_already_logged_in_as"
-msgstr "你已经以此电子邮箱登录:"
+msgstr "你已經以此電子郵箱登錄:"
 
 #: templates/registration/login.html:17
 msgid "common.registration.login.log_out"
-msgstr "退出登录"
+msgstr "退出登入"
 
 #: templates/registration/login.html:33
 msgid "registration.login.username_and_password_didn't_match_message"
@@ -776,15 +776,15 @@ msgstr "用户名和密码不匹配。请重试"
 
 #: templates/registration/login.html:50
 msgid "common.registration.login.log_in"
-msgstr "登录"
+msgstr "登入"
 
 #: templates/registration/login.html:53
 msgid "common.registration.login.forgot_your_password"
-msgstr "忘记密码?"
+msgstr "忘記密碼？"
 
 #: templates/registration/login.html:58
 msgid "common.registration.login.create_a_new_account"
-msgstr "创建新账号"
+msgstr "創建新帳號"
 
 #: templates/registration/password_reset_complete.html:3
 msgid "registration.password_reset_complete.password_reset"
@@ -803,7 +803,7 @@ msgstr "的中文翻译是： 您的新密码已保存。"
 
 #: templates/registration/password_reset_complete.html:13
 msgid "registration.password_reset_complete.back_to_login"
-msgstr "的中文翻译是：返回登录"
+msgstr "返回登入"
 
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_confirm.html:11
@@ -820,7 +820,7 @@ msgstr "密码重置链接已发送"
 
 #: templates/registration/password_reset_done.html:10
 msgid "registration.password_reset_done.messages"
-msgstr "已发送一封包含重置密码链接的电子邮件。"
+msgstr "已發送一封包含重置密碼連結的電子郵件。"
 
 #: templates/registration/password_reset_email.html:4
 msgid "registration.password_reset_email.password_reset_email_message"
@@ -844,7 +844,7 @@ msgstr "已经提出了重置密码的请求"
 #: templates/registration/password_reset_form.html:4
 #: templates/registration/password_reset_form.html:13
 msgid "registration.password_reset_form.forgot_your_password"
-msgstr "忘记密码"
+msgstr "忘記密碼"
 
 #: templates/registration/password_reset_form.html:6
 msgid ""
@@ -853,11 +853,11 @@ msgstr "如果您忘记了PECHA密码，请求更改您的PECHA密码。"
 
 #: templates/registration/password_reset_form.html:19
 msgid "registration.password_reset_form.send_reset_link"
-msgstr "发送重置链接"
+msgstr "發送重置連結"
 
 #: templates/registration/password_reset_form.html:23
 msgid "registration.password_reset_form.back_to_link"
-msgstr "返回登录"
+msgstr "返回登入"
 
 #: templates/registration/password_reset_subject.txt:2
 msgid "Pecha.org_Password_Reset"
@@ -877,20 +877,28 @@ msgstr "在Pecha上创建一个帐户，以制作源表，记笔记并关注其�
 
 #: templates/registration/register.html:13
 msgid "Sign_Up_Title"
-msgstr "注册"
+msgstr "註冊"
 
 #: templates/registration/register.html:46
 msgid "Sign_Up_Button"
-msgstr "注册"
+msgstr "註冊"
 
 #: templates/registration/register.html:50
 msgid "registration.register.login_if_already_have_an_account"
-msgstr "已有账号？登录"
+msgstr "已有帳號？登入"
 
 #: templates/static/he/about.html:4
 msgid "about.about_pecha"
-msgstr "关于Pecha"
+msgstr "關於Pecha"
 
 #: templates/static/he/about.html:6
 msgid "about.about_pecha_description"
 msgstr "Pecha是一个非营利组织，致力于以公开和参与的方式建立佛教学习的未来。"
+
+#: templates/static/he/about.html:6
+msgid "about.about_pecha_detail_description"
+msgstr "Pecha是專注於佛法數位傳承的非營利機構，我們以開放協作模式，共同打造佛法學習的全新未來。Pecha正在建構一個免費的佛教文典動態圖書館，整合藏文原典與多語言譯文，建立精確的文本關聯與標註系統。我們將古老智慧以現代科技重新詮釋，打造網頁版、平板與手機的跨平台的互動介面，透過數位化工具，讓更多人能接觸我們傳統中的經典寶藏。"
+
+#: templates/static/he/about.html:6
+msgid "about.about_pecha_title"
+msgstr "關於Pecha"
