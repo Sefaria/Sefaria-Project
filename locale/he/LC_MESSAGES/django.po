@@ -144,11 +144,11 @@ msgstr ""
 
 #: templates/404.html:11
 msgid "page_not_found_message"
-msgstr ""
+msgstr "དྲ་ཚིག་ཤོག་ངོས་རྙེད་མ་བྱུང།"
 
 #: templates/404.html:15
 msgid "link_not_working_message"
-msgstr ""
+msgstr "དྲ་ཚིག་ཁ་བྱང་འདི་རྙེད་ཀྱི་མིན་འདུག ཁྱེད་ཀྱིས་དཔེ་ཆ་དྲ་ཚིག་དོ་དོམ་པར་ཐད་ཀར་འགྲེལ་བ་གནང་རོགས།"
 
 #: templates/500.html:4 templates/500.html:10
 msgid "server_related_error_message"
