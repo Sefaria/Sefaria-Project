@@ -2,6 +2,7 @@ from django.db import models
 from django_topics.models import Topic
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
+from django.utils.timezone import localtime
 from datetime import datetime
 
 class SeasonalTopicManager(models.Manager):
@@ -12,7 +13,7 @@ class SeasonalTopicManager(models.Manager):
         @param date: datetime object
         @return:
         """
-        date = date or now().date()
+        date = date or localtime(now()).date()  # Ensure it's a date, not a datetime
         return (
             self.filter(start_date__lte=date, lang=lang)
             .order_by('-start_date')
