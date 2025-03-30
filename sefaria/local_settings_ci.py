@@ -227,4 +227,5 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-STAFF_PASSCODE = os.getenv("STAFF_PASSCODE")
+WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
+WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
