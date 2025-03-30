@@ -22,6 +22,10 @@ const createDisplayDateMessage = (displayDatePrefix, link, secondaryTopicTitleSt
     </>
   );
 };
+const createUTCDate = (dateString)=>{
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day)); // Month is 0-based
+}
 
 const useSeasonalTopic = () => {
   const [seasonal, setSeasonal] = useState(null);
@@ -36,8 +40,8 @@ const useSeasonalTopic = () => {
     title: seasonal.topic?.primaryTitle,
     description: seasonal.topic?.description,
     link: `/topics/${seasonal.topic?.slug}`,
-    displayStartDate: new Date(seasonal.display_start_date),
-    displayEndDate: new Date(seasonal.display_end_date),
+    displayStartDate: createUTCDate(seasonal.display_start_date),
+    displayEndDate: createUTCDate(seasonal.display_end_date),
     displayDatePrefix: seasonal.display_date_prefix || '',
     displayDateSuffix: seasonal.display_date_suffix || '',
     secondaryTopicTitle: seasonal.secondary_topic?.primaryTitle || null,
