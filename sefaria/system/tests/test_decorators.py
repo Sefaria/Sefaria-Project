@@ -4,12 +4,11 @@ import json
 
 import sefaria.system.decorators as d
 import sefaria.system.exceptions as e
-import base64
-import pytest
 from django.http import HttpResponse
 from django.test import RequestFactory
 from django.contrib.auth.models import AnonymousUser
 from sefaria.decorators import webhook_auth_or_staff_required
+from django.conf import settings
 
 @d.catch_error_as_json
 def call_user_error():
@@ -44,7 +43,7 @@ def test_pass_exception():
 ### Test Decorator for Webhook Auth ###
 
 # Constants for testing
-VALID_USERNAME = "webhookuser"
+VALID_USERNAME = "webhookuser1"
 VALID_PASSWORD = "supersecret"
 
 @pytest.fixture
@@ -52,15 +51,16 @@ def rf():
     return RequestFactory()
 
 @pytest.fixture(autouse=True)
-def patch_credentials(monkeypatch):
-    monkeypatch.setattr("sefaria.decorators.WEBHOOK_USERNAME", VALID_USERNAME)
-    monkeypatch.setattr("sefaria.decorators.WEBHOOK_PASSWORD", VALID_PASSWORD)
+def patch_credentials():
+    settings.WEBHOOK_USERNAME = VALID_USERNAME
+    settings.WEBHOOK_PASSWORD = VALID_PASSWORD
 
 def dummy_view(request, *args, **kwargs):
     return HttpResponse("Success")
 
 def get_basic_auth_header(username: str, password: str) -> dict:
     credentials = f"{username}:{password}"
+    # Encode credentials to base64, b64encode expects bytes so we encode the string first
     encoded = base64.b64encode(credentials.encode()).decode()
     return {"HTTP_AUTHORIZATION": f"Basic {encoded}"}
 
@@ -93,8 +93,7 @@ def test_missing_auth_header_anonymous_user(rf):
 
     wrapped = webhook_auth_or_staff_required(dummy_view)
     response = wrapped(request)
-    # Since staff_member_required redirects by default
-    assert response.status_code in [302, 401]  # Depending on login settings
+    assert response.status_code  == 302
 
 
 def test_valid_staff_user(rf, django_user_model):
@@ -115,4 +114,4 @@ def test_nonstaff_user_without_auth(rf, django_user_model):
 
     wrapped = webhook_auth_or_staff_required(dummy_view)
     response = wrapped(request)
-    assert response.status_code in [302, 401]
+    assert response.status_code == 302

@@ -1,9 +1,10 @@
 import base64
 from django.contrib.admin.views.decorators import staff_member_required
 from functools import wraps
-from sefaria.settings import WEBHOOK_USERNAME, WEBHOOK_PASSWORD
+from django.conf import settings
 
 from django.http import HttpResponse
+
 
 def webhook_auth_or_staff_required(view_func):
     @wraps(view_func)
@@ -20,7 +21,7 @@ def webhook_auth_or_staff_required(view_func):
         except Exception:
             return HttpResponse("Invalid Authorization header", status=401)
 
-        if username != WEBHOOK_USERNAME or password != WEBHOOK_PASSWORD:
+        if username != settings.WEBHOOK_USERNAME or password != settings.WEBHOOK_PASSWORD:
             return HttpResponse("Invalid credentials", status=401)
 
         return view_func(request, *args, **kwargs)
