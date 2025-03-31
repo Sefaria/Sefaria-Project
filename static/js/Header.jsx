@@ -81,12 +81,10 @@ const LoggedInDropdown = () => {
   }
 
   return (
-      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<ProfilePic
-          url={Sefaria.profile_pic_url}
-          name={Sefaria.full_name}
-          len={25}
-      />
-      }>
+      <DropdownMenu positioningClass="headerDropdownMenu" 
+                    buttonComponent={<ProfilePic url={Sefaria.profile_pic_url}
+                                                 name={Sefaria.full_name}
+                                                 len={25}/>}>
           <div className='dropdownLinks-options'>
               <DropdownMenuItem preventClose={true}>
                   <strong>{Sefaria.full_name}</strong>
@@ -185,7 +183,7 @@ class Header extends Component {
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
-          <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
+          <a href="/topics" className="textLink"><InterfaceText context="Header">Explore</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
@@ -358,7 +356,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText>Topics</InterfaceText>
+        <InterfaceText context="Header">Explore</InterfaceText>
       </a>
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />

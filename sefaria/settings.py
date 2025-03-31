@@ -95,6 +95,7 @@ TEMPLATES = [
                     "sefaria.system.context_processors.header_html",
                     "sefaria.system.context_processors.footer_html",
                     "sefaria.system.context_processors.base_props",
+                    "sefaria.system.context_processors.module_context",
             ],
             'loaders': [
                 #'django_mobile.loader.Loader',
@@ -113,6 +114,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
+    'sefaria.system.middleware.ModuleMiddleware',
     'sefaria.system.middleware.LocationSettingsMiddleware',
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
@@ -308,7 +310,8 @@ try:
         from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
-
+if os.getenv("COOLIFY"):
+    from sefaria.local_settings_coolify import *
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 WEBPACK_LOADER = {

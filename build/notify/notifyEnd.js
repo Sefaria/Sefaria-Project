@@ -74,7 +74,7 @@ const activeJobKeys = [];
 
     // conclusion will be: "success" or "failure"
     // Construct the slack message
-    const succeeded = x => x && x.conclusion === "success";
+    const succeeded = x => x && (x.conclusion === "success" || x.conclusion === "skipped");
 
     const badge = x => succeeded(x) ? ":large_green_circle:" : ":red_circle:";
     console.log(jobsResults);

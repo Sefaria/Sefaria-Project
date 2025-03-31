@@ -65,6 +65,7 @@ class TestMongoRecordModels(object):
         test_slug('blah/blah', 'blah-blah')
         test_slug('blah == בלה', 'blah-בלה')
 
+    @pytest.mark.django_db
     @pytest.mark.parametrize("sub", get_record_classes_with_slugs())
     def test_normalize_slug_field(self, sub):
         """
