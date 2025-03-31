@@ -3,6 +3,7 @@ import {TopicLandingCalendar} from "./TopicLandingCalendar";
 import {useState, useEffect} from "react";
 import Sefaria from "../sefaria/sefaria";
 import {InterfaceText} from "../Misc";
+import Util from '../sefaria/util';
 
 const createDisplayDateMessage = (displayDatePrefix, link, secondaryTopicTitleString, displayDateSuffix) => {
   return (
@@ -22,11 +23,6 @@ const createDisplayDateMessage = (displayDatePrefix, link, secondaryTopicTitleSt
     </>
   );
 };
-const createTimeZoneAgnosticDate = (dateString)=>{
-  if (!dateString) return null;
-  const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(Date.UTC(year, month - 1, day, 12)); // Use noon UTC to avoid time shifts (most time zones are 12 hours off from UTC)
-}
 
 const useSeasonalTopic = () => {
   const [seasonal, setSeasonal] = useState(null);
@@ -41,8 +37,8 @@ const useSeasonalTopic = () => {
     title: seasonal.topic?.primaryTitle,
     description: seasonal.topic?.description,
     link: `/topics/${seasonal.topic?.slug}`,
-    displayStartDate: createTimeZoneAgnosticDate(seasonal.display_start_date),
-    displayEndDate: createTimeZoneAgnosticDate(seasonal.display_end_date),
+    displayStartDate: Util.createTimeZoneAgnosticDate(seasonal.display_start_date),
+    displayEndDate: Util.createTimeZoneAgnosticDate(seasonal.display_end_date),
     displayDatePrefix: seasonal.display_date_prefix || '',
     displayDateSuffix: seasonal.display_date_suffix || '',
     secondaryTopicTitle: seasonal.secondary_topic?.primaryTitle || null,
