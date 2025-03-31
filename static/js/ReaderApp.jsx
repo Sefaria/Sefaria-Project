@@ -1155,7 +1155,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.openTopic(path.slice(8), params.get("tab"));
 
     } else if (path.match(/^\/sheets\/profile\/.+/)) {
-      this.openProfile(path.slice(16), params.get("tab"));
+      this.openProfile(path.replace("/sheets/profile/", ""), params.get("tab"));
 
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
       this.openCollection(path.slice(13), params.get("tag"));
