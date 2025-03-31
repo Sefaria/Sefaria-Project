@@ -1800,13 +1800,15 @@ div.interfaceLinks-row a {
   color: #666;
 }
 
-.navSidebarLink > ul {
+.navSidebarLink > ul, .sheetTopicsList > ul {
   font-size: 18px;
   margin-top: 16px;
   display: flex;
   flex-wrap:wrap;
   padding: 0;
-  margin: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  margin-bottom: 0;
 }
 .singlePanel .recentlyViewed .navSidebarLink {
   padding-inline-start: 25px;
@@ -1815,16 +1817,16 @@ div.interfaceLinks-row a {
 .multiPanel .recentlyViewed #history span::after {
   content: "\203A";
 }
-.navSidebarLink > ul > li {
+.navSidebarLink > ul > li, .sheetTopicsList > ul > li {
   display: inline;
 }
-.navSidebarLink > ul > li:after {
+.navSidebarLink > ul > li:after, .sheetTopicsList > ul > li:after {
   content: "\2022";
   white-space:pre;
   margin: 0 5px;
 }
 
-.navSidebarLink > ul > li:last-child:after {
+.navSidebarLink > ul > li:last-child:after, .sheetTopicsList > ul > li:last-child:after {
   content: none;
 }
 
@@ -9760,7 +9762,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   opacity: 0.6;
 }
 
-ul.sheetCollectionsLinks {
+.sheetCollectionsList ul {
   list-style-type: none;
   padding-inline-start: 0;
   --english-font: var(--english-sans-serif-font-family);
@@ -9769,11 +9771,11 @@ ul.sheetCollectionsLinks {
   font-weight: 400;
   line-height: 18.75px;
 }
-ul.sheetCollectionsLinks li {
+.sheetCollectionsList ul li {
   margin-block-end: 10px;
 }
 
-h3.sheetCollections {
+.sheetContentSidebar h3 {
   text-transform: none;
   color: var(--dark-grey);
   font-size: var(--sans-serif-h3-font-size);
