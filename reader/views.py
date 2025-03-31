@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 
 from django.utils.http import is_safe_url
+from django_topics.models import Topic as DjangoTopic
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
@@ -3102,9 +3103,10 @@ def topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
     }
+    desc = "Explore Jewish Texts by Topic on Sefaria" if request.active_module == "library" else "Explore Source Sheets by Topic on Sefaria"
     return render_template(request, 'base.html', props, {
         "title":          _("Topics") + " | " + _("Sefaria"),
-        "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
+        "desc":           _(desc),
     })
 
 
@@ -3112,39 +3114,45 @@ def topic_page_b(request, topic):
     return topic_page(request, topic, test_version="b")
 
 @sanitize_get_params
-def topic_page(request, topic, test_version=None):
+def topic_page(request, topic_slug, test_version=None):
     """
     Page of an individual Topic
     """
-    topic_obj = Topic.init(topic)
+    topic_slug = SluggedAbstractMongoRecord.normalize_slug(topic_slug)
+    topic_obj = Topic.init(topic_slug)
     if topic_obj is None:
-        # try to normalize
-        topic_obj = Topic.init(SluggedAbstractMongoRecord.normalize_slug(topic))
-        if topic_obj is None:
-            raise Http404
-        topic = topic_obj.slug
+        raise Http404
+    elif request.active_module not in DjangoTopic.objects.slug_to_pools[topic_slug]:
+        raise Http404
 
     props = {
         "initialMenu": "topics",
-        "initialTopic": topic,
+        "initialTopic": topic_slug,
         "initialTab": urllib.parse.unquote(request.GET.get('tab', 'notable-sources')),
         "initialTopicSort": urllib.parse.unquote(request.GET.get('sort', 'Relevance')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         },
-        "topicData": _topic_page_data(topic, request.interfaceLang),
+        "topicData": _topic_page_data(topic_slug, request.interfaceLang),
     }
 
     if test_version is not None:
         props["topicTestVersion"] = test_version
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
-    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+    title = desc = ""
+    if request.active_module == "library":
+        title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+    elif request.active_module == "sheets":
+        title = topic_obj.get_primary_title(short_lang) + " | " + _("Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Source Sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += " " + topic_desc
+
     return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
