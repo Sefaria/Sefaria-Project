@@ -215,9 +215,34 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 *** Components
 */
 
+const TopicNavBlock = ({topic, setTopic, setNavTopic}) => {
+  const { slug, children, description} = topic;
+  const openTopic = e => {
+    e.preventDefault();
+    children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
+  };
+  let {en, he} = topic;
+  en = en.replace(/^Parashat /, "");
+  he = he.replace(/^פרשת /, "");
+  return (
+      <div className="navBlock">
+        <a href={`/topics/${children ? 'category/' : ''}${slug}`}
+           data-anl-event="navto_topic:click"
+           data-anl-link_type={children ? "category" : "topic"}
+           data-anl-text={en}
+           className="navBlockTitle"
+           onClick={openTopic}>
+          <InterfaceText text={{en, he}} />
+        </a>
+        {!!description &&
+        <div className="navBlockDescription clamped">
+          <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['a']}/>
+        </div> }
+      </div>
+  );
+}
 
-
-const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth,
+const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
   openSearch}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
@@ -231,43 +256,14 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     }, [topic]);
 
     const shouldDisplay = (t) => {
-      const shouldDisplay = t => t.shouldDisplay !== false;
       const inActiveModule = t.pools.includes(Sefaria.activeModule);
-      return shouldDisplay && inActiveModule;
-    }
-
-    const topicNavBlock = (t, i) => {
-      const { slug, children, description} = t;
-      const openTopic = e => {
-        e.preventDefault();
-        t.children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
-      };
-      let {en, he} = t;
-      en = en.replace(/^Parashat /, "");
-      he = he.replace(/^פרשת /, "");
-      return (
-          <div className="navBlock">
-            <a href={`/topics/${children ? 'category/' : ''}${slug}`}
-               data-anl-event="navto_topic:click"
-               data-anl-link_type={children ? "category" : "topic"}
-               data-anl-text={en}
-               className="navBlockTitle"
-               onClick={openTopic}
-               key={i}>
-              <InterfaceText text={{en, he}} />
-            </a>
-            {!!description &&
-            <div className="navBlockDescription clamped">
-              <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['a']}/>
-            </div> }
-          </div>
-      );
+      return t.shouldDisplay !== false && inActiveModule;
     }
 
     let topicBlocks = subtopics
       .filter(shouldDisplay)
       .sort(Sefaria.sortTopicsCompareFn)
-      .map((t,i) => topicNavBlock(t,i));
+      .map((topic, i) => <TopicNavBlock topic={topic} setTopic={setTopic} setNavTopic={setNavTopic} key={i}/>);
 
     let sidebarModules = [
       {type: "AboutTopics"},
