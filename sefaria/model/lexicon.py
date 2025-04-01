@@ -375,6 +375,81 @@ class KovetzYesodotEntry(DictionaryEntry):
         return ['<br>'.join(strings)]
 
 
+class KrupnikEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+    optional_attrs = DictionaryEntry.optional_attrs + ['biblical', 'no_binyan_kal', 'emendation', 'used_in', 'equals', 'pos_list']
+
+    def format_pos(self, pos):
+        return f'<small>{pos}</small>'
+
+    def format_headword(self, hw, is_primary):
+        getter = lambda x, y: getattr(x, y, None) if is_primary else x.get(y)
+        hw_string = ''
+        attrs_to_funcs_map = {
+            'headword' if is_primary else 'word': lambda x: re.sub("[²³⁴]", "", x),
+            'biblical': lambda _: f'{hw_string}·–',
+            'no_binyan_kal': lambda _: f'({hw_string})',
+            'emendation': lambda x: f'{hw_string} [{x}]',
+            'used_in': lambda x: f'{hw_string}; {x}',
+            'equals': lambda x: f'{hw_string} = {x}',
+        }
+        for attr, func in attrs_to_funcs_map.items():
+            value = getter(hw, attr)
+            if value:
+                hw_string = func(value)
+        hw_string = f'<big><big>{hw_string}</big></big>'
+        pos_list = getter(hw, 'pos_list')
+        if pos_list:
+            pos_string = ' '.join([self.format_pos(pos) for pos in pos_list])
+            hw_string = f'{hw_string} {pos_string}'
+        return hw_string
+
+    def headword_string(self):
+        headwords = [self] + getattr(self, "alt_headwords", [])
+        formatted_headwords = [self.format_headword(hw, i == 0) for i, hw in enumerate(headwords)]
+        return ', '.join(formatted_headwords)
+
+    def get_alt_headwords(self):
+        alts = getattr(self, "alt_headwords", [])
+        return [a['word'] for a in alts]
+
+    def get_sense(self, sense):
+        number = sense.get('number')
+        if number:
+            number = f'{number}) '
+        pos = sense.get('pos')
+        if pos:
+            pos = self.format_pos(pos)
+        definition = sense.get('definition')
+        notes = sense.get('notes')
+        existing_parts = [part for part in [number, pos, definition, notes] if part]
+        return ' '.join(existing_parts)
+
+    def get_binyan(self, binyan):
+        text = ''
+        for part in binyan: # any part is a dict of one {key: value} dict
+            if 'senses' in part:
+                text += ' '.join([self.get_sense(sense) for sense in part['senses']])
+            elif 'pos' in part:
+                text += self.format_pos(part['pos'])
+            else:
+                text += next(iter(part.values()))
+            text += ' '
+        return text.strip()
+
+    def get_content(self):
+        content = self.content
+        if isinstance(content, str):
+            return self.content
+        elif 'binyans' in self.content:
+            return '<br>'.join([self.get_binyan(binyan) for binyan in self.content['binyans']])
+        else:
+            return '<br>'.join([self.get_sense(sense) for sense in self.content['senses']])
+
+    def as_strings(self, with_headword=True):
+        return [self.headword_string() + ' ' + self.get_content()]
+
+
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
         'BDB Augmented Strong': StrongsDictionaryEntry,
@@ -387,6 +462,7 @@ class LexiconEntrySubClassMapping(object):
         'BDB Dictionary': BDBEntry,
         'BDB Aramaic Dictionary': BDBEntry,
         'Kovetz Yesodot VaChakirot': KovetzYesodotEntry,
+        'Krupnik Dictionary': KrupnikEntry,
     }
 
     @classmethod
