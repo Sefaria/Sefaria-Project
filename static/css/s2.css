@@ -16466,6 +16466,153 @@ span.ref-link-color-3 {
     }
   }
 
+
+  /*progression page*/
+/* PlanProgression.css */
+
+.plan-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    text-align: center;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Back Link */
+  .back-link {
+    display: block;
+    text-align: left;
+    font-size: 14px;
+    color: #666;
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+  
+  .back-link:hover {
+    color: #C39F48;
+  }
+  
+  /* Header Image */
+  .header-image {
+    width: 100%;
+    height: 200px;
+    background: url('/static/img/plans/meditation.jpeg') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+    margin-bottom: 20px;
+  }
+  
+  /* Day Navigation */
+  .day-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .day-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    background: #f8f8f8;
+    color: #666;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+  
+  .day-dot.active {
+    background: #C39F48;
+    color: white;
+    border-color: #C39F48;
+  }
+  
+  .day-dot:hover:not(.active) {
+    background: rgba(195, 159, 72, 0.1);
+  }
+  
+  /* Day Content */
+  .day-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .day-text {
+    font-size: 16px;
+    line-height: 1.5;
+    color: #666;
+    padding: 0 10px;
+  }
+  
+  /* Navigation Buttons */
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .nav-button {
+    padding: 10px 16px;
+    font-size: 14px;
+    background: #C39F48;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .nav-button:hover:not(:disabled) {
+    background: #a3853b;
+  }
+  
+  .nav-button:disabled {
+    background: #ddd;
+    cursor: not-allowed;
+  }
+  
+  /* Mobile Responsiveness */
+  @media (max-width: 600px) {
+    .plan-container {
+      width: 90%;
+      padding: 15px;
+    }
+  
+    .header-image {
+      height: 150px;
+      font-size: 20px;
+    }
+  
+    .day-dot {
+      width: 30px;
+      height: 30px;
+      font-size: 14px;
+    }
+  
+    .day-text {
+      font-size: 14px;
+    }
+  
+    .nav-button {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+  }
+  
+  
+
 /* end of plans page css */
     
   

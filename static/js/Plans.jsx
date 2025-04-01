@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import classNames from 'classnames';
 import { InterfaceText } from './Misc';
 import PlanDetail from './PlanDetail';
+import PlanProgression from './PlanProgression';
 // import '../css/plans.css';
 
 // Mock data for now
@@ -219,7 +220,13 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                 render={() => <PlanDetail plans={plans} />}
               />
               {/* Placeholder route for progression page */}
-              <Route path="/:planId/progress" render={() => <div>Plan Progression Page (To be implemented)</div>} />
+              {/* Updated Plan Progression Route */}
+              <Route
+                path="/:planId/progress"
+                render={({ match }) => (
+                  <PlanProgression planId={match.params.planId} />
+                )}
+              />
               <Route path="/all" render={() => <div>All Plans Page (To be implemented)</div>} />
             </Switch>
           </div>
