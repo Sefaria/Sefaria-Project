@@ -15,7 +15,7 @@ const PlanDetail = ({ plans }) => {
   return (
     <div className="planDetail">
       <div className="planDetailBackLink">
-        <Link to="/plans" className="backLink">
+        <Link to="/" className="backLink">
           <span className="backArrow">←</span> Back to all plans
         </Link>
       </div>
