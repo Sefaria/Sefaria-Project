@@ -21,7 +21,11 @@ def redirect_to_original(request, code):
 def shorturl_api(request):
     # --------- POST ---------
     if request.method == 'POST':
-        json_data = json.loads(request.body)
+        try:
+            json_data = json.loads(request.body.decode('utf-8'))
+        except json.JSONDecodeError:
+            return jsonResponse({'error': 'Invalid JSON'}, status=400)
+        print("my data >>>>>>>>>>>>>>>>>>>>", json_data)
         if not json_data:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 

@@ -301,9 +301,6 @@ urlpatterns += [
     url(r'^api/portals/(?P<slug>.+)$', reader_views.portals_api),
 ]
 
-urlpatterns += [
-    url(r'^api/shorturl/(?P<ourl>.+)$', reader_views.shorturl_api),
-]
 
 # History API
 urlpatterns += [
