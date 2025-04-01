@@ -38,7 +38,7 @@ const PlanProgression = () => {
 
   return (
     <div className="plan-container">
-      <Link to={`/plans/${planId}`} className="back-link">← Back to plan</Link>
+      <Link to={`/${planId}`} className="back-link">← Back to plan</Link>
 
       {/* Header Image */}
       <div className="header-image">
