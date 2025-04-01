@@ -171,6 +171,13 @@ class Notification(abst.AbstractMongoRecord):
         "suspected_spam"
     ]
 
+    sheets_notification_types = [
+        "collection add",
+        "follow",
+        "sheet like",
+        "sheet publish"
+    ]
+
     def _init_defaults(self):
         self.read      = False
         self.read_via  = None
@@ -352,17 +359,16 @@ class NotificationSet(abst.AbstractMongoSet):
         self.__init__(query={"uid": uid, "read": False, "is_global": False, "suspected_spam": {'$in': [False, None]}})
         return self
 
-    def recent_for_user(self, uid, page=0, limit=10, module='library'):
+    def recent_for_user(self, uid, page=0, limit=10, scope='library'):
         """
         Loads recent notifications for uid.
         """
         self._add_global_messages(uid)
-        sheets_notification_types = ["collection add", "follow", "sheet like", "sheet publish"]
 
         query = {
             "uid": uid,
             "suspected_spam": {"$in": [False, None]},
-            "type": {"$in" if module == 'sheets' else "$nin": sheets_notification_types}
+            "type": {"$in" if scope == 'sheets' else "$nin": Notification.sheets_notification_types},
         }
 
         self.__init__(query=query, page=page, limit=limit)

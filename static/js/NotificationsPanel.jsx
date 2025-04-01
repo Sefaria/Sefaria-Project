@@ -53,9 +53,8 @@ class NotificationsPanel extends Component {
     }
   }
   getMoreNotifications() {
-    // TODO - make knowledge of sheets mode dynamic, for now hardcoded
-    const curModule = "sheets";
-    $.getJSON(`/api/notifications?page=${this.state.page}&module=${curModule}`, this.loadMoreNotifications);
+    const activeModule = Sefaria.activeModule;
+    $.getJSON(`/api/notifications?page=${this.state.page}&scope=${activeModule}`, this.loadMoreNotifications);
     this.setState({loading: true});
   }
   loadMoreNotifications(data) {
