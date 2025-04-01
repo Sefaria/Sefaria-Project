@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useParams, Link } from 'react-router-dom';
 import { InterfaceText } from './Misc';
-import '../css/plans.css';
+// import '../css/plans.css';
 
 const PlanDetail = ({ plans }) => {
   const { planId } = useParams(); // Get the planId from the URL

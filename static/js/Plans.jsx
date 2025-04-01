@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import classNames from 'classnames';
 import { InterfaceText } from './Misc';
 import PlanDetail from './PlanDetail';
-import '../css/plans.css';
+// import '../css/plans.css';
 
 // Mock data for now
 const MOCK_PLANS = [
