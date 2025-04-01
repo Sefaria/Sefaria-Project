@@ -183,6 +183,7 @@ INSTALLED_APPS = (
     'sourcesheets',
     'sefaria.gauth',
     'account',
+    'urlshort',
     'captcha',
     'django.contrib.admin',
     'anymail',

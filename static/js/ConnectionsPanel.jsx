@@ -48,6 +48,7 @@ class ConnectionsPanel extends Component {
     this._savedHistorySegments = new Set();
     this.state = {
       flashMessage: null,
+      shortUrl: null,
       currObjectVersions: { en: null, he: null },
       mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
       availableTranslations: [],
@@ -278,6 +279,9 @@ class ConnectionsPanel extends Component {
       });
     });
   }
+
+ 
+
   checkSrefs(srefs) {
     // Mostly exists for properly displaying Ranging refs in TextList on page loads and on sheets
     if (typeof (srefs) == "object" && srefs.length === 1) {
@@ -1367,6 +1371,7 @@ class ShareBox extends Component {
       const sheet = Sefaria.sheets.loadSheetByID(this.props.masterPanelSheetId);
       this.state = {
         sheet: sheet,
+        shortUrl : "",
         shareValue: sheet.options.collaboration ? sheet.options.collaboration : "none"
       }
     }
@@ -1390,9 +1395,39 @@ class ShareBox extends Component {
       })
     }
   }
+
+  componentDidMount() {
+    this.createShortUrl()
+  }
   focusInput() {
     $(ReactDOM.findDOMNode(this)).find("input").select();
   }
+
+  createShortUrl() {
+    const payload = {
+      json: {
+        original_url: this.props.url
+      }
+    };
+  
+    $.ajax({
+      url: "/shorturl/",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+      success: (data) => {
+        if (data.short_url) {
+          this.setState({ shortUrl: data.short_url });
+        } else {
+          console.log(data);
+        }
+      },
+      error: (xhr, status, err) => {
+        console.error('Error:', xhr.responseText);
+      }
+    });
+  }
+  
 
   postSheet(postJSON) {
     $.post("/api/sheets/", { "json": postJSON }, (data) => {
@@ -1404,6 +1439,8 @@ class ShareBox extends Component {
       }
     })
   }
+
+
   updateShareOptions(event) {
     this.setState({ shareValue: event.target.value });
   }
@@ -1441,7 +1478,7 @@ class ShareBox extends Component {
           <div className="shareInputBox">
 
             <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
-            <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
+            <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.state.shortUrl} />
           </div>
           {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
             <div className="shareSettingsBox">
