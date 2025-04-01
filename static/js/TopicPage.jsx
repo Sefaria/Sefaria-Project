@@ -722,7 +722,7 @@ const TopicPage = ({
     const handleLangSelectInterfaceChange = (selection) => {
       if (selection === "source") {setLangPref("hebrew")}
       else if (selection === "translation") {setLangPref("english")}
-      else setLangPref(null);
+      else setLangPref("bilingual");
     }
 
     const getCurrentLang = () => {
@@ -951,32 +951,11 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
     : null
   );
 
-
-  const LinkToSheetsSearchComponent = () => {
-
-    let searchUrlEn = `/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
-    let searchUrlHe = `/search?q=${topicTitle.he}&tab=sheet&tvar=1&tsort=relevance&stopics_heFilters=${topicTitle.he}&svar=1&ssort=relevance`;
-      return (
-        <TopicSideSection title={{ en: "Sheets", he: "דפי מקורות" }}>
-          <InterfaceText>
-            <EnglishText>
-              <a href={searchUrlEn}>Related Sheets</a>
-            </EnglishText>
-            <HebrewText>
-              <a href={searchUrlHe}>דפי מקורות קשורים</a>
-            </HebrewText>
-          </InterfaceText>
-        </TopicSideSection>
-      );
-    };
-
-
   return (
     <div className={"topicSideColumn"}>
-      { readingsComponent }
       { topicMetaData }
+      { readingsComponent }
       { linksComponent }
-      <LinkToSheetsSearchComponent/>
     </div>
   )
 }

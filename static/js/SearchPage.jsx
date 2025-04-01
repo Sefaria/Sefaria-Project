@@ -14,7 +14,6 @@ import {
   InterfaceText,
   LoadingMessage,
 } from './Misc';
-import Footer from "./Footer";
 
 class SearchPage extends Component {
   constructor(props) {
@@ -104,7 +103,6 @@ class SearchPage extends Component {
                   </div>
                   : null}
             </div>
-            {this.props.panelsOpen === 1 ? <Footer/> : null}
           </div>
         </div>
     );

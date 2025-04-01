@@ -37,11 +37,6 @@ class NotificationsPanel extends Component {
       this.getMoreNotifications();
     }
   }
-  markAllAsRead() {
-    $.post("/api/notifications/read", {notifications: "all"}, function(data) {
-      this.props.setUnreadNotificationsCount(data.unreadCount);
-    }.bind(this));
-  }
   markAsRead() {
     // Marks each notification that is loaded into the page as read via API call
     var ids = [];
@@ -87,13 +82,6 @@ class NotificationsPanel extends Component {
                     <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt="Notification icon"/>
                     <InterfaceText>Notifications</InterfaceText>
                   </h1>
-                  <>
-                    {Sefaria.notificationCount > 0 ? (
-                      <button className="button small white" onClick={this.markAllAsRead} aria-label="Mark all as Read">
-                        <InterfaceText en={"Mark all as Read"} he={"סימון כל ההודעות כהודעות שנקראו"} />
-                      </button>
-                    ) : null}
-                  </>
                 </div>
                 {!Sefaria._uid && <LoginPrompt fullPanel={true} />}
               </div>

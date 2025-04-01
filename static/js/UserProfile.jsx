@@ -267,7 +267,6 @@ class UserProfile extends Component {
               <div>
                 <ProfileSummary
                   profile={this.props.profile}
-                  follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
                   toggleSignUpModal={this.props.toggleSignUpModal}
@@ -281,15 +280,15 @@ class UserProfile extends Component {
                   renderTab={this.renderTab}
                   setTab={this.props.setTab}
                 >
-                 {this.props.profile && 
-                    <SheetsList profile={this.props.profile} 
+                 {this.props.profile &&
+                    <SheetsList profile={this.props.profile}
                                   handleSheetDelete={this.handleSheetDelete}
                                   handleCollectionsChange={this.handleCollectionsChange}
                                   toggleSignUpModal={this.props.toggleSignUpModal}/>}
 
-                  {this.props.profile && 
+                  {this.props.profile &&
                     <CollectionsList profile={this.props.profile} />}
-                  
+
                   <FilterableList
                     key="follower"
                     pageSize={1e6}
@@ -413,9 +412,10 @@ const CollectionsList = ({profile}) => {
 
 const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
-
- const text = <InterfaceText>{usesneweditor ? "You are currently testing the new Sefaria editor." : "You are currently using the old Sefaria editor."}</InterfaceText>;
- const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
+ const old_editor_msg = "You are currently using an outdated version of Sefaria's source sheet editor. This version will no longer be supported starting April 27, 2025. Start using the new editor now, or learn more about this important change.";
+ const new_editor_msg = "You are currently using the most up-to-date source sheet editor. Starting April 27, 2025, you will no longer be able to switch to an older version.";
+ const text = <InterfaceText>{usesneweditor ? new_editor_msg : old_editor_msg}</InterfaceText>;
+ const buttonText = <InterfaceText>{usesneweditor ? "Go Back to Old Version" : "Switch to New Editor"}</InterfaceText>;
 
  const sendFeedback = () => {
 
@@ -506,14 +506,15 @@ const EditorToggleHeader = ({usesneweditor}) => {
      setFeedbackHeaderState("enableOverlay")
    }
  }
- const buttonLink = (usesneweditor ? "/disable_new_editor" : "");
+ const learn_more_link = Sefaria._v({"en": "https://www.sefaria.org/sheets/621008", "he": "https://www.sefaria.org/sheets/621013"})
 
  return (
    <>
    <div className="editorToggleHeader sans-serif">{text}
      <a href="#" onClick={()=>toggleFeedbackOverlayState()} className="button white" role="button">{buttonText}</a>
+       <a href={learn_more_link} className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
    </div>
-   {feedbackHeaderState != "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
+   {feedbackHeaderState !== "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
    </>
  )
 }
@@ -524,9 +525,6 @@ const UserBackground = ({profile: p, showBio, multiPanel}) => {
     // if 'showBio', render p.bio; this property corresponds to "About me" in the profile edit view
     const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
     let infoList = [];
-    if (showBio && p.bio) {
-        infoList.push(p.bio);
-    }
     if (p.location) {
         infoList.push(p.location);
     }
@@ -545,6 +543,7 @@ const UserBackground = ({profile: p, showBio, multiPanel}) => {
       </span>
         );
     }
+    const aboutMe = <div className="title sub-title" dangerouslySetInnerHTML={{ __html: p.bio }}/>;
     const subTitle = <div className="title sub-title">
         <span>{p.position}</span>
         {p.position && p.organization ? <span>{Sefaria._(" at ")}</span> : null}
@@ -561,7 +560,8 @@ const UserBackground = ({profile: p, showBio, multiPanel}) => {
                                         }
                                     </div>;
 
-    return <>{(p.position || p.organization) && subTitle}
+    return <>{showBio && aboutMe}
+             {(p.position || p.organization) && subTitle}
              {infoList.length > 0 && multiPanel && infoListComponent}
            </>;
 }
@@ -613,7 +613,7 @@ const ProfileSummary = ({
             <span className="int-he">יצירת דף מקורות</span>
           </a>
       );
-  
+
   const tempCollectionButton = (
           <a href="/collections/new" className="resourcesLink sans-serif">
               <InterfaceText>Create Collection</InterfaceText>
@@ -644,7 +644,7 @@ const ProfileSummary = ({
               />
               {multiPanel && profileButtons}
             </div>
-            
+
         </div>
     );
 };
@@ -655,4 +655,5 @@ ProfileSummary.propTypes = {
     toggleSignUpModal: PropTypes.func.isRequired,
 };
 
-export {UserProfile, UserBackground};
+export { UserProfile, UserBackground };
+

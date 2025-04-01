@@ -3430,7 +3430,7 @@ form.globalUpdateForm + div.notificationsList {
 }
 #about.selected, #team.selected, #jobs.selected, #updates.selected, #testimonials.selected,
 #supporters.selected, #metrics.selected, #annualreport.selected, #terms.selected, 
-#privacy.selected, #products.selected {
+#privacy.selected, #products.selected, #ai.selected {
   background-color: var(--lighter-grey);
   color: var(--selected-option);
   border-radius: 6px;
