@@ -496,7 +496,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: refRenderWrapper,
     },
     {
-      key: 'admin',
+      key: 'Admin',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
@@ -504,7 +504,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: adminRefRenderWrapper,
     },
     {
-      key: 'notable-sources',
+      key: 'Notable Sources',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
@@ -512,7 +512,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: notableSourcesRefRenderWrapper,
     },
     {
-      key: 'sources',
+      key: 'Sources',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
@@ -520,7 +520,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: allSourcesRefRenderWrapper,
     },
     {
-      key: 'sheets',
+      key: 'Sheets',
       fetcher: fetchBulkSheet,
       sortOptions: ['Relevance', 'Views', 'Newest'],
       filterFunc: sheetFilter,
@@ -646,7 +646,7 @@ const TopicPage = ({
       if (topicData?.indexes?.length && !authorWorksAdded) {
         displayTabs.push({
           title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
-          id: 'author-works-on-sefaria',
+          id: 'Author Works on Sefaria',
         });
         authorWorksAdded = true
       }
@@ -658,7 +658,7 @@ const TopicPage = ({
         });
       }
     }
-    if (displayTabs.length && tab!="notable-sources" && tab!="author-works-on-sefaria") {
+    if (displayTabs.length && tab !== "Notable Sources" && tab !== "Author Works on Sefaria") {
       displayTabs.push({
         title: {
           en: "",
@@ -671,7 +671,7 @@ const TopicPage = ({
       onClickFilterIndex = displayTabs.length - 1;
     }
 
-    if (displayTabs.length && tab!="author-works-on-sefaria") {
+    if (displayTabs.length && tab != "Author Works on Sefaria" && Sefaria.activeModule == 'library') {
       displayTabs.push({
         title: {
           en: "A",
@@ -679,7 +679,7 @@ const TopicPage = ({
         },
         id: 'langToggle',
         popover: true,
-        justifyright: tab==="notable-sources"
+        justifyright: tab === "Notable Sources"
       });
       onClickLangToggleIndex = displayTabs.length - 1;
     }
@@ -765,39 +765,18 @@ const TopicPage = ({
                             [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
                           }}
                         >
-
-                        {topicData?.indexes?.length ? (
-                          <div className="authorIndexList">
-                            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
-                          </div>
-                          ) : null }
-
-                          {
-                            tabDisplayData.map(tabObj => {
-                              const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
-                              const displayTab = displayTabs.find(x => x.id === key);
-                              if (!displayTab) { return null; }
-                              return (
-                                <TopicPageTab
-                                  key={key}
-                                  scrollableElement={scrollableElement}
-                                  showFilterHeader={showFilterHeader}
-                                  data={loadedData[key]}
-                                  sortOptions={sortOptions}
-                                  filterFunc={filterFunc}
-                                  sortFunc={sortFunc}
-                                  onDisplayedDataChange={data => {
-                                    if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
-                                    topicData._refsDisplayedByTab[key] = data.length;
-                                  }}
-                                  initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-                                  renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
-                                  onSetTopicSort={onSetTopicSort}
-                                  topicSort={topicSort}
-                                />
-                              );
-                            })
-                          }
+                           <>
+                             <AuthorIndexItems topicData={topicData}/>
+                             <TopicPageTabs topicData={topicData}
+                                              tabDisplayData={tabDisplayData}
+                                              displayTabs={displayTabs}
+                                              scrollableElement={scrollableElement}
+                                              showFilterHeader={showFilterHeader}
+                                              loadedData={loadedData}
+                                              onSetTopicSort={onSetTopicSort}
+                                              langPref={langPref}
+                                              topicSort={topicSort}/>
+                           </>
                         </TabView>
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
@@ -820,6 +799,48 @@ TopicPage.propTypes = {
   topicTestVersion:    PropTypes.string
 };
 
+
+const AuthorIndexItems = ({topicData}) => {
+    if (topicData?.indexes?.length) {
+        return <div className="authorIndexList">
+                {topicData.indexes.map(({url, title, description}) => {
+                    return <AuthorIndexItem key={url} url={url} title={title} description={description}/>
+                })}
+              </div>
+    }
+    else {
+        return null;
+    }
+}
+
+const TopicPageTabs = ({topicData, tabDisplayData, displayTabs, scrollableElement, showFilterHeader,
+                              loadedData, onSetTopicSort, topicSort, toggleSignUpModal, langPref, topicTestVersion}) => {
+  const renderTopicPageTab = (tabObj) => {
+    const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
+    const displayTab = displayTabs.find(x => x.id === key);
+    if (!displayTab) { return null; }
+    return (
+      <TopicPageTab
+        key={key}
+        scrollableElement={scrollableElement}
+        showFilterHeader={showFilterHeader}
+        data={loadedData[key]}
+        sortOptions={sortOptions}
+        filterFunc={filterFunc}
+        sortFunc={sortFunc}
+        onDisplayedDataChange={data => {
+          if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
+          topicData._refsDisplayedByTab[key] = data.length;
+        }}
+        initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
+        renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
+        onSetTopicSort={onSetTopicSort}
+        topicSort={topicSort}
+      />
+    );
+  }
+  return tabDisplayData.map(tabObj => renderTopicPageTab(tabObj));
+}
 
 const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader,
