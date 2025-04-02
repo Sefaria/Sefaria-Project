@@ -5159,7 +5159,7 @@ class Library(object):
                 "en": topic.get_primary_title("en"),
                 "he": topic.get_primary_title("he"),
                 "displayOrder": getattr(topic, "displayOrder", 10000),
-                "pools": DjangoTopic.objects.slug_to_pools[topic.slug]
+                "pools": DjangoTopic.objects.slug_to_pools.get(topic.slug, [])
             }
 
             with_descriptions = True # TODO revisit for data size / performance
