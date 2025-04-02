@@ -1283,7 +1283,6 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
       let currentPath = Sefaria.util.currentPath();
       let nextParam = "?next=" + encodeURIComponent(currentPath);
       path += nextParam;
-      //console.log(path);
       Sefaria.track.event("Tools", "Edit Text Click", refString,
         { hitCallback: () => window.location = path }
       );
