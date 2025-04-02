@@ -12371,6 +12371,7 @@ span.purim-emoji img {
     margin-inline-end: 20px;
     background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
     background-color: var(--lighter-grey);
+    height: 45px;
 }
 
 .topicSearch.addInterfaceInput {
