@@ -310,7 +310,7 @@ class BookPage extends Component {
                   <Modules type={"AboutText"} props={{index: this.state.indexDetails, hideTitle: true}} />
                 </div>}
 
-               {!this.props.isNarrowColumn ? <TabView
+               <TabView
                 tabs={tabs}
                 currTabName={this.props.tab}
                 setTab={this.props.setTab}
@@ -330,7 +330,7 @@ class BookPage extends Component {
                     currentRef={this.props.currentRef}
                     viewExtendedNotes={this.props.viewExtendedNotes}
                   />
-                </TabView> : null}
+                </TabView>
 
 
               </div>
