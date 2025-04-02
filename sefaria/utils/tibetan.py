@@ -60,3 +60,24 @@ def has_tibetan(s):
 
 def is_all_tibetan(s):
     return any_tibetan.search(s) and not any_english.search(s)
+
+
+def convert_to_tibetan_numerals(text):
+    """Convert Arabic numerals to Tibetan numerals using regex"""
+    tibetan_numerals = {
+        '0': '༠',
+        '1': '༡', 
+        '2': '༢',
+        '3': '༣',
+        '4': '༤',
+        '5': '༥',
+        '6': '༦',
+        '7': '༧',
+        '8': '༨',
+        '9': '༩',
+        ':': '.',
+        '-': '-'
+    }
+    # Find all numeral patterns (including colon notation and ranges)
+    numeral_pattern = regex.compile(r'\d+(?::\d+)?(?:-\d+)?')
+    return numeral_pattern.sub(lambda match: ''.join(tibetan_numerals.get(char, char) for char in match.group()), text)
