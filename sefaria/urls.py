@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
+import urlshort.views as shorturl_views
 
 import reader.views as reader_views
 import sefaria.views as sefaria_views
@@ -15,6 +16,7 @@ import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 import api.views as api_views
+
 
 from sefaria.site.urls import site_urlpatterns
 
@@ -56,6 +58,13 @@ urlpatterns = [
     url(r'^modtools/index_links/(?P<tref1>.+)/(?P<tref2>.+)$', partial(sefaria_views.get_csv_links_by_refs_api, by_segment=True)),
     url(r'^pechatracker/?$', reader_views.user_stats),
 ] 
+
+
+# shorten url
+urlpatterns += [
+    url(r'^shorturl/(?P<code>.+)$', shorturl_views.redirect_to_original),  # for redirect
+    url(r'^shorturl/$', shorturl_views.shorturl_api),
+]
 
 # People Pages
 urlpatterns += [
@@ -291,6 +300,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/portals/(?P<slug>.+)$', reader_views.portals_api),
 ]
+
 
 # History API
 urlpatterns += [
