@@ -765,7 +765,9 @@ const TopicPage = ({
                             [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
                           }}
                         >
-                        <TopicTabViewChildren topicData={topicData}
+                           <>
+                             <AuthorIndexItems topicData={topicData}/>
+                             <TopicPageTabs topicData={topicData}
                                               tabDisplayData={tabDisplayData}
                                               displayTabs={displayTabs}
                                               scrollableElement={scrollableElement}
@@ -774,6 +776,7 @@ const TopicPage = ({
                                               onSetTopicSort={onSetTopicSort}
                                               langPref={langPref}
                                               topicSort={topicSort}/>
+                           </>
                         </TabView>
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
@@ -797,13 +800,21 @@ TopicPage.propTypes = {
 };
 
 
-const TopicTabViewChildren = ({topicData, tabDisplayData, displayTabs, scrollableElement, showFilterHeader,
+const AuthorIndexItems = ({topicData}) => {
+    if (topicData?.indexes?.length) {
+        return <div className="authorIndexList">
+                {topicData.indexes.map(({url, title, description}) => {
+                    return <AuthorIndexItem key={url} url={url} title={title} description={description}/>
+                })}
+              </div>
+    }
+    else {
+        return null;
+    }
+}
+
+const TopicPageTabs = ({topicData, tabDisplayData, displayTabs, scrollableElement, showFilterHeader,
                               loadedData, onSetTopicSort, topicSort, toggleSignUpModal, langPref, topicTestVersion}) => {
-  const authorIndexes = topicData?.indexes?.length && (
-                          <div className="authorIndexList">
-                            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
-                          </div>
-                          );
   const renderTopicPageTab = (tabObj) => {
     const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
     const displayTab = displayTabs.find(x => x.id === key);
@@ -828,13 +839,7 @@ const TopicTabViewChildren = ({topicData, tabDisplayData, displayTabs, scrollabl
       />
     );
   }
-  const topicPageTabs = tabDisplayData.map(tabObj => renderTopicPageTab(tabObj));
-  return (
-      <>
-      {authorIndexes}
-      {topicPageTabs}
-      </>
-  )
+  return tabDisplayData.map(tabObj => renderTopicPageTab(tabObj));
 }
 
 const TopicPageTab = ({
