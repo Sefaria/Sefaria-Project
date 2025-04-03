@@ -33,7 +33,6 @@ from django.urls.exceptions import Resolver404
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -758,11 +757,9 @@ def rebuild_citation_links(request, title):
     rebuild(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Rebuilt-on-%s" % title)
 
-@csrf_exempt
-@webhook_auth_or_staff_required
 def rebuild_shared_cache(request):
     regenerating = get_shared_cache_elem("regenerating")
-    status = "build in progress" if regenerating else "start rebuilding"
+    status = "rebuilding" if regenerating else "build in progress"
     if not regenerating:
         set_shared_cache_elem("regenerating", True)
         library.init_shared_cache(rebuild=True)
