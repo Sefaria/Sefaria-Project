@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 
-const ContentLanguageContext = React.createContext({
+const ReaderPanelContext = React.createContext({
   language: "english",
 });
-ContentLanguageContext.displayName = "ContentLanguageContext"; //This lets us see this name in the devtools
+ReaderPanelContext.displayName = "ContentLanguageContext"; //This lets us see this name in the devtools
 
 const AdContext = React.createContext({});
 AdContext.displayName = "AdContext";
@@ -75,6 +75,7 @@ function StrapiDataProvider({ children }) {
                 showToNonSustainers
                 showToReturningVisitors
                 showToSustainers
+                showTo
                 updatedAt
               }
             }
@@ -115,6 +116,7 @@ function StrapiDataProvider({ children }) {
                 showToNonSustainers
                 showToReturningVisitors
                 showToSustainers
+                showTo
                 updatedAt
               }
             }
@@ -163,6 +165,14 @@ function StrapiDataProvider({ children }) {
                 showTo
                 startTime
                 updatedAt
+                isNewsletterSubscriptionInputForm
+                newsletterMailingLists {
+                  data {
+                    attributes {
+                      newsletterName
+                    }
+                  }
+                }
               }
             }
           }
@@ -330,7 +340,7 @@ function StrapiDataProvider({ children }) {
 }
 
 export {
-  ContentLanguageContext,
+  ReaderPanelContext,
   AdContext,
   StrapiDataProvider,
   StrapiDataContext,

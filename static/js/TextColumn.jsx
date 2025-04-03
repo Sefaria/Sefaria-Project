@@ -78,8 +78,7 @@ class TextColumn extends Component {
       this.scrollToHighlighted();
 
     } else if ((this.props.settings.language !== prevProps.settings.language) ||
-        (prevProps.currVersions.en !== this.props.currVersions.en) ||
-        (prevProps.currVersions.he !== this.props.currVersions.he)) {
+        !Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions)) {
       // When the content the changes but we are anchored on a line, scroll to it
       // console.log("scroll to highlighted on text content change")
       this.scrollToHighlighted();
@@ -396,8 +395,7 @@ class TextColumn extends Component {
         unsetTextHighlight={this.props.unsetTextHighlight}
         navigatePanel={this.props.navigatePanel}
         translationLanguagePreference={this.props.translationLanguagePreference}
-        updateCurrVersionsToMatchAPIResult={this.props.updateCurrVersionsToMatchAPIResult}
-        key={sref} />);
+        key={sref || oref.sectionRef} />);
     });
 
     let pre, post, bookTitle;

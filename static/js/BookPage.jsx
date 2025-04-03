@@ -27,10 +27,12 @@ import Footer  from './Footer';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
-import {ContentLanguageContext} from './context';
+import {ReaderPanelContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
 
 import ReactTags from 'react-tag-autocomplete';
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
+import DropdownMenu from "./common/DropdownMenu";
 import Cookies from "js-cookie";
 
 
@@ -68,7 +70,7 @@ class BookPage extends Component {
   }
   getData() {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he});
+    return Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.currVersions.en?.versionTitle, heVersion: this.props.currVersions.he?.versionTitle});
   }
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed
@@ -90,7 +92,7 @@ class BookPage extends Component {
     let currObjectVersions = {en: null, he: null};
     for(let [lang,ver] of Object.entries(this.props.currVersions)){
       if(!!ver){
-        let fullVer = versions.find(version => version.versionTitle == ver && version.language == lang);
+        let fullVer = versions.find(version => version.versionTitle == ver.versionTitle && version.language == lang);
         currObjectVersions[lang] = fullVer ? fullVer : null;
       }
     }
@@ -132,17 +134,14 @@ class BookPage extends Component {
     currentVersion.merged = !!(currentVersion.sources);
     return currentVersion;
   }
-  openVersion(version, language) {
+  openVersion(version, language, versionLanguageFamily) {
     // Selects a version and closes this menu to show it.
     // Calling this functon wihtout parameters resets to default
-    this.props.selectVersion(version, language);
+    this.props.selectVersion(version, language, versionLanguageFamily);
     this.props.close();
   }
   isBookToc() {
     return (this.props.mode == "book toc")
-  }
-  isTextToc() {
-    return (this.props.mode == "text toc")
   }
   extendedNotesBack(event){
     return null;
@@ -169,7 +168,7 @@ class BookPage extends Component {
       catUrl  = "/texts/" + category;
     }
 
-    const readButton = !this.state.indexDetails || this.isTextToc() || this.props.compare ? null :
+    const readButton = !this.state.indexDetails || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ?
         <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
           <InterfaceText>Continue Reading</InterfaceText>
@@ -210,28 +209,21 @@ class BookPage extends Component {
     return (
       <div className={classes}>
         <CategoryColorLine category={category} />
-        {this.isTextToc() || this.props.compare ?
+        {this.props.compare ?
         <>
           <div className="readerControls">
             <div className="readerControlsInner">
               <div className="leftButtons">
-                {this.props.compare ?
                 <MenuButton onClick={this.props.onCompareBack} compare={true} />
-                : <CloseButton onClick={this.props.close} />}
               </div>
               <div className="readerTextToc readerTextTocHeader">
-                {this.props.compare ?
                 <div className="readerTextTocBox">
                   <InterfaceText>{title}</InterfaceText>
                 </div>
-                :
-                <div className="readerTextTocBox sans-serif">
-                  <InterfaceText>Table of Contents</InterfaceText>
-                </div>}
               </div>
               <div className="rightButtons">
                 {Sefaria.interfaceLang !== "hebrew" ?
-                  <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                  <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>
                   : <DisplaySettingsButton placeholder={true} />}
               </div>
             </div>
@@ -565,9 +557,30 @@ class SchemaNode extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // Collapse nodes below top level, and those that aren't default or makred includedSections
-      collapsed: "nodes" in props.schema && !(props.topLevel || props.disableSubCollapse) ? props.schema.nodes.map(node => !(node.default || node.includeSections)) : []
+      collapsed: this.getCollapsedState(this.props.schema, this.props.topLevel, this.props.disableSubCollapse)
     };
+  }
+  componentDidUpdate(prevProps) {
+    if (this.props.currentlyVisibleRef !== prevProps.currentlyVisibleRef) {
+      this.setState({collapsed: this.getCollapsedState(this.props.schema, this.props.topLevel, this.props.disableSubCollapse)});
+    }
+  }
+  shouldNodeCollapse(node) {
+    // Determine 'collapsed' state for node.
+    // A node should be collapsed if it is not the currently visible node and if it is not a default node.
+    const fullNodeRef = this.props.refPath + (node.default ? "" : `, ${node.title}`);
+    const currentlyVisible = Sefaria.refContains(fullNodeRef, this.props.currentlyVisibleRef);
+    return !currentlyVisible && !node.default && !node.includeSections;
+  }
+  getCollapsedState(schema, topLevel, disableSubCollapse) {
+    // Determine 'collapsed' state for each node in schema.
+    // If no children or topLevel, return [] which is equivalent to no nodes collapsed.
+    // Otherwise, return array of booleans based on call to `shouldNodeCollapse` for each node.
+    if (topLevel || disableSubCollapse || !("nodes" in schema)) {
+      return [];
+    } else {
+      return schema.nodes.map(this.shouldNodeCollapse);
+    }
   }
   toggleCollapse(i) {
     if(this.props.disableSubCollapse) return;
@@ -606,7 +619,7 @@ class SchemaNode extends Component {
     } else { //we do have subcontent
       let content = this.props.schema.nodes.map(function(node, i) {
         let path;
-        if (node.nodeType == "ArrayMapNode") {
+        if (node.nodeType === "ArrayMapNode") {
           //ArrayMapNode content
           path = this.props.refPath + ", " + node.title;
           return <ArrayMapNode schema={node} currentlyVisibleRef={this.props.currentlyVisibleRef}  currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={path}/>;
@@ -708,7 +721,8 @@ class JaggedArrayNode extends Component {
   render() {
     const offset = this.props.schema?.index_offsets_by_depth?.['1'] || 0;
     if ("toc_zoom" in this.props.schema) {
-      let zoom = this.props.schema.toc_zoom - 1;
+      const zoom = this.props.schema.toc_zoom - 1;
+      const currentZoomedOutRef = this.props.currentlyVisibleSectionRef && Sefaria.zoomOutRef(this.props.currentlyVisibleSectionRef, zoom);
       return (<JaggedArrayNodeSection
                 depth={this.props.schema.depth - zoom}
                 sectionNames={this.props.schema.sectionNames.slice(0, -zoom)}
@@ -716,7 +730,7 @@ class JaggedArrayNode extends Component {
                 contentCounts={this.props.schema.content_counts}
                 refPath={this.props.refPath}
                 currentlyVisibleRef={this.props.currentlyVisibleRef}
-                currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+                currentlyVisibleSectionRef={currentZoomedOutRef}
                 offset={offset}
               />);
     }
@@ -1219,8 +1233,8 @@ const EditTextInfo = function({initTitle, close}) {
   }
   const addAuthor = function (newAuthor) {
     const lowerCaseName = newAuthor.name.toLowerCase();
-    Sefaria._ApiPromise(Sefaria.apiHost + "/api/topic/completion/" + newAuthor.name).then(d => {
-      const matches = d[1].filter((t) => t.type === 'AuthorTopic');
+    Sefaria._ApiPromise(Sefaria.apiHost + "/api/name/" + newAuthor.name).then(d => {
+      const matches = d['completion_objects'].filter((t) => t.type === 'AuthorTopic');
       const exactMatch = matches.find((t) => t.title.toLowerCase() === lowerCaseName);
       if (!exactMatch) {
         const closestMatches = matches.map((t) => t.title);

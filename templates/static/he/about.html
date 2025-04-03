@@ -20,13 +20,11 @@
 {% block content %}
 <div class="superAbout">
     {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='about' title="What is Sefaria?" heTitle="מהי ספריא" %}
+        {% include '_sidebar.html' with whichPage='about' %}
     {% endif %}
     <main id="aboutPage" class="biReady container static sans-serif">
         <div class="inner">
-            {% if request.user_agent.is_mobile %}
-                <header><h1 class="mobileAboutHeader"><span class="int-he">מהי ספריא</span></h1></header>
-            {% endif %}
+                <header><h1 class="aboutHeader"><span class="int-he">מהי ספריא</span></h1></header>
             <section class="about section">
                 <p class="first">
                     <span class="int-he">אנו עַם הספר. במשך אלפי שנים מתקיימים התרבות, המסורת והערכים שלנו באמצעות הטקסטים שלנו.

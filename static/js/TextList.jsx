@@ -50,7 +50,7 @@ class TextList extends Component {
   }
   getSectionRef() {
     var ref = this.props.srefs[0]; // TODO account for selections spanning sections
-    var sectionRef = Sefaria.sectionRef(ref) || ref;
+    var sectionRef = Sefaria.sectionRef(ref, true) || ref;
     return sectionRef;
   }
   loadConnections() {
@@ -177,7 +177,7 @@ class TextList extends Component {
       }
     }.bind(this);
 
-    let sectionLinks = Sefaria.getLinksFromCache(sectionRef);
+    let sectionLinks = Sefaria.getLinksFromCacheAndPreprocess(sectionRef);
     sectionLinks.map(link => {
       if (!("anchorRefExpanded" in link)) { link.anchorRefExpanded = Sefaria.splitRangingRef(link.anchorRef); }
     });
@@ -274,7 +274,6 @@ TextList.propTypes = {
   onDataChange:            PropTypes.func,
   handleSheetClick:        PropTypes.func,
   openNav:                 PropTypes.func,
-  openDisplaySettings:     PropTypes.func,
   closePanel:              PropTypes.func,
   selectedWords:           PropTypes.string,
   checkVisibleSegments:    PropTypes.func.isRequired,

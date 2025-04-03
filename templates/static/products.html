@@ -18,11 +18,10 @@
 {% block content %}
 <div class="superAbout">
     {% if not request.user_agent.is_mobile %}
-      {% include '_sidebar.html' with whichPage='products' title="Products" heTitle="המוצרים של ספריא" %}
+      {% include '_sidebar.html' with whichPage='products' %}
     {% endif %}
     <main id="productsPage">
         <div id="productsPageContent">
-            <div id="appLoading">Loading...</div>
         </div>
     </main>
 </div>

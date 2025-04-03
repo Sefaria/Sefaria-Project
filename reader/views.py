@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
+
+from django.utils.http import is_safe_url
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
@@ -35,6 +37,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
+from sefaria.model.text_reuqest_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
@@ -51,7 +54,7 @@ from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -62,9 +65,9 @@ from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
-                                get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
-                                get_random_topic_source, edit_topic_source, \
-                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time
+    get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
+    get_random_topic_source, edit_topic_source, \
+    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -228,6 +231,7 @@ def base_props(request):
             "fontSize":          request.COOKIES.get("fontSize", 62.5),
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
+        "numLibraryTopics": get_num_library_topics(),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG
     })
@@ -250,6 +254,18 @@ def user_credentials(request):
         return {"user_type": "API", "user_id": apikey["uid"]}
 
 
+def _reader_redirect_add_languages(request, tref):
+    versions = Ref(tref).version_list()
+    query_params = QueryDict(mutable=True)
+    for vlang, direction in [('ven', 'ltr'), ('vhe', 'rtl')]:
+        version_title = request.GET.get(vlang)
+        if version_title:
+            version_title = version_title.replace('_', ' ')
+            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title))
+            query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+    return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
+
+
 @ensure_csrf_cookie
 def catchall(request, tref, sheet=None):
     """
@@ -264,6 +280,10 @@ def catchall(request, tref, sheet=None):
         params = request.GET.urlencode()
         response['Location'] += "?%s" % params if params else ""
         return response
+
+    for version in ['ven', 'vhe']:
+        if request.GET.get(version) and '|' not in request.GET.get(version):
+            return _reader_redirect_add_languages(request, tref)
 
     if sheet is None:
         try:
@@ -290,7 +310,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide")
     if filter[0] in sidebarModes:
         return filter[0], True
     elif filter[0].endswith(" ConnectionsList"):
@@ -300,7 +320,7 @@ def get_connections_mode(filter):
     else:
         return "TextList", False
 
-def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
+def make_panel_dict(oref, primaryVersion, translationVersion, filter, versionFilter, mode, **kwargs):
     """
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
@@ -308,15 +328,8 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
     if oref.is_book_level():
         index_details = library.get_index(oref.normal()).contents(with_content_counts=True)
         index_details["relatedTopics"] = get_topics_for_book(oref.normal(), annotate=True)
-        if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
-            currVersions = {"en": versionEn, "he": versionHe}
-            if versionEn is not None and versionHe is not None:
-                curr_lang = kwargs.get("panelDisplayLanguage", "en")
-                for key in list(currVersions.keys()):
-                    if key == curr_lang:
-                        continue
-                    else:
-                        currVersions[key] = None
+        if kwargs.get('extended notes', 0):
+            currVersions = {"en": translationVersion, "he": primaryVersion}
             panel = {
                 "menuOpen": "extended notes",
                 "mode": "Menu",
@@ -339,10 +352,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "mode": mode,
             "ref": oref.normal(),
             "refs": [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()],
-            "currVersions": {
-                "en": versionEn,
-                "he": versionHe,
-            },
+            "currVersions": {"en": translationVersion, "he": primaryVersion},
             "filter": filter,
             "versionFilter": versionFilter,
         }
@@ -373,15 +383,29 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         if settings_override:
             panel["settings"] = settings_override
         if mode != "Connections" and oref != None:
-            try:
-                text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
-                                  context=True, pad=True, alts=True, wrapLinks=False, translationLanguagePreference=kwargs.get("translationLanguagePreference", None)).contents()
-            except NoVersionFoundError:
-                text_family = {}
-            text_family["updateFromAPI"] = True
-            text_family["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-            panel["text"] = text_family
+            primary_params = [primaryVersion['languageFamilyName'], primaryVersion['versionTitle']]
+            primary_params[0] = primary_params[0] or 'primary'
+            translation_params = [translationVersion['languageFamilyName'], translationVersion['versionTitle']]
+            translation_params[0] = translation_params[0] or 'translation'
+            text_adapter = TextRequestAdapter(oref.section_ref(), [primary_params, translation_params], return_format='wrap_all_entities')
+            text = text_adapter.get_versions_for_query()
+            # text['ref'] = oref.normal()
+            #now we we should add the he and text attributes
+            if len(text['versions']) == 2:
+                if text['versions'][0]['isPrimary'] and not text['versions'][1]['isSource']:
+                    text['he'], text['text'] = text['versions'][0]['text'], text['versions'][1]['text']
+                else:
+                    text['he'], text['text'] = text['versions'][1]['text'], text['versions'][0]['text']
+            elif len(text['versions']) == 1:
+                if primary_params == translation_params:
+                    text['he'] = text['text'] = text['versions'][0]['text']
+                elif [text['versions'][0]['languageFamilyName'], text['versions'][0]['versionTitle']] == translation_params:
+                    text['text'], text['he'] = text['versions'][0]['text'], []
+                else:
+                    text['he'], text['text'] = text['versions'][0]['text'], []
+
+            text["updateFromAPI"] = True
+            panel["text"] = text
 
             if oref.index.categories == ["Tanakh", "Torah"]:
                 panel["indexDetails"] = oref.index.contents() # Included for Torah Parashah titles rendered in text
@@ -460,7 +484,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         return panels
 
 
-def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs):
+def make_panel_dicts(oref, primaryVersion, translationVersion, filter, versionFilter, multi_panel, **kwargs):
     """
     Returns an array of panel dictionaries.
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
@@ -468,15 +492,21 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_pa
     panels = []
     # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
     if filter is not None and multi_panel:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Connections", **kwargs)]
+        panels += [make_panel_dict(oref, primaryVersion, translationVersion, filter, versionFilter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, primaryVersion, translationVersion, filter, versionFilter, "Connections", **kwargs)]
     elif filter is not None and not multi_panel:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
+        panels += [make_panel_dict(oref, primaryVersion, translationVersion, filter, versionFilter, "TextAndConnections", **kwargs)]
     else:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, primaryVersion, translationVersion, filter, versionFilter, "Text", **kwargs)]
 
     return panels
 
+
+def _extract_version_params(request, key):
+    params = request.GET.get(key, '|')
+    params = params.replace("_", " ")
+    languageFamilyName, versionTitle = params.split('|')
+    return {'languageFamilyName': languageFamilyName, 'versionTitle': versionTitle}
 
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
@@ -495,12 +525,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     panels = []
     multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
     # Handle first panel which has a different signature in params
-    versionEn = request.GET.get("ven", None)
-    if versionEn:
-        versionEn = versionEn.replace("_", " ")
-    versionHe = request.GET.get("vhe", None)
-    if versionHe:
-        versionHe = versionHe.replace("_", " ")
+    primaryVersion = _extract_version_params(request, 'vhe')
+    translationVersion = _extract_version_params(request, 'ven')
 
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
@@ -509,13 +535,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     if sheet == None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
-
-        if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
-            raise Http404
-        if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
-            raise Http404
-        versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
-
         kwargs = {
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
@@ -534,7 +553,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
-        panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
+        panels += make_panel_dicts(oref, primaryVersion, translationVersion, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
         panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang",request.contentLang), "referer": request.path})
@@ -563,15 +582,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            versionEn  = request.GET.get("ven{}".format(i)).replace("_", " ") if request.GET.get("ven{}".format(i)) else None
-            versionHe  = request.GET.get("vhe{}".format(i)).replace("_", " ") if request.GET.get("vhe{}".format(i)) else None
-            if not versionEn and not versionHe:
-                # potential link using old version format
-                language = request.GET.get("l{}".format(i))
-                if language == "en":
-                    versionEn = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
-                else: # he
-                    versionHe = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
+            versionEn = _extract_version_params(request, f"ven{i}")
+            versionHe = _extract_version_params(request, f"vhe{i}")
             versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
@@ -587,13 +599,13 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             kwargs["sidebarSearchQuery"] = request.GET.get(f"sbsq{i}", None)
             kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
             kwargs["selectedNamedEntityText"] = request.GET.get(f"namedEntityText{i}", None)
-            if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
-                (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
+            if (versionEn['versionTitle'] and not Version().load({"versionTitle": versionEn['versionTitle'], "language": "en"})) or \
+                (versionHe['versionTitle'] and not Version().load({"versionTitle": versionHe['versionTitle'], "language": "he"})):
                 i += 1
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
+            panels += make_panel_dicts(oref, versionHe, versionEn, filter, versionFilter, multi_panel, **kwargs)
         i += 1
 
     props = {
@@ -792,9 +804,9 @@ def override_version_with_preference(oref, request, versionEn, versionHe):
         if Version().load({"versionTitle": vtitle, "language": lang, "title": oref.index.title}):
             # vpref exists and the version exists for this text
             if lang == "en" and not versionEn:
-                versionEn = vtitle
+                versionEn['versionTitle'] = vtitle
             elif lang == "he" and not versionHe:
-                versionHe = vtitle
+                versionHe['versionTitle'] = vtitle
     return versionEn, versionHe
 
 
@@ -1279,8 +1291,12 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
-    next = request.GET.get("next", "/")
-    next = "/" if next == "undefined" else next
+    next = request.GET.get("next")
+    if not next or not is_safe_url(
+        url=next,
+        allowed_hosts=set(ALLOWED_HOSTS)
+    ):
+        next = "/"
 
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
@@ -1617,7 +1633,37 @@ def parashat_hashavua_api(request):
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
+def find_holiday_in_hebcal_results(response):
+    for hebcal_holiday in json.loads(response.text)['items']:
+        if hebcal_holiday['category'] != 'holiday':
+            continue
+        for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
+            if result['type'] == 'Topic':
+                topic = Topic.init(result['key'])
+                if topic:
+                    return topic.contents()
+    return None
 
+@catch_error_as_json
+def next_holiday(request):
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    import requests
+    current_date = datetime.now().date()
+    date_in_three_months = current_date + relativedelta(months=+3)
+
+    # Format the date as YYYY-MM-DD
+    current_date = current_date.strftime('%Y-%m-%d')
+    date_in_three_months = date_in_three_months.strftime("%Y-%m-%d")
+    response = requests.get(f"https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&start={current_date}&end={date_in_three_months}")
+    if response.status_code == 200:
+        topic = find_holiday_in_hebcal_results(response)
+        if topic:
+            return jsonResponse(topic)
+        else:
+            return jsonResponse({"error": "Couldn't find any topics corresponding to HebCal results"})
+    else:
+        return jsonResponse({"error": "Couldn't establish connection with HebCal API"})
 @catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
@@ -1628,7 +1674,7 @@ def search_autocomplete_redirecter(request):
     query = request.GET.get("q", "")
     topic_override = query.startswith('#')
     query = query[1:] if topic_override else query
-    completions_dict = get_name_completions(query, 1, False, topic_override)
+    completions_dict = get_name_completions(query, 1, topic_override)
     ref = completions_dict['ref']
     object_data = completions_dict['object_data']
     if ref:
@@ -1646,7 +1692,7 @@ def search_autocomplete_redirecter(request):
 def opensearch_suggestions_api(request):
     # see here for docs: http://www.opensearch.org/Specifications/OpenSearch/Extensions/Suggestions/1.1
     query = request.GET.get("q", "")
-    completions_dict = get_name_completions(query, 5, False)
+    completions_dict = get_name_completions(query, 5)
     ret_data = [
         query,
         completions_dict["completions"]
@@ -2482,6 +2528,18 @@ def category_api(request, path=None):
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+@catch_error_as_json
+@csrf_exempt
+def parasha_data_api(request):
+    from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+    diaspora = request.GET.get("diaspora", "1")
+    datetime_obj = timezone.localtime(timezone.now())
+    if diaspora not in ["0", "1"]:
+        return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
+    else:
+        diaspora = True if diaspora == "1" else False
+        db_parasha = get_parasha(datetime_obj, diaspora=diaspora)
+        return jsonResponse(make_parashah_response_from_calendar_entry(db_parasha, include_topic_slug=True)[0])
 
 @catch_error_as_json
 @csrf_exempt
@@ -2591,9 +2649,19 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, ref_only, topic_override=False):
+def get_name_completions(name, limit, topic_override=False, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
+    """
+    Function to get completions (objects and titles) for a given name.
+    :param name: string to get completions for
+    :param limit: int number of items to return
+    :param topic_override: bool
+    :param type: string - get only completions of objects of this specific type
+    :param topic_pool: string - get completions of topic-objects of this specific topic pool
+    :param exact_continuations: bool - if ture get only completions of objects whose title contains an exact match to 'name'
+    :param order_by_matched_length: bool - if true return completion objects by ascending order of length - such that shorter titles whose greater part is a match to 'name' will appear first.
+    """
     lang = "he" if has_hebrew(name) else "en"
-    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
+    completer = library.full_auto_completer(lang)
     object_data = None
     ref = None
     topic = None
@@ -2617,7 +2685,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
             completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
         else:
-            completions, completion_objects = completer.complete(name, limit)
+            completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
             object_data = completer.get_object(name)
 
     except DictionaryEntryNotFoundError as e:
@@ -2627,7 +2695,7 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
         completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
     except InputError:  # Not a Ref
-        completions, completion_objects = completer.complete(name, limit)
+        completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
         object_data = completer.get_object(name)
 
     return {
@@ -2641,13 +2709,6 @@ def get_name_completions(name, limit, ref_only, topic_override=False):
 
 
 @catch_error_as_json
-def topic_completion_api(request, topic):
-    limit = int(request.GET.get("limit", 10))
-    result = library.topic_auto_completer().complete(topic, limit=limit)
-    return jsonResponse(result)
-
-
-@catch_error_as_json
 def name_api(request, name):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -2655,8 +2716,11 @@ def name_api(request, name):
     name = name[1:] if topic_override else name
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
-    ref_only = bool(int(request.GET.get("ref_only", False)))
-    completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override)
+    type = request.GET.get("type", None)
+    topic_pool = request.GET.get("topic_pool", None)
+    exact_continuations = bool(int(request.GET.get("exact_continuations", False)))
+    order_by_matched_length = bool(int(request.GET.get("order_by_matched_length", False)))
+    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
     d = {
@@ -3126,7 +3190,7 @@ def add_new_topic_api(request):
             t.image = data["image"]
 
         t.save()
-        library.build_topic_auto_completer()
+        library.build_full_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
         library.get_topic_toc_category_mapping(rebuild=True)
@@ -3143,7 +3207,7 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            library.build_topic_auto_completer()
+            library.build_full_auto_completer()
             library.get_topic_toc(rebuild=True)
             library.get_topic_toc_json(rebuild=True)
             library.get_topic_toc_category_mapping(rebuild=True)
@@ -3178,7 +3242,7 @@ def topics_api(request, topic, v2=False):
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
         topic = update_topic(topic, **topic_data)
         if author_status_changed:
-            library.build_topic_auto_completer()
+            library.build_full_auto_completer()
 
         def protected_index_post(request):
             return jsonResponse(topic.contents())
@@ -3214,6 +3278,36 @@ def topic_pool_api(request, pool_name):
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
+@catch_error_as_json
+def featured_topic_api(request):
+    from django_topics.models import TopicOfTheDay
+
+    lang = request.GET.get("lang")
+    featured_topic = TopicOfTheDay.objects.get_featured_topic(lang)
+    if not featured_topic:
+        return jsonResponse({'error': f'No featured topic found for lang "{lang}"'}, status=404)
+    mongo_topic = Topic.init(featured_topic.topic.slug)
+    response = {'topic': mongo_topic.contents(), 'date': featured_topic.start_date.isoformat()}
+    return jsonResponse(response)
+
+def trending_topics_api(request):
+    from sefaria.helper.topic import get_trending_topics
+    n = int(request.GET.get("n"))
+    pool_name = request.GET.get("pool", None)
+
+    trending_slugs = get_trending_topics(n * n)
+    #Bulk loading of topics (for better performance) then sorting them:
+    loaded_topics = TopicSet({"slug": {"$in": trending_slugs}}).array()
+    trending_order_map = {slug: index for index, slug in enumerate(trending_slugs)}
+    sorted_loaded_topics = sorted(loaded_topics, key=lambda x: trending_order_map.get(x.slug, float('inf')))
+    trending_topics = [
+        topic.contents()
+        for topic in sorted_loaded_topics
+        if topic and (not pool_name or pool_name in topic.get_pools())
+    ]
+    return jsonResponse(trending_topics[:n])
+
+
 @staff_member_required
 def reorder_topics(request):
     topics = json.loads(request.POST["json"]).get("topics", [])
@@ -3245,6 +3339,27 @@ def topic_ref_bulk_api(request):
         all_links_touched.append(ref_topic_dict)
     return jsonResponse(all_links_touched)
 
+@catch_error_as_json
+def seasonal_topic_api(request):
+    from django_topics.models import SeasonalTopic
+
+    lang = request.GET.get("lang")
+    cb = request.GET.get("callback", None)
+    diaspora = request.GET.get("diaspora", False)
+
+    stopic = SeasonalTopic.objects.get_seasonal_topic(lang)
+    if not stopic:
+        return jsonResponse({'error': f'No seasonal topic found for lang "{lang}"'}, status=404)
+    mongo_topic = Topic.init(stopic.topic.slug)
+    mongo_secondary_topic = Topic.init(stopic.secondary_topic.slug) if stopic.secondary_topic else None
+    response = {'topic': mongo_topic.contents(),
+                'secondary_topic': mongo_secondary_topic.contents() if mongo_secondary_topic else None,
+                'display_start_date': stopic.get_display_start_date(diaspora).isoformat() if mongo_secondary_topic else None,
+                'display_end_date': stopic.get_display_end_date(diaspora).isoformat() if mongo_secondary_topic else None,
+                'display_date_prefix': stopic.display_date_prefix,
+                'display_date_suffix': stopic.display_date_suffix,
+                }
+    return jsonResponse(response, callback=cb)
 
 
 @catch_error_as_json
@@ -4038,14 +4153,12 @@ def digitized_by_sefaria(request):
         "texts": texts,
     })
 
-
 def parashat_hashavua_redirect(request):
     """ Redirects to this week's Parashah"""
     diaspora = request.GET.get("diaspora", "1")
     calendars = get_keyed_calendar_items()  # TODO Support israel / customs
     parashah = calendars["Parashat Hashavua"]
     return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
-
 
 def daf_yomi_redirect(request):
     """ Redirects to today's Daf Yomi"""
