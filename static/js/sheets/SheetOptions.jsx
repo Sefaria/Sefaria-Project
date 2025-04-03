@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   DropdownMenu,
-  DropdownMenuItem,
   DropdownMenuItemWithCallback,
   DropdownMenuItemWithIcon
 } from "../common/DropdownMenu";
