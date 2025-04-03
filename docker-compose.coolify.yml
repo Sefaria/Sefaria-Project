@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: dev_docker/Dockerfile
+    ports:
+      - "0.0.0.0::8000"
     networks:
       - default
     command: >
