@@ -292,6 +292,15 @@ Sefaria = extend(Sefaria, {
     return oref ? oref.sectionRef : null;
 
   },
+  zoomOutRef: function(ref, zoom=1) {
+    // go up `zoom` levels in the ref's sections and toSections
+    // for example, if ref == "Ramban on Genesis, Introduction 2" and zoom == 1, this returns "Ramabn on Genesis, Introduction"
+    // if ref == "Ramban on Genesis, Introduction 2" and zoom == 2, this returns "Ramban on Genesis, Introduction" because we're only zooming out on the ref's sections/toSections
+    const pRef = Sefaria.util.clone(Sefaria.parseRef(ref));
+    pRef.sections = pRef.sections.slice(0, -zoom);
+    pRef.toSections = pRef.toSections.slice(0, -zoom);
+    return Sefaria.makeRef(pRef);
+  },
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
       return ref.split("-");
@@ -2570,14 +2579,24 @@ _media: {},
     return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
   },
   areVersionsEqual(savedVersion, currVersion) {
-    const checkEquality = (key) => {
-      //This is temporary for RTL - we check savedVersion?.[key] for old data and savedVersion?.[key]?.versionTitle for new data
-      //also we currently don't check the languageFamilyName to fit old data
-      const savedVersionTitle = savedVersion?.[key]?.versionTitle ?? savedVersion?.[key] ?? '';
-      const currVersionTitle = currVersion?.[key]?.versionTitle ?? currVersion?.[key] ?? '';
-      return savedVersionTitle === currVersionTitle;
+    // Determines if two versions are equal, but we don't know what format the data is in so consider both old and new format.
+    // New format is an object with two props: 'versionTitle' and 'languageFamilyName', while old format is a string.
+    const checkEquality = (lang, prop) => {
+      const propValues = [savedVersion, currVersion].map(version => {
+        version = version?.[lang];
+        const propValue = typeof version === 'string' ? version : version?.[prop];
+        return propValue ?? "";
+      });
+      return propValues[0] === propValues[1];
     }
-    return checkEquality("en") && checkEquality("he");
+    for (const prop of ["versionTitle", "languageFamilyName"]) {
+      for (const lang of ["he", "en"]) {
+        if (!checkEquality(lang, prop)) {
+          return false;
+        }
+      }
+    }
+    return true;
   },
   getSavedItem: ({ ref, versions }) => {
     return Sefaria.saved.items.find(s => s.ref === ref && Sefaria.areVersionsEqual(s.versions, versions));
@@ -3015,7 +3034,7 @@ _media: {},
     a[c.slug] = {en: c.en, he: c.he};
 
     for (let sub_c of c.children) {
-      Sefaria._initTopicTocCategoryReducer(a, sub_c);
+      Sefaria._initTopicTocCategoryTitlesReducer(a, sub_c);
     }
     return a;
   },

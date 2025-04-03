@@ -34,6 +34,7 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
+import { TopicsLaunchBanner } from './TopicsLaunchBanner';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
@@ -2258,7 +2259,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
             <InterruptingMessage />
-            <Banner onClose={this.setContainerMode} />
+            <TopicsLaunchBanner onClose={this.setContainerMode} />
+            {/*<Banner onClose={this.setContainerMode} />*/}
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {panels}
