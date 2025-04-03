@@ -8,13 +8,6 @@ class Plugin(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     image = GCSImageField(blank=True, null=True)
 
-    # on create, generate a secret
-    def save(self, *args, **kwargs):
-        if not self.secret:
-            self.secret = self._generate_secret()
-
-        super(Plugin, self).save(*args, **kwargs)
-
     def to_dict(self):
         return {
             "id": self.id,
