@@ -3,7 +3,12 @@ from sefaria.model.text_reuqest_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
 from django.views import View
 from .api_warnings import *
+from sefaria.model.plan import Plan, PlanSet
+from bson import ObjectId
+import logging
+import re
 
+logger = logging.getLogger(__name__)
 
 class Text(View):
 
@@ -56,3 +61,53 @@ class Text(View):
         data = text_manager.get_versions_for_query()
         data = self._handle_warnings(data)
         return jsonResponse(data)
+
+class PlanView(View):
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            if 'uuid' in kwargs:
+                object_id = ObjectId(kwargs['uuid'])
+                self.plan = Plan().load({"_id": object_id})
+                if not self.plan:
+                    return jsonResponse({'error': 'Plan not found'}, status=404)
+            return super().dispatch(request, *args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error in dispatch: {str(e)}")
+            return jsonResponse({'error': str(e)}, status=500)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            # Get specific plan day content
+            if hasattr(self, 'plan') and 'day' in kwargs:
+                day_number = int(kwargs['day'])
+                day_key = f"day {day_number}"
+                
+                if day_key in self.plan.content:
+                    return jsonResponse({
+                        "day": day_number,
+                        "content": self.plan.content[day_key],
+                        "title": self.plan.title
+                    })
+                else:
+                    return jsonResponse({
+                        'error': f'Day {day_number} not found for this plan',
+                        'total_days': self.plan.total_days
+                    }, status=404)
+            
+            # Get specific plan details
+            if hasattr(self, 'plan'):
+                return jsonResponse(self.plan.contents())
+            
+            # List all plans with optional filters
+            query = {}
+            if 'category' in request.GET:
+                query['categories'] = request.GET['category']
+            
+            plans = PlanSet(query)
+            return jsonResponse({
+                "plans": plans.contents()
+            })
+
+        except Exception as e:
+            logger.error(f"Error in get: {str(e)}")
+            return jsonResponse({'error': str(e)}, status=500)

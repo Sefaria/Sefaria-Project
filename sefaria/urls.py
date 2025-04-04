@@ -484,6 +484,13 @@ urlpatterns += [
     url(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
 ]
 
+# Plans API
+urlpatterns += [
+    url(r'^api/plans$', api_views.PlanView.as_view(), name='plan_list'),
+    url(r'^api/plans/(?P<uuid>[0-9a-fA-F]{24})$', api_views.PlanView.as_view(), name='plan_detail'),
+    url(r'^api/plans/(?P<uuid>[0-9a-fA-F]{24})/day_(?P<day>\d+)$', api_views.PlanView.as_view(), name='plan_day'),
+]
+
 if DOWN_FOR_MAINTENANCE:
     # Keep admin accessible
     urlpatterns = [
