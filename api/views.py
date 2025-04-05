@@ -80,14 +80,18 @@ class PlanView(View):
             # Get specific plan day content
             if hasattr(self, 'plan') and 'day' in kwargs:
                 day_number = int(kwargs['day'])
-                day_key = f"day {day_number}"
+                sheet_content = self.plan.get_day_content(day_number)
                 
-                if day_key in self.plan.content:
-                    return jsonResponse({
+                if sheet_content:
+                    response = {
                         "day": day_number,
-                        "content": self.plan.content[day_key],
-                        "title": self.plan.title
-                    })
+                        "title": self.plan.title,
+                        "content": sheet_content
+                    }
+                    # For "Mindful Healing After Loss" plan, we return the full sheet data
+                    if self.plan.title == "Mindful Healing After Loss":
+                        response["sheet_id"] = self.plan.content.get(f"day {day_number}")
+                    return jsonResponse(response)
                 else:
                     return jsonResponse({
                         'error': f'Day {day_number} not found for this plan',

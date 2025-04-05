@@ -210,7 +210,6 @@ class Util {
         const initialOffset = 30600; // 510 minutes in seconds
         if (duration >= initialOffset) {
             duration = duration - initialOffset + 60; // Subtract offset, start at 1 minute
-            console.log("Adjusted duration by removing 510-minute offset, starting at 1 minute");
         }
     
         // Ensure duration doesn’t go below 60 seconds (1 minute)
@@ -218,7 +217,6 @@ class Util {
             duration = 60;
         }
     
-        console.log("final duration (seconds):", duration);
     
         let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
         let spacer = " ";
