@@ -226,3 +226,6 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
+
+WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
+WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")

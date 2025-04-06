@@ -99,6 +99,8 @@
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
     <!-- Specific styling to correct behavior of Unbounce banners -->
     <link rel="stylesheet" href="{%  static 'css/unbounce-banner.css' %}">
+    <!-- Styling for temporary Topics Launch banner -->
+    <link rel="stylesheet" href="{% static 'css/topics-launch-banner.css' %}" />
 
     {% block static_css %}
     {% if not html %}
@@ -260,11 +262,12 @@
             gtag('js', new Date());
             gtag('config', '{{ GOOGLE_GTAG }}', {
               'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null,
-              'traffic_type': DJANGO_VARS.props && DJANGO_VARS.props._email.includes('sefaria.org') ? 'sefariaemail' : null
+              'traffic_type': DJANGO_VARS.props && DJANGO_VARS.props._email.includes('sefaria.org') ? 'sefariaemail' : null,
+              'site_lang': '{{ request.interfaceLang }}',
             });
 
             <!-- attach analyticsEventTracker -->
-            AnalyticsEventTracker.attach("#s2, #staticContentWrapper", ['click', 'scrollIntoView', 'toggle', 'mouseover', 'input']);
+            AnalyticsEventTracker.attach("#s2, #staticContentWrapper", ['click', 'scrollIntoView', 'toggle', 'mouseover', 'input', 'inputStart']);
           </script>
       <!-- End Google tag -->
     {% endif %}
