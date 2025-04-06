@@ -809,6 +809,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     const editor = useSlate();
     const [inputValue, setInputValue] = useState("");
     const [displayValue, setDisplayValue] = useState(""); // Truncated value for display
+    const [fullValue, setFullValue] = useState(""); // Full value for storage
     const [showAddMediaButton, setShowAddMediaButton] = useState(false);
 
     const truncateText = (text) => {
@@ -879,9 +880,10 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         Transforms.move(editor);
     }
 
-    const getSuggestions = async (input) => {
+    const getSuggestions = async (input, fullvalue) => {
         let results = {
             "previewText": null,
+            "fullText": null,
             "helperPromptText": null,
             "currentSuggestions": null,
             "showAddButton": false
@@ -889,26 +891,33 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         setInputValue(input);
         const truncatedInput = truncateText(input);
         setDisplayValue(truncatedInput);
+
         if (input === "") {
+            setFullValue("");
             return results;
+        } else {
+            setFullValue(fullvalue);
         }
-        const d = await Sefaria.getName(input, true, 5);
+
+        const nameInput = fullvalue !== "" ? fullvalue : input;
+        const d = await Sefaria.getName(nameInput, true, 5);
         if (d.is_section || d.is_segment) {
             // Truncate the input if longer than 50 characters
             let previewText = input;
             if (input.length > 50) {
-                previewText = truncateText(input);
-                console.log("getSuggestions - Truncated input for previewText:", previewText);
+                previewText = truncateText(input)
             }
+            
             results.helperPromptText = null;
             results.currentSuggestions = null;
+            results.fullText = fullvalue;
             results.previewText = previewText; // Assign the truncated or original value
-            console.log("getSuggestions - preview_text:", results.previewText); // Log the final previewText
             results.showAddButton = true;
             return results;
         } else {
             results.showAddButton = false;
             results.previewText = null;
+            results.fullText = null;
         }
     
         // We want to show address completions when book exists but not once we start typing further
@@ -923,13 +932,14 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 name: suggestion.title,
                 key: suggestion.key,
                 border_color: Sefaria.palette.refColor(suggestion.key),
-                displayText: truncateText(suggestion.title) // Truncate suggestion display text
+                displayText: truncateText(suggestion.title),// Truncate suggestion display text
+                fullText: suggestion.title
             }));
         return results;
     };
 
     const selectedCallback = () => {
-          insertSource(editor, inputValue)
+          insertSource(editor, fullValue)
     }
 
 
@@ -958,11 +968,11 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 selectedCallback={selectedCallback}
                 getSuggestions={getSuggestions}
                 inputValue={displayValue} // Use truncated value for display
+                fullText={fullValue}
                 changeInputValue={(value) => {
                     setInputValue(value); // Store the full value
                     const truncatedValue = truncateText(value);
                     setDisplayValue(truncatedValue); // Always display truncated value
-                    console.log("Autocompleter - Input value changed:", value);
                 }}
                 inputPlaceholder={Sefaria._('sheet.editor.source.input_field.placeholder')}
                 buttonTitle="Add Source"
