@@ -813,9 +813,24 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     const [showAddMediaButton, setShowAddMediaButton] = useState(false);
 
     const truncateText = (text) => {
-        if (text.length > 50) {
-            return `${text.slice(0, 20)}.............${text.slice(-30)}`;
+        // Check if text is in Tibetan script (contains Tibetan characters)
+        const isTibetan = /[\u0F00-\u0FFF]/.test(text);
+        
+        // Split by appropriate separator: Tibetan tsheg or space for English
+        const separator = isTibetan ? "་" : " ";
+        const syllables = text.split(separator);
+        
+        // If the text has more than 10 syllables, truncate it
+        if (syllables.length > 10) {
+            const firstPart = syllables.slice(0, 3).join(separator);
+            const lastPart = syllables.slice(-4).join(separator);
+            
+            // Add the separator at the end of firstPart if it's Tibetan and doesn't already end with tsheg
+            const firstPartWithSep = isTibetan && !firstPart.endsWith("་") ? `${firstPart}་` : firstPart;
+            
+            return `${firstPartWithSep}...${lastPart}`;
         }
+        
         return text;
     };
 
