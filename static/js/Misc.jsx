@@ -3372,11 +3372,24 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   }
 
   const handleNumericInput = (input, fullvalue) => {
-    // Match number at the end of the string (e.g., 1, 1.2, 1.2.3, 1:2)
-    const match = input.match(/(\d+(?:[.:]\d+)*$)/);
-    const fullmatch = fullvalue.match(/(\d+(?:[.:]\d+)*$)/);
+    // Match number at the end of the string (both Arabic and Tibetan numerals)
+    // For Arabic: 1, 1.2, 1.2.3, 1:2
+    // For Tibetan: ༠, ༠༡, ༠༡.༠༢, etc.
+    const tibetanNumerals = '༠༡༢༣༤༥༦༧༨༩';
+    const arabicRegex = /(\d+(?:[.:,]\d+)*$)/;
+    const tibetanRegex = new RegExp(`([${tibetanNumerals}]+(?:[.:,]?[${tibetanNumerals}]+)*$)`);
+    
+    const arabicMatch = input.match(arabicRegex);
+    const tibetanMatch = input.match(tibetanRegex);
+    const match = arabicMatch || tibetanMatch;
+    
+    const arabicFullMatch = fullvalue.match(arabicRegex);
+    const tibetanFullMatch = fullvalue.match(tibetanRegex);
+    const fullmatch = arabicFullMatch || tibetanFullMatch;
+    
     let updatedFullValue = fullvalue;
-    // If fullvalue already ends with a number, remove it
+    
+    // If fullvalue already ends with a number (Arabic or Tibetan), remove it
     if (fullmatch) {
       const numberToRemove = fullmatch[1];
       updatedFullValue = fullvalue.slice(0, -numberToRemove.length).trim();
@@ -3389,14 +3402,17 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     } else {
       return updatedFullValue;
     }
-
-  }
+}
   
   const onChange = async (input, fullvalue) => {
-    const newFullValue = handleNumericInput(input, fullvalue);
+    let newFullValue = "";
+    if(fullText == "") {
+      newFullValue = handleNumericInput(input, input);
+    } else {
+      newFullValue = handleNumericInput(input, fullvalue);
+    }    
     setInputClassNames(classNames({selected: 0}));
     setShowCurrentSuggestions(true);
-
     processSuggestions(getSuggestions(input, newFullValue));
     resizeInputIfNeeded();
   }

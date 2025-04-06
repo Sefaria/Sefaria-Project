@@ -954,7 +954,8 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     };
 
     const selectedCallback = () => {
-          insertSource(editor, fullValue)
+        let textValue = fullValue !== "" ? fullValue: inputValue
+        insertSource(editor, textValue)
     }
 
 
