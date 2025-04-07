@@ -496,7 +496,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: refRenderWrapper,
     },
     {
-      key: 'Admin',
+      key: 'admin',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
@@ -504,7 +504,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: adminRefRenderWrapper,
     },
     {
-      key: 'Notable Sources',
+      key: 'notable-sources',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
@@ -512,7 +512,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: notableSourcesRefRenderWrapper,
     },
     {
-      key: 'Sources',
+      key: 'sources',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
       filterFunc: refFilter,
@@ -520,7 +520,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: allSourcesRefRenderWrapper,
     },
     {
-      key: 'Sheets',
+      key: 'sheets',
       fetcher: fetchBulkSheet,
       sortOptions: ['Relevance', 'Views', 'Newest'],
       filterFunc: sheetFilter,
@@ -646,7 +646,7 @@ const TopicPage = ({
       if (topicData?.indexes?.length && !authorWorksAdded) {
         displayTabs.push({
           title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
-          id: 'Author Works on Sefaria',
+          id: 'author-works-on-sefaria',
         });
         authorWorksAdded = true
       }
@@ -658,7 +658,7 @@ const TopicPage = ({
         });
       }
     }
-    if (displayTabs.length && tab !== "Notable Sources" && tab !== "Author Works on Sefaria") {
+    if (displayTabs.length && tab !== "notable-sources" && tab !== "author-works-on-sefaria") {
       displayTabs.push({
         title: {
           en: "",
@@ -671,7 +671,7 @@ const TopicPage = ({
       onClickFilterIndex = displayTabs.length - 1;
     }
 
-    if (displayTabs.length && tab != "Author Works on Sefaria" && Sefaria.activeModule == 'library') {
+    if (displayTabs.length && tab != "author-works-on-sefaria" && Sefaria.activeModule == 'library') {
       displayTabs.push({
         title: {
           en: "A",
@@ -679,7 +679,7 @@ const TopicPage = ({
         },
         id: 'langToggle',
         popover: true,
-        justifyright: tab === "Notable Sources"
+        justifyright: tab === "notable-sources"
       });
       onClickLangToggleIndex = displayTabs.length - 1;
     }
@@ -748,36 +748,7 @@ const TopicPage = ({
                <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} topicImage={topicImage} />
                     {(!topicData.isLoading && displayTabs.length) ?
-                       <TabView
-                          currTabName={tab}
-                          setTab={setTab}
-                          tabs={displayTabs}
-                          renderTab={t => (
-                            <div tabIndex="0" onKeyDown={(e)=>handleKeyDown(e)} className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
-                              <div data-anl-event={t.popover && "lang_toggle_click:click"}><InterfaceText text={t.title} /></div>
-                              { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} data-anl-event="filter:click" data-anl-text={topicSort}/> : null }
-                              {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result)} closeInterface={()=>{setShowLangSelectInterface(false)}}/> : null}
-                            </div>
-                          )}
-                          containerClasses={"largeTabs"}
-                          onClickArray={{
-                            [onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader),
-                            [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
-                          }}
-                        >
-                           <>
-                             <AuthorIndexItems topicData={topicData}/>
-                             <TopicPageTabs topicData={topicData}
-                                              tabDisplayData={tabDisplayData}
-                                              displayTabs={displayTabs}
-                                              scrollableElement={scrollableElement}
-                                              showFilterHeader={showFilterHeader}
-                                              loadedData={loadedData}
-                                              onSetTopicSort={onSetTopicSort}
-                                              langPref={langPref}
-                                              topicSort={topicSort}/>
-                           </>
-                        </TabView>
+                       <TopicTabView tab={tab} setTab={setTab} topicData={topicData}/>
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
                 {sidebar}
@@ -799,6 +770,41 @@ TopicPage.propTypes = {
   topicTestVersion:    PropTypes.string
 };
 
+
+const TopicTabView = ({ topic, topicData }) => {
+  const renderTab = () => {
+    return <div tabIndex="0" onKeyDown={(e)=>handleKeyDown(e)} className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
+                <div data-anl-event={t.popover && "lang_toggle_click:click"}><InterfaceText text={t.title} /></div>
+                { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} data-anl-event="filter:click" data-anl-text={topicSort}/> : null }
+                {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result)} closeInterface={()=>{setShowLangSelectInterface(false)}}/> : null}
+              </div>;
+
+  }
+  return <TabView
+                          currTabName={tab}
+                          setTab={setTab}
+                          tabs={displayTabs}
+                          renderTab={renderTab}
+                          containerClasses={"largeTabs"}
+                          onClickArray={{
+                            [onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader),
+                            [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
+                          }}
+                        >
+                           <>
+                             <AuthorIndexItems topicData={topicData}/>
+                             <TopicPageTabs topicData={topicData}
+                                              tabDisplayData={tabDisplayData}
+                                              displayTabs={displayTabs}
+                                              scrollableElement={scrollableElement}
+                                              showFilterHeader={showFilterHeader}
+                                              loadedData={loadedData}
+                                              onSetTopicSort={onSetTopicSort}
+                                              langPref={langPref}
+                                              topicSort={topicSort}/>
+                           </>
+                        </TabView>
+}
 
 const AuthorIndexItems = ({topicData}) => {
     if (topicData?.indexes?.length) {
