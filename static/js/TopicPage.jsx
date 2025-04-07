@@ -612,19 +612,6 @@ const TopicPage = ({
       }
     }, [topic]);
 
-    useEffect( ()=> {
-    // hack to redirect to temporary sheet content on topics page for those topics that only have sheet content.
-    if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0 && topicData.subclass != "author"){
-        const interfaceIsHe = Sefaria.interfaceLang === "hebrew";
-        const interfaceLang = interfaceIsHe ? 'he' : 'en';
-        const coInterfaceLang = interfaceIsHe ? 'en' : 'he';
-        const topicPathLang = topicTitle[interfaceLang] ? interfaceLang : coInterfaceLang
-        const topicPath = topicTitle[topicPathLang]
-        const redirectUrl = `${document.location.origin}/search?q=${topicPath}&tab=sheet&tvar=1&tsort=relevance&stopics_${topicPathLang}Filters=${topicPath}&svar=1&ssort=relevance`
-        window.location.replace(redirectUrl);
-      }
-    },[topicData])
-
     // Set up tabs and register incremental load hooks
     const displayTabs = [];
     let onClickFilterIndex = 3;
@@ -674,7 +661,7 @@ const TopicPage = ({
       onClickFilterIndex = displayTabs.length - 1;
     }
 
-    if (displayTabs.length && tab != "author-works-on-sefaria" && Sefaria.activeModule == 'library') {
+    if (displayTabs.length && tab !== "author-works-on-sefaria" && Sefaria.activeModule === 'library') {
       displayTabs.push({
         title: {
           en: "A",
@@ -739,6 +726,12 @@ const TopicPage = ({
       }
     }
 
+    const onDisplayDataChange = ({data}) => {
+      if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
+      topicData._refsDisplayedByTab[key] = data.length;
+    }
+
+
     const currentLang = getCurrentLang();
 
     const authorIndices = topicData?.indexes?.length && (
@@ -760,10 +753,7 @@ const TopicPage = ({
                                   sortOptions={sortOptions}
                                   filterFunc={filterFunc}
                                   sortFunc={sortFunc}
-                                  onDisplayedDataChange={data => {
-                                    if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
-                                    topicData._refsDisplayedByTab[key] = data.length;
-                                  }}
+                                  onDisplayedDataChange={data => onDisplayDataChange(data)}
                                   initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
                                   renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
                                   onSetTopicSort={onSetTopicSort}
@@ -801,7 +791,7 @@ const TopicPage = ({
                     <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} topicImage={topicImage} />
                     {(!topicData.isLoading && displayTabs.length) ?
                       topicTabView
-                    : (topicData.isLoading ? <LoadingMessage /> : null) }
+                    : (topicData.isLoading && <LoadingMessage />) }
                 </div>
                 {sidebar}
             </div>
