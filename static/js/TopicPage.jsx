@@ -60,16 +60,19 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
 );
 
 
-const fetchBulkSheet = inSheets =>
-    Sefaria.getBulkSheets(inSheets.map(x => parseInt(x.ref.replace('Sheet ', ''))).then(outSheets => {
-    for (let tempSheet of inSheets) {
-      if (outSheets[tempSheet.ref]) {
-        outSheets[tempSheet.ref].order = tempSheet.order;
+const fetchBulkSheet = inSheets => {
+   inSheets.forEach(x => {
+      x.ref = parseInt(x.ref.replace('Sheet ', ''));
+    });
+    return Sefaria.getBulkSheets(inSheets.map(x => x.ref)).then(outSheets => {
+      for (let tempSheet of inSheets) {
+        if (outSheets[tempSheet.ref]) {
+          outSheets[tempSheet.ref].order = tempSheet.order;
+        }
       }
-    }
-    return Object.values(outSheets);
-  }
-);
+      return Object.values(outSheets);
+    });
+}
 
 
 const refFilter = (currFilter, ref) => {
@@ -785,7 +788,7 @@ const TopicPage = ({
                                       [onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader),
                                       [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
                                     }}
-                                  > {authorIndices}{tabs}</TabView>;
+                                  >{authorIndices}{tabs}</TabView>;
 
     return (
         <div
