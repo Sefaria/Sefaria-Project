@@ -736,7 +736,56 @@ const TopicPage = ({
       }
     }
 
-    const currentLang = getCurrentLang()
+    const currentLang = getCurrentLang();
+
+    const authorIndices = topicData?.indexes?.length && (
+                          <div className="authorIndexList">
+                            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
+                          </div>
+                          );
+
+    const tabs = tabDisplayData.map(tabObj => {
+                              const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
+                              const displayTab = displayTabs.find(x => x.id === key);
+                              if (!displayTab) { return null; }
+                              return (
+                                <TopicPageTab
+                                  key={key}
+                                  scrollableElement={scrollableElement}
+                                  showFilterHeader={showFilterHeader}
+                                  data={loadedData[key]}
+                                  sortOptions={sortOptions}
+                                  filterFunc={filterFunc}
+                                  sortFunc={sortFunc}
+                                  onDisplayedDataChange={data => {
+                                    if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
+                                    topicData._refsDisplayedByTab[key] = data.length;
+                                  }}
+                                  initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
+                                  renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
+                                  onSetTopicSort={onSetTopicSort}
+                                  topicSort={topicSort}
+                                />
+                              );
+                            });
+
+    const topicTabView = <TabView
+                                    currTabName={tab}
+                                    setTab={setTab}
+                                    tabs={displayTabs}
+                                    renderTab={t => (
+                                      <div tabIndex="0" onKeyDown={(e)=>handleKeyDown(e)} className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
+                                        <div data-anl-event={t.popover && "lang_toggle_click:click"}><InterfaceText text={t.title} /></div>
+                                        { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} data-anl-event="filter:click" data-anl-text={topicSort}/> : null }
+                                        {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result)} closeInterface={()=>{setShowLangSelectInterface(false)}}/> : null}
+                                      </div>
+                                    )}
+                                    containerClasses={"largeTabs"}
+                                    onClickArray={{
+                                      [onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader),
+                                      [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
+                                    }}
+                                  > {authorIndices}{tabs}</TabView>;
 
     return (
         <div
@@ -748,7 +797,7 @@ const TopicPage = ({
                <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} topicImage={topicImage} />
                     {(!topicData.isLoading && displayTabs.length) ?
-                       <TopicTabView tab={tab} setTab={setTab} topicData={topicData}/>
+                      topicTabView
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
                 {sidebar}
@@ -770,83 +819,6 @@ TopicPage.propTypes = {
   topicTestVersion:    PropTypes.string
 };
 
-
-const TopicTabView = ({ topic, topicData }) => {
-  const renderTab = () => {
-    return <div tabIndex="0" onKeyDown={(e)=>handleKeyDown(e)} className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
-                <div data-anl-event={t.popover && "lang_toggle_click:click"}><InterfaceText text={t.title} /></div>
-                { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} data-anl-event="filter:click" data-anl-text={topicSort}/> : null }
-                {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result)} closeInterface={()=>{setShowLangSelectInterface(false)}}/> : null}
-              </div>;
-
-  }
-  return <TabView
-                          currTabName={tab}
-                          setTab={setTab}
-                          tabs={displayTabs}
-                          renderTab={renderTab}
-                          containerClasses={"largeTabs"}
-                          onClickArray={{
-                            [onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader),
-                            [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
-                          }}
-                        >
-                           <>
-                             <AuthorIndexItems topicData={topicData}/>
-                             <TopicPageTabs topicData={topicData}
-                                              tabDisplayData={tabDisplayData}
-                                              displayTabs={displayTabs}
-                                              scrollableElement={scrollableElement}
-                                              showFilterHeader={showFilterHeader}
-                                              loadedData={loadedData}
-                                              onSetTopicSort={onSetTopicSort}
-                                              langPref={langPref}
-                                              topicSort={topicSort}/>
-                           </>
-                        </TabView>
-}
-
-const AuthorIndexItems = ({topicData}) => {
-    if (topicData?.indexes?.length) {
-        return <div className="authorIndexList">
-                {topicData.indexes.map(({url, title, description}) => {
-                    return <AuthorIndexItem key={url} url={url} title={title} description={description}/>
-                })}
-              </div>
-    }
-    else {
-        return null;
-    }
-}
-
-const TopicPageTabs = ({topicData, tabDisplayData, displayTabs, scrollableElement, showFilterHeader,
-                              loadedData, onSetTopicSort, topicSort, toggleSignUpModal, langPref, topicTestVersion}) => {
-  const renderTopicPageTab = (tabObj) => {
-    const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
-    const displayTab = displayTabs.find(x => x.id === key);
-    if (!displayTab) { return null; }
-    return (
-      <TopicPageTab
-        key={key}
-        scrollableElement={scrollableElement}
-        showFilterHeader={showFilterHeader}
-        data={loadedData[key]}
-        sortOptions={sortOptions}
-        filterFunc={filterFunc}
-        sortFunc={sortFunc}
-        onDisplayedDataChange={data => {
-          if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
-          topicData._refsDisplayedByTab[key] = data.length;
-        }}
-        initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-        renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
-        onSetTopicSort={onSetTopicSort}
-        topicSort={topicSort}
-      />
-    );
-  }
-  return tabDisplayData.map(tabObj => renderTopicPageTab(tabObj));
-}
 
 const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader,
