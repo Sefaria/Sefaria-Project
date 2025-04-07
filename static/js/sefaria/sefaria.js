@@ -2885,6 +2885,7 @@ _media: {},
         if (tabKey === 'about') {  // "Sheets", "Sources", and "Notable Sources" are tagged 'about' in the DB so we have to differentiate between them here
           if (Sefaria.activeModule === 'sheets') {
             tabKey = 'sheets';
+            title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
           }
           else {
             // Mark as notable if it has a prompt, title, and isn't explicitly unpublished (happens when returns from LLM pod);

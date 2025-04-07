@@ -61,7 +61,7 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
 
 
 const fetchBulkSheet = inSheets =>
-    Sefaria.getBulkSheets(inSheets.map(x => x.ref)).then(outSheets => {
+    Sefaria.getBulkSheets(inSheets.map(x => parseInt(x.ref.replace('Sheet ', ''))).then(outSheets => {
     for (let tempSheet of inSheets) {
       if (outSheets[tempSheet.ref]) {
         outSheets[tempSheet.ref].order = tempSheet.order;
