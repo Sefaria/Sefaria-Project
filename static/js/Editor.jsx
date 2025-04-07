@@ -821,14 +821,14 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         const syllables = text.split(separator);
         
         // If the text has more than 10 syllables, truncate it
-        if (syllables.length > 10) {
-            const firstPart = syllables.slice(0, 3).join(separator);
-            const lastPart = syllables.slice(-4).join(separator);
+        if (syllables.length > 5) {
+            const firstPart = syllables.slice(0, 2).join(separator);
+            const lastPart = syllables.slice(-3).join(separator);
             
             // Add the separator at the end of firstPart if it's Tibetan and doesn't already end with tsheg
             const firstPartWithSep = isTibetan && !firstPart.endsWith("་") ? `${firstPart}་` : firstPart;
             
-            return `${firstPartWithSep}...${lastPart}`;
+            return `${firstPartWithSep}......${lastPart}`;
         }
         
         return text;
