@@ -76,7 +76,7 @@ class TextList extends Component {
     // categories[0] === "Commentary" only for these terms, whereas a real index like "Rashi on Genesis" has categories[0] === "Tanakh".
     // We don't want to include "Rashi on Genesis" case because that's a "Quoting Commentary" case.
     const isOneText = filter.length === 1 && Sefaria.index(filter[0]);
-    const isCommentary = Sefaria.index(filter[0]).primary_category === "Commentary" || Sefaria.index(filter[0]).categories[0] === "Commentary";
+    const isCommentary = Sefaria.index(filter[0])?.primary_category === "Commentary" || Sefaria.index(filter[0])?.categories[0] === "Commentary";
     if (isCommentary && isOneText) {
       this.setState({waitForText: true});
       // Get the refs of the links and zoom out one level.  In most cases, the refs will be the same, so it's helpful to use a Set.
