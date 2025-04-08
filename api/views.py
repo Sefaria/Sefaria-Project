@@ -1,6 +1,7 @@
 from sefaria.model import *
 from sefaria.model.text_reuqest_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
+from sefaria.system.exceptions import InputError, ComplexBookLevelRefError
 from django.views import View
 from .api_warnings import *
 
@@ -52,6 +53,12 @@ class Text(View):
         if return_format not in self.RETURN_FORMATS:
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
         text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format)
-        data = text_manager.get_versions_for_query()
-        self._add_warnings(data)
+
+        try:
+            data = text_manager.get_versions_for_query()
+            data = self._handle_warnings(data)
+
+        except Exception as e:
+            return jsonResponse({'error': str(e)}, status=400)
+
         return jsonResponse(data)

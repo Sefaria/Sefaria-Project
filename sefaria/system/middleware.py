@@ -16,6 +16,9 @@ from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_terri
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 
+import structlog
+logger = structlog.get_logger(__name__)
+
 
 class SharedCacheMiddleware(MiddlewareMixin):
     def process_request(self, request):
@@ -47,7 +50,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/linker.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
+        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
             request.interfaceLang = "english"
             request.contentLang = "bilingual"
@@ -172,7 +175,12 @@ def current_domain_lang(request):
 
 class CORSDebugMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
-        if DEBUG:
+        """
+        CORS headers are normally added in nginx response.
+        However, nginx isn't normally running when debugging with localhost
+        """
+        origin = request.get_host()
+        if ('localhost' in origin or '127.0.0.1' in origin) and DEBUG:
             response["Access-Control-Allow-Origin"] = "*"
             response["Access-Control-Allow-Methods"] = "POST, GET"
             response["Access-Control-Allow-Headers"] = "*"

@@ -16,16 +16,21 @@
 {% endblock %}
 
 {% block content %}
-
+<div class="superAbout">
+    {% if not request.user_agent.is_mobile %}
+        {% include '_sidebar.html' with whichPage='team' %}
+    {% endif %}
     <main id="teamPage" class="container static sans-serif">
         <div class="inner">
             <header>
-                <h1>
-                    <span class="int-en serif">Team</span>
-                    <span class="int-he">צוות ספריא</span>
-                </h1>
+                    <h1 class="aboutHeader">
+                        <span class="int-en">Team</span>
+                        <span class="int-he">צוות ספריא</span>
+                    </h1>
+            <header>
+
             </header>
-            <div class="row static-text">
+                    <div class="row static-text">
                 <div id="teamMembersPageContent">
                     <h1 id="appLoading">Loading...</h1>
                 </div>
@@ -44,5 +49,5 @@
             </div>
         </div>
     </main>
-
+</div>
 {% endblock %}

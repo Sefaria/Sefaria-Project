@@ -17,30 +17,11 @@ value will need to be set to the time at which the last mongo dump was created (
 up-to-date mongo dump).
 """
 # last_sheet_timestamp = datetime.fromtimestamp(os.path.getmtime("/var/data/sefaria_public/dump/sefaria")).isoformat()
-try:
-    last_sheet_timestamp = datetime.now().isoformat()
-    update_pagesheetrank()
-    index_all()
-    r = requests.post("https://www.sefaria.org/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
-    if "error" in r.text:
-        raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
-    else:
-        print("SUCCESS!", r.text)
-except Exception as e:
-    tb_str = traceback.format_exc()
-    print("Caught exception")
-    post_object = {
-        "icon_emoji": ":facepalm:",
-        "username": "Reindex ElasticSearch",
-        "channel": "#engineering-discuss",
-        "attachments": [
-            {
-                "fallback": tb_str,
-                "color": "#a30200",
-                "pretext": "Cronjob Error",
-                "text": tb_str
-            }
-        ]
-    }
-    requests.post(os.environ['SLACK_URL'], json=post_object)
-    raise e
+last_sheet_timestamp = datetime.now().isoformat()
+update_pagesheetrank()
+index_all()
+r = requests.post("https://www.sefaria.org/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
+if "error" in r.text:
+    raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
+else:
+    print("SUCCESS!", r.text)

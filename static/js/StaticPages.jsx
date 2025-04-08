@@ -3,13 +3,20 @@ import {
     SimpleInterfaceBlock,
     TwoOrThreeBox,
     ResponsiveNBox,
-    NBox, InterfaceText,
+    NBox, 
+    InterfaceText, 
+    HebrewText, 
+    EnglishText,
+    LoadingMessage,
+    LoadingRing,
 } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
 import Cookies from 'js-cookie';
-
+import ReactMarkdown from 'react-markdown';
+import Sefaria from './sefaria/sefaria';
+import { OnInView, handleAnalyticsOnMarkdown } from './Misc';
 
 
 /*  Templates:
@@ -677,7 +684,7 @@ const EducatorsPage = () => (
     <GreyBox>
       <H2Block en="Empower and Engage" he="מסע של גילוי"/>
       <EnBlock padded={true}>
-        <p>Empower your students with Sefaria’s free library of digital texts, in Hebrew and English translation, and use our teaching materials to spark creativity and foster independence. Learn new ways of teaching and engaging your students in the centuries-old conversation around Jewish texts, and join Sefaria’s Educator community.</p>
+        <p>Empower your students with Sefaria’s free library of digital texts — in Hebrew, English, and many other languages — and use our resources to spark creativity and foster learners’ facility in the Jewish library. Discover new ways of teaching and engaging your students in the centuries-old conversation around Jewish texts.</p>
       </EnBlock>
       <HeBlock padded={true}>
         <p>            דמיינו את התלמידים שלכם  מטיילים במסדרונות ספריית ענק ושולפים ספרים עתיקים וחדשים בהם מתגלים דמויות, רעיונות ומחשבות מתוך העולם היהודי שנכתבו במשך 3000 שנה. בספריא החלום הופך למציאות. הובילו את התלמידים למסע של גילוי ולמידה בין המקורות של ארון הספרים היהודי.</p>
@@ -687,10 +694,10 @@ const EducatorsPage = () => (
 
 
     <Feature
-      enTitle="Professional Development"
-      enText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
-      enImg="/static/img/educators-landing-page/teaching-with-sefaria-library.png"
-      enImgAlt="Professional Development"
+      enTitle="Educator Spotlight"
+      enText="<p>Shifra Elman uses translations and topic pages to widen the lens.</p> <p><b>Who?</b> Shifra Elman, Dean of Jewish Studies at The Kehillah School in Palo Alto, CA</p><p><b>How?</b> In our introductory ninth-grade class, we emphasize the many Torah translations available on Sefaria. This helps students who don’t know Hebrew avoid over-reliance on a single definition.</p><p><b>Shifra's Top Tip:</b> Topic pages are a valuable starting point for my students. Even if they’re not sure where to begin with a topic, seeing the base text alongside a variety of commentaries and other resources from the Jewish bookshelf helps guide their research.</p>"
+      enImg="/static/img/educators-landing-page/shifra-elman-headshot.png"
+      enImgAlt="Shifra Elman Headshot"
       heTitle="איך להשתמש באתר?"
       heText='נתחיל בהתחלה: "המדריך למשתמש בספריא" מורכב מיחידות מודרכות בהן נלמדות צעד אחר צעד האפשרויות השונות באתר ספריא. באסופה "ספריא לתלמידים" נמצאות הדרכות על השימוש באתר שמותאמות במיוחד עבור למידה עצמאית של תלמידים. כדי ללמוד ולהכיר חלק מסוים באתר תוכלו להשתמש באסופה של "שאלות נפוצות".'
       heImg="/static/img/educators-landing-page/teaching-with-sefaria-library-heb.png"
@@ -700,9 +707,9 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Online Educator Course", "מדריך למשתמש בספריא", "https://sefaria.typeform.com/to/tJVexqpG", "https://www.sefaria.org.il/sheets/361600?lang=he"],
-          ["Lesson Plans on Sefaria", "ספריא לתלמידים", "/collections/pedagogy-on-sefaria-exemplary-lesson-plans", "https://www.sefaria.org.il/collections/KGMlHrvA"],
-          ["Schedule A Workshop", "שאלות נפוצות", "https://sefaria.typeform.com/to/Pl3biam8", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
+          ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
+          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/KGMlHrvA"],
+          ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -719,8 +726,8 @@ const EducatorsPage = () => (
 
      <Feature
       enTitle="Resources for Educators"
-      enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Discover our adaptable lesson plans and resources, or find learning materials and activities ready-to-go for your classroom!"
-      enImg="/static/img/educators-landing-page/megillah-activity.png"
+      enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Get informed about all of the new texts added to the library and teach your students to be effective Sefaria users using the student course."
+      enImg="/static/img/educators-landing-page/sefaria-for-educators.png"
       enImgAlt="Resources for Educators"
       heTitle="מערכי שיעור וחומרי הוראה"
       heText="צוות החינוך של ספריא יצר ואסף עבורכם המורים, חומרי הוראה בעזרתם תוכלו להעשיר ולהעמיק את הלמידה. <br><br>לפניכם אסופה של מערכי שיעור בנושאים שונים, הצעה לתהליך של עבודת חקר באמצעות ספריא ורעיונות להערכה חלופית."
@@ -732,8 +739,8 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Past Educator Newsletters", "10 רעיונות להערכה חלופית", "/collections/qZ0UWi5y", "https://www.sefaria.org.il/sheets/281661?lang=he"],
-          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
+          ["Get New Text Updates", "10 רעיונות להערכה חלופית", "https://sefaria.formstack.com/forms/monthly_new_text_roundup?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/sheets/281661?lang=he"],
+          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
           ["For Your Students", "מערכי שיעור", "/sheets/311291?lang=bi", "https://www.sefaria.org.il/sheets/361593?lang=he"]
       ].map(i =>
           <SimpleButton
@@ -750,8 +757,8 @@ const EducatorsPage = () => (
     </ButtonRow>
     <Feature
       enTitle="Sefaria for Educators How-Tos"
-      enText="Browse our FAQ’s and learn more about how to use Sefaria’s tools to study and to teach. Sefaria’s Learning Team is always available to support you and your students or answer any questions you might have. If there are texts, translations, lesson plans, or student materials that would enhance your teaching, please share that with us as well."
-      enImg="/static/img/educators-landing-page/tutorials-for-educators.png"
+      enText="Explore our Help Center to find answers to your questions about Sefaria. Have a text or translation you'd like to see added to the library? Fill out our text request form. For a convenient way to create materials, try Sefaria for Google Docs, an extension for adding sources from the library directly into your Docs."
+      enImg="/static/img/educators-landing-page/help-center-for-educators.png"
       enImgAlt="Sefaria for Educators How-Tos"
       heTitle="גם את זה יש בספריא! אל תחמיצו!"
       heText='מאגר ספריא הוא גדול ובתוכו אפשרויות לימוד רבות. מוזמנים לעיין באסופות מעניינות ושימושיות, להכיר את עמוד הקהילה והתכנים שבו וגם לגלות את "הסודות של ספריא"'
@@ -762,9 +769,9 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Educator FAQ", "אסופות מומלצות", "/collections/tutorials-for-educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
-          ["Request New Resources", "עמוד הקהילה", "https://sefaria.typeform.com/to/aaZmi4JD","https://www.sefaria.org.il/community"],
-          ["Webinars for Educators", "הסודות של ספריא", "/collections/qJLU68HQ","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
+          ["Help Center", "אסופות מומלצות", "/collections/sefaria-faqs?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
+          ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -782,7 +789,7 @@ const EducatorsPage = () => (
     <GreyBox>
       <H2Block en="Get in touch" he="אנחנו רוצים לשמוע מכם"/>
       <EnBlock padded={true}>
-          <p>Was your teaching enhanced by Sefaria? Did you have a “Sefaria moment” with your students? Share it with us! We love to hear how educators are using Sefaria in the field and we learn from the feedback we receive. We are also available to answer all of your Sefaria questions. Write to us at education@sefaria.org.</p>
+          <p>Was your teaching enhanced by Sefaria? Did you have a “Sefaria moment” with your students? Share it with us! We love to hear how educators are using Sefaria in the field and we learn from the feedback we receive. We are also available to answer all of your Sefaria questions. Write to us at <a href="mailto:education@sefaria.org">education@sefaria.org</a>.</p>
       </EnBlock>
       <HeBlock padded={true}>
           <p>אנחנו לומדים רבות ממורים ותלמידים שמספרים לנו על ההתנסות שלהם עם ספריא. נשמח מאד אם תשתפו אותנו בחוויית הלימוד שלכם. אתם מוזמנים ליצור איתנו קשר כדי לתאם הדרכה למורים וגם לתלמידים,  לספר לנו על חוויית הלמידה עם ספריא ולהתייעץ איתנו בכל דבר ועניין</p>
@@ -858,13 +865,9 @@ const EducatorsPage = () => (
     <div className="staticPageCallToActionFooter">
       <div className="staticPageBlockInner flexContainer">
         <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="קבלו עדכונים והפניות למקורות מעניינים" />
-        <SubscribeButton
-                     enAction={"Sign up to get updates"}
-                     heAction={"הירשמו לקבלת הניוזלטר"}
-                     heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
-                     enLists={"Announcements_General|Announcements_Edu"}
-                     redirectURL={"/register?educator=true&next=/educators"}
-        />
+        <div style={{ width: '200px', textAlign: 'end' }}>
+            <NewsletterSignUpForm contextName="educators" />
+        </div>
       </div>
     </div>
 
@@ -1436,8 +1439,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Donate Now"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/en"
-                heButtonUrl="https://donate.sefaria.org/he"
+                enButtonUrl="https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=ways-to-give"
+                heButtonUrl="https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=ways-to-give"
                 borderColor="#004E5F"
             />,
             <FeatureBox
@@ -1447,8 +1450,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Join the Sustainers"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/sustainers"
-                heButtonUrl="https://donate.sefaria.org/sustainershe"
+                enButtonUrl="https://donate.sefaria.org/give/457760/#!/donation/checkout?c_src=waystogive"
+                heButtonUrl="https://donate.sefaria.org/give/478929/#!/donation/checkout?c_src=waystogive"
                 borderColor="#97B386"
             />,
             <FeatureBox
@@ -1458,8 +1461,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Sponsor a Day of Learning"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/sponsor"
-                heButtonUrl="https://donate.sefaria.org/sponsorhe"
+                enButtonUrl="https://donate.sefaria.org/campaign/sponsor-a-day-of-learning/c460961?c_src=waystogive"
+                heButtonUrl="https://donate.sefaria.org/campaign/sponsor-a-day-of-learning-hebrew/c479003?c_src=waystogive"
                 borderColor="#4B71B7"
             />,
             <FeatureBox
@@ -1469,7 +1472,7 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Join Now or Learn More"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/campaign/giving-circles/c557214"
+                enButtonUrl="https://donate.sefaria.org/campaign/giving-circles/c557214?c_src=waystogive"
                 heButtonUrl=""
                 borderColor="#7C416F"
             />
@@ -1492,7 +1495,7 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Donate Online"
                     heTitle=""
-                    enText="<p>Make a donation by <strong>credit card, PayPal, GooglePay, ApplePay, Venmo, or bank transfer</strong> on our <a href='http://donate.sefaria.org/en'>main donation page</a>.</p>"
+                    enText="<p>Make a donation by <strong>credit card, PayPal, GooglePay, ApplePay, Venmo, or bank transfer</strong> on our <a href='https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=waystogive'>main donation page</a>.</p>"
                     heText=""
                     colorBar="#AB4E66"
                 />,
@@ -1557,7 +1560,7 @@ const DonatePage = () => (
             enTitle="Where does my gift go? How does Sefaria use the donations it receives?"
             heTitle=""
             enText="<p>Generally, gifts made to Sefaria are considered “unrestricted,” meaning that our staff allocates funds where they’re needed most. This includes everything from the text and learning you see on your screen to the technology support that keeps us online to the time and energy of the Sefaria team.</p>
-                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we’re devoted to making sure we’re transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2022_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
+                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we’re devoted to making sure we’re transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2023_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1565,7 +1568,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="Can I make a gift to support a specific program or initiative?"
             heTitle=""
-            enText="<p>Our online giving page does not support restricted gifts. You can sponsor a day of learning <a href='https://donate.sefaria.org/sponsor'>here</a>. If you would like to sponsor a text or support a specific Sefaria program, please email Samantha Shokin, Grant Writer and Development Associate, at <a href='mailto:samantha@sefaria.org'>samantha@sefaria.org</a> for more information.</p>"
+            enText="<p>Our online giving page does not support restricted gifts. You can sponsor a day of learning <a href='https://donate.sefaria.org/campaign/sponsor-a-day-of-learning/c460961?c_src=waystogive'>here</a>. If you would like to sponsor a text or support a specific Sefaria program, please email Samantha Shokin, Grant Writer and Development Associate, at <a href='mailto:samantha@sefaria.org'>samantha@sefaria.org</a> for more information.</p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1604,7 +1607,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="Can I still donate from outside the USA?"
             heTitle=""
-            enText="<p>Yes! Donors outside of the USA may make a gift online  – via credit card, PayPal, GooglePay, ApplePay, Venmo, and bank transfer – <a href='https://donate.sefaria.org/en'>on this page</a> On this page you can modify your currency. You can also <a href='https://sefaria.formstack.com/forms/wire_request'>make a wire transfer</a>.</p>"
+            enText="<p>Yes! Donors outside of the USA may make a gift online  – via credit card, PayPal, GooglePay, ApplePay, Venmo, and bank transfer – <a href='https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=waystogive'>on this page</a> On this page you can modify your currency. You can also <a href='https://sefaria.formstack.com/forms/wire_request'>make a wire transfer</a>.</p>"
             heText=""
             colorBar="#7F85A9"
         />
@@ -1727,7 +1730,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="/static/files/Sefaria_2022_990_Public.pdf"
+                        href="/static/files/Sefaria_2023_990_Public.pdf"
                         he_href=""
                         he=""
                         en="See Here"
@@ -1743,7 +1746,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="/static/files/Sefaria_AnnualImpactReport_R14.pdf"
+                        href="/annualreport"
                         he_href=""
                         he=""
                         en="Read Here"
@@ -2348,7 +2351,7 @@ const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) =>
               method: 'POST',
               mode: 'same-origin',
               credentials: 'same-origin',
-              body: {"lists": lists},
+              body: JSON.stringify({"lists": lists}),
           }).then(response => {
               if (!response.ok) {
                   response.text().then(resp_text => {
@@ -2367,7 +2370,7 @@ const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) =>
                   });
               }
           }).catch(error => {
-              setMessage(error.message);
+              setMessage(`Failed to subscribe ${email}.`);
           });
       }
   }
@@ -2399,13 +2402,6 @@ const HeaderForEducatorsPage = () => {
           <span className="int-he">{heTitle}</span>
         </h1>
         <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
-        <SubscribeButton
-             enAction={"Sign up to get updates"}
-             heAction={"הירשמו לקבלת הניוזלטר"}
-             heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
-             enLists={"Announcements_General|Announcements_Edu"}
-             redirectURL={"/register?educator=true&next=/educators"}
-            />
       </div>
     </div>
   </div>
@@ -2917,11 +2913,10 @@ const JobsPageHeader = ({ jobsAreAvailable }) => {
     return (
         <>
             <header>
-                <h1 className="serif">
+                <h1 className="aboutHeader">
                     <span className="int-en">Jobs at Sefaria</span>
                     <span className="int-he">משרות פנויות בספריא</span>
                 </h1>
-
                 {jobsAreAvailable ? (
                     <>
                         <h2>
@@ -3023,6 +3018,7 @@ const NoJobsNotice = () => {
 const JobsPage = memo(() => {
     const [groupedJobPostings, setGroupedJobPostings] = useState({});
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const fetchJobsJSON = async () => {
         const currentDateTime = new Date().toISOString();
@@ -3071,6 +3067,7 @@ const JobsPage = memo(() => {
     };
     
     const loadJobPostings = async () => {
+        setLoading(true);
         if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
             try {
                 const jobsData = await fetchJobsJSON();
@@ -3104,20 +3101,26 @@ const JobsPage = memo(() => {
         } else {
             setError("Error: Sefaria's CMS cannot be reached");
         }
+        setLoading(false);
     };
 
     useEffect(() => {
         loadJobPostings();
     }, []);
 
+    const jobsAvailable = Object.keys(groupedJobPostings)?.length;
     return (
         <div>
             {error ? (
                 <h1>{error}</h1>
+            ) : loading ? (
+                <>
+                    <LoadingMessage />
+                </>
             ) : (
                 <>
-                    <JobsPageHeader jobsAreAvailable={Object.keys(groupedJobPostings)?.length} />
-                    {Object.keys(groupedJobPostings)?.length ? (
+                    <JobsPageHeader jobsAreAvailable={jobsAvailable} />
+                    {jobsAvailable ? (
                         <GroupedJobPostings groupedJobPostings={groupedJobPostings} />
                     ) : (
                         <NoJobsNotice />
@@ -3127,6 +3130,330 @@ const JobsPage = memo(() => {
         </div>
     );
 });
+
+
+/*
+* Products Page
+*/
+
+// The static content on the page inviting users to browse our "powered-by" products
+const DevBox = () => {
+    return (
+      <aside className='productsDevBox'>
+        <div className='productsDevHeader'>
+            <InterfaceText text={{en: "Powered by Sefaria" , he:"פרויקטים מכח ספריא" }} />
+        </div>
+        <div>
+            <InterfaceText>  
+                <HebrewText>   
+                    נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם! <a href="https://developers.sefaria.org/docs/powered-by-sefaria">גלו את הפרויקטים</a>                
+                </HebrewText>  
+                <EnglishText>
+                Check out the products our software developer friends from around the world have been building for you! <a href="https://developers.sefaria.org/docs/powered-by-sefaria">Explore</a> 
+                </EnglishText>
+            </InterfaceText>
+        </div>
+      </aside>
+    );
+  };
+
+/**
+ * The following are the building block components of an individual product. 
+ */
+ 
+// The title and gray background label for each product
+const ProductTitle = ({product}) => {
+    return (
+        <div className='productsTitleAndLabel'>
+        <span className="productsTitle">
+            <InterfaceText text={{en: product.titles.en , he: product.titles.he }} />
+        </span>
+        {product.type.en ? (<span className="productsTypeLabel"> 
+            <InterfaceText text={{en: product.type.en , he: product.type.he }} />                               
+        </span>) : ''}
+    </div>
+    );
+};
+
+// Generalized function for catching products page analytics - to be revisited
+const productsAnalytics = (rank, product, cta, label, link_type, event) => {    
+    gtag("event", `products_${event}`, {
+        project: 'Products',
+        panel_type: "strapi-static",
+        panel_number: 1,   
+        panel_name: "Products",
+        position: rank,
+        link_text: cta,
+        experiment: label === 'Experiment' ?  1 : 0,
+        feature_name: product,  
+        link_classes: link_type,
+        engagement_type: "navigation",
+        engagement_value: 0
+    });
+}
+
+
+// The call-to-action (link) in the heading of each product
+// For desc link, change cta text to desc and "cta" to desc
+// TODO - uncomment <OnInView /> once analytics is confirmed
+const ProductCTA = ({product, cta}) => {
+    return (
+
+        // <OnInView onVisible={() => productsAnalytics(product?.rank, product?.titles.en, cta.text.en, product?.type.en, "viewed")}>
+        <a href={cta.url} onClick={(e) => productsAnalytics(product.rank, product.titles.en, cta.text.en, product.type.en, "cta", "clicked")}>
+            {cta.icon.url && <img className="productsCTAIcon" 
+                                    src={cta.icon.url}
+                                    alt="Click icon" />}
+                                
+            <span className="productsCTA">
+                <InterfaceText text={{en: cta.text.en , he: cta.text.he }} />
+            </span>
+        </a>
+
+        // </OnInView> 
+
+
+    );
+};
+
+// The main body of each product entry, containing an image and description
+const ProductDesc = ({product}) => {
+    return (
+        <div className="productInner">
+            <div className='productImgWrapper'>
+                <img src={product.rectanglion.url} alt={`Image for product: ${product?.titles?.en}`}/>
+            </div>
+            <div className='productDescWrapper' onClick={(e) => handleAnalyticsOnMarkdown(e, productsAnalytics, product.rank, product.titles.en, null, null, "product_desc", "clicked")}>
+                <InterfaceText markdown={{en: product.desc?.en, he: product.desc?.he }} />
+            </div>            
+        </div>
+    );
+};
+
+// The main product component, comprised of the building block sub-components
+const Product = ({product}) => {
+    return (
+        <div className="product">
+            <div className="productsHeader">
+                <ProductTitle product={product} />
+                <div className="cta">
+                    {product.ctaLabels?.map(cta => (
+                        <ProductCTA key={cta.id} product={product} cta={cta} />
+                    ))}
+                </div>       
+            </div>
+            <ProductDesc product={product} />
+        </div>
+    );
+};
+
+
+
+
+const ProductsPage = memo(() => {
+    const [products, setProducts] = useState([]);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadProducts();
+        setLoading(false);
+    }, []);
+
+    // GraphQL query to Strapi
+    const fetchProductsJSON = async () => {
+
+        // If the viewer is an admin, edit the query to retrieve the drafts as well
+        var includeDrafts = '';
+        if (Sefaria.is_moderator){
+            includeDrafts = 'publicationState:PREVIEW,';
+        }
+        
+        const query = `query {
+            products (
+                pagination: { limit: -1 },
+                ${includeDrafts}
+                sort: "rank:asc"
+            )
+            {
+              data {
+                id
+                attributes {
+                  title
+                  rank
+                  url
+                  type
+                  description
+                  rectanglion {
+                    data {
+                      attributes {
+                        url
+                        alternativeText
+                      }
+                    }
+                  }
+                  createdAt
+                  updatedAt
+                  locale
+                  call_to_actions {
+                    data {
+                      id
+                      attributes {
+                        text
+                        url
+                        icon {
+                          data {
+                            id
+                            attributes {
+                              url
+                              alternativeText
+                            }
+                          }
+                        }
+                        locale
+                        localizations {
+                          data {
+                            id
+                            attributes {
+                              text
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  localizations {
+                    data {
+                      attributes {
+                        locale
+                        title
+                        type
+                        description
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        }`;
+        
+        try {
+            const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "omit",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify({ query }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
+    
+    // Loading Products data, and setting the state ordering the products by their `rank`
+    const loadProducts = async () => {
+        if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+            try {
+                const productsData = await fetchProductsJSON();
+
+                const productsFromStrapi = productsData.data?.products?.data?.map((productsData) => {
+
+                    const heLocalization = productsData.attributes?.localizations?.data[0]?.attributes;
+                    const ctaLabels = productsData.attributes?.call_to_actions?.data;
+
+                    const ctaLabelsLocalized = ctaLabels.map((cta) => {
+                        return {
+                            text: {
+                                en: cta.attributes?.text,
+                                he: cta.attributes?.localizations?.data[0]?.attributes.text
+                            },
+                            url: cta.attributes?.url,
+                            icon: {
+                                url: cta.attributes?.icon?.data?.attributes?.url,
+                            },
+                            id: cta.id
+                        };
+                    });
+
+                    return {
+                        id: productsData.id,
+                        titles: {
+                            en: productsData.attributes?.title,
+                            he: heLocalization?.title
+                        },
+                        rank: productsData.attributes?.rank,
+                        type: {
+                            en: productsData.attributes?.type,
+                            he: productsData.attributes?.localizations?.data[0]?.attributes?.type,
+                        },
+                        url: productsData.attributes?.url,
+                        desc:
+                        {
+                            en: productsData.attributes?.description,
+                            he: heLocalization?.description
+                        },
+                        rectanglion: {
+                            url: productsData.attributes?.rectanglion?.data?.attributes?.url,
+                        },
+                        ctaLabels: ctaLabelsLocalized,
+
+                    };
+                }, {});
+                setProducts(productsFromStrapi);   
+            } catch (error) {
+                console.error("Fetch error:", error);
+                setError("Error: Sefaria's CMS cannot be reached");
+            }
+        } else {
+            setError("Error: Sefaria's CMS cannot be reached");
+        }
+    };
+
+
+    // In order to inject the static 'DevBox' in a fixed position on the page, we 
+    // create an array of <Product /> components, and then slice the list into two sub-lists at the 
+    // desired insertion position for the 'DevBox'.  When rendering, we render the 
+    // first sub-list, the <DevBox />, and finally the second sub-list. 
+    const ProductList = [];
+    if (products) {
+        for (const product of products) {
+            ProductList.push(<Product key={product.id} product={product} />)
+        }
+    }
+
+    const devBoxPosition = 2;
+    const initialProducts = ProductList.slice(0, devBoxPosition);
+    const remainingProducts = ProductList.slice(devBoxPosition);
+    return (
+        loading ? <LoadingMessage/> :
+            <>
+                 <h1 className="aboutHeader">
+                    <span className="int-en">Sefaria's Products</span>
+                    <span className="int-he">המוצרים של ספריא</span>
+                </h1>
+            <div className='productsFlexWrapper'>
+                {products && products.length > 0  ? (
+                    <>
+                    {initialProducts}
+                    <DevBox />
+                    {remainingProducts}
+                    </>
+                ) : null}
+            </div>
+        </>
+    );
+});
+
 
 export {
     RemoteLearningPage,
@@ -3142,4 +3469,5 @@ export {
     WordByWordPage,
     JobsPage,
     TeamMembersPage,
+    ProductsPage,
 };

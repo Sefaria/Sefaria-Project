@@ -3,7 +3,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import { NavSidebar, Modules, RecentlyViewed } from './NavSidebar';
+import { NavSidebar, SidebarModules, RecentlyViewed } from './NavSidebar';
 import TextCategoryPage  from './TextCategoryPage';
 import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
@@ -20,7 +20,7 @@ import {ContentText} from "./ContentText";
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
-  toggleLanguage, openTextTOC, openDisplaySettings, multiPanel, initialWidth, compare, toggleSignUpModal}) => {
+  toggleLanguage, openTextTOC, multiPanel, initialWidth, compare, toggleSignUpModal}) => {
   // List of Texts in a Category
   if (categories.length) {
     return (
@@ -31,7 +31,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
           setCategories={setCategories}
           openTextTOC={openTextTOC}
           toggleLanguage={toggleLanguage}
-          openDisplaySettings={openDisplaySettings}
           compare={compare}
           multiPanel={multiPanel}
           initialWidth={initialWidth} />
@@ -65,13 +64,12 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     <ComparePanelHeader
       search={true}
       onBack={onCompareBack}
-      openDisplaySettings={openDisplaySettings}
       openSearch={openSearch}
     /> : null;
 
   const title = compare ? null :
     <div className="navTitle tight sans-serif">
-        <CategoryHeader type="cats" buttonsToDisplay={["subcategory", "reorder"]}>
+        <CategoryHeader type="cats" toggleButtonIDs={["subcategory", "reorder"]}>
             <h1><InterfaceText>Browse the Library</InterfaceText></h1>
         </CategoryHeader>
       { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
@@ -79,7 +77,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     </div>
 
   const about = compare || multiPanel ? null :
-    <Modules type={"AboutSefaria"} props={{hideTitle: true}}/>;
+    <SidebarModules type={"AboutSefaria"} props={{hideTitle: true}}/>;
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;
 
@@ -112,7 +110,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
             { !multiPanel && <RecentlyViewed toggleSignUpModal={toggleSignUpModal} mobile={true}/>}
             { categoryListings }
           </div>
-          {!compare ? <NavSidebar modules={sidebarModules} /> : null}
+          {!compare ? <NavSidebar sidebarModules={sidebarModules} /> : null}
         </div>
         {footer}
       </div>
@@ -124,7 +122,6 @@ TextsPage.propTypes = {
   settings:            PropTypes.object.isRequired,
   setCategories:       PropTypes.func.isRequired,
   openSearch:          PropTypes.func.isRequired,
-  openDisplaySettings: PropTypes.func,
   toggleLanguage:      PropTypes.func,
   multiPanel:          PropTypes.bool,
   compare:             PropTypes.bool,

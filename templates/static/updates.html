@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "New Additions to the Sefaria Library" %}{% endblock %}
+
+{% block description %}{% trans "See texts, translations and connections that have been recently added to Sefaria." %}{% endblock %}
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'updatesPanelContent';
+    DJANGO_VARS.reactComponentName = 'UpdatesPanel';
+    {% endautoescape %}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="superAbout">
+    {% if not request.user_agent.is_mobile %}
+      {% include '_sidebar.html' with whichPage='updates' %}
+    {% endif %}
+    <main id="updatesPage">
+        <div id="updatesPanelContent">
+            <h1 id="appLoading">Loading...</h1>
+        </div>
+    </main>
+</div>
+{% endblock %}
+{% block footer %} {% endblock %}

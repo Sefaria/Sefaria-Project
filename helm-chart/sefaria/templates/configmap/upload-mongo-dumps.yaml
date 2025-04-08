@@ -1,0 +1,58 @@
+{{- if .Values.backup.mongo.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: upload-dumps-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  upload-dumps.sh: |-
+    #!/usr/bin/env bash
+    set -x
+
+    cd "/mongodumps/shared_volume"
+    today="$(date +'%d.%m.%y')"
+    last_week="$(date --date='last week' +'%d.%m.%y')"
+
+    gsutil rm "gs://${BUCKET}/${PREFIX}private_dump_${last_week}.tar.gz"
+    gsutil rm "gs://${BUCKET}/${PREFIX}private_dump_small_${last_week}.tar.gz"
+
+    if [ -f "private_dump.tar.gz" ]; then
+        echo "uploading private dump"
+        gsutil cp private_dump.tar.gz "gs://${BUCKET}/${PREFIX}private_dump_${today}.tar.gz"
+        if [ "$(date +'%d')" == "01" ]; then  #  Upload to Nearline storage on the first of every month
+            echo "Archiving to Nearline Storage"
+            gsutil cp private_dump.tar.gz "gs://${ARCHIVE_BUCKET}/${PREFIX}private_dump_${today}.tar.gz"
+        fi
+    else
+        echo "Private dump missing"
+    fi
+
+    if [ -f "private_dump_small.tar.gz" ]; then
+        echo "uploading private small dump"
+        gsutil cp private_dump_small.tar.gz "gs://${BUCKET}/${PREFIX}private_dump_small_${today}.tar.gz"
+    else
+        echo "small private dump missing"
+    fi
+
+    {{- if .Values.backup.mongo.public }}
+
+    if [ -f "dump_small.tar.gz" ]; then
+        echo "uploading small public dump"
+        gsutil cp dump_small.tar.gz "gs://${BUCKET}/${PREFIX}dump_small.tar.gz"
+        gsutil acl ch -u AllUsers:R "gs://${BUCKET}/${PREFIX}dump_small.tar.gz"
+    else
+        echo "small public dump missing"
+    fi
+
+    if [ -f "dump.tar.gz" ]; then
+        echo "Uploading Public Dump"
+        gsutil cp dump.tar.gz "gs://${BUCKET}/${PREFIX}dump.tar.gz"
+        gsutil acl ch -u AllUsers:R "gs://${BUCKET}/${PREFIX}dump.tar.gz"
+    else
+        echo "public dump missing"
+    fi
+
+    {{- end }}
+{{- end }}

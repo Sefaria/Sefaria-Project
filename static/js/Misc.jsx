@@ -8,21 +8,23 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
+import {AdContext, StrapiDataContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
+import {ProfilePic} from "./ProfilePic";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {refSort} from "./TopicPage";
 import {TopicEditor} from "./TopicEditor";
 import {generateContentForModal, SignUpModalKind} from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
-import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+import { ReaderApp } from './ReaderApp';
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -59,6 +61,7 @@ const __filterChildrenByLanguage = (children, language) => {
   let newChildren = chlArr.filter(x=> x.type == currLangComponent);
   return newChildren;
 };
+
 
 const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
   /**
@@ -138,226 +141,6 @@ const DonateLink = ({children, classes, source, link}) => {
   );
 };
 
-/* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
-class ProfilePic extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      showDefault: !this.props.url || this.props.url.startsWith("https://www.gravatar"), // We can't know in advance if a gravatar image exists of not, so start with the default beforing trying to load image
-      src: null,
-      isFirstCropChange: true,
-      crop: {unit: "px", width: 250, aspect: 1},
-      croppedImageBlob: null,
-      error: null,
-    };
-    this.imgFile = React.createRef();
-  }
-  setShowDefault() { /* console.log("error"); */ this.setState({showDefault: true});  }
-  setShowImage() { /* console.log("load"); */ this.setState({showDefault: false});  }
-  componentDidMount() {
-    if (this.didImageLoad()) {
-      this.setShowImage();
-    } else {
-      this.setShowDefault();
-    }
-  }
-  didImageLoad(){
-    // When using React Hydrate, the onLoad event of the profile image will return before
-    // react code runs, so we check after mount as well to look replace bad images, or to
-    // swap in a gravatar image that we now know is valid.
-    const img = this.imgFile.current;
-    return (img && img.complete && img.naturalWidth !== 0);
-  }
-  onSelectFile(e) {
-    if (e.target.files && e.target.files.length > 0) {
-      if (!e.target.files[0].type.startsWith('image/')) {
-        this.setState({ error: "Error: Please upload an image with the correct file extension (e.g. jpg, png)"});
-        return;
-      }
-      const reader = new FileReader();
-      reader.addEventListener("load", () =>
-        this.setState({ src: reader.result })
-      );
-      console.log("FILE", e.target.files[0]);
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  }
-  onImageLoaded(image) {
-    this.imageRef = image;
-  }
-  onCropComplete(crop) {
-    this.makeClientCrop(crop);
-  }
-  onCropChange(crop, percentCrop) {
-    // You could also use percentCrop:
-    // this.setState({ crop: percentCrop });
-    if (this.state.isFirstCropChange) {
-      const { clientWidth:width, clientHeight:height } = this.imageRef;
-      crop.width = Math.min(width, height);
-      crop.height = crop.width;
-      crop.x = (this.imageRef.width/2) - (crop.width/2);
-      crop.y = (this.imageRef.height/2) - (crop.width/2);
-      this.setState({ crop, isFirstCropChange: false });
-    } else {
-      this.setState({ crop });
-    }
-  }
-  async makeClientCrop(crop) {
-    if (this.imageRef && crop.width && crop.height) {
-      const croppedImageBlob = await this.getCroppedImg(
-        this.imageRef,
-        crop,
-        "newFile.jpeg"
-      );
-      //console.log(croppedImageUrl);
-      this.setState({ croppedImageBlob });
-    }
-  }
-  getCroppedImg(image, crop, fileName) {
-    const canvas = document.createElement("canvas");
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    canvas.width = crop.width * scaleX;
-    canvas.height = crop.height * scaleY;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(
-      image,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
-      0,
-      0,
-      crop.width * scaleX,
-      crop.height * scaleY
-    );
-
-    return new Promise((resolve, reject) => {
-      canvas.toBlob(blob => {
-        if (!blob) {
-          console.error("Canvas is empty");
-          return;
-        }
-        blob.name = fileName;
-        resolve(blob);
-      }, "image/jpeg");
-    });
-  }
-  closePopup({ cb }) {
-    this.setState({
-      src: null,
-      crop: {unit: "px", width: 250, aspect: 1},
-      isFirstCropChange: true,
-      croppedImageBlob: null,
-      error: null,
-    }, cb);
-  }
-  async upload() {
-    const formData = new FormData();
-    formData.append('file', this.state.croppedImageBlob);
-    this.setState({ uploading: true });
-    let errored = false;
-    try {
-      const response = await Sefaria.uploadProfilePhoto(formData);
-      if (response.error) {
-        throw new Error(response.error);
-      } else {
-        this.closePopup({ cb: () => {
-          window.location = "/profile/" + Sefaria.slug; // reload to get update
-          return;
-        }});
-      }
-    } catch (e) {
-      errored = true;
-      console.log(e);
-    }
-    this.setState({ uploading: false, errored });
-  }
-  render() {
-    const { name, url, len, hideOnDefault, showButtons, outerStyle } = this.props;
-    const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
-    const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
-    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "";
-    const defaultViz = showDefault ? 'flex' : 'none';
-    const profileViz = showDefault ? 'none' : 'block';
-    const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
-
-    return (
-      <div style={outerStyle} className="profile-pic">
-        <div className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
-          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
-          { showButtons ? null : `${initials}` }
-        </div>
-        <img
-          className="img-circle profile-img"
-          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-          src={imageSrc}
-          alt="User Profile Picture"
-          ref={this.imgFile}
-          onLoad={this.setShowImage}
-          onError={this.setShowDefault}
-        />
-        {this.props.children ? this.props.children : null /*required for slate.js*/}
-        { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
-            (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
-              <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
-              <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
-                <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-                <span className="int-he">{ showDefault ? "הוספת תמונה" : "עדכון תמונה" }</span>
-              </label>
-            </div>) : null
-          }
-          { (src || !!error) && (
-            <div id="interruptingMessageBox" className="sefariaModalBox">
-              <div id="interruptingMessageOverlay" onClick={this.closePopup}></div>
-              <div id="interruptingMessage" className="profile-pic-cropper-modal">
-                <div className="sefariaModalContent profile-pic-cropper-modal-inner">
-                  { src ?
-                    (<ReactCrop
-                      src={src}
-                      crop={crop}
-                      className="profile-pic-cropper"
-                      keepSelection
-                      onImageLoaded={this.onImageLoaded}
-                      onComplete={this.onCropComplete}
-                      onChange={this.onCropChange}
-                    />) : (<div className="profile-pic-cropper-error">{ error }</div>)
-                  }
-              </div>
-              { (uploading || isFirstCropChange) ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
-                <div>
-                  <div className="smallText profile-pic-cropper-desc">
-                    <span className="int-en">Drag corners to crop image</span>
-                    <span className="int-he">לחיתוך התמונה, גרור את הפינות</span>
-                  </div>
-                  <div className="profile-pic-cropper-button-row">
-                    <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
-                      <span className="int-en">Cancel</span>
-                      <span className="int-he">בטל</span>
-                    </a>
-                    <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
-                      <span className="int-en">Save</span>
-                      <span className="int-he">שמור</span>
-                    </a>
-                  </div>
-                </div>
-                )
-              }
-            </div>
-          </div>
-          )
-        }
-      </div>
-    );
-  }
-}
-ProfilePic.propTypes = {
-  url:           PropTypes.string,
-  name:          PropTypes.string,
-  len:           PropTypes.number,
-  hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
-  showButtons:   PropTypes.bool,  // show profile pic action buttons
-};
 
 
 /**
@@ -497,6 +280,7 @@ const FilterableList = ({
               name="filterableListInput"
               value={filter}
               onChange={e => setFilter(e.target.value)}
+              data-anl-event="search:input"
             />
           </div>
           <div className="filter-sort-wrapper">
@@ -508,6 +292,17 @@ const FilterableList = ({
                 key={option}
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => setSort(option)}
+                tabIndex="0"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.target.click();
+                  }
+                }}
+                data-anl-event="sort_by:click"
+                data-anl-batch={JSON.stringify({
+                  text: option, from: sortOption, to: option,
+                })}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
@@ -1043,34 +838,11 @@ class ToggleOption extends Component {
   }
 }
 
-         //style={this.props.style}
-
-const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}, redirect_params}) => {
-    let ajaxPayload = {url, type};
-    if (type === "POST") {
-      ajaxPayload.data = {json: JSON.stringify(data)};
-    }
-    $.ajax({
-      ...ajaxPayload,
-      success: function(result) {
-        if ("error" in result) {
-          if (setSavingStatus) {
-            setSavingStatus(false);
-          }
-          alert(result.error);
-        } else {
-          redirect();
-        }
-      }
-    }).fail(function() {
-      alert(Sefaria._("Something went wrong. Sorry!"));
-    });
-}
 
  const TopicToCategorySlug = function(topic, category=null) {
    //helper function for AdminEditor
    if (!category) {
-     category = Sefaria.topicTocCategory(topic.slug);
+     category = Sefaria.displayTopicTocCategory(topic.slug);
    }
    let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
    // so all category topics initialized to "Main Menu"
@@ -1093,15 +865,16 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
-const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
+const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
   return (
     <span className={adminClasses}>
-      {buttonsToDisplay.map((key, i) => {
+      {buttonIDs.map((key, i) => {
         const top = i === 0;
-        const bottom = i === buttonsToDisplay.length - 1;
+        const bottom = i === buttonIDs.length - 1;
         const [buttonText, toggleAddingTopics] = buttonOptions[key];
         return (
           <AdminEditorButton
+            key={`${buttonText}|${i}`}
             text={buttonText}
             top={top}
             bottom={bottom}
@@ -1112,9 +885,7 @@ const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
     </span>
   );
 };
-
-
-const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"]}) => {
+const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcategory", "edit"], actionButtons = {}}) => {
   /*
   Provides an interface for using admin tools.
   `type` is 'sources', 'cats', 'books' or 'topics'
@@ -1122,7 +893,8 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
         for `type` === 'books' it's the name of the book
         for `type` === 'topics' it's a dictionary of the topic object
         for `type` === 'sources' it's a list where the first item is topic slug and second item is source data
-  `buttonsToDisplay` is a list that says in the specified order we want all of the buttons in buttonOptions
+  `toggleButtonIDs` is a list of IDs that appear in buttonOptions. Each ID will create a button that performs the toggle action specified for it in buttonOptions. toggleButtonIDs will always appear before actionButtons
+  `actionButtons` is an object where each key is an ID of a new button in the list and each value is an array of form [English Display Text, callback]. actionButtons will always appear after toggleButtonIDs.
    */
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
@@ -1130,19 +902,21 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   const [addSource, toggleAddSource] = useEditToggle();
   const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
-  const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
+  const buttonIDs = toggleButtonIDs.concat(Object.keys(actionButtons));
+
+  const buttonOptions = Object.assign({"subcategory": ["Add sub-category", toggleAddCategory],
                           "source": ["Add a source", toggleAddSource],
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
-                          "edit": ["Edit", toggleEditCategory]};
-
+                          "edit": ["Edit", toggleEditCategory]}, actionButtons);
 
   let wrapper = "";
   let adminButtonsSpan = null;
   if (Sefaria.is_moderator) {
     if (editCategory) {
       adminButtonsSpan = <CategoryEditorWrapper toggle={toggleEditCategory} data={data} type={type}/>;
-    } else if (addSource) {
+    }
+      else if (addSource) {
       adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
     } else if (addCategory) {
       adminButtonsSpan = <CategoryAdderWrapper toggle={toggleAddCategory} data={data} type={type}/>;
@@ -1155,13 +929,22 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
       const adminClasses = classNames({adminButtons: 1, hiddenButtons});
         adminButtonsSpan = <AllAdminButtons
         buttonOptions={buttonOptions}
-        buttonsToDisplay={buttonsToDisplay}
+        buttonIDs={buttonIDs}
         adminClasses={adminClasses}
       />;
     }
   }
   return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
 }
+
+
+//Pencil-shaped button to open the ref-link (source) editor
+const PencilSourceEditor = ({topic, text, classes}) => {
+    const [addSource, toggleAddSource] = useEditToggle();
+    return addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
+        <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"}/>;
+}
+
 const ReorderEditorWrapper = ({toggle, type, data}) => {
     /*
     Wrapper for ReorderEditor that can reorder topics, categories, and sources.  It is only used for reordering topics and categories at the
@@ -1174,16 +957,18 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
             return [];
         }
         // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
-        refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+        refs = refs.filter((x) => !x.is_sheet);
         // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
         return refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
     }
     const _createURLs = (type, data) => {
       if (reorderingSources) {
+        const urlObj = new URL(window.location.href);
+        const tabName = urlObj.searchParams.get('tab');
         return {
           url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
-          redirect: `/topics/${data.slug}`,
-          origItems: _filterAndSortRefs(data.refs?.about?.refs) || [],
+          redirect: `/topics/${data.slug}?sort=Relevance&tab=${tabName}`,
+          origItems: _filterAndSortRefs(data.tabs?.sources?.refs) || [],
         }
       }
       switch (type) {  // at /texts or /topics
@@ -1213,7 +998,10 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
 
 const EditorForExistingTopic = ({ toggle, data }) => {
   const prepAltTitles = (lang) => { // necessary for use with TitleVariants component
-    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({["name"]: item.text, ["id"]: i}))
+    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({
+      name: item.disambiguation ? `${item.text} (${item.disambiguation})` : item.text,
+      id: i
+  }))
   }
   const initCatSlug = TopicToCategorySlug(data);
   const origData = {
@@ -1235,7 +1023,7 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origDeathYear: data?.properties?.deathYear?.value,
     origEra: data?.properties?.era?.value,
     origImage: data?.image,
-
+    origSecondaryImageUri: data?.secondary_image_uri,
   };
 
   const origWasCat = "displays-above" in data?.links;
@@ -1346,6 +1134,8 @@ class DisplaySettingsButton extends Component {
   render() {
     let style = this.props.placeholder ? {visibility: "hidden"} : {};
     let icon;
+    const altText = Sefaria._('Text display options')
+    const classes = "readerOptionsTooltip tooltip-toggle";
 
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
@@ -1356,17 +1146,21 @@ class DisplaySettingsButton extends Component {
     } else {
       icon = <span className="textIcon">Aa</span>;
     }
-    return (<a
-              className="readerOptions"
-              tabIndex="0"
-              role="button"
-              aria-haspopup="true"
-              aria-label="Toggle Reader Menu Display Settings"
-              style={style}
-              onClick={this.props.onClick}
-              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
-              {icon}
-            </a>);
+    return (
+            <ToolTipped {...{ altText, classes}}>
+                <a
+                className="readerOptions"
+                tabIndex="0"
+                role="button"
+                aria-haspopup="true"
+                aria-label="Toggle Reader Menu Display Settings"
+                style={style}
+                onClick={this.props.onClick}
+                onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+                {icon}
+              </a>
+            </ToolTipped>
+            );
   }
 }
 DisplaySettingsButton.propTypes = {
@@ -1507,6 +1301,68 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   </div>
 )};
 
+const AiLearnMoreLink = ({lang}) => {
+  const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
+  return (
+      <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
+        {text}
+      </a>
+  );
+};
+
+const AiFeedbackLink = ({lang}) => {
+  const text = lang === 'english' ? 'Feedback' : 'כתבו לנו';
+  return (
+      <a href={"https://sefaria.formstack.com/forms/ai_feedback_form"} data-anl-event="feedback_click:click" data-anl-text="feedback">
+        {text}
+      </a>
+  );
+}
+
+const AiInfoTooltip = () => {
+  const [showMessage, setShowMessage] = useState(false);
+  const aiInfoIcon = (
+      <img
+          className="ai-info-icon"
+          data-anl-event="ai_marker_hover:mouseover"
+          src="/static/icons/ai-info.svg"
+          alt="AI Info Icon" onMouseEnter={() => setShowMessage(true)}
+          onMouseLeave={() => setShowMessage(false)}
+      />
+    );
+  const aiMessage = (
+      <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
+            <div className="ai-info-first-message">
+            <InterfaceText>
+                <EnglishText>Some of the text on this page has been AI generated.
+                  &nbsp;<AiLearnMoreLink lang="english" />
+                </EnglishText>
+                <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית.&nbsp;
+                  <AiLearnMoreLink lang="hebrew" />
+                </HebrewText>
+            </InterfaceText>
+
+        </div>
+        <hr className="ai-info-messages-hr" />
+        <div className="ai-info-last-message">
+            <InterfaceText><EnglishText><AiFeedbackLink lang="english" /></EnglishText>
+            <HebrewText><AiFeedbackLink lang="hebrew" /></HebrewText>
+            </InterfaceText>
+        </div>
+      </div>
+  );
+  return (
+    <div className="ai-info-tooltip"
+         data-anl-feature_name="ai_marker"
+    >
+      {aiInfoIcon}
+        <div className={`ai-message ${(showMessage) ? 'visible' : ''}`}>
+            {aiMessage}
+        </div>
+    </div>
+  );
+};
+
 
 class FollowButton extends Component {
   constructor(props) {
@@ -1577,87 +1433,14 @@ FollowButton.propTypes = {
 
 };
 
-const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
-    /*
-    `old_filename` is passed to API so that if it exists, it is deleted
-     */
-    const fileInput = useRef(null);
+const SmallBlueButton = ({onClick, tabIndex, text}) => {
+  return (
+      <div onClick={onClick} className="button extraSmall blue control-elem" tabIndex={tabIndex} role="button">
+        <InterfaceText>{text}</InterfaceText>
+      </div>
+  );
+};
 
-    const uploadImage = function(imageData, type="POST") {
-      const formData = new FormData();
-      formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
-      if (old_filename !== "") {
-        formData.append('old_filename', old_filename);
-      }
-      const request = new Request(
-        `${Sefaria.apiHost}/api/topics/images/${slug}`,
-        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
-      );
-      fetch(request, {
-          method: 'POST',
-          mode: 'same-origin',
-          credentials: 'same-origin',
-          body: formData
-      }).then(response => {
-        if (!response.ok) {
-            response.text().then(resp_text=> {
-                alert(resp_text);
-            })
-        }else{
-            response.json().then(resp_json=>{
-                callback(resp_json.url);
-            });
-        }
-    }).catch(error => {
-        alert(error);
-    })};
-    const onFileSelect = (e) => {
-          const file = fileInput.current.files[0];
-          if (file == null)
-          return;
-          if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
-              const reader = new FileReader();
-
-              reader.addEventListener("load", function() {
-                uploadImage(reader.result);
-              }, false);
-
-              reader.addEventListener("onerror", function() {
-                alert(reader.error);
-              }, false);
-
-              reader.readAsDataURL(file);
-          } else {
-            alert('The file is not an image');
-          }
-    }
-    const deleteImage = () => {
-        const old_filename_wout_url = old_filename.split("/").slice(-1);
-        const url = `${Sefaria.apiHost}/api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
-        requestWithCallBack({url, type: "DELETE", redirect: () => alert("Deleted image.")});
-        callback("");
-        fileInput.current.value = "";
-    }
-    return <div className="section">
-            <label><InterfaceText>Picture</InterfaceText></label>
-            <label>
-              <span className="optional"><InterfaceText>Please use horizontal, square, or only-slightly-vertical images for best results.</InterfaceText></span>
-            </label>
-            <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
-              <label htmlFor="addImageFileSelector">
-                <div className="button extraSmall blue control-elem" tabIndex="0" role="button">
-                      <InterfaceText>Upload Picture</InterfaceText>
-                    </div>
-              </label>
-              </div><input style={{display: "none"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
-              {old_filename !== "" && <div style={{"max-width": "420px"}}>
-                    <br/><ImageWithCaption photoLink={old_filename} caption={caption}/>
-                    <br/><div onClick={deleteImage} className="button extraSmall blue control-elem" tabIndex="1" role="button">
-                      <InterfaceText>Remove Picture</InterfaceText>
-                    </div></div>
-              }
-          </div>
-    }
 
 const CategoryColorLine = ({category}) =>
   <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
@@ -2055,7 +1838,7 @@ function OnInView({ children, onVisible }) {
    *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
    *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
    */
-  const elementRef = useRef(); 
+  const elementRef = useRef();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -2147,30 +1930,35 @@ const InterruptingMessage = ({
 
     let shouldShowModal = false;
 
-    let noUserKindIsSet = ![
-      strapi.modal.showToReturningVisitors,
-      strapi.modal.showToNewVisitors,
-      strapi.modal.showToSustainers,
-      strapi.modal.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer &&
-        strapi.modal.showToSustainers) ||
-        (!Sefaria.is_sustainer &&
-          strapi.modal.showToNonSustainers))
+      (Sefaria._uid && strapi.modal.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.modal.showTo === "logged_out_only")
     )
       shouldShowModal = true;
-    else if (
-      (Sefaria.isReturningVisitor() &&
-        strapi.modal.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
-    )
-      shouldShowModal = true;
-    else if (noUserKindIsSet) shouldShowModal = true;
+    else if (strapi.modal.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.modal.showToReturningVisitors,
+        strapi.modal.showToNewVisitors,
+        strapi.modal.showToSustainers,
+        strapi.modal.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.modal.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.modal.showToNonSustainers))
+      )
+        shouldShowModal = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.modal.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
+      )
+        shouldShowModal = true;
+      else if (noUserKindIsSet) 
+        shouldShowModal = true;
+    }
     if (!shouldShowModal) return false;
-    // Don't show the modal on pages where the button link goes to since you're already there
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    // Don't show the modal on pages where the button link goes to since you're already there
     if (strapi.modal.buttonURL) {
       if (strapi.modal.buttonURL.en) {
         excludedPaths.push(new URL(strapi.modal.buttonURL.en).pathname);
@@ -2276,6 +2064,47 @@ const InterruptingMessage = ({
 };
 InterruptingMessage.displayName = "InterruptingMessage";
 
+const GenericBanner = ({message, children}) => {
+  return (
+      <div className="genericBanner">
+        {<InterfaceText>{message}</InterfaceText> }
+        {children}
+      </div>);
+}
+
+const LearnAboutNewEditorBanner = () => {
+  const cookieName = "learned_about_new_editor";
+  const shouldShowNotification = Sefaria._inBrowser && !document.cookie.includes(cookieName);
+  const [showNotification, toggleShowNotification] = useState(shouldShowNotification);
+  const [enURL, heURL] = ["/sheets/393695", "/sheets/399333"];
+  const linkURL = Sefaria._v({en: enURL, he: heURL});
+
+  const handleLearnMoreClick = () => {
+    window.open(linkURL, '_blank');
+  };
+
+  const setCookie = () => {
+    $.cookie(cookieName, 1, {path: "/", expires: 20*365});
+    toggleShowNotification(false);
+  }
+
+  if (!showNotification) {
+    return null;
+  }
+  return (
+    <GenericBanner
+      message="Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface."
+    >
+      {
+        <button className="button white" onClick={() => {handleLearnMoreClick(); setCookie();}}>
+          <InterfaceText>Get Started</InterfaceText>
+        </button>
+      }
+      <button id="bannerMessageClose" onClick={setCookie}>×</button>
+    </GenericBanner>
+  );
+};
+
 const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
     useState(false);
@@ -2316,26 +2145,33 @@ const Banner = ({ onClose }) => {
 
     let shouldShowBanner = false;
 
-    let noUserKindIsSet = ![
-      strapi.banner.showToReturningVisitors,
-      strapi.banner.showToNewVisitors,
-      strapi.banner.showToSustainers,
-      strapi.banner.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
-        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      (Sefaria._uid && strapi.banner.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.banner.showTo === "logged_out_only")
     )
       shouldShowBanner = true;
-    else if (
-      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
-    )
-      shouldShowBanner = true;
-    else if (noUserKindIsSet) shouldShowBanner = true;
+    else if (strapi.banner.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.banner.showToReturningVisitors,
+        strapi.banner.showToNewVisitors,
+        strapi.banner.showToSustainers,
+        strapi.banner.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      )
+        shouldShowBanner = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
+      )
+        shouldShowBanner = true;
+      else if (noUserKindIsSet) 
+        shouldShowBanner = true;
+    }
     if (!shouldShowBanner) return false;
-
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
     // Don't show the banner on pages where the button link goes to since you're already there
     if (strapi.banner.buttonURL) {
@@ -2428,8 +2264,6 @@ const Banner = ({ onClose }) => {
   }
 };
 
-Banner.displayName = "Banner";
-
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
   // If `stretch`, extend the final row into any remaining empty columns
@@ -2475,7 +2309,11 @@ TwoOrThreeBox.defaultProps = {
 const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, threshold3=1500, gap=0}) => {
   //above threshold2, there will be 2 columns
   //above threshold3, there will be 3 columns
-  initialWidth = initialWidth || (window ? window.innerWidth : 1000);
+  initialWidth = initialWidth || (
+    typeof window !== 'undefined' && window.innerWidth
+    ? window.innerWidth
+    : 1000
+  );
   const [width, setWidth] = useState(initialWidth);
   const ref = useRef(null);
 
@@ -2995,7 +2833,7 @@ const TitleVariants = function({titles, update, options}) {
                     allowNew={true}
                     tags={titles}
                     onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
-                    placeholderText={Sefaria._("Add a title...")}
+                    placeholderText={Sefaria._("Add a title and press 'enter' or 'tab'.")}
                     delimiters={["Enter", "Tab"]}
                     onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
                     onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
@@ -3252,16 +3090,20 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+const getImgAltText = (caption) => {
+  return (caption && Sefaria._v(caption)) || Sefaria._('Illustrative image');
+}
 const ImageWithCaption = ({photoLink, caption }) => {
-  
   return (
     <div>
-        <img class="imageWithCaptionPhoto" src={photoLink}/>
-        <div class="imageCaption"> 
+        <ImageWithAltText photoLink={photoLink} altText={caption} />
+        <div className="imageCaption">
           <InterfaceText text={caption} />
         </div>
       </div>);
 }
+
+const ImageWithAltText = ({photoLink, altText}) => (<img className="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(altText)}/>);
 
 const AppStoreButton = ({ platform, href, altText }) => {
   const isIOS = platform === 'ios';
@@ -3275,6 +3117,121 @@ const AppStoreButton = ({ platform, href, altText }) => {
       </a>
   );
 };
+
+const handleAnalyticsOnMarkdown = (e, gtag_fxn, rank, product, cta, label, link_type, analytics_event) => {
+
+
+  // get the lowest level parent element of an event target that is an HTML link tag. Or Null.
+  let target = e.target;
+  let linkTarget = null;
+  let parent = target;
+  let outmost = e.currentTarget;
+  let text = "";
+
+  while (parent) {
+    if(parent.nodeName === 'A'){
+      linkTarget = parent;
+      text = linkTarget.text
+      break;
+    }
+    else if (parent.parentNode === outmost) {
+      return null;
+    }
+    parent = parent.parentNode;
+  }
+
+  // Ignore clicks from non-a elements.
+  if (!linkTarget) {
+    return;
+  }
+  const href = linkTarget.getAttribute('href');
+  if (!href) {
+    return;
+  }
+  else {
+    gtag_fxn(rank, product, text, label, link_type, analytics_event);
+  }
+}
+
+
+const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
+
+  return (
+      <div
+          className={classNames({ active: lang === buttonId, radioChoice: 1 })}
+          data-anl-event="lang_toggle_select:click"
+          data-anl-text={buttonId}
+          data-anl-to={buttonId}
+      >
+        <label htmlFor={buttonId}>
+          <InterfaceText>{buttonTitle}</InterfaceText>
+        </label>
+        <input
+          type="radio"
+          id={buttonId}
+          name="options"
+          value={buttonId}
+          checked={lang === buttonId}
+          onChange={handleLangChange}
+        />
+      </div>
+  );
+};
+const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
+  const [lang, setLang] = useState(defaultVal);
+  const buttonData = [
+  { buttonTitle: "Source", buttonId: "source" },
+  { buttonTitle: "Translation", buttonId: "translation" },
+  { buttonTitle: "Source with Translation", buttonId: "sourcewtrans" }
+];
+
+  const handleLangChange = (event) => {
+    setLang(event.target.value);
+    callback(event.target.value);
+    closeInterface();
+  };
+
+  useEffect(()=>{
+    document.querySelector('.langSelectPopover').focus()
+  },[])
+
+  return (
+    <div className="langSelectPopover"
+      tabIndex="0"
+      data-anl-batch={JSON.stringify({
+        feature_name: "source lang toggled",
+        text: lang,
+        from: lang,
+      })}
+      onClick={(e) => {
+          e.stopPropagation();
+          e.nativeEvent.stopImmediatePropagation();
+        }
+      }
+
+      // HACK to prevent the option menu to close once an option is selected (which is technically blurring this element)
+      onBlur={(e) => {
+            setTimeout(() => {
+              if (!document.querySelector('.langSelectPopover').contains(document.activeElement)) {
+                closeInterface();
+              }
+            }, 50);
+        }
+      }
+    >
+       {buttonData.map((button, index) => (
+        <LangRadioButton
+          key={button.buttonId}
+          buttonTitle={button.buttonTitle}
+          lang={lang}
+          buttonId={button.buttonId}
+          handleLangChange={handleLangChange}
+        />
+      ))}
+    </div>
+  );
+
+}
 
 
 export {
@@ -3313,7 +3270,6 @@ export {
   NBox,
   Note,
   ProfileListing,
-  ProfilePic,
   ReaderMessage,
   CloseButton,
   DisplaySettingsButton,
@@ -3328,6 +3284,7 @@ export {
   TextBlockLink,
   ToggleSet,
   ToolTipped,
+  AiInfoTooltip,
   TwoOrThreeBox,
   ResponsiveNBox,
   SheetMetaDataBox,
@@ -3340,8 +3297,12 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  requestWithCallBack,
   OnInView,
-  TopicPictureUploader,
-  ImageWithCaption
+  ImageWithCaption,
+  ImageWithAltText,
+  handleAnalyticsOnMarkdown,
+  LangSelectInterface,
+  PencilSourceEditor,
+  SmallBlueButton,
+  LearnAboutNewEditorBanner
 };

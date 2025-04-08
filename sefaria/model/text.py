@@ -19,13 +19,13 @@ from collections import defaultdict
 from bs4 import BeautifulSoup, Tag
 import re2 as re
 from . import abstract as abst
-from .schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
+from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
-    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError
+    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -234,7 +234,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         self.struct_objs = {}
         if getattr(self, "alt_structs", None) and self.nodes:
             for name, struct in list(self.alt_structs.items()):
-                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
+                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=AltStructNode)
                 self.struct_objs[name].title_group = self.nodes.title_group
 
     def is_complex(self):
@@ -259,7 +259,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         Returns the `schema` dictionary with each node annotated with section lengths info
         from version_state.
         """
-        vstate   = self.versionState()
+        vstate = self.versionState()
 
         def simplify_version_state(vstate_node):
             return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
@@ -527,7 +527,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if not d.get("categories"):
                 raise InputError("Please provide category for Index record: {}.".format(d.get("title")))
 
-            # Data is being loaded from dict in old format, rewrite to new format
+            # Data is being loaded from dict in old format, rewrite to new format,
+            # Used by GUI Index tools (Index Editor and the /add/new index creation tool) that do not pass a 'schema'
             # Assumption is that d has a complete title collection
             if "schema" not in d:
                 node = getattr(self, "nodes", None)
@@ -546,26 +547,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     else:
                         raise InputError("Please specify section names for Index record.")
 
-                    if d["categories"][0] == "Talmud":
-                        node.addressTypes = ["Talmud", "Integer"]
-                        if d["categories"][1] == "Bavli" and d.get("heTitle") and not self.is_dependant_text():
-                            node.checkFirst = {
-                                "he": "משנה" + " " + d.get("heTitle"),
-                                "en": "Mishnah " + d.get("title")
-                            }
-                    elif d["categories"][0] == "Mishnah":
-                        node.addressTypes = ["Perek", "Mishnah"]
-                    else:
-                        if getattr(node, "addressTypes", None) is None:
+                    if self.is_new():
+                        if d["categories"][0] == "Talmud" and d["categories"][1] == "Bavli":
+                            node.addressTypes = ["Talmud", "Integer"]
+                        else:
                             node.addressTypes = ["Integer" for _ in range(node.depth)]
-
-                    l = d.pop("length", None)
-                    if l:
-                        node.lengths = [l]
-
-                    ls = d.pop("lengths", None)
-                    if ls:
-                        node.lengths = ls  #overwrite if index.length is already there
 
                 #Build titles
                 node.add_title(d["title"], "en", True)
@@ -679,6 +665,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if getattr(self, attr, None):
                 delattr(self, attr)
 
+        # Index Editor can set collective_title and dependence to empty string if admin doesn't fill in a value.
+        # likewise, it can set base_text_titles to [] but we don't want empty strings/lists for these fields in the database
+        if getattr(self, "base_text_titles", None) == []:  # if base_text_titles is present but is empty list
+            delattr(self, "base_text_titles")
+        if getattr(self, "dependence", None) == "":
+            delattr(self, "dependence")
+        if hasattr(self, "collective_title"):
+            if self.collective_title == "":
+                del self.collective_title
+
     def _update_alt_structs_on_title_change(self):
         old_title = self.pkeys_orig_values["title"]
         new_title = self.nodes.primary_title("en")
@@ -742,7 +738,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         '''
 
         if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
-            raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
+            raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(
+                self.collective_title))
 
         #complex style records- all records should now conform to this
         if self.nodes:
@@ -1032,7 +1029,11 @@ class AbstractTextRecord(object):
 
     def word_count(self):
         """ Returns the number of words in this text """
-        return self.ja(remove_html=True).word_count()
+        try:
+            wc = self.ja(remove_html=True).word_count()
+        except AttributeError:
+            wc = 0
+        return wc
 
     def char_count(self):
         """ Returns the number of characters in this text """
@@ -1174,14 +1175,21 @@ class AbstractTextRecord(object):
 
     @staticmethod
     def remove_html(t):
+
+        def conditional_replace(match):
+            tag = match.group()
+            if tag in ["<br/>", "<br>"]:
+                return " "
+            return ""
+
         if isinstance(t, list):
             for i, v in enumerate(t):
                 if isinstance(v, str):
-                    t[i] = re.sub('<[^>]+>', " ", v)
+                    t[i] = re.sub('<[^>]+>', conditional_replace, v)
                 else:
                     t[i] = AbstractTextRecord.remove_html(v)
         elif isinstance(t, str):
-            t = re.sub('<[^>]+>', " ", t)
+            t = re.sub('<[^>]+>', conditional_replace, t)
         else:
             return False
         return t
@@ -1300,7 +1308,12 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "title",    # FK to Index.title
         "versionSource",
         "versionTitle",
-        "chapter"  # required.  change to "content"?
+        "chapter",  # required.  change to "content"?
+        "actualLanguage",  # ISO language code
+        'languageFamilyName', # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
+        'isSource',  # bool, True if this version is not a translation
+        'isPrimary',  # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
+        'direction',  # 'rtl' or 'ltr'
     ]
 
     """
@@ -1326,12 +1339,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
-        "actualLanguage",  # ISO language code
-        'languageFamilyName',  # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
-        "isBaseText",  # should be deprecated (needs some changes on client side)
-        'isSource',  # bool, True if this version is not a translation
-        'isPrimary', # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
-        'direction',  # 'rtl' or 'ltr'
     ]
 
     def __str__(self):
@@ -1346,14 +1353,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
-        languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
-        if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
-            self.actualLanguage = languageCodeRe.group(1)
-        if not getattr(self, 'languageFamilyName', None):
-            try:
-                self.languageFamilyName = constants.LANGUAGE_CODES[self.actualLanguage]
-            except KeyError:
-                self.languageFamilyName = constants.LANGUAGE_CODES[self.language]
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
         index = self.get_index()
@@ -1389,16 +1388,20 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
     def _normalize(self):
         # add actualLanguage -- TODO: migration to get rid of bracket notation completely
-        actualLanguage = getattr(self, "actualLanguage", None) 
-        versionTitle = getattr(self, "versionTitle", None) 
+        actualLanguage = getattr(self, "actualLanguage", None)
+        versionTitle = getattr(self, "versionTitle", None)
         if not actualLanguage and versionTitle:
             languageCode = re.search(r"\[([a-z]{2})\]$", versionTitle)
             if languageCode and languageCode.group(1):
-                self.actualLanguage = languageCode.group(1)
-            else:
-                self.actualLanguage = self.language
+                actualLanguage = languageCode.group(1)
+        self.actualLanguage = actualLanguage or self.language
 
-        if not getattr(self, 'direction', None):
+        if not hasattr(self, 'languageFamilyName'):
+            self.languageFamilyName = constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
+        self.isSource = getattr(self, "isSource", self.actualLanguage == 'he')
+        if not hasattr(self, "isPrimary"):
+            self.isPrimary = self.isSource or not VersionSet({'title': self.title}) #first version is primary
+        if not hasattr(self, 'direction'):
             self.direction = 'rtl' if self.language == 'he' else 'ltr'
 
         if getattr(self, "priority", None):
@@ -1413,7 +1416,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         pass
 
     def get_index(self):
-        return library.get_index(self.title)
+        return Index().load({'title': self.title})
 
     def first_section_ref(self):
         """
@@ -1701,7 +1704,7 @@ class TextRange:
         elif oref.has_default_child(): #use default child:
             self.oref = oref.default_child_ref()
         else:
-            raise InputError("Can not get TextRange at this level, please provide a more precise reference")
+            raise ComplexBookLevelRefError(book_ref=oref.normal())
         self.lang = lang
         self.vtitle = vtitle
         self.merge_versions = merge_versions
@@ -2296,6 +2299,9 @@ class VirtualTextChunk(AbstractTextRecord):
     def version_ids(self):
         return [self._versions[0]._id] if self._versions else []
 
+    def has_manually_wrapped_refs(self):
+        return not getattr(self._oref.index_node.parent.lexicon, 'needsRefsWrapping', False)
+
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
 class TextFamily(object):
@@ -2432,7 +2438,7 @@ class TextFamily(object):
         self._alts          = []
 
         if not isinstance(oref.index_node, JaggedArrayNode) and not oref.index_node.is_virtual:
-            raise InputError("Can not get TextFamily at this level, please provide a more precise reference")
+            raise InputError("Unable to find text for that ref")
 
         for i in range(0, context):
             oref = oref.context_ref()
@@ -3998,8 +4004,10 @@ class Ref(object, metaclass=RefCacheType):
             except AttributeError:  # This is a schema node, try to get a default child
                 if self.has_default_child():
                     return self.default_child_ref().padded_ref()
+                elif self.is_book_level():
+                    raise ComplexBookLevelRefError(book_ref=self.normal())
                 else:
-                    raise InputError("Can not pad a schema node ref")
+                    raise InputError("Cannot pad a schema node ref.")
 
             d = self._core_dict()
             if self.is_talmud():
@@ -4943,16 +4951,14 @@ class Library(object):
 
         # Spell Checking and Autocompleting
         self._full_auto_completer = {}
-        self._ref_auto_completer = {}
         self._lexicon_auto_completer = {}
         self._cross_lexicon_auto_completer = None
-        self._topic_auto_completer = {}
 
         # Term Mapping
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
-        self._ref_resolver = None
+        self._linker_by_lang = {}
 
         # Topics
         self._topic_mapping = {}
@@ -4964,7 +4970,6 @@ class Library(object):
         # These values are set to True once their initialization is complete
         self._toc_tree_is_ready = False
         self._full_auto_completer_is_ready = False
-        self._ref_auto_completer_is_ready = False
         self._lexicon_auto_completer_is_ready = False
         self._cross_lexicon_auto_completer_is_ready = False
         self._topic_auto_completer_is_ready = False
@@ -5300,20 +5305,6 @@ class Library(object):
             self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
         self._full_auto_completer_is_ready = True
 
-    def build_ref_auto_completer(self):
-        """
-        Builds the autocomplete for Refs across the languages in the library
-        Sets internal boolean to True upon successful completion to indicate Ref auto completer is ready.
-        """
-        from .autospell import AutoCompleter
-        self._ref_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
-        }
-
-        for lang in self.langs:
-            self._ref_auto_completer[lang].set_other_lang_ac(self._ref_auto_completer["he" if lang == "en" else "en"])
-        self._ref_auto_completer_is_ready = True
-
     def build_lexicon_auto_completers(self):
         """
         Sets lexicon autocompleter for each lexicon in LexiconSet using a LexiconTrie
@@ -5336,24 +5327,6 @@ class Library(object):
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
 
-    def build_topic_auto_completer(self):
-        """
-        Builds the topic auto complete including topics with no sources
-        """
-        from .autospell import AutoCompleter
-        self._topic_auto_completer = AutoCompleter("en", library, include_topics=True, include_titles=False, min_topics=0)
-        self._topic_auto_completer_is_ready = True
-
-    def topic_auto_completer(self):
-        """
-        Returns the topic auto completer. If the auto completer was not initially loaded,
-        it rebuilds before returning, emitting warnings to the logger.
-        """
-        if self._topic_auto_completer is None:
-            logger.warning("Failed to load topic auto completer. rebuilding")
-            self.build_topic_auto_completer()
-            logger.warning("Built topic auto completer")
-        return self._topic_auto_completer
 
     def cross_lexicon_auto_completer(self):
         """
@@ -5390,15 +5363,6 @@ class Library(object):
             self.build_full_auto_completer()  # I worry that these could pile up.
             logger.warning("Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
-
-    def ref_auto_completer(self, lang):
-        try:
-            return self._ref_auto_completer[lang]
-        except KeyError:
-            logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
-            self.build_ref_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built {} ref auto completer.".format(lang))
-            return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
         # This is used in the case of a remotely triggered multiserver update
@@ -5717,36 +5681,64 @@ class Library(object):
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
-    def get_ref_resolver(self, rebuild=False):
-        resolver = self._ref_resolver
-        if not resolver or rebuild:
-            resolver = self.build_ref_resolver()
-        return resolver
+    def get_linker(self, lang: str, rebuild=False):
+        linker = self._linker_by_lang.get(lang)
+        if not linker or rebuild:
+            linker = self.build_linker(lang)
+        return linker
 
-    def build_ref_resolver(self):
+    def build_linker(self, lang: str):
+        from sefaria.model.linker.linker import Linker
+
+        logger.info("Loading Spacy Model")
+
+        named_entity_resolver = self._build_named_entity_resolver(lang)
+        ref_resolver = self._build_ref_resolver(lang)
+        named_entity_recognizer = self._build_named_entity_recognizer(lang)
+        cat_resolver = self._build_category_resolver(lang)
+        self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver, cat_resolver)
+        return self._linker_by_lang[lang]
+
+    @staticmethod
+    def _build_named_entity_resolver(lang: str):
+        from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
+
+        named_entity_types_to_topics = {
+            "PERSON": {"ontology_roots": ['people'], "single_slugs": ['god', 'the-tetragrammaton']},
+            "GROUP": {'ontology_roots': ["group-of-people"]},
+        }
+        return NamedEntityResolver(TopicMatcher(lang, named_entity_types_to_topics))
+
+    @staticmethod
+    def _build_named_entity_recognizer(lang: str):
+        from .linker.named_entity_recognizer import NamedEntityRecognizer
+        from sefaria.helper.linker import load_spacy_model
+
+        return NamedEntityRecognizer(
+            lang,
+            load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
+            load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
+        )
+
+    def _build_category_resolver(self, lang: str):
+        from sefaria.model.category import CategorySet, Category
+        from .linker.category_resolver import CategoryResolver, CategoryMatcher
+        categories: list[Category] = CategorySet({"match_templates": {"$exists": True}}).array()
+        return CategoryResolver(CategoryMatcher(lang, categories))
+
+    def _build_ref_resolver(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
         from .linker.ref_resolver import RefResolver, TermMatcher
         from sefaria.model.schema import NonUniqueTermSet
-        from sefaria.helper.linker import load_spacy_model
-
-        logger.info("Loading Spacy Model")
 
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
-        self._ref_resolver = RefResolver(
-            {k: load_spacy_model(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items() if v is not None},
-            {k: load_spacy_model(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items() if v is not None},
-            {
-                "en": MatchTemplateTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
-                "he": MatchTemplateTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
-            },
-            {
-                "en": TermMatcher('en', non_unique_terms),
-                "he": TermMatcher('he', non_unique_terms),
-            }
+
+        return RefResolver(
+           lang, MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone'),
+           TermMatcher(lang, non_unique_terms),
         )
-        return self._ref_resolver
 
     def get_index_forest(self):
         """
@@ -5888,7 +5880,7 @@ class Library(object):
         q = {'corpora': corpus}
         if not include_dependant:
             q['dependence'] = {'$in': [False, None]}
-        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+        return IndexSet(q, sort="order.0") if full_records else IndexSet(q, sort="order.0").distinct("title")
 
     def get_indices_by_collective_title(self, collective_title, full_records=False):
         q = {'collective_title': collective_title}
@@ -6217,7 +6209,7 @@ class Library(object):
             if replacement is None:
                 return match.group(0)
             return replacement
-        except InputError as e:
+        except (InputError, KeyError) as e:
             logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
             return match.group(0)
 
@@ -6354,7 +6346,6 @@ class Library(object):
         Returns True if the following fields are initialized
             * self._toc_tree
             * self._full_auto_completer
-            * self._ref_auto_completer
             * self._lexicon_auto_completer
             * self._cross_lexicon_auto_completer
         """
@@ -6363,13 +6354,12 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
+        are_autocompleters_ready = self._full_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
         is_initialized = self._toc_tree_is_ready and (DISABLE_AUTOCOMPLETER or are_autocompleters_ready)
         if not is_initialized:
             logger.warning({"message": "Application not fully initialized", "Current State": {
                 "toc_tree_is_ready": self._toc_tree_is_ready,
                 "full_auto_completer_is_ready": self._full_auto_completer_is_ready,
-                "ref_auto_completer_is_ready": self._ref_auto_completer_is_ready,
                 "lexicon_auto_completer_is_ready": self._lexicon_auto_completer_is_ready,
                 "cross_lexicon_auto_completer_is_ready": self._cross_lexicon_auto_completer_is_ready,
             }})

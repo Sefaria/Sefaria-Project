@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% trans "Annual Report" %}{% endblock %}
+
+
+{% block content %}
+<div class="superAbout">
+    {% if not request.user_agent.is_mobile %}
+        {% include '_sidebar.html' with whichPage='annualreport' %}
+    {% endif %}
+    <main id="annualReport" class="container biReady static">
+        <div class="inner">
+                <h1 class="aboutHeader"><span class="int-en">Annual Report</span>
+                <span class="int-he">דו"ח שנתי</span></h1>
+            <div class="annualReport"><a href="/annualreport">Open the Current Annual Report (PDF)</a></div>
+        </div>
+    </main>
+</div>
+{% endblock %}

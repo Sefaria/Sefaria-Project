@@ -64,11 +64,15 @@ class VersionBlockUtils {
         console.log(err);
       }
       if (renderMode === 'book-page') {
-          window.location = `/${firstSectionRef}?v${version.language}=${version.versionTitle.replace(/\s/g,'_')}`;
+          let urlVersionTitle = encodeURIComponent(version.versionTitle.replace(/\s/g,'_'));
+          const language = (version.isPrimary) ? 'he' : 'en';
+          window.location = `/${firstSectionRef}?v${language}=${version.languageFamilyName}|${urlVersionTitle}`;
       } else {
-          openVersionInReader(version.versionTitle, version.language);
+          const language = (renderMode === 'translation') ? 'en' : 'he';
+          openVersionInReader(version.versionTitle, language, version.languageFamilyName);
       }
-      Sefaria.setVersionPreference(currRef, version.versionTitle, version.language);
+      const pseudoLang = !version.isSource ? 'en' : 'he';
+      Sefaria.setVersionPreference(currRef, version.versionTitle, pseudoLang);
   }
 }
 
@@ -172,7 +176,7 @@ class VersionBlock extends Component {
   }
   openExtendedNotes(e){
     e.preventDefault();
-    this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle);
+    this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle, this.props.version.languageFamilyName);
   }
   makeVersionNotes(){
     if (!this.props.showNotes) {
@@ -210,7 +214,7 @@ class VersionBlock extends Component {
       // Editing View
       let close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
 
-      let licenses = Object.keys(Sefaria.getLicenseMap());
+      let licenses = [...Object.keys(Sefaria.getLicenseMap()), ""];
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
 
       return (
@@ -381,7 +385,7 @@ class VersionsBlocksList extends Component{
   }
   render(){
       const sortedLanguages = this.sortVersions(this.props.sortPrioritizeLanugage);
-      if (!this.props.versionsByLanguages) {
+      if (!Object.keys(this.props.versionsByLanguages).length) {
         return (
           <div className="versionsBox">
             <LoadingMessage />

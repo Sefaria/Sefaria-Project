@@ -5,7 +5,7 @@ from spacy.tokenizer import Tokenizer
 def inner_punct_tokenizer_factory():
     def inner_punct_tokenizer(nlp):
         # infix_re = spacy.util.compile_infix_regex(nlp.Defaults.infixes)
-        infix_re = re.compile(r'''[\.\,\?\:\;…\‘\’\`\“\”\"\'~\–\-/\(\)]''')
+        infix_re = re.compile(r'''[.,?!:;…‘’`“”"'~–—\-‐‑‒־―⸺⸻/()<>]''')
         prefix_re = spacy.util.compile_prefix_regex(nlp.Defaults.prefixes)
         suffix_re = spacy.util.compile_suffix_regex(nlp.Defaults.suffixes)
 

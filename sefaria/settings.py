@@ -138,12 +138,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
+    'reader',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
-    'reader',
     'sourcesheets',
     'sefaria.gauth',
+    'django_topics.apps.DjangoTopicsAppConfig',
     'captcha',
     'django.contrib.admin',
     'anymail',
@@ -307,7 +308,8 @@ try:
         from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
-
+if os.getenv("COOLIFY"):
+    from sefaria.local_settings_coolify import *
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 WEBPACK_LOADER = {
@@ -334,6 +336,7 @@ WEBPACK_LOADER = {
     }
 
 }
+
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))

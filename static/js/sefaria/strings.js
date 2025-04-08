@@ -21,11 +21,18 @@ const Strings = {
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
     "Log in": "התחברות",
+    "A": "א",
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
 
+    //HeaderAutocomplete
+    "Books": "ספרים",
+    "Terms": "מונחים",
+    "Users": "משתמשים",
+    "Categories": "קטגוריות",
+
     // Texts Page
-    "Learn More": "לקריאה נוספת",
+    "Learn More": "למדו עוד",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
     "Visualizations": "תרשימים גרפיים",
@@ -68,12 +75,10 @@ const Strings = {
     "Add a description.": "הוסף תיאור",
     "Add a title.": "הוסף שם כותר",
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
-    "Explore by Topic": "לימוד לפי נושאים",
+    "Explore by Topic": "למדו לפי נושא",
     "About Topics": "אודות \"נושאים\"",
-    "Trending Topics": "נושאים נפוצים",
     "More": "עוד",
     "Less": "פחות",
-    "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
@@ -87,6 +92,7 @@ const Strings = {
     "Title must be provided": "יש לספק כותרת",
     "Unfortunately, there may have been an error saving this topic information": "הודעת שגיאה: נראה כי חלה שגיאה במהלך שמירת הנתונים",
     "Something went wrong. Sorry!": "מצטערים, משהו השתבש",
+    "Admin" : "עריכה",
 
 
     // Topics Tool
@@ -103,6 +109,27 @@ const Strings = {
     "Reset": "לאתחל",
     "Search Topics": "חפש נושאים",
 
+    // Topic Images
+    "Illustrative image" : "תמונה להמחשה",
+
+    // Topic Landing Page
+    "Featured Topic": "נושא היום",
+    "Go to Topic ›": "לפתיחת הנושא ›",
+    "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
+    "Learn more about": "למדו עוד על",
+    "Learn more on": "למדו עוד על",
+    "Read the Portion": "לקריאת הפרשה",
+    "On the Jewish Calendar": "מועדים קרובים בלוח השנה העברי",
+    "Explore the Jewish Calendar": "לעוד מועדים בלוח השנה העברי",
+    "Browse Topics": "לדפדוף במגוון נושאים",
+    "Trending Topics": "נושאים פופולריים",
+    "All Topics A-Z ›": "כל הנושאים מא׳ עד ת׳ ›",
+    "Browse All Torah Portions": "לרשימת כל הפרשות",
+    "First Name": "שם פרטי",
+    "Last Name": "שם משפחה",
+    "Explore": "למדו עוד על",
+    "Explore all Topics ›": "לדפדוף בכל הנושאים ›",
+    "Learn more…": "למדו עוד…",
 
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
@@ -247,8 +274,13 @@ const Strings = {
     'Select': 'בחירה',
     'Currently Selected': 'נוכחי',
     "Merged from": "נוצר ממיזוג",
-    "Source" : "מקור",
     "Sources": "מקורות",
+    "Notable Sources": "מקורות מרכזיים",
+    "All Sources": "כל המקורות",
+    "Source" : "מקור",
+    "Translation": "תרגום",
+    "Source with Translation": "מקור עם תרגום",
+    "Source Language": "שפת המקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
     "Revision History" : "היסטורית עריכה",
@@ -273,6 +305,7 @@ const Strings = {
     "Location: ": "מיקום: ",
     "Translations": "תרגומים",
     "Uncategorized": "לא מסווג",
+    "Text display options": "אפשרויות תצוגת טקסט",
 
     // Collections
     "Collections": "אסופות",
@@ -387,12 +420,14 @@ const Strings = {
     "Hide Parasha Aliyot": "עליות לתורה מוסתרות",
     "Language": "שפה",
     "Layout": "עימוד",
-    "Bilingual Layout" : "עימוד דו לשוני",
+    "Translation": "תרגום",
+    'Source with Translation': 'מקור ותרגום',
     "Color": "צבע",
     "Font Size" : "גודל גופן",
     "Aliyot" : "עליות לתורה",
     "Taamim and Nikkud" : "טעמים וניקוד",
     "Punctuation" : "פיסוק",
+    'Cantillation': 'טעמים',
     "Show Punctuation": "הצגת סימני פיסוק",
     "Hide Punctuation": "הסתרת סימני פיסוק",
     "Show Vowels and Cantillation": "הצג טקסט עם טעמי מקרא וניקוד",
@@ -443,7 +478,6 @@ const Strings = {
     "by": "על ידי",
     "based on": "ע“פ",
     "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
-    "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
     "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
@@ -459,6 +493,16 @@ const Strings = {
     "All History": "כל ההסטוריה",
 
 
+     //About
+    "What is Sefaria?": "מהי ספריא",
+    "Team": "צוות ספריא",
+    "Jobs at Sefaria": "משרות פנויות בספריא",
+    "Our Supporters": "התומכים שלנו",
+    "Metrics": "מדדים",
+    "Annual Report": 'דו"ח שנתי',
+    "Terms of Use": "תנאי שימוש",
+    "Privacy Policy": "מדיניות פרטיות",
+
     //user stats
     "Torah Tracker" : "לימוד במספרים",
     "Previous Year": "לשנה האחרונה",
@@ -473,6 +517,7 @@ const Strings = {
     "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
     "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
     "Sorry, there was an error.": "סליחה, ארעה שגיאה",
+    "Please enter a valid first and last name.": "נא להוסיף שם פרטי ושם משפחה.",
 
     // Footer
     "Connect": "צרו קשר",
@@ -490,15 +535,19 @@ const Strings = {
     "Go back to old version": "חזרה לגרסה הישנה",
     "Request for Feedback": "נא למלא משוב",
     "Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.": "תודה שניסית את עורך ספריא החדש! נשמח מאוד לשמוע את דעתך עליו. אנו מבקשים ממך להקדיש כמה דקות למילוי משוב על חוויית השימוש שלך.",
+    "Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface.": "תחדשו! הנכם משתמשים כעת בתוכנה העדכנית לעריכת דפי מקורות בספריא. למדו עוד על השימוש בתוכנה בעזרת המדריך המלא למשתמשים חדשים.",
     "Did you encounter any issues while using the new editor? For example:": "האם נתקלת בבעיות בעת השימוש בעורך החדש? למשל...",
     "Technical problems": "בעיות טכניות",
+    "Get Started": "התחילו כאן",
     "Difficulties using the editor": "קושי להשתמש בעורך",
     "Missing features": "תכונות חסרות",
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
+    "You are currently using the most up-to-date source sheet editor. Starting April 27, 2025, you will no longer be able to switch to an older version.":    "הנכם משתמשים בגרסה העדכנית ביותר של התוכנה לעריכת דפי מקורות בספריא. החל מה-27.4.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת גרסאות מוקדמות יותר של תוכנת העריכה.",
+    "You are currently using an outdated version of Sefaria's source sheet editor. This version will no longer be supported starting April 27, 2025. Start using the new editor now, or learn more about this important change.": "הנכם משתמשים בגרסה מוקדמת של התוכנה לעריכת דפי מקורות בספריא. החל מה-27.4.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת גרסה זו של תוכנת העריכה. אנו ממליצים להתחיל להשתמש בגרסה המעודכנת של התוכנה.",
+    "Go Back to Old Version": "חזור לגרסה הישנה",
+    "Switch to New Editor": "עבור לעורך חדש",
     "Thank you!": "תודה רבה!",
-    "You are currently testing the new Sefaria editor.": "ברגע זה הינך עושה שימוש בעורך החדש של ספריא",
-    "You are currently using the old Sefaria editor.": "כעת הינך עושה שימוש בגרסה הישנה של עורך ספריא",
     "Try the new version": "להתנסוּת בגרסה החדשה",
     "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
 
@@ -514,11 +563,19 @@ const Strings = {
     "Author": "מחבר",
     "Authors": "מחברים",
 
+    "Install Now": "התקינו עכשיו",
+
     //Topics
     "Wikipedia": "ויקיפדיה",
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
     "National Library of Israel": "הספרייה הלאומית",
     "Works on Sefaria": "חיבורים וכתבים בספריא",
+    "Learn More on Parashat": "לקריאה נוספת על פרשת",
+    "This Week’s Torah Portion": "פרשת השבוע",
+    "Learn More on": "לקריאה נוספת על",
+    "Learn More about": "לקריאה נוספת על",
+    "Browse all Parshayot": "לצפייה בכל הפרשות",
+    "From the Jewish Calendar": "מלוח השנה",
 
     //Module Names
     "Download Text": "הורדת טקסט",
@@ -596,6 +653,7 @@ const Strings = {
     },
     "Header": {
       "Texts": "מקורות",
+      "Explore": "נושאים",
     },
     "RecentlyPublished": {
       "Load More": "דפי מקורות נוספים",

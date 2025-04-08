@@ -11,10 +11,10 @@ import {
   TabView,
   SheetListing,
   ProfileListing,
-  ProfilePic,
   FollowButton,
   InterfaceText,
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class UserProfile extends Component {
@@ -342,7 +342,7 @@ class UserProfile extends Component {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu">
         <div className="content noOverflowX">
-          {this.props.profile.show_editor_toggle ?  <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
+          {(this.props.profile.id === Sefaria._uid && this.props.profile.show_editor_toggle)  ? <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
               <div>
@@ -448,9 +448,10 @@ UserProfile.propTypes = {
 
 const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
-
- const text = <InterfaceText>{usesneweditor ? "You are currently testing the new Sefaria editor." : "You are currently using the old Sefaria editor."}</InterfaceText>;
- const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
+ const old_editor_msg = "You are currently using an outdated version of Sefaria's source sheet editor. This version will no longer be supported starting April 27, 2025. Start using the new editor now, or learn more about this important change.";
+ const new_editor_msg = "You are currently using the most up-to-date source sheet editor. Starting April 27, 2025, you will no longer be able to switch to an older version.";
+ const text = <InterfaceText>{usesneweditor ? new_editor_msg : old_editor_msg}</InterfaceText>;
+ const buttonText = <InterfaceText>{usesneweditor ? "Go Back to Old Version" : "Switch to New Editor"}</InterfaceText>;
 
  const sendFeedback = () => {
 
@@ -541,14 +542,15 @@ const EditorToggleHeader = ({usesneweditor}) => {
      setFeedbackHeaderState("enableOverlay")
    }
  }
- const buttonLink = (usesneweditor ? "/disable_new_editor" : "");
+ const learn_more_link = Sefaria._v({"en": "https://www.sefaria.org/sheets/621008", "he": "https://www.sefaria.org/sheets/621013"})
 
  return (
    <>
    <div className="editorToggleHeader sans-serif">{text}
      <a href="#" onClick={()=>toggleFeedbackOverlayState()} className="button white" role="button">{buttonText}</a>
+       <a href={learn_more_link} className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
    </div>
-   {feedbackHeaderState != "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
+   {feedbackHeaderState !== "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
    </>
  )
 }
@@ -569,7 +571,7 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
       // we only store twitter handles so twitter needs to be hardcoded
       <span>
         {
-          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={(s == 'twitter' ? 'https://twitter.com/' : '') + p[s]}><img src={`/static/img/${s}.svg`} /></a>))
+          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={(s === 'twitter' ? 'https://twitter.com/' : s === 'youtube' ? 'https://www.youtube.com/' : '') + p[s]}><img src={`/static/img/${s}.svg`} /></a>))
         }
       </span>
     );

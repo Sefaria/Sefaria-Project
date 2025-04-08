@@ -15,8 +15,9 @@ import {
   SheetAuthorStatement,
   SheetTitle,
   CollectionStatement,
-  ProfilePic,
+  LearnAboutNewEditorBanner,
 } from './Misc';
+import {ProfilePic} from "./ProfilePic";
 
 
 class Sheet extends Component {
@@ -105,51 +106,53 @@ class Sheet extends Component {
     }
     else {
       content = (
-            <SheetContent
-          sheetNotice={sheet.sheetNotice}
-          sources={sheet.sources}
-          title={sheet.title}
-          onRefClick={this.props.onRefClick}
-          handleClick={this.handleClick}
-          sheetSourceClick={this.props.onSegmentClick}
-          highlightedNode={this.props.highlightedNode}
-          highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-          scrollToHighlighted={this.props.scrollToHighlighted}
-          authorStatement={sheet.ownerName}
-          authorUrl={sheet.ownerProfileUrl}
-          authorImage={sheet.ownerImageUrl}
-          collectionName={sheet.collectionName}
-          collectionSlug={sheet.displayedCollection}
-          collectionImage={sheet.collectionImage}
-          editable={Sefaria._uid === sheet.owner}
-          hasSidebar={this.props.hasSidebar}
-          setSelectedWords={this.props.setSelectedWords}
-          sheetNumbered={sheet.options.numbered}
-          hideImages={!!sheet.hideImages}
-          sheetID={sheet.id}
-        />
-      );
-    }
-    return (
-      <div className={classes}>
-        { sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor ?
-        <div className="sheetContent">
-          <SefariaEditor
-            data={sheet}
-            hasSidebar={this.props.hasSidebar}
+        <div className={classes}>
+          <SheetContent
+            sheetNotice={sheet.sheetNotice}
+            sources={sheet.sources}
+            title={sheet.title}
             handleClick={this.handleClick}
-            multiPanel={this.props.multiPanel}
             sheetSourceClick={this.props.onSegmentClick}
             highlightedNode={this.props.highlightedNode}
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-            setDivineNameReplacement={this.props.setDivineNameReplacement}
-            divineNameReplacement={this.props.divineNameReplacement}
+            scrollToHighlighted={this.props.scrollToHighlighted}
+            authorStatement={sheet.ownerName}
+            authorUrl={sheet.ownerProfileUrl}
+            authorImage={sheet.ownerImageUrl}
+            collectionName={sheet.collectionName}
+            collectionSlug={sheet.displayedCollection}
+            collectionImage={sheet.collectionImage}
+            editable={Sefaria._uid === sheet.owner}
+            hasSidebar={this.props.hasSidebar}
+            setSelectedWords={this.props.setSelectedWords}
+            sheetNumbered={sheet.options.numbered}
+            hideImages={!!sheet.hideImages}
+            sheetID={sheet.id}
           />
-        </div>
-        :
-        content }
       </div>
-    );
+      );
+    }
+    const editor = (
+      <>
+        <LearnAboutNewEditorBanner/>
+        <div className={classes}>
+          <div className="sheetContent">
+            <SefariaEditor
+              data={sheet}
+              hasSidebar={this.props.hasSidebar}
+              handleClick={this.handleClick}
+              multiPanel={this.props.multiPanel}
+              sheetSourceClick={this.props.onSegmentClick}
+              highlightedNode={this.props.highlightedNode}
+              highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+              setDivineNameReplacement={this.props.setDivineNameReplacement}
+              divineNameReplacement={this.props.divineNameReplacement}
+            />
+          </div>
+        </div>
+       </>);
+    const usingEditor = sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor;
+    return ( usingEditor ? editor : content )
   }
 }
 

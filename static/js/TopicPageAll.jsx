@@ -119,7 +119,7 @@ class TopicPageAll extends Component {
                 }
               </div>
             </div>
-            <NavSidebar modules={sidebarModules} />
+            <NavSidebar sidebarModules={sidebarModules} />
           </div>
           <Footer />
         </div>
@@ -133,7 +133,6 @@ TopicPageAll.propTypes = {
   mutliPanel:          PropTypes.bool,
   navHome:             PropTypes.func,
   toggleLanguage:      PropTypes.func,
-  openDisplaySettings: PropTypes.func,
 };
 TopicPageAll.defaultProps = {
   initialWidth:        1000,

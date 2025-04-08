@@ -71,7 +71,7 @@
     <script>
         WebFont.load({
           google: {
-            families: ['Crimson Text:400,700'],
+            families: ['Crimson Text:100,200,300,400,500,600,700,800,900'],
             text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗęîїìi̧ ̆̄'
           },
           typekit: {
@@ -80,7 +80,7 @@
         });
         WebFont.load({
           google: {
-            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew'] // The dotted h causes Heebo not to load.
+            families: ['Roboto:100,200,300,400,500,600,700,800,900', 'Heebo:100,200,300,400,500,600,700,800,900:hebrew'] // The dotted h causes Heebo not to load.
           }
         });
         WebFont.load({
@@ -97,6 +97,10 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
+    <!-- Specific styling to correct behavior of Unbounce banners -->
+    <link rel="stylesheet" href="{%  static 'css/unbounce-banner.css' %}">
+    <!-- Styling for temporary Topics Launch banner -->
+    <link rel="stylesheet" href="{% static 'css/topics-launch-banner.css' %}" />
 
     {% block static_css %}
     {% if not html %}
@@ -151,7 +155,8 @@
     </script>
     {% endif %}
 
-
+    <!-- Unbounce Embed Code -->
+    <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script> 
 </head>
 
 <body class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
@@ -218,6 +223,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
     <script src="{% static 'js/lib/keyboard.js' %}"></script>
+    <script src="{% static 'js/analyticsEventTracker.js' %}"></script>
     <script src="/data.{{ last_cached_short }}.js"></script>
 
     <script>
@@ -255,8 +261,13 @@
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', '{{ GOOGLE_GTAG }}', {
-              'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null
+              'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null,
+              'traffic_type': DJANGO_VARS.props && DJANGO_VARS.props._email.includes('sefaria.org') ? 'sefariaemail' : null,
+              'site_lang': '{{ request.interfaceLang }}',
             });
+
+            <!-- attach analyticsEventTracker -->
+            AnalyticsEventTracker.attach("#s2, #staticContentWrapper", ['click', 'scrollIntoView', 'toggle', 'mouseover', 'input', 'inputStart']);
           </script>
       <!-- End Google tag -->
     {% endif %}

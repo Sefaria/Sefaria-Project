@@ -1,4 +1,4 @@
-import React  from 'react';
+import React, {useState} from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes  from 'prop-types';
 import {
@@ -9,9 +9,12 @@ import {
     SimpleLinkedBlock,
     ProfileListing,
     InterfaceText,
-    CategoryHeader,
+    EnglishText,
+    HebrewText,
+    CategoryHeader, PencilSourceEditor,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import {SourceEditor} from "./SourceEditor";
 
 // Much of Stories was removed November 2022.
 // It remains because some of the Components are re-used in other areas of the site.
@@ -70,15 +73,39 @@ SheetListStory.propTypes = {
  *****************************/
 
 // todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
-const StoryFrame = ({cls, cardColor, children}) => (
+const StoryFrame = ({cls, children}) => {
+return (
      <div className={'story ' + cls}>
-        {children}
+         {children}
      </div>
-);
+)};
 StoryFrame.propTypes = {
     cls:        PropTypes.string,   // Story type as class name
-    cardColor:  PropTypes.string
 };
+const SummarizedStoryFrame = ({cls, title, tref, children}) => {
+return (
+    <StoryFrame cls={cls}>
+        <details
+            data-anl-event="package_toggle:toggle|package_viewed:scrollIntoView"
+            data-anl-feature_name="prompt"
+            data-anl-text={title.en}
+        >
+            <summary>
+                <ColorBarBox tref={tref}>
+                    <TopicStoryDescBlock title={title} tref={tref}/>
+                </ColorBarBox>
+            </summary>
+            {children}
+        </details>
+    </StoryFrame>
+)};
+SummarizedStoryFrame.propTypes = {
+    cls:        PropTypes.string,   // Story type as class name
+    title: PropTypes.object,
+    tref: PropTypes.string,
+};
+
+
 
 
 const StoryTypeBlock = ({en, he}) => (
@@ -127,47 +154,129 @@ StorySheetList.propTypes = {
     toggleSignUpModal: PropTypes.func
 };
 
-const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
-    if (!text.ref) { return null; }
-    const versions = text.versions || {}
-    const params = Sefaria.util.getUrlVersionsParams(versions);
-    const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
+const TopicStoryDescBlock = ({title, tref}) =>
+    (
+      <div className="topicStoryDescBlock">
+            <StoryTitleBlock en={title.en} he={title.he}></StoryTitleBlock>
+        <div>{Sefaria._(Sefaria.index(Sefaria.parseRef(tref).index).primary_category).toUpperCase()}</div>
+      </div>
+)
+
+const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayDescription, isAdmin, hideLanguageMissingSources=false}) => {
+    if (!text.ref) {
+        return null;
+    }
+    const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+    const isCurated = text.descriptions?.[langKey]?.title ?? false;
+    const url = `/${Sefaria.normRef(text.ref)}${Sefaria.util.getUrlVersionsParams(text.versions) ? `?${Sefaria.util.getUrlVersionsParams(text.versions)}` : ''}`;
     const heOnly = !text.en;
     const enOnly = !text.he;
-    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
-    let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
-    const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
+    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : langPref;
+    let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage}
+                                    bilingualOrder={["he", "en"]}/>;
+    const content = bodyTextIsLink ? <a href={url} style={{textDecoration: 'none'}} data-anl-event="clickto_reader:click">{innerContent}</a> : innerContent;
+    const isIntroducedSource = isCurated && displayDescription
+    const StoryFrameComp = isIntroducedSource ? SummarizedStoryFrame : StoryFrame
+    const hideThisLanguageMissingSource = (heOnly && (langPref == 'english') && hideLanguageMissingSources) || (enOnly && (langPref == 'hebrew') && hideLanguageMissingSources);
 
     return (
-        <StoryFrame cls="introducedTextPassageStory">
-            <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
-                <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
-            </CategoryHeader>
-            <div className={"systemText learningPrompt"}>
-                <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
-            </div>
-            <SaveLine
-                dref={text.ref}
-                versions={versions}
-                toggleSignUpModal={toggleSignUpModal}
-                classes={"storyTitleWrapper"}
-                afterChildren={afterSave || null} >
-                <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
-            </SaveLine>
+        !hideThisLanguageMissingSource &&
+        <StoryFrameComp cls="topicPassageStory" tref={text.ref} title={{'en': text.descriptions?.en?.title, 'he': text.descriptions?.he?.title}}>
+            {isIntroducedSource ?
+                <ColorBarBox tref={text.ref}>
+
+                    <div className={"systemText learningPrompt"}>
+                        <InterfaceText
+                            text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}}/>
+                    </div>
+                </ColorBarBox>
+
+                : null
+            }
             <ColorBarBox tref={text.ref}>
                 <StoryBodyBlock>
                     {content}
                 </StoryBodyBlock>
+                <div className={"headerWithAdminButtonsContainer"}>
+                    <div className={"headerWithAdminButtons"} data-anl-event="clickto_reader:click">
+                        <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
+                    </div>
+                    {isAdmin && <ReviewStateIndicator topic={topic} topicLink={text}/>}
+                    {isAdmin && <PencilSourceEditor topic={topic} text={text} classes={"pencilEditorButton"}/>}
+                </div>
             </ColorBarBox>
-        </StoryFrame>
+        </StoryFrameComp>
     );
 };
-IntroducedTextPassage.propTypes = {
-    intros: PropTypes.object,
-    text: textPropType,
-    afterSave: PropTypes.object,
-    toggleSignUpModal:  PropTypes.func
+const reviewStateToClassNameMap = {
+    "reviewed": "reviewed",
+    "not reviewed": "notReviewed",
+    "edited": "edited"
+}
+const reviewStateToDisplayedTextMap = {
+    "reviewed": "Reviewed",
+    "not reviewed": "Not Reviewed",
+    "edited": "Edited"
+}
+
+const ReviewStateIndicator = ({topic, topicLink}) => {
+    if (!topicLink.descriptions){ return null; }
+    const [reviewStateByLang, markReviewed] = useReviewState(topic, topicLink);
+    if (!Sefaria.is_moderator){ return null; }
+    const langComponentMap = {he: HebrewText, en: EnglishText};
+    return (
+        <InterfaceText>
+            {
+                Object.entries(langComponentMap).map(([lang, LangComponent]) => (
+                    <LangComponent>
+                        <ReviewStateIndicatorLang reviewState={reviewStateByLang[lang]} markReviewed={() => markReviewed(lang)} />
+                    </LangComponent>
+                ))
+            }
+        </InterfaceText>
+    );
 };
+
+const ReviewStateIndicatorLang = ({reviewState, markReviewed}) => {
+    if (!reviewState) { return null; }
+    const reviewStateClassName = reviewStateToClassNameMap[reviewState];
+    const displayedText = reviewStateToDisplayedTextMap[reviewState];
+    return (
+        <div className={`button extraSmall reviewState ${reviewStateClassName}`} onClick={markReviewed}>
+            {displayedText}
+        </div>
+    );
+}
+
+const markReviewedPostRequest = (lang, topic, topicLink) => {
+    const payload = {
+        "topic": topic,
+        "is_new": false,
+        'new_ref': topicLink.ref,
+        'interface_lang': lang === 'en' ? 'english' : 'hebrew',
+        'description' : {...topicLink.descriptions[lang], 'review_state': 'reviewed'}
+    };
+    return Sefaria.postRefTopicLink(topicLink.ref, payload);
+}
+
+const useReviewState = (topic, topicLink) => {
+    const initialReviewStateByLang = Object.entries(topicLink?.descriptions).reduce((accum, [lang, desc]) => {
+        accum[lang] = desc?.review_state;
+        return accum;
+    }, {});
+    const [reviewStateByLang, setReviewState] = useState(initialReviewStateByLang);
+    const markReviewed = async (lang) => {
+        await markReviewedPostRequest(lang, topic, topicLink);
+        setReviewState(curr => ({...curr, [lang]: "reviewed"}));
+    }
+    return [reviewStateByLang, markReviewed];
+}
+
+TopicTextPassage.propTypes = {
+  text: textPropType,
+};
+
+
 
 const TextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
   if (!text.ref) { return null; }
@@ -182,7 +291,7 @@ const TextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=
 
   return (
     <StoryFrame cls="textPassageStory">
-      <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
+      <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
           <SaveLine
             dref={text.ref}
             versions={versions}
@@ -206,7 +315,6 @@ TextPassage.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
-
 const SheetBlock = ({sheet, compact, cozy, smallfonts, afterSave, toggleSignUpModal}) => {
     const historyObject = {
       ref: "Sheet " + sheet.sheet_id,
@@ -221,17 +329,17 @@ const SheetBlock = ({sheet, compact, cozy, smallfonts, afterSave, toggleSignUpMo
             historyObject={historyObject}
             afterChildren={afterSave || null}
             toggleSignUpModal={toggleSignUpModal}>
-            <SimpleLinkedBlock 
+            <SimpleLinkedBlock
                 en={sheet.sheet_title}
                 he={sheet.sheet_title}
                 url={"/sheets/" + sheet.sheet_id}
                 classes={"sheetTitle storyTitle"}/>
         </SaveLine>
 
-        {(sheet.sheet_summary && !(compact || cozy)) ? 
+        {(sheet.sheet_summary && !(compact || cozy)) ?
         <SimpleInterfaceBlock classes={"storyBody"} en={sheet.sheet_summary} he={sheet.sheet_summary}/>
         : null}
-        
+
         {cozy ? null :
         <ProfileListing
           uid={sheet.publisher_id}
@@ -281,5 +389,5 @@ export {
   SheetBlock,
   StorySheetList,
   TextPassage,
-  IntroducedTextPassage
+  TopicTextPassage,
 };

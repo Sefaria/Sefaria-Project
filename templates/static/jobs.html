@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-
+{% load static %}
 {% block title %}{% trans "Jobs at Sefaria" %}{% endblock %}
 
 {% block description %}{% trans "Job openings at Sefaria, a nonprofit technology organization dedicated to building the Jewish future." %}{% endblock %}
@@ -15,26 +15,27 @@
 {% endblock %}
 
 {% block content %}
+<div class="superAbout">
+    {% if not request.user_agent.is_mobile %}
+        {% include '_sidebar.html' with whichPage='jobs' %}
+    {% endif %}
+    <main id="jobsPage" class="container biReady static">
+        <div class="inner">
 
-<main id="jobsPage" class="container biReady static">
-    <div class="inner">
+            <div id="jobsPageContent">
+            </div>
 
-        <div id="jobsPageContent">
-            <h1 id="appLoading">Loading...</h1>
+            <aside class="solicitationNotice">
+                <p>
+                    Sefaria does not accept solicitations of any kind from job placement services or phone calls from prospective candidates.
+                    Sefaria provides equal employment opportunities to all employees and applicants for employment and
+                    prohibits discrimination and harassment of any type without regard to
+                    race, color, religion, age, sex, national origin, disability status, genetics, protected veteran status, sexual orientation, gender identity or expression,
+                    or any other characteristic protected by federal, state or local laws. Nothing in this job description or advertisement postings guarantees employment.
+                </p>
+            </aside>
         </div>
-
-
-        <aside class="solicitationNotice">
-            <p>
-                Sefaria does not accept solicitations of any kind from job placement services or phone calls from prospective candidates.
-                Sefaria provides equal employment opportunities to all employees and applicants for employment and
-                prohibits discrimination and harassment of any type without regard to
-                race, color, religion, age, sex, national origin, disability status, genetics, protected veteran status, sexual orientation, gender identity or expression,
-                or any other characteristic protected by federal, state or local laws. Nothing in this job description or advertisement postings guarantees employment.
-            </p>
-        </aside>
-    </div>
-</main>
-
+    </main>
+</div>
 
 {% endblock %}

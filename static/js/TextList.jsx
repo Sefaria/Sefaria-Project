@@ -50,7 +50,7 @@ class TextList extends Component {
   }
   getSectionRef() {
     var ref = this.props.srefs[0]; // TODO account for selections spanning sections
-    var sectionRef = Sefaria.sectionRef(ref) || ref;
+    var sectionRef = Sefaria.sectionRef(ref, true) || ref;
     return sectionRef;
   }
   loadConnections() {
@@ -177,7 +177,7 @@ class TextList extends Component {
       }
     }.bind(this);
 
-    let sectionLinks = Sefaria.getLinksFromCache(sectionRef);
+    let sectionLinks = Sefaria.getLinksFromCacheAndPreprocess(sectionRef);
     sectionLinks.map(link => {
       if (!("anchorRefExpanded" in link)) { link.anchorRefExpanded = Sefaria.splitRangingRef(link.anchorRef); }
     });
@@ -192,6 +192,7 @@ class TextList extends Component {
 
     return links;
   }
+
   render() {
     var refs               = this.props.srefs;
     var oref               = Sefaria.ref(refs[0]);
@@ -230,6 +231,7 @@ class TextList extends Component {
                                       inlineReference={link.inline_reference || null}
                                       onCitationClick={this.props.onCitationClick}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
+                                      filterRef={this.props.filterRef}
                                     />
                                     <ConnectionButtons>
                                       <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
@@ -272,11 +274,11 @@ TextList.propTypes = {
   onDataChange:            PropTypes.func,
   handleSheetClick:        PropTypes.func,
   openNav:                 PropTypes.func,
-  openDisplaySettings:     PropTypes.func,
   closePanel:              PropTypes.func,
   selectedWords:           PropTypes.string,
   checkVisibleSegments:    PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  filterRef:             PropTypes.string
 };
 
 const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{

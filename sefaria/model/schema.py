@@ -14,6 +14,7 @@ import regex
 from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
+from sefaria.model.linker.has_match_template import HasMatchTemplates
 from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
 from sefaria.utils.talmud import daf_to_section
@@ -671,7 +672,7 @@ class TreeNode(object):
         return self.all_children().index(child) + 1
 
 
-class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
+class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, HasMatchTemplates):
     """
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
@@ -680,7 +681,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     after_title_delimiter_re = r"(?:[,.:\s]|(?:to|\u05d5?\u05d1?(?:\u05e1\u05d5\u05e3|\u05e8\u05d9\u05e9)))+"  # should be an arg?  \r\n are for html matches
     after_address_delimiter_ref = r"[,.:\s]+"
     title_separators = [", "]
-    MATCH_TEMPLATE_ALONE_SCOPES = {'any', 'alone'}
 
     def __init__(self, serial=None, **kwargs):
         super(TitledTreeNode, self).__init__(serial, **kwargs)
@@ -840,10 +840,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
-    def get_match_template_trie(self, lang: str):
-        from .linker.match_template import MatchTemplateTrie
-        return MatchTemplateTrie(lang, nodes=[self], scope='combined')
-
     def validate(self):
         super(TitledTreeNode, self).validate()
 
@@ -895,17 +891,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
             d["title"] = self.title_group.primary_title("en")
             d["heTitle"] = self.title_group.primary_title("he")
         return d
-
-    def get_match_templates(self):
-        from .linker.match_template import MatchTemplate
-        for raw_match_template in getattr(self, 'match_templates', []):
-            yield MatchTemplate(**raw_match_template)
-
-    def has_scope_alone_match_template(self):
-        """
-        @return: True if `self` has any match template that has scope = "alone" OR scope = "any"
-        """
-        return any(template.scope in self.MATCH_TEMPLATE_ALONE_SCOPES for template in self.get_match_templates())
 
     def get_referenceable_alone_nodes(self):
         """
@@ -1125,6 +1110,19 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return getattr(self, 'isSegmentLevelDiburHamatchil', False)
 
 
+class AltStructNode(TitledTreeNode):
+    """
+    Structural node for alt structs
+    Allows additional attributes for referencing these nodes with the linker
+    Note, these nodes can't be the end of a reference since they themselves don't map to a `Ref`. But they are helpful
+    being intermediate nodes in a longer reference.
+    """
+    optional_param_keys = ["match_templates", "numeric_equivalent", 'referenceable']
+
+    def ref(self):
+        return None
+
+
 class ArrayMapNode(NumberedTitledTreeNode):
     """
     A :class:`TreeNode` that contains jagged arrays of references.
@@ -1132,7 +1130,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'referenceable', "addresses", "skipped_addresses"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'referenceable', "addresses", "skipped_addresses", "isMapReferenceable"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -1476,7 +1474,11 @@ class SchemaNode(TitledTreeNode):
         return self.traverse_to_list(lambda n, i: list(n.all_children()) if n.is_virtual else [n])[1:]
 
     def __eq__(self, other):
-        return self.address() == other.address()
+        try:
+            return self.address() == other.address()
+        except AttributeError:
+            # in case `other` isn't a SchemaNode
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -2080,7 +2082,10 @@ class AddressType(object):
     def to_numeric_possibilities(self, lang, s, **kwargs):
         if s in self.special_cases:
             return self.special_cases[s]
-        return [self.toNumber(lang, s)]
+        try:
+            return [self.toNumber(lang, s)]
+        except ValueError:
+            return []
 
     @classmethod
     def can_match_out_of_order(cls, lang, s):
@@ -2123,8 +2128,8 @@ class AddressType(object):
                 if addr.is_special_case(curr_s):
                     section_str = curr_s
                 else:
-                    strict = SuperClass not in {AddressAmud, AddressTalmud}  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
-                    regex_str = addr.regex(lang, strict=strict, group_id='section') + "$"  # must match entire string
+                    strict = SuperClass not in {AddressAmud, AddressTalmud, AddressFolio}  # HACK: these address types don't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
+                    regex_str = addr.regex(lang, strict=strict, group_id='section', with_roman_numerals=True) + "$"  # must match entire string
                     if regex_str is None: continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
                     match = reg.match(curr_s)
@@ -2464,8 +2469,8 @@ class AddressFolio(AddressType):
         if lang == "en":
             reg += r"\d+[abcdᵃᵇᶜᵈ]?)"
         elif lang == "he":
-            # todo: How do these references look in Hebrew?
-            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
+            # either dots for amud (add dots from amud gimmel and dalet) or ayin followed by some type of quote followed by alef, bet, gimmel, or dalet
+            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:ע(?:"|״|''))?[א-ד])?)'''
 
         return reg
 
@@ -2494,21 +2499,20 @@ class AddressFolio(AddressType):
                 indx -= 1
             return indx
         elif lang == "he":
-            # todo: This needs work
             num = re.split(r"[.:,\s]", s)[0]
-            daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (
-                    s[-1] == "\u05d1"    #bet
-                        and
-                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
-                     or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
-                     or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
-                    )
-            ):
-                return daf  # amud B
-            return daf - 1
+            daf = decode_hebrew_numeral(num) * 4
+            rest = s[len(num):]
 
-            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+            # check for each amud letter in reverse order (dalet, gimmel, bet, alef)
+            # note: amud_dots for gimmel and dalet are a best guess at what might be used. should be refined as real examples are found.
+            # if the amud matches that amud letter, subtract the appropriate offset
+            quotes = "(?:''|\"|״)"
+            for amud_offset, (amud_letter, amud_dots) in enumerate((("ד", "⁘"), ("ג", "∵"), ("ב", ":"), ("א", "."))):
+                if re.search(fr"^(?:{amud_dots}|,?\s?(?:{amud_letter}|ע{quotes}{amud_letter}))$", rest):
+                    return daf - amud_offset
+            # no match
+            raise ValueError(f"Couldn't parse Folio address: {s} for lang {lang}")
+
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):
@@ -2567,7 +2571,11 @@ class AddressInteger(AddressType):
             reg = r"("
 
         if lang == "en":
-            reg += r"\d+)"
+            if kwargs.get('with_roman_numerals', False):
+                # any char valid in roman numerals (I, V, X, L, C, D, M) + optional trailing period
+                reg += r"(?:\d+|[ivxlcdmIVXLCDM]+(?:\s?\.)?))"
+            else:
+                reg += r"\d+)"
         elif lang == "he":
             reg += self.hebrew_number_regex() + r")"
 
@@ -2578,6 +2586,19 @@ class AddressInteger(AddressType):
             return int(s)
         elif lang == "he":
             return decode_hebrew_numeral(s)
+
+    def to_numeric_possibilities(self, lang, s, **kwargs):
+        import roman
+        from roman import InvalidRomanNumeralError
+
+        possibilities = super().to_numeric_possibilities(lang, s, **kwargs)
+        if lang == "en":
+            try:
+                s = re.sub(r"\.$", "", s).strip()  # remove trailing period
+                possibilities.append(roman.fromRoman(s.upper()))
+            except InvalidRomanNumeralError as e:
+                pass
+        return possibilities
 
     @classmethod
     def can_match_out_of_order(cls, lang, s):
@@ -2633,7 +2654,7 @@ class AddressPerek(AddressInteger):
     }
     section_patterns = {
         "en": r"""(?:(?:[Cc]h(apters?|\.)|[Pp]erek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": fr"""(?:\u05d1?{AddressType.reish_samekh_reg}\u05e4((?:"|\u05f4|''|'\s)|(?=[\u05d0-\u05ea]+(?:"|\u05f4|''|'\s)))   # Peh (for 'perek') maybe followed by a quote of some sort OR lookahead for some letters followed by a quote (e.g. פי״א for chapter 11)
+        "he": fr"""(?:\u05d1?{AddressType.reish_samekh_reg}\u05e4((?:"|\u05f4|''|'\s|\s)|(?=[\u05d0-\u05ea]+(?:"|\u05f4|''|'\s)))   # Peh (for 'perek') maybe followed by a quote of some sort OR lookahead for some letters followed by a quote (e.g. פי״א for chapter 11)
         |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
@@ -2644,7 +2665,7 @@ class AddressPasuk(AddressInteger):
         "en": r"""(?:(?:([Vv](erses?|[vs]?\.)|[Pp]ass?u[kq]))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?(?:                                        # optional ב in front
             (?:\u05e4\u05b8?\u05bc?\u05e1\u05d5\u05bc?\u05e7(?:\u05d9\u05dd)?\s*)|    #pasuk spelled out, with a space after
-            (?:\u05e4\u05e1(?:['\u2018\u2019\u05f3])\s+)
+            (?:\u05e4\u05e1['\u2018\u2019\u05f3]?\s+)
         ))"""
     }
 

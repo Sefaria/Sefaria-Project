@@ -1,12 +1,14 @@
 name: Run Integration Tests
 on:
-  workflow_dispatch: {}
-  merge_group: {}
+  merge_group:
+  pull_request:
+  workflow_dispatch:
 
 concurrency: integration_environment
 
 jobs:
   variables:
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     outputs:
       date: ${{ steps.data.outputs.date }}
@@ -14,25 +16,21 @@ jobs:
       branch: ${{ steps.branch-name.outputs.current_branch }}
       runner-image: us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT}}/containers/hosted-runner:latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Get branch name
-        id: branch-raw
-        uses: tj-actions/branch-names@v5.1
       - name: Format branch name
         id: branch-name
         run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
+          echo "current_branch=merge-queue"
           >> $GITHUB_OUTPUT
   build-generic:
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
+    name: "Integration Image Build"
     needs:
       - variables
     permissions:
@@ -43,26 +41,20 @@ jobs:
       matrix:
         app: [ web, node ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
       - id: auth
         name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: gcr.io
-          username: oauth2accesstoken
-          password: '${{ steps.auth.outputs.access_token }}'
       - name: Login to GAR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: us-east1-docker.pkg.dev
           username: oauth2accesstoken
@@ -72,7 +64,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ needs.variables.outputs.branch }}
             us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ needs.variables.outputs.branch }}
           # generate Docker tags based on the following events/attributes
           tags: |
@@ -91,8 +82,11 @@ jobs:
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          
   build-derived:
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    name: "Integration Image Build Stage 2"
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -103,26 +97,20 @@ jobs:
       matrix:
         app: [ asset, linker ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
       - id: auth
         name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: gcr.io
-          username: oauth2accesstoken
-          password: '${{ steps.auth.outputs.access_token }}'
       - name: Login to GAR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: us-east1-docker.pkg.dev
           username: oauth2accesstoken
@@ -132,7 +120,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ needs.variables.outputs.branch }}
             us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ needs.variables.outputs.branch }}
           # generate Docker tags based on the following events/attributes
           tags: |
@@ -154,6 +141,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   run-tests:
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     name: "Playwright"   # This name is referenced when slacking status
     needs:
       - build-derived
@@ -164,16 +152,16 @@ jobs:
     runs-on: sefaria-integrations
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup base utils
         run: |
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends curl unzip
       - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4
       - name: setup helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
       - name: Set up yq
         run: |
           curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
@@ -206,9 +194,14 @@ jobs:
       
       - name: Run Playwright tests
         run: npx playwright test
-      
+        env:
+          PLAYWRIGHT_SUPERUSER_EMAIL: "${{ secrets.PLAYWRIGHT_SUPERUSER_EMAIL }}"
+          PLAYWRIGHT_SUPERUSER_PASSWORD: "${{ secrets.PLAYWRIGHT_SUPERUSER_PASSWORD }}"
+          PLAYWRIGHT_USER_EMAIL: "${{ secrets.PLAYWRIGHT_USER_EMAIL }}"
+          PLAYWRIGHT_USER_PASSWORD: "${{ secrets.PLAYWRIGHT_USER_PASSWORD }}"
+
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
@@ -217,20 +210,21 @@ jobs:
       - name: Uninstall
         run: helm delete integration-${{ needs.variables.outputs.commit }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
   ending-notification:
-          runs-on: ubuntu-latest
-          needs:
-            - run-tests
-          steps:
-            - uses: actions/checkout@v2
-            - uses: actions/setup-node@v2
-              with:
-                node-version: '14'
-            - run: npm ci
-              working-directory: ./build/notify
-            - run: node notifyEnd.js
-              working-directory: ./build/notify
-              env:
-                SLACK_TEST_SUCCESS_WEBHOOK_URL: ${{secrets.SLACK_TEST_SUCCESS_WEBHOOK_URL}}
-                SLACK_TEST_FAILURE_WEBHOOK_URL: ${{secrets.SLACK_TEST_FAILURE_WEBHOOK_URL}}
-                GITUSER_SLACK_MAP: ${{secrets.GITUSER_SLACK_MAP}}
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    needs:
+      - run-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+      - run: npm ci
+        working-directory: ./build/notify
+      - run: node notifyEnd.js
+        working-directory: ./build/notify
+        env:
+          SLACK_TEST_SUCCESS_WEBHOOK_URL: ${{secrets.SLACK_TEST_SUCCESS_WEBHOOK_URL}}
+          SLACK_TEST_FAILURE_WEBHOOK_URL: ${{secrets.SLACK_TEST_FAILURE_WEBHOOK_URL}}
+          GITUSER_SLACK_MAP: ${{secrets.GITUSER_SLACK_MAP}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

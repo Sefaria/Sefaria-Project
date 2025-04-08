@@ -109,8 +109,6 @@ const OpenTransBanner = ({ openTranslations }) => {
     );
 };
 
-
-
 /**
  * Banner which appears right above text column and informs a user of an action they can take
  * @param children: React element to display the call-to-action text.
@@ -147,8 +145,8 @@ const TextColumnBannerButton = ({ button, closeBanner }) => {
         if (button.sideEffect === "close") { closeBanner(true); }
     }
     return (
-        <a className="yesNoButton" onClick={onClick}>
+        <button tabIndex="0" className="yesNoButton" aria-label={button.text} onClick={onClick}>
             <InterfaceText>{button.text}</InterfaceText>
-        </a>
+        </button>
     );
 }

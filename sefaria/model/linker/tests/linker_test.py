@@ -8,15 +8,20 @@ from sefaria.settings import ENABLE_LINKER
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
 
-ref_resolver = library.get_ref_resolver()
-
 
 def test_referenceable_child():
+    from sefaria.model.schema import AddressAmud
     i = library.get_index("Rashi on Berakhot")
     assert i.nodes.depth == 3
     ref_node = NumberedReferenceableBookNode(i.nodes)
-    child = ref_node.get_children(Ref("Rashi on Berakhot 2a"))[0]
-    assert isinstance(child, DiburHamatchilNodeSet)
+    children = ref_node.get_children(Ref("Rashi on Berakhot 2a"))
+    child = next((child for child in children if child.__class__ == NumberedReferenceableBookNode and child._address_class.__class__ == AddressAmud), None)
+    assert child is not None
+
+    # one more level
+    child = child.get_children(Ref("Rashi on Berakhot 2a"))[0]
+    assert child.__class__ == DiburHamatchilNodeSet
+    assert child.query == {'container_refs': 'Rashi on Berakhot 2a'}
 
 
 def test_resolved_raw_ref_clone():
@@ -32,6 +37,10 @@ crrd = create_raw_ref_data
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
     # Numbered JAs
+    [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"]), ("Jerusalem Talmud Berakhot 9:1:11-19", "Jerusalem Talmud Berakhot 2:1:14-19")],  # ambig venice or vilna yerushalmi daf
+    [crrd(["@ירושלמי", "@ברכות", "#יג ע״ג"]), ("Jerusalem Talmud Berakhot 9:1:31-2:9",)],  # venice yerushalmi daf
+    [crrd(["@Jerusalem", "@Talmud", "@Yoma", "#5a"], lang='en'), ("Jerusalem Talmud Yoma 1:1:20-25",)],
+    [crrd(["@Babylonian", "@Talmud", "@Sukkah", "#49b"], lang='en'), ("Sukkah 49b",)],
     [crrd(["@בבלי", "@ברכות", "#דף ב"]), ("Berakhot 2",)],   # amud-less talmud
     [crrd(["@ברכות", "#דף ב"]), ("Berakhot 2",)],  # amud-less talmud
     [crrd(["@בבלי", "@שבת", "#דף ב."]), ("Shabbat 2a",)],  # amud-ful talmud
@@ -40,8 +49,18 @@ crrd = create_raw_ref_data
     [crrd(['@ספר בראשית', '#פסוק א', '#פרק יג']), ("Genesis 13:1",)],  # sections out of order
     [crrd(['@שמות', '#א', '#ב']), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
 
+    # Roman numerals
+    [crrd(['@Job', '#III', '#5'], lang='en'), ("Job 3:5",)],
+    [crrd(['@Job', '#ix', '#5'], lang='en'), ("Job 9:5",)],
+    [crrd(['@Job', '#IV .', '#5'], lang='en'), ("Job 4:5",)],
+    [crrd(['@Job', '#xli.', '#5'], lang='en'), ("Job 41:5",)],
+    [crrd(['@Job', '#CIV', '#5'], lang='en'), tuple()],  # too high
+    [crrd(['@Job', '#iiii', '#5'], lang='en'), tuple()],  # invalid roman numeral
+
     # Amud split into two parts
     [crrd(['@בבלי', '@יבמות', '#סא', '#א']), ("Yevamot 61a",)],
+    [crrd(["@תוספות", "@פסחים", "#קו", "#א"]), ("Tosafot on Pesachim 106a",)],  # amud for commentary that has DH
+    [crrd(["@תוספות", "@פסחים", "#קו", "#א", "*ד\"ה ושמע מינה"]), ("Tosafot on Pesachim 106a:1:1",)],  # amud for commentary that has DH
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '@במכות']), ("Makkot 2a",)],
     [crrd(['@בבלי', '#עמוד א', '#דף ב', '@במכות']), ("Makkot 2a",)],  # out of order daf and amud
     [crrd(['@בבלי', '#דף ב', '#עמוד ג', '@במכות']), tuple()],
@@ -49,6 +68,11 @@ crrd = create_raw_ref_data
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '^עד', '#דף ג', '#עמוד ב', '@במכות']), ("Makkot 2a-3b",)],
     [crrd(['@שבת', '#א', '#ב']), ["Mishnah Shabbat 1:2"]],  # shouldn't match Shabbat 2a by reversing order of parts
     [crrd(['@שבת', '#ב', '#א']), ["Shabbat 2a", "Mishnah Shabbat 2:1"]],  # ambiguous case
+
+    # Parsha -> sections
+    [crrd(["@Parshat Vayikra", "#2", "#3"], lang='en'), ('Leviticus 2:3',)],
+    [crrd(["@Parshat Tzav", "#2", "#3"], lang='en'), tuple()],  # validate that sections fall within parsha
+    pytest.param(crrd(["@Parshat Noach", "#6", "#3"], lang='en'), tuple(), marks=pytest.mark.xfail(reason="currently dont check if pasuk/perek pair fall in parsha, only perek")),
 
     # Aliases for perakim
     [crrd(["@משנה", "@ברכות", "#פרק קמא"]), ("Mishnah Berakhot 1",)],
@@ -59,7 +83,7 @@ crrd = create_raw_ref_data
 
     # Named alt structs
     [crrd(["@פרק אלו דברים", "@בפסחים"]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
-    [crrd(["@פרק אלו דברים"]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33")],  # talmud perek without book that's ambiguous
+    [crrd(["@פרק אלו דברים"]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33", "Jerusalem Talmud Berakhot 8:1:1-8:7", "Jerusalem Talmud Pesachim 6:1:1-6:4", "Jerusalem Talmud Demai 2:1:1-5:4")],  # talmud perek without book that's ambiguous
     [crrd(["@רש\"י", "@פרק יום טוב", "@בביצה"]), ("Rashi on Beitzah 15b:1-23b:10",)],  # rashi perek
     [crrd(["@רש\"י", "@פרק מאימתי"]), ("Rashi on Berakhot 2a:1-13a:15",)],  # rashi perek
     [crrd(["@רש\"י", "@פרק כל כנויי נזירות", "@בנזיר", "*ד\"ה כל כינויי נזירות"]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
@@ -71,6 +95,16 @@ crrd = create_raw_ref_data
     [crrd(['#פ"ה', '@בפסחים']), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
     [crrd(["#פרק בתרא", "@בפסחים"]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3")],  # numbered talmud perek
     [crrd(['@מגמ\'', '#דרפ\"ו', '@דנדה']), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
+
+    # Using addressTypes of alt structs
+    [crrd(["@JT", "@Bikkurim", "#Chapter 2"], lang="en"), ("Jerusalem Talmud Bikkurim 2",)],
+    [crrd(["@Tosafot Rabbi Akiva Eiger", "@Shabbat", "#Letter 87"], lang="en"), ("Tosafot Rabbi Akiva Eiger on Mishnah Shabbat 7.2.1",)],
+    [crrd(["@JT", "@Berakhot", "#2a"], lang="en"), ("Jerusalem Talmud Berakhot 1:1:2-4", "Jerusalem Talmud Berakhot 1:1:7-11",)],  # ambig b/w Venice and Vilna
+    [crrd(["@JT", "@Berakhot", "#Chapter 1", "#2a"], lang="en"), ("Jerusalem Talmud Berakhot 1:1:2-4", "Jerusalem Talmud Berakhot 1:1:7-11",)],
+    [crrd(["@JT", "@Peah", "#10b"], lang="en"), ("Jerusalem Talmud Peah 2:1:1-4",)],  # Venice not ambig
+    [crrd(["@JT", "@Peah", "#Chapter 3", "#15b"], lang="en"), ("Jerusalem Talmud Peah 3:2:4-4:3",)],  # Venice not ambig because of chapter
+    [crrd(["@JT", "@Peah", "#15c"], lang="en"), ("Jerusalem Talmud Peah 1:1:20-30",)],  # Folio address
+    [crrd(["@Chapter 1"], lang="en"), tuple()],  # It used to be that Bavli perakim where Chapter N which causes problems for global scope
 
     # Dibur hamatchils
     [crrd(["@רש\"י", "@יום טוב", "*ד\"ה שמא יפשע"]), ("Rashi on Beitzah 15b:8:1",)],
@@ -90,8 +124,12 @@ crrd = create_raw_ref_data
     # Base text context
     [crrd(['@ובתוס\'', '#דכ"ז ע"ב', '*ד"ה והלכתא'], "Rashi on Berakhot 2a"), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
+    # Mis-classified part types
+    [crrd(['@ושו"ע', "#אה״ע", "#סי׳ כ״ח", "#סעיף א"]), ("Shulchan Arukh, Even HaEzer 28:1",)],
+
     # Ibid
     [crrd(['&שם', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 7", "Genesis 1:7"]],  # ambiguous ibid
+    [crrd(['&Ibid', '#12'], prev_trefs=["Exodus 1:7"], lang='en'), ["Exodus 1:12", "Exodus 12"]],  # ambiguous ibid when context is segment level (not clear if this is really ambiguous. maybe should only have segment level result)
     [crrd(['#ב'], prev_trefs=["Genesis 1"]), ["Genesis 1:2", "Genesis 2"]],  # ambiguous ibid
     [crrd(['#ב', '#ז'], prev_trefs=["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
     [crrd(['@בראשית', '&שם', '#ז'], prev_trefs=["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
@@ -113,12 +151,14 @@ crrd = create_raw_ref_data
     [crrd(['#פרק ז'], prev_trefs=["II Kings 17:31"]), ["II Kings 7"]],
     [crrd(['@ערוך השולחן', '#תצג'], prev_trefs=["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
     [crrd(['@רש"י', '&שם'], prev_trefs=["Genesis 25:9", "Rashi on Genesis 21:20"]), ["Rashi on Genesis 21:20", "Rashi on Genesis 25:9"]],  # ambiguous ibid
+    [crrd(["@Job"], lang='en', prev_trefs=['Job 1:1']), ("Job",)],  # don't use ibid context if there's a match that uses all input
 
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
     [crrd(['<לקמן', '#משנה א'], "Mishnah Berakhot 1", prev_trefs=['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
 
     # Superfluous information
+    [crrd(['@Vayikra', '@Leviticus', '#1'], lang='en'), ("Leviticus 1",)],
     [crrd(['@תוספות', '#פרק קמא', '@דברכות', '#דף ב']), ['Tosafot on Berakhot 2']],
 
     # YERUSHALMI EN
@@ -160,11 +200,16 @@ crrd = create_raw_ref_data
     [crrd(['@טור יורה דעה', '#סימן א']), ['Tur, Yoreh Deah 1']],
     [crrd(['@תוספתא', '@ברכות', '#א', '#א']), ['Tosefta Berakhot 1:1', 'Tosefta Berakhot (Lieberman) 1:1']],  # tosefta ambiguity
     [crrd(['@תוספתא', '@ברכות', '#א', '#טז']), ['Tosefta Berakhot 1:16']],  # tosefta ambiguity
-    [crrd(['@זוה"ק', '#ח"א', '#דף פג:']), ['Zohar 1:83b']],
-    # pytest.param(crrd(None, 'he', 'זוהר שמות י.', [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Zohar 2:10a'], marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # infer Zohar volume from parasha
+
+    # zohar
+    [crrd(['@זוה"ק', '#ח"א','@לך לך', '@סתרי תורה', '#דף פ.']), ['Zohar, Lech Lecha 10.78-84']],
+    [crrd(['@זוה"ק', '#ח"א','@לך לך', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
+    [crrd(['@זוה"ק', '#ח"א', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
+    [crrd(['@זוה"ק', '@לך לך', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
+
     [crrd(['@זהר חדש', '@בראשית']), ['Zohar Chadash, Bereshit']],
     [crrd(['@מסכת', '@סופרים', '#ב', '#ג']), ['Tractate Soferim 2:3']],
-    [crrd(['@אדר"נ', '#ב', '#ג']), ["Avot D'Rabbi Natan 2:3"]],
+    [crrd(['@אדר"נ', '#ב', '#ג']), ["Avot DeRabbi Natan 2:3"]],
     [crrd(['@פרק השלום', '#ג']), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
     [crrd(['@ד"א זוטא', '@פרק השלום', '#ג']), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
     [crrd(['@ספר החינוך', '@לך לך', '#ב']), ['Sefer HaChinukh 2']],
@@ -233,8 +278,10 @@ crrd = create_raw_ref_data
     [crrd(['@Rashi on Genesis', '#1', '#1', '#1'], lang='en'), ["Rashi on Genesis 1:1:1"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
-    ref_resolver.reset_ibid_history()  # reset from previous test runs
     raw_ref, context_ref, lang, prev_trefs = resolver_data
+    linker = library.get_linker(lang)
+    ref_resolver = linker._ref_resolver
+    ref_resolver.reset_ibid_history()  # reset from previous test runs
     if prev_trefs:
         for prev_tref in prev_trefs:
             if prev_tref is None:
@@ -243,7 +290,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
                 ref_resolver._ibid_history.last_refs = Ref(prev_tref)
     print_spans(raw_ref)
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
-    matches = ref_resolver.resolve_raw_ref(lang, context_ref, raw_ref)
+    matches = ref_resolver.resolve_raw_ref(context_ref, raw_ref)
     matched_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in matches], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(matched_orefs):
         print(f"Found {len(matched_orefs)} refs instead of {len(expected_trefs)}")
@@ -256,26 +303,32 @@ class TestResolveRawRef:
 
     pass
 
+
 @pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts'), [
+    ["Berakhot 2a", 'It says in the Talmud, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple()],  # Don't match Talmud using Berakhot 2a as ibid context
+    [None, 'It says in the Torah, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple()],
     [None, """גמ' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)']],
     [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית']],
     [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת''']],
-    [None, """cf. Ex. 9:6,5""", 'en', ("Exodus 9:6", "Exodus 9:5"), ['Ex. 9:6', '5']],
+    [None, """cf. Ex. 9:6,12:8""", 'en', ("Exodus 9:6", "Exodus 12:8"), ['Ex. 9:6', '12:8']],
     ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר']],
+    [None, "See Genesis 1:1. It says in the Torah, \"Don't steal\". It also says in 1:3 \"Let there be light\".", "en", ("Genesis 1:1", "Genesis 1:3"), ("Genesis 1:1", "1:3")],
 ])
 def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts):
     context_oref = context_tref and Ref(context_tref)
-    resolved = ref_resolver.bulk_resolve_refs(lang, [context_oref], [input_str])[0]
-    assert len(resolved) == len(expected_trefs)
+    linker = library.get_linker(lang)
+    doc = linker.link(input_str, context_oref, type_filter='citation')
+    resolved = doc.resolved_refs
     resolved_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in resolved], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(resolved_orefs):
         print(f"Found {len(resolved_orefs)} refs instead of {len(expected_trefs)}")
         for matched_oref in resolved_orefs:
             print("-", matched_oref.normal())
+    assert len(resolved) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
     for match, expected_pretty_text in zip(resolved, expected_pretty_texts):
-        assert input_str[slice(*match.raw_ref.char_indices)] == match.raw_ref.text
+        assert input_str[slice(*match.raw_entity.char_indices)] == match.raw_entity.text
         assert match.pretty_text == expected_pretty_text
 
 
@@ -306,7 +359,7 @@ def test_get_all_possible_sections_from_string(input_addr_str, AddressClass, exp
 ])
 def test_group_ranged_parts(raw_ref_params, expected_section_slices):
     lang, raw_ref_parts, span = raw_ref_params
-    raw_ref = RawRef(lang, raw_ref_parts, span)
+    raw_ref = RawRef(span, lang, raw_ref_parts)
     exp_sec_slice, exp2sec_slice = expected_section_slices
     if exp_sec_slice is None:
         expected_raw_ref_parts = raw_ref_parts
@@ -384,17 +437,18 @@ def test_map_new_indices(crrd_params):
     # unnorm data
     raw_ref, _, lang, _ = crrd(*crrd_params)
     text = raw_ref.text
-    doc = ref_resolver.get_raw_ref_model(lang).make_doc(text)
+    linker = library.get_linker(lang)
+    nlp = linker.get_ner().named_entity_model
+    doc = nlp.make_doc(text)
     indices = raw_ref.char_indices
     part_indices = [p.char_indices for p in raw_ref.raw_ref_parts]
     print_spans(raw_ref)
 
     # norm data
-    n = ref_resolver._normalizer
-    norm_text = n.normalize(text, lang=lang)
-    norm_doc = ref_resolver.get_raw_ref_model(lang).make_doc(norm_text)
-    mapping = n.get_mapping_after_normalization(text, reverse=True, lang=lang)
-    norm_part_indices = n.convert_normalized_indices_to_unnormalized_indices(part_indices, mapping, reverse=True)
+    n = linker.get_ner()._normalizer
+    norm_text = n.normalize(text)
+    norm_doc = nlp.make_doc(norm_text)
+    norm_part_indices = n.norm_to_unnorm_indices(text, part_indices, reverse=True)
     norm_part_spans = [norm_doc.char_span(s, e) for (s, e) in norm_part_indices]
     norm_part_token_inds = []
     for span in norm_part_spans:
@@ -409,7 +463,8 @@ def test_map_new_indices(crrd_params):
 
     # test
     assert norm_raw_ref.text == norm_text.strip()
-    norm_raw_ref.map_new_indices(doc, indices, part_indices)
+    norm_raw_ref.map_new_char_indices(doc, indices)
+    norm_raw_ref.map_new_part_char_indices(part_indices)
     assert norm_raw_ref.text == raw_ref.text
     for norm_part, part in zip(norm_raw_ref.raw_ref_parts, raw_ref.raw_ref_parts):
         assert norm_part.text == part.text

@@ -385,16 +385,7 @@ def calculate_sheetrank():
 
                     for r in ref_list:
                         sheetrank_dict[r.normal()] += 1
-                except InputError:
-                    continue
-                except TypeError:
-                    continue
-                except AssertionError:
-                    continue
-                except AttributeError:
-                    continue
-                except IndexError:
-                    print(s["ref"])
+                except (InputError, TypeError, AssertionError, KeyError, AttributeError, IndexError):
                     continue
 
             if "subsources" in s:

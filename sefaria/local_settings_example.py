@@ -53,6 +53,8 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
 ADMINS = (
      ('Your Name', 'you@example.com'),
 )
+ADMIN_PATH = 'somethingsomething' #This will be the path to the admin site, locally it can also be 'admin'
+
 PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
 
 MONGO_REPLICASET_NAME = None # If the below is a list, this should be set to something other than None. 
@@ -157,7 +159,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # ElasticSearch server
 # URL to connect to ES server.
-# Set this to https://sefaria.org/api/search to connect to production search.
+# Set this to https://sefaria.org:443/api/search to connect to production search.
 # If ElasticSearch server has a password use the following format: http(s)://{username}:{password}@{base_url}
 SEARCH_URL = "http://localhost:9200"
 
@@ -255,6 +257,25 @@ SIMPLE_JWT = {
     'SIGNING_KEY': 'a signing key: at least 256 bits',
 }
 
+# Celery - the following section defines variables to connect to the celery broker. This can be either redis or redis sentinel
+# Either define SENTINEL_HEADLESS_URL if using sentinel or REDIS_URL for a simple redis instance
+# If using sentinel, also pass any variables prefixed with SENTINEL. Otherwise, they can be left as default.
+# All other variables need to be defined if connecting to either redis or redis sentinel
+REDIS_URL = "redis://127.0.0.1"
+REDIS_PORT = 6379  # the port exposed on either redis or redis sentinel. default for sentinel is 26379
+REDIS_PASSWORD = None
+SENTINEL_HEADLESS_URL = None
+SENTINEL_PASSWORD = None
+SENTINEL_TRANSPORT_OPTS = {}
+CELERY_REDIS_BROKER_DB_NUM = 2
+CELERY_REDIS_RESULT_BACKEND_DB_NUM = 3
+CELERY_QUEUES = {}
+CELERY_ENABLED = False
+# END Celery
+
+#Slack
+SLACK_URL = ''
+
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
@@ -317,3 +338,6 @@ CLIENT_SENTRY_DSN = None
 FAIL_GRACEFULLY = False
 if "pytest" in sys.modules:
     FAIL_GRACEFULLY = False
+
+WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
+WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")

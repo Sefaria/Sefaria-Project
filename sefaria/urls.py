@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
-from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
+from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
 import reader.views as reader_views
 import sefaria.views as sefaria_views
@@ -41,7 +41,6 @@ urlpatterns = [
     url(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
-    url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^modtools/links$', sefaria_views.links_upload_api),
@@ -85,13 +84,13 @@ urlpatterns += [
     url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
+    url(r'^settings/account/user$', reader_views.account_user_update),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
     url(r'^api/profile/user_history$', reader_views.user_history_api),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),
-    url(r'^settings/account/user$', reader_views.account_user_update),
-    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
+    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
 ]
@@ -103,8 +102,8 @@ urlpatterns += [
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/b/(?P<topic>.+)$', reader_views.topic_page_b),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
-    url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api),
-    url(r'^api/topics/images/(?P<topic>.+)$', reader_views.topic_upload_photo)
+    url(r'^_api/topics/images/secondary/(?P<slug>.+)$', reader_views.topic_upload_photo, {"secondary": True}),
+    url(r'^_api/topics/images/(?P<slug>.+)$', reader_views.topic_upload_photo)
 
 ]
 
@@ -151,6 +150,7 @@ urlpatterns += [
     url(r'^api/texts/modify-bulk/(?P<title>.+)$', reader_views.modify_bulk_text_api),
     url(r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.old_text_versions_api_redirect),
     url(r'^api/texts/(?P<tref>.+)$', reader_views.texts_api),
+    url(r'^api/versions/?$', reader_views.complete_version_api),
     url(r'^api/v3/texts/(?P<tref>.+)$', api_views.Text.as_view()),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
     url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
@@ -172,6 +172,8 @@ urlpatterns += [
     url(r'^api/terms/(?P<name>.+)$', reader_views.terms_api),
     url(r'^api/calendars/next-read/(?P<parasha>.+)$', reader_views.parasha_next_read_api),
     url(r'^api/calendars/?$', reader_views.calendars_api),
+    url(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
+    url(r'^api/calendars/topics/holiday/?$', reader_views.next_holiday),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     url(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
@@ -262,7 +264,13 @@ urlpatterns += [
 # Topics API
 urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
+    url(r'^api/topics/generate-prompts/(?P<slug>.+)$', reader_views.generate_topic_prompts_api),
     url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
+    url(r'^_api/topics/seasonal-topic/?$', reader_views.seasonal_topic_api),
+    url(r'^api/topics/pools/(?P<pool_name>.+)$', reader_views.topic_pool_api),
+    url(r'^_api/topics/featured-topic/?$', reader_views.featured_topic_api),
+    url(r'^api/topics/trending/?$', reader_views.trending_topics_api),
+    url(r'^api/ref-topic-links/bulk$', reader_views.topic_ref_bulk_api),
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/v2/topics/(?P<topic>.+)$', reader_views.topics_api, {'v2': True}),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
@@ -394,10 +402,11 @@ urlpatterns += [
     url(r'^api/send_feedback$', sefaria_views.generate_feedback),
 ]
 
-# Email Subscribe
+# Email Newsletter Subscriptions
 urlpatterns += [
     url(r'^api/subscribe/(?P<org>.+)/(?P<email>.+)$', sefaria_views.generic_subscribe_to_newsletter_api),
     url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe_sefaria_newsletter_view),
+    url(r'^api/newsletter_mailing_lists/?$', sefaria_views.get_available_newsletter_mailing_lists),
 ]
 
 # Admin
@@ -418,6 +427,7 @@ urlpatterns += [
     url(r'^admin/delete/sheet$', sefaria_views.delete_sheet_by_id, name="delete/sheet"),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
     url(r'^admin/rebuild/citation-links/(?P<title>.+)$', sefaria_views.rebuild_citation_links),
+    url(r'^admin/rebuild/shared-cache', sefaria_views.rebuild_shared_cache),
     url(r'^admin/delete/citation-links/(?P<title>.+)$', sefaria_views.delete_citation_links),
     url(r'^admin/cache/stats', sefaria_views.cache_stats),
     url(r'^admin/cache/dump', sefaria_views.cache_dump),
@@ -437,7 +447,7 @@ urlpatterns += [
     url(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
     url(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     url(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
-    url(r'^admin/?', include(admin.site.urls)),
+    url(fr'^{ADMIN_PATH}/?', include(admin.site.urls)),
 ]
 
 # Stats API - return CSV
