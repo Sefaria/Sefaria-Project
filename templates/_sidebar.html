@@ -1,8 +1,10 @@
 {% load i18n %}
 
     <nav id="aboutSidebar">
-        <h1 class="int-en">{{title}}</h1>
-        <h1 class="int-he">{{heTitle}}</h1>
+        {% if request.user_agent.is_mobile %}
+            <h1 class="int-en">{{title}}</h1>
+            <h1 class="int-he">{{heTitle}}</h1>
+        {% endif %}
         <ul>
             <li><a id="about" href="/about">
                     <span class="int-en">What is Sefaria?<i class="fa fa-chevron-right"></i></span>
@@ -16,12 +18,15 @@
             <li><a id="products" href="/products">
                     <span class="int-en">Sefaria's Products<i class="fa fa-chevron-right"></i></span>
                     <span class="int-he">המוצרים של ספריא<i class="fa fa-chevron-left"></i></span></a></li>
+            <li><a id="ai" href="/ai">
+                     <span class="int-en">AI on Sefaria<i class="fa fa-chevron-right"></i></span> 
+                     <span class="int-he">השימוש ב-AI בספריא<i class="fa fa-chevron-left"></i></span></a></li>
             <li><a id="supporters" href="/supporters">
                     <span class="int-en">Our Supporters<i class="fa fa-chevron-right"></i></span>
                     <span class="int-he">התומכים שלנו<i class="fa fa-chevron-left"></i></span></a></li>
             <li><a id="testimonials" href="/testimonials">
                     <span class="int-en">Testimonials<i class="fa fa-chevron-right"></i></span>
-                    <span class="int-he">המלצות על ספריא<i class="fa fa-chevron-left"></i></span></a></li>
+                    <span class="int-he">המלצות על ספריא<i class="fa fa-chevron-left"></i></span></a></li>     
             <li><a id="metrics" href="/metrics">
                     <span class="int-en">Metrics<i class="fa fa-chevron-right"></i></span>
                     <span class="int-he">מדדים<i class="fa fa-chevron-left"></i></span></a></li>
@@ -40,7 +45,7 @@
         </ul>
     </nav>
 <script>
-  const mobile = "{{mobile}}" === "1";
+  const mobile = "{{request.user_agent.is_mobile}}" === "True";
   if (!mobile) {
       const whichPage = "{{whichPage}}";
       const item = document.getElementById(whichPage);

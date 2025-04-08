@@ -50,7 +50,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/linker.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
+        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
             request.interfaceLang = "english"
             request.contentLang = "bilingual"
