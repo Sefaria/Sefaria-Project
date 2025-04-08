@@ -12145,6 +12145,7 @@ span.purim-emoji img {
     color: #999;
     position: absolute;
     pointer-events: none;
+
 }
 
 .sheetItem:only-of-type.empty .placeholder::before {
@@ -12186,7 +12187,7 @@ span.purim-emoji img {
     width: 30px;
     height: 30px;
     transform: rotate(45deg);
-    margin-top:15px;
+    margin-top:0;
     background-color: white;
     background-image: url("/static/icons/heavy-x-dark.svg");
     border: 1px solid var(--light-grey);
@@ -12367,7 +12368,7 @@ span.purim-emoji img {
     box-shadow: none;
     box-sizing: border-box;
     font-size: 22px;
-    padding-inline-start: 30px;
+    padding-inline-start: 35px;
     padding-top: revert;
     margin-inline-end: 20px;
     background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 10px top 15px;
@@ -12413,7 +12414,7 @@ span.purim-emoji img {
 }
 
 .addInterfaceInput.mediaInput input {
-    background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
+    background: url("/static/icons/link_grey.svg") no-repeat scroll left 10px top 15px;
     background-color: var(--lighter-grey);
 }
 
