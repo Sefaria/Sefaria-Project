@@ -1,75 +1,142 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-// import './PlanProgression.css'; // Make sure to link the updated CSS file
-
-const MOCK_PROGRESSION_DATA = {
-  id: 1,
-  title: "Mindful Breathing",
-  total_days: 7,
-  current_day: 1,
-  days: [
-    { day: 1, title: "Day 1", content: "Begin by finding a comfortable seated position. Close your eyes gently and bring attention to your natural breathing pattern. Notice the sensation of air entering and leaving your nostrils. Observe without judgment for 5-10 minutes." },
-    { day: 2, title: "Day 2", content: "Today we'll focus on body awareness. Start with three deep breaths, then scan your body from head to toe, noticing any sensations without judgment." },
-    { day: 3, title: "Day 3", content: "Practice counting your breaths. Inhale (1), exhale (2), up to 10, then start again. When your mind wanders, gently return to counting." },
-    { day: 4, title: "Day 4", content: "Throughout your day, take three mindful pauses. Stop whatever you're doing and take three conscious breaths before continuing." },
-    { day: 5, title: "Day 5", content: "Extend your practice to 15-20 minutes today. Notice how your awareness develops with longer sessions." },
-    { day: 6, title: "Day 6", content: "Practice mindful listening today. When conversing, give your full attention to the speaker without planning your response." },
-    { day: 7, title: "Day 7", content: "Reflect on your week of practice. How has your awareness changed? Set intentions for continuing your practice." }
-  ]
-};
+import Sheet from './Sheet';
+import Sefaria from './sefaria/sefaria';
 
 const PlanProgression = () => {
   const { planId } = useParams();
   const [currentDay, setCurrentDay] = useState(1);
-  const plan = MOCK_PROGRESSION_DATA;
-  const dayData = plan.days.find(d => d.day === currentDay);
+  const [planData, setPlanData] = useState(null);
+  const [sheetData, setSheetData] = useState(null);
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handlePrevDay = () => {
-    if (currentDay > 1) setCurrentDay(currentDay - 1);
+  // Example MongoDB ObjectId for testing: "67ef5e6f2946808aa7605e0b"
+  const MOCK_PLAN_ID_MAP = {
+    "1": "67ef5e6f2946808aa7605e0b",
+    "2": "67ef8746e711c3fd29b70e17",
+    "3": "67ef8746e711c3fd29b70e18"
   };
 
-  const handleNextDay = () => {
-    if (currentDay < plan.total_days) setCurrentDay(currentDay + 1);
+  useEffect(() => {
+    // Fetch plan data when component mounts
+    fetchPlanData();
+  }, [planId]);
+
+  useEffect(() => {
+    // Fetch sheet data when current day changes
+    if (planData) {
+      console.log('Fetching content for day:', currentDay);
+      fetchDayContent(currentDay);
+    }
+  }, [currentDay]);
+
+  const getMongoId = (numericId) => {
+    // Remove any 'progress' suffix and convert to string
+    const cleanId = numericId.toString().replace('/progress', '');
+    return MOCK_PLAN_ID_MAP[cleanId] || cleanId;
+  };
+
+  const fetchPlanData = async () => {
+    try {
+      const mongoId = getMongoId(planId);
+      console.log('Fetching plan data for ID:', mongoId);
+      const response = await fetch(`/api/plans/${mongoId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Received plan data:', data);
+      setPlanData(data);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching plan data:', error);
+      setError('Failed to load plan data. Please try again later.');
+    }
+  };
+
+  const fetchDayContent = async (day) => {
+    try {
+      setIsLoading(true);
+      const mongoId = getMongoId(planId);
+      console.log('Fetching day content for plan:', mongoId, 'day:', day);
+      const response = await fetch(`/api/plans/${mongoId}/day_${day}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Received day content:', data);
+      setSheetData(data);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching day content:', error);
+      setError('Failed to load day content. Please try again later.');
+      setSheetData(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDaySelect = (day) => {
+    console.log('Day selected:', day);
     setCurrentDay(day);
   };
 
+  const openSheet = (sheetRef, replace = false) => {
+    // This is a placeholder function that matches the expected prop type
+    console.log('Opening sheet:', sheetRef, replace);
+  };
+
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
+
+  if (!planData) return <div>Loading plan data...</div>;
+  if (isLoading) return <div>Loading day content...</div>;
+
+  // Use numeric ID for the back link to match the rest of the app's routing
+  const numericId = planId.toString().replace('/progress', '');
+
   return (
-    <div className="plan-container">
-      <Link to={`/${planId}`} className="back-link">← Back to plan</Link>
-
-      {/* Header Image */}
-      <div className="header-image">
-        <h1 className="title">{plan.title}</h1>
+    <div className="plan-progression">
+      <div className="plan-navigation">
+        <Link to={`/plans/${numericId}`} className="back-link">← Back to plan</Link>
+        <h2 className="plan-title">{planData.title}</h2>
+        
+        {/* Vertical Day Navigation */}
+        <div className="day-list">
+          {Array.from({ length: planData.total_days || 7 }, (_, i) => i + 1).map((day) => (
+            <button
+              key={day}
+              className={`day-button ${currentDay === day ? 'active' : ''}`}
+              onClick={() => handleDaySelect(day)}
+            >
+              Day {day}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Day Navigation */}
-      <div className="day-navigation">
-        {plan.days.map((day) => (
-          <button
-            key={day.day}
-            className={`day-dot ${currentDay === day.day ? 'active' : ''}`}
-            onClick={() => handleDaySelect(day.day)}
-          >
-            {day.day}
-          </button>
-        ))}
-      </div>
-
-      {/* Day Content */}
-      <h2 className="day-title">{dayData.title}</h2>
-      <p className="day-text">{dayData.content}</p>
-
-      {/* Navigation Buttons */}
-      <div className="nav-buttons">
-        <button className="nav-button prev-button" onClick={handlePrevDay} disabled={currentDay === 1}>
-          &lt; Previous Day
-        </button>
-        <button className="nav-button next-button" onClick={handleNextDay} disabled={currentDay === plan.total_days}>
-          Next Day &gt;
-        </button>
+      {/* Sheet Content */}
+      <div className="sheet-content">
+        {sheetData && sheetData.content ? (
+          <Sheet
+            id={sheetData.sheet_id}
+            data={sheetData.content}
+            hasSidebar={false}
+            highlightedNode={null}
+            multiPanel={false}
+            onRefClick={() => {}}
+            onSegmentClick={() => {}}
+            onCitationClick={() => {}}
+            setSelectedWords={() => {}}
+            setDivineNameReplacement={() => {}}
+            divineNameReplacement="noSub"
+            openSheet={openSheet}
+          />
+        ) : (
+          <div>No content available for this day</div>
+        )}
       </div>
     </div>
   );

@@ -16468,147 +16468,69 @@ span.ref-link-color-3 {
 
 
   /*progression page*/
-/* PlanProgression.css */
-
-.plan-container {
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 20px;
-    text-align: center;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Back Link */
-  .back-link {
-    display: block;
-    text-align: left;
-    font-size: 14px;
-    color: #666;
-    text-decoration: none;
-    margin-bottom: 10px;
-  }
-  
-  .back-link:hover {
-    color: #C39F48;
-  }
-  
-  /* Header Image */
-  .header-image {
+/* Plan Progression Layout */
+.plan-progression {
+    display: flex;
+    height: 100vh;
     width: 100%;
-    height: 200px;
-    background: url('/static/img/plans/meditation.jpeg') center/cover no-repeat;
+  }
+  
+  .plan-navigation {
+    width: 250px;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-right: 1px solid #ddd;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-    margin-bottom: 20px;
+    flex-direction: column;
   }
   
-  /* Day Navigation */
-  .day-navigation {
+  .plan-title {
+    margin: 20px 0;
+    font-size: 1.2em;
+    color: #333;
+  }
+  
+  .day-list {
     display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-  
-  .day-dot {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 2px solid #ddd;
-    background: #f8f8f8;
-    color: #666;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-  }
-  
-  .day-dot.active {
-    background: #C39F48;
-    color: white;
-    border-color: #C39F48;
-  }
-  
-  .day-dot:hover:not(.active) {
-    background: rgba(195, 159, 72, 0.1);
-  }
-  
-  /* Day Content */
-  .day-title {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  .day-text {
-    font-size: 16px;
-    line-height: 1.5;
-    color: #666;
-    padding: 0 10px;
-  }
-  
-  /* Navigation Buttons */
-  .nav-buttons {
-    display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 10px;
     margin-top: 20px;
   }
   
-  .nav-button {
-    padding: 10px 16px;
-    font-size: 14px;
-    background: #C39F48;
-    color: white;
+  .day-button {
+    padding: 10px 15px;
+    text-align: left;
+    background: none;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: background-color 0.2s;
   }
   
-  .nav-button:hover:not(:disabled) {
-    background: #a3853b;
+  .day-button:hover {
+    background-color: #e0e0e0;
   }
   
-  .nav-button:disabled {
-    background: #ddd;
-    cursor: not-allowed;
+  .day-button.active {
+    background-color: #2196F3;
+    color: white;
   }
   
-  /* Mobile Responsiveness */
-  @media (max-width: 600px) {
-    .plan-container {
-      width: 90%;
-      padding: 15px;
-    }
+  .sheet-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+  }
   
-    .header-image {
-      height: 150px;
-      font-size: 20px;
-    }
+  .back-link {
+    text-decoration: none;
+    color: #666;
+    margin-bottom: 20px;
+    display: inline-block;
+  }
   
-    .day-dot {
-      width: 30px;
-      height: 30px;
-      font-size: 14px;
-    }
-  
-    .day-text {
-      font-size: 14px;
-    }
-  
-    .nav-button {
-      padding: 8px 12px;
-      font-size: 13px;
-    }
+  .back-link:hover {
+    color: #333;
   }
   
   
