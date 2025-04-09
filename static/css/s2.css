@@ -15961,6 +15961,50 @@ span.ref-link-color-3 {
     padding: 15px;
 }
 
+/*plan search icon*/
+
+.searchIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    margin-right: 0.75rem;
+  }
+  
+  .searchIcon svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2px;
+  }
+  
+  .searchBarWrapper {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    max-width: 400px;
+    margin: 0 auto;
+    transition: all 0.2s ease;
+  }
+  
+  .searchBarWrapper:focus-within {
+    border-color: #C39F48;
+    box-shadow: 0 0 0 2px rgba(195, 159, 72, 0.1);
+  }
+  
+  .searchInput {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 1rem;
+    color: #495057;
+    background: transparent;
+  }
+  
+  .searchInput::placeholder {
+    color: #adb5bd;
+  }
+  
 /* plans page css */
 
 .readerNavMenu {
