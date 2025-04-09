@@ -441,12 +441,17 @@ class KrupnikEntry(DictionaryEntry):
 
     def get_content(self):
         content = self.content
-        if isinstance(content, str):
+        if isinstance(self.content, str):
             return self.content
         elif 'binyans' in self.content:
-            return '<br>'.join([self.get_binyan(binyan) for binyan in self.content['binyans']])
+            parts = [self.get_binyan(binyan) for binyan in self.content['binyans']]
         else:
-            return '<br>'.join([self.get_sense(sense) for sense in self.content['senses']])
+            parts = [self.get_sense(sense) for sense in self.content['senses']]
+        content = '<br>'.join(parts)
+        if len(parts) > 1:
+            content = f'<br>{content}'
+        return content
+
 
     def as_strings(self, with_headword=True):
         return [self.headword_string() + ' ' + self.get_content()]
