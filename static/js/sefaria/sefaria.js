@@ -10,7 +10,6 @@ import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
-import SearchState from "./searchState";
 import FilterNode from "./FilterNode";
 
 
@@ -2906,7 +2905,7 @@ _media: {},
         if (!tabKey) continue;
         if (!tabs[tabKey]) {
           tabs[tabKey] = {
-            refMap: new Set(),
+            refs: new Set(),
             title,
             shouldDisplay: topicLinks.shouldDisplay,
           };
@@ -2920,7 +2919,7 @@ _media: {},
             curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}
           }
         }
-        tabs[tabKey].refs.push({
+        tabs[tabKey].refs.add({
           ref: refObj.ref,
           order: refObj.order,
           dataSources: refObj.dataSources,
@@ -2930,7 +2929,7 @@ _media: {},
     }
    
     for (let [linkType, topicLinks] of Object.entries(topicData.refs)) {
-       processRefs(linkType, topicLinks);
+       _processRefs(linkType, topicLinks);
     }
     for (let tabObj of Object.values(tabs)) {
       tabObj.refs = [...tabObj.refs];
@@ -2940,8 +2939,7 @@ _media: {},
         tabs.sources = {shouldDisplay: true, refs: [], title: {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')}};
       }
       //turn "sources" tab into 'super-set', containing all refs from all tabs:
-      const allRefs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
-      tabs.sources.refs = allRefs;
+      tabs.sources.refs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
     }
     if (Sefaria.is_moderator && Sefaria.activeModule === 'library') {
       tabs["admin"] = {...tabs["sources"]};

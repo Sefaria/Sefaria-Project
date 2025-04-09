@@ -640,7 +640,7 @@ const setupAdditionalTabs = (displayTabs, currentTab, topicData) => {
     });
     onClickLangToggleIndex = displayTabs.length - 1;
   }
-  return [displayTabs, onClickLangToggleIndex, onClickFilterIndex];
+  return [onClickLangToggleIndex, onClickFilterIndex];
 }
 
 const handleLangSelectInterfaceChange = (selection, setLangPref) => {
@@ -767,7 +767,7 @@ const TopicPage = ({
                                     filterFunc={filterFunc}
                                     sortFunc={sortFunc}
                                     onDisplayedDataChange={data => onDisplayDataChange(data, topicData, id)}
-                                    initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
+                                    initialRenderSize={topicData._refsDisplayedByTab?.[id] || 0}
                                     renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
                                     onSetTopicSort={onSetTopicSort}
                                     topicSort={topicSort}
