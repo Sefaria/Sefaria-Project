@@ -49,14 +49,9 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
       const outRef = outRefs[tempRef.ref];
 
       if (outRef) {
-        // Add text from outRefs to inRefs
-        tempRef.he = outRef.he;
-        tempRef.en = outRef.en;
-        tempRef.lang = outRef.lang;
+        Object.assign(tempRef, outRef);
       }
     }
-
-    // Convert inRefs to a list of tuples in the form [key, value]
     const result = inRefs.map(ref => [ref.ref, ref]);
 
     return result; // Return the list of tuples [key, value]
