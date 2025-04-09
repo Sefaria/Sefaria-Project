@@ -2783,9 +2783,7 @@ a.cardTitle:hover {
 .navBlockTitle .int-he, .navBlockDescription .int-he, .cardTitle .int-he, .cardDescription .int-he{
   font-size: 122%;
 }
-.interface-english .navBlockDescription.clamped .int-en,
-.interface-hebrew .navBlockDescription.clamped .int-he,
-.cardDescription
+.interface-english .navBlockDescription.clamped .int-en, .interface-hebrew .navBlockDescription.clamped .int-he, .cardDescription
 {
   display: -webkit-box;
   -webkit-line-clamp: 3;

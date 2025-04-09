@@ -2864,81 +2864,91 @@ _media: {},
       url,
       key,
       store: this._topics,
-      processor: this.processTopicsData,
+      processor: this.processTopicsTabsData,
     });
   },
   _getTopicCacheKey: function(slug, {annotated=true, with_html=false}={}) {
       return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
-  processTopicsData: function(data) {
-    const lang = Sefaria.interfaceLang === "hebrew" ? 'he' : 'en'
-    if (!data) { return null; }
-    if (!data.refs) { return data; }
+  processTopicsTabsData: function(topicData) {
+    // In the library module, topic tabs can be "Admin", "Notable Sources", "Sources", and "Top Citations".  In the sheets module, the only topic tab is "Sheets"
+    // This function takes the ref topic links in the topicData and puts each ref in the appropriate tab.
+    const lang = Sefaria.interfaceLang === "hebrew" ? 'he' : 'en';
+    if (!topicData || !topicData.refs) { return topicData || null; }
     const tabs = {};
-    for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
-      linkTypeObj.refs = linkTypeObj.refs.filter(ref => (Sefaria.activeModule === 'sheets') === ref.is_sheet);
-      for (let refObj of linkTypeObj.refs) {
-
-        //various tabs are "Admin", "Notable Sources", "Sources", "Sheets", and "Top Citations".
-        let tabKey = linkTypeSlug;
-        let { title } = linkTypeObj;
-        if (tabKey === 'about') {  // "Sheets", "Sources", and "Notable Sources" are tagged 'about' in the DB so we have to differentiate between them here
-          if (Sefaria.activeModule === 'sheets') {
-            tabKey = 'sheets';
-            title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
-          }
-          else {
-            // Mark as notable if it has a prompt, title, and isn't explicitly unpublished (happens when returns from LLM pod);
-            const isNotableSource = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) && refObj.descriptions?.[lang]?.published != false;
-            if (isNotableSource) {
-              tabKey = 'notable-sources';
-              title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
-            }
-            else {
-              tabKey = 'sources';
-              title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
-            }
-          }
+    
+    const _createTabKeyAndTitle = (linkType, refObj) => {
+      // We support two types of 'linkType's -- confusingly called "about" and "popular-writing-of". This distinction is only relevant for the library module.
+      // In the sheets module, every source is under the "Sheets" tab.
+      // In the library module, author topics links "Top Citations" are of type "popular-writing-of" and all other topics are of type "about".
+      if (refObj.is_sheet) {
+        return { tabKey: 'sheets', title: { en: "Sheets", he: Sefaria.translation('hebrew', "Sheets") } };
+      }
+      else {
+        if (linkType === 'about') {
+          const desc = refObj.descriptions?.[lang];
+          const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
+          return isNotableSource
+            ? { tabKey: 'notable-sources', title: { en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources') } }
+            : { tabKey: 'sources', title: { en: 'Sources', he: Sefaria.translation('hebrew', 'Sources') } };
         }
-
+        if (linkType === 'popular-writing-of') {
+          return { tabKey: linkType, title: topicLinks.title };  // in this case the title is already set to "Top Citations"
+        }
+      }
+      return {};
+    }
+   
+    const _processRefs = (linkType, topicLinks) => {
+      let refs = topicLinks.refs.filter(refObj => (Sefaria.activeModule === 'sheets') === refObj.is_sheet);
+      for (let refObj of refs) {
+        const {tabKey, title} = _createTabKeyAndTitle(linkType, refObj);
+        if (!tabKey) continue;
         if (!tabs[tabKey]) {
           tabs[tabKey] = {
-            refMap: {},
+            refMap: new Set(),
             title,
-            shouldDisplay: linkTypeObj.shouldDisplay,
+            shouldDisplay: topicLinks.shouldDisplay,
           };
         }
         if (refObj.order) {
-            refObj.order = {...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
-                                numDatasource: refObj?.order?.numDatasource || 1,
-                                tfidf: refObj?.order?.tfidf || 0,
-                                pr: refObj?.order?.pr || 0,
-                                curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}}}
-        tabs[tabKey].refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
+          refObj.order = {
+            ...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
+            numDatasource: refObj?.order?.numDatasource || 1,
+            tfidf: refObj?.order?.tfidf || 0,
+            pr: refObj?.order?.pr || 0,
+            curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}
+          }
+        }
+        tabs[tabKey].refs.push({
+          ref: refObj.ref,
+          order: refObj.order,
+          dataSources: refObj.dataSources,
+          descriptions: refObj.descriptions
+        });
       }
+    }
+   
+    for (let [linkType, topicLinks] of Object.entries(topicData.refs)) {
+       processRefs(linkType, topicLinks);
     }
     for (let tabObj of Object.values(tabs)) {
-      tabObj.refs = Object.values(tabObj.refMap);
-      delete tabObj.refMap;
+      tabObj.refs = [...tabObj.refs];
     }
-
     if (tabs["notable-sources"]) {
       if (!tabs.sources) {
-          tabs.sources = {refMap: {}, shouldDisplay: true, refs: []};
+        tabs.sources = {shouldDisplay: true, refs: [], title: {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')}};
       }
-      tabs.sources.title = {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')};
       //turn "sources" tab into 'super-set', containing all refs from all tabs:
       const allRefs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
       tabs.sources.refs = allRefs;
     }
-
     if (Sefaria.is_moderator && Sefaria.activeModule === 'library') {
-        tabs["admin"] = {...tabs["sources"]};
-        tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
+      tabs["admin"] = {...tabs["sources"]};
+      tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
     }
-
-    data.tabs = tabs;
-    return data;
+    topicData.tabs = tabs;
+    return topicData;
   },
   getTopicFromCache: function(slug, {annotated=true, with_html=false}={}) {
       const key = this._getTopicCacheKey(slug, {annotated, with_html});
@@ -3549,7 +3559,7 @@ Sefaria.unpackDataFromProps = function(props) {
     Sefaria._translations[props.initialTranslationsSlug] = props.translationsData;
   }
   if (props.topicData) {
-    Sefaria._topics[props.initialTopic] = Sefaria.processTopicsData(props.topicData);
+    Sefaria._topics[props.initialTopic] = Sefaria.processTopicsTabsData(props.topicData);
   }
   if (props.topicList) {
     Sefaria._topicList = props.topicList;

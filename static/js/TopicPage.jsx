@@ -61,17 +61,18 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
 
 
 const fetchBulkSheet = inSheets => {
-   inSheets.forEach(x => {
-      x.ref = parseInt(x.ref.replace('Sheet ', ''));
-    });
-    return Sefaria.getBulkSheets(inSheets.map(x => x.ref)).then(outSheets => {
-      for (let tempSheet of inSheets) {
-        if (outSheets[tempSheet.ref]) {
-          outSheets[tempSheet.ref].order = tempSheet.order;
-        }
+  const refs = inSheets.map(x => {
+    x.ref = parseInt(x.ref.replace('Sheet ', ''));
+    return x.ref;
+  });
+  return Sefaria.getBulkSheets(refs).then(outSheets => {
+    for (let tempSheet of inSheets) {
+      if (outSheets[tempSheet.ref]) {
+        outSheets[tempSheet.ref].order = tempSheet.order;
       }
-      return Object.values(outSheets);
-    });
+    }
+    return Object.values(outSheets);
+  });
 }
 
 
