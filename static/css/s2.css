@@ -3768,6 +3768,10 @@ a.cardTitle:hover {
   align-items: flex-start;
   margin-bottom: 10px;
 }
+.versionBlock .error {
+  font-size: xx-large;
+  color: var(--halakhah-red);
+}
 .versionBlock .versionTitle {
   font-size: 18px;
   color: #000;

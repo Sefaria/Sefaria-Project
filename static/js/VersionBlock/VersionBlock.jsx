@@ -219,6 +219,9 @@ class VersionBlock extends Component {
 
       let licenses = [...Object.keys(Sefaria.getLicenseMap()), ""];
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
+      if (!!this.state.error) {
+        alert(this.state.error);
+      }
 
       return (
         <div className = "versionBlock">
