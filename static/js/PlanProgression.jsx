@@ -92,51 +92,79 @@ const PlanProgression = () => {
   }
 
   if (!planData) return <div>Loading plan data...</div>;
-  if (isLoading) return <div>Loading day content...</div>;
 
   // Use numeric ID for the back link to match the rest of the app's routing
   const numericId = planId.toString().replace('/progress', '');
 
   return (
     <div className="plan-progression">
-      <div className="plan-navigation">
-        <Link to={`/plans/${numericId}`} className="back-link">← Back to plan</Link>
-        <h2 className="plan-title">{planData.title}</h2>
-        
-        {/* Vertical Day Navigation */}
-        <div className="day-list">
-          {Array.from({ length: planData.total_days || 7 }, (_, i) => i + 1).map((day) => (
-            <button
-              key={day}
-              className={`day-button ${currentDay === day ? 'active' : ''}`}
-              onClick={() => handleDaySelect(day)}
-            >
-              Day {day}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Breadcrumb Navigation */}
+      <nav className="breadcrumb-nav">
+        <Link to="/" className="breadcrumb-item">Home</Link>
+        <span className="breadcrumb-separator">›</span>
+        <Link to={`/${numericId}`} className="breadcrumb-item">{planData.title}</Link>
+        <span className="breadcrumb-separator">›</span>
+        <span className="breadcrumb-item current">Day {currentDay}</span>
+        <button 
+          className="hide-path-btn"
+          onClick={() => console.log('Hide Daily Path clicked')}
+          title="Hide Daily Path"
+        >
+          <i className="fa fa-eye-slash"></i> Hide Daily Path
+        </button>
+      </nav>
 
-      {/* Sheet Content */}
-      <div className="sheet-content">
-        {sheetData && sheetData.content ? (
-          <Sheet
-            id={sheetData.sheet_id}
-            data={sheetData.content}
-            hasSidebar={false}
-            highlightedNode={null}
-            multiPanel={false}
-            onRefClick={() => {}}
-            onSegmentClick={() => {}}
-            onCitationClick={() => {}}
-            setSelectedWords={() => {}}
-            setDivineNameReplacement={() => {}}
-            divineNameReplacement="noSub"
-            openSheet={openSheet}
-          />
-        ) : (
-          <div>No content available for this day</div>
-        )}
+      <div className="content-wrapper">
+        <div className="plan-navigation">
+          <div className="plan-header">
+            <img 
+              src={planData.image || '/static/img/plans/default.jpg'} 
+              alt={planData.title} 
+              className="plan-thumbnail"
+            />
+            <div className="plan-info">
+              <h2 className="plan-title">{planData.title}</h2>
+              <span className="plan-duration">{planData.total_days} days</span>
+            </div>
+          </div>
+          
+          {/* Vertical Day Navigation */}
+          <div className="day-list">
+            {Array.from({ length: planData.total_days || 7 }, (_, i) => i + 1).map((day) => (
+              <button
+                key={day}
+                className={`day-button ${currentDay === day ? 'active' : ''}`}
+                onClick={() => handleDaySelect(day)}
+              >
+                Day {day}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Sheet Content */}
+        <div className="sheet-content">
+          {isLoading ? (
+            <div>Loading day content...</div>
+          ) : sheetData && sheetData.content ? (
+            <Sheet
+              id={sheetData.sheet_id}
+              data={sheetData.content}
+              hasSidebar={false}
+              highlightedNode={null}
+              multiPanel={false}
+              onRefClick={() => {}}
+              onSegmentClick={() => {}}
+              onCitationClick={() => {}}
+              setSelectedWords={() => {}}
+              setDivineNameReplacement={() => {}}
+              divineNameReplacement="noSub"
+              openSheet={openSheet}
+            />
+          ) : (
+            <div>No content available for this day</div>
+          )}
+        </div>
       </div>
     </div>
   );
