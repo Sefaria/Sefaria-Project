@@ -43,7 +43,7 @@ metadata:
   annotations:
     kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: nginx-ingress
-    nginx.ingress.kubernetes.io/rewrite-target: "/sheets$1$2"
+    nginx.ingress.kubernetes.io/rewrite-target: "/sheets/$1"
   {{- if .Values.instrumentation.enabled }}
     nginx.ingress.kubernetes.io/enable-opentracing: "true"
     nginx.ingress.kubernetes.io/jaeger-service-name: {{ .Values.deployEnv }}-ingress
@@ -65,7 +65,7 @@ spec:
       http:
         paths:
           - pathType: ImplementationSpecific
-            path: (/|$)(.*)
+            path: /($|.*)
             backend:
               service:
                 name: {{ .serviceName | default "nginx" }}-{{ $.Values.deployEnv }}
