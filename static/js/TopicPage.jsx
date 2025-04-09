@@ -568,23 +568,17 @@ const getTopicPageAnalyticsData = (slug, langPref) => {
     };
 };
 
-const setupDisplayTabs = (topic, currentTab, tabDisplayData, refsToFetchByTab, topicData, setLoadedData) => {
-  // Set up tabs to display for the given 'topic' page based on all possible tabs ('tabDisplayData') and register incremental load hooks per tab
-  // Finally, return 'onClickFilterIndex' and 'onClickLangToggleIndex' to be used by 'TabView' component so that it knows which tab in 'displayTabs'
-  // corresponds to the filter and lang toggle
-  let onClickFilterIndex = 3;
-  let onClickLangToggleIndex = 2;
-  let authorWorksAdded = false;
-  const indexes = topicData?.indexes;
+const setupTabsWithSources = (topic, topicData, tabDisplayData, refsToFetchByTab, setLoadedData) => {
+  // Set up tabs to display for the given 'topic' page based on all possible tabs with sources (see 'useTabDisplayData' where each of the tabs with sources is defined).
+  // We register incremental load hooks per tab to load the data for each tab based on scroll position.
   const onIncrementalLoad = (data, key) => setLoadedData(prev => {
-      const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
-      if (topicData?.tabs?.[key]) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
-      return {...prev, [key]: updatedData};
+    const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
+    if (topicData?.tabs?.[key]) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
+    return {...prev, [key]: updatedData};
   });
-
   let displayTabs = [];
   for (let tabObj of tabDisplayData) {
-    const {key} = tabObj;
+    const {key, sortOptions, filterFunc, sortFunc, renderWrapper} = tabObj;
     useIncrementalLoad(
       tabObj.fetcher,
       refsToFetchByTab[key] || false,
@@ -592,21 +586,34 @@ const setupDisplayTabs = (topic, currentTab, tabDisplayData, refsToFetchByTab, t
       data => onIncrementalLoad(data, key),
       topic
     );
-
-    if (indexes?.length && !authorWorksAdded) {
-      displayTabs.push({
-        title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
-        id: 'author-works-on-sefaria',
-      });
-      authorWorksAdded = true
-    }
-
     if (topicData?.tabs?.[key]) {
       displayTabs.push({
         title: topicData.tabs[key].title,
         id: key,
+        sortOptions,
+        filterFunc,
+        sortFunc,
+        renderWrapper,
+        hasSources: true,
       });
     }
+  }
+  return displayTabs;
+}
+
+const setupAdditionalTabs = (displayTabs, currentTab, topicData) => {
+  // Setup additional tabs that are not related to sources: such as filter, language toggle, and author works on Sefaria (this last one is only relevant if we're in the library module and the topic is an author)
+  // Finally, return 'onClickFilterIndex' and 'onClickLangToggleIndex' to be used by 'TabView' component so that it knows which tab in 'displayTabs'
+  // corresponds to the filter and lang toggle
+  let onClickFilterIndex = 3;  // filter tab defaults to the 4th tab
+  let onClickLangToggleIndex = 2; // lang toggle tab defaults to the 3rd tab
+  const indexes = topicData?.indexes;
+
+  if (indexes?.length) {
+    displayTabs.push({
+      title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
+      id: 'author-works-on-sefaria',
+    });
   }
   if (displayTabs.length && currentTab !== "notable-sources" && currentTab !== "author-works-on-sefaria") {
     displayTabs.push({
@@ -708,9 +715,8 @@ const TopicPage = ({
       }
     }, [topic]);
 
-    const [displayTabs,
-    onClickLangToggleIndex,
-    onClickFilterIndex] = setupDisplayTabs(topic, tab, tabDisplayData, refsToFetchByTab, topicData, setLoadedData);
+    let displayTabs = setupTabsWithSources(topic, topicData, tabDisplayData, refsToFetchByTab, setLoadedData);
+    let [onClickLangToggleIndex, onClickFilterIndex] = setupAdditionalTabs(displayTabs, tab, topicData);
 
     let sidebar = null;
     if (topicData) {
@@ -748,27 +754,26 @@ const TopicPage = ({
                           </div>
                           );
 
-    const tabs = tabDisplayData.map(tabObj => {
-                              const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
-                              const displayTab = displayTabs.find(x => x.id === key);
-                              if (!displayTab) { return null; }
-                              return (
-                                <TopicPageTab
-                                  key={key}
-                                  scrollableElement={scrollableElement}
-                                  showFilterHeader={showFilterHeader}
-                                  data={loadedData[key]}
-                                  sortOptions={sortOptions}
-                                  filterFunc={filterFunc}
-                                  sortFunc={sortFunc}
-                                  onDisplayedDataChange={data => onDisplayDataChange(data, topicData, key)}
-                                  initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-                                  renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
-                                  onSetTopicSort={onSetTopicSort}
-                                  topicSort={topicSort}
-                                />
-                              );
-                            });
+    const tabsWithSources = displayTabs.map(tabObj => {
+                              const { id, sortOptions, filterFunc, sortFunc, renderWrapper, hasSources } = tabObj;
+                              if (hasSources) {
+                                return (
+                                  <TopicPageTab
+                                    key={id}
+                                    scrollableElement={scrollableElement}
+                                    showFilterHeader={showFilterHeader}
+                                    data={loadedData[id]}
+                                    sortOptions={sortOptions}
+                                    filterFunc={filterFunc}
+                                    sortFunc={sortFunc}
+                                    onDisplayedDataChange={data => onDisplayDataChange(data, topicData, id)}
+                                    initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
+                                    renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
+                                    onSetTopicSort={onSetTopicSort}
+                                    topicSort={topicSort}
+                                  />
+                                );
+                             }});
 
     const topicTabView = <TabView
                                     currTabName={tab}
@@ -786,7 +791,7 @@ const TopicPage = ({
                                       [onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader),
                                       [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
                                     }}
-                                  >{authorIndices}{tabs}</TabView>;
+                                  >{authorIndices}{tabsWithSources}</TabView>;
 
     return (
         <div
