@@ -24,12 +24,12 @@ const PlanProgression = () => {
   }, [planId]);
 
   useEffect(() => {
-    // Fetch sheet data when current day changes
+    // Fetch sheet data when plan data is loaded or current day changes
     if (planData) {
       console.log('Fetching content for day:', currentDay);
       fetchDayContent(currentDay);
     }
-  }, [currentDay]);
+  }, [currentDay, planData]);
 
   const getMongoId = (numericId) => {
     // Remove any 'progress' suffix and convert to string
