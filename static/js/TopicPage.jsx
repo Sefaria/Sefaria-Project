@@ -489,9 +489,9 @@ const AuthorIndexItem = ({
 };
 
 
-const useTabDisplayData = (translationLanguagePreference) => {
-  // all possible tabs in a topic page
-  const getTabDisplayData = useCallback(() => [
+const useAllPossibleSourceTabs = (translationLanguagePreference) => {
+  // all possible tabs that display sources in a topic page
+  const getSourceTabData = useCallback(() => [
     {
       key: 'popular-writing-of',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
@@ -533,7 +533,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: sheetRenderWrapper,
     }
   ], [translationLanguagePreference]);
-  return getTabDisplayData();
+  return getSourceTabData();
 };
 
 const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
@@ -568,8 +568,8 @@ const getTopicPageAnalyticsData = (slug, langPref) => {
     };
 };
 
-const setupTabsWithSources = (topic, topicData, tabDisplayData, refsToFetchByTab, setLoadedData) => {
-  // Set up tabs to display for the given 'topic' page based on all possible tabs with sources (see 'useTabDisplayData' where each of the tabs with sources is defined).
+const setupTabsWithSources = (topic, topicData, allPossibleTabsWithSources, refsToFetchByTab, setLoadedData) => {
+  // Set up tabs to display for the given 'topic' page based on all possible tabs with sources (see 'useAllPossibleSourceTabs' where each of the tabs with sources is defined).
   // We register incremental load hooks per tab to load the data for each tab based on scroll position.
   const onIncrementalLoad = (data, key) => setLoadedData(prev => {
     const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
@@ -577,7 +577,7 @@ const setupTabsWithSources = (topic, topicData, tabDisplayData, refsToFetchByTab
     return {...prev, [key]: updatedData};
   });
   let displayTabs = [];
-  for (let tabObj of tabDisplayData) {
+  for (let tabObj of allPossibleTabsWithSources) {
     const {key, sortOptions, filterFunc, sortFunc, renderWrapper} = tabObj;
     useIncrementalLoad(
       tabObj.fetcher,
@@ -681,7 +681,7 @@ const TopicPage = ({
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const [showLangSelectInterface, setShowLangSelectInterface] = useState(false);
     const [portal, setPortal] = useState(null);
-    const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
+    const allPossibleTabsWithSources = useAllPossibleSourceTabs(translationLanguagePreference, versionPref);
     const topicImage = topicData.image;
 
     const scrollableElement = useRef();
@@ -715,7 +715,7 @@ const TopicPage = ({
       }
     }, [topic]);
 
-    let displayTabs = setupTabsWithSources(topic, topicData, tabDisplayData, refsToFetchByTab, setLoadedData);
+    let displayTabs = setupTabsWithSources(topic, topicData, allPossibleTabsWithSources, refsToFetchByTab, setLoadedData);
     let [onClickLangToggleIndex, onClickFilterIndex] = setupAdditionalTabs(displayTabs, tab, topicData);
 
     let sidebar = null;
