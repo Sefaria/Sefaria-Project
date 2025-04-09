@@ -432,6 +432,8 @@ class KrupnikEntry(DictionaryEntry):
                 text += ' '.join([self.get_sense(sense) for sense in part['senses']])
             elif 'pos' in part:
                 text += self.format_pos(part['pos'])
+            elif 'binyan-form' in part:
+                text = f'<b>{next(iter(part.values()))}</b>'
             else:
                 text += next(iter(part.values()))
             text += ' '
