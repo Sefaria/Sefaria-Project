@@ -1553,7 +1553,7 @@ Sefaria = extend(Sefaria, {
       return true;
     }
   },
-  getLinksFromCacheAndPreprocess: function(ref, excludedSheet) {
+  getLinksFromCacheAndPreprocess: function(ref, excludedSheet = null, excludeEssays = false) {
     let links = [];
     if (typeof ref == "string") {
       links = this.getLinksFromCache(ref);
@@ -1566,7 +1566,7 @@ Sefaria = extend(Sefaria, {
       links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
     }
     links = excludedSheet ? this._filterSheetFromLinks(links, excludedSheet) : links;
-    return links.filter(link => link.type !== "essay");
+    return excludeEssays ? links.filter(link => link.type !== "essay") : links;
   },
   linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
@@ -1641,7 +1641,7 @@ Sefaria = extend(Sefaria, {
         ],
     };
     if (!this.linksLoaded(ref)) { return []; }
-    const links = this.getLinksFromCacheAndPreprocess(ref, excludedSheet);
+    const links = this.getLinksFromCacheAndPreprocess(ref, excludedSheet, true);
     const normRef = Sefaria.humanRef(ref);
     const cacheKey = normRef + "/" + excludedSheet;
     if (!this.shouldBuildLinkSummaries(cacheKey, links)) {  // don't need to build _linkSummaries for this ref
