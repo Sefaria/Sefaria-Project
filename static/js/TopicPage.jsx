@@ -89,7 +89,7 @@ const refFilter = (currFilter, ref) => {
 const sheetFilter = (currFilter, sheet) => {
   const n = text => !!text ? text.toLowerCase() : '';
   currFilter = n(currFilter);
-  for (let field of ['sheet_title', 'publisher_name', 'publisher_position', 'publisher_organization']) {
+  for (let field of ['sheet_title', 'sheet_summary', 'publisher_name', 'publisher_position', 'publisher_organization']) {
     if (n(sheet[field]).indexOf(currFilter) > -1) { return true; }
   }
 };
