@@ -138,7 +138,7 @@ class SheetContent extends Component {
         ComponentToRender = SheetMedia;
       }
       else {
-        return <></>;  // handle bad data in sheet.sources
+        return <></>;  // there are cases in DB where sheets have problematic data in sources attribute such as a node of null with no other fields
       }
       return <ComponentToRender
         key={source.node}
