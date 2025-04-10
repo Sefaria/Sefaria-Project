@@ -327,7 +327,6 @@ class ConnectionsPanel extends Component {
             null
           }
           <ConnectionsPanelSection title={"Tools"}>
-
             <ToolsList
               setConnectionsMode={this.props.setConnectionsMode}
               masterPanelMode={this.props.masterPanelMode}
@@ -638,6 +637,7 @@ ConnectionsPanel.propTypes = {
   interfaceLang: PropTypes.string,
   contentLang: PropTypes.string,
   masterPanelLanguage: PropTypes.oneOf(["english", "bilingual", "hebrew"]),
+  masterPanelLayout: PropTypes.string,
   masterPanelMode: PropTypes.string,
   versionFilter: PropTypes.array,
   recentVersionFilters: PropTypes.array,
