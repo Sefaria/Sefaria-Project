@@ -9062,7 +9062,7 @@ a.sheetAuthorName:hover {
   display: flex;
   justify-content: space-between;
 }
-.sheetMetaDataBox .sidebarLayout .items > * {
+.sheetMetaDataBox .sidebarLayout .items > :not(dialog)  {
   margin-inline-start: 15px;
 }
 .sheetMetaDataBox .texts-properties-menu {
@@ -11716,6 +11716,11 @@ cursor: pointer;
 .bilingual.heLeft .sheetContent .sheetItem .SheetSource.segment,
 .bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
   margin-bottom: 0;
+  display: flex;
+}
+
+.bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
+  flex-direction: row-reverse;
 }
 
 .boxedSheetItem + .spacer {
