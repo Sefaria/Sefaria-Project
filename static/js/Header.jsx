@@ -15,7 +15,9 @@ import {
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
-import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
+import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemLink, DropdownMenuItemWithIcon, DropdownMenuItemWithCallback } from './common/DropdownMenu';
+import Button from './common/Button';
+
 
 const LoggedOutDropdown = ({module}) => {
   const [isClient, setIsClient] = useState(false);
@@ -41,34 +43,35 @@ const LoggedOutDropdown = ({module}) => {
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/logged_out.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={loginLink}>
+              <DropdownMenuItemLink url={loginLink}>
                   <InterfaceText text={{'en': 'Log in', 'he': 'התחברות'}}/>
-              </DropdownMenuItem>
-              <DropdownMenuItem url={registerLink}>
+              </DropdownMenuItemLink>
+              <DropdownMenuItemLink url={registerLink}>
                   <InterfaceText text={{'en': 'Sign up', 'he': 'להרשמה'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
               <DropdownMenuSeparator/>
               <div className="languageHeader">
                   <InterfaceText>Site Language</InterfaceText>
               </div>
               <div className='languageToggleFlexContainer'>
                 <span className='englishLanguageButton'>
-                  <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
+                  <DropdownMenuItemLink url={`/interface/english?next=${getCurrentPage()}`}>
                     English
-                  </DropdownMenuItem>
+                  </DropdownMenuItemLink>
                 </span>
-                  <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
+                  <DropdownMenuItemLink url={`/interface/hebrew?next=${getCurrentPage()}`}>
                       עברית
-                  </DropdownMenuItem>
+                  </DropdownMenuItemLink>
               </div>
               <DropdownMenuSeparator/>
-              {module === 'library' &&
-              <DropdownMenuItem url={'/updates'}>
-                  <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
-              </DropdownMenuItem>}
-              <DropdownMenuItem url={'/help'}>
+              { module === 'library' &&
+                <DropdownMenuItemLink url={'/updates'}>
+                    <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
+                </DropdownMenuItemLink>
+              }
+              <DropdownMenuItemLink url={'/help'}>
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
           </div>
       </DropdownMenu>
 );
@@ -87,37 +90,44 @@ const LoggedInDropdown = ({module}) => {
                                                  name={Sefaria.full_name}
                                                  len={25}/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem preventClose={true}>
-                  <strong>{Sefaria.full_name}</strong>
-              </DropdownMenuItem>
+              { module === 'library' && 
+                <DropdownMenuItem preventClose={true}>
+                    <strong>{Sefaria.full_name}</strong>
+                </DropdownMenuItem>
+              }
+               { module === 'sheets' && 
+                <DropdownMenuItemLink url={'/my/profile'} preventClose={true}>
+                    <strong>{Sefaria.full_name}</strong>
+                </DropdownMenuItemLink>
+              }
               <DropdownMenuSeparator/>
 
               { module === 'library' && 
                 <>
-                <DropdownMenuItem url={'/settings/account'}>
+                <DropdownMenuItemLink url={'/settings/account'}>
                     <InterfaceText>Account Settings</InterfaceText>
-                </DropdownMenuItem>
-                <DropdownMenuItem url={'/torahtracker'}>
+                </DropdownMenuItemLink>
+                <DropdownMenuItemLink url={'/torahtracker'}>
                     <InterfaceText text={{'en': 'Torah Tracker', 'he': 'לימוד במספרים'}}/>
-                </DropdownMenuItem>
+                </DropdownMenuItemLink>
                 </> 
               }
 
 
               { module === 'sheets' && 
                 <>
-                <DropdownMenuItem url={'/my/profile'}>
+                <DropdownMenuItemLink url={'/my/profile'}>
                     <InterfaceText>Profile</InterfaceText>
-                </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/saved'}>
+                </DropdownMenuItemLink>
+                <DropdownMenuItemLink url={'/sheets/saved'}>
                   <InterfaceText>Saved</InterfaceText>
-                </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/history'}>
+                </DropdownMenuItemLink>
+                <DropdownMenuItemLink url={'/sheets/history'}>
                   <InterfaceText>History</InterfaceText>
-                </DropdownMenuItem>
-                <DropdownMenuItem url={'/settings/account'}>
+                </DropdownMenuItemLink>
+                <DropdownMenuItemLink url={'/settings/account'}>
                     <InterfaceText>Account Settings</InterfaceText>
-                </DropdownMenuItem>
+                </DropdownMenuItemLink>
                 </> 
               }
               
@@ -126,28 +136,29 @@ const LoggedInDropdown = ({module}) => {
                   <InterfaceText>Site Language</InterfaceText>
               </div>
               <div className='languageToggleFlexContainer'>
-                  <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
+                  <DropdownMenuItemLink url={`/interface/english?next=${getCurrentPage()}`}>
                       English
-                  </DropdownMenuItem>
+                  </DropdownMenuItemLink>
                   <span className="languageDot">&#183;</span>
-                  <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
+                  <DropdownMenuItemLink url={`/interface/hebrew?next=${getCurrentPage()}`}>
                       עברית
-                  </DropdownMenuItem>
+                  </DropdownMenuItemLink>
               </div>
               <DropdownMenuSeparator/>
               
-              {module === 'library' && 
-              <DropdownMenuItem url={'/updates'}>
-                  <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
-              </DropdownMenuItem>}
+              { module === 'library' && 
+                <DropdownMenuItemLink url={'/updates'}>
+                    <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
+                </DropdownMenuItemLink>
+              }
 
-              <DropdownMenuItem preventClose={true} url={'/help'}>
+              <DropdownMenuItemLink preventClose={true} url={'/help'}>
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/logout'}>
+              <DropdownMenuItemLink url={'/logout'}>
                   <InterfaceText text={{'en': 'Log Out', 'he': 'ניתוק'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
           </div>
       </DropdownMenu>
 );
@@ -158,23 +169,23 @@ const ModuleSwitcher = () => {
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={'/'} newTab={true}>
+              <DropdownMenuItemLink url={'/'} newTab={true}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}
                                             textHe={'ספריה'}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/sheets'} newTab={true}>
+              <DropdownMenuItemLink url={'/sheets'} newTab={true}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
+              <DropdownMenuItemLink url={'https://developers.sefaria.org'} newTab={true}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}
                                             textHe={'מפתחים'}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/products'} newTab={true}>
+              <DropdownMenuItemLink url={'/products'} newTab={true}>
                   <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
           </div>
       </DropdownMenu>
 );
@@ -245,7 +256,10 @@ class Header extends Component {
             openURL={this.props.openURL}
         />
 
+
         { Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
+
+        {this.props.module === "sheets" && <CreateButton />}
 
         { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
@@ -651,6 +665,15 @@ const HelpButton = () => {
         <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
       </a>
     </div>
+  );
+};
+
+const CreateButton = () => {
+  return (
+    <Button variant={"secondary"} onClick={() => window.location.href="/sheets/new"}>
+      {/* Hebrew is a placeholder */}
+      <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} /> 
+    </Button>
   );
 };
 
