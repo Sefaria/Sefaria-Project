@@ -86,6 +86,12 @@ def base_props(request):
 
 
 @user_only
+def module_context(request):
+    return {
+        'active_module': request.active_module
+    }
+
+@user_only
 def cache_timestamp(request):
     return {
         "last_cached": library.get_last_cached_time(),

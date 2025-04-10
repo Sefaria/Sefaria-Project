@@ -74,6 +74,11 @@ class Util {
         const dateOptions = {year: 'numeric', month: 'long', day: 'numeric'};
         return (new Date(dateString)).toLocaleDateString(locale, dateOptions);  // remove comma from english date
     }
+    static createTimeZoneAgnosticDate = (dateString)=>{
+      if (!dateString) return null;
+      const [year, month, day] = dateString.split('-').map(Number);
+      return new Date(Date.UTC(year, month - 1, day, 12)); // Use noon UTC to avoid time shifts (most time zones are 12 hours off from UTC)
+}
     static hebrewCalendarDateStr(dateObjStr){
         //returns a fully qualified Hebrew calendar date from a Gregorian input. Can output in English or Hebrew
         const hd = new HDate(new Date(dateObjStr));

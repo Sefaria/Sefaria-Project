@@ -179,7 +179,6 @@ def make_sheet_class_string(sheet, options=None):
     """
     Returns a string of class names corresponding to the options of sheet.
     """
-
     o = sheet["options"] | options if options else sheet["options"]
     classes = []
     classes.append(o.get("language", "bilingual"))
@@ -1085,11 +1084,6 @@ def sheet_to_html_string(sheet, options):
     Create the html string of sheet with sheet_id.
     """
     sheet["sources"] = annotate_user_links(sheet["sources"])
-    for source in sheet['sources']:
-        if 'text' not in source:
-            continue
-        source['options'] = options
-
     try:
         owner = User.objects.get(id=sheet["owner"])
         author = owner.first_name + " " + owner.last_name
@@ -1123,20 +1117,20 @@ def export_to_drive(request, credential, sheet_id):
     # Using credentials in google-api-python-client.
     service = build('drive', 'v3', credentials=credential, cache_discovery=False)
     user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
-
-    options = {'language': request.GET.get("lang", "bilingual"),
-               'langLayout': request.GET.get("langLayout", "heRight")}
-
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
         return jsonResponse({'error': {'message': sheet["error"]}})
+
+    options = {'language': request.GET.get("language", "bilingual"),
+               'layout': request.GET.get("layout", "heRight")}
+    sheet['options'] = sheet['options'] | options
 
     file_metadata = {
         'name': strip_tags(sheet['title'].strip()),
         'mimeType': 'application/vnd.google-apps.document'
     }
 
-    html_string = bytes(sheet_to_html_string(sheet, options), "utf8")
+    html_string = bytes(sheet_to_html_string(sheet), "utf8")
 
     media = MediaIoBaseUpload(
         BytesIO(html_string),
