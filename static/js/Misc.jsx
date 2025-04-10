@@ -2262,8 +2262,6 @@ const Banner = ({ onClose }) => {
   }
 };
 
-Banner.displayName = "Banner";
-
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
   // If `stretch`, extend the final row into any remaining empty columns

@@ -115,7 +115,7 @@ const Strings = {
     "Illustrative image" : "תמונה להמחשה",
 
     // Topic Landing Page
-    "Featured Topic": "נושא לדוגמא",
+    "Featured Topic": "נושא היום",
     "Go to Topic ›": "לפתיחת הנושא ›",
     "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
     "Learn more about": "למדו עוד על",
