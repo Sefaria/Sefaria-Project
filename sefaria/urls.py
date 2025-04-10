@@ -6,6 +6,8 @@ from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
+
+import sourcesheets
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
@@ -35,6 +37,7 @@ urlpatterns = [
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
+    url(r'sheets/sheets-with-ref/(?P<tref>.+)$', sourcesheets.views.sheets_with_ref),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^calendars/?$', reader_views.calendars),
     url(r'^collections/?$', reader_views.public_collections),
@@ -76,6 +79,7 @@ urlpatterns += [
 
 # Source Sheet Builder
 urlpatterns += [
+    url(r'^sheets/?$', sheets_views.sheets_home_page),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
@@ -430,6 +434,7 @@ urlpatterns += [
     url(r'^admin/delete/sheet$', sefaria_views.delete_sheet_by_id, name="delete/sheet"),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
     url(r'^admin/rebuild/citation-links/(?P<title>.+)$', sefaria_views.rebuild_citation_links),
+    url(r'^admin/rebuild/shared-cache', sefaria_views.rebuild_shared_cache),
     url(r'^admin/delete/citation-links/(?P<title>.+)$', sefaria_views.delete_citation_links),
     url(r'^admin/cache/stats', sefaria_views.cache_stats),
     url(r'^admin/cache/dump', sefaria_views.cache_dump),
