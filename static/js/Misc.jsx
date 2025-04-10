@@ -1601,7 +1601,20 @@ const SheetListing = ({
       </a>
     );
   });
-
+  const topics = sheet.topics.map((topic, i) => {
+    const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
+    return (
+      <a href={`/topics/${topic.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+        onClick={handleTopicClick.bind(null, topic.slug)}
+      >
+        <InterfaceText text={topic} />
+        {separator}
+      </a>
+    );
+  });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
