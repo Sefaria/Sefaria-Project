@@ -15,5 +15,8 @@ class InfoCard(Sortable):
         help_text="Upload the image via Google Cloud and provide the URL here."
     )
 
+    def __str__(self):
+        return self.title_en 
+
     class Meta(Sortable.Meta):
         pass
