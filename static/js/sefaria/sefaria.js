@@ -1476,15 +1476,15 @@ Sefaria = extend(Sefaria, {
     // Filters array `links` for only those that match array `filter`.
     // If `filter` ends with "|Quoting" return Quoting Commentary only,
     // otherwise commentary `filters` will return only links with type `commentary`
-    if (filter.length == 0) { return links; }
+    if (filter.length === 0) { return links; }
 
-    var filterAndSuffix = filter[0].split("|");
+    const filterAndSuffix = filter[0].split("|");
     filter              = [filterAndSuffix[0]];
-    var isQuoting       = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Quoting";
-    var isEssay         = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Essay";
-    var index           = Sefaria.index(filter);
-    var isCommentary    = index && !isQuoting &&
-                            (index.categories[0] == "Commentary" || index.primary_category == "Commentary");
+    const isQuoting       = filterAndSuffix.length === 2 && filterAndSuffix[1] === "Quoting";
+    const isEssay         = filterAndSuffix.length === 2 && filterAndSuffix[1] === "Essay";
+    const index           = Sefaria.index(filter);
+    const isCommentary    = index && !isQuoting &&
+                            (index.categories[0] === "Commentary" || index.primary_category === "Commentary");
 
     return links.filter(function(link){
       if (isCommentary && link.category !== "Commentary") { return false; }
