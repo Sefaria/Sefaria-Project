@@ -177,14 +177,21 @@ class TextList extends Component {
       }
     }.bind(this);
 
-    let sectionLinks = Sefaria.getLinksFromCacheAndPreprocess(sectionRef, excludedSheet, false);
+    let sectionLinks = Sefaria.getLinksFromCacheAndDedupe(sectionRef);
+
     sectionLinks.map(link => {
       if (!("anchorRefExpanded" in link)) { link.anchorRefExpanded = Sefaria.splitRangingRef(link.anchorRef); }
     });
     let overlaps = link => (!(link.anchorRefExpanded.every(aref => Sefaria.util.inArray(aref, refs) === -1)));
-    return Sefaria._filterLinks(sectionLinks, filter)
+    let links = Sefaria._filterLinks(sectionLinks, filter)
       .filter(overlaps)
       .sort(sortConnections);
+
+    if (excludedSheet) {
+      links = Sefaria._filterSheetFromLinks(links, excludedSheet);
+    }
+
+    return links;
   }
 
   render() {
