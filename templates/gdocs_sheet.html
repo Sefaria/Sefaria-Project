@@ -2121,7 +2121,7 @@ a {
 									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
 									</td><td>
 									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
-								{% else %}
+								{% elif sheet.options.layout == "heRight" %}
 									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
 									</td><td>
 									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
@@ -2141,6 +2141,11 @@ a {
 							<table border="1"><tr><td>
 							{% endif %}
 
+                        {% if sheet.options.language == "hebrew" %}
+                            <div class="he">{{ source.outsideBiText.he }}</div>
+						{% elif sheet.options.language == "english" %}
+                            <div class="en">{{ source.outsideBiText.en }}</div>
+						{% else %}
 							<div class="text">
 								{% if sheet.options.layout == "stacked" %}
 									<div class="he">{{ source.outsideBiText.he }}</div>
@@ -2151,7 +2156,7 @@ a {
 										<div class="he">{{ source.outsideBiText.he }}</div>
 										</td><td>
 										<div class="en">{{ source.outsideBiText.en }}</div>
-									{% else %}
+									{% elif sheet.options.layout == "heRight" %}
 										<div class="en">{{ source.outsideBiText.en }}</div>
 										</td><td>
 										<div class="he">{{ source.outsideBiText.he }}</div>
@@ -2160,7 +2165,7 @@ a {
 								{% endif %}
 								<!-- <div class="clear"></div> -->
 							</div>
-
+						{% endif %}
 							<!-- End box the source -->
 							{% if sheet.options.boxed %}
 							</td></tr></table>

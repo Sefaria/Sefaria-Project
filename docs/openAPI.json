@@ -3,7 +3,7 @@
   "info": {
     "title": "Sefaria API",
     "version": "1.0.0",
-    "description": "The Sefaria API endpoints allows live access to Sefaria's structured database of Jewish texts and their interconnections.",
+    "description": "The Sefaria API endpoints grant live access to Sefaria's structured database of Jewish texts and their interconnections.",
     "contact": {
       "url": "https://www.sefaria.org",
       "email": "developers@sefaria.org"
@@ -947,7 +947,7 @@
             }
           },
           "name": "version",
-          "description": "There are two possible forms for the string passed as the `version`:\n1. `language`\n2. `language|versionTitle`\n\nWhen in the form of `language`, the primary version of that language is returned in the `versions` field of the response object. When in the form of `language>|<versionTitle`, only that specific version is returned in the `versions` field. \n\n\n**Notes**: \n- `language` is the full English name of the language. In cases of dialectics with varying sub-specifities, please pass the ‘mother’ language (so for example, `arabic` rather than `judeo-arabic`). This field is NOT case sensitive.\n- `versionTitle` is the exact English `versionTitle` of the given `version` in the Sefaria database. \n- When only `language` is passed, the response will return a single version of the text in that language, the one that is highest priority in the Sefaria database.\n- Requests can have more than one `version` param. If no `version` was passed, the API defaults to `version=primary`.\n\n-----\n\n**Special Values**\nThe following values can be passed in as special values to the `version` parameter. \n- `source`: When `version=source` is passed, it retrieves the text in its \"source\" language (i.e. the original language the text was written in, versus a translation).\n- `translation`: When `version=translation`is passed, it retrieves a translation of the text. \n- `primary`: When `version=primary` is passed, it retrieves the primary text as per the Sefaria database (i.e. the `isPrimary` field on the `version` in the database is set to `True`). Usually the text returned is identical to what is returned with the special value of `source`, but it can also include other languages (e.g. Hebrew for the _Kuzari_, which was originally written in Judeo-Arabic)\n- `all`: get all texts in the required language.\n\n\nIf a required version is missing that information will be under the field warnings of the response.\n",
+          "description": "There are two possible forms for the string passed as the `version`:\n1. `language`\n2. `language|versionTitle`\n\nWhen in the form of `language`, the primary version of that language is returned in the `versions` field of the response object. When in the form of `language|versionTitle`, only that specific version is returned in the `versions` field. \n\n\n**Notes**: \n- `language` is the full English name of the language. In cases of dialectics with varying sub-specifities, please pass the ‘mother’ language (so for example, `arabic` rather than `judeo-arabic`). This field is NOT case sensitive.\n- `versionTitle` is the exact English `versionTitle` of the given `version` in the Sefaria database. \n- When only `language` is passed, the response will return a single version of the text in that language, the one that is highest priority in the Sefaria database.\n- Requests can have more than one `version` param. If no `version` was passed, the API defaults to `version=primary`.\n\n-----\n\n**Special Values**\nThe following values can be passed in as special values to the `version` parameter. \n- `source`: When `version=source` is passed, it retrieves the text in its \"source\" language (i.e. the original language the text was written in, versus a translation).\n- `translation`: When `version=translation`is passed, it retrieves a translation of the text. \n- `primary`: When `version=primary` is passed, it retrieves the primary text as per the Sefaria database (i.e. the `isPrimary` field on the `version` in the database is set to `True`). Usually the text returned is identical to what is returned with the special value of `source`, but it can also include other languages (e.g. Hebrew for the _Kuzari_, which was originally written in Judeo-Arabic)\n- `all`: get all texts in the required language.\n\n\nIf a required version is missing that information will be under the field warnings of the response.\n",
           "schema": {
             "type": "string"
           },
@@ -975,7 +975,7 @@
             }
           },
           "name": "tref",
-          "description": "A Sefaria-specific reference, `Ref`. This should be a segment `Ref` (the most specific reference possible), or bottom level section `Ref` (i.e.  a section of text on level up, a section is an array of segments). If a `Ref` is passed in which is not a segment level or a bottom level section, the response will be to the first bottom level section `Ref` (e.g. `Genesis` will resolve to the bottom level section `Ref` of `Genesis 1`)",
+          "description": "A Sefaria-specific reference, `Ref`. This should be a segment `Ref` (the most specific reference possible), or bottom level section `Ref` (i.e.  a section of text one level up. A section is an array of segments). If a `Ref` which is not a segment or bottom level section is passed, the response will be to the first bottom level section `Ref` (e.g. `Genesis` will resolve to the bottom level section `Ref` of `Genesis 1`)",
           "schema": {
             "type": "string"
           },
@@ -1004,7 +1004,7 @@
             }
           },
           "name": "return_format",
-          "description": "This parameter formats the text that will be returned from the `v3` `texts/` API. It can have one of four values:\n1. `text_only` - This strips footnotes, inline references and all html tags from the returned text\n2. `strip_only_footnotes` - This only strips the footnotes and commentator <i> tags without stripping the other HTML tags.This is useful for the native app, where we do not display footnotes.\n3. `wrap_all_entities` - This wraps the HTML for links and topic links\n4. `default` - This returns the basic text as it’s saved in Sefaria’s DB\n",
+          "description": "This parameter formats the text that will be returned from the `v3` `texts/` API. It can have one of four values:\n1. `text_only` - This strips footnotes, inline references, and all HTML tags from the returned text.\n2. `strip_only_footnotes` - This strips only the footnotes and commentator tags without stripping the other HTML tags.This is useful for the native app, where we do not display footnotes.\n3. `wrap_all_entities` - This wraps the HTML for links and topic links.\n4. `default` - This returns the basic text as it is saved in Sefaria’s DB.\n",
           "schema": {
             "enum": [
               "default",
@@ -1035,7 +1035,7 @@
           },
           {
             "name": "context",
-            "description": "The `context` param defaults to `1`, which allows for the API to return the entire context for the desired segment. When you explicitly set `context=0` only the desired segment is returned, without any of the accompanying context.",
+            "description": "The `context` param defaults to `1`, which allows for the API to return the entire context for the desired segment. When you explicitly set `context=0`, only the desired segment is returned, without any of the accompanying context.",
             "schema": {
               "enum": [
                 "0",
@@ -1047,7 +1047,7 @@
           },
           {
             "name": "commentary",
-            "description": "The `commentary` param defaults to `0`, which turns off commentary being returned in the response. When you explicitly set `commentary=1` all of commentary to that specific connection is returned in list of JSON objects containing the text of the commentaries",
+            "description": "The `commentary` param defaults to `0`, which turns off commentary being returned in the response. When you explicitly set `commentary=1`, all commentary to that specific connection is returned in a list of JSON objects containing the text of the commentaries",
             "schema": {
               "maximum": 1,
               "minimum": 0,
@@ -1057,7 +1057,7 @@
           },
           {
             "name": "pad",
-            "description": "By default this is set to `1` which ensures that any references at the title level will return only the first section of a book instead of its entirety. If you want the API to return the entire content of the book set pad to `0`",
+            "description": "By default pad is set to `1`, which ensures that any references at the title level will return only the first section of a book instead of its entirety. If you want the API to return the entire content of the book, set pad to `0`",
             "schema": {
               "enum": [
                 "0",
@@ -1074,7 +1074,7 @@
               }
             },
             "name": "ven",
-            "description": "Unless explicitly specified, the texts API returns a default version of a text with roman characters as of the content in the `text` response. Passing a specific `versionTitle` here will load that text version if it exists instead of the default.\n",
+            "description": "Unless explicitly specified, the Texts API returns a default version of a text with Roman characters as the content in the `text` response. Passing a specific `versionTitle` here will load that text version if it exists instead of the default.\n",
             "schema": {
               "type": "string"
             },
@@ -1082,7 +1082,7 @@
           },
           {
             "name": "firstAvailableRef",
-            "description": "If a given text reference doesn't return any content, setting this to `1` will return the first reference that does. \n\nSometimes this occurs when a text reference may pass our ref checking logic, but doesn't exist e.g. `https://www.sefaria.org/api/texts/Berakhot 1a?firstAvailableRef=1`, and sometimes this occurs when a translation is incomplete. Defaults to `0`",
+            "description": "If a given text reference doesn't return any content, setting this to `1` will return the first reference that does. \n\nSometimes this occurs when a text reference may pass our ref checking logic, but doesn't exist; for example `https://www.sefaria.org/api/texts/Berakhot 1a?firstAvailableRef=1`, and sometimes this occurs when a translation is incomplete. Defaults to `0`.",
             "schema": {
               "enum": [
                 "0",
@@ -1094,7 +1094,7 @@
           },
           {
             "name": "vhe",
-            "description": "Unless explicitly specified, the texts API returns a default version of a text with Hebrew characters as of the content in the `he` response. Passing a specific `versionTitle` here will load that text version if it exists instead of the default.\n",
+            "description": "Unless explicitly specified, the Texts API returns a default version of a text with Hebrew characters as the content in the `he` response. Passing a specific `versionTitle` here will load that text version if it exists instead of the default.\n",
             "schema": {
               "type": "string"
             },
@@ -1155,7 +1155,7 @@
           },
           {
             "name": "multiple",
-            "description": "If the absolute value of this param is greater than `1` the API response will return include `|n|` text API responses which include `|n|-1` additional consecutive sections of the targeted text if they exist. If the integer is positive, it will return the next consecutive chapter[s], and if negative it will contain the previous consecutive chapter[s].",
+            "description": "If the absolute value of this param is greater than `1`, the API will return`|n|` text responses which include `|n|-1` additional consecutive sections of the targeted text if they exist. If the integer is positive, it will return the next consecutive chapter[s], and if negative it will return the previous consecutive chapter[s].",
             "schema": {
               "enum": [
                 "0",
@@ -1175,7 +1175,7 @@
               }
             },
             "name": "transLangPref",
-            "description": "Unless explicitly specified, the texts API returns a default version for the `he` and `text` responses (usually in Hebrew & English respectfully). Passing an ISO 639-1 language code here will prioritize text versions in that target language if available.",
+            "description": "Unless explicitly specified, the Texts API returns a default version for the `he` and `text` responses (usually in Hebrew & English respectfully). Passing an ISO 639-1 language code here will prioritize text versions in that target language if available.",
             "schema": {
               "type": "string"
             },
@@ -1194,7 +1194,7 @@
           },
           {
             "name": "sheets",
-            "description": "The `sheets` param defaults to `0`, which turns off user-generated Sefaria Sheet data from being returned in the response. When you explicitly set `sheets=1` all of the user-generated sheet content to that specific connection is returned in list of JSON objects.\n\n_This usage is deprecated. Instead you should use the `Related API`._",
+            "description": "The `sheets` param defaults to `0`, which turns off user-generated Sefaria Sheet data from being returned in the response. When you explicitly set `sheets=1`, all of the user-generated sheet content to that specific connection is returned in list of JSON objects.\n\n_This usage is deprecated. Instead of this, you should use the `Related API`._",
             "schema": {
               "enum": [
                 "0",
@@ -1347,7 +1347,7 @@
     },
     "/api/texts/versions/{index}": {
       "summary": "All Available Versions of a Text",
-      "description": "This endpoint return all of the available versions of a text given an index title passed as a parameter. ",
+      "description": "This endpoint returns all of the available versions of a text given an index title passed as a parameter. ",
       "get": {
         "operationId": "get-versions",
         "tags": [
@@ -1627,7 +1627,7 @@
       ]
     },
     "/api/manuscripts/{tref}": {
-      "summary": "For a given `tref` (textual ref), if a manuscript exists, returns a list of all relevant data as well as the image URL for each associated manuscript.",
+      "summary": "For a given `tref` (textual ref), if a manuscript exists, this returns a list of all relevant data as well as the image URL for each associated manuscript.",
       "get": {
         "operationId": "get-manuscripts",
         "tags": [
@@ -1741,7 +1741,7 @@
         "parameters": [
           {
             "name": "titles",
-            "description": "A string of book titles from the Sefaria library separated with the character `|`. If it exists it will limit the random selection to those titles.",
+            "description": "A string of book titles from the Sefaria library, separated with the character `|`. If it exists, it will limit the random selection to those titles.",
             "schema": {
               "type": "string"
             },
@@ -1749,7 +1749,7 @@
           },
           {
             "name": "categories",
-            "description": "A string of categories from the Sefaria library separated with the character `|`. If it exists it will limit the random selection to those categories.",
+            "description": "A string of categories from the Sefaria library, separated with the character `|`. If it exists, it will limit the random selection to those categories.",
             "schema": {
               "type": "string"
             },
@@ -3529,7 +3529,7 @@
         "parameters": [
           {
             "name": "with_text",
-            "description": "`with_text` is an optional parameter that determines whether or not the API response will include the text of any connected links. It's default is `1`",
+            "description": "`with_text` is an optional parameter that determines whether or not the API response will include the text of any connected links. Defaults to `1`",
             "schema": {
               "enum": [
                 "0",
@@ -3541,7 +3541,7 @@
           },
           {
             "name": "with_sheet_links",
-            "description": "`with_sheet_links` is an optional parameter that determines whether or not the API response will include links to user generated source sheets from Sefaria. It's default is `0`",
+            "description": "`with_sheet_links` is an optional parameter that determines whether or not the API response will include links to user generated source sheets from Sefaria. Defaults `0`",
             "schema": {
               "enum": [
                 "0",
@@ -3696,7 +3696,7 @@
           },
           {
             "name": "custom",
-            "description": "If available, the weekly _Haftarah_ will be returned for one of the selected custom.",
+            "description": "If available, the weekly _Haftarah_ will be returned for one of the selected customs.",
             "schema": {
               "enum": [
                 "ashkenazi",
@@ -3709,7 +3709,7 @@
           },
           {
             "name": "year",
-            "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fallback to the default.",
+            "description": "By default, the API returns learning for the current date. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fall back to the default.",
             "schema": {
               "type": "number"
             },
@@ -3717,7 +3717,7 @@
           },
           {
             "name": "month",
-            "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fallback to the default.",
+            "description": "By default, the API returns learning for the current date. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fall back to the default.",
             "schema": {
               "type": "number"
             },
@@ -3725,7 +3725,7 @@
           },
           {
             "name": "day",
-            "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fallback to the default.",
+            "description": "By default, the API returns learning for the current date. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fall back to the default.",
             "schema": {
               "type": "number"
             },
@@ -3733,7 +3733,7 @@
           },
           {
             "name": "timezone",
-            "description": "By default, the API attempts to return the calendars for the client's timezone. If you want another region you can override it. Timezone names are in accordance with [IANA Standards](https://www.iana.org/time-zones)",
+            "description": "By default, the API attempts to return the calendar for the client's timezone. If you want the timezone for another region, you can override it. Timezone names are in accordance with [IANA Standards](https://www.iana.org/time-zones)",
             "schema": {},
             "in": "query"
           }
@@ -3889,7 +3889,7 @@
               }
             },
             "name": "lookup_ref",
-            "description": "This parameters refines the search to fine tune based on the `lookup_ref`.",
+            "description": "This parameter refines the search based on the `lookup_ref`.",
             "schema": {
               "type": "string"
             },
@@ -3897,7 +3897,7 @@
           },
           {
             "name": "never_split",
-            "description": "This parameters refines the search to limit lookup to only the actual input string.",
+            "description": "This parameter refines the search to limit lookup to the actual input string.",
             "schema": {
               "type": "string"
             },
@@ -3905,7 +3905,7 @@
           },
           {
             "name": "always_split",
-            "description": "This parameters refines the search to look for substring matches regardless of results for original input. One can pass the values `0` (to indicate false) and `1` (to indicate true). ",
+            "description": "This parameter refines the search to look for substring matches regardless of results for original input. One can pass the values `0` (to indicate false) or `1` (to indicate true). ",
             "schema": {
               "type": "string"
             },
@@ -3913,7 +3913,7 @@
           },
           {
             "name": "always_consonants",
-            "description": "If this is `1`, the given word will searched both with an without its vowels. If it is not present, or `0`, then the word will only be looked up exactly as written in the request",
+            "description": "If this is `1`, the given word will be searched for with and without its vowels. If `0`, then the word will be searched for exactly as written in the request",
             "schema": {
               "type": "string"
             },
@@ -3967,7 +3967,7 @@
       ]
     },
     "/api/words/completion/{word}/{lexicon}": {
-      "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input. \n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels.",
+      "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input. \n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels,, and the second is an entry with vowels.",
       "get": {
         "operationId": "get-words-completion",
         "tags": [
@@ -3976,7 +3976,7 @@
         "parameters": [
           {
             "name": "limit",
-            "description": "Number of results to return (0 indicates no limit, and is the default)",
+            "description": "Number of results to return (0 is the default; indicates no limit)",
             "schema": {
               "type": "integer"
             },
@@ -4086,7 +4086,7 @@
           }
         },
         "summary": "Word Completion",
-        "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input.\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels."
+        "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input.\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels, and the second is an entry with vowels."
       },
       "parameters": [
         {
@@ -4434,12 +4434,12 @@
                 }
               }
             },
-            "description": "When one calls this endpoint _with_ a specific `topic_slug`, it returns a JSON object containing the metadata for the topic. \n"
+            "description": "When this endpoint is called with a specific `topic_slug`, it returns a JSON object containing the metadata for the topic. \n"
           }
         },
         "deprecated": true,
         "summary": "Topic (v1)",
-        "description": "When one calls this endpoint _with_ a specific `topic_slug`, it returns a JSON object containing the metadata for the topic. \n"
+        "description": "When this endpoint is called with a specific `topic_slug`, it returns a JSON object containing the metadata for the topic. \n"
       },
       "parameters": [
         {
@@ -4467,7 +4467,7 @@
         },
         {
           "name": "with_links",
-          "description": "`1` or `0`. If `1`, includes intra-topic links in the `result` field, under `links`.",
+          "description": "Input is `1` or `0`. If `1`, includes intra-topic links in the `result` field, under `links`.",
           "schema": {
             "type": "integer"
           },
@@ -4476,7 +4476,7 @@
         },
         {
           "name": "annotate_links",
-          "description": "`1` or `0`. If `1`, adds the following fields to each intra-topic link: `title`, `titleIsTransliteration`, `shouldDisplay`, and `order`.",
+          "description": "Input is `1` or `0`. If `1`, adds the following fields to each intra-topic link: `title`, `titleIsTransliteration`, `shouldDisplay`, and `order`.",
           "schema": {
             "type": "integer"
           },
@@ -4484,7 +4484,7 @@
         },
         {
           "name": "group_related",
-          "description": "`1` or `0`. If `1`, groups link types with the `groupRelated` key set to true. This will simulate how the sidebar looks on the Sefaria site.",
+          "description": "Input is `1` or `0`. If `1`, groups link types with the `groupRelated` key set to true. This will simulate how the sidebar looks on the Sefaria site.",
           "schema": {
             "type": "integer"
           },
@@ -4492,7 +4492,7 @@
         },
         {
           "name": "with_refs",
-          "description": "`1` or `0`. If `1`, adds a list of `Ref`s tagged with this topic under the `refs` key.",
+          "description": "Input is `1` or `0`. If `1`, adds a list of `Ref`s tagged with this topic under the `refs` key.",
           "schema": {
             "type": "integer"
           },
@@ -4500,7 +4500,7 @@
         },
         {
           "name": "annotate_time_period",
-          "description": "`1` or `0`. If `1`, the response includes time period data under the `timePeriod` key.",
+          "description": "Input is `1` or `0`. If `1`, the response includes time period data under the `timePeriod` key.",
           "schema": {},
           "in": "query"
         }
@@ -4865,7 +4865,7 @@
           }
         },
         "summary": "All Topics",
-        "description": "The topics API returns a list of JSON objects, each object containing all of the metadata for each topic in the Sefaria database. "
+        "description": "The topics API returns a list of JSON objects, with each object containing all of the metadata for each topic in the Sefaria database. "
       }
     },
     "/api/topics-graph/{topic_slug}": {
@@ -5301,12 +5301,16 @@
             "in": "query"
           },
           {
-            "name": "ref_only",
-            "description": "By default `0` the Name API returns `Ref`s, book titles, authors, topics, and collections. If true, the response will only contain text references.",
+            "name": "type",
+            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If the `type` is set, the response will only contain items of that type. Note: `Topic` includes authors, topics and people without differentiation.",
             "schema": {
               "enum": [
-                "0",
-                "1"
+                "ref", 
+                "Collection", 
+                "Topic", 
+                "TocCategory",
+                "Term", 
+                "User"
               ],
               "type": "string"
             },
@@ -5674,9 +5678,9 @@
             ],
             "type": "string"
           },
-          "is_ref": {
-            "description": "Returns `true` if the submitted text is a valid Sefaria textual reference",
-            "type": "boolean"
+          "type": {
+            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If `type` is set, the response will only contain items of that type.",
+            "type": "string"
           },
           "completions": {
             "description": "A list of autocompletion responses for the submitted text.",
@@ -5786,15 +5790,15 @@
             "type": "string"
           },
           "ref": {
-            "description": "If `is_ref` is `true`, this returns the cannonical ref for the submitted text.",
+            "description": "If `type=ref`, this returns the canonical ref for the submitted text.",
             "type": "string"
           },
           "url": {
-            "description": "If `is_ref` is `true`, this returns the URL path to link to the submitted text on [Sefaria.org](sefaria.org)",
+            "description": "If `type=ref`, this returns the URL path to link to the submitted text on [Sefaria.org](sefaria.org)",
             "type": "string"
           },
           "index": {
-            "description": "If `is_ref` is `true`, this returns the cannonical name of the `index` of the submitted text.",
+            "description": "If `type=ref`, this returns the canonical name of the `index` of the submitted text.",
             "type": "string"
           },
           "book": {
@@ -5862,7 +5866,7 @@
         },
         "example": {
           "lang": "en",
-          "is_ref": true,
+          "type": "ref",
           "completions": [
             "Job",
             "Rashi on Job",
@@ -7503,7 +7507,7 @@
                     "type": "object",
                     "properties": {
                       "heRef": {
-                        "description": "The Hebrew equivalent of the cannonical ref",
+                        "description": "The Hebrew equivalent of the canonical ref",
                         "type": "string"
                       },
                       "url": {
@@ -7563,7 +7567,7 @@
                     "type": "object",
                     "properties": {
                       "heRef": {
-                        "description": "The Hebrew equivalent of the cannonical ref",
+                        "description": "The Hebrew equivalent of the canonical ref",
                         "type": "string"
                       },
                       "url": {
@@ -9767,7 +9771,7 @@
             "type": "string"
           },
           "index_title": {
-            "description": "The cannonical title of the text in the Sefaria library.",
+            "description": "The canonical title of the text in the Sefaria library.",
             "type": "string"
           },
           "category": {
