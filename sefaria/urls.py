@@ -6,6 +6,8 @@ from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
+
+import sourcesheets
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
@@ -28,10 +30,14 @@ urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
     url(r'^texts/saved/?$', reader_views.saved),
+    url(r'^texts/notes/?$', reader_views.notes),
     url(r'^texts/history/?$', reader_views.user_history),
+    url(r'^sheets/saved/?$', reader_views.sheets_saved),
+    url(r'^sheets/history/?$', reader_views.sheets_user_history),
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
+    url(r'sheets/sheets-with-ref/(?P<tref>.+)$', sourcesheets.views.sheets_with_ref),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^calendars/?$', reader_views.calendars),
     url(r'^collections/?$', reader_views.public_collections),
@@ -73,6 +79,7 @@ urlpatterns += [
 
 # Source Sheet Builder
 urlpatterns += [
+    url(r'^sheets/?$', sheets_views.sheets_home_page),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
@@ -81,7 +88,7 @@ urlpatterns += [
 # Profiles & Settings
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
-    url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
+    url(r'^sheets/profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^settings/account/user$', reader_views.account_user_update),
