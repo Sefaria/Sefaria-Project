@@ -3,7 +3,7 @@
 [Sefaria](https://www.sefaria.org) is a digital library and platform for accessing Jewish texts and text-based learning. We invite developers to leverage the largest open-source database of Jewish texts in history to build apps and services utilizing the Jewish canon.
 
 ## Getting Started
-Visit our [Developer Portal](https://developers.sefaria.org/) to read our [docs](https://developers.sefaria.org/docs/getting-started-1), play with our interactive [API Reference](https://developers.sefaria.org/reference/getting-started-with-your-api) and to learn more about Sefaria's open source data and technology.  There, you can also find tutorials, installation instructions, and all of the most up-to-date information about our technology.
+Visit our [Developer Portal](https://developers.sefaria.org/) to read our [docs](https://developers.sefaria.org/docs/getting-started), play with our interactive [API Reference](https://developers.sefaria.org/reference/getting-started-with-your-api) and to learn more about Sefaria's open source data and technology.  There, you can also find tutorials, installation instructions, and all of the most up-to-date information about our technology.
 
 Interested developers can join the [sefaria-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
