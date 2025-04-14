@@ -2734,26 +2734,23 @@ const BoardMember = ({ boardMember }) => (
 );
 
 const BoardMembers = ({ boardMembers }) => {
-    let chairmanBoardMember;
-    const chairmanIndex = boardMembers.findIndex(
-        (boardMember) =>
-            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
-            "chairman"
+    let chairBoardMember;
+    const chairIndex = boardMembers.findIndex((boardMember) =>
+        boardMember.teamMemberDetails.teamTitle.en.toLowerCase().includes("chair")
     );
-    if (chairmanIndex !== -1) {
-        chairmanBoardMember = boardMembers.splice(chairmanIndex, 1);
+    if (chairIndex !== -1) {
+        chairBoardMember = boardMembers.splice(chairIndex, 1);
     }
     const [cofounderBoardMembers, regularBoardMembers] = partition(
         boardMembers,
         (boardMember) =>
-            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
-            "co-founder"
+            boardMember.teamMemberDetails.teamTitle.en.toLowerCase().includes("founder")
     );
 
     return (
         <>
-            {chairmanBoardMember && (
-                <BoardMember boardMember={chairmanBoardMember[0]} />
+            {chairBoardMember && (
+                <BoardMember boardMember={chairBoardMember[0]} />
             )}
             {cofounderBoardMembers.map((boardMember) => (
                 <BoardMember key={boardMember.id} boardMember={boardMember} />
