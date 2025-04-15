@@ -1522,7 +1522,7 @@ class ReaderControls extends Component {
 }
 
 ReaderControls.propTypes = {
-  textCategory:            PropTypes.array,
+  textCategory:            PropTypes.string.isRequired,
   settings:                PropTypes.object.isRequired,
   showBaseText:            PropTypes.func.isRequired,
   setOption:               PropTypes.func.isRequired,

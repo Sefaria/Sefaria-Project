@@ -331,8 +331,6 @@ class BookPage extends Component {
                     viewExtendedNotes={this.props.viewExtendedNotes}
                   />
                 </TabView>
-
-
               </div>
                   :
               <LoadingMessage />
