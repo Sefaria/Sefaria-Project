@@ -1511,7 +1511,7 @@ Sefaria = extend(Sefaria, {
           const newlinks = Sefaria.getLinksFromCache(r);
           links = links.concat(newlinks);
       });
-      links = links.filter(l => l["type"] === "essay");
+      links = links.filter(l => l["category"] === "Essay");
       return links.length > 0;
   },
   essayLinks: function(ref, versions) {
@@ -1523,7 +1523,7 @@ Sefaria = extend(Sefaria, {
     links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
     let essayLinks = [];
     for (let i=0; i<links.length; i++) {
-      if (links[i]["type"] === "essay" && "displayedText" in links[i]) {
+      if (links[i]["category"] === "Essay" && "displayedText" in links[i]) {
         const linkLang = links[i]["anchorVersion"]["language"];
         const currVersionTitle = versions[linkLang] ? versions[linkLang]["versionTitle"] : "NONE";
         const linkVersionTitle = links[i]["anchorVersion"]["title"];

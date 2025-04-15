@@ -69,7 +69,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["text"]      = text.text if isinstance(text.text, str) else JaggedTextArray(text.text).flatten_to_array()
         com["he"]        = text.he if isinstance(text.he, str) else JaggedTextArray(text.he).flatten_to_array()
 
-    # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
+    # if the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     # this is now simpler, and there is explicit data on the index record for it.
     if com["type"] == "commentary":
         com["collectiveTitle"] = {
@@ -79,11 +79,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     else:
         com["collectiveTitle"] = {'en': linkRef.index.title, 'he': linkRef.index.get_title("he")}
 
-    if com["type"] != "commentary" and com["category"] == "Commentary":
-        com["category"] = "Quoting Commentary"
-
     if com["type"] == "essay":
-        com["category"] = "essay"
+        com["category"] = "Essay"
+    elif com["type"] != "commentary" and com["category"] == "Commentary":
+        com["category"] = "Quoting Commentary"
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")

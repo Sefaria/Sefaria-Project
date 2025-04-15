@@ -1075,7 +1075,7 @@ class ConnectionsSummary extends Component {
 
     return (
       <div>
-        {isTopLevel ? essaySummary : null}
+        {isTopLevel && essaySummary}
         {connectionsSummary}
         {summaryToggle}
       </div>
