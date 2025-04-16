@@ -3295,7 +3295,7 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
   )
 
 }
-const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholder, inputValue, changeInputValue, selectedCallback,
+const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholder, inputValue, fullText, changeInputValue, selectedCallback,
                          buttonTitle, autocompleteClassNames }) => {
   /*
   Autocompleter component used in AddInterfaceInput and TopicSearch components.  Component contains an input box, a
@@ -3362,8 +3362,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       setCurrentSuggestions(results.currentSuggestions);
       setShowAddButton(results.showAddButton);
       setHelperPromptText(results.helperPromptText);
-      if (!!results.previewText) {
-        generatePreviewText(results.previewText);
+      if (!!results.fullText) {
+        generatePreviewText(results.fullText);
       }
       if (!!results.helperPromptText) {
         document.querySelector('.addInterfaceInput input').style.insetInlineStart = `${getWidthOfInput()}px`;
@@ -3371,30 +3371,69 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     });
   }
 
-  const onChange = (input) => {
+  const handleNumericInput = (input, fullvalue) => {
+    // Match number at the end of the string (both Arabic and Tibetan numerals)
+    // For Arabic: 1, 1.2, 1.2.3, 1:2
+    // For Tibetan: ༠, ༠༡, ༠༡.༠༢, etc.
+    const tibetanNumerals = '༠༡༢༣༤༥༦༧༨༩';
+    const arabicRegex = /(\d+(?:[.:,]\d+)*$)/;
+    const tibetanRegex = new RegExp(`([${tibetanNumerals}]+(?:[.:,]?[${tibetanNumerals}]+)*$)`);
+    
+    const arabicMatch = input.match(arabicRegex);
+    const tibetanMatch = input.match(tibetanRegex);
+    const match = arabicMatch || tibetanMatch;
+    
+    const arabicFullMatch = fullvalue.match(arabicRegex);
+    const tibetanFullMatch = fullvalue.match(tibetanRegex);
+    const fullmatch = arabicFullMatch || tibetanFullMatch;
+    
+    let updatedFullValue = fullvalue;
+    
+    // If fullvalue already ends with a number (Arabic or Tibetan), remove it
+    if (fullmatch) {
+      const numberToRemove = fullmatch[1];
+      updatedFullValue = fullvalue.slice(0, -numberToRemove.length).trim();
+    }
+    
+    if (match) {
+      const numberPart = match[1];
+      const newFullValue = updatedFullValue + " " + numberPart;
+      return newFullValue;
+    } else {
+      return updatedFullValue;
+    }
+}
+  
+  const onChange = async (input, fullvalue) => {
+    let newFullValue = "";
+    if(fullText == "") {
+      newFullValue = handleNumericInput(input, input);
+    } else {
+      newFullValue = handleNumericInput(input, fullvalue);
+    }    
     setInputClassNames(classNames({selected: 0}));
     setShowCurrentSuggestions(true);
-    processSuggestions(getSuggestions(input));
+    processSuggestions(getSuggestions(input, newFullValue));
     resizeInputIfNeeded();
   }
 
-  const handleOnClickSuggestion = (title) => {
+  const handleOnClickSuggestion = (title, fullvalue) => {
       changeInputValue(title);
       setShowCurrentSuggestions(showSuggestionsOnSelect);
       if (showSuggestionsOnSelect) {
-        processSuggestions(getSuggestions(title));
+        processSuggestions(getSuggestions(title, fullvalue));
       }
       setInputClassNames(classNames({selected: 1}));
       resizeInputIfNeeded();
       inputEl.current.focus();
   }
 
-  const Suggestion = ({title, color}) => {
+  const Suggestion = ({title, color, fullvalue}) => {
     return(<option
               className="suggestion"
               onClick={(e)=>{
                   e.stopPropagation()
-                  handleOnClickSuggestion(title)
+                  handleOnClickSuggestion(title, fullvalue)
                 }
               }
               style={{"borderInlineStartColor": color}}
@@ -3406,6 +3445,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
         (<Suggestion
            title={suggestion.name}
+           fullvalue={suggestion.fullText}
            color={suggestion.border_color}
            key={index}
         />)
@@ -3415,8 +3455,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   return(div)
   }
 
-  const handleSelection = () => {
-    selectedCallback(inputValue, currentSuggestions);
+  const handleSelection = (fullText, currentSuggestions) => {
+    selectedCallback(fullText, currentSuggestions);
     setPreviewText(null);
     setShowAddButton(false);
   }
@@ -3476,15 +3516,14 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
           placeholder={Sefaria._(inputPlaceholder)}
           onKeyDown={(e) => onKeyDown(e)}
           onClick={(e) => {e.stopPropagation()}}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => onChange(e.target.value, fullText)}
           onBlur={(e) => setPreviewText(null) }
           value={inputValue}
           ref={inputEl}
           className={inputClassNames}
-
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
-                    handleSelection(inputValue, currentSuggestions)
+                    handleSelection(fullText, currentSuggestions)
                 }}>{buttonTitle}</button> : null}
 
       {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
