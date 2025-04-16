@@ -821,9 +821,14 @@ def topics_category_page(request, topicCategory):
     }
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+<<<<<<< HEAD
     title = topic_obj.get_primary_title(short_lang) + " | " + ()
+=======
+    title = topic_obj.get_primary_title(short_lang) + " | " + (
+        "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+>>>>>>> parent of 31a923da3... sheet_sharing_description_modified
     desc = (
-        ) % {
+        "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {
                'topic': topic_obj.get_primary_title(short_lang)}
 
     return render_template(request, 'base.html', props, {
@@ -3286,9 +3291,9 @@ def topic_page(request, topic, test_version=None):
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + (
-        )
+        "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
     desc = (
-        ) % {
+        "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {
                'topic': topic_obj.get_primary_title(short_lang)}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
