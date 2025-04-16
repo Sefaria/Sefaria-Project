@@ -821,9 +821,10 @@ def topics_category_page(request, topicCategory):
     }
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = topic_obj.get_primary_title(short_lang) + " | " + ()
+    title = topic_obj.get_primary_title(short_lang) + " | " + (
+        "Texts & Source Sheets from Pecha's library of Buddhist sources.")
     desc = (
-        ) % {
+        "Buddhist texts and source sheets about %(topic)s from Pecha's library.") % {
                'topic': topic_obj.get_primary_title(short_lang)}
 
     return render_template(request, 'base.html', props, {
@@ -3286,9 +3287,9 @@ def topic_page(request, topic, test_version=None):
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + (
-        )
+        "Texts & Source Sheets from Pecha's library of Buddhist's sources.")
     desc = (
-        ) % {
+        "Buddhist texts and source sheets about %(topic)s from Pecha's library.") % {
                'topic': topic_obj.get_primary_title(short_lang)}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
