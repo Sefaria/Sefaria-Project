@@ -15963,6 +15963,41 @@ span.ref-link-color-3 {
     max-height: 500px; /* Adjust based on your content */
     padding: 15px;
 }
+
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  
+  .page-btn {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  
+  .page-btn:hover:not(.active):not(:disabled) {
+    background: var(--pecha-red);
+  }
+  
+  .page-btn.active {
+    background: var(--pecha-red);
+    color: white;
+    font-weight: bold;
+  }
+  
+  .page-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  
   
   
   

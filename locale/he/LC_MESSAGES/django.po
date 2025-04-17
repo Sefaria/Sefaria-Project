@@ -152,15 +152,15 @@ msgstr "དྲ་ཚིག་ཁ་བྱང་འདི་རྙེད་ཀྱ
 
 #: templates/500.html:4 templates/500.html:10
 msgid "server_related_error_message"
-msgstr ""
+msgstr "ནང་གི་གསོག་མཛོད་ཀྱི་གནད་དོན།"
 
 #: templates/500.html:15
 msgid "send_message_to_developer_request"
-msgstr ""
+msgstr "སྟབས་མ་ལེགས་པ་ཞིག་ལ་འདིར་གནད་དོན་ཞིག་བྱུང་སོང་། ང་ཚོའི་ཆེད་ལས་དོ་དམ་པ་རྣམས་ལ་རང་འགུལ་གྱིས་གནད་དོན་འདི་དང་འབྲེལ་བའི་གློག་འཕྲིན་ཞིག་བཏང་ཟིན་པ་ཡིན། གལ་ཏེ་ཁྱེད་ལ་གནད་དོན་འདི་དང་འབྲེལ་བའི་དོགས་འདྲི་ཡོད་པ་དང་ཡང་ན་ཁྱེད་ཀྱིས་གནད་དོན་འདི་གང་ཡིན་ངོས་འཛིན་ཐུབ་པ་རེ་བྱུང་སོང་ན། ཐད་ཀར་ང་ཚོའི་ཆེད་ལས་དོ་དམ་ཚན་པར་གློག་འཕྲིན་བརྒྱུད་ནས་འབྲེལ་བ་གནང་རོགས།"
 
 #: templates/500.html:15
 msgid "developer_team"
-msgstr ""
+msgstr "developer_team"
 
 #: templates/account_settings.html:12
 msgid "account_setting"
