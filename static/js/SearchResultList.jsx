@@ -16,6 +16,7 @@ import {
   DropdownOptionList,
   InterfaceText,
   LoadingMessage,
+  Pagination,
 } from './Misc';
 
 
@@ -117,10 +118,13 @@ class SearchResultList extends Component {
         hits:           this._typeObjDefault([]),
         error:          false,
         topics:         [],
-        totalText: 0,
-        totalSheet: 0,
+        searchedResultSheet: [],
+        searchedResultText: [],
         isSearchedEmpty: true,
-        mongoloading: true
+        mongoloading: true,
+        currentPage: 1,
+        resultPerPage:10,
+        totalPage: 0,
       }
 
       // Load search results from cache so they are available for immediate render
@@ -183,6 +187,13 @@ class SearchResultList extends Component {
           isSearchedEmpty: true,
           mongoloading: true
         })
+        if(newProps.mongoSearch && newProps.mongoSearch.status == "success") {
+          this.loadSearchResult(newProps.mongoSearch.result);
+          this.setState({
+            mongoloading: false
+          })
+        }
+          
       }
     }
     
@@ -462,6 +473,20 @@ class SearchResultList extends Component {
     showTexts() {
       this.props.updateTab('text');
     }
+
+    handlePageChange(page){
+      this.setState({currentPage: page})
+    }
+
+    loadSearchResult(result) {
+      const textResults = Sefaria.search.mongoSearchText(result.text)
+      const sheetResults = Sefaria.search.mongoSearchSheet(result.sheet)
+      this.setState({
+        searchedResultText: textResults, 
+        searchedResultSheet: sheetResults
+      })
+    }
+
     render () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
@@ -470,28 +495,28 @@ class SearchResultList extends Component {
         const { tab }     = this.props;
         const searchState = this._getSearchState(tab);
         let results       = [];
-        let textResults = []
-        let rr = []
-        let mongoloading = true
+        let totalPages = 0
+        let totalResults = 0
         if (tab === "text") {
           results = []
-          // results = Sefaria.search.mergeTextResultsVersions(this.state.hits.text);
-          
-          if(this.props.mongoSearch && this.props.mongoSearch.status == "success"){
-            mongoloading = false
-            results = Sefaria.search.mongoSearchText(this.props.mongoSearch.result.text)
-            results = results.map((result, i) => 
+          totalPages = 0
+          totalResults = 0
+          totalResults = this.state.searchedResultText.length
+          totalPages = Math.ceil(this.state.searchedResultText.length / this.state.resultPerPage);
+          const startIdx = (this.state.currentPage - 1) * this.state.resultPerPage;
+          const currentResults = this.state.searchedResultText.slice(startIdx, startIdx + this.state.resultPerPage);
+          results = currentResults.map((result, i) => 
+            <div key={i}>
               <SearchTextResult
-                key={i}
                 data={result}
                 query={this.props.query}
                 searchInBook={this.props.searchInBook}
-                onResultClick={this.props.onResultClick} 
+                onResultClick={this.props.onResultClick}
               />
-            )
-          } else {
-            results = []
-          }
+            </div>
+          )
+
+
           
           // results = results.filter(result => !!result._source.version).map(result =>
           //   <SearchTextResult
@@ -517,7 +542,6 @@ class SearchResultList extends Component {
 
 
         } else if (tab === "sheet") {
-          results = []
           // results = this.state.hits.sheet.map(result =>
           //   <SearchSheetResult
           //     data={result}
@@ -525,21 +549,28 @@ class SearchResultList extends Component {
           //     key={result._id}
           //     onResultClick={this.props.onResultClick} />
           // );
-          if(this.props.mongoSearch && this.props.mongoSearch.status == "success"){
-            mongoloading = false
-            results = Sefaria.search.mongoSearchSheet(this.props.mongoSearch.result.sheet)
-            results = results.map((result) =>
-              <SearchSheetResult
-                data={result}
-                query={this.props.query}
-                key={result.sheetId}
-                onResultClick={this.props.onResultClick} 
-              />
 
-            )
-          } else {
-            results = []
-          }
+          // if(this.props.mongoSearch && this.props.mongoSearch.status == "success"){
+          //   mongoloading = false
+            
+          // } else {
+          //   results = []
+          // }
+          results = []
+          totalPages = 0
+          totalResults = 0
+          totalResults = this.state.searchedResultSheet.length
+          totalPages = Math.ceil(this.state.searchedResultSheet.length / this.state.resultPerPage);
+          const startIdx = (this.state.currentPage - 1) * this.state.resultPerPage;
+          const currentResults = this.state.searchedResultSheet.slice(startIdx, startIdx + this.state.resultPerPage);
+          results = currentResults.map((result) =>
+            <SearchSheetResult
+              data={result}
+              query={this.props.query}
+              key={result.sheetId}
+              onResultClick={this.props.onResultClick} 
+            />
+          )
         }
 
         const loadingMessage   = (<LoadingMessage message={Sefaria._("search.result_list.searching")} heMessage={Sefaria._("search.result_list.searching")}/>);
@@ -578,10 +609,11 @@ class SearchResultList extends Component {
                 nFilters={searchState.appliedFilters.length} />}
             </div>
             <div className="searchResultList">
-              {results ? <h1><InterfaceText>{`Total : (${total})`}</InterfaceText></h1>: null}
-              {mongoloading ? loadingMessage  : null}
-              {!haveResults && !mongoloading ? noResultsMessage: null}
+              {results ? <h1><InterfaceText>{`Total : (${totalResults})`}</InterfaceText></h1>: null}
+              {this.state.mongoloading ? loadingMessage  : null}
+              {!haveResults && !this.state.mongoloading ? noResultsMessage: null}
               { haveResults ? results : null}
+              <Pagination currentPage={this.state.currentPage} totalPages={totalPages} onPageChange={this.handlePageChange} />
             </div>
           </div>
         );
