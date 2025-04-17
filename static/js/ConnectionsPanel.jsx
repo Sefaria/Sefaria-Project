@@ -1462,9 +1462,7 @@ class ShareBox extends Component {
       Sefaria.util.openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url));
     };
     const shareTwitter = function () {
-      const lang = Sefaria.interfaceLang;
-      const shareUrl = url + (url.includes('?') ? '&' : '?') + 'lang=' + lang;
-      Sefaria.util.openInNewTab("https://twitter.com/share?url=" + encodeURIComponent(shareUrl));
+      Sefaria.util.openInNewTab("https://twitter.com/share?url=" + encodeURIComponent(url));
     };
     const shareEmail = function () {
       Sefaria.util.openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
