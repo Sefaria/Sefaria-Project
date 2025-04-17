@@ -697,11 +697,15 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationTopicTitle": None,
     }
     if sheet == None:
-        title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
+        # Get display mode from request parameters at the start since we'll use it in multiple places
+        display_mode = request.GET.get("displayMode", "source")  # default to source if not specified
+        
+        # Use display mode to determine which title to show
+        title = primary_ref.he_normal() if display_mode == "source" else primary_ref.normal()
         breadcrumb = ld_cat_crumbs(request, oref=primary_ref)
-
+    
         if primary_ref.is_book_level():
-            if request.interfaceLang == "hebrew":
+            if display_mode == "source":
                 desc = getattr(primary_ref.index, 'heDesc', "")
                 book = primary_ref.he_normal()
             else:
@@ -709,7 +713,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 book = primary_ref.normal()
             read = "Read the text of %(book)s online with commentaries and connections." % {'book': book}
             desc = desc + " " + read if desc else read
-
+    
         else:
             segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
             try:
@@ -719,15 +723,17 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                     enText) else ""  # get english text for section if it exists
                 heDesc = heText[segmentIndex] if segmentIndex < len(
                     heText) else ""  # get hebrew text for section if it exists
-                if request.interfaceLang == "hebrew":
-                    desc = heDesc or enDesc  # if no hebrew, fall back on hebrew
-                else:
-                    desc = enDesc or heDesc  # if no english, fall back on hebrew
-
+                
+                # Use display mode to determine which text to show
+                if display_mode == "source":
+                    desc = heDesc or enDesc  # use Hebrew (source) text, fall back to English if needed
+                else:  # translation mode
+                    desc = enDesc or heDesc  # use English (translation) text, fall back to Hebrew if needed
+    
                 desc = bleach.clean(desc, strip=True, tags=())
                 desc = desc[:160].rsplit(' ', 1)[
                            0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
-
+    
             except (IndexError, KeyError):
                 desc = "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 
