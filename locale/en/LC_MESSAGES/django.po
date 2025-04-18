@@ -164,7 +164,7 @@ msgid "send_message_to_developer_request"
 msgstr ""
 "Unfortunately, we've encountered an error.An email has been sent "
 "automatically to our developers.If you have any questions about the problem,"
-" or think you can help us figure out what went wrong,please email our"
+" or think you can help us figure out what went wrong,please email our development team"
 
 #: templates/500.html:15
 msgid "developer_team"

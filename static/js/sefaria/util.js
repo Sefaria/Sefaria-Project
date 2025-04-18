@@ -200,37 +200,31 @@ class Util {
         return n <= 1 ? singular : plural;
     }
 
-    // Just as in Sefaria's time difference, it does start from 510 minutes, here we have edited it force start form min1 and so on
     static naturalTime(timeStamp, {lang, short} = {}) {
-        const now = Util.epoch_time();           // Current time in seconds (frontend)
-        let duration = now - timeStamp;          // Time difference in seconds
-    
-    
-        // Correct the 510-minute (30,600 seconds) offset and start at 1 minute (60 seconds)
-        const initialOffset = 30600; // 510 minutes in seconds
-        if (duration >= initialOffset) {
-            duration = duration - initialOffset + 60; // Subtract offset, start at 1 minute
-        }
-    
-        // Ensure duration doesn’t go below 60 seconds (1 minute)
-        if (duration < 60) {
-            duration = 60;
-        }
-    
+
+        const now = Util.epoch_time();
+        const duration = now - timeStamp; // Calculate duration in seconds
+        const hours12InSeconds = 12 * 60 * 60; // 12 hours in seconds
     
         let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
+        console.log("language", language)
         let spacer = " ";
+        // Check if the timestamp is within the last 12 hours
+        if (duration <= hours12InSeconds) {
+            return language === 'he' ? "དེ་རིང་བརྩམས།" : "published today";
+        }
+
         if (short) {
             language = language === "en" ? "shortEn" : "shortBo";
-            spacer = "";
+            spacer = ""; // Apply empty spacer to both shortEn and shortBo
         }
         let result = Util.sefariaHumanizeDuration(duration, {"language": language, "spacer": spacer});
         if (language === "shortBo") {
             const match = result.match(/^(\d+)(.*)/);
             if (match) {
-                const number = match[1];
-                const unit = match[2];
-                result = unit + number;
+                const number = match[1]; // Leading digits, e.g., "5"
+                const unit = match[2];   // Remainder, e.g., "ཆུ་ཚོད་"
+                result = unit + number;  // Combine without space, e.g., "ཆུ་ཚོད་5"
             }
         }
         return result;

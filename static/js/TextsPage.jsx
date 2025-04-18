@@ -136,7 +136,7 @@ TextsPage.propTypes = {
   compare: PropTypes.bool,
 };
 
-// Dedication component remains unchanged
+// Dedication component updated to include Chinese dedication options
 const Dedication = () => {
   let dedDate = new Date();
   dedDate.setHours(dedDate.getHours() + 6);
@@ -149,7 +149,7 @@ const Dedication = () => {
     const url =
       'https://docs.google.com/spreadsheets/d/16WqaFgY3P8wEFttRRbi-Pclo1Urm5jg7sMabl7apS_Y/edit?gid=0#gid=0';
     const query = new google.visualization.Query(url);
-    query.setQuery('select A, B, C');
+    query.setQuery('select A, B, C, D');
     query.send(processSheetsData);
   }
 
@@ -162,9 +162,22 @@ const Dedication = () => {
       for (let c = 0; c < columns; c++) {
         row.push(data.getFormattedValue(r, c));
       }
-      Sefaria._tableOfContentsDedications[row[0]] = { "en": row[1], "he": row[2] };
+      Sefaria._tableOfContentsDedications[row[0]] = { "en": row[1], "he": row[2], "zh": row[3] };
+      
+      // Debug logging for each row of data
+      console.log(`Dedication data for date ${row[0]}:`);
+      console.log('English:', row[1]);
+      console.log('Hebrew:', row[2]);
+      console.log('Chinese:', row[3]);
+      console.log('------------------------');
     }
     setDedicationData(Sefaria._tableOfContentsDedications[date]);
+    
+    // Debug logging for current date's dedication
+    console.log('Current date dedication data:', date);
+    console.log('English:', dedicationData?.en);
+    console.log('Hebrew:', dedicationData?.he);
+    console.log('Chinese:', dedicationData?.zh);
   }
 
   useEffect(() => {
@@ -175,11 +188,12 @@ const Dedication = () => {
   }, []);
 
   return (
-    dedicationData && (dedicationData.en || dedicationData.he) ?
+    dedicationData && (dedicationData.en || dedicationData.he || dedicationData.zh) ?
       <div className="dedication">
         <span>
-          <span className="int-en">{dedicationData?.en}</span>
-          <span className="int-he">{dedicationData?.he}</span>
+          {Sefaria.interfaceLang === "english" && <span className="int-en">{dedicationData?.en}</span>}
+          {Sefaria.interfaceLang === "hebrew" && <span className="int-he">{dedicationData?.he}</span>}
+          {Sefaria.interfaceLang === "chinese" && <span className="int-zh">{dedicationData?.zh}</span>}
         </span>
       </div>
       : null
