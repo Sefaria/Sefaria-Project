@@ -16692,6 +16692,32 @@ span.ref-link-color-3 {
       border-bottom: 2px solid #007bff;
     }
   }
+
+  .plan-navigation {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+  .plan-navigation.slide-out {
+    transform: translateX(-100%);
+    pointer-events: none;
+    opacity: 0;
+  }
+
+/* Fix abrupt slide-out by removing opacity and pointer-events from .slide-out */
+.plan-navigation.slide-out {
+    transform: translateX(-100%);
+    /* Remove pointer-events and opacity for smooth transition */
+  }
+  
+  /* Center the sheet-content when navigation is hidden */
+  .sheet-content.centered-sheet {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    transform: translateX(-5%);
+    max-width: 1200px; /* or whatever width fits your design */
+    width: 100%;
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
   
   
 

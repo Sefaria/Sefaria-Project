@@ -10,6 +10,7 @@ const PlanProgression = () => {
   const [sheetData, setSheetData] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDailyPath, setShowDailyPath] = useState(true);
 
   // Example MongoDB ObjectId for testing: "67ef5e6f2946808aa7605e0b"
   const MOCK_PLAN_ID_MAP = {
@@ -26,7 +27,6 @@ const PlanProgression = () => {
   useEffect(() => {
     // Fetch sheet data when plan data is loaded or current day changes
     if (planData) {
-      console.log('Fetching content for day:', currentDay);
       fetchDayContent(currentDay);
     }
   }, [currentDay, planData]);
@@ -40,17 +40,14 @@ const PlanProgression = () => {
   const fetchPlanData = async () => {
     try {
       const mongoId = getMongoId(planId);
-      console.log('Fetching plan data for ID:', mongoId);
       const response = await fetch(`/api/plans/${mongoId}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log('Received plan data:', data);
       setPlanData(data);
       setError(null);
     } catch (error) {
-      console.error('Error fetching plan data:', error);
       setError('Failed to load plan data. Please try again later.');
     }
   };
@@ -59,17 +56,14 @@ const PlanProgression = () => {
     try {
       setIsLoading(true);
       const mongoId = getMongoId(planId);
-      console.log('Fetching day content for plan:', mongoId, 'day:', day);
       const response = await fetch(`/api/plans/${mongoId}/day_${day}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log('Received day content:', data);
       setSheetData(data);
       setError(null);
     } catch (error) {
-      console.error('Error fetching day content:', error);
       setError('Failed to load day content. Please try again later.');
       setSheetData(null);
     } finally {
@@ -78,13 +72,11 @@ const PlanProgression = () => {
   };
 
   const handleDaySelect = (day) => {
-    console.log('Day selected:', day);
     setCurrentDay(day);
   };
 
   const openSheet = (sheetRef, replace = false) => {
-    // This is a placeholder function that matches the expected prop type
-    console.log('Opening sheet:', sheetRef, replace);
+    // Placeholder for opening a sheet
   };
 
   if (error) {
@@ -107,43 +99,46 @@ const PlanProgression = () => {
         <span className="breadcrumb-item current">Day {currentDay}</span>
         <button 
           className="hide-path-btn"
-          onClick={() => console.log('Hide Daily Path clicked')}
-          title="Hide Daily Path"
+          onClick={() => setShowDailyPath((prev) => !prev)}
+          title={showDailyPath ? "Hide Daily Path" : "Show Daily Path"}
         >
-          <i className="fa fa-eye-slash"></i> Hide Daily Path
+          <i className={`fa ${showDailyPath ? "fa-eye-slash" : "fa-eye"}`}></i> {showDailyPath ? "Hide Daily Path" : "Show Daily Path"}
         </button>
       </nav>
 
       <div className="content-wrapper">
-        <div className="plan-navigation">
-          <div className="plan-header">
-            <img 
-              src={planData.image || '/static/img/plans/default.jpg'} 
-              alt={planData.title} 
-              className="plan-thumbnail"
-            />
-            <div className="plan-info">
-              <h2 className="plan-title">{planData.title}</h2>
-              <span className="plan-duration">{planData.total_days} days</span>
-            </div>
-          </div>
-          
-          {/* Vertical Day Navigation */}
-          <div className="day-list">
-            {Array.from({ length: planData.total_days || 7 }, (_, i) => i + 1).map((day) => (
-              <button
-                key={day}
-                className={`day-button ${currentDay === day ? 'active' : ''}`}
-                onClick={() => handleDaySelect(day)}
-              >
-                Day {day}
-              </button>
-            ))}
-          </div>
+        <div className={`plan-navigation${showDailyPath ? '' : ' slide-out'}`}> 
+          {showDailyPath && (
+            <>
+              <div className="plan-header">
+                <img 
+                  src={planData.image || '/static/img/plans/default.jpg'} 
+                  alt={planData.title} 
+                  className="plan-thumbnail"
+                />
+                <div className="plan-info">
+                  <h2 className="plan-title">{planData.title}</h2>
+                  <span className="plan-duration">{planData.total_days} days</span>
+                </div>
+              </div>
+              {/* Vertical Day Navigation */}
+              <div className="day-list">
+                {Array.from({ length: planData.total_days || 7 }, (_, i) => i + 1).map((day) => (
+                  <button
+                    key={day}
+                    className={`day-button ${currentDay === day ? 'active' : ''}`}
+                    onClick={() => handleDaySelect(day)}
+                  >
+                    Day {day}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Sheet Content */}
-        <div className="sheet-content">
+        <div className={`sheet-content${showDailyPath ? '' : ' centered-sheet'}`}> 
           {isLoading ? (
             <div>Loading day content...</div>
           ) : sheetData && sheetData.content ? (
