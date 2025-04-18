@@ -136,7 +136,7 @@ def get_sheet_for_panel(id=None):
 			sheet["collectionImage"] = getattr(collection, "imageUrl", None)
 			sheet["collectionName"] = collection.name
 		else:
-			del sheet["displayedCollection"]
+			del sheet["displayedCollection"]		
 	return sheet
 
 

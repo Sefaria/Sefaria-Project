@@ -1,0 +1,100 @@
+from sefaria.system.database import db
+from bson import ObjectId
+from sefaria.model import *
+from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
+from sefaria.system.exceptions import InputError
+from datetime import datetime
+
+class Plan:
+    collection = 'plans'
+
+    def __init__(self, attrs=None):
+        self._id = None
+        self.title = ""
+        self.categories = []
+        self.description = ""
+        self.image = ""
+        self.total_days = 0
+        self.content = {}  # Will store {day_number: sheet_id} mapping
+        self.sheet_contents = {}  # Cache for sheet data
+        
+        if attrs:
+            self.load_from_dict(attrs)
+
+    def load_from_dict(self, d):
+        for key, value in d.items():
+            setattr(self, key, value)
+        
+        # If this is the "Mindful Healing After Loss" plan, set up the sheet mappings
+        if self.title == "Mindful Healing After Loss":
+            self.content = {
+                "day 1": 24,  # Sheet ID for Day 1
+                "day 2": 25,  # Sheet ID for Day 2
+                "day 3": 26,  # Sheet ID for Day 3
+                "day 4": 27,  # Sheet ID for Day 4
+                "day 5": 28,  # Sheet ID for Day 5
+                "day 6": 29,  # Sheet ID for Day 6
+                "day 7": 30   # Sheet ID for Day 7
+            }
+            self.total_days = 7
+        return self
+
+    def load(self, query):
+        obj = db[self.collection].find_one(query)
+        if obj:
+            return self.load_from_dict(obj)
+        return None
+
+    def contents(self):
+        base_content = {
+            "id": str(self._id),
+            "title": self.title,
+            "categories": self.categories,
+            "description": self.description,
+            "image": self.image,
+            "total_days": self.total_days,
+        }
+        
+        # For the plan overview, just return the sheet IDs
+        if self.title == "Mindful Healing After Loss":
+            base_content["content"] = self.content
+        else:
+            base_content["content"] = self.content
+            
+        return base_content
+
+    def get_day_content(self, day_number):
+        """Get the sheet content for a specific day"""
+        from sefaria.sheets import get_sheet_for_panel
+        
+        day_key = f"day {day_number}"
+        if day_key not in self.content:
+            return None
+            
+        sheet_id = self.content[day_key]
+        if day_key not in self.sheet_contents:
+            try:
+                self.sheet_contents[day_key] = get_sheet_for_panel(sheet_id)
+            except Exception as e:
+                return None
+                
+        return self.sheet_contents[day_key]
+
+class PlanSet:
+    def __init__(self, query=None):
+        self.query = query or {}
+        
+    def contents(self):
+        plans = []
+        for obj in db['plans'].find(self.query):
+            plan = Plan(obj)
+            plans.append(plan.contents())
+        return plans
+
+    @classmethod
+    def get_all_plans(cls):
+        return cls().array()
+
+    @classmethod
+    def get_plan_by_id(cls, plan_id):
+        return cls().filter({"id": plan_id}).first() 

@@ -258,6 +258,7 @@
     "forget.mismatch_password": "The two password fields didn’t match.",
     "header.topic": "Topics",
     "header.text": "Texts",
+    "header.plans": "Plans",
     "add_source.tool_tip_1":"Type the name of the text and its chapter and segment.",
     "add_source.tool_tip_2":"Example: Prayer of Kuntu Zangpo 1.4",
     "header.community": "Community",
