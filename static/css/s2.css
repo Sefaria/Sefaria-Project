@@ -16718,6 +16718,11 @@ span.ref-link-color-3 {
     width: 100%;
     transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  .plan-progression-sheet-content .sheetContent * { 
+    font-size: 1.4rem !important;
+    font-family: adobe-garamond-pro !important;
+  }
   
   
 

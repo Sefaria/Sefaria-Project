@@ -142,6 +142,7 @@ const PlanProgression = () => {
           {isLoading ? (
             <div>Loading day content...</div>
           ) : sheetData && sheetData.content ? (
+            <div className="plan-progression-sheet-content">
             <Sheet
               id={sheetData.sheet_id}
               data={sheetData.content}
@@ -156,6 +157,7 @@ const PlanProgression = () => {
               divineNameReplacement="noSub"
               openSheet={openSheet}
             />
+            </div>
           ) : (
             <div>No content available for this day</div>
           )}
