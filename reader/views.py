@@ -4215,6 +4215,27 @@ def community_reset(request):
     return community_page(request, props={"community": community, "communityPreview": date})
 
 
+def plans_page(request, props={}):
+    """
+    Plans Page - Displays a simple 'hi' for now.
+    """
+    title = "Plans | Pecha"
+    desc = "Explore plans on Pecha."
+    data = plans_page_data(request, language=request.interfaceLang)
+    data.update(props)  # Merge with any passed-in props
+    return menu_page(request, page="plans", props=data, title=title, desc=desc)
+
+
+# plan page helper function
+def plans_page_data(request, language="english"):
+    """
+    Prepare data for the Plans page.
+    For now, returns an empty dict since we only need to display 'hi'.
+    """
+    data = {}
+    return data
+
+
 def new_home_redirect(request):
     """ Redirect old /new-home urls to / """
     return redirect("/")

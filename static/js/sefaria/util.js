@@ -201,6 +201,7 @@ class Util {
     }
 
     static naturalTime(timeStamp, {lang, short} = {}) {
+
         const now = Util.epoch_time();
         const duration = now - timeStamp; // Calculate duration in seconds
         const hours12InSeconds = 12 * 60 * 60; // 12 hours in seconds
