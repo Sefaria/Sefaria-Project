@@ -5,8 +5,44 @@ import os
 
 IMAGE_PATH = './images'
 FONT_PATHS = {
-    'Uchen1': 'static/fonts/wujin+gangbi.ttf',
+    "ar": "static/fonts/Noto-font/NotoFont-ar.ttf",
+    "bn": "static/fonts/Noto-font/NotoFont-bn.ttf",
+    "bo": "static/fonts/wujin+gangbi.ttf",
+    "de": "static/fonts/Noto-font/NotoFont-de.ttf",
+    "dz": "static/fonts/Noto-font/NotoFont-dz.ttf",
+    "en": "static/fonts/Noto-font/NotoFont-en.ttf",
+    "es": "static/fonts/Noto-font/NotoFont-es.ttf",
+    "fa": "static/fonts/Noto-font/NotoFont-fa.ttf",
+    "fr": "static/fonts/Noto-font/NotoFont-fr.ttf",
+    "gu": "static/fonts/Noto-font/NotoFont-gu.ttf",
+    "he": "static/fonts/wujin+gangbi.ttf",
+    "hi": "static/fonts/Noto-font/NotoFont-hi.ttf",
+    "hy": "static/fonts/Noto-font/NotoFont-hy.ttf",
+    "it": "static/fonts/Noto-font/NotoFont-it.ttf",
+    "ja": "static/fonts/Noto-font/NotoFont-ja.ttf",
+    "ka": "static/fonts/Noto-font/NotoFont-ka.ttf",
+    "km": "static/fonts/Noto-font/NotoFont-km.ttf",
+    "kn": "static/fonts/Noto-font/NotoFont-kn.ttf",
+    "ko": "static/fonts/Noto-font/NotoFont-ko.ttf",
+    "lo": "static/fonts/Noto-font/NotoFont-lo.ttf",
+    "ml": "static/fonts/Noto-font/NotoFont-ml.ttf",
+    "mn": "static/fonts/Noto-font/NotoFont-mn.ttf",
+    "mr": "static/fonts/Noto-font/NotoFont-mr.ttf",
+    "ms": "static/fonts/Noto-font/NotoFont-general.ttf",
+    "my": "static/fonts/Noto-font/NotoFont-my.ttf",
+    "ne": "static/fonts/Noto-font/NotoFont-ne.ttf",
+    "pa": "static/fonts/Noto-font/NotoFont-pa.ttf",
+    "pt": "static/fonts/Noto-font/NotoFont-pt.ttf",
+    "ru": "static/fonts/Noto-font/NotoFont-ru.ttf",
+    "si": "static/fonts/Noto-font/NotoFont-si.ttf",
+    "ta": "static/fonts/Noto-font/NotoFont-ta.ttf",
+    "th": "static/fonts/Noto-font/NotoFont-th.ttf",
+    "te": "static/fonts/Noto-font/NotoFont-te.ttf",
+    "ur": "static/fonts/Noto-font/NotoFont-ur.ttf",
+    "vi": "static/fonts/Noto-font/NotoFont-general.ttf",
+    "zh": "static/fonts/Noto-font/NotoFont-zh.ttf"
 }
+
 
 class SyntheticImageGenerator:
 
@@ -69,8 +105,11 @@ class SyntheticImageGenerator:
             print(f"Error adding logo: {e}")
             return img
 
-    def save_image(self, text, ref_str, img_file_name, logo_path=None):
-        font_file_name = FONT_PATHS.get(self.font_type, 'Uchen')
+    def save_image(self, text, ref_str, lang, img_file_name, logo_path=None):
+        
+        font_file_name_text = FONT_PATHS.get(self.font_type, 'en')
+        font_file_name_ref = FONT_PATHS.get(self.font_type, 'he') if lang == "he" else FONT_PATHS.get('en')
+
         
         # Create base image with RGBA mode to support transparency
         img = Image.new('RGBA', (self.image_width, self.image_height), 
@@ -87,8 +126,8 @@ class SyntheticImageGenerator:
         else:
             main_size = self.font_size
             
-        main_font = ImageFont.truetype(font_file_name, size=main_size, encoding='utf-16')
-        ref_font = ImageFont.truetype(font_file_name, size=int(main_size/2), encoding='utf-16')
+        main_font = ImageFont.truetype(font_file_name_text, size=main_size, encoding='utf-16')
+        ref_font = ImageFont.truetype(font_file_name_ref, size=int(main_size/2), encoding='utf-16')
         text_color = (255, 255, 255)
 
         # Calculate padding and max width
@@ -138,21 +177,25 @@ def clean_text(text):
     return cleaned_text
 
 
-def create_synthetic_data(text, ref_str, logo_path=None):
+def create_synthetic_data(text, ref_str, lang, version_lang, logo_path=None):
     cleaned_text = clean_text(text)
-    print(f"Cleaned text: {cleaned_text}")
-    print("-"*150, len(cleaned_text))
+    font_type_lang = lang
+    if version_lang:
+        font_type_lang = version_lang
+
     synthetic_image_generator = SyntheticImageGenerator(
         image_width=700,
         image_height=400,
-        font_size=30,
-        font_type="Uchen1",
+        font_size=25,
+        font_type=font_type_lang,
         bg_color="#ac1c22"
     )
-    synthetic_image_generator.save_image(cleaned_text, ref_str, "output.png", logo_path)
+    synthetic_image_generator.save_image(cleaned_text, ref_str, lang, "output.png", logo_path)
         
 
 if __name__ == "__main__":
     text = os.environ.get('PECHA_TEXT', "Default text")
     ref_str = os.environ.get('PECHA_REF', "Default ref")
-    create_synthetic_data(text, ref_str, logo_path="static/img/pecha-icon.png")
+    version_lang = os.environ.get('PECHA_VERSION_LANG', None)
+    lang = os.environ.get('PECHA_LANG', None)
+    create_synthetic_data(text, ref_str, lang, version_lang, logo_path="static/img/pecha-icon.png")
