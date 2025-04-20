@@ -53,7 +53,13 @@ STATIC_ROOT = '/app/static-collected'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+def get_static_url():
+    if os.getenv('FRONT_END_URL'):
+        return os.getenv('FRONT_END_URL').replace('http://', 'https://') + '/static/'
+    else:
+        return '/static/'
+STATIC_URL = get_static_url()
+
 
 # List of finder classes that know how to find static files in
 # various locations.
