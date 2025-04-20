@@ -4778,7 +4778,7 @@ def application_health_api(request):
         except SystemError as ivne:
             return False
 
-    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable() and is_database_reachable()
+    allReady = isRedisReachable() and isMultiserverReachable() and is_database_reachable()
 
     resp = {
         'allReady': allReady,
