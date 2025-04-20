@@ -34,6 +34,7 @@ FONT_PATHS = {
     "pa": "static/fonts/Noto-font/NotoFont-pa.ttf",
     "pt": "static/fonts/Noto-font/NotoFont-pt.ttf",
     "ru": "static/fonts/Noto-font/NotoFont-ru.ttf",
+    "sa": "static/fonts/Noto-font/NotoFont-hi.ttf",
     "si": "static/fonts/Noto-font/NotoFont-si.ttf",
     "ta": "static/fonts/Noto-font/NotoFont-ta.ttf",
     "th": "static/fonts/Noto-font/NotoFont-th.ttf",

@@ -16,6 +16,7 @@ import redis
 import os
 import re
 import uuid
+import langdetect
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -1697,7 +1698,13 @@ def social_image_api(request, tref):
         match = re.search(r"\[(.*?)\]", version_title)
         if match:
             version_lang = match.group(1)
+    
+    if not version_title and lang == "en":
+        version_lang = 'he'
+        lang = 'he'
 
+    print("version_lang", version_lang)
+    
     platform = request.GET.get("platform", "facebook")
 
     try:
@@ -1707,17 +1714,17 @@ def social_image_api(request, tref):
         tf = TextFamily(ref, stripItags=True, lang=lang, version=version_title, context=0, commentary=False).contents()
         he_text = tf["he"] if type(tf["he"]) is list else [tf["he"]]
         en_text = tf["text"] if type(tf["text"]) is list else [tf["text"]]
-        text = en_text if lang == "en" else he_text
 
-        print("text >>>>>>>>>>>", text)
+        text = en_text if lang == "en" else he_text
+    
         text = ' '.join(text)
         cat = tf["primary_category"]
-
+        
     except Exception as e:
         text = None
         cat = None
         ref_str = None
-
+    print("lang", lang)
     res = make_img_http_response(text, cat, ref_str, lang, version_lang, platform)
 
     return res
