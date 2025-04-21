@@ -12145,6 +12145,7 @@ span.purim-emoji img {
     color: #999;
     position: absolute;
     pointer-events: none;
+
 }
 
 .sheetItem:only-of-type.empty .placeholder::before {
@@ -12186,6 +12187,7 @@ span.purim-emoji img {
     width: 30px;
     height: 30px;
     transform: rotate(45deg);
+    margin-top:0;
     background-color: white;
     background-image: url("/static/icons/heavy-x-dark.svg");
     border: 1px solid var(--light-grey);
@@ -12366,11 +12368,12 @@ span.purim-emoji img {
     box-shadow: none;
     box-sizing: border-box;
     font-size: 22px;
-    padding-inline-start: 30px;
+    padding-inline-start: 35px;
     padding-top: revert;
     margin-inline-end: 20px;
-    background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
+    background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 10px top 15px;
     background-color: var(--lighter-grey);
+    height: 45px;
 }
 
 .topicSearch.addInterfaceInput {
@@ -12411,7 +12414,7 @@ span.purim-emoji img {
 }
 
 .addInterfaceInput.mediaInput input {
-    background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
+    background: url("/static/icons/link_grey.svg") no-repeat scroll left 10px top 15px;
     background-color: var(--lighter-grey);
 }
 
@@ -16187,6 +16190,40 @@ span.ref-link-color-3 {
     border-radius: 12px;
     font-weight: 500;
     color: #666;
+  }
+
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  
+  .page-btn {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  
+  .page-btn:hover:not(.active):not(:disabled) {
+    background: var(--pecha-red);
+  }
+  
+  .page-btn.active {
+    background: var(--pecha-red);
+    color: white;
+    font-weight: bold;
+  }
+  
+  .page-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
   
   .categorySeparator {

@@ -697,11 +697,15 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationTopicTitle": None,
     }
     if sheet == None:
-        title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
+        # Get display mode from request parameters at the start since we'll use it in multiple places
+        display_mode = request.GET.get("displayMode", "source")  # default to source if not specified
+        
+        # Use display mode to determine which title to show
+        title = primary_ref.he_normal() if display_mode == "source" else primary_ref.normal()
         breadcrumb = ld_cat_crumbs(request, oref=primary_ref)
-
+    
         if primary_ref.is_book_level():
-            if request.interfaceLang == "hebrew":
+            if display_mode == "source":
                 desc = getattr(primary_ref.index, 'heDesc', "")
                 book = primary_ref.he_normal()
             else:
@@ -709,7 +713,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 book = primary_ref.normal()
             read = "Read the text of %(book)s online with commentaries and connections." % {'book': book}
             desc = desc + " " + read if desc else read
-
+    
         else:
             segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
             try:
@@ -719,15 +723,17 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                     enText) else ""  # get english text for section if it exists
                 heDesc = heText[segmentIndex] if segmentIndex < len(
                     heText) else ""  # get hebrew text for section if it exists
-                if request.interfaceLang == "hebrew":
-                    desc = heDesc or enDesc  # if no hebrew, fall back on hebrew
-                else:
-                    desc = enDesc or heDesc  # if no english, fall back on hebrew
-
+                
+                # Use display mode to determine which text to show
+                if display_mode == "source":
+                    desc = heDesc or enDesc  # use Hebrew (source) text, fall back to English if needed
+                else:  # translation mode
+                    desc = enDesc or heDesc  # use English (translation) text, fall back to Hebrew if needed
+    
                 desc = bleach.clean(desc, strip=True, tags=())
                 desc = desc[:160].rsplit(' ', 1)[
                            0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
-
+    
             except (IndexError, KeyError):
                 desc = "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 
@@ -822,9 +828,9 @@ def topics_category_page(request, topicCategory):
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + (
-        "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+        "Texts & Source Sheets from Pecha's library of Buddhist sources.")
     desc = (
-        "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {
+        "Buddhist texts and source sheets about %(topic)s from Pecha's library.") % {
                'topic': topic_obj.get_primary_title(short_lang)}
 
     return render_template(request, 'base.html', props, {
@@ -3287,9 +3293,9 @@ def topic_page(request, topic, test_version=None):
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + (
-        "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+        "Texts & Source Sheets from Pecha's library of Buddhist's sources.")
     desc = (
-        "Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {
+        "Buddhist texts and source sheets about %(topic)s from Pecha's library.") % {
                'topic': topic_obj.get_primary_title(short_lang)}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
@@ -4590,72 +4596,40 @@ def search_sheet(query):
                 }
             }, {
                 '$project': {
-                    'owner': '$owner', 
-                    'id': '$id', 
-                    'title': '$title', 
-                    'sources': {
-                        '$map': {
-                            'input': '$sources', 
-                            'as': 'source', 
-                            'in': {
-                                '$cond': [
-                                    {
-                                        '$or': [
-                                            {
-                                                '$regexMatch': {
-                                                    'input': '$$source.outsideBiText.en', 
-                                                    'regex': query, 
-                                                    'options': 'i'
-                                                }
-                                            }, {
-                                                '$regexMatch': {
-                                                    'input': '$$source.outsideBiText.he', 
-                                                    'regex': query, 
-                                                    'options': 'i'
-                                                }
-                                            }
-                                        ]
-                                    }, {
-                                        'outsideBiText': {
-                                            '$cond': [
-                                                {
-                                                    '$regexMatch': {
-                                                        'input': '$$source.outsideBiText.en', 
-                                                        'regex': query, 
-                                                        'options': 'i'
-                                                    }
-                                                }, {
-                                                    'en': '$$source.outsideBiText.en'
-                                                }, {
-                                                    'he': '$$source.outsideBiText.he'
-                                                }
-                                            ]
-                                        }, 
-                                        'node': '$$source.node'
-                                    }, '$$REMOVE'
-                                ]
-                            }
-                        }
-                    }
-                }
-            }, {
-                '$project': {
-                    'sheet_id': '$id', 
-                    'title': '$title', 
-                    'owner_id': '$owner', 
+                    'id': 1, 
+                    'title': 1, 
+                    'owner': 1, 
                     'sources': {
                         '$filter': {
                             'input': '$sources', 
                             'as': 'source', 
                             'cond': {
-                                '$or': {
-                                    '$ne': [
-                                        '$$source', None
-                                    ]
-                                }
+                                '$or': [
+                                    {
+                                        '$regexMatch': {
+                                            'input': '$$source.outsideBiText.en', 
+                                            'regex': query, 
+                                            'options': 'i'
+                                        }
+                                    }, {
+                                        '$regexMatch': {
+                                            'input': '$$source.outsideBiText.he', 
+                                            'regex': query, 
+                                            'options': 'i'
+                                        }
+                                    }
+                                ]
                             }
                         }
                     }
+                }
+            }, 
+            {
+                '$project': {
+                    'sheet_id': '$id', 
+                    'title': 1, 
+                    'owner_id': '$owner', 
+                    'sources': 1
                 }
             }
         ]
@@ -4668,62 +4642,60 @@ def search_sheet(query):
 def search_text(chapter_query,title_query):
     result = []
     if chapter_query:
-        # data = json.loads(request.body)
-        # query = data.get('query', '')
-        print("query: ", chapter_query, "title", title_query)
         query = [
-          {
-            "$unwind": {
-              "path": "$chapter",
-              "includeArrayIndex": "outerIndex"
-            }
-          },
-          {
-            "$unwind": {
-              "path": "$chapter",
-              "includeArrayIndex": "innerIndex"
-            }
-          },
-          {
-            "$addFields": {
-              "outerIndex": { "$add": ["$outerIndex", 1] },
-              "innerIndex": { "$add": ["$innerIndex", 1] }
-            }
-          },
-          {
-            "$match": {
-                "$and": [
-                  { "title": { "$regex": title_query, "$options": "i" } },
-                  { "chapter": { "$regex": chapter_query, "$options": "i" } }
-                ]
-            }
-          },
-          {
-            "$group": {
-              "_id": "$_id",
-              "language": { "$first": "$language" },
-              "title": { "$first": "$title" },
-              "versionSource": { "$first": "$versionSource" },
-              "versionTitle": { "$first": "$versionTitle" },
-              "iscompleted": { "$first": "$iscompleted" },
-              "actualLanguage": { "$first": "$actualLanguage" },
-              "languageFamilyName": { "$first": "$languageFamilyName" },
-              "direction": { "$first": "$direction" },
-              "matchingChapters": {
-                "$push": {
-                  "chapter": "$chapter",
-                  "index": {
-                    "$concat": [
-                      { "$toString": "$outerIndex" },
-                      ".",
-                      { "$toString": "$innerIndex" }
-                    ]
-                  }
+            {
+                "$unwind": {
+                    "path": "$chapter",
+                    "includeArrayIndex": "outerIndex"
                 }
-              }
+            },
+            {
+                "$unwind": {
+                    "path": "$chapter",
+                    "includeArrayIndex": "innerIndex"
+                }
+            },
+            {
+                "$addFields": {
+                "outerIndex": { "$add": ["$outerIndex", 1] },
+                "innerIndex": { "$add": ["$innerIndex", 1] }
+                }
+            },
+            {
+                "$match": {
+                    "$and": [
+                        { "title": { "$regex": title_query, "$options": "i" } },
+                        { "chapter": { "$regex": chapter_query, "$options": "i" } }
+                    ]
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$_id",
+                    "language": { "$first": "$language" },
+                    "title": { "$first": "$title" },
+                    "versionSource": { "$first": "$versionSource" },
+                    "versionTitle": { "$first": "$versionTitle" },
+                    "iscompleted": { "$first": "$iscompleted" },
+                    "actualLanguage": { "$first": "$actualLanguage" },
+                    "languageFamilyName": { "$first": "$languageFamilyName" },
+                    "direction": { "$first": "$direction" },
+                    "matchingChapters": {
+                        "$push": {
+                            "chapter": "$chapter",
+                            "index": {
+                                "$concat": [
+                                    { "$toString": "$outerIndex" },
+                                    ".",
+                                    { "$toString": "$innerIndex" }
+                                ]
+                            }
+                        }
+                    }
+                }   
             }
-          }
         ]
+
         result = list(db.texts.aggregate(query))
         for item in result:
             item.pop('_id', None)
@@ -4731,28 +4703,27 @@ def search_text(chapter_query,title_query):
 
 @csrf_exempt
 def mongo_search_api(request):
-    print(">>>>>>>>>>>>>>>>>>>>>text and sheet search from mongo>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",request.method)
     result = {
         "text": "",
         "sheet": "",
     }
-    if(request.method == "GET"):
+    if request.method == "GET":
         try:
             chapter_query = urllib.parse.unquote(request.GET.get('chapterQuery', ''))
-            title_query =  urllib.parse.unquote(request.GET.get('titleQuery', ''))
-
-            text = search_text(chapter_query,title_query)
+            title_query = urllib.parse.unquote(request.GET.get('titleQuery', ''))
+          
+            # Search with pagination
+            text = search_text(chapter_query, title_query)
             sheet = search_sheet(chapter_query)
 
             result["text"] = text
             result["sheet"] = sheet
-
+            
             return jsonResponse({'status': 'success', 'result': result})
         
         except Exception as e:
             print({'status': 'error', 'message': str(e)})
             return jsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
 
 @csrf_exempt
 def search_wrapper_api(request, es6_compat=False):
