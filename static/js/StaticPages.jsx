@@ -1765,140 +1765,156 @@ const DonatePage = () => (
   </StaticPage>
 );
 
-const WordByWordPage = () => (
-  <StaticPage optionalClass="donate wordbyword">
-    {/* Make the text look proper on the Hebrew version of the page since there is no Hebrew currently */}
-    <style>
-        {`
-          #content.interface-hebrew * {
-            text-align: left;
-            direction: ltr;
-          }
-        `}
-    </style>
-    <div className="staticPageHeader wordbyword">
-      <div className="staticPageBlockInner flexContainer">
-        <div className="staticPageHeaderTextBox donate">
-          <h1>
-            <span className="int-en">{"Word-by-Word: A Jewish Women's Writing Circle"}</span>
-            <span className="int-he">{"Word-by-Word: A Jewish Women's Writing Circle"}</span>
-          </h1>
-          <div className="staticPageHeaderText"><em>"...I am grateful to God for this gift, this possibility of developing myself and of writing, of expressing all that is in me."</em><br/>- Anne Frank</div>
-        </div>
-      </div>
-    </div>
-
-
-    <div className="staticPageCallToActionFooter">
-      <div className="staticPageBlockInner flexContainer light">
-          <div className="msgToSupportersEven">
-
-              <p>Word-by-Word: A Jewish Women's Writing Circle supports a group of 20 talented Jewish women writers with resources, guidance, community, and a yearly stipend as they work toward the completion of a book of textual analysis that will be a significant contribution to any Jewish library. Led and created by Dr. Erica Brown and Sara Wolkenfeld, Word-by-Word offers its writers expert coaching, peer workshopping, and other opportunities that enrich and enable their writing process.</p>
-              <p><em>This program is generously funded by Micah Philanthropies, Walder Foundation, The Covenant Foundation, and the Arev Fund.</em></p>
-
+const WordByWordPage = () => {
+    const titleText = "Word-by-Word: A Jewish Women's Writing Circle";
+    const benefitsText = "<p>Fellows attend regular meetings that feature peer workshopping and a diverse roster of visiting speakers. Each writer is allotted 10 hours of one-on-one coaching per year with a professional of their choice. Every summer, fellows enjoy an in-person retreat that allows them to strengthen their relationships with each other as well as their work; participate in craft-specific workshops; hear from industry and creative professionals; and engage in intense, undisturbed writing time.</p>";
+    const fellowsText = "<p>The Word-by-Word cohort represents three different continents and includes writers with expertise in Tanakh, Talmud, medieval scholarship, and halakhah. Their manuscripts span a wide range of topics, voices, and target audiences.</p>";
+    const speakersText = "<p>Dan Friedman</p>\n<p>Sarah Hurwitz</p>\n<p>Sharon Mazel</p>\n<p>Mark Oppenheimer</p>\n<p>Eli Sacks</p>\n<p>Jeffrey Saks</p>\n<p>Penina Eilberg Schwartz</p>\n<p>Abraham Socher</p>\n<p>Elana Stein Hain</p>\n<p>Gillian Steinberg</p>\n<p>Reuven and Yael Ziegler</p>";
+    
+    const saraTitle = "Sara Wolkenfeld — Program Leader";
+    const saraText = "Sara Wolkenfeld is the Chief Learning Officer at Sefaria, an online database and interface for Jewish texts. Sara is a member of Class Six of the Wexner Field Fellowship and an alumna of the David Hartman Center at the Hartman Institute of North America. Her current research and writing focus on the intersection between Jewish ethics and advancements in technology. Sara's writing has been published in The Atlantic, First Things, and Religion Dispatches, as well as numerous Jewish publications.";
+    const saraImg = "/static/img/sara_circle.png";
+    const saraImgAlt = "Sara Wolkenfeld headshot";
+    
+    const ericaTitle = "Erica Brown — Program Leader";
+    const ericaText = "Dr. Erica Brown is the Vice Provost for Values and Leadership at Yeshiva University and the founding director of its Rabbi Lord Jonathan Sacks-Herenstein Center for Values and Leadership. Her latest book is Morning Has Broken: Faith After October 7th (Toby/Koren). She is also the author of The Torah of Leadership (Maggid), Kohelet and the Search for Meaning (Maggid), Happier Endings (Simon and Schuster), which received the Wilbur and Nautilus Awards for spiritual writing, and 13 other books, two of which were finalists for the National Jewish Book Award. She has been published in the New York Times, the Atlantic, Tablet, First Things, and the Jewish Review of Books. Erica was a Jerusalem Fellow, an Avi Chai Fellow, the recipient of the 2009 Covenant Award, and is a faculty member of the Wexner Foundation.";
+    const ericaImg = "/static/img/ericabrown_circle 1.png";
+    const ericaImgAlt = "Erica Brown headshot";
+    
+    const aliciaTitle = "Alicia Oltuski — Project Manager";
+    const aliciaText = "Alicia Oltuski is a writer and speaker. Her work has appeared on Esquire.com, NewYorker.com, W Magazine, and elsewhere. She holds an MFA from Columbia University and has lectured at the Johns Hopkins University Advanced Academic Programs Master of Arts in Writing program.";
+    
+    const aboutProgramText = "About the Program";
+    const benefitsTitleText = "Benefits";
+    const fellowsTitleText = "Fellows";
+    const speakersTitleText = "Selected Speakers";
+    const leadershipText = "Word-by-Word Leadership";
+    
+    const ctaText = "Learn more about our authors and their work.";
+    const ctaButtonText = "Learn about our authors";
+    const ctaHref = "https://www.sefaria.org/sheets/485180?lang=bi";
+  
+    return (
+      <StaticPage optionalClass="donate wordbyword">
+        {/* Make the text look proper on the Hebrew version of the page since there is no Hebrew currently */}
+        <style>
+            {`
+              #content.interface-hebrew * {
+                text-align: left;
+                direction: ltr;
+              }
+            `}
+        </style>
+        <div className="staticPageHeader wordbyword">
+          <div className="staticPageBlockInner flexContainer">
+            <div className="staticPageHeaderTextBox donate">
+              <h1>
+                <span className="int-en">{titleText}</span>
+                <span className="int-he">{titleText}</span>
+              </h1>
+              <div className="staticPageHeaderText"><em>"...I am grateful to God for this gift, this possibility of developing myself and of writing, of expressing all that is in me."</em><br/>- Anne Frank</div>
+            </div>
           </div>
-      </div>
-    </div>
-
-    <GreyBox>
-      <H2Block en="About the Program" he="" />
-      <div className="staticPageBlockInner flexContainer">
-          <ResponsiveNBox
-            threshold3={768}
-            threshold2={500}
-            gap="10px"
-            stretch={true}
-            content={[
-                <HeaderWithColorAccentBlockAndText
-                    enTitle="Benefits"
-                    heTitle="Benefits"
-                    enText="<p>Fellows attend regular meetings that feature peer workshopping and a diverse roster of visiting speakers. Each writer is allotted 10 hours of one-on-one coaching per year with a professional of their choice. Every summer, fellows enjoy an in-person retreat that allows them to strengthen their relationships with each other as well as their work; participate in craft-specific workshops; hear from industry and creative professionals; and engage in intense, undisturbed writing time.</p>"
-                    heText="<p>Fellows attend regular meetings that feature peer workshopping and a diverse roster of visiting speakers. Each writer is allotted 10 hours of one-on-one coaching per year with a professional of their choice. Every summer, fellows enjoy an in-person retreat that allows them to strengthen their relationships with each other as well as their work; participate in craft-specific workshops; hear from industry and creative professionals; and engage in intense, undisturbed writing time.</p>"
-                    colorBar="#AB4E66"
-                />,
-                <HeaderWithColorAccentBlockAndText
-                    enTitle="Fellows"
-                    heTitle=""
-                    enText="<p>The Word-by-Word cohort represents three different continents and includes writers with expertise in Tanakh, Talmud, medieval scholarship, and halakhah. Their manuscripts span a wide range of topics, voices, and target audiences.</p>"
-                    heText=""
-                    colorBar="#D4896C"
-                />,
-                <HeaderWithColorAccentBlockAndText
-                    enTitle="Selected Speakers"
-                    heTitle=""
-                    enText="<p>Dan Friedman</p>
-                            <p>Sarah Hurwitz</p>
-                            <p>Sharon Mazel</p>
-                            <p>Mark Oppenheimer</p>
-                            <p>Eli Sacks</p>
-                            <p>Jeffrey Saks</p>
-                            <p>Penina Eilberg Schwartz</p>
-                            <p>Abraham Socher</p>
-                            <p>Elana Stein Hain</p>
-                            <p>Gillian Steinberg</p>
-                            <p>Reuven and Yael Ziegler</p>"
-                    heText=""
-                    colorBar="#CCB479"
-                />
-            ]}
-          />
-      </div>
-      <Spacer/>
-    </GreyBox>
-
-    <GreyBox light={true}>
-      <H2Block en="Word-by-Word Leadership" he=""/>
-    </GreyBox>
-    
-    <Feature
-        enTitle="Sara Wolkenfeld — Program Leader"
-        enText="Sara Wolkenfeld is the Chief Learning Officer at Sefaria, an online database and interface for Jewish texts. Sara is a member of Class Six of the Wexner Field Fellowship and an alumna of the David Hartman Center at the Hartman Institute of North America. Her current research and writing focus on the intersection between Jewish ethics and advancements in technology. Sara's writing has been published in The Atlantic, First Things, and Religion Dispatches, as well as numerous Jewish publications."
-        enImg="/static/img/sara_circle.png"
-        enImgAlt="Sara Wolkenfeld headshot"
-        heTitle=""
-        heText=""
-        heImg=""
-        heImgAlt=""
-        borderColor="#004E5F"
-    />
-
-    <Feature
-        enTitle="Erica Brown — Program Leader"
-        enText="Dr. Erica Brown is the Vice Provost for Values and Leadership at Yeshiva University and the founding director of its Rabbi Lord Jonathan Sacks-Herenstein Center for Values and Leadership. Her latest book is Morning Has Broken: Faith After October 7th (Toby/Koren). She is also the author of The Torah of Leadership (Maggid), Kohelet and the Search for Meaning (Maggid), Happier Endings (Simon and Schuster), which received the Wilbur and Nautilus Awards for spiritual writing, and 13 other books, two of which were finalists for the National Jewish Book Award. She has been published in the New York Times, the Atlantic, Tablet, First Things, and the Jewish Review of Books. Erica was a Jerusalem Fellow, an Avi Chai Fellow, the recipient of the 2009 Covenant Award, and is a faculty member of the Wexner Foundation."
-        enImg="/static/img/ericabrown_circle 1.png"
-        enImgAlt="Erica Brown headshot"
-        heTitle=""
-        heText=""
-        heImg=""
-        heImgAlt=""
-        borderColor="#004E5F"
-    />
-    
-    <Feature
-        enTitle="Alicia Oltuski — Project Manager"
-        enText="Alicia Oltuski is a writer and speaker. Her work has appeared on Esquire.com, NewYorker.com, W Magazine, and elsewhere. She holds an MFA from Columbia University and has lectured at the Johns Hopkins University Advanced Academic Programs Master of Arts in Writing program."
-        enImg=""
-        enImgAlt=""
-        heTitle=""
-        heText=""
-        heImg=""
-        heImgAlt=""
-        borderColor="#004E5F"
-    />
-
-    <CallToActionFooterWithButton
-        href="https://www.sefaria.org/sheets/485180?lang=bi"
-        he_href=""
-        enText="Learn more about our authors and their work."
-        heText=""
-        enButtonText="Learn about our authors"
-        heButtonText=""
-        newTab={true}
-    />
-
-  </StaticPage>
-);
-
+        </div>
+  
+        <div className="staticPageCallToActionFooter">
+          <div className="staticPageBlockInner flexContainer light">
+              <div className="msgToSupportersEven">
+                  <p>Word-by-Word: A Jewish Women's Writing Circle supports a group of 20 talented Jewish women writers with resources, guidance, community, and a yearly stipend as they work toward the completion of a book of textual analysis that will be a significant contribution to any Jewish library. Led and created by Dr. Erica Brown and Sara Wolkenfeld, Word-by-Word offers its writers expert coaching, peer workshopping, and other opportunities that enrich and enable their writing process.</p>
+                  <p><em>This program is generously funded by Micah Philanthropies, Walder Foundation, The Covenant Foundation, and the Arev Fund.</em></p>
+              </div>
+          </div>
+        </div>
+  
+        <GreyBox>
+          <H2Block en={aboutProgramText} he={aboutProgramText} />
+          <div className="staticPageBlockInner flexContainer">
+              <ResponsiveNBox
+                threshold3={768}
+                threshold2={500}
+                gap="10px"
+                stretch={true}
+                content={[
+                    <HeaderWithColorAccentBlockAndText
+                        enTitle={benefitsTitleText}
+                        heTitle={benefitsTitleText}
+                        enText={benefitsText}
+                        heText={benefitsText}
+                        colorBar="#AB4E66"
+                    />,
+                    <HeaderWithColorAccentBlockAndText
+                        enTitle={fellowsTitleText}
+                        heTitle={fellowsTitleText}
+                        enText={fellowsText}
+                        heText={fellowsText}
+                        colorBar="#D4896C"
+                    />,
+                    <HeaderWithColorAccentBlockAndText
+                        enTitle={speakersTitleText}
+                        heTitle={speakersTitleText}
+                        enText={speakersText}
+                        heText={speakersText}
+                        colorBar="#CCB479"
+                    />
+                ]}
+              />
+          </div>
+          <Spacer/>
+        </GreyBox>
+  
+        <GreyBox light={true}>
+          <H2Block en={leadershipText} he={leadershipText}/>
+        </GreyBox>
+        
+        <Feature
+            enTitle={saraTitle}
+            enText={saraText}
+            enImg={saraImg}
+            enImgAlt={saraImgAlt}
+            heTitle={saraTitle}
+            heText={saraText}
+            heImg={saraImg}
+            heImgAlt={saraImgAlt}
+            borderColor="#004E5F"
+        />
+  
+        <Feature
+            enTitle={ericaTitle}
+            enText={ericaText}
+            enImg={ericaImg}
+            enImgAlt={ericaImgAlt}
+            heTitle={ericaTitle}
+            heText={ericaText}
+            heImg={ericaImg}
+            heImgAlt={ericaImgAlt}
+            borderColor="#004E5F"
+        />
+        
+        <Feature
+            enTitle={aliciaTitle}
+            enText={aliciaText}
+            enImg=""
+            enImgAlt=""
+            heTitle={aliciaTitle}
+            heText={aliciaText}
+            heImg=""
+            heImgAlt=""
+            borderColor="#004E5F"
+        />
+  
+        <CallToActionFooterWithButton
+            href={ctaHref}
+            he_href={ctaHref}
+            enText={ctaText}
+            heText={ctaText}
+            enButtonText={ctaButtonText}
+            heButtonText={ctaButtonText}
+            newTab={true}
+        />
+  
+      </StaticPage>
+    );
+  };
 
 const PoweredByPage = () => (
     <StaticPage optionalClass="englishOnly">
