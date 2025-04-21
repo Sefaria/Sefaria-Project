@@ -47,6 +47,7 @@ urlpatterns = [
     url(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
+    url(r'^sheets/notifications/?$', reader_views.notifications),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^modtools/links$', sefaria_views.links_upload_api),
