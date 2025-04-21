@@ -22,10 +22,9 @@ def shorturl_api(request):
     # --------- POST ---------
     if request.method == 'POST':
         try:
-            json_data = json.loads(request.body.decode('utf-8'))
+            json_data = json.loads(request.body)
         except json.JSONDecodeError:
             return jsonResponse({'error': 'Invalid JSON'}, status=400)
-        print("my data >>>>>>>>>>>>>>>>>>>>", json_data)
         if not json_data:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
