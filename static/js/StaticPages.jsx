@@ -1825,7 +1825,7 @@ const WordByWordPage = () => (
                             <p>Jeffrey Saks</p>
                             <p>Penina Eilberg Schwartz</p>
                             <p>Abraham Socher</p>
-                            <p>Elana Stein</p>
+                            <p>Elana Stein Hain</p>
                             <p>Gillian Steinberg</p>
                             <p>Reuven and Yael Ziegler</p>"
                     heText=""
