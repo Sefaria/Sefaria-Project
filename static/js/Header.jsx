@@ -256,10 +256,9 @@ class Header extends Component {
             openURL={this.props.openURL}
         />
 
-
-        { Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
-
+        {!Sefaria._uid && this.props.module === "library" && <SignUpButton/>}
         {this.props.module === "sheets" && <CreateButton />}
+        { Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
 
         { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
@@ -667,6 +666,14 @@ const HelpButton = () => {
     </div>
   );
 };
+
+const SignUpButton = () => {
+  return (
+    <a href="/register">
+      <InterfaceText>Sign Up</InterfaceText>
+    </a>
+  )
+}
 
 const CreateButton = () => {
   return (
