@@ -1767,12 +1767,21 @@ const DonatePage = () => (
 
 const WordByWordPage = () => (
   <StaticPage optionalClass="donate wordbyword">
-
+    {/* Make the text look proper on the Hebrew version of the page since there is no Hebrew currently */}
+    <style>
+        {`
+          #content.interface-hebrew * {
+            text-align: left;
+            direction: ltr;
+          }
+        `}
+    </style>
     <div className="staticPageHeader wordbyword">
       <div className="staticPageBlockInner flexContainer">
         <div className="staticPageHeaderTextBox donate">
           <h1>
             <span className="int-en">{"Word-by-Word: A Jewish Women's Writing Circle"}</span>
+            <span className="int-he">{"Word-by-Word: A Jewish Women's Writing Circle"}</span>
           </h1>
           <div className="staticPageHeaderText"><em>"...I am grateful to God for this gift, this possibility of developing myself and of writing, of expressing all that is in me."</em><br/>- Anne Frank</div>
         </div>
@@ -1802,9 +1811,9 @@ const WordByWordPage = () => (
             content={[
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Benefits"
-                    heTitle=""
+                    heTitle="Benefits"
                     enText="<p>Fellows attend regular meetings that feature peer workshopping and a diverse roster of visiting speakers. Each writer is allotted 10 hours of one-on-one coaching per year with a professional of their choice. Every summer, fellows enjoy an in-person retreat that allows them to strengthen their relationships with each other as well as their work; participate in craft-specific workshops; hear from industry and creative professionals; and engage in intense, undisturbed writing time.</p>"
-                    heText=""
+                    heText="<p>Fellows attend regular meetings that feature peer workshopping and a diverse roster of visiting speakers. Each writer is allotted 10 hours of one-on-one coaching per year with a professional of their choice. Every summer, fellows enjoy an in-person retreat that allows them to strengthen their relationships with each other as well as their work; participate in craft-specific workshops; hear from industry and creative professionals; and engage in intense, undisturbed writing time.</p>"
                     colorBar="#AB4E66"
                 />,
                 <HeaderWithColorAccentBlockAndText
