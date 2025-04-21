@@ -409,7 +409,13 @@ class ReaderApp extends Component {
   clonePanel(panel, prepareForSerialization) {
     return Sefaria.util.clone(panel, prepareForSerialization);
   }
+
+  isSubDomain(subdomain) {
+    return window.location.host.split(".")[0] === subdomain;
+  }
+
   makeHistoryState() {
+    debugger;
     // Returns an object with state, title and url params for the current state
     var histories = [];
     const states = this.state.panels.map(panel => this.clonePanel(panel, true));
@@ -529,7 +535,7 @@ class ReaderApp extends Component {
             hist.mode = "calendars";
             break;
           case "sheets":
-            hist.url = "sheets";
+            hist.url = this.isSubDomain("sheets") ? "" : "sheets";
             hist.mode = "sheets";
             hist.title = Sefaria._("Sheets on Sefaria");
             break;
