@@ -43,8 +43,13 @@
     {% block ogimage %}
         <!-- <meta property="og:title" content="Pecha - Buddhism in your own words" /> -->
         <meta property="og:description" content="{% block fb_description %}{{ desc|striptags }}{% endblock %}"/>
-        <meta property="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{ request.GET.lang }}&platform=facebook&ven={{ request.GET.ven }}"/>
-        <!-- <meta property="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{ request.GET.lang }}&platform=facebook&ven={{ request.GET.ven }}&vhe={{ request.GET.vhe }}" /> -->
+        {% with 
+          lang=request.GET.lang 
+          ven=request.GET.ven|urlencode 
+          vhe=request.GET.vhe|urlencode
+        %}
+          <meta property="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{ lang }}&platform=facebook&ven={{ ven }}&vhe={{ vhe }}" />
+        {% endwith %}
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
