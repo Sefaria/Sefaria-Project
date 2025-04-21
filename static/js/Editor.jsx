@@ -1125,7 +1125,7 @@ const AddInterface = ({ attributes, children, element }) => {
 }
 
 const Element = (props) => {
-    const { attributes, children, element } = props;
+    const { attributes, children, element, blockEditing } = props;
     const editor = useSlate();
 
 
@@ -1145,7 +1145,7 @@ const Element = (props) => {
           }
           return (
             <div className={classNames(spacerClasses)} {...attributes}>
-              {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
+              {spacerSelected && document.getSelection().isCollapsed && !blockEditing ?  <AddInterface {...props} /> : <>{children}</>}
             </div>
           );
         case 'SheetSource':
@@ -2550,10 +2550,11 @@ const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
-    const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
+    const [blockEditing, setBlockEditing] = useState(false);
+    const renderElement = useCallback(props => <Element {...props} blockEditing={blockEditing}/>, [blockEditing]);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
@@ -2570,6 +2571,7 @@ const SefariaEditor = (props) => {
             const handler = setTimeout(() => {
                 saveDocument(currentDocument);
             }, 500);
+            console.log(unsavedChanges)
 
             // Cancel the timeout if value changes (also on delay change or unmount)
             // This is how we prevent debounced value from updating if value is changed ...
@@ -2841,6 +2843,31 @@ const SefariaEditor = (props) => {
         }
         // console.log('saving...');
 
+        function handlePostError(jqXHR, textStatus, errorThrown) {
+            if (textStatus === "timeout") {
+                console.warn("Request timed out.");
+                alert("The request took too long. Please try again.");
+            } else if (jqXHR.status === 0) {
+                console.warn("No network connection or request blocked.");
+                alert("You're offline or the server is unreachable.");
+                setBlockEditing(true);
+            } else if (jqXHR.status >= 500) {
+                console.warn("Server error:", jqXHR.status);
+                alert("Server error. Please try again later.");
+            } else if (jqXHR.status >= 400) {
+                console.warn("Client error:", jqXHR.status);
+                alert("There was a problem with your request.");
+            } else {
+                console.warn("Unknown error:", textStatus, errorThrown);
+                alert("An unknown error occurred.");
+            }
+
+            // Optional: Log to analytics or set app state
+            // logError(jqXHR, textStatus, errorThrown);
+            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
+            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
+        }
+
         $.post("/api/sheets/", {"json": json}, res => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
@@ -2848,7 +2875,7 @@ const SefariaEditor = (props) => {
 
             const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
             Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
-        });
+        }).fail(handlePostError);
     }
 
     function onChange(value) {
@@ -3048,7 +3075,7 @@ const SefariaEditor = (props) => {
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
                 <Editable
-                  renderLeaf={props => <Leaf {...props} />}
+                    renderLeaf={props => <span contentEditable={!blockEditing}><Leaf {...props} /></span>}
                   renderElement={renderElement}
                   spellCheck
                   onKeyDown={onKeyDown}
@@ -3059,6 +3086,7 @@ const SefariaEditor = (props) => {
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
                   onDOMBeforeInput={beforeInput}
+                  readOnly={true}
                   autoFocus
                 />
             </Slate> : null }
