@@ -55,17 +55,18 @@ def grandchild_of_root_with_self_link(child_of_root_with_self_link):
 
 
 @pytest.fixture(autouse=True, scope='module')
-def author_root():
+def author_root(django_db_setup, django_db_blocker):
 	# create second branch of tree starting with author_root
-	t = Topic({'slug': "", "isTopLevelDisplay": True, "data_source": "sefaria", "numSources": 0})
-	title = "Authors"
-	he_title = title[::-1]
-	t.add_primary_titles(title, he_title)
-	t.set_slug_to_primary_title()
-	t.save()
-	l = None
-	yield {"topic": t, "link": l}
-	t.delete()
+	with django_db_blocker.unblock():
+		t = Topic({'slug': "", "isTopLevelDisplay": True, "data_source": "sefaria", "numSources": 0})
+		title = "Authors"
+		he_title = title[::-1]
+		t.add_primary_titles(title, he_title)
+		t.set_slug_to_primary_title()
+		t.save()
+		l = None
+		yield {"topic": t, "link": l}
+		t.delete()
 
 @pytest.fixture(autouse=True, scope='module')
 def some_topic():

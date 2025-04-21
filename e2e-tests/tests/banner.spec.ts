@@ -21,7 +21,7 @@ test('Banner links exist - English', async ({ context }) => {
     expect(getPathAndParams(page.url())).toBe("/texts")
 
     // Testing Topics link
-    await page.getByRole('banner').getByRole('link', { name: 'Topics' }).click();
+    await page.getByRole('banner').getByRole('link', { name: 'Explore' }).click();
     expect(getPathAndParams(page.url())).toBe("/topics")
 
     // Testing Community link
