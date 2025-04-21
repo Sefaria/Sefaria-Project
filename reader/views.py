@@ -16,6 +16,7 @@ import redis
 import os
 import re
 import uuid
+import langdetect
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -1685,33 +1686,46 @@ def texts_api(request, tref):
 @csrf_exempt
 def social_image_api(request, tref):
     print("Image generation requested")
-    print(f"Path: {request.path}")
+    print(f"Path: {tref}")
     print(f"Query params: {request.GET}")
     lang = request.GET.get("lang", "en")
+    version_lang = "he"
+    version_title = None
     if lang == "bi":
-        lang = "he"
-    version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
+        lang = "en"
+    version_title = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
+    if version_title:
+        match = re.search(r"\[(.*?)\]", version_title)
+        if match:
+            version_lang = match.group(1)
+    
+    if not version_title and lang == "en":
+        version_lang = 'he'
+        lang = 'he'
+
+    print("version_lang", version_lang)
+    
     platform = request.GET.get("platform", "facebook")
 
     try:
         ref = Ref(tref)
         ref_str = ref.normal() if lang == "en" else ref.he_normal()
 
-        tf = TextFamily(ref, stripItags=True, lang=None, version=version, context=0, commentary=False).contents()
+        tf = TextFamily(ref, stripItags=True, lang=lang, version=version_title, context=0, commentary=False).contents()
+        he_text = tf["he"] if type(tf["he"]) is list else [tf["he"]]
+        en_text = tf["text"] if type(tf["text"]) is list else [tf["text"]]
 
-
-        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
-        en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
-        text = en if lang == "en" else he
+        text = en_text if lang == "en" else he_text
+    
         text = ' '.join(text)
         cat = tf["primary_category"]
-
+        
     except Exception as e:
         text = None
         cat = None
         ref_str = None
-
-    res = make_img_http_response(text, cat, ref_str, lang, platform)
+    print("lang", lang)
+    res = make_img_http_response(text, cat, ref_str, lang, version_lang, platform)
 
     return res
 
