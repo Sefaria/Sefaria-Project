@@ -415,7 +415,6 @@ class ReaderApp extends Component {
   }
 
   makeHistoryState() {
-    debugger;
     // Returns an object with state, title and url params for the current state
     var histories = [];
     const states = this.state.panels.map(panel => this.clonePanel(panel, true));
