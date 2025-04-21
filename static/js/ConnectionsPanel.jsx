@@ -1394,6 +1394,9 @@ class ShareBox extends Component {
         this.postSheet(postJSON)
       })
     }
+    if(this.props.url !== prevProps.url) {
+      this.createShortUrl();
+    }
   }
 
   componentDidMount() {
