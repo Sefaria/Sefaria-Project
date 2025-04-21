@@ -145,11 +145,13 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     return (img)
 
-def make_img_http_response(text, category, ref_str, lang, platform):
+def make_img_http_response(text, category, ref_str, lang, version_lang, platform):
     try:
         env = os.environ.copy()
         env['PECHA_TEXT'] = text
         env['PECHA_REF'] = ref_str
+        env['PECHA_VERSION_LANG'] = version_lang
+        env['PECHA_LANG'] = lang
 
         # for local testing
         subprocess.run(["python3", "sefaria/pecha_text_image.py", "output.png"], env=env)
@@ -171,12 +173,11 @@ def make_img_http_response(text, category, ref_str, lang, platform):
         # subprocess.run(["/pillow-env/bin/python3", "sefaria/pecha_text_image.py", "output.png"], env=env, check=True) 
 
         img = Image.open("output.png")
-        print("H"*100)
         # Convert to Base64 for logging
         buffered = io.BytesIO()
         img.save(buffered, format="PNG")
         img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
-        print(f"Image as Base64: {img_base64}")  # Truncate for readability
+        
         # img = generate_image(text, category, ref_str, lang, platform)
     except Exception as e:
         print(e)
