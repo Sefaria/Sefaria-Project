@@ -329,7 +329,7 @@ def make_panel_dict(oref, primaryVersion, translationVersion, filter, versionFil
     """
     if oref.is_book_level():
         index_details = library.get_index(oref.normal()).contents(with_content_counts=True)
-        index_details["relatedTopics"] = get_topics_for_book(oref.normal(), annotate=True)
+        index_details["relatedTopics"] = get_topics_for_book(oref.normal(), annotate=True, active_module=kwargs['active_module'])
         if kwargs.get('extended notes', 0):
             currVersions = {"en": translationVersion, "he": primaryVersion}
             panel = {
@@ -555,6 +555,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
+        kwargs["active_module"] = request.active_module
         panels += make_panel_dicts(oref, primaryVersion, translationVersion, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
@@ -1738,7 +1739,7 @@ def index_api(request, title, raw=False):
         index_record = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
         if bool(int(request.GET.get("with_related_topics", False))):
-            index_record["relatedTopics"] = get_topics_for_book(title, annotate=True)
+            index_record["relatedTopics"] = get_topics_for_book(title, annotate=True, active_module=request.active_module)
 
         return jsonResponse(index_record, callback=request.GET.get("callback", None))
 
@@ -2232,7 +2233,7 @@ def related_api(request, tref):
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
-            "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True),
+            "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True, active_module=request.active_module),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),
             "guides": GuideSet.load_set_for_client(tref)
@@ -3399,7 +3400,7 @@ def topic_ref_api(request, tref):
     annotate = bool(int(data.get("annotate", False)))
 
     if request.method == "GET":
-        response = get_topics_for_ref(tref, request.interfaceLang, annotate)
+        response = get_topics_for_ref(tref, request.interfaceLang, annotate, active_module=request.active_module)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     else:
         if not request.user.is_staff:

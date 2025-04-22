@@ -357,8 +357,8 @@ def ref_topic_link_prep(link):
         link['dataSource']['slug'] = data_source_slug
     return link
 
-def get_topics_for_ref(tref, lang="english", annotate=False):
-    serialized = [l.contents() for l in Ref(tref).topiclinkset()]
+def get_topics_for_ref(tref, lang="english", annotate=False, active_module='library'):
+    serialized = [l.contents() for l in Ref(tref).topiclinkset() if active_module in DjangoTopic.objects.slug_to_pools[l.toTopic]]
     if annotate:
         if len(serialized) > 0:
             link_topic_dict = {topic.slug: topic for topic in TopicSet({"$or": [{"slug": link['topic']} for link in serialized]})}
@@ -403,8 +403,8 @@ def get_trending_topics(num_topics=10):
     return filtered_slugs
 
 @django_cache(timeout=24 * 60 * 60, cache_prefix="get_topics_for_book")
-def get_topics_for_book(title: str, annotate=False, n=18) -> list:
-    all_topics = get_topics_for_ref(title, annotate=annotate)
+def get_topics_for_book(title: str, annotate=False, n=18, active_module='library') -> list:
+    all_topics = get_topics_for_ref(title, annotate=annotate, active_module=active_module)
 
     topic_counts = defaultdict(int)
     topic_data   = {}
