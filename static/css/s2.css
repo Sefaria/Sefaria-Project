@@ -7555,38 +7555,6 @@ But not to use a display block directive that might break continuous mode for ot
   text-decoration: underline;
 }
 
-dialog#sheetsWarningDialog {
-  border: none;
-  border-radius: 6px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
-  margin: auto;
-  text-align: center;
-}
-
-dialog#sheetsWarningDialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
-} 
-
-dialog#sheetsWarningDialog a {
-  color: var(--inline-link-blue);
-  text-decoration: underline;
-}
-
-dialog#sheetsWarningDialog h1 {
-  font-weight: 500;
-  font-style: normal;
-}
-
-@media screen and (max-width: 800px) {
-  dialog#sheetsWarningDialog {
-    font-size: smaller;
-  }
-  dialog#sheetsWarningDialog h1 {
-    font-size: large;
-  }
-}
 .manuscriptImage {
   width: auto;
   max-height: 180px;
