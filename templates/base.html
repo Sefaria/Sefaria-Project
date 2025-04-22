@@ -44,7 +44,7 @@
         <!-- <meta property="og:title" content="Pecha - Buddhism in your own words" /> -->
         <meta property="og:description" content="{% block fb_description %}{{ desc|striptags }}{% endblock %}"/>
         <!-- <meta property="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{ request.GET.lang }}&platform=facebook&ven={{ request.GET.ven }}&vhe={{ request.GET.vhe }}" /> -->
-        <meta property="og:image" content="https://pecha.org/The_Way_of_the_Bodhisattva.1.4?ven=%E0%A4%B6%E0%A4%AC%E0%A5%8B%E0%A4%A7%E0%A4%BF%E0%A4%9A%E0%A4%B0%E0%A5%8D%E0%A4%AF%E0%A4%BE%E0%A4%B5%E0%A4%A4%E0%A4%BE%E0%A4%B0[sa]&lang=bi&with=all&lang2=en" />
+        <meta property="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{ request.GET.lang }}{% if request.GET.ven %}&ven={{ request.GET.ven }}{% endif %}{% if request.GET.vhe %}&vhe={{ request.GET.vhe }}{% endif %}" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
