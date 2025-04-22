@@ -84,3 +84,6 @@ jobs:
         URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
         fi
         mongorestore --drop --uri="$URI" -v -d sefaria-integration --dir=dump/sefaria 
+        if [[ $(date +%w) -eq "0" ]]; then
+          mongorestore --drop --uri="$URI" -v -d sefaria --dir=dump/sefaria
+        fi

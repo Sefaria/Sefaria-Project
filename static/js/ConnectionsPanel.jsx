@@ -320,11 +320,11 @@ class ConnectionsPanel extends Component {
               masterPanelSheetId={this.props.masterPanelSheetId}
             /> :
             <div className="topToolsButtons">
-              {resourcesButtonCounts?.guides ? <ToolsButton en="Learning Guide" he="מדריך" image="iconmonstr-school-17.svg" blueBackground={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
               <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
+              {resourcesButtonCounts?.guides ? <ToolsButton en="Guided Learning" he="מדריך" image="iconmonstr-school-17.svg" highlighted={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
             </div>
           }
           {showConnectionSummary ?
@@ -374,6 +374,8 @@ class ConnectionsPanel extends Component {
             {this.props.masterPanelMode === "Sheet" ? <SheetToolsList
               toggleSignUpModal={this.props.toggleSignUpModal}
               setConnectionsMode={this.props.setConnectionsMode}
+              masterPanelLanguage={this.props.masterPanelLanguage}
+              masterPanelLayout={this.props.masterPanelLayout}
               masterPanelSheetId={this.props.masterPanelSheetId} /> : null}
             <ToolsList
               setConnectionsMode={this.props.setConnectionsMode}
@@ -712,6 +714,7 @@ ConnectionsPanel.propTypes = {
   interfaceLang: PropTypes.string,
   contentLang: PropTypes.string,
   masterPanelLanguage: PropTypes.oneOf(["english", "bilingual", "hebrew"]),
+  masterPanelLayout: PropTypes.string,
   masterPanelMode: PropTypes.string,
   masterPanelSheetId: PropTypes.number,
   versionFilter: PropTypes.array,
@@ -799,7 +802,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
   </div>);
 }
 
-const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsMode }) => {
+const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsMode, masterPanelLanguage, masterPanelLayout }) => {
 
   // const [isOwner, setIsOwner] = useState(false);
   // const [isPublished, setIsPublished] = useState(false);
@@ -827,7 +830,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       $.ajax({
         type: "POST",
-        url: "/api/sheets/" + sheet.id + "/export_to_drive",
+        url: "/api/sheets/" + sheet.id + `/export_to_drive?language=${masterPanelLanguage}&layout=${masterPanelLayout}`,
         success: function (data) {
           if ("error" in data) {
             console.log(data.error.message);
@@ -931,6 +934,14 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
   </div>
   )
 }
+SheetToolsList.propTypes = {
+  toggleSignUpModal: PropTypes.func.isRequired,
+  masterPanelSheetId: PropTypes.number.isRequired,
+  setConnectionsMode: PropTypes.func.isRequired,
+  masterPanelLanguage: PropTypes.string.isRequired,
+  masterPanelLayout: PropTypes.string.isRequired
+};
+
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {
@@ -1319,7 +1330,7 @@ AdvancedToolsList.propTypes = {
 
 const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
                        count = null, control = "interface", typeface = "system", alwaysShow = false,
-                       secondaryHe, secondaryEn, greyColor=false, blueBackground=false, experiment=false }) => {
+                       secondaryHe, secondaryEn, greyColor=false, highlighted=false, experiment=false }) => {
   const clickHandler = (e) => {
     e.preventDefault();
     gtag("event", "feature_clicked", {name: `tools_button_${en}`})
@@ -1340,7 +1351,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
   const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
   return (
     count == null || count > 0 || alwaysShow ?
-    <div className={classNames({toolsButtonContainer: 1, blue: blueBackground})}>
+    <div className={classNames({toolsButtonContainer: 1, highlighted: highlighted})}>
       <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
         {iconElem}
         <span className="toolsButtonText">
@@ -1362,7 +1373,7 @@ ToolsButton.propTypes = {
   count: PropTypes.number,
   onClick: PropTypes.func,
   greyColor: PropTypes.bool,
-  blueBackground: PropTypes.bool,
+  highlighted: PropTypes.bool,
   experiment: PropTypes.bool,
   secondaryEn: PropTypes.string,
   secondaryHe: PropTypes.string

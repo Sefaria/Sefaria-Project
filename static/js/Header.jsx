@@ -14,7 +14,7 @@ import {
   DonateLink
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
-import {Autocomplete} from './Autocomplete'
+import {HeaderAutocomplete} from './HeaderAutocomplete'
 
 class Header extends Component {
   constructor(props) {
@@ -50,13 +50,13 @@ class Header extends Component {
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
-          <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
+            <a href="/topics" className="textLink"><InterfaceText context="Header">Explore</InterfaceText></a>
           <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
         <div className="headerLinksSection">
-        <Autocomplete
+        <HeaderAutocomplete
             onRefClick={this.props.onRefClick}
             showSearch={this.props.showSearch}
             openTopic={this.props.openTopic}
@@ -198,7 +198,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
   return (
     <div className={classes}>
       <div className="searchLine">
-        <Autocomplete
+        <HeaderAutocomplete
             onRefClick={onRefClick}
             showSearch={showSearch}
             openTopic={openTopic}
@@ -213,7 +213,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText>Topics</InterfaceText>
+        <InterfaceText context="Header">Explore</InterfaceText>
       </a>
       <a href="/community" onClick={close}>
         <img src="/static/icons/community.svg" />

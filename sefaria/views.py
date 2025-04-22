@@ -33,11 +33,12 @@ from django.urls.exceptions import Resolver404
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import in_memory_cache
+from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
@@ -690,14 +691,11 @@ def rebuild_toc(request):
 @staff_member_required
 def rebuild_auto_completer(request):
     library.build_full_auto_completer()
-    library.build_ref_auto_completer()
     library.build_lexicon_auto_completers()
     library.build_cross_lexicon_auto_completer()
-    library.build_topic_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
-        server_coordinator.publish_event("library", "build_ref_auto_completer")
         server_coordinator.publish_event("library", "build_lexicon_auto_completers")
         server_coordinator.publish_event("library", "build_cross_lexicon_auto_completer")
 
@@ -760,6 +758,15 @@ def rebuild_citation_links(request, title):
     rebuild(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Rebuilt-on-%s" % title)
 
+@csrf_exempt
+@webhook_auth_or_staff_required
+def rebuild_shared_cache(request):
+    regenerating = get_shared_cache_elem("regenerating")
+    status = "build in progress" if regenerating else "start rebuilding"
+    if not regenerating:
+        set_shared_cache_elem("regenerating", True)
+        library.init_shared_cache(rebuild=True)
+    return jsonResponse({"status": status})
 
 @staff_member_required
 def delete_citation_links(request, title):

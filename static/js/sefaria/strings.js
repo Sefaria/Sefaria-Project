@@ -25,7 +25,7 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
 
-    //Autocomplete
+    //HeaderAutocomplete
     "Books": "ספרים",
     "Terms": "מונחים",
     "Users": "משתמשים",
@@ -75,12 +75,10 @@ const Strings = {
     "Add a description.": "הוסף תיאור",
     "Add a title.": "הוסף שם כותר",
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
-    "Explore by Topic": "לימוד לפי נושאים",
+    "Explore by Topic": "למדו לפי נושא",
     "About Topics": "אודות \"נושאים\"",
-    "Trending Topics": "נושאים נפוצים",
     "More": "עוד",
     "Less": "פחות",
-    "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
@@ -114,6 +112,24 @@ const Strings = {
     // Topic Images
     "Illustrative image" : "תמונה להמחשה",
 
+    // Topic Landing Page
+    "Featured Topic": "נושא היום",
+    "Go to Topic ›": "לפתיחת הנושא ›",
+    "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
+    "Learn more about": "למדו עוד על",
+    "Learn more on": "למדו עוד על",
+    "Read the Portion": "לקריאת הפרשה",
+    "On the Jewish Calendar": "מועדים קרובים בלוח השנה העברי",
+    "Explore the Jewish Calendar": "לעוד מועדים בלוח השנה העברי",
+    "Browse Topics": "לדפדוף במגוון נושאים",
+    "Trending Topics": "נושאים פופולריים",
+    "All Topics A-Z ›": "כל הנושאים מא׳ עד ת׳ ›",
+    "Browse All Torah Portions": "לרשימת כל הפרשות",
+    "First Name": "שם פרטי",
+    "Last Name": "שם משפחה",
+    "Explore": "למדו עוד על",
+    "Explore all Topics ›": "לדפדוף בכל הנושאים ›",
+    "Learn more…": "למדו עוד…",
 
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
@@ -462,7 +478,6 @@ const Strings = {
     "by": "על ידי",
     "based on": "ע“פ",
     "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
-    "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
     "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
@@ -519,8 +534,10 @@ const Strings = {
     "Go back to old version": "חזרה לגרסה הישנה",
     "Request for Feedback": "נא למלא משוב",
     "Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.": "תודה שניסית את עורך ספריא החדש! נשמח מאוד לשמוע את דעתך עליו. אנו מבקשים ממך להקדיש כמה דקות למילוי משוב על חוויית השימוש שלך.",
+    "Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface.": "תחדשו! הנכם משתמשים כעת בתוכנה העדכנית לעריכת דפי מקורות בספריא. למדו עוד על השימוש בתוכנה בעזרת המדריך המלא למשתמשים חדשים.",
     "Did you encounter any issues while using the new editor? For example:": "האם נתקלת בבעיות בעת השימוש בעורך החדש? למשל...",
     "Technical problems": "בעיות טכניות",
+    "Get Started": "התחילו כאן",
     "Difficulties using the editor": "קושי להשתמש בעורך",
     "Missing features": "תכונות חסרות",
     "Tell us about it...": "ספר/י לנו על כך...",
@@ -548,6 +565,12 @@ const Strings = {
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
     "National Library of Israel": "הספרייה הלאומית",
     "Works on Sefaria": "חיבורים וכתבים בספריא",
+    "Learn More on Parashat": "לקריאה נוספת על פרשת",
+    "This Week’s Torah Portion": "פרשת השבוע",
+    "Learn More on": "לקריאה נוספת על",
+    "Learn More about": "לקריאה נוספת על",
+    "Browse all Parshayot": "לצפייה בכל הפרשות",
+    "From the Jewish Calendar": "מלוח השנה",
 
     //Module Names
     "Download Text": "הורדת טקסט",
@@ -625,6 +648,7 @@ const Strings = {
     },
     "Header": {
       "Texts": "מקורות",
+      "Explore": "נושאים",
     },
     "RecentlyPublished": {
       "Load More": "דפי מקורות נוספים",
