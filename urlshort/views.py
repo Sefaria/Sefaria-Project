@@ -6,21 +6,25 @@ from django.shortcuts import redirect
 
 
 def redirect_to_original(request, code):
-    if request.method == "GET":
-        if code:
-            obj = ShortURL.objects.filter(code=code).first()
-        else:
-            return jsonResponse({"error": "Provide a short URL"})
-        if not obj:
-            return jsonResponse({"error": "Either url is expired or does not exist. Please ask to resend."})
+    try:
+        if request.method == "GET":
+            if code:
+                obj = ShortURL.objects.filter(code=code).first()
+            else:
+                return jsonResponse({"error": "Provide a short URL"})
+            if not obj:
+                return jsonResponse({"error": "Either url is expired or does not exist. Please ask to resend."})
 
-        return redirect(obj.original_url)
+            return redirect(obj.original_url)
+    except Exception as e:
+        return jsonResponse({"error": f"An error occurred: {str(e)}"})
 
 
 @csrf_exempt
 def shorturl_api(request):
     # --------- POST ---------
     if request.method == 'POST':
+        
         try:
             json_data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -28,14 +32,10 @@ def shorturl_api(request):
         if not json_data:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
-        try:
             data = json_data["json"]
             original_url = data.get("original_url")
             if not original_url:
                 return jsonResponse({"error": "Missing 'original_url'"})
-        except Exception as e:
-            return jsonResponse({"error": f"Invalid JSON: {str(e)}"})
-
         # Check if already exists
         existed_obj = ShortURL.objects.filter(original_url=original_url).first()
         if existed_obj:
@@ -51,3 +51,8 @@ def shorturl_api(request):
             "original_url": obj.original_url,
             "short_url": obj.short_url
         })
+
+    except Exception as e:
+        return jsonResponse({"error": f"{str(e)}"})
+
+        
