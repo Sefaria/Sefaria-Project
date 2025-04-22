@@ -1409,9 +1409,7 @@ class ShareBox extends Component {
 
   createShortUrl() {
     const payload = {
-      json: {
         original_url: this.props.url
-      }
     };
   
     $.ajax({
