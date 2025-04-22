@@ -3086,7 +3086,6 @@ const SefariaEditor = (props) => {
                   onCopy={onCutorCopy}
                   onBlur={onBlur}
                   onDOMBeforeInput={beforeInput}
-                  readOnly={true}
                   autoFocus
                 />
             </Slate> : null }
