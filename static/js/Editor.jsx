@@ -2864,8 +2864,6 @@ const SefariaEditor = (props) => {
 
             // Optional: Log to analytics or set app state
             // logError(jqXHR, textStatus, errorThrown);
-            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
-            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
         }
 
         $.post("/api/sheets/", {"json": json}, res => {
