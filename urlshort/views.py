@@ -28,7 +28,7 @@ def shorturl_api(request):
 
     try:
         # Parse JSON body
-        json_data = json.loads(request.body)
+        json_data = json.loads(request.body).encode('utf-8')
         original_url = json_data.get("original_url")
 
         if not original_url:
