@@ -4870,7 +4870,7 @@
     },
     "/api/topics-graph/{topic_slug}": {
       "summary": "Topic Graph API",
-      "description": "And enpoint to retrieve links between various topics. ",
+      "description": "An enpoint to retrieve links between various topics. ",
       "get": {
         "operationId": "get-topics-graph",
         "tags": [
@@ -5031,7 +5031,7 @@
           }
         },
         "summary": "Topic Graph",
-        "description": "Endpoint to retrieve topics and their links between other topics. As opposed to topic links to refs, this endpoint retrieve connections between one topic to another topic. "
+        "description": "Endpoint to retrieve topics and their links to other topics. This endpoint retrieves connections between two topics, as opposed to connections between topic links and refs. "
       },
       "parameters": [
         {
@@ -5061,7 +5061,7 @@
             }
           },
           "name": "link_type",
-          "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented [here](https://developers.sefaria.org/docs/topic-ontology#overview-of-sefaria-link-types). \nSome examples include `child-of`, `parent-of`, `sibling-of` etc.",
+          "description": "The type of the link, based on the relationship within our ontology. Many links have an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented [here](https://developers.sefaria.org/docs/topic-ontology#overview-of-sefaria-link-types). \nSome examples include `child-of`, `parent-of`, `sibling-of` etc.",
           "schema": {
             "type": "string"
           },
@@ -5107,12 +5107,12 @@
           }
         },
         "summary": "Recommended Topics",
-        "description": "Given a list of `Ref`s this API returns the most used topics associated with them. This is a fast way of identifying potential shared topics amongst disparate `Ref`s."
+        "description": "Given a list of `Refs`, this API returns the most frequently used topics associated with them. This is a fast way of identifying potential shared topics amongst disparate `Refs`."
       }   
     },
     "/api/texts/random-by-topic": {
       "summary": "Random By Topic API",
-      "description": "Returns Texts API data for a random text taken from popular topic tags",
+      "description": "This API returns data from the Texts API for a random text taken from popular topic tags",
       "get": {
         "operationId": "get-random-by-topic",
         "tags": [
@@ -5199,7 +5199,7 @@
           }
         },
         "summary": "Random By Topic",
-        "description": "Returns Texts API data for a random text taken from popular topic tags."
+        "description": "This API returns data from the Texts API for a random text taken from popular topic tags."
       }
     },
     "/api/terms/{name}": {
@@ -5285,7 +5285,7 @@
       ]
     },
     "/api/name/{name}": {
-      "description": "Serves primarily as an autocompleter, returning potential keyword matches for `Ref`s, book titles, authors, topics, and collections available on Sefaria",
+      "description": "The name API serves primarily as an autocompleter, returning potential keyword matches for `Refs`, book titles, authors, topics, and collections available on Sefaria",
       "get": {
         "operationId": "get-name",
         "tags": [
@@ -5302,7 +5302,7 @@
           },
           {
             "name": "type",
-            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If the `type` is set, the response will only contain items of that type. Note: `Topic` includes authors, topics and people without differentiation.",
+            "description": "By default, the Name API returns `Refs`, book titles, authors, topics, and collections. If the `type` is set, the response will only contain items of that type. Note: `Topic` includes authors, topics and people without differentiation.",
             "schema": {
               "enum": [
                 "ref", 
@@ -5330,7 +5330,7 @@
           }
         },
         "summary": "Name",
-        "description": "Serves primarily as an autocompleter, returning potential keyword matches for `Ref`s, book titles, authors, topics, and collections available on Sefaria."
+        "description": "The Name API serves primarily as an autocompleter, returning potential keyword matches for `Refs`, book titles, authors, topics, and collections available on Sefaria."
       },
       "parameters": [
         {
@@ -5358,7 +5358,7 @@
                 "Example": {
                   "value": {
                     "text": {
-                      "body": "Genesis 1:1 is a citation and also Mishnah Peah 3-4. So is שמות ב",
+                      "body": "Genesis 1:1 is a citation. So is Mishnah Peah 3-4, and שמות ב",
                       "title": "Some thoughts on Sefer Bereishit 1"
                     },
                     "lang": "en"
@@ -5385,7 +5385,7 @@
           }
         },
         "summary": "Find Refs",
-        "description": "Initially designed to find links on websites using [Sefaria's Linker](https://www.sefaria.org/linker), the Find Refs API can identify textual refernces in any arbitrary text that gets sent to it via a structured POST request and returns a response object identifying each located reference including its start and end position within the submitted text."
+        "description": "Initially designed to find links on websites using [Sefaria's Linker](https://www.sefaria.org/linker), the Find Refs API can identify textual references in any arbitrary text that gets sent to it via a structured POST request. The API returns a response object identifying each located reference, including its start and end position within the submitted text."
       }
     },
     "/api/search-wrapper": {
@@ -5417,7 +5417,7 @@
           }
         },
         "summary": "Search",
-        "description": "An [elastic search](https://www.elastic.co/guide/en/elasticsearch/reference/current/) endpoint for Sefaria's data. Given a properly formated POST request this endpoint will return search results for appropriate Sefaria records."
+        "description": "An [elastic search](https://www.elastic.co/guide/en/elasticsearch/reference/current/) endpoint for Sefaria's data. Given a properly formated POST request, this endpoint will return search results for appropriate Sefaria records."
       }
     },
     "/api/img-gen/{tref}": {
@@ -5511,7 +5511,7 @@
     },
     "/api/category/{category_path}": {
       "summary": "Category",
-      "description": "The category API takes a full category path in the request, e.g. /api/category/Tanakh/Torah/Genesis, and return the full category object found. The above request would return:",
+      "description": "The category API takes a full category path in the request, e.g. /api/category/Tanakh/Torah/Genesis, and returns the full category object found. The above request would return:",
       "get": {
         "operationId": "get-category",
         "tags": [
@@ -5549,11 +5549,11 @@
                 }
               }
             },
-            "description": "GET requests take a full category path in the request, e.g. `/api/category/Tanakh/Torah/Genesis`, and return the full category object found. \n\nIf the category is not found, the returned object will have an error attribute. If any element of the path is found, the API will return the closest parent in an attribute called `closest_parent`. This is useful for proactively looking up a category before posting an `Index` to it."
+            "description": "The Category API takes a full category path in the request, e.g. `/api/category/Tanakh/Torah/Genesis`, and returns the full category object found. \n\nIf the category is not found, the returned object will have an error attribute. If any element of the path is found, the API will return the closest parent in an attribute called `closest_parent`. This is useful for proactively looking up a category before posting an `Index` to it."
           }
         },
         "summary": "Category",
-        "description": "GET requests take a full category path in the request, e.g. `/api/category/Tanakh/Torah/Genesis`, and return the full category object found. \n\nIf the category is not found, the returned object will have an error attribute. If any element of the path is found, the API will return the closest parent in an attribute called `closest_parent`. This is useful for proactively looking up a category before posting an `Index` to it."
+        "description": "The Category API takes a full category path in the request, e.g. `/api/category/Tanakh/Torah/Genesis`, and returns the full category object found. \n\nIf the category is not found, the returned object will have an error attribute. If any element of the path is found, the API will return the closest parent in an attribute called `closest_parent`. This is useful for proactively looking up a category before posting an `Index` to it."
       },
       "parameters": [
         {
@@ -5679,7 +5679,7 @@
             "type": "string"
           },
           "type": {
-            "description": "By default the Name API returns `Ref`s, book titles, authors, topics, and collections. If `type` is set, the response will only contain items of that type.",
+            "description": "By default, the Name API returns `Refs`, book titles, authors, topics, and collections. If `type` is set, the response will only contain items of that type.",
             "type": "string"
           },
           "completions": {
@@ -6289,7 +6289,7 @@
                       "type": "string"
                     },
                     "occurences": {
-                      "description": "number of occurrences of this sense in bible",
+                      "description": "number of occurrences of this sense in the Bible",
                       "type": "string"
                     },
                     "pre_num": {
@@ -6468,7 +6468,7 @@
                 "type": "string"
               }
             ],
-            "description": "The default, or specified text written in RTL characters for the query (Usually Hebrew). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some html text."
+            "description": "The default, or specified text written in RTL characters for the query (usually Hebrew). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some HTML text."
           },
           "versions": {
             "type": "array",
@@ -6665,7 +6665,7 @@
             "type": "string"
           },
           "heDigitizedBySefaria": {
-            "description": "Was the `he` response initially digitized by Sefaria `1` or was it initially generated by another digital publisher `0`",
+            "description": "Was the `he` response initially digitized by Sefaria (`1`) or was it initially generated by another digital publisher (`0`)",
             "oneOf": [
                       {
                         "type": "boolean"
@@ -6697,12 +6697,12 @@
           },
           "next": {
             "nullable": true,
-            "description": "Next segment reference in sequence, if last ref, field will be `null`.",
+            "description": "Next segment reference in sequence. If last ref, field will be `null`.",
             "type": "string"
           },
           "prev": {
             "nullable": true,
-            "description": "Previous segment reference in sequence, if first ref, field will be `null`.",
+            "description": "Previous segment reference in sequence. If first ref, field will be `null`.",
             "type": "string"
           },
           "commentary": {
@@ -7028,7 +7028,7 @@
             "description": ""
           },
           "language_code": {
-            "description": "If not present, it’s Biblical.  Otherwise values could be [PBH, MH, NH, FW] - Post Biblical Hebrew, Middle Hebrew, New Hebrew, Foreign Word."
+            "description": "If not present, it is Biblical.  Otherwise values could be [PBH, MH, NH, FW] - Post Biblical Hebrew, Middle Hebrew, New Hebrew, Foreign Word."
           },
           "morphology": {
             "description": "One of [n., adj., adv., m.n., abs., art. , attrib., auxil., comp., copul., c st., def., f., f. n., imper.., Imperf., Indef art., Inf, Interj., Interr., Intr., Neut., Part., Pass., Perf., Possess., p. part., prep., pres part., pres t., p.t.., sing., Subj., Tr.]"
@@ -7125,7 +7125,7 @@
             "type": "string"
           },
           "language_code": {
-            "description": "If not present, it’s Biblical.  Otherwise values could be [PBH, MH, NH, FW] - Post Biblical Hebrew, Middle Hebrew, New Hebrew, Foreign Word.",
+            "description": "If not present, it is Biblical.  Otherwise values could be [PBH, MH, NH, FW] - Post Biblical Hebrew, Middle Hebrew, New Hebrew, Foreign Word.",
             "type": "string"
           },
           "alternative": {
@@ -7511,11 +7511,11 @@
                         "type": "string"
                       },
                       "url": {
-                        "description": "The URL this ref can be found at on Sefaria",
+                        "description": "The URL; this ref can be found at Sefaria",
                         "type": "string"
                       },
                       "primaryCategory": {
-                        "description": "The primary category this ref belongs to on Sefaria",
+                        "description": "The primary category; this ref belongs to Sefaria",
                         "type": "string"
                       }
                     }
@@ -7571,11 +7571,11 @@
                         "type": "string"
                       },
                       "url": {
-                        "description": "The URL this ref can be found at on Sefaria",
+                        "description": "The URL; this ref can be found at Sefaria",
                         "type": "string"
                       },
                       "primaryCategory": {
-                        "description": "The primary category this ref belongs to on Sefaria",
+                        "description": "The primary category this ref belongs to Sefaria",
                         "type": "string"
                       }
                     }
@@ -7649,7 +7649,7 @@
         "properties": {
           "date": {
             "format": "date",
-            "description": "The datestring for the calendars shown. It should match the values submitted in `year` `month` `day` or should be the current date.",
+            "description": "The datestring for the calendars shown. It should match the values submitted in `year` `month` `day`, or should be the current date.",
             "type": "string"
           },
           "timezone": {
@@ -8032,7 +8032,7 @@
             ]
           },
           "alt_ids": {
-            "description": "This is a dictionary containing the keys of naming schemes, and ids of this topic represented in that naming scheme.  It’s used both for canonical names in other naming schemes and temporary storage of names when renaming slugs. All of the data here is for internal use, with the exception of the values `bfo` and `wikidata`. `bfo` refers to [basic formal ontology](https://developers.sefaria.org/docs/topic-ontology), and `wikidata` to the wikidata ontology of topics. ",
+            "description": "This is a dictionary containing the keys of naming schemes, and ids of the topics represented in those naming schemes.  It is used both for canonical names in other naming schemes and temporary storage of names when renaming slugs. All of the data here is for internal use, with the exception of the values `bfo` and `wikidata`. `bfo` refers to [basic formal ontology](https://developers.sefaria.org/docs/topic-ontology), and `wikidata` to the wikidata ontology of topics. ",
             "type": "object",
             "properties": {
               "_temp_id": {
@@ -8076,7 +8076,7 @@
             "example": true
           },
           "data_source": {
-            "description": "How the topic was generated, whether by Sefaria, a user on a source sheet, or some other source. ",
+            "description": "How the topic was generated: by Sefaria, a user on a source sheet, or some other source. ",
             "type": "string",
             "example": "`sefaria`"
           },
@@ -9170,11 +9170,11 @@
             "items": {}
           },
           "next": {
-            "description": "Next segment reference in sequence, if last ref, field will be `null`.",
+            "description": "Next segment reference in sequence; if last ref, field will be `null`.",
             "type": "string"
           },
           "prev": {
-            "description": "Previous segment reference in sequence, if first ref, field will be `null`.",
+            "description": "Previous segment reference in sequence; if first ref, field will be `null`.",
             "type": "string"
           },
           "title": {
@@ -9661,7 +9661,7 @@
             "example": "ltr"
           },
           "language": {
-            "description": "A holdover from the `v2` API which will eventually be deprecated. This used to indicate the direction of the text, with `en` indicating texts written from left-to-right, and `he` indicating texting written from right-to-left. ",
+            "description": "A holdover from the `v2` API which will eventually be deprecated. This is used to indicate the direction of the text, with `en` indicating texts written from left-to-right, and `he` indicating texting written from right-to-left. ",
             "type": "string",
             "example": "`he`\n`en`"
           },
@@ -9814,7 +9814,7 @@
             "type": "boolean"
           },
           "compDate": {
-            "description": "The estimated year of completion of the work according to the Gregorian calendar. If its length is zero the completion date is unknown. If its length is one, then the completion date is that single year. If its length is 2 then the date is a potential range with the first int in the array is the lower end of the range and the latter the higher. ",
+            "description": "The estimated year of completion of the work according to the Gregorian calendar. If its length is zero, the completion date is unknown. If its length is one, then the completion date is that single year. If its length is 2 then the date is a potential range, with the first int in the array being the lower end of the range and the latter the higher. ",
             "type": "array",
             "items": {
               "format": "int32",
@@ -9837,7 +9837,7 @@
             }
           },
           "he": {
-            "description": "The default text written in RTL characters for the query (Usually Hebrew). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some html text.\n",
+            "description": "The default text written in RTL characters for the query (Usually Hebrew). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some HTML text.\n",
             "type": "string"
           },
           "heVersionTitle": {
@@ -9853,7 +9853,7 @@
             "type": "string"
           },
           "text": {
-            "description": "The default text written in LTR characters for the query (Usually English). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some html text.",
+            "description": "The default text written in LTR characters for the query (Usually English). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some HTML text.",
             "type": "array",
             "items": {}
           },
@@ -10095,7 +10095,7 @@
             "type": "string"
           },
           "linkType": {
-            "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented [here](https://developers.sefaria.org/docs/topic-ontology#overview-of-sefaria-link-types). \n\nSome examples include `child-of`, `parent-of`, `sibling-of` etc. ",
+            "description": "The type of the link, based on the relationship within our ontology. Many links have an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented [here](https://developers.sefaria.org/docs/topic-ontology#overview-of-sefaria-link-types). \n\nSome examples include `child-of`, `parent-of`, `sibling-of` etc. ",
             "type": "string"
           },
           "class": {
@@ -10630,7 +10630,7 @@
             "example": "he"
           },
           "Primary": {
-            "description": "A field depicting whether or not the title is the primary title. Note: For any given topics, one should expect two titles with this field present and set to `true`, an English and a Hebrew primary title. The English value with `primary` set to `true` will match the string value of the `primaryTitle` field on topic. ",
+            "description": "A field depicting whether or not the title is the primary title. Note: For any given topic, one should expect two titles with this field present and set to `true`, an English and a Hebrew primary title. The English value with `primary` set to `true` will match the string value of the `primaryTitle` field on topic. ",
             "type": "boolean",
             "example": false
           }
@@ -11574,7 +11574,7 @@
             "type": "string"
           },
           "id": {
-            "description": "The `id` of the sheet. This is used in the URL to retrieve sheets, for example, a sheet with an `id` of 1, would be accessible on [Sefaria](sefaria.org) at [sefaria.org/sheets/1](sefaria.org/sheets/1).",
+            "description": "The `id` of the sheet. This is used in the URL to retrieve sheets; for example, a sheet with an `id` of 1, would be accessible on [Sefaria](sefaria.org) at [sefaria.org/sheets/1](sefaria.org/sheets/1).",
             "type": "string"
           },
           "public": {
@@ -11596,7 +11596,7 @@
             "$ref": "#/components/schemas/ref"
           },
           "anchorRefExpanded": {
-            "description": "An array containing the individual segments `Ref`s which comprise the `anchorRef`. \n\nExample 1: Ranged `Ref`\nIf the `anchorRef` is `Genesis 2:14-16`, the `anchorRefExpanded` is `[\"Genesis 2:14\", \"Genesis 2:15\", \"Genesis 2:16\"]`. \n\nExample 2: Segment Ref\nIf the `anchorRef` itself is a segment `Ref`, the `anchorRefExpanded` will contain that identical value. For example, `anchorRef` of `Genesis 2:11` will  have an `anchorRefExpanded` of `[\"Genesis 2:11\"]`",
+            "description": "An array containing the individual segments `Refs` which comprise the `anchorRef`. \n\nExample 1: Ranged `Ref`\nIf the `anchorRef` is `Genesis 2:14-16`, the `anchorRefExpanded` is `[\"Genesis 2:14\", \"Genesis 2:15\", \"Genesis 2:16\"]`. \n\nExample 2: Segment Ref\nIf the `anchorRef` itself is a segment `Ref`, the `anchorRefExpanded` will contain that identical value. For example, `anchorRef` of `Genesis 2:11` will  have an `anchorRefExpanded` of `[\"Genesis 2:11\"]`",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ref"
@@ -11699,23 +11699,23 @@
             "type": "string"
           },
           "via": {
-            "description": "Some source sheets are made by copying another users. If this is one of them, the original owner's user ID will be listed here.",
+            "description": "Some source sheets are made by copying another user's sheet. If this is one of them, the original owner's user ID will be listed here.",
             "type": "string"
           },
           "viaOwnerName": {
-            "description": "Some source sheets are made by copying another users. If this is one of them, the original owner's display name will be listed here.",
+            "description": "Some source sheets are made by copying another user's sheet. If this is one of them, the original owner's display name will be listed here.",
             "type": "string"
           },
           "assignerName": {
-            "description": "Some source sheets are created as assignments by a teacher to be completed by students. If this is one of those sheets the name of the assigner will be found here.",
+            "description": "Some source sheets are created as assignments by a teacher to be completed by students. If this is one of those sheets, the name of the assigner will be found here.",
             "type": "string"
           },
           "viaOwnerProfileUrl": {
-            "description": "Some source sheets are made by copying another users. If this is one of them, the path to the original owner's profile page will be listed here.",
+            "description": "Some source sheets are made by copying another user's sheet. If this is one of them, the path to the original owner's profile page will be listed here.",
             "type": "string"
           },
           "assignerProfileUrl": {
-            "description": "Some source sheets are created as assignments by a teacher to be completed by students. If this is one of those sheets this will be the URL path to their profile.",
+            "description": "Some source sheets are created as assignments by a teacher to be completed by students. If this is one of those sheets, this will be the URL path to the teacher's profile.",
             "type": "string"
           },
           "ownerProfileUrl": {
@@ -11826,7 +11826,7 @@
             "type": "string"
           },
           "attribution": {
-            "description": "Some source sheets are made by copying another users. If so, an attribution field will be created and displayed here.",
+            "description": "Some source sheets are made by copying another user's sheet. If so, an attribution field will be created and displayed here.",
             "type": "string"
           },
           "is_featured": {
@@ -11964,7 +11964,7 @@
             "example": true
           },
           "compDate": {
-            "description": "Date of the two books in the link were composed. Negative values indicate dates BCE. ",
+            "description": "Date that the two books in the link were composed. Negative values indicate dates BCE. ",
             "type": "array",
             "items": {
               "format": "int32",
@@ -13466,7 +13466,7 @@
           },
           "numeric_equivalent": {
             "format": "int32",
-            "description": "The numeric equivalent of the section. So for example, if chapter two of Masechet Pesachim is referred to as `כל שעה`, the `numeric_equivalent` is 2.",
+            "description": "The numeric equivalent of the section. For example, if chapter two of Masechet Pesachim is referred to as `כל שעה`, the `numeric_equivalent` is 2.",
             "type": "integer",
             "example": 3
           },
@@ -13585,7 +13585,7 @@
         },
         "example": {
           "text": {
-            "body": "Genesis 1:1 is a citation and also Mishnah Peah 3-4. So is שמות ב",
+            "body": "Genesis 1:1 is a citation; so is Mishnah Peah 3-4 and שמות ב",
             "title": "Some thoughts on Sefer Bereishit 1"
           },
           "lang": "en"
@@ -13689,7 +13689,7 @@
         }
       },
       "ShapeJSON": {
-        "description": "The shape API allows one to retrieve information about the shape of an Index on Sefaria. The shape refers some basic statistics about the Index, mostly the number of chapters, and the number of segments per chapter.",
+        "description": "The shape API allows one to retrieve information about the shape of an Index on Sefaria. The shape refers to some basic statistics about the Index, mostly the number of chapters, and the number of segments per chapter.",
         "required": [
             "book",
             "heBook",
