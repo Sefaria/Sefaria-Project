@@ -7,7 +7,8 @@ from django.shortcuts import redirect
 
 def redirect_to_original(request, code):
     try:
-    if request.method == "GET":
+        if request.method != 'GET':
+            return jsonResponse({"error": "Method not allowed"}, status=405)
         if code:
             obj = ShortURL.objects.filter(code=code).first()
         else:
