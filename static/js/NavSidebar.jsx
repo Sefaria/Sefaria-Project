@@ -767,9 +767,7 @@ const JoinTheConversation = ({wide}) => {
         <SidebarModuleTitle>Join the Conversation</SidebarModuleTitle>
         <InterfaceText>Mix and match sources from our library, along with outside sources, comments, images and videos.</InterfaceText>
       </div>
-      <div>
-        <CreateSheetsButton/>
-      </div>
+      <CreateSheetsButton/>
     </SidebarModule>
   );
 };
