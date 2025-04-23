@@ -3164,7 +3164,7 @@ def topics_list_api(request):
     """
     limit = int(request.GET.get("limit", 1000))
     topics = get_all_topics(limit)
-    response = [t.contents() for t in topics]
+    response = [t.contents() for t in topics if request.active_module in DjangoTopic.objects.slug_to_pools.get(t.slug, [])]
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
