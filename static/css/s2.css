@@ -842,7 +842,7 @@ div.interfaceLinks-row a {
 .header .profile-menu-he {
   color: #666666;
 }
-.header .interfaceLinks .interfaceLinks-option::before {
+.header .interfaceLinks-option::before {
   content: "";
   font-family: FontAwesome;
   color: #999;
@@ -851,10 +851,10 @@ div.interfaceLinks-row a {
   font-style: normal;
   padding: 0 15px;
 }
-.header .interfaceLinks .interfaceLinks-option.active {
+.header  .interfaceLinks-option.active {
   order: -1;
 }
-.header .interfaceLinks .interfaceLinks-option.active::before {
+.header .interfaceLinks-option.active::before {
   content: "\f00c";
   padding: 0 8px;
 }
@@ -15294,9 +15294,54 @@ span.ref-link-color-3 {color: blue}
   text-align: start;
 }
 
-.emptyNoticationPage{
+.emptyNotificationPage{
   display: flex;
   flex-direction: column;
+}
+
+<<<<<<< HEAD
+.mobileProfileFlexContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+}
+
+.mobileProfileFlexContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+}
+
+.librarySavedIcon{
+  width: 20px;
+  height: 20px;
+  margin-inline-start: 6px;
+  margin-top: 2px;
+}
+
+.sheetsNotificationsHeaderIcon {
+  width: 20px;
+  height: 18px;
+  margin-inline-start: 6px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.sheetsNotificationsHeaderIcon img{
+  width: 100%;
+  height: 100%;
+}
+
+.librarySavedIcon img{
+  width: 100%;
+  height: 100%;
+}
+.languageFlex {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  direction:ltr;
 }
 
 @-webkit-keyframes load5 {

@@ -15,9 +15,11 @@ import {
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
-import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon } from './common/DropdownMenu';
+import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemLink, DropdownMenuItemWithIcon, DropdownMenuItemWithCallback } from './common/DropdownMenu';
+import Button from './common/Button';
 
-const LoggedOutDropdown = () => {
+
+const LoggedOutDropdown = ({module}) => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
@@ -41,40 +43,42 @@ const LoggedOutDropdown = () => {
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/logged_out.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={loginLink}>
+              <DropdownMenuItemLink url={loginLink}>
                   <InterfaceText text={{'en': 'Log in', 'he': 'התחברות'}}/>
-              </DropdownMenuItem>
-              <DropdownMenuItem url={registerLink}>
+              </DropdownMenuItemLink>
+              <DropdownMenuItemLink url={registerLink}>
                   <InterfaceText text={{'en': 'Sign up', 'he': 'להרשמה'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
               <DropdownMenuSeparator/>
               <div className="languageHeader">
                   <InterfaceText>Site Language</InterfaceText>
               </div>
               <div className='languageToggleFlexContainer'>
                 <span className='englishLanguageButton'>
-                  <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
+                  <DropdownMenuItemLink url={`/interface/english?next=${getCurrentPage()}`}>
                     English
-                  </DropdownMenuItem>
+                  </DropdownMenuItemLink>
                 </span>
-                  <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
+                  <DropdownMenuItemLink url={`/interface/hebrew?next=${getCurrentPage()}`}>
                       עברית
-                  </DropdownMenuItem>
+                  </DropdownMenuItemLink>
               </div>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/updates'}>
-                  <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
-              </DropdownMenuItem>
-              <DropdownMenuItem url={'/help'}>
+              { module === 'library' &&
+                <DropdownMenuItemLink url={'/updates'}>
+                    <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
+                </DropdownMenuItemLink>
+              }
+              <DropdownMenuItemLink url={'/help'}>
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
           </div>
       </DropdownMenu>
 );
 }
 
 
-const LoggedInDropdown = () => {
+const LoggedInDropdown = ({module}) => {
 
   const getCurrentPage = () => {
     return encodeURIComponent(Sefaria.util.currentPath());
@@ -86,40 +90,75 @@ const LoggedInDropdown = () => {
                                                  name={Sefaria.full_name}
                                                  len={25}/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem preventClose={true}>
-                  <strong>{Sefaria.full_name}</strong>
-              </DropdownMenuItem>
+              { module === 'library' && 
+                <DropdownMenuItem preventClose={true}>
+                    <strong>{Sefaria.full_name}</strong>
+                </DropdownMenuItem>
+              }
+               { module === 'sheets' && 
+                <DropdownMenuItemLink url={'/my/profile'} preventClose={true}>
+                    <strong>{Sefaria.full_name}</strong>
+                </DropdownMenuItemLink>
+              }
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/settings/account'}>
-                  <InterfaceText>Account Settings</InterfaceText>
-              </DropdownMenuItem>
-              <DropdownMenuItem url={'/torahtracker'}>
-                  <InterfaceText text={{'en': 'Torah Tracker', 'he': 'לימוד במספרים'}}/>
-              </DropdownMenuItem>
+
+              { module === 'library' && 
+                <>
+                <DropdownMenuItemLink url={'/settings/account'}>
+                    <InterfaceText>Account Settings</InterfaceText>
+                </DropdownMenuItemLink>
+                <DropdownMenuItemLink url={'/torahtracker'}>
+                    <InterfaceText text={{'en': 'Torah Tracker', 'he': 'לימוד במספרים'}}/>
+                </DropdownMenuItemLink>
+                </> 
+              }
+
+
+              { module === 'sheets' && 
+                <>
+                <DropdownMenuItemLink url={'/my/profile'}>
+                    <InterfaceText>Profile</InterfaceText>
+                </DropdownMenuItemLink>
+                <DropdownMenuItemLink url={'/sheets/saved'}>
+                  <InterfaceText>Saved</InterfaceText>
+                </DropdownMenuItemLink>
+                <DropdownMenuItemLink url={'/sheets/history'}>
+                  <InterfaceText>History</InterfaceText>
+                </DropdownMenuItemLink>
+                <DropdownMenuItemLink url={'/settings/account'}>
+                    <InterfaceText>Account Settings</InterfaceText>
+                </DropdownMenuItemLink>
+                </> 
+              }
+              
               <DropdownMenuSeparator/>
               <div className="languageHeader">
                   <InterfaceText>Site Language</InterfaceText>
               </div>
               <div className='languageToggleFlexContainer'>
-                  <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`}>
+                  <DropdownMenuItemLink url={`/interface/english?next=${getCurrentPage()}`}>
                       English
-                  </DropdownMenuItem>
+                  </DropdownMenuItemLink>
                   <span className="languageDot">&#183;</span>
-                  <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`}>
+                  <DropdownMenuItemLink url={`/interface/hebrew?next=${getCurrentPage()}`}>
                       עברית
-                  </DropdownMenuItem>
+                  </DropdownMenuItemLink>
               </div>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/updates'}>
-                  <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
-              </DropdownMenuItem>
-              <DropdownMenuItem preventClose={true} url={'/help'}>
+              
+              { module === 'library' && 
+                <DropdownMenuItemLink url={'/updates'}>
+                    <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
+                </DropdownMenuItemLink>
+              }
+
+              <DropdownMenuItemLink preventClose={true} url={'/help'}>
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/logout'}>
+              <DropdownMenuItemLink url={'/logout'}>
                   <InterfaceText text={{'en': 'Log Out', 'he': 'ניתוק'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
           </div>
       </DropdownMenu>
 );
@@ -142,9 +181,9 @@ const ModuleSwitcher = () => {
                   <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/products'} newTab={true}>
+              <DropdownMenuItemLink url={'/products'} newTab={true}>
                   <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
-              </DropdownMenuItem>
+              </DropdownMenuItemLink>
           </div>
       </DropdownMenu>
 );
@@ -172,18 +211,38 @@ class Header extends Component {
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
-    const logo = Sefaria.interfaceLang == "hebrew" ?
-      <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
-      <img src="/static/img/logo.svg" alt="Sefaria Logo"/>;
+    const short_lang = Sefaria.interfaceLang.slice(0,2);
+
+    const libraryLogoPath = Sefaria.interfaceLang === "hebrew"  ? "logo-hebrew.png" : "logo.svg";
+    const libraryLogo = (
+      <img src={`/static/img/${libraryLogoPath}`} alt="Sefaria Logo"/>
+    );
+
+    const sheetsLogoPath = `/static/img/${short_lang}_sheets_logo.svg`;
+    const sheetsLogo = (
+      <img src={sheetsLogoPath} alt="Sefaria Sheets Logo"/>
+    );
+
+    const logo = this.props.module === "library" ? libraryLogo : sheetsLogo;
+
+      const librarySavedIcon = <div className='librarySavedIcon'>
+                                  <a href="/texts/saved" >
+                                    <img src='/static/icons/bookmarks.svg' alt='Saved items' />
+                                  </a>
+                                </div>;
+      const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
+                                        <a href="/sheets/notifications" >
+                                          <img src='/static/icons/notification.svg' />
+                                        </a>
+                                      </div>;
 
     const headerContent = (
       <>
 
         <div className="headerNavSection">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <a className="home" href="/" >{logo}</a> : null }
-          <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
-          <a href="/topics" className="textLink"><InterfaceText context="Header">Explore</InterfaceText></a>
+          { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
+          <a href={this.props.module === 'library' ? '/texts' : '/sheets/topics'} className="textLink"><InterfaceText context="Header">{this.props.module === 'library' ? 'Texts' : 'Topics'}</InterfaceText></a>
+          <a href={this.props.module === 'library' ? '/topics' : '/sheets/collections'} className="textLink"><InterfaceText>{this.props.module === 'library' ? 'Topics' : 'Collections'}</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
@@ -195,7 +254,9 @@ class Header extends Component {
             openURL={this.props.openURL}
         />
 
-        { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
+        {!Sefaria._uid && this.props.module === "library" && <SignUpButton/>}
+        {this.props.module === "sheets" && <CreateButton />}
+        { Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
 
         { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
@@ -203,11 +264,13 @@ class Header extends Component {
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
 
+        { Sefaria._uid && (this.props.module ==="library" ? librarySavedIcon : sheetsNotificationsIcon) }
+
           <ModuleSwitcher />
 
           { Sefaria._uid ?
-            <LoggedInDropdown />
-            : <LoggedOutDropdown currentLang={Sefaria.interfaceLang}/>
+            <LoggedInDropdown module={this.props.module}/>
+            : <LoggedOutDropdown module={this.props.module}/>
           }
 
         </div>
@@ -223,8 +286,7 @@ class Header extends Component {
         </div>
 
         <div className="mobileHeaderCenter">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <a className="home" href="/texts" >{logo}</a> : null }
+          { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
         </div>
 
         {this.props.hasLanguageToggle ?
@@ -254,7 +316,8 @@ class Header extends Component {
           showSearch={this.props.showSearch}
           openTopic={this.props.openTopic}
           openURL={this.props.openURL}
-          close={this.props.onMobileMenuButtonClick} />
+          close={this.props.onMobileMenuButtonClick}
+          module={this.props.module} />
         }
         <GlobalWarningMessage />
       </div>
@@ -269,6 +332,7 @@ Header.propTypes = {
   openTopic:    PropTypes.func.isRequired,
   openURL:      PropTypes.func.isRequired,
   hasBoxShadow: PropTypes.bool.isRequired,
+  module:       PropTypes.string.isRequired,
 };
 
 const LoggedOutButtons = ({mobile, loginOnly}) => {
@@ -333,7 +397,7 @@ const LoggedInButtons = ({headerMode}) => {
   );
 }
 
-const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible}) => {
+const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible, module}) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
@@ -350,18 +414,36 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             hideHebrewKeyboard={true}
         />
       </div>
+      {module === "library" && 
       <a href="/texts" onClick={close} className="textsPageLink">
         <img src="/static/icons/book.svg" />
         <InterfaceText context="Header">Texts</InterfaceText>
       </a>
-      <a href="/topics" onClick={close}>
+      }
+      <a href={module === "library" ? "/topics" : "/sheets/topics"} onClick={close}>
         <img src="/static/icons/topic.svg" />
         <InterfaceText context="Header">Explore</InterfaceText>
       </a>
+      {module === "sheets" && 
+      <a href="/sheets/collections" onClick={close} className="textsPageLink">
+        <img src="/static/icons/collection.svg" />
+        <InterfaceText context="Header">Collections</InterfaceText>
+      </a>
+      }
+
+      {module === "sheets" && 
+      <a href="/sheets/collections" onClick={close} className="textsPageLink">
+        <img src="/static/icons/collection.svg" />
+        <InterfaceText context="Header">Collections</InterfaceText>
+      </a>
+      }
+
+     { module === "library" && 
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />
         <InterfaceText>Learning Schedules</InterfaceText>
       </a>
+    }
 
       <DonateLink classes={"blue"} source="MobileNavMenu">
         <img src="/static/img/heart.png" alt="donation icon" />
@@ -369,22 +451,43 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </DonateLink>
 
       <div className="mobileAccountLinks">
-        {Sefaria._uid ?
-        <>
-          <a href="/texts/saved" onClick={close}>
-            <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
-            <InterfaceText text={{en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות"}} />
 
+      {Sefaria._uid && module === "sheets"?
+        <>
+          <a href="/my/profile" onClick={close}>
+          <div className="mobileProfileFlexContainer">
+            <ProfilePic url={Sefaria.profile_pic_url} name={Sefaria.full_name} len={25}/>
+            <InterfaceText>Profile</InterfaceText>
+          </div>
           </a>
         </> : null }
 
         {Sefaria._uid ?
         <>
-          <a href="/settings/account">
-          <img src="/static/icons/settings.svg" />
-          <InterfaceText>Account Settings</InterfaceText>
-        </a>
+          <a href={module === "library" ? "/texts/saved" : "/sheets/saved" } onClick={close}>
+            <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
+            {module === "library" && <InterfaceText text={{en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות"}} />}
+            {module === "sheets" && <InterfaceText text={{en: "Saved & History", he: "שמורים והיסטוריה"}} />}
+          </a>
         </> : null }
+
+        {Sefaria._uid && module === "sheets" ?
+          <>
+            <a href="/sheets/notifications">
+            <img src="/static/icons/notification.svg" />
+            <InterfaceText>Notifications</InterfaceText>
+          </a>
+          </> : null 
+        }
+
+        {Sefaria._uid ?
+          <>
+            <a href="/settings/account">
+            <img src="/static/icons/settings.svg" />
+            <InterfaceText>Account Settings</InterfaceText>
+          </a>
+          </> : null 
+        }
 
         <MobileInterfaceLanguageToggle />
 
@@ -401,11 +504,20 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         </a>
 
         <hr />
-
-        <a href="sheets.sefaria.org" target="_blank">
+        
+        { module === "library" &&
+        <a href="/sheets/" target="_blank">
           <img src="/static/icons/sheets-mobile-icon.svg" />
           <InterfaceText>Sheets</InterfaceText>
         </a>
+        } 
+
+      { module === "sheets" &&
+        <a href="/texts" target="_blank">
+          <img src="/static/icons/book.svg" />
+          <InterfaceText text={{en: "Sefaria Library", he: "ספריית ספריא"}} />
+        </a>
+        } 
 
         <a href="developers.sefaria.org" target="_blank">
           <img src="/static/icons/dev-portal-mobile-icon.svg" />
@@ -550,6 +662,23 @@ const HelpButton = () => {
         <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
       </a>
     </div>
+  );
+};
+
+const SignUpButton = () => {
+  return (
+    <a href="/register">
+      <InterfaceText>Sign Up</InterfaceText>
+    </a>
+  )
+}
+
+const CreateButton = () => {
+  return (
+    <Button variant={"secondary"} onClick={() => window.location.href="/sheets/new"}>
+      {/* Hebrew is a placeholder */}
+      <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} /> 
+    </Button>
   );
 };
 

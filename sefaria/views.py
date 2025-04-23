@@ -30,6 +30,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -64,6 +65,7 @@ from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
+from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -71,6 +73,31 @@ if USE_VARNISH:
 import structlog
 logger = structlog.get_logger(__name__)
 
+class StaticViewMixin:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['renderStatic'] = True
+        return context
+
+class CustomLoginView(StaticViewMixin, LoginView):
+    authentication_form = SefariaLoginForm
+
+class CustomLogoutView(StaticViewMixin, LogoutView):
+    pass
+
+class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
+    pass
+
+class CustomPasswordResetCompleteView(StaticViewMixin, PasswordResetCompleteView):
+    pass
+
+class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
+    form_class = SefariaPasswordResetForm
+    email_template_name = 'registration/password_reset_email.txt'
+    html_email_template_name = 'registration/password_reset_email.html'
+
+class CustomPasswordResetConfirmView(StaticViewMixin, PasswordResetConfirmView):
+    form_class = SefariaSetPasswordForm
 
 def process_register_form(request, auth_method='session'):
     from sefaria.utils.util import epoch_time
@@ -158,7 +185,7 @@ def register(request):
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", None, {'form': form, 'next': next})
+    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next, "renderStatic": True})
 
 
 def maintenance_message(request):

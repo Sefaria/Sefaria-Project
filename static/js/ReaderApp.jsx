@@ -2113,7 +2113,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
         hasBoxShadow={headerHasBoxShadow}
         translationLanguagePreference={this.state.translationLanguagePreference}
-        setTranslationLanguagePreference={this.setTranslationLanguagePreference} />
+        setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
+        module={Sefaria.activeModule}/>
     );
 
     var panels = [];
