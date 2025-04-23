@@ -358,7 +358,7 @@ def ref_topic_link_prep(link):
     return link
 
 def get_topics_for_ref(tref, lang="english", annotate=False, active_module='library'):
-    serialized = [l.contents() for l in Ref(tref).topiclinkset() if active_module in DjangoTopic.objects.slug_to_pools[l.toTopic]]
+    serialized = [l.contents() for l in Ref(tref).topiclinkset() if active_module in DjangoTopic.objects.slug_to_pools.get(l.toTopic, [])]
     if annotate:
         if len(serialized) > 0:
             link_topic_dict = {topic.slug: topic for topic in TopicSet({"$or": [{"slug": link['topic']} for link in serialized]})}
