@@ -251,7 +251,7 @@ export const deserialize = el => {
         let new_children = children
         // for some reason, if there's only one child, and it's null, the editor crashes
         // but null children are fine if there are multiple children
-        if(!children[0] && children.length === 1) {
+        if(!children[0] && children.length <= 1) {
             new_children = [{'text':''}];
         }
         const attrs = {
