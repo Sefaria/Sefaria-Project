@@ -15,7 +15,6 @@ import {
 } from './ConnectionsPanel';
 import BookPage  from './BookPage';
 import Sheet  from './sheets/Sheet';
-import SheetMetadata  from './SheetMetadata';
 import TopicPageAll  from './TopicPageAll';
 import {TopicPage, TopicCategory}  from './TopicPage';
 import TopicsPage from './TopicsPage';
