@@ -583,7 +583,7 @@ function transformSheetJsonToSlate(sheet) {
     const title = source.title;
     title && sourceNodes.push({
       type: "header",
-      children: [{ text: title.stripHtmlConvertLineBreaks() }]
+      children: [{ text: title }]
     });
 
     sourceNodes.push(
