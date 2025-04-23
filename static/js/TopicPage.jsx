@@ -52,9 +52,7 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
         Object.assign(tempRef, outRef);
       }
     }
-    const result = inRefs.map(ref => [ref.ref, ref]);
-
-    return result; // Return the list of tuples [key, value]
+    return inRefs.map(ref => [ref.ref, ref]);
   });
 
 
