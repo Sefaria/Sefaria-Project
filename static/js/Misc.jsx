@@ -3580,7 +3580,54 @@ const AppStoreButton = ({ platform, href, altText }) => {
   );
 };
 
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const getPageNumbers = () => {
+    let start = Math.max(1, currentPage - 2);
+    let end = Math.min(totalPages, start + 4);
 
+    if (end - start < 6) {
+      start = Math.max(1, end - 4);
+    }
+
+    const pages = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
+  const pageNumbers = getPageNumbers();
+
+  return (
+    <div className="pagination">
+      <button
+        className="page-btn"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
+        &laquo;
+      </button>
+
+      {pageNumbers.map((num) => (
+        <button
+          key={num}
+          className={`page-btn ${num === currentPage ? 'active' : ''}`}
+          onClick={() => onPageChange(num)}
+        >
+          {num}
+        </button>
+      ))}
+
+      <button
+        className="page-btn"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      >
+        &raquo;
+      </button>
+    </div>
+  );
+};
 export {
   ContentText,
   VersionStatusLong,
@@ -3658,5 +3705,6 @@ export {
   TopicPictureUploader,
   ImageWithCaption, 
   layoutOptions,
-  layoutLabels
+  layoutLabels,
+  Pagination
 };

@@ -1378,7 +1378,8 @@ class ShareBox extends Component {
     else {
       this.state = {
         sheet: null,
-        shareValue: null
+        shareValue: null,
+        urlLoading: true,
       }
     }
 
@@ -1394,6 +1395,9 @@ class ShareBox extends Component {
         this.postSheet(postJSON)
       })
     }
+    if(this.props.url !== prevProps.url) {
+      this.createShortUrl();
+    }
   }
 
   componentDidMount() {
@@ -1405,9 +1409,7 @@ class ShareBox extends Component {
 
   createShortUrl() {
     const payload = {
-      json: {
         original_url: this.props.url
-      }
     };
   
     $.ajax({
@@ -1417,9 +1419,10 @@ class ShareBox extends Component {
       data: JSON.stringify(payload),
       success: (data) => {
         if (data.short_url) {
-          this.setState({ shortUrl: data.short_url });
+          this.setState({ shortUrl: data.short_url, urlLoading: false });
         } else {
           console.log(data);
+          this.setState({ urlLoading: false });
         }
       },
       error: (xhr, status, err) => {
@@ -1478,7 +1481,7 @@ class ShareBox extends Component {
           <div className="shareInputBox">
 
             <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
-            <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.state.shortUrl} />
+            <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.state.urlLoading ? "Loading....." : this.state.shortUrl} />
           </div>
           {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
             <div className="shareSettingsBox">

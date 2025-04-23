@@ -9,9 +9,9 @@ def generate_short_code(length=6):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
 class ShortURL(models.Model):
-    original_url = models.URLField()
+    original_url = models.URLField(max_length=2000)
     code = models.CharField(max_length=10, unique=True)
-    short_url = models.URLField(unique=True)  # Full short URL like https://example.com/Xy9Za3
+    short_url = models.URLField(max_length=2000, unique=True)  # Full short URL like https://example.com/Xy9Za3
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

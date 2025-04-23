@@ -510,6 +510,11 @@ class ReaderApp extends Component {
             hist.url   = "community";
             hist.mode  = "community";
             break;
+          case "plans":
+            hist.title = Sefaria._("Practice Plans");
+            hist.url   = "plans";
+            hist.mode  = "plans";
+            break;  
           case "profile":
             hist.title = `${state.profile.full_name} ${Sefaria._("on Pecha")}`;
             hist.url   = `profile/${state.profile.slug}`;
@@ -1117,7 +1122,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/community") {
       this.showCommunity();
 
-    } else if (path === "/my/profile") {
+    } else if (path === "/plans") {
+      this.showPlans(); 
+    }
+    else if (path === "/my/profile") {
       this.openProfile(Sefaria.slug, params.get("tab"));
 
     } else if (path === "/notifications") {
@@ -1687,6 +1695,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showCommunity() {
     this.setSinglePanelState({menuOpen: "community"});
+  }
+  showPlans() {
+    this.setSinglePanelState({menuOpen: "plans"});
   }
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});

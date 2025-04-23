@@ -49,6 +49,7 @@ urlpatterns = [
     url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
     url(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     url(r'^community/?$', reader_views.community_page),
+    url(r'^plans/?$', reader_views.plans_page),
     url(r'^notifications/?$', reader_views.notifications),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
@@ -491,6 +492,13 @@ urlpatterns += staticfiles_urlpatterns()
 urlpatterns += [
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
     url(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
+]
+
+# Plans API
+urlpatterns += [
+    url(r'^api/plans$', api_views.PlanView.as_view(), name='plan_list'),
+    url(r'^api/plans/(?P<uuid>[0-9a-fA-F]{24})$', api_views.PlanView.as_view(), name='plan_detail'),
+    url(r'^api/plans/(?P<uuid>[0-9a-fA-F]{24})/day_(?P<day>\d+)$', api_views.PlanView.as_view(), name='plan_day'),
 ]
 
 if DOWN_FOR_MAINTENANCE:

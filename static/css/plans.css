@@ -1,0 +1,502 @@
+.readerNavMenu {
+  height: 100vh; /* Take up the full viewport height */
+  overflow: hidden; /* Prevent scrolling on the outer container */
+  width: 100%; /* Ensure full width */
+}
+
+.plansPage {
+  height: 100%; /* Take up the full height of the parent */
+  width: 100%; /* Ensure full width */
+}
+
+.content {
+  height: 100%; /* Take up the full height of the parent */
+  overflow-y: auto; /* Enable vertical scrolling */
+  padding: 20px 15px; /* Adjust padding for full-width layout */
+  width: 100%; /* Ensure full width */
+  box-sizing: border-box; /* Ensure padding doesn’t affect width */
+}
+
+.contentInnerr {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%; /* Ensure the inner content can grow */
+  width: 100%; /* Ensure full width */
+}
+
+.readerNavMenu .content .contentInnerr {
+  margin: 0 auto;
+  min-height: 520px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding-bottom: 70px;
+  padding-inline-start: 30px;
+  padding-inline-end: 30px;
+}
+
+.searchBarContainer {
+  margin-bottom: 30px;
+}
+
+.searchBarWrapper {
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #666;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 15px 10px 40px; /* Extra padding on the left for the icon */
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 16px;
+  color: #333;
+  background-color: #f9f9f9;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.searchInput:focus {
+  border-color: #C39F48;
+  box-shadow: 0 0 5px rgba(195, 159, 72, 0.3);
+}
+
+.plansCategoriesHeader {
+  margin-bottom: 10px;
+}
+
+.plansCategoriesHeader h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  text-align: center; /* Center the header text */
+}
+
+.plansCategories {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Center the category buttons */
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.categoryButton {
+  padding: 6px 12px;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.categoryButton:hover,
+.categoryButton.active {
+  background-color: #C39F48;
+  color: white;
+}
+
+.plansListHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.plansListHeader h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.viewAllLink {
+  font-size: 14px;
+  font-weight: 500;
+  color: #C39F48;
+  text-decoration: none;
+}
+
+.viewAllLink:hover {
+  text-decoration: underline;
+}
+
+.plansList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  flex-grow: 1; /* Allow the plans list to grow */
+}
+
+.planCard {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.planCard:hover {
+  transform: translateY(-2px);
+}
+
+.planImageWrapper {
+  position: relative;
+  display: block; /* Ensure the Link behaves as a block for proper positioning */
+}
+
+.planImage {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block; /* Remove any inline spacing */
+}
+
+.planCategories {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.planCategory {
+  background-color: rgba(255, 255, 255, 0.9); /* White background with slight transparency */
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  color: #666;
+}
+
+.categorySeparator {
+  color: #666;
+  margin: 0 5px;
+  line-height: 1.5; /* Align with category text */
+}
+
+.categoryCount {
+  background-color: rgba(255, 255, 255, 0.9); /* White background with slight transparency */
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  color: #666;
+}
+
+.planTitle {
+  margin: 0;
+  padding: 10px 15px 0; /* Adjust padding to reduce space */
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.planTitle a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.planTitle a:hover {
+  color: #C39F48;
+}
+
+.planFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-top: 1px solid #eee;
+}
+
+.planDuration {
+  font-size: 14px;
+  color: #666;
+}
+
+.readMoreLink {
+  font-size: 14px;
+  font-weight: 500;
+  color: #C39F48;
+  text-decoration: none;
+}
+
+.readMoreLink:hover {
+  text-decoration: underline;
+}
+
+/* Plan Detail Styles */
+.planDetail {
+  max-width: 1200px; /* Wider max-width for side-by-side layout */
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.planDetailBackLink {
+  margin-bottom: 20px;
+}
+
+.backLink {
+  font-size: 16px;
+  color: #666;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.backLink:hover {
+  color: #C39F48;
+}
+
+.backArrow {
+  margin-right: 5px;
+}
+
+.planDetailHeader {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.planDetailImageWrapper {
+  flex: 1;
+}
+
+.planDetailImage {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+
+.planDetailCategories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.planDetailCategory {
+  background-color: #f0f0f0;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+  color: #666;
+}
+
+.planDetailInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.planDetailTitle {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.planDetailDescription {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.planDetailMeta {
+  margin-bottom: 20px;
+}
+
+.planDetailDuration {
+  font-size: 16px;
+  color: #666;
+}
+
+.planDetailActions {
+  display: flex;
+}
+
+.startPlanButton {
+  padding: 12px 24px;
+  background-color: #C39F48;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.3s;
+}
+
+.startPlanButton:hover {
+  background-color: #a3853b;
+}
+
+.planDetailContent {
+  border-top: 1px solid #eee;
+  padding-top: 30px;
+}
+
+.planDetailContent h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.planDetailLearnDescription {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .content {
+    padding: 15px 10px; /* Adjust padding for smaller screens */
+    padding-bottom: 50px;
+  }
+
+  .searchBarWrapper {
+    max-width: 100%;
+  }
+
+  .searchInput {
+    font-size: 14px;
+    padding: 8px 15px 8px 35px;
+  }
+
+  .searchIcon {
+    font-size: 14px;
+    left: 12px;
+  }
+
+  .plansCategoriesHeader h2 {
+    font-size: 14px;
+  }
+
+  .categoryButton {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .plansListHeader h1 {
+    font-size: 20px;
+  }
+
+  .viewAllLink {
+    font-size: 12px;
+  }
+
+  .plansList {
+    grid-template-columns: 1fr; /* Single column on smaller screens */
+  }
+
+  .planImage {
+    height: 120px;
+  }
+
+  .planTitle {
+    font-size: 16px;
+  }
+
+  .planDuration,
+  .readMoreLink {
+    font-size: 12px;
+  }
+
+  .planCategories {
+    bottom: 8px;
+    left: 8px;
+    font-size: 10px;
+  }
+
+  .planCategory,
+  .categoryCount {
+    padding: 3px 6px;
+  }
+
+  /* Plan Detail Responsive Styles */
+  .planDetail {
+    padding: 15px 0;
+  }
+
+  .planDetailBackLink {
+    margin-bottom: 15px;
+  }
+
+  .backLink {
+    font-size: 14px;
+  }
+
+  .planDetailHeader {
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .planDetailImage {
+    height: 200px;
+  }
+
+  .planDetailCategories {
+    font-size: 12px;
+    gap: 8px;
+  }
+
+  .planDetailCategory {
+    padding: 4px 8px;
+  }
+
+  .planDetailTitle {
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .planDetailDescription {
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .planDetailMeta {
+    display: flex;
+    justify-content: center;
+  }
+
+  .planDetailDuration {
+    font-size: 14px;
+  }
+
+  .planDetailActions {
+    justify-content: center;
+  }
+
+  .startPlanButton {
+    font-size: 14px;
+    padding: 10px 20px;
+  }
+
+  .planDetailContent h2 {
+    font-size: 20px;
+  }
+
+  .planDetailLearnDescription {
+    font-size: 14px;
+  }
+}
