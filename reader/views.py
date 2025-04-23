@@ -213,7 +213,7 @@ def base_props(request):
             "last_place": []
         }
     user_data.update({
-        "activeModule": getattr(request, 'active_module', "library"),
+        "activeModule": getattr(request, "active_module", "library"),
         "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
@@ -4008,11 +4008,12 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
-    return render_template(request,'account_settings.html', None, {
+    return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
-        'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
+        'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
+        "renderStatic": True
     })
 
 
@@ -4455,14 +4456,14 @@ def serve_static(request, page):
     """
     Serve a static page whose template matches the URL
     """
-    return render_template(request,'static/%s.html' % page, None, {})
+    return render_template(request,'static/%s.html' % page, {"headerMode": True}, {"renderStatic": True})
 
 @ensure_csrf_cookie
 def serve_static_by_lang(request, page):
     """
     Serve a static page whose template matches the URL
     """
-    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), None, {})
+    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), {"headerMode": True}, {"renderStatic": True})
 
 
 # TODO: This really should be handled by a CMS :)

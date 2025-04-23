@@ -30,6 +30,21 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
   );
 }
 
+const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => {
+
+  if (!newTab){
+    newTab = false;
+  }
+  return (
+    <a className={`interfaceLinks-option int-bi dropdownItem`}
+       href={url}
+       target={newTab ? '_blank' : null}
+       data-prevent-close={preventClose}>
+      {children}
+    </a>
+  );
+}
+
 const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false}) => {
   return (
     <div className={'interfaceLinks-option int-bi dropdownItem'} onClick={onClick} data-prevent-close={preventClose}>
@@ -123,6 +138,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     DropdownMenu,
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
+    DropdownMenuItemLink,
     DropdownMenuItem, 
     DropdownMenuItemWithCallback
   };
