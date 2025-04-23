@@ -9066,7 +9066,7 @@ a.sheetAuthorName:hover {
   margin-inline-start: 15px;
 }
 .sheetMetaDataBox .sidebarLayout .items > dialog {
-  margin-inline-start: 0;
+  margin-inline-start: revert;
 }
 .sheetMetaDataBox .texts-properties-menu {
   top: 40px;
