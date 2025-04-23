@@ -2559,12 +2559,14 @@ const SefariaEditor = (props) => {
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
+    const [connectionLostPolling, setConnectionLostPolling] = useState(false);
 
     useEffect(
         () => {
             if (!canUseDOM) {
                 return
             }
+
 
             setUnsavedChanges(true);
             // Update debounced value after delay
@@ -2582,6 +2584,21 @@ const SefariaEditor = (props) => {
         },
         [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
     );
+    useEffect(() => {
+        if (!canUseDOM || !connectionLostPolling) return;
+
+        const interval = setInterval(() => {
+            setUnsavedChanges(true);
+
+            const handler = setTimeout(() => {
+                saveDocument(currentDocument);
+            }, 500);
+
+            return () => clearTimeout(handler); // cleanup debounce on next tick
+        }, 1000); // polling every 1s, adjust as needed
+
+        return () => clearInterval(interval); // cleanup polling
+    }, [connectionLostPolling]);
 
     useEffect(
         () => {
@@ -2849,8 +2866,9 @@ const SefariaEditor = (props) => {
                 alert("The request took too long. Please try again.");
             } else if (jqXHR.status === 0) {
                 console.warn("No network connection or request blocked.");
-                alert("You're offline or the server is unreachable.");
+                !connectionLostPolling && alert("You're offline");
                 setBlockEditing(true);
+                setConnectionLostPolling(true);
             } else if (jqXHR.status >= 500) {
                 console.warn("Server error:", jqXHR.status);
                 alert("Server error. Please try again later.");
@@ -2870,6 +2888,8 @@ const SefariaEditor = (props) => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false);
+            setBlockEditing(false);
+            setConnectionLostPolling(false);
 
             const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
             Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
