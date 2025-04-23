@@ -23,7 +23,7 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1170,55 +1170,35 @@ DisplaySettingsButton.propTypes = {
 
 
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
+
   const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef(null);
 
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
   }
-  const handleClick = (e) => {
-    e.stopPropagation();
-    setIsOpen(isOpen => !isOpen);
-  }
+
   const handleTransPrefResetClick = (e) => {
     e.stopPropagation();
     setTranslationLanguagePreference(null);
   };
-  const handleHideDropdown = (event) => {
-      if (event.key === 'Escape') {
-          setIsOpen(false);
-      }
-  };
-  const handleClickOutside = (event) => {
-      if (
-          wrapperRef.current &&
-          !wrapperRef.current.contains(event.target)
-      ) {
-          setIsOpen(false);
-      }
-  };
-
-  useEffect(() => {
-      document.addEventListener('keydown', handleHideDropdown, true);
-      document.addEventListener('click', handleClickOutside, true);
-      return () => {
-          document.removeEventListener('keydown', handleHideDropdown, true);
-          document.removeEventListener('click', handleClickOutside, true);
-      };
-  }, []);
 
   return (
-      <div className="interfaceLinks" ref={wrapperRef}>
-        <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/></a>
-        <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
-          <div className="interfaceLinks-header">
-            <InterfaceText>Site Language</InterfaceText>
-          </div>
-          <div className="interfaceLinks-options">
-            <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
-          </div>
-          { !!translationLanguagePreference ? (
+    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
+      <div className="dropdownLinks-options">
+        <div className="interfaceLinks interfaceLinks-menu interfaceLinks-header languageHeader">
+          <InterfaceText>Site Language</InterfaceText>
+        </div>
+        <DropdownMenuSeparator />
+        <div className='languageFlex'>
+          <DropdownMenuItem  url={`/interface/hebrew?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'hebrew') ? 'active':''}`}>
+            עברית
+          </DropdownMenuItem>
+          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'english') ? 'active' : ''}`}>
+            English
+          </DropdownMenuItem>
+        </div>
+      </div>
+      { !!translationLanguagePreference ? (
             <>
               <div className="interfaceLinks-header">
                 <InterfaceText>Preferred Translation</InterfaceText>
@@ -1234,8 +1214,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
               </div>
             </>
           ) : null}
-        </div>
-      </div>
+    </DropdownMenu>
   );
 }
 InterfaceLanguageMenu.propTypes = {
@@ -2261,8 +2240,6 @@ const Banner = ({ onClose }) => {
     return null;
   }
 };
-
-Banner.displayName = "Banner";
 
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox

@@ -352,13 +352,13 @@ urlpatterns += [
 
 # Registration
 urlpatterns += [
-    url(r'^login/?$', django_auth_views.LoginView.as_view(authentication_form=SefariaLoginForm), name='login'),
+    url(r'^login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
     url(r'^register/?$', sefaria_views.register, name='register'),
-    url(r'^logout/?$', django_auth_views.LogoutView.as_view(), name='logout'),
-    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(form_class=SefariaPasswordResetForm, email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), name='password_reset'),
-    url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(form_class=SefariaSetPasswordForm), name='password_reset_confirm'),
-    url(r'^password/reset/complete/$', django_auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-    url(r'^password/reset/done/$', django_auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    url(r'^logout/?$', sefaria_views.CustomLogoutView.as_view(), name='logout'),
+    url(r'^password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='password_reset'),
+    url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', sefaria_views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    url(r'^password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    url(r'^password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
     url(r'^api/register/$', sefaria_views.register_api),
     url(r'^api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     url(r'^api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
@@ -436,6 +436,7 @@ urlpatterns += [
     url(r'^admin/delete/sheet$', sefaria_views.delete_sheet_by_id, name="delete/sheet"),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
     url(r'^admin/rebuild/citation-links/(?P<title>.+)$', sefaria_views.rebuild_citation_links),
+    url(r'^admin/rebuild/shared-cache', sefaria_views.rebuild_shared_cache),
     url(r'^admin/delete/citation-links/(?P<title>.+)$', sefaria_views.delete_citation_links),
     url(r'^admin/cache/stats', sefaria_views.cache_stats),
     url(r'^admin/cache/dump', sefaria_views.cache_dump),

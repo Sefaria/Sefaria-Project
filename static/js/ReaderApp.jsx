@@ -2116,7 +2116,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
         hasBoxShadow={headerHasBoxShadow}
         translationLanguagePreference={this.state.translationLanguagePreference}
-        setTranslationLanguagePreference={this.setTranslationLanguagePreference} />
+        setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
+        module={Sefaria.activeModule}/>
     );
 
     var panels = [];
@@ -2209,6 +2210,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
                       hasSidebar={this.doesPanelHaveSidebar(i)}
+                      masterPanelLayout={panel.mode === "Connections" ? panelStates[i-1].settings.biLayout : ""}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       masterPanelMode={panel.mode === "Connections" ? panelStates[i-1].mode : null}
                       layoutWidth={width}
