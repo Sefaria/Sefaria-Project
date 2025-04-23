@@ -9062,8 +9062,11 @@ a.sheetAuthorName:hover {
   display: flex;
   justify-content: space-between;
 }
-.sheetMetaDataBox .sidebarLayout .items > :not(dialog)  {
+.sheetMetaDataBox .sidebarLayout .items > *  {
   margin-inline-start: 15px;
+}
+.sheetMetaDataBox .sidebarLayout .items > dialog {
+  margin-inline-start: 0;
 }
 .sheetMetaDataBox .texts-properties-menu {
   top: 40px;
@@ -9114,7 +9117,6 @@ a.sheetAuthorName:hover {
   border-radius: 6px;
   padding: 10px 20px;
   max-width: 540px;
-  margin: 20px -20px;
   font-size: 16px;
   color: #666;
 }
