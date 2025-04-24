@@ -233,13 +233,14 @@ const TopicCard = ({topic, setTopic, setNavTopic}) => {
   let {en, he} = topic;
   en = en.replace(/^Parashat /, "");
   he = he.replace(/^פרשת /, "");
+  const href = `/topics/${children ? 'category/' : ''}${slug}`;
 
-  return <Card cardTitleHref={`/topics/${children ? 'category/' : ''}${slug}`}
+  return <Card cardTitleHref={href}
                cardTitle={{en, he}}
                cardText={description}
                analyticsEventName="navto_topic:click"
                analyticsLinkType={children ? "category" : "topic"}
-               oncardTitleClick={(e) => openTopic(e)}/>;
+               oncardTitleClick={openTopic}/>;
 }
 
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,

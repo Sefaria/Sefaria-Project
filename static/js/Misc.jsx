@@ -23,6 +23,9 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+import { ReaderApp } from './ReaderApp';
+import { ToolsButton } from "./ConnectionsPanel";
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
 
 /**
@@ -1223,18 +1226,13 @@ InterfaceLanguageMenu.propTypes = {
 };
 
 const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
-const getSaveButtonMessage = (selected) => Sefaria._(selected ? "Remove" : "Save");
+const getSaveButtonMessage = (selected) => selected ? "Remove" : "Save";
 const getSaveButtonImage = (selected) => {
   return selected ? "/static/icons/bookmark-filled.svg" : "/static/icons/bookmark.svg";
 }
 const SaveButtonWithText = ({historyObject}) => {
   const selected = isSaveButtonSelected(historyObject);
-  return <DropdownMenuItemWithIcon
-                    textEn={getSaveButtonMessage(selected)}
-                    textHe={getSaveButtonMessage(selected)}
-                    descEn={""}
-                    descHe={""}
-                    icon={getSaveButtonImage(selected)}/>;
+  return <DropdownMenuItemWithIcon textEn={getSaveButtonMessage(selected)} icon={getSaveButtonImage(selected)}/>;
 }
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
@@ -1582,7 +1580,20 @@ const SheetListing = ({
       </a>
     );
   });
-
+  const topics = sheet.topics.map((topic, i) => {
+    const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
+    return (
+      <a href={`/topics/${topic.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+        onClick={handleTopicClick.bind(null, topic.slug)}
+      >
+        <InterfaceText text={topic} />
+        {separator}
+      </a>
+    );
+  });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
@@ -2669,21 +2680,26 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
-const SheetMetaDataBoxSegment = (props) => (
-  <div className={props.className}
-    role="heading"
-    aria-level="1"
-    contentEditable={props.editable}
-    suppressContentEditableWarning={true}
-    onBlur={props.editable ? props.blurCallback : null}
-    style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" :"ltr"}}
+const SheetMetaDataBoxSegment = (props) => {
+  const handleBlur = (e) => {
+    let content = e.target.textContent.trim(); // It seems browsers insert a <br> tag when div content is deleted by user, so we need to trim it.
+    if (content === '') {
+      e.target.innerHTML = ''; 
+    }
+    if (props.blurCallback) {
+      props.blurCallback(content);
+    }
+  }
+  return <div className={props.className}
+              role="heading"
+              aria-level="1"
+              contentEditable={props.editable}
+              suppressContentEditableWarning={true}
+              onBlur={props.editable && handleBlur}
   >
-  {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+    {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
   </div>
-);
-SheetMetaDataBoxSegment.propTypes = {
-  title: PropTypes.string,
-};
+}
 
 
 const SheetAuthorStatement = (props) => (
@@ -2833,13 +2849,20 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, sheetOptions, editable}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+  const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu marginInlineIndent" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
-    <div className="sidebarLayout">
-      <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
-      {sheetOptions}
+    <div className={`sidebarLayout`}>
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
+      <div className="items">
+        {languageToggle}
+        {sheetOptions}
+      </div>
     </div>
-    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
+    {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
+                                                       className="summary"
+                                                       editable={editable}
+                                                       blurCallback={summaryCallback}/>}
   </div>
 }
 

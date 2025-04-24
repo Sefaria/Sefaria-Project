@@ -14,7 +14,9 @@ import Component from 'react-class';
 // The root topics page listing topic categories to browse
 const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   let categoryListings = Sefaria.topic_toc.map(cat => {
-    const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
+    const openCat = e => {
+      e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})
+    };
     return (
         <div className="navBlock">
           <a

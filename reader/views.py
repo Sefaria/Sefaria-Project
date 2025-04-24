@@ -3123,6 +3123,20 @@ def topic_page(request, slug, test_version=None):
     if topic_obj is None or request.active_module not in DjangoTopic.objects.slug_to_pools[slug]:
         raise Http404
 
+    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    desc = title = ""
+    short_title = topic_obj.get_primary_title(short_lang)
+    if request.active_module == "library":
+        title = short_title + " | " + _("Texts from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
+    elif request.active_module == "sheets":
+        title = short_title + " | " + _("Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Source Sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
+
+    topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
+    if topic_desc is not None:
+        desc += " " + topic_desc
+
     props = {
         "initialMenu": "topics",
         "initialTopic": slug,
@@ -3137,19 +3151,6 @@ def topic_page(request, slug, test_version=None):
 
     if test_version is not None:
         props["topicTestVersion"] = test_version
-
-    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = desc = ""
-    if request.active_module == "library":
-        title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts from Torah, Talmud and Sefaria's library of Jewish sources.")
-        desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
-    elif request.active_module == "sheets":
-        title = topic_obj.get_primary_title(short_lang) + " | " + _("Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
-        desc = _("Source Sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
-
-    topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
-    if topic_desc is not None:
-        desc += " " + topic_desc
 
     return render_template(request, 'base.html', props, {
         "title":          title,
