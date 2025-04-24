@@ -174,10 +174,10 @@
 {% block js %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.22/jquery-ui.min.js"></script>
-<script src="{% static 'js/lib/jquery.autosize.js' %}"></script>
-<script src="{% static 'js/s1/util.js' %}"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/jquery.countdown.css' %}">
-<script type="text/javascript" src="{% static 'js/lib/jquery.countdown.js' %}"></script>
+<script src="{% full_static 'js/lib/jquery.autosize.js' %}"></script>
+<script src="{% full_static 'js/s1/util.js' %}"></script>
+<link rel="stylesheet" type="text/css" href="{% full_static 'css/jquery.countdown.css' %}">
+<script type="text/javascript" src="{% full_static 'js/lib/jquery.countdown.js' %}"></script>
 
 <script>
 {% autoescape off %}

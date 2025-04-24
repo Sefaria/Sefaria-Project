@@ -49,9 +49,9 @@
 
     <div id="homePage" class="static biReady">
         <div id="homeCover">
-            <video id="homeVideo" poster="{% static 'img/home-video.jpg' %}" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
-                <source src="{% static 'img/home-video.webm' %}" type="video/webm">
-                <source src="{% static 'img/home-video.mp4' %}" type="video/mp4">
+            <video id="homeVideo" poster="{% full_static 'img/home-video.jpg' %}" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
+                <source src="{% full_static 'img/home-video.webm' %}" type="video/webm">
+                <source src="{% full_static 'img/home-video.mp4' %}" type="video/mp4">
                 Video of sofer writing letters of the Torah
             </video>
             <h1 class="featureTitle">
@@ -153,7 +153,7 @@
                     </a>
                 </div>
                 <div class="imageBox">
-                    <img src="{% static 'img/home-mobile.png' %}" alt="Image of Sefaria on mobile phones" />
+                    <img src="{% full_static 'img/home-mobile.png' %}" alt="Image of Sefaria on mobile phones" />
                 </div>
             </div>
         </div>
@@ -185,7 +185,7 @@
                 </div>
                 <div class="imageBox bordered">
                     <a href="/sheets">
-                        <img src="{% static 'img/home-sheets.png' %}" alt="Image of printed Sefaria source sheets" />
+                        <img src="{% full_static 'img/home-sheets.png' %}" alt="Image of printed Sefaria source sheets" />
                     </a>
                 </div>
             </div>
@@ -212,7 +212,7 @@
                 </div>
                 <div class="imageBox bordered">
                     <a href="/explore">
-                        <img src="{% static 'img/home-explore.png' %}" alt="Image of networked text" />
+                        <img src="{% full_static 'img/home-explore.png' %}" alt="Image of networked text" />
                     </a>
                 </div>
             </div>
@@ -239,7 +239,7 @@
                 </div>
                 <div class="imageBox bordered">
                     <a href="/educators">
-                        <img src="{% static 'img/ed-groups.png' %}" alt="Image of an educator with students" />
+                        <img src="{% full_static 'img/ed-groups.png' %}" alt="Image of an educator with students" />
                     </a>
                 </div>
             </div>
@@ -275,7 +275,7 @@
                     <span class="int-he">ספריא במספרים</span>
                 </h3>
                 <p class="stat">
-                    <img class="statIcon" src="{% static 'img/progress-contributors.png' %}" alt="">
+                    <img class="statIcon" src="{% full_static 'img/progress-contributors.png' %}" alt="">
                     <span class="wordCount">{{ metrics.contributors|intcomma }}</span>
                     <span class="stat-name">
                         <span class="int-en">Contributors</span>
@@ -284,7 +284,7 @@
                 </p>
 
                 <p class="stat">
-                    <img class="statIcon" src="{% static 'img/progress-sheets.png' %}" alt="">
+                    <img class="statIcon" src="{% full_static 'img/progress-sheets.png' %}" alt="">
                     <span class="wordCount">{{ metrics.sheets|intcomma }}</span>
                     <span class="stat-name">
                         <span class="int-en">Source Sheets</span>
@@ -293,7 +293,7 @@
                 </p>
 
                 <p class="stat">
-                    <img class="statIcon" src="{% static 'img/progress-connections.png' %}" alt="">
+                    <img class="statIcon" src="{% full_static 'img/progress-connections.png' %}" alt="">
                     <span class="wordCount">{{ metrics.links|intcomma }}</span>
                     <span class="stat-name">
                         <span class="int-en">Connections</span>
@@ -302,7 +302,7 @@
                 </p>
 
                 <p class="stat">
-                    <img class="statIcon" src="{% static 'img/progress-translation.png' %}" alt="">
+                    <img class="statIcon" src="{% full_static 'img/progress-translation.png' %}" alt="">
                     <span class="wordCount">{{ metrics.transWords|intcomma }}</span>
                     <span class="stat-name">
                         <span class="int-en">Words of Translation</span>
@@ -311,7 +311,7 @@
                 </p>
 
                 <p class="stat">
-                    <img class="statIcon" src="{% static 'img/progress-words.png' %}" alt="">
+                    <img class="statIcon" src="{% full_static 'img/progress-words.png' %}" alt="">
                     <span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
                     <span class="stat-name">
                         <span class="int-en">Total Words</span>

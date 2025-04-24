@@ -1,6 +1,7 @@
 {% extends "base.html"%}
 {% load static %}
-{% block head %} <link rel="stylesheet" href="{% static 'css/categorize-sheets.css' %}">
+{% load full_static %}
+{% block head %} <link rel="stylesheet" href="{% full_static 'css/categorize-sheets.css' %}">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.8.6/react.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.8.6/react-dom.js"></script>
@@ -13,5 +14,5 @@
 {% block js %}
 <script>Sefaria.unpackDataFromProps(DJANGO_VARS.props);
 </script>
-<script src="{% static 'bundles/categorize_sheets/categorize_sheets.js'%}" ></script>
+<script src="{% full_static 'bundles/categorize_sheets/categorize_sheets.js'%}" ></script>
 {% endblock %}
