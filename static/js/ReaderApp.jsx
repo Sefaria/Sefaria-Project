@@ -411,7 +411,8 @@ class ReaderApp extends Component {
   }
 
   isSubDomain(subdomain) {
-    return !window.location.host.includes('localhost') && window.location.host.split(".")[0] === subdomain;
+    const _isLocalhost = window.location.host.includes('localhost') || window.location.host.includes('127.0.0.1')
+    return !_isLocalhost && window.location.host.split(".")[0] === subdomain;
   }
 
   makeHistoryState() {
