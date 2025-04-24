@@ -519,10 +519,10 @@ function flattenLists(htmlString) {
   const doc = parser.parseFromString(htmlString, 'text/html');
 
   function flattenList(list) {
-    [...list.querySelectorAll('li')].forEach(item => {
+    list.querySelectorAll('li').forEach(item => {
       const nestedList = item.querySelector('ul, ol');
       if (nestedList) {
-        [...nestedList.querySelectorAll('li')].forEach(nestedItem => {
+        nestedList.querySelectorAll('li').forEach(nestedItem => {
           item.parentNode.insertBefore(nestedItem, item.nextSibling);
         });
         nestedList.remove();
