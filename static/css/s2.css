@@ -9062,11 +9062,9 @@ a.sheetAuthorName:hover {
   display: flex;
   justify-content: space-between;
 }
-.sheetMetaDataBox .sidebarLayout .items > *  {
+.marginInlineIndent {
   margin-inline-start: 15px;
-}
-.sheetMetaDataBox .sidebarLayout .items > dialog {
-  margin-inline-start: revert;
+  margin-inline-end: 15px;
 }
 .sheetMetaDataBox .texts-properties-menu {
   top: 40px;
@@ -14804,8 +14802,6 @@ span.ref-link-color-3 {color: blue}
   margin-top: 7px;
   color: var(--dark-grey);
   position: relative;
-  -webkit-margin-start: 2%;
-  -moz-margin-start: 2%;
   line-height: 0;
 }
 .sheetsInPanel .dropdownHeader {
