@@ -808,7 +808,6 @@ const GetStartedButton = () => {
     return <Button variant="secondary" className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
 }
 const CreateSheetsButton = () => {
-  // #sheetsButton
   return (
     <Button icon={"new-sheet-black"} onClick={() => window.location.href="/sheets/new"}>
       <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />

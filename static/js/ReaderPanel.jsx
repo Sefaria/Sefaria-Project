@@ -15,7 +15,6 @@ import {
 } from './ConnectionsPanel';
 import BookPage  from './BookPage';
 import Sheet  from './sheets/Sheet';
-import SheetMetadata  from './SheetMetadata';
 import TopicPageAll  from './TopicPageAll';
 import {TopicPage, TopicCategory}  from './TopicPage';
 import TopicsPage from './TopicsPage';
@@ -659,6 +658,7 @@ class ReaderPanel extends Component {
 
     let items = [];
     let menu = null;
+    const style = {"fontSize": this.state.settings.fontSize + "%"};
     const readerPanelContextData = {
       language: this.getContentLanguageOverride(),
       isMenuOpen: this.state.displaySettingsOpen,
@@ -671,6 +671,7 @@ class ReaderPanel extends Component {
       vowelsAndCantillationState: this.state.settings.vowels,
       punctuationState: this.state.settings.punctuationTalmud,
       width: this.state.width,
+      panelPosition: this.props.panelPosition,
     };
     const contextContentLang = {"language": this.getContentLanguageOverrideStateful()};
 
@@ -729,12 +730,12 @@ class ReaderPanel extends Component {
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           scrollToHighlighted={this.state.scrollToHighlighted}
           onSegmentClick={this.handleSheetSegmentClick}
-          onCitationClick={this.handleCitationClick}
           openSheet={this.openSheet}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
+          style={style}
           historyObject={this.props.getHistoryObject(this.state, false)}
           toggleSignUpModal={this.props.toggleSignUpModal}
         />;
@@ -792,6 +793,7 @@ class ReaderPanel extends Component {
           clearSelectedWords={this.clearSelectedWords}
           clearNamedEntity={this.props.clearNamedEntity}
           setSidebarSearchQuery={this.props.setSidebarSearchQuery}
+          masterPanelLayout={this.props.masterPanelLayout}
           masterPanelLanguage={this.props.masterPanelLanguage}
           masterPanelMode={this.props.masterPanelMode}
           versionFilter={this.state.versionFilter}
@@ -1076,7 +1078,6 @@ class ReaderPanel extends Component {
     }
     classes = classNames(classes);
 
-    const style = {"fontSize": this.state.settings.fontSize + "%"};
 
     const sheet = Sefaria.sheets.loadSheetByID(this.state.sheetID);
     const sheetTitle = !!sheet ? sheet.title.stripHtmlConvertLineBreaks() : null;
@@ -1173,6 +1174,7 @@ ReaderPanel.propTypes = {
   highlightedRefs:             PropTypes.array,
   multiPanel:                  PropTypes.bool,
   masterPanelLanguage:         PropTypes.string,
+  masterPanelLayout:           PropTypes.string,
   panelsOpen:                  PropTypes.number,
   allOpenRefs:                 PropTypes.array,
   hasSidebar:                  PropTypes.bool,

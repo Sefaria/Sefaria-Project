@@ -9,7 +9,6 @@ import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
 } from '../Misc'; 
-import { SheetOptions} from "./SheetOptions";
 import { SheetContent } from "./SheetContent";
 
 class Sheet extends Component {
@@ -50,92 +49,88 @@ class Sheet extends Component {
     this.props.setDivineNameReplacement(sheet.options.divineNames)
   }
   handleClick(e) {
-    const target = e.target.closest('a')
+    const target = e.target.closest('a');
     if (target) {
-      let url;
-      try {
-        url = new URL(target.href);
-      } catch {
-        return false;
-      }
-      const path = url.pathname;
-      const params = url.searchParams;
-
-      if (path.match(/^\/sheets\/\d+/)) {
-        e.preventDefault()
-        console.log();
-        this.props.onCitationClick(`Sheet ${path.slice(8)}`, `Sheet ${this.props.sheetID}`, true)
-      }
-
-      else if (Sefaria.isRef(path.slice(1))) {
-        e.preventDefault();
-        Sefaria.util.openInNewTab(target.href);
-      }
+      e.preventDefault();
+      Sefaria.util.openInNewTab(target.href);
     }
+  }
+  handleCollectionsChange() {
+    // when editing a sheet and user makes (through SheetOptions) a change in sheet's collections data we need to forceUpdate because
+    // sheet is stored not in this component's state but rather in Sefaria module's cache
+     Sefaria.sheets._loadSheetByID[this.props.id].collections = Sefaria.getUserCollectionsForSheetFromCache(this.props.id);
+     this.forceUpdate();
   }
 
   render() {
-    const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
+    const sheet = this.getSheetFromCache();
     const editable = Sefaria._uid === sheet?.owner;
-    let content;
+    let content, editor;
     if (!sheet) {
       content = (<LoadingMessage />);
+      editor = (<LoadingMessage />);
     }
     else {
-      const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
-                                                 sheetID={sheet.id}
-                                                 historyObject={this.props.historyObject}
-                                                 editable={editable}/>;
+      const sidebar = <SheetContentSidebar
+                                  authorStatement={sheet.ownerName}
+                                  authorUrl={sheet.ownerProfileUrl}
+                                  authorImage={sheet.ownerImageUrl}
+                                  collections={sheet.collections}
+                                  toggleSignUpModal={this.props.toggleSignUpModal}
+                                  topics={sheet.topics}
+                              />;
+        editor = <div className="sidebarLayout">
+                  <div className="sheetContent">
+                    <SefariaEditor
+                        data={sheet}
+                        style={this.props.style}
+                        handleClick={this.handleClick}
+                        multiPanel={this.props.multiPanel}
+                        sheetSourceClick={this.props.onSegmentClick}
+                        highlightedNode={this.props.highlightedNode}
+                        highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                        setDivineNameReplacement={this.props.setDivineNameReplacement}
+                        divineNameReplacement={this.props.divineNameReplacement}
+                        toggleSignUpModal={this.props.toggleSignUpModal}
+                        historyObject={this.props.historyObject}
+                        editable={true}
+                        handleCollectionsChange={this.handleCollectionsChange}
+                    />
+                  </div>
+                  {sidebar}
+                </div>;
       content = (
-            <div className="sidebarLayout">
-              <SheetContent
-                  sheetOptions = {sheetOptions}
-                  sources={sheet.sources}
-                  title={sheet.title}
-                  handleClick={this.handleClick}
-                  sheetSourceClick={this.props.onSegmentClick}
-                  highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
-                  highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
-                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-                  scrollToHighlighted={this.props.scrollToHighlighted}
-                  editable={editable}
-                  setSelectedWords={this.props.setSelectedWords}
-                  sheetID={sheet.id}
-                  authorStatement={sheet.ownerName}
-                  authorID={sheet.owner}
-                  authorUrl={sheet.ownerProfileUrl}
-                  authorImage={sheet.ownerImageUrl}
-                  summary={sheet.summary}
-                  toggleSignUpModal={this.props.toggleSignUpModal}
-                  historyObject={this.props.historyObject}
+          <div className="sidebarLayout">
+            <SheetContent
+                style={this.props.style}
+                sources={sheet.sources}
+                title={sheet.title}
+                handleClick={this.handleClick}
+                sheetSourceClick={this.props.onSegmentClick}
+                highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
+                highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
+                highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+                scrollToHighlighted={this.props.scrollToHighlighted}
+                editable={editable}
+                setSelectedWords={this.props.setSelectedWords}
+                sheetID={sheet.id}
+                authorStatement={sheet.ownerName}
+                authorID={sheet.owner}
+                authorUrl={sheet.ownerProfileUrl}
+                authorImage={sheet.ownerImageUrl}
+                summary={sheet.summary}
+                toggleSignUpModal={this.props.toggleSignUpModal}
+                historyObject={this.props.historyObject}
             />
-              <SheetContentSidebar
-                  authorStatement={sheet.ownerName}
-                  authorUrl={sheet.ownerProfileUrl}
-                  authorImage={sheet.ownerImageUrl}
-                  collections={sheet.collections}
-                  toggleSignUpModal={this.props.toggleSignUpModal}
-              />
+            {sidebar}
           </div>
       );
     }
     return (
       <div className={classes}>
-        { sheet && editable && Sefaria._uses_new_editor ?
-        <div className="sheetContent">
-          <SefariaEditor
-            data={sheet}
-            hasSidebar={this.props.hasSidebar}
-            handleClick={this.handleClick}
-            multiPanel={this.props.multiPanel}
-            sheetSourceClick={this.props.onSegmentClick}
-            highlightedNode={this.props.highlightedNode}
-            highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-            setDivineNameReplacement={this.props.setDivineNameReplacement}
-            divineNameReplacement={this.props.divineNameReplacement}
-          />
-        </div>
+        { editable && Sefaria._uses_new_editor ?
+        editor
         :
         content }
       </div>

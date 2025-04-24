@@ -136,7 +136,6 @@ class ReaderApp extends Component {
       navigationCategories:    state.navigationCategories    || [],
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
-      sheetNodes:              state.sheetNodes              || null,
       sheetsWithRef:           state.sheetsWithRef           || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
@@ -968,7 +967,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   openNamedEntityInNewPanel(n, textRef, namedEntityState) {
     //this.setTextListHighlight(n, [textRef]);
-    this.openTextListAt(n+1, [textRef], null, namedEntityState);
+    this.openTextListAt(n+1, [textRef], namedEntityState);
   }
   clearSelectedWords(n) {
     this.setPanelState(n, {selectedWords: ""});
@@ -1161,7 +1160,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.openTopic(path.slice(8), params.get("tab"));
 
     } else if (path.match(/^\/sheets\/profile\/.+/)) {
-      this.openProfile(path.slice(9), params.get("tab"));
+      this.openProfile(path.replace("/sheets/profile/", ""), params.get("tab"));
 
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
       this.openCollection(path.slice(13), params.get("tag"));
@@ -1555,7 +1554,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels[n] = comparePanel;
     this.setState({panels: this.state.panels});
   }
-  openTextListAt(n, refs, sheetNodes, textListState) {
+  openTextListAt(n, refs, textListState) {
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
@@ -1573,8 +1572,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       panel.versionFilter = [];
     }
     panel.refs              = refs;
-    panel.sheetNodes        = sheetNodes ? sheetNodes.split(".")[1] : null;
-    panel.nodeRef           = sheetNodes;
     panel.menuOpen          = null;
     panel.mode              = panel.mode || "Connections";
     panel.settings          = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings());
@@ -2216,6 +2213,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
                       hasSidebar={this.doesPanelHaveSidebar(i)}
+                      masterPanelLayout={panel.mode === "Connections" ? panelStates[i-1].settings.biLayout : ""}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       masterPanelMode={panel.mode === "Connections" ? panelStates[i-1].mode : null}
                       layoutWidth={width}
