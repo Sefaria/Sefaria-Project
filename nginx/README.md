@@ -192,3 +192,11 @@ without requiring separate logins or ports in the URL.
 
 - **502 Bad Gateway**: Ensure Django is running on port 8000 and `lsof -i :8000` shows it listening.
 - **NXDOMAIN**: Verify `/etc/hosts` entries and flush DNS cache.
+- **Check if NGINX is running**: Run the following command to check if NGINX is active:
+  ```bash
+  ps aux | grep nginx
+  ```
+  If NGINX is running, you should see processes like `nginx: master process` and `nginx: worker process`. If not, start it with:
+  ```bash
+  sudo nginx -c /opt/homebrew/etc/nginx/nginx.conf
+  ```
