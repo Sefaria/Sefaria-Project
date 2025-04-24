@@ -169,19 +169,17 @@ const ModuleSwitcher = () => {
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItemLink url={'/'} newTab={true}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}
-                                            textHe={'ספריה'}/>
-              </DropdownMenuItemLink>
+              <DropdownMenuItem url={'/'} newTab={true}>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
+              </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItemLink url={'/sheets'} newTab={true}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
-              </DropdownMenuItemLink>
+              <DropdownMenuItem url={'/sheets'} newTab={true}>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
+              </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItemLink url={'https://developers.sefaria.org'} newTab={true}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}
-                                            textHe={'מפתחים'}/>
-              </DropdownMenuItemLink>
+              <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}/>
+              </DropdownMenuItem>
               <DropdownMenuSeparator/>
               <DropdownMenuItemLink url={'/products'} newTab={true}>
                   <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>

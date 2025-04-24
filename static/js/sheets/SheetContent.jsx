@@ -3,6 +3,7 @@ import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "../sefaria/sefaria";
 import {AddToSourceSheetModal} from "./SheetModals";
+import { SheetOptions } from "./SheetOptions";
 import {
   SheetComment,
   SheetHeader,
@@ -137,7 +138,7 @@ class SheetContent extends Component {
         ComponentToRender = SheetMedia;
       }
       else {
-        return <></>;  // handle bad data in sheet.sources
+        return <></>;  // there are cases in DB where sheets have problematic data in sources attribute such as a node of null with no other fields
       }
       return <ComponentToRender
         key={source.node}
@@ -150,6 +151,11 @@ class SheetContent extends Component {
   }
   render() {
     const sources = this.getSources();
+    const sheetOptions = <SheetOptions toggleSignUpModal={this.props.toggleSignUpModal}
+                                                 sheetID={this.props.sheetID}
+                                                 historyObject={this.props.historyObject}
+                                                 editable={false}
+                                                 authorUrl={this.props.authorUrl}/>;
     return (
       <div className="sheetContent">
         <div className="text">
@@ -158,8 +164,8 @@ class SheetContent extends Component {
                              authorImage={this.props.authorImage}
                              title={this.props.title}
                              summary={this.props.summary}
-                             sheetOptions={this.props.sheetOptions}/>
-          <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick}>
+                             sheetOptions={sheetOptions}/>
+          <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.props.handleClick} style={this.props.style}>
             {sources}
           </div>
         </div>

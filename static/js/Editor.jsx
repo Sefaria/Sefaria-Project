@@ -10,9 +10,7 @@ import * as sheetsUtils from './sefaria/sheetsUtils'
 
 import {
     SheetMetaDataBox,
-    SheetAuthorStatement,
     SheetTitle,
-    CollectionStatement,
     InterfaceText,
     Autocompleter,
 } from './Misc';
@@ -21,6 +19,7 @@ import {ProfilePic} from "./ProfilePic";
 import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
+import {SheetOptions} from "./sheets/SheetOptions";
 
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
@@ -594,11 +593,10 @@ function transformSheetJsonToSlate(sheet) {
           children: [{text: ""}]
         })
     }
-
     let initValue = [
         {
             type: 'Sheet',
-            status: sheet.status,
+            status: status,
             views: sheet.views,
             tags: sheet.tags || [],
             includedRefs: sheet.includedRefs,
@@ -614,7 +612,7 @@ function transformSheetJsonToSlate(sheet) {
             authorUrl: sheet.ownerProfileUrl,
             authorStatement: sheet.ownerName,
             authorImage: sheet.ownerImageUrl,
-            title: sheet.title,
+            title: sheetTitle,
             displayedCollection: sheet.displayedCollection || "",
             collectionName: sheet.collectionName || "",
             collectionImage: sheet.collectionImage || "",
@@ -1234,7 +1232,7 @@ const Element = (props) => {
             );
         case 'SheetContent':
             return (
-                <div className="text editorContent" {...attributes}>
+                <div className="editorContent" {...attributes}>
                     {children}
                 </div>
             );
@@ -2547,17 +2545,20 @@ const BlockButton = ({format, icon}) => {
 }
 
 const SefariaEditor = (props) => {
-    const editorContainer = useRef();
+    const editorContainer = useRef(null);
     const [sheet, setSheet] = useState(props.data);
+    const [status, setStatus] = useState(sheet?.status || "unlisted");
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
-    const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
+    const [summary, setSummary] = useState(sheet.summary || "");
+    const [title, setTitle] = useState(sheet.title || "");
+
 
     useEffect(
         () => {
@@ -2567,7 +2568,7 @@ const SefariaEditor = (props) => {
 
             setUnsavedChanges(true);
             // Update debounced value after delay
-            const handler = setTimeout(() => {
+            const handler = setTimeout( () => {
                 saveDocument(currentDocument);
             }, 500);
 
@@ -2578,7 +2579,7 @@ const SefariaEditor = (props) => {
                 clearTimeout(handler);
             };
         },
-        [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
+        [currentDocument[0].children[0], title, summary] // Only re-call effect if value or delay changes
     );
 
     useEffect(
@@ -2594,6 +2595,7 @@ const SefariaEditor = (props) => {
 
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
+
         }, []
     )
 
@@ -2628,7 +2630,7 @@ const SefariaEditor = (props) => {
                 if (node.text && props.divineNameReplacement) {
                     const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
                     if (newStr != node.text) {
-                        Transforms.insertText(editor, newStr, { at: path })
+                        Transforms.insertText(editor, newStr, {at: path})
                     }
                 }
             }
@@ -2639,8 +2641,8 @@ const SefariaEditor = (props) => {
             const temp_select = editor.selection
 
             Transforms.select(editor, {
-              anchor: {path: [0, 0], offset: 0},
-              focus: {path: [0, 0], offset: 0},
+                anchor: {path: [0, 0], offset: 0},
+                focus: {path: [0, 0], offset: 0},
             });
 
             Transforms.select(editor, temp_select)
@@ -2652,60 +2654,8 @@ const SefariaEditor = (props) => {
 
 
   useEffect(() => {
-    if(!props.hasSidebar) {
-      editor.highlightedNode = null;
-    }
-  }, [props.hasSidebar]);
-
-
-  useEffect(() => {
-      let scrollTimeOutId = null;
-      const onScrollListener = () => {
-          clearTimeout(scrollTimeOutId);
-          scrollTimeOutId = setTimeout(
-              () => {
-                  if(props.hasSidebar) {
-                      onEditorSidebarToggleClick()
-                  }
-              }, 200
-          );
-      };
-
-      let clickTimeOutId = null;
-      const onClickListener = (e) => {
-        clearTimeout(clickTimeOutId);
-        clickTimeOutId = setTimeout(
-          () => {
-            if(props.hasSidebar) {
-            let sheetElementTypes = Object.values(sheet_item_els);
-              for(const node of Node.ancestors(editor, editor.selection.focus.path)) {
-                  if (sheetElementTypes.includes(node[0].type)) {
-                      if (node[0].node != editor.highlightedNode) {
-                        updateSidebar(node[0].node, node[0].ref)
-                        if (node[0].type != "SheetSource") {
-                          Transforms.select(editor, editor.blurSelection);
-                          ReactEditor.focus(editor);
-                        }
-                      }
-                      break;
-                  }
-              }
-            }
-          }, 20);
-      };
-
-
-
-     editorContainer.current.parentNode.parentNode.addEventListener("scroll", onScrollListener);
-     editorContainer.current.parentNode.parentNode.addEventListener("click", onClickListener);
-
-
-      return () => {
-          editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener);
-          editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener);
-      }
-    }, [props.highlightedNode, props.hasSidebar]
-  );
+    editor.highlightedNode = null;
+  }, []);
 
   useEffect(() => {
       if(canUseDOM) {
@@ -2721,7 +2671,6 @@ const SefariaEditor = (props) => {
   }, [canUseDOM])
 
     function saveSheetContent(doc, lastModified) {
-        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
         const docContent = doc.children.find(el => el.type == "SheetContent")
         if (!docContent) {
             return false
@@ -2816,39 +2765,45 @@ const SefariaEditor = (props) => {
 
         });
         let sheet = {
-            status: doc.status,
+            status: status,
             id: doc.id,
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
-            summary: doc.summary,
+            summary: summary,
             options: { ...doc.options, divineNames: props.divineNameReplacement },
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
-            title: sheetTitle === "" ? "Untitled" : sheetTitle,
+            title: title,
             sources: sources.filter(x => !!x),
             nextNode: doc.nextNode,
         };
-
-        return JSON.stringify(sheet);
-
+        return sheet;
     }
 
-
-    function saveDocument(doc) {
+    function getLastModified() {
+      return Sefaria.sheets._loadSheetByID[props.data.id]?.dateModified || props.data.dateModified;
+    }
+    async function saveDocument(doc) {
+        const lastModified = getLastModified();
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {
             return
         }
         // console.log('saving...');
+        try {
+            await postSheet(json);
+        } catch(error) {
+            console.log(`Error: ${error.message}`)
+        }
+    }
 
-        $.post("/api/sheets/", {"json": json}, res => {
-            setlastModified(res.dateModified);
-            // console.log("saved at: "+ res.dateModified);
-            setUnsavedChanges(false);
-
-            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
-            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
-        });
+    const postSheet = async (sheet) => {
+        const data = await Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST");
+        setStatus(data.status);
+        setTitle(data.title);
+        setSummary(data.summary);
+        const updatedSheet = {...Sefaria.sheets._loadSheetByID[props.data.id], ...data};
+        Sefaria.sheets._loadSheetByID[props.data.id] = updatedSheet;
     }
 
     function onChange(value) {
@@ -2980,72 +2935,33 @@ const SefariaEditor = (props) => {
         }, true)
     }
 
-    const updateSidebar = (sheetNode, sheetRef) => {
-      let source = {
-          'node': sheetNode,
-      };
-      if (!!sheetRef) {
-          source["ref"] = sheetRef
-      }
-      editor.highlightedNode = sheetNode
-      props.sheetSourceClick(source)
-
-    };
-
-    const onEditorSidebarToggleClick = event => {
-        const segmentToHighlight = getHighlightedByScrollPos()
-        if (!segmentToHighlight) {
-            updateSidebar(sheet.id, null)
-        }
-        else {
-            const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
-            const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
-            updateSidebar(sheetNode, sheetRef)
-        }
-    };
-
-
     const editor = useMemo(
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
     );
-
+    const sheetOptions = <SheetOptions toggleSignUpModal={props.toggleSignUpModal}
+                                       sheetID={sheet.id}
+                                       postSheet={postSheet}
+                                       historyObject={props.historyObject}
+                                       editable={true}
+                                       authorUrl={sheet.ownerProfileUrl}
+                                       status={status}
+                                       handleCollectionsChange={props.handleCollectionsChange}
+                                       />;
     return (
-        <div ref={editorContainer} onClick={props.handleClick}>
-        {
-          /* debugger */
-
-          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
-          // {JSON.stringify(editor.children[0,0], null, 4)}
-          // </div>
-
-        }
-
-            <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
-        <SheetMetaDataBox>
-            <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
-            <SheetAuthorStatement
-                authorUrl={sheet.ownerProfileUrl}
-                authorStatement={sheet.ownerName}
-            >
-              <ProfilePic
-                url={sheet.ownerImageUrl}
-                len={30}
-                name={sheet.ownerName}
-                outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
-              />
-              <a href={sheet.ownerProfileUrl}>
-                <InterfaceText>{sheet.ownerName}</InterfaceText>
-              </a>
-            </SheetAuthorStatement>
-            <CollectionStatement
-                name={sheet.collectionName}
-                slug={sheet.displayedCollection}
-                image={sheet.collectionImage}
-            />
-        </SheetMetaDataBox>
-            {canUseDOM ?
-            <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
+          <div ref={editorContainer} onClick={props.handleClick} className="text">
+              <SheetMetaDataBox authorStatement={sheet.ownerName}
+                            authorUrl={sheet.ownerProfileUrl}
+                            authorImage={sheet.ownerImageUrl}
+                            title={title}
+                            summary={summary}
+                            editable={true}
+                            titleCallback={(newTitle) => setTitle(newTitle)}
+                            summaryCallback={(newSummary) => setSummary(newSummary)}
+                            sheetOptions={sheetOptions}/>
+          {canUseDOM &&
+            <div style={props.style}>
+              <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
                 <Editable
                   renderLeaf={props => <Leaf {...props} />}
@@ -3061,7 +2977,9 @@ const SefariaEditor = (props) => {
                   onDOMBeforeInput={beforeInput}
                   autoFocus
                 />
-            </Slate> : null }
+             </Slate>
+            </div>
+          }
         </div>
     )
 };
