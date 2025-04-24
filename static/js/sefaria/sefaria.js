@@ -2892,13 +2892,13 @@ _media: {},
             : { tabKey: 'sources', title: { en: 'Sources', he: Sefaria.translation('hebrew', 'Sources') } };
         }
         if (linkType === 'popular-writing-of') {
-          return { tabKey: linkType, title: topicLinks.title };  // in this case the title is already set to "Top Citations"
+          return { tabKey: linkType, title: { en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations') }  };
         }
       }
       return {};
     }
    
-    const _processRefs = (linkType, topicLinks) => {
+    const _putRefInProperTab = (linkType, topicLinks) => {
       let refs = topicLinks.refs.filter(refObj => (Sefaria.activeModule === 'sheets') === refObj.is_sheet);
       for (let refObj of refs) {
         const {tabKey, title} = _createTabKeyAndTitle(linkType, refObj);
@@ -2929,7 +2929,7 @@ _media: {},
     }
    
     for (let [linkType, topicLinks] of Object.entries(topicData.refs)) {
-       _processRefs(linkType, topicLinks);
+       _putRefInProperTab(linkType, topicLinks);
     }
     for (let tabObj of Object.values(tabs)) {
       tabObj.refs = [...tabObj.refs];
