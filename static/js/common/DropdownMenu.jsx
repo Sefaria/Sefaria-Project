@@ -53,13 +53,13 @@ const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false})
   );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe, descEn='', descHe=''}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader">
         <img src={icon} />
         <span className='dropdownHeaderText'>
-          <InterfaceText text={{'en': textEn, 'he': textHe}} />
+          <InterfaceText>{textEn}</InterfaceText>
         </span>
       </div>
       <div className='dropdownDesc'>
@@ -121,9 +121,9 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
     return (
         <div className={positioningClass} ref={wrapperRef}>
-           <a className="dropdownLinks-button" onClick={handleButtonClick}>
+           <div className="dropdownLinks-button" onClick={handleButtonClick}>
               {buttonComponent}
-          </a>
+          </div>
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} onClick={handleContentsClick}>
               {children}
           </div>
