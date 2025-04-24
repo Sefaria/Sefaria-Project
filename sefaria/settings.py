@@ -54,6 +54,7 @@ STATIC_ROOT = '/app/static-collected'
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
+STATIC_BASE_URL = '/static/'
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -152,6 +153,7 @@ INSTALLED_APPS = (
     'webpack_loader',
     'django_user_agents',
     'rest_framework',
+    'sefaria',
     #'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
@@ -320,6 +322,7 @@ WEBPACK_LOADER = {
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
+        'LOADER_CLASS': 'sefaria.webpack_loader.FullURLWebpackLoader',
     },
     'SEFARIA_JS': {
         'BUNDLE_DIR_NAME': 'bundles/sefaria/',  # must end with slash
@@ -327,6 +330,7 @@ WEBPACK_LOADER = {
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
+        'LOADER_CLASS': 'sefaria.webpack_loader.FullURLWebpackLoader',
     },
     'LINKER': {
         'BUNDLE_DIR_NAME': 'bundles/linker.v3/',  # must end with slash
@@ -334,6 +338,7 @@ WEBPACK_LOADER = {
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
+        'LOADER_CLASS': 'sefaria.webpack_loader.FullURLWebpackLoader',
     }
 
 }
