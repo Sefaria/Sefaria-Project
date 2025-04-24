@@ -167,6 +167,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.66.0-modularisation-redirects.1.tgz
     version: 0.66.0-modularisation-redirects.1
   - apiVersion: v2
+    appVersion: v6.12.0
+    created: "2025-04-24T09:23:53.551967077Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 1ea5802c29e20844d4fca083ce79df93d02892a6e5b99b1439c4cd2dda3f8246
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.66.0-modmainmergemaster.1.tgz
+    version: 0.66.0-modmainmergemaster.1
+  - apiVersion: v2
     appVersion: v6.10.3
     created: "2025-04-10T06:28:42.031256504Z"
     description: Chart to deploy complete Sefaria environment
@@ -7890,4 +7905,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-04-23T15:36:49.74461254Z"
+generated: "2025-04-24T09:23:53.549173748Z"
