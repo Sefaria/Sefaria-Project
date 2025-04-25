@@ -67,7 +67,7 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                 path="/"
                 render={() => (
                   <>
-                    {/* Search Bar */}
+                    {/* Search Bar and Create Plan Button */}
                     <div className="searchBarContainer">
                       <div className="searchBarWrapper">
                         <span className="searchIcon">
@@ -83,13 +83,20 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                           onChange={(e) => setSearchQuery(e.target.value)}
                           className="searchInput"
                         />
+                        <button 
+                          className="createPlanButton"
+                          onClick={() => {/* Add your create plan logic here */}}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                          Create a Plan
+                        </button>
                       </div>
                     </div>
 
                     {/* Categories */}
-                    <div className="plansCategoriesHeader">
-                      <h2>Explore by Category</h2>
-                    </div>
                     <div className="plansCategories">
                       {categories.map(category => (
                         <button

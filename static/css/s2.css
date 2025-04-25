@@ -15981,13 +15981,13 @@ span.ref-link-color-3 {
   }
   
   .searchBarWrapper {
-    display: flex;
-    align-items: center;
-    background: white;
-    border-radius: 8px;
-    max-width: 400px;
+    position: relative;
+    max-width: 700px;  /* Increased max-width to accommodate both elements */
     margin: 0 auto;
-    transition: all 0.2s ease;
+    display: flex;
+    gap: 20px;  /* Increased gap between search and button */
+    align-items: center;
+    padding: 0 15px;  /* Added horizontal padding */
   }
   
   .searchBarWrapper:focus-within {
@@ -15996,13 +15996,18 @@ span.ref-link-color-3 {
   }
   
   .searchInput {
-    border: none;
+    flex: 1;
+    margin-right: 10px;  /* Additional right margin */
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 16px;
+    color: #333;
+    background-color: #f9f9f9;
     outline: none;
-    width: 100%;
-    font-size: 1rem;
-    color: #495057;
-    background: transparent;
+    transition: border-color 0.3s, box-shadow 0.3s;
   }
+  
   
   .searchInput::placeholder {
     color: #adb5bd;
@@ -16066,7 +16071,7 @@ span.ref-link-color-3 {
   }
   
   .searchInput {
-    width: 100%;
+    flex: 1;
     padding: 10px 15px 10px 40px; /* Extra padding on the left for the icon */
     border: 1px solid #ddd;
     border-radius: 20px;
@@ -16762,6 +16767,31 @@ span.ref-link-color-3 {
   .plan-progression-sheet-content .sheetContent * { 
     font-size: 1.4rem !important;
     font-family: adobe-garamond-pro !important;
+  }
+
+  .createPlanButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background-color: #C39F48;
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    white-space: nowrap;
+  }
+  
+  .createPlanButton:hover {
+    background-color: #b38f3d;
+    transform: translateY(-1px);
+  }
+  
+  .createPlanButton svg {
+    stroke: currentColor;
   }
   
   
