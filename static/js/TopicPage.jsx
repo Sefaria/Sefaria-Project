@@ -225,7 +225,8 @@ const TopicCard = ({topic, setTopic, setNavTopic}) => {
     children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
   }
 
-  const { slug, children, description} = topic;
+  const { slug, children} = topic;
+  const description = children ? topic.categoryDescription : topic.description;
   let {en, he} = topic;
   en = en.replace(/^Parashat /, "");
   he = he.replace(/^פרשת /, "");
@@ -1127,5 +1128,6 @@ export {
   TopicPage,
   TopicCategory,
   refSort,
-  TopicImage
+  TopicImage,
+  TopicCard
 }
