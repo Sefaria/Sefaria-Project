@@ -62,8 +62,7 @@ def annotate_user_links(sources):
 @ensure_csrf_cookie
 def new_sheet(request):
 	profile = UserProfile(id=request.user.id)
-	if getattr(profile, "uses_new_editor", False):
-		sheet = {
+  sheet = {
 				'status': 'unlisted',
 				'title': '',
 				'sources': [],
@@ -79,8 +78,7 @@ def new_sheet(request):
 					'highlightMode':    0,
 					'langLayout':    "heRight",
 					'bsd':    0,
-				}
-		}
+    }
 
 		responseSheet = save_sheet(sheet, request.user.id)
 		return catchall(request, str(responseSheet["id"]), True)

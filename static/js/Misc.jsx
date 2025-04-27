@@ -1644,11 +1644,6 @@ const SheetListing = ({
       </div>
       <div className="sheetRight">
         {
-          editable && !Sefaria._uses_new_editor ?
-            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
-            : null
-        }
-        {
           collectable ?
             <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
             : null
