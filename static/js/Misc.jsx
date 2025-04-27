@@ -3301,5 +3301,6 @@ export {
   handleAnalyticsOnMarkdown,
   LangSelectInterface,
   PencilSourceEditor,
-  SmallBlueButton
+  SmallBlueButton,
+  LearnAboutNewEditorBanner
 };
