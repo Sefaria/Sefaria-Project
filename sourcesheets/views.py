@@ -647,7 +647,6 @@ def save_sheet_api(request):
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
         sheet = json.loads(j)
-        return jsonResponse(sheet)
 
         if apikey:
             if "id" in sheet:
