@@ -1453,19 +1453,6 @@ class ShareBox extends Component {
             <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
             <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>
-          {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
-            <div className="shareSettingsBox">
-              <InterfaceText>People with this link can</InterfaceText>
-              <select
-                className="shareDropdown"
-                name="Share"
-                onChange={this.updateShareOptions.bind(this)}
-                value={this.state.shareValue}>
-                <option value="none">{Sefaria._("View", "Sheet Share")}</option>
-                <option value="anyone-can-add">{Sefaria._("Add", "Sheet Share")}</option>
-                <option value="anyone-can-edit">{Sefaria._("Edit", "Sheet Share")}</option>
-              </select>
-            </div> : null}
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">
           <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
