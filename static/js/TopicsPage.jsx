@@ -10,31 +10,11 @@ import $  from './sefaria/sefariaJquery';
 import { NavSidebar, SidebarModules } from './NavSidebar';
 import {CategoryHeader} from "./Misc";
 import Component from 'react-class';
+import { TopicTOCCard } from "./common/TopicTOCCard";
 
 // The root topics page listing topic categories to browse
 const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
-  let categoryListings = Sefaria.topic_toc.map(cat => {
-    const openCat = e => {
-      e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})
-    };
-    return (
-        <div className="navBlock">
-          <a
-              href={`/topics/category/${cat.slug}`}
-              className="navBlockTitle"
-              onClick={openCat}
-              data-anl-event="navto_topic:click"
-              data-anl-link_type="category"
-              data-anl-text={cat.en}
-          >
-            <InterfaceText text={cat} />
-          </a>
-          <div className="navBlockDescription">
-            <InterfaceText text={cat.categoryDescription} />
-          </div>
-        </div>
-      );
-  });
+  let categoryListings = Sefaria.topic_toc.map((topic, i) => <TopicTOCCard topic={topic} setNavTopic={setNavTopic} key={i}/>);
   const letter = Sefaria.interfaceLang === "hebrew" ? "א" : "a";
   categoryListings.push(
     <div className="navBlock">
