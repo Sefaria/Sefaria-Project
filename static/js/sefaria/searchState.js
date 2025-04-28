@@ -1,6 +1,5 @@
 import Util from './util';
 import FilterNode from './FilterNode';
-import Sefaria from "./sefaria";
 
 class SearchState {
   constructor({
