@@ -1251,7 +1251,7 @@ const Element = (props) => {
 
             const addNewLineClasses = {
             hidden: isMultiNodeSelection(editor) || !selected,
-            editorAddLineButton: 1,
+            editorAddLineButton: !blockEditing && 1,
             };
             const handleClick = (event, editor) => {
                  // a way to check if the click was on the 'pseudo' ::before element or on the actual div
