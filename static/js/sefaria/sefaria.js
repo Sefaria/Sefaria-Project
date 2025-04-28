@@ -2869,14 +2869,8 @@ _media: {},
   _getTopicCacheKey: function(slug, {annotated=true, with_html=false}={}) {
       return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
-  processTopicsTabsData: function(topicData) {
-    // In the library module, topic tabs can be "Admin", "Notable Sources", "Sources", and "Top Citations".  In the sheets module, the only topic tab is "Sheets"
-    // This function takes the ref topic links in the topicData and puts each ref in the appropriate tab.
-    const lang = Sefaria.interfaceLang === "hebrew" ? 'he' : 'en';
-    if (!topicData || !topicData.refs) { return topicData || null; }
-    const tabs = {};
-    
-    const _createTabKeyAndTitle = (linkType, refObj) => {
+  _createTabKeyAndTitle: function (linkType, refObj) {
+      // helper function for processTopicsTabsData
       // We support two types of 'linkType's -- confusingly called "about" and "popular-writing-of". This distinction is only relevant for the library module.
       // In the sheets module, every source is under the "Sheets" tab.
       // In the library module, author topics links "Top Citations" are of type "popular-writing-of" and all other topics are of type "about".
@@ -2896,54 +2890,64 @@ _media: {},
         }
       }
       return {};
-    }
-   
-    const _putRefInProperTab = (linkType, topicLinks) => {
-      let refs = topicLinks.refs.filter(refObj => (Sefaria.activeModule === 'sheets') === refObj.is_sheet);
-      for (let refObj of refs) {
-        const {tabKey, title} = _createTabKeyAndTitle(linkType, refObj);
-        if (!tabKey) continue;
-        if (!tabs[tabKey]) {
-          tabs[tabKey] = {
-            refs: new Set(),
-            title,
-            shouldDisplay: topicLinks.shouldDisplay,
-          };
-        }
-        if (refObj.order) {
-          refObj.order = {
-            ...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
-            numDatasource: refObj?.order?.numDatasource || 1,
-            tfidf: refObj?.order?.tfidf || 0,
-            pr: refObj?.order?.pr || 0,
-            curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}
-          }
-        }
-        tabs[tabKey].refs.add({
-          ref: refObj.ref,
-          order: refObj.order,
-          dataSources: refObj.dataSources,
-          descriptions: refObj.descriptions
-        });
-      }
-    }
-   
+  },
+  processTopicsTabsData: function(topicData) {
+    // In the library module, topic tabs can be "Admin", "Notable Sources", "Sources", and "Top Citations".  In the sheets module, the only topic tab is "Sheets"
+    // This function takes the ref topic links in the topicData and puts each ref in the appropriate tab.
+    const lang = Sefaria.interfaceLang === "hebrew" ? 'he' : 'en';
+    if (!topicData || !topicData.refs) { return topicData || null; }
+    const tabs = {};
     for (let [linkType, topicLinks] of Object.entries(topicData.refs)) {
-       _putRefInProperTab(linkType, topicLinks);
+        let refs = topicLinks.refs.filter(refObj => (Sefaria.activeModule === 'sheets') === refObj.is_sheet);
+        for (let refObj of refs) {
+          const {tabKey, title} = _createTabKeyAndTitle(linkType, refObj);
+          if (!tabKey) continue;
+          if (!tabs[tabKey]) {
+          tabs[tabKey] = {
+              refs: new Set(),
+              title,
+              shouldDisplay: topicLinks.shouldDisplay,
+            };
+          }
+          if (refObj.order) {
+            refObj.order = {
+              ...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
+              numDatasource: refObj?.order?.numDatasource || 1,
+              tfidf: refObj?.order?.tfidf || 0,
+              pr: refObj?.order?.pr || 0,
+              curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}
+            }
+          }
+          tabs[tabKey].refs.add({
+            ref: refObj.ref,
+            order: refObj.order,
+            dataSources: refObj.dataSources,
+            descriptions: refObj.descriptions
+          });
+        }
     }
     for (let tabObj of Object.values(tabs)) {
-      tabObj.refs = [...tabObj.refs];
+      tabObj.refs = [...tabObj.refs];  // dont want it to be set
     }
-    if (tabs["notable-sources"]) {
-      if (!tabs.sources) {
-        tabs.sources = {shouldDisplay: true, refs: [], title: {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')}};
+
+    if (Sefaria.activeModule === 'library') {
+      // turn "sources" tab into 'super-set', containing all refs from all tabs:
+      if (tabs["notable-sources"]) {
+        if (!tabs.sources) {
+          tabs.sources = {
+            shouldDisplay: true,
+            refs: [],
+            title: {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')}
+          };
+        }
+        tabs.sources.refs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
       }
-      //turn "sources" tab into 'super-set', containing all refs from all tabs:
-      tabs.sources.refs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
-    }
-    if (Sefaria.is_moderator && Sefaria.activeModule === 'library') {
-      tabs["admin"] = {...tabs["sources"]};
-      tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
+
+      // set up admin tab which is all 'sources'
+      if (Sefaria.is_moderator) {
+        tabs["admin"] = {...tabs["sources"]};
+        tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
+      }
     }
     topicData.tabs = tabs;
     return topicData;
