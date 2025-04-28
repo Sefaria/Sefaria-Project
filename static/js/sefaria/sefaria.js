@@ -2952,9 +2952,10 @@ _media: {},
     });
   },
   trendingTopics: {},
-  getTrendingTopics: function() {
+  getTrendingTopics: function(n=10) {
+      const url = Sefaria.activeModule === 'library' ? `/api/topics/trending?n=${n}&pool=general_${Sefaria.interfaceLang.slice(0, 2)}` : `/api/sheets/trending-tags?n=${n}`
       return this._cachedApiPromise({
-        url: `${Sefaria.apiHost}/api/topics/trending?n=10&pool=general_${Sefaria.interfaceLang.slice(0, 2)}`,
+        url: `${Sefaria.apiHost}`,
         key: (new Date()).toLocaleDateString(),
         store: this.trendingTopics,
     });
