@@ -3068,7 +3068,7 @@ const SefariaEditor = (props) => {
 
             <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
         <SheetMetaDataBox>
-            <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
+            <SheetTitle tabIndex={0} title={sheet.title} editable={!blockEditing} blurCallback={() => saveDocument(currentDocument)}/>
             <SheetAuthorStatement
                 authorUrl={sheet.ownerProfileUrl}
                 authorStatement={sheet.ownerName}
