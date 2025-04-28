@@ -28,7 +28,8 @@ import {
     LangSelectInterface,
 } from './Misc';
 import {ContentText} from "./ContentText";
-import {Card} from "./common/Card";
+import { TopicTOCCard } from "./common/TopicTOCCard";
+
 
 
 /*
@@ -216,30 +217,6 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 *** Components
 */
 
-const TopicCard = ({topic, setTopic, setNavTopic}) => {
-  /*
-    * Card for a topic in a Topic Category page.  `topic` is an object with a slug, en, he, and optionally description or children.
-   */
-  const openTopic = e => {
-    e.preventDefault();
-    children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
-  }
-
-  const { slug, children} = topic;
-  const description = children ? topic.categoryDescription : topic.description;
-  let {en, he} = topic;
-  en = en.replace(/^Parashat /, "");
-  he = he.replace(/^פרשת /, "");
-  const href = `/topics/${children ? 'category/' : ''}${slug}`;
-
-  return <Card cardTitleHref={href}
-               cardTitle={{en, he}}
-               cardText={description}
-               analyticsEventName="navto_topic:click"
-               analyticsLinkType={children ? "category" : "topic"}
-               oncardTitleClick={openTopic}/>;
-}
-
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
   openSearch}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
@@ -261,7 +238,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
     let topicBlocks = subtopics
       .filter(shouldDisplay)
       .sort(Sefaria.sortTopicsCompareFn)
-      .map((topic, i) => <TopicCard topic={topic} setTopic={setTopic} setNavTopic={setNavTopic} key={i}/>);
+      .map((topic, i) => <TopicTOCCard topic={topic} setTopic={setTopic} setNavTopic={setNavTopic} key={i}/>);
 
     let sidebarModules = [
       {type: "AboutTopics"},
@@ -1128,6 +1105,5 @@ export {
   TopicPage,
   TopicCategory,
   refSort,
-  TopicImage,
-  TopicCard
+  TopicImage
 }
