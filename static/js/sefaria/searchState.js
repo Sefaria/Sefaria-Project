@@ -1,5 +1,6 @@
 import Util from './util';
 import FilterNode from './FilterNode';
+import Sefaria from "./sefaria";
 
 class SearchState {
   constructor({
@@ -118,6 +119,10 @@ class SearchState {
       }
     }
     return true;
+  }
+
+  static moduleToSearchType(active_module) {
+    return active_module === 'library' ? 'text' : 'sheet';
   }
 
   makeURL({ prefix, isStart }) {
