@@ -56,9 +56,9 @@ const PlanProgression = ({planId, planData}) => {
     <div className="plan-progression">
       {/* Breadcrumb Navigation */}
       <nav className="breadcrumb-nav">
-        <a href="/" className="breadcrumb-item">Home</a>
+        <a href="/plans" className="breadcrumb-item">Home</a>
         <span className="breadcrumb-separator">›</span>
-        <a href={`/${numericId}`} className="breadcrumb-item">{planData.title}</a>
+        <a href={`/plans/${numericId}`} className="breadcrumb-item">{planData.title}</a>
         <span className="breadcrumb-separator">›</span>
         <span className="breadcrumb-item current">Day {currentDay}</span>
         <button 
