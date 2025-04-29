@@ -2560,6 +2560,7 @@ const SefariaEditor = (props) => {
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
     const [connectionLostPolling, setConnectionLostPolling] = useState(false);
+    const [userUnauthenticated, setUserUnauthenticated] = useState(false);
 
     useEffect(
         () => {
@@ -2869,6 +2870,11 @@ const SefariaEditor = (props) => {
                 !connectionLostPolling && alert("You're offline");
                 setBlockEditing(true);
                 setConnectionLostPolling(true);
+            } else if (jqXHR.status === 401) {
+                console.warn("User unauthenticated, please log in.");
+                alert("User unauthenticated, please log in.");
+                setBlockEditing(true);
+                setUserUnauthenticated(true);
             } else if (jqXHR.status >= 500) {
                 console.warn("Server error:", jqXHR.status);
                 alert("Server error. Please try again later.");
