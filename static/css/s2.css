@@ -9297,6 +9297,11 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
+.editorSaveStateIndicator{
+  position: fixed;
+  top: 200px;
+  left: 30px;
+}
 .editorSidebarToggle {
   position: fixed;
   top: 200px;

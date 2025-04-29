@@ -2562,7 +2562,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     }, []);
 
     return (
-    <div className={`saveStateIndicator ${state}`}>
+    <div className={`editorSaveStateIndicator ${state}`}>
         {<img src={stateToIcon[state]} alt={state} />}
     </div>
   );
@@ -2896,12 +2896,9 @@ const SefariaEditor = (props) => {
                 // alert("The request took too long. Please try again.");
             } else if (jqXHR.status === 0) {
                 console.warn("No network connection or request blocked.");
-                // !connectionLostPolling && alert("You're offline");
                 setBlockEditing(true);
                 setConnectionLostPolling(true);
             } else if (jqXHR.status === 401) {
-                console.warn("User unauthenticated, please log in.");
-                // alert("User unauthenticated, please log in.");
                 setBlockEditing(true);
                 setUserUnauthenticated(true);
             } else if (jqXHR.status >= 500) {
