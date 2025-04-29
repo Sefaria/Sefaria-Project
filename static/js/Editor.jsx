@@ -1013,7 +1013,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
 }
 
-const AddInterface = ({ attributes, children, element }) => {
+const AddInterface = ({ attributes, children, element, blockEditing }) => {
     const editor = useSlate();
     const [active, setActive] = useState(false)
     const [itemToAdd, setItemToAdd] = useState(null)
@@ -1104,7 +1104,7 @@ const AddInterface = ({ attributes, children, element }) => {
 
     return (
       <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
-          {itemToAdd == null ? <>
+          {itemToAdd == null && !blockEditing ? <>
               <div role="button" title={Sefaria._("Add a source")} aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
               <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
                   <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
@@ -1145,7 +1145,7 @@ const Element = (props) => {
           }
           return (
             <div className={classNames(spacerClasses)} {...attributes}>
-              {spacerSelected && document.getSelection().isCollapsed && !blockEditing ?  <AddInterface {...props} /> : <>{children}</>}
+              {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} blockEditing={blockEditing} /> : <>{children}</>}
             </div>
           );
         case 'SheetSource':
@@ -1251,7 +1251,7 @@ const Element = (props) => {
 
             const addNewLineClasses = {
             hidden: isMultiNodeSelection(editor) || !selected,
-            editorAddLineButton: !blockEditing && 1,
+            editorAddLineButton: 1,
             };
             const handleClick = (event, editor) => {
                  // a way to check if the click was on the 'pseudo' ::before element or on the actual div
