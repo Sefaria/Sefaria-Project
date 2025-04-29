@@ -63,7 +63,7 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
 
 const fetchBulkSheet = inSheets => {
   const refs = inSheets.map(x => {
-    x.ref = parseInt(x.ref.replace('Sheet ', ''));
+    x.ref = parseInt(x.ref.replace('Sheet ', ''));  // bulk sheets API expects just numbers so we need to remove the "Sheet " string
     return x.ref;
   });
   return Sefaria.getBulkSheets(refs).then(outSheets => {
@@ -649,6 +649,7 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
     const [showLangSelectInterface, setShowLangSelectInterface] = useState(false);
     const allPossibleTabsWithSources = useAllPossibleSourceTabs(translationLanguagePreference, versionPref);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
+
     const getCurrentLang = (langPref) => {
       if (langPref === "hebrew") {return "source"}
       else if (langPref === "english") {return "translation"}
@@ -656,7 +657,6 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
     }
     const currentLang = getCurrentLang(langPref);
 
-    // Initial Topic Data, updates when `topic` changes
     useEffect(() => {
         for (let [tabKey, tabObj] of Object.entries(topicData.tabs)) {
           const refsWithoutData = tabObj.loadedData ? tabObj.refs.slice(tabObj.loadedData.length) : tabObj.refs;
