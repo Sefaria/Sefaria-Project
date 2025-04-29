@@ -2555,7 +2555,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     };
     const stateToMessage = {
       "connectionLost": "Trying to Connect",
-      "userUnauthenticated": "User Logged out." + <a href='/login'>Log in</a>,
+      "userUnauthenticated": <>User Logged out. <a href='/login'>Log in</a></>,
       "saving": "Saving...",
       "saved": "Saved"
     }

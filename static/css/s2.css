@@ -9308,6 +9308,11 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   font-size: 18px;
   position: absolute;
   top: -1px;
+  width: max-content;
+}
+.editorSaveStateIndicator .saveStateMessage a{
+  font-family: Roboto;
+  color: #18345D;
 }
 .editorSidebarToggle {
   position: fixed;
