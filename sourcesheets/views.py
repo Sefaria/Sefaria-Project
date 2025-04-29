@@ -1043,7 +1043,6 @@ def sheets_with_ref(request, tref):
     search_params = get_search_params(request.GET)
 
     props={
-        "initialSearchType": "sheet",
         "initialSearchField": search_params["field"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
