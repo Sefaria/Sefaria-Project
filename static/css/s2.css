@@ -9302,6 +9302,13 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   top: 200px;
   left: 30px;
 }
+.editorSaveStateIndicator .saveStateMessage{
+  font-family: Roboto;
+  margin-inline-start: 8px;
+  font-size: 18px;
+  position: absolute;
+  top: -1px;
+}
 .editorSidebarToggle {
   position: fixed;
   top: 200px;

@@ -2552,6 +2552,12 @@ const EditorSaveStateIndicator = ({ state }) => {
       "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
       "saving": "/static/icons/new_editor_saving/directory-sync-rounded.svg",
       "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg"
+    };
+    const stateToMessage = {
+      "connectionLost": "Trying to Connect",
+      "userUnauthenticated": "User Logged out." + <a href='/login'>Log in</a>,
+      "saving": "Saving...",
+      "saved": "Saved"
     }
     useEffect(() => {
     // Preload all icons
@@ -2564,6 +2570,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     return (
     <div className={`editorSaveStateIndicator ${state}`}>
         {<img src={stateToIcon[state]} alt={state} />}
+        <span className="saveStateMessage">{stateToMessage[state]}</span>
     </div>
   );
 }
