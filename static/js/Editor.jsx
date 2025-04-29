@@ -2546,6 +2546,27 @@ const BlockButton = ({format, icon}) => {
     )
 }
 
+const EditorSaveStateIndicator = ({ state }) => {
+    const stateToIcon = {
+      "connectionLost": "/static/icons/new_editor_saving/cloud-off-rounded.svg",
+      "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
+      "saving": "/static/icons/new_editor_saving/directory-sync-rounded.svg",
+      "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg"
+    }
+    useEffect(() => {
+    // Preload all icons
+    Object.values(stateToIcon).forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+    }, []);
+
+    return (
+    <div className={`saveStateIndicator ${state}`}>
+        {<img src={stateToIcon[state]} alt={state} />}
+    </div>
+  );
+}
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
@@ -2561,6 +2582,14 @@ const SefariaEditor = (props) => {
     const [readyForNormalize, setReadyForNormalize] = useState(false);
     const [connectionLostPolling, setConnectionLostPolling] = useState(false);
     const [userUnauthenticated, setUserUnauthenticated] = useState(false);
+    const [savingState, setSavingState] = useState('saved');
+
+    useEffect(() => {
+        if (connectionLostPolling) {setSavingState('connectionLost')}
+        else if (userUnauthenticated) {setSavingState('userUnauthenticated')}
+        else if (unsavedChanges) {setSavingState('saving')}
+        else {setSavingState('saved')}
+  }, [connectionLostPolling, userUnauthenticated, unsavedChanges]);
 
     useEffect(
         () => {
@@ -2864,15 +2893,15 @@ const SefariaEditor = (props) => {
         function handlePostError(jqXHR, textStatus, errorThrown) {
             if (textStatus === "timeout") {
                 console.warn("Request timed out.");
-                alert("The request took too long. Please try again.");
+                // alert("The request took too long. Please try again.");
             } else if (jqXHR.status === 0) {
                 console.warn("No network connection or request blocked.");
-                !connectionLostPolling && alert("You're offline");
+                // !connectionLostPolling && alert("You're offline");
                 setBlockEditing(true);
                 setConnectionLostPolling(true);
             } else if (jqXHR.status === 401) {
                 console.warn("User unauthenticated, please log in.");
-                alert("User unauthenticated, please log in.");
+                // alert("User unauthenticated, please log in.");
                 setBlockEditing(true);
                 setUserUnauthenticated(true);
             } else if (jqXHR.status >= 500) {
@@ -3061,6 +3090,7 @@ const SefariaEditor = (props) => {
         []
     );
 
+
     return (
         <div ref={editorContainer} onClick={props.handleClick}>
         {
@@ -3071,7 +3101,7 @@ const SefariaEditor = (props) => {
           // </div>
 
         }
-
+            <EditorSaveStateIndicator state={savingState}/>
             <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={!blockEditing} blurCallback={() => saveDocument(currentDocument)}/>
