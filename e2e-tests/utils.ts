@@ -4,6 +4,7 @@ import type { Page } from 'playwright-core';
 
 let langCookies: any = [];
 let loginCookies: any = [];
+let currentLocation: string = ''; 
 
 const hideModals = async (page: Page) => {
     await page.waitForLoadState('networkidle');
@@ -91,15 +92,38 @@ export const changeLanguageOfText = async (page: Page, sourceLanguage: RegExp) =
 }
 
 export const getCountryByIp = async (page: Page) => {
-    const data = await page.evaluate(() => {
-        return fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(data => data)
-    })
-    return data.country;
+    const services = [
+        {
+            url: 'https://ipapi.co/json/',
+            extract: (data: any) => data.country
+        },
+        {
+            url: 'https://api.ipbase.com/v1/json/',
+            extract: (data: any) => data.country_code
+        }
+    ];
+
+    for (const service of services) {
+        try {
+            const data = await page.evaluate(async (url) => {
+                const response = await fetch(url);
+                return await response.json();
+            }, service.url);
+            
+            if (data) {
+                return service.extract(data);
+            }
+        } catch (e) {
+            console.log(`Failed to get country from ${service.url}`, e);
+            continue;
+        }
+    }
+    return null;
 }
 
 export const isIsraelIp = async (page: Page) => {
-    const country = await getCountryByIp(page);
-    return country === "IL";
+    if (!currentLocation) {
+        currentLocation = await getCountryByIp(page);
+    }
+    return currentLocation === "IL";
 }

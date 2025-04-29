@@ -46,7 +46,8 @@ export class PageManager{
         this.textsPage.toggleLanguage(newLanguage)
     }
 
-    navigateTo(){
+    navigateFromBannerTo(){
+        // This method is used to navigate to different pages using the banner
         return this.banner
     }
 
