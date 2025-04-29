@@ -1,6 +1,7 @@
 import {DEFAULT_LANGUAGE, LANGUAGES, SOURCE_LANGUAGES, testUser} from './globals'
 import {BrowserContext}  from 'playwright-core';
 import type { Page } from 'playwright-core';
+import { SourceSheetEditorPage } from './pages/sourceSheetEditor.page';
 
 let langCookies: any = [];
 let loginCookies: any = [];
@@ -49,16 +50,9 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
 
 export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANGUAGE) => {
     await page.goto('/login');
-
-    // Only change language if we need to
-    const inIsrael = await isIsraelIp(page)
-    if( ( inIsrael && language == LANGUAGES.EN) || 
-        ( !inIsrael && language == LANGUAGES.HE)){
-        await changeLanguage(page, language);
-    }
-
-    await page.getByPlaceholder('Email Address').fill(user.email);
-    await page.getByPlaceholder('Password').fill(user.password);
+    await changeLanguage(page, language);
+    await page.getByPlaceholder('Email Address').fill(user.email ?? '');
+    await page.getByPlaceholder('Password').fill(user.password ?? '');
     await page.getByRole('button', { name: 'Login' }).click();
     await page.getByRole('link', { name: 'See My Saved Texts' }).isVisible();
 }
@@ -76,6 +70,10 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     await newPage.goto(url);
     await hideModals(newPage);
     return newPage;
+}
+
+export const goToSourceSheetEditorWithUser = async (context: BrowserContext, url: string, user=testUser) => {
+    return await goToPageWithUser(context, '/sheets/new', user);
 }
 
 export const getPathAndParams = (url: string) => {
