@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { useParams, Link } from 'react-router-dom';
 import { InterfaceText } from './Misc';
 // import '../css/plans.css';
 
-const PlanDetail = () => {
-  const { planId } = useParams();
+const PlanDetail = ({ planId }) => {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,9 +43,9 @@ const PlanDetail = () => {
   return (
     <div className="planDetail">
       <div className="planDetailBackLink">
-        <Link to="/" className="backLink">
+        <a href="/plans" className="backLink">
           <span className="backArrow">←</span> Back to all plans
-        </Link>
+        </a>
       </div>
       <div className="planDetailHeader">
         <div className="planDetailImageWrapper">
@@ -68,9 +66,9 @@ const PlanDetail = () => {
             <span className="planDetailDuration">{plan.total_days} days</span>
           </div>
           <div className="planDetailActions">
-            <Link to={`/${planId}/progress`} className="startPlanButton">
+            <a href={`/plans/${planId}/progress`} className="startPlanButton">
               <InterfaceText>Start the Plan</InterfaceText>
-            </Link>
+            </a>
           </div>
         </div>
       </div>

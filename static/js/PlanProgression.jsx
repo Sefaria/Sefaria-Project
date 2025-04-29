@@ -1,62 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
 import Sheet from './Sheet';
-import Sefaria from './sefaria/sefaria';
 
-const PlanProgression = () => {
-  const { planId } = useParams();
+const PlanProgression = ({planId, planData}) => {
   const [currentDay, setCurrentDay] = useState(1);
-  const [planData, setPlanData] = useState(null);
   const [sheetData, setSheetData] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showDailyPath, setShowDailyPath] = useState(true);
 
-  // Example MongoDB ObjectId for testing: "67ef5e6f2946808aa7605e0b"
-  const MOCK_PLAN_ID_MAP = {
-    "1": "67ef5e6f2946808aa7605e0b",
-    "2": "67ef8746e711c3fd29b70e17",
-    "3": "67ef8746e711c3fd29b70e18"
-  };
-
-  useEffect(() => {
-    // Fetch plan data when component mounts
-    fetchPlanData();
-  }, [planId]);
-
+ 
   useEffect(() => {
     // Fetch sheet data when plan data is loaded or current day changes
     if (planData) {
       fetchDayContent(currentDay);
     }
-  }, [currentDay, planData]);
+  }, [currentDay, planData, planId]);
 
-  const getMongoId = (numericId) => {
-    // Remove any 'progress' suffix and convert to string
-    const cleanId = numericId.toString().replace('/progress', '');
-    return MOCK_PLAN_ID_MAP[cleanId] || cleanId;
-  };
-
-  const fetchPlanData = async () => {
-    try {
-      const mongoId = getMongoId(planId);
-      const response = await fetch(`/api/plans/${mongoId}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setPlanData(data);
-      setError(null);
-    } catch (error) {
-      setError('Failed to load plan data. Please try again later.');
-    }
-  };
 
   const fetchDayContent = async (day) => {
     try {
       setIsLoading(true);
-      const mongoId = getMongoId(planId);
-      const response = await fetch(`/api/plans/${mongoId}/day_${day}`);
+      const response = await fetch(`day_${day}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -92,9 +56,9 @@ const PlanProgression = () => {
     <div className="plan-progression">
       {/* Breadcrumb Navigation */}
       <nav className="breadcrumb-nav">
-        <Link to="/" className="breadcrumb-item">Home</Link>
+        <a href="/" className="breadcrumb-item">Home</a>
         <span className="breadcrumb-separator">›</span>
-        <Link to={`/${numericId}`} className="breadcrumb-item">{planData.title}</Link>
+        <a href={`/${numericId}`} className="breadcrumb-item">{planData.title}</a>
         <span className="breadcrumb-separator">›</span>
         <span className="breadcrumb-item current">Day {currentDay}</span>
         <button 

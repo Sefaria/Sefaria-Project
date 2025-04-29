@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import classNames from 'classnames';
 import { InterfaceText } from './Misc';
 import PlanDetail from './PlanDetail';
@@ -57,16 +56,10 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
   }
 
   return (
-    <Router basename="/plans">
-      <div className="readerNavMenu plansPage sans-serif">
-        <div className="content">
-          <div className="contentInnerr">
-            <Switch>
-              <Route
-                exact
-                path="/"
-                render={() => (
-                  <>
+    <div className="readerNavMenu plansPage sans-serif">
+        <div className="content sans-serif">
+          <div className="contentInnerr sans-serif">
+            <div className="planDetail sans-serif">
                     {/* Search Bar and Create Plan Button */}
                     <div className="searchBarContainer">
                       <div className="searchBarWrapper">
@@ -112,13 +105,13 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                     {/* Plans List */}
                     <div className="plansListHeader">
                       <h1>Featured Plans</h1>
-                      <Link to="/all" className="viewAllLink">View all plans</Link>
+                      <a href="/all" className="viewAllLink">View all plans</a>
                     </div>
                     <div className="plansList">
                       {filteredPlans.length > 0 ? (
                         filteredPlans.map(plan => (
-                          <div key={plan.id} className="planCard">
-                            <Link to={`/${plan.id}`} className="planImageWrapper">
+                          <a href={`/plans/${plan.id}`} key={plan.id} className="planCard">
+                            <div className="planImageWrapper">
                               <img src={plan.image} alt={plan.title} className="planImage" />
                               <div className="planCategories">
                                 {plan.categories.map((category, index) => (
@@ -129,45 +122,24 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                                 ))}
                                 <span className="categoryCount">+{plan.categories.length - 2 > 0 ? plan.categories.length - 2 : 1}</span>
                               </div>
-                            </Link>
+                            </div>
                             <h3 className="planTitle">
-                              <Link to={`/${plan.id}`}>
                                 <InterfaceText>{plan.title}</InterfaceText>
-                              </Link>
                             </h3>
                             <div className="planFooter">
                               <span className="planDuration">{plan.total_days} days</span>
-                              <Link to={`/${plan.id}`} className="readMoreLink">Read more</Link>
+                              <div to={`/${plan.id}`} className="readMoreLink">Read more</div>
                             </div>
-                          </div>
+                          </a>
                         ))
                       ) : (
                         <p>No plans found.</p>
                       )}
                     </div>
-                  </>
-                )}
-              />
-              {/* Plan Detail Route */}
-              <Route
-                path="/:planId"
-                exact
-                render={() => <PlanDetail plans={plans} />}
-              />
-              {/* Placeholder route for progression page */}
-              {/* Updated Plan Progression Route */}
-              <Route
-                path="/:planId/progress"
-                render={({ match }) => (
-                  <PlanProgression planId={match.params.planId} />
-                )}
-              />
-              <Route path="/all" render={() => <div>All Plans Page (To be implemented)</div>} />
-            </Switch>
+                  </div>
           </div>
         </div>
-      </div>
-    </Router>
+    </div>
   );
 };
 

@@ -81,6 +81,8 @@ class ReaderApp extends Component {
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
         translationsSlug:        props.initialTranslationsSlug,
+        planId:                  props.planId,
+        planData:                props.planData,
       };
     }
 
@@ -176,7 +178,9 @@ class ReaderApp extends Component {
       topicSort:               state.topicSort               || null,
       webPagesFilter:          state.webPagesFilter          || null,
       sideScrollPosition:      state.sideScrollPosition      || null,
-      topicTestVersion:        state.topicTestVersion        || null
+      topicTestVersion:        state.topicTestVersion        || null,
+      planId:                  state.planId                  || null,
+      planData:                state.planData                || {},
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -515,6 +519,16 @@ class ReaderApp extends Component {
             hist.url   = "plans";
             hist.mode  = "plans";
             break;  
+          case "planDetail":
+            hist.title = `${Sefaria._("Practice Plan")} | ${Sefaria._("Pecha")}`;
+            hist.url   = `plans/${state.planId}`;
+            hist.mode  = "planDetail";
+            break;
+          case "dayPlanDetail":
+            hist.title = `${Sefaria._("Practice Plan")} | ${Sefaria._("Pecha")}`;
+            hist.url   = `plans/${state.planId}/progress`;
+            hist.mode  = "dayPlanDetail";
+            break;
           case "profile":
             hist.title = `${state.profile.full_name} ${Sefaria._("on Pecha")}`;
             hist.url   = `profile/${state.profile.slug}`;
@@ -1094,6 +1108,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       return true;
     }
     const path = decodeURI(url.pathname);
+    console.log("path: .........", path)
     const params = url.searchParams;
     if(overrideContentLang && params.get('lang')) {
       let lang = params.get("lang")
@@ -1124,6 +1139,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
     } else if (path === "/plans") {
       this.showPlans(); 
+      console.log("my plans hehe")
     }
     else if (path === "/my/profile") {
       this.openProfile(Sefaria.slug, params.get("tab"));
@@ -1427,6 +1443,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   openPanel(ref, currVersions, options) {
+    console.log("open panel :::", ref)
     // Opens a text panel, replacing all panels currently open.
     // options can contain {
     //  'textHighlights': array of strings to highlight in focused segment. used when clicking on search query result
@@ -1698,6 +1715,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showPlans() {
     this.setSinglePanelState({menuOpen: "plans"});
+  }
+  showPlanDetail(planId) {
+    console.log("my plan id >>>>>>>>>>>>>>>>>", planId)
+    this.setSinglePanelState({menuOpen: "planDetail", planId: planId});
   }
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});
