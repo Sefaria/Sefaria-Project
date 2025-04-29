@@ -40,9 +40,8 @@ const languageInterfaceAndSourceConfig = [
 
 ]
 
-/***** NEW TESTS *****/
 languageInterfaceAndSourceConfig.forEach(({interfaceLanguage, interfaceLanguageToggle, sourceLanguage, sourceLanguageToggle, expectedSourceText, expectedInterfaceText}) => {
-    test(`${interfaceLanguage} Interface Language with ${sourceLanguage} Source with PageManager`, async ({ context }) => {
+    test(`${interfaceLanguage} Interface Language with ${sourceLanguage} Source`, async ({ context }) => {
 
         // Navigating to Bereshit with selected Interface Language, Hebrew or English
         const page = await goToPageWithLang(context,'/Genesis.1',`${interfaceLanguageToggle}`)
@@ -55,25 +54,5 @@ languageInterfaceAndSourceConfig.forEach(({interfaceLanguage, interfaceLanguageT
 
         // Validate Hebrew interface language is still toggled
         await pm.onSourceTextPage().validateLinkExistsInBanner(expectedInterfaceText)
-    })
-})
-
-/***** OLD TESTS *****/
-languageInterfaceAndSourceConfig.forEach(({interfaceLanguage, interfaceLanguageToggle, sourceLanguage, sourceLanguageToggle, expectedSourceText, expectedBilingualText, expectedInterfaceText}) => {
-    test(`${interfaceLanguage} Interface Language with ${sourceLanguage} Source`, async ({ context }) => {
-
-        // Navigating to Bereshit with selected Interface Language, Hebrew or English
-        const page = await goToPageWithLang(context,'/Genesis.1',`${interfaceLanguageToggle}`)
-        
-        // Selecting Source Language
-        await changeLanguageOfText(page, sourceLanguageToggle)
-    
-        // Locating the source text segment, then verifying translation
-        await expect(page.locator('div.segmentNumber').first().locator('..').locator('p')).toContainText(`${expectedSourceText}`)
-
-        // Validate Hebrew interface language is still toggled
-        const textLink = page.locator('a.textLink').first()
-        await expect(textLink).toHaveText(`${expectedInterfaceText}`)
-
     })
 })
