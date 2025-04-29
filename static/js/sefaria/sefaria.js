@@ -2631,6 +2631,15 @@ _media: {},
       }
     });
   },
+isUserConnectedUnauthenticatedAPI: async () => {
+  try {
+    const response = await fetch('/api/session/validate', { credentials: 'include' });
+    return response.status === 401;
+  } catch (error) {
+    console.error('Session validation or network error:', error);
+    return false; // No connectivity, or server unreachable
+  }
+},
   editProfileAPI: (partialProfile) => {
     const data = {json: JSON.stringify(partialProfile)};
     return new Promise((resolve, reject) => {
