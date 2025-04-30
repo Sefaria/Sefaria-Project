@@ -170,6 +170,7 @@ class ReaderPanel extends Component {
   }
   handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
+      console.log("handleCitationClick<<<<<", citationRef, textRef, replace, currVersions);
       this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
       this.showBaseText(citationRef, replace, currVersions);
@@ -739,6 +740,8 @@ class ReaderPanel extends Component {
       );
     }
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
+
+      console.log("Sheet", this.state.sheetID, this.state.multiPanel)
       items.push(
         <Sheet
           nodeRef={this.sheetRef}
@@ -1103,6 +1106,7 @@ class ReaderPanel extends Component {
         <PlanProgression
           planId={this.state.planId}
           planData={this.state.planData}
+          onCitationClick={this.handleCitationClick}
         />
       );
     }

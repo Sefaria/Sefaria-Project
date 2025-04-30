@@ -29,7 +29,7 @@ class Plan:
         if self.title == "Mindful Healing After Loss":
             self.content = {
                 "day 1": 41,  # Sheet ID for Day 1
-                "day 2": 77,  # Sheet ID for Day 2
+                "day 2": 760,  # Sheet ID for Day 2
             }
             self.total_days = 2
         return self

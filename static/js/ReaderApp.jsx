@@ -527,6 +527,15 @@ class ReaderApp extends Component {
           case "dayPlanDetail":
             hist.title = `${Sefaria._("Practice Plan")} | ${Sefaria._("Pecha")}`;
             hist.url   = `plans/${state.planId}/progress`;
+            
+            // Extract and preserve query parameters for multi-panel layout and text references
+            if (state.p2) {
+              hist.url += `?p2=${state.p2}`;
+              if (state.lang2) {
+                hist.url += `&lang2=${state.lang2}`;
+              }
+            }
+            
             hist.mode  = "dayPlanDetail";
             break;
           case "profile":
@@ -984,6 +993,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   handleCitationClick(n, citationRef, textRef, replace, currVersions) {
+    console.log("hello >>>>>>>", n, citationRef, textRef, replace, currVersions)
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
     if (this.state.panels.length > n+1  &&

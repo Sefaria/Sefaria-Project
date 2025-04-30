@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sheet from './Sheet';
 
-const PlanProgression = ({planId, planData}) => {
+const PlanProgression = ({planId, planData, onCitationClick}) => {
   const [currentDay, setCurrentDay] = useState(1);
   const [sheetData, setSheetData] = useState(null);
   const [error, setError] = useState(null);
@@ -35,8 +35,28 @@ const PlanProgression = ({planId, planData}) => {
     }
   };
 
+  const onRefClick = (ref) => {
+    console.log("Ref clicked:", ref.target.getAttribute('href'));
+    
+    // // Check if ref is an element reference with an href attribute
+    // if (ref && ref.target && ref.target.getAttribute) {
+    //   const href = ref.target.getAttribute('href');
+    //   if (href) {
+    //     console.log("Href attribute:", href);
+    //     // Use the href as needed
+    //     // e.g., navigate to the link, or extract data from it
+    //     return href;
+    //   }
+    // }
+
+  };
   const handleDaySelect = (day) => {
     setCurrentDay(day);
+  };
+
+  const handleCitationClick = (citationRef, textRef, replace, currVersions) => {
+    onCitationClick(citationRef, textRef, replace, currVersions);
+    setShowDailyPath(false);
   };
 
   const openSheet = (sheetRef, replace = false) => {
@@ -107,20 +127,20 @@ const PlanProgression = ({planId, planData}) => {
             <div>Loading day content...</div>
           ) : sheetData && sheetData.content ? (
             <div className="plan-progression-sheet-content">
-            <Sheet
-              id={sheetData.sheet_id}
-              data={sheetData.content}
-              hasSidebar={false}
-              highlightedNode={null}
-              multiPanel={false}
-              onRefClick={() => {}}
-              onSegmentClick={() => {}}
-              onCitationClick={() => {}}
-              setSelectedWords={() => {}}
-              setDivineNameReplacement={() => {}}
-              divineNameReplacement="noSub"
-              openSheet={openSheet}
-            />
+              <Sheet
+                id={sheetData.sheet_id}
+                data={sheetData.content}
+                hasSidebar={false}
+                highlightedNode={null}
+                multiPanel={false}
+                onRefClick={onRefClick}
+                onSegmentClick={() => {}}
+                onCitationClick={handleCitationClick}
+                setSelectedWords={() => {}}
+                setDivineNameReplacement={() => {}}
+                divineNameReplacement="noSub"
+                openSheet={openSheet}
+              />
             </div>
           ) : (
             <div>No content available for this day</div>
