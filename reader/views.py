@@ -93,11 +93,25 @@ from django.middleware.csrf import get_token
 from django.utils.text import slugify
 import random
 import string
+from sefaria.forms import PlanForm
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
 import structlog
+
+def edit_plan_page(request):
+    if request.method == 'POST':
+        form = PlanForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Process the form data here
+            # For now, we'll just redirect to a success page or same page
+            # You might want to save the data to a model
+            return redirect('edit_plan_page')  # Adjust redirect as needed
+    else:
+        form = PlanForm()
+    
+    return render(request, 'plan.html', {'form': form})
 
 logger = structlog.get_logger(__name__)
 
