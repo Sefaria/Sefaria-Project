@@ -24,7 +24,12 @@ class Plan:
     def load_from_dict(self, d):
         for key, value in d.items():
             setattr(self, key, value)
+            # self.content = {
+            #     "day 1": 41,  # Sheet ID for Day 1
+            #     "day 2": 760,  # Sheet ID for Day 2
+            # }
         self.content = {day: int(info['sheet_id']) for day, info in d.get('content', {}).items()}
+        print(">>>>>>>>>>>>>>>>>.......",self.content)
         return self
 
     def load(self, query):
@@ -42,13 +47,7 @@ class Plan:
             "image": self.image,
             "total_days": self.total_days,
         }
-        
-        # For the plan overview, just return the sheet IDs
-        if self.title == "Mindful Healing After Loss":
-            base_content["content"] = self.content
-        else:
-            base_content["content"] = self.content
-            
+        base_content["content"] = self.content
         return base_content
 
     def get_day_content(self, day_number):
