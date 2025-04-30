@@ -51,6 +51,8 @@ urlpatterns = [
     url(r'^community/?$', reader_views.community_page),
     url(r'^plans/?$', reader_views.plans_page),
     url(r'^plans/new$', reader_views.edit_plan_page),
+    url(r'^plans/?(?P<plan_id>[^/]+)$', reader_views.plan_detail_page),
+    url(r'^plans/?(?P<plan_id>[^/]+)/progress', reader_views.day_plan_detail_page),
     url(r'^notifications/?$', reader_views.notifications),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
@@ -499,7 +501,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/plans$', api_views.PlanView.as_view(), name='plan_list'),
     url(r'^api/plans/(?P<uuid>[0-9a-fA-F]{24})$', api_views.PlanView.as_view(), name='plan_detail'),
-    url(r'^api/plans/(?P<uuid>[0-9a-fA-F]{24})/day_(?P<day>\d+)$', api_views.PlanView.as_view(), name='plan_day'),
+    url(r'^plans/(?P<uuid>[0-9a-fA-F]{24})/day_(?P<day>\d+)$', api_views.PlanView.as_view(), name='plan_day'),
 ]
 
 if DOWN_FOR_MAINTENANCE:
