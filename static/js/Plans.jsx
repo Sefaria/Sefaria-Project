@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import classNames from 'classnames';
 import { InterfaceText } from './Misc';
 import PlanDetail from './PlanDetail';
@@ -57,17 +56,11 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
   }
 
   return (
-    <Router basename="/plans">
-      <div className="readerNavMenu plansPage sans-serif">
-        <div className="content">
-          <div className="contentInnerr">
-            <Switch>
-              <Route
-                exact
-                path="/"
-                render={() => (
-                  <>
-                    {/* Search Bar */}
+    <div className="readerNavMenu plansPage sans-serif">
+        <div className="content sans-serif">
+          <div className="contentInnerr sans-serif">
+            <div className="planDetail sans-serif">
+                    {/* Search Bar and Create Plan Button */}
                     <div className="searchBarContainer">
                       <div className="searchBarWrapper">
                         <span className="searchIcon">
@@ -83,13 +76,20 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                           onChange={(e) => setSearchQuery(e.target.value)}
                           className="searchInput"
                         />
+                        <button 
+                          className="createPlanButton"
+                          onClick={() => {/* Add your create plan logic here */}}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                          Create a Plan
+                        </button>
                       </div>
                     </div>
 
                     {/* Categories */}
-                    <div className="plansCategoriesHeader">
-                      <h2>Explore by Category</h2>
-                    </div>
                     <div className="plansCategories">
                       {categories.map(category => (
                         <button
@@ -105,13 +105,13 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                     {/* Plans List */}
                     <div className="plansListHeader">
                       <h1>Featured Plans</h1>
-                      <Link to="/all" className="viewAllLink">View all plans</Link>
+                      <a href="/all" className="viewAllLink">View all plans</a>
                     </div>
                     <div className="plansList">
                       {filteredPlans.length > 0 ? (
                         filteredPlans.map(plan => (
-                          <div key={plan.id} className="planCard">
-                            <Link to={`/${plan.id}`} className="planImageWrapper">
+                          <a href={`/plans/${plan.id}`} key={plan.id} className="planCard">
+                            <div className="planImageWrapper">
                               <img src={plan.image} alt={plan.title} className="planImage" />
                               <div className="planCategories">
                                 {plan.categories.map((category, index) => (
@@ -122,45 +122,24 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                                 ))}
                                 <span className="categoryCount">+{plan.categories.length - 2 > 0 ? plan.categories.length - 2 : 1}</span>
                               </div>
-                            </Link>
+                            </div>
                             <h3 className="planTitle">
-                              <Link to={`/${plan.id}`}>
                                 <InterfaceText>{plan.title}</InterfaceText>
-                              </Link>
                             </h3>
                             <div className="planFooter">
                               <span className="planDuration">{plan.total_days} days</span>
-                              <Link to={`/${plan.id}`} className="readMoreLink">Read more</Link>
+                              <div to={`/${plan.id}`} className="readMoreLink">Read more</div>
                             </div>
-                          </div>
+                          </a>
                         ))
                       ) : (
                         <p>No plans found.</p>
                       )}
                     </div>
-                  </>
-                )}
-              />
-              {/* Plan Detail Route */}
-              <Route
-                path="/:planId"
-                exact
-                render={() => <PlanDetail plans={plans} />}
-              />
-              {/* Placeholder route for progression page */}
-              {/* Updated Plan Progression Route */}
-              <Route
-                path="/:planId/progress"
-                render={({ match }) => (
-                  <PlanProgression planId={match.params.planId} />
-                )}
-              />
-              <Route path="/all" render={() => <div>All Plans Page (To be implemented)</div>} />
-            </Switch>
+                  </div>
           </div>
         </div>
-      </div>
-    </Router>
+    </div>
   );
 };
 

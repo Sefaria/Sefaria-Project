@@ -16,7 +16,6 @@ import redis
 import os
 import re
 import uuid
-import langdetect
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -39,6 +38,7 @@ from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
+from sefaria.model.plan import Plan, PlanSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
@@ -1136,7 +1136,6 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
-    print()
     title = ("Pecha - Buddhism in your own words")
     desc = ("The largest free library of Buddhist texts available to read online in Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more.")
     return menu_page(request, page="navigation", title=title, desc=desc)
@@ -1622,7 +1621,6 @@ def texts_api(request, tref):
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                print(t)
                 tracker.modify_text(request.user.id, 
                                     oref, 
                                     t["versionTitle"], 
@@ -1703,7 +1701,6 @@ def social_image_api(request, tref):
         version_lang = 'he'
         lang = 'he'
 
-    print("version_lang", version_lang)
     
     platform = request.GET.get("platform", "facebook")
 
@@ -1724,7 +1721,6 @@ def social_image_api(request, tref):
         text = None
         cat = None
         ref_str = None
-    print("lang", lang)
     res = make_img_http_response(text, cat, ref_str, lang, version_lang, platform)
 
     return res
@@ -4235,19 +4231,58 @@ def plans_page(request, props={}):
     """
     title = "Plans | Pecha"
     desc = "Explore plans on Pecha."
-    data = plans_page_data(request, language=request.interfaceLang)
+    data = {}
     data.update(props)  # Merge with any passed-in props
     return menu_page(request, page="plans", props=data, title=title, desc=desc)
 
+def plan_detail_page(request, plan_id, props={}):
 
-# plan page helper function
-def plans_page_data(request, language="english"):
     """
-    Prepare data for the Plans page.
-    For now, returns an empty dict since we only need to display 'hi'.
+    Plans Page - Displays a plan detail for now.
     """
-    data = {}
-    return data
+    title = "Plans | Pecha"
+    desc = "Explore plans on Pecha."
+
+    plan = get_plan_for_panel(plan_id)
+
+    props.update({
+        "planId": plan_id,
+        "planData": plan
+    }) 
+    return menu_page(request, page="planDetail", props=props, title=title, desc=desc)
+
+def day_plan_detail_page(request, plan_id, props={}):
+    """
+    Plans Page - Displays a plan detail for now.
+    """
+    title = "Plans | Pecha"
+    desc = "Explore day of plan."
+    plan = get_plan_for_panel(plan_id)
+    
+    props.update({
+        "planId": plan_id,
+        "planData": plan
+    }) 
+    return menu_page(request, page="dayPlanDetail", props=props, title=title, desc=desc)
+    
+
+
+def get_plan_for_panel(id):
+
+    plan = db.plans.find_one({"_id": ObjectId(id)})
+    if not plan:
+        return {"error": "Plan not found"}
+    # Convert plan to JSON-serializable format
+    json_plan = {}
+    for key, value in plan.items():
+        if key == '_id':
+            json_plan[key] = str(value)  # Convert ObjectId to string
+        elif isinstance(value, datetime):
+            json_plan[key] = value.isoformat()  # Convert datetime objects
+        else:
+            json_plan[key] = value
+    
+    return json_plan
 
 
 def new_home_redirect(request):

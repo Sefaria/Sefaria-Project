@@ -28,15 +28,10 @@ class Plan:
         # If this is the "Mindful Healing After Loss" plan, set up the sheet mappings
         if self.title == "Mindful Healing After Loss":
             self.content = {
-                "day 1": 24,  # Sheet ID for Day 1
-                "day 2": 25,  # Sheet ID for Day 2
-                "day 3": 26,  # Sheet ID for Day 3
-                "day 4": 27,  # Sheet ID for Day 4
-                "day 5": 28,  # Sheet ID for Day 5
-                "day 6": 29,  # Sheet ID for Day 6
-                "day 7": 30   # Sheet ID for Day 7
+                "day 1": 41,  # Sheet ID for Day 1
+                "day 2": 760,  # Sheet ID for Day 2
             }
-            self.total_days = 7
+            self.total_days = 2
         return self
 
     def load(self, query):
