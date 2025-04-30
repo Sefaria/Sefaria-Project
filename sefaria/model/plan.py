@@ -24,7 +24,7 @@ class Plan:
     def load_from_dict(self, d):
         for key, value in d.items():
             setattr(self, key, value)
-        self.content = {day: info['sheet_id'] for day, info in d.get('content', {}).items()}
+        self.content = {day: int(info['sheet_id']) for day, info in d.get('content', {}).items()}
         return self
 
     def load(self, query):
