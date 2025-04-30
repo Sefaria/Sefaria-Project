@@ -24,14 +24,7 @@ class Plan:
     def load_from_dict(self, d):
         for key, value in d.items():
             setattr(self, key, value)
-        
-        # If this is the "Mindful Healing After Loss" plan, set up the sheet mappings
-        if self.title == "Mindful Healing After Loss":
-            self.content = {
-                "day 1": 41,  # Sheet ID for Day 1
-                "day 2": 760,  # Sheet ID for Day 2
-            }
-            self.total_days = 2
+        self.content = {day: info['sheet_id'] for day, info in d.get('content', {}).items()}
         return self
 
     def load(self, query):
