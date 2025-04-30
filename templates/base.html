@@ -58,7 +58,8 @@
     <meta name="twitter:site" content="@sefariaproject" />
     <meta name="twitter:title" content="{{title|striptags}}" />
     <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
-    <meta name="twitter:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=twitter&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
+    <!-- <meta name="twitter:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" /> -->
+    <meta name="twitter:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{ request.GET.lang }}{% if request.GET.ven %}&ven={{ request.GET.ven|urlencode  }}{% endif %}{% if request.GET.vhe %}&vhe={{ request.GET.vhe|urlencode  }}{% endif %}&platform=twitter" />
 
     <meta name="apple-mobile-web-app-capable" content="yes"> 
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
