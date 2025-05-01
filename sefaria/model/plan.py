@@ -25,17 +25,15 @@ class Plan:
             self.load_from_dict(attrs)
 
     def load_from_dict(self, d):
-        for key, value in d.items():
-            setattr(self, key, value)
-        
-        # If this is the "Mindful Healing After Loss" plan, set up the sheet mappings
-        if self.title == "Mindful Healing After Loss":
-            self.content = {
-                "day 1": 41,  # Sheet ID for Day 1
-                "day 2": 760,  # Sheet ID for Day 2
-            }
-            self.total_days = 2
-        return self
+      
+         for key, value in d.items():
+             setattr(self, key, value)
+             # self.content = {
+             #     "day 1": 41,  # Sheet ID for Day 1
+             #     "day 2": 760,  # Sheet ID for Day 2
+             # }
+         self.content = {day: int(info['sheet_id']) for day, info in d.get('content', {}).items()}
+         return self
 
     def load(self, query):
         obj = db[self.collection].find_one(query)
@@ -97,13 +95,7 @@ class Plan:
             "lastModified": str(self.lastModified),
             "listed": self.listed
         }
-        
-        # For the plan overview, just return the sheet IDs
-        if self.title == "Mindful Healing After Loss":
-            base_content["content"] = self.content
-        else:
-            base_content["content"] = self.content
-            
+        base_content["content"] = self.content
         return base_content
 
     def get_day_content(self, day_number):
@@ -130,6 +122,9 @@ class PlanSet:
     def contents(self):
         plans = []
         for obj in db['plans'].find(self.query):
+            # Convert ObjectId to string before creating Plan object
+            if '_id' in obj:
+                obj['_id'] = str(obj['_id'])
             plan = Plan(obj)
             plans.append(plan.contents())
         return plans
@@ -140,7 +135,14 @@ class PlanSet:
 
     @classmethod
     def get_plan_by_id(cls, plan_id):
-        return cls().filter({"id": plan_id}).first()
+        try:
+            # Try to convert the string ID to ObjectId
+            object_id = ObjectId(plan_id)
+            return cls().filter({"_id": object_id}).first()
+        except Exception as e:
+            # Handle invalid ObjectId format
+            print(f"Error converting plan_id to ObjectId: {str(e)}")
+            return None
 
     def array(self):
         """Return list of Plan objects matching the query"""
