@@ -110,30 +110,43 @@ logger = structlog.get_logger(__name__)
 
 @csrf_exempt
 @login_required
-def plan_image_upload_api(request):
-    """Handle image upload for plans"""
-    if request.method != "POST":
-        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
-
-    MAX_IMAGE_MB = 2
-    MAX_IMAGE_SIZE = MAX_IMAGE_MB * 1024 * 1024
-
-    try:
-        if not request.FILES or "file" not in request.FILES:
-            return jsonResponse({"error": "No file provided."}, status=400)
-
-        file = request.FILES["file"]
-        if file.size > MAX_IMAGE_SIZE:
-            return jsonResponse({"error": f"Image too large. Maximum size is {MAX_IMAGE_MB}MB."}, status=400)
-
-        from sefaria.utils.upload import upload_file
-        filename = f"plan_images/{file.name}"
-        url = upload_file(file, filename)
-
-        return jsonResponse({"url": url})
-
-    except Exception as e:
-        return jsonResponse({"error": str(e)}, status=500)
+def plan_image_upload_api(request, resize_image=True):
+    from PIL import Image
+    from tempfile import NamedTemporaryFile
+    from sefaria.google_storage_manager import GoogleStorageManager
+    from io import BytesIO
+    import uuid
+    if request.method == "POST":
+        MAX_FILE_MB = 2
+        MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
+        MAX_FILE_DIMENSIONS = (1048, 1048)
+        uploaded_file = request.FILES['file']
+        if uploaded_file.size > MAX_FILE_SIZE:
+            return jsonResponse({"error": "Uploaded files must be smaller than %dMB." % MAX_FILE_MB})
+        name, extension = os.path.splitext(uploaded_file.name)
+        with NamedTemporaryFile(suffix=extension) as temp_uploaded_file:
+            temp_uploaded_file.write(uploaded_file.read())
+            image = Image.open(temp_uploaded_file)
+            resized_image_file = BytesIO()
+            if resize_image:
+                image.thumbnail(MAX_FILE_DIMENSIONS, Image.LANCZOS)
+            image.save(resized_image_file, optimize=True, quality=70, format="PNG")
+            resized_image_file.seek(0)
+            bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
+            unique_file_name = f"{request.user.id}-{uuid.uuid1()}.{uploaded_file.name[-3:].lower()}"
+            try:
+                url = GoogleStorageManager.upload_file(resized_image_file, unique_file_name, bucket_name)
+                # Update the plan with the image URL
+                if 'plan_id' in request.POST:
+                    plan = Plan().load({"_id": ObjectId(request.POST['plan_id'])})
+                    if plan:
+                        plan.imageUrl = url
+                        plan.save()
+                return jsonResponse({"status": "success", "url": url})
+            except:
+                return jsonResponse({"error": "There was an error uploading your file."})
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 @csrf_exempt
 @login_required
