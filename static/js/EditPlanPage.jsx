@@ -146,12 +146,14 @@ class EditPlanPage extends Component {
       planData.imageUrl = null;
     }
 
-    $.post("/api/plans", {json: JSON.stringify(planData)}, function(data) {
+    $.post("/api/plansPost", {json: JSON.stringify(planData)}, function(data) {
       if ("error" in data) {
         alert(data.error);
-      } else {
+      } else if (data.status === "success" && data.plan && data.plan.id) {
         this.changed = false;
-        window.location = "/plans/" + data.plan._id;
+        window.location = "/plans/" + data.plan.id;
+      } else {
+        alert("There was an error saving your plan.");
       }
     }.bind(this)).fail(function() {
       alert("There was an error saving your plan.");
