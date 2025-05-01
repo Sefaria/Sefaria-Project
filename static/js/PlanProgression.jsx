@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Sheet from './Sheet';
-
 const PlanProgression = ({planId, planData, onCitationClick}) => {
   const [currentDay, setCurrentDay] = useState(1);
   const [sheetData, setSheetData] = useState(null);
@@ -91,7 +90,10 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
       </nav>
 
       <div className="content-wrapper">
-        <div className={`plan-navigation${showDailyPath ? '' : ' slide-out'}`}> 
+        <div 
+          className={`plan-navigation`}
+          style={{ display: showDailyPath ? 'block' : 'none' }}
+        > 
           {showDailyPath && (
             <>
               <div className="plan-header">
@@ -122,11 +124,11 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
         </div>
 
         {/* Sheet Content */}
-        <div className={`sheet-content${showDailyPath ? '' : ' centered-sheet'}`}> 
+        <div className={`sheet-content`}> 
           {isLoading ? (
             <div>Loading day content...</div>
           ) : sheetData && sheetData.content ? (
-            <div className="plan-progression-sheet-content">
+            // <div className="plan-progression-sheet-content">
               <Sheet
                 id={sheetData.sheet_id}
                 data={sheetData.content}
@@ -141,7 +143,7 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
                 divineNameReplacement="noSub"
                 openSheet={openSheet}
               />
-            </div>
+            // </div>
           ) : (
             <div>No content available for this day</div>
           )}
