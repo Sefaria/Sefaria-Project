@@ -16,7 +16,6 @@ import redis
 import os
 import re
 import uuid
-import langdetect
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -39,6 +38,7 @@ from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
+from sefaria.model.plan import Plan, PlanSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
@@ -94,13 +94,113 @@ from django.middleware.csrf import get_token
 from django.utils.text import slugify
 import random
 import string
+from sefaria.forms import PlanForm
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
 import structlog
 
+
+@login_required
+def edit_plan_page(request):
+    return render_template(request, 'edit_plan.html')
+
 logger = structlog.get_logger(__name__)
+
+@csrf_exempt
+@login_required
+def plan_image_upload_api(request):
+    """Handle image upload for plans"""
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+
+    MAX_IMAGE_MB = 2
+    MAX_IMAGE_SIZE = MAX_IMAGE_MB * 1024 * 1024
+
+    try:
+        if not request.FILES or "file" not in request.FILES:
+            return jsonResponse({"error": "No file provided."}, status=400)
+
+        file = request.FILES["file"]
+        if file.size > MAX_IMAGE_SIZE:
+            return jsonResponse({"error": f"Image too large. Maximum size is {MAX_IMAGE_MB}MB."}, status=400)
+
+        from sefaria.utils.upload import upload_file
+        filename = f"plan_images/{file.name}"
+        url = upload_file(file, filename)
+
+        return jsonResponse({"url": url})
+
+    except Exception as e:
+        return jsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+@login_required
+def plans_api(request):
+    """Handle plan creation and updates"""
+    if request.method == "GET":
+        # Return all plans or filter by query params
+        query = {}
+        if "category" in request.GET:
+            query["categories"] = request.GET["category"]
+        if "creator" in request.GET:
+            query["creator"] = request.GET["creator"]
+            
+        plans = PlanSet(query).contents()
+        return jsonResponse({"plans": plans})
+
+    elif request.method == "POST":
+        # Create new plan
+        try:
+            if not request.POST.get("json"):
+                return jsonResponse({"error": "No data provided."}, status=400)
+
+            plan_data = json.loads(request.POST.get("json"))
+            plan = Plan(plan_data)
+            plan.creator = request.user.id
+
+            if plan.save():
+                return jsonResponse({"status": "success", "plan": plan.contents()})
+            else:
+                return jsonResponse({"error": "Failed to save plan."}, status=500)
+
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        except Exception as e:
+            return jsonResponse({"error": str(e)}, status=500)
+
+    elif request.method == "PUT":
+        # Update existing plan
+        try:
+            if not request.POST.get("json"):
+                return jsonResponse({"error": "No data provided."}, status=400)
+
+            plan_data = json.loads(request.POST.get("json"))
+            if "_id" not in plan_data:
+                return jsonResponse({"error": "No plan ID provided."}, status=400)
+
+            plan = Plan().load({"_id": ObjectId(plan_data["_id"])})
+            if not plan:
+                return jsonResponse({"error": "Plan not found."}, status=404)
+
+            # Check permissions
+            if plan.creator != request.user.id:
+                return jsonResponse({"error": "You don't have permission to edit this plan."}, status=403)
+
+            plan.load_from_dict(plan_data)
+            if plan.save():
+                return jsonResponse({"status": "success", "plan": plan.contents()})
+            else:
+                return jsonResponse({"error": "Failed to save plan."}, status=500)
+
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        except Exception as e:
+            return jsonResponse({"error": str(e)}, status=500)
+
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
@@ -1136,7 +1236,6 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
-    print()
     title = ("Pecha - Buddhism in your own words")
     desc = ("The largest free library of Buddhist texts available to read online in Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more.")
     return menu_page(request, page="navigation", title=title, desc=desc)
@@ -1622,7 +1721,6 @@ def texts_api(request, tref):
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                print(t)
                 tracker.modify_text(request.user.id, 
                                     oref, 
                                     t["versionTitle"], 
@@ -1703,7 +1801,6 @@ def social_image_api(request, tref):
         version_lang = 'he'
         lang = 'he'
 
-    print("version_lang", version_lang)
     
     platform = request.GET.get("platform", "facebook")
 
@@ -1724,7 +1821,6 @@ def social_image_api(request, tref):
         text = None
         cat = None
         ref_str = None
-    print("lang", lang)
     res = make_img_http_response(text, cat, ref_str, lang, version_lang, platform)
 
     return res
@@ -4235,19 +4331,58 @@ def plans_page(request, props={}):
     """
     title = "Plans | Pecha"
     desc = "Explore plans on Pecha."
-    data = plans_page_data(request, language=request.interfaceLang)
+    data = {}
     data.update(props)  # Merge with any passed-in props
     return menu_page(request, page="plans", props=data, title=title, desc=desc)
 
+def plan_detail_page(request, plan_id, props={}):
 
-# plan page helper function
-def plans_page_data(request, language="english"):
     """
-    Prepare data for the Plans page.
-    For now, returns an empty dict since we only need to display 'hi'.
+    Plans Page - Displays a plan detail for now.
     """
-    data = {}
-    return data
+    title = "Plans | Pecha"
+    desc = "Explore plans on Pecha."
+
+    plan = get_plan_for_panel(plan_id)
+
+    props.update({
+        "planId": plan_id,
+        "planData": plan
+    }) 
+    return menu_page(request, page="planDetail", props=props, title=title, desc=desc)
+
+def day_plan_detail_page(request, plan_id, props={}):
+    """
+    Plans Page - Displays a plan detail for now.
+    """
+    title = "Plans | Pecha"
+    desc = "Explore day of plan."
+    plan = get_plan_for_panel(plan_id)
+    
+    props.update({
+        "planId": plan_id,
+        "planData": plan
+    }) 
+    return menu_page(request, page="dayPlanDetail", props=props, title=title, desc=desc)
+    
+
+
+def get_plan_for_panel(id):
+
+    plan = db.plans.find_one({"_id": ObjectId(id)})
+    if not plan:
+        return {"error": "Plan not found"}
+    # Convert plan to JSON-serializable format
+    json_plan = {}
+    for key, value in plan.items():
+        if key == '_id':
+            json_plan[key] = str(value)  # Convert ObjectId to string
+        elif isinstance(value, datetime):
+            json_plan[key] = value.isoformat()  # Convert datetime objects
+        else:
+            json_plan[key] = value
+    
+    return json_plan
 
 
 def new_home_redirect(request):

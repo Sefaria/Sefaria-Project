@@ -66,10 +66,16 @@ class PlanView(View):
     def dispatch(self, request, *args, **kwargs):
         try:
             if 'uuid' in kwargs:
-                object_id = ObjectId(kwargs['uuid'])
-                self.plan = Plan().load({"_id": object_id})
-                if not self.plan:
-                    return jsonResponse({'error': 'Plan not found'}, status=404)
+                try:
+                    # Check if the uuid is a valid ObjectId
+                    object_id = ObjectId(kwargs['uuid'])
+                    self.plan = Plan().load({"_id": object_id})
+                    if not self.plan:
+                        return jsonResponse({'error': 'Plan not found'}, status=404)
+                except Exception as e:
+                    # Handle invalid ObjectId format specifically
+                    logger.error(f"Invalid ObjectId format: {kwargs['uuid']}, Error: {str(e)}")
+                    return jsonResponse({'error': f'Invalid plan ID format: {str(e)}'}, status=400)
             return super().dispatch(request, *args, **kwargs)
         except Exception as e:
             logger.error(f"Error in dispatch: {str(e)}")
@@ -79,7 +85,7 @@ class PlanView(View):
         try:
             # Get specific plan day content
             if hasattr(self, 'plan') and 'day' in kwargs:
-                day_number = int(kwargs['day'])
+                day_number = kwargs['day']
                 sheet_content = self.plan.get_day_content(day_number)
                 
                 if sheet_content:
@@ -88,9 +94,7 @@ class PlanView(View):
                         "title": self.plan.title,
                         "content": sheet_content
                     }
-                    # For "Mindful Healing After Loss" plan, we return the full sheet data
-                    if self.plan.title == "Mindful Healing After Loss":
-                        response["sheet_id"] = self.plan.content.get(f"day {day_number}")
+                    response["sheet_id"] = self.plan.content.get(f"day {day_number}")
                     return jsonResponse(response)
                 else:
                     return jsonResponse({

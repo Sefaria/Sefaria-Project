@@ -165,3 +165,11 @@ class SefariaSetPasswordForm(SetPasswordForm):
         strip=False,
         widget=forms.PasswordInput(attrs={'placeholder': _("placeholder_repeat_new_password")}),
     )
+
+
+class PlanForm(forms.Form):
+    title = forms.CharField(max_length=200, label="Title")
+    description = forms.CharField(widget=forms.Textarea, label="Description")
+    total_days = forms.IntegerField(min_value=1, label="Total Days")
+    image = forms.ImageField(label="Plan Image", required=False)
+    category = forms.CharField(max_length=200, label="Category")
