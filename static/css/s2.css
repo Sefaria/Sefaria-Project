@@ -16929,6 +16929,25 @@ span.ref-link-color-3 {
   
   /* End of Plan Creation Form Styles */
 
+  /* Day Dropdown in publish setting */
+
+  .dayDropdown select {
+    padding: 1px 6px;
+    height: 24px;
+    font-size: 13px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    min-width: 85px;
+}
+
+.dayDropdown select:focus {
+    outline: none;
+    border-color: #666;
+}
+
+/* End of Day Dropdown in publish setting */
+
 @-webkit-keyframes load5 {
     0%, 100% {
         box-shadow: 0 -2.6em 0 0 #ffffff, 1.8em -1.8em 0 0 rgba(0, 0, 0, 0.2), 2.5em 0 0 0 rgba(0, 0, 0, 0.2), 1.75em 1.75em 0 0 rgba(0, 0, 0, 0.2), 0 2.5em 0 0 rgba(0, 0, 0, 0.2), -1.8em 1.8em 0 0 rgba(0, 0, 0, 0.2), -2.6em 0 0 0 rgba(0, 0, 0, 0.5), -1.8em -1.8em 0 0 rgba(0, 0, 0, 0.7)

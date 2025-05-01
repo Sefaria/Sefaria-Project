@@ -23,6 +23,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     const [sheetSaves, setSheetSaves] = useState([]);
     const [userPlans, setUserPlans] = useState([]);
     const [checkedPlans, setCheckedPlans] = useState({});
+    const [selectedDays, setSelectedDays] = useState({});
     const [suggestions, setSuggestions] = useState([]);
     const [lastModified, setLastModified] = useState(sheet.dateModified)
     const [isPublished, setIsPublished] = useState(sheet.status === "public");
@@ -208,10 +209,64 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     }
 
     const handlePlanCheck = (planId) => {
-        setCheckedPlans(prev => ({
+        setCheckedPlans(prev => {
+            const newState = { ...prev };
+            
+            // If trying to check a new plan, first check if any other plan is checked
+            if (!prev[planId]) {
+                const hasCheckedPlan = Object.values(prev).some(isChecked => isChecked);
+                if (hasCheckedPlan) {
+                    return prev; // Don't allow checking if another plan is already checked
+                }
+            }
+            
+            // Toggle the current plan
+            newState[planId] = !prev[planId];
+            
+            // Reset selected day when unchecking
+            if (!newState[planId]) {
+                setSelectedDays(prevDays => {
+                    const newDays = { ...prevDays };
+                    delete newDays[planId];
+                    return newDays;
+                });
+            }
+            
+            return newState;
+        });
+    };
+
+    const handleDaySelect = (planId, day) => {
+        setSelectedDays(prev => ({
             ...prev,
-            [planId]: !prev[planId]
+            [planId]: day
         }));
+    };
+
+    const DayDropdown = ({ plan }) => {
+        if (!checkedPlans[plan.id]) return null;
+        
+        const days = Array.from({ length: plan.total_days }, (_, i) => i + 1);
+        
+        return (
+            <div className="dayDropdown" style={{ marginLeft: 'auto', position: 'relative' }}>
+                <select 
+                    value={selectedDays[plan.id] || ''} 
+                    onChange={(e) => handleDaySelect(plan.id, e.target.value)}
+                    style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #ccc',
+                        backgroundColor: '#fff'
+                    }}
+                >
+                    <option value="">Which day</option>
+                    {days.map(day => (
+                        <option key={day} value={day}>Day {day}</option>
+                    ))}
+                </select>
+            </div>
+        );
     };
 
     const publishSettingsReadOnly = <div> {sheet.summary ? <div className="description" dangerouslySetInnerHTML={{ __html: sheet.summary }}></div> : null}
@@ -241,10 +296,12 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                                     checked={checkedPlans[plan.id] || false}
                                     onChange={() => handlePlanCheck(plan.id)}
                                     style={{ margin: '0' }}
+                                    disabled={Object.values(checkedPlans).some(isChecked => isChecked) && !checkedPlans[plan.id]}
                                 />
                                 <a href={"/plans/" + plan.id}>
                                     <InterfaceText>{plan.title}</InterfaceText>
                                 </a>
+                                <DayDropdown plan={plan} />
                             </li>
                         ))}
                     </ul>
@@ -277,10 +334,12 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                                     checked={checkedPlans[plan.id] || false}
                                     onChange={() => handlePlanCheck(plan.id)}
                                     style={{ margin: '0' }}
+                                    disabled={Object.values(checkedPlans).some(isChecked => isChecked) && !checkedPlans[plan.id]}
                                 />
                                 <a href={"/plans/" + plan.id}>
                                     <InterfaceText>{plan.title}</InterfaceText>
                                 </a>
+                                <DayDropdown plan={plan} />
                             </li>
                         ))}
                     </ul>
