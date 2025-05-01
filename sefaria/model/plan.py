@@ -118,6 +118,7 @@ class Plan:
         if day_key not in self.sheet_contents:
             try:
                 self.sheet_contents[day_key] = get_sheet_for_panel(sheet_id)
+                print("sheet>>>>>>>>>>>>>>>>>>", self.sheet_contents[day_key])
             except Exception as e:
                 return None
                 

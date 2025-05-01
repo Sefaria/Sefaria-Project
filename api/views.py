@@ -88,9 +88,7 @@ class PlanView(View):
                         "title": self.plan.title,
                         "content": sheet_content
                     }
-                    # For "Mindful Healing After Loss" plan, we return the full sheet data
-                    if self.plan.title == "Mindful Healing After Loss":
-                        response["sheet_id"] = self.plan.content.get(f"day {day_number}")
+                    response["sheet_id"] = self.plan.content.get(f"day {day_number}")
                     return jsonResponse(response)
                 else:
                     return jsonResponse({
