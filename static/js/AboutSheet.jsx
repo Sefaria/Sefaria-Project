@@ -21,6 +21,8 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         )
     )
     const [sheetSaves, setSheetSaves] = useState([]);
+    const [userPlans, setUserPlans] = useState([]);
+    const [checkedPlans, setCheckedPlans] = useState({});
     const [suggestions, setSuggestions] = useState([]);
     const [lastModified, setLastModified] = useState(sheet.dateModified)
     const [isPublished, setIsPublished] = useState(sheet.status === "public");
@@ -48,6 +50,23 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         if (debouncedSummary == null) {return}
         saveSummary();
     }, [debouncedSummary])
+
+    useEffect(() => {
+        // Fetch user's plans when component mounts
+        if (Sefaria._uid) {
+            $.get("/api/plans", { creator: Sefaria._uid }, function(data) {
+                if (data.plans) {
+                    setUserPlans(data.plans);
+                    // Initialize checked state for each plan
+                    const initialCheckedState = {};
+                    data.plans.forEach(plan => {
+                        initialCheckedState[plan.id] = false;
+                    });
+                    setCheckedPlans(initialCheckedState);
+                }
+            });
+        }
+    }, []);
 
     const handleSummaryChange = (event) => {
         const newSummary = event.target.value
@@ -188,6 +207,13 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         })
     }
 
+    const handlePlanCheck = (planId) => {
+        setCheckedPlans(prev => ({
+            ...prev,
+            [planId]: !prev[planId]
+        }));
+    };
+
     const publishSettingsReadOnly = <div> {sheet.summary ? <div className="description" dangerouslySetInnerHTML={{ __html: sheet.summary }}></div> : null}
         {sheet.collections.length > 0 ?
             <div className="aboutLinks">
@@ -200,11 +226,31 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                     </ul>
                 </div>
             </div> : null
-
         }
         {!!Sefaria._uid ? <CollectionsEditor sheetId={sheet.id}/> : null }
 
-
+        {!!Sefaria._uid && userPlans.length > 0 ? 
+            <div className="aboutLinks">
+                <h3 className="aboutSheetHeader"><InterfaceText>My Plans</InterfaceText></h3>
+                <div>
+                    <ul className="aboutSheetLinks">
+                        {userPlans.map((plan, i) => (
+                            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={checkedPlans[plan.id] || false}
+                                    onChange={() => handlePlanCheck(plan.id)}
+                                    style={{ margin: '0' }}
+                                />
+                                <a href={"/plans/" + plan.id}>
+                                    <InterfaceText>{plan.title}</InterfaceText>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div> 
+        : null}
     </div>;
 
     const publishSettingsEditMode = <div className="publishSettingsEditMode"><div className={isPublished ? "publishBox transparentBackground sans-serif" : "publishBox sans-serif"}>
@@ -218,6 +264,29 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             value={summary} onChange={handleSummaryChange}></textarea>
         
         {validation.validationFailed === "none" ? null : <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
+
+        {!!Sefaria._uid && userPlans.length > 0 ? 
+            <div>
+                <h3 className="aboutSheetHeader"><InterfaceText>My Plans</InterfaceText></h3>
+                <div>
+                    <ul className="aboutSheetLinks">
+                        {userPlans.map((plan, i) => (
+                            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={checkedPlans[plan.id] || false}
+                                    onChange={() => handlePlanCheck(plan.id)}
+                                    style={{ margin: '0' }}
+                                />
+                                <a href={"/plans/" + plan.id}>
+                                    <InterfaceText>{plan.title}</InterfaceText>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div> 
+        : null}
 
         {!isPublished ? <div className={"publishButton"}>
             <button className="button notPublished" onClick={togglePublish}>
