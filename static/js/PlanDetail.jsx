@@ -75,7 +75,7 @@ const PlanDetail = ({ planId }) => {
       <div className="planDetailContent">
         <h2>What You'll Learn</h2>
         <p className="planDetailLearnDescription">
-          This {plan.total_days}-day journey will guide you through daily teachings and practices based on Buddhist principles. Each day builds upon the last, providing you with insights and practical techniques to apply in your everyday life, and wisdom, developing skills that support your well-being and spiritual growth. Through this plan, you'll cultivate greater awareness, compassion, and wisdom, developing skills that support your well-being and spiritual growth. The plan is designed to be accessible to practitioners of all levels, whether you're new to Buddhist teachings or have an established practice.
+          {plan.long_description || "This " + plan.total_days + "-day journey will guide you through daily teachings and practices based on Buddhist principles. Each day builds upon the last, providing you with insights and practical techniques to apply in your everyday life, and wisdom, developing skills that support your well-being and spiritual growth. Through this plan, you'll cultivate greater awareness, compassion, and wisdom, developing skills that support your well-being and spiritual growth. The plan is designed to be accessible to practitioners of all levels, whether you're new to Buddhist teachings or have an established practice."}
         </p>
       </div>
     </div>

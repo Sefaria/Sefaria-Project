@@ -13,6 +13,7 @@ class Plan:
         self.title = ""
         self.categories = []
         self.description = ""
+        self.long_description = ""
         self.imageUrl = ""
         self.total_days = 0
         self.content = {}  # Will store {day_number: sheet_id} mapping
@@ -61,6 +62,8 @@ class Plan:
             raise InputError("Plan title cannot be empty")
         if not self.description:
             raise InputError("Plan description cannot be empty")
+        if not self.long_description:
+            raise InputError("Plan long description cannot be empty")
         if not self.categories:
             raise InputError("Plan must have at least one category")
         if self.total_days < 1:
@@ -75,6 +78,7 @@ class Plan:
             "title": self.title,
             "categories": self.categories,
             "description": self.description,
+            "long_description": self.long_description,
             "imageUrl": self.imageUrl,
             "total_days": self.total_days,
             "content": self.content,
@@ -89,6 +93,7 @@ class Plan:
             "title": self.title,
             "categories": self.categories,
             "description": self.description,
+            "long_description": self.long_description,
             "imageUrl": self.imageUrl,
             "total_days": self.total_days,
             "creator": self.creator,
