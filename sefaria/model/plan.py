@@ -17,6 +17,9 @@ class Plan:
         self.total_days = 0
         self.content = {}  # Will store {day_number: sheet_id} mapping
         self.sheet_contents = {}  # Cache for sheet data
+        self.creator = None
+        self.lastModified = datetime.now()
+        self.listed = False
         
         if attrs:
             self.load_from_dict(attrs)
@@ -38,6 +41,48 @@ class Plan:
             return self.load_from_dict(obj)
         return None
 
+    def save(self):
+        """Save the plan to the database"""
+        if not self._validate():
+            return False
+
+        self.lastModified = datetime.now()
+        
+        if not self._id:  # New plan
+            self._id = db[self.collection].insert_one(self._saveable_attrs()).inserted_id
+        else:  # Update existing
+            db[self.collection].update_one({"_id": self._id}, {"$set": self._saveable_attrs()})
+        
+        return True
+
+    def _validate(self):
+        """Validate plan data before saving"""
+        if not self.title:
+            raise InputError("Plan title cannot be empty")
+        if not self.description:
+            raise InputError("Plan description cannot be empty")
+        if not self.categories:
+            raise InputError("Plan must have at least one category")
+        if self.total_days < 1:
+            raise InputError("Plan must be at least 1 day long")
+        if not self.creator:
+            raise InputError("Plan must have a creator")
+        return True
+
+    def _saveable_attrs(self):
+        """Get a dictionary of attributes for saving to the database"""
+        return {
+            "title": self.title,
+            "categories": self.categories,
+            "description": self.description,
+            "image": self.image,
+            "total_days": self.total_days,
+            "content": self.content,
+            "creator": self.creator,
+            "lastModified": self.lastModified,
+            "listed": self.listed
+        }
+
     def contents(self):
         base_content = {
             "id": str(self._id),
@@ -46,6 +91,9 @@ class Plan:
             "description": self.description,
             "image": self.image,
             "total_days": self.total_days,
+            "creator": self.creator,
+            "lastModified": str(self.lastModified),
+            "listed": self.listed
         }
         base_content["content"] = self.content
         return base_content
@@ -62,6 +110,7 @@ class Plan:
         if day_key not in self.sheet_contents:
             try:
                 self.sheet_contents[day_key] = get_sheet_for_panel(sheet_id)
+                print("sheet>>>>>>>>>>>>>>>>>>", self.sheet_contents[day_key])
             except Exception as e:
                 return None
                 
@@ -84,4 +133,18 @@ class PlanSet:
 
     @classmethod
     def get_plan_by_id(cls, plan_id):
-        return cls().filter({"id": plan_id}).first() 
+        return cls().filter({"id": plan_id}).first()
+
+    def array(self):
+        """Return list of Plan objects matching the query"""
+        return [Plan(obj) for obj in db['plans'].find(self.query)]
+
+    def filter(self, query):
+        """Add additional query parameters"""
+        self.query.update(query)
+        return self
+
+    def first(self):
+        """Return first matching Plan object"""
+        obj = db['plans'].find_one(self.query)
+        return Plan(obj) if obj else None

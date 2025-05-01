@@ -16063,7 +16063,7 @@ span.ref-link-color-3 {
   
   .searchIcon {
     position: absolute;
-    left: 15px;
+    left: 20px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 16px;
@@ -16797,8 +16797,140 @@ span.ref-link-color-3 {
   
 
 /* end of plans page css */
-    
+   
+
+/* Plan Creation Form Styles */
+#editPlanPage {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 25px;
+  }
   
+  #editPlanPage .headerWithButtons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+  }
+  
+  #editPlanPage .headerWithButtons h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: normal;
+  }
+  
+  #editPlanPage .headerWithButtons .end {
+    display: flex;
+    gap: 10px;
+  }
+  
+  #editPlanPage .field {
+    margin-bottom: 25px;
+  }
+  
+  #editPlanPage .field.halfWidth {
+    width: 48%;
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 2%;
+  }
+  
+  #editPlanPage .field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: normal;
+    color: #666;
+  }
+  
+  #editPlanPage .field label .required {
+    color: #d91a1a;
+    margin-left: 3px;
+  }
+  
+  #editPlanPage .field input[type="text"],
+  #editPlanPage .field input[type="number"],
+  #editPlanPage .field textarea,
+  #editPlanPage .field select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  #editPlanPage .field textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  #editPlanPage .field select[multiple] {
+    height: 120px;
+  }
+  
+  #editPlanPage .helperText {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #666;
+  }
+  
+  #editPlanPage .planImage {
+    max-width: 350px;
+    max-height: 350px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  #editPlanPage .planImage.placeholder {
+    width: 350px;
+    height: 200px;
+    background-color: #f5f5f5;
+    border: 1px dashed #ddd;
+  }
+  
+  #editPlanPage .button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  #editPlanPage .button.small {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  #editPlanPage .button.blue {
+    background-color: #18345D;
+    color: white;
+    border: none;
+  }
+  
+  #editPlanPage .button.transparent {
+    background: none;
+    border: 1px solid #18345D;
+    color: #18345D;
+  }
+  
+  #editPlanPage .button.white {
+    background-color: white;
+    border: 1px solid #ddd;
+    color: #333;
+    margin-top: 10px;
+  }
+  
+  #editPlanPage .error-message {
+    color: #d91a1a;
+    margin-bottom: 15px;
+    padding: 8px 12px;
+    background-color: #fff2f2;
+    border-radius: 4px;
+  }
+  
+  /* End of Plan Creation Form Styles */
 
 @-webkit-keyframes load5 {
     0%, 100% {

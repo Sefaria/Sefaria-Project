@@ -7,6 +7,7 @@ import Header from './Header';
 import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
+import EditPlanPage from './EditPlanPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import "./sefaria/i18n.js"
@@ -2324,6 +2325,7 @@ export {
   unpackDataFromProps,
   loadServerData,
   EditCollectionPage,
+  EditPlanPage,
   RemoteLearningPage,
   SheetsLandingPage,
   ContestLandingPage,
