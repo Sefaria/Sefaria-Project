@@ -27,7 +27,7 @@ class Plan:
     def load_from_dict(self, d):
       
          for key, value in d.items():
-            if key == '_id':
+            if key == 'id':
                 self._id = str(value)
             else:
                 setattr(self, key, value)
@@ -124,12 +124,16 @@ class PlanSet:
         
     def contents(self):
         plans = []
-        for obj in db['plans'].find(self.query):
-            # Convert ObjectId to string before creating Plan object
-            if '_id' in obj:
-                obj['_id'] = str(obj['_id'])
-            plan = Plan(obj)
-            plans.append(plan.contents())
+        plan_response = db['plans'].find(self.query)
+        if plan_response:
+            for obj in plan_response:
+                # Convert ObjectId to string before creating Plan object
+                if '_id' in obj:
+                    obj['id'] = str(obj['_id'])
+                    del obj['_id']
+                print("data>>>>>>>>>>>>>>", obj)
+                plan = Plan(obj)
+                plans.append(plan.contents())
         return plans
 
     @classmethod
@@ -149,7 +153,8 @@ class PlanSet:
 
     def array(self):
         """Return list of Plan objects matching the query"""
-        return [Plan(obj) for obj in db['plans'].find(self.query)]
+        data = [Plan(obj) for obj in db['plans'].find(self.query)]
+        return data
 
     def filter(self, query):
         """Add additional query parameters"""
