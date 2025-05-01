@@ -66,11 +66,16 @@ class PlanView(View):
     def dispatch(self, request, *args, **kwargs):
         try:
             if 'uuid' in kwargs:
-                object_id = ObjectId(kwargs['uuid'])
-                print("object_id>>>>>>>>>>>>>>>>>", object_id)
-                self.plan = Plan().load({"_id": ObjectId(object_id)})
-                if not self.plan:
-                    return jsonResponse({'error': 'Plan not found'}, status=404)
+                try:
+                    # Check if the uuid is a valid ObjectId
+                    object_id = ObjectId(kwargs['uuid'])
+                    self.plan = Plan().load({"_id": object_id})
+                    if not self.plan:
+                        return jsonResponse({'error': 'Plan not found'}, status=404)
+                except Exception as e:
+                    # Handle invalid ObjectId format specifically
+                    logger.error(f"Invalid ObjectId format: {kwargs['uuid']}, Error: {str(e)}")
+                    return jsonResponse({'error': f'Invalid plan ID format: {str(e)}'}, status=400)
             return super().dispatch(request, *args, **kwargs)
         except Exception as e:
             logger.error(f"Error in dispatch: {str(e)}")
