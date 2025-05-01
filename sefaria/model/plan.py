@@ -141,7 +141,14 @@ class PlanSet:
 
     @classmethod
     def get_plan_by_id(cls, plan_id):
-        return cls().filter({"id": plan_id}).first()
+        try:
+            # Try to convert the string ID to ObjectId
+            object_id = ObjectId(plan_id)
+            return cls().filter({"_id": object_id}).first()
+        except Exception as e:
+            # Handle invalid ObjectId format
+            print(f"Error converting plan_id to ObjectId: {str(e)}")
+            return None
 
     def array(self):
         """Return list of Plan objects matching the query"""
