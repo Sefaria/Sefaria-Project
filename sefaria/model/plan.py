@@ -30,10 +30,11 @@ class Plan:
          for key, value in d.items():
              setattr(self, key, value)
              # self.content = {
-             #     "day 1": 41,  # Sheet ID for Day 1
-             #     "day 2": 760,  # Sheet ID for Day 2
+             #     "day 1": {"sheet_id": 41},  # Sheet ID for Day 1
+             #     "day 2": {"sheet_id": 760},  # Sheet ID for Day 2
              # }
-         self.content = {day: int(info['sheet_id']) for day, info in d.get('content', {}).items()}
+         if 'content' in d:
+             self.content = d['content']
          return self
 
     def load(self, query):

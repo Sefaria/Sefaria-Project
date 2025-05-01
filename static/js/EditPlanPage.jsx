@@ -34,6 +34,7 @@ class EditPlanPage extends Component {
       categories: [],
       imageUrl: null,
       total_days: 7,
+      content: {},
       listed: false
     };
     this.changed = false;
@@ -123,7 +124,17 @@ class EditPlanPage extends Component {
 
   handleDaysChange(e) {
     const value = parseInt(e.target.value) || 0;
-    this.setState({ total_days: value });
+    
+    // Initialize content with empty sheet_ids for each day
+    const content = {};
+    for (let i = 1; i <= value; i++) {
+      content[`day ${i}`] = { sheet_id: {} };
+    }
+    
+    this.setState({ 
+      total_days: value,
+      content: content
+    });
     this.changed = true;
   }
 
@@ -154,6 +165,17 @@ class EditPlanPage extends Component {
     if (planData.imageUrl === "/static/img/loading.gif") {
       planData.imageUrl = null;
     }
+
+    // Ensure content is properly initialized if it's empty
+    if (Object.keys(planData.content || {}).length === 0) {
+      planData.content = {};
+      for (let i = 1; i <= planData.total_days; i++) {
+        planData.content[`day ${i}`] = { sheet_id: {} };
+      }
+    }
+
+    // Convert total_days to number to ensure proper MongoDB storage
+    planData.total_days = parseInt(planData.total_days);
 
     $.post("/api/plansPost", {json: JSON.stringify(planData)}, function(data) {
       if ("error" in data) {
