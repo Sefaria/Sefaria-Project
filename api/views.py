@@ -67,7 +67,8 @@ class PlanView(View):
         try:
             if 'uuid' in kwargs:
                 object_id = ObjectId(kwargs['uuid'])
-                self.plan = Plan().load({"_id": object_id})
+                print("object_id>>>>>>>>>>>>>>>>>", object_id)
+                self.plan = Plan().load({"_id": ObjectId(object_id)})
                 if not self.plan:
                     return jsonResponse({'error': 'Plan not found'}, status=404)
             return super().dispatch(request, *args, **kwargs)
@@ -79,7 +80,7 @@ class PlanView(View):
         try:
             # Get specific plan day content
             if hasattr(self, 'plan') and 'day' in kwargs:
-                day_number = int(kwargs['day'])
+                day_number = kwargs['day']
                 sheet_content = self.plan.get_day_content(day_number)
                 
                 if sheet_content:
