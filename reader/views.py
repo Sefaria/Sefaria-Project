@@ -101,18 +101,10 @@ if USE_VARNISH:
 
 import structlog
 
+
+@login_required
 def edit_plan_page(request):
-    if request.method == 'POST':
-        form = PlanForm(request.POST, request.FILES)
-        if form.is_valid():
-            # Process the form data here
-            # For now, we'll just redirect to a success page or same page
-            # You might want to save the data to a model
-            return redirect('edit_plan_page')  # Adjust redirect as needed
-    else:
-        form = PlanForm()
-    
-    return render(request, 'plan.html', {'form': form})
+    return render_template(request, 'edit_plan.html')
 
 logger = structlog.get_logger(__name__)
 

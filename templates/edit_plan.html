@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Plan" %} | {% trans "Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Create a new learning plan on Sefaria." %}{% endblock %}
+
+{% block content %}
+<div id="editPlanPageContainer" class="static biReady">
+  <div id="editPlanPageContainerInner" class="inner">
+    <div id="editPlanPage"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+  {% autoescape off %}
+  var DJANGO_VARS = {
+    containerId: "editPlanPage",
+    reactComponentName: "EditPlanPage",
+    props: {}
+  };
+  {% endautoescape %}
+</script>
+{% endblock %}
