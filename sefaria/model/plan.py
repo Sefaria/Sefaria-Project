@@ -25,17 +25,14 @@ class Plan:
             self.load_from_dict(attrs)
 
     def load_from_dict(self, d):
-        for key, value in d.items():
-            setattr(self, key, value)
-        
-        # If this is the "Mindful Healing After Loss" plan, set up the sheet mappings
-        if self.title == "Mindful Healing After Loss":
-            self.content = {
-                "day 1": 41,  # Sheet ID for Day 1
-                "day 2": 760,  # Sheet ID for Day 2
-            }
-            self.total_days = 2
-        return self
+         for key, value in d.items():
+             setattr(self, key, value)
+             # self.content = {
+             #     "day 1": 41,  # Sheet ID for Day 1
+             #     "day 2": 760,  # Sheet ID for Day 2
+             # }
+         self.content = {day: int(info['sheet_id']) for day, info in d.get('content', {}).items()}
+         return self
 
     def load(self, query):
         obj = db[self.collection].find_one(query)
@@ -118,7 +115,6 @@ class Plan:
         if day_key not in self.sheet_contents:
             try:
                 self.sheet_contents[day_key] = get_sheet_for_panel(sheet_id)
-                print("sheet>>>>>>>>>>>>>>>>>>", self.sheet_contents[day_key])
             except Exception as e:
                 return None
                 
@@ -131,6 +127,9 @@ class PlanSet:
     def contents(self):
         plans = []
         for obj in db['plans'].find(self.query):
+            # Convert ObjectId to string before creating Plan object
+            if '_id' in obj:
+                obj['_id'] = str(obj['_id'])
             plan = Plan(obj)
             plans.append(plan.contents())
         return plans
