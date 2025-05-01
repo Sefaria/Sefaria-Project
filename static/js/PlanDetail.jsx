@@ -49,7 +49,7 @@ const PlanDetail = ({ planId }) => {
       </div>
       <div className="planDetailHeader">
         <div className="planDetailImageWrapper">
-          <img src={plan.image} alt={plan.title} className="planDetailImage" />
+          <img src={plan.imageUrl || "/static/img/plan-default.png"} alt={plan.title} className="planDetailImage" />
           <div className="planDetailCategories">
             {plan.categories.map((category, index) => (
               <span key={index} className="planDetailCategory">

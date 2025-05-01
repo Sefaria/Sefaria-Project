@@ -114,7 +114,7 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                         filteredPlans.map(plan => (
                           <a href={`/plans/${plan.id}`} key={plan.id} className="planCard">
                             <div className="planImageWrapper">
-                              <img src={plan.image} alt={plan.title} className="planImage" />
+                              <img src={plan.imageUrl || "/static/img/plan-default.png"} alt={plan.title} className="planImage" />
                               <div className="planCategories">
                                 {plan.categories.map((category, index) => (
                                   <span key={index} className="planCategory">

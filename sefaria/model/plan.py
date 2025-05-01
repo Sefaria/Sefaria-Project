@@ -13,7 +13,7 @@ class Plan:
         self.title = ""
         self.categories = []
         self.description = ""
-        self.image = ""
+        self.imageUrl = ""
         self.total_days = 0
         self.content = {}  # Will store {day_number: sheet_id} mapping
         self.sheet_contents = {}  # Cache for sheet data
@@ -77,7 +77,7 @@ class Plan:
             "title": self.title,
             "categories": self.categories,
             "description": self.description,
-            "image": self.image,
+            "imageUrl": self.imageUrl,
             "total_days": self.total_days,
             "content": self.content,
             "creator": self.creator,
@@ -91,7 +91,7 @@ class Plan:
             "title": self.title,
             "categories": self.categories,
             "description": self.description,
-            "image": self.image,
+            "imageUrl": self.imageUrl,
             "total_days": self.total_days,
             "creator": self.creator,
             "lastModified": str(self.lastModified),

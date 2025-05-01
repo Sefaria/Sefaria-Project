@@ -65,6 +65,9 @@ class EditPlanPage extends Component {
 
     var formData = new FormData();
     formData.append("file", file);
+    if (this.props.initialData && this.props.initialData.id) {
+      formData.append("plan_id", this.props.initialData.id);
+    }
 
     $.ajax({
       url: '/api/plans/upload',
@@ -162,12 +165,12 @@ class EditPlanPage extends Component {
 
   render() {
     const categories = [
-      "Sutra",
-      "Tantra",
-      "Philosophy",
-      "History",
-      "Practice",
-      "Commentary"
+      "Anger",
+      "Love",
+      "Compassion",
+      "Mindfulness",
+      "Gratitude",
+      "Mediation",
     ];
 
     return (
