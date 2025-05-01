@@ -489,7 +489,7 @@ TextRange.defaultProps = {
 class TextSegment extends Component {
   shouldComponentUpdate(nextProps) {
     if (this.props.highlight !== nextProps.highlight)           { return true; }
-    if (this.props.showHighlight !== nextProps.showHighlight)   { return true; }
+    if (this.props.showHighlight == nextProps.showHighlight)   { return true; }
     if (this.props.textHighlights !== nextProps.textHighlights) { return true; }
     if (this.props.showLinkCount !== nextProps.showLinkCount)   { return true; }
     if (this.props.linkCount !== nextProps.linkCount)           { return true; }
@@ -654,7 +654,7 @@ class TextSegment extends Component {
 
     const classes=classNames({
       segment: 1,
-      highlight: this.props.highlight && this.props.showHighlight,
+      highlight: this.props.highlight,
       invisibleHighlight: this.props.highlight,
       heOnly: heOnly,
       enOnly: enOnly,
