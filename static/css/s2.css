@@ -16577,9 +16577,10 @@ span.ref-link-color-3 {
   
   .sheet-content {
     flex: 1;
-    padding: 2rem;
     overflow-y: auto;
-  }
+    font-size: 0.6rem !important;
+    font-family: adobe-garamond-pro !important;
+}
   
   /* Breadcrumb Navigation */
   .breadcrumb-nav {
