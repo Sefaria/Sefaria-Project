@@ -205,23 +205,6 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         {!!Sefaria._uid ? <CollectionsEditor sheetId={sheet.id}/> : null }
 
 
-        {sheet.topics && sheet.topics.length > 0 ?
-            <div className="readings">
-                <h3 className="aboutSheetHeader"><InterfaceText>header.topic</InterfaceText></h3>
-                <div>
-                    <ul className="aboutSheetLinks">
-                        {sheet.topics.map((topic, i) => (
-                            <li key={i}>
-                                <a href={"/topics/" + topic.slug} target="_blank">
-                                    <InterfaceText text={{ en: topic.en, he: topic.he }} />
-                                </a>
-                            </li>
-                        ))
-                        }
-                    </ul>
-                </div>
-            </div> : null}
-
     </div>;
 
     const publishSettingsEditMode = <div className="publishSettingsEditMode"><div className={isPublished ? "publishBox transparentBackground sans-serif" : "publishBox sans-serif"}>
@@ -233,21 +216,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             maxLength="281"
             placeholder={Sefaria._("write_short_description")}
             value={summary} onChange={handleSummaryChange}></textarea>
-        <h3 className="aboutSheetHeader"><InterfaceText>header.topic</InterfaceText></h3>
-        <div className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
-            <ReactTags
-                ref={reactTags}
-                allowNew={true}
-                tags={tags}
-                suggestions={suggestions}
-                onDelete={onTagDelete}
-                placeholderText={Sefaria._("sheet.placeholder.add_topic")}
-                delimiters={["Enter", "Tab", ","]}
-                onAddition={onTagAddition}
-                onValidate={onTagValidate}
-                onInput={updateSuggestedTags}
-            />
-        </div>
+        
         {validation.validationFailed === "none" ? null : <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
 
         {!isPublished ? <div className={"publishButton"}>
@@ -255,9 +224,6 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                 <InterfaceText>publish</InterfaceText>
             </button>
         </div> : null}
-
-    </div>
-        <CollectionsEditor sheetId={sheet.id}/>
         {isPublished ?
             <div className={"publishButton"}>
                 <div className="publishedText">
@@ -269,6 +235,8 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             </div>
             : null
         }
+    </div>
+        <CollectionsEditor sheetId={sheet.id}/>
     </div>
 
     return (<div className="aboutSheetPanel">
