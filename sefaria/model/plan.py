@@ -25,6 +25,7 @@ class Plan:
             self.load_from_dict(attrs)
 
     def load_from_dict(self, d):
+      
          for key, value in d.items():
              setattr(self, key, value)
              # self.content = {
@@ -94,13 +95,7 @@ class Plan:
             "lastModified": str(self.lastModified),
             "listed": self.listed
         }
-        
-        # For the plan overview, just return the sheet IDs
-        if self.title == "Mindful Healing After Loss":
-            base_content["content"] = self.content
-        else:
-            base_content["content"] = self.content
-            
+        base_content["content"] = self.content
         return base_content
 
     def get_day_content(self, day_number):
