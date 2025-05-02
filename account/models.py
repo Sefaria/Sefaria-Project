@@ -9,6 +9,7 @@ class UserType(models.Model):
         ('Teacher', 'Teacher'),
         ('Student', 'Student'),
         ('Educated* /Dr / Prof', 'Educated* /Dr / Prof'),
+        ('Plan creator', 'Plan creator'),
         ('regular user', 'regular user'),
     ]
     

@@ -58,6 +58,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
         ('Teacher', _('placeholder_teacher')),
         ('Student', _('placeholder_student')),
         ('Educated* /Dr / Prof', _('placeholder_Educated_Dr_Prof')),
+        ('Plan creator', _('placeholder_plan_creator')),
         ('regular user', _('placeholder_regular_user')),
     ]
     
