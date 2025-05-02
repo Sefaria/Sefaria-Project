@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sheet from './Sheet';
+
 const PlanProgression = ({planId, planData, onCitationClick}) => {
   const [currentDay, setCurrentDay] = useState(1);
   const [sheetData, setSheetData] = useState(null);
@@ -7,7 +8,6 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDailyPath, setShowDailyPath] = useState(true);
 
- 
   useEffect(() => {
     // Fetch sheet data when plan data is loaded or current day changes
     if (planData) {
@@ -15,11 +15,19 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
     }
   }, [currentDay, planData, planId]);
 
-
   const fetchDayContent = async (day) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`day_${day}`);
+      // Get sheet_id from planData content
+      const dayKey = `day ${day}`;
+      const dayContent = planData.content[dayKey];
+      
+      if (!dayContent || !dayContent.sheet_id) {
+        throw new Error('No sheet assigned for this day');
+      }
+
+      const sheetId = dayContent.sheet_id;
+      const response = await fetch(`/api/sheets/${sheetId}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -29,6 +37,7 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
     } catch (error) {
       setError('Failed to load day content. Please try again later.');
       setSheetData(null);
+      console.error('Error fetching day content:', error);
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +107,7 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
             <>
               <div className="plan-header">
                 <img 
-                  src={planData.image || '/static/img/plans/default.jpg'} 
+                  src={planData.imageUrl || "/static/img/plan-default.png"} 
                   alt={planData.title} 
                   className="plan-thumbnail"
                 />
@@ -127,11 +136,10 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
         <div className={`sheet-content`}> 
           {isLoading ? (
             <div>Loading day content...</div>
-          ) : sheetData && sheetData.content ? (
-            // <div className="plan-progression-sheet-content">
+          ) : sheetData ? (
               <Sheet
-                id={sheetData.sheet_id}
-                data={sheetData.content}
+                id={planData.content[`day ${currentDay}`]?.sheet_id}
+                data={sheetData}
                 hasSidebar={false}
                 highlightedNode={null}
                 multiPanel={false}
@@ -143,7 +151,6 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
                 divineNameReplacement="noSub"
                 openSheet={openSheet}
               />
-            // </div>
           ) : (
             <div>No content available for this day</div>
           )}

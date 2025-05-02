@@ -215,6 +215,45 @@ def plans_api(request):
     else:
         return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
 
+
+@csrf_exempt
+def update_plan_content_api(request):
+    """
+    API endpoint to update a plan's content with a sheet ID for a specific day.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Method not allowed"}, status=405)
+
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": "You must be logged in to update a plan"}, status=401)
+
+    plan_id = request.POST.get("plan_id")
+    day = request.POST.get("day")
+    sheet_id = request.POST.get("sheet_id")
+
+    if not all([plan_id, day, sheet_id]):
+        return jsonResponse({"error": "Missing required parameters"}, status=400)
+
+    try:
+        # Convert plan_id string to ObjectId
+        object_id = ObjectId(plan_id)
+        plan = Plan().load({"_id": object_id})
+        if not plan:
+            return jsonResponse({"error": "Plan not found"}, status=404)
+
+        # Check if user is the creator of the plan
+        if str(plan.creator) != str(request.user.id):
+            return jsonResponse({"error": "You don't have permission to update this plan"}, status=403)
+
+        plan.update_content(day, sheet_id)
+        return jsonResponse({"status": "ok"})
+
+    except InvalidId as e:
+        return jsonResponse({"error": f"Invalid plan ID format: {str(e)}"}, status=400)
+    except Exception as e:
+        return jsonResponse({"error": str(e)}, status=500)
+
+
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
 logger.info("Initializing library objects.")
@@ -353,6 +392,7 @@ def base_props(request):
         profile = UserProfile(user_obj=request.user)
         user_data = {
             "_uid": request.user.id,
+            "_user_type": request.user.usertype.user_type if hasattr(request.user, 'usertype') else None,
             "_email": request.user.email,
             "_uses_new_editor": True,
             "slug": profile.slug if profile else "",
@@ -377,6 +417,7 @@ def base_props(request):
     else:
         user_data = {
             "_uid": None,
+            "_user_type": None,
             "_email": "",
             "slug": "",
             "is_moderator": False,

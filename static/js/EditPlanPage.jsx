@@ -30,9 +30,11 @@ class EditPlanPage extends Component {
     this.state = props.initialData || {
       title: '',
       description: '',
+      long_description: '',
       categories: [],
       imageUrl: null,
       total_days: 7,
+      content: {},
       listed: false
     };
     this.changed = false;
@@ -104,7 +106,8 @@ class EditPlanPage extends Component {
   handleInputChange(e) {
     const idToField = {
       planTitle: "title",
-      planDescription: "description"
+      planDescription: "description",
+      planLongDescription: "long_description"
     };
     const field = idToField[e.target.id];
     const state = {};
@@ -121,7 +124,17 @@ class EditPlanPage extends Component {
 
   handleDaysChange(e) {
     const value = parseInt(e.target.value) || 0;
-    this.setState({ total_days: value });
+    
+    // Initialize content with empty sheet_ids for each day
+    const content = {};
+    for (let i = 1; i <= value; i++) {
+      content[`day ${i}`] = 0;  
+    }
+    
+    this.setState({ 
+      total_days: value,
+      content: content
+    });
     this.changed = true;
   }
 
@@ -133,6 +146,10 @@ class EditPlanPage extends Component {
     }
     if (!this.state.description) {
       alert("Please enter a description");
+      return;
+    }
+    if (!this.state.long_description) {
+      alert("Please enter what users will learn");
       return;
     }
     if (this.state.total_days < 1) {
@@ -149,6 +166,17 @@ class EditPlanPage extends Component {
       planData.imageUrl = null;
     }
 
+    // Ensure content is properly initialized if it's empty
+    if (Object.keys(planData.content || {}).length === 0) {
+      planData.content = {};
+      for (let i = 1; i <= planData.total_days; i++) {
+        planData.content[`day ${i}`] = 0;  
+      }
+    }
+
+    // Convert total_days to number to ensure proper MongoDB storage
+    planData.total_days = parseInt(planData.total_days);
+
     $.post("/api/plansPost", {json: JSON.stringify(planData)}, function(data) {
       if ("error" in data) {
         alert(data.error);
@@ -158,8 +186,12 @@ class EditPlanPage extends Component {
       } else {
         alert("There was an error saving your plan.");
       }
-    }.bind(this)).fail(function() {
-      alert("There was an error saving your plan.");
+    }.bind(this)).fail(function(jqXHR) {
+      if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+        alert(jqXHR.responseJSON.error);
+      } else {
+        alert("There was an error saving your plan.");
+      }
     });
   }
 
@@ -214,6 +246,19 @@ class EditPlanPage extends Component {
             onChange={this.handleInputChange}
             placeholder="Describe your plan"
             rows={4}
+          />
+        </div>
+
+        <div className="field">
+          <label>
+            <InterfaceText>What you'll learn</InterfaceText>
+            <span className="required">*</span>
+          </label>
+          <textarea
+            id="planLongDescription"
+            value={this.state.long_description}
+            onChange={this.handleInputChange}
+            rows="4"
           />
         </div>
 

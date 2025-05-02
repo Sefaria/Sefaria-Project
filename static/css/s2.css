@@ -16412,7 +16412,7 @@ span.ref-link-color-3 {
   }
   
   .planDetailLearnDescription {
-    font-size: 16px;
+    font-size: 19px;
     color: #666;
     line-height: 1.6;
   }
@@ -16547,9 +16547,6 @@ span.ref-link-color-3 {
       font-size: 20px;
     }
   
-    .planDetailLearnDescription {
-      font-size: 14px;
-    }
   }
 
 
@@ -16932,6 +16929,25 @@ span.ref-link-color-3 {
   }
   
   /* End of Plan Creation Form Styles */
+
+  /* Day Dropdown in publish setting */
+
+  .dayDropdown select {
+    padding: 1px 6px;
+    height: 24px;
+    font-size: 13px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    min-width: 85px;
+}
+
+.dayDropdown select:focus {
+    outline: none;
+    border-color: #666;
+}
+
+/* End of Day Dropdown in publish setting */
 
 @-webkit-keyframes load5 {
     0%, 100% {

@@ -13,6 +13,7 @@ class Plan:
         self.title = ""
         self.categories = []
         self.description = ""
+        self.long_description = ""
         self.imageUrl = ""
         self.total_days = 0
         self.content = {}  # Will store {day_number: sheet_id} mapping
@@ -25,18 +26,40 @@ class Plan:
             self.load_from_dict(attrs)
 
     def load_from_dict(self, d):
-      
-         for key, value in d.items():
+        for key, value in d.items():
             if key == 'id':
                 self._id = str(value)
             else:
                 setattr(self, key, value)
-            # self.content = {
-            #     "day 1": 41,  # Sheet ID for Day 1
-            #     "day 2": 760,  # Sheet ID for Day 2
-            # }
-         self.content = {day: int(info['sheet_id']) for day, info in d.get('content', {}).items()}
-         return self
+         
+        # Handle content field - support both old and new formats
+        content = d.get('content', {})
+        self.content = {}
+        for day, info in content.items():
+            if isinstance(info, dict) and 'sheet_id' in info:
+                self.content[day] = int(info['sheet_id']) if info['sheet_id'] else 0
+            else:
+                # Handle direct integer values
+                self.content[day] = int(info) if info else 0
+         
+        # Normalize content format after loading
+        self._normalize_content()
+        return self
+
+    def _normalize_content(self):
+        """
+        Normalize the content dictionary to ensure all days have consistent format.
+        Converts any direct sheet_id values to the object format.
+        """
+        if not self.content:
+            self.content = {}
+        
+        for day, value in self.content.items():
+            if not isinstance(value, dict):
+                # If value is direct sheet_id, convert to object format
+                self.content[day] = {
+                    "sheet_id": value
+                }
 
     def load(self, query):
         obj = db[self.collection].find_one(query)
@@ -64,6 +87,8 @@ class Plan:
             raise InputError("Plan title cannot be empty")
         if not self.description:
             raise InputError("Plan description cannot be empty")
+        if not self.long_description:
+            raise InputError("Plan long description cannot be empty")
         if not self.categories:
             raise InputError("Plan must have at least one category")
         if self.total_days < 1:
@@ -78,6 +103,7 @@ class Plan:
             "title": self.title,
             "categories": self.categories,
             "description": self.description,
+            "long_description": self.long_description,
             "imageUrl": self.imageUrl,
             "total_days": self.total_days,
             "content": self.content,
@@ -92,6 +118,7 @@ class Plan:
             "title": self.title,
             "categories": self.categories,
             "description": self.description,
+            "long_description": self.long_description,
             "imageUrl": self.imageUrl,
             "total_days": self.total_days,
             "creator": self.creator,
@@ -117,6 +144,23 @@ class Plan:
                 return None
                 
         return self.sheet_contents[day_key]
+
+    def update_content(self, day, sheet_id):
+        """
+        Update the content dictionary to map a day to a sheet ID.
+        
+        :param day: The day number to update
+        :param sheet_id: The ID of the sheet to map to the day
+        """
+        # First normalize existing content
+        self._normalize_content()
+        
+        day_str = f"day {day}"  # Convert to string format used in content dict
+        # Store sheet_id in an object format to match frontend expectations
+        self.content[day_str] = {
+            "sheet_id": sheet_id
+        }
+        self.save()
 
 class PlanSet:
     def __init__(self, query=None):
