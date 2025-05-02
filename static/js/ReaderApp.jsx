@@ -771,8 +771,12 @@ class ReaderApp extends Component {
         }
       }
     }
-    // Replace the first only & with a ?
-    hist.url = hist.url.replace(/&/, "?");
+    // Encode the path and replace the first only & with a ?
+    const ampersandIndex = hist.url.indexOf('&');
+    let path = ampersandIndex !== -1 ? hist.url.slice(0, ampersandIndex) : hist.url;
+    path =  path.split('/').map(p => encodeURIComponent(p)).join('/');
+    const params = ampersandIndex !== -1 ? '?' + hist.url.slice(ampersandIndex+1) : '';
+    hist.url = `${path}${params}`;
 
     return hist;
   }
