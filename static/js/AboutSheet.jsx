@@ -131,29 +131,13 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
 
     const isFormValidated = () => {
-        if ((!summary || summary.trim() == '') && tags.length == 0) {
-            setValidation({
-                validationMsg: Sefaria._("topic.add_desription"),
-                validationFailed: "both"
-            });
-            return false
-        }
-        else if (!summary || summary.trim() == '') {
+        if (!summary || summary.trim() == '') {
             setValidation({
                 validationMsg: Sefaria._("sheet.add_description"),
                 validationFailed: "summary"
             });
             return false
         }
-
-        else if (tags.length == 0) {
-            setValidation({
-                validationMsg: Sefaria._("topic.add_topic_to_sheet"),
-                validationFailed: "topics"
-            });
-            return false
-        }
-
         else {
             setValidation({
                 validationMsg: "",
