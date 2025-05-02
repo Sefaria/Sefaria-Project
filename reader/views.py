@@ -392,6 +392,7 @@ def base_props(request):
         profile = UserProfile(user_obj=request.user)
         user_data = {
             "_uid": request.user.id,
+            "_user_type": request.user.usertype.user_type if hasattr(request.user, 'usertype') else None,
             "_email": request.user.email,
             "_uses_new_editor": True,
             "slug": profile.slug if profile else "",
@@ -416,6 +417,7 @@ def base_props(request):
     else:
         user_data = {
             "_uid": None,
+            "_user_type": None,
             "_email": "",
             "slug": "",
             "is_moderator": False,

@@ -2161,6 +2161,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
+                      userType={this.props._user_type}
                       mongoSearch={this.state.mongoSearch}
                       panelPosition={i}
                       initialState={panel}

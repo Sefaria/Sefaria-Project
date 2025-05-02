@@ -650,6 +650,7 @@ class ReaderPanel extends Component {
   }
  
   render() {
+    console.log(this.state);
     if (this.state.error) {
       return (
         <div
@@ -1086,9 +1087,7 @@ class ReaderPanel extends Component {
     else if (this.state.menuOpen === "plans") {
       menu = (
         <Plans
-          multiPanel={this.props.multiPanel}
-          toggleSignUpModal={this.props.toggleSignUpModal}
-          initialWidth={this.state.width}
+          userType={this.props.userType}
         />
       );
     } 
