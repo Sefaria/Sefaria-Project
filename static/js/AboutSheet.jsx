@@ -150,6 +150,18 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     const togglePublish = async () => {
         if (!isPublished) {
             if (!(isFormValidated())) { return }
+
+            // Check if a plan and day are selected
+            const selectedPlanId = Object.entries(checkedPlans).find(([_, isChecked]) => isChecked)?.[0];
+            const selectedDay = selectedPlanId ? selectedDays[selectedPlanId] : null;
+
+            if (selectedPlanId && !selectedDay) {
+                setValidation({
+                    validationMsg: Sefaria._("Please select a day for the plan"),
+                    validationFailed: "plan"
+                });
+                return;
+            }
         }
 
         const newPublishState = isPublished ? "unlisted" : "public";
@@ -159,8 +171,39 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         delete updatedSheet._id;
         setIsPublished(!isPublished);
         const postJSON = JSON.stringify(updatedSheet);
-        postSheet(postJSON);
+        
+        // First update the sheet
+        const response = await new Promise((resolve) => {
+            $.post("/api/sheets/", { "json": postJSON }, (data) => {
+                if (data.id) {
+                    setLastModified(data.dateModified);
+                    Sefaria.sheets._loadSheetByID[data.id] = data;
+                    resolve(data);
+                } else {
+                    console.log(data);
+                    resolve(null);
+                }
+            });
+        });
 
+        // If sheet was published successfully and a plan/day were selected, update the plan
+        if (response && response.id && !isPublished) {
+            const selectedPlanId = Object.entries(checkedPlans).find(([_, isChecked]) => isChecked)?.[0];
+            const selectedDay = selectedPlanId ? selectedDays[selectedPlanId] : null;
+
+            if (selectedPlanId && selectedDay) {
+                // Update plan content
+                $.post("/api/plans/update_content", {
+                    plan_id: selectedPlanId,
+                    day: selectedDay,
+                    sheet_id: response.id
+                }, (data) => {
+                    if (data.error) {
+                        console.error("Error updating plan:", data.error);
+                    }
+                });
+            }
+        }
     }
 
     const onTagDelete = (i) => {

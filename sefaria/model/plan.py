@@ -26,24 +26,40 @@ class Plan:
             self.load_from_dict(attrs)
 
     def load_from_dict(self, d):
-      
-         for key, value in d.items():
+        for key, value in d.items():
             if key == 'id':
                 self._id = str(value)
             else:
                 setattr(self, key, value)
          
-         # Handle content field - support both old and new formats
-         content = d.get('content', {})
-         self.content = {}
-         for day, info in content.items():
-             if isinstance(info, dict) and 'sheet_id' in info:
-                 self.content[day] = int(info['sheet_id']) if info['sheet_id'] else 0
-             else:
-                 # Handle direct integer values
-                 self.content[day] = int(info) if info else 0
+        # Handle content field - support both old and new formats
+        content = d.get('content', {})
+        self.content = {}
+        for day, info in content.items():
+            if isinstance(info, dict) and 'sheet_id' in info:
+                self.content[day] = int(info['sheet_id']) if info['sheet_id'] else 0
+            else:
+                # Handle direct integer values
+                self.content[day] = int(info) if info else 0
          
-         return self
+        # Normalize content format after loading
+        self._normalize_content()
+        return self
+
+    def _normalize_content(self):
+        """
+        Normalize the content dictionary to ensure all days have consistent format.
+        Converts any direct sheet_id values to the object format.
+        """
+        if not self.content:
+            self.content = {}
+        
+        for day, value in self.content.items():
+            if not isinstance(value, dict):
+                # If value is direct sheet_id, convert to object format
+                self.content[day] = {
+                    "sheet_id": value
+                }
 
     def load(self, query):
         obj = db[self.collection].find_one(query)
@@ -128,6 +144,23 @@ class Plan:
                 return None
                 
         return self.sheet_contents[day_key]
+
+    def update_content(self, day, sheet_id):
+        """
+        Update the content dictionary to map a day to a sheet ID.
+        
+        :param day: The day number to update
+        :param sheet_id: The ID of the sheet to map to the day
+        """
+        # First normalize existing content
+        self._normalize_content()
+        
+        day_str = f"day {day}"  # Convert to string format used in content dict
+        # Store sheet_id in an object format to match frontend expectations
+        self.content[day_str] = {
+            "sheet_id": sheet_id
+        }
+        self.save()
 
 class PlanSet:
     def __init__(self, query=None):
