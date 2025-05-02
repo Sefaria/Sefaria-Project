@@ -32,11 +32,17 @@ class Plan:
                 self._id = str(value)
             else:
                 setattr(self, key, value)
-            # self.content = {
-            #     "day 1": 41,  # Sheet ID for Day 1
-            #     "day 2": 760,  # Sheet ID for Day 2
-            # }
-         self.content = {day: int(info['sheet_id']) for day, info in d.get('content', {}).items()}
+         
+         # Handle content field - support both old and new formats
+         content = d.get('content', {})
+         self.content = {}
+         for day, info in content.items():
+             if isinstance(info, dict) and 'sheet_id' in info:
+                 self.content[day] = int(info['sheet_id']) if info['sheet_id'] else 0
+             else:
+                 # Handle direct integer values
+                 self.content[day] = int(info) if info else 0
+         
          return self
 
     def load(self, query):

@@ -128,7 +128,7 @@ class EditPlanPage extends Component {
     // Initialize content with empty sheet_ids for each day
     const content = {};
     for (let i = 1; i <= value; i++) {
-      content[`day ${i}`] = { sheet_id: {} };
+      content[`day ${i}`] = 0;  
     }
     
     this.setState({ 
@@ -170,7 +170,7 @@ class EditPlanPage extends Component {
     if (Object.keys(planData.content || {}).length === 0) {
       planData.content = {};
       for (let i = 1; i <= planData.total_days; i++) {
-        planData.content[`day ${i}`] = { sheet_id: {} };
+        planData.content[`day ${i}`] = 0;  
       }
     }
 
@@ -186,8 +186,12 @@ class EditPlanPage extends Component {
       } else {
         alert("There was an error saving your plan.");
       }
-    }.bind(this)).fail(function() {
-      alert("There was an error saving your plan.");
+    }.bind(this)).fail(function(jqXHR) {
+      if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+        alert(jqXHR.responseJSON.error);
+      } else {
+        alert("There was an error saving your plan.");
+      }
     });
   }
 
