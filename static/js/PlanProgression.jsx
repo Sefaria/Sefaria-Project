@@ -107,7 +107,7 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
             <>
               <div className="plan-header">
                 <img 
-                  src={planData.image || '/static/img/plans/default.jpg'} 
+                  src={planData.imageUrl || "/static/img/plan-default.png"} 
                   alt={planData.title} 
                   className="plan-thumbnail"
                 />
