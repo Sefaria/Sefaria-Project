@@ -186,20 +186,29 @@ def plans_api(request):
     elif request.method == "PUT":
         # Update existing plan
         try:
-            if not request.POST.get("json"):
+            # Read JSON data from request.body for PUT requests
+            try:
+                plan_data = json.loads(request.body.decode('utf-8'))
+            except json.JSONDecodeError:
+                return jsonResponse({"error": "Invalid JSON data provided."}, status=400)
+            
+            if not plan_data:
                 return jsonResponse({"error": "No data provided."}, status=400)
 
-            plan_data = json.loads(request.POST.get("json"))
-            if "_id" not in plan_data:
+            if "id" not in plan_data:
                 return jsonResponse({"error": "No plan ID provided."}, status=400)
 
-            plan = Plan().load({"_id": ObjectId(plan_data["_id"])})
+            plan = Plan().load({"_id": ObjectId(plan_data["id"])})
             if not plan:
                 return jsonResponse({"error": "Plan not found."}, status=404)
 
             # Check permissions
             if plan.creator != request.user.id:
                 return jsonResponse({"error": "You don't have permission to edit this plan."}, status=403)
+
+            # Remove id from plan_data before loading into plan object
+            if "id" in plan_data:
+                del plan_data["id"]
 
             plan.load_from_dict(plan_data)
             if plan.save():
