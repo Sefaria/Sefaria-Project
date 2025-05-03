@@ -17076,6 +17076,49 @@ span.ref-link-color-3 {
 
 /* End of Day Dropdown in publish setting */
 
+/* Plan in profile page */
+
+.planListing {
+    margin: 10px 0;
+    padding: 5px 0;
+}
+
+.planTitleWrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.planIcon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 12px; /* Adjust to match the text baseline */
+}
+
+.planContent {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.planTitle {
+    font-size: 18px;
+    color: #333;
+    text-decoration: none;
+    line-height: 1.4;
+    display: block;
+}
+
+.planDate {
+    font-size: 15px;
+    color: #666;
+    padding-left: 18px;
+    margin-top: 2px;
+}
+
+/* End of Plan in profile page */
+
 @-webkit-keyframes load5 {
     0%, 100% {
         box-shadow: 0 -2.6em 0 0 #ffffff, 1.8em -1.8em 0 0 rgba(0, 0, 0, 0.2), 2.5em 0 0 0 rgba(0, 0, 0, 0.2), 1.75em 1.75em 0 0 rgba(0, 0, 0, 0.2), 0 2.5em 0 0 rgba(0, 0, 0, 0.2), -1.8em 1.8em 0 0 rgba(0, 0, 0, 0.2), -2.6em 0 0 0 rgba(0, 0, 0, 0.5), -1.8em -1.8em 0 0 rgba(0, 0, 0, 0.7)
