@@ -4,7 +4,12 @@ import classNames from 'classnames';
 import { InterfaceText } from './Misc';
 import PlanDetail from './PlanDetail';
 import PlanProgression from './PlanProgression';
-// import '../css/plans.css';
+
+// Categories for filtering
+export const categories = [
+  "all", "love", "anxiety", "healing", "anger",
+  "hope", "depression", "fear", "peace", "stress", "patience", "loss", "jealousy", "grief"
+];
 
 const Plans = ({ userType }) => {
   const [plans, setPlans] = useState([]);
@@ -33,12 +38,6 @@ const Plans = ({ userType }) => {
 
     fetchPlans();
   }, []);
-
-  // Categories for filtering
-  const categories = [
-    "all", "anger", "love", "compassion", "wisdom", "mindfulness",
-    "gratitude", "peace", "forgiveness", "equanimity", "meditation"
-  ];
 
   // Filter plans based on search query and category
   const filteredPlans = plans.filter(plan => {
