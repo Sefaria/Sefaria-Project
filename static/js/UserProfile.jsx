@@ -579,7 +579,17 @@ class UserProfile extends Component {
   handlePlanEdit(plan) {
     this.setState({
       editModalOpen: true,
-      planToEdit: plan
+      planToEdit: {
+        id: plan.id,
+        title: plan.title,
+        description: plan.description,
+        whatYouWillLearn: plan.long_description,
+        categories: plan.categories,
+        planImage: plan.imageUrl,
+        totalDays: plan.total_days ? plan.total_days.toString() : '',
+        content: plan.content,
+        listed: plan.listed
+      }
     });
   }
 
@@ -635,7 +645,6 @@ class UserProfile extends Component {
   }
 
   renderPlan(plan) {
-    // Format date using lastModified
     let dateStr = "";
     try {
       if (plan.lastModified) {
@@ -657,19 +666,21 @@ class UserProfile extends Component {
           <img src="/static/icons/calendar.svg" alt="Plan icon" className="planIcon" />
           <div className="planContent">
             <div className="planTitleRow">
-              <a href={`/plans/${plan.id}`} className="planTitle">
-                {plan.title}
-              </a>
-              {isOwner && (
-                <div className="planActions">
-                  <div className="planEditButton" onClick={() => this.handlePlanEdit(plan)}>
-                    <img src="/static/icons/note.svg" alt="Edit plan" />
+              <div className="planTitleContainer">
+                <a href={`/plans/${plan.id}`} className="planTitle">
+                  {plan.title}
+                </a>
+                {isOwner && (
+                  <div className="planActions">
+                    <div className="planEditButton" onClick={() => this.handlePlanEdit(plan)}>
+                      <img src="/static/icons/note.svg" alt="Edit plan" />
+                    </div>
+                    <div className="planDeleteButton" onClick={() => this.handlePlanDelete(plan.id)}>
+                      <img src="/static/icons/circled-x.svg" alt="Delete plan" />
+                    </div>
                   </div>
-                  <div className="planDeleteButton" onClick={() => this.handlePlanDelete(plan.id)}>
-                    <img src="/static/icons/circled-x.svg" alt="Delete plan" />
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             {dateStr && <div className="planDate">
               {dateStr}

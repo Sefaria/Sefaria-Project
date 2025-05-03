@@ -17109,6 +17109,13 @@ span.ref-link-color-3 {
     align-items: center;
 }
 
+.planTitleContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
 .planTitle {
     font-size: 18px;
     color: #333;
@@ -17119,20 +17126,26 @@ span.ref-link-color-3 {
 
 .planActions {
     display: none;
-    gap: 12px;  /* Increased from 8px */
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    gap: 12px;
     align-items: center;
-    margin-right: 8px;  /* Add some right margin */
+    margin-right: 8px;
+    background: white; /* Add background to prevent text showing through */
+    padding-left: 8px; /* Add some padding to separate from text */
 }
 
-.planListing:hover .planActions {
+.planTitleContainer:hover .planActions {
     display: flex;
 }
 
 .planEditButton, .planDeleteButton {
     cursor: pointer;
-    opacity: 0.7;  /* Slightly increased from 0.6 for better visibility */
+    opacity: 0.7;
     transition: opacity 0.2s;
-    padding: 4px;  /* Add padding for larger hit area */
+    padding: 4px;
 }
 
 .planEditButton:hover, .planDeleteButton:hover {
@@ -17140,13 +17153,13 @@ span.ref-link-color-3 {
 }
 
 .planEditButton img {
-    width: 20px;  /* Increased from 16px */
+    width: 20px;
     height: 20px;
-    stroke-width: 2px;  /* Make strokes bolder */
+    stroke-width: 2px;
 }
 
 .planDeleteButton img {
-    width: 22px;  /* Slightly larger than edit icon */
+    width: 22px;
     height: 22px;
     stroke-width: 2px;
 }
