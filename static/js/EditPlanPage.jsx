@@ -210,7 +210,7 @@ class EditPlanPage extends Component {
         <div className="headerWithButtons">
           <div className="start"></div>
           <h1>
-            <InterfaceText>Create New Plan</InterfaceText>
+            <InterfaceText>Create Plan</InterfaceText>
           </h1>
           <div className="end">
             <a className="button small transparent control-elem" href="/plans">
@@ -295,22 +295,27 @@ class EditPlanPage extends Component {
         </div>
 
         <div className="field">
-          <label>
+          <label htmlFor="planImage">
             <InterfaceText>Plan Image</InterfaceText>
           </label>
           {this.state.imageUrl ? (
-            <img className="planImage" src={this.state.imageUrl} alt="Plan" />
+            <div className="imageContainer">
+              <img className="planImage" src={this.state.imageUrl} alt="Plan preview" />
+                
+            </div>
           ) : (
-            <div className="planImage placeholder"></div>
+            <div className="planImage placeholder">
+              <span className="placeholderText">No image uploaded</span>
+            </div>
           )}
           <FileInput
             name="planImage"
             accept="image/*"
             text="Upload Image"
-            className="button white"
+            className="button white uploadButton"
             onChange={this.handleImageChange}
           />
-          <div className="helperText">
+          <div className="helperText" id="planImageHelper">
             <InterfaceText>Recommended size: 350px x 350px or larger</InterfaceText>
           </div>
         </div>
