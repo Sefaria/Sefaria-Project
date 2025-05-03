@@ -32,6 +32,7 @@ class UserProfile extends Component {
     this.renderPlan = this.renderPlan.bind(this);
     this.renderEmptyPlanList = this.renderEmptyPlanList.bind(this);
     this.renderPlanHeader = this.renderPlanHeader.bind(this);
+    this.handlePlanDelete = this.handlePlanDelete.bind(this);
   }
 
   componentDidMount() {
@@ -418,6 +419,21 @@ class UserProfile extends Component {
     );
   }
 
+  handlePlanDelete(planId) {
+    $.post("/api/plans/" + planId + "/delete", function(data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        // Refresh plans
+        $.get("/api/plans", { creator: this.props.profile.id }, (data) => {
+          if (data.plans) {
+            this.setState({ userPlans: data.plans });
+          }
+        });
+      }
+    }.bind(this));
+  }
+
   renderPlan(plan) {
     // Format date using lastModified
     let dateStr = "";
@@ -433,14 +449,28 @@ class UserProfile extends Component {
       console.error("Error formatting date:", e);
     }
 
+    const isOwner = Sefaria._uid === this.props.profile.id;
+
     return (
       <div className="planListing" key={plan.id}>
         <div className="planTitleWrapper">
           <img src="/static/icons/calendar.svg" alt="Plan icon" className="planIcon" />
           <div className="planContent">
-            <a href={`/plans/${plan.id}`} className="planTitle">
-              {plan.title}
-            </a>
+            <div className="planTitleRow">
+              <a href={`/plans/${plan.id}`} className="planTitle">
+                {plan.title}
+              </a>
+              {isOwner && (
+                <div className="planActions">
+                  <a href={`/plans/${plan.id}/edit`} className="planEditButton">
+                    <img src="/static/icons/note.svg" alt="Edit plan" />
+                  </a>
+                  <div className="planDeleteButton" onClick={() => this.handlePlanDelete(plan.id)}>
+                    <img src="/static/icons/circled-x.svg" alt="Delete plan" />
+                  </div>
+                </div>
+              )}
+            </div>
             {dateStr && <div className="planDate">
               {dateStr}
             </div>}
