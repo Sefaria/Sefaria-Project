@@ -81,6 +81,15 @@ class Plan:
         
         return True
 
+    def delete(self):
+        """Delete the plan from the database"""
+        if not self._id:
+            return False  # Cannot delete a plan without an ID
+        result = db[self.collection].delete_one({"_id": ObjectId(self._id)})
+        return result.deleted_count > 0
+
+    
+
     def _validate(self):
         """Validate plan data before saving"""
         if not self.title:

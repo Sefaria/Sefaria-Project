@@ -151,7 +151,7 @@ def plan_image_upload_api(request, resize_image=True):
 @csrf_exempt
 @login_required
 def plans_api(request):
-    """Handle plan creation and updates"""
+    """Handle plan creation, updates, and deletion"""
     if request.method == "GET":
         # Return all plans or filter by query params
         query = {}
@@ -209,6 +209,31 @@ def plans_api(request):
 
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
+        except Exception as e:
+            return jsonResponse({"error": str(e)}, status=500)
+
+    elif request.method == "DELETE":
+        # Delete existing plan
+        try:
+            if not request.GET.get("id"):
+                return jsonResponse({"error": "No plan ID provided."}, status=400)
+
+            plan_id = request.GET.get("id")
+            plan = Plan().load({"_id": ObjectId(plan_id)})
+            if not plan:
+                return jsonResponse({"error": "Plan not found."}, status=404)
+
+            # Check permissions
+            if plan.creator != request.user.id:
+                return jsonResponse({"error": "You don't have permission to delete this plan."}, status=403)
+
+            if plan.delete():
+                return jsonResponse({"status": "success"})
+            else:
+                return jsonResponse({"error": "Failed to delete plan."}, status=500)
+
+        except ValueError as e:
+            return jsonResponse({"error": "Invalid plan ID."}, status=400)
         except Exception as e:
             return jsonResponse({"error": str(e)}, status=500)
 

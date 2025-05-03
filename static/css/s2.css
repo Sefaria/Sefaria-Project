@@ -16321,6 +16321,7 @@ span.ref-link-color-3 {
   
   .planDetailImageWrapper {
     flex: 1;
+    position: relative;
   }
   
   .planDetailImage {
@@ -16332,19 +16333,22 @@ span.ref-link-color-3 {
   }
   
   .planDetailCategories {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 10px;
-    font-size: 14px;
+    position: absolute;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
   }
   
   .planDetailCategory {
-    background-color: #f0f0f0;
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-weight: 500;
-    color: #666;
+    background: rgba(255, 255, 255, 0.9);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  color: #333;
+  display: inline-flex;
+  align-items: center;
   }
   
   .planDetailInfo {
@@ -16799,50 +16803,113 @@ span.ref-link-color-3 {
 
 /* Plan Creation Form Styles */
 #editPlanPage {
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
-    padding: 25px;
+    padding: 32px 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
   
   #editPlanPage .headerWithButtons {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 35px;
+    margin-bottom: 40px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    gap: 24px; /* Added gap for better spacing between title and buttons */
   }
   
   #editPlanPage .headerWithButtons h1 {
     margin: 0;
-    font-size: 24px;
-    font-weight: normal;
+    font-size: 28px;
+    font-weight: 600;
+    color: #1f2937;
+    flex: 1; /* Allows the title to take up available space */
+    white-space: nowrap; /* Prevents the title from wrapping */
+  overflow: hidden; /* Ensures any overflow is hidden */
+  text-overflow: ellipsis; /* Adds ellipsis if the title is too long */
   }
   
   #editPlanPage .headerWithButtons .end {
     display: flex;
-    gap: 10px;
+    gap: 12px;
+    flex-shrink: 0; /* Prevents buttons from shrinking */
   }
   
+  #editPlanPage .button {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.1s;
+  }
+  
+  #editPlanPage .button:hover {
+    transform: translateY(-1px);
+  }
+  
+  #editPlanPage .button:active {
+    transform: translateY(0);
+  }
+  
+  #editPlanPage .button.small {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  #editPlanPage .button.blue {
+    background-color: #C39F48; /* Updated to gold theme */
+    color: #fff;
+    border: none;
+  }
+  
+  #editPlanPage .button.blue:hover {
+    background-color: #E3C68F; /* Lighter gold for hover */
+  }
+  
+  #editPlanPage .button.transparent {
+    background: none;
+    border: 1px solid #6B7280; /* Neutral gray border */
+    color: #6B7280; /* Neutral gray text */
+  }
+  
+  #editPlanPage .button.transparent:hover {
+    background-color: rgba(107, 114, 128, 0.05); /* Subtle gray background on hover */
+  }
+  
+  /* Rest of the CSS remains the same */
   #editPlanPage .field {
-    margin-bottom: 25px;
+    margin-bottom: 24px;
   }
   
   #editPlanPage .field.halfWidth {
-    width: 48%;
+    width: 100%;
+    max-width: 460px;
     display: inline-block;
     vertical-align: top;
-    margin-right: 2%;
+    margin-right: 20px;
   }
   
   #editPlanPage .field label {
     display: block;
     margin-bottom: 8px;
-    font-weight: normal;
-    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
   }
   
   #editPlanPage .field label .required {
-    color: #d91a1a;
-    margin-left: 3px;
+    color: red;
+    margin-left: 4px;
+    font-weight: 700;
   }
   
   #editPlanPage .field input[type="text"],
@@ -16850,82 +16917,142 @@ span.ref-link-color-3 {
   #editPlanPage .field textarea,
   #editPlanPage .field select {
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
     font-size: 14px;
+    background-color: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  #editPlanPage .field input:focus,
+  #editPlanPage .field textarea:focus,
+  #editPlanPage .field select:focus {
+    outline: none;
+    border-color: #C39F48; /* Updated focus color to match theme */
+    box-shadow: 0 0 0 3px rgba(195, 159, 72, 0.1);
   }
   
   #editPlanPage .field textarea {
-    min-height: 100px;
+    min-height: 120px;
     resize: vertical;
   }
   
   #editPlanPage .field select[multiple] {
-    height: 120px;
+    height: 140px;
+    padding: 8px;
   }
   
   #editPlanPage .helperText {
     margin-top: 6px;
     font-size: 12px;
-    color: #666;
+    color: #6b7280;
+  }
+  
+  #editPlanPage .imageContainer {
+    position: relative;
+    display: inline-block;
   }
   
   #editPlanPage .planImage {
     max-width: 350px;
     max-height: 350px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    width: 100%;
+    height: auto;
+    margin: 12px 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    object-fit: cover;
   }
   
   #editPlanPage .planImage.placeholder {
     width: 350px;
     height: 200px;
-    background-color: #f5f5f5;
-    border: 1px dashed #ddd;
-  }
-  
-  #editPlanPage .button {
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    border: 1px dashed #d1d5db;
+    border-radius: 6px;
+    display: flex;
     align-items: center;
+    justify-content: center;
   }
   
-  #editPlanPage .button.small {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-  
-  #editPlanPage .button.blue {
-    background-color: #18345D;
-    color: white;
-    border: none;
-  }
-  
-  #editPlanPage .button.transparent {
-    background: none;
-    border: 1px solid #18345D;
-    color: #18345D;
+  #editPlanPage .placeholderText {
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
   }
   
   #editPlanPage .button.white {
-    background-color: white;
-    border: 1px solid #ddd;
-    color: #333;
-    margin-top: 10px;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    margin-top: 12px;
+  }
+  
+  #editPlanPage .button.white:hover {
+    background-color: #f9fafb;
+  }
+  
+  #editPlanPage .clearImageButton {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #d1d5db;
+    padding: 6px 12px;
   }
   
   #editPlanPage .error-message {
-    color: #d91a1a;
-    margin-bottom: 15px;
-    padding: 8px 12px;
-    background-color: #fff2f2;
-    border-radius: 4px;
+    color: #dc2626;
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background-color: #fef2f2;
+    border-radius: 6px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  #editPlanPage .error-message::before {
+    content: '⚠';
+    font-size: 16px;
+  }
+  
+  /* Responsive Design */
+  @media (min-width: 768px) {
+    #editPlanPage .field.halfWidth {
+      width: 48%;
+      margin-right: 2%;
+    }
+  }
+  
+  @media (max-width: 767px) {
+    #editPlanPage {
+      padding: 24px 12px;
+    }
+  
+    #editPlanPage .headerWithButtons {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+  
+    #editPlanPage .headerWithButtons .end {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  
+    #editPlanPage .field.halfWidth {
+      width: 100%;
+      margin-right: 0;
+    }
+  
+    #editPlanPage .planImage,
+    #editPlanPage .planImage.placeholder {
+      max-width: 100%;
+      width: 100%;
+    }
   }
   
   /* End of Plan Creation Form Styles */
@@ -16948,6 +17075,90 @@ span.ref-link-color-3 {
 }
 
 /* End of Day Dropdown in publish setting */
+
+/* Plan in profile page */
+
+.planListing {
+    margin: 10px 0;
+    padding: 5px 0;
+}
+
+.planTitleWrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.planIcon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 12px;
+}
+
+.planContent {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-grow: 1;
+}
+
+.planTitleRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.planTitle {
+    font-size: 18px;
+    color: #333;
+    text-decoration: none;
+    line-height: 1.4;
+    display: block;
+}
+
+.planActions {
+    display: none;
+    gap: 12px;  /* Increased from 8px */
+    align-items: center;
+    margin-right: 8px;  /* Add some right margin */
+}
+
+.planListing:hover .planActions {
+    display: flex;
+}
+
+.planEditButton, .planDeleteButton {
+    cursor: pointer;
+    opacity: 0.7;  /* Slightly increased from 0.6 for better visibility */
+    transition: opacity 0.2s;
+    padding: 4px;  /* Add padding for larger hit area */
+}
+
+.planEditButton:hover, .planDeleteButton:hover {
+    opacity: 1;
+}
+
+.planEditButton img {
+    width: 20px;  /* Increased from 16px */
+    height: 20px;
+    stroke-width: 2px;  /* Make strokes bolder */
+}
+
+.planDeleteButton img {
+    width: 22px;  /* Slightly larger than edit icon */
+    height: 22px;
+    stroke-width: 2px;
+}
+
+.planDate {
+    font-size: 15px;
+    color: #666;
+    padding-left: 18px;
+    margin-top: 2px;
+}
+
+/* End of Plan in profile page */
 
 @-webkit-keyframes load5 {
     0%, 100% {

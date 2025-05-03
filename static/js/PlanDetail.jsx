@@ -51,12 +51,16 @@ const PlanDetail = ({ planId }) => {
         <div className="planDetailImageWrapper">
           <img src={plan.imageUrl || "/static/img/plan-default.png"} alt={plan.title} className="planDetailImage" />
           <div className="planDetailCategories">
-            {plan.categories.map((category, index) => (
+            {plan.categories.slice(0, 2).map((category, index) => (
               <span key={index} className="planDetailCategory">
                 <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
-                {index < plan.categories.length - 1 && <span className="categorySeparator"> • </span>}
               </span>
             ))}
+            {plan.categories.length > 2 && (
+              <span className="planDetailCategory">
+                +{plan.categories.length - 2}
+              </span>
+            )}
           </div>
         </div>
         <div className="planDetailInfo">

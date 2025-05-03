@@ -35,7 +35,7 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
       setSheetData(data);
       setError(null);
     } catch (error) {
-      setError('Failed to load day content. Please try again later.');
+      setError('There is no sheet assigned for this day, please create sheet and add it to the plan.');
       setSheetData(null);
       console.error('Error fetching day content:', error);
     } finally {

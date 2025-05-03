@@ -20,19 +20,45 @@ import { SignUpModalKind } from './sefaria/signupModalContent';
 class UserProfile extends Component {
   constructor(props) {
     super(props);
-    this.state = this.getPrivateTabState(props);
+    this.state = {
+      ...this.getPrivateTabState(props),
+      userPlans: [],
+      refreshPlanData: Math.random()
+    };
+    this.getPlans = this.getPlans.bind(this);
+    this.getPlansFromCache = this.getPlansFromCache.bind(this);
+    this.filterPlan = this.filterPlan.bind(this);
+    this.sortPlan = this.sortPlan.bind(this);
+    this.renderPlan = this.renderPlan.bind(this);
+    this.renderEmptyPlanList = this.renderEmptyPlanList.bind(this);
+    this.renderPlanHeader = this.renderPlanHeader.bind(this);
+    this.handlePlanDelete = this.handlePlanDelete.bind(this);
   }
+
+  componentDidMount() {
+    // Fetch user's plans when component mounts
+    if (this.props.profile.id) {
+      $.get("/api/plans", { creator: this.props.profile.id }, (data) => {
+        if (data.plans) {
+          this.setState({ userPlans: data.plans });
+        }
+      });
+    }
+  }
+
   componentDidUpdate(prevProps) {
     if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id)
         || this.props.tab !== prevProps.tab) {
       this.setState(this.getPrivateTabState(this.props));
     }
   }
+
   getPrivateTabState(props) {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
       { id: "sheets", text:Sefaria._("profile.tab.sheets"), icon: "/static/icons/sheet.svg" },
+      { id: "plans", text: "Plans", icon: "/static/icons/calendar.svg" },
       { id: "collections", text: Sefaria._("profile.tab.collection"), icon: "/static/icons/collection.svg" },
       { id: "followers", text: Sefaria._("common.followers"), invisible: true },
       { id: "following", text: Sefaria._("common.following"), invisible: true },
@@ -48,20 +74,26 @@ class UserProfile extends Component {
       showNotes,
       showBio,
       tabs,
+      refreshPlanData: Math.random(),
     };
   }
+
   _getTabViewRef(ref) { this._tabViewRef = ref; }
+
   getCollections() {
     return Sefaria.getUserCollections(this.props.profile.id);
   }
+
   getCollectionsFromCache() {
     return Sefaria.getUserCollectionsFromCache(this.props.profile.id);
   }
+
   filterCollection(currFilter, collection) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
     return n(collection.name).indexOf(currFilter) > -1;
   }
+
   sortCollection(currSortOption, collectionA, collectionB) {
     switch(currSortOption) {
       case "Recent":
@@ -75,10 +107,12 @@ class UserProfile extends Component {
         break;
     }
   }
+
   handleCollectionsChange() {
     // Rerender Collections tab when data changes in cache.
     this.setState({ refreshCollectionsData: Math.random(), refreshSheetData: Math.random() });
   }
+
   renderEmptyCollectionList() {
     if (Sefaria._uid !== this.props.profile.id) {
      return (
@@ -100,11 +134,13 @@ class UserProfile extends Component {
         </a>
       </div>);
   }
+
   renderCollection(collection) {
     return (
       <CollectionListing key={collection.slug} data={collection} />
     );
   }
+
   renderCollectionHeader() {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
@@ -116,6 +152,7 @@ class UserProfile extends Component {
       </div>
     );
   }
+
   getNotes() {
     return new Promise((resolve, reject) => {
       Sefaria.allPrivateNotes(notes => {
@@ -123,21 +160,26 @@ class UserProfile extends Component {
       });
     });
   }
+
   getNotesFromCache() {
     return Sefaria.allPrivateNotes();
   }
+
   onDeleteNote() {
     Sefaria.clearPrivateNotes();
     this.getNotes().then(() => this.setState({ refreshNoteData: Math.random() }));
   }
+
   filterNote(currFilter, note) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
     return n(note.text).indexOf(currFilter) > -1;
   }
+
   sortNote(currSortOption, noteA, noteB) {
     return 0;
   }
+
   renderEmptyNoteList() {
     return (
       <div className="emptyList">
@@ -147,6 +189,7 @@ class UserProfile extends Component {
       </div>
     );
   }
+
   renderNote(note) {
     return (
       <NoteListing
@@ -156,6 +199,7 @@ class UserProfile extends Component {
       />
     );
   }
+
   getSheets() {
     return new Promise((resolve, reject) => {
       Sefaria.sheets.userSheets(this.props.profile.id, sheets => {
@@ -163,9 +207,11 @@ class UserProfile extends Component {
       }, undefined, 0, 0);
     });
   }
+
   getSheetsFromCache() {
     return Sefaria.sheets.userSheets(this.props.profile.id, null, undefined, 0, 0);
   }
+
   filterSheet(currFilter, sheet) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
@@ -176,12 +222,14 @@ class UserProfile extends Component {
                         ].join(" ");
     return n(filterText).indexOf(currFilter) > -1;
   }
+
   sortSheet(currSortOption, sheetA, sheetB) {
     if (currSortOption === "Recent") { return 0; /* already in order */}
     else {
       return sheetB.views - sheetA.views;
     }
   }
+
   renderEmptySheetList() {
     if (Sefaria._uid !== this.props.profile.id) {
       return (
@@ -207,6 +255,7 @@ class UserProfile extends Component {
       </div>
     );
   }
+
   handleSheetDelete() {
     Sefaria.sheets.clearUserSheets(Sefaria._uid);
     this.getSheets().then(() => this.setState({ refreshSheetData: Math.random() }));
@@ -214,6 +263,7 @@ class UserProfile extends Component {
     delete Sefaria._userCollections[Sefaria._uid];
     this.getCollections().then(() => this.setState({refreshCollectionsData: Math.random() }));
   }
+
   renderSheet(sheet) {
     return (
       <SheetListing
@@ -232,6 +282,7 @@ class UserProfile extends Component {
       />
     );
   }
+
   renderSheetHeader() {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
@@ -243,17 +294,21 @@ class UserProfile extends Component {
       </div>
     );
   }
+
   getFollowers() {
     return Sefaria.followAPI(this.props.profile.slug, "followers");
   }
+
   getFollowing() {
     return Sefaria.followAPI(this.props.profile.slug, "following");
   }
+
   filterFollower(currFilter, follower) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
     return n(follower.full_name).indexOf(currFilter) > -1 || n(follower.position).indexOf(currFilter) > -1;
   }
+
   renderFollowerHeader() {
     return (
       <div className="follow-header sans-serif">
@@ -261,6 +316,7 @@ class UserProfile extends Component {
       </div>
     );
   }
+
   renderFollowingHeader() {
     return (
       <div className="follow-header sans-serif">
@@ -268,6 +324,7 @@ class UserProfile extends Component {
       </div>
     );
   }
+
   renderFollower(item) {
     return (
       <ProfileListing
@@ -284,6 +341,7 @@ class UserProfile extends Component {
       />
     );
   }
+
   renderEmptyFollowerList() {
     return (
       <div>
@@ -291,6 +349,7 @@ class UserProfile extends Component {
       </div>
     );
   }
+
   renderEmptyFollowingList() {
     return (
       <div>
@@ -298,6 +357,181 @@ class UserProfile extends Component {
       </div>
     );
   }
+
+  getPlans() {
+    return new Promise((resolve, reject) => {
+      $.get("/api/plans", { creator: this.props.profile.id }, function(data) {
+        if (data.plans) {
+          resolve(data.plans);
+        } else {
+          reject("Failed to fetch plans");
+        }
+      });
+    });
+  }
+
+  getPlansFromCache() {
+    return this.state.userPlans;
+  }
+
+  filterPlan(currFilter, plan) {
+    const n = text => text.toLowerCase();
+    currFilter = n(currFilter);
+    return n(plan.title).indexOf(currFilter) > -1 ||
+           (plan.description && n(plan.description).indexOf(currFilter) > -1);
+  }
+
+  sortPlan(currSortOption, planA, planB) {
+    switch(currSortOption) {
+      case "Recent":
+        return new Date(planB.lastModified) - new Date(planA.lastModified);
+      case "Title":
+        return planA.title.localeCompare(planB.title);
+      case "Days":
+        return planB.total_days - planA.total_days;
+      default:
+        return 0;
+    }
+  }
+
+  renderEmptyPlanList() {
+    if (Sefaria._uid !== this.props.profile.id) {
+      return (
+        <div className="emptyList">
+          <div className="emptyListText">
+            <InterfaceText>{this.props.profile.full_name}</InterfaceText> hasn't created any plans yet.
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="emptyList">
+        <div className="emptyListText">
+          <span className={`${Sefaria.languageClassFont()}`}>
+            Create plans to organize and share your learning journey.
+          </span>
+        </div>
+        <a href="/plans/new" className="resourcesLink sans-serif">
+          <img src="/static/icons/calendar.svg" alt="Plan icon" />
+          <span className={`${Sefaria.languageClassFont()}`}>Create New Plan</span>
+        </a>
+      </div>
+    );
+  }
+
+  handlePlanDelete(planId) {
+    if (!window.confirm('Are you sure you want to delete this plan?')) {
+      return;
+    }
+  
+    fetch(`/api/plansPost?id=${planId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this.getCookie('csrftoken') // Include CSRF token for Django
+      },
+      credentials: 'include' // Include cookies for session authentication
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.error || 'Failed to delete plan');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+        } else {
+          // Refresh plans
+          this.getPlans().then(plans => {
+            this.setState({ userPlans: plans });
+          }).catch(err => {
+            console.error('Error refreshing plans:', err);
+            alert('Failed to refresh plans.');
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting plan:', error);
+        alert(error.message);
+      });
+  }
+  
+  getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  renderPlan(plan) {
+    // Format date using lastModified
+    let dateStr = "";
+    try {
+      if (plan.lastModified) {
+        dateStr = new Date(plan.lastModified).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+    } catch (e) {
+      console.error("Error formatting date:", e);
+    }
+
+    const isOwner = Sefaria._uid === this.props.profile.id;
+
+    return (
+      <div className="planListing" key={plan.id}>
+        <div className="planTitleWrapper">
+          <img src="/static/icons/calendar.svg" alt="Plan icon" className="planIcon" />
+          <div className="planContent">
+            <div className="planTitleRow">
+              <a href={`/plans/${plan.id}`} className="planTitle">
+                {plan.title}
+              </a>
+              {isOwner && (
+                <div className="planActions">
+                  <a href={`/plans/${plan.id}/edit`} className="planEditButton">
+                    <img src="/static/icons/note.svg" alt="Edit plan" />
+                  </a>
+                  <div className="planDeleteButton" onClick={() => this.handlePlanDelete(plan.id)}>
+                    <img src="/static/icons/circled-x.svg" alt="Delete plan" />
+                  </div>
+                </div>
+              )}
+            </div>
+            {dateStr && <div className="planDate">
+              {dateStr}
+            </div>}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  renderPlanHeader() {
+    if (Sefaria._uid !== this.props.profile.id) { return null; }
+    return (
+      <div className="sheet-header">
+        <a href="/plans/new" className="resourcesLink sans-serif">
+          <img src="/static/icons/calendar.svg" alt="Plan icon" />
+          <span className={`${Sefaria.languageClassFont()}`}>Create New Plan</span>
+        </a>
+      </div>
+    );
+  }
+
   renderTab(tab) {
     if (tab.invisible) { return null; }
     if (tab.applink) {
@@ -317,13 +551,16 @@ class UserProfile extends Component {
       </div>
     );
   }
+
   follow() {
     Sefaria.followAPI(this.props.profile.id);
   }
+
   openFollowers(e) {
     e.preventDefault();
     this.props.setTab("followers");
   }
+
   openFollowing(e) {
     e.preventDefault();
     this.props.setTab("following");
@@ -364,6 +601,19 @@ class UserProfile extends Component {
                     getData={this.getSheets}
                     data={this.getSheetsFromCache()}
                     refreshData={this.state.refreshSheetData}
+                  />
+                  <FilterableList
+                    key="plans"
+                    pageSize={1e6}
+                    filterFunc={this.filterPlan}
+                    sortFunc={this.sortPlan}
+                    renderItem={this.renderPlan}
+                    renderEmptyList={this.renderEmptyPlanList}
+                    renderHeader={this.renderPlanHeader}
+                    sortOptions={[Sefaria._("common.filter_list.recent"), "Title", "Days"]}
+                    getData={this.getPlans}
+                    data={this.getPlansFromCache()}
+                    refreshData={this.state.refreshPlanData}
                   />
                   <FilterableList
                     key="collection"
@@ -432,10 +682,10 @@ class UserProfile extends Component {
     );
   }
 }
+
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
-
 
 const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
@@ -544,7 +794,6 @@ const EditorToggleHeader = ({usesneweditor}) => {
  )
 }
 
-
 const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
@@ -637,6 +886,7 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
     </div>
   );
 };
+
 ProfileSummary.propTypes = {
   profile:       PropTypes.object.isRequired,
   follow:        PropTypes.func.isRequired,
@@ -644,6 +894,5 @@ ProfileSummary.propTypes = {
   openFollowing: PropTypes.func.isRequired,
   toggleSignUpModal: PropTypes.func.isRequired,
 };
-
 
 export default UserProfile;
