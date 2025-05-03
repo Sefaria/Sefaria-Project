@@ -420,18 +420,58 @@ class UserProfile extends Component {
   }
 
   handlePlanDelete(planId) {
-    $.post("/api/plans/" + planId + "/delete", function(data) {
-      if ("error" in data) {
-        alert(data.error);
-      } else {
-        // Refresh plans
-        $.get("/api/plans", { creator: this.props.profile.id }, (data) => {
-          if (data.plans) {
-            this.setState({ userPlans: data.plans });
-          }
-        });
+    if (!window.confirm('Are you sure you want to delete this plan?')) {
+      return;
+    }
+  
+    fetch(`/api/plansPost?id=${planId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this.getCookie('csrftoken') // Include CSRF token for Django
+      },
+      credentials: 'include' // Include cookies for session authentication
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.error || 'Failed to delete plan');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+        } else {
+          // Refresh plans
+          this.getPlans().then(plans => {
+            this.setState({ userPlans: plans });
+          }).catch(err => {
+            console.error('Error refreshing plans:', err);
+            alert('Failed to refresh plans.');
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting plan:', error);
+        alert(error.message);
+      });
+  }
+  
+  getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
       }
-    }.bind(this));
+    }
+    return cookieValue;
   }
 
   renderPlan(plan) {
