@@ -544,6 +544,8 @@ function parseSheetItemHTML(rawhtml) {
       .replace(/(\r\n|\n|\r|\t)/gm, " ");
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
+    // remove extra spaces between html tags - new editor table deserialization doesn't like them
+    preparseHtml = preparseHtml.replace(/>\s+</g, '><');
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
