@@ -456,7 +456,7 @@ function renderSheetItem(source) {
                 {
                     type: sheet_item_els[sheetItemType],
                     options: source.options,
-                    children: parseSheetItemHTML(source.comment, true),
+                    children: parseSheetItemHTML(source.comment),
                     node: source.node,
                     lang: commentLang
                 }
@@ -537,10 +537,13 @@ function flattenLists(htmlString) {
   return doc.body.innerHTML;
 }
 
-function parseSheetItemHTML(rawhtml, DoFlattenLists=false) {
-    let preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r|\t)/gm, "");
+function parseSheetItemHTML(rawhtml) {
+    // replace non-breaking spaces with regular spaces and replace line breaks with spaces
+    let preparseHtml = rawhtml
+      .replace(/\u00A0/g, ' ')
+      .replace(/(\r\n|\n|\r|\t)/gm, " ");
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
-    DoFlattenLists && (preparseHtml = flattenLists(preparseHtml));
+    preparseHtml = flattenLists(preparseHtml);
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -607,7 +610,7 @@ function transformSheetJsonToSlate(sheet) {
     const title = source.title;
     title && sourceNodes.push({
       type: "header",
-      children: [{ text: title }]
+      children: [{ text: title.stripHtmlConvertLineBreaks() }]
     });
 
     sourceNodes.push(

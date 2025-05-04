@@ -410,6 +410,10 @@ class UserProfile(object):
             self.assign_slug()
             self.save()
 
+        # new editor
+        self.show_editor_toggle = False
+        self.uses_new_editor = True
+
     @property
     def full_name(self):
         return self.first_name + " " + self.last_name
