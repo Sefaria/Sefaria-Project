@@ -773,7 +773,7 @@ class ReaderApp extends Component {
     }
     // Replace question marks that can be included in titles
     // (not using encodeURIComponent for this can run twice and encode the % of the first running)
-    hist.url = hist.url.replace('?', '%3F')
+    hist.url = hist.url.replace(/\?/g, '%3F')
     // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
