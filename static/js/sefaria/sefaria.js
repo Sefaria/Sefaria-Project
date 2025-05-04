@@ -2783,6 +2783,11 @@ _media: {},
           return d;
         });
   },
+  shouldDisplayTopic: function(topic) {
+    // 'topic' is a topic object in this.topicList or this.topic_toc
+    const inActiveModule = topic?.pools?.includes(Sefaria.activeModule);
+    return !!topic.shouldDisplay && inActiveModule;
+  },
   sortTopicsCompareFn: function(a, b) {
     // a compare function that is useful for sorting topics
     // Don't use display order intended for top level a category level. Bandaid for unclear semantics on displayOrder.

@@ -234,13 +234,8 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
         setSubtopics(Sefaria.topicTocPage(topic));
     }, [topic]);
 
-    const shouldDisplay = (t) => {
-      const inActiveModule = t.pools.includes(Sefaria.activeModule);
-      return t.shouldDisplay !== false && inActiveModule;
-    }
-
     let topicBlocks = subtopics
-      .filter(shouldDisplay)
+      .filter(Sefaria.shouldDisplayTopic)
       .sort(Sefaria.sortTopicsCompareFn)
       .map((topic, i) => <TopicTOCCard topic={topic} setTopic={setTopic} setNavTopic={setNavTopic} key={i}/>);
 

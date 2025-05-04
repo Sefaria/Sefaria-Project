@@ -3161,7 +3161,7 @@ def topics_list_api(request):
     API to get data for a particular topic.
     """
     limit = int(request.GET.get("limit", 1000))
-    topics = get_all_topics(limit)
+    topics = get_all_topics(limit, activeModule=request.active_module)
     response = [t.contents() for t in topics]
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
