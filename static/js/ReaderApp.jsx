@@ -771,16 +771,11 @@ class ReaderApp extends Component {
         }
       }
     }
-    // The URL currently has two problems:
-    // 1. The path is not encoded. For example, a book title might contain characters like '?' that should be encoded,
-    //    while '/' should be preserved as a separator.
-    // 2. The query parameters are all concatenated using an '&', but the first one should start with a '?'.
-    // This bloc fixes both issues.
-    const ampersandIndex = hist.url.indexOf('&');
-    let path = ampersandIndex !== -1 ? hist.url.slice(0, ampersandIndex) : hist.url;
-    path =  path.split('/').map(p => encodeURIComponent(p)).join('/');
-    const params = ampersandIndex !== -1 ? '?' + hist.url.slice(ampersandIndex+1) : '';
-    hist.url = `${path}${params}`;
+    // Replace question marks that can be included in titles
+    // (not using encodeURIComponent for this can run twice and encode the % of the first running)
+    hist.url = hist.url.replace('?', '%3F')
+    // Replace the first only & with a ?
+    hist.url = hist.url.replace(/&/, "?");
 
     return hist;
   }
