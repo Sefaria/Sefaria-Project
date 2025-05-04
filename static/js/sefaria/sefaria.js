@@ -2869,7 +2869,7 @@ _media: {},
   _getTopicCacheKey: function(slug, {annotated=true, with_html=false}={}) {
       return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
-  _createTabKeyAndTitle: function (linkType, refObj) {
+  _createTabKeyAndTitle: function (linkType, refObj, lang) {
       // helper function for processTopicsTabsData
       // We support two types of 'linkType's -- confusingly called "about" and "popular-writing-of". This distinction is only relevant for the library module.
       // In the sheets module, every source is under the "Sheets" tab.
@@ -2879,6 +2879,7 @@ _media: {},
       }
       else {
         if (linkType === 'about') {
+          const lang = Sefaria.interfaceLang === "hebrew" ? 'he' : 'en';
           const desc = refObj.descriptions?.[lang];
           const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
           return isNotableSource
@@ -2894,7 +2895,6 @@ _media: {},
   processTopicsTabsData: function(topicData) {
     // In the library module, topic tabs can be "Admin", "Notable Sources", "Sources", and "Top Citations".  In the sheets module, the only topic tab is "Sheets"
     // This function takes the ref topic links in the topicData and puts each ref in the appropriate tab.
-    const lang = Sefaria.interfaceLang === "hebrew" ? 'he' : 'en';
     if (!topicData || !topicData.refs) { return topicData || null; }
     const tabs = {};
     for (let [linkType, topicLinks] of Object.entries(topicData.refs)) {
