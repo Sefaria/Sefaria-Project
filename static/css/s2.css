@@ -17109,6 +17109,13 @@ span.ref-link-color-3 {
     align-items: center;
 }
 
+.planTitleContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
 .planTitle {
     font-size: 18px;
     color: #333;
@@ -17119,20 +17126,26 @@ span.ref-link-color-3 {
 
 .planActions {
     display: none;
-    gap: 12px;  /* Increased from 8px */
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    gap: 12px;
     align-items: center;
-    margin-right: 8px;  /* Add some right margin */
+    margin-right: 8px;
+    background: white; /* Add background to prevent text showing through */
+    padding-left: 8px; /* Add some padding to separate from text */
 }
 
-.planListing:hover .planActions {
+.planTitleContainer:hover .planActions {
     display: flex;
 }
 
 .planEditButton, .planDeleteButton {
     cursor: pointer;
-    opacity: 0.7;  /* Slightly increased from 0.6 for better visibility */
+    opacity: 0.7;
     transition: opacity 0.2s;
-    padding: 4px;  /* Add padding for larger hit area */
+    padding: 4px;
 }
 
 .planEditButton:hover, .planDeleteButton:hover {
@@ -17140,13 +17153,13 @@ span.ref-link-color-3 {
 }
 
 .planEditButton img {
-    width: 20px;  /* Increased from 16px */
+    width: 20px;
     height: 20px;
-    stroke-width: 2px;  /* Make strokes bolder */
+    stroke-width: 2px;
 }
 
 .planDeleteButton img {
-    width: 22px;  /* Slightly larger than edit icon */
+    width: 22px;
     height: 22px;
     stroke-width: 2px;
 }
@@ -17159,6 +17172,123 @@ span.ref-link-color-3 {
 }
 
 /* End of Plan in profile page */
+
+/* Edit Plan Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .modal-content h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-size: 1.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-weight: 500;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  
+  .modal-actions button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .modal-actions button[type="button"] {
+    background-color: #e0e0e0;
+    color: #333;
+  }
+  
+  .modal-actions button[type="submit"] {
+    background-color: #18446b;
+    color: white;
+  }
+  
+  .modal-actions button:hover {
+    opacity: 0.9;
+  }
+  
+  /* Update existing plan action styles */
+  .planActions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .planEditButton,
+  .planDeleteButton {
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  
+  .planEditButton:hover,
+  .planDeleteButton:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .planEditButton img,
+  .planDeleteButton img {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+  }
+  
+  .planEditButton:hover img,
+  .planDeleteButton:hover img {
+    opacity: 1;
+  }
 
 @-webkit-keyframes load5 {
     0%, 100% {

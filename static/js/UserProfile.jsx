@@ -17,13 +17,113 @@ import {
 } from './Misc';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 
+const EditPlanModal = ({ plan, onClose, onSave }) => {
+  const [formData, setFormData] = useState({
+    title: plan?.title || '',
+    description: plan?.description || '',
+    whatYouWillLearn: plan?.whatYouWillLearn || '',
+    categories: plan?.categories?.join(', ') || '',
+    totalDays: plan?.total_days || '',
+    planImage: plan?.planImage || ''
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({
+      ...plan,
+      ...formData,
+      categories: formData.categories.split(',').map(cat => cat.trim()).filter(cat => cat),
+      total_days: parseInt(formData.totalDays)
+    });
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>Edit Plan</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Title:</label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Description:</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="form-group">
+            <label>What You Will Learn:</label>
+            <textarea
+              name="whatYouWillLearn"
+              value={formData.whatYouWillLearn}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="form-group">
+            <label>Categories (comma-separated):</label>
+            <input
+              type="text"
+              name="categories"
+              value={formData.categories}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="form-group">
+            <label>Total Days:</label>
+            <input
+              type="number"
+              name="totalDays"
+              value={formData.totalDays}
+              onChange={handleChange}
+              min="1"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Plan Image URL:</label>
+            <input
+              type="url"
+              name="planImage"
+              value={formData.planImage}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="modal-actions">
+            <button type="button" onClick={onClose}>Cancel</button>
+            <button type="submit">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 class UserProfile extends Component {
   constructor(props) {
     super(props);
     this.state = {
       ...this.getPrivateTabState(props),
       userPlans: [],
-      refreshPlanData: Math.random()
+      refreshPlanData: Math.random(),
+      editModalOpen: false,
+      planToEdit: null
     };
     this.getPlans = this.getPlans.bind(this);
     this.getPlansFromCache = this.getPlansFromCache.bind(this);
@@ -33,6 +133,8 @@ class UserProfile extends Component {
     this.renderEmptyPlanList = this.renderEmptyPlanList.bind(this);
     this.renderPlanHeader = this.renderPlanHeader.bind(this);
     this.handlePlanDelete = this.handlePlanDelete.bind(this);
+    this.handlePlanEdit = this.handlePlanEdit.bind(this);
+    this.handlePlanSave = this.handlePlanSave.bind(this);
   }
 
   componentDidMount() {
@@ -474,8 +576,75 @@ class UserProfile extends Component {
     return cookieValue;
   }
 
+  handlePlanEdit(plan) {
+    this.setState({
+      editModalOpen: true,
+      planToEdit: {
+        id: plan.id,
+        title: plan.title,
+        description: plan.description,
+        whatYouWillLearn: plan.long_description,
+        categories: plan.categories,
+        planImage: plan.imageUrl,
+        totalDays: plan.total_days ? plan.total_days.toString() : '',
+        content: plan.content,
+        listed: plan.listed
+      }
+    });
+  }
+
+  handlePlanSave(updatedPlan) {
+    // Convert the plan data to match the backend model
+    const planData = {
+      id: updatedPlan.id,
+      title: updatedPlan.title,
+      description: updatedPlan.description,
+      long_description: updatedPlan.whatYouWillLearn || '',
+      categories: updatedPlan.categories,
+      imageUrl: updatedPlan.planImage || '',
+      total_days: parseInt(updatedPlan.totalDays),
+      content: updatedPlan.content || {},
+      listed: updatedPlan.listed || false
+    };
+
+    fetch(`/api/plansPost`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this.getCookie('csrftoken')
+      },
+      body: JSON.stringify(planData),
+      credentials: 'include'
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.error || 'Failed to update plan');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+        } else {
+          // Refresh plans
+          this.getPlans().then(plans => {
+            this.setState({
+              userPlans: plans,
+              editModalOpen: false,
+              planToEdit: null
+            });
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error updating plan:', error);
+        alert(error.message);
+      });
+  }
+
   renderPlan(plan) {
-    // Format date using lastModified
     let dateStr = "";
     try {
       if (plan.lastModified) {
@@ -497,19 +666,21 @@ class UserProfile extends Component {
           <img src="/static/icons/calendar.svg" alt="Plan icon" className="planIcon" />
           <div className="planContent">
             <div className="planTitleRow">
-              <a href={`/plans/${plan.id}`} className="planTitle">
-                {plan.title}
-              </a>
-              {isOwner && (
-                <div className="planActions">
-                  <a href={`/plans/${plan.id}/edit`} className="planEditButton">
-                    <img src="/static/icons/note.svg" alt="Edit plan" />
-                  </a>
-                  <div className="planDeleteButton" onClick={() => this.handlePlanDelete(plan.id)}>
-                    <img src="/static/icons/circled-x.svg" alt="Delete plan" />
+              <div className="planTitleContainer">
+                <a href={`/plans/${plan.id}`} className="planTitle">
+                  {plan.title}
+                </a>
+                {isOwner && (
+                  <div className="planActions">
+                    <div className="planEditButton" onClick={() => this.handlePlanEdit(plan)}>
+                      <img src="/static/icons/note.svg" alt="Edit plan" />
+                    </div>
+                    <div className="planDeleteButton" onClick={() => this.handlePlanDelete(plan.id)}>
+                      <img src="/static/icons/circled-x.svg" alt="Delete plan" />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             {dateStr && <div className="planDate">
               {dateStr}
@@ -673,11 +844,18 @@ class UserProfile extends Component {
                     </div> : null
                   }
                 </TabView>
-            </div>
+                {this.state.editModalOpen && (
+                  <EditPlanModal
+                    plan={this.state.planToEdit}
+                    onClose={() => this.setState({ editModalOpen: false, planToEdit: null })}
+                    onSave={this.handlePlanSave}
+                  />
+                )}
+              </div>
             }
           </div>
-          <Footer />
         </div>
+        <Footer />
       </div>
     );
   }
