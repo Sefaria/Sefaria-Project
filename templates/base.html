@@ -95,7 +95,7 @@
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
-        
+
     <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
     <link rel="stylesheet" href="{%  static 'css/color-palette.css' %}">
     <link rel="stylesheet" href="{%  static 'css/themes/library-theme.css' %}">
@@ -160,7 +160,7 @@
     {% endif %}
 
     <!-- Unbounce Embed Code -->
-    <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script> 
+    <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script>
 </head>
  <body data-active-module="{{ active_module }}" data-render-static="{{ renderStatic }}" class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
@@ -266,5 +266,8 @@
     {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
-</body>
+
+    <script src="{% static 'js/service-worker-register.js' %}"></script>
+
+ </body>
 </html>
