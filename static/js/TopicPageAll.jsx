@@ -48,7 +48,7 @@ class TopicPageAll extends Component {
     const hasFilter = this.state.filter.length > 1;  // dont filter by one letter. not useful
     const isHeInt = Sefaria.interfaceLang == "hebrew";
 
-    const topicList = this.state.topicList && this.state.topicList.filter(item => {
+    const topicBlocks = this.state.topicList && this.state.topicList.filter(item => {
       if (!hasFilter) {
         const sortTitle = isHeInt ? item.primaryTitle.he : item.primaryTitle.en;
         return sortTitle.toLowerCase().startsWith(this.props.topicLetter);
@@ -66,9 +66,15 @@ class TopicPageAll extends Component {
       } else {
         return (0 + (!!b.primaryTitle[lang])) - (0 + (!!a.primaryTitle[lang])); // Keep original order (# source), but sort current interface lang first
       }
-    
-    }).map((topic, i) => <TopicTOCCard topic={topic} setTopic={this.props.setTopic} key={i}/>);
-
+    })
+    const allTopicsList = <div className="allTopicsList">
+                          { topicBlocks ?
+                            (topicBlocks.length ?
+                                <div className="TOCCardsWrapper table">{topicBlocks.map((topic, i) => <TopicTOCCard topic={topic} setTopic={this.props.setTopic} key={i}/>)}</div>
+                              : <LoadingMessage message="There are no topics here." heMessage="" />)
+                            : <LoadingMessage />
+                          }
+                        </div>;
     const inputClasses = classNames({topicFilterInput: 1, en: !isHeInt, he: isHeInt});
     return (
       <div className="readerNavMenu">
@@ -89,19 +95,8 @@ class TopicPageAll extends Component {
                 </div>
                 : null }
               </div>
-
               <AlphabeticalTopicsNav />
-
-              <div className="allTopicsList">
-                { topicList ?
-                  (topicList.length ?
-                    <div>
-                      <ResponsiveNBox content={topicList} initialWidth={this.props.initialWidth} />
-                    </div>
-                    : <LoadingMessage message="There are no topics here." heMessage="" />)
-                  : <LoadingMessage />
-                }
-              </div>
+              {allTopicsList}
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>

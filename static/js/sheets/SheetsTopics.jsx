@@ -11,13 +11,13 @@ const SheetsTopicsTOC = ({handleClick}) => {
     }));
     return (
     <div className="sheetsTopicTOC">
-        <SheetsWrapper title="Browse by Topic">{categoryListings}</SheetsWrapper>
+        <TOCCardsWrapper title="Browse by Topic">{categoryListings}</TOCCardsWrapper>
     </div>
   );
 }
 
-const SheetsWrapper = ({title, children}) => {
-    return <div className="sheetsWrapper table">
+const TOCCardsWrapper = ({title, children}) => {
+    return <div className="TOCCardsWrapper table">
                 <div className="sheetsHomepageSectionTitle">{title}</div>
                 {children}
            </div>
@@ -51,8 +51,8 @@ const SheetsHoliday = ({handleClick}) => {
 }
 const SheetsTopicsCalendar = ({handleClick}) => {
     return <div className="sheetsTopicsCalendar table">
-                <SheetsWrapper title="This Week's Torah Portion"><SheetsParashah handleClick={handleClick}/></SheetsWrapper>
-                <SheetsWrapper title="Upcoming Holiday"><SheetsHoliday handleClick={handleClick}/></SheetsWrapper>
+                <TOCCardsWrapper title="This Week's Torah Portion"><SheetsParashah handleClick={handleClick}/></TOCCardsWrapper>
+                <TOCCardsWrapper title="Upcoming Holiday"><SheetsHoliday handleClick={handleClick}/></TOCCardsWrapper>
           </div>
 }
 

@@ -26,11 +26,6 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
       </div>
     </div>
   );
-  categoryListings = (
-    <div className="readerNavCategories">
-      <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
-    </div>
-  );
 
   const about = multiPanel ? null :
     <SidebarModules type={"AboutTopics"} props={{hideTitle: true}} />;
@@ -57,7 +52,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
                   </CategoryHeader>
               </div>
               { about }
-              { categoryListings }
+              { <div class="TOCCardsWrapper table">{categoryListings}</div> }
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
         </div>

@@ -263,9 +263,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
-                      <div className="readerNavCategories">
-                        <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />
-                      </div>
+                    <div className="TOCCardsWrapper table">{topicBlocks}</div>
                   </div>
                   <NavSidebar sidebarModules={sidebarModules} />
                 </div>
