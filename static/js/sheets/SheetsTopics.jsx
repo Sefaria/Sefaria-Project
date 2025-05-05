@@ -1,13 +1,14 @@
 import React, {useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
 import {Card} from "../common/Card";
+import {TopicTOCCard} from "../common/TopicTOCCard";
+
 const SheetsTopicsTOC = ({handleClick}) => {
-    const categoryListings = Sefaria.topic_toc.map(cat => {
-        return <Card cardTitleHref={`/topics/category/${cat.slug}`}
-                    cardTitle={cat}
-                    cardText={cat.categoryDescription}
-                    oncardTitleClick={(e) => handleClick(e, cat.slug, cat.en, cat.he)}/>;
-    });
+    const categoryListings = Sefaria.topic_toc.map(((cat, i) => {
+        return <TopicTOCCard cardTitleHref={`/topics/category/${cat.slug}`}
+                             topic={cat}
+                             setTopic={(e) => handleClick(e, cat.slug, cat.primaryTitle.en, cat.primaryTitle.he)}/>;
+    }));
     return (
     <div className="sheetsTopicTOC">
         <SheetsWrapper title="Browse by Topic">{categoryListings}</SheetsWrapper>

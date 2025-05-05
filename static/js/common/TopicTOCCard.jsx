@@ -13,7 +13,7 @@ export const TopicTOCCard = ({topic, setTopic, setNavTopic=null, showDescription
 
   const { slug, children} = topic;
   const description = children ? topic.categoryDescription : topic.description;
-  let {en, he} = topic;
+  let {en, he} = topic.primaryTitle;
   en = en.replace(/^Parashat /, "");
   he = he.replace(/^פרשת /, "");
   const href = `/topics/${children ? 'category/' : ''}${slug}`;

@@ -493,14 +493,29 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         return self.link_set('refTopic', query_kwargs, **kwargs)
 
     def contents(self, **kwargs):
-        mini = kwargs.get('minify', False)
-        d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
+        d = {}
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
         if not kwargs.get("with_html"):
             for k, v in d.get("description", {}).items():
                 d["description"][k] = re.sub("<[^>]+>", "", v or "")
+
+        mini = kwargs.get('minify', False)
+        if not mini:
+            d.update(super(Topic, self).contents(**kwargs))
+        else:
+            children = kwargs.get("children", [])
+            d.update({
+                'slug': self.slug,
+                "shouldDisplay": True if len(children) > 0 else self.should_display(),
+                "displayOrder": getattr(self, "displayOrder", 10000),
+                "pools": DjangoTopic.objects.slug_to_pools.get(self.slug, [])})
+            if getattr(self, "categoryDescription", False):
+                d['categoryDescription'] = topic.categoryDescription
+            description = getattr(self, "description", None)
+            if description is not None and getattr(self, "description_published", False):
+                d['description'] = description
         return d
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
