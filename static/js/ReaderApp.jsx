@@ -2262,8 +2262,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     return (
       // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
       // InterruptingMessage modals and Banners will always render if available but stay hidden initially
-      <StrapiDataProvider>
-        <AdContext.Provider value={this.getUserContext()}>
+      <AdContext.Provider value={this.getUserContext()}>
+        <StrapiDataProvider>
           <div id="readerAppWrap">
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
@@ -2275,8 +2275,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               <CookiesNotification />
             </div>
           </div>
-        </AdContext.Provider>
-      </StrapiDataProvider>
+        </StrapiDataProvider>
+      </AdContext.Provider>
     );
   }
 }
