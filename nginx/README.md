@@ -56,9 +56,17 @@ ALLOWED_HOSTS = [
 SESSION_COOKIE_DOMAIN = ".localsefaria.org"
 CSRF_COOKIE_DOMAIN    = ".localsefaria.org"
 
-# In local development over HTTP, these must be False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE    = False
+# In local development over HTTPS, these must be True
+# If you want to develop cookies localhost:8000 set to False 
+USE_HTTPS = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE    = True
+
+SECURE_SSL_REDIRECT = False
+
+# For localhost testing with self-signed certs
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # If you run on two hosts, you may need to trust both for CSRF
 CSRF_TRUSTED_ORIGINS = [
@@ -71,78 +79,96 @@ After updating settings, clear any existing cookies in your browser or use a pri
 
 ---
 
-## 3. Install and Configure NGINX
+## 3. Create SSL files
 
-### 3.1 Install NGINX via Homebrew
+### 3.1 Create ssl folder
+In Sefaria-Project/nginx
+```
+mkdir ssl
+cd ssl
+```
+
+### 3.2 Create san.cnf
+```
+cat > san.cnf <<EOF
+[req]
+default_bits       = 2048
+prompt             = no
+default_md         = sha256
+req_extensions     = req_ext
+distinguished_name = dn
+
+[dn]
+C  = US
+ST = Local
+L  = Dev
+O  = Dev
+CN = localsefaria.org
+
+[req_ext]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = localsefaria.org
+DNS.2 = sheets.localsefaria.org
+EOF
+```
+
+### 3.3 Create localsefaria key and crt
+```
+openssl req -x509 -nodes -days 365 \
+  -newkey rsa:2048 \
+  -keyout localsefaria.key \
+  -out localsefaria.crt \
+  -config san.cnf \
+  -extensions req_ext
+```
+
+### 3.4 Trust the certificate on your system
+On Mac:
+1. Open Keychain Access.
+2. Import localsefaria.crt into System keychain - File > Import Items > Select your localsefaria.crt
+3. Right-click → Get Info → Expand Trust → Set "When using this certificate" to Always Trust.
+4. Restart your browser.
+
+On Debian/Ubuntu (wasn't checked):
+```
+sudo cp project-path/nginx/ssl/localsefaria.crt /usr/local/share/ca-certificates/
+sudo update-ca-certificates
+```
+
+On Red Hat/CentOS/Fedora (wasn't checked):
+```
+sudo cp project-path/nginx/ssl/localsefaria.crt /usr/local/share/ca-certificates/
+sudo update-ca-trust
+```
+
+Om Windows (wasn't checked):
+```
+certutil -addstore "Root" project-path\nginx\ssl\localsefaria.crt
+```
+
+---
+
+## 4. Install and Configure NGINX
+
+### 4.1 Install NGINX via Homebrew
 
 ```bash
 brew install nginx
 ```
 
-### 3.2 Create Your Local NGINX Include File
+### 4.2 Create Your Local NGINX Include File
 
 Inside your project repo, you will find the file:
 
 ```
-~/Sefaria-Project/nginx/local_nginx.conf
+~/Sefaria-Project/nginx/local_nginx.conf.example
 ```
+Copy it to `~/Sefaria-Project/nginx/local_nginx.conf`
+Change all `/your/Sefaria-Project/path` to your Sefaria-Project path
 
-Add your custom server blocks there. For example:
-
-```nginx
-# local_nginx.conf
-
-server {
-    listen 80;
-    server_name localsefaria.org;
-
-    # Redirect /sheets and all subpaths to the sheets subdomain
-    location ~ ^/sheets(/.*)?$ {
-        return 301 http://sheets.localsefaria.org$1;
-    }
-
-    # Proxy all other requests to Django on port 8000
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-
-server {
-    listen 80;
-    server_name sheets.localsefaria.org;
-
-    # Redirect static files back to the main domain
-    location ^~ /static/ {
-        return 301 http://localsefaria.org$request_uri;
-    }
-
-    # Redirect login to main domain (preserving query)
-    location = /login {
-        return 301 http://localsefaria.org$request_uri;
-    }
-
-    # Proxy API calls to main domain's Django API
-    location ^~ /api/ {
-        proxy_pass http://127.0.0.1:8000/api/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    # Serve the sheets app at the root of this subdomain
-    location / {
-        proxy_pass        http://127.0.0.1:8000/sheets/;
-        proxy_set_header  Host               $host;
-        proxy_set_header  X-Real-IP          $remote_addr;
-        proxy_set_header  X-Forwarded-For    $proxy_add_x_forwarded_for;
-        proxy_set_header  X-Forwarded-Proto  $scheme;
-        proxy_redirect    /sheets/           /;
-    }
-}
-```
-
-### 3.3 Include Your File in the Main NGINX Config
+### 4.3 Include Your File in the Main NGINX Config
 
 Open the main nginx config:
 
@@ -164,7 +190,7 @@ Save and exit.
 
 ---
 
-## 4. Run and Reload NGINX
+## 5. Run and Reload NGINX
 
 After any change to the NGINX config, always test and reload:
 
@@ -177,7 +203,7 @@ If the test (`nginx -t`) reports errors, fix them before reloading.
 
 ---
 
-## 5. Start Your Django Server
+## 6. Start Your Django Server
 
 You should now be able to visit:
 
