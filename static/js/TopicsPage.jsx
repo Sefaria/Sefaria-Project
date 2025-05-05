@@ -11,21 +11,20 @@ import { NavSidebar, SidebarModules } from './NavSidebar';
 import {CategoryHeader} from "./Misc";
 import Component from 'react-class';
 import { TopicTOCCard } from "./common/TopicTOCCard";
+import {Card} from "./common/Card";
 
 // The root topics page listing topic categories to browse
-const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
+const TopicsPage = ({setNavTopic, multiPanel}) => {
   let categoryListings = Sefaria.topic_toc.map((topic, i) => <TopicTOCCard topic={topic} setNavTopic={setNavTopic} key={i}/>);
   const letter = Sefaria.interfaceLang === "hebrew" ? "א" : "a";
-  categoryListings.push(
-    <div className="navBlock">
-      <a href={"/topics/all/" + letter} className="navBlockTitle">
-        <InterfaceText>All Topics A-Z</InterfaceText>
-      </a>
-      <div className="navBlockDescription">
-        <InterfaceText>Browse or search our complete list of topics.</InterfaceText>
-      </div>
-    </div>
-  );
+  const description = {"en": "Browse or search our complete list of topics.", "he": Sefaria._("Browse or search our complete list of topics.")};
+  const topicsA_Z = <Card cardTitleHref={`/topics/all/${letter}`}
+                                     cardTitle={{"en": "All Topics A-Z", "he": Sefaria._("All Topics A-Z")}}
+                                     cardText={description}
+                                     analyticsEventName="navto_topic:click"
+                                     analyticsLinkType={"topic"}
+                                     oncardTitleClick={()=>{}}/>;
+  categoryListings.push(topicsA_Z);
 
   const about = multiPanel ? null :
     <SidebarModules type={"AboutTopics"} props={{hideTitle: true}} />;
