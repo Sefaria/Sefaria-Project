@@ -668,10 +668,10 @@ const TopicLandingTopicCatList = () => {
                     <div className="navSidebarLink ref serif" key={i}>
                         <a href={"/topics/category/" + topic.slug}
                             data-anl-link_type="category"
-                            data-anl-text={topic.en}
+                            data-anl-text={topic.primaryTitle.en}
                             data-anl-event="navto_topic:click"
                         >
-                            <InterfaceText text={{en: topic.en, he: topic.he}}/>
+                            <InterfaceText text={{en: topic.primaryTitle.en, he: topic.primaryTitle.he}}/>
                         </a>
                     </div>
                 )}

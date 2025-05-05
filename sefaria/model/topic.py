@@ -512,7 +512,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 "displayOrder": getattr(self, "displayOrder", 10000),
                 "pools": DjangoTopic.objects.slug_to_pools.get(self.slug, [])})
             if getattr(self, "categoryDescription", False):
-                d['categoryDescription'] = topic.categoryDescription
+                d['categoryDescription'] = self.categoryDescription
             description = getattr(self, "description", None)
             if description is not None and getattr(self, "description_published", False):
                 d['description'] = description

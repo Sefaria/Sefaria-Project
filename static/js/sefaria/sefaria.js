@@ -2798,13 +2798,13 @@ _media: {},
       const stripInitialPunctuation = str => str.replace(/^["#]/, "");
       const [aAlpha, bAlpha] = [a, b].map(x => {
         if (Sefaria.interfaceLang === "hebrew") {
-          return (x.he.length) ?
-            stripInitialPunctuation(x.he) :
-           "תתת" + stripInitialPunctuation(x.en);
+          return (x.primaryTitle.he.length) ?
+            stripInitialPunctuation(x.primaryTitle.he) :
+           "תתת" + stripInitialPunctuation(x.primaryTitle.en);
         } else {
-          return (x.en.length) ?
-            stripInitialPunctuation(x.en) :
-            stripInitialPunctuation(x.he)
+          return (x.primaryTitle.en.length) ?
+            stripInitialPunctuation(x.primaryTitle.en) :
+            stripInitialPunctuation(x.primaryTitle.he)
         }
       });
 
