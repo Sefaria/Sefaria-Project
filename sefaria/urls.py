@@ -504,6 +504,7 @@ urlpatterns += [
     url(r'^plans/(?P<uuid>[0-9a-fA-F]{24})/day_(?P<day>\d+)$', api_views.PlanView.as_view(), name='plan_day'),
     url(r'^api/plans/upload$', reader_views.plan_image_upload_api),
     url(r'^api/plansPost/?$', reader_views.plans_api),
+    url(r'^api/plans/update_content$', reader_views.update_plan_content_api),
 ]
 
 if DOWN_FOR_MAINTENANCE:

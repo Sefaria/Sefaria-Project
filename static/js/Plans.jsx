@@ -4,9 +4,14 @@ import classNames from 'classnames';
 import { InterfaceText } from './Misc';
 import PlanDetail from './PlanDetail';
 import PlanProgression from './PlanProgression';
-// import '../css/plans.css';
 
-const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
+// Categories for filtering
+export const categories = [
+  "all", "love", "anxiety", "healing", "anger",
+  "hope", "depression", "fear", "peace", "stress", "patience", "loss", "jealousy", "grief"
+];
+
+const Plans = ({ userType }) => {
   const [plans, setPlans] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -33,12 +38,6 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
 
     fetchPlans();
   }, []);
-
-  // Categories for filtering
-  const categories = [
-    "all", "anger", "love", "compassion", "wisdom", "mindfulness",
-    "gratitude", "peace", "forgiveness", "equanimity", "meditation"
-  ];
 
   // Filter plans based on search query and category
   const filteredPlans = plans.filter(plan => {
@@ -76,6 +75,8 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                           onChange={(e) => setSearchQuery(e.target.value)}
                           className="searchInput"
                         />
+                        
+                        {userType === "Plan creator" ? (
                         <button 
                           className="createPlanButton"
                           onClick={() => {/* Add your create plan logic here */}}
@@ -88,6 +89,7 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                           Create a Plan
                           </a>
                         </button>
+                      ) : null}
                       </div>
                     </div>
 
@@ -114,7 +116,7 @@ const Plans = ({ multiPanel, toggleSignUpModal, initialWidth }) => {
                         filteredPlans.map(plan => (
                           <a href={`/plans/${plan.id}`} key={plan.id} className="planCard">
                             <div className="planImageWrapper">
-                              <img src={plan.image} alt={plan.title} className="planImage" />
+                              <img src={plan.imageUrl || "/static/img/plan-default.png"} alt={plan.title} className="planImage" />
                               <div className="planCategories">
                                 {plan.categories.map((category, index) => (
                                   <span key={index} className="planCategory">

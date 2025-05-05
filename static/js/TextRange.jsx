@@ -654,7 +654,7 @@ class TextSegment extends Component {
 
     const classes=classNames({
       segment: 1,
-      highlight: this.props.highlight && this.props.showHighlight,
+      highlight: this.props.highlight,
       invisibleHighlight: this.props.highlight,
       heOnly: heOnly,
       enOnly: enOnly,

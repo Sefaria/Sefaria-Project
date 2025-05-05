@@ -110,35 +110,48 @@ logger = structlog.get_logger(__name__)
 
 @csrf_exempt
 @login_required
-def plan_image_upload_api(request):
-    """Handle image upload for plans"""
-    if request.method != "POST":
-        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
-
-    MAX_IMAGE_MB = 2
-    MAX_IMAGE_SIZE = MAX_IMAGE_MB * 1024 * 1024
-
-    try:
-        if not request.FILES or "file" not in request.FILES:
-            return jsonResponse({"error": "No file provided."}, status=400)
-
-        file = request.FILES["file"]
-        if file.size > MAX_IMAGE_SIZE:
-            return jsonResponse({"error": f"Image too large. Maximum size is {MAX_IMAGE_MB}MB."}, status=400)
-
-        from sefaria.utils.upload import upload_file
-        filename = f"plan_images/{file.name}"
-        url = upload_file(file, filename)
-
-        return jsonResponse({"url": url})
-
-    except Exception as e:
-        return jsonResponse({"error": str(e)}, status=500)
+def plan_image_upload_api(request, resize_image=True):
+    from PIL import Image
+    from tempfile import NamedTemporaryFile
+    from sefaria.google_storage_manager import GoogleStorageManager
+    from io import BytesIO
+    import uuid
+    if request.method == "POST":
+        MAX_FILE_MB = 2
+        MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
+        MAX_FILE_DIMENSIONS = (1048, 1048)
+        uploaded_file = request.FILES['file']
+        if uploaded_file.size > MAX_FILE_SIZE:
+            return jsonResponse({"error": "Uploaded files must be smaller than %dMB." % MAX_FILE_MB})
+        name, extension = os.path.splitext(uploaded_file.name)
+        with NamedTemporaryFile(suffix=extension) as temp_uploaded_file:
+            temp_uploaded_file.write(uploaded_file.read())
+            image = Image.open(temp_uploaded_file)
+            resized_image_file = BytesIO()
+            if resize_image:
+                image.thumbnail(MAX_FILE_DIMENSIONS, Image.LANCZOS)
+            image.save(resized_image_file, optimize=True, quality=70, format="PNG")
+            resized_image_file.seek(0)
+            bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
+            unique_file_name = f"{request.user.id}-{uuid.uuid1()}.{uploaded_file.name[-3:].lower()}"
+            try:
+                url = GoogleStorageManager.upload_file(resized_image_file, unique_file_name, bucket_name)
+                # Update the plan with the image URL
+                if 'plan_id' in request.POST:
+                    plan = Plan().load({"_id": ObjectId(request.POST['plan_id'])})
+                    if plan:
+                        plan.imageUrl = url
+                        plan.save()
+                return jsonResponse({"status": "success", "url": url})
+            except:
+                return jsonResponse({"error": "There was an error uploading your file."})
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 @csrf_exempt
 @login_required
 def plans_api(request):
-    """Handle plan creation and updates"""
+    """Handle plan creation, updates, and deletion"""
     if request.method == "GET":
         # Return all plans or filter by query params
         query = {}
@@ -173,20 +186,29 @@ def plans_api(request):
     elif request.method == "PUT":
         # Update existing plan
         try:
-            if not request.POST.get("json"):
+            # Read JSON data from request.body for PUT requests
+            try:
+                plan_data = json.loads(request.body.decode('utf-8'))
+            except json.JSONDecodeError:
+                return jsonResponse({"error": "Invalid JSON data provided."}, status=400)
+            
+            if not plan_data:
                 return jsonResponse({"error": "No data provided."}, status=400)
 
-            plan_data = json.loads(request.POST.get("json"))
-            if "_id" not in plan_data:
+            if "id" not in plan_data:
                 return jsonResponse({"error": "No plan ID provided."}, status=400)
 
-            plan = Plan().load({"_id": ObjectId(plan_data["_id"])})
+            plan = Plan().load({"_id": ObjectId(plan_data["id"])})
             if not plan:
                 return jsonResponse({"error": "Plan not found."}, status=404)
 
             # Check permissions
             if plan.creator != request.user.id:
                 return jsonResponse({"error": "You don't have permission to edit this plan."}, status=403)
+
+            # Remove id from plan_data before loading into plan object
+            if "id" in plan_data:
+                del plan_data["id"]
 
             plan.load_from_dict(plan_data)
             if plan.save():
@@ -199,8 +221,72 @@ def plans_api(request):
         except Exception as e:
             return jsonResponse({"error": str(e)}, status=500)
 
+    elif request.method == "DELETE":
+        # Delete existing plan
+        try:
+            if not request.GET.get("id"):
+                return jsonResponse({"error": "No plan ID provided."}, status=400)
+
+            plan_id = request.GET.get("id")
+            plan = Plan().load({"_id": ObjectId(plan_id)})
+            if not plan:
+                return jsonResponse({"error": "Plan not found."}, status=404)
+
+            # Check permissions
+            if plan.creator != request.user.id:
+                return jsonResponse({"error": "You don't have permission to delete this plan."}, status=403)
+
+            if plan.delete():
+                return jsonResponse({"status": "success"})
+            else:
+                return jsonResponse({"error": "Failed to delete plan."}, status=500)
+
+        except ValueError as e:
+            return jsonResponse({"error": "Invalid plan ID."}, status=400)
+        except Exception as e:
+            return jsonResponse({"error": str(e)}, status=500)
+
     else:
         return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+
+
+@csrf_exempt
+def update_plan_content_api(request):
+    """
+    API endpoint to update a plan's content with a sheet ID for a specific day.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Method not allowed"}, status=405)
+
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": "You must be logged in to update a plan"}, status=401)
+
+    plan_id = request.POST.get("plan_id")
+    day = request.POST.get("day")
+    sheet_id = request.POST.get("sheet_id")
+
+    if not all([plan_id, day, sheet_id]):
+        return jsonResponse({"error": "Missing required parameters"}, status=400)
+
+    try:
+        # Convert plan_id string to ObjectId
+        object_id = ObjectId(plan_id)
+        plan = Plan().load({"_id": object_id})
+        if not plan:
+            return jsonResponse({"error": "Plan not found"}, status=404)
+
+        # Check if user is the creator of the plan
+        if str(plan.creator) != str(request.user.id):
+            return jsonResponse({"error": "You don't have permission to update this plan"}, status=403)
+
+        plan.update_content(day, sheet_id)
+        return jsonResponse({"status": "ok"})
+
+    except InvalidId as e:
+        return jsonResponse({"error": f"Invalid plan ID format: {str(e)}"}, status=400)
+    except Exception as e:
+        return jsonResponse({"error": str(e)}, status=500)
+
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
@@ -340,6 +426,7 @@ def base_props(request):
         profile = UserProfile(user_obj=request.user)
         user_data = {
             "_uid": request.user.id,
+            "_user_type": request.user.usertype.user_type if hasattr(request.user, 'usertype') else None,
             "_email": request.user.email,
             "_uses_new_editor": True,
             "slug": profile.slug if profile else "",
@@ -364,6 +451,7 @@ def base_props(request):
     else:
         user_data = {
             "_uid": None,
+            "_user_type": None,
             "_email": "",
             "slug": "",
             "is_moderator": False,

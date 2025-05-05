@@ -4,6 +4,7 @@ import Component from 'react-class';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
+import { categories as validCategories } from './Plans';
 
 class FileInput extends Component {
   handleChange = (e) => {
@@ -30,17 +31,23 @@ class EditPlanPage extends Component {
     this.state = props.initialData || {
       title: '',
       description: '',
+      long_description: '',
       categories: [],
       imageUrl: null,
       total_days: 7,
-      listed: false
+      content: {},
+      listed: false,
+      categoryInput: '',
+      suggestedCategories: []
     };
     this.changed = false;
     
     // Bind methods
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleImageChange = this.handleImageChange.bind(this);
-    this.handleCategoryChange = this.handleCategoryChange.bind(this);
+    this.handleCategoryInputChange = this.handleCategoryInputChange.bind(this);
+    this.handleCategorySelect = this.handleCategorySelect.bind(this);
+    this.handleCategoryRemove = this.handleCategoryRemove.bind(this);
     this.handleDaysChange = this.handleDaysChange.bind(this);
     this.save = this.save.bind(this);
   }
@@ -65,6 +72,9 @@ class EditPlanPage extends Component {
 
     var formData = new FormData();
     formData.append("file", file);
+    if (this.props.initialData && this.props.initialData.id) {
+      formData.append("plan_id", this.props.initialData.id);
+    }
 
     $.ajax({
       url: '/api/plans/upload',
@@ -101,7 +111,8 @@ class EditPlanPage extends Component {
   handleInputChange(e) {
     const idToField = {
       planTitle: "title",
-      planDescription: "description"
+      planDescription: "description",
+      planLongDescription: "long_description"
     };
     const field = idToField[e.target.id];
     const state = {};
@@ -110,15 +121,50 @@ class EditPlanPage extends Component {
     this.changed = true;
   }
 
-  handleCategoryChange(e) {
-    const value = Array.from(e.target.selectedOptions, option => option.value);
-    this.setState({ categories: value });
+  handleCategoryInputChange(e) {
+    const input = e.target.value.toLowerCase();
+    this.setState({ 
+      categoryInput: input,
+      suggestedCategories: input 
+        ? validCategories.filter(cat => 
+            cat.toLowerCase().includes(input) && 
+            !this.state.categories.includes(cat)
+          )
+        : []
+    });
+  }
+
+  handleCategorySelect(category) {
+    if (!this.state.categories.includes(category)) {
+      this.setState(prevState => ({
+        categories: [...prevState.categories, category],
+        categoryInput: '',
+        suggestedCategories: []
+      }));
+      this.changed = true;
+    }
+  }
+
+  handleCategoryRemove(categoryToRemove) {
+    this.setState(prevState => ({
+      categories: prevState.categories.filter(cat => cat !== categoryToRemove)
+    }));
     this.changed = true;
   }
 
   handleDaysChange(e) {
     const value = parseInt(e.target.value) || 0;
-    this.setState({ total_days: value });
+    
+    // Initialize content with empty sheet_ids for each day
+    const content = {};
+    for (let i = 1; i <= value; i++) {
+      content[`day ${i}`] = 0;  
+    }
+    
+    this.setState({ 
+      total_days: value,
+      content: content
+    });
     this.changed = true;
   }
 
@@ -130,6 +176,10 @@ class EditPlanPage extends Component {
     }
     if (!this.state.description) {
       alert("Please enter a description");
+      return;
+    }
+    if (!this.state.long_description) {
+      alert("Please enter what users will learn");
       return;
     }
     if (this.state.total_days < 1) {
@@ -146,6 +196,17 @@ class EditPlanPage extends Component {
       planData.imageUrl = null;
     }
 
+    // Ensure content is properly initialized if it's empty
+    if (Object.keys(planData.content || {}).length === 0) {
+      planData.content = {};
+      for (let i = 1; i <= planData.total_days; i++) {
+        planData.content[`day ${i}`] = 0;  
+      }
+    }
+
+    // Convert total_days to number to ensure proper MongoDB storage
+    planData.total_days = parseInt(planData.total_days);
+
     $.post("/api/plansPost", {json: JSON.stringify(planData)}, function(data) {
       if ("error" in data) {
         alert(data.error);
@@ -155,27 +216,22 @@ class EditPlanPage extends Component {
       } else {
         alert("There was an error saving your plan.");
       }
-    }.bind(this)).fail(function() {
-      alert("There was an error saving your plan.");
+    }.bind(this)).fail(function(jqXHR) {
+      if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+        alert(jqXHR.responseJSON.error);
+      } else {
+        alert("There was an error saving your plan.");
+      }
     });
   }
 
   render() {
-    const categories = [
-      "Sutra",
-      "Tantra",
-      "Philosophy",
-      "History",
-      "Practice",
-      "Commentary"
-    ];
-
     return (
       <div id="editPlanPage">
         <div className="headerWithButtons">
           <div className="start"></div>
           <h1>
-            <InterfaceText>Create New Plan</InterfaceText>
+            <InterfaceText>Create Plan</InterfaceText>
           </h1>
           <div className="end">
             <a className="button small transparent control-elem" href="/plans">
@@ -214,22 +270,76 @@ class EditPlanPage extends Component {
           />
         </div>
 
-        <div className="field halfWidth">
+        <div className="field">
+          <label>
+            <InterfaceText>What you'll learn</InterfaceText>
+            <span className="required">*</span>
+          </label>
+          <textarea
+            id="planLongDescription"
+            value={this.state.long_description}
+            onChange={this.handleInputChange}
+            rows="4"
+          />
+        </div>
+
+        <div className="field halfWidth" style={{ marginRight: '2rem' }}>
           <label>
             <InterfaceText>Categories</InterfaceText>
             <span className="required">*</span>
           </label>
-          <select
-            multiple
-            id="categories"
-            value={this.state.categories}
-            onChange={this.handleCategoryChange}
-          >
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
+          <div className="categoryInputContainer">
+            <input
+              type="text"
+              value={this.state.categoryInput}
+              onChange={this.handleCategoryInputChange}
+              placeholder="Type to search categories"
+              className="categoryInput"
+            />
+            {this.state.suggestedCategories.length > 0 && (
+              <ul className="categorySuggestions">
+                {this.state.suggestedCategories.map(category => (
+                  <li 
+                    key={category} 
+                    onClick={() => this.handleCategorySelect(category)}
+                    className="categorySuggestion"
+                  >
+                    {category}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="selectedCategories">
+            {this.state.categories.map(category => (
+              <span key={category} className="categoryTag">
+                {category}
+                <button
+                  type="button"
+                  onClick={() => this.handleCategoryRemove(category)}
+                  className="removeCategory"
+                  style={{
+                    marginLeft: '4px',
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    padding: '0',
+                    fontSize: '14px',
+                    color: '#666',
+                    width: '16px',
+                    height: '16px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1
+                  }}
+                >
+                  ×
+                </button>
+              </span>
             ))}
-          </select>
-          <div className="helperText">Hold Ctrl/Cmd to select multiple categories</div>
+          </div>
+          <div className="helperText">Type to search and select categories</div>
         </div>
 
         <div className="field halfWidth">
@@ -247,22 +357,27 @@ class EditPlanPage extends Component {
         </div>
 
         <div className="field">
-          <label>
+          <label htmlFor="planImage">
             <InterfaceText>Plan Image</InterfaceText>
           </label>
           {this.state.imageUrl ? (
-            <img className="planImage" src={this.state.imageUrl} alt="Plan" />
+            <div className="imageContainer">
+              <img className="planImage" src={this.state.imageUrl} alt="Plan preview" />
+                
+            </div>
           ) : (
-            <div className="planImage placeholder"></div>
+            <div className="planImage placeholder">
+              <span className="placeholderText">No image uploaded</span>
+            </div>
           )}
           <FileInput
             name="planImage"
             accept="image/*"
             text="Upload Image"
-            className="button white"
+            className="button white uploadButton"
             onChange={this.handleImageChange}
           />
-          <div className="helperText">
+          <div className="helperText" id="planImageHelper">
             <InterfaceText>Recommended size: 350px x 350px or larger</InterfaceText>
           </div>
         </div>
