@@ -23,7 +23,7 @@ const EditPlanModal = ({ plan, onClose, onSave }) => {
     description: plan?.description || '',
     whatYouWillLearn: plan?.whatYouWillLearn || '',
     categories: plan?.categories?.join(', ') || '',
-    totalDays: plan?.total_days || '',
+    totalDays: plan?.totalDays || '',
     planImage: plan?.planImage || ''
   });
   const [isUploading, setIsUploading] = useState(false);
