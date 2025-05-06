@@ -16,23 +16,57 @@ import {
   InterfaceText,
 } from './Misc';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import { categories as validCategories } from './Plans';
 
 const EditPlanModal = ({ plan, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     title: plan?.title || '',
     description: plan?.description || '',
     whatYouWillLearn: plan?.whatYouWillLearn || '',
-    categories: plan?.categories?.join(', ') || '',
-    totalDays: plan?.totalDays || '',
+    categories: plan?.categories || [],
+    totalDays: plan?.totalDays || '',  
     planImage: plan?.planImage || ''
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [categoryInput, setCategoryInput] = useState('');
+  const [suggestedCategories, setSuggestedCategories] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleCategoryInputChange = (e) => {
+    const input = e.target.value.toLowerCase();
+    setCategoryInput(input);
+    setSuggestedCategories(
+      input
+        ? validCategories.filter(cat =>
+            cat.toLowerCase().includes(input) &&
+            !formData.categories.includes(cat)
+          )
+        : []
+    );
+  };
+
+  const handleCategorySelect = (category) => {
+    if (!formData.categories.includes(category)) {
+      setFormData(prev => ({
+        ...prev,
+        categories: [...prev.categories, category]
+      }));
+      setCategoryInput('');
+      setSuggestedCategories([]);
+    }
+  };
+
+  const handleCategoryRemove = (categoryToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      categories: prev.categories.filter(cat => cat !== categoryToRemove)
     }));
   };
 
@@ -78,10 +112,13 @@ const EditPlanModal = ({ plan, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (formData.categories.length === 0) {
+      alert("Please select at least one category");
+      return;
+    }
     onSave({
       ...plan,
       ...formData,
-      categories: formData.categories.split(',').map(cat => cat.trim()).filter(cat => cat),
       total_days: parseInt(formData.totalDays)
     });
   };
@@ -118,13 +155,54 @@ const EditPlanModal = ({ plan, onClose, onSave }) => {
             />
           </div>
           <div className="form-group">
-            <label>Categories (comma-separated):</label>
-            <input
-              type="text"
-              name="categories"
-              value={formData.categories}
-              onChange={handleChange}
-            />
+            <label>Categories:</label>
+            <div className="categories-container">
+              <input
+                type="text"
+                value={categoryInput}
+                onChange={handleCategoryInputChange}
+                placeholder="Type to search categories..."
+                className="form-control category-search-input"
+              />
+              <div className="selected-categories-wrapper">
+                {formData.categories.map((category, index) => (
+                  <span key={index} className="category-pill">
+                    {category}
+                    <button
+                      type="button"
+                      onClick={() => handleCategoryRemove(category)}
+                      className="remove-category-btn"
+                      aria-label="Remove category"
+                      style={{
+                        border: '1px solid #ccc',
+                        background: 'none',
+                        borderRadius: '2px',
+                        padding: '0 3px',
+                        marginLeft: '4px',
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              {suggestedCategories.length > 0 && (
+                <div className="category-dropdown">
+                  {suggestedCategories.map((category, index) => (
+                    <div
+                      key={index}
+                      className="category-option"
+                      onClick={() => handleCategorySelect(category)}
+                    >
+                      {category}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div className="form-group">
             <label>Total Days:</label>
