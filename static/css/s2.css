@@ -9297,6 +9297,28 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
+.editorSaveStateIndicator{
+  position: fixed;
+  top: 200px;
+  left: 30px;
+}
+.editorSaveStateIndicator .saveStateMessage{
+  font-family: Roboto;
+  margin-inline-start: 8px;
+  font-size: 18px;
+  position: absolute;
+  top: -1px;
+  width: max-content;
+}
+.editorSaveStateIndicator .saveStateMessage a{
+  font-family: Roboto;
+  color: #18345D;
+}
+.interface-hebrew .editorSaveStateIndicator {
+  left: auto;
+  right: 89px;
+}
+
 .editorSidebarToggle {
   position: fixed;
   top: 200px;
