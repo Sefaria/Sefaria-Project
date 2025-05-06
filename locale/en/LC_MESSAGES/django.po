@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-09 00:59-0400\n"
+"POT-Creation-Date: 2025-05-05 02:14-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,73 +29,77 @@ msgstr "Admin Password"
 msgid "placeholder_sheet_id_delete_message"
 msgstr "Sheet ID to delete"
 
-#: sefaria/forms.py:41 sefaria/forms.py:47 sefaria/forms.py:152
+#: sefaria/forms.py:41 sefaria/forms.py:48 sefaria/forms.py:154
 msgid "placeholder_email_address"
 msgstr "Email Address"
 
-#: sefaria/forms.py:42 sefaria/forms.py:50
+#: sefaria/forms.py:42 sefaria/forms.py:51
 msgid "placeholder_password"
 msgstr "Password"
 
-#: sefaria/forms.py:48
+#: sefaria/forms.py:49
 msgid "placeholder_first_name"
 msgstr "First Name"
 
-#: sefaria/forms.py:49
+#: sefaria/forms.py:50
 msgid "placeholder_last_name"
 msgstr "Last Name"
 
-#: sefaria/forms.py:55 templates/registration/custom_dropdown.html:5
-#: templates/registration/register.html:27
+#: sefaria/forms.py:56 templates/registration/custom_dropdown.html:5
+#: templates/registration/register.html:40
 msgid "forms.placeholder_select_option"
 msgstr "Select an option"
 
-#: sefaria/forms.py:56 templates/registration/custom_dropdown.html:10
-#: templates/registration/register.html:32
+#: sefaria/forms.py:57 templates/registration/custom_dropdown.html:10
+#: templates/registration/register.html:45
 msgid "placeholder_monastic"
 msgstr "Monastic"
 
-#: sefaria/forms.py:57 templates/registration/custom_dropdown.html:11
-#: templates/registration/register.html:33
+#: sefaria/forms.py:58 templates/registration/custom_dropdown.html:11
+#: templates/registration/register.html:46
 msgid "placeholder_teacher"
 msgstr "Teacher"
 
-#: sefaria/forms.py:58 templates/registration/custom_dropdown.html:12
-#: templates/registration/register.html:34
+#: sefaria/forms.py:59 templates/registration/custom_dropdown.html:12
+#: templates/registration/register.html:47
 msgid "placeholder_student"
 msgstr "Student"
 
-#: sefaria/forms.py:59 templates/registration/custom_dropdown.html:13
-#: templates/registration/register.html:35
+#: sefaria/forms.py:60 templates/registration/custom_dropdown.html:13
+#: templates/registration/register.html:48
 msgid "placeholder_Educated_Dr_Prof"
 msgstr "Educated* /Dr / Prof"
 
-#: sefaria/forms.py:60 templates/registration/custom_dropdown.html:14
-#: templates/registration/register.html:36
+#: sefaria/forms.py:61 templates/registration/register.html:49
+msgid "placeholder_plan_creator"
+msgstr "Plan Creator"
+
+#: sefaria/forms.py:62 templates/registration/custom_dropdown.html:14
+#: templates/registration/register.html:50
 msgid "placeholder_regular_user"
 msgstr "Regular user"
 
-#: sefaria/forms.py:95 sefaria/model/user_profile.py:283
+#: sefaria/forms.py:97 sefaria/model/user_profile.py:283
 msgid "user_already_exists_message"
 msgstr "A user with that email already exists."
 
-#: sefaria/forms.py:143
+#: sefaria/forms.py:145
 msgid "mobile_app_key_error_message"
 msgstr "Incorrect mobile_app_key provided"
 
-#: sefaria/forms.py:157
+#: sefaria/forms.py:159
 msgid "form.placeholder_new_password"
 msgstr "New password"
 
-#: sefaria/forms.py:158
+#: sefaria/forms.py:160
 msgid "placeholder_new_password"
 msgstr "Enter New Password"
 
-#: sefaria/forms.py:163
+#: sefaria/forms.py:165
 msgid "form_placeholder_new_pw_confirmation"
 msgstr "New password confirmation"
 
-#: sefaria/forms.py:165
+#: sefaria/forms.py:167
 msgid "placeholder_repeat_new_password"
 msgstr "Repeat New Password"
 
@@ -106,8 +110,8 @@ msgstr "Please set a name for your collection."
 #: sefaria/model/collection.py:117
 msgid "collection_name_taken_message"
 msgstr ""
-"A public collection with this name already exists. Please choose a different"
-" name before publishing."
+"A public collection with this name already exists. Please choose a different "
+"name before publishing."
 
 #: sefaria/model/collection.py:119
 msgid "collection_image_required_message"
@@ -127,17 +131,17 @@ msgstr "invited you to a collection on Pecha"
 msgid "email_invalid_message"
 msgstr "The email address is not valid."
 
-#: sourcesheets/views.py:403
+#: sourcesheets/views.py:404
 msgid "creating_new_collection_message"
 msgstr "You must be logged in to create a new collection."
 
-#: sourcesheets/views.py:566
+#: sourcesheets/views.py:567
 msgid "error_message_when_trying_to_remove_the_last_owner_of_a_collection"
 msgstr ""
 "Leaving this collection would leave it without any owners. Please appoint "
 "another owner before leaving, or delete the collection."
 
-#: sourcesheets/views.py:1161
+#: sourcesheets/views.py:1162
 msgid "error_message_when_trying_to_upload_media_without_logging_in"
 msgstr "You must be logged in to access this api."
 
@@ -163,12 +167,9 @@ msgstr "Internal Server Error"
 msgid "send_message_to_developer_request"
 msgstr ""
 "Unfortunately, we've encountered an error.An email has been sent "
-"automatically to our developers.If you have any questions about the problem,"
-" or think you can help us figure out what went wrong,please email our development team"
-
-#: templates/500.html:15
-msgid "developer_team"
-msgstr "development team"
+"automatically to our developers.If you have any questions about the problem, "
+"or think you can help us figure out what went wrong,please email our "
+"development team"
 
 #: templates/account_settings.html:12
 msgid "account_setting"
@@ -274,7 +275,7 @@ msgstr "Save"
 msgid "common.account_setting.cancel_request"
 msgstr "Cancel"
 
-#: templates/activity.html:7 templates/activity.html:36
+#: templates/activity.html:7 templates/activity.html:45
 msgid "activity.revision_history"
 msgstr "Revision History of"
 
@@ -293,8 +294,8 @@ msgstr "View the complete revision history of this text on Pecha."
 #: templates/activity.html:19
 msgid "activity.activity_message"
 msgstr ""
-"View a user's activitiy history on Pecha, including published source sheets,"
-" and text translations, edits or additions."
+"View a user's activitiy history on Pecha, including published source sheets, "
+"and text translations, edits or additions."
 
 #: templates/activity.html:21
 msgid "activity.view_log_message"
@@ -302,51 +303,51 @@ msgstr ""
 "View the complete log of public activity on Pecha, including published "
 "source sheets, and text translations, edits or additions."
 
-#: templates/activity.html:43
+#: templates/activity.html:52
 msgid "activity.public_activity"
 msgstr "Public Activity"
 
-#: templates/activity.html:47
+#: templates/activity.html:56
 msgid "activity.recent_activity"
 msgstr "Recent Activity on Pecha"
 
-#: templates/activity.html:52
+#: templates/activity.html:61
 msgid "activity.all_activity_drop_down"
 msgstr "All Activity"
 
-#: templates/activity.html:53
+#: templates/activity.html:62
 msgid "activity.translation_option"
 msgstr "Translations"
 
-#: templates/activity.html:54
+#: templates/activity.html:63
 msgid "activity.source_sheets_option"
 msgstr "Source Sheets"
 
-#: templates/activity.html:55
+#: templates/activity.html:64
 msgid "activity.new_texts_option"
 msgstr "New Texts"
 
-#: templates/activity.html:56
+#: templates/activity.html:65
 msgid "activity.edit_list_option"
 msgstr "Edits"
 
-#: templates/activity.html:57
+#: templates/activity.html:66
 msgid "activity.notes_option"
 msgstr "Notes"
 
-#: templates/activity.html:58
+#: templates/activity.html:67
 msgid "activity.reviews_option"
 msgstr "Reviews"
 
-#: templates/activity.html:59
+#: templates/activity.html:68
 msgid "activity.text_info_option_option"
 msgstr "Text Info"
 
-#: templates/activity.html:60
+#: templates/activity.html:69
 msgid "activity.reversions_option"
 msgstr "Reversions"
 
-#: templates/activity.html:61
+#: templates/activity.html:70
 msgid "activity.flagged_option"
 msgstr "Flagged"
 
@@ -381,6 +382,18 @@ msgstr "Edit Collection on Pecha"
 #: templates/edit_collection.html:20
 msgid "edit_collection.loading"
 msgstr "Loading..."
+
+#: templates/edit_plan.html:4
+msgid "Create Plan"
+msgstr ""
+
+#: templates/edit_plan.html:4
+msgid "Sefaria"
+msgstr ""
+
+#: templates/edit_plan.html:6
+msgid "Create a new learning plan on Sefaria."
+msgstr ""
 
 #: templates/edit_profile.html:5
 msgid "edit_profile.edit_your_profile"
@@ -445,8 +458,8 @@ msgstr "Public Sheets"
 #: templates/edit_profile.html:91
 msgid "edit_profile.drag_sheet_message"
 msgstr ""
-"You can drag and order source sheets that you want to pin to the top of your"
-" profile."
+"You can drag and order source sheets that you want to pin to the top of your "
+"profile."
 
 #: templates/edit_profile.html:95
 msgid "edit_profile.pinned_sheets"
@@ -492,134 +505,134 @@ msgstr "Terms Editor"
 msgid "admin.loading"
 msgstr "Loading..."
 
-#: templates/edit_text.html:64
+#: templates/edit_text.html:62
 msgid "edit_text.add_new_text"
 msgstr "Add a New Text"
 
-#: templates/edit_text.html:65
+#: templates/edit_text.html:63
 msgid "edit_text.text_commentator_name"
 msgstr "Text or commentator name:"
 
-#: templates/edit_text.html:68
+#: templates/edit_text.html:66
 msgid "edit_text.add_button"
 msgstr "Add"
 
-#: templates/edit_text.html:69 templates/edit_text.html:97
-#: templates/edit_text.html:150
+#: templates/edit_text.html:67 templates/edit_text.html:95
+#: templates/edit_text.html:148
 msgid "common.edit_text.cancel_button"
 msgstr "Cancel"
 
-#: templates/edit_text.html:86
+#: templates/edit_text.html:84
 msgid "edit_text.your_review"
 msgstr "Your Review:"
 
-#: templates/edit_text.html:88
+#: templates/edit_text.html:86
 msgid "edit_text.review_question"
 msgstr "How should I write a review?"
 
-#: templates/edit_text.html:96 templates/edit_text.html:149
+#: templates/edit_text.html:94 templates/edit_text.html:147
 msgid "common.edit_text.save_button"
 msgstr "Save"
 
-#: templates/edit_text.html:101
+#: templates/edit_text.html:99
 msgid "edit_text_add_review_request"
 msgstr "To add your review,"
 
-#: templates/edit_text.html:101
+#: templates/edit_text.html:99
 msgid "edit_text_login"
 msgstr "log in"
 
-#: templates/edit_text.html:101
+#: templates/edit_text.html:99
 msgid "edit_text_or"
 msgstr "or"
 
-#: templates/edit_text.html:101
+#: templates/edit_text.html:99
 msgid "edit_text_register"
 msgstr "register"
 
-#: templates/edit_text.html:104
+#: templates/edit_text.html:102
 msgid "edit_text.close_button"
 msgstr "Close"
 
-#: templates/edit_text.html:109
+#: templates/edit_text.html:107
 msgid "edit_text.review_message"
 msgstr "Writing Helpful Reviews"
 
-#: templates/edit_text.html:110
+#: templates/edit_text.html:108
 msgid "edit_text_primary_text_historical_translation"
 msgstr "For primary texts and historical translations:"
 
-#: templates/edit_text.html:110
+#: templates/edit_text.html:108
 msgid "edit_text_primary_text_historical_trans_detail"
 msgstr ""
 "Indicate what outside source (book, web page) was used to compare the text, "
 "or make clear that your review is only looking at the text present."
 
-#: templates/edit_text.html:112
+#: templates/edit_text.html:110
 msgid "edit_text.compare_printed_edition"
 msgstr "I compared this text to X printed edition and found no problems."
 
-#: templates/edit_text.html:113
+#: templates/edit_text.html:111
 msgid "edit_text.all_looks_good"
 msgstr "I checked this text against the edition on X website, all looks good."
 
-#: templates/edit_text.html:114
+#: templates/edit_text.html:112
 msgid "edit_text.no_issue_message"
 msgstr "I read this text carefully and don't see anything wrong."
 
-#: templates/edit_text.html:119
+#: templates/edit_text.html:117
 msgid "edit_text.accurate"
 msgstr "This translation seems accurate to me."
 
-#: templates/edit_text.html:120
+#: templates/edit_text.html:118
 msgid "edit_text.translation_review"
 msgstr "The language could be improved, but the translation seems right."
 
-#: templates/edit_text.html:121
+#: templates/edit_text.html:119
 msgid "edit_text.misunderstand_term_X"
 msgstr "This translation misunderstands the term X."
 
-#: templates/edit_text.html:125
+#: templates/edit_text.html:123
 msgid "edit_text.score_review"
 msgstr "How to Score your Review:"
 
-#: templates/edit_text.html:127
+#: templates/edit_text.html:125
 msgid "edit_text.compared_to_source_message"
 msgstr "Compared closesly to a source, confident there are no problems."
 
-#: templates/edit_text.html:130
+#: templates/edit_text.html:128
 msgid "edit_text.compared_to_source_no_problem_message"
 msgstr "Compared to a source, didn't notice any problems."
 
-#: templates/edit_text.html:133
+#: templates/edit_text.html:131
 msgid "edit_text.proble_free_need_review"
 msgstr "Looks problem free, but could be reviewed more closely."
 
-#: templates/edit_text.html:136
+#: templates/edit_text.html:134
 msgid "edit_text.found_small_issues_need_to_address"
 msgstr "Found some issues that need to be addressed."
 
-#: templates/edit_text.html:139
+#: templates/edit_text.html:137
 msgid "edit_text.found_serious_issues_need_address"
 msgstr "Found serious problems that need to be addressed."
 
-#: templates/edit_text.html:142
+#: templates/edit_text.html:140
 msgid "edit_text_ok_button"
 msgstr "ok"
 
-#: templates/edit_text.html:163
+#: templates/edit_text.html:161
 msgid "edit_text.original_translation"
 msgstr "Original Translation"
 
-#: templates/edit_text.html:167
+#: templates/edit_text.html:165
 msgid "edit_text.copied_text"
 msgstr "Copied Text"
 
-#: templates/edit_text.html:178
+#: templates/edit_text.html:176
 msgid "edit_text.version_title"
 msgstr "Version Title:"
 
-#: templates/edit_text.html:179
+#: templates/edit_text.html:177
 msgid "edit_text.copied_from"
 msgstr "Copied from:"
 
@@ -763,7 +776,8 @@ msgstr "Delete User"
 #: templates/registration/delete_user_account.html:20
 msgid "delete_user_acc.long_message"
 msgstr ""
-"Note: deleting a user can take a while; once you hit \"Delete User\" please be patient as the user is deleted\n"
+"Note: deleting a user can take a while; once you hit \"Delete User\" please "
+"be patient as the user is deleted\n"
 "        from our system, and do not leave the page."
 
 #: templates/registration/logged_out.html:4
@@ -774,56 +788,56 @@ msgstr "Logged Out | Pecha"
 msgid "registration.logged_out.log_back_in"
 msgstr "Log back in"
 
-#: templates/registration/login.html:4 templates/registration/login.html:29
+#: templates/registration/login.html:5 templates/registration/login.html:42
 msgid "registration.login.login_in_to_pecha"
 msgstr "Log in to Pecha"
 
-#: templates/registration/login.html:6
+#: templates/registration/login.html:19
 msgid "registration.login.login_in_to_pecha_description"
 msgstr ""
 "Log in to your Pecha account to make source sheets, write notes, and follow "
 "other Pecha users."
 
-#: templates/registration/login.html:14
+#: templates/registration/login.html:27
 msgid "registration.login.you_are_already_logged_in_as"
 msgstr "You are already logged in as"
 
-#: templates/registration/login.html:17
+#: templates/registration/login.html:30
 msgid "common.registration.login.log_out"
 msgstr "To use another account: Logout."
 
-#: templates/registration/login.html:33
+#: templates/registration/login.html:46
 msgid "registration.login.username_and_password_didn't_match_message"
 msgstr "Your username and password didn't match. Please try again."
 
-#: templates/registration/login.html:50
+#: templates/registration/login.html:63
 msgid "common.registration.login.log_in"
 msgstr "Login"
 
-#: templates/registration/login.html:53
+#: templates/registration/login.html:66
 msgid "common.registration.login.forgot_your_password"
 msgstr "Forgot your password?"
 
-#: templates/registration/login.html:58
+#: templates/registration/login.html:71
 msgid "common.registration.login.create_a_new_account"
 msgstr "Create a new account"
 
-#: templates/registration/password_reset_complete.html:3
+#: templates/registration/password_reset_complete.html:4
 msgid "registration.password_reset_complete.password_reset"
 msgstr "Password Reset"
 
-#: templates/registration/password_reset_complete.html:3
+#: templates/registration/password_reset_complete.html:4
 #: templates/registration/password_reset_confirm.html:4
-#: templates/registration/password_reset_done.html:3
-#: templates/registration/password_reset_form.html:4
+#: templates/registration/password_reset_done.html:4
+#: templates/registration/password_reset_form.html:5
 msgid "common.name_pecha"
 msgstr "Pecha"
 
-#: templates/registration/password_reset_complete.html:10
+#: templates/registration/password_reset_complete.html:21
 msgid "registration.password_reset_complete.your_new_password_has_been_saved"
 msgstr "Your new password has been saved."
 
-#: templates/registration/password_reset_complete.html:13
+#: templates/registration/password_reset_complete.html:24
 msgid "registration.password_reset_complete.back_to_login"
 msgstr "Back to login"
 
@@ -836,11 +850,11 @@ msgstr "Choose a new password"
 msgid "registration.password_reset_confirm.save_password"
 msgstr "Save Password"
 
-#: templates/registration/password_reset_done.html:3
+#: templates/registration/password_reset_done.html:4
 msgid "registration.password_reset_done.password_reset_link_sent"
 msgstr "Password Reset Link Sent"
 
-#: templates/registration/password_reset_done.html:10
+#: templates/registration/password_reset_done.html:19
 msgid "registration.password_reset_done.messages"
 msgstr "An email has been sent with a link to reset your password."
 
@@ -852,10 +866,8 @@ msgstr ""
 
 #: templates/registration/password_reset_email.html:6
 #: templates/registration/password_reset_email.txt:5
-msgid ""
-"registration.password_reset_email.password_reset_email_to_click_on_link"
-msgstr ""
-"Click this link, or copy it to your browser, to choose a new password:"
+msgid "registration.password_reset_email.password_reset_email_to_click_on_link"
+msgstr "Click this link, or copy it to your browser, to choose a new password:"
 
 #: templates/registration/password_reset_email.html:12
 #: templates/registration/password_reset_email.txt:9
@@ -866,21 +878,20 @@ msgstr "If you did not request this reset, you can safely ignore this email."
 msgid "password.reset_request_made_msg"
 msgstr "A request has been made to reset the password"
 
-#: templates/registration/password_reset_form.html:4
-#: templates/registration/password_reset_form.html:13
+#: templates/registration/password_reset_form.html:5
+#: templates/registration/password_reset_form.html:25
 msgid "registration.password_reset_form.forgot_your_password"
 msgstr "Forgot Your Password"
 
-#: templates/registration/password_reset_form.html:6
-msgid ""
-"registration.password_reset_form.request_a_link_to_change_your_password"
+#: templates/registration/password_reset_form.html:18
+msgid "registration.password_reset_form.request_a_link_to_change_your_password"
 msgstr "Request a link to change your Pecha password if you've forgotten it."
 
-#: templates/registration/password_reset_form.html:19
+#: templates/registration/password_reset_form.html:31
 msgid "registration.password_reset_form.send_reset_link"
 msgstr "Send Reset Link"
 
-#: templates/registration/password_reset_form.html:23
+#: templates/registration/password_reset_form.html:35
 msgid "registration.password_reset_form.back_to_link"
 msgstr "Back to login"
 
@@ -888,38 +899,43 @@ msgstr "Back to login"
 msgid "Pecha.org_Password_Reset"
 msgstr "Pecha.org Password Reset"
 
-#: templates/registration/register.html:4
+#: templates/registration/register.html:5
 msgid "registration.register.create_an_account"
 msgstr "Create an Account"
 
-#: templates/registration/register.html:4
+#: templates/registration/register.html:5
 msgid "common.registration.register.pecha"
 msgstr "Pecha"
 
-#: templates/registration/register.html:6
+#: templates/registration/register.html:19
 msgid "registration.register.create_an_account_description"
 msgstr ""
 "Create an account on Pecha to make source sheets, take notes and follow "
 "other people."
 
-#: templates/registration/register.html:13
+#: templates/registration/register.html:26
 msgid "Sign_Up_Title"
 msgstr "Sign Up"
 
-#: templates/registration/register.html:46
+#: templates/registration/register.html:60
 msgid "Sign_Up_Button"
 msgstr "Sign Up"
 
-#: templates/registration/register.html:50
+#: templates/registration/register.html:64
 msgid "registration.register.login_if_already_have_an_account"
 msgstr "Already have an account? Log in"
 
+#: templates/static/ch/about.html:4 templates/static/en/about.html:4
 #: templates/static/he/about.html:4
 msgid "about.about_pecha"
 msgstr "About Pecha"
 
+#: templates/static/ch/about.html:6 templates/static/en/about.html:6
 #: templates/static/he/about.html:6
 msgid "about.about_pecha_description"
 msgstr ""
 "Pecha is a nonprofit organization dedicated to building the future of "
 "Buddhist learning in an open and participatory way."
+
+#~ msgid "developer_team"
+#~ msgstr "development team"

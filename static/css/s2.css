@@ -17192,10 +17192,11 @@ span.ref-link-color-3 {
     padding: 2rem;
     border-radius: 8px;
     width: 90%;
-    max-width: 600px;
+    max-width: 700px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 5vh;
   }
   
   .modal-content h2 {
@@ -17251,7 +17252,7 @@ span.ref-link-color-3 {
   }
   
   .modal-actions button[type="submit"] {
-    background-color: #18446b;
+    background-color: #C39F48;
     color: white;
   }
   
