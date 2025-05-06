@@ -13,7 +13,7 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
     if (planData) {
       fetchDayContent(currentDay);
     }
-  }, [currentDay, planData, planId]);
+  }, [currentDay]);
 
   const fetchDayContent = async (day) => {
     try {
