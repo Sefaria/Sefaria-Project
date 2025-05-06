@@ -61,7 +61,7 @@ jobs:
           workload_identity_provider: 'projects/${{ secrets.PROD_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.PROD_GKE_SA }}'
       - name: Login to GAR
-        uses: docker/login-action@v6
+        uses: docker/login-action@v3
         with:
           registry: us-east1-docker.pkg.dev
           username: oauth2accesstoken
