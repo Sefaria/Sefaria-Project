@@ -2972,13 +2972,25 @@ _media: {},
         store: this._seasonalTopic,
     });
   },
-  trendingTopics: {},
+  trendingSheetsTopics: {},
+  trendingLibraryTopics: {},
   getTrendingTopics: function(n=10) {
-      const url = Sefaria.activeModule === 'library' ? `api/topics/trending?n=${n}&pool=general_${Sefaria.interfaceLang.slice(0, 2)}` : `api/sheets/trending-tags?n=${n}`
+    return this.activeModule === "library" ? this.getTrendingLibraryTopics(n) : this.getTrendingSheetsTopics(n);
+  },
+  getTrendingLibraryTopics: function(n=10) {
+    const url = `api/topics/trending?n=${n}&pool=general_${Sefaria.interfaceLang.slice(0, 2)}`;
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/${url}`,
+      key: (new Date()).toLocaleDateString(),
+      store: this.trendingLibraryTopics,
+    });
+  },
+  getTrendingSheetsTopics: function(n=10) {
+      const url = `api/sheets/trending-tags?n=${n}`
       return this._cachedApiPromise({
         url: `${Sefaria.apiHost}/${url}`,
         key: (new Date()).toLocaleDateString(),
-        store: this.trendingTopics,
+        store: this.trendingSheetsTopics,
     });
   },
   _topicSlugsToTitles: null,
