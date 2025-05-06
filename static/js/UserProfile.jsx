@@ -26,6 +26,7 @@ const EditPlanModal = ({ plan, onClose, onSave }) => {
     totalDays: plan?.total_days || '',
     planImage: plan?.planImage || ''
   });
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,6 +34,46 @@ const EditPlanModal = ({ plan, onClose, onSave }) => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleImageChange = (e) => {
+    const MAX_IMAGE_MB = 2;
+    const MAX_IMAGE_SIZE = MAX_IMAGE_MB * 1024 * 1024;
+    const file = e.currentTarget.files[0];
+    
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert("Please choose an image smaller than " + MAX_IMAGE_MB + "MB");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    if (plan?.id) {
+      formData.append("plan_id", plan.id);
+    }
+
+    setIsUploading(true);
+    $.ajax({
+      url: '/api/plans/upload',
+      data: formData,
+      type: 'POST',
+      contentType: false,
+      processData: false,
+      success: function(data) {
+        if ("error" in data) {
+          alert(data.error);
+          setFormData(prev => ({ ...prev, planImage: '' }));
+        } else {
+          setFormData(prev => ({ ...prev, planImage: data.url }));
+        }
+        setIsUploading(false);
+      },
+      error: function() {
+        alert("There was an error uploading your image.");
+        setFormData(prev => ({ ...prev, planImage: '' }));
+        setIsUploading(false);
+      }
+    });
   };
 
   const handleSubmit = (e) => {
@@ -97,17 +138,28 @@ const EditPlanModal = ({ plan, onClose, onSave }) => {
             />
           </div>
           <div className="form-group">
-            <label>Plan Image URL:</label>
-            <input
-              type="url"
-              name="planImage"
-              value={formData.planImage}
-              onChange={handleChange}
-            />
+            <label>Plan Image:</label>
+            <div className="image-upload-container">
+              {formData.planImage && (
+                <div className="image-preview">
+                  <img 
+                    src={isUploading ? "/static/img/loading.gif" : formData.planImage} 
+                    alt="Plan preview" 
+                    style={{ maxWidth: '200px', marginBottom: '10px' }}
+                  />
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                disabled={isUploading}
+              />
+            </div>
           </div>
           <div className="modal-actions">
             <button type="button" onClick={onClose}>Cancel</button>
-            <button type="submit">Save Changes</button>
+            <button type="submit" disabled={isUploading}>Save Changes</button>
           </div>
         </form>
       </div>
