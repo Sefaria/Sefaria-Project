@@ -9314,6 +9314,11 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   font-family: Roboto;
   color: #18345D;
 }
+.interface-hebrew .editorSaveStateIndicator {
+  left: auto;
+  right: 89px;
+}
+
 .editorSidebarToggle {
   position: fixed;
   top: 200px;
