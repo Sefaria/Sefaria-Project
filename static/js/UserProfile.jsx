@@ -270,7 +270,7 @@ class UserProfile extends Component {
   componentDidMount() {
     // Fetch user's plans when component mounts
     if (this.props.profile.id) {
-      $.get("/api/plans", { creator: this.props.profile.id }, (data) => {
+      $.get("/api/plansPost", { creator: this.props.profile.id }, (data) => {
         if (data.plans) {
           this.setState({ userPlans: data.plans });
         }
@@ -592,12 +592,14 @@ class UserProfile extends Component {
 
   getPlans() {
     return new Promise((resolve, reject) => {
-      $.get("/api/plans", { creator: this.props.profile.id }, function(data) {
+      $.get("/api/plansPost", function(data) {
         if (data.plans) {
           resolve(data.plans);
         } else {
           reject("Failed to fetch plans");
         }
+      }).fail(function(xhr) {
+        reject(xhr.responseJSON?.error || "Failed to fetch plans");
       });
     });
   }
