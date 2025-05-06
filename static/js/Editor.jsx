@@ -2553,9 +2553,10 @@ const EditorSaveStateIndicator = ({ state }) => {
       "saving": "/static/icons/new_editor_saving/directory-sync-rounded.svg",
       "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg"
     };
+    const path = window.location.pathname + window.location.search;
     const stateToMessage = {
       "connectionLost": "Trying to Connect",
-      "userUnauthenticated": <>User Logged out. <a href='/login'>Log in</a></>,
+      "userUnauthenticated": <>User Logged out. <a href={`/login?next=${path}`}>Log in</a></>,
       "saving": "Saving...",
       "saved": "Saved"
     }
