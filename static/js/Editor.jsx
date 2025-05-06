@@ -2633,7 +2633,7 @@ const SefariaEditor = (props) => {
             }, 500);
 
             return () => clearTimeout(handler); // cleanup debounce on next tick
-        }, 1000); // polling every 1s, adjust as needed
+        }, 2000); // polling every 2s
 
         return () => clearInterval(interval); // cleanup polling
     }, [connectionLostPolling]);
