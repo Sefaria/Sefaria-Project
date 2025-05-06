@@ -538,9 +538,9 @@ function flattenLists(htmlString) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    // replace non-breaking spaces with regular spaces and replace line breaks with spaces
+    // replace non-breaking spaces and <br> tags with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml
-      .replace(/\u00A0/g, ' ')
+      .replace(/\u00A0/g, ' ').replace(/<br>/g, ' ')
       .replace(/(\r\n|\n|\r|\t)/gm, " ");
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
