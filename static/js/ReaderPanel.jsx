@@ -170,7 +170,6 @@ class ReaderPanel extends Component {
   }
   handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
-      console.log("handleCitationClick<<<<<", citationRef, textRef, replace, currVersions);
       this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
       this.showBaseText(citationRef, replace, currVersions);
@@ -650,7 +649,6 @@ class ReaderPanel extends Component {
   }
  
   render() {
-    console.log(this.state);
     if (this.state.error) {
       return (
         <div
@@ -1100,7 +1098,6 @@ class ReaderPanel extends Component {
       );
     }
     else if (this.state.menuOpen === "dayPlanDetail") {
-      console.log("day plan detail", this.state.menuOpen);
       menu = (
         <PlanProgression
           planId={this.state.planId}
