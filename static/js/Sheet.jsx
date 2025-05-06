@@ -78,7 +78,6 @@ class Sheet extends Component {
       }
       const path = url.pathname;
       const params = url.searchParams;
-      console.log("target", path, params)
 
       if (path.match(/^\/sheets\/\d+/)) {
         e.preventDefault()
@@ -88,7 +87,6 @@ class Sheet extends Component {
 
       else if (Sefaria.isRef(path.slice(1))) {
         e.preventDefault()
-        console.log("Sheet clicked:", path.slice(1), this.props.id);
         const currVersions = {en: params.get("ven"), he: params.get("vhe")};
         const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
         this.props.onCitationClick(path.slice(1), `Sheet ${this.props.id}`, true, currVersions)
