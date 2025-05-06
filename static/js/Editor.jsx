@@ -839,7 +839,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName, blockEdi
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
           {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
-              readOnly={!sourceActive}
+              readOnly={!sourceActive || blockEditing}
               renderLeaf={props => <Leaf {...props} />}
               onKeyDown={(e) => onKeyDown(e, sheetSourceHeEditor)}
             />
