@@ -639,7 +639,7 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
-const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
+const BoxedSheetElement = ({ attributes, children, element, divineName, blockEditing }) => {
   const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
@@ -852,7 +852,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
           {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
-              readOnly={!sourceActive}
+              readOnly={!sourceActive || blockEditing}
               renderLeaf={props => <Leaf {...props} />}
               onKeyDown={(e) => onKeyDown(e, sheetSourceEnEditor)}
               renderElement={renderEnglishElement}
@@ -1150,12 +1150,12 @@ const Element = (props) => {
           );
         case 'SheetSource':
             return (
-              <BoxedSheetElement {...props} divineName={useSlate().divineNames} />
+              <BoxedSheetElement {...props} blockEditing={blockEditing} divineName={useSlate().divineNames} />
             );
 
         case 'SheetOutsideBiText':
             return (
-              <BoxedSheetElement {...props} {...attributes} divineName={useSlate().divineNames} />
+              <BoxedSheetElement {...props} blockEditing={blockEditing} {...attributes} divineName={useSlate().divineNames} />
             );
 
 
