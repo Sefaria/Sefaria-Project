@@ -32,6 +32,7 @@ from django import http
 from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
+from account.models import UserType
 
 from sefaria.app_analytic import track_page_to_mp
 from sefaria.model import *
@@ -151,14 +152,19 @@ def plan_image_upload_api(request, resize_image=True):
 @csrf_exempt
 @login_required
 def plans_api(request):
-    """Handle plan creation, updates, and deletion"""
     if request.method == "GET":
-        # Return all plans or filter by query params
-        query = {}
+        # Check if user is a Plan Creator
+        try:
+            user_type = UserType.objects.get(user=request.user)
+            if user_type.user_type != 'Plan creator':
+                return jsonResponse({"error": "Only Plan Creators can access plans"}, status=403)
+        except UserType.DoesNotExist:
+            return jsonResponse({"error": "User type not found"}, status=404)
+
+        # Return only plans created by the logged-in Plan Creator
+        query = {"creator": request.user.id}
         if "category" in request.GET:
             query["categories"] = request.GET["category"]
-        if "creator" in request.GET:
-            query["creator"] = request.GET["creator"]
             
         plans = PlanSet(query).contents()
         return jsonResponse({"plans": plans})

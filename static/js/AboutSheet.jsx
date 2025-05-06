@@ -55,7 +55,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     useEffect(() => {
         // Fetch user's plans when component mounts
         if (Sefaria._uid) {
-            $.get("/api/plans", { creator: Sefaria._uid }, function(data) {
+            $.get("/api/plansPost", { creator: Sefaria._uid }, function(data) {
                 if (data.plans) {
                     setUserPlans(data.plans);
                     // Initialize checked state for each plan
