@@ -2783,7 +2783,7 @@ a.cardTitle:hover {
   font-size: 122%;
 }
 .interface-english .navBlockDescription.clamped .int-en,
-.interface-hebrew .navBlockDescription.clamped .int-he {
+.interface-hebrew .navBlockDescription.clamped .int-he, {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -12070,6 +12070,10 @@ cursor: pointer;
   font-weight: 400;
   line-height: 18px;
   margin-block-end: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 10;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .sheetContentSidebar .title.sub-sub-title {
   margin-block-end: 20px;
