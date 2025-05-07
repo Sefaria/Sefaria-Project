@@ -543,14 +543,14 @@ function htmlToStringWithLineBreaks(htmlString) {
     const doc = parser.parseFromString(htmlString, 'text/html');
     let htmlContent = doc.body.innerHTML;
 
-    // Remove empty paragraphs (those with only spaces or non-breaking spaces)
-    htmlContent = htmlContent.replace(/<p>\s*<\/p>/g, '');
+    // Remove empty paragraphs (those with only <br> or spaces)
+    htmlContent = htmlContent.replace(/<p>\s*(<br\s*\/?>|\&nbsp;)*\s*<\/p>/g, '');
 
-    // Replace any paragraph or block elements with line breaks
-    htmlContent = htmlContent.replace(/<\/p>/g, '</p>\n').replace(/<\/div>/g, '</div>\n');
+    // Convert <br> tags to actual newlines
+    htmlContent = htmlContent.replace(/<br\s*\/?>/g, '\n');
 
-    // Replace other tags as needed, for example:
-    htmlContent = htmlContent.replace(/<\/h[1-6]>/g, '</h1>\n'); // h1 to h6
+    // Replace <p> tags with newlines before and after (to separate paragraphs)
+    htmlContent = htmlContent.replace(/<p>/g, '\n<p>').replace(/<\/p>/g, '</p>\n');
 
     // Optional: Remove leading/trailing whitespace and extra spaces
     htmlContent = htmlContent.trim().replace(/\s+/g, ' ').replace(/\n{2,}/g, '\n\n');
