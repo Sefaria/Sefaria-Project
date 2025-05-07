@@ -161,6 +161,21 @@
 
     <!-- Unbounce Embed Code -->
     <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script>
+
+    <!-- redirect sheets to it its subdomain -->
+    <script>
+      (function() {
+        const host = window.location.hostname;
+        const path = window.location.pathname;
+        const supportSubdomains = host === "localsefaria.org"; //TODO generalize to prod and cauldrons
+
+        if (supportSubdomains && path.startsWith("/sheets")) {
+          const newURL = "https://sheets.localsefaria.org" + path + window.location.search + window.location.hash;
+          window.location.replace(newURL); // Replace to avoid keeping old URL in history
+        }
+      })();
+    </script>
+
 </head>
  <body data-active-module="{{ active_module }}" data-render-static="{{ renderStatic }}" class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
