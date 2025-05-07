@@ -537,20 +537,21 @@ function flattenLists(htmlString) {
   return doc.body.innerHTML;
 }
 function convertParagraphsToNewlines(htmlString) {
-    // Match all <p> tags and replace them with newline characters
+    // remove any leading and trailing spaces from  paragraphs
+    htmlString = htmlString.replace(/<p>\s*/g, '').replace(/<\/p>\s*/g, '</p>');
     let paragraphs = htmlString.split(/<\/p>/g);
 
-    // Remove the last </p> tag if it exists and don't add extra newline
     let result = paragraphs.map((para, index) => {
-        // Remove the opening <p> tag and any leading spaces in the paragraph
-        para = para.replace(/<p>\s*/g, ''); // Removes <p> and leading spaces
-
+        // For all but the last paragraph, append a newline
         if (index < paragraphs.length - 1) {
             return para + '\n';
         } else {
             return para;
         }
     }).join('');
+    if (result.endsWith('\n')){
+        result = result.slice(0, -1);
+    }
 
     return result;
 }
