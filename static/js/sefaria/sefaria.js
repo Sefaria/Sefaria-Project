@@ -3499,7 +3499,11 @@ _media: {},
       setResponse(prevResponses => !prevResponses ? tempResponses : prevResponses.concat(tempResponses));
       lastEndIndex += increment;
     }
-  }
+  },
+  getLogoutUrl: () => {
+    const next = Sefaria.activeModule === 'sheets' ? 'sheets' : 'texts';
+    return `/logout?next=/${next}`;
+  },
 });
 
 Sefaria.unpackDataFromProps = function(props) {

@@ -156,7 +156,7 @@ const LoggedInDropdown = ({module}) => {
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
               </DropdownMenuItemLink>
               <DropdownMenuSeparator/>
-              <DropdownMenuItemLink url={'/logout'}>
+              <DropdownMenuItemLink url={Sefaria.getLogoutUrl()}>
                   <InterfaceText text={{'en': 'Log Out', 'he': 'ניתוק'}}/>
               </DropdownMenuItemLink>
           </div>
@@ -532,7 +532,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <hr />
 
         {Sefaria._uid ?
-        <a href="/logout" className="logout">
+        <a href={Sefaria.getLogoutUrl()} className="logout">
           <img src="/static/icons/logout.svg" />
           <InterfaceText>Logout</InterfaceText>
         </a>
@@ -619,7 +619,7 @@ const ProfilePicMenu = ({len, url, name}) => {
               </a></div>
             </div>
             <hr className="interfaceLinks-hr"/>
-            <div><a className="interfaceLinks-row logout" id="logout-link" href="/logout">
+            <div><a className="interfaceLinks-row logout" id="logout-link" href={Sefaria.getLogoutUrl()}>
               <InterfaceText>Logout</InterfaceText>
             </a></div>
           </div> : null}
