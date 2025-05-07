@@ -34,7 +34,6 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
-import { TopicsLaunchBanner } from './TopicsLaunchBanner';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
@@ -772,6 +771,9 @@ class ReaderApp extends Component {
         }
       }
     }
+    // Replace question marks that can be included in titles
+    // (not using encodeURIComponent for this can run twice and encode the % of the first running)
+    hist.url = hist.url.replace(/\?/g, '%3F')
     // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
@@ -2203,6 +2205,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
                       hasSidebar={this.doesPanelHaveSidebar(i)}
+                      masterPanelLayout={panel.mode === "Connections" ? panelStates[i-1].settings.biLayout : ""}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       masterPanelMode={panel.mode === "Connections" ? panelStates[i-1].mode : null}
                       masterPanelSheetId={panel.mode === "Connections" ? panelStates[i-1].sheetID : null}
@@ -2258,8 +2261,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
             <InterruptingMessage />
-            <TopicsLaunchBanner onClose={this.setContainerMode} />
-            {/*<Banner onClose={this.setContainerMode} />*/}
+            <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {panels}

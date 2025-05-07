@@ -1249,7 +1249,7 @@ Sefaria = extend(Sefaria, {
   },
   getIndexDetails: function(title) {
     return this._cachedApiPromise({
-        url:   Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1&with_related_topics=1",
+        url:   Sefaria.apiHost + "/api/v2/index/" + encodeURIComponent(title) + "?with_content_counts=1&with_related_topics=1",
         key:   title,
         store: this._indexDetails
     });
@@ -1477,15 +1477,15 @@ Sefaria = extend(Sefaria, {
     // Filters array `links` for only those that match array `filter`.
     // If `filter` ends with "|Quoting" return Quoting Commentary only,
     // otherwise commentary `filters` will return only links with type `commentary`
-    if (filter.length == 0) { return links; }
+    if (filter.length === 0) { return links; }
 
-    var filterAndSuffix = filter[0].split("|");
+    const filterAndSuffix = filter[0].split("|");
     filter              = [filterAndSuffix[0]];
-    var isQuoting       = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Quoting";
-    var isEssay         = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Essay";
-    var index           = Sefaria.index(filter);
-    var isCommentary    = index && !isQuoting &&
-                            (index.categories[0] == "Commentary" || index.primary_category == "Commentary");
+    const isQuoting       = filterAndSuffix.length === 2 && filterAndSuffix[1] === "Quoting";
+    const isEssay         = filterAndSuffix.length === 2 && filterAndSuffix[1] === "Essay";
+    const index           = Sefaria.index(filter);
+    const isCommentary    = index && !isQuoting &&
+                            (index.categories[0] === "Commentary" || index.primary_category === "Commentary");
 
     return links.filter(function(link){
       if (isCommentary && link.category !== "Commentary") { return false; }
@@ -1512,7 +1512,7 @@ Sefaria = extend(Sefaria, {
           const newlinks = Sefaria.getLinksFromCache(r);
           links = links.concat(newlinks);
       });
-      links = links.filter(l => l["type"] === "essay");
+      links = links.filter(l => l["category"] === "Essay");
       return links.length > 0;
   },
   essayLinks: function(ref, versions) {
@@ -1524,7 +1524,7 @@ Sefaria = extend(Sefaria, {
     links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
     let essayLinks = [];
     for (let i=0; i<links.length; i++) {
-      if (links[i]["type"] === "essay" && "displayedText" in links[i]) {
+      if (links[i]["category"] === "Essay" && "displayedText" in links[i]) {
         const linkLang = links[i]["anchorVersion"]["language"];
         const currVersionTitle = versions[linkLang] ? versions[linkLang]["versionTitle"] : "NONE";
         const linkVersionTitle = links[i]["anchorVersion"]["title"];
