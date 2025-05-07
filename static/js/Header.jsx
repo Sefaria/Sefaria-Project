@@ -166,10 +166,13 @@ const LoggedInDropdown = ({module}) => {
 
 
 const ModuleSwitcher = () => {
+  const libraryUrl = Sefaria.isSubDomain('sheets')
+      ? `${window.location.protocol}//${window.location.host.replace('sheets.', '')}`
+      : '/';
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={'/'} newTab={true}>
+              <DropdownMenuItem url={libraryUrl} newTab={true}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
