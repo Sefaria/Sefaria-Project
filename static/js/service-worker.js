@@ -10,7 +10,7 @@ self.addEventListener('fetch', (event) => {
     if (!sheetsPath && documentRequest) {
       url.pathname = `/sheets${url.pathname}`;
     }
-    const newRequest = makeNewRequest(request, url)
+    const newRequest = makeNewRequest(request, url);
     event.respondWith(fetch(newRequest));
   } else {
     event.respondWith(fetch(request));
