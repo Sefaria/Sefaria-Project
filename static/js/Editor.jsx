@@ -536,34 +536,35 @@ function flattenLists(htmlString) {
 
   return doc.body.innerHTML;
 }
-function convertParagraphsToNewlines(htmlString) {
-    // remove any leading and trailing spaces from  paragraphs
-    htmlString = htmlString.replace(/<p>\s*/g, '').replace(/<\/p>\s*/g, '</p>');
-    let paragraphs = htmlString.split(/<\/p>/g);
 
-    let result = paragraphs.map((para, index) => {
-        // For all but the last paragraph, append a newline
-        if (index < paragraphs.length - 1) {
-            return para + '\n';
-        } else {
-            return para;
-        }
-    }).join('');
-    if (result.endsWith('\n')){
-        result = result.slice(0, -1);
-    }
+function htmlToStringWithLineBreaks(htmlString) {
+    // Convert the HTML string into a DOM element
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    let htmlContent = doc.body.innerHTML;
 
-    return result;
+    // Remove empty paragraphs (those with only spaces or non-breaking spaces)
+    htmlContent = htmlContent.replace(/<p>\s*<\/p>/g, '');
+
+    // Replace any paragraph or block elements with line breaks
+    htmlContent = htmlContent.replace(/<\/p>/g, '</p>\n').replace(/<\/div>/g, '</div>\n');
+
+    // Replace other tags as needed, for example:
+    htmlContent = htmlContent.replace(/<\/h[1-6]>/g, '</h1>\n'); // h1 to h6
+
+    // Optional: Remove leading/trailing whitespace and extra spaces
+    htmlContent = htmlContent.trim().replace(/\s+/g, ' ').replace(/\n{2,}/g, '\n\n');
+
+    return htmlContent;
 }
-
 function parseSheetItemHTML(rawhtml) {
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml
       .replace(/\u00A0/g, ' ')
-      .replace(/(\r\n|\n|\r|\t)/gm, " ")
+      // .replace(/(\r\n|\n|\r|\t)/gm, " ")
 
     // replace <p> tags with newlines
-    preparseHtml = convertParagraphsToNewlines(preparseHtml);
+    preparseHtml = htmlToStringWithLineBreaks(preparseHtml)
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
     // remove extra spaces between html tags - new editor table deserialization doesn't like them
