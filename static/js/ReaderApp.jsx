@@ -134,6 +134,7 @@ class ReaderApp extends Component {
       connectionsMode:         state.connectionsMode         || "Resources",
       connectionsCategory:     state.connectionsCategory     || null,
       currVersions:            state.currVersions            || {en:null,he:null},
+      currCommVersions:        state.currCommVersions        || {},
       highlightedRefs:         state.highlightedRefs         || [],
       highlightedNode:         state.highlightedNode         || null,
       scrollToHighlighted:     state.scrollToHighlighted     || false,
@@ -1518,11 +1519,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   makePanelWithConnectionsState(panelProps) {
     // in the case of multipanel, create two panels based on panelProps
     let connectionPanel;  // in mobile, connectionPanel will remain undefined
+
+    // 'currVersions' is for commentary, not base text.  In addition, we want to specify currCommVersions to be only relevant to a specific filter
+    const currCommVersions = panelProps.filter.length === 1 ? {[panelProps.filter[0]]: {...panelProps.currVersions}} : {};
+    panelProps.currVersions = {'en': null, 'he': null};  // don't try to use the 'currVersions' of the commentary for the base ref!
+
     if (this.props.multiPanel) {
-        const connectionPanelProps = {...panelProps, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
+        const connectionPanelProps = {...panelProps, currCommVersions: currCommVersions, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
         connectionPanel = this.makePanelState(connectionPanelProps);
     } else {
-        panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
+        panelProps = {...panelProps, currCommVersions: currCommVersions, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
     }
     const panel = this.makePanelState(panelProps);
     panel.showHighlight = true;
