@@ -28,6 +28,8 @@ import {
     LangSelectInterface,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import { TopicTOCCard } from "./common/TopicTOCCard";
+
 
 
 /*
@@ -211,9 +213,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 *** Components
 */
 
-
-
-const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth,
+const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
   openSearch}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
@@ -226,38 +226,15 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         setSubtopics(Sefaria.topicTocPage(topic));
     }, [topic]);
 
+    const shouldDisplay = (t) => {
+      const inActiveModule = t.pools.includes(Sefaria.activeModule);
+      return t.shouldDisplay !== false && inActiveModule;
+    }
 
     let topicBlocks = subtopics
-      .filter(t => t.shouldDisplay !== false)
+      .filter(shouldDisplay)
       .sort(Sefaria.sortTopicsCompareFn)
-      .map((t,i) => {
-        const { slug, children, description} = t;
-        const openTopic = e => {
-          e.preventDefault();
-          t.children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
-        };
-        let {en, he} = t;
-        en = en.replace(/^Parashat /, "");
-        he = he.replace(/^פרשת /, "");
-        return (
-            <div className="navBlock">
-              <a href={`/topics/${children ? 'category/' : ''}${slug}`}
-                 data-anl-event="navto_topic:click"
-                 data-anl-link_type={children ? "category" : "topic"}
-                 data-anl-text={en}
-                 className="navBlockTitle"
-                 onClick={openTopic}
-                 key={i}>
-                <InterfaceText text={{en, he}} />
-              </a>
-              {description ?
-              <div className="navBlockDescription clamped">
-                <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['a']}/>
-              </div>
-              : null }
-            </div>
-        );
-      });
+      .map((topic, i) => <TopicTOCCard topic={topic} setTopic={setTopic} setNavTopic={setNavTopic} key={i}/>);
 
     let sidebarModules = [
       {type: "AboutTopics"},
