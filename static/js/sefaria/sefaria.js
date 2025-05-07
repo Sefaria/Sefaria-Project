@@ -3499,7 +3499,11 @@ _media: {},
       setResponse(prevResponses => !prevResponses ? tempResponses : prevResponses.concat(tempResponses));
       lastEndIndex += increment;
     }
-  }
+  },
+  isSubDomain: function(subdomain) {
+    const _isLocalhost = window.location.host.includes('localhost') || window.location.host.includes('127.0.0.1')
+    return !_isLocalhost && window.location.host.split(".")[0] === subdomain;
+  },
 });
 
 Sefaria.unpackDataFromProps = function(props) {
