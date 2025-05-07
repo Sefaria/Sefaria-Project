@@ -8,7 +8,7 @@ self.addEventListener('fetch', (event) => {
   if (sheetsDomain) {
     url.hostname = url.hostname.replace(/^sheets\./, '');
     if (!sheetsPath && documentRequest) {
-      url.pathname = `/sheets${url.pathname}`
+      url.pathname = `/sheets${url.pathname}`;
     }
     const newRequest = makeNewRequest(request, url)
     event.respondWith(fetch(newRequest));
