@@ -5494,4 +5494,156 @@ def get_user_by_email(email):
         return {"data": user_data, "status": 200}
     except User.DoesNotExist:
         return {"data": {"error": f"User:({email}) not found"}, "status": 404}
+
+@csrf_exempt
+def user_plans_api(request):
+    """
+    API for managing user plans
+    GET:
+        - With plan_id: Get details of a specific plan
+        - Without plan_id: Get all active plans for the user
+    POST:
+        - action=start_plan: Start a new plan
+        - action=mark_complete: Mark a day as complete
+    DELETE:
+        - Delete a user plan
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": "You must be logged in to access user plans."}, status=401)
     
+    user_id = request.user.id
+    
+    if request.method == "GET":
+        plan_id = request.GET.get("plan_id", None)
+        cb = request.GET.get("callback", None)
+        
+        if plan_id:
+            # Get a specific plan's details and progress
+            user_plan = UserPlanSet().get_user_plan(user_id, plan_id)
+            if not user_plan:
+                return jsonResponse({"error": f"Plan with ID {plan_id} not found for user"}, status=404, callback=cb)
+            
+            # Get progress summary
+            progress = user_plan.get_progress_summary()
+            
+            # Include plan details
+            plan = PlanSet().get_plan_by_id(plan_id)
+            plan_details = {"title": plan.title, "description": plan.description} if plan else {}
+            
+            result = {
+                "id": user_plan._id,
+                "plan_id": user_plan.plan_id,
+                "current_day": user_plan.current_day,
+                "started_at": user_plan.started_at.isoformat(),
+                "last_activity_at": user_plan.last_activity_at.isoformat(),
+                "is_completed": user_plan.is_completed,
+                "completed_days": user_plan.completed_days,
+                "progress": progress,
+                "settings": user_plan.settings,
+                "plan_details": plan_details
+            }
+            
+            return jsonResponse(result, callback=cb)
+        else:
+            # Get all active plans for the user
+            active_plans = UserPlanSet().get_active_plans_for_user(user_id).array()
+            result = {
+                "plans": [
+                    {
+                        "id": plan._id,
+                        "plan_id": plan.plan_id,
+                        "current_day": plan.current_day,
+                        "started_at": plan.started_at.isoformat(),
+                        "last_activity_at": plan.last_activity_at.isoformat(),
+                        "is_completed": plan.is_completed,
+                        "progress": plan.get_progress_summary()
+                    } for plan in active_plans
+                ]
+            }
+            
+            return jsonResponse(result, callback=cb)
+    
+    elif request.method == "POST":
+        # Handle form data or JSON body
+        post_data = request.POST
+        if request.content_type == 'application/json':
+            try:
+                post_data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return jsonResponse({"error": "Invalid JSON in request body"}, status=400)
+        
+        action = post_data.get('action', None)
+        
+        if action == 'start_plan':
+            plan_id = post_data.get('plan_id', None)
+            if not plan_id:
+                return jsonResponse({"error": "Plan ID is required"}, status=400)
+            
+            # Check if user already has this plan
+            existing_plan = UserPlanSet().get_user_plan(user_id, plan_id)
+            if existing_plan:
+                return jsonResponse({"error": f"User already has plan with ID {plan_id}"}, status=409)
+            
+            # Start new plan
+            try:
+                new_plan = UserPlan().start_plan(user_id=user_id, plan_id=plan_id)
+                plan_id = new_plan.save()
+                return jsonResponse({
+                    "status": "ok",
+                    "plan_id": plan_id,
+                    "message": "Plan started successfully"
+                })
+            except InputError as e:
+                return jsonResponse({"error": str(e)}, status=400)
+                
+        elif action == 'mark_complete':
+            plan_id = post_data.get('plan_id', None)
+            day_number = post_data.get('day_number', None)
+            
+            if not plan_id:
+                return jsonResponse({"error": "Plan ID is required"}, status=400)
+            if not day_number:
+                return jsonResponse({"error": "Day number is required"}, status=400)
+                
+            try:
+                day_number = str(day_number)
+            except ValueError:
+                return jsonResponse({"error": "Day number must be an integer"}, status=400)
+                
+            # Get the user plan
+            user_plan = UserPlanSet().get_user_plan(user_id, plan_id)
+            if not user_plan:
+                return jsonResponse({"error": f"Plan with ID {plan_id} not found for user"}, status=404)
+                
+            # Mark day as complete
+            user_plan.mark_day_complete(day_number=day_number)
+            user_plan.save()
+            
+            # Return updated progress
+            return jsonResponse({
+                "status": "ok",
+                "message": f"Day {day_number} marked as complete",
+                "progress": user_plan.get_progress_summary()
+            })
+        else:
+            return jsonResponse({"error": f"Unknown action: {action}"}, status=400)
+    
+    elif request.method == "DELETE":
+        plan_id = request.GET.get("plan_id", None)
+        if not plan_id:
+            return jsonResponse({"error": "Plan ID is required"}, status=400)
+        
+        user_plan = UserPlanSet().get_user_plan(user_id, plan_id)
+        if not user_plan:
+            return jsonResponse({"error": f"Plan with ID {plan_id} not found for user"}, status=404)
+        
+        # Ensure the user has permission to delete the plan
+        if not user_plan.user_id == user_id:
+            return jsonResponse({"error": "You don't have permission to delete this plan"}, status=403)
+        
+        user_plan.delete()
+        return jsonResponse({"status": "ok", "message": "Plan deleted successfully"})
+    
+    return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+
+
