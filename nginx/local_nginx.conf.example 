@@ -19,15 +19,11 @@ server {
     ssl_certificate     /your/Sefaria-Project/path/nginx/ssl/localsefaria.crt;
     ssl_certificate_key /your/Sefaria-Project/path/nginx/ssl/localsefaria.key;
 
-    location ~ ^/sheets(/.*)?$ {
-        return 301 https://sheets.localsefaria.org$1;
-    }
-
     location / {
         if ($request_method = 'OPTIONS') {
             add_header 'Access-Control-Allow-Origin' "$cors_origin" always;
             add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-            add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With' always;
+            add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With, Upgrade-Insecure-Requests' always;
             add_header 'Access-Control-Max-Age' 1728000;
             add_header 'Content-Length' 0;
             add_header 'Content-Type' 'text/plain; charset=UTF-8';
@@ -35,8 +31,9 @@ server {
         }
 
         add_header 'Access-Control-Allow-Origin' "$cors_origin" always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
         add_header 'Access-Control-Allow-Methods' 'GET, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With' always;
+        add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With, Upgrade-Insecure-Requests' always;
 
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
