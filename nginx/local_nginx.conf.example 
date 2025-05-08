@@ -33,8 +33,8 @@ server {
 
         add_header 'Access-Control-Allow-Origin' "$cors_origin" always;
         add_header 'Access-Control-Allow-Credentials' 'true' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With, Upgrade-Insecure-Requests' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With, Upgrade-Insecure-Requests, X-CSRFToken, x-csrftoken' always;
 
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
@@ -65,9 +65,15 @@ server {
         add_header Cache-Control "no-cache";
     }
 
-    # This is needed mainly for service-worker-register.js
+    # This is needed for requests before the service worker is registered
     location /static/ {
-        alias /Users/yishaiglasner/sefaria/Project/static/;
+        include /your/Sefaria-Project/path/nginx/route_sheets_to_library.conf;
+    }
+    location ~ ^/data\.\d+\.js$ {
+        include /your/Sefaria-Project/path/Project/nginx/route_sheets_to_library.conf;
+    }
+    location ~ /api/ {
+        include /your/Sefaria-Project/path/Project/nginx/route_sheets_to_library.conf;
     }
 
     location / {
