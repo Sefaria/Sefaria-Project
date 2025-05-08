@@ -209,7 +209,7 @@ export const deserialize = el => {
     } else if (el.nodeType !== 1) {
         return null
     } else if (el.nodeName === 'BR') {
-        return null
+        return [{'text':'\n'}]
     }
 
     const checkForStyles = () => {
@@ -440,8 +440,8 @@ function renderSheetItem(source) {
                     heRef: source.heRef,
                     title: source.title || null,
                     node: source.node,
-                    heText: parseSheetItemHTML(source.text.he),
-                    enText: parseSheetItemHTML(source.text.en),
+                    heText: parseSheetItemHTML(source.text.he, true),
+                    enText: parseSheetItemHTML(source.text.en, true),
                     options: source.options,
                     children: [
                         {text: ""},
@@ -537,13 +537,47 @@ function flattenLists(htmlString) {
   return doc.body.innerHTML;
 }
 
-function parseSheetItemHTML(rawhtml) {
+function htmlToStringWithLineBreaks(htmlString) {
+    // Convert the HTML string into a DOM element
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    let htmlContent = doc.body.innerHTML;
+
+    // Remove empty paragraphs (those with only <br> or spaces)
+    htmlContent = htmlContent.replace(/<p>\s*(<br\s*\/?>|\&nbsp;)*\s*<\/p>/g, '');
+
+    // Convert <br> tags to actual newlines
+    htmlContent = htmlContent.replace(/<br\s*\/?>/g, '\n');
+
+    // Replace <p> tags with newlines before and after to separate paragraphs
+    htmlContent = htmlContent.replace(/<\/p>/g, '</p>\n').replace(/<p>/g, '\n<p>');
+
+    // Optional: Remove leading/trailing "normal spaces" (not newlines or other whitespace)
+    htmlContent = htmlContent.replace(/^[ ]+/g, '').replace(/[ ]+$/g, '');
+
+    htmlContent = htmlContent.replace(/<p[^>]*>/g, '').replace(/<\/p>/g, '');
+
+    htmlContent = htmlContent.trim()
+    // if (htmlContent.includes("Rabban Gamliel would say")) {
+    //     console.log(htmlString)
+    // }
+    return htmlContent;
+}
+function parseSheetItemHTML(rawhtml, isSourceText=false) {
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml
       .replace(/\u00A0/g, ' ')
-      .replace(/(\r\n|\n|\r|\t)/gm, " ");
+      .replace(/(\r\n|\n|\r|\t)/gm, " ")
+
+
+    // replace <p> tags with newlines:
+   if (isSourceText && !/<ul|<ol/.test(preparseHtml)) {
+    preparseHtml = htmlToStringWithLineBreaks(preparseHtml);
+    }
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
+    // remove extra spaces between html tags - new editor table deserialization doesn't like them
+    preparseHtml = preparseHtml.replace(/>\s+</g, '><');
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
