@@ -410,10 +410,6 @@ class UserProfile(object):
             self.assign_slug()
             self.save()
 
-        # new editor
-        self.show_editor_toggle = False
-        self.uses_new_editor = True
-
     @property
     def full_name(self):
         return self.first_name + " " + self.last_name
@@ -672,8 +668,6 @@ class UserProfile(object):
             "nationbuilder_id":      self.nationbuilder_id,
             "sf_app_user_id":        self.sf_app_user_id,
             "gauth_email":           self.gauth_email,
-            "show_editor_toggle":    self.show_editor_toggle,
-            "uses_new_editor":       self.uses_new_editor,
         }
 
     def to_api_dict(self, basic=False):
@@ -705,8 +699,6 @@ class UserProfile(object):
             return dictionary
         other_info = {
             "pinned_sheets":         self.pinned_sheets,
-            "show_editor_toggle":    self.show_editor_toggle,
-            "uses_new_editor":       self.uses_new_editor,
             "is_sustainer":          self.is_sustainer,
         }
         dictionary.update(other_info)
