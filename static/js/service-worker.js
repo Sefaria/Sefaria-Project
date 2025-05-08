@@ -19,8 +19,7 @@ self.addEventListener('fetch', (event) => {
       url.pathname = `/sheets${pathname}`;
     }
     const newRequest = makeNewRequest(request, url);
-    event.respondWith(fetch(newRequest).catch(error => {
-    }));
+    event.respondWith(fetch(newRequest));
   } else {
     event.respondWith(fetch(request));
   }
