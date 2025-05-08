@@ -165,12 +165,12 @@
     <!-- redirect sheets to it its subdomain -->
     <script>
       (function() {
-        const host = window.location.hostname;
-        const path = window.location.pathname;
-        const supportSubdomains = host === "localsefaria.org"; //TODO generalize to prod and cauldrons
+        const {protocol, host, pathname, search, hash} = window.location;
+        const canSwitchToSheets = /^(?!sheets\.).*sefaria\.org/.test(host);
+        const isSheets = /^\/sheets($|\/)/.test(pathname);
 
-        if (supportSubdomains && path.startsWith("/sheets")) {
-          const newURL = "https://sheets.localsefaria.org" + path + window.location.search + window.location.hash;
+        if (canSwitchToSheets && isSheets) {
+          const newURL = `${protocol}//sheets.${host}${pathname.replace('/sheets', '')}${search}${hash}`;
           window.location.replace(newURL); // Replace to avoid keeping old URL in history
         }
       })();
