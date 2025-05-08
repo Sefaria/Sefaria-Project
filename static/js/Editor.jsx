@@ -440,8 +440,8 @@ function renderSheetItem(source) {
                     heRef: source.heRef,
                     title: source.title || null,
                     node: source.node,
-                    heText: parseSheetItemHTML(source.text.he),
-                    enText: parseSheetItemHTML(source.text.en),
+                    heText: parseSheetItemHTML(source.text.he, true),
+                    enText: parseSheetItemHTML(source.text.en, true),
                     options: source.options,
                     children: [
                         {text: ""},
@@ -555,22 +555,25 @@ function htmlToStringWithLineBreaks(htmlString) {
     // Optional: Remove leading/trailing "normal spaces" (not newlines or other whitespace)
     htmlContent = htmlContent.replace(/^[ ]+/g, '').replace(/[ ]+$/g, '');
 
-    htmlContent = htmlContent.replace(/<p>/g, '').replace(/<\/p>/g, '');
+    htmlContent = htmlContent.replace(/<p[^>]*>/g, '').replace(/<\/p>/g, '');
+
     htmlContent = htmlContent.trim()
     // if (htmlContent.includes("Rabban Gamliel would say")) {
     //     console.log(htmlString)
     // }
     return htmlContent;
 }
-function parseSheetItemHTML(rawhtml) {
+function parseSheetItemHTML(rawhtml, isSourceText=false) {
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml
       .replace(/\u00A0/g, ' ')
       .replace(/(\r\n|\n|\r|\t)/gm, " ")
 
 
-    // replace <p> tags with newlines
-    preparseHtml = htmlToStringWithLineBreaks(preparseHtml)
+    // replace <p> tags with newlines:
+   if (isSourceText && !/<ul|<ol/.test(preparseHtml)) {
+    preparseHtml = htmlToStringWithLineBreaks(preparseHtml);
+    }
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
     // remove extra spaces between html tags - new editor table deserialization doesn't like them
