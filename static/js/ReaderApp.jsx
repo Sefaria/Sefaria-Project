@@ -529,7 +529,7 @@ class ReaderApp extends Component {
             hist.mode = "calendars";
             break;
           case "sheets":
-            hist.url = Sefaria.isSubDomain("sheets") ? "" : "sheets";
+            hist.url = "sheets";
             hist.mode = "sheets";
             hist.title = Sefaria._("Sheets on Sefaria");
             break;
@@ -772,6 +772,10 @@ class ReaderApp extends Component {
           hist.url += "&aliyot" + (i + 1) + "=" + histories[i].aliyot;
         }
       }
+    }
+    // Remove sheets in the path beginning when the subdomain is sheets
+    if (Sefaria.isSubDomain('sheets') && hist.url.startsWith('/sheets')) {
+      hist.url = hist.url.replace(/sheets\/?/, ''); // If it's only /sheets we want the slash to remain
     }
     // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
