@@ -1,3 +1,11 @@
+self.addEventListener('install', (event) => {
+  self.skipWaiting(); // Forces activation
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim()); // Claims clients immediately
+});
+
 self.addEventListener('fetch', (event) => {
   const {request} = event;
   const documentRequest = request.mode === 'navigate' && request.destination === 'document';
