@@ -48,7 +48,38 @@ DOMAIN_LANGUAGES = {
 ################ These are things you can change! ###########################################################################
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    # Uncomment this when using subdomain
+    # '[::1]',
+    # "localsefaria.org",
+    # "sheets.localsefaria.org",
+]
+
+#### SUBSOMIANS uncomment it when using subdoimains
+
+# SESSION_COOKIE_DOMAIN = ".localsefaria.org"
+# CSRF_COOKIE_DOMAIN    = ".localsefaria.org"
+#
+# USE_HTTPS = True
+# SECURE_SSL_REDIRECT = False
+# # In local development over HTTP, these must be False
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE    = True
+# # For localhost testing with self-signed certs
+# SECURE_BROWSER_XSS_FILTER = True
+# SECURE_CONTENT_TYPE_NOSNIFF = True
+#
+# # If you run on two hosts, you may need to trust both for CSRF
+# CSRF_TRUSTED_ORIGINS = [
+#     "http://localsefaria.org",
+#     "http://sheets.localsefaria.org",
+# ]
+
+### eEND SUBDOMAINS
+
 
 ADMINS = (
      ('Your Name', 'you@example.com'),

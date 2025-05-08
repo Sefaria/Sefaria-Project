@@ -44,6 +44,8 @@ Add entries so that both custom domains resolve to your local machine.
 ## 2. Configure Django Cookie Settings
 
 In your Django project's `local_settings.py`, ensure that session and CSRF cookies are valid across the apex domain and subdomains.
+You can uncomment the `ALLOWED_HOSTS` that are commented out and all the SUBDOMAIN block.
+Then you can skip to #3. If you already have changes and not sure what should be done continue here:
 
 ```python
 
