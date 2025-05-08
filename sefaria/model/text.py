@@ -5153,8 +5153,24 @@ class Library(object):
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
-            topic_json = topic.contents(minify=True, children=children, with_html=True)
-            with_descriptions = True # TODO revisit for data size / performance
+            # topic_json = topic.contents(minify=True, children=children, with_html=True)
+            topic_json = {
+                "slug": topic.slug,
+                "shouldDisplay": True if len(children) > 0 else topic.should_display(),
+                "en": topic.get_primary_title("en"),
+                "he": topic.get_primary_title("he"),
+                "displayOrder": getattr(topic, "displayOrder", 10000),
+                "pools": DjangoTopic.objects.slug_to_pools.get(topic.slug, [])
+            }
+
+            with_descriptions = True  # TODO revisit for data size / performance
+            if with_descriptions:
+                if getattr(topic, "categoryDescription", False):
+                    topic_json['categoryDescription'] = topic.categoryDescription
+                description = getattr(topic, "description", None)
+                if description is not None and getattr(topic, "description_published", False):
+                    topic_json['description'] = description
+
             unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
                                                                                           None) not in explored
             explored.add(topic.slug)
