@@ -47,6 +47,8 @@ import {
 } from './Misc';
 import {ContentText} from "./ContentText";
 import Plans from './Plans';
+import PlanDetail from './PlanDetail';
+import PlanProgression from './PlanProgression';
 
 class ReaderPanel extends Component {
   constructor(props) {
@@ -737,6 +739,8 @@ class ReaderPanel extends Component {
       );
     }
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
+
+      console.log("Sheet", this.state.sheetID, this.state.multiPanel)
       items.push(
         <Sheet
           nodeRef={this.sheetRef}
@@ -829,7 +833,6 @@ class ReaderPanel extends Component {
           key="connections" />
       );
     }
-
     if (this.state.menuOpen === "navigation") {
 
       const openNav     = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
@@ -868,7 +871,7 @@ class ReaderPanel extends Component {
                     showBaseText={this.showBaseText} />);
 
     } else if (this.state.menuOpen === "text toc") {
-      console.log(this.state.menuOpen)
+      
       menu = (<BookPage
                     tab={this.state.tab}
                     isNarrowColumn={false}
@@ -1082,12 +1085,27 @@ class ReaderPanel extends Component {
     else if (this.state.menuOpen === "plans") {
       menu = (
         <Plans
-          multiPanel={this.props.multiPanel}
-          toggleSignUpModal={this.props.toggleSignUpModal}
-          initialWidth={this.state.width}
+          userType={this.props.userType}
         />
       );
     } 
+
+    else if (this.state.menuOpen === "planDetail") {
+      menu = (
+        <PlanDetail
+          planId={this.state.planId}
+        />
+      );
+    }
+    else if (this.state.menuOpen === "dayPlanDetail") {
+      menu = (
+        <PlanProgression
+          planId={this.state.planId}
+          planData={this.state.planData}
+          onCitationClick={this.handleCitationClick}
+        />
+      );
+    }
     
     else if (this.state.menuOpen === "updates") {
       menu = (

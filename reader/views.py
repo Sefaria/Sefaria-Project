@@ -16,7 +16,6 @@ import redis
 import os
 import re
 import uuid
-import langdetect
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -33,12 +32,14 @@ from django import http
 from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
+from account.models import UserType
 
 from sefaria.app_analytic import track_page_to_mp
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
+from sefaria.model.plan import Plan, PlanSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
@@ -94,13 +95,204 @@ from django.middleware.csrf import get_token
 from django.utils.text import slugify
 import random
 import string
+from sefaria.forms import PlanForm
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
 import structlog
 
+
+@login_required
+def edit_plan_page(request):
+    return render_template(request, 'edit_plan.html')
+
 logger = structlog.get_logger(__name__)
+
+@csrf_exempt
+@login_required
+def plan_image_upload_api(request, resize_image=True):
+    from PIL import Image
+    from tempfile import NamedTemporaryFile
+    from sefaria.google_storage_manager import GoogleStorageManager
+    from io import BytesIO
+    import uuid
+    if request.method == "POST":
+        MAX_FILE_MB = 2
+        MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
+        MAX_FILE_DIMENSIONS = (1048, 1048)
+        uploaded_file = request.FILES['file']
+        if uploaded_file.size > MAX_FILE_SIZE:
+            return jsonResponse({"error": "Uploaded files must be smaller than %dMB." % MAX_FILE_MB})
+        name, extension = os.path.splitext(uploaded_file.name)
+        with NamedTemporaryFile(suffix=extension) as temp_uploaded_file:
+            temp_uploaded_file.write(uploaded_file.read())
+            image = Image.open(temp_uploaded_file)
+            resized_image_file = BytesIO()
+            if resize_image:
+                image.thumbnail(MAX_FILE_DIMENSIONS, Image.LANCZOS)
+            image.save(resized_image_file, optimize=True, quality=70, format="PNG")
+            resized_image_file.seek(0)
+            bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
+            unique_file_name = f"{request.user.id}-{uuid.uuid1()}.{uploaded_file.name[-3:].lower()}"
+            try:
+                url = GoogleStorageManager.upload_file(resized_image_file, unique_file_name, bucket_name)
+                # Update the plan with the image URL
+                if 'plan_id' in request.POST:
+                    plan = Plan().load({"_id": ObjectId(request.POST['plan_id'])})
+                    if plan:
+                        plan.imageUrl = url
+                        plan.save()
+                return jsonResponse({"status": "success", "url": url})
+            except:
+                return jsonResponse({"error": "There was an error uploading your file."})
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+@csrf_exempt
+@login_required
+def plans_api(request):
+    if request.method == "GET":
+        # Check if user is a Plan Creator
+        try:
+            user_type = UserType.objects.get(user=request.user)
+            if user_type.user_type != 'Plan creator':
+                return jsonResponse({"error": "Only Plan Creators can access plans"}, status=403)
+        except UserType.DoesNotExist:
+            return jsonResponse({"error": "User type not found"}, status=404)
+
+        # Return only plans created by the logged-in Plan Creator
+        query = {"creator": request.user.id}
+        if "category" in request.GET:
+            query["categories"] = request.GET["category"]
+            
+        plans = PlanSet(query).contents()
+        return jsonResponse({"plans": plans})
+
+    elif request.method == "POST":
+        # Create new plan
+        try:
+            if not request.POST.get("json"):
+                return jsonResponse({"error": "No data provided."}, status=400)
+
+            plan_data = json.loads(request.POST.get("json"))
+            plan = Plan(plan_data)
+            plan.creator = request.user.id
+
+            if plan.save():
+                return jsonResponse({"status": "success", "plan": plan.contents()})
+            else:
+                return jsonResponse({"error": "Failed to save plan."}, status=500)
+
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        except Exception as e:
+            return jsonResponse({"error": str(e)}, status=500)
+
+    elif request.method == "PUT":
+        # Update existing plan
+        try:
+            # Read JSON data from request.body for PUT requests
+            try:
+                plan_data = json.loads(request.body.decode('utf-8'))
+            except json.JSONDecodeError:
+                return jsonResponse({"error": "Invalid JSON data provided."}, status=400)
+            
+            if not plan_data:
+                return jsonResponse({"error": "No data provided."}, status=400)
+
+            if "id" not in plan_data:
+                return jsonResponse({"error": "No plan ID provided."}, status=400)
+
+            plan = Plan().load({"_id": ObjectId(plan_data["id"])})
+            if not plan:
+                return jsonResponse({"error": "Plan not found."}, status=404)
+
+            # Check permissions
+            if plan.creator != request.user.id:
+                return jsonResponse({"error": "You don't have permission to edit this plan."}, status=403)
+
+            # Remove id from plan_data before loading into plan object
+            if "id" in plan_data:
+                del plan_data["id"]
+
+            plan.load_from_dict(plan_data)
+            if plan.save():
+                return jsonResponse({"status": "success", "plan": plan.contents()})
+            else:
+                return jsonResponse({"error": "Failed to save plan."}, status=500)
+
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        except Exception as e:
+            return jsonResponse({"error": str(e)}, status=500)
+
+    elif request.method == "DELETE":
+        # Delete existing plan
+        try:
+            if not request.GET.get("id"):
+                return jsonResponse({"error": "No plan ID provided."}, status=400)
+
+            plan_id = request.GET.get("id")
+            plan = Plan().load({"_id": ObjectId(plan_id)})
+            if not plan:
+                return jsonResponse({"error": "Plan not found."}, status=404)
+
+            # Check permissions
+            if plan.creator != request.user.id:
+                return jsonResponse({"error": "You don't have permission to delete this plan."}, status=403)
+
+            if plan.delete():
+                return jsonResponse({"status": "success"})
+            else:
+                return jsonResponse({"error": "Failed to delete plan."}, status=500)
+
+        except ValueError as e:
+            return jsonResponse({"error": "Invalid plan ID."}, status=400)
+        except Exception as e:
+            return jsonResponse({"error": str(e)}, status=500)
+
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+
+
+@csrf_exempt
+def update_plan_content_api(request):
+    """
+    API endpoint to update a plan's content with a sheet ID for a specific day.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Method not allowed"}, status=405)
+
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": "You must be logged in to update a plan"}, status=401)
+
+    plan_id = request.POST.get("plan_id")
+    day = request.POST.get("day")
+    sheet_id = request.POST.get("sheet_id")
+
+    if not all([plan_id, day, sheet_id]):
+        return jsonResponse({"error": "Missing required parameters"}, status=400)
+
+    try:
+        # Convert plan_id string to ObjectId
+        object_id = ObjectId(plan_id)
+        plan = Plan().load({"_id": object_id})
+        if not plan:
+            return jsonResponse({"error": "Plan not found"}, status=404)
+
+        # Check if user is the creator of the plan
+        if str(plan.creator) != str(request.user.id):
+            return jsonResponse({"error": "You don't have permission to update this plan"}, status=403)
+
+        plan.update_content(day, sheet_id)
+        return jsonResponse({"status": "ok"})
+
+    except InvalidId as e:
+        return jsonResponse({"error": f"Invalid plan ID format: {str(e)}"}, status=400)
+    except Exception as e:
+        return jsonResponse({"error": str(e)}, status=500)
+
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
@@ -240,6 +432,7 @@ def base_props(request):
         profile = UserProfile(user_obj=request.user)
         user_data = {
             "_uid": request.user.id,
+            "_user_type": request.user.usertype.user_type if hasattr(request.user, 'usertype') else None,
             "_email": request.user.email,
             "_uses_new_editor": True,
             "slug": profile.slug if profile else "",
@@ -264,6 +457,7 @@ def base_props(request):
     else:
         user_data = {
             "_uid": None,
+            "_user_type": None,
             "_email": "",
             "slug": "",
             "is_moderator": False,
@@ -1136,7 +1330,6 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
-    print()
     title = ("Pecha - Buddhism in your own words")
     desc = ("The largest free library of Buddhist texts available to read online in Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more.")
     return menu_page(request, page="navigation", title=title, desc=desc)
@@ -1622,7 +1815,6 @@ def texts_api(request, tref):
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                print(t)
                 tracker.modify_text(request.user.id, 
                                     oref, 
                                     t["versionTitle"], 
@@ -1703,7 +1895,6 @@ def social_image_api(request, tref):
         version_lang = 'he'
         lang = 'he'
 
-    print("version_lang", version_lang)
     
     platform = request.GET.get("platform", "facebook")
 
@@ -1724,7 +1915,6 @@ def social_image_api(request, tref):
         text = None
         cat = None
         ref_str = None
-    print("lang", lang)
     res = make_img_http_response(text, cat, ref_str, lang, version_lang, platform)
 
     return res
@@ -4235,19 +4425,58 @@ def plans_page(request, props={}):
     """
     title = "Plans | Pecha"
     desc = "Explore plans on Pecha."
-    data = plans_page_data(request, language=request.interfaceLang)
+    data = {}
     data.update(props)  # Merge with any passed-in props
     return menu_page(request, page="plans", props=data, title=title, desc=desc)
 
+def plan_detail_page(request, plan_id, props={}):
 
-# plan page helper function
-def plans_page_data(request, language="english"):
     """
-    Prepare data for the Plans page.
-    For now, returns an empty dict since we only need to display 'hi'.
+    Plans Page - Displays a plan detail for now.
     """
-    data = {}
-    return data
+    title = "Plans | Pecha"
+    desc = "Explore plans on Pecha."
+
+    plan = get_plan_for_panel(plan_id)
+
+    props.update({
+        "planId": plan_id,
+        "planData": plan
+    }) 
+    return menu_page(request, page="planDetail", props=props, title=title, desc=desc)
+
+def day_plan_detail_page(request, plan_id, props={}):
+    """
+    Plans Page - Displays a plan detail for now.
+    """
+    title = "Plans | Pecha"
+    desc = "Explore day of plan."
+    plan = get_plan_for_panel(plan_id)
+    
+    props.update({
+        "planId": plan_id,
+        "planData": plan
+    }) 
+    return menu_page(request, page="dayPlanDetail", props=props, title=title, desc=desc)
+    
+
+
+def get_plan_for_panel(id):
+
+    plan = db.plans.find_one({"_id": ObjectId(id)})
+    if not plan:
+        return {"error": "Plan not found"}
+    # Convert plan to JSON-serializable format
+    json_plan = {}
+    for key, value in plan.items():
+        if key == '_id':
+            json_plan[key] = str(value)  # Convert ObjectId to string
+        elif isinstance(value, datetime):
+            json_plan[key] = value.isoformat()  # Convert datetime objects
+        else:
+            json_plan[key] = value
+    
+    return json_plan
 
 
 def new_home_redirect(request):

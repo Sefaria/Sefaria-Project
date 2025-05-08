@@ -192,6 +192,7 @@ def make_sheet_class_string(sheet):
 
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id, editorMode=False):
+    print("sheet>>>>>>>>>>>>>>>>>>>>>>>>>", sheet_id)
     """
     View the sheet with sheet_id.
     """

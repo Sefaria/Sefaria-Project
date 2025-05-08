@@ -21,6 +21,9 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         )
     )
     const [sheetSaves, setSheetSaves] = useState([]);
+    const [userPlans, setUserPlans] = useState([]);
+    const [checkedPlans, setCheckedPlans] = useState({});
+    const [selectedDays, setSelectedDays] = useState({});
     const [suggestions, setSuggestions] = useState([]);
     const [lastModified, setLastModified] = useState(sheet.dateModified)
     const [isPublished, setIsPublished] = useState(sheet.status === "public");
@@ -48,6 +51,23 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         if (debouncedSummary == null) {return}
         saveSummary();
     }, [debouncedSummary])
+
+    useEffect(() => {
+        // Fetch user's plans when component mounts
+        if (Sefaria._uid) {
+            $.get("/api/plansPost", { creator: Sefaria._uid }, function(data) {
+                if (data.plans) {
+                    setUserPlans(data.plans);
+                    // Initialize checked state for each plan
+                    const initialCheckedState = {};
+                    data.plans.forEach(plan => {
+                        initialCheckedState[plan.id] = false;
+                    });
+                    setCheckedPlans(initialCheckedState);
+                }
+            });
+        }
+    }, []);
 
     const handleSummaryChange = (event) => {
         const newSummary = event.target.value
@@ -111,29 +131,13 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
 
     const isFormValidated = () => {
-        if ((!summary || summary.trim() == '') && tags.length == 0) {
-            setValidation({
-                validationMsg: Sefaria._("topic.add_desription"),
-                validationFailed: "both"
-            });
-            return false
-        }
-        else if (!summary || summary.trim() == '') {
+        if (!summary || summary.trim() == '') {
             setValidation({
                 validationMsg: Sefaria._("sheet.add_description"),
                 validationFailed: "summary"
             });
             return false
         }
-
-        else if (tags.length == 0) {
-            setValidation({
-                validationMsg: Sefaria._("topic.add_topic_to_sheet"),
-                validationFailed: "topics"
-            });
-            return false
-        }
-
         else {
             setValidation({
                 validationMsg: "",
@@ -146,6 +150,18 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     const togglePublish = async () => {
         if (!isPublished) {
             if (!(isFormValidated())) { return }
+
+            // Check if a plan and day are selected
+            const selectedPlanId = Object.entries(checkedPlans).find(([_, isChecked]) => isChecked)?.[0];
+            const selectedDay = selectedPlanId ? selectedDays[selectedPlanId] : null;
+
+            if (selectedPlanId && !selectedDay) {
+                setValidation({
+                    validationMsg: Sefaria._("Please select a day for the plan"),
+                    validationFailed: "plan"
+                });
+                return;
+            }
         }
 
         const newPublishState = isPublished ? "unlisted" : "public";
@@ -155,8 +171,39 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         delete updatedSheet._id;
         setIsPublished(!isPublished);
         const postJSON = JSON.stringify(updatedSheet);
-        postSheet(postJSON);
+        
+        // First update the sheet
+        const response = await new Promise((resolve) => {
+            $.post("/api/sheets/", { "json": postJSON }, (data) => {
+                if (data.id) {
+                    setLastModified(data.dateModified);
+                    Sefaria.sheets._loadSheetByID[data.id] = data;
+                    resolve(data);
+                } else {
+                    console.log(data);
+                    resolve(null);
+                }
+            });
+        });
 
+        // If sheet was published successfully and a plan/day were selected, update the plan
+        if (response && response.id && !isPublished) {
+            const selectedPlanId = Object.entries(checkedPlans).find(([_, isChecked]) => isChecked)?.[0];
+            const selectedDay = selectedPlanId ? selectedDays[selectedPlanId] : null;
+
+            if (selectedPlanId && selectedDay) {
+                // Update plan content
+                $.post("/api/plans/update_content", {
+                    plan_id: selectedPlanId,
+                    day: selectedDay,
+                    sheet_id: response.id
+                }, (data) => {
+                    if (data.error) {
+                        console.error("Error updating plan:", data.error);
+                    }
+                });
+            }
+        }
     }
 
     const onTagDelete = (i) => {
@@ -188,6 +235,67 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
         })
     }
 
+    const handlePlanCheck = (planId) => {
+        setCheckedPlans(prev => {
+            const newState = { ...prev };
+            
+            // If trying to check a new plan, first check if any other plan is checked
+            if (!prev[planId]) {
+                const hasCheckedPlan = Object.values(prev).some(isChecked => isChecked);
+                if (hasCheckedPlan) {
+                    return prev; // Don't allow checking if another plan is already checked
+                }
+            }
+            
+            // Toggle the current plan
+            newState[planId] = !prev[planId];
+            
+            // Reset selected day when unchecking
+            if (!newState[planId]) {
+                setSelectedDays(prevDays => {
+                    const newDays = { ...prevDays };
+                    delete newDays[planId];
+                    return newDays;
+                });
+            }
+            
+            return newState;
+        });
+    };
+
+    const handleDaySelect = (planId, day) => {
+        setSelectedDays(prev => ({
+            ...prev,
+            [planId]: day
+        }));
+    };
+
+    const DayDropdown = ({ plan }) => {
+        if (!checkedPlans[plan.id]) return null;
+        
+        const days = Array.from({ length: plan.total_days }, (_, i) => i + 1);
+        
+        return (
+            <div className="dayDropdown" style={{ marginLeft: 'auto', position: 'relative' }}>
+                <select 
+                    value={selectedDays[plan.id] || ''} 
+                    onChange={(e) => handleDaySelect(plan.id, e.target.value)}
+                    style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #ccc',
+                        backgroundColor: '#fff'
+                    }}
+                >
+                    <option value="">Which day</option>
+                    {days.map(day => (
+                        <option key={day} value={day}>Day {day}</option>
+                    ))}
+                </select>
+            </div>
+        );
+    };
+
     const publishSettingsReadOnly = <div> {sheet.summary ? <div className="description" dangerouslySetInnerHTML={{ __html: sheet.summary }}></div> : null}
         {sheet.collections.length > 0 ?
             <div className="aboutLinks">
@@ -200,28 +308,33 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
                     </ul>
                 </div>
             </div> : null
-
         }
         {!!Sefaria._uid ? <CollectionsEditor sheetId={sheet.id}/> : null }
 
-
-        {sheet.topics && sheet.topics.length > 0 ?
-            <div className="readings">
-                <h3 className="aboutSheetHeader"><InterfaceText>header.topic</InterfaceText></h3>
+        {!!Sefaria._uid && userPlans.length > 0 ? 
+            <div className="aboutLinks">
+                <h3 className="aboutSheetHeader"><InterfaceText>My Plans</InterfaceText></h3>
                 <div>
                     <ul className="aboutSheetLinks">
-                        {sheet.topics.map((topic, i) => (
-                            <li key={i}>
-                                <a href={"/topics/" + topic.slug} target="_blank">
-                                    <InterfaceText text={{ en: topic.en, he: topic.he }} />
+                        {userPlans.map((plan, i) => (
+                            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={checkedPlans[plan.id] || false}
+                                    onChange={() => handlePlanCheck(plan.id)}
+                                    style={{ margin: '0' }}
+                                    disabled={Object.values(checkedPlans).some(isChecked => isChecked) && !checkedPlans[plan.id]}
+                                />
+                                <a href={"/plans/" + plan.id}>
+                                    <InterfaceText>{plan.title}</InterfaceText>
                                 </a>
+                                <DayDropdown plan={plan} />
                             </li>
-                        ))
-                        }
+                        ))}
                     </ul>
                 </div>
-            </div> : null}
-
+            </div> 
+        : null}
     </div>;
 
     const publishSettingsEditMode = <div className="publishSettingsEditMode"><div className={isPublished ? "publishBox transparentBackground sans-serif" : "publishBox sans-serif"}>
@@ -233,31 +346,39 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             maxLength="281"
             placeholder={Sefaria._("write_short_description")}
             value={summary} onChange={handleSummaryChange}></textarea>
-        <h3 className="aboutSheetHeader"><InterfaceText>header.topic</InterfaceText></h3>
-        <div className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
-            <ReactTags
-                ref={reactTags}
-                allowNew={true}
-                tags={tags}
-                suggestions={suggestions}
-                onDelete={onTagDelete}
-                placeholderText={Sefaria._("sheet.placeholder.add_topic")}
-                delimiters={["Enter", "Tab", ","]}
-                onAddition={onTagAddition}
-                onValidate={onTagValidate}
-                onInput={updateSuggestedTags}
-            />
-        </div>
+        
         {validation.validationFailed === "none" ? null : <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
+
+        {!!Sefaria._uid && userPlans.length > 0 ? 
+            <div>
+                <h3 className="aboutSheetHeader"><InterfaceText>My Plans</InterfaceText></h3>
+                <div>
+                    <ul className="aboutSheetLinks">
+                        {userPlans.map((plan, i) => (
+                            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={checkedPlans[plan.id] || false}
+                                    onChange={() => handlePlanCheck(plan.id)}
+                                    style={{ margin: '0' }}
+                                    disabled={Object.values(checkedPlans).some(isChecked => isChecked) && !checkedPlans[plan.id]}
+                                />
+                                <a href={"/plans/" + plan.id}>
+                                    <InterfaceText>{plan.title}</InterfaceText>
+                                </a>
+                                <DayDropdown plan={plan} />
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div> 
+        : null}
 
         {!isPublished ? <div className={"publishButton"}>
             <button className="button notPublished" onClick={togglePublish}>
                 <InterfaceText>publish</InterfaceText>
             </button>
         </div> : null}
-
-    </div>
-        <CollectionsEditor sheetId={sheet.id}/>
         {isPublished ?
             <div className={"publishButton"}>
                 <div className="publishedText">
@@ -269,6 +390,8 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             </div>
             : null
         }
+    </div>
+        <CollectionsEditor sheetId={sheet.id}/>
     </div>
 
     return (<div className="aboutSheetPanel">

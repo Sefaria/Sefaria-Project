@@ -81,15 +81,15 @@ class Sheet extends Component {
 
       if (path.match(/^\/sheets\/\d+/)) {
         e.preventDefault()
-        console.log();
-        this.props.onCitationClick(`Sheet ${path.slice(8)}`, `Sheet ${this.props.sheetID}`, true)
+        
+        this.props.onCitationClick(`Sheet ${path.slice(8)}`, `Sheet ${this.props.id}`, true)
       }
 
       else if (Sefaria.isRef(path.slice(1))) {
         e.preventDefault()
         const currVersions = {en: params.get("ven"), he: params.get("vhe")};
         const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
-        this.props.onCitationClick(path.slice(1), `Sheet ${this.props.sheetID}`, true, currVersions)
+        this.props.onCitationClick(path.slice(1), `Sheet ${this.props.id}`, true, currVersions)
       }
 
     }
