@@ -19,7 +19,7 @@ let Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
-  apiHost: "https://www.sefaria.org" // Defaults to localhost, override to talk another server
+  apiHost: "" // Defaults to localhost, override to talk another server
 };
 
 if (typeof window !== 'undefined') {
