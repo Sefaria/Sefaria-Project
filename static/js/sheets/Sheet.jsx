@@ -54,7 +54,6 @@ class Sheet extends Component {
       e.preventDefault();
       const relativePath = new URL(target.href).pathname;
       const url = Sefaria.isSubDomain('sheets') ? `${Sefaria.getLibraryUrl()}${relativePath}` : relativePath;
-      console.log(7, target.href)
       Sefaria.util.openInNewTab(url);
     }
   }
