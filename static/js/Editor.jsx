@@ -554,17 +554,20 @@ function htmlToStringWithLineBreaks(htmlString) {
 
     // Optional: Remove leading/trailing "normal spaces" (not newlines or other whitespace)
     htmlContent = htmlContent.replace(/^[ ]+/g, '').replace(/[ ]+$/g, '');
-    if (htmlContent.includes("Rabban Gamliel would say")) {
-        console.log(htmlString)
-    }
+
+    htmlContent = htmlContent.replace(/<p>/g, '').replace(/<\/p>/g, '');
+    htmlContent = htmlContent.trim()
+    // if (htmlContent.includes("Rabban Gamliel would say")) {
+    //     console.log(htmlString)
+    // }
     return htmlContent;
 }
 function parseSheetItemHTML(rawhtml) {
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml
       .replace(/\u00A0/g, ' ')
-      // .replace(/(\r\n|\n|\r|\t)/gm, " ")
-    .replace(/(\r\n|\r|\t)/gm, " ")
+      .replace(/(\r\n|\n|\r|\t)/gm, " ")
+
 
     // replace <p> tags with newlines
     preparseHtml = htmlToStringWithLineBreaks(preparseHtml)
