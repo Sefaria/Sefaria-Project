@@ -7,7 +7,6 @@ import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar, SidebarModules }from './NavSidebar';
-import Footer  from './Footer';
 import Component from 'react-class';
 
 
@@ -58,7 +57,6 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
         </div>
-        <Footer />
       </div>
     </div>
   );
