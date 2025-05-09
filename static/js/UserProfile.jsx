@@ -645,10 +645,12 @@ class UserProfile extends Component {
             Create plans to organize and share your learning journey.
           </span>
         </div>
-        <a href="/plans/new" className="resourcesLink sans-serif">
-          <img src="/static/icons/calendar.svg" alt="Plan icon" />
-          <span className={`${Sefaria.languageClassFont()}`}>Create New Plan</span>
-        </a>
+        {this.props.profile.userType === "Plan creator" && (
+          <a href="/plans/new" className="resourcesLink sans-serif">
+            <img src="/static/icons/calendar.svg" alt="Plan icon" />
+            <span className={`${Sefaria.languageClassFont()}`}>Create New Plan</span>
+          </a>
+        )}
       </div>
     );
   }
