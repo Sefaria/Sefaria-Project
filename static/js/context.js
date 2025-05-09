@@ -331,7 +331,7 @@ function StrapiDataProvider({ children }) {
       };
       getStrapiData();
     }
-  }, [adContext]);
+  }, []);
 
   return (
     <StrapiDataContext.Provider
