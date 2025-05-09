@@ -17290,6 +17290,51 @@ span.ref-link-color-3 {
     opacity: 1;
   }
 
+   /* Plan Tabs Navigation */
+.planTabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  
+  .planTab {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s;
+    border: 1px solid #eaeaea;
+  }
+  
+  .planTab:hover {
+    color: #C39F48;
+  }
+  
+  .planTab.active {
+    color: white;
+    background-color: #C39F48;
+    font-weight: 600;
+  }
+  
+  .planTab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #C39F48;
+  }
+  
+  .noPlansMessage {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+  }
+
 @-webkit-keyframes load5 {
     0%, 100% {
         box-shadow: 0 -2.6em 0 0 #ffffff, 1.8em -1.8em 0 0 rgba(0, 0, 0, 0.2), 2.5em 0 0 0 rgba(0, 0, 0, 0.2), 1.75em 1.75em 0 0 rgba(0, 0, 0, 0.2), 0 2.5em 0 0 rgba(0, 0, 0, 0.2), -1.8em 1.8em 0 0 rgba(0, 0, 0, 0.2), -2.6em 0 0 0 rgba(0, 0, 0, 0.5), -1.8em -1.8em 0 0 rgba(0, 0, 0, 0.7)

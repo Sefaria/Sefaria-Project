@@ -13,44 +13,96 @@ export const categories = [
 
 const Plans = ({ userType }) => {
   const [plans, setPlans] = useState([]);
+  const [userPlans, setUserPlans] = useState([]);
+  const [completedPlans, setCompletedPlans] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'my', 'completed'
 
   // Fetch plans from API
   useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/plans');
-        if (!response.ok) {
-          throw new Error('Failed to fetch plans');
-        }
-        const data = await response.json();
-        setPlans(data.plans);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPlans();
+    fetchAllPlans();
+    fetchUserPlans();
+    fetchCompletedPlans();
   }, []);
 
+  const fetchAllPlans = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/plans');
+      if (!response.ok) {
+        throw new Error('Failed to fetch plans');
+      }
+      const data = await response.json();
+      setPlans(data.plans);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserPlans = async () => {
+    try {
+      const response = await fetch('/api/user/plans');
+      if (!response.ok) {
+        throw new Error('Failed to fetch user plans');
+      }
+      const data = await response.json();
+      setUserPlans(data.plans);
+    } catch (err) {
+      console.error('Error fetching user plans:', err);
+      // Don't set the main error state here to avoid blocking the UI
+    }
+  };
+
+  const fetchCompletedPlans = async () => {
+    try {
+      const response = await fetch('/api/user/plans/completed');
+      if (!response.ok) {
+        throw new Error('Failed to fetch completed plans');
+      }
+      const data = await response.json();
+      setCompletedPlans(data.plans);
+    } catch (err) {
+      console.error('Error fetching completed plans:', err);
+      // Don't set the main error state here to avoid blocking the UI
+    }
+  };
+
+  // Get current plans based on active tab
+  const getCurrentPlans = () => {
+    switch (activeTab) {
+      case 'my':
+        return userPlans;
+      case 'completed':
+        return completedPlans;
+      case 'all':
+      default:
+        return plans;
+    }
+  };
+
   // Filter plans based on search query and category
-  const filteredPlans = plans.filter(plan => {
+  const filteredPlans = getCurrentPlans().filter(plan => {
     const matchesSearch = plan.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' ? true : plan.categories.includes(selectedCategory);
     return matchesSearch && matchesCategory;
   });
 
-  if (loading) {
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSelectedCategory('all');
+    setSearchQuery('');
+  };
+
+  if (loading && activeTab === 'all') {
     return <div className="loading">Loading plans...</div>;
   }
 
-  if (error) {
+  if (error && activeTab === 'all') {
     return <div className="error">Error: {error}</div>;
   }
 
@@ -106,10 +158,36 @@ const Plans = ({ userType }) => {
                       ))}
                     </div>
 
+                    {/* Tabs Navigation */}
+                    <div className="planTabs">
+                      <div 
+                        className={classNames('planTab', { active: activeTab === 'all' })}
+                        onClick={() => handleTabChange('all')}
+                      >
+                        <InterfaceText>All Plans</InterfaceText>
+                      </div>
+                      <div 
+                        className={classNames('planTab', { active: activeTab === 'my' })}
+                        onClick={() => handleTabChange('my')}
+                      >
+                        <InterfaceText>My Plans</InterfaceText>
+                      </div>
+                      <div 
+                        className={classNames('planTab', { active: activeTab === 'completed' })}
+                        onClick={() => handleTabChange('completed')}
+                      >
+                        <InterfaceText>Completed</InterfaceText>
+                      </div>
+                    </div>
+
                     {/* Plans List */}
+
                     <div className="plansListHeader">
-                      <h1>Featured Plans</h1>
-                      <a href="/all" className="viewAllLink">View all plans</a>
+                      <h1>
+                        {activeTab === 'all' && <InterfaceText>Featured Plans</InterfaceText>}
+                        {activeTab === 'my' && <InterfaceText>My Plans</InterfaceText>}
+                        {activeTab === 'completed' && <InterfaceText>Completed Plans</InterfaceText>}
+                      </h1>
                     </div>
                     <div className="plansList">
                       {filteredPlans.length > 0 ? (
@@ -137,7 +215,11 @@ const Plans = ({ userType }) => {
                           </a>
                         ))
                       ) : (
-                        <p>No plans found.</p>
+                        <p className="noPlansMessage">
+                          {activeTab === 'my' && <InterfaceText>You haven't joined any plans yet.</InterfaceText>}
+                          {activeTab === 'completed' && <InterfaceText>You haven't completed any plans yet.</InterfaceText>}
+                          {activeTab === 'all' && <InterfaceText>No plans found.</InterfaceText>}
+                        </p>
                       )}
                     </div>
                   </div>
