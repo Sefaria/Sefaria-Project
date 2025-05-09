@@ -2105,7 +2105,7 @@ const LearnAboutNewEditorBanner = () => {
   );
 };
 
-const Banner = React.memo(({ onClose }) => {
+const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
     useState(false);
   const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
@@ -2262,7 +2262,7 @@ const Banner = React.memo(({ onClose }) => {
   } else {
     return null;
   }
-});
+};
 
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
