@@ -2593,7 +2593,6 @@ function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, setUnknownErro
 
   useEffect(() => {
     const hasUnsaved = unsavedChanges;
-    console.log("hasUnsaved", hasUnsaved);
     if (hasUnsaved && !timeoutRef.current) {
       // Start a timeout only if none is running
       timeoutRef.current = setTimeout(() => {
