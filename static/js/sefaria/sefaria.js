@@ -3223,6 +3223,7 @@ _media: {},
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     }
   },
+    testUnkownNewEditorSaveError: false,
   _translations: {},
   getTranslation: function(key) {
     const url = Sefaria.apiHost + "/api/texts/translations/" + key;

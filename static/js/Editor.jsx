@@ -2552,23 +2552,24 @@ const EditorSaveStateIndicator = ({ state }) => {
       "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
       "saving": "/static/icons/new_editor_saving/directory-sync-rounded.svg",
       "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg",
-        "default": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
+      "unknownError": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
     };
     const stateToTooltip = {
     "saved": "Your sheet is saved to Sefaria",
     "saving": "We are saving your changes to Sefaria",
     "connectionLost": "No internet connection detected",
     "userUnauthenticated": "You are not logged in to Sefaria",
-    "default": "Something went wrong. Try refreshing the page.\nIf this problem persists, contact us at hello@sefaria.org"
+    "unknownError": "Something went wrong. Try refreshing the page.\nIf this problem persists, contact us at hello@sefaria.org"
   };
+
+    const path = window.location.pathname + window.location.search;
     const stateToMessage = {
       "connectionLost": "Trying to Connect",
       "userUnauthenticated": <>User Logged out. <a href={`/login?next=${path}`}>Log in</a></>,
       "saving": "Saving...",
       "saved": "Saved",
-        "default": "Something went wrong. Try refreshing the page."
+      "unknownError": "Something went wrong. Try refreshing the page."
     };
-    const path = window.location.pathname + window.location.search;
 
     useEffect(() => {
     // Preload all icons
@@ -2587,6 +2588,37 @@ const EditorSaveStateIndicator = ({ state }) => {
     </div>
   );
 }
+function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, setUnknownErrorDetected, setBlockEditing) {
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    const hasUnsaved = unsavedChanges;
+    console.log("hasUnsaved", hasUnsaved);
+    if (hasUnsaved && !timeoutRef.current) {
+      // Start a timeout only if none is running
+      timeoutRef.current = setTimeout(() => {
+        console.log("time up");
+        setUnknownErrorDetected(true);
+        setBlockEditing(true);
+        timeoutRef.current = null; // Reset the ref
+      }, timeoutSeconds * 1000);
+    }
+
+    if (!hasUnsaved && timeoutRef.current) {
+      // Cancel if unsavedChanges were cleared before timeout ends
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    return () => {
+      // Clean up on unmount or re-run
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [unsavedChanges]);
+}
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
@@ -2602,15 +2634,17 @@ const SefariaEditor = (props) => {
     const [readyForNormalize, setReadyForNormalize] = useState(false);
     const [connectionLostPolling, setConnectionLostPolling] = useState(false);
     const [userUnauthenticated, setUserUnauthenticated] = useState(false);
+    const [unknownErrorDetected, setUnknownErrorDetected] = useState(false);
     const [savingState, setSavingState] = useState('saved');
+    useUnsavedChangesWatcher(20, unsavedChanges, setUnknownErrorDetected, setBlockEditing);
 
     useEffect(() => {
-        if (connectionLostPolling) {setSavingState('connectionLost')}
+        if (unknownErrorDetected) {setSavingState("unknownError")}
+        else if (connectionLostPolling) {setSavingState('connectionLost')}
         else if (userUnauthenticated) {setSavingState('userUnauthenticated')}
         else if (unsavedChanges) {setSavingState('saving')}
         else {setSavingState('saved')}
-  }, [connectionLostPolling, userUnauthenticated, unsavedChanges]);
-
+  }, [connectionLostPolling, userUnauthenticated, unsavedChanges, unknownErrorDetected]);
     useEffect(
         () => {
             if (!canUseDOM) {
@@ -2634,6 +2668,22 @@ const SefariaEditor = (props) => {
         },
         [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
     );
+
+    // useEffect(() => {
+    //   // If no unsaved changes, do nothing
+    //   if (!unsavedChanges ) return;
+    //
+    //   const timeout = setTimeout(() => {
+    //     console.log("time up");
+    //     if (!unsavedChanges ) return;
+    //     setUnknownErrorDetected(true);
+    //     setBlockEditing(true);
+    //   }, 2000); // 20 seconds
+    //
+    //   // Cleanup if unsavedChanges changes or on unmount
+    //   return () => clearTimeout(timeout);
+    // }, [unsavedChanges]);
+
     useEffect(() => {
         if (!canUseDOM || !connectionLostPolling) return;
 
@@ -2911,29 +2961,22 @@ const SefariaEditor = (props) => {
         // console.log('saving...');
 
         function handlePostError(jqXHR, textStatus, errorThrown) {
-            if (textStatus === "timeout") {
-                console.warn("Request timed out.");
-                // alert("The request took too long. Please try again.");
-            } else if (jqXHR.status === 0) {
+            if (jqXHR.status === 0) {
                 console.warn("No network connection or request blocked.");
                 setBlockEditing(true);
                 setConnectionLostPolling(true);
             } else if (jqXHR.status === 401) {
                 setBlockEditing(true);
                 setUserUnauthenticated(true);
-            } else if (jqXHR.status >= 500) {
-                console.warn("Server error:", jqXHR.status);
-                alert("Server error. Please try again later.");
-            } else if (jqXHR.status >= 400) {
-                console.warn("Client error:", jqXHR.status);
-                alert("There was a problem with your request.");
             } else {
                 console.warn("Unknown error:", textStatus, errorThrown);
-                alert("An unknown error occurred.");
+                setUnknownErrorDetected(true);
+                setBlockEditing(true)
             }
-
-            // Optional: Log to analytics or set app state
-            // logError(jqXHR, textStatus, errorThrown);
+        }
+        if(Sefaria.testUnkownNewEditorSaveError) {
+            console.log("Simulating unknown error");
+            return;
         }
 
         $.post("/api/sheets/", {"json": json}, res => {
