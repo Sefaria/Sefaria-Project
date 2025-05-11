@@ -2869,7 +2869,7 @@ _media: {},
   _getTopicCacheKey: function(slug, {annotated=true, with_html=false}={}) {
       return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
-  _createTabKeyAndTitle: function (linkType, refObj, lang) {
+  _deriveTabDataForTopicLink: function (linkType, refObj) {
       // helper function for processTopicsTabsData
       // We support two types of 'linkType's -- confusingly called "about" and "popular-writing-of". This distinction is only relevant for the library module.
       // In the sheets module, every source is under the "Sheets" tab.
@@ -2898,9 +2898,9 @@ _media: {},
     if (!topicData || !topicData.refs) { return topicData || null; }
     const tabs = {};
     for (let [linkType, topicLinks] of Object.entries(topicData.refs)) {
-        let refs = topicLinks.refs.filter(refObj => (Sefaria.activeModule === 'sheets') === refObj.is_sheet);
+        const activeRefs = topicLinks.refs.filter(refObj => (Sefaria.activeModule === 'sheets') === refObj.is_sheet);
         for (let refObj of refs) {
-          const {tabKey, title} = Sefaria._createTabKeyAndTitle(linkType, refObj);
+          const {tabKey, title} = Sefaria._deriveTabDataForTopicLink(linkType, refObj);
           if (!tabKey) continue;
           if (!tabs[tabKey]) {
           tabs[tabKey] = {
