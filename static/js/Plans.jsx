@@ -25,7 +25,7 @@ const Plans = ({ userType }) => {
   useEffect(() => {
     fetchAllPlans();
     fetchUserPlans();
-    fetchCompletedPlans();
+    // fetchCompletedPlans();
   }, []);
 
   const fetchAllPlans = async () => {
@@ -46,7 +46,7 @@ const Plans = ({ userType }) => {
 
   const fetchUserPlans = async () => {
     try {
-      const response = await fetch('/api/user/plans');
+      const response = await fetch('/api/user-plans');
       if (!response.ok) {
         throw new Error('Failed to fetch user plans');
       }
@@ -58,27 +58,27 @@ const Plans = ({ userType }) => {
     }
   };
 
-  const fetchCompletedPlans = async () => {
-    try {
-      const response = await fetch('/api/user/plans/completed');
-      if (!response.ok) {
-        throw new Error('Failed to fetch completed plans');
-      }
-      const data = await response.json();
-      setCompletedPlans(data.plans);
-    } catch (err) {
-      console.error('Error fetching completed plans:', err);
-      // Don't set the main error state here to avoid blocking the UI
-    }
-  };
+  // const fetchCompletedPlans = async () => {
+  //   try {
+  //     const response = await fetch('/api/user/plans/completed');
+  //     if (!response.ok) {
+  //       throw new Error('Failed to fetch completed plans');
+  //     }
+  //     const data = await response.json();
+  //     setCompletedPlans(data.plans);
+  //   } catch (err) {
+  //     console.error('Error fetching completed plans:', err);
+  //     // Don't set the main error state here to avoid blocking the UI
+  //   }
+  // };
 
   // Get current plans based on active tab
   const getCurrentPlans = () => {
     switch (activeTab) {
       case 'my':
         return userPlans;
-      case 'completed':
-        return completedPlans;
+      // case 'completed':
+      //   return completedPlans;
       case 'all':
       default:
         return plans;
@@ -181,47 +181,10 @@ const Plans = ({ userType }) => {
                     </div>
 
                     {/* Plans List */}
-
-                    <div className="plansListHeader">
-                      <h1>
-                        {activeTab === 'all' && <InterfaceText>Featured Plans</InterfaceText>}
-                        {activeTab === 'my' && <InterfaceText>My Plans</InterfaceText>}
-                        {activeTab === 'completed' && <InterfaceText>Completed Plans</InterfaceText>}
-                      </h1>
-                    </div>
-                    <div className="plansList">
-                      {filteredPlans.length > 0 ? (
-                        filteredPlans.map(plan => (
-                          <a href={`/plans/${plan.id}`} key={plan.id} className="planCard">
-                            <div className="planImageWrapper">
-                              <img src={plan.imageUrl || "/static/img/plan-default.png"} alt={plan.title} className="planImage" />
-                              <div className="planCategories">
-                                {plan.categories.map((category, index) => (
-                                  <span key={index} className="planCategory">
-                                    <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
-                                    {index < plan.categories.length - 1 && <span className="categorySeparator"> • </span>}
-                                  </span>
-                                ))}
-                                <span className="categoryCount">+{plan.categories.length - 2 > 0 ? plan.categories.length - 2 : 1}</span>
-                              </div>
-                            </div>
-                            <h3 className="planTitle">
-                                <InterfaceText>{plan.title}</InterfaceText>
-                            </h3>
-                            <div className="planFooter">
-                              <span className="planDuration">{plan.total_days} days</span>
-                              <div to={`/${plan.id}`} className="readMoreLink">Read more</div>
-                            </div>
-                          </a>
-                        ))
-                      ) : (
-                        <p className="noPlansMessage">
-                          {activeTab === 'my' && <InterfaceText>You haven't joined any plans yet.</InterfaceText>}
-                          {activeTab === 'completed' && <InterfaceText>You haven't completed any plans yet.</InterfaceText>}
-                          {activeTab === 'all' && <InterfaceText>No plans found.</InterfaceText>}
-                        </p>
-                      )}
-                    </div>
+                    {activeTab === 'all' && <AllPlans filteredPlans={filteredPlans} />}
+                    {activeTab === 'my' && <MyPlans filteredPlans={filteredPlans} />}
+                    {activeTab === 'completed' && <CompletedPlans filteredPlans={filteredPlans} />}
+                    
                   </div>
           </div>
         </div>
@@ -229,10 +192,158 @@ const Plans = ({ userType }) => {
   );
 };
 
+
 Plans.propTypes = {
   multiPanel: PropTypes.bool.isRequired,
   toggleSignUpModal: PropTypes.func.isRequired,
   initialWidth: PropTypes.number.isRequired,
+};
+
+const AllPlans = ({filteredPlans}) => {
+  return (
+    <><div className="plansListHeader">
+      <InterfaceText>All Plans</InterfaceText>
+    </div><div className="plansList">
+        {filteredPlans.length > 0 ? (
+          filteredPlans.map(plan => (
+            <a href={`/plans/${plan.id}`} key={plan.id} className="planCard">
+              <div className="planImageWrapper">
+                <img src={plan.imageUrl || "/static/img/plan-default.png"} alt={plan.title} className="planImage" />
+                <div className="planCategories">
+                  {plan.categories.map((category, index) => (
+                    <span key={index} className="planCategory">
+                      <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
+                      {index < plan.categories.length - 1 && <span className="categorySeparator"> • </span>}
+                    </span>
+                  ))}
+                  <span className="categoryCount">+{plan.categories.length - 2 > 0 ? plan.categories.length - 2 : 1}</span>
+                </div>
+              </div>
+              <h3 className="planTitle">
+                <InterfaceText>{plan.title}</InterfaceText>
+              </h3>
+              <div className="planFooter">
+                <span className="planDuration">{plan.total_days} days</span>
+                <div to={`/${plan.id}`} className="readMoreLink">Read more</div>
+              </div>
+            </a>
+          ))
+        ) : (
+          <p className="noPlansMessage">
+            {activeTab === 'my' && <InterfaceText>You haven't joined any plans yet.</InterfaceText>}
+            {/* {activeTab === 'completed' && <InterfaceText>You haven't completed any plans yet.</InterfaceText>} */}
+            {activeTab === 'all' && <InterfaceText>No plans found.</InterfaceText>}
+          </p>
+        )}
+      </div></>
+  );
+};
+
+const MyPlans = ({ filteredPlans }) => {
+  // Helper function to convert numbers to Tibetan numerals
+  const toTibetanNumeral = (num) => {
+    if (num === undefined || num === null) return '';
+    const tibetanNumerals = ['༠', '༡', '༢', '༣', '༤', '༥', '༦', '༧', '༨', '༩'];
+    return num.toString().split('').map(digit => {
+      return tibetanNumerals[parseInt(digit)] || digit;
+    }).join('');
+  };
+
+  // Format date to a more readable format
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  if (!filteredPlans || filteredPlans.length === 0) {
+    return (
+      <div className="emptyPlansMessage">
+        <h2><InterfaceText>You haven't started any plans yet</InterfaceText></h2>
+        <p><InterfaceText>Browse all plans and start one today!</InterfaceText></p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="myPlansContainer">
+      <div className="plansGrid">
+        {filteredPlans.map(plan => (
+          <div key={plan.id} className="planCard">
+            <a href={`/plans/${plan.plan_id}`} className="planCardLink">
+              <div className="planCardHeader">
+                <h3 className="planTitle">{plan.title}</h3>
+                {plan.is_completed ? (
+                  <span className="completionBadge completed">
+                    <InterfaceText>Completed</InterfaceText>
+                  </span>
+                ) : (
+                  <span className="completionBadge inProgress">
+                    <InterfaceText>In Progress</InterfaceText>
+                  </span>
+                )}
+              </div>
+              
+              <p className="planDescription">{plan.plan_description}</p>
+              
+              {/* Plan Progress Section */}
+              <div className="planProgressContainer">
+                <div className="progressBarContainer">
+                  <div 
+                    className="progressBar" 
+                    style={{ width: `${plan.progress.completion_percentage}%` }}
+                  ></div>
+                </div>
+                
+                <div className="progressStats">
+                  <div className="progressStat">
+                    <span className="progressLabel"><InterfaceText>Current Day</InterfaceText></span>
+                    <span className="progressValue">
+                      {plan.current_day}/{plan.progress.total_days}
+                    </span>
+                  </div>
+                  
+                  <div className="progressStat">
+                    <span className="progressLabel"><InterfaceText>Completion</InterfaceText></span>
+                    <span className="progressValue">{plan.progress.completion_percentage}%</span>
+                  </div>
+                  
+                  <div className="progressStat">
+                    <span className="progressLabel"><InterfaceText>Days Remaining</InterfaceText></span>
+                    <span className="progressValue">{plan.progress.days_remaining}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Plan Dates Section */}
+              <div className="planDates">
+                <div className="planDate">
+                  <span className="dateLabel"><InterfaceText>Started</InterfaceText></span>
+                  <span className="dateValue">{formatDate(plan.started_at)}</span>
+                </div>
+                
+                <div className="planDate">
+                  <span className="dateLabel"><InterfaceText>Last Activity</InterfaceText></span>
+                  <span className="dateValue">{formatDate(plan.last_activity_at)}</span>
+                </div>
+              </div>
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const CompletedPlans = () => {
+  return (
+    <div>
+      <h1><InterfaceText>Completed Plans</InterfaceText></h1>
+    </div>
+  );
 };
 
 export default Plans;

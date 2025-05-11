@@ -66,6 +66,14 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
     onCitationClick(citationRef, textRef, replace, currVersions);
     setShowDailyPath(false);
   };
+  const handleCompleteReading = () => {
+    console.log("current day,", currentDay);
+    if (currentDay < planData.total_days) {
+      setCurrentDay(currentDay + 1);
+    } else {
+      console.log("Plan completed");
+    }
+  };
 
   const openSheet = (sheetRef, replace = false) => {
     // Placeholder for opening a sheet
@@ -145,7 +153,10 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
                 multiPanel={false}
                 onRefClick={onRefClick}
                 onSegmentClick={() => {}}
+                isPlan={true}
+                currentDay={currentDay}
                 onCitationClick={handleCitationClick}
+                onCompleteReading={handleCompleteReading}
                 setSelectedWords={() => {}}
                 setDivineNameReplacement={() => {}}
                 divineNameReplacement="noSub"

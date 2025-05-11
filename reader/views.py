@@ -96,6 +96,9 @@ import random
 import string
 from sefaria.forms import PlanForm
 
+from sefaria.model.user_plan import UserPlan, UserPlanSet
+from sefaria.model.plan import Plan, PlanSet    
+
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
@@ -4446,20 +4449,42 @@ def day_plan_detail_page(request, plan_id, props={}):
     title = "Plans | Pecha"
     desc = "Explore day of plan."
     plan = get_plan_for_panel(plan_id)
+
+    user_id = request.user.id
+
+    # Check if user already has this plan
+    existing_plan = UserPlanSet().get_user_plan(user_id, plan_id)
+    user_plan_id = None
+    
+    # If plan exists, use it instead of creating a new one
+    if existing_plan:
+        user_plan_id = existing_plan._id
+    else:
+        # Start new plan only if it doesn't exist
+        try:
+            new_plan = UserPlan().start_plan(user_id=user_id, plan_id=plan_id)
+            user_plan_id = new_plan.save()
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
     
     props.update({
         "planId": plan_id,
-        "planData": plan
+        "planData": plan,
+        "userPlanId": user_plan_id
     }) 
     return menu_page(request, page="dayPlanDetail", props=props, title=title, desc=desc)
-    
 
-
-def get_plan_for_panel(id):
-
+def get_plan_for_panel(id, user_id=None):
+    """
+    Get plan details for panel display, optionally including user plan if user_id is provided
+    :param id: ID of the plan
+    :param user_id: Optional user ID to fetch associated user plan
+    :return: JSON-serializable plan data with user_plan if available
+    """
     plan = db.plans.find_one({"_id": ObjectId(id)})
     if not plan:
         return {"error": "Plan not found"}
+        
     # Convert plan to JSON-serializable format
     json_plan = {}
     for key, value in plan.items():
@@ -4470,6 +4495,27 @@ def get_plan_for_panel(id):
         else:
             json_plan[key] = value
     
+    # If user_id is provided, check for user plan
+    if user_id:
+        from sefaria.model.user_plan import UserPlanSet
+        user_plan = UserPlanSet().get_user_plan(user_id, str(id))
+        
+        if user_plan:
+            # Convert user plan to JSON-serializable format
+            user_plan_json = {
+                "id": user_plan._id,
+                "current_day": user_plan.current_day,
+                "started_at": user_plan.safe_isoformat(user_plan.started_at),
+                "last_activity_at": user_plan.safe_isoformat(user_plan.last_activity_at),
+                "is_completed": user_plan.is_completed,
+                "completed_days": user_plan.completed_days,
+                "progress": user_plan.get_progress_summary(),
+                "settings": user_plan.settings
+            }
+            
+            # Include user plan in the response
+            json_plan["user_plan"] = user_plan_json
+    print(json_plan)
     return json_plan
 
 
@@ -5496,7 +5542,7 @@ def get_user_by_email(email):
         return {"data": {"error": f"User:({email}) not found"}, "status": 404}
 
 @csrf_exempt
-def user_plans_api(request):
+def user_plans_api(request, plan_id=None, action=None):
     """
     API for managing user plans
     GET:
@@ -5534,8 +5580,8 @@ def user_plans_api(request):
                 "id": user_plan._id,
                 "plan_id": user_plan.plan_id,
                 "current_day": user_plan.current_day,
-                "started_at": user_plan.started_at.isoformat(),
-                "last_activity_at": user_plan.last_activity_at.isoformat(),
+                "started_at": user_plan.safe_isoformat(user_plan.started_at),
+                "last_activity_at": user_plan.safe_isoformat(user_plan.last_activity_at),
                 "is_completed": user_plan.is_completed,
                 "completed_days": user_plan.completed_days,
                 "progress": progress,
@@ -5546,15 +5592,17 @@ def user_plans_api(request):
             return jsonResponse(result, callback=cb)
         else:
             # Get all active plans for the user
-            active_plans = UserPlanSet().get_active_plans_for_user(user_id).array()
+            active_plans = UserPlanSet().get_active_plans_for_user(user_id)
             result = {
                 "plans": [
                     {
                         "id": plan._id,
+                        "title": plan.title,
+                        "plan_description": plan.description,
                         "plan_id": plan.plan_id,
                         "current_day": plan.current_day,
-                        "started_at": plan.started_at.isoformat(),
-                        "last_activity_at": plan.last_activity_at.isoformat(),
+                        "started_at": plan.safe_isoformat(plan.started_at),
+                        "last_activity_at": plan.safe_isoformat(plan.last_activity_at),
                         "is_completed": plan.is_completed,
                         "progress": plan.get_progress_summary()
                     } for plan in active_plans

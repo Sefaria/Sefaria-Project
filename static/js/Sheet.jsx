@@ -126,6 +126,8 @@ class Sheet extends Component {
           setSelectedWords={this.props.setSelectedWords}
           sheetNumbered={sheet.options.numbered}
           hideImages={!!sheet.hideImages}
+          isPlan={this.props.isPlan}
+          onCompleteReading={this.props.onCompleteReading}
           sheetID={sheet.id}
         />
       );
@@ -372,10 +374,11 @@ class SheetContent extends Component {
             {sources}
           </div>
         </div>
-
+        {this.props.isPlan ? <button className="reading-completed" onClick={this.props.onCompleteReading}>CONTINUE</button> : null}
         <div id="printFooter" style={{display:"none"}}>
           <span className={`${Sefaria.languageClassFont()}`}>{Sefaria._("sheet.created_with")} <img src="/static/img/logo.svg" /></span>
         </div>
+        
       </div>
     )
   }

@@ -1,11 +1,12 @@
 from sefaria.model import *
 from sefaria.client.util import jsonResponse
 from django.views import View
-from .api_warnings import *
 from sefaria.model.plan import Plan, PlanSet
 from bson import ObjectId
 import logging
 import re
+from sefaria.system.database import db
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +165,7 @@ class UserPlan:
         if day_number == self.current_day and self.current_day < self.progress["total_days"]:
             self.current_day += 1
             
-        self.last_activity_at = datetime.now()
+        self.last_activity_at = datetime.now()  
         self._update_progress_statistics()
         return self
     
@@ -178,7 +179,7 @@ class UserPlan:
             
         self.progress["daily_progress"][str(day_number)]["started_at"] = datetime.now()
         self.current_day = day_number
-        self.last_activity_at = datetime.now()
+        self.last_activity_at = datetime.now() 
         return self
         
     def get_current_day_content(self):
@@ -191,6 +192,14 @@ class UserPlan:
             return None
         return plan.get_day_content(self.current_day)
     
+    def safe_isoformat(self, dt_value):
+        """Convert datetime objects to ISO format strings, 
+        or return the value unchanged if it's already a string."""
+        if hasattr(dt_value, 'isoformat'):
+            return dt_value.isoformat()
+        return dt_value
+
+
     def get_progress_summary(self):
         """
         Get a summary of the user's progress
@@ -202,8 +211,8 @@ class UserPlan:
             "days_completed": self.progress["days_completed"],
             "days_remaining": self.progress["days_remaining"],
             "completion_percentage": self.progress["completion_percentage"],
-            "started_at": self.started_at,
-            "last_activity_at": self.last_activity_at,
+            "started_at": self.safe_isoformat(self.started_at),
+            "last_activity_at": self.safe_isoformat(self.last_activity_at),
             "is_completed": self.is_completed
         }
     
@@ -216,10 +225,10 @@ class UserPlan:
             "_id": ObjectId(self._id) if self._id else None,
             "user_id": self.user_id,
             "plan_id": self.plan_id,
-            "started_at": self.started_at,
+            "started_at": self.safe_isoformat(self.started_at),
             "current_day": self.current_day,
             "completed_days": self.completed_days,
-            "last_activity_at": self.last_activity_at,
+            "last_activity_at": self.safe_isoformat(self.last_activity_at),
             "is_completed": self.is_completed,
             "progress": self.progress,
             "settings": self.settings
@@ -262,8 +271,11 @@ class UserPlanSet:
         Initialize a set of UserPlans
         :param query: A dictionary of query parameters
         """
-        super(UserPlanSet, self).__init__(query)
+        self.query = query
         self.collection = UserPlan.collection
+        self.records = []
+        if query:
+            self._load_from_query()
         
     def _load_from_query(self):
         """
@@ -288,10 +300,29 @@ class UserPlanSet:
         """
         Get all active (non-completed) UserPlans for a specific user
         :param user_id: The user ID to get plans for
-        :return: UserPlanSet containing user's active plans
+        :return: UserPlanSet containing user's active plans with associated plan data
         """
+        if self.query is None:
+            self.query = {}
         self.query.update({"user_id": user_id, "is_completed": False})
-        return self._load_from_query()
+        
+        # Load user plans using the original approach
+        self._load_from_query()
+        
+        # Attach plan data to each UserPlan object
+        user_plans = []
+        for user_plan in self.records:
+            # Fetch the associated plan data
+            plan = PlanSet().get_plan_by_id(user_plan.plan_id)
+            
+            if plan:
+                # Add plan title and other relevant fields directly to user_plan
+                user_plan.title = plan.title if hasattr(plan, 'title') else ""
+                user_plan.description = plan.description if hasattr(plan, 'description') else ""
+                user_plan.categories = plan.categories if hasattr(plan, 'categories') else []
+                user_plan.plan = plan  # Store full plan object for access to all fields
+            user_plans.append(user_plan)
+        return  user_plans
         
     def get_user_plan(self, user_id, plan_id):
         """
