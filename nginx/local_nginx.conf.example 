@@ -70,10 +70,10 @@ server {
         include /your/Sefaria-Project/path/nginx/route_sheets_to_library.conf;
     }
     location ~ ^/data\.\d+\.js$ {
-        include /your/Sefaria-Project/path/Project/nginx/route_sheets_to_library.conf;
+        include /your/Sefaria-Project/path/nginx/route_sheets_to_library.conf;
     }
     location ~ /api/ {
-        include /your/Sefaria-Project/path/Project/nginx/route_sheets_to_library.conf;
+        include /your/Sefaria-Project/path/nginx/route_sheets_to_library.conf;
     }
 
     location / {
