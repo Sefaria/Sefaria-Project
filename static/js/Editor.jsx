@@ -2551,15 +2551,25 @@ const EditorSaveStateIndicator = ({ state }) => {
       "connectionLost": "/static/icons/new_editor_saving/cloud-off-rounded.svg",
       "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
       "saving": "/static/icons/new_editor_saving/directory-sync-rounded.svg",
-      "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg"
+      "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg",
+        "default": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
     };
-    const path = window.location.pathname + window.location.search;
+    const stateToTooltip = {
+    "saved": "Your sheet is saved to Sefaria",
+    "saving": "We are saving your changes to Sefaria",
+    "connectionLost": "No internet connection detected",
+    "userUnauthenticated": "You are not logged in to Sefaria",
+    "default": "Something went wrong. Try refreshing the page.\nIf this problem persists, contact us at hello@sefaria.org"
+  };
     const stateToMessage = {
       "connectionLost": "Trying to Connect",
       "userUnauthenticated": <>User Logged out. <a href={`/login?next=${path}`}>Log in</a></>,
       "saving": "Saving...",
-      "saved": "Saved"
-    }
+      "saved": "Saved",
+        "default": "Something went wrong. Try refreshing the page."
+    };
+    const path = window.location.pathname + window.location.search;
+
     useEffect(() => {
     // Preload all icons
     Object.values(stateToIcon).forEach((src) => {
@@ -2568,8 +2578,10 @@ const EditorSaveStateIndicator = ({ state }) => {
     });
     }, []);
 
+    const tooltip = stateToTooltip[state];
+
     return (
-    <div className={`editorSaveStateIndicator ${state}`}>
+    <div className={`editorSaveStateIndicator ${state}`} title={tooltip}>
         {<img src={stateToIcon[state]} alt={state} />}
         <span className="saveStateMessage">{stateToMessage[state]}</span>
     </div>
