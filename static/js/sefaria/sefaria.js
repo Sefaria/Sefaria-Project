@@ -2899,7 +2899,7 @@ _media: {},
     const tabs = {};
     for (let [linkType, topicLinks] of Object.entries(topicData.refs)) {
         const activeRefs = topicLinks.refs.filter(refObj => (Sefaria.activeModule === 'sheets') === refObj.is_sheet);
-        for (let refObj of refs) {
+        for (let refObj of activeRefs) {
           const {tabKey, title} = Sefaria._deriveTabDataForTopicLink(linkType, refObj);
           if (!tabKey) continue;
           if (!tabs[tabKey]) {
