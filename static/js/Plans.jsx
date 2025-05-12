@@ -7,8 +7,8 @@ import PlanProgression from './PlanProgression';
 
 // Categories for filtering
 export const categories = [
-  "all", "love", "anxiety", "healing", "anger",
-  "hope", "depression", "fear", "peace", "stress", "patience", "loss", "jealousy", "grief"
+  "All", "Love", "Anxiety", "Healing", "Anger",
+  "Hope", "Depression", "Fear", "Peace", "Stress", "Patience", "Loss", "Jealousy", "Grief"
 ];
 
 const Plans = ({ userType }) => {
@@ -16,7 +16,7 @@ const Plans = ({ userType }) => {
   const [userPlans, setUserPlans] = useState([]);
   const [completedPlans, setCompletedPlans] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'my', 'completed'
@@ -92,13 +92,16 @@ const Plans = ({ userType }) => {
   // Filter plans based on search query and category
   const filteredPlans = getCurrentPlans().filter(plan => {
     const matchesSearch = plan.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' ? true : plan.categories.includes(selectedCategory);
+    // Only apply category filtering for the 'all' tab
+    const matchesCategory = activeTab === 'all' 
+      ? (selectedCategory === 'All' ? true : plan.categories.includes(selectedCategory))
+      : true;
     return matchesSearch && matchesCategory;
   });
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    setSelectedCategory('all');
+    setSelectedCategory('All');
     setSearchQuery('');
   };
 
@@ -228,9 +231,7 @@ const AllPlans = ({filteredPlans}) => {
           ))
         ) : (
           <p className="noPlansMessage">
-            {activeTab === 'my' && <InterfaceText>You haven't joined any plans yet.</InterfaceText>}
-            {/* {activeTab === 'completed' && <InterfaceText>You haven't completed any plans yet.</InterfaceText>} */}
-            {activeTab === 'all' && <InterfaceText>No plans found.</InterfaceText>}
+            <InterfaceText>You haven't joined any plans yet.</InterfaceText>
           </p>
         )}
       </div></>
