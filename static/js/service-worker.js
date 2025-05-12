@@ -11,7 +11,7 @@ self.addEventListener('fetch', async (event) => {
   const documentRequest = clonedRequest.mode === 'navigate' && clonedRequest.destination === 'document';
   const url = new URL(clonedRequest.url);
   const {hostname, pathname} = url;
-  const isSheetsDomain = hostname === 'sheets.localsefaria.org';
+  const isSheetsDomain = /^sheets\..*sefaria\.org(\.il)?/.test(hostname);
   const isSheetsPath = /^\/sheets($|\/)/.test(pathname); //bot not '/sheets-something'
   if (isSheetsDomain) {
     url.hostname = hostname.replace(/^sheets\./, '');
