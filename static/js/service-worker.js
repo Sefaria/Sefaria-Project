@@ -7,7 +7,11 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', async (event) => {
-  const clonedRequest = event.request.clone();
+  event.respondWith(handleRequest(event.request));
+});
+
+const handleRequest = async (request) => {
+  const clonedRequest = request.clone();
   const documentRequest = clonedRequest.mode === 'navigate' && clonedRequest.destination === 'document';
   const url = new URL(clonedRequest.url);
   const {hostname, pathname} = url;
@@ -19,11 +23,11 @@ self.addEventListener('fetch', async (event) => {
       url.pathname = `/sheets${pathname}`;
     }
     const newRequest = await makeNewRequest(clonedRequest, url);
-    event.respondWith(fetch(newRequest));
+    return fetch(newRequest);
   } else {
-    event.respondWith(fetch(event.request));
+    return fetch(request);
   }
-});
+};
 
 const makeNewRequest = async (request, url) => {
   const { method, redirect, credentials, cache, referrer, referrerPolicy, integrity, keepalive, mode, signal } = request;
@@ -33,14 +37,14 @@ const makeNewRequest = async (request, url) => {
     headers: new Headers(request.headers),
     body,
     redirect,
-    credentials,
+    credentials: 'include',
     cache,
     referrer,
     referrerPolicy,
     integrity,
     keepalive,
     signal,
-    mode: mode !== 'navigate' ? mode : undefined,
+    mode: mode !== 'navigate' ? 'cors' : undefined,
   };
   return new Request(url.toString(), requestInit);
 }
@@ -51,7 +55,8 @@ const getBody = async (request) => {
     return;
   }
   if (contentType.includes("application/json")) {
-    return await request.json();
+    const json = await request.json();
+    return JSON.stringify(json);
   } else if (contentType.includes("text")) {
     return await request.text();
   }
