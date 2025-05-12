@@ -36,11 +36,7 @@ server {
         add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
         add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With, Upgrade-Insecure-Requests, X-CSRFToken, x-csrftoken' always;
 
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        include /your/Sefaria-Project/path/nginx/common.conf;
     }
 }
 
@@ -51,7 +47,7 @@ server {
     return 301 https://$host$request_uri;
 }
 
-# HTTPS for sheets.localsefaria.org
+# HTTPS for sheets.localsefaria.org. Only for requests before the service worker is active.
 server {
     listen 443 ssl;
     server_name sheets.localsefaria.org;
@@ -59,7 +55,7 @@ server {
     ssl_certificate     /your/Sefaria-Project/path/nginx/ssl/localsefaria.crt;
     ssl_certificate_key /your/Sefaria-Project/path/nginx/ssl/localsefaria.key;
 
-    #redirection for service-worker that cannot be registered from redirection for security reasons
+    # Redirection for service-worker that cannot be registered from redirection for security reasons
     location = /service-worker.js {
         alias /your/Sefaria-Project/path/static/js/service-worker.js;
         add_header Cache-Control "no-cache";
@@ -67,20 +63,24 @@ server {
 
     # This is needed for requests before the service worker is registered
     location /static/ {
-        include /your/Sefaria-Project/path/nginx/route_sheets_to_library.conf;
+        include /your/Sefaria-Project/path/nginx/common.conf;
     }
     location ~ ^/data\.\d+\.js$ {
-        include /your/Sefaria-Project/path/nginx/route_sheets_to_library.conf;
+        include /your/Sefaria-Project/path/nginx/common.conf;
     }
-    location ~ /api/ {
-        include /your/Sefaria-Project/path/nginx/route_sheets_to_library.conf;
+    location ~ ^/api/ {
+        include /your/Sefaria-Project/path/nginx/common.conf;
     }
 
+    # Redirect was added to path by service-worker, and should be redirected to local without this.
+    location ~ ^/redirect/(.*)$ {
+        rewrite ^/redirect/(.*)$ /$1 break;
+        include /your/Sefaria-Project/path/nginx/common.conf;
+    }
+
+    # Service worker is not active, should be redirected to /sheets.
     location / {
-        proxy_pass http://127.0.0.1:8000/sheets/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        rewrite ^/(.*)$ /sheets/$1 break;
+        include /your/Sefaria-Project/path/nginx/common.conf;
     }
 }
