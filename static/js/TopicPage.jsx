@@ -221,8 +221,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 *** Components
 */
 
-const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
-  openSearch}) => {
+const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 

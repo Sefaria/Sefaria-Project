@@ -5,9 +5,9 @@ import {TopicTOCCard} from "../common/TopicTOCCard";
 
 const SheetsTopicsTOC = ({handleClick}) => {
     const categoryListings = Sefaria.topic_toc.map(((cat, i) => {
-        return <TopicTOCCard cardTitleHref={`/topics/category/${cat.slug}`}
+        return <TopicTOCCard cardTitleHref={`/sheets/topics/category/${cat.slug}`}
                              topic={cat}
-                             setTopic={(e) => handleClick(e, cat.slug, cat.primaryTitle.en, cat.primaryTitle.he)}/>;
+                             setNavTopic={(e) => handleClick(e, cat.slug, cat.primaryTitle.en, cat.primaryTitle.he)}/>;
     }));
     return (
     <div className="sheetsTopicTOC">
