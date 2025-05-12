@@ -38,13 +38,13 @@ const SidebarModules = ({type, props}) => {
     "DafYomi":                DafYomi,
     "AboutTopics":            AboutTopics,
     "TrendingTopics":         TrendingTopics,
-    "TopicLandingTrendingTopics": TopicLandingTrendingTopics,
     "TopicLandingTopicCatList":  TopicLandingTopicCatList,
     "AZTopicsLink":           AZTopicsLink,
     "RelatedTopics":          RelatedTopics,
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
     "JoinTheCommunity":       JoinTheCommunity,
+    "JoinTheConversation":    JoinTheConversation,
     "GetTheApp":              GetTheApp,
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
@@ -625,26 +625,7 @@ const AboutTopics = ({hideTitle}) => (
   </SidebarModule>
 );
 
-
-const TrendingTopics = () => (
-    <div data-anl-feature_name="Trending" data-anl-link_type="topic">
-        <SidebarModule>
-            <SidebarModuleTitle>Trending Topics</SidebarModuleTitle>
-            {Sefaria.trendingTopics.map((topic, i) =>
-                <div className="navSidebarLink ref serif" key={i}>
-                    <a
-                        href={"/topics/" + topic.slug}
-                        data-anl-event="navto_topic:click"
-                        data-anl-text={topic.en}
-                    >
-                        <InterfaceText text={{en: topic.en, he: topic.he}}/>
-                    </a>
-                </div>
-            )}
-        </SidebarModule>
-    </div>
-);
-const TopicLandingTrendingTopics = () => {
+const TrendingTopics = () => {
     let [trendingTopics, setTrendingTopics] = useState(null);
     useEffect(() => {
         Sefaria.getTrendingTopics().then(result => setTrendingTopics(result));
@@ -687,10 +668,10 @@ const TopicLandingTopicCatList = () => {
                     <div className="navSidebarLink ref serif" key={i}>
                         <a href={"/topics/category/" + topic.slug}
                             data-anl-link_type="category"
-                            data-anl-text={topic.en}
+                            data-anl-text={topic.primaryTitle.en}
                             data-anl-event="navto_topic:click"
                         >
-                            <InterfaceText text={{en: topic.en, he: topic.he}}/>
+                            <InterfaceText text={{en: topic.primaryTitle.en, he: topic.primaryTitle.he}}/>
                         </a>
                     </div>
                 )}
@@ -755,6 +736,18 @@ const JoinTheCommunity = ({wide}) => {
           <InterfaceText>Explore the Community</InterfaceText>
         </a>
       </div>
+    </SidebarModule>
+  );
+};
+
+const JoinTheConversation = ({wide}) => {
+  return (
+    <SidebarModule wide={wide}>
+      <div className="joinTheConversation">
+        <SidebarModuleTitle>Join the Conversation</SidebarModuleTitle>
+        <InterfaceText>Mix and match sources from our library, along with outside sources, comments, images and videos.</InterfaceText>
+      </div>
+      <CreateSheetsButton/>
     </SidebarModule>
   );
 };

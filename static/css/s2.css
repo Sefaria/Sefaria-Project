@@ -1577,6 +1577,9 @@ div.interfaceLinks-row a {
 .navSidebarModule + .dedication {
   margin-top: -30px;
 }
+.navSidebarModule .joinTheConversation {
+  margin-block-end: 20px;
+}
 .navTitle .languageToggle,
 .tocTitle .languageToggle,
 .header .languageToggle {
@@ -2743,7 +2746,7 @@ display: none;
   color: var(--light-grey);
 }
 
-div.sheetsWrapper :nth-child(1 of .card) {
+div.TOCCardsWrapper :nth-child(1 of .card) {
   border-top: 1px solid #EDEDEC;
 }
 .card {
@@ -2774,6 +2777,10 @@ a.cardTitle:hover {
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .hebrew .cardDescription {
   line-height: 24px;
@@ -2781,8 +2788,7 @@ a.cardTitle:hover {
 .navBlockTitle .int-he, .navBlockDescription .int-he, .cardTitle .int-he, .cardDescription .int-he{
   font-size: 122%;
 }
-.interface-english .navBlockDescription.clamped .int-en,
-.interface-hebrew .navBlockDescription.clamped .int-he {
+.interface-english .navBlockDescription.clamped .int-en, .interface-hebrew .navBlockDescription.clamped .int-he, .cardDescription {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -10909,7 +10915,7 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
-  div.sheetsWrapper :nth-child(-n+2 of .card) {
+  div.TOCCardsWrapper :nth-child(-n+2 of .card) {
     border-top: 1px solid #EDEDEC;
   }
 }
@@ -10924,7 +10930,7 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
-  div.sheetsWrapper :nth-child(-n+2 of .card) {
+  div.TOCCardsWrapper :nth-child(-n+2 of .card) {
     border-top: 1px solid #EDEDEC;
   }
 }
@@ -14620,13 +14626,13 @@ span.ref-link-color-3 {color: blue}
 .sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
   column-gap: 20px;
 }
-.sheetsHomepage .sheetsTopicTOC .sheetsWrapper {
+.TOCCardsWrapper {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
   column-gap: 20px;
 }
-.sheetsHomepage .sheetsTopicsCalendar .sheetsWrapper {
+.sheetsHomepage .sheetsTopicsCalendar .TOCCardsWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -14644,7 +14650,7 @@ span.ref-link-color-3 {color: blue}
 .singlePanel .sheetsHomepage .navSidebarModule {
   padding: 0 10%;
 }
-.singlePanel .sheetsHomepage .sheetsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
+.singlePanel .sheetsHomepage .TOCCardsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
   flex-direction: column;
   margin-bottom: 10px;
 }

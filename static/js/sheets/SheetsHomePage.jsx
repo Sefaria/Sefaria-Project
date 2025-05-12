@@ -31,11 +31,7 @@ const SheetsSidebar = () => {
 
 
 const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
-  const handleClick = (func) => (e, slug, en, he) => {
-      e.preventDefault();
-      func(slug, {en, he});  // setTopic or setNavTopic
-  }
-  const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={handleClick(setNavTopic)}/>;
+  const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={setNavTopic}/>;
   return <div className="readerNavMenu sheetsHomepage" key="0">
             <div className="content">
                 <SheetsHeroBanner title="Join the Torah Conversation"
@@ -46,7 +42,7 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
                 <div className="sidebarLayout">
                     <div className="contentInner">
                         <div className="sheetsTopics">
-                            <SheetsTopicsCalendar handleClick={handleClick(setTopic)}/>
+                            <SheetsTopicsCalendar handleClick={setTopic}/>
                             {multiPanel && sheetsTopicsTOC}
                         </div>
                     </div>
