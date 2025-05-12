@@ -128,10 +128,11 @@ openssl req -x509 -nodes -days 365 \
 
 ### 3.4 Trust the certificate on your system
 On Mac:
-1. Open Keychain Access.
+1. Open Keychain Access. (Not password manager, it will try to take you there)
 2. Import localsefaria.crt into System keychain - File > Import Items > Select your localsefaria.crt
 3. Right-click → Get Info → Expand Trust → Set "When using this certificate" to Always Trust.
-4. Restart your browser.
+4. Close the window and enter your password to save changes.
+5. Restart your browser.
 
 On Debian/Ubuntu (wasn't checked):
 ```
