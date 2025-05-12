@@ -207,6 +207,7 @@ class UserPlan:
         """
         return {
             "current_day": self.current_day,
+            "completed_days": self.completed_days,
             "total_days": self.progress["total_days"],
             "days_completed": self.progress["days_completed"],
             "days_remaining": self.progress["days_remaining"],

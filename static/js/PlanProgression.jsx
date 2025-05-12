@@ -100,7 +100,9 @@ const PlanProgression = ({planId, planData, userPlanId, onCitationClick}) => {
       if (currentDay < planData.total_days) {
         setCurrentDay(currentDay + 1);
       } else {
-        alert("Plan completed");
+        alert('You have completed all days of the plan.');
+          window.location.href = '/plans';
+
       }
     } catch (error) {
       console.error('Error completing reading:', error);
@@ -159,15 +161,23 @@ const PlanProgression = ({planId, planData, userPlanId, onCitationClick}) => {
               </div>
               {/* Vertical Day Navigation */}
               <div className="day-list">
-                {Array.from({ length: planData.total_days || 7 }, (_, i) => i + 1).map((day) => (
-                  <button
-                    key={day}
-                    className={`day-button ${currentDay === day ? 'active' : ''}`}
-                    onClick={() => handleDaySelect(day)}
-                  >
-                    Day {day}
-                  </button>
-                ))}
+                {Array.from({ length: planData.total_days || 7 }, (_, i) => i + 1).map((day) => {
+                  // Check if this day is in the completed_days list
+                  const isDayCompleted = userPlan && 
+                                         userPlan.progress && 
+                                         userPlan.progress.completed_days && 
+                                         userPlan.progress.completed_days.includes(day.toString());
+                  
+                  return (
+                    <button
+                      key={day}
+                      className={`day-button ${currentDay === day ? 'active' : ''} ${isDayCompleted ? 'completed' : ''}`}
+                      onClick={() => handleDaySelect(day)}
+                    >
+                      Day {day} {isDayCompleted && <span className="day-completed-check">✓</span>}
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}

@@ -17543,6 +17543,51 @@ span.ref-link-color-3 {
     transform: translateY(-5px);
 }
 
+.browsePlansButton {
+    padding: 12px 24px;
+    background-color: #C39F48;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: inline-block;
+    text-decoration: none;
+  }
+  
+  .browsePlansButton:hover {
+    background-color: #a3853b;
+  }
+  
+  .browsePlansButton:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(195, 159, 72, 0.3);
+  }
+
+
+  .day-button.completed {
+    background-color: #e6f0e6; /* Light green background */
+    position: relative;
+  }
+  
+  .day-completed-check {
+    color: #4CAF50; /* Green checkmark */
+    margin-left: 5px;
+    font-weight: bold;
+  }
+  
+  /* When a button is both active and completed */
+  .day-button.active {
+    background-color: #C39F48; /* Keep the active color */
+    color: white;
+  }
+  
+  .day-button.active.completed .day-completed-check {
+    color: white; /* Make the checkmark white when the button is active */
+  }
+
 
 
 @-webkit-keyframes load5 {
