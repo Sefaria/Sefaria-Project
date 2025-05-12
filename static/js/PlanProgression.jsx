@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Sheet from './Sheet';
 
-const PlanProgression = ({planId, planData, onCitationClick}) => {
+const PlanProgression = ({planId, planData, userPlanId, onCitationClick}) => {
   const [currentDay, setCurrentDay] = useState(1);
   const [sheetData, setSheetData] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showDailyPath, setShowDailyPath] = useState(true);
+  const [userPlan, setUserPlan] = useState([]);
 
   useEffect(() => {
     // Fetch sheet data when plan data is loaded or current day changes
@@ -15,6 +16,24 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
     }
   }, [currentDay]);
 
+  useEffect(() => {
+    // Fetch sheet data when plan data is loaded or current day changes
+    if (planData) {
+      getUserPlan()
+    }
+  }, [userPlanId]);
+
+  const getUserPlan = async () => {
+    const response = await fetch(`/api/user-plans/${userPlanId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+
+    setUserPlan(data.plans[0]);
+    setCurrentDay(data.plans[0].current_day);
+  };
+  
   const fetchDayContent = async (day) => {
     try {
       setIsLoading(true);
@@ -43,21 +62,7 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
     }
   };
 
-  const onRefClick = (ref) => {
-    console.log("Ref clicked:", ref.target.getAttribute('href'));
-    
-    // // Check if ref is an element reference with an href attribute
-    // if (ref && ref.target && ref.target.getAttribute) {
-    //   const href = ref.target.getAttribute('href');
-    //   if (href) {
-    //     console.log("Href attribute:", href);
-    //     // Use the href as needed
-    //     // e.g., navigate to the link, or extract data from it
-    //     return href;
-    //   }
-    // }
 
-  };
   const handleDaySelect = (day) => {
     setCurrentDay(day);
   };
@@ -66,14 +71,42 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
     onCitationClick(citationRef, textRef, replace, currVersions);
     setShowDailyPath(false);
   };
-  const handleCompleteReading = () => {
-    console.log("current day,", currentDay);
-    if (currentDay < planData.total_days) {
-      setCurrentDay(currentDay + 1);
-    } else {
-      console.log("Plan completed");
+
+  const handleCompleteReading = async () => {
+    try {
+      // Call the API to mark the current day as complete
+      const response = await fetch('/api/user-plans/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'mark_complete',
+          plan_id: planId,
+          day_number: currentDay
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error marking day as complete:', errorData);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Day marked as complete:', data);
+
+      // Update the UI - move to the next day if not at the end
+      if (currentDay < planData.total_days) {
+        setCurrentDay(currentDay + 1);
+      } else {
+        alert("Plan completed");
+      }
+    } catch (error) {
+      console.error('Error completing reading:', error);
     }
   };
+
 
   const openSheet = (sheetRef, replace = false) => {
     // Placeholder for opening a sheet
@@ -151,7 +184,7 @@ const PlanProgression = ({planId, planData, onCitationClick}) => {
                 hasSidebar={false}
                 highlightedNode={null}
                 multiPanel={false}
-                onRefClick={onRefClick}
+                onRefClick={() => {}}
                 onSegmentClick={() => {}}
                 isPlan={true}
                 currentDay={currentDay}

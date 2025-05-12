@@ -511,7 +511,9 @@ urlpatterns += [
 
 # User Plans API
 urlpatterns += [
-    url(r'^api/user-plans$', reader_views.user_plans_api, name='user_plans_api'),
+    url(r'^api/user-plans/$', reader_views.user_plans_api, name='user_plans_api'),
+
+    url(r'^api/user-plans/(?P<plan_id>[0-9a-fA-F]{24})$', reader_views.user_plans_api, name='user_plans_api'),
 ]
 
 if DOWN_FOR_MAINTENANCE:

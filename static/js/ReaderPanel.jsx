@@ -1103,6 +1103,7 @@ class ReaderPanel extends Component {
         <PlanProgression
           planId={this.state.planId}
           planData={this.state.planData}
+          userPlanId={this.props.userPlanId}
           onCitationClick={this.handleCitationClick}
         />
       );

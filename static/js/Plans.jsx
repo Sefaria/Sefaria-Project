@@ -51,7 +51,10 @@ const Plans = ({ userType }) => {
         throw new Error('Failed to fetch user plans');
       }
       const data = await response.json();
-      setUserPlans(data.plans);
+      const inProgress = data.plans.filter(plan => !plan.is_completed);
+      const completed = data.plans.filter(plan => plan.is_completed);
+      setUserPlans(inProgress);
+      setCompletedPlans(completed);
     } catch (err) {
       console.error('Error fetching user plans:', err);
       // Don't set the main error state here to avoid blocking the UI
@@ -77,12 +80,13 @@ const Plans = ({ userType }) => {
     switch (activeTab) {
       case 'my':
         return userPlans;
-      // case 'completed':
-      //   return completedPlans;
+      case 'completed':
+        return completedPlans;
       case 'all':
       default:
         return plans;
     }
+    
   };
 
   // Filter plans based on search query and category
@@ -182,9 +186,8 @@ const Plans = ({ userType }) => {
 
                     {/* Plans List */}
                     {activeTab === 'all' && <AllPlans filteredPlans={filteredPlans} />}
-                    {activeTab === 'my' && <MyPlans filteredPlans={filteredPlans} />}
-                    {activeTab === 'completed' && <CompletedPlans filteredPlans={filteredPlans} />}
-                    
+                    {activeTab === 'my' && <MyPlans filteredPlans={filteredPlans} onBrowseClick={() => handleTabChange('all')} />}
+                    {activeTab === 'completed' && <CompletedPlans filteredPlans={filteredPlans} onBrowseClick={() => handleTabChange('all')} />}
                   </div>
           </div>
         </div>
@@ -239,7 +242,7 @@ const AllPlans = ({filteredPlans}) => {
   );
 };
 
-const MyPlans = ({ filteredPlans }) => {
+const MyPlans = ({ filteredPlans, onBrowseClick }) => {
   // Helper function to convert numbers to Tibetan numerals
   const toTibetanNumeral = (num) => {
     if (num === undefined || num === null) return '';
@@ -262,9 +265,8 @@ const MyPlans = ({ filteredPlans }) => {
   if (!filteredPlans || filteredPlans.length === 0) {
     return (
       <div className="emptyPlansMessage">
-        <h2><InterfaceText>You haven't started any plans yet</InterfaceText></h2>
         <p><InterfaceText>Browse all plans and start one today!</InterfaceText></p>
-      </div>
+        <button onClick={onBrowseClick} className="browsePlansButton"><InterfaceText>Browse Plans</InterfaceText></button>      </div>
     );
   }
 
@@ -338,10 +340,86 @@ const MyPlans = ({ filteredPlans }) => {
   );
 };
 
-const CompletedPlans = () => {
+const CompletedPlans = ({ filteredPlans, onBrowseClick }) => {
+
+  // Format date to a more readable format
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  if (!filteredPlans || filteredPlans.length === 0) {
+    return (
+      <div className="emptyPlansMessage">
+        <p><InterfaceText>You haven't completed any plans yet.</InterfaceText></p>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h1><InterfaceText>Completed Plans</InterfaceText></h1>
+    <div className="myPlansContainer">
+      <div className="plansGrid">
+        {filteredPlans.map(plan => (
+          <div key={plan.id} className="planCard">
+            <a href={`/plans/${plan.plan_id}/progress`} className="planCardLink">
+              <div className="planCardHeader">
+                <h3 className="planTitle">{plan.title}</h3>
+                <span className="completionBadge completed">
+                  <InterfaceText>Completed</InterfaceText>
+                </span>
+              </div>
+              
+              <p className="planDescription">{plan.plan_description}</p>
+              
+              {/* Plan Progress Section */}
+              <div className="planProgressContainer">
+                <div className="progressBarContainer">
+                  <div 
+                    className="progressBar" 
+                    style={{ width: `100%` }}
+                  ></div>
+                </div>
+                
+                <div className="progressStats">
+                  <div className="progressStat">
+                    <span className="progressLabel"><InterfaceText>Total Days</InterfaceText></span>
+                    <span className="progressValue">
+                      {plan.progress.total_days}
+                    </span>
+                  </div>
+                  
+                  <div className="progressStat">
+                    <span className="progressLabel"><InterfaceText>Completion</InterfaceText></span>
+                    <span className="progressValue">100%</span>
+                  </div>
+                  
+                  <div className="progressStat">
+                    <span className="progressLabel"><InterfaceText>Completed On</InterfaceText></span>
+                    <span className="progressValue">{formatDate(plan.last_activity_at)}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Plan Dates Section */}
+              <div className="planDates">
+                <div className="planDate">
+                  <span className="dateLabel"><InterfaceText>Started</InterfaceText></span>
+                  <span className="dateValue">{formatDate(plan.started_at)}</span>
+                </div>
+                
+                <div className="planDate">
+                  <span className="dateLabel"><InterfaceText>Last Activity</InterfaceText></span>
+                  <span className="dateValue">{formatDate(plan.last_activity_at)}</span>
+                </div>
+              </div>
+            </a>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

@@ -293,6 +293,8 @@ class UserPlanSet:
         :param user_id: The user ID to get plans for
         :return: UserPlanSet containing user's plans
         """
+        if self.query is None:
+            self.query = {}
         self.query.update({"user_id": user_id})
         return self._load_from_query()
         
@@ -304,7 +306,7 @@ class UserPlanSet:
         """
         if self.query is None:
             self.query = {}
-        self.query.update({"user_id": user_id, "is_completed": False})
+        self.query.update({"user_id": user_id})
         
         # Load user plans using the original approach
         self._load_from_query()
