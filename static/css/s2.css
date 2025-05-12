@@ -9301,22 +9301,27 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   position: fixed;
   top: 200px;
   left: 30px;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
 }
 .editorSaveStateIndicator .saveStateMessage{
   font-family: Roboto;
   margin-inline-start: 8px;
   font-size: 18px;
-  position: absolute;
-  top: -1px;
   width: max-content;
 }
 .editorSaveStateIndicator .saveStateMessage a{
   font-family: Roboto;
   color: #18345D;
 }
+.interface-hebrew .editorSaveStateIndicator .saveStateMessage{
+  direction: rtl;
+}
 .interface-hebrew .editorSaveStateIndicator {
   left: auto;
   right: 89px;
+  flex-direction: row-reverse;
 }
 
 .editorSidebarToggle {

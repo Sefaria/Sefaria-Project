@@ -2547,6 +2547,7 @@ const BlockButton = ({format, icon}) => {
 }
 
 const EditorSaveStateIndicator = ({ state }) => {
+    const localize = (inputStr) => Sefaria._(inputStr, "EditorSaveIndicator");
     const stateToIcon = {
       "connectionLost": "/static/icons/new_editor_saving/cloud-off-rounded.svg",
       "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
@@ -2565,7 +2566,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     const path = window.location.pathname + window.location.search;
     const stateToMessage = {
       "connectionLost": "Trying to Connect",
-      "userUnauthenticated": <>User Logged out. <a href={`/login?next=${path}`}>Log in</a></>,
+      "userUnauthenticated": <>{localize("User Logged out")}. <a href={`/login?next=${path}`}>{localize("Log in")}</a></>,
       "saving": "Saving...",
       "saved": "Saved",
       "unknownError": "Something went wrong. Try refreshing the page."
@@ -2582,9 +2583,9 @@ const EditorSaveStateIndicator = ({ state }) => {
     const tooltip = stateToTooltip[state];
 
     return (
-    <div className={`editorSaveStateIndicator ${state}`} title={tooltip}>
-        {<img src={stateToIcon[state]} alt={state} />}
-        <span className="saveStateMessage">{stateToMessage[state]}</span>
+    <div className={`editorSaveStateIndicator ${state}`} title={localize(tooltip)}>
+        {<img src={stateToIcon[state]} alt={localize(state)} />}
+        <span className="saveStateMessage">{localize(stateToMessage[state])}</span>
     </div>
   );
 }
