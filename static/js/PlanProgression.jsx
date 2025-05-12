@@ -94,7 +94,6 @@ const PlanProgression = ({planId, planData, userPlanId, onCitationClick}) => {
       }
 
       const data = await response.json();
-      console.log('Day marked as complete:', data);
 
       // Update the UI - move to the next day if not at the end
       if (currentDay < planData.total_days) {

@@ -7,7 +7,6 @@ const PlanDetail = ({ planId, user_id }) => {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-console.log("user_id", user_id)
   useEffect(() => {
 
     const fetchPlanDetails = async () => {

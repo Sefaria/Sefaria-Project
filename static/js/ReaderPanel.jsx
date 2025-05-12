@@ -1296,7 +1296,7 @@ ReaderPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   topicTestVersion:            PropTypes.string,
-  user_id:                     PropTypes.string,
+  user_id:                     PropTypes.number,
 };
 
 

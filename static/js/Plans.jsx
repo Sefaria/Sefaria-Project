@@ -196,11 +196,6 @@ const Plans = ({ userType }) => {
 };
 
 
-Plans.propTypes = {
-  multiPanel: PropTypes.bool.isRequired,
-  toggleSignUpModal: PropTypes.func.isRequired,
-  initialWidth: PropTypes.number.isRequired,
-};
 
 const AllPlans = ({filteredPlans}) => {
   return (
