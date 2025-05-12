@@ -5,7 +5,7 @@
 
 {% block description %}{% trans "Timeline" %}{% endblock %}
 
-{% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
+{% block ogimage %}<meta property="og:image" content="{% full_static "img/explorer.png" %}" />{% endblock %}
 
 {% block head %}
 <script src="https://d3js.org/d3.v5.min.js"></script>
@@ -49,7 +49,7 @@
         interfaceLang: "{{ request.interfaceLang }}"
     }
 </script>
-<script src="{% static 'bundles/timeline/timeline.js' %}"></script>
+<script src="{% full_static 'bundles/timeline/timeline.js' %}"></script>
 
 
 {% endblock %}

@@ -1,5 +1,6 @@
 {% load render_bundle from webpack_loader %}
 {% load static %}
+{% load full_static %}
 {% load sefaria_tags %}
 {% get_static_prefix as STATIC_PREFIX %}
 
@@ -10,11 +11,16 @@
     <meta charset="utf-8"/>
     <meta name="description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/>
 
+    <!-- Define default client url for API -->
+    <script>
+      window.FRONT_END_URL = "{{ SITE_SETTINGS.FRONT_END_URL }}";
+    </script>
+
     {% if noindex or DEBUG %}
         <meta name="robots" content="noindex, nofollow">
     {% endif %}
 
-    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" />
+    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% full_static 'files/opensearch.xml' %}" />
 
     {% if SITE_SETTINGS.TORAH_SPECIFIC %}
     <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
@@ -52,12 +58,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 
     <!-- https://realfavicongenerator.net -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}?v=xQzLlLp7oR">
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32x32.png' %}?v=xQzLlLp7oR">
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/favicon-16x16.png' %}?v=xQzLlLp7oR">
-    <link rel="manifest" href="{% static 'icons/manifest.json' %}?v=xQzLlLp7oR">
-    <link rel="mask-icon" href="{% static 'icons/safari-pinned-tab.svg' %}?v=xQzLlLp7oR" color="#273557">
-    <link rel="shortcut icon" href="{% static 'icons/favicon.ico'%}?v=xQzLlLp7oR">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% full_static 'icons/apple-touch-icon.png' %}?v=xQzLlLp7oR">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% full_static 'icons/favicon-32x32.png' %}?v=xQzLlLp7oR">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% full_static 'icons/favicon-16x16.png' %}?v=xQzLlLp7oR">
+    <link rel="manifest" href="{% full_static 'icons/manifest.json' %}?v=xQzLlLp7oR">
+    <link rel="mask-icon" href="{% full_static 'icons/safari-pinned-tab.svg' %}?v=xQzLlLp7oR" color="#273557">
+    <link rel="shortcut icon" href="{% full_static 'icons/favicon.ico'%}?v=xQzLlLp7oR">
     <meta name="theme-color" content="#273557">
 
 
@@ -92,23 +98,23 @@
     </script>
     <script src="https://www.gstatic.com/charts/loader.js"></script>
 
-    <link rel="stylesheet" href="{% static 'css/common.css' %}">
-    <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
+    <link rel="stylesheet" href="{% full_static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% full_static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% full_static 'css/keyboard.css' %}">
         
-    <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
-    <link rel="stylesheet" href="{%  static 'css/color-palette.css' %}">
-    <link rel="stylesheet" href="{%  static 'css/themes/library-theme.css' %}">
-    <link rel="stylesheet" href="{%  static 'css/themes/sheets-theme.css' %}">
-    <link rel="stylesheet" href="{%  static 'css/common-components.css' %}">
-    <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
-    <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
+    <link rel="stylesheet" href="{% full_static 'css/font-faces.css' %}">
+    <link rel="stylesheet" href="{% full_static 'css/color-palette.css' %}">
+    <link rel="stylesheet" href="{% full_static 'css/themes/library-theme.css' %}">
+    <link rel="stylesheet" href="{% full_static 'css/themes/sheets-theme.css' %}">
+    <link rel="stylesheet" href="{% full_static 'css/common-components.css' %}">
+    <link rel="stylesheet" href="{% full_static 'css/s2.css' %}">
+    <link rel="stylesheet" href="{% full_static 'css/s2-print.css' %}" media="print" />
     <!-- Specific styling to correct behavior of Unbounce banners -->
-    <link rel="stylesheet" href="{%  static 'css/unbounce-banner.css' %}">
+    <link rel="stylesheet" href="{% full_static 'css/unbounce-banner.css' %}">
 
     {% block static_css %}
     {% if renderStatic %}
-    <link rel="stylesheet" href="{%  static 'css/static.css' %}">
+    <link rel="stylesheet" href="{% full_static 'css/static.css' %}">
     {% endif %}
     {% endblock %}
 
@@ -214,9 +220,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
-    <script src="{% static 'js/lib/keyboard.js' %}"></script>
-    <script src="{% static 'js/analyticsEventTracker.js' %}"></script>
-    <script src="/data.{{ last_cached_short }}.js"></script>
+    <script src="{% full_static 'js/lib/keyboard.js' %}"></script>
+    <script src="{% full_static 'js/analyticsEventTracker.js' %}"></script>
+    <script src="{{ SITE_SETTINGS.FRONT_END_URL }}/data.{{ last_cached_short }}.js"></script>
 
     <script>
       {% autoescape off %}
