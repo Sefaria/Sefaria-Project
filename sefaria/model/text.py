@@ -34,6 +34,27 @@ from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLE
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 
+
+def profile_func(func):
+    import cProfile
+    import pstats
+    import io
+    from functools import wraps
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        pr = cProfile.Profile()
+        pr.enable()
+        try:
+            result = func(*args, **kwargs)
+        finally:
+            pr.disable()
+            s = io.StringIO()
+            ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+            ps.print_stats(20)  # Top 20 lines
+            logger.info(s.getvalue())
+        return result
+    return wrapper
+
 """
                 ----------------------------------
                          Index, IndexSet
@@ -5117,9 +5138,7 @@ class Library(object):
             if not rebuild:
                 self._topic_toc = scache.get_shared_cache_elem('topic_toc')
             if rebuild or not self._topic_toc:
-                logger.info("Calling get_topic_toc_json_recursive")
-                self._topic_toc = self.get_topic_toc_json_recursive()
-                logger.info("Finished calling get_topic_toc_json_recursive")
+                self._topic_toc = profile_func(self.get_topic_toc_json_recursive)()
                 scache.set_shared_cache_elem('topic_toc', self._topic_toc)
                 self.set_last_cached_time()
         return self._topic_toc
