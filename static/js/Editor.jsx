@@ -2589,7 +2589,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     </div>
   );
 }
-function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, setUnknownErrorDetected, setBlockEditing) {
+function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, setUnknownErrorDetected, setBlockEditing) {
   const timeoutRef = useRef(null);
 
   useEffect(() => {
@@ -2604,7 +2604,8 @@ function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, setUnknownErro
       }, timeoutSeconds * 1000);
     }
 
-    if (!hasUnsaved && timeoutRef.current) {
+    if ((!hasUnsaved || savingState != "saving")
+        && timeoutRef.current) {
       // Cancel if unsavedChanges were cleared before timeout ends
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -2636,7 +2637,7 @@ const SefariaEditor = (props) => {
     const [userUnauthenticated, setUserUnauthenticated] = useState(false);
     const [unknownErrorDetected, setUnknownErrorDetected] = useState(false);
     const [savingState, setSavingState] = useState('saved');
-    useUnsavedChangesWatcher(20, unsavedChanges, setUnknownErrorDetected, setBlockEditing);
+    useUnsavedChangesWatcher(2, unsavedChanges, savingState, setUnknownErrorDetected, setBlockEditing);
 
     useEffect(() => {
         if (unknownErrorDetected) {setSavingState("unknownError")}
