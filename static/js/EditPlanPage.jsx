@@ -170,6 +170,17 @@ class EditPlanPage extends Component {
     this.changed = true;
   }
 
+  getSheetIdFromUrl = (url) => {
+    try {
+      // Extract sheet ID from URLs like https://pecha.org/sheets/1086?lang=bi
+      const match = url.match(/sheets\/(\d+)/);
+      return match ? match[1] : null;
+    } catch (error) {
+      console.error('Error extracting sheet ID:', error);
+      return null;
+    }
+  }
+
   handleSheetLinkChange = (index, value) => {
     const updatedInputs = [...this.state.sheetInputs];
     updatedInputs[index] = { ...updatedInputs[index], link: value };
@@ -188,7 +199,20 @@ class EditPlanPage extends Component {
   handleDaySelect = (index, value) => {
     const updatedInputs = [...this.state.sheetInputs];
     updatedInputs[index] = { ...updatedInputs[index], day: value };
-    this.setState({ sheetInputs: updatedInputs });
+    
+    // Update the content object with sheet ID mapped to selected day
+    const sheetId = this.getSheetIdFromUrl(updatedInputs[index].link);
+    if (sheetId) {
+      const updatedContent = { ...this.state.content };
+      updatedContent[value] = parseInt(sheetId);
+      this.setState({ 
+        sheetInputs: updatedInputs,
+        content: updatedContent
+      });
+    } else {
+      this.setState({ sheetInputs: updatedInputs });
+    }
+    
     this.changed = true;
   }
 
