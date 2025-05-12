@@ -5117,7 +5117,9 @@ class Library(object):
             if not rebuild:
                 self._topic_toc = scache.get_shared_cache_elem('topic_toc')
             if rebuild or not self._topic_toc:
+                logger.info("Calling get_topic_toc_json_recursive")
                 self._topic_toc = self.get_topic_toc_json_recursive()
+                logger.info("Finished calling get_topic_toc_json_recursive")
                 scache.set_shared_cache_elem('topic_toc', self._topic_toc)
                 self.set_last_cached_time()
         return self._topic_toc
@@ -5131,7 +5133,9 @@ class Library(object):
             if not rebuild:
                 self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
             if rebuild or not self._topic_toc_json:
+                logger.info("Calling get_topic_toc")
                 self._topic_toc_json = json.dumps(self.get_topic_toc(), ensure_ascii=False)
+                logger.info("Finished calling get_topic_toc")
                 scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
                 self.set_last_cached_time()
         return self._topic_toc_json
@@ -5152,8 +5156,10 @@ class Library(object):
             children = [t.slug for t in ts]
             topic_json = {}
         else:
+            logger.info(f"topic: ${topic.slug}")
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
             topic_json = topic.contents(minify=True, children=children, with_html=True)
+            logger.info(f"ran topic contents")
             # topic_json = {
             #     "slug": topic.slug,
             #     "shouldDisplay": True if len(children) > 0 else topic.should_display(),
@@ -5174,7 +5180,6 @@ class Library(object):
             unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
                                                                                           None) not in explored
             explored.add(topic.slug)
-            logger.info(f"explored: ${explored}, topic: ${topic.slug}")
         if len(children) > 0 or topic is None or unexplored_top_level:
             # make sure root gets children no matter what and make sure that unexplored top-level topics get children no matter what
             topic_json['children'] = []
@@ -5183,7 +5188,6 @@ class Library(object):
             if child_topic is None:
                 logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
                 continue
-            logger.info(f"child_topic: ${child_topic.slug}")
             topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
         if len(children) > 0:
             topic_json['children'].sort(key=lambda x: x['displayOrder'])
