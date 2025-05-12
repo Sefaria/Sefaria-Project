@@ -6,10 +6,10 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim()); // Claims clients immediately
 });
 
-self.addEventListener('fetch', (event) => {
-  const {request} = event;
-  const documentRequest = request.mode === 'navigate' && request.destination === 'document';
-  const url = new URL(event.request.url);
+self.addEventListener('fetch', async (event) => {
+  const clonedRequest = event.request.clone();
+  const documentRequest = clonedRequest.mode === 'navigate' && clonedRequest.destination === 'document';
+  const url = new URL(clonedRequest.url);
   const {hostname, pathname} = url;
   const isSheetsDomain = hostname === 'sheets.localsefaria.org';
   const isSheetsPath = /^\/sheets($|\/)/.test(pathname); //bot not '/sheets-something'
@@ -18,21 +18,22 @@ self.addEventListener('fetch', (event) => {
     if (!isSheetsPath && documentRequest) {
       url.pathname = `/sheets${pathname}`;
     }
-    const newRequest = makeNewRequest(request, url);
+    const newRequest = await makeNewRequest(clonedRequest, url);
     event.respondWith(fetch(newRequest));
   } else {
-    event.respondWith(fetch(request));
+    event.respondWith(fetch(event.request));
   }
 });
 
-const makeNewRequest = (request, url) => {
-  const { method, body, redirect, credentials, cache, referrer, referrerPolicy, integrity, keepalive, mode, signal } = request;
+const makeNewRequest = async (request, url) => {
+  const { method, redirect, credentials, cache, referrer, referrerPolicy, integrity, keepalive, mode, signal } = request;
+  const body = await getBody(request);
   const requestInit = {
     method,
     headers: new Headers(request.headers),
-    body: method !== 'GET' && method !== 'HEAD' ? body : undefined,
+    body,
     redirect,
-    credentials: 'include',
+    credentials,
     cache,
     referrer,
     referrerPolicy,
@@ -41,12 +42,18 @@ const makeNewRequest = (request, url) => {
     signal,
     mode: mode !== 'navigate' ? mode : undefined,
   };
-  // If the body is a ReadableStream, set duplex
-  const isStreamBody =
-    body instanceof ReadableStream ||
-    Object.prototype.toString.call(body) === '[object ReadableStream]';
-  if (isStreamBody) {
-    requestInit.duplex = 'half';
-  }
   return new Request(url.toString(), requestInit);
+}
+
+const getBody = async (request) => {
+  const contentType = request.headers.get("Content-Type") || "";
+  if (request.method === 'GET' || request.method === 'HEAD') {
+    return;
+  }
+  if (contentType.includes("application/json")) {
+    return await request.json();
+  } else if (contentType.includes("text")) {
+    return await request.text();
+  }
+  return await request.blob();
 }
