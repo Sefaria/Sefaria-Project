@@ -17018,6 +17018,47 @@ span.ref-link-color-3 {
     content: '⚠';
     font-size: 16px;
   }
+
+  /*paste sheet link with day dropdown*/
+
+  .sheet-input-container {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: center;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .sheet-input-field-wrapper {
+    flex: 2;
+  }
+  
+  .sheet-input-field {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px 12px;
+  }
+  
+  .day-select-wrapper {
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+  }
+  
+  .day-select {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px 12px;
+    background-color: white;
+  }
+
+  /*end of paste sheet link with day dropdown*/
   
   /* Responsive Design */
   @media (min-width: 768px) {
