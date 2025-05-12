@@ -2637,7 +2637,7 @@ const SefariaEditor = (props) => {
     const [userUnauthenticated, setUserUnauthenticated] = useState(false);
     const [unknownErrorDetected, setUnknownErrorDetected] = useState(false);
     const [savingState, setSavingState] = useState('saved');
-    useUnsavedChangesWatcher(2, unsavedChanges, savingState, setUnknownErrorDetected, setBlockEditing);
+    useUnsavedChangesWatcher(20, unsavedChanges, savingState, setUnknownErrorDetected, setBlockEditing);
 
     useEffect(() => {
         if (unknownErrorDetected) {setSavingState("unknownError")}
