@@ -16,16 +16,20 @@ import {
   InterfaceText,
 } from './Misc';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import { categories as validCategories } from './Plans';
 
 const EditPlanModal = ({ plan, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     title: plan?.title || '',
     description: plan?.description || '',
     whatYouWillLearn: plan?.whatYouWillLearn || '',
-    categories: plan?.categories?.join(', ') || '',
-    totalDays: plan?.total_days || '',
+    categories: plan?.categories || [],
+    totalDays: plan?.totalDays || '',  
     planImage: plan?.planImage || ''
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const [categoryInput, setCategoryInput] = useState('');
+  const [suggestedCategories, setSuggestedCategories] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,12 +39,86 @@ const EditPlanModal = ({ plan, onClose, onSave }) => {
     }));
   };
 
+  const handleCategoryInputChange = (e) => {
+    const input = e.target.value.toLowerCase();
+    setCategoryInput(input);
+    setSuggestedCategories(
+      input
+        ? validCategories.filter(cat =>
+            cat.toLowerCase().includes(input) &&
+            !formData.categories.includes(cat)
+          )
+        : []
+    );
+  };
+
+  const handleCategorySelect = (category) => {
+    if (!formData.categories.includes(category)) {
+      setFormData(prev => ({
+        ...prev,
+        categories: [...prev.categories, category]
+      }));
+      setCategoryInput('');
+      setSuggestedCategories([]);
+    }
+  };
+
+  const handleCategoryRemove = (categoryToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      categories: prev.categories.filter(cat => cat !== categoryToRemove)
+    }));
+  };
+
+  const handleImageChange = (e) => {
+    const MAX_IMAGE_MB = 2;
+    const MAX_IMAGE_SIZE = MAX_IMAGE_MB * 1024 * 1024;
+    const file = e.currentTarget.files[0];
+    
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert("Please choose an image smaller than " + MAX_IMAGE_MB + "MB");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    if (plan?.id) {
+      formData.append("plan_id", plan.id);
+    }
+
+    setIsUploading(true);
+    $.ajax({
+      url: '/api/plans/upload',
+      data: formData,
+      type: 'POST',
+      contentType: false,
+      processData: false,
+      success: function(data) {
+        if ("error" in data) {
+          alert(data.error);
+          setFormData(prev => ({ ...prev, planImage: '' }));
+        } else {
+          setFormData(prev => ({ ...prev, planImage: data.url }));
+        }
+        setIsUploading(false);
+      },
+      error: function() {
+        alert("There was an error uploading your image.");
+        setFormData(prev => ({ ...prev, planImage: '' }));
+        setIsUploading(false);
+      }
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (formData.categories.length === 0) {
+      alert("Please select at least one category");
+      return;
+    }
     onSave({
       ...plan,
       ...formData,
-      categories: formData.categories.split(',').map(cat => cat.trim()).filter(cat => cat),
       total_days: parseInt(formData.totalDays)
     });
   };
@@ -77,13 +155,54 @@ const EditPlanModal = ({ plan, onClose, onSave }) => {
             />
           </div>
           <div className="form-group">
-            <label>Categories (comma-separated):</label>
-            <input
-              type="text"
-              name="categories"
-              value={formData.categories}
-              onChange={handleChange}
-            />
+            <label>Categories:</label>
+            <div className="categories-container">
+              <input
+                type="text"
+                value={categoryInput}
+                onChange={handleCategoryInputChange}
+                placeholder="Type to search categories..."
+                className="form-control category-search-input"
+              />
+              <div className="selected-categories-wrapper">
+                {formData.categories.map((category, index) => (
+                  <span key={index} className="category-pill">
+                    {category}
+                    <button
+                      type="button"
+                      onClick={() => handleCategoryRemove(category)}
+                      className="remove-category-btn"
+                      aria-label="Remove category"
+                      style={{
+                        border: '1px solid #ccc',
+                        background: 'none',
+                        borderRadius: '2px',
+                        padding: '0 3px',
+                        marginLeft: '4px',
+                        fontSize: '12px',
+                        lineHeight: '14px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              {suggestedCategories.length > 0 && (
+                <div className="category-dropdown">
+                  {suggestedCategories.map((category, index) => (
+                    <div
+                      key={index}
+                      className="category-option"
+                      onClick={() => handleCategorySelect(category)}
+                    >
+                      {category}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div className="form-group">
             <label>Total Days:</label>
@@ -97,17 +216,28 @@ const EditPlanModal = ({ plan, onClose, onSave }) => {
             />
           </div>
           <div className="form-group">
-            <label>Plan Image URL:</label>
-            <input
-              type="url"
-              name="planImage"
-              value={formData.planImage}
-              onChange={handleChange}
-            />
+            <label>Plan Image:</label>
+            <div className="image-upload-container">
+              {formData.planImage && (
+                <div className="image-preview">
+                  <img 
+                    src={isUploading ? "/static/img/loading.gif" : formData.planImage} 
+                    alt="Plan preview" 
+                    style={{ maxWidth: '200px', marginBottom: '10px' }}
+                  />
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                disabled={isUploading}
+              />
+            </div>
           </div>
           <div className="modal-actions">
             <button type="button" onClick={onClose}>Cancel</button>
-            <button type="submit">Save Changes</button>
+            <button type="submit" disabled={isUploading}>Save Changes</button>
           </div>
         </form>
       </div>
@@ -140,7 +270,7 @@ class UserProfile extends Component {
   componentDidMount() {
     // Fetch user's plans when component mounts
     if (this.props.profile.id) {
-      $.get("/api/plans", { creator: this.props.profile.id }, (data) => {
+      $.get("/api/plansPost", { creator: this.props.profile.id }, (data) => {
         if (data.plans) {
           this.setState({ userPlans: data.plans });
         }
@@ -462,12 +592,14 @@ class UserProfile extends Component {
 
   getPlans() {
     return new Promise((resolve, reject) => {
-      $.get("/api/plans", { creator: this.props.profile.id }, function(data) {
+      $.get("/api/plansPost", function(data) {
         if (data.plans) {
           resolve(data.plans);
         } else {
           reject("Failed to fetch plans");
         }
+      }).fail(function(xhr) {
+        reject(xhr.responseJSON?.error || "Failed to fetch plans");
       });
     });
   }
@@ -513,10 +645,12 @@ class UserProfile extends Component {
             Create plans to organize and share your learning journey.
           </span>
         </div>
-        <a href="/plans/new" className="resourcesLink sans-serif">
-          <img src="/static/icons/calendar.svg" alt="Plan icon" />
-          <span className={`${Sefaria.languageClassFont()}`}>Create New Plan</span>
-        </a>
+        {this.props.profile.userType === "Plan creator" && (
+          <a href="/plans/new" className="resourcesLink sans-serif">
+            <img src="/static/icons/calendar.svg" alt="Plan icon" />
+            <span className={`${Sefaria.languageClassFont()}`}>Create New Plan</span>
+          </a>
+        )}
       </div>
     );
   }
