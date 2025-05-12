@@ -396,6 +396,10 @@ class UserProfile(object):
         # Fundraising
         self.is_sustainer = False
 
+        # new editor
+        self.show_editor_toggle = False
+        self.uses_new_editor = True
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         if profile: # overwrite if fake profile in db
@@ -409,10 +413,6 @@ class UserProfile(object):
             # while maintaining separate profiles (e.g. Sefaria and S4D).
             self.assign_slug()
             self.save()
-
-        # new editor
-        self.show_editor_toggle = False
-        self.uses_new_editor = True
 
     @property
     def full_name(self):
