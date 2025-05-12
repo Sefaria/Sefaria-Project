@@ -7,7 +7,7 @@ const SheetsTopicsTOC = ({handleClick}) => {
     const categoryListings = Sefaria.topic_toc.map(((cat, i) => {
         return <TopicTOCCard cardTitleHref={`/sheets/topics/category/${cat.slug}`}
                              topic={cat}
-                             setNavTopic={(e) => handleClick(e, cat.slug, cat.primaryTitle.en, cat.primaryTitle.he)}/>;
+                             setNavTopic={handleClick}/>;
     }));
     return (
     <div className="sheetsTopicTOC">
@@ -26,29 +26,29 @@ const TOCCardsWrapper = ({title, children}) => {
 const SheetsParashah = ({handleClick}) => {
     const [parashah, setParashah] = useState({});
     useEffect(() => {
-        Sefaria.getUpcomingDay('parasha').then(setParashah);
+        Sefaria.getUpcomingDay('parasha').then((data) => {
+          data.primaryTitle = data.displayValue;
+          data.slug = data.topic;
+          setParashah(data);
+        });
     }, []);
-    const parashahTitle = parashah.displayValue;
-    const parashahDesc = parashah.description;
-    return <Card    cardTitleHref={`/topics/${parashah.topic}`}
-                    cardTitle={parashahTitle}
-                    cardText={parashahDesc}
-                    oncardTitleClick={(e) => handleClick(e, parashah.topic, parashahTitle.en, parashahTitle.he)}/>;
+    if (Object.keys(parashah).length === 0) {
+      return <div className="navBlock">Loading...</div>
+    }
+    return <TopicTOCCard topic={parashah} setTopic={handleClick} showDescription={true}/>;
 }
 
 const SheetsHoliday = ({handleClick}) => {
-    const [holiday, setHoliday] = useState({});
-    useEffect( () => {
-        Sefaria.getUpcomingDay('holiday').then(setHoliday);
-    }, []);
-    if (Object.keys(holiday).length === 0) {
-        return <div className="navBlock">Loading...</div>
-    }
-    return <Card cardTitleHref={`/topics/${holiday.slug}`}
-                 cardTitle={holiday.primaryTitle}
-                 cardText={holiday.description}
-                 oncardTitleClick={(e) => handleClick(e, holiday.slug, holiday.primaryTitle.en, holiday.primaryTitle.he)}/>;
+  const [holiday, setHoliday] = useState({});
+  useEffect(() => {
+    Sefaria.getUpcomingDay('holiday').then(setHoliday);
+  }, []);
+  if (Object.keys(holiday).length === 0) {
+    return <div className="navBlock">Loading...</div>
+  }
+  return <TopicTOCCard topic={holiday} setTopic={handleClick} showDescription={true}/>;
 }
+
 const SheetsTopicsCalendar = ({handleClick}) => {
     return <div className="sheetsTopicsCalendar table">
                 <TOCCardsWrapper title="This Week's Torah Portion"><SheetsParashah handleClick={handleClick}/></TOCCardsWrapper>
