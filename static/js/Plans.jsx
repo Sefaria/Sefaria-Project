@@ -8,7 +8,7 @@ import PlanProgression from './PlanProgression';
 // Categories for filtering
 export const categories = [
   "all", "love", "anxiety", "healing", "anger",
-  "hope", "depression", "fear", "peace", "stress", "patience", "loss", "jealousy", "grief"
+  "hope", "depression", "fear", "peace", "stress", "patience", "loss", "jealousy", "grief", "lazy", "motivation"
 ];
 
 const Plans = ({ userType }) => {
