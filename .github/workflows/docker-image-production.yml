@@ -3,7 +3,7 @@ name: Docker Publish Trigger
 on:
   push:
     branches:
-      - main  # Change this to your main branch name, e.g., master
+      - chinese_main  # Change this to your main branch name, e.g., master
 
 jobs:
   build-and-publish:
