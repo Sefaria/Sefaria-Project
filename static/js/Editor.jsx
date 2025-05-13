@@ -2590,7 +2590,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     </div>
   );
 }
-function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, setUnknownErrorDetected, setBlockEditing) {
+function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, setSavingState) {
   const timeoutRef = useRef(null);
 
   useEffect(() => {
@@ -2599,13 +2599,13 @@ function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, s
       // Start a timeout only if none is running
       timeoutRef.current = setTimeout(() => {
         console.log("time up");
-        setUnknownErrorDetected(true);
-        setBlockEditing(true);
+        console.log("savingState", savingState)
+        savingState === "saving" && setSavingState('unknownError');
         timeoutRef.current = null; // Reset the ref
       }, timeoutSeconds * 1000);
     }
 
-    if ((!hasUnsaved || savingState != "saving")
+    if ((!hasUnsaved)
         && timeoutRef.current) {
       // Cancel if unsavedChanges were cleared before timeout ends
       clearTimeout(timeoutRef.current);
@@ -2619,7 +2619,7 @@ function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, s
         timeoutRef.current = null;
       }
     };
-  }, [unsavedChanges]);
+  }, [unsavedChanges, savingState]);
 }
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
@@ -2638,11 +2638,11 @@ const SefariaEditor = (props) => {
     const [userUnauthenticated, setUserUnauthenticated] = useState(false);
     const [unknownErrorDetected, setUnknownErrorDetected] = useState(false);
     const [savingState, setSavingState] = useState('saved');
-    useUnsavedChangesWatcher(20, unsavedChanges, savingState, setUnknownErrorDetected, setBlockEditing);
-
+    const isMultiPanel = Sefaria.multiPanel;
+    useUnsavedChangesWatcher(2, unsavedChanges, savingState, setSavingState);
     useEffect(() => {
       const handleBeforeUnload = (e) => {
-        if (savingState === 'saved') return;
+        if (savingState === 'saved' || !isMultiPanel) return;
         e.preventDefault();
         e.returnValue = '';
       };
@@ -2652,12 +2652,24 @@ const SefariaEditor = (props) => {
     }, [savingState]);
 
     useEffect(() => {
-        if (unknownErrorDetected) {setSavingState("unknownError")}
-        else if (connectionLostPolling) {setSavingState('connectionLost')}
-        else if (userUnauthenticated) {setSavingState('userUnauthenticated')}
-        else if (unsavedChanges) {setSavingState('saving')}
-        else {setSavingState('saved')}
-  }, [connectionLostPolling, userUnauthenticated, unsavedChanges, unknownErrorDetected]);
+        if (!isMultiPanel) {return}
+
+        if (savingState === "saved") {
+          setBlockEditing(false);
+          setConnectionLostPolling(false);
+        } else if (savingState === "saving") {
+        } else if (savingState === "userUnauthenticated") {
+          setUserUnauthenticated(true);
+          setBlockEditing(true);
+        } else if (savingState === "connectionLost") {
+          setConnectionLostPolling(true);
+          setBlockEditing(true);
+        } else if (savingState === "unknownError") {
+          setUnknownErrorDetected(true);
+          setBlockEditing(true);
+        }
+  }, [savingState]);
+
     useEffect(
         () => {
             if (!canUseDOM) {
@@ -2967,6 +2979,7 @@ const SefariaEditor = (props) => {
 
 
     function saveDocument(doc) {
+        savingState === "saved" && setSavingState("saving")
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {
             return
@@ -2976,15 +2989,12 @@ const SefariaEditor = (props) => {
         function handlePostError(jqXHR, textStatus, errorThrown) {
             if (jqXHR.status === 0) {
                 console.warn("No network connection or request blocked.");
-                setBlockEditing(true);
-                setConnectionLostPolling(true);
+                setSavingState("connectionLost");
             } else if (jqXHR.status === 401) {
-                setBlockEditing(true);
-                setUserUnauthenticated(true);
+                setSavingState("userUnauthenticated");
             } else {
                 console.warn("Unknown error:", textStatus, errorThrown);
-                setUnknownErrorDetected(true);
-                setBlockEditing(true)
+                setSavingState("unknownError");
             }
         }
         if(Sefaria.testUnkownNewEditorSaveError) {
@@ -2996,8 +3006,7 @@ const SefariaEditor = (props) => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false);
-            setBlockEditing(false);
-            setConnectionLostPolling(false);
+            setSavingState("saved");
 
             const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
             Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
@@ -3174,7 +3183,7 @@ const SefariaEditor = (props) => {
           // </div>
 
         }
-            <EditorSaveStateIndicator state={savingState}/>
+            {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
             <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={!blockEditing} blurCallback={() => saveDocument(currentDocument)}/>
