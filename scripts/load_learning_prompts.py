@@ -21,7 +21,7 @@ def set_topic_datasource():
     tds_json = {
         "slug": SOURCE_SLUG,
         "displayName": {
-            "en": "Pecha Learning Team",
+            "en": "Fodian Learning Team",
             "he": "པེ་ཆ་སྦྱོང་ཚོགས་"
         }
     }

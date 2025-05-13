@@ -282,7 +282,7 @@ class Collection(abst.AbstractMongoRecord):
         finally:
             translation.activate(curr_lang)
         subject       = _("collection_invitation_email_subject") % {'name': inviter.full_name}
-        from_email    = "Pecha <hello@pecha.org>"
+        from_email    = "Fodian <hello@pecha.org>"
         to            = email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])

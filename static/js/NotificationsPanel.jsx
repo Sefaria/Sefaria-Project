@@ -286,7 +286,7 @@ const IndexNotification = ({date, content}) => {
   return (
     <Notification
       topLine={topLine}
-      imageUrl={"/static/img/pecha-icon.png"}
+      imageUrl={"/static/img/fodian_logo.png"}
       date={date}
       body={body} />
   );
@@ -317,7 +317,7 @@ const VersionNotification = ({date, content}) => {
   return (
     <Notification
       topLine={topLine}
-      imageUrl={"/static/img/pecha-icon.png"}
+      imageUrl={"/static/img/fodian_logo.png"}
       date={date}
       body={body} />
   );
@@ -334,7 +334,7 @@ const GeneralNotification = ({date, content}) => {
   return (
     <Notification
       topLine={topLine}
-      imageUrl={"/static/img/pecha-icon.png"}
+      imageUrl={"/static/img/fodian_logo.png"}
       date={date} />
   );
 };

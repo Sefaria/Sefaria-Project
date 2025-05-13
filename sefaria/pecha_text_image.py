@@ -199,4 +199,4 @@ if __name__ == "__main__":
     ref_str = os.environ.get('PECHA_REF', "Default ref")
     version_lang = os.environ.get('PECHA_VERSION_LANG', None)
     lang = os.environ.get('PECHA_LANG', None)
-    create_synthetic_data(text, ref_str, lang, version_lang, logo_path="static/img/pecha-icon.png")
+    create_synthetic_data(text, ref_str, lang, version_lang, logo_path="static/img/fodian_logo.png")
