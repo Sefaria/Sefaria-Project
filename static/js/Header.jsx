@@ -43,8 +43,8 @@ class Header extends Component {
       return null;
     }
     const logo = Sefaria.interfaceLang === "hebrew" ?
-      <img src="/static/img/pecha-logo.svg" alt="Sefaria Logo"/> :
-      <img src="/static/img/pecha-logo.svg" alt="Sefaria Logo"/>;
+      <img src="/static/img/Fodian-logo-chinese" alt="Sefaria Logo"/> :
+      <img src="/static/img/Fodian-logo-chinese.svg" alt="Sefaria Logo"/>;
 
     const headerContent = (
       <>
