@@ -1,7 +1,7 @@
 # Define CORS origin logic
 map $http_origin $cors_origin {
     default "";
-    ~^https:\/\/sheets\.([^\.]*\.cauldron\.)?(local)?sefaria.org(\.il)?$ "$http_origin";
+    ~^https:\/\/sheets\.([^\.]*\.cauldron\.)?(local)?sefaria.org(\.il)?$ "$http_origin"; #match sheets.sefaria.org, sheets.sefaria.org.il, sheets.some-name.cauldron.sefaria.org, sheets.some-name.cauldron.sefaria.org.il, sheets.localsefaria.org
 }
 
 # HTTP Redirect to HTTPS for localsefaria.org
@@ -21,8 +21,7 @@ server {
 
     location /sheets {
         if ($http_x_internal_proxy != "1") {
-            set $sheets_host sheets.$host;
-            return 301 https://$sheets_host$request_uri;
+            return 301 https://sheets.$host$request_uri;
         }
         include /your/Sefaria-Project/path/nginx/cors.conf;
     }
@@ -47,7 +46,7 @@ server {
     ssl_certificate     /your/Sefaria-Project/path/nginx/ssl/localsefaria.crt;
     ssl_certificate_key /your/Sefaria-Project/path/nginx/ssl/localsefaria.key;
 
-    #redirection for service-worker that cannot be registered from redirection for security reasons
+    #alias for service-worker that cannot be registered from redirection for security reasons
     location = /service-worker.js {
         alias /your/Sefaria-Project/path/static/js/service-worker.js;
         add_header Cache-Control "no-cache";
