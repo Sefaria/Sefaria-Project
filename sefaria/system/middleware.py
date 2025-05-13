@@ -51,7 +51,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     def process_request(self, request):
         excluded = ('/linker.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
-            request.interfaceLang = "english"
+            request.interfaceLang = "chinese"
             request.contentLang = "bilingual"
             request.translation_language_preference = None
             request.version_preferences_by_corpus = {}
@@ -69,7 +69,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
             interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
             # Don't allow languages other than what we currently handle
-            interface = 'english' if interface not in ('english', 'hebrew', 'chinese') else interface
+            interface = 'chinese' if interface not in ('english', 'hebrew', 'chinese') else interface
 
         # Check if the current domain is pinned to  particular language in settings
         domain_lang = current_domain_lang(request)

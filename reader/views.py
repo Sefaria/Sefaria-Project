@@ -3381,7 +3381,7 @@ def background_data_api(request):
     API that bundles data which we want the client to prefetch,
     but should not block initial pageload.
     """
-    language = request.GET.get("locale", 'english')
+    language = request.GET.get("locale", 'chinese')
     # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'.
 
     data = {}
