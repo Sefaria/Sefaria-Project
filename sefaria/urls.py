@@ -306,6 +306,8 @@ urlpatterns += [
 ]
 
 
+
+
 # History API
 urlpatterns += [
     url(r'^api/history/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.texts_history_api),
@@ -505,6 +507,13 @@ urlpatterns += [
     url(r'^api/plans/upload$', reader_views.plan_image_upload_api),
     url(r'^api/plansPost/?$', reader_views.plans_api),
     url(r'^api/plans/update_content$', reader_views.update_plan_content_api),
+]
+
+# User Plans API
+urlpatterns += [
+    url(r'^api/user-plans/$', reader_views.user_plans_api, name='user_plans_api'),
+
+    url(r'^api/user-plans/(?P<plan_id>[0-9a-fA-F]{24})$', reader_views.user_plans_api, name='user_plans_api'),
 ]
 
 if DOWN_FOR_MAINTENANCE:
