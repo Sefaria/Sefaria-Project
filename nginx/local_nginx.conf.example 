@@ -1,7 +1,7 @@
 # Define CORS origin logic
 map $http_origin $cors_origin {
     default "";
-    "https://sheets.localsefaria.org" "$http_origin";
+    ~^https:\/\/sheets\.([^\.]*\.cauldron\.)?(local)?sefaria.org(\.il)?$ "$http_origin";
 }
 
 # HTTP Redirect to HTTPS for localsefaria.org
@@ -19,24 +19,16 @@ server {
     ssl_certificate     /your/Sefaria-Project/path/nginx/ssl/localsefaria.crt;
     ssl_certificate_key /your/Sefaria-Project/path/nginx/ssl/localsefaria.key;
 
-    location / {
-        if ($request_method = 'OPTIONS') {
-            add_header 'Access-Control-Allow-Origin' "$cors_origin" always;
-            add_header 'Access-Control-Allow-Credentials' 'true' always;
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-            add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With, Upgrade-Insecure-Requests, X-CSRFToken, x-csrftoken' always;
-            add_header 'Access-Control-Max-Age' 1728000;
-            add_header 'Content-Length' 0;
-            add_header 'Content-Type' 'text/plain; charset=UTF-8';
-            return 204;
+    location /sheets {
+        if ($http_x_internal_proxy != "1") {
+            set $sheets_host sheets.$host;
+            return 301 https://$sheets_host$request_uri;
         }
+        include /your/Sefaria-Project/path/nginx/cors.conf;
+    }
 
-        add_header 'Access-Control-Allow-Origin' "$cors_origin" always;
-        add_header 'Access-Control-Allow-Credentials' 'true' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With, Upgrade-Insecure-Requests, X-CSRFToken, x-csrftoken' always;
-
-        include /Users/yishaiglasner/sefaria/Project/nginx/common.conf;
+    location / {
+        include /your/Sefaria-Project/path/nginx/cors.conf;
     }
 }
 
@@ -72,6 +64,10 @@ server {
         include /your/Sefaria-Project/path/nginx/common.conf;
     }
 
+    # Document cases
+    location ~ ^/sheets(/|$) { # Excludes /sheets-something
+        include /your/Sefaria-Project/path/nginx/common.conf;
+    }
     location / {
         rewrite ^/(.*)$ /sheets/$1 break;
         include /your/Sefaria-Project/path/nginx/common.conf;
