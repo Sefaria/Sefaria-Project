@@ -1,17 +1,16 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% "Privacy Policy" %} | {% "Sefaria" %}{% endblock %}
+{% block title %}{% trans "Privacy Policy" %} | {% trans "Pecha.org" %}{% endblock %}
 
-{% block description %}{% endblock %}
+{% block description %}{% trans "Pecha.org's Privacy Policy - Learn how we collect, use, and protect your personal information." %}{% endblock %}
 
 {% block content %}
 <div id="" class="container doc legal static">
 	<div class="inner">
         <div id="legalTabs">
-    		<a href="/terms">Terms of Use</a>
     		<a href="/privacy-policy" class="current">Privacy Policy</a>
     	</div>
-        <iframe src="https://docs.google.com/document/d/e/2PACX-1vTItZ7aXzScKUIzMgWP8GaiWjjKPDAXGDUVpvLG8vv-xb42MaGGQMjctIQwKKT5pAuSHSFCKyHfdm53/pub?embedded=true"></iframe>    </div>
+        <iframe src="https://docs.google.com/document/d/e/2PACX-1vSHwUATa9i_j6xx8oLw6fu71vckk3pLj70ZAXqd_P4eFPiXIEv7HLmKJMXWF9F-qweXMRn_poV0lA8m/pub?embedded=true"></iframe>    </div>
 </div>
 {% endblock %}
