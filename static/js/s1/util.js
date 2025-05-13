@@ -998,7 +998,7 @@ sjs.textBrowser = {
             var key = sectionName + " " + sectionNumber;
             if (sjs.interfaceLang === "he") {
             	var heSectionName = Sefaria.hebrewTerm(sectionName);
-            	var heSectionNumber = (isTalmud ? Sefaria.hebrew.encodeHebrewDaf(sectionNumber) : Sefaria.hebrew.tibetanNumeral(sectionNumber));
+            	var heSectionNumber = (isTalmud ? Sefaria.hebrew.encodeHebrewDaf(sectionNumber) : sectionNumber);
             	var name =  heSectionName + " " + heSectionNumber;
            		Sefaria._translateTerms[key] = {"en": key, "he": name}
             } else {
@@ -1064,7 +1064,7 @@ sjs.textBrowser = {
 			en = !!en ? Sefaria.util.stripImgs(en) : en;
 			he = !!he ? Sefaria.util.stripImgs(he) : he;
 			var sectionLabel = isCommentary ? section.split(":")[0] : section;
-			sectionLabel = sjs.interfaceLang === "he" ? Sefaria.hebrew.tibetanNumeral(sectionLabel) : sectionLabel;
+			sectionLabel = sjs.interfaceLang === "he" ? sectionLabel : sectionLabel;
 			var html = "<div class='segment' data-section='" + section + "'>" +
 							(he ? "<span class='he'>" +
 									(isTalmud ? "" : "<span class='number'>(" + sectionLabel + ")</span> ") +
