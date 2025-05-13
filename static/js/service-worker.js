@@ -20,10 +20,8 @@ const handleRequest = async (request) => {
   if (isSheetsDomain && !documentRequest) {
     url.hostname = hostname.replace(/^sheets\./, '');
     const newRequest = await makeNewRequest(clonedRequest, url);
-    console.log(0, url.toString())
     return fetch(newRequest);
   } else {
-    console.log(1, url.toString())
     return fetch(request);
   }
 };
