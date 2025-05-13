@@ -5,26 +5,25 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim()); // Claims clients immediately
 });
-
+aaa
 self.addEventListener('fetch', async (event) => {
   event.respondWith(handleRequest(event.request));
 });
 
 const handleRequest = async (request) => {
+  console.log('hi')
   const clonedRequest = request.clone();
-  const documentRequest = clonedRequest.mode === 'navigate' && clonedRequest.destination === 'document';
+  const documentRequest = clonedRequest.mode === 'navigate' && clonedRequest.destination === 'document'; // Handled by nginx
   const url = new URL(clonedRequest.url);
   const {hostname, pathname} = url;
   const isSheetsDomain = /^sheets\..*sefaria\.org(\.il)?/.test(hostname);
-  const isSheetsPath = /^\/sheets($|\/)/.test(pathname); //bot not '/sheets-something'
-  if (isSheetsDomain) {
+  if (isSheetsDomain && !documentRequest) {
     url.hostname = hostname.replace(/^sheets\./, '');
-    if (!isSheetsPath && documentRequest) {
-      url.pathname = `/sheets${pathname}`;
-    }
     const newRequest = await makeNewRequest(clonedRequest, url);
+    console.log(0, url.toString())
     return fetch(newRequest);
   } else {
+    console.log(1, url.toString())
     return fetch(request);
   }
 };
