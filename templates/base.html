@@ -162,20 +162,6 @@
     <!-- Unbounce Embed Code -->
     <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script>
 
-    <!-- redirect sheets to it its subdomain -->
-    <script>
-      (function() {
-        const {protocol, host, pathname, search, hash} = window.location;
-        const canSwitchToSheets = /^(?!sheets\.).*sefaria\.org/.test(host);
-        const isSheets = /^\/sheets($|\/)/.test(pathname);
-
-        if (canSwitchToSheets && isSheets) {
-          const newURL = `${protocol}//sheets.${host}${pathname.replace('/sheets', '')}${search}${hash}`;
-          window.location.replace(newURL); // Replace to avoid keeping old URL in history
-        }
-      })();
-    </script>
-
 </head>
  <body data-active-module="{{ active_module }}" data-render-static="{{ renderStatic }}" class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
