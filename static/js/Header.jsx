@@ -166,7 +166,7 @@ const LoggedInDropdown = ({module}) => {
 
 
 const ModuleSwitcher = () => {
-  const libraryUrl = Sefaria.isSubDomain('sheets') ? Sefaria.getLibraryUrl() : '/';
+  const libraryUrl = Sefaria.getLibraryUrl(); // If we should switch to sheets subdomain, nginx will do it
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
