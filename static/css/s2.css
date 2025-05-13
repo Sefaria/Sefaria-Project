@@ -17332,6 +17332,306 @@ span.ref-link-color-3 {
     opacity: 1;
   }
 
+   /* Plan Tabs Navigation */
+.planTabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  
+  .planTab {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s;
+    border: 1px solid #eaeaea;
+  }
+  
+  .planTab:hover {
+    color: #C39F48;
+  }
+  
+  .planTab.active {
+    color: white;
+    background-color: #C39F48;
+    font-weight: 600;
+  }
+  
+  .planTab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #C39F48;
+  }
+  
+  .noPlansMessage {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+  }
+
+  /* MyPlans Component Styling */
+.myPlansContainer {
+    width: 100%;
+    padding: 20px 0;
+  }
+  
+  .plansGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  .planCard {
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+  }
+  
+  .planCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .planCardLink {
+    display: block;
+    padding: 20px;
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .planCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  
+  .planTitle {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+    flex: 1;
+  }
+  
+  .completionBadge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: 10px;
+    white-space: nowrap;
+  }
+  
+  .completionBadge.completed {
+    background-color: #e6f7ed;
+    color: #38a169;
+  }
+  
+  .completionBadge.inProgress {
+    background-color: #ebf8ff;
+    color: #3182ce;
+  }
+  
+  .planDescription {
+    margin: 0 0 20px;
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  
+  .planProgressContainer {
+    margin-bottom: 20px;
+  }
+  
+  .progressBarContainer {
+    width: 100%;
+    height: 8px;
+    background-color: #edf2f7;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  
+  .progressBar {
+    height: 100%;
+    background-color: #5a67d8;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  
+  .progressStats {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .progressStat {
+    display: flex;
+    flex-direction: column;
+    min-width: 30%;
+    margin-bottom: 12px;
+  }
+  
+  .progressLabel {
+    font-size: 0.75rem;
+    color: #718096;
+    margin-bottom: 4px;
+  }
+  
+  .progressValue {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+  
+  .planDates {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #edf2f7;
+    padding-top: 16px;
+  }
+  
+  .planDate {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .dateLabel {
+    font-size: 0.75rem;
+    color: #718096;
+    margin-bottom: 4px;
+  }
+  
+  .dateValue {
+    font-size: 0.85rem;
+    color: #4a5568;
+  }
+  
+  /* Empty state styling */
+  .emptyPlansMessage {
+    text-align: center;
+    padding: 40px 20px;
+    color: #4a5568;
+  }
+  
+  .emptyPlansMessage h2 {
+    margin-bottom: 16px;
+    font-weight: 600;
+    color: #2d3748;
+  }
+  
+  .emptyPlansMessage p {
+    font-size: 0.95rem;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .plansGrid {
+      grid-template-columns: 1fr;
+    }
+    
+    .progressStats {
+      flex-direction: column;
+    }
+    
+    .progressStat {
+      margin-bottom: 8px;
+    }
+    
+    .planDates {
+      flex-direction: column;
+    }
+    
+    .planDate:first-child {
+      margin-bottom: 12px;
+    }
+  }
+
+  .reading-completed {
+    margin-left: auto;
+    margin-bottom: 200px;
+    margin-right: 0;
+    display: block;
+    text-align: center;
+    background: #f5ecd6; /* Example "pecha" parchment color */
+    border-radius: 16px;
+    padding: 12px 24px;
+    font-weight: 700;
+    box-shadow: 10px 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid #e2d3b1; /* Optional: subtle border */
+}
+
+.reading-completed:hover {
+    background: #e2d3b1;
+    cursor: pointer;
+    font-weight: 700;
+    color: #2d3748;
+    transform: translateY(-5px);
+}
+
+.browsePlansButton {
+    padding: 12px 24px;
+    background-color: #C39F48;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: inline-block;
+    text-decoration: none;
+  }
+  
+  .browsePlansButton:hover {
+    background-color: #a3853b;
+  }
+  
+  .browsePlansButton:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(195, 159, 72, 0.3);
+  }
+
+
+  .day-button.completed {
+    background-color: #e6f0e6; /* Light green background */
+    position: relative;
+  }
+  
+  .day-completed-check {
+    color: #4CAF50; /* Green checkmark */
+    margin-left: 5px;
+    font-weight: bold;
+  }
+  
+  /* When a button is both active and completed */
+  .day-button.active {
+    background-color: #C39F48; /* Keep the active color */
+    color: white;
+  }
+  
+  .day-button.active.completed .day-completed-check {
+    color: white; /* Make the checkmark white when the button is active */
+  }
+
+
+
 @-webkit-keyframes load5 {
     0%, 100% {
         box-shadow: 0 -2.6em 0 0 #ffffff, 1.8em -1.8em 0 0 rgba(0, 0, 0, 0.2), 2.5em 0 0 0 rgba(0, 0, 0, 0.2), 1.75em 1.75em 0 0 rgba(0, 0, 0, 0.2), 0 2.5em 0 0 rgba(0, 0, 0, 0.2), -1.8em 1.8em 0 0 rgba(0, 0, 0, 0.2), -2.6em 0 0 0 rgba(0, 0, 0, 0.5), -1.8em -1.8em 0 0 rgba(0, 0, 0, 0.7)

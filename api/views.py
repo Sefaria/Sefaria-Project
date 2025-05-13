@@ -4,6 +4,7 @@ from sefaria.client.util import jsonResponse
 from django.views import View
 from .api_warnings import *
 from sefaria.model.plan import Plan, PlanSet
+from sefaria.model.user_plan import UserPlanSet
 from bson import ObjectId
 import logging
 import re
@@ -80,6 +81,13 @@ class PlanView(View):
         except Exception as e:
             logger.error(f"Error in dispatch: {str(e)}")
             return jsonResponse({'error': str(e)}, status=500)
+    
+    def safe_isoformat(self, dt_value):
+        """Convert datetime objects to ISO format strings, 
+        or return the value unchanged if it's already a string."""
+        if hasattr(dt_value, 'isoformat'):
+            return dt_value.isoformat()
+        return dt_value
 
     def get(self, request, *args, **kwargs):
         try:
@@ -104,7 +112,25 @@ class PlanView(View):
             
             # Get specific plan details
             if hasattr(self, 'plan'):
-                return jsonResponse(self.plan.contents())
+                response = self.plan.contents()
+                
+                # Check if user is authenticated and has this plan in their user_plans
+                if request.user.is_authenticated:
+                    user_plan = UserPlanSet().get_user_plan(request.user.id, str(self.plan._id))
+                    
+                    # If user has this plan, include the user_plan data in the response
+                    if user_plan:
+                        response["user_plan"] = {
+                            "id": user_plan._id,
+                            "current_day": user_plan.current_day,
+                            "completed_days": user_plan.completed_days,
+                            "progress": user_plan.get_progress_summary(),
+                            "started_at": user_plan.safe_isoformat(user_plan.started_at),
+                            "last_activity_at": user_plan.safe_isoformat(user_plan.last_activity_at),
+                            "is_completed": user_plan.is_completed
+                        }
+                
+                return jsonResponse(response)
             
             # List all plans with optional filters
             query = {}

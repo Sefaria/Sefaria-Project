@@ -170,7 +170,6 @@ class ReaderPanel extends Component {
   }
   handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
-      console.log("handleCitationClick<<<<<", citationRef, textRef, replace, currVersions);
       this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
       this.showBaseText(citationRef, replace, currVersions);
@@ -650,7 +649,6 @@ class ReaderPanel extends Component {
   }
  
   render() {
-    console.log(this.state);
     if (this.state.error) {
       return (
         <div
@@ -1096,15 +1094,16 @@ class ReaderPanel extends Component {
       menu = (
         <PlanDetail
           planId={this.state.planId}
+          user_id={this.props.user_id}
         />
       );
     }
     else if (this.state.menuOpen === "dayPlanDetail") {
-      console.log("day plan detail", this.state.menuOpen);
       menu = (
         <PlanProgression
           planId={this.state.planId}
           planData={this.state.planData}
+          userPlanId={this.props.userPlanId}
           onCitationClick={this.handleCitationClick}
         />
       );
@@ -1297,6 +1296,7 @@ ReaderPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   topicTestVersion:            PropTypes.string,
+  user_id:                     PropTypes.number,
 };
 
 

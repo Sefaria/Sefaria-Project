@@ -994,7 +994,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   handleCitationClick(n, citationRef, textRef, replace, currVersions) {
-    console.log("hello >>>>>>>", n, citationRef, textRef, replace, currVersions)
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
     if (this.state.panels.length > n+1  &&
@@ -2162,6 +2161,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
                       userType={this.props._user_type}
+                      user_id={this.props._uid}
+                      userPlanId={this.props.userPlanId}
                       mongoSearch={this.state.mongoSearch}
                       panelPosition={i}
                       initialState={panel}
