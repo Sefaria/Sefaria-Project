@@ -2641,6 +2641,17 @@ const SefariaEditor = (props) => {
     useUnsavedChangesWatcher(20, unsavedChanges, savingState, setUnknownErrorDetected, setBlockEditing);
 
     useEffect(() => {
+      const handleBeforeUnload = (e) => {
+        if (savingState === 'saved') return;
+        e.preventDefault();
+        e.returnValue = '';
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [savingState]);
+
+    useEffect(() => {
         if (unknownErrorDetected) {setSavingState("unknownError")}
         else if (connectionLostPolling) {setSavingState('connectionLost')}
         else if (userUnauthenticated) {setSavingState('userUnauthenticated')}
