@@ -104,7 +104,7 @@ msgid ""
 msgstr ""
 
 #: reader/views.py:923
-msgid "Sefaria Search "
+msgid "Sefaria Search"
 msgstr "Sefaria 搜索"
 
 #: reader/views.py:924
