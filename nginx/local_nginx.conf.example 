@@ -1,17 +1,17 @@
-# Define CORS origin logic
+# define cors origin logic
 map $http_origin $cors_origin {
     default "";
     ~^https:\/\/sheets\.([^\.]*\.cauldron\.)?(local)?sefaria.org(\.il)?$ "$http_origin"; #match sheets.sefaria.org, sheets.sefaria.org.il, sheets.some-name.cauldron.sefaria.org, sheets.some-name.cauldron.sefaria.org.il, sheets.localsefaria.org
 }
 
-# HTTP Redirect to HTTPS for localsefaria.org
+# http redirect to https for localsefaria.org
 server {
     listen 80;
     server_name localsefaria.org;
     return 301 https://$host$request_uri;
 }
 
-# HTTPS for localsefaria.org
+# https for localsefaria.org
 server {
     listen 443 ssl;
     server_name localsefaria.org;
@@ -31,14 +31,14 @@ server {
     }
 }
 
-# HTTP Redirect to HTTPS for sheets.localsefaria.org
+# http redirect to https for sheets.localsefaria.org
 server {
     listen 80;
     server_name sheets.localsefaria.org;
     return 301 https://$host$request_uri;
 }
 
-# HTTPS for sheets.localsefaria.org
+# https for sheets.localsefaria.org
 server {
     listen 443 ssl;
     server_name sheets.localsefaria.org;
@@ -46,13 +46,7 @@ server {
     ssl_certificate     /your/Sefaria-Project/path/nginx/ssl/localsefaria.crt;
     ssl_certificate_key /your/Sefaria-Project/path/nginx/ssl/localsefaria.key;
 
-    #alias for service-worker that cannot be registered from redirection for security reasons
-    location = /service-worker.js {
-        alias /your/Sefaria-Project/path/static/js/service-worker.js;
-        add_header Cache-Control "no-cache";
-    }
-
-    # This is needed for requests before the service worker is registered
+    # Cases we want to move as-is to sefaria.org
     location /static/ {
         include /your/Sefaria-Project/path/nginx/common.conf;
     }
@@ -62,11 +56,11 @@ server {
     location ~ /api/ {
         include /your/Sefaria-Project/path/nginx/common.conf;
     }
-
-    # Document cases
     location ~ ^/sheets(/|$) { # Excludes /sheets-something
         include /your/Sefaria-Project/path/nginx/common.conf;
     }
+
+    # All other gets /sheets in their path beginning
     location / {
         rewrite ^/(.*)$ /sheets/$1 break;
         include /your/Sefaria-Project/path/nginx/common.conf;
