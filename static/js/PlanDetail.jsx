@@ -3,12 +3,12 @@ import PropTypes from 'prop-types';
 import { InterfaceText } from './Misc';
 // import '../css/plans.css';
 
-const PlanDetail = ({ planId }) => {
+const PlanDetail = ({ planId, user_id }) => {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   useEffect(() => {
+
     const fetchPlanDetails = async () => {
       try {
         setLoading(true);
@@ -70,8 +70,9 @@ const PlanDetail = ({ planId }) => {
             <span className="planDetailDuration">{plan.total_days} days</span>
           </div>
           <div className="planDetailActions">
-            <a href={`/plans/${planId}/progress`} className="startPlanButton">
-              <InterfaceText>Start the Plan</InterfaceText>
+
+            <a href={user_id ? `/plans/${planId}/progress` : `/login`} className="startPlanButton">
+              <InterfaceText>{ plan.user_plan ? "Resume Plan" : "Start the Plan"}</InterfaceText>
             </a>
           </div>
         </div>
