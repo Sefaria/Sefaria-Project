@@ -2876,10 +2876,9 @@ _media: {},
       // In the library module, author topics links "Top Citations" are of type "popular-writing-of" and all other topics are of type "about".
       if (refObj.is_sheet) {
         return { tabKey: 'sheets', title: { en: "Sheets", he: Sefaria.translation('hebrew', "Sheets") } };
-      }
-      else {
+      } else {
         if (linkType === 'about') {
-          const lang = Sefaria.interfaceLang === "hebrew" ? 'he' : 'en';
+          const lang = Sefaria.interfaceLang.slice(0, 2);
           const desc = refObj.descriptions?.[lang];
           const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
           return isNotableSource
@@ -3425,6 +3424,9 @@ _media: {},
     } else {
       return inputStr;
     }
+  },
+  _getShortInterfaceLang: function() {
+    return Sefaria.interfaceLang.slice(0,2);
   },
   _v: function(langOptions){
     /* Takes an object {en: "something", he: "משהו"}

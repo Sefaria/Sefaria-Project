@@ -2684,7 +2684,7 @@ const partition = (arr, prop) =>
 
 // Defines a comparator to be used for sorting team members
 const byLastName = () => {
-    const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+    const locale = Sefaria._getShortInterfaceLang();
     return (a, b) => {
         const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
         const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();
