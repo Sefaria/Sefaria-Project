@@ -27,11 +27,11 @@ const handleRequest = async (request) => {
 };
 
 const makeNewRequest = async (request, url) => {
-  const { method, redirect, credentials, cache, referrer, referrerPolicy, integrity, keepalive, mode, signal } = request;
+  const { method, redirect, headers, cache, referrer, referrerPolicy, integrity, keepalive, mode, signal } = request;
   const body = await getBody(request);
   const requestInit = {
     method,
-    headers: new Headers(request.headers),
+    headers,
     body,
     redirect,
     credentials: 'include',
