@@ -23,11 +23,11 @@ server {
         if ($http_x_internal_proxy != "1") {
             return 301 https://sheets.$host$request_uri;
         }
-        include /your/Sefaria-Project/path/nginx/cors.conf;
+        include /your/Sefaria-Project/path/nginx/common.conf;
     }
 
     location / {
-        include /your/Sefaria-Project/path/nginx/cors.conf;
+        include /your/Sefaria-Project/path/nginx/common.conf;
     }
 }
 
