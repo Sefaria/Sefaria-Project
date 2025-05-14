@@ -360,7 +360,7 @@ const AboutTextCategory = ({cats}) => {
 
 
 const AboutText = ({index, hideTitle}) => {
-  const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en"
+  const lang = Sefaria._getShortInterfaceLang();
 
   let composed = [index.compPlaceString?.[lang], index.compDateString?.[lang]].filter(x=>!!x).join(", ");
   composed = composed.replace(/[()]/g, "");
