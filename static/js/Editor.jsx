@@ -2642,71 +2642,33 @@ const SefariaEditor = (props) => {
     useUnsavedChangesWatcher(2, unsavedChanges, savingState, setSavingState);
 
     function disableUserInput(root) {
+      if (!root) return;
+
       const blockEvent = (e) => {
-        e.stopPropagation();
         e.preventDefault();
+        e.stopPropagation();
       };
 
-      const events = [
-        // Mouse events
+      // Store references so we can later remove them
+      root._blockEventHandler = blockEvent;
+      root._blockedEvents = [
         'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'contextmenu',
-
-        // Touch events
         'touchstart', 'touchend', 'touchmove', 'touchcancel',
-
-        // Keyboard events
         'keydown', 'keypress', 'keyup',
-
-        // Drag & drop events
         'drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop',
-
-        // Focus events
         'focus', 'blur', 'focusin', 'focusout',
-
-        // Clipboard events
         'copy', 'cut', 'paste',
-
-        // // Scroll / wheel
         // 'wheel', 'scroll',
-
-        // Form events
-        'submit', 'change', 'input',
+        'submit', 'change', 'input'
       ];
 
-      for (const event of events) {
+      root._blockedEvents.forEach(event => {
         root.addEventListener(event, blockEvent, { capture: true });
-      }
-        root.style.pointerEvents = 'none';
+      });
+
+      root.style.pointerEvents = 'none';
       root.style.userSelect = 'none';
     }
-    function disableUserInput(root) {
-  if (!root) return;
-
-  const blockEvent = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  // Store references so we can later remove them
-  root._blockEventHandler = blockEvent;
-  root._blockedEvents = [
-    'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'contextmenu',
-    'touchstart', 'touchend', 'touchmove', 'touchcancel',
-    'keydown', 'keypress', 'keyup',
-    'drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop',
-    'focus', 'blur', 'focusin', 'focusout',
-    'copy', 'cut', 'paste',
-    'wheel', 'scroll',
-    'submit', 'change', 'input'
-  ];
-
-  root._blockedEvents.forEach(event => {
-    root.addEventListener(event, blockEvent, { capture: true });
-  });
-
-  root.style.pointerEvents = 'none';
-  root.style.userSelect = 'none';
-}
 
     function enableUserInput(root) {
       if (!root || !root._blockEventHandler || !root._blockedEvents) return;
