@@ -26,8 +26,6 @@ import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
 
 
-const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
-
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```

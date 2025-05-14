@@ -531,7 +531,6 @@ const Strings = {
     //New Editor Flow
     "Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at" : "כדי להתנסות בחוויית העריכה החדשה, יש להיכנס לפרופיל האישי שלך וליצור דף מקורות חדש או לערוך דף מקורות קיים. נשמח מאוד לקבל ממך משוב אחרי השימוש. אפשר ליצור איתנו קשר בדוא\"ל",
     "Back to Profile": "חזרה לפרופיל האישי שלך",
-    "Go back to old version": "חזרה לגרסה הישנה",
     "Request for Feedback": "נא למלא משוב",
     "Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.": "תודה שניסית את עורך ספריא החדש! נשמח מאוד לשמוע את דעתך עליו. אנו מבקשים ממך להקדיש כמה דקות למילוי משוב על חוויית השימוש שלך.",
     "Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface.": "תחדשו! הנכם משתמשים כעת בתוכנה העדכנית לעריכת דפי מקורות בספריא. למדו עוד על השימוש בתוכנה בעזרת המדריך המלא למשתמשים חדשים.",
@@ -542,9 +541,7 @@ const Strings = {
     "Missing features": "תכונות חסרות",
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
-    "Go Back to Old Version": "חזור לגרסה הישנה",
     "Thank you!": "תודה רבה!",
-    "Try the new version": "להתנסוּת בגרסה החדשה",
 
     //TextTableofContents
     "Contents": "תוכן",
