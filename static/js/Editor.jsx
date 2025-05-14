@@ -3209,7 +3209,7 @@ const SefariaEditor = (props) => {
         </SheetMetaDataBox>
             {canUseDOM ?
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
-                <HoverMenu buttons="all"/>
+                {!blockEditing &&<HoverMenu buttons="all"/>}
                 <Editable
                     renderLeaf={props => <span contentEditable={!blockEditing}><Leaf {...props} /></span>}
                   renderElement={renderElement}
