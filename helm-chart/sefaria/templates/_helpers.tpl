@@ -185,3 +185,4 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- define "sefaria.tasks.queues" }}
 {{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}
 {{- end }}
+
