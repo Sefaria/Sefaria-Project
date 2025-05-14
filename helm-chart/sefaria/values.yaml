@@ -266,9 +266,6 @@ ingress:
  # means you'll have to change the nginx service as well.
   hosts:
     - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
   annotations: {}
   secrets:
     # This TLS is referenced for Prod and Democracy deployments. Use the ref: or
@@ -472,3 +469,5 @@ instrumentation:
 subdomains:
   sheets:
     enable: false
+    originRef: ""
+    originIlRef: ""
