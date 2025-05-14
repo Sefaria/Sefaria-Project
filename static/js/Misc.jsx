@@ -1832,45 +1832,38 @@ SignUpModal.propTypes = {
 
 
 function OnInView({ children, onVisible }) {
-  /**
-   *  The functional component takes an existing element and wraps it in an IntersectionObserver and returns the children, only observed and with a callback for the observer.
-   *  `children` single element or nested group of elements wrapped in a div
-   *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
-   *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
-   */
-  const elementRef = useRef();
+  const nodeRef        = useRef(null);        // DOM element
+  const onVisibleRef   = useRef(onVisible);   // always-current cb
+  const wasFullyVisible = useRef(false);      // “in view” flag
 
+  // Keep the ref in sync with the latest prop without remounting the observer
+  useEffect(() => { onVisibleRef.current = onVisible; }, [onVisible]);
+
+  // Set up the observer once – runs only on mount / unmount
   useEffect(() => {
     const observer = new IntersectionObserver(
-      // Callback function will be invoked whenever the visibility of the observed element changes
-      (entries) => {
-        const entry = entries[0];
-        // Check if the observed element is intersecting with the viewport (it's visible)
-        // Invoke provided prop callback for analytics purposes
-        if (entry.isIntersecting) {
-          onVisible();
+      ([entry]) => {
+        const fullyInView = entry.intersectionRatio === 1;
+
+        if (fullyInView && !wasFullyVisible.current) {
+          // Rising edge: just became 100 % visible
+          wasFullyVisible.current = true;
+          onVisibleRef.current();        // analytics!
+        } else if (!fullyInView && wasFullyVisible.current) {
+          // Falling edge: it’s no longer fully visible
+          wasFullyVisible.current = false;
         }
       },
-      // The entire element must be entirely visible
-      { threshold: 1 }
+      { threshold: 1 }                   // fire at 100 % only
     );
 
-    // Start observing the element, but wait until the element exists
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
-    }
+    const node = nodeRef.current;
+    if (node) observer.observe(node);
 
-    // Cleanup when the component unmounts
-    return () => {
-      // Stop observing the element when it's no longer on the screen and can't be visible
-      if (elementRef.current) {
-        observer.unobserve(elementRef.current);
-      }
-    };
-  }, [onVisible]);
+    return () => observer.disconnect();  // tidy up on unmount
+  }, []);                                // ← empty deps ⇒ once per mount
 
-  // Attach elementRef to a div wrapper and pass the children to be rendered within it
-  return <div ref={elementRef}>{children}</div>;
+  return <div ref={nodeRef}>{children}</div>;
 }
 
 const transformValues = (obj, callback) => {
@@ -1894,6 +1887,7 @@ const InterruptingMessage = ({
   const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
+  const adContext = useContext(AdContext);
 
   const markModalAsHasBeenInteractedWith = (modalName) => {
     localStorage.setItem("modal_" + modalName, "true");
@@ -1912,10 +1906,18 @@ const InterruptingMessage = ({
 
   const trackModalImpression = () => {
     console.log("We've got visibility!");
-    gtag("event", "modal_viewed", {
-      campaignID: strapi.modal.internalModalName,
-      adType: "modal",
-    });
+    if (!adContext.isDebug) {
+      gtag("event", "modal_viewed", {
+        campaignID: strapi.modal.internalModalName,
+        adType: "modal",
+      });
+    } else {
+      gtag("event", "modal_viewed", {
+        campaignID: strapi.modal.internalModalName,
+        adType: "modal",
+        'debug_mode': true
+      });
+    }
   };
 
   const shouldShow = () => {
