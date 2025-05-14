@@ -639,7 +639,7 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
-const BoxedSheetElement = ({ attributes, children, element, divineName, blockEditing }) => {
+const BoxedSheetElement = ({ attributes, children, element, divineName}) => {
   const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
@@ -840,7 +840,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName, blockEdi
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
           {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
-              readOnly={!sourceActive || blockEditing}
+              readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
               onKeyDown={(e) => onKeyDown(e, sheetSourceHeEditor)}
             />
@@ -853,7 +853,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName, blockEdi
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
           {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
-              readOnly={!sourceActive || blockEditing}
+              readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
               onKeyDown={(e) => onKeyDown(e, sheetSourceEnEditor)}
               renderElement={renderEnglishElement}
@@ -1014,7 +1014,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
 }
 
-const AddInterface = ({ attributes, children, element, blockEditing }) => {
+const AddInterface = ({ attributes, children, element}) => {
     const editor = useSlate();
     const [active, setActive] = useState(false)
     const [itemToAdd, setItemToAdd] = useState(null)
@@ -1105,7 +1105,7 @@ const AddInterface = ({ attributes, children, element, blockEditing }) => {
 
     return (
       <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
-          {itemToAdd == null && !blockEditing ? <>
+          {itemToAdd == null ? <>
               <div role="button" title={Sefaria._("Add a source")} aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
               <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
                   <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
@@ -1126,7 +1126,7 @@ const AddInterface = ({ attributes, children, element, blockEditing }) => {
 }
 
 const Element = (props) => {
-    const { attributes, children, element, blockEditing } = props;
+    const { attributes, children, element} = props;
     const editor = useSlate();
 
 
@@ -1146,17 +1146,17 @@ const Element = (props) => {
           }
           return (
             <div className={classNames(spacerClasses)} {...attributes}>
-              {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} blockEditing={blockEditing} /> : <>{children}</>}
+              {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
             </div>
           );
         case 'SheetSource':
             return (
-              <BoxedSheetElement {...props} blockEditing={blockEditing} divineName={useSlate().divineNames} />
+              <BoxedSheetElement {...props} divineName={useSlate().divineNames} />
             );
 
         case 'SheetOutsideBiText':
             return (
-              <BoxedSheetElement {...props} blockEditing={blockEditing} {...attributes} divineName={useSlate().divineNames} />
+              <BoxedSheetElement {...props} {...attributes} divineName={useSlate().divineNames} />
             );
 
 
@@ -2629,7 +2629,7 @@ const SefariaEditor = (props) => {
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [blockEditing, setBlockEditing] = useState(false);
-    const renderElement = useCallback(props => <Element {...props} blockEditing={blockEditing}/>, [blockEditing]);
+    const renderElement = useCallback(props => <Element {...props}/>, []);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
@@ -2640,6 +2640,52 @@ const SefariaEditor = (props) => {
     const [savingState, setSavingState] = useState('saved');
     const isMultiPanel = Sefaria.multiPanel;
     useUnsavedChangesWatcher(2, unsavedChanges, savingState, setSavingState);
+
+    function disableUserInput(root) {
+      const blockEvent = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      };
+
+      const events = [
+        // Mouse events
+        'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'contextmenu',
+
+        // Touch events
+        'touchstart', 'touchend', 'touchmove', 'touchcancel',
+
+        // Keyboard events
+        'keydown', 'keypress', 'keyup',
+
+        // Drag & drop events
+        'drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop',
+
+        // Focus events
+        'focus', 'blur', 'focusin', 'focusout',
+
+        // Clipboard events
+        'copy', 'cut', 'paste',
+
+        // // Scroll / wheel
+        // 'wheel', 'scroll',
+
+        // Form events
+        'submit', 'change', 'input',
+      ];
+
+      for (const event of events) {
+        root.addEventListener(event, blockEvent, { capture: true });
+      }
+        root.style.pointerEvents = 'none';
+      root.style.userSelect = 'none';
+    }
+
+  useEffect(() => {
+    if (blockEditing && editorContainer.current) {
+      disableUserInput(editorContainer.current);
+    }
+  }, [blockEditing, editorContainer.current]);
+
     useEffect(() => {
       const handleBeforeUnload = (e) => {
         if (savingState === 'saved' || !isMultiPanel) return;
@@ -3186,7 +3232,7 @@ const SefariaEditor = (props) => {
             {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
             <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
         <SheetMetaDataBox>
-            <SheetTitle tabIndex={0} title={sheet.title} editable={!blockEditing} blurCallback={() => saveDocument(currentDocument)}/>
+            <SheetTitle tabIndex={0} title={sheet.title} blurCallback={() => saveDocument(currentDocument)}/>
             <SheetAuthorStatement
                 authorUrl={sheet.ownerProfileUrl}
                 authorStatement={sheet.ownerName}
@@ -3209,9 +3255,9 @@ const SefariaEditor = (props) => {
         </SheetMetaDataBox>
             {canUseDOM ?
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
-                {!blockEditing &&<HoverMenu buttons="all"/>}
+                <HoverMenu buttons="all"/>
                 <Editable
-                    renderLeaf={props => <span contentEditable={!blockEditing}><Leaf {...props} /></span>}
+                  renderLeaf={props => <Leaf {...props} />}
                   renderElement={renderElement}
                   spellCheck
                   onKeyDown={onKeyDown}
