@@ -38,7 +38,8 @@ class EditPlanPage extends Component {
       content: {},
       listed: false,
       categoryInput: '',
-      suggestedCategories: []
+      suggestedCategories: [],
+      sheetInputs: [{ link: '', day: '' }],
     };
     this.changed = false;
     
@@ -163,9 +164,66 @@ class EditPlanPage extends Component {
     
     this.setState({ 
       total_days: value,
-      content: content
+      content: content,
+      selectedDay: '' // Reset selected day when total days changes
     });
     this.changed = true;
+  }
+
+  getSheetIdFromUrl = (url) => {
+    try {
+      // Extract sheet ID from URLs like https://pecha.org/sheets/1086?lang=bi
+      const match = url.match(/sheets\/(\d+)/);
+      return match ? match[1] : null;
+    } catch (error) {
+      console.error('Error extracting sheet ID:', error);
+      return null;
+    }
+  }
+
+  handleSheetLinkChange = (index, value) => {
+    const updatedInputs = [...this.state.sheetInputs];
+    updatedInputs[index] = { ...updatedInputs[index], link: value };
+    
+    // If this is the last input and it's not empty, add a new empty input
+    if (index === updatedInputs.length - 1 && value.trim() !== '') {
+      if (updatedInputs.length < this.state.total_days) {
+        updatedInputs.push({ link: '', day: '' });
+      }
+    }
+    
+    this.setState({ sheetInputs: updatedInputs });
+    this.changed = true;
+  }
+
+  handleDaySelect = (index, value) => {
+    const updatedInputs = [...this.state.sheetInputs];
+    updatedInputs[index] = { ...updatedInputs[index], day: value };
+    
+    // Update the content object with sheet ID mapped to selected day
+    const sheetId = this.getSheetIdFromUrl(updatedInputs[index].link);
+    if (sheetId) {
+      const updatedContent = { ...this.state.content };
+      updatedContent[value] = parseInt(sheetId);
+      this.setState({ 
+        sheetInputs: updatedInputs,
+        content: updatedContent
+      });
+    } else {
+      this.setState({ sheetInputs: updatedInputs });
+    }
+    
+    this.changed = true;
+  }
+
+  getAvailableDays = (currentIndex) => {
+    const selectedDays = this.state.sheetInputs
+      .filter((input, idx) => idx !== currentIndex && input.day)
+      .map(input => input.day);
+    
+    return [...Array(this.state.total_days)]
+      .map((_, i) => `day ${i + 1}`)
+      .filter(day => !selectedDays.includes(day));
   }
 
   save() {
@@ -348,13 +406,43 @@ class EditPlanPage extends Component {
             <span className="required">*</span>
           </label>
           <input
+            id="totalDays"
             type="number"
-            id="total_days"
             min="1"
             value={this.state.total_days}
             onChange={this.handleDaysChange}
           />
         </div>
+
+        {this.state.sheetInputs.map((input, index) => (
+          <div key={index} className="sheet-input-container">
+            <div className="sheet-input-field-wrapper">
+              <input
+                type="text"
+                value={input.link}
+                onChange={(e) => this.handleSheetLinkChange(index, e.target.value)}
+                placeholder="Paste your sheet link here"
+                className="form-control sheet-input-field"
+              />
+            </div>
+            {input.link.trim() !== '' && (
+              <div className="day-select-wrapper">
+                <select
+                  value={input.day}
+                  onChange={(e) => this.handleDaySelect(index, e.target.value)}
+                  className="form-control day-select"
+                >
+                  <option value="">Select Day</option>
+                  {this.getAvailableDays(index).map(day => (
+                    <option key={day} value={day}>
+                      Day {day.split(' ')[1]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        ))}
 
         <div className="field">
           <label htmlFor="planImage">
