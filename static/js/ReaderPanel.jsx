@@ -1478,7 +1478,7 @@ class ReaderControls extends Component {
                   <h1 className='titleHepadding'>
                     <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
                     <span className="sectionString">
-                      <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
+                      <ContentText text={{en: sectionString, he: sectionString }} defaultToInterfaceOnBilingual={true} />
                     </span>
                   </h1>
                   

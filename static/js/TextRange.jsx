@@ -433,7 +433,7 @@ class TextRange extends Component {
         (<div className="title">
           <div className="titleBox" role="heading" aria-level="2">
             { (!title.includes("data")) ?
-              <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>
+              <ContentText text={{en: title, he: title}} defaultToInterfaceOnBilingual={true}/>
               : <ContentText text={{en: this.removetitleData(title), he: this.removetitleData(heTitle)}} defaultToInterfaceOnBilingual={true}/>
             }
           </div>
