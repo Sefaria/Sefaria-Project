@@ -151,7 +151,7 @@ class Sheet extends Component {
           </div>
         </div>
        </>);
-    const usingEditor = sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor;
+    const usingEditor = sheet && Sefaria._uid === sheet.owner;
     return ( usingEditor ? editor : content )
   }
 }
