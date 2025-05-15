@@ -64,7 +64,7 @@ class AuthorIndexAggregation(AuthorWorksAggregation):
         return self._index.get_title(lang)
 
     def get_url(self):
-        return f'/{self._index.title.replace(" ", "_")}'
+        return f'/{self._index.title.replace(" ", "_").replace("?", "%3F")}'
 
 
 class AuthorCategoryAggregation(AuthorWorksAggregation):
