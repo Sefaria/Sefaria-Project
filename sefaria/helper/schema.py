@@ -179,6 +179,30 @@ def merge_default_into_parent(parent_node):
     handle_dependant_indices(index.title)
 
 
+def convert_node_to_default(node):
+    """
+    A n
+
+    :param parent_node:
+    :return:
+    """
+    from sefaria.model.schema import TitleGroup
+    vs = [v for v in node.index.versionSet()]
+    for v in vs:
+        curr_chapter = v.chapter
+        for key in node.version_address()[:-1]:
+            curr_chapter = curr_chapter[key]
+        curr_chapter['default'] = curr_chapter[node.version_address()[-1]]
+        curr_chapter.pop(node.version_address()[-1])
+        v.save(override_dependencies=True)
+
+    node.title_group = TitleGroup()
+    node.default = True
+    node.key = "default"
+    node.index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(node.index.title)
+
 # todo: Can we share code with this method and the next?
 def convert_jagged_array_to_schema_with_default(ja_node):
     from sefaria.model.schema import TitleGroup
@@ -340,7 +364,6 @@ def refresh_version_state(title):
     flags = vs.flags
     vs.delete()
     VersionState(title, {"flags": flags})
-
 
 def change_node_title(snode, old_title, lang, new_title, ignore_cascade=False):
     """
