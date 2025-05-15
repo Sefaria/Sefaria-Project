@@ -1099,6 +1099,7 @@ class ReaderPanel extends Component {
       menu = (
         <PlanDetail
           planId={this.state.planId}
+          user_id={this.props.user_id}
         />
       );
     }
@@ -1107,6 +1108,7 @@ class ReaderPanel extends Component {
         <PlanProgression
           planId={this.state.planId}
           planData={this.state.planData}
+          userPlanId={this.props.userPlanId}
           onCitationClick={this.handleCitationClick}
         />
       );
@@ -1299,6 +1301,7 @@ ReaderPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   topicTestVersion:            PropTypes.string,
+  user_id:                     PropTypes.number,
 };
 
 

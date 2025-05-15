@@ -2161,6 +2161,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
                       userType={this.props._user_type}
+                      user_id={this.props._uid}
+                      userPlanId={this.props.userPlanId}
                       mongoSearch={this.state.mongoSearch}
                       panelPosition={i}
                       initialState={panel}
