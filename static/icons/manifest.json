@@ -2,17 +2,17 @@
     "name": "Pecha Web",
     "icons": [
         {
-            "src": "/favicon-pecha.png?v=xQzLlLp7oR",
+            "src": "/favicon-fodian.png?v=xQzLlLp7oR",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "/favicon-pecha.png?v=xQzLlLp7oR",
+            "src": "/favicon-fodian.png?v=xQzLlLp7oR",
             "sizes": "256x256",
             "type": "image/png"
         },
         {
-            "src": "/favicon-pecha.png?v=xQzLlLp7oR",
+            "src": "/favicon-fodian.png?v=xQzLlLp7oR",
             "sizes": "512x512",
             "type": "image/png"
         }

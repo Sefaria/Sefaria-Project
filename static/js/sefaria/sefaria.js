@@ -340,14 +340,14 @@ Sefaria = extend(Sefaria, {
       heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
     } else if (addressType === "Year") {
       enSection = section + 1241;  
-      heSection = Sefaria.hebrew.tibetanNumeral(section+1);
+      heSection = section+1;
       heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
     } else if (addressType === "Folio") {
       enSection = Sefaria.hebrew.intToFolio(section);  
       heSection = Sefaria.hebrew.encodeHebrewFolio(enSection);
     } else {
       enSection = section + 1;
-      heSection = Sefaria.hebrew.tibetanNumeral(section + 1);
+      heSection = section + 1;
     }
 
     if(Sefaria.interfaceLang == "hebrew") {
@@ -595,6 +595,7 @@ Sefaria = extend(Sefaria, {
     "fa": {"name": "Persian", "i18nString": "language.persian", "showTranslations": 1},
     "lad": {"name": "Ladino", "i18nString": "language.ladino", "showTranslations": 1},
     "zh": {"name": "Chinese", "i18nString": "language.chinese", "showTranslations": 1},
+    "lzh": {"name": "Traditional Chinese", "i18nString": "language.taiwanese_chinese", "showTranslations": 1},
     "ja": {"name": "Japanese", "i18nString": "language.japanese", "showTranslations": 1},
     "ko": {"name": "Korean", "i18nString": "language.korean", "showTranslations": 1},
     "hi": {"name": "Hindi", "i18nString": "language.hindi", "showTranslations": 1},
@@ -609,7 +610,7 @@ Sefaria = extend(Sefaria, {
     "tr": {"name": "Turkish", "i18nString": "language.turkish", "showTranslations": 1},
     "vi": {"name": "Vietnamese", "i18nString": "language.vietnamese", "showTranslations": 1},
     "th": {"name": "Thai", "i18nString": "language.thai", "showTranslations": 1},
-    "he": {"name": "Hebrew", "i18nString": "language.tibetan", "showTranslations": 1},
+    "he": {"name": "Chinese", "i18nString": "language.chinese", "showTranslations": 1},
     "ms": {"name": "Malay", "i18nString": "language.malay", "showTranslations": 1},
     "id": {"name": "Indonesian", "i18nString": "language.indonesian", "showTranslations": 1},
     "cs": {"name": "Czech", "i18nString": "language.czech", "showTranslations": 1},
@@ -1020,7 +1021,7 @@ Sefaria = extend(Sefaria, {
       const sectionRef =isSuperSection ? data.ref + delim + (i+1): data.sectionRef
       extend(segment_data, {
         ref: ref,
-        heRef: data.heRef + delim + Sefaria.hebrew.tibetanNumeral(i+start),
+        heRef: data.heRef + delim + i+start,
         text: en[i],
         he: he[i],
         sections: data.sections.concat(i+1),

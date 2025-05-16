@@ -4,8 +4,6 @@
 
 For general discussion questions about the project, please email [hello@pecha.org](mailto:hello@pecha.org).
 
-If you find textual problems in our library, please email [corrections@pecha.org](mailto:corrections@pecha.org).
-
 You can post bugs or request/discuss features on [GitHub Issues](https://github.com/OpenPecha/Pecha.org//issues?direction=desc&page=1&sort=created&state=open). 
 
 If you're interested in working on a project you see listed here, please email the [pecha-dev mailing list](https://groups.google.com/forum/#!forum/pecha-dev).

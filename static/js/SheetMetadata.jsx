@@ -382,7 +382,7 @@ class SheetMetadata extends Component {
                       </div>
                       <div className="int-he">
                           <span> {Sefaria._("common.created")} {Sefaria.util.naturalTime(timestampCreated, "he")} {Sefaria._("sheet.created_time.ago")}  · </span>
-                          <span>{Sefaria._("common.views_count", {count: Sefaria.hebrew.tibetanNumeral(sheet.views)})}</span>
+                          <span>{Sefaria._("common.views_count", {count: sheet.views})}</span>
                           <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } {Sefaria._("common.saves")} </span> {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("profile.tab.sheet.tag.not_published")}</span></span>)}                      </div>
                     </div>
 

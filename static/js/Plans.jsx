@@ -201,52 +201,46 @@ const Plans = ({ userType }) => {
 
 
 const AllPlans = ({filteredPlans}) => {
+  const getAllPlans = filteredPlans.map(plan => (
+    <a href={`/plans/${plan.id}`} key={plan.id} className="planCard">
+      <div className="planImageWrapper">
+        <img src={plan.imageUrl || "/static/img/plan-default.png"} alt={plan.title} className="planImage" />
+        <div className="planCategories">
+          {plan.categories.map((category, index) => (
+            <span key={index} className="planCategory">
+              <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
+              {index < plan.categories.length - 1 && <span className="categorySeparator"> • </span>}
+            </span>
+          ))}
+          <span className="categoryCount">+{plan.categories.length - 2 > 0 ? plan.categories.length - 2 : 1}</span>
+        </div>
+      </div>
+      <h3 className="planTitle">
+        <InterfaceText>{plan.title}</InterfaceText>
+      </h3>
+      <div className="planFooter">
+        <span className="planDuration">{plan.total_days} days</span>
+        <div to={`/${plan.id}`} className="readMoreLink">Read more</div>
+      </div>
+    </a>
+  ))
+
   return (
-    <><div className="plansListHeader">
-      <InterfaceText>All Plans</InterfaceText>
-    </div><div className="plansList">
+    <>
         {filteredPlans.length > 0 ? (
-          filteredPlans.map(plan => (
-            <a href={`/plans/${plan.id}`} key={plan.id} className="planCard">
-              <div className="planImageWrapper">
-                <img src={plan.imageUrl || "/static/img/plan-default.png"} alt={plan.title} className="planImage" />
-                <div className="planCategories">
-                  {plan.categories.map((category, index) => (
-                    <span key={index} className="planCategory">
-                      <InterfaceText>{category.charAt(0).toUpperCase() + category.slice(1)}</InterfaceText>
-                      {index < plan.categories.length - 1 && <span className="categorySeparator"> • </span>}
-                    </span>
-                  ))}
-                  <span className="categoryCount">+{plan.categories.length - 2 > 0 ? plan.categories.length - 2 : 1}</span>
-                </div>
-              </div>
-              <h3 className="planTitle">
-                <InterfaceText>{plan.title}</InterfaceText>
-              </h3>
-              <div className="planFooter">
-                <span className="planDuration">{plan.total_days} days</span>
-                <div to={`/${plan.id}`} className="readMoreLink">Read more</div>
-              </div>
-            </a>
-          ))
+          <div className="plansList">
+            {getAllPlans}
+          </div>
         ) : (
-          <p className="noPlansMessage">
-            <InterfaceText>You haven't joined any plans yet.</InterfaceText>
-          </p>
+          <div className="emptyPlansMessage">
+            <p><InterfaceText>There are no plans available</InterfaceText></p>
+          </div>
         )}
-      </div></>
+    </>
   );
 };
 
 const MyPlans = ({ filteredPlans, onBrowseClick }) => {
-  // Helper function to convert numbers to Tibetan numerals
-  const toTibetanNumeral = (num) => {
-    if (num === undefined || num === null) return '';
-    const tibetanNumerals = ['༠', '༡', '༢', '༣', '༤', '༥', '༦', '༧', '༨', '༩'];
-    return num.toString().split('').map(digit => {
-      return tibetanNumerals[parseInt(digit)] || digit;
-    }).join('');
-  };
 
   // Format date to a more readable format
   const formatDate = (dateString) => {
@@ -262,10 +256,13 @@ const MyPlans = ({ filteredPlans, onBrowseClick }) => {
     return (
       <div className="emptyPlansMessage">
         <p><InterfaceText>Browse all plans and start one today!</InterfaceText></p>
-        <button onClick={onBrowseClick} className="browsePlansButton"><InterfaceText>Browse Plans</InterfaceText></button>      </div>
+        <button onClick={onBrowseClick} className="browsePlansButton"><InterfaceText>Browse Plans</InterfaceText></button>      
+      </div>
     );
   }
-
+  const computePercentage = (percentage) => {
+    return Math.floor(percentage);
+  };
   return (
     <div className="myPlansContainer">
       <div className="plansGrid">
@@ -292,21 +289,15 @@ const MyPlans = ({ filteredPlans, onBrowseClick }) => {
                 <div className="progressBarContainer">
                   <div 
                     className="progressBar" 
-                    style={{ width: `${plan.progress.completion_percentage}%` }}
+                    style={{ width: `${computePercentage(plan.progress.completion_percentage)}%` }}
                   ></div>
                 </div>
                 
                 <div className="progressStats">
-                  <div className="progressStat">
-                    <span className="progressLabel"><InterfaceText>Current Day</InterfaceText></span>
-                    <span className="progressValue">
-                      {plan.current_day}/{plan.progress.total_days}
-                    </span>
-                  </div>
                   
                   <div className="progressStat">
                     <span className="progressLabel"><InterfaceText>Completion</InterfaceText></span>
-                    <span className="progressValue">{plan.progress.completion_percentage}%</span>
+                    <span className="progressValue">{computePercentage(plan.progress.completion_percentage)}%</span>
                   </div>
                   
                   <div className="progressStat">

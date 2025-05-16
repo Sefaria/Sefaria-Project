@@ -1176,12 +1176,12 @@ const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggl
         }
         <div className="follow">
           <a href="" onClick={openFollowers}>
-            <InterfaceText>{Sefaria.interfaceLang == 'hebrew' ? Sefaria.hebrew.tibetanNumeral(p.followees.length): p.followees.length }</InterfaceText>&nbsp;
+            <InterfaceText>{Sefaria.interfaceLang == 'hebrew' ? p.followees.length : p.followees.length }</InterfaceText>&nbsp;
             <InterfaceText>common.followers</InterfaceText>
           </a> 
           <span className="follow-bull">&bull;</span>
           <a href="" onClick={openFollowing}>
-            <InterfaceText>{Sefaria.interfaceLang == 'hebrew' ? Sefaria.hebrew.tibetanNumeral(p.followees.length): p.followees.length }</InterfaceText>&nbsp;
+            <InterfaceText>{Sefaria.interfaceLang == 'hebrew' ? p.followees.length : p.followees.length }</InterfaceText>&nbsp;
             <InterfaceText>common.following</InterfaceText>
           </a>
         </div>

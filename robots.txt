@@ -16,5 +16,5 @@ Allow: /login/
 Allow: /sheets/
 
 
-Sitemap: https://pecha.org/sitemap.xml
+Sitemap: https://fodian.org/sitemap.xml
 

@@ -1,6 +1,6 @@
 {
-  "name": "Pecha",
-  "short_name": "Pecha",
+  "name": "Fodian",
+  "short_name": "Fodian",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fdfdfd",
@@ -15,7 +15,7 @@
       "purpose": "any"
     },
     {
-      "src": "https://dev.pecha.org/static/screenshots/pecha-icon.png",
+      "src": "https://dev.pecha.org/static/screenshots/fodian_logo.png",
       "type": "image/png", "sizes": "72x74"
     },
     {

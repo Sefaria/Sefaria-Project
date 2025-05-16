@@ -79,7 +79,7 @@ const _filterContentTextByLang = ({text, html, markdown, overrideLanguage, defau
 }
 
 const ContentSpan = ({lang, content, isHTML, markdown}) => {
-  //pecha.org code
+  //fodian.org code
   let boContent = hebrewToTibetan(content, lang )
   return isHTML ?
           <span className={`contentSpan ${lang}`} lang={lang} key={lang} dangerouslySetInnerHTML={{__html: boContent}}/>

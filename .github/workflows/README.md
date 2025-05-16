@@ -2,7 +2,7 @@
 
 - The master branch should be synced in with sefaria's latest update. 
 - The best practice is to rebase it every 2 days.
-- Pecha.org's features(eg: localization) can be released in the master branch so that Sefaria can use them.
+- fodian.org's features(eg: localization) can be released in the master branch so that Sefaria can use them.
 
 
 ### production-master branch
@@ -46,4 +46,4 @@
 - git rebase (source branch) (we should apply it on the target branch. Eg: if need to rebase from master to staging, checkout staging branch and git rebase master.)
 - git diff origin/branch name (check the commit difference b/w origin i.e remote branch and current branch i.e local branch)
 
-![gitbranch](https://github.com/OpenPecha/Pecha.org/assets/102473656/a09d90cb-5161-4fd1-97e6-4cc990fe240c)
+![gitbranch](https://github.com/OpenPecha/fodian.org/assets/102473656/a09d90cb-5161-4fd1-97e6-4cc990fe240c)
