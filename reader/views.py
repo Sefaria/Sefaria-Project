@@ -1026,9 +1026,9 @@ def topics_category_page(request, topicCategory):
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + (
-        "Texts & Source Sheets from Pecha's library of Buddhist sources.")
+        "Texts & Source Sheets from Fodian's library of Buddhist sources.")
     desc = (
-        "Buddhist texts and source sheets about %(topic)s from Pecha's library.") % {
+        "Buddhist texts and source sheets about %(topic)s from Fodian's library.") % {
                'topic': topic_obj.get_primary_title(short_lang)}
 
     return render_template(request, 'base.html', props, {
@@ -1333,7 +1333,7 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
-    title = ("Pecha - Buddhism in your own words")
+    title = ("Fodian - Buddhism in your own words")
     desc = ("The largest free library of Buddhist texts available to read online in Tibetan, English and Chinese including Sutras, Tantras, Abhidharma, Vinaya, commentaries and more.")
     return menu_page(request, page="navigation", title=title, desc=desc)
 
@@ -1369,8 +1369,8 @@ def user_history(request):
 
 
 def updates(request):
-    title = ("New Additions to the Pecha Library")
-    desc = ("See texts, translations and connections that have been recently added to Pecha.")
+    title = ("New Additions to the Fodian Library")
+    desc = ("See texts, translations and connections that have been recently added to Fodian.")
     return menu_page(request, page="updates", title=title, desc=desc)
 
 
@@ -1403,11 +1403,11 @@ def canonical_url(request):
 
     path = request.get_full_path()
     if request.interfaceLang == "hebrew":
-        host = "https://www.pecha.org"
+        host = "https://www.fodian.org"
         # Default params for texts, text toc, and text category
         path = re.sub("\?lang=he(&aliyot=0)?$", "", path)
     else:
-        host = "https://www.pecha.org"
+        host = "https://www.fodian.org"
         # Default params for texts, text toc, and text category
         path = re.sub("\?lang=bi(&aliyot=0)?$", "", path)
 
@@ -3384,7 +3384,7 @@ def background_data_api(request):
     API that bundles data which we want the client to prefetch,
     but should not block initial pageload.
     """
-    language = request.GET.get("locale", 'english')
+    language = request.GET.get("locale", 'chinese')
     # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'.
 
     data = {}
@@ -3500,9 +3500,9 @@ def topic_page(request, topic, test_version=None):
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + (
-        "Texts & Source Sheets from Pecha's library of Buddhist's sources.")
+        "Texts & Source Sheets from Fodian's library of Buddhist's sources.")
     desc = (
-        "Buddhist texts and source sheets about %(topic)s from Pecha's library.") % {
+        "Buddhist texts and source sheets about %(topic)s from Fodian's library.") % {
                'topic': topic_obj.get_primary_title(short_lang)}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
@@ -3919,8 +3919,8 @@ def user_profile(request, username):
         "initialProfile": requested_profile.to_api_dict(),
         "initialTab": tab,
     }
-    title = ("%(full_name)s on Pecha") % {"full_name": requested_profile.full_name}
-    desc = ('%(full_name)s is on Pecha. Follow to view their public source sheets, notes and translations.') % {
+    title = ("%(full_name)s on Fodian") % {"full_name": requested_profile.full_name}
+    desc = ('%(full_name)s is on Fodian. Follow to view their public source sheets, notes and translations.') % {
         "full_name": requested_profile.full_name}
     return render_template(request, 'base.html', props, {
         "title": title,
@@ -4426,8 +4426,8 @@ def plans_page(request, props={}):
     """
     Plans Page - Displays a simple 'hi' for now.
     """
-    title = "Plans | Pecha"
-    desc = "Explore plans on Pecha."
+    title = "Fodian | Fodian"
+    desc = "Explore plans on Fodian."
     data = {}
     data.update(props)  # Merge with any passed-in props
     return menu_page(request, page="plans", props=data, title=title, desc=desc)
@@ -4437,8 +4437,8 @@ def plan_detail_page(request, plan_id, props={}):
     """
     Plans Page - Displays a plan detail for now.
     """
-    title = "Plans | Pecha"
-    desc = "Explore plans on Pecha."
+    title = "Plans | Fodian"
+    desc = "Explore plans on Fodian."
 
     plan = get_plan_for_panel(plan_id)
 
@@ -4452,7 +4452,7 @@ def day_plan_detail_page(request, plan_id, props={}):
     """
     Plans Page - Displays a plan detail for now.
     """
-    title = "Plans | Pecha"
+    title = "Plans | Fodian"
     desc = "Explore day of plan."
     plan = get_plan_for_panel(plan_id)
 
@@ -5566,12 +5566,11 @@ def user_plans_api(request, plan_id=None, action=None):
     user_id = request.user.id
     
     if request.method == "GET":
-        plan_id = request.GET.get("plan_id", None)
         cb = request.GET.get("callback", None)
         
         if plan_id:
             # Get a specific plan's details and progress
-            user_plan = UserPlanSet().get_user_plan(user_id, plan_id)
+            user_plan = UserPlanSet().get_user_plan_by_id(plan_id)
             if not user_plan:
                 return jsonResponse({"error": f"Plan with ID {plan_id} not found for user"}, status=404, callback=cb)
             
@@ -5579,7 +5578,7 @@ def user_plans_api(request, plan_id=None, action=None):
             progress = user_plan.get_progress_summary()
             
             # Include plan details
-            plan = PlanSet().get_plan_by_id(plan_id)
+            plan = PlanSet().get_plan_by_id(user_plan.plan_id)
             plan_details = {"title": plan.title, "description": plan.description} if plan else {}
             
             result = {
@@ -5595,7 +5594,7 @@ def user_plans_api(request, plan_id=None, action=None):
                 "plan_details": plan_details
             }
             
-            return jsonResponse(result, callback=cb)
+            return jsonResponse({"plans": result}, callback=cb)
         else:
             # Get all active plans for the user
             active_plans = UserPlanSet().get_active_plans_for_user(user_id)

@@ -93,14 +93,14 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     if lang == "en":
         align = "left"
-        logo_url = "static/img/pecha-icon.png"
+        logo_url = "static/img/fodian_logo.png"
         spacing = 0
         ref_font = ImageFont.truetype(font='static/fonts/Roboto-Regular.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (0, 0, 0, img.size[1])
 
     else:
         align = "left"
-        logo_url = "static/img/pecha-icon.png"
+        logo_url = "static/img/fodian_logo.png"
         spacing = 0
         ref_font = ImageFont.truetype(font='static/fonts/jomolhari.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])

@@ -11,10 +11,11 @@ class UserType(models.Model):
         ('Educated* /Dr / Prof', 'Educated* /Dr / Prof'),
         ('Plan creator', 'Plan creator'),
         ('regular user', 'regular user'),
+        ('Reader', 'Reader')
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
 
     def __str__(self):
-        return f"{self.user.username} - {self.user_type}"
+        return f"{self.user_type} - {self.user.username}"

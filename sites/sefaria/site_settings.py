@@ -3,12 +3,12 @@
 SITE_SETTINGS = {
 	"TORAH_SPECIFIC": True,
 	"SITE_NAME": {
-		"en": "Pecha",
-		"he": "Pecha",
+		"en": "Fodian",
+		"he": "Fodian",
 	},
 	"LIBRARY_NAME": {
-		"en": "The Pecha Library",
-		"he": "Pecha དཔེ་མཛོད།",
+		"en": "The Fodian Library",
+		"he": "Fodian དཔེ་མཛོད།",
 	},
 	"SUPPORTED_TRANSLATION_LANGUAGES": ['en', 'es', 'fr', 'de'],
 	"COLLECTIONS_BUCKET": "pecha-collection-img",

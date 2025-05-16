@@ -867,7 +867,7 @@ class LanguageToggleButton extends Component {
   render() {
     var url = this.props.url || "";
     return (<a href={url} className="languageToggle" onClick={this.toggle}>
-              <img className="en" src="/static/img/ka.svg" alt="Hebrew Language Toggle Icon" />
+              <img className="en" src="/static/img/chinese.svg" alt="Hebrew Language Toggle Icon" />
               <img className="he" src="/static/img/aye.svg" alt="English Language Toggle Icon" />
             </a>);
   }
@@ -1994,7 +1994,7 @@ const SheetListing = ({
       <span className="views-count">
         {Sefaria._("common.views_count", {
           count: Sefaria.interfaceLang == 'hebrew' 
-            ? Sefaria.hebrew.tibetanNumeral(sheet.views)
+            ? sheet.views
             : sheet.views
         })}
       </span>
@@ -3492,7 +3492,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
                       className={classNames({'textPreviewSegment': 1, highlight: segment.highlight, heOnly: heOnly, enOnly: enOnly})}
                       key={segment.ref}>
                     <sup><ContentText
-                        text={{"en": segment.number, "he": Sefaria.hebrew.tibetanNumeral(segment.number)}}
+                        text={{"en": segment.number, "he": segment.number}}
                         defaultToInterfaceOnBilingual={true}
                     /></sup> <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }} defaultToInterfaceOnBilingual={!overrideLanguage} overrideLanguage={overrideLanguage} bilingualOrder={["en", "he"]}/>
                   </div>

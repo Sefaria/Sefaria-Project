@@ -61,6 +61,10 @@ class ReaderPanel extends Component {
     this.readerContentRef = React.createRef();
   }
   componentDidMount() {
+    console.log(this.state.settings.language)
+    if (this.state.settings.language === "bilingual") {
+      this.setOption("language", "hebrew");
+    }
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
@@ -450,6 +454,7 @@ class ReaderPanel extends Component {
     });
   }
   toggleLanguage() {
+    console.log(this.state.settings.language);
     if (this.state.settings.language === "hebrew") {
       this.setOption("language", "english");
       if (Sefaria.site) { Sefaria.track.event("Reader", "Change Language", "english");}
@@ -1476,7 +1481,7 @@ class ReaderControls extends Component {
                   <h1 className='titleHepadding'>
                     <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
                     <span className="sectionString">
-                      <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
+                      <ContentText text={{en: sectionString, he: sectionString }} defaultToInterfaceOnBilingual={true} />
                     </span>
                   </h1>
                   

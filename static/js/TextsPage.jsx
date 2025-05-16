@@ -163,21 +163,8 @@ const Dedication = () => {
         row.push(data.getFormattedValue(r, c));
       }
       Sefaria._tableOfContentsDedications[row[0]] = { "en": row[1], "he": row[2], "zh": row[3] };
-      
-      // Debug logging for each row of data
-      console.log(`Dedication data for date ${row[0]}:`);
-      console.log('English:', row[1]);
-      console.log('Hebrew:', row[2]);
-      console.log('Chinese:', row[3]);
-      console.log('------------------------');
     }
     setDedicationData(Sefaria._tableOfContentsDedications[date]);
-    
-    // Debug logging for current date's dedication
-    console.log('Current date dedication data:', date);
-    console.log('English:', dedicationData?.en);
-    console.log('Hebrew:', dedicationData?.he);
-    console.log('Chinese:', dedicationData?.zh);
   }
 
   useEffect(() => {
