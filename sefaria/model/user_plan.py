@@ -337,6 +337,15 @@ class UserPlanSet:
         obj = db[self.collection].find_one({"user_id": user_id, "plan_id": plan_id})
         return UserPlan(obj) if obj else None
         
+    def get_user_plan_by_id(self, user_plan_id):
+        """
+        Get a specific UserPlan by its ID
+        :param user_plan_id: The ID of the UserPlan
+        :return: UserPlan object or None
+        """
+        obj = db[self.collection].find_one({"_id": ObjectId(user_plan_id)})
+        return UserPlan(obj) if obj else None
+        
     def array(self):
         """
         Return list of UserPlan objects matching the query

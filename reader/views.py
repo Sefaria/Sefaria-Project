@@ -5566,12 +5566,11 @@ def user_plans_api(request, plan_id=None, action=None):
     user_id = request.user.id
     
     if request.method == "GET":
-        plan_id = request.GET.get("plan_id", None)
         cb = request.GET.get("callback", None)
         
         if plan_id:
             # Get a specific plan's details and progress
-            user_plan = UserPlanSet().get_user_plan(user_id, plan_id)
+            user_plan = UserPlanSet().get_user_plan_by_id(plan_id)
             if not user_plan:
                 return jsonResponse({"error": f"Plan with ID {plan_id} not found for user"}, status=404, callback=cb)
             
@@ -5579,7 +5578,7 @@ def user_plans_api(request, plan_id=None, action=None):
             progress = user_plan.get_progress_summary()
             
             # Include plan details
-            plan = PlanSet().get_plan_by_id(plan_id)
+            plan = PlanSet().get_plan_by_id(user_plan.plan_id)
             plan_details = {"title": plan.title, "description": plan.description} if plan else {}
             
             result = {
@@ -5595,7 +5594,7 @@ def user_plans_api(request, plan_id=None, action=None):
                 "plan_details": plan_details
             }
             
-            return jsonResponse(result, callback=cb)
+            return jsonResponse({"plans": result}, callback=cb)
         else:
             # Get all active plans for the user
             active_plans = UserPlanSet().get_active_plans_for_user(user_id)
