@@ -771,12 +771,11 @@ class ReaderApp extends Component {
         }
       }
     }
-    // Encode the path and replace the first only & with a ?
-    const ampersandIndex = hist.url.indexOf('&');
-    let path = ampersandIndex !== -1 ? hist.url.slice(0, ampersandIndex) : hist.url;
-    path =  path.split('/').map(p => encodeURIComponent(p)).join('/');
-    const params = ampersandIndex !== -1 ? '?' + hist.url.slice(ampersandIndex+1) : '';
-    hist.url = `${path}${params}`;
+    // Replace question marks that can be included in titles
+    // (not using encodeURIComponent for this can run twice and encode the % of the first running)
+    hist.url = hist.url.replace(/\?/g, '%3F')
+    // Replace the first only & with a ?
+    hist.url = hist.url.replace(/&/, "?");
 
     return hist;
   }
@@ -1167,13 +1166,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path.match(/^\/translations\/.+/)) {
       let slug = path.slice(14);
       this.openTranslationsPage(slug);
-    } else if (Sefaria.isRef(path.slice(1))) {
+    } else if (Sefaria.isRef(path.slice(1).replace(/%3F/g, '?'))) {
+      const ref = path.slice(1).replace(/%3F/g, '?');
       const currVersions = {
         en: Sefaria.util.getObjectFromUrlParam(params.get("ven")),
         he: Sefaria.util.getObjectFromUrlParam(params.get("vhe"))
       };
-      const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
-      openPanel(Sefaria.humanRef(path.slice(1)), currVersions, options);
+      const options = {showHighlight: ref.indexOf("-") !== -1};   // showHighlight when ref is ranged
+      openPanel(Sefaria.humanRef(ref), currVersions, options);
     } else {
       return false
     }

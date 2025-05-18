@@ -127,8 +127,9 @@ class VersionBlock extends Component {
       payloadVersion.newVersionTitle = this.state.versionTitle;
     }
     this.setState({"error": "Saving.  Page will reload on success."});
+    const title = v.title.replace(/\?/g, "%3F");
     $.ajax({
-      url: `/api/version/flags/${v.title}/${v.language}/${v.versionTitle}`,
+      url: `/api/version/flags/${title}/${v.language}/${v.versionTitle}`,
       dataType: 'json',
       type: 'POST',
       data: {json: JSON.stringify(payloadVersion)},
