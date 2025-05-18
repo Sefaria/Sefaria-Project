@@ -686,8 +686,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName}) => {
       () => {
         Transforms.setNodes(parentEditor, {heText: sheetHeSourceValue, enText: sheetEnSourceValue}, {at: ReactEditor.findPath(parentEditor, element)});
       },
-      // [sourceActive]
-      [sheetHeSourceValue, sheetEnSourceValue]
+      [sourceActive]
   );
 
   useEffect(
@@ -2625,11 +2624,11 @@ const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
+    const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [blockEditing, setBlockEditing] = useState(false);
-    const renderElement = useCallback(props => <Element {...props}/>, []);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
@@ -3241,7 +3240,7 @@ const SefariaEditor = (props) => {
             {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
             <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
         <SheetMetaDataBox>
-            <SheetTitle tabIndex={0} title={sheet.title} blurCallback={() => saveDocument(currentDocument)}/>
+            <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
             <SheetAuthorStatement
                 authorUrl={sheet.ownerProfileUrl}
                 authorStatement={sheet.ownerName}
