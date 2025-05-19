@@ -6,6 +6,7 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
   annotations:
     kubernetes.io/ingress.class: nginx-ingress
+    kubernetes.io/tls-acme: "true"
   {{- if .Values.instrumentation.enabled }}
     nginx.ingress.kubernetes.io/enable-opentracing: "true"
     nginx.ingress.kubernetes.io/jaeger-service-name: {{ .Values.deployEnv }}-ingress
@@ -16,15 +17,15 @@ metadata:
   {{- end }}
 spec:
   tls:
-    - secretName: {{ template "sefaria.secrets.originTls" . }}
-    {{- if or .Values.ingress.secrets.originIlTls.data .Values.ingress.secrets.originIlTls.ref }}
-    - secretName: {{ template "sefaria.secrets.originIlTls" . }}
-    {{- end }}
+    {{- range $i := .Values.ingress.hosts }}
+    - secretName: {{ $i.tlsRef | default ( printf "origin-%s-tls" $.Values.deployEnv ) }}
+      hosts:
+        - {{ tpl $i.host $ }}
+        - www.{{ tpl $i.host $ }}
     {{- range $k, $v := .Values.subdomains }}
     {{- if $v.enable }}
-    - secretName: {{ $v.originRef | default ( printf "origin-%s-%s-tls" $.Values.deployEnv $k ) }}
-    {{- with $v.originIlRef }}
-    - secretName: {{ . }}
+        - {{ $k }}.{{ tpl $i.host $ }}
+        - www.{{ $k }}.{{ tpl $i.host $ }}
     {{- end }}
     {{- end }}
     {{- end }}
@@ -39,8 +40,16 @@ spec:
                 name: nginx-{{ $.Values.deployEnv }}
                 port:
                   number: 80
-    {{- range $k, $v := $.Values.subdomains }}
-    {{- if $v.enable }}
+    - host: www.{{ tpl $i.host $ }}
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nginx-{{ $.Values.deployEnv }}
+                port:
+                  number: 80
+    {{- range $k := $.Values.ingress.subdomains }}
     - host: {{ $k }}.{{ tpl $i.host $ }}
       http:
         paths:
@@ -50,6 +59,14 @@ spec:
                 name: nginx-{{ $.Values.deployEnv }}
                 port:
                   number: 80
-    {{- end }}
+    - host: www.{{ $k }}.{{ tpl $i.host $ }}
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nginx-{{ $.Values.deployEnv }}
+                port:
+                  number: 80
     {{- end }}
     {{- end }}

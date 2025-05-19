@@ -70,23 +70,6 @@ elastic-admin-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-
-{{- define "sefaria.secrets.originTls" }}
-{{- if .Values.ingress.secrets.originTls.ref -}}
-{{- .Values.ingress.secrets.originTls.ref }}
-{{- else -}}
-origin-tls-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
-
-{{- define "sefaria.secrets.originIlTls" }}
-{{- if .Values.ingress.secrets.originIlTls.ref -}}
-{{- .Values.ingress.secrets.originIlTls.ref }}
-{{- else -}}
-origin-il-tls-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
-
 {{- define "sefaria.tarballName" }}
 {{- if .Values.restore.tarball -}}
 {{- .Values.restore.tarball }}
