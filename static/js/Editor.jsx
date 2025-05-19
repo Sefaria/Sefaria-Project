@@ -2622,6 +2622,7 @@ function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, s
 }
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
+    const editorContentContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props}/>, []);
@@ -2684,7 +2685,7 @@ const SefariaEditor = (props) => {
     }
 
     useEffect(() => {
-      const root = editorContainer.current;
+      const root = editorContentContainer.current;
       if (!root) return;
 
       if (blockEditing) {
@@ -2692,7 +2693,7 @@ const SefariaEditor = (props) => {
       } else {
         enableUserInput(root);
       }
-    }, [blockEditing, editorContainer.current]);
+    }, [blockEditing, editorContentContainer.current]);
 
     useEffect(() => {
       const handleBeforeUnload = (e) => {
@@ -3261,6 +3262,7 @@ const SefariaEditor = (props) => {
                 image={sheet.collectionImage}
             />
         </SheetMetaDataBox>
+            <span  ref={editorContentContainer}>
             {canUseDOM ?
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
@@ -3279,6 +3281,7 @@ const SefariaEditor = (props) => {
                   autoFocus
                 />
             </Slate> : null }
+            </span>
         </div>
     )
 };
