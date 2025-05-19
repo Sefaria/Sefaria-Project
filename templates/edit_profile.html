@@ -147,8 +147,8 @@
 {% endblock %}
 
 {% block js %}
-	<script src="{% static 'ckeditor/ckeditor.js' %}"></script>
-	<script src="{% static 'ckeditor/adapters/jquery.js' %}"></script>
+	<script src="{% full_static 'ckeditor/ckeditor.js' %}"></script>
+	<script src="{% full_static 'ckeditor/adapters/jquery.js' %}"></script>
 	<script>
 
 		CKEDITOR.config.font_names =

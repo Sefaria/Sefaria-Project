@@ -1,8 +1,9 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/contest-print.css' %}" media="print" />
+{% load full_static %}
+<link rel="stylesheet" href="{% full_static 'css/contest-print.css' %}" media="print" />
 
 <center>
-	<img id="logo" src="{% static 'img/sefaria-project.png' %}" style="display:none;" />
+	<img id="logo" src="{% full_static 'img/sefaria-project.png' %}" style="display:none;" />
 </center>
 
 
