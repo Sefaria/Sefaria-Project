@@ -2623,6 +2623,7 @@ function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, s
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const editorContentContainer = useRef();
+    const editorTitleContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props}/>, []);
@@ -2685,15 +2686,17 @@ const SefariaEditor = (props) => {
     }
 
     useEffect(() => {
-      const root = editorContentContainer.current;
-      if (!root) return;
+      const contentRoot = editorContentContainer.current;
+      const titleRoot = editorTitleContainer.current;
 
       if (blockEditing) {
-        disableUserInput(root);
+        if (contentRoot) disableUserInput(contentRoot);
+        if (titleRoot) disableUserInput(titleRoot);
       } else {
-        enableUserInput(root);
+        if (contentRoot) enableUserInput(contentRoot);
+        if (titleRoot) enableUserInput(titleRoot);
       }
-    }, [blockEditing, editorContentContainer.current]);
+    }, [blockEditing, editorContentContainer.current, editorTitleContainer.current]);
 
     useEffect(() => {
       const handleBeforeUnload = (e) => {
@@ -3241,7 +3244,9 @@ const SefariaEditor = (props) => {
             {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
             <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
         <SheetMetaDataBox>
+            <span ref={editorTitleContainer}>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
+            </span>
             <SheetAuthorStatement
                 authorUrl={sheet.ownerProfileUrl}
                 authorStatement={sheet.ownerName}
