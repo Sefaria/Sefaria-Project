@@ -155,14 +155,14 @@ http {
     }
     {{- end }}
 
-    {{- range $k := $.Values.ingress.subdomains }}
-    location ~ ^/{{ $k }}/(.*)$ {
+    {{- range $k, $v := $.Values.ingress.subdomains }}
+    location ~ ^/{{ $v }}/(.*)$ {
         return 301 https://www.{{ $k }}.{{ tpl $i.host $ }}/$1$is_args$args
     }
     {{- end }}
   } # server
 
-  {{- range $k := $.Values.ingress.subdomains }}
+  {{- range $k, $v := $.Values.ingress.subdomains }}
   server {
     listen 80;
     listen [::]:80;
@@ -245,7 +245,7 @@ http {
       proxy_pass http://varnish_upstream;
     }
 
-    location ~ ^/{{ $k }}(/|$) {
+    location ~ ^/{{ $v }}(/|$) {
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -259,7 +259,7 @@ http {
       opentracing on;
       opentracing_propagate_context;
       {{- end }}
-      rewrite ^/(.*)$ /{{ $k }}/$1 break;
+      rewrite ^/(.*)$ /{{ $v }}/$1 break;
       proxy_send_timeout  300;
       proxy_read_timeout  300;
       proxy_set_header Host $host;
