@@ -155,17 +155,14 @@ http {
     }
     {{- end }}
 
-    {{- range $k, $v := $.Values.subdomains }}
-    {{- if $v.enable }}
+    {{- range $k := $.Values.ingress.subdomains }}
     location ~ ^/{{ $k }}/(.*)$ {
         return 301 https://www.{{ $k }}.{{ tpl $i.host $ }}/$1$is_args$args
     }
     {{- end }}
-    {{- end }}
   } # server
 
-  {{- range $k, $v := $.Values.subdomains }}
-  {{- if $v.enable }}
+  {{- range $k := $.Values.ingress.subdomains }}
   server {
     listen 80;
     listen [::]:80;
@@ -308,7 +305,6 @@ http {
     {{- end }}
   } # server
 
-  {{ end }}
   {{ end -}}
   {{ end -}}
   types {
