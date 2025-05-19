@@ -9304,6 +9304,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   display: flex;
   align-items: center;
   gap: 0.4em;
+  z-index: 1;
+
 }
 .editorSaveStateIndicator .saveStateMessage{
   font-family: Roboto;
@@ -9322,7 +9324,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   left: auto;
   right: 89px;
   flex-direction: row-reverse;
-  z-index: 1;
 }
 
 .editorSidebarToggle {
