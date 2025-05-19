@@ -267,7 +267,9 @@ ingress:
       # Secret must also cover all subdomains
       tlsRef: ""
   annotations: {}
-  subdomains: []
+  # subdomain are specified as { subdomain: path } mapping a . subdomain to a path on the web pod
+  subdomains: {}
+    
 
 nginx:
   containerImage:
