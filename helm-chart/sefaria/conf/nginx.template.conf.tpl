@@ -304,8 +304,8 @@ http {
     {{- end }}
   } # server
 
-  {{ end -}}
-  {{ end -}}
+  {{- end }}
+  {{ end }}
   types {
     text/html                             html htm shtml;
     text/css                              css;
