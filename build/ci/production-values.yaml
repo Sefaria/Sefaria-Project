@@ -81,12 +81,12 @@ nodejs:
   replicaCount: 4
   resources:
     requests:
-      memory: "1Gi"
+      memory: "2500Mi"
       cpu: "1"
     limits:
-      memory: "1500Mi"
+      memory: "3000Mi"
       cpu: "1500m"
-  heapSize: 1250
+  heapSize: 2500
 varnish:
   logging: {}
   replicaCount: 1
