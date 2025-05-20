@@ -2,6 +2,8 @@ sandbox: "true"
 contentSandbox: "true"
 deployEnv:  
 previousServicesCount: "1"
+mongo:
+  enabled: true
 web:
   containerImage: 
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-${BRANCH}
