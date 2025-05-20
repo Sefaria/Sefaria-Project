@@ -2641,7 +2641,7 @@ const SefariaEditor = (props) => {
     const [unknownErrorDetected, setUnknownErrorDetected] = useState(false);
     const [savingState, setSavingState] = useState('saved');
     const isMultiPanel = Sefaria.multiPanel;
-    useUnsavedChangesWatcher(2, unsavedChanges, savingState, setSavingState);
+    useUnsavedChangesWatcher(20, unsavedChanges, savingState, setSavingState);
 
     function disableUserInput(root) {
       if (!root) return;
