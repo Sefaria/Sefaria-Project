@@ -154,12 +154,11 @@ http {
       proxy_pass http://linker_upstream;
     }
     {{- end }}
-
-    {{- range $k, $v := $.Values.ingress.subdomains }}
+    {{ range $k, $v := $.Values.ingress.subdomains }}
     location ~ ^/{{ $v }}/(.*)$ {
-        return 301 https://www.{{ $k }}.{{ tpl $i.host $ }}/$1$is_args$args
+        return 301 https://www.{{ $k }}.{{ tpl $i.host $ }}/$1$is_args$args;
     }
-    {{- end }}
+    {{ end }}
   } # server
 
   {{- range $k, $v := $.Values.ingress.subdomains }}
@@ -172,9 +171,9 @@ http {
 
   server {
     # TODO add `default` below
-    listen 80 default_server;
-    server_name www.{{ $k }}.{{ tpl $i.host $ }};
+    listen 80;
     listen [::]:80;
+    server_name www.{{ $k }}.{{ tpl $i.host $ }};
     # parameterize line below
     # Look into security cost of simply serving every host
     resolver 8.8.8.8 8.8.4.4;
