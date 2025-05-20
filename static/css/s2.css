@@ -9308,6 +9308,13 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   background: white;
   padding: 3px;
 }
+
+.editorSaveStateIndicator.tooltip-toggle{
+  position: fixed;
+}
+.interface-english .editorSaveStateIndicator.tooltip-toggle::before{
+  margin-inline-start: 75px;
+}
 .editorSaveStateIndicator .saveStateMessage{
   font-family: Roboto;
   margin-inline-start: 8px;

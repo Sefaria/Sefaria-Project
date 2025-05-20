@@ -15,6 +15,7 @@ import {
     CollectionStatement,
     InterfaceText,
     Autocompleter,
+    ToolTipped,
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 
@@ -2583,10 +2584,10 @@ const EditorSaveStateIndicator = ({ state }) => {
     const tooltip = stateToTooltip[state];
 
     return (
-    <div className={`editorSaveStateIndicator ${state}`} title={localize(tooltip)}>
+        <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
         {<img src={stateToIcon[state]} alt={localize(state)} />}
         <span className="saveStateMessage">{localize(stateToMessage[state])}</span>
-    </div>
+        </ToolTipped>
   );
 }
 function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, setSavingState) {
