@@ -4,6 +4,9 @@ deployEnv:
 previousServicesCount: "1"
 mongo:
   enabled: true
+restore:
+  enabled: false
+  dynamicName: false
 web:
   containerImage: 
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-${BRANCH}
