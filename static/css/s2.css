@@ -9305,7 +9305,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   align-items: center;
   gap: 0.4em;
   z-index: 1;
-
+  background: white;
+  padding: 3px;
 }
 .editorSaveStateIndicator .saveStateMessage{
   font-family: Roboto;
