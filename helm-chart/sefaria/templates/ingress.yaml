@@ -23,10 +23,8 @@ spec:
         - {{ tpl $i.host $ }}
         - www.{{ tpl $i.host $ }}
     {{- range $k, $v := $.Values.subdomains }}
-    {{- if $v.enable }}
         - {{ $k }}.{{ tpl $i.host $ }}
         - www.{{ $k }}.{{ tpl $i.host $ }}
-    {{- end }}
     {{- end }}
     {{- end }}
   rules:
@@ -49,7 +47,7 @@ spec:
                 name: nginx-{{ $.Values.deployEnv }}
                 port:
                   number: 80
-    {{- range $k := $.Values.ingress.subdomains }}
+    {{- range $k, $v := $.Values.ingress.subdomains }}
     - host: {{ $k }}.{{ tpl $i.host $ }}
       http:
         paths:
