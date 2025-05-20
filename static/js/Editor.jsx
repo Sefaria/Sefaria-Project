@@ -687,7 +687,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName}) => {
       () => {
         Transforms.setNodes(parentEditor, {heText: sheetHeSourceValue, enText: sheetEnSourceValue}, {at: ReactEditor.findPath(parentEditor, element)});
       },
-      [sourceActive]
+      [sourceActive, sheetHeSourceValue, sheetEnSourceValue]
   );
 
   useEffect(
