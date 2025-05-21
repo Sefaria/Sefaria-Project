@@ -12,9 +12,6 @@ RUN bun run build-prod
 FROM us-east1-docker.pkg.dev/production-deployment/containers/base-web:3.9-bullseye AS release
 WORKDIR /app/
 
-# Copy production dependencies
-COPY package.json bun.lock ./
-RUN bun install
 # Copy built bundles and server code
 COPY --from=builder /app/static/bundles ./static/bundles
 COPY --from=builder /app/node ./node
