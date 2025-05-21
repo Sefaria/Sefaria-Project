@@ -22,7 +22,7 @@ spec:
       hosts:
         - {{ tpl $i.host $ }}
         - www.{{ tpl $i.host $ }}
-    {{- range $k, $v := $.Values.subdomains }}
+    {{- range $k, $v := $.Values.ingress.subdomains }}
         - {{ $k }}.{{ tpl $i.host $ }}
         - www.{{ $k }}.{{ tpl $i.host $ }}
     {{- end }}
