@@ -122,8 +122,12 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      newEditorSaveState: 'saved',
     };
   }
+  setNewEditorSaveState = (nextState) => {
+        this.setState({ newEditorSaveState: nextState });
+    };
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -2223,6 +2227,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
+                      newEditorSaveState={this.state.newEditorSaveState}
+                      setNewEditorSaveState={this.setNewEditorSaveState}
                     />
                   </div>);
     }

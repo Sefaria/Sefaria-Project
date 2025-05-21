@@ -2640,7 +2640,9 @@ const SefariaEditor = (props) => {
     const [connectionLostPolling, setConnectionLostPolling] = useState(false);
     const [userUnauthenticated, setUserUnauthenticated] = useState(false);
     const [unknownErrorDetected, setUnknownErrorDetected] = useState(false);
-    const [savingState, setSavingState] = useState('saved');
+    // const [savingState, setSavingState] = useState('saved');
+    const savingState = props.newEditorSaveState;
+    const setSavingState = props.setNewEditorSaveState;
     const isMultiPanel = Sefaria.multiPanel;
     useUnsavedChangesWatcher(20, unsavedChanges, savingState, setSavingState);
 

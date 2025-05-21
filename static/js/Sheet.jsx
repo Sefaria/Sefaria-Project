@@ -147,6 +147,8 @@ class Sheet extends Component {
               highlightedRefsInSheet={this.props.highlightedRefsInSheet}
               setDivineNameReplacement={this.props.setDivineNameReplacement}
               divineNameReplacement={this.props.divineNameReplacement}
+              newEditorSaveState={this.props.newEditorSaveState}
+              setNewEditorSaveState={this.props.setNewEditorSaveState}
             />
           </div>
         </div>
