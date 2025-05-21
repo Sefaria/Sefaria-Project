@@ -2561,12 +2561,12 @@ const EditorSaveStateIndicator = ({ state }) => {
     "saving": "We are saving your changes to Sefaria",
     "connectionLost": "No internet connection detected",
     "userUnauthenticated": "You are not logged in to Sefaria",
-    "unknownError": "Something went wrong. Try refreshing the page.\nIf this problem persists, contact us at hello@sefaria.org"
+    "unknownError": "If this problem persists, contact us at hello@sefaria.org"
   };
 
     const path = window.location.pathname + window.location.search;
     const stateToMessage = {
-      "connectionLost": "Trying to Connect",
+      "connectionLost": "Trying to connect…",
       "userUnauthenticated": <>{localize("User Logged out")}. <a href={`/login?next=${path}`}>{localize("Log in")}</a></>,
       "saving": "Saving...",
       "saved": "Saved",
