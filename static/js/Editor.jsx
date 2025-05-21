@@ -2621,49 +2621,7 @@ function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, s
     };
   }, [unsavedChanges, savingState]);
 }
-function useUnsavedChangesWarning({ savingState, isMultiPanel }) {
-  useEffect(() => {
-    /* -------- settings -------- */
-    const shouldBlock = savingState !== 'saved' && isMultiPanel;
-    const message =
-      'You have unsaved changes. Are you sure you want to leave this page?';
 
-    /* -------- page-close / refresh -------- */
-    const handleBeforeUnload = (e) => {
-      if (!shouldBlock) return;
-      e.preventDefault();
-      e.returnValue = message;
-      return message;
-    };
-
-    /* -------- in-page <a> clicks -------- */
-    const handleLinkClick = (e) => {
-      if (!shouldBlock) return;
-
-      const anchor = e.target.closest?.('a[href]');
-      if (
-        !anchor ||
-        anchor.hasAttribute('data-skip-unsaved-warning') // ← simple opt-out
-      ) {
-        return; // let menu links / UI triggers through
-      }
-
-      const ok = window.confirm(message);
-      if (!ok) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('click', handleLinkClick, true); // capture phase
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('click', handleLinkClick, true);
-    };
-  }, [savingState, isMultiPanel]);
-}
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const editorContentContainer = useRef();
@@ -2742,17 +2700,6 @@ const SefariaEditor = (props) => {
       }
     }, [blockEditing, editorContentContainer.current, editorTitleContainer.current]);
 
-    // useEffect(() => {
-    //   const handleBeforeUnload = (e) => {
-    //     if (savingState === 'saved' || !isMultiPanel) return;
-    //     e.preventDefault();
-    //     e.returnValue = '';
-    //   };
-    //
-    //   window.addEventListener('beforeunload', handleBeforeUnload);
-    //   return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    // }, [savingState]);
-    useUnsavedChangesWarning({ savingState, isMultiPanel });
 
     useEffect(() => {
         if (!isMultiPanel) {return}
