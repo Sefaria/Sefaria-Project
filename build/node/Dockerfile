@@ -1,10 +1,4 @@
-# Stage 1: Build with Bun + Webpack
 FROM oven/bun:latest AS builder
-
-# run bun upgrade
-RUN bun upgrade
-
-# Install Bun
 WORKDIR /app
 
 # Install all dependencies (including dev) for Webpack
