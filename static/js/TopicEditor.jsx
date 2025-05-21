@@ -1,6 +1,6 @@
 import Sefaria from "./sefaria/sefaria";
 import {InterfaceText, SmallBlueButton, ImageWithCaption} from "./Misc";
-import $ from "./sefaria/sefariaJquery";
+import $ from "./sefaria/sefariaJquery.cjs";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
 import {ImageCropper} from "./ImageCropper";

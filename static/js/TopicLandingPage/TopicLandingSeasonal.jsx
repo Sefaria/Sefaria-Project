@@ -3,7 +3,7 @@ import {TopicLandingCalendar} from "./TopicLandingCalendar";
 import {useState, useEffect} from "react";
 import Sefaria from "../sefaria/sefaria";
 import {InterfaceText} from "../Misc";
-import Util from '../sefaria/util';
+import Util from '../sefaria/util.js';
 
 const createDisplayDateMessage = (displayDatePrefix, link, secondaryTopicTitleString, displayDateSuffix) => {
   return (

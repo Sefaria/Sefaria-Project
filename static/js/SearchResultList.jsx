@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Component from 'react-class';
 import extend from 'extend';
 import classNames from 'classnames';
-import $ from './sefaria/sefariaJquery';
+import $ from './sefaria/sefariaJquery.cjs';
 import Sefaria from './sefaria/sefaria';
 import { SearchTotal } from "./sefaria/searchTotal";
 import SearchTextResult from './SearchTextResult';

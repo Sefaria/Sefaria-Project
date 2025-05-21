@@ -1,6 +1,6 @@
 import {CategoryChooser, InterfaceText, ToggleSet} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
-import $ from "./sefaria/sefariaJquery";
+import $ from "./sefaria/sefariaJquery.cjs";
 import {AdminEditor} from "./AdminEditor";
 import {AdminToolHeader} from "./Misc";
 import React, {useState, useRef} from "react";

@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useMemo, useCallback, useRef, useContext} from 'react';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import {ReaderPanelContext} from "./context";
 import Sefaria from "./sefaria/sefaria";
 

@@ -5,7 +5,7 @@ import {
 import React, { useState } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import { NavSidebar, SidebarModules }from './NavSidebar';
 import Footer  from './Footer';
 import Component from 'react-class';

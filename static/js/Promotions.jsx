@@ -3,7 +3,7 @@ import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import {EnglishText, HebrewText, InterfaceText, OnInView} from "./Misc";
-import $ from "./sefaria/sefariaJquery";
+import $ from "./sefaria/sefariaJquery.cjs";
 import { NewsletterSignUpForm } from "./NewsletterSignUpForm";
 
 const Promotions = () => {

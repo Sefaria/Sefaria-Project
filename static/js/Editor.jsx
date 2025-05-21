@@ -19,7 +19,7 @@ import {
 import {ProfilePic} from "./ProfilePic";
 
 import classNames from 'classnames';
-import $ from "./sefaria/sefariaJquery";
+import $ from "./sefaria/sefariaJquery.cjs";
 import ReactDOM from "react-dom";
 
 // Mapping from Sheet doc format source types to Slate block element types

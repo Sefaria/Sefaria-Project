@@ -1,4 +1,4 @@
-import $ from "./sefariaJquery";
+import $ from "./sefariaJquery.cjs";
 import Sefaria from "./sefaria";
 
 class VersionPreferences {

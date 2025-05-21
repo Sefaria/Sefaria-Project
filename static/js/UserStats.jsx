@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext, useRef} from 'react';
-import $  from './sefaria/sefariaJquery';
-import * as d3 from './lib/d3.v5.min';
+import $  from './sefaria/sefariaJquery.cjs';
 import Sefaria  from './sefaria/sefaria';
 import {StorySheetList} from './Story';
 import { useDebounce } from './Hooks';
@@ -11,7 +10,7 @@ import {
     NBox,
     LoadingRing
 } from './Misc';
-
+import * as d3 from 'd3';
 
 const UserStats = () => {
 

@@ -34,4 +34,4 @@ const local_settings = {
   }()
 }
 
-module.exports = local_settings;
+export default local_settings;

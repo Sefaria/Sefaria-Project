@@ -1,4 +1,4 @@
-var $  = require('jquery');
+import $ from 'jquery';
 
 function init() {
     $(document).ajaxSend(function(event, xhr, settings) {
@@ -39,4 +39,6 @@ function init() {
     });
 }
 
-module.exports.init = init;
+export default {
+    init: init
+};

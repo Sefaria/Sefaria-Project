@@ -1,7 +1,7 @@
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import Component from 'react-class';
 import Cookies from 'js-cookie';
 import { saveAs } from 'file-saver';

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
-import $ from './sefaria/sefariaJquery';
+import $ from './sefaria/sefariaJquery.cjs';
 import SearchState from './sefaria/searchState';
 import classNames  from 'classnames';
 import PropTypes from 'prop-types';

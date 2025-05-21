@@ -4,7 +4,7 @@ import classNames  from 'classnames';
 import Footer  from './Footer';
 import ReactDOM  from 'react-dom';
 import Sefaria  from './sefaria/sefaria';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import Component from 'react-class';
 import { NavSidebar }from './NavSidebar';
 import {

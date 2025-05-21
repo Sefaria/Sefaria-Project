@@ -6,7 +6,7 @@ import ReactDOM  from 'react-dom';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import TextRange  from './TextRange';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 import {ContentText} from "./ContentText";

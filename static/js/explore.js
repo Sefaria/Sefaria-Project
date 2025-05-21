@@ -3,7 +3,7 @@ import "regenerator-runtime/runtime";
 import d3  from 'd3';
 import Sefaria  from 'sefaria';
 import SefariaD3  from "./sefaria-d3/sefaria-d3";
-import $  from "./sefaria/sefariaJquery";
+import $  from "./sefaria/sefariaJquery.cjs";
 
 /*****          Layout              *****/
 const margin = [30, 40, 20, 40];

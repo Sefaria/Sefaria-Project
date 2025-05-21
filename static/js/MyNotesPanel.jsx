@@ -1,21 +1,17 @@
 import {
-  CategoryColorLine,
-  MenuButton,
-  DisplaySettingsButton,
   LanguageToggleButton,
   LoadingMessage,
   Note,
 } from './Misc';
-import React  from 'react';
 import PropTypes  from 'prop-types';
 import ReactDOM  from 'react-dom';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import TextRange  from './TextRange';
 import { AddToSourceSheetWindow } from './AddToSourceSheet';
 import Footer  from './Footer';
-import Component          from 'react-class';
+import Component from 'react-class';
 
 
 class MyNotesPanel extends Component {

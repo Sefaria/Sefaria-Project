@@ -1,7 +1,7 @@
 //const React      = require('react');
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
-import $ from './sefaria/sefariaJquery';
+import $ from './sefaria/sefariaJquery.cjs';
 import {CollectionsModal} from "./CollectionsWidget";
 import Sefaria from './sefaria/sefaria';
 import classNames from 'classnames';
