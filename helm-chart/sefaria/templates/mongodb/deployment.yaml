@@ -17,6 +17,6 @@ spec:
         app: {{ .Values.deployEnv }}-mongo
     spec:
       containers:
-        image: {{ .Values.mongo.image.registry }}/{{ .Values.mongo.image.image }}:{{.Values.mongo.image.tag }}
+      - image: {{ .Values.mongo.image.registry }}/{{ .Values.mongo.image.image }}:{{.Values.mongo.image.tag }}
         name: mongo
 {{- end }}
