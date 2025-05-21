@@ -30,7 +30,7 @@ mongo:
   image:
     registry: us-east1-docker.pkg.dev/development-205018/sefaria-public
     image: sefaria-mongo
-    tag: lastest
+    tag: latest
 
 # write the full path to the back up if you want to start the environment from
 # a specific backup else leave blank.
