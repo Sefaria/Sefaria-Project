@@ -169,7 +169,7 @@ http {
     listen 80;
     listen [::]:80;
     server_name {{ $k }}.{{ tpl $i.host $ }};
-    return 301 https://www.{{ $k }}.$host$request_uri;
+    return 301 https://www.$host$request_uri;
   }
 
   server {
