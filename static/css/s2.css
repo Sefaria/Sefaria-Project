@@ -14844,6 +14844,48 @@ span.ref-link-color-3 {color: blue}
   color: #999;
 }
 
+/* Tips Overlay Navigation */
+.tipsOverlayNavigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 0 20px;
+}
+
+.tipNavigationButton {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.tipNavigationButton:hover:not(:disabled) {
+  background-color: #f7f7f7;
+  border-color: #ccc;
+}
+
+.tipNavigationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tipsPagination {
+  font-size: 14px;
+  color: #666;
+}
+
+.interface-hebrew .tipsPagination {
+  direction: rtl;
+}
+
+.interface-hebrew .tipsOverlayNavigation {
+  flex-direction: row-reverse;
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
   .tipsOverlayImageAndText {

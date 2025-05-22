@@ -1155,7 +1155,12 @@ class ReaderPanel extends Component {
 
           {menu}
           {/* Only show the tips overlay on the first panel to not show on the sidebar */}
-          {this.state.showTipsOverlay && this.props.panelPosition === 0 && <TipsOverlay onClose={this.closeTipsOverlay} />}
+          {this.state.showTipsOverlay && this.props.panelPosition === 0 && 
+            <TipsOverlay 
+              onClose={this.closeTipsOverlay} 
+              guideType="sheets" 
+            />
+          }
 
         </div>
       </ReaderPanelContext.Provider>

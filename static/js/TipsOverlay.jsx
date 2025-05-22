@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import {CloseButton, InterfaceText} from './Misc';
-import Sefaria from './sefaria/sefaria';
+import { InterfaceText} from './Misc';
+import { tipsService } from './TipsService';
 
 // TruncatedTitle component that handles title truncation
 const TruncatedTitle = ({ text, maxLines = 1 }) => {
@@ -68,22 +67,40 @@ TipsFooter.propTypes = {
   }))
 };
 
+/**
+ * TipsOverlay component displays helpful tips and guides to users
+ * @param {Object} props - Component props
+ * @param {function} props.onClose - Function to call when overlay is closed
+ * @param {string} props.guideType - Type of guide to display (e.g., "reader", "sheets")
+ */
 const TipsOverlay = ({ 
   onClose,
-  title = "Tips & Tricks", 
-  imageUrl = "", 
-  imageAlt = "Tips image",
-  text = "Welcome to Sefaria! Here you'll find helpful tips to enhance your reading experience. Click through these tips to learn about features that can help you study and explore texts.",
-  links = [
-    { text: "Learn More", url: "/help" },
-    { text: "Feedback", url: "/feedback" }
-  ]
+  guideType = "reader"
 }) => {
   const [isOpen, setIsOpen] = useState(true);
+  const [tipData, setTipData] = useState(null);
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   
+  // Load tips data on component mount
   useEffect(() => {
-    console.log("TipsOverlay component mounted");
-  }, []);
+    console.log("TipsOverlay component mounted, loading tips for:", guideType);
+    
+    const loadTips = async () => {
+      setLoading(true);
+      try {
+        const data = await tipsService.getTips(guideType);
+        setTipData(data);
+        setCurrentTipIndex(0);
+      } catch (error) {
+        console.error("Error loading tips:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadTips();
+  }, [guideType]);
   
   const handleClose = () => {
     console.log("TipsOverlay closing");
@@ -91,24 +108,40 @@ const TipsOverlay = ({
     if (onClose) onClose();
   };
 
+  // Handle navigation between tips
+  const nextTip = () => {
+    if (!tipData || currentTipIndex >= tipData.tips.length - 1) return;
+    setCurrentTipIndex(currentTipIndex + 1);
+  };
+
+  const prevTip = () => {
+    if (!tipData || currentTipIndex <= 0) return;
+    setCurrentTipIndex(currentTipIndex - 1);
+  };
+
   if (!isOpen) return null;
+  if (loading || !tipData) return <div className="tipsOverlay"><div className="loadingMessage">Loading tips...</div></div>;
+  
+  const currentTip = tipData.tips[currentTipIndex];
   
   return (
     <div className="tipsOverlay">
       <div className="tipsOverlayContent">
         <div className="tipsOverlayHeader">
           <button className="closeButton" onClick={handleClose} aria-label="Close">
-            <img src="/static/icons/close-outline.svg" alt="Close" />
+            <div className="closeButtonBackground">
+              <img src="/static/icons/close-outline.svg" alt="Close" />
+            </div>
           </button>
         </div>
         
-        <TruncatedTitle text={title} />
+        <TruncatedTitle text={currentTip.title} />
         
         <div className="tipsOverlayBody">
           <div className="tipsOverlayImageAndText">
             <div className="tipsOverlayImageBox">
-              {imageUrl ? (
-                <img src={imageUrl} alt={imageAlt} className="tipsOverlayImage" />
+              {currentTip.imageUrl ? (
+                <img src={currentTip.imageUrl} alt={currentTip.imageAlt} className="tipsOverlayImage" />
               ) : (
                 <div className="tipsOverlayImagePlaceholder"></div>
               )}
@@ -116,13 +149,37 @@ const TipsOverlay = ({
             
             <div className="tipsOverlayTextBox">
               <div className="tipsOverlayText">
-                <InterfaceText>{text}</InterfaceText>
+                <InterfaceText>{currentTip.text}</InterfaceText>
               </div>
             </div>
           </div>
+          
+          {tipData.tips.length > 1 && (
+            <div className="tipsOverlayNavigation">
+              <button 
+                onClick={prevTip} 
+                disabled={currentTipIndex === 0}
+                className="tipNavigationButton"
+                aria-label="Previous tip"
+              >
+                Previous
+              </button>
+              <div className="tipsPagination">
+                {currentTipIndex + 1} / {tipData.tips.length}
+              </div>
+              <button 
+                onClick={nextTip} 
+                disabled={currentTipIndex === tipData.tips.length - 1}
+                className="tipNavigationButton"
+                aria-label="Next tip"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
         
-        <TipsFooter links={links} />
+        <TipsFooter links={currentTip.links} />
       </div>
     </div>
   );
@@ -130,14 +187,7 @@ const TipsOverlay = ({
 
 TipsOverlay.propTypes = {
   onClose: PropTypes.func.isRequired,
-  title: PropTypes.string,
-  imageUrl: PropTypes.string,
-  imageAlt: PropTypes.string,
-  text: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-  links: PropTypes.arrayOf(PropTypes.shape({
-    text: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
-    url: PropTypes.string.isRequired
-  }))
+  guideType: PropTypes.string
 };
 
 export default TipsOverlay; 
