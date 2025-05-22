@@ -757,12 +757,12 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
   const onClick = (e) => {
 
-    if ((e.target).closest('.he') && sourceActive) {
+    if ((e.target).closest('.he .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('he')
         if (window.chrome) {suppressParentContentEditable(false)}
 
     }
-    else if ((e.target).closest('.en') && sourceActive) {
+    else if ((e.target).closest('.en .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('en')
         if (window.chrome) {suppressParentContentEditable(false)}
     }
