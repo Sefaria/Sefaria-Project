@@ -4,6 +4,9 @@ load_module /etc/nginx/modules/ngx_http_opentracing_module.so;
 
 user www-data;
 worker_processes 8;
+
+server_names_hash_bucket_size 128;
+
 error_log  /var/log/nginx/error.log warn;
 pid        /var/run/nginx.pid;
 
