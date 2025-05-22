@@ -108,15 +108,19 @@ const TipsOverlay = ({
     if (onClose) onClose();
   };
 
-  // Handle navigation between tips
+  // Handle navigation between tips with circular looping
   const nextTip = () => {
-    if (!tipData || currentTipIndex >= tipData.tips.length - 1) return;
-    setCurrentTipIndex(currentTipIndex + 1);
+    if (!tipData || !tipData.tips.length) return;
+    setCurrentTipIndex((currentIndex) => 
+      currentIndex >= tipData.tips.length - 1 ? 0 : currentIndex + 1
+    );
   };
 
   const prevTip = () => {
-    if (!tipData || currentTipIndex <= 0) return;
-    setCurrentTipIndex(currentTipIndex - 1);
+    if (!tipData || !tipData.tips.length) return;
+    setCurrentTipIndex((currentIndex) => 
+      currentIndex <= 0 ? tipData.tips.length - 1 : currentIndex - 1
+    );
   };
 
   if (!isOpen) return null;
@@ -158,7 +162,6 @@ const TipsOverlay = ({
             <div className="tipsOverlayNavigation">
               <button 
                 onClick={prevTip} 
-                disabled={currentTipIndex === 0}
                 className="tipNavigationButton"
                 aria-label="Previous tip"
               >
@@ -169,7 +172,6 @@ const TipsOverlay = ({
               </div>
               <button 
                 onClick={nextTip} 
-                disabled={currentTipIndex === tipData.tips.length - 1}
                 className="tipNavigationButton"
                 aria-label="Next tip"
               >
