@@ -14649,3 +14649,43 @@ span.ref-link-color-3 {color: blue}
 87.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.5),-2.6em 0 0 0 rgba(0,0,0,0.7),-1.8em -1.8em 0 0 #fff}
 }
 /* end css code for loading bezel */
+
+/* TipsOverlay Component */
+.tipsOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #f0f8ff;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  border-top: 2px solid #0076FF;
+  z-index: 100;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.tipsOverlayContent {
+  padding: 16px;
+  position: relative;
+}
+
+.tipsOverlayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.tipsOverlayHeader .closeButton {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+}
+
+.tipsOverlayBody {
+  line-height: 1.5;
+  font-size: 16px;
+  color: #333;
+}

@@ -44,6 +44,7 @@ import {ContentText} from "./ContentText";
 import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import DropdownMenu from "./common/DropdownMenu";
+import TipsOverlay from './TipsOverlay';
 
 
 class ReaderPanel extends Component {
@@ -56,6 +57,7 @@ class ReaderPanel extends Component {
       width: this.props.multiPanel ? 1000 : 500, // Assume we're in a small panel not using multipanel
       backButtonSettings: null,
       data: null,
+      showTipsOverlay: true
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -77,6 +79,7 @@ class ReaderPanel extends Component {
       const curPanel = $(".readerPanel")[this.props.panelPosition];
       $(curPanel).find(':focusable').first().focus();
     }
+    console.log("Temp. ReaderPanel mounted. showTipsOverlay:", this.state.showTipsOverlay);
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
@@ -665,6 +668,10 @@ class ReaderPanel extends Component {
       panel_name: this.getPanelName(),
     };
   }
+  closeTipsOverlay = () => {
+    console.log("Closing tips overlay");
+    this.setState({ showTipsOverlay: false });
+  }
   render() {
     if (this.state.error) {
       return (
@@ -1147,6 +1154,8 @@ class ReaderPanel extends Component {
           </div> : null}
 
           {menu}
+          {/* Only show the tips overlay on the first panel to not show on the sidebar */}
+          {this.state.showTipsOverlay && this.props.panelPosition === 0 && <TipsOverlay onClose={this.closeTipsOverlay} />}
 
         </div>
       </ReaderPanelContext.Provider>
