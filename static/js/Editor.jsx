@@ -2572,14 +2572,20 @@ const EditorSaveStateIndicator = ({ state }) => {
       "saved": "Saved",
       "unknownError": "Something went wrong. Try refreshing the page."
     };
-
+    const loadedIcons = new Set();
     useEffect(() => {
-    // Preload all icons
-    Object.values(stateToIcon).forEach((src) => {
-      const img = new Image();
-      img.src = src;
-    });
-    }, []);
+      if (state === "connectionLost") {
+        return;
+      }
+
+      Object.values(stateToIcon).forEach((src) => {
+        if (!loadedIcons.has(src)) {
+          const img = new Image();
+          img.src = src;
+          img.onload = () => loadedIcons.add(src);  // Mark as loaded after successful load
+        }
+      });
+    }, [state]);
 
     const tooltip = stateToTooltip[state];
 
