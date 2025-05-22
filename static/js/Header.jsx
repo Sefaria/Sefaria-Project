@@ -211,7 +211,7 @@ class Header extends Component {
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
-    const short_lang = Sefaria.interfaceLang.slice(0,2);
+    const short_lang = Sefaria._getShortInterfaceLang();
 
     const libraryLogoPath = Sefaria.interfaceLang === "hebrew"  ? "logo-hebrew.png" : "logo.svg";
     const libraryLogo = (
