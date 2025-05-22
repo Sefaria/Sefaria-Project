@@ -86,7 +86,7 @@ const needsUpdating = function(cachekey, last_cached_to_compare){
 
 const renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
-  SefariaReact.sefariaSetup(data, props); //Do we really need to do Sefaria.setup every request?
+  SefariaReact.sefariaSetup(data, props, true);  // true means reset cache - we are clearing out old data
   SefariaReact.unpackDataFromProps(props);
   timer.ms_to_set_data = timer.elapsed();
   const html  = ReactDOMServer.renderToString(ReaderApp(props));

@@ -2775,10 +2775,6 @@ _media: {},
   _tableOfContentsDedications: {},
     _strapiContent: null,
   _inAppAds: null,
-  _stories: {
-    stories: [],
-    page: 0
-  },
   _upcomingDay: {},  // for example, possible keys are 'parasha' and 'holiday'
   getUpcomingDay: function(day) {
       // currently `day` can be 'holiday' or 'parasha'
@@ -3539,7 +3535,10 @@ Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(re
 
 Sefaria = extend(Sefaria, Strings);
 
-Sefaria.setup = function(data, props = null) {
+Sefaria.setup = function(data, props = null, resetCache = false) {
+    if (resetCache) {
+        Sefaria.resetCache();
+    }
     Sefaria.loadServerData(data);
     let baseProps = props !=null ? props : (typeof DJANGO_VARS === "undefined" ? undefined : DJANGO_VARS.props);
     Sefaria.unpackBaseProps(baseProps);
@@ -3558,5 +3557,64 @@ Sefaria.setup = function(data, props = null) {
 };
 Sefaria.setup();
 
+Sefaria.resetCache = function() {
+    // Used when site is run in a server context for SSR.
+    // Clears out caches that are intended for browser rendering, and resets system to clean state.
+
+    // Caches that are user-level or can grow unbounded
+    this.last_place = [];   // Code smell: user state stored in library
+    this._parseRef = {};
+    this._texts = {};
+    this._textsStore = {};
+    this._refmap = {};
+    this._bulkTexts = {};
+    this._bulkSheets = {};
+    this._versions = {};
+    this._translateVersions = {};
+    this._shape = {};
+    this._lookups = {};
+    this._lexiconCompletions = {};
+    this._lexiconLookups = {};
+    this._links = {};
+    this._linkSummaries = {};
+    this._notes = {};
+    this._privateNotes = {};
+    this._media = {};
+    this._webpages = {};
+    this._processedWebpages = {};
+    this._refTopicLinks = {};
+    this._related = {};
+    this._relatedPrivate = {};
+    this._manuscripts = {};
+    this._guides = {};
+    this._profiles = {};
+    this._topics = {};
+    this._translations = {};
+    this._collections = {};
+    this._collectionsList = {};
+    this._userCollections = {};
+    this._userCollectionsForSheet = {};
+    this._ajaxObjects = {};
+    this._i18nInterfaceStringsWithContext = {}; // Not sure about this one.  May be retainable.
+    this._siteSettings = {}; // Where does this get set?
+
+    // These change slowly, but they do change
+    this._inAppAds = {};
+    this._upcomingDay = {};
+    this._parashaNextRead = {};
+    this._featuredTopic = {};
+    this._seasonalTopic = {};
+    this._index = {};
+    this._indexDetails = {};
+    this._bookSearchPathFilter  = {};
+    this.booksDict    = {};  // This gets built from setup, via  _makeBooksDict
+    this._tocOrderLookup = {};  // This gets built from setup, via _cacheFromToc
+    this._translateTerms = {}; // This gets built from setup, via  _cacheHebrewTerms
+    this._i18nInterfaceStrings = {}; // This gets built from setup, via  _cacheSiteInterfaceStrings
+    this._descDict = {};  // Stays constant
+    this._TopicsByPool = {};  // constant
+    this._portals = {}; // constant
+    this._tableOfContentsDedications  = {};
+};
 
 export default Sefaria;
