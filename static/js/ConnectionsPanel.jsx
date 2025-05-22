@@ -31,6 +31,7 @@ import { AddToSourceSheetBox } from './AddToSourceSheet';
 import LexiconBox from './LexiconBox';
 import AboutBox from './AboutBox';
 import GuideBox from './GuideBox';
+import PluginsComponent from './components/plugins/PluginsComponent';
 import TranslationsBox from './TranslationsBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
@@ -324,6 +325,7 @@ class ConnectionsPanel extends Component {
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
               <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
+              { Sefaria.experiments && <ToolsButton en="Plugin" he="תוסף" image="connection.png" urlConnectionsMode="Plugin" onClick={() => this.props.setConnectionsMode("Plugin")} /> }
               {resourcesButtonCounts?.guides ? <ToolsButton en="Guided Learning" he="מדריך" image="iconmonstr-school-17.svg" highlighted={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
             </div>
           }
@@ -655,6 +657,10 @@ class ConnectionsPanel extends Component {
                 setSidebarSearchQuery={this.props.setSidebarSearchQuery}
                 onSidebarSearchClick={this.props.onSidebarSearchClick}
               />
+    }
+    else if (this.props.mode === "Plugin") {
+      // put data here
+      content = <PluginsComponent sref={this.props.srefs[0]} />
     }
 
     const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) !== -1;
