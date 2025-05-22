@@ -1,4 +1,4 @@
-import $ from './sefariaJquery';
+import $ from './sefariaJquery.cjs';
 import extend from 'extend';
 import FilterNode from './FilterNode';
 import SearchState from './searchState';

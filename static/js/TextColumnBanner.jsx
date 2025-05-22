@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import Sefaria  from './sefaria/sefaria';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import {
     CloseButton, InterfaceText, EnglishText, HebrewText
 } from './Misc';

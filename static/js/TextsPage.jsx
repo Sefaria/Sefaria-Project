@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import { NavSidebar, SidebarModules, RecentlyViewed } from './NavSidebar';
 import TextCategoryPage  from './TextCategoryPage';
 import Footer  from './Footer';

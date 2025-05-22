@@ -4,7 +4,7 @@ import {
 } from './Misc';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import $ from './sefaria/sefariaJquery';
+import $ from './sefaria/sefariaJquery.cjs';
 import Sefaria from './sefaria/sefaria';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';

@@ -1,10 +1,12 @@
-var path = require('path');
-var nodeExternals = require('webpack-node-externals');
-var webpack = require('webpack');
-var BundleTracker = require('webpack-bundle-tracker');
-var DeepMerge = require('deep-merge');
-var nodemon = require('nodemon');
-var fs = require('fs');
+import path from 'path';
+import nodeExternals from 'webpack-node-externals';
+import webpack from 'webpack';
+import BundleTracker from 'webpack-bundle-tracker';
+import DeepMerge from 'deep-merge';
+import fs from 'fs';
+
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 var deepmerge = DeepMerge(function (target, source, key) {
     if (target instanceof Array) {
@@ -56,6 +58,12 @@ var baseConfig = {
     module: {
         rules: [
     {
+        test: /\.m?js$/,
+        resolve: {
+          fullySpecified: false,
+        }
+    },
+    {
         test: /\.jsx?$/,
         exclude: /node_modules/,
         use: {
@@ -90,13 +98,17 @@ var baseConfig = {
         //tells webpack where to look for modules
         modules: ['node_modules'],
         //extensions that should be used to resolve modules
-        extensions: ['.jsx', '.js'],
+        extensions: [".cjs", '.jsx', '.js'],
         fallback: {"buffer": require.resolve("buffer/") }
     },
     stats: {
         errorDetails: true,
         colors: true
-    }
+    },
+      optimization: {
+        minimize: false,
+        minimizer: [],
+    },
 }
 
 
@@ -126,7 +138,7 @@ var clientConfig = config({
 
 var serverConfig = config({
     context: path.resolve('./node'),
-    entry: './server',
+    entry: './server.mjs',
     target: 'node',
     mode: 'development',  // can be overriden via cli
     externals: [nodeExternals()],
@@ -240,4 +252,15 @@ var linkerV3Config = config({
     ]
 })
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig, linkerV3Config];
+
+export default [
+    clientConfig,
+    serverConfig,
+    diffConfig,
+    exploreConfig,
+    sefariajsConfig,
+    jsonEditorConfig,
+    timelineConfig,
+    categorizeSheetsConfig,
+    linkerV3Config
+];

@@ -1,5 +1,5 @@
 import React  from 'react';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';

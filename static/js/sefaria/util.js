@@ -1,4 +1,4 @@
-import $ from './sefariaJquery';
+import $ from './sefariaJquery.cjs';
 import extend from 'extend';
 import striptags from 'striptags';
 import humanizeDuration from 'humanize-duration';

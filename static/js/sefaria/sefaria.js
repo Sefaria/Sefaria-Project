@@ -1,18 +1,18 @@
 import VersionPreferences from "./VersionPreferences";
 
-var extend     = require('extend'),
-    param      = require('querystring').stringify;
+import extend from 'extend';
+import { stringify as param } from 'querystring';
 import Search from './search';
 import Strings from './strings';
 import palette from './palette';
 import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
-import $ from './sefariaJquery';
+import $ from './sefariaJquery.cjs';
 import Cookies from 'js-cookie';
 
 
-let Sefaria = Sefaria || {
+let Sefaria = {
   _dataLoaded: false,
   _inBrowser: (typeof document !== "undefined"),
   toc: [],

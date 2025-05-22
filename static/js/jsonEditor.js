@@ -1,10 +1,9 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from 'jquery';
 import Form from 'react-jsonschema-form';
-import DjangoCSRF  from './lib/django-csrf';
+import DjangoCSRF  from './lib/django-csrf.js';
 
 DjangoCSRF.init();
 

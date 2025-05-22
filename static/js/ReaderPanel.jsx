@@ -6,7 +6,7 @@ import PropTypes  from 'prop-types';
 import extend  from 'extend';
 import Sefaria  from './sefaria/sefaria';
 import {ReaderPanelContext} from './context';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import TextColumn  from './TextColumn';
 import TextsPage  from './TextsPage';
 import {

@@ -3,7 +3,7 @@ import PropTypes  from 'prop-types';
 import ReactDOM  from 'react-dom';
 import Component from 'react-class';
 import classNames  from 'classnames';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import Sefaria  from './sefaria/sefaria';
 import {
   SearchButton,

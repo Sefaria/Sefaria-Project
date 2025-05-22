@@ -3,7 +3,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Component from 'react-class';
 import Sefaria  from './sefaria/sefaria';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import Footer  from './Footer';
 import { NavSidebar } from './NavSidebar';
 import {

@@ -1,7 +1,7 @@
 import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes from'prop-types';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import { InterfaceText, DonateLink } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import Component from 'react-class';

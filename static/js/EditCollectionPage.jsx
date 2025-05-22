@@ -1,7 +1,7 @@
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import Component from 'react-class';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import Sefaria  from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
 

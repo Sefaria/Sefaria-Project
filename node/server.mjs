@@ -2,24 +2,23 @@
 // https://github.com/mhart/react-server-example/blob/master/server.js
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-require('source-map-support').install();
-require('css-modules-require-hook')({  // so that node can handle require statements for css files
-   generateScopedName: '[name]',
+sourceMapSupport.install();
+cssModulesRequireHook({
+  generateScopedName: '[name]',
 });
-const redis         = require('redis');
-const { promisify } = require("util");
-const http          = require('http'),
-    express         = require('express'),
-    bodyParser      = require('body-parser'),
-    cookieParser    = require('cookie-parser'),
-    request         = require('request'),
-    settings        = require('./local_settings.js'),
-    React           = require('react'),
-    ReactDOMServer  = require('react-dom/server'),
-    SefariaReact    = require('../static/js/ReaderApp.jsx'),
-    ReaderApp       = React.createFactory(SefariaReact.ReaderApp);
+import redis from 'redis';
+import { promisify } from 'util';
+import express from 'express';
+import bodyParser from 'body-parser';
+import settings from './local_settings.js';
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
+import * as SefariaReact from '../static/js/ReaderApp.jsx';
+const ReaderApp = React.createFactory(SefariaReact.ReaderApp);
 
-const {logger, expressLogger, errorLogger} = require('./sefaria-logging');
+import { logger, expressLogger, errorLogger } from './sefaria-logging.js';
+import sourceMapSupport from 'source-map-support';
+import cssModulesRequireHook from 'css-modules-require-hook';
 
 const server = express();
 

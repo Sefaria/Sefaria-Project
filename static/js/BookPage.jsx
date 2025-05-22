@@ -17,7 +17,7 @@ import {ContentText} from "./ContentText";
 import {validateMarkdownLinks} from "./AdminEditor";
 import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import Sefaria  from './sefaria/sefaria';
 import { NavSidebar, SidebarModules } from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';

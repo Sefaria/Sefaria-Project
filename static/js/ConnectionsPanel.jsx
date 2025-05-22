@@ -1,5 +1,4 @@
 import {
-  Ad,
   Dropdown,
   LoadingMessage,
   LoginPrompt,
@@ -22,7 +21,7 @@ import { ReaderPanelContext } from './context';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
-import $ from './sefaria/sefariaJquery';
+import $ from './sefaria/sefariaJquery.cjs';
 import AboutSheet from './AboutSheet';
 import SidebarSearch from './SidebarSearch';
 import TextList from './TextList'
@@ -37,7 +36,6 @@ import classNames from 'classnames';
 import Component from 'react-class';
 import { TextTableOfContents } from "./BookPage";
 import { CollectionsModal } from './CollectionsWidget';
-import { event } from 'jquery';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';

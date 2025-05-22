@@ -1,5 +1,5 @@
 import Sefaria from "./sefaria/sefaria";
-import $ from "./sefaria/sefariaJquery";
+import $ from "./sefaria/sefariaJquery.cjs";
 import {AdminEditor} from "./AdminEditor";
 import {Autocompleter, InterfaceText} from "./Misc";
 import React, {useState} from "react";

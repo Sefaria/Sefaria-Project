@@ -5,11 +5,11 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import Header from './Header';
 import ReaderPanel from './ReaderPanel';
-import $ from './sefaria/sefariaJquery';
+import $ from './sefaria/sefariaJquery.cjs';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
-import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
+import {ReaderPanelContext, AdContext, StrapiDataProvider, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,

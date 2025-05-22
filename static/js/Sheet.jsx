@@ -4,7 +4,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import sanitizeHtml  from 'sanitize-html';
 import Component from 'react-class'
-import $  from './sefaria/sefariaJquery';
+import $  from './sefaria/sefariaJquery.cjs';
 import Sefaria  from './sefaria/sefaria';
 import SefariaEditor from './Editor';
 import {
