@@ -413,7 +413,7 @@ class ReaderApp extends Component {
     var histories = [];
     const states = this.state.panels.map(panel => this.clonePanel(panel, true));
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
-    const shortLang = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
+    const shortLang = Sefaria._getShortInterfaceLang();
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL.
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", 'Version Open',
