@@ -1,0 +1,362 @@
+{{- if .Values.instrumentation.enabled }}
+load_module /etc/nginx/modules/ngx_http_opentracing_module.so;
+{{- end }}
+
+user www-data;
+worker_processes 8;
+
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+
+# https://serverfault.com/questions/787919/optimal-value-for-nginx-worker-connections
+events {
+  worker_connections 10240;
+}
+
+http {
+  server_names_hash_bucket_size 128;
+
+  {{- if .Values.instrumentation.enabled }}
+  opentracing_load_tracer /usr/local/lib/libjaegertracing_plugin.so /etc/nginx/opentracing.json;
+  {{- end }}
+
+  # https://nginx.org/en/docs/varindex.html
+  log_format structured '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$http_x_original_forwarded_for", "referer": "$http_referer", "latency": ${request_time}s, "protocol": "$server_protocol", "forwardedHTTP": "$http_x_forwarded_proto" }, "remoteUser": "$remote_user", "timeLocal": "$time_local" }';
+  access_log /dev/stdout structured;
+  client_max_body_size 32M;
+
+  # TODO review this CORS setting
+  add_header 'Access-Control-Allow-Origin' '*';
+
+  upstream varnish_upstream {
+    server ${VARNISH_HOST}:8040;
+    keepalive 32;
+  }
+
+  {{- if .Values.linker.enabled }}
+  upstream linker_upstream {
+    server ${LINKER_HOST}:80;
+  }
+  {{- end }}
+
+  upstream elasticsearch_upstream {
+    server ${SEARCH_HOST}:9200;
+    keepalive 32;
+  }
+
+  {{- range $i := .Values.ingress.hosts }}
+  server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ tpl $i.host $ }};
+    return 301 https://www.$host$request_uri;
+  }
+
+  server {
+    # TODO add `default` below
+    listen 80 default_server;
+    server_name www.{{ tpl $i.host $ }};
+    listen [::]:80;
+    # parameterize line below
+    # Look into security cost of simply serving every host
+    resolver 8.8.8.8 8.8.4.4;
+
+    # Return error on forbidden methods
+    if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
+      return 405;
+    }
+
+    # Redirect insecure requests to HTTPS
+    if ($http_x_forwarded_proto = "http") {
+        return 301 https://www.$host$request_uri;
+    }
+
+    # protect all non-allowed elasticsearch paths
+    location ~ ^/api/search/(?!(text|sheet|merged|merged-c)(/_search|/_analyze)/?) {
+      return 403;
+    }
+
+    # allow urls which aren't caught by regex above
+    location /api/search/ {
+      rewrite ^/(?:api/search)/(.*)$ /$1 break;
+      proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
+      add_header 'Access-Control-Allow-Origin' '';
+      proxy_pass http://elasticsearch_upstream/;
+    }
+
+    location /nginx-health {
+      access_log off;
+      return 200 "healthy\n";
+    }
+
+    location /robots.txt {
+      access_log off;
+      autoindex on;
+      alias /app/robots.txt;
+    }
+
+    location /apple-app-site-association {
+      access_log off;
+      autoindex on;
+      default_type application/json;
+      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
+    }
+
+    location /.well-known/apple-app-site-association {
+      access_log off;
+      autoindex on;
+      default_type application/json;
+      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
+    }
+
+    location / {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnish_upstream;
+    }
+
+    location /static/mobile/message-en.json {
+      return 301 ${STRAPI_LOCATION}/api/mobile-message;
+    }
+
+    location /static/mobile/message-he.json {
+      return 301 ${STRAPI_LOCATION}/api/mobile-message-he;
+    }
+
+    location /static/ {
+      access_log off;
+      alias /app/static/;
+      # root /app/static/;
+    }
+
+    location /static/sitemaps/ {
+      access_log off;
+      proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
+    }
+
+    {{- if $.Values.linker.enabled }}
+    location /api/find-refs {
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://linker_upstream;
+    }
+    {{- end }}
+    {{ range $k, $v := $.Values.ingress.subdomains }}
+    location ~ ^/{{ $v }}/(.*)$ {
+        return 301 https://www.{{ $k }}.{{ tpl $i.host $ }}/$1$is_args$args;
+    }
+    {{ end }}
+  } # server
+
+  {{- range $k, $v := $.Values.ingress.subdomains }}
+  server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ $k }}.{{ tpl $i.host $ }};
+    return 301 https://www.$host$request_uri;
+  }
+
+  server {
+    # TODO add `default` below
+    listen 80;
+    listen [::]:80;
+    server_name www.{{ $k }}.{{ tpl $i.host $ }};
+    # parameterize line below
+    # Look into security cost of simply serving every host
+    resolver 8.8.8.8 8.8.4.4;
+
+    # Return error on forbidden methods
+    if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
+      return 405;
+    }
+
+    # Redirect insecure requests to HTTPS
+    if ($http_x_forwarded_proto = "http") {
+        return 301 https://www.$host$request_uri;
+    }
+
+    # protect all non-allowed elasticsearch paths
+    location ~ ^/api/search/(?!(text|sheet|merged|merged-c)(/_search|/_analyze)/?) {
+      return 403;
+    }
+
+    # allow urls which aren't caught by regex above
+    location /api/search/ {
+      rewrite ^/(?:api/search)/(.*)$ /$1 break;
+      proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
+      add_header 'Access-Control-Allow-Origin' '';
+      proxy_pass http://elasticsearch_upstream/;
+    }
+
+    location /nginx-health {
+      access_log off;
+      return 200 "healthy\n";
+    }
+
+    location /robots.txt {
+      access_log off;
+      autoindex on;
+      alias /app/robots.txt;
+    }
+
+    location /apple-app-site-association {
+      access_log off;
+      autoindex on;
+      default_type application/json;
+      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
+    }
+
+    location /.well-known/apple-app-site-association {
+      access_log off;
+      autoindex on;
+      default_type application/json;
+      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
+    }
+
+    location ~ ^/data\.\d+\.js$ {
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnish_upstream;
+    }
+
+    location ~ /api/ {
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnish_upstream;
+    }
+
+    location ~ ^/{{ $v }}(/|$) {
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnish_upstream;
+    }
+
+    location / {
+      {{- if $.Values.instrumentation.enabled }}
+      opentracing on;
+      opentracing_propagate_context;
+      {{- end }}
+      rewrite ^/(.*)$ /{{ $v }}/$1 break;
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnish_upstream;
+    }
+
+    location /static/mobile/message-en.json {
+      return 301 ${STRAPI_LOCATION}/api/mobile-message;
+    }
+
+    location /static/mobile/message-he.json {
+      return 301 ${STRAPI_LOCATION}/api/mobile-message-he;
+    }
+
+    location /static/ {
+      access_log off;
+      alias /app/static/;
+      # root /app/static/;
+    }
+
+    location /static/sitemaps/ {
+      access_log off;
+      proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
+    }
+
+    {{- if $.Values.linker.enabled }}
+    location /api/find-refs {
+      proxy_send_timeout  300;
+      proxy_read_timeout  300;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://linker_upstream;
+    }
+    {{- end }}
+  } # server
+
+  {{- end }}
+  {{ end }}
+  types {
+    text/html                             html htm shtml;
+    text/css                              css;
+    text/xml                              xml rss;
+    image/gif                             gif;
+    image/jpeg                            jpeg jpg;
+    image/svg+xml                         svg;
+    application/x-javascript              js;
+    text/plain                            txt;
+    text/x-component                      htc;
+    text/mathml                           mml;
+    image/png                             png;
+    image/x-icon                          ico;
+    image/x-jng                           jng;
+    image/vnd.wap.wbmp                    wbmp;
+    application/java-archive              jar war ear;
+    application/mac-binhex40              hqx;
+    application/pdf                       pdf;
+    application/x-cocoa                   cco;
+    application/x-java-archive-diff       jardiff;
+    application/x-java-jnlp-file          jnlp;
+    application/x-makeself                run;
+    application/x-perl                    pl pm;
+    application/x-pilot                   prc pdb;
+    application/x-rar-compressed          rar;
+    application/x-redhat-package-manager  rpm;
+    application/x-sea                     sea;
+    application/x-shockwave-flash         swf;
+    application/x-stuffit                 sit;
+    application/x-tcl                     tcl tk;
+    application/x-x509-ca-cert            der pem crt;
+    application/x-xpinstall               xpi;
+    application/zip                       zip;
+    application/octet-stream              deb;
+    application/octet-stream              bin exe dll;
+    application/octet-stream              dmg;
+    application/octet-stream              eot;
+    application/octet-stream              iso img;
+    application/octet-stream              msi msp msm;
+    audio/mpeg                            mp3;
+    audio/x-realaudio                     ra;
+    video/mpeg                            mpeg mpg;
+    video/quicktime                       mov;
+    video/x-flv                           flv;
+    video/x-msvideo                       avi;
+    video/x-ms-wmv                        wmv;
+    video/x-ms-asf                        asx asf;
+    video/x-mng                           mng;
+  } # types
+} # http
+

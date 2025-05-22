@@ -136,37 +136,10 @@ tasks:
 ingress:
   hosts:
     - host: "sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
+      tlsRef: origin-tls-prod2
     - host: "sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "www.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "www.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "prod.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "prod.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "rollout.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "rollout.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
+      tlsRef: origin-il-tls-prod2
+  # Deprecated but left in place for switchover.
   secrets:
     originTls:
       ref: origin-tls-prod2
