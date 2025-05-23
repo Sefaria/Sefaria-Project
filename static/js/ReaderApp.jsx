@@ -122,8 +122,12 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      newEditorSaveState: 'saved',
     };
   }
+  setNewEditorSaveState = (nextState) => {
+        this.setState({ newEditorSaveState: nextState });
+    };
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -1024,7 +1028,26 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       parent = parent.parentNode;
     }
   }
+  alertUnsavedChangesConfirmed(e) {
+    // If the user has unsaved changes, we want to prevent the default action of the click
+    // and show a confirmation dialog instead.
+    // e.preventDefault();
+    const ok = window.confirm(
+        "You have unsaved changes that may be lost. Continue?"
+    );
+    if (!ok) {
+        e.stopImmediatePropagation();
+        return false;
+    }
+    return true;
+  }
   handleInAppClickWithModifiers(e){
+    // const newEditorSaveState = this.state.newEditorSaveState
+    // if (newEditorSaveState && newEditorSaveState !== "saved"){
+    //     if (!this.alertUnsavedChangesConfirmed(e)) {
+    //         return;
+    //     }
+    // }
     //Make sure to respect ctrl/cmd etc modifier keys when a click on a link happens
     const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
     if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
@@ -1069,6 +1092,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (!href) {
       return;
     }
+    const newEditorSaveState = this.state.newEditorSaveState;
+    // if (newEditorSaveState && newEditorSaveState !== "saved") {
+    //   if (!this.alertUnsavedChangesConfirmed(e)) {
+    //     return;
+    //   }
+    // }
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
       const handled = this.openURL(href, true);
@@ -1669,6 +1698,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   closePanel(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     if (this.state.panels.length === 1 && n === 0) {
+      const newEditorSaveState = this.state.newEditorSaveState;
+      if (newEditorSaveState && newEditorSaveState !== "saved") {
+        if (!this.alertUnsavedChangesConfirmed()) {
+          return;
+        }
+      }
       this.state.panels = [];
     } else {
       // If this is a Connection panel, we need to unset the filter in the base panel
@@ -2115,7 +2150,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
         hasBoxShadow={headerHasBoxShadow}
         translationLanguagePreference={this.state.translationLanguagePreference}
-        setTranslationLanguagePreference={this.setTranslationLanguagePreference} />
+        setTranslationLanguagePreference={this.setTranslationLanguagePreference}
+        newEditorSaveState={this.state.newEditorSaveState}
+      />
     );
 
     var panels = [];
@@ -2227,6 +2264,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
+                      newEditorSaveState={this.state.newEditorSaveState}
+                      setNewEditorSaveState={this.setNewEditorSaveState}
                     />
                   </div>);
     }

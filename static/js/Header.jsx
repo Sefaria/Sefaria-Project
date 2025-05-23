@@ -337,7 +337,7 @@ const ProfilePicMenu = ({len, url, name}) => {
   };
   return (
     <div className="myProfileBox" ref={wrapperRef}>
-        <a href="/my/profile" className="my-profile" onClick={profilePicClick}>
+        <a href="/my/profile" className="my-profile" data-skip-unsaved-warning onClick={profilePicClick}>
           <ProfilePic len={len} url={url} name={name}/>
         </a>
         <div className="interfaceLinks">
