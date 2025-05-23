@@ -2708,6 +2708,16 @@ const SefariaEditor = (props) => {
       }
     }, [blockEditing, editorContentContainer.current, editorTitleContainer.current]);
 
+    useEffect(() => {
+      const handleBeforeUnload = (e) => {
+        if (savingState === 'saved' || !isMultiPanel) return;
+        e.preventDefault();
+        e.returnValue = '';
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [savingState]);
 
     useEffect(() => {
         if (!isMultiPanel) {return}
