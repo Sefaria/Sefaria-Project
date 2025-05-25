@@ -175,7 +175,7 @@ const _extractAnalyticsDataFromRef = ref => {
 const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin, displayDescription, hideLanguageMissingSources) => (item, index) => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
-  const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+  const langKey = Sefaria._getShortInterfaceLang();
   let dataSourceText = '';
 
   if (!!text.dataSources && Object.values(text.dataSources).length > 0) {
@@ -317,19 +317,19 @@ const isLinkReviewed= (lang, link) => link.descriptions?.[lang]?.review_state !=
 const doesLinkHaveAiContent = (lang, link) => link.descriptions?.[lang]?.ai_title?.length > 0 && isLinkPublished(lang, link);
 
 const getLinksWithAiContent = (refTopicLinks = []) => {
-    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    const lang = Sefaria._getShortInterfaceLang();
     return refTopicLinks.filter(link => doesLinkHaveAiContent(lang, link));
 };
 
 const getLinksToGenerate = (refTopicLinks = []) => {
-    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    const lang = Sefaria._getShortInterfaceLang();
     return refTopicLinks.filter(link => {
         return link.descriptions?.[lang]?.ai_context?.length > 0  &&
             !link.descriptions?.[lang]?.prompt;
     });
 };
 const getLinksToPublish = (refTopicLinks = []) => {
-    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    const lang = Sefaria._getShortInterfaceLang();
     return refTopicLinks.filter(link => {
         return !isLinkPublished(lang, link) && isLinkReviewed(lang, link);
     });
@@ -350,7 +350,7 @@ const generatePrompts = async(topicSlug, linksToGenerate) => {
 };
 
 const publishPrompts = async (topicSlug, linksToPublish) => {
-    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    const lang = Sefaria._getShortInterfaceLang();
     linksToPublish.forEach(ref => {
         ref['toTopic'] = topicSlug;
         ref.descriptions[lang]["published"] = true;
@@ -544,11 +544,12 @@ const TopicPage = ({
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic, {with_html: true}) || defaultTopicData);
     const [parashaData, setParashaData] = useState(null);
     const [portal, setPortal] = useState(null);
-    const topicImage = topicData.image;
+    const [langPref, setLangPref] = useState(Sefaria.interfaceLang);
     const scrollableElement = useRef();
+
+    const topicImage = topicData.image;
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
-    const [langPref, setLangPref] = useState(Sefaria.interfaceLang);
 
     // Initial Topic Data, updates when `topic` changes
     useEffect(() => {

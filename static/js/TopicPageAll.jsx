@@ -60,7 +60,7 @@ class TopicPageAll extends Component {
       return false;
     
     }).sort((a, b) => {
-      const lang = Sefaria.interfaceLang.slice(0,2);
+      const lang = Sefaria._getShortInterfaceLang();
       if (!hasFilter) {
         return b.primaryTitle[lang].stripNikkud() > a.primaryTitle[lang].stripNikkud() ? -1 : 1; // Alphabetical if no filter
       } else {
