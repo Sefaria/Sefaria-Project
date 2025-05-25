@@ -39,26 +39,22 @@ import { TopicTOCCard } from "./common/TopicTOCCard";
 
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
 
-
 const fetchBulkText = (translationLanguagePreference, inRefs) =>
   Sefaria.getBulkText(
     inRefs.map(x => x.ref),
     true, 500, 600,
     translationLanguagePreference
   ).then(outRefs => {
+    // Hydrate inRefs with text from outRefs
     for (let tempRef of inRefs) {
-      // annotate outRefs with `order` and `dataSources` from `topicRefs`
-      if (outRefs[tempRef.ref]) {
-        outRefs[tempRef.ref].order = tempRef.order;
-        outRefs[tempRef.ref].dataSources = tempRef.dataSources;
-        if(tempRef.descriptions) {
-            outRefs[tempRef.ref].descriptions = tempRef.descriptions;
-        }
+      const outRef = outRefs[tempRef.ref];
+
+      if (outRef) {
+        Object.assign(tempRef, outRef);
       }
     }
-    return Object.entries(outRefs);
-  }
-);
+    return inRefs.map(ref => [ref.ref, ref]);
+  });
 
 
 const fetchBulkSheet = inSheets => {
