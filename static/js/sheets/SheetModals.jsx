@@ -2,9 +2,13 @@ import Modal from "../common/modal";
 import { ShareBox } from "../ConnectionsPanel";
 import { CollectionsWidget } from "../CollectionsWidget";
 import { AddToSourceSheetBox } from "../AddToSourceSheet";
-import React, { useEffect, useState } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
 import { InterfaceText } from "../Misc";
+import Button from "../common/Button";
+import ReactTags from "react-tag-autocomplete";
+import {layoutOptions} from "../constants";
+import {ReaderPanelContext} from "../context";
 
 const ShareModal = ({sheetID, close}) => {
   return <Modal close={close}>
@@ -15,9 +19,12 @@ const ShareModal = ({sheetID, close}) => {
         </Modal>;
 }
 
-const CollectionsModal = ({close, sheetID}) => {
+const CollectionsModal = ({close, sheetID, handleCollectionsChange, editable}) => {
   return <Modal close={close}>
-            <CollectionsWidget sheetID={sheetID} close={close} />
+            <CollectionsWidget
+                sheetID={sheetID}
+                close={close}
+                handleCollectionsChange={handleCollectionsChange}/>
         </Modal>;
 }
 
@@ -130,8 +137,9 @@ const SaveModal = ({historyObject, close}) => {
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
     exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
-    exportComplete: { en: "Success!", he: "ייצוא הסתיים"}
+    exportComplete: {en: "Success!", he: "ייצוא הסתיים"}
   }
+  const {language, layout} = useContext(ReaderPanelContext);
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
 
@@ -140,7 +148,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     if (currentlyExporting()) {
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       try {
-        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive`, null, {}, "POST", false);
+        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?language=${language}&layout=${layout}`, null, {}, "POST", false);
         if (response.status === 401) {
           // couldn't authenticate, so forward to google authentication
           window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
@@ -161,30 +169,36 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   }
 
   useEffect(() => {
-      exportToDrive();
-    }, [googleDriveText]);
-
+    exportToDrive();
+  }, [googleDriveText]);
+  const getExportMessage = () => {
+    if (currentlyExporting()) {
+      return <InterfaceText text={googleDriveText}/>;
+    } else {
+      return <>
+        <InterfaceText text={googleDriveText}/>&nbsp;
+        <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google
+          Docs</InterfaceText></a>
+      </>
+    }
+  }
   const handleClose = () => {
     if (!currentlyExporting()) {
       close();
     }
   }
-
-  const getExportMessage = () => {
-    if (currentlyExporting()) {
-      return <InterfaceText text={googleDriveText}/>;
-    }
-    else {
-      return <>
-                <InterfaceText text={googleDriveText}/>&nbsp;
-                <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google Docs</InterfaceText></a>
-             </>
-    }
-  }
   return <GenericSheetModal title={<InterfaceText>Export</InterfaceText>}
                             message={getExportMessage()}
                             close={handleClose}/>;
-
 }
 
-export { ShareModal, CollectionsModal, AddToSourceSheetModal, CopyModal, SaveModal, GoogleDocExportModal };
+const DeleteModal = ({close, sheetID, authorUrl}) => {
+  useEffect( () => {
+    Sefaria.sheets.deleteSheetById(sheetID).then(() => {
+      window.location.href = authorUrl;
+    });
+  });
+  return <GenericSheetModal title={<InterfaceText>Deleting...</InterfaceText>} close={() => {}}/>; // don't allow user to close modal while deleting
+}
+
+export { ShareModal, CollectionsModal, AddToSourceSheetModal, CopyModal, SaveModal, GoogleDocExportModal, DeleteModal};

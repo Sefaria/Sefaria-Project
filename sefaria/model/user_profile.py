@@ -393,10 +393,6 @@ class UserProfile(object):
         self.nationbuilder_id = None
         self.sf_app_user_id = None
 
-        # new editor
-        self.show_editor_toggle = False
-        self.uses_new_editor = True
-
         # Fundraising
         self.is_sustainer = False
 
@@ -411,8 +407,14 @@ class UserProfile(object):
             # If we encounter a user that has a Django user record but not a profile document
             # create a profile for them. This allows two enviornments to share a user database,
             # while maintaining separate profiles (e.g. Sefaria and S4D).
+            self.show_editor_toggle = False
+            self.uses_new_editor = True
             self.assign_slug()
             self.save()
+
+        # new editor
+        self.show_editor_toggle = False
+        self.uses_new_editor = True
 
     @property
     def full_name(self):
@@ -833,7 +835,7 @@ def public_user_data(uid, ignore_cache=False):
 
     data = {
         "name": profile.full_name,
-        "profileUrl": "/profile/" + profile.slug,
+        "profileUrl": "/sheets/profile/" + profile.slug,
         "imageUrl": profile.profile_pic_url_small,
         "position": profile.position,
         "organization": profile.organization,

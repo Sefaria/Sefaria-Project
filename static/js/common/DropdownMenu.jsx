@@ -11,13 +11,21 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({children, preventClose = false}) => {
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false}) => {
+
+  if (!newTab){
+    newTab = false;
+  }
+
+  const cssClasses = customCSS ? customCSS : 'interfaceLinks-option int-bi dropdownItem';
 
   return (
-    <div className={`interfaceLinks-option int-bi dropdownItem`}
+    <a className={cssClasses}
+       href={url}
+       target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}>
       {children}
-    </div>
+    </a>
 
   );
 }
@@ -27,7 +35,6 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
   if (!newTab){
     newTab = false;
   }
-
   return (
     <a className={`interfaceLinks-option int-bi dropdownItem`}
        href={url}
@@ -35,7 +42,6 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
        data-prevent-close={preventClose}>
       {children}
     </a>
-
   );
 }
 
@@ -47,13 +53,13 @@ const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false})
   );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn, textHe, descEn='', descHe=''}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader">
         <img src={icon} />
         <span className='dropdownHeaderText'>
-          <InterfaceText text={{'en': textEn, 'he': textHe}} />
+          <InterfaceText>{textEn}</InterfaceText>
         </span>
       </div>
       <div className='dropdownDesc'>
@@ -115,9 +121,9 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
     return (
         <div className={positioningClass} ref={wrapperRef}>
-           <a className="dropdownLinks-button" onClick={handleButtonClick}>
+           <div className="dropdownLinks-button" onClick={handleButtonClick}>
               {buttonComponent}
-          </a>
+          </div>
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} onClick={handleContentsClick}>
               {children}
           </div>
@@ -132,7 +138,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     DropdownMenu,
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
-    DropdownMenuItem,
     DropdownMenuItemLink,
+    DropdownMenuItem, 
     DropdownMenuItemWithCallback
   };

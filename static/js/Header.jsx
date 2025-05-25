@@ -156,7 +156,7 @@ const LoggedInDropdown = ({module}) => {
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
               </DropdownMenuItemLink>
               <DropdownMenuSeparator/>
-              <DropdownMenuItemLink url={'/logout'}>
+              <DropdownMenuItemLink url={Sefaria.getLogoutUrl()}>
                   <InterfaceText text={{'en': 'Log Out', 'he': 'ניתוק'}}/>
               </DropdownMenuItemLink>
           </div>
@@ -169,19 +169,17 @@ const ModuleSwitcher = () => {
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItemLink url={'/'} newTab={true}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}
-                                            textHe={'ספריה'}/>
-              </DropdownMenuItemLink>
+              <DropdownMenuItem url={'/'} newTab={true}>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
+              </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItemLink url={'/sheets'} newTab={true}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'} textHe={'דפים'}/>
-              </DropdownMenuItemLink>
+              <DropdownMenuItem url={'/sheets'} newTab={true}>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
+              </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItemLink url={'https://developers.sefaria.org'} newTab={true}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}
-                                            textHe={'מפתחים'}/>
-              </DropdownMenuItemLink>
+              <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}/>
+              </DropdownMenuItem>
               <DropdownMenuSeparator/>
               <DropdownMenuItemLink url={'/products'} newTab={true}>
                   <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
@@ -213,9 +211,19 @@ class Header extends Component {
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
-    const logo = Sefaria.interfaceLang == "hebrew" ?
-      <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
-      <img src="/static/img/logo.svg" alt="Sefaria Logo"/>;
+    const short_lang = Sefaria.interfaceLang.slice(0,2);
+
+    const libraryLogoPath = Sefaria.interfaceLang === "hebrew"  ? "logo-hebrew.png" : "logo.svg";
+    const libraryLogo = (
+      <img src={`/static/img/${libraryLogoPath}`} alt="Sefaria Logo"/>
+    );
+
+    const sheetsLogoPath = `/static/img/${short_lang}_sheets_logo.svg`;
+    const sheetsLogo = (
+      <img src={sheetsLogoPath} alt="Sefaria Sheets Logo"/>
+    );
+
+    const logo = this.props.module === "library" ? libraryLogo : sheetsLogo;
 
       const librarySavedIcon = <div className='librarySavedIcon'>
                                   <a href="/texts/saved" >
@@ -232,8 +240,7 @@ class Header extends Component {
       <>
 
         <div className="headerNavSection">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <a className="home" href="/" >{logo}</a> : null }
+          { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
           <a href={this.props.module === 'library' ? '/texts' : '/sheets/topics'} className="textLink"><InterfaceText context="Header">{this.props.module === 'library' ? 'Texts' : 'Topics'}</InterfaceText></a>
           <a href={this.props.module === 'library' ? '/topics' : '/sheets/collections'} className="textLink"><InterfaceText>{this.props.module === 'library' ? 'Topics' : 'Collections'}</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
@@ -247,9 +254,9 @@ class Header extends Component {
             openURL={this.props.openURL}
         />
 
+        {!Sefaria._uid && this.props.module === "library" && <SignUpButton/>}
         {this.props.module === "sheets" && <CreateButton />}
-
-        { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
+        { Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
 
         { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
@@ -279,8 +286,7 @@ class Header extends Component {
         </div>
 
         <div className="mobileHeaderCenter">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <a className="home" href="/texts" >{logo}</a> : null }
+          { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
         </div>
 
         {this.props.hasLanguageToggle ?
@@ -526,7 +532,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <hr />
 
         {Sefaria._uid ?
-        <a href="/logout" className="logout">
+        <a href={Sefaria.getLogoutUrl()} className="logout">
           <img src="/static/icons/logout.svg" />
           <InterfaceText>Logout</InterfaceText>
         </a>
@@ -613,7 +619,7 @@ const ProfilePicMenu = ({len, url, name}) => {
               </a></div>
             </div>
             <hr className="interfaceLinks-hr"/>
-            <div><a className="interfaceLinks-row logout" id="logout-link" href="/logout">
+            <div><a className="interfaceLinks-row logout" id="logout-link" href={Sefaria.getLogoutUrl()}>
               <InterfaceText>Logout</InterfaceText>
             </a></div>
           </div> : null}
@@ -658,6 +664,14 @@ const HelpButton = () => {
     </div>
   );
 };
+
+const SignUpButton = () => {
+  return (
+    <a href="/register">
+      <InterfaceText>Sign Up</InterfaceText>
+    </a>
+  )
+}
 
 const CreateButton = () => {
   return (

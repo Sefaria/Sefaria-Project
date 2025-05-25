@@ -1,0 +1,111 @@
+#bannerMessage {
+  background-color: white;
+  width: 100%;
+  display: block;
+  overflow: hidden;
+  padding: 0;
+}
+
+.topicsLaunchBannerDesktop {
+  width: 100%;
+  height: 120px;
+  display: block;
+  object-fit: cover;
+}
+
+.topicsLaunchBannerMobile {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: none;
+}
+
+@keyframes good_bounce {
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%,
+  43% {
+    transform: translate3d(0, -6vh, 0);
+  }
+  70% {
+    transform: translate3d(0, -3vh, 0);
+  }
+  90% {
+    transform: translate3d(0, -1vh, 0);
+  }
+}
+
+@keyframes good_bounce_mobile {
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%,
+  43% {
+    transform: translate3d(0, -1.75vh, 0);
+  }
+  70% {
+    transform: translate3d(0, -1vh, 0);
+  }
+  90% {
+    transform: translate3d(0, -0.33vh, 0);
+  }
+}
+
+.topicsLaunchBannerDesktop #button {
+  animation: good_bounce 2s cubic-bezier(0.445, 0.05, 0.55, 0.95);
+  transform-origin: center bottom;
+}
+
+.topicsLaunchBannerMobile #button {
+  animation: good_bounce_mobile 2s cubic-bezier(0.445, 0.05, 0.55, 0.95);
+  transform-origin: center bottom;
+}
+
+/* Pause animation on hover or tap */
+.topicsLaunchBannerDesktop #button:hover,
+.topicsLaunchBannerMobile #button:hover,
+.topicsLaunchBannerMobile #button:active {
+  animation-play-state: paused;
+}
+
+@media (max-width: 540px) {
+  .topicsLaunchBannerDesktop {
+    display: none;
+  }
+  .topicsLaunchBannerMobile {
+    display: block;
+  }
+
+  #bannerMessage:has(.topicsLaunchBannerMobile) {
+    padding: 0;
+  }
+  #topicsLaunchBannerMessageClose {
+    right: 2vw !important;
+    top: 0.5vh !important;
+  }
+}
+@media (max-width: 1200px) {
+  .topicsLaunchBannerDesktop {
+    width: auto;
+  }
+}
+#topicsLaunchBannerMessageClose {
+  position: absolute;
+  top: 1%;
+  right: 22px;
+  color: var(--sefaria-blue);
+  opacity: 1;
+  cursor: pointer;
+}
+#s2:has(.readerApp.singlePanel .connectionsPanel) #bannerMessage:has(#topicsLaunchBanner) {
+  border-bottom: 2px #ccc solid;
+}

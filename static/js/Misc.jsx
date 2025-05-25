@@ -23,7 +23,10 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import {DropdownMenuItemWithIcon} from "./common/DropdownMenu";
+import { ReaderApp } from './ReaderApp';
+import { ToolsButton } from "./ConnectionsPanel";
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
+import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1170,55 +1173,35 @@ DisplaySettingsButton.propTypes = {
 
 
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
+
   const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef(null);
 
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
   }
-  const handleClick = (e) => {
-    e.stopPropagation();
-    setIsOpen(isOpen => !isOpen);
-  }
+
   const handleTransPrefResetClick = (e) => {
     e.stopPropagation();
     setTranslationLanguagePreference(null);
   };
-  const handleHideDropdown = (event) => {
-      if (event.key === 'Escape') {
-          setIsOpen(false);
-      }
-  };
-  const handleClickOutside = (event) => {
-      if (
-          wrapperRef.current &&
-          !wrapperRef.current.contains(event.target)
-      ) {
-          setIsOpen(false);
-      }
-  };
-
-  useEffect(() => {
-      document.addEventListener('keydown', handleHideDropdown, true);
-      document.addEventListener('click', handleClickOutside, true);
-      return () => {
-          document.removeEventListener('keydown', handleHideDropdown, true);
-          document.removeEventListener('click', handleClickOutside, true);
-      };
-  }, []);
 
   return (
-      <div className="interfaceLinks" ref={wrapperRef}>
-        <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/></a>
-        <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
-          <div className="interfaceLinks-header">
-            <InterfaceText>Site Language</InterfaceText>
-          </div>
-          <div className="interfaceLinks-options">
-            <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
-          </div>
-          { !!translationLanguagePreference ? (
+    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
+      <div className="dropdownLinks-options">
+        <div className="interfaceLinks interfaceLinks-menu interfaceLinks-header languageHeader">
+          <InterfaceText>Site Language</InterfaceText>
+        </div>
+        <DropdownMenuSeparator />
+        <div className='languageFlex'>
+          <DropdownMenuItem  url={`/interface/hebrew?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'hebrew') ? 'active':''}`}>
+            עברית
+          </DropdownMenuItem>
+          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'english') ? 'active' : ''}`}>
+            English
+          </DropdownMenuItem>
+        </div>
+      </div>
+      { !!translationLanguagePreference ? (
             <>
               <div className="interfaceLinks-header">
                 <InterfaceText>Preferred Translation</InterfaceText>
@@ -1234,8 +1217,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
               </div>
             </>
           ) : null}
-        </div>
-      </div>
+    </DropdownMenu>
   );
 }
 InterfaceLanguageMenu.propTypes = {
@@ -1244,18 +1226,13 @@ InterfaceLanguageMenu.propTypes = {
 };
 
 const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
-const getSaveButtonMessage = (selected) => Sefaria._(selected ? "Remove" : "Save");
+const getSaveButtonMessage = (selected) => selected ? "Remove" : "Save";
 const getSaveButtonImage = (selected) => {
   return selected ? "/static/icons/bookmark-filled.svg" : "/static/icons/bookmark.svg";
 }
 const SaveButtonWithText = ({historyObject}) => {
   const selected = isSaveButtonSelected(historyObject);
-  return <DropdownMenuItemWithIcon
-                    textEn={getSaveButtonMessage(selected)}
-                    textHe={getSaveButtonMessage(selected)}
-                    descEn={""}
-                    descHe={""}
-                    icon={getSaveButtonImage(selected)}/>;
+  return <DropdownMenuItemWithIcon textEn={getSaveButtonMessage(selected)} icon={getSaveButtonImage(selected)}/>;
 }
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
@@ -1603,7 +1580,20 @@ const SheetListing = ({
       </a>
     );
   });
-
+  const topics = sheet.topics.map((topic, i) => {
+    const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
+    return (
+      <a href={`/topics/${topic.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+        onClick={handleTopicClick.bind(null, topic.slug)}
+      >
+        <InterfaceText text={topic} />
+        {separator}
+      </a>
+    );
+  });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
@@ -2062,6 +2052,52 @@ const InterruptingMessage = ({
 };
 InterruptingMessage.displayName = "InterruptingMessage";
 
+const GenericBanner = ({message, children}) => {
+  return (
+      <div className="genericBanner">
+        {<InterfaceText>{message}</InterfaceText> }
+        {children}
+      </div>);
+}
+
+const LearnAboutNewEditorBanner = () => {
+  const cookieName = "learned_about_new_editor";
+  const initialShouldShowNotification = !$.cookie(cookieName);
+  const [showNotification, setShowNotification] = useState(false);
+  const [enURL, heURL] = ["/sheets/393695", "/sheets/399333"];
+  const linkURL = Sefaria._v({en: enURL, he: heURL});
+
+  useEffect(() => {
+    // Force rerendering of the component when initially rendered by ssr
+    setShowNotification(initialShouldShowNotification);
+  }, [initialShouldShowNotification]);
+
+  const handleLearnMoreClick = () => {
+    window.open(linkURL, '_blank');
+  };
+
+  const setCookie = () => {
+    $.cookie(cookieName, 1, {path: "/", expires: 20*365});
+    setShowNotification(false);
+  }
+
+  if (!showNotification) {
+    return null;
+  }
+  return (
+    <GenericBanner
+      message="Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface."
+    >
+      {
+        <button className="button white" onClick={() => {handleLearnMoreClick(); setCookie();}}>
+          <InterfaceText>Get Started</InterfaceText>
+        </button>
+      }
+      <button id="bannerMessageClose" onClick={setCookie}>×</button>
+    </GenericBanner>
+  );
+};
+
 const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
     useState(false);
@@ -2220,8 +2256,6 @@ const Banner = ({ onClose }) => {
     return null;
   }
 };
-
-Banner.displayName = "Banner";
 
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
@@ -2651,21 +2685,26 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
-const SheetMetaDataBoxSegment = (props) => (
-  <div className={props.className}
-    role="heading"
-    aria-level="1"
-    contentEditable={props.editable}
-    suppressContentEditableWarning={true}
-    onBlur={props.editable ? props.blurCallback : null}
-    style={{"direction": Sefaria.hebrew.isHebrew(props.text.stripHtml()) ? "rtl" :"ltr"}}
+const SheetMetaDataBoxSegment = (props) => {
+  const handleBlur = (e) => {
+    let content = e.target.textContent.trim(); // It seems browsers insert a <br> tag when div content is deleted by user, so we need to trim it.
+    if (content === '') {
+      e.target.innerHTML = ''; 
+    }
+    if (props.blurCallback) {
+      props.blurCallback(content);
+    }
+  }
+  return <div className={props.className}
+              role="heading"
+              aria-level="1"
+              contentEditable={props.editable}
+              suppressContentEditableWarning={true}
+              onBlur={props.editable && handleBlur}
   >
-  {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+    {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
   </div>
-);
-SheetMetaDataBoxSegment.propTypes = {
-  title: PropTypes.string,
-};
+}
 
 
 const SheetAuthorStatement = (props) => (
@@ -2815,13 +2854,20 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, sheetOptions, editable}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+  const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu marginInlineIndent" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
-    <div className="sidebarLayout">
-      <SheetMetaDataBoxSegment text={title} className="title" editable={editable}/>
-      {sheetOptions}
+    <div className={`sidebarLayout`}>
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
+      <div className="items">
+        {languageToggle}
+        {sheetOptions}
+      </div>
     </div>
-    {summary && <SheetMetaDataBoxSegment text={summary} className="summary" editable={editable}/>}
+    {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
+                                                       className="summary"
+                                                       editable={editable}
+                                                       blurCallback={summaryCallback}/>}
   </div>
 }
 
@@ -3284,4 +3330,5 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
+  LearnAboutNewEditorBanner
 };

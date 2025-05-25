@@ -12,7 +12,7 @@ sandbox: "false"
 # suggestions for the values are prod/dev/test
 deployEnv: "dev"
 
-# Helps create services for nginx, nodeja, varnish and web pods with appropriate
+# Helps create services for nginx, nodejs, varnish and web pods with appropriate
 # tags that help ArgoCD do blue green deployments.
 previousServicesCount: "3"
 
@@ -195,6 +195,7 @@ nodejs:
     limits:
       memory: "200Mi"
       cpu: "400m"
+  heapSize: 150
 
 varnish:
   containerImage:
@@ -468,3 +469,7 @@ instrumentation:
   enabled: false
   otelEndpoint: ""
   jaegerEndpoint: ""
+
+subdomains:
+  sheets:
+    enable: false

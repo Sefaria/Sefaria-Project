@@ -45,7 +45,7 @@ class ReaderApp extends Component {
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];
-    const searchType = props.initialSearchType || 'text';  // should really be set by URL such as sheets.sefaria.org or www.sefaria.org
+    const searchType = SearchState.moduleToSearchType(Sefaria.activeModule);
     if (props.initialMenu) {
       // If a menu is specified in `initialMenu`, make a panel for it
       panels[0] = {
@@ -136,7 +136,6 @@ class ReaderApp extends Component {
       navigationCategories:    state.navigationCategories    || [],
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
-      sheetNodes:              state.sheetNodes              || null,
       sheetsWithRef:           state.sheetsWithRef           || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
@@ -149,7 +148,7 @@ class ReaderApp extends Component {
       translationsSlug:        state.translationsSlug        || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
-      searchState:             state.searchState             || new SearchState({ type: this.props.initialSearchType || 'text' }),
+      searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
       compare:                 state.compare                 || false,
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
@@ -773,6 +772,9 @@ class ReaderApp extends Component {
         }
       }
     }
+    // Replace question marks that can be included in titles
+    // (not using encodeURIComponent for this can run twice and encode the % of the first running)
+    hist.url = hist.url.replace(/\?/g, '%3F')
     // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
@@ -962,7 +964,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   openNamedEntityInNewPanel(n, textRef, namedEntityState) {
     //this.setTextListHighlight(n, [textRef]);
-    this.openTextListAt(n+1, [textRef], null, namedEntityState);
+    this.openTextListAt(n+1, [textRef], namedEntityState);
   }
   clearSelectedWords(n) {
     this.setPanelState(n, {selectedWords: ""});
@@ -1155,7 +1157,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.openTopic(path.slice(8), params.get("tab"));
 
     } else if (path.match(/^\/sheets\/profile\/.+/)) {
-      this.openProfile(path.slice(9), params.get("tab"));
+      this.openProfile(path.replace("/sheets/profile/", ""), params.get("tab"));
 
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
       this.openCollection(path.slice(13), params.get("tag"));
@@ -1163,13 +1165,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path.match(/^\/translations\/.+/)) {
       let slug = path.slice(14);
       this.openTranslationsPage(slug);
-    } else if (Sefaria.isRef(path.slice(1))) {
+    } else if (Sefaria.isRef(path.slice(1).replace(/%3F/g, '?'))) {
+      const ref = path.slice(1).replace(/%3F/g, '?');
       const currVersions = {
         en: Sefaria.util.getObjectFromUrlParam(params.get("ven")),
         he: Sefaria.util.getObjectFromUrlParam(params.get("vhe"))
       };
-      const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
-      openPanel(Sefaria.humanRef(path.slice(1)), currVersions, options);
+      const options = {showHighlight: ref.indexOf("-") !== -1};   // showHighlight when ref is ranged
+      openPanel(Sefaria.humanRef(ref), currVersions, options);
     } else {
       return false
     }
@@ -1205,7 +1208,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           filtersValid: true,
           aggregationsToUpdate,
         }) : new SearchState({
-        type: this.props.initialSearchType || 'text',
+        type: SearchState.moduleToSearchType(Sefaria.activeModule),
         availableFilters,
         filterRegistry,
         orphanFilters,
@@ -1549,7 +1552,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels[n] = comparePanel;
     this.setState({panels: this.state.panels});
   }
-  openTextListAt(n, refs, sheetNodes, textListState) {
+  openTextListAt(n, refs, textListState) {
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
@@ -1567,8 +1570,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       panel.versionFilter = [];
     }
     panel.refs              = refs;
-    panel.sheetNodes        = sheetNodes ? sheetNodes.split(".")[1] : null;
-    panel.nodeRef           = sheetNodes;
     panel.menuOpen          = null;
     panel.mode              = panel.mode || "Connections";
     panel.settings          = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings());
@@ -1719,7 +1720,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   showSearch(searchQuery) {
     const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState;
     const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
-        : new SearchState({ type: this.props.initialSearchType || 'text'});
+        : new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)});
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchState });
   }
   searchInCollection(searchQuery, collection) {
@@ -2210,6 +2211,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
                       hasSidebar={this.doesPanelHaveSidebar(i)}
+                      masterPanelLayout={panel.mode === "Connections" ? panelStates[i-1].settings.biLayout : ""}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       masterPanelMode={panel.mode === "Connections" ? panelStates[i-1].mode : null}
                       layoutWidth={width}
@@ -2287,7 +2289,6 @@ ReaderApp.propTypes = {
   initialMenu:                 PropTypes.string,
   initialCollection:           PropTypes.string,
   initialQuery:                PropTypes.string,
-  initialSearchType:           PropTypes.string,
   initialSearchFilters:        PropTypes.array,
   initialSearchField:          PropTypes.string,
   initialSearchSortType:       PropTypes.string,
