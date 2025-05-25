@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { InterfaceText, CloseButton } from './Misc';
+import { InterfaceText, EnglishText, HebrewText, CloseButton } from './Misc';
 import { tipsService } from './TipsService';
+import Sefaria from './sefaria/sefaria';
 import '../css/TipsOverlay.css';
 
 /**
@@ -127,7 +128,10 @@ const TipsOverlay = ({
       <div className="tipsOverlay">
         <div className="tipsOverlayContent">
           <div className="loadingMessage">
-            <InterfaceText>Loading tips...</InterfaceText>
+            <InterfaceText>
+              <EnglishText>Loading tips...</EnglishText>
+              <HebrewText>טוען טיפים...</HebrewText>
+            </InterfaceText>
           </div>
         </div>
       </div>
@@ -136,6 +140,14 @@ const TipsOverlay = ({
   
   const currentTip = tipData.tips[currentTipIndex];
   const showNavigation = tipData.tips.length > 1;
+  const isHebrew = Sefaria.interfaceLang === "hebrew";
+  
+  // Get language-appropriate content
+  const titlePrefix = isHebrew ? (tipData.titlePrefix_heb || tipData.titlePrefix) : tipData.titlePrefix;
+  const tipTitle = isHebrew ? (currentTip.title_heb || currentTip.title) : currentTip.title;
+  const tipText = isHebrew ? (currentTip.text_heb || currentTip.text) : currentTip.text;
+  const tipImageAlt = isHebrew ? (currentTip.imageAlt_heb || currentTip.imageAlt) : currentTip.imageAlt;
+  const footerLinks = isHebrew ? (tipData.footerLinks_heb || tipData.footerLinks) : tipData.footerLinks;
   
   return (
     <div className="tipsOverlay">
@@ -144,8 +156,8 @@ const TipsOverlay = ({
         <div className="tipsOverlayHeader">
           <div className="tipsOverlayTitleSection">
             <TitleWithPrefix 
-              prefix={tipData.titlePrefix} 
-              title={currentTip.title} 
+              prefix={titlePrefix} 
+              title={tipTitle} 
             />
           </div>
           
@@ -154,19 +166,36 @@ const TipsOverlay = ({
               <button 
                 onClick={prevTip} 
                 className="paginationArrowButton"
-                aria-label="Previous tip"
+                aria-label={Sefaria._("Previous tip")}
               >
-                <img src="/static/img/zondicons_arrow-left.svg" alt="Previous" />
+                <InterfaceText>
+                  <EnglishText>
+                    <img src="/static/img/zondicons_arrow-left.svg" alt={Sefaria._("Previous")} />
+                  </EnglishText>
+                  <HebrewText>
+                    <img src="/static/img/zondicons_arrow-right.svg" alt={Sefaria._("Previous")} />
+                  </HebrewText>
+                </InterfaceText>
               </button>
               <span className="tipsPaginationNumber">
-                {currentTipIndex + 1} of {tipData.tips.length}
+                <InterfaceText>
+                  <EnglishText>{currentTipIndex + 1} of {tipData.tips.length}</EnglishText>
+                  <HebrewText>{currentTipIndex + 1} מתוך {tipData.tips.length}</HebrewText>
+                </InterfaceText>
               </span>
               <button 
                 onClick={nextTip} 
                 className="paginationArrowButton"
-                aria-label="Next tip"
+                aria-label={Sefaria._("Next tip")}
               >
-                <img src="/static/img/zondicons_arrow-right.svg" alt="Next" />
+                <InterfaceText>
+                  <EnglishText>
+                    <img src="/static/img/zondicons_arrow-right.svg" alt={Sefaria._("Next")} />
+                  </EnglishText>
+                  <HebrewText>
+                    <img src="/static/img/zondicons_arrow-left.svg" alt={Sefaria._("Next")} />
+                  </HebrewText>
+                </InterfaceText>
               </button>
             </div>
           )}
@@ -183,28 +212,40 @@ const TipsOverlay = ({
               {currentTip.imageUrl ? (
                 <img 
                   src={currentTip.imageUrl} 
-                  alt={currentTip.imageAlt} 
+                  alt={tipImageAlt || Sefaria._("Tip illustration")} 
                   className="tipsOverlayImage" 
                 />
               ) : (
-                <div className="tipsOverlayImagePlaceholder">
-                  <div className="placeholderContent">
-                    <InterfaceText>GIF Placeholder</InterfaceText>
-                  </div>
+                              <div className="tipsOverlayImagePlaceholder">
+                <div className="placeholderContent">
+                  <InterfaceText>
+                    <EnglishText>
+                      <div>1600x900</div>
+                      <div>Video</div>
+                      <div>at 480px wide ( x 270)</div>
+                    </EnglishText>
+                    <HebrewText>
+                      <div>1600x900</div>
+                      <div>וידאו</div>
+                      <div>ברוחב 480px ( x 270)</div>
+                    </HebrewText>
+                  </InterfaceText>
                 </div>
+              </div>
               )}
             </div>
             
             {/* Scrollable text content - narrower width */}
             <div className="tipsOverlayTextContainer">
-              <div className="tipsOverlayText">
-                <InterfaceText>{currentTip.text}</InterfaceText>
-              </div>
+              <div 
+                className="tipsOverlayText"
+                dangerouslySetInnerHTML={{ __html: tipText }}
+              />
             </div>
           </div>
           
           {/* Footer with consistent links */}
-          <TipsFooter links={tipData.footerLinks} />
+          <TipsFooter links={footerLinks} />
         </div>
       </div>
     </div>
