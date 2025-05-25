@@ -728,6 +728,8 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           if (!selected) {
               setSourceActive(false)
               setActiveSourceLangContent(null)
+          } else {
+              setSourceActive(true);
           }
       },
       [selected]
@@ -791,7 +793,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         }
     }
 
-  const isActive = selected;
+  const isActive = sourceActive;
   const sheetItemClasses = {sheetItem: 1, highlight: parentEditor.highlightedNode === (element.node ? element.node.toString() : null)}
   const classes = {
       SheetSource: element.ref ? 1 : 0,
