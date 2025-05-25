@@ -1,7 +1,7 @@
 import React  from 'react';
 import {NavSidebar} from "../NavSidebar";
 import Footer from "../Footer";
-import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsTopics";
+import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsHomePageTopicsTOC";
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
      * `title` and `message` are shown on top of the video. `posterImg` is shown while video is downloaded,

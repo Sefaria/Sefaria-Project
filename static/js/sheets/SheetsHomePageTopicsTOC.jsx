@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
-import {Card} from "../common/Card";
 import {TopicTOCCard} from "../common/TopicTOCCard";
 
 const SheetsTopicsTOC = ({handleClick}) => {
