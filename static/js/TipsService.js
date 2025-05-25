@@ -13,28 +13,32 @@ class TipsService {
     // Placeholder data until API is implemented
     this._placeholderData = {
       sheets: {
-        totalTips: 2,
+        titlePrefix: "Quick Start:", // Constant prefix for all tips in this guide type
+        footerLinks: [ // Footer links consistent across all tips in this guide type
+          { text: "Learn More About Source Sheets", url: "/help/sheets" },
+          { text: "Send Feedback", url: "/feedback" }
+        ],
         tips: [
           {
             id: "sheets-1",
-            title: "Welcome to Source Sheets",
-            text: "Create and share collections of texts and comments with Sefaria's Source Sheet editor.",
-            imageUrl: "/static/img/logo/sefaria-logo.png",
-            imageAlt: "Sefaria Sheets",
-            links: [
-              { text: "Learn More", url: "/help/sheets" },
-              { text: "Feedback", url: "/feedback" }
-            ]
+            title: "Add Sources from the Library", // Variable part of title
+            text: "When you are ready to publish, give your sheet an interesting title, write a summary and add tags so others can find your work.",
+            imageUrl: null, // Will use placeholder
+            imageAlt: "Adding sources to sheets"
           },
           {
             id: "sheets-2",
-            title: "Formatting Your Sheets",
-            text: "Add images, videos, and format your text with the rich text editor to create beautiful source sheets.",
-            imageUrl: "/static/img/logo/sefaria-logo.png",
-            imageAlt: "Formatting Tools",
-            links: [
-              { text: "View Examples", url: "/collections/Featured-Sheets" }
-            ]
+            title: "Format and Customize Your Content",
+            text: "Add images, videos, and format your text with the rich text editor to create beautiful source sheets. Use the formatting toolbar to make your content stand out.",
+            imageUrl: null,
+            imageAlt: "Formatting tools for sheets"
+          },
+          {
+            id: "sheets-3",
+            title: "Publishing and Sharing Your Work - This is a longer title to test the truncation functionality.",
+            text: "This is a longer text example to test the scrollable functionality. When you have a lot of content to display, the text area should become scrollable to maintain the layout integrity. You can add detailed explanations, step-by-step instructions, or comprehensive guides that might require more space than what's immediately visible. The scrollable area ensures that users can access all the information while keeping the overall component size manageable. This approach provides a better user experience by preventing the overlay from becoming too large and overwhelming on the screen. Users can scroll through the content at their own pace while still having access to navigation controls and other interface elements.",
+            imageUrl: null,
+            imageAlt: "Publishing and sharing sheets"
           }
         ]
       }
@@ -44,7 +48,13 @@ class TipsService {
   /**
    * Get tips for a specific guide type
    * @param {string} guideType - The type of guide (currently only "sheets" supported)
-   * @returns {Promise} - Resolves to tips data
+   * @returns {Promise} - Resolves to tips data with structure:
+   *   {
+   *     totalTips: number,
+   *     titlePrefix: string,
+   *     footerLinks: Array<{text: string, url: string}>,
+   *     tips: Array<{id: string, title: string, text: string, imageUrl: string|null, imageAlt: string}>
+   *   }
    */
   async getTips(guideType = "sheets") {
     // Return from cache if available
@@ -62,7 +72,14 @@ class TipsService {
     // Simulate network delay for testing
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    const data = this._placeholderData[guideType] || { tips: [], totalTips: 0 };
+    const data = this._placeholderData[guideType] || { 
+      tips: [], 
+      titlePrefix: "", 
+      footerLinks: [] 
+    };
+    
+    // Auto-calculate total tips count
+    data.totalTips = data.tips.length;
     
     // Cache the data
     this._cache[guideType] = data;
