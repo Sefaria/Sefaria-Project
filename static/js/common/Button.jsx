@@ -10,10 +10,11 @@
  * @returns {JSX.Element}
  * @constructor
  */
-const Button = ({ variant = '', size = '', icon, children, onClick, disabled=false, className = '' }) => {
+const Button = ({ variant = '', size = '', icon, children, onClick, disabled=false, className = '', activeModule }) => {
   return (
     <button
       disabled={disabled}
+      {...(activeModule ? { 'data-active-module': activeModule } : {})}
       className={`sefaria-common-button ${variant} ${size} ${className}`}
       onClick={onClick}
     >

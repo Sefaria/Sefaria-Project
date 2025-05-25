@@ -849,7 +849,6 @@ div.interfaceLinks-row a {
   font-weight: normal;
   font-size: 13px;
   font-style: normal;
-  padding: 0 15px;
 }
 .header  .interfaceLinks-option.active {
   order: -1;
@@ -12076,6 +12075,10 @@ cursor: pointer;
   font-weight: 400;
   line-height: 18px;
   margin-block-end: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 10;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .sheetContentSidebar .title.sub-sub-title {
   margin-block-end: 20px;

@@ -140,6 +140,7 @@ ROOT_URLCONF = 'sefaria.urls'
 WSGI_APPLICATION = 'sefaria.wsgi.application'
 
 INSTALLED_APPS = (
+    'adminsortable',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
