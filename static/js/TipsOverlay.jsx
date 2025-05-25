@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText} from './Misc';
 import { tipsService } from './TipsService';
+import '../css/TipsOverlay.css';
 
 // TruncatedTitle component that handles title truncation
 const TruncatedTitle = ({ text, maxLines = 1 }) => {
