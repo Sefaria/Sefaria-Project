@@ -13,7 +13,7 @@ from random import choice
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, resolve_url
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
@@ -83,7 +83,13 @@ class CustomLoginView(StaticViewMixin, LoginView):
     authentication_form = SefariaLoginForm
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
-    pass
+
+    def get_next_page(self):
+        next_page = self.request.GET.get('next')
+        if next_page:
+            return resolve_url(next_page)
+        return super().get_next_page()
+
 
 class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
     pass
