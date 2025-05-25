@@ -136,7 +136,6 @@ class Sheet extends Component {
       <>
         <LearnAboutNewEditorBanner/>
         <div className={classes}>
-          <div className="sheetContent">
             <SefariaEditor
               data={sheet}
               hasSidebar={this.props.hasSidebar}
@@ -150,7 +149,6 @@ class Sheet extends Component {
               newEditorSaveState={this.props.newEditorSaveState}
               setNewEditorSaveState={this.props.setNewEditorSaveState}
             />
-          </div>
         </div>
        </>);
     const usingEditor = sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor;

@@ -9298,9 +9298,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   direction: rtl;
 }
 .editorSaveStateIndicator{
-  position: fixed;
-  top: 200px;
-  left: 30px;
   display: flex;
   align-items: center;
   gap: 0.4em;
@@ -9310,7 +9307,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 
 .editorSaveStateIndicator.tooltip-toggle{
-  position: fixed;
 }
 .interface-english .editorSaveStateIndicator.tooltip-toggle::before{
   margin-inline-start: 75px;
@@ -9333,11 +9329,15 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   right: 89px;
   flex-direction: row-reverse;
 }
+.floatingEditorIcons{
+  display: flex;
+  position: sticky;
+  flex-direction: row;
+  justify-content: space-between;
+  top: 80px;
+}
 
 .editorSidebarToggle {
-  position: fixed;
-  top: 200px;
-  right: 30px;
   height: 30px;
   width: 30px;
   border-radius: 30px;
@@ -9357,9 +9357,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
-  position: absolute;
-  top: 7px;
-  left: 13px;
+  top: 2px;
+  position: relative;
 }
 .collectionListingImage {
   height: 100%;

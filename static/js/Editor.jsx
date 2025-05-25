@@ -3242,6 +3242,12 @@ const SefariaEditor = (props) => {
 
 
     return (
+        <>
+            <div className="floatingEditorIcons">
+      {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
+        <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
+            </div>
+      <div className="sheetContent">
         <div ref={editorContainer} onClick={props.handleClick}>
         {
           /* debugger */
@@ -3251,8 +3257,6 @@ const SefariaEditor = (props) => {
           // </div>
 
         }
-            {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
-            <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
         <SheetMetaDataBox>
             <span ref={editorTitleContainer}>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
@@ -3298,6 +3302,8 @@ const SefariaEditor = (props) => {
             </Slate> : null }
             </span>
         </div>
+      </div>
+            </>
     )
 };
 
