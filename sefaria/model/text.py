@@ -34,27 +34,6 @@ from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLE
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 
-
-def profile_func(func):
-    import cProfile
-    import pstats
-    import io
-    from functools import wraps
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        pr = cProfile.Profile()
-        pr.enable()
-        try:
-            result = func(*args, **kwargs)
-        finally:
-            pr.disable()
-            s = io.StringIO()
-            ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
-            ps.print_stats(20)  # Top 20 lines
-            logger.info(s.getvalue())
-        return result
-    return wrapper
-
 """
                 ----------------------------------
                          Index, IndexSet
