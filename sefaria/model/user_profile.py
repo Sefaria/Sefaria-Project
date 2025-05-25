@@ -407,6 +407,8 @@ class UserProfile(object):
             # If we encounter a user that has a Django user record but not a profile document
             # create a profile for them. This allows two enviornments to share a user database,
             # while maintaining separate profiles (e.g. Sefaria and S4D).
+            self.show_editor_toggle = False
+            self.uses_new_editor = True
             self.assign_slug()
             self.save()
 
