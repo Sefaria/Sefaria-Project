@@ -3158,7 +3158,7 @@ def topic_page(request, slug, test_version=None):
 @catch_error_as_json
 def topics_list_api(request):
     """
-    API to get data for a particular topic.
+    API used by the topics A-Z page.
     """
     limit = int(request.GET.get("limit", 1000))
     all_topics = get_all_topics(limit, activeModule=request.active_module)

@@ -493,18 +493,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         return self.link_set('refTopic', query_kwargs, **kwargs)
 
     def contents(self, **kwargs):
-        # mini = kwargs.get('minify', False)
-        # d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
-        # d['primaryTitle'] = {}
-        # for lang in ('en', 'he'):
-        #     d['primaryTitle'][lang] = self.get_primary_title(lang=lang,
-        #                                                      with_disambiguation=kwargs.get('with_disambiguation',
-        #                                                                                     True))
-        # if not kwargs.get("with_html"):
-        #     for k, v in d.get("description", {}).items():
-        #         d["description"][k] = re.sub("<[^>]+>", "", v or "")
-        d = {}
-        d['primaryTitle'] = {}
+        d = {'primaryTitle': {}}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
         if not kwargs.get("with_html"):

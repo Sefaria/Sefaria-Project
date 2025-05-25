@@ -5138,7 +5138,7 @@ class Library(object):
             if not rebuild:
                 self._topic_toc = scache.get_shared_cache_elem('topic_toc')
             if rebuild or not self._topic_toc:
-                self._topic_toc = profile_func(self.get_topic_toc_json_recursive)()
+                self._topic_toc = self.get_topic_toc_json_recursive()
                 scache.set_shared_cache_elem('topic_toc', self._topic_toc)
                 self.set_last_cached_time()
         return self._topic_toc
@@ -5152,9 +5152,7 @@ class Library(object):
             if not rebuild:
                 self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
             if rebuild or not self._topic_toc_json:
-                logger.info("Calling get_topic_toc")
                 self._topic_toc_json = json.dumps(self.get_topic_toc(), ensure_ascii=False)
-                logger.info("Finished calling get_topic_toc")
                 scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
                 self.set_last_cached_time()
         return self._topic_toc_json
@@ -5175,19 +5173,8 @@ class Library(object):
             children = [t.slug for t in ts]
             topic_json = {}
         else:
-            logger.info(f"topic: ${topic.slug}")
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
             topic_json = topic.contents(minify=True, children=children, with_html=True)
-            logger.info(f"ran topic contents")
-            # topic_json = {
-            #     "slug": topic.slug,
-            #     "shouldDisplay": True if len(children) > 0 else topic.should_display(),
-            #     "en": topic.get_primary_title("en"),
-            #     "he": topic.get_primary_title("he"),
-            #     "displayOrder": getattr(topic, "displayOrder", 10000),
-            #     "pools": DjangoTopic.objects.slug_to_pools.get(topic.slug, [])
-            # }
-
             with_descriptions = True  # TODO revisit for data size / performance
             if with_descriptions:
                 if getattr(topic, "categoryDescription", False):
