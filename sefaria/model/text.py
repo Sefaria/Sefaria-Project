@@ -4731,11 +4731,8 @@ class Ref(object, metaclass=RefCacheType):
 
             # Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
             if len(self.sections) > 0:
-                last = url.rfind("_")
-                if last != -1:
-                    lref = list(url)
-                    lref[last] = "."
-                    url = "".join(lref)
+                url = '.'.join(url.rsplit('_', 1))
+
             if not encode_html:
                 return url
             self._url = url
