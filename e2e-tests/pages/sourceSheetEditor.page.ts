@@ -1,52 +1,84 @@
-import { Page } from 'playwright-core';
+import { Cookie, ElementHandle, Page } from 'playwright-core';
+import { expect } from 'playwright/test';
+import {isClickable} from "../utils";
+
 
 export class SourceSheetEditorPage {
     readonly page: Page;
+    savedSessionCookie: Cookie | null = null;
+
 
     constructor(page: Page) {
         this.page = page;
     }
 
-    // Status Indicator
-    statusIndicator = () => this.page.locator('.sourceSheetStatusIndicator');
-    statusTooltip = () => this.page.locator('.sourceSheetStatusIndicator [data-tooltip]');
+    // Status Indicator Components----------------------------
+    statusIndicator = () => this.page.locator('.editorSaveStateIndicator');
+    statusMessage = () => this.page.locator('.saveStateMessage');
+    statusTooltip = () => this.page.locator('.editorSaveStateIndicator [data-tooltip]');
 
-    // Toolbar Buttons (source, text, media, comment)
-    addSourceButton = () => this.page.locator('[data-testid="add-source"]');
-    addTextButton = () => this.page.locator('[data-testid="add-text"]');
-    addMediaButton = () => this.page.locator('[data-testid="add-media"]');
-    addCommentButton = () => this.page.locator('[data-testid="add-comment"]');
 
-    // Sheet Body
-    sourceSheetBody = () => this.page.locator('.sourceSheetContent'); 
+    // Toolbar Buttons (source, text, media, comment)------------
+    title = () => this.page.locator('.title');
+    //addTextButton = () => this.page.getByRole('button', { name: 'Add a source, image, or other media'});
+    addSomethingButton = () => this.page.locator('.editorAddLineButton');
+    addSourceButton = () => this.page.locator('#addSourceButton');
+    addImageButton = () => this.page.getByRole('button', { name: 'Add an image' });
+    addMediaButton = () => this.page.getByRole('button', { name: 'Add media' });  
 
-    // Modal Dialogs
-    errorModal = () => this.page.locator('.errorModal'); 
-    leaveSiteModal = () => this.page.locator('text="Leave site? Changes you made might not be saved."');
+    //Connectivity
+    //USE THESE!!
+    //make variable for texts for hebrew and then do a check if page is hebrew use those, if english then those
+    //didn't end up using these, but they are here for reference
+    // savedIcon = () => this.page.locator('img[alt=saved]');
+    // savingIcon = () => this.page.locator('img[alt=saving]');
+    // connectionLostIcon = () => this.page.locator('img[alt=connectionLost]');
+    // loggedOutIcon = () => this.page.locator('img[alt=userUnauthenticated]'); 
+    savedText = () => this.page.locator('text=Saved');
+    savedTextHebrew = () => this.page.locator('text=נשמר');
+    savingText = () => this.page.locator('text=Saving');
+    savingTextHebrew = () => this.page.locator('text=שומר');
+    loggedOutText = () => this.page.locator('text=User logged out');
+    loggedOutTextHebrew = () => this.page.locator('text=בוצעה התנתקות מהמערכת');
+    tryingToConnectText = () => this.page.locator('text=Trying to connect');
+    tryingToConnectTextHebrew = () => this.page.locator('text=ניסיון התחברות');
+    loginLink= () => this.page.getByRole('link', { name: 'Log in' });
 
-    // Actions
-    async typeInSheet(text: string) {
-        await this.sourceSheetBody().click();
-        await this.sourceSheetBody().fill(text);
+    
+    // Sheet Body---------------------------------------------
+    sourceSheetBody = () => this.page.locator('.sheetContent'); 
+    //editable text area
+    editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
+
+    // Sheet Actions--------------------------------------------------
+
+    async addText(text: string) {
+        await this.focusTextInput(); 
+        await this.page.keyboard.type(text);
+    }
+
+    async clickAddSomething() {
+        await this.addSomethingButton().click();
     }
 
     async clickAddSource() {
+        this.clickAddSomething();
         await this.addSourceButton().click();
     }
 
     async clickAddText() {
-        await this.addTextButton().click();
+        await this.addSomethingButton().click();
     }
 
     async clickAddMedia() {
+        this.clickAddSomething();
         await this.addMediaButton().click();
     }
 
-    async clickAddComment() {
-        await this.addCommentButton().click();
-    }
-
-    async hoverStatus() {
+    async focusTextInput() {
+        await this.page.locator('[data-slate-editor="true"][contenteditable="true"]').click();
+      }
+    async getHoverStatus() {
         await this.statusIndicator().hover();
     }
 
@@ -57,4 +89,226 @@ export class SourceSheetEditorPage {
     async getTooltipText() {
         return await this.statusTooltip().getAttribute('aria-label');
     }
+
+    /*function to add a sample source, but there are issues with locators/differences in element names,
+    so it is currently commented out in the tests*/
+    
+    // async addSampleSource(){
+    //     await this.clickAddSource();
+    //     await this.page.getByRole('textbox', { name: 'Search for a Text or' }).fill('genesis 1:1');
+    //     await this.page.getByRole('button', { name: 'Add Source' }).click();
+    // }
+
+    async addSampleSource() {
+        console.log(await this.page.content());
+        await this.addSomethingButton().scrollIntoViewIfNeeded();
+        await expect(this.addSomethingButton()).toBeVisible();
+        await this.addSomethingButton().first().click({ force: true }); // Use force if anything overlays
+        await this.addSomethingButton().first().click({ force: true }); // Use force if anything overlays
+        await expect(this.addSourceButton()).toBeVisible();
+        //main logic
+        await this.addSourceButton().click();
+        await this.page.getByRole('textbox', { name: 'Search for a Text or' }).fill('genesis 1:1');
+        await this.page.getByRole('button', { name: 'Add Source' }).click();
+      };
+    
+    async sampleSourceNotEditable() {
+        // Locate the most recently added source
+        const sourceBox = this.page.locator('.sourceBox').last();
+        await sourceBox.click();
+        // Find the editable content area within the source
+        const contentEditable = sourceBox.locator('[contenteditable="true"]');
+        // Save original content to compare later
+        const originalText = await contentEditable.innerText();
+        // Try to type dummy text (this won't be added if editing is blocked)
+        await contentEditable.click({ trial: true }).catch(() => {});
+        await this.page.keyboard.type('Dummy text to test editability', { delay: 30 });
+        // Wait briefly for any potential text update
+        // Re-read the content to compare
+        const newText = await contentEditable.innerText();
+        expect(newText).toBe(originalText);
+    }
+
+    async waitForAutosave() {
+        // Wait at least 3 seconds to allow autosave to trigger
+        await this.page.waitForTimeout(3000);
+        // Then wait until the save state shows "Saved"
+        await this.page.waitForFunction(() => {
+          const el = document.querySelector('.editorSaveStateIndicator .saveStateMessage');
+          return el && el.textContent?.trim() === 'Saved';
+        }, null, { timeout: 5000 }); // optional timeout
+      }
+      
+      //Connectivity/Login Functions--------------------------------------------
+      async waitForConnectionState(expectedState: 'online' | 'offline') {
+        const expectedText = expectedState === 'online' ? 'Saved' : 'Trying to Connect';
+      
+        await this.page.waitForFunction(
+          (text) => {
+            const el = document.querySelector('.editorSaveStateIndicator .saveStateMessage');
+            return el && el.textContent?.trim() === text;
+          },
+          expectedText,
+          { timeout: 10000 }
+        );
+      }
+
+    async simulateOfflineMode() {
+        await this.page.context().setOffline(true);
+    }
+
+    async simulateOnlineMode() {
+        await this.page.context().setOffline(false);
+    }
+
+
+    async simulateLogout(context) {
+        const cookies = await context.cookies();
+        const sessionCookie = cookies.find(c => c.name === 'sessionid');
+
+        if (sessionCookie) {
+            this.savedSessionCookie = sessionCookie;
+            // Remove just the sessionid by clearing all and re-adding the rest
+            const otherCookies = cookies.filter(c => c.name !== 'sessionid');
+            await context.clearCookies();
+            await context.addCookies(otherCookies);
+        }
+    }
+
+    async simulateLogin(context) {
+        if (this.savedSessionCookie) {
+        await context.addCookies([this.savedSessionCookie]);
+        }
+    }
+     
+    // Checks whether a DOM element is functionally clickable or editable.
+    async isElementInteractable(el: ElementHandle<HTMLElement>): Promise<{
+        className: string;
+        pointerEvents: string;
+        tabIndex: string | null;
+        ariaDisabled: string | null;
+        clickable: boolean;
+      }> {
+        return await el.evaluate(element => {
+          const style = window.getComputedStyle(element);
+          const pointerEvents = style.pointerEvents;
+          const className = element.className;
+          const tabIndex = element.getAttribute('tabindex');
+          const ariaDisabled = element.getAttribute('aria-disabled');
+          const clickable =
+            pointerEvents !== 'none' &&
+            !element.hasAttribute('disabled') &&
+            ariaDisabled !== 'true';
+      
+          return {
+            className,
+            pointerEvents,
+            tabIndex,
+            ariaDisabled,
+            clickable,
+          };
+        });
+      }
+      
+     async assertSaveStateIndicatorIsOnTop(){
+      const target = this.page.locator('.editorSaveStateIndicator');
+      await expect(target).toBeVisible();
+    
+      const isOnTop = await this.page.evaluate(() => {
+        const target = document.querySelector('.editorSaveStateIndicator');
+        if (!target) return false;
+    
+        const targetRect = target.getBoundingClientRect();
+        const targetZ = parseInt(getComputedStyle(target).zIndex || '0', 10);
+    
+        let overlappingElements: Element[] = [];
+    
+        // Check points within the target's rectangle (e.g. center)
+        const pointsToCheck = [
+          [targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2],
+          [targetRect.left + 1, targetRect.top + 1], // top-left
+          [targetRect.right - 1, targetRect.bottom - 1], // bottom-right
+        ];
+    
+        for (const [x, y] of pointsToCheck) {
+          const el = document.elementFromPoint(x, y);
+          if (el && el !== target && !target.contains(el)) {
+            overlappingElements.push(el);
+          }
+        }
+    
+        for (const el of overlappingElements) {
+          const style = window.getComputedStyle(el);
+          const z = parseInt(style.zIndex || '0', 10);
+          const visible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+          if (visible && z >= targetZ) {
+            console.warn('Overlapping element with higher or equal z-index:', el);
+            return false;
+          }
+        }
+    
+        return true;
+      });
+    
+      expect(isOnTop).toBe(true);
+    };
+    
+      
+      async validateEditingIsBlocked() {
+
+        // 1. Title should not be editable
+         expect(await isClickable(this.title())).toBe(false);
+
+        // 2. Common add buttons should not be interactable
+        const addButtons = [
+          '#addSourceButton',
+          '#addImageButton',
+          '#addMediaButton',
+          '.editorAddLineButton',
+        ];
+      
+        for (const selector of addButtons) {
+          const btn = this.page.locator(selector);
+          if (await btn.count()) {
+            expect(await isClickable(btn)).toBe(false);
+          }
+        }
+      
+        // 3. Plain text editor should not be interactable
+        const textEditor = this.page.locator('[data-slate-editor="true"][contenteditable="true"]');
+        if (await textEditor.count()) {
+          expect(await isClickable(textEditor)).toBe(false);
+        }
+      
+        // 4. Source boxes should not be editable
+        //await this.sampleSourceNotEditable();
+
+      
+        // 5. Drag-and-drop handles should not be interactable
+        const dragHandles = this.page.locator('.segment .sourceDraggable');
+        if (await dragHandles.count()) {
+          const isDraggable = await dragHandles.first().evaluate(el => {
+            const style = window.getComputedStyle(el);
+            return style.pointerEvents !== 'none';
+          });
+          expect(isDraggable).toBe(false);
+        }
+      
+        // 6. Hover formatting menu should not appear
+        const hoverMenu = this.page.locator('.hoverMenu');
+        if (await hoverMenu.count()) {
+        const isVisible = await hoverMenu.evaluate(el => {
+            const style = window.getComputedStyle(el);
+            return style.visibility !== 'hidden' && style.display !== 'none' && style.opacity !== '0';
+        });
+
+        // In blocked state, it should not be both visible and interactive
+        expect(isVisible && await isClickable(hoverMenu)).toBe(false);
+        }
+      }
+
+      
 }
+
+
+

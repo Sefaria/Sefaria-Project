@@ -1,13 +1,15 @@
 import {DEFAULT_LANGUAGE, LANGUAGES, SOURCE_LANGUAGES, testUser} from './globals'
 import {BrowserContext}  from 'playwright-core';
 import type { Page } from 'playwright-core';
+import { expect, Locator } from '@playwright/test';
+
 import { SourceSheetEditorPage } from './pages/sourceSheetEditor.page';
 
 let langCookies: any = [];
 let loginCookies: any = [];
 let currentLocation: string = ''; 
 
-const hideModals = async (page: Page) => {
+export const hideModals = async (page: Page) => {
     await page.waitForLoadState('networkidle');
     await page.evaluate(() => {
         const style = document.createElement('style');
@@ -15,15 +17,66 @@ const hideModals = async (page: Page) => {
         document.head.appendChild(style);
     });
 }
+  
+export const hideTopBanner = async (page: Page) => {
+    await page.evaluate(() => {
+      // Remove the top banner directly
+      const banner = document.querySelector('header.readerControls.fullPanel.sheetReaderControls');
+      if (banner && banner.parentElement) {
+        banner.parentElement.removeChild(banner);
+      }
+      // Also remove its container (if it's wrapping/intercepting events)
+      const outer = document.querySelector('.readerControlsOuter');
+      if (outer && outer.parentElement) {
+        outer.parentElement.removeChild(outer);
+      }
+      // Just in case, remove any z-index overlays or leftover styles
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .readerControlsOuter, header.readerControls.fullPanel.sheetReaderControls {
+          display: none !important;
+          pointer-events: none !important;
+          visibility: hidden !important;
+          z-index: -9999 !important;
+        }
+      `;
+      document.head.appendChild(style);
+    });
+  };
+  
 
-export const changeLanguage = async (page: Page, language: string) => {
+export const changeLanguageLoggedOut = async (page: Page, language: string) => {
     await page.locator('.interfaceLinks-button').click()
     if (language === LANGUAGES.EN) {
-        await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
+        //await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
+        await page.locator('.interfaceLinks-option.int-en').click();
     } else if (language === LANGUAGES.HE) {
-        await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
+        //await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
+        await page.locator('.interfaceLinks-option.int-he').click();
+
     }
 }
+
+export const changeLanguageLoggedIn = async (page: Page, language: string) => {
+    // Open the profile dropdown by clicking the profile icon
+    const profileIcon = page.locator('.myProfileBox .profile-pic');
+    await profileIcon.click();
+  
+    // Wait for the dropdown to appear
+    const menu = page.locator('.interfaceLinks-menu.profile-menu');
+    await expect(menu).toBeVisible();
+  
+    // Select the correct language link
+    const languageLink = language === LANGUAGES.HE
+      ? page.locator('#select-hebrew-interface-link')
+      : page.locator('#select-english-interface-link');
+  
+    await expect(languageLink).toBeVisible();
+    await languageLink.click();
+  };
+  
+  
+  
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
     // If a cookie already has contents, clear it so that the language cookie can be reset
@@ -37,7 +90,7 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     const inIsrael = await isIsraelIp(page)
     if( ( inIsrael && language == LANGUAGES.EN) || 
         ( !inIsrael && language == LANGUAGES.HE)){
-        await changeLanguage(page, language);
+        await changeLanguageLoggedOut(page, language);
     }
 
     langCookies = await context.cookies();
@@ -48,14 +101,26 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
 
 }
 
-export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANGUAGE) => {
-    await page.goto('/login');
-    await changeLanguage(page, language);
+// export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANGUAGE) => {
+//     await page.goto('/login');
+//     await changeLanguage(page, language);
+//     await page.getByPlaceholder('Email Address').fill(user.email ?? '');
+//     await page.getByPlaceholder('Password').fill(user.password ?? '');
+//     await page.getByRole('button', { name: 'Login' }).click();
+//     await page.getByRole('link', { name: 'See My Saved Texts' }).isVisible();
+// }
+
+export const loginUser = async (page: Page, user = testUser, language = DEFAULT_LANGUAGE) => {
+    // Assume we are already on the login page with the correct `?next=` param
+    await changeLanguageLoggedOut(page, language);
     await page.getByPlaceholder('Email Address').fill(user.email ?? '');
     await page.getByPlaceholder('Password').fill(user.password ?? '');
     await page.getByRole('button', { name: 'Login' }).click();
-    await page.getByRole('link', { name: 'See My Saved Texts' }).isVisible();
-}
+  
+    // Wait for navigation to complete — ideally back to the previous page
+    await page.waitForLoadState('networkidle');
+  };
+  
 
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser) => {
@@ -125,3 +190,32 @@ export const isIsraelIp = async (page: Page) => {
     }
     return currentLocation === "IL";
 }
+
+
+/**
+ * Checks whether an element is visible, has pointer events,
+ * and is not obscured by another element.
+ */
+export const isClickable = async (locator: Locator): Promise<boolean> => {
+  try {
+    // Check visibility
+    const visible = await locator.isVisible();
+    if (!visible) return false;
+
+    // Check computed style: pointer-events
+    const pointerEvents = await locator.evaluate(el =>
+      window.getComputedStyle(el).pointerEvents
+    );
+    if (pointerEvents === 'none') return false;
+
+    // Check if the element could be clicked (no overlays etc.)
+    await locator.click({ trial: true });
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+
+

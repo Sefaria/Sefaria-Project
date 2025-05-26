@@ -1,369 +1,291 @@
-//login
-//page works as expected
-//links on hover/click work
-//back key navigates as expected
-//accessibility?
-
-import {test, expect, Page, BrowserContext} from '@playwright/test';
-import {loginUser, goToPageWithLang, goToPageWithUser, goToSourceSheetEditorWithUser} from "../utils";
+import { test, expect } from '@playwright/test';
 import { SourceSheetEditorPage } from '../pages/sourceSheetEditor.page';
+import { LoginPage } from '../pages/loginPage';
+import {goToPageWithUser, loginUser, hideModals, isClickable, hideTopBanner, changeLanguageLoggedOut, changeLanguageLoggedIn} from "../utils";
+import { LANGUAGES, testUser } from '../globals';
 
-test.describe('generic tests for look and feel/accessibility', () => {
-    test('links hover/click work in editor toolbar', async ({ browser }) => {});
+
+const TEST_URL = 'https://save-editor.cauldron.sefaria.org';
+//const TEST_URL = 'http://2415.coolifydev.sefaria.org';
+
+
+test.describe('Source Sheet Editor - Autosave and Session Status', () => {
+  
+  test.beforeEach(async ({ page }) => {
+    const loginPage = new LoginPage(page, LANGUAGES.EN);
+    await page.goto(`${TEST_URL}/login`);
+    await loginPage.ensureLanguage(LANGUAGES.EN);  // Switch to English
+    await loginPage.loginAs(testUser.email ?? '', testUser.password ?? '');
+    await hideModals(page);
+    // Now navigate to Source Sheet Editor
+    await page.goto(`${TEST_URL}/sheets/new`, { waitUntil: 'domcontentloaded' });
+    await changeLanguageLoggedIn(page, LANGUAGES.EN);
+  });
+
+  test('User actively typing, then gets logged out', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+    //await editor.addSampleSource(); //had problem with adding sources/media because of naming conflicts
+    await editor.focusTextInput(); 
+      // Begin typing but pause before autosave could kick in
+      await page.keyboard.type('Testing logout with unsaved changes', { delay: 100 });
+      await hideModals(page);
+      await hideTopBanner(page); //currently does not work without this
+      // Immediately simulate logout
+      await editor.simulateLogout(page.context());
+      // Wait until the logout state is visible in the UI
+      await expect(editor.statusMessage()).toHaveText(/User Logged out/i, { timeout: 10000 }); //used to say status indicator
+      // Optionally hover to simulate interaction
+      await editor.statusIndicator().hover();
+      // Check the `title` attribute
+      await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'You are not logged in to Sefaria');
+      //await expect(editor.getTooltipText()).toContain('You are not logged in to Sefaria');
+      await editor.assertSaveStateIndicatorIsOnTop();
+      // Confirm editing is now blocked
+      await editor.validateEditingIsBlocked();    
+  });
     
-    test('back key navigates as expected', async ({ browser }) => {});
-    
-    test('accessibility tests', async ({ browser }) => {});
+  test('User idle before logout, no unsaved changes', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+    //await editor.addSampleSource();
+    await editor.addText('Saved text');
+    //await editor.addText('Testing logout with no unsaved changes');
+    await editor.waitForAutosave();
+     // Close popup if it appears
+    await hideModals(page);
+    await hideTopBanner(page); //currently does not work without this
+    await page.waitForTimeout(500);
+    // Simulate logout
+    await editor.simulateLogout(page.context());
+    await hideModals(page);
+    //trigger logout detection
+    await editor.addText('trigger logout detection');
+    await page.waitForTimeout(500);
+    //status inicator checks
+    await editor.assertSaveStateIndicatorIsOnTop();
+    await expect(editor.statusMessage()).toHaveText(/User Logged out/i, { timeout: 10000 });
+    await editor.statusIndicator().hover();
+    //check tooltip
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'You are not logged in to Sefaria');
+    // Confirm editing is now blocked
+    await editor.validateEditingIsBlocked();
+  });
+  
+  
+
+  test('User logs back (restore cookie) in and resumes editing', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+    await editor.addText('text before logout');
+    await editor.waitForAutosave();
+    await hideTopBanner(page); //currently does not work without this
+    await page.reload();
+    //simulate logout
+    const originalValue = await editor.simulateLogout(page.context());
+    await page.waitForTimeout(500);
+    if (originalValue === null) {
+        throw new Error("originalValue cannot be null");
+    }
+    //simulate login
+    await editor.simulateLogin(page.context());
+    await page.reload();
+    //status indicator checks
+    await expect(editor.statusMessage()).toHaveText(/saved|saving/i); //used to say status indicator
+    await editor.statusIndicator().hover();
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'Your sheet is saved to Sefaria');
+    await editor.assertSaveStateIndicatorIsOnTop();
+    // Check that the editor is enabled
+    await expect(editor.sourceSheetBody()).toBeEnabled();
+    await editor.addText('Text after login');
+  });
+
+  test('User logs back (clicks login from the navbar) in and resumes editing', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+    await editor.addText('text before logout');
+    await hideTopBanner(page); //currently does not work without this
+    await editor.waitForAutosave();
+    //simulate logout
+    const originalValue = await editor.simulateLogout(page.context());
+    await page.waitForTimeout(500);
+    if (originalValue === null) {
+        throw new Error("originalValue cannot be null");
+    }
+    await editor.addText('trigger logout detection');
+    await page.waitForTimeout(500);
+    await page.reload();
+    //login through link in the navbar
+    await editor.loginLink().click();
+    await loginUser(page);
+    //check status indicator
+    await expect(editor.statusMessage()).toHaveText(/saved|saving/i); //used to say status indicator
+    await editor.statusIndicator().hover();
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'Your sheet is saved to Sefaria');
+    await editor.assertSaveStateIndicatorIsOnTop();
+    //validate that the editor is enabled
+    await expect(editor.sourceSheetBody()).toBeEnabled();
+    await editor.addText('Text after login');
+  });
+
+  test('User logs back (clicks login from the tooltip) in and resumes editing', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+    await editor.addText('text before logout');
+    await hideTopBanner(page); //currently does not work without this
+    await editor.waitForAutosave();
+    //simulate logout
+    const originalValue = await editor.simulateLogout(page.context());
+    await page.waitForTimeout(500);
+    if (originalValue === null) {
+        throw new Error("originalValue cannot be null");
+    }
+    await editor.addText('trigger logout detection');
+    await hideTopBanner(page); 
+    await page.waitForTimeout(500);
+    await hideTopBanner(page);
+    await editor.loginLink().click();
+    await loginUser(page);
+    //await page.reload();
+    await expect(editor.statusMessage()).toHaveText(/saved|saving/i); //used to say status indicator
+    await editor.statusIndicator().hover();
+    // Check the `title` attribute
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'Your sheet is saved to Sefaria');
+    await editor.assertSaveStateIndicatorIsOnTop();
+    await expect(editor.sourceSheetBody()).toBeEnabled();
+    await editor.addText('text after login');
+
+  });
+
+  test('Connectivity lost while entering text', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+    await hideTopBanner(page); //currently does not work without this
+    await editor.addText('Testing connection loss');
+    //await page.route('**/*', route => route.abort()); // Simulate offline
+    await editor.simulateOfflineMode();
+    await editor.addText('trigger connection loss');
+    await page.waitForTimeout(500);
+    await expect(editor.statusMessage()).toHaveText(/Trying to connect/); //used to say status indicator
+    await editor.statusIndicator().hover();
+    // Check the `title` attribute
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'No internet connection detected');
+    await editor.validateEditingIsBlocked();
+    //await expect(editor.sourceSheetBody()).toBeDisabled();
+  });
+
+  test('Connectivity restored after being lost', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+    await editor.addText('Testing connection recovery');
+    await hideTopBanner(page); //currently does not work without this
+
+    //await page.route('**/*', route => route.abort());
+    editor.simulateOfflineMode();
+    await editor.addText('trigger connection loss');
+    await page.waitForTimeout(500);
+    await expect(editor.statusMessage()).toHaveText(/Trying to connect/); //used to say status indicator
+    await editor.statusIndicator().hover();
+    // Check the `title` attribute
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'No internet connection detected');
+    await editor.simulateOnlineMode();
+    await page.waitForTimeout(2000);
+    await editor.waitForConnectionState('online');
+    await expect(editor.statusMessage()).toHaveText(/saved|saving/i);
+    await editor.statusIndicator().hover();
+    // Check the `title` attribute
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'Your sheet is saved to Sefaria');
+    await editor.assertSaveStateIndicatorIsOnTop();
+    await expect(editor.sourceSheetBody()).toBeEnabled();
+  });
+
+ 
+  test('unsaved changes trigger beforeunload prompt on any exit action', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+    await editor.focusTextInput();
+  
+    await Promise.all([
+      // Start typing slowly
+      (async () => {
+        await page.keyboard.type('Trying to leave before saving finishes', { delay: 100 });
+      })(),
+      // Attempt to exit after a short delay
+      (async () => {
+        await page.waitForTimeout(1000); // Exit mid-typing
+        const promptTriggered = await page.evaluate(() => {
+          const e = new Event('beforeunload', { cancelable: true });
+          return !window.dispatchEvent(e); // false means prompt would appear
+        });
+        expect(promptTriggered).toBe(true);
+      })()
+    ]);
+  });
+  
+  test('Blocked state on unknown error (Catch-All Save Failure)', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+    await hideTopBanner(page); // Hide ASAP
+    await editor.addText('Trigger unknown error');
+    // Trigger catch-all error
+    await page.evaluate(() => {
+      (window as any).Sefaria.testUnkownNewEditorSaveError = true;
+    });
+    await page.waitForTimeout(20000); 
+    //await hideTopBanner(page); // Re-hide in case it reappeared
+    // Confirm autosave attempted
+    //await editor.assertSaveStateIndicatorIsOnTop();
+    //await expect(editor.statusMessage()).toHaveText(/saving/i, { timeout: 5000 });
+    //await hideTopBanner(page); 
+    // Wait for catch-all error message
+    await expect(editor.statusMessage()).toHaveText(/Something went wrong. Try refreshing the page/i, { timeout: 20000,});
+    // Hover and check tooltip
+    await editor.statusIndicator().hover();
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'If this problem persists, contact us at hello@sefaria.org');
+    // Confirm editing is now blocked
+    await editor.validateEditingIsBlocked();
+    // Leaving page should now trigger alert
+    const promptTriggered = await page.evaluate(() => {
+      const e = new Event('beforeunload', { cancelable: true });
+      return !window.dispatchEvent(e);
+    });
+    expect(promptTriggered).toBe(true);
+  });
+
+  test('Save state indicators work in Hebrew', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+    await hideTopBanner(page); //currently does not work without this
+    await changeLanguageLoggedIn(page, LANGUAGES.HE);
+    await editor.addText('test saving saved hebrew');
+    await editor.assertSaveStateIndicatorIsOnTop();
+    await expect(editor.statusMessage()).toHaveText(/נשמר|שומר/i);
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label','כעת מתבצעת שמירת השינויים שלך בספריא', { timeout: 2000 });
+   // await editor.waitForAutosave();
+    await expect(editor.statusMessage()).toHaveText(/נשמר/i); 
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'דף המקורות שלך שמור בספריא');
+    await hideTopBanner(page); //currently does not work without this
+    await page.reload();
+    //simulate logout
+    // const originalValue = await editor.simulateLogout(page.context());
+    // await page.waitForTimeout(500);
+    // if (originalValue === null) {
+    //     throw new Error("originalValue cannot be null");
+    // }
+    await editor.simulateLogout(page.context());
+    await editor.addText('trigger logout');
+    await page.waitForTimeout(500);
+    await expect(editor.statusMessage()).toHaveText(/בוצעה התנתקות מהמערכת/i);
+    //simulate login
+    await editor.simulateLogin(page.context());
+    await page.reload();
+    // Simulate connection loss
+    await editor.simulateOfflineMode();
+    await editor.addText('Trigger connection loss');
+    await expect(editor.statusMessage()).toHaveText(/ניסיון התחברות/i);
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'לא זוהה חיבור לאינטרנט');
+    await editor.simulateOnlineMode();
+    await page.reload();
+     // Trigger catch-all error
+     await editor.addText('Trigger unknown error');
+     await page.evaluate(() => {
+      (window as any).Sefaria.testUnkownNewEditorSaveError = true;
+    });
+    await page.waitForTimeout(20000); 
+    await expect(editor.statusMessage()).toHaveText(/משהו השתבש. יש לנסות לרענן את העמוד/i), { timeout: 20000,};
+    await expect(editor.statusIndicator()).toHaveAttribute('aria-label', 'אם הבעיה נמשכת, נסו שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org');
+  });
+  
+  
+
 });
-
-
-test.describe('Source Sheet Autosave Feature Tests', () => {
-    let page: Page;
-    let editor: SourceSheetEditorPage;
-    let context: BrowserContext;
-
-    //before each test, login and go to the source sheet editor
-    test.beforeEach(async ({ browser }) => {
-        context = await browser.newContext();
-        page = await goToSourceSheetEditorWithUser(context, '/sheets/new');
-        editor = new SourceSheetEditorPage(page);
-    });
-
-    test('user logged out while typing with unsaved changes', async ({ browser }) => {
-        //type new content
-        await editor.typeInSheet('this is a test');
-        //simulate logout
-        await context.clearCookies();
-        await page.reload();
-        //validate user is logged out
-        await expect(editor.getStatusText()).resolves.toContain('Logged Out');
-        //try typing again
-        await expect(editor.sourceSheetBody().isDisabled()).resolves.toBeTruthy();
-
-    });
-
-    test('user logged out while typing without unsaved changes', async ({ browser }) => {
-        //simulate logout
-        await context.clearCookies();
-        await page.reload();
-        //validate user is logged out
-        await expect(editor.getStatusText()).resolves.toContain('Logged Out');
-        //try typing again
-        await expect(editor.sourceSheetBody().isDisabled()).resolves.toBeTruthy();
-    });
-
-    test('user logged in after logout with unsaved changes', async ({ browser }) => {
-        //type new content
-        await editor.typeInSheet('this is test before logout');
-        //simulate logout
-        await context.clearCookies();
-        await page.reload();
-        //validate user is logged out
-        await expect(editor.getStatusText()).resolves.toContain('Logged Out');
-        //simulate login
-        await loginUser(page);
-        await page.reload();
-        //validate user is logged in
-        const statusText = await editor.getStatusText();
-        expect(['Saved', 'Saving']).toContain(statusText);
-        //validate tooltip says correct message
-        await editor.hoverStatus();
-        const tooltipText = await editor.getTooltipText();
-        expect(['Your sheet is saved to Sefaria', 'Your sheet is saving to Sefaria']).toContain(tooltipText);
-        //try typing/making changes again
-        await editor.typeInSheet('this is test after re-login');
-        await expect(editor.sourceSheetBody().isEnabled()).resolves.toBeTruthy();
-    });
-
-    test('user logged in after logout without unsaved changes', async ({ browser }) => {
-        //simulate logout
-        await context.clearCookies();
-        await page.reload();
-        //validate user is logged out
-        await expect(editor.getStatusText()).resolves.toContain('Logged Out');
-        //simulate login
-        await loginUser(page);
-        await page.reload();
-        //validate user is logged in
-        await expect(editor.getStatusText()).resolves.toContain('Saved');
-        //validate tooltip says correct message
-        await editor.hoverStatus();
-        expect(await editor.getTooltipText()).toBe('Your sheet is saved to Sefaria');
-        //try typing/making changes again
-        await editor.typeInSheet('this is test after re-login');
-        await expect(editor.sourceSheetBody().isEnabled()).resolves.toBeTruthy();
-
-    });
-
-    test('connectivity lost when user clicks source/text/media/comment buttons', async ({ browser }) => {
-        //simulate connectivity loss
-        await context.setOffline(true);
-        await page.waitForTimeout(3000);
-        //click on source button
-        await editor.clickAddSource();
-        //expect error modal
-        await expect(editor.errorModal().isVisible()).resolves.toBeTruthy();
-        //click on text button
-        await editor.clickAddText();
-        //expect error modal
-        await expect(editor.errorModal().isVisible()).resolves.toBeTruthy();
-        //click on media button
-        await editor.clickAddMedia();
-        //expect error modal
-        await expect(editor.errorModal().isVisible()).resolves.toBeTruthy();
-        //click on comment button
-        await editor.clickAddComment();
-        //expect error modal
-        await expect(editor.errorModal().isVisible()).resolves.toBeTruthy();
-        //validate tooltip says correct message
-        await editor.hoverStatus();
-        const tooltipText = await editor.getTooltipText();
-        expect(tooltipText).toBe('Trying to connect');
-        //validate editing is disabled
-        await expect(editor.sourceSheetBody().isDisabled()).resolves.toBeTruthy();
-    });
-
-    test('user dismisses error modal and tries again while offline', async ({ browser }) => {
-        //simulate connectivity loss
-        await context.setOffline(true);
-        await page.waitForTimeout(3000);
-        //click on source button
-        await editor.clickAddSource();
-        //expect error modal
-        await expect(editor.errorModal().isVisible()).resolves.toBeTruthy();
-        //dismiss error modal
-        await editor.errorModal().getByRole('button', { name: 'OK' }).click();
-        //click on source button again
-        await editor.clickAddSource();
-        //expect error modal
-        await expect(editor.errorModal().isVisible()).resolves.toBeTruthy();
-    });
-    
-    test('connectivity lost while typing with unsaved changes', async ({ browser }) => {
-        //type new content
-        await editor.typeInSheet('this is a test');
-        //simulate connectivity loss
-        await context.setOffline(true);
-        await page.waitForTimeout(3000);
-        //expect error/trying to connect modal
-        await expect(editor.getStatusText()).resolves.toContain('Trying to Connect');
-        await expect(editor.errorModal().isVisible()).resolves.toBeTruthy();
-        //validate tooltip says correct message
-        await editor.hoverStatus();
-        const tooltipText = await editor.getTooltipText();
-        expect(tooltipText).toBe('Trying to connect');
-        //validate editing is disabled
-        await expect(editor.sourceSheetBody().isDisabled()).resolves.toBeTruthy();
-    });
-    
-    //very similar to above test
-    test('connectivity lost while typing without unsaved changes', async ({ browser }) => {
-        //simulate connectivity loss
-        await context.setOffline(true);
-        await page.waitForTimeout(3000);
-        //expect error/trying to connect modal
-        await expect(editor.getStatusText()).resolves.toContain('Trying to Connect');
-        await expect(editor.errorModal().isVisible()).resolves.toBeTruthy();
-        //validate tooltip says correct message
-        await editor.hoverStatus();
-        const tooltipText = await editor.getTooltipText();
-        expect(tooltipText).toBe('Trying to connect');
-        //validate editing is disabled
-        await expect(editor.sourceSheetBody().isDisabled()).resolves.toBeTruthy();
-    });
-
-    test('connectivity restored while typing with unsaved changes', async ({ browser }) => {
-        //type new content
-        await editor.typeInSheet('this is a test');
-        //simulate connectivity loss
-        await context.setOffline(true);
-        await page.waitForTimeout(3000);
-        //simulate reconnect
-        await context.setOffline(false);
-        //validate state is saving or saved
-        const statusText = await editor.getStatusText();
-        expect(['Saved', 'Saving']).toContain(statusText);
-        //validate correct tooltip
-        await editor.hoverStatus();
-        const tooltipText = await editor.getTooltipText();
-        expect(['Your sheet is saved to Sefaria', 'Your sheet is saving to Sefaria']).toContain(tooltipText);
-        //try typing/making changes again
-        //validate user changes no longer blocked
-        await editor.typeInSheet('this is test after reconnect');
-        await expect(editor.sourceSheetBody().isEnabled()).resolves.toBeTruthy();
-        //validate user is returned to same page
-        const currentUrl = page.url();
-        expect(currentUrl).toContain('/sheets/new');
-    });
-
-    test('connectivity restored while typing without unsaved changes', async ({ browser }) => {
-        //simulate connectivity loss
-        await context.setOffline(true);
-        await page.waitForTimeout(3000);
-        //simulate reconnect
-        await context.setOffline(false);
-        //validate state is saved
-        await expect(editor.getStatusText()).resolves.toContain('Saved');
-        //validate correct tooltip
-        await editor.hoverStatus();
-        expect(await editor.getTooltipText()).toBe('Your sheet is saved to Sefaria');
-        //try typing/making changes again
-        //validate user changes no longer blocked
-        await editor.typeInSheet('this is test after reconnect');
-        await expect(editor.sourceSheetBody().isEnabled()).resolves.toBeTruthy();
-    });
-
-    test('user attempts to close window/tab with unsaved changes', async ({ browser }) => {
-        //type new content
-        await editor.typeInSheet('this is a test');
-        //simulate closing window/tab
-        await page.close();
-        //expect leave site modal
-        await expect(editor.leaveSiteModal().isVisible()).resolves.toBeTruthy();
-        //dismiss leave site modal
-        await editor.leaveSiteModal().getByRole('button', { name: 'Leave' }).click();
-        //expect user is logged out
-        await expect(editor.getStatusText()).resolves.toContain('Logged Out');
-    });
-
-    test('status indicator appears in correct location', async ({ browser }) => {
-        //check for status indicator in top left corner for English
-        const statusIndicator = editor.statusIndicator();
-        await expect(statusIndicator).toBeVisible();
-        const statusIndicatorPosition = await statusIndicator.boundingBox();
-        expect(statusIndicatorPosition).toEqual({ x: 0, y: 0 });
-        
-        //check for status indicator in top right corner for Hebrew
-        await context.addCookies([{ name: 'sefaria_lang', value: 'he' }]);
-        await page.reload();
-        const statusIndicatorHebrew = editor.statusIndicator();
-        await expect(statusIndicatorHebrew).toBeVisible();
-        const statusIndicatorPositionHebrew = await statusIndicatorHebrew.boundingBox();
-        expect(statusIndicatorPositionHebrew).toEqual({ x: 0, y: 0 });
-        //check for status indicator stays "frozen" on the screen as you scroll
-        await page.evaluate(() => {
-            window.scrollTo(0, 1000);
-        }
-        );
-        const statusIndicatorPositionAfterScroll = await statusIndicator.boundingBox();
-        expect(statusIndicatorPositionAfterScroll).toEqual(statusIndicatorPosition);
-    });
-    
-    //should this be split into individual tests for each of the states to test the triggers?
-    test('status indicator shows correct text and icon', async ({ browser }) => {
-        //check for status indicator text and icon
-        const statusText = await editor.getStatusText();
-        expect(statusText).toBe('Saved');
-        const statusIcon = await editor.statusIndicator().getAttribute('src');
-        expect(statusIcon).toContain('saved-icon.png');
-        
-        //check for status indicator text and icon while saving
-        await editor.typeInSheet('this is a test');
-        const statusTextSaving = await editor.getStatusText();
-        expect(statusTextSaving).toBe('Saving');
-        const statusIconSaving = await editor.statusIndicator().getAttribute('src');
-        expect(statusIconSaving).toContain('saving-icon.png');
-        //check for status indicator text and icon while trying to connect
-        await context.setOffline(true);
-        await page.waitForTimeout(3000);
-        const statusTextTryingToConnect = await editor.getStatusText();
-        expect(statusTextTryingToConnect).toBe('Trying to Connect');
-        const statusIconTryingToConnect = await editor.statusIndicator().getAttribute('src');
-        expect(statusIconTryingToConnect).toContain('trying-to-connect-icon.png');
-        //check for status indicator text and icon while logged out
-        await context.clearCookies();
-        await page.reload();
-        const statusTextLoggedOut = await editor.getStatusText();
-        expect(statusTextLoggedOut).toBe('Logged Out');
-        const statusIconLoggedOut = await editor.statusIndicator().getAttribute('src'); 
-        expect(statusIconLoggedOut).toContain('logged-out-icon.png');
-    });
-
-    test('detection of lack of connection', async ({ browser }) => {});
-
-    test('detection of return of internet connection', async ({ browser }) => {});
-});
-
-
-
-//specific for this feature:
-
-//test user gets logged out while creating new/editing existing sheet
-
-//-when there is unsaved text (user has been actively entering text)
-//what should happen: block all user changes, show message/icon "you are logged out", sheet read-only until login
-
-//--when there is no unsaved text (user has not been actively entering text for longer than automatic save period)
-//what should happen: block all user changes, show message/icon "you are logged out", sheet read-only until login
-
-
-
-//test user is logged in after being logged out while creating/editing
-
-//-when there is unsaved text (user has been actively entering text)
-//message/icon reverts back to saved or saving; tooltip: your sheet is saved in Sefaria
-//user changes no longer blocked; user returned to same page that they were on when logged out
-
-//when there is no unsaved text (user has not been actively entering text for longer than automatic save period)
-//message/icon reverts back to saved or saving; tooltip: your sheet is saved in Sefaria
-//user changes no longer blocked; user returned to same page that they were on when logged out
-
-
-
-//test connectivity lost while creating/editing sheet
-
-//-no connectivity when user clicks source, text, media or comment buttons and then attempts to enter text
-//expected: Modal with text "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved."
-
-//user dismisses "error has occurred" modal and tries second time while no connectivity
-//expected: Modal with text "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved."
-
-//user has been actively entering text- unsaved text
-//expected: block all user changes, show message/icon "trying to connect", sheet read-only until reconnected
-
-//user has not been actively entering text for longer than automatic save period- no unsaved text
-//expected: block all user changes, show message/icon "trying to connect", sheet read-only until reconnected
-
-
-
-//test connectivity restored while creating/editing sheet
-
-//-when there is unsaved text (user has been actively entering text)
-//message/icon reverts back to saved or saving; tooltip: your sheet is saved in Sefaria
-//user changes no longer blocked; user returned to same page that they were on when connectivity was lost
-
-//-when there is no unsaved text (user has not been actively entering text for longer than automatic save period)
-//message/icon reverts back to saved; tooltip: your sheet is saved in Sefaria; user changes no longer blocked
-
-
-
-//test user attempts to close window/tab while not in saved state
-//-when there is unsaved text (user has been actively entering text)
-//expected: Modal with text "Leave site? Changes you made might not be saved."
-
-
-
-//test statuses/states
-//all states: 
-// Appear in top left corner for English, Appear in top right corner for Hebrew, Stay "frozen" on the screen as you scroll
-
-//saved: 
-//Triggers: Opening new/existing file; 3 seconds after user inactivity, reconnection to internet, return from authentication; 
-// In top left, State (message and icon) Saved, Tooltip: Your sheet is saved in Sefaria; User changes not blocked (enable typing, buttons, etc.)"
-
-//saving:
-//Triggers: User types, pastes, or edits; every 2 seconds during activity
-// In top left, State (message and icon) ""Saving""
-//Tooltip?; User changes not blocked (enable typing, buttons, etc.)"
-
-//trying to connect: 
-//triggers: loss of connectivity detected while autosaving
-//Block all user changes (disable typing, buttons, etc.)
-//In top left, show message/icon: “Trying to Connect” / Login link; Tooltip?; Reconnect attempted every 3 seconds Is this accurate?"
-
-//logged out: 
-//triger: authentication lost (checked every 3 seconds)
-//block all user changes; show message/icon: "You are logged out"; tooltip? ; remains like this until login occurs
-
-//test detection of lack of connection
-//test detection of return of internet connection
