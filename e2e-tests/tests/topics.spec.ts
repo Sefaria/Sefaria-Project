@@ -5,13 +5,13 @@ import {LANGUAGES, testAdminUser} from "../globals";
 
 test('Go to topic page', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics');
-  await page.getByRole('link', { name: 'Jewish Calendar' }).click();
+  await page.getByRole('link', { name: 'Jewish Calendar', exact: true }).click();
   await page.getByRole('link', { name: 'Rosh Hashanah' }).first().isVisible();
 });
 
 test('Check source', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics');
-  await page.getByRole('link', { name: 'Jewish Calendar' }).click();
+  await page.getByRole('link', { name: 'Jewish Calendar', exact: true }).click();
   await page.getByRole('link', { name: 'Shabbat' }).first().click();
   await page.getByRole('link', { name: 'Notable Sources' }).first().isVisible();
   await page.getByRole('link', { name: 'All Sources' }).first().isVisible();
@@ -19,7 +19,7 @@ test('Check source', async ({ context }) => {
 
 test('Check admin tab', async ({ context }) => {
   const page = await goToPageWithUser(context, '/topics', testAdminUser);
-  await page.getByRole('link', { name: 'Jewish Calendar' }).click();
+  await page.getByRole('link', { name: 'Jewish Calendar', exact: true }).click();
   await page.getByRole('link', { name: 'Shabbat' }).first().click();
   await page.getByRole('link', { name: 'Notable Sources' }).first().isVisible();
   await page.getByRole('link', { name: 'All Sources' }).first().isVisible();

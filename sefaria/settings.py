@@ -133,6 +133,7 @@ ROOT_URLCONF = 'sefaria.urls'
 WSGI_APPLICATION = 'sefaria.wsgi.application'
 
 INSTALLED_APPS = (
+    'adminsortable',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -308,7 +309,8 @@ try:
         from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
-
+if os.getenv("COOLIFY"):
+    from sefaria.local_settings_coolify import *
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 WEBPACK_LOADER = {

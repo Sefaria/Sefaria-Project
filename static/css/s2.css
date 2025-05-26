@@ -395,18 +395,22 @@ body.hasBannerMessage #s2.headerOnly {
 .interface-hebrew #bannerMessage {
   direction: rtl;
 }
+.genericBanner #bannerMessageClose {
+  font-size: 40px;
+  opacity: revert;
+  inset-inline-end: 60px;
+  top: revert;
+  border: none;
+  background: none;
+}
 #bannerMessageClose {
   position: absolute;
   top: -3px;
-  right: 7px;
+  inset-inline-end: 7px;
   color: white;
   opacity: 0.5;
   font-size: 26px;
   cursor: pointer;
-}
-.interface-hebrew #bannerMessageClose {
-  right: auto;
-  left: 7px;
 }
 #bannerMessageContent {
   display: flex;
@@ -1698,6 +1702,14 @@ div.interfaceLinks-row a {
     flex-direction: column;
   }
 }
+@media (max-width: 920px) {
+  .topicLandingPanel .sidebarLayout {
+    flex-direction: column;
+  }
+  .topicLandingPanel .navSidebar {
+    margin-top: -40px;
+  }
+}
 @media (min-width: 1485px) {
   .sidebarLayout {
     max-width: 1485px; /*assuming inner is 665 and sidebar 420*/
@@ -2531,7 +2543,7 @@ div.interfaceLinks-row a {
     padding-left: 0;
     padding-right: 0;
 }
-@media (max-width: 600px) {
+@media (max-width: 540px) {
   .imageWithCaptionPhoto{
     height: auto;
     max-width: 66.67vw;
@@ -4897,23 +4909,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 843px;
 }
 h1.topic-landing-header {
-  font-size: 40px;
+  font-size: 32px;
   color: var(--dark-grey);
   margin: 0;
 }
 .singlePanel h1.topic-landing-header{
-  font-size: 22px;
+  font-size: 30px;
+  font-weight: 600;
 }
 
 .topic-landing-page-content .topic-landing-section {
-  margin-top: 70px;
+  margin-top: 60px;
   width: 100%;
 }
 .singlePanel .topic-landing-page-content .topic-landing-section.first-section {
   margin-top: 18px;
 }
 .singlePanel .topic-landing-page-content .topic-landing-section.following-search-section {
-  margin-top: 18px;
+  margin-top: 36px;
 }
 
 .interface-hebrew .topic-landing-page-wrapper{
@@ -5028,7 +5041,7 @@ h1.topic-landing-header {
 }
 .topic-landing-search-container .readerNavMenuSearchButton{
   top: 6px;
-  padding-inline-start: 11px;
+  padding-inline-start: 16px;
 }
 .explore-all-topics-prompt{
   display: none;
@@ -5047,6 +5060,9 @@ h1.topic-landing-header {
 .featuredTopic {
   display: flex;
   flex-direction: column;
+}
+.singlePanel .featuredTopicHeader{
+  font-size: 22px;
 }
 .singlePanel .featuredTopicContent {
   display: flex;
@@ -5098,7 +5114,6 @@ h1.topic-landing-header {
 }
 .featuredTopic h1 {
   font-size: var(--sans-serif-h2-font-size);
-  border-bottom: 1px solid #ccc;
   width: fit-content;
   padding-bottom: 10px;
 }
@@ -5106,13 +5121,17 @@ h1.topic-landing-header {
   background-color: var(--sefaria-blue);
   display: flex;
   flex-direction: row;
-  padding: 36px 74px;
+  padding: 36px 65px;
   justify-content: space-between;
+  align-items: center;
+}
+.interface-hebrew .topic-landing-newsletter{
+  padding: 36px 46px;
 }
 .singlePanel .topic-landing-newsletter {
-  padding: 36px 36px;
+  padding: 36px 31px;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
 }
 .topic-landing-newsletter .topic-landing-newsletter-input-row {
   display: flex;
@@ -5120,9 +5139,22 @@ h1.topic-landing-header {
   justify-content: space-between;
   align-items: center;
 }
+.topic-landing-newsletter-input-row input,
+.topic-landing-newsletter-input-row button {
+  /*height: 48px; !* Adjust as needed *!*/
+  /*padding: 10px; !* Optional for better spacing *!*/
+  /*line-height: 30px;*/
+}
+.singlePanel .topic-landing-newsletter-input-row input{
+  font-size: 18px;
+}
+.singlePanel .topic-landing-newsletter-input-row button{
+  font-size: 18px;
+  height: 31px;
+}
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row{
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
 }
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-wrapper {
   display: flex;
@@ -5146,9 +5178,6 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row button {
-  width: 100%;
-}
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input,
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row button {
   margin-bottom: 20px;
@@ -5162,9 +5191,6 @@ h1.topic-landing-header {
 }
 .singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input:first-child {
   margin-inline-end: 0px;
-}
-.singlePanel .topic-landing-newsletter .topic-landing-newsletter-input-row input {
-  width: 90%;
 }
 
 .topic-landing-newsletter .topic-landing-newsletter-input-row .subscribeMessage {
@@ -5186,7 +5212,7 @@ h1.topic-landing-header {
 }
 
 .topic-landing-newsletter h3.topic-landing-newsletter-text {
-  width: 220px;
+  width: 256px;
   color: white;
   margin: 0;
   font-size: 22px;
@@ -5194,15 +5220,18 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.interface-hebrew .topic-landing-newsletter h3.topic-landing-newsletter-text{
+  width: 300px;
+}
 .singlePanel .topic-landing-newsletter h3.topic-landing-newsletter-text {
   margin-bottom: 20px;
 }
 .topic-landing-upper-rainbow{
-  margin-bottom: 43px;
+  margin-bottom: 15px;
   z-index: 0;
 }
 .topic-landing-lower-rainbow{
-  margin-top: 43px;
+  margin-top: 15px;
   z-index: 0;
 }
 .singlePanel .topic-landing-upper-rainbow{
@@ -5247,10 +5276,12 @@ h1.topic-landing-header {
   text-underline-position: from-font;
   text-decoration-skip-ink: none;
 }
+
 .topic-salad-item{
   margin: 11px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  line-height: 40px;
 }
 .rowed-salad-item-container{
   border-radius: 6px;
@@ -5263,20 +5294,17 @@ h1.topic-landing-header {
 .no-wrapping-salad-item-container{
   white-space: nowrap;
 }
+.no-wrapping-salad-item-container.has-bullet::after {
+  content: '•';
+  margin-inline-start: 0.2em; /* space bullet away from text */
+}
 .topic-landing-temporal{
   display: flex;
-  margin-top: 30px;
 }
 .singlePanel .topic-landing-temporal {
   flex-direction: column;
 }
 
-.topic-landing-parasha{
-
-}
-.topic-landing-seasonal{
-
-}
 .topic-landing-parasha .browse-all-parashot-prompt{
   color: var(--Commentary-Blue, #4B71B7);
   margin-top: 14px
@@ -5296,11 +5324,19 @@ h1.topic-landing-header {
 .topic-landing-temporal > .topic-landing-seasonal {
     padding-inline-start: 67px;
     flex: 1;
+    position: relative;
+}
+.topic-landing-temporal > .topic-landing-seasonal .cardDescription {
+  display: -webkit-box;
+  -webkit-line-clamp: 9;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .singlePanel .topic-landing-temporal > .topic-landing-parasha {
     border-bottom: 1px solid #ccc;
     border-inline-end: 0px;
     padding-bottom: 30px;
+    padding-inline-end: unset;
 }
 .singlePanel .topic-landing-temporal > .topic-landing-seasonal {
     border-top: 1px solid #ccc;
@@ -5342,12 +5378,22 @@ h1.topic-landing-header {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
+.topic-landing-seasonal .seasonal-bottom-section{
+  position: absolute;
+  top: calc(100% - 128px);;
+}
+.singlePanel .topic-landing-seasonal .seasonal-bottom-section{
+  position: unset;
+  top: unset;
+}
 .topic-landing-temporal .display-date-message{
   color: var(--darkest-grey);
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
   line-height: 18px;
+}
+.singlePanel .topic-landing-temporal .display-date-message {
   margin-top: 55px;
 }
 .topic-landing-temporal .display-date-message span {
@@ -5371,7 +5417,6 @@ h1.topic-landing-header {
 }
 .topic-card-with-description-row{
   display: flex;
-  margin-top: 30px;
   gap: 20px;
   justify-content: center;
 }
@@ -7716,16 +7761,17 @@ But not to use a display block directive that might break continuous mode for ot
   flex-wrap: wrap;
 }
 
-.toolsButtonContainer.blue {
-  background-color: var(--sefaria-blue);
+.toolsButtonContainer.highlighted {
+  background-color: var(--responsa-red);
   color: white;
-  margin: -29px 34px 20px;
-  margin-inline-start: -34px;
-  margin-inline-end: -34px;
-  padding-inline-start: 68px;
-  padding-inline-end: 34px;
+  margin-inline-start: 6px;
+  margin-inline-end: 8px;
+  padding-inline-start: 28px;
+  padding-inline-end: 14px;
   padding-top: 18px;
   padding-bottom: 18px;
+  border-radius: 8px;
+  line-height: 1;
 }
 
 .toolsButtonContainer .toolsButtonText,
@@ -7755,15 +7801,16 @@ But not to use a display block directive that might break continuous mode for ot
   align-self: flex-start;
 }
 
-.toolsButtonContainer.blue .experimentLabel {
+.toolsButtonContainer.highlighted .experimentLabel {
   --english-font: var(--english-sans-serif-font-family);
-  color: var(--light-grey);
-  font-size: 14px;
+  color: var(--dark-grey);
+  font-size: 11px;
+  text-transform: uppercase;
   border: 1px solid var(--light-grey);
-  border-radius: 6px;
+  border-radius: 4px;
   float: inline-end;
-  padding: 2px;
-  line-height: 14px;
+  padding: 2px 6px;
+  background: var(--lightest-grey);
 }
 
 .linkArrow {
@@ -7875,7 +7922,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 122%;
 }
-.blue .toolsButton .toolsButtonIcon {
+.highlighted .toolsButton .toolsButtonIcon {
   filter: invert(1);
 }
 .toolsButton .toolsButtonIcon {
@@ -9252,7 +9299,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle {
   position: fixed;
-  top: 150px;
+  top: 200px;
   right: 30px;
   height: 30px;
   width: 30px;
@@ -11839,7 +11886,7 @@ cursor: pointer;
 #staticContentWrapper .editorToggleHeader {
   margin: revert;
 }
-.editorToggleHeader {
+.editorToggleHeader, .genericBanner {
   padding-inline: 10%;
   background-color: var(--sefaria-blue);
   color: white;
@@ -11849,14 +11896,20 @@ cursor: pointer;
   margin-bottom: 80px;
   display: flex;
   justify-content: center;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   gap: 5px;
   align-items: center;
 }
 
-.interface-hebrew .editorToggleHeader {
+.genericBanner {
+  margin-block: revert;
+}
+
+.interface-hebrew .editorToggleHeader, .interface-hebrew .genericBanner {
   direction: rtl;
 }
-.editorToggleHeader .button {
+.editorToggleHeader .button, .genericBanner .button {
   white-space: nowrap;
   padding: 5px 8px;
   height: 30px;
@@ -12543,6 +12596,10 @@ body .homeFeedWrapper .content {
 
 .story.topicPassageStory {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.topicTabContents .story.topicPassageStory .contentSpan {
+  display: block;
 }
 
 .story.topicPassageStory .storyBody {

@@ -4721,7 +4721,7 @@ class Ref(object, metaclass=RefCacheType):
         :return string: normal url form
         """
         if not self._url:
-            self._url = self.normal().replace(" ", "_").replace(":", ".")
+            self._url = self.normal().replace(" ", "_").replace(":", ".").replace("?", "%3F")
 
             # Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
             if len(self.sections) > 0:

@@ -147,6 +147,7 @@ const SearchSuggestionInner = ({ value, type, displayedLabel, label, url, pic,
                                 wrapperClasses,
                               universalIndex, highlightedIndex, getItemProps, onClick}) => {
   const isHebrew = Sefaria.hebrew.isHebrew(label);
+  url = url?.replace(/\?/g, '%3F');
   return (
       <a href={url} onClick={onClick} className={`search-suggestion-link-wrapper ${wrapperClasses}`}>
           <div
@@ -442,7 +443,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     const redirectToObject = (onChange, item) => {
         Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
         clearSearchBox(onChange);
-        const url = item.url
+        const url = item.url.replace(/\?/g, '%3F');
         const handled = openURL(url);
         if (!handled) {
           window.location = url;
