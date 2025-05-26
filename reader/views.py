@@ -86,6 +86,7 @@ from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
 from sefaria.helper.texts.tasks import save_version, save_changes, save_link
+from sourcesheets.models import *
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -4798,3 +4799,40 @@ def application_health_api(request):
         logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
 
     return http.JsonResponse(resp, status=statusCode)
+
+def tips_api(request):
+    """
+    API endpoint that returns all InfoCard objects as JSON.
+    
+    Returns:
+        JSON response with the following structure:
+        [
+            {
+                "id": int,
+                "title_en": str,
+                "body_en": str,
+                "image_en": str,
+                "title_he": str,
+                "body_he": str,
+                "image_he": str,
+                "order": int
+            },
+            ...
+        ]
+    """
+    infoCards = InfoCard.objects.all().order_by('order')
+    
+    tips = []
+    for card in infoCards:
+        tips.append({
+            "id": card.id,
+            "title_en": card.title_en,
+            "body_en": card.body_en,
+            "image_en": card.image_en,
+            "title_he": card.title_he,
+            "body_he": card.body_he,
+            "image_he": card.image_he,
+            "order": card.order
+        })
+    
+    return jsonResponse(tips)

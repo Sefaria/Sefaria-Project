@@ -692,6 +692,14 @@ Sefaria = extend(Sefaria, {
       store: this._bulkSheets
     });
   },
+  _tips: {},
+  getTips: function() {
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/api/tips`,
+      key: "tips",
+      store: this._tips
+    });
+  },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
     if (!ref || typeof ref === "object" || typeof ref === "undefined") { debugger; }
