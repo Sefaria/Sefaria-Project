@@ -51,7 +51,7 @@ const TopicsPage = ({setNavTopic, multiPanel}) => {
                   </CategoryHeader>
               </div>
               { about }
-              { <div class="TOCCardsWrapper table">{categoryListings}</div> }
+              { <div className="TOCCardsWrapper table">{categoryListings}</div> }
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
         </div>
