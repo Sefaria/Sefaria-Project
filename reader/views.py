@@ -437,9 +437,10 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     if "." in sheet_id:
         highlighted_node = int(sheet_id.split(".")[1])
         sheet_id = int(sheet_id.split(".")[0])
-    sheet_id = int(sheet_id)
+    else:
+        sheet_id = int(sheet_id)
 
-    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": sheet_id}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(sheet_id)
     if "error" in sheet and sheet["error"] != "Sheet updated.":
         raise Http404

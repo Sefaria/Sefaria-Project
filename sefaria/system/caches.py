@@ -217,7 +217,7 @@ class SimpleMongoDBCache(BaseCache):
 
     def _initialize_collection(self):
         self._db = db
-        if self._collection_name not in self._db.collection_names():
+        if self._collection_name not in self._db.list_collection_names():
             options = {}
 
             self._db.create_collection(self._collection_name, **options)
