@@ -631,7 +631,7 @@ const Strings = {
       "Log in": "התחברות",
       "You are not logged in to Sefaria": "כעת אינך מחובר/ת לספריא",
       "Something went wrong. Try refreshing the page.": "משהו השתבש. יש לנסות לרענן את העמוד",
-      "If this problem persists, contact us at hello@sefaria.org": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org"
+      "If this problem persists, please try again later and contact us at hello@sefaria.org": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org"
     },
     "AboutParashah": {
       "Torah Reading": "פרשת השבוע",
