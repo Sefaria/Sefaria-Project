@@ -258,7 +258,7 @@ def change_sheet_owner(sheet_id, new_owner_id):
     if "ownerProfileUrl" in sheet:
         del sheet["ownerProfileUrl"]
     if "ownerOrganization" in sheet:
-        sheet["ownerOrganization"]
+        del sheet["ownerOrganization"]
     db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
 
 def annotate_user_collections(sheets, user_id):
