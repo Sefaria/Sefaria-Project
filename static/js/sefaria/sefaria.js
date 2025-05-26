@@ -3597,6 +3597,12 @@ Sefaria.resetCache = function() {
     this._i18nInterfaceStringsWithContext = {}; // Not sure about this one.  May be retainable.
     this._siteSettings = {}; // Where does this get set?
 
+    this.sheets._loadSheetByID = {};
+    this.sheets._userSheets = {};
+    this.sheets._publicSheets = {};
+    this.sheets._sheetsByRef = {};
+    this.sheets._userSheetsByRef = {};
+
     // These change slowly, but they do change
     this._inAppAds = {};
     this._upcomingDay = {};
