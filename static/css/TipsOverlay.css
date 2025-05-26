@@ -185,7 +185,7 @@
 /* Text container with scrolling - specific dimensions */
 .tipsOverlayTextContainer {
   width: 300px;
-  height: 269px;
+  height: 270px;
   display: flex;
   flex-direction: column;
 }
