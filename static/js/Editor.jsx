@@ -2561,7 +2561,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     "saving": "We are saving your changes to Sefaria",
     "connectionLost": "No internet connection detected",
     "userUnauthenticated": "You are not logged in to Sefaria",
-    "unknownError": "If this problem persists, contact us at hello@sefaria.org"
+    "unknownError": "If this problem persists, please try again later and contact us at hello@sefaria.org"
   };
 
     const path = window.location.pathname + window.location.search;
