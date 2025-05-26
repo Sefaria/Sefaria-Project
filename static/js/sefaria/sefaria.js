@@ -3020,7 +3020,6 @@ _media: {},
             }
             this._loadSheetByID[id] = data;
             callback(data);
-            callback(data);
           });
         }
       return sheet;
