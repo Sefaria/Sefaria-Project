@@ -14,19 +14,19 @@ const TitleWithPrefix = ({ prefix, title }) => {
     <h2 className="tipsOverlayTitle">
       {prefix && (
         <span className="titlePrefix">
-          <InterfaceText>{prefix}</InterfaceText>{' '}
+          <InterfaceText text={prefix} />{' '}
         </span>
       )}
       <span className="titleVariable">
-        <InterfaceText>{title}</InterfaceText>
+        <InterfaceText text={title} />
       </span>
     </h2>
   );
 };
 
 TitleWithPrefix.propTypes = {
-  prefix: PropTypes.string,
-  title: PropTypes.string.isRequired
+  prefix: PropTypes.object,
+  title: PropTypes.object.isRequired
 };
 
 /**
@@ -41,7 +41,7 @@ const TipsFooter = ({ links }) => {
         <React.Fragment key={index}>
           {index > 0 && <span className="footerDivider"> • </span>}
           <a href={link.url} className="tipsOverlayFooterLink">
-            <InterfaceText>{link.text}</InterfaceText>
+            <InterfaceText text={link.text} />
           </a>
         </React.Fragment>
       ))}
@@ -51,7 +51,7 @@ const TipsFooter = ({ links }) => {
 
 TipsFooter.propTypes = {
   links: PropTypes.arrayOf(PropTypes.shape({
-    text: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
+    text: PropTypes.object.isRequired,
     url: PropTypes.string.isRequired
   }))
 };
@@ -142,13 +142,6 @@ const TipsOverlay = ({
   const showNavigation = tipData.tips.length > 1;
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   
-  // Get language-appropriate content
-  const titlePrefix = isHebrew ? (tipData.titlePrefix_heb || tipData.titlePrefix) : tipData.titlePrefix;
-  const tipTitle = isHebrew ? (currentTip.title_heb || currentTip.title) : currentTip.title;
-  const tipText = isHebrew ? (currentTip.text_heb || currentTip.text) : currentTip.text;
-  const tipImageAlt = isHebrew ? (currentTip.imageAlt_heb || currentTip.imageAlt) : currentTip.imageAlt;
-  const footerLinks = isHebrew ? (tipData.footerLinks_heb || tipData.footerLinks) : tipData.footerLinks;
-  
   return (
     <div className="tipsOverlay">
       <div className="tipsOverlayContent">
@@ -156,8 +149,8 @@ const TipsOverlay = ({
         <div className="tipsOverlayHeader">
           <div className="tipsOverlayTitleSection">
             <TitleWithPrefix 
-              prefix={titlePrefix} 
-              title={tipTitle} 
+              prefix={tipData.titlePrefix} 
+              title={currentTip.title} 
             />
           </div>
           
@@ -212,40 +205,39 @@ const TipsOverlay = ({
               {currentTip.imageUrl ? (
                 <img 
                   src={currentTip.imageUrl} 
-                  alt={tipImageAlt || Sefaria._("Tip illustration")} 
+                  alt={Sefaria.interfaceLang === "hebrew" ? currentTip.imageAlt.he : currentTip.imageAlt.en} 
                   className="tipsOverlayImage" 
                 />
               ) : (
-                              <div className="tipsOverlayImagePlaceholder">
-                <div className="placeholderContent">
-                  <InterfaceText>
-                    <EnglishText>
-                      <div>1600x900</div>
-                      <div>Video</div>
-                      <div>at 480px wide ( x 270)</div>
-                    </EnglishText>
-                    <HebrewText>
-                      <div>1600x900</div>
-                      <div>וידאו</div>
-                      <div>ברוחב 480px ( x 270)</div>
-                    </HebrewText>
-                  </InterfaceText>
+                <div className="tipsOverlayImagePlaceholder">
+                  <div className="placeholderContent">
+                    <InterfaceText>
+                      <EnglishText>
+                        <div>1600x900</div>
+                        <div>Video</div>
+                        <div>at 480px wide ( x 270)</div>
+                      </EnglishText>
+                      <HebrewText>
+                        <div>1600x900</div>
+                        <div>וידאו</div>
+                        <div>ברוחב 480px ( x 270)</div>
+                      </HebrewText>
+                    </InterfaceText>
+                  </div>
                 </div>
-              </div>
               )}
             </div>
             
             {/* Scrollable text content - narrower width */}
             <div className="tipsOverlayTextContainer">
-              <div 
-                className="tipsOverlayText"
-                dangerouslySetInnerHTML={{ __html: tipText }}
-              />
+              <div className="tipsOverlayText">
+                <InterfaceText html={currentTip.text} />
+              </div>
             </div>
           </div>
           
           {/* Footer with consistent links */}
-          <TipsFooter links={footerLinks} />
+          <TipsFooter links={tipData.footerLinks} />
         </div>
       </div>
     </div>
