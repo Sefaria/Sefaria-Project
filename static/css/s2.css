@@ -9333,6 +9333,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   flex-direction: row;
   justify-content: space-between;
   top: 80px;
+  z-index: 1;
 }
 .interface-hebrew .floatingEditorIcons{
     flex-direction: row-reverse;
