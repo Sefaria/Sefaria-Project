@@ -3997,6 +3997,7 @@ def edit_profile(request):
       'user': request.user,
       'profile': profile,
       'sheets': sheets,
+      "renderStatic": True
     })
 
 
