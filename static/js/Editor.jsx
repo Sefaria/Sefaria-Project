@@ -2649,59 +2649,16 @@ const SefariaEditor = (props) => {
     const isMultiPanel = Sefaria.multiPanel;
     useUnsavedChangesWatcher(20, unsavedChanges, savingState, setSavingState);
 
-    function disableUserInput(root) {
-      if (!root) return;
-
-      const blockEvent = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      };
-
-      // Store references so we can later remove them
-      root._blockEventHandler = blockEvent;
-      root._blockedEvents = [
-        'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'contextmenu',
-        'touchstart', 'touchend', 'touchmove', 'touchcancel',
-        'keydown', 'keypress', 'keyup',
-        'drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop',
-        'focus', 'blur', 'focusin', 'focusout',
-        'copy', 'cut', 'paste',
-        // 'wheel', 'scroll',
-        'submit', 'change', 'input'
-      ];
-
-      root._blockedEvents.forEach(event => {
-        root.addEventListener(event, blockEvent, { capture: true });
-      });
-
-      root.style.pointerEvents = 'none';
-      root.style.userSelect = 'none';
-    }
-
-    function enableUserInput(root) {
-      if (!root || !root._blockEventHandler || !root._blockedEvents) return;
-
-      root._blockedEvents.forEach(event => {
-        root.removeEventListener(event, root._blockEventHandler, { capture: true });
-      });
-
-      delete root._blockEventHandler;
-      delete root._blockedEvents;
-
-      root.style.pointerEvents = '';
-      root.style.userSelect = '';
-    }
-
     useEffect(() => {
       const contentRoot = editorContentContainer.current;
       const titleRoot = editorTitleContainer.current;
 
       if (blockEditing) {
-        if (contentRoot) disableUserInput(contentRoot);
-        if (titleRoot) disableUserInput(titleRoot);
+        if (contentRoot) sheetsUtils.disableUserInput(contentRoot);
+        if (titleRoot) sheetsUtils.disableUserInput(titleRoot);
       } else {
-        if (contentRoot) enableUserInput(contentRoot);
-        if (titleRoot) enableUserInput(titleRoot);
+        if (contentRoot) sheetsUtils.enableUserInput(contentRoot);
+        if (titleRoot) sheetsUtils.enableUserInput(titleRoot);
       }
     }, [blockEditing, editorContentContainer.current, editorTitleContainer.current]);
 
