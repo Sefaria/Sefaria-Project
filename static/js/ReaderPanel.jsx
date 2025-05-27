@@ -56,8 +56,7 @@ class ReaderPanel extends Component {
       initialAnalyticsTracked: false,
       width: this.props.multiPanel ? 1000 : 500, // Assume we're in a small panel not using multipanel
       backButtonSettings: null,
-      data: null,
-      showTipsOverlay: true
+      data: null
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -79,7 +78,7 @@ class ReaderPanel extends Component {
       const curPanel = $(".readerPanel")[this.props.panelPosition];
       $(curPanel).find(':focusable').first().focus();
     }
-    console.log("Temp. ReaderPanel mounted. showTipsOverlay:", this.state.showTipsOverlay);
+    console.log("Temp. ReaderPanel mounted");
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
@@ -668,10 +667,6 @@ class ReaderPanel extends Component {
       panel_name: this.getPanelName(),
     };
   }
-  closeTipsOverlay = () => {
-    console.log("Closing tips overlay");
-    this.setState({ showTipsOverlay: false });
-  }
   render() {
     if (this.state.error) {
       return (
@@ -1155,7 +1150,7 @@ class ReaderPanel extends Component {
 
           {menu}
           {/* Only show the tips overlay on the sheets pages and only on the first panel */}
-          {this.state.showTipsOverlay && this.props.panelPosition === 0 && 
+          {this.props.panelPosition === 0 && 
            (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections") &&
             <TipsOverlay 
               onClose={this.closeTipsOverlay} 

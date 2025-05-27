@@ -59,6 +59,7 @@ TipsFooter.propTypes = {
 /**
  * TipsOverlay component displays helpful tips and guides to users
  * Matches Figma design with proper spacing, scrollable content, and consistent layout
+ * Only shows on first time user opens sheets, using cookie-based persistence
  * 
  * @param {Object} props - Component props
  * @param {function} props.onClose - Function to call when overlay is closed
@@ -68,7 +69,10 @@ const TipsOverlay = ({
   onClose,
   guideType = "sheets"
 }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const cookieName = `tips_overlay_seen_${guideType}`;
+  const initialShouldShow = !$.cookie(cookieName);
+  
+  const [isOpen, setIsOpen] = useState(false);
   const [tipData, setTipData] = useState(null);
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -92,10 +96,22 @@ const TipsOverlay = ({
     
     loadTips();
   }, [guideType]);
+
+  useEffect(() => {
+    // Force rerendering of the component when initially rendered by ssr
+    setIsOpen(initialShouldShow);
+  }, [initialShouldShow]);
   
+  const setCookie = () => {
+    // Store the current date when user dismisses the overlay
+    const currentDate = new Date().toISOString();
+    $.cookie(cookieName, currentDate, {path: "/", expires: 20*365}); // 20 year expiration
+    setIsOpen(false);
+  };
+
   const handleClose = () => {
     console.log("TipsOverlay closing");
-    setIsOpen(false);
+    setCookie();
     if (onClose) onClose();
   };
 
@@ -119,7 +135,7 @@ const TipsOverlay = ({
     );
   };
 
-  // Don't render if closed
+  // Don't render if user has already seen it or if not open
   if (!isOpen) return null;
   
   // Show loading state
