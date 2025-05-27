@@ -224,7 +224,7 @@ def record_sheet_publication(sheet_id, uid):
         "date": datetime.now(),
         "rev_type": "publish sheet",
     }
-    db.history.save(log)
+    db.history.insert_one(log)
 
 
 def delete_sheet_publication(sheet_id, user_id):
