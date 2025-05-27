@@ -200,7 +200,7 @@ class DictionaryEntry(LexiconEntry):
                     pass
             else:
                 next_line += " " + self.get_sense(sense)
-        
+
         if hasattr(self, 'notes'):
             next_line += " " + self.notes
         if hasattr(self, 'derivatives'):
@@ -233,7 +233,7 @@ class HebrewDictionaryEntry(DictionaryEntry):
 
 class JastrowDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["rid"]
-    
+
     def get_sense(self, sense):
         text = ''
         text += sense.get('number', '')
@@ -259,7 +259,7 @@ class JastrowDictionaryEntry(DictionaryEntry):
 
 class KleinDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
-    
+
     def get_sense(self, sense):
         text = ''
         for field in ['plural_form', 'language_code', 'alternative']:
@@ -379,6 +379,62 @@ class KrupnikEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
     optional_attrs = DictionaryEntry.optional_attrs + ['biblical', 'no_binyan_kal', 'emendation', 'used_in', 'equals', 'pos_list']
 
+    pos_schema = {'pos': {'type': 'string'}}
+    hw_related_schemas = {
+        'biblical': {'type': 'boolean'},
+        'no_binyan_kal': {'type': 'boolean'},
+        'emendation': {'type': 'string'},
+        'used_in': {'type': 'string'},
+        'pos_list': {'type': 'list', 'schema': {'type': 'string'}}
+    }
+    senses_schema = {'senses':
+                         {'type': 'list',
+                          'schema': {
+                              'type': 'dict',
+                              'schema': {
+                                  'number': {'type': 'integer'},
+                                  **pos_schema,
+                                  'definition': {'type': 'string'},
+                                  'notes': {'type': 'string'},
+                              }}}}
+    attr_schemas = {
+        'headword': {'type': 'string'},
+        'equals': {'type': 'string'},
+        **hw_related_schemas,
+        'alt_headwords': {
+            'type': 'list',
+            'schema': {
+                'type': 'dict',
+                'schema': {
+                    'word': {'type': 'string', 'required': True},
+                    **hw_related_schemas
+                },
+            }
+        },
+        'content': {
+            'oneof': [
+                {'type': 'string'},
+                {'type': 'dict',
+                 'schema': {'binyans': {
+                     'type': 'list',
+                     'schema': {
+                         'type': 'list',
+                         'schema': {
+                             'type': 'dict',
+                             'required': True,
+                             'oneof_schema': [
+                                 senses_schema,
+                                 pos_schema,
+                                 {'binyan-form': {'type': 'string'}},
+                                 {'binyan-name': {'type': 'string'}}
+                             ]},
+                     }}}},
+                {'type': 'dict',
+                 'schema': senses_schema}
+            ]
+        }
+    }
+
     def format_pos(self, pos):
         return f'<small>{pos}</small>'
 
@@ -391,7 +447,7 @@ class KrupnikEntry(DictionaryEntry):
             'no_binyan_kal': lambda _: f'({hw_string})',
             'emendation': lambda x: f'{hw_string} [{x}]',
             'used_in': lambda x: f'{hw_string}; {x}',
-            'equals': lambda x: f'{hw_string} = {x}',
+            'equals': lambda x: f'{hw_string} (={x})',
         }
         for attr, func in attrs_to_funcs_map.items():
             value = getter(hw, attr)
@@ -440,7 +496,6 @@ class KrupnikEntry(DictionaryEntry):
         return text.strip()
 
     def get_content(self):
-        content = self.content
         if isinstance(self.content, str):
             return self.content
         elif 'binyans' in self.content:
