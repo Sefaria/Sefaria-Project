@@ -502,8 +502,9 @@ class UserProfile(object):
 
         d = self.to_mongo_dict()
         if self._id:
-            d["_id"] = self._id
-        db.profiles.save(d)
+            db.profiles.replace_one({'_id': self._id}, d, upsert=True)
+        else:
+            db.profiles.insert_one(d)
 
         # store name changes on Django User object
         if self._name_updated:

@@ -1061,7 +1061,7 @@ def delete_sheet_by_id(request):
             if not sheet:
                 return jsonResponse({"error": "Sheet %d not found." % id})
 
-            db.sheets.remove({"id": id})
+            db.sheets.delete_one({"id": id})
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
 
@@ -1103,7 +1103,7 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
         sheet["datePublished"] = None
         sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
     # Delete Notes
     db.notes.delete_many({"owner": spammer_id})
     # Delete Notifcations

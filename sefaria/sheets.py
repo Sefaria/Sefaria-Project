@@ -244,7 +244,7 @@ def add_sheet_to_collection(sheet_id, collection, is_sheet_owner, override_displ
         # in another collection, set it to highlight this collection.
         if is_sheet_owner and (not sheet.get("displayedCollection", None) or override_displayedCollection):
             sheet["displayedCollection"] = collection.slug
-            db.sheets.save(sheet)
+            db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
 
 
 def change_sheet_owner(sheet_id, new_owner_id):
@@ -258,9 +258,8 @@ def change_sheet_owner(sheet_id, new_owner_id):
     if "ownerProfileUrl" in sheet:
         del sheet["ownerProfileUrl"]
     if "ownerOrganization" in sheet:
-        sheet["ownerOrganization"]
-    db.sheets.save(sheet)
-
+        del sheet["ownerOrganization"]
+    db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
 
 def annotate_user_collections(sheets, user_id):
 	"""
@@ -682,7 +681,7 @@ def add_source_to_sheet(id, source, note=None):
 	sheet["sources"].append(source)
 	if note:
 		sheet["sources"].append({"outsideText": note, "options": {"indented": "indented-1"}})
-	db.sheets.save(sheet)
+	db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
 	return {"status": "ok", "id": id, "source": source}
 
 
@@ -697,9 +696,8 @@ def add_ref_to_sheet(id, ref, request):
 		return jsonResponse({"error": "user can only add refs to their own sheet"})
 	sheet["dateModified"] = datetime.now().isoformat()
 	sheet["sources"].append({"ref": ref})
-	db.sheets.save(sheet)
+	db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
 	return {"status": "ok", "id": id, "ref": ref}
-
 
 def refs_in_sources(sources, refine_refs=False):
 	"""
@@ -915,7 +913,7 @@ def update_sheet_topics(sheet_id, topics, old_topics):
 
 	normalized_topics = [{"asTyped": pair[0], "slug": pair[1]} for pair in normalized_slug_title_pairs]
 
-	db.sheets.update({"id": sheet_id}, {"$set": {"topics": normalized_topics}})
+	db.sheets.update_one({"id": sheet_id}, {"$set": {"topics": normalized_topics}})
 
 	update_sheet_topic_links(sheet_id, normalized_topics, old_topics)
 

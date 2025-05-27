@@ -204,7 +204,7 @@ def view_sheet(request, sheet_id, editorMode = False):
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
-    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": sheet_id}, {"$inc": {"views": 1}})
 
     try:
         owner = User.objects.get(id=sheet["owner"])
@@ -267,7 +267,7 @@ def view_visual_sheet(request, sheet_id):
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
-    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": int(sheet_id)}, {"$inc": {"views": 1}})
 
     try:
         owner = User.objects.get(id=sheet["owner"])
