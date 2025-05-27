@@ -200,16 +200,24 @@ const TipsOverlay = ({
         <div className="tipsOverlayCenteredContent">
           {/* Main content area */}
           <div className="tipsOverlayBody">
-            {/* Image placeholder or actual image */}
-            <div className="tipsOverlayImageContainer">
-              {currentTip.imageUrl ? (
-                <img 
-                  src={currentTip.imageUrl} 
-                  alt={Sefaria.interfaceLang === "hebrew" ? currentTip.imageAlt.he : currentTip.imageAlt.en} 
-                  className="tipsOverlayImage" 
-                />
-              ) : (
-                <div className="tipsOverlayImagePlaceholder">
+            {/* Video container or placeholder */}
+            <div className="tipsOverlayVideoContainer">
+              {currentTip.videoUrl.en ? ( // Using en becasue I assume that it's more likely to be available. In edge case where en exists but he doesn't, the an empty video will be shown in he.
+                <video 
+                  src={isHebrew ? currentTip.videoUrl.he : currentTip.videoUrl.en}
+                  className="tipsOverlayVideo" 
+                  controls
+                  preload="metadata"
+                  aria-label={isHebrew ? (currentTip.videoAlt?.he || "וידאו הדרכה") : (currentTip.videoAlt?.en || "Tutorial video")}
+                >
+                  {/* TODO: Add a fallback for browsers that don't support the video tag */}
+                  <InterfaceText>
+                    <EnglishText>Your browser does not support the video tag.</EnglishText>
+                    <HebrewText>הדפדפן שלך אינו תומך בתגית הווידאו.</HebrewText>
+                  </InterfaceText>
+                </video>
+              ) : ( // TODO Add fallback if no video is available.
+                <div className="tipsOverlayVideoPlaceholder">
                   <div className="placeholderContent">
                     <InterfaceText>
                       <EnglishText>
