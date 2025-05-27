@@ -5,7 +5,7 @@ from .models import Guide, InfoCard
 class InfoCardInline(admin.TabularInline):
     model = InfoCard
     extra = 0
-    fields = ('title_en', 'title_he', 'text_en', 'text_he', 'image_en', 'image_he', 'image_alt_en', 'image_alt_he', 'order')
+    fields = ('title_en', 'title_he', 'text_en', 'text_he', 'video_en', 'video_he', 'video_alt_en', 'video_alt_he', 'order')
     readonly_fields = ()
 
 @admin.register(Guide)
@@ -42,7 +42,7 @@ class InfoCardAdmin(SortableAdmin):
         ('Content', {
             'fields': ('title_en', 'title_he', 'text_en', 'text_he')
         }),
-        ('Images', {
-            'fields': ('image_en', 'image_he', 'image_alt_en', 'image_alt_he')
+        ('Videos', {
+            'fields': ('video_en', 'video_he', 'video_alt_en', 'video_alt_he')
         }),
     )

@@ -40,7 +40,7 @@ const TipsFooter = ({ links }) => {
       {links.map((link, index) => (
         <React.Fragment key={index}>
           {index > 0 && <span className="footerDivider"> • </span>}
-          <a href={link.url} className="tipsOverlayFooterLink">
+          <a href={link.url} className="tipsOverlayFooterLink" target="_blank" rel="noopener noreferrer">
             <InterfaceText text={link.text} />
           </a>
         </React.Fragment>

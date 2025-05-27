@@ -143,7 +143,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
-    'sourcesheets',
+    'guides',
     'sefaria.gauth',
     'django_topics.apps.DjangoTopicsAppConfig',
     'captcha',

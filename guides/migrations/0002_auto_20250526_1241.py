@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sourcesheets', '0001_initial'),
+        ('guides', '0001_initial'),
     ]
 
     operations = [
@@ -77,6 +77,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='infocard',
             name='guide',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='info_cards', to='sourcesheets.Guide', verbose_name='Guide'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='info_cards', to='guides.Guide', verbose_name='Guide'),
         ),
     ]

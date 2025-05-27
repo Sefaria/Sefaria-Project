@@ -114,27 +114,27 @@ class InfoCard(Sortable):
     text_en = models.TextField(verbose_name="Text (EN)")
     text_he = models.TextField(verbose_name="Text (HE)")
     order = models.PositiveIntegerField(default=0, blank=False, null=False)
-    image_en = models.URLField(
-        verbose_name="Image URL (EN)",
-        help_text="Upload the image via Google Cloud and provide the URL here.",
+    video_en = models.URLField(
+        verbose_name="Video URL (EN)",
+        help_text="Upload the video via Google Cloud to the Bucket 'guides-resources'and provide the URL here.",
         blank=True,
     )
-    image_he = models.URLField(
-        verbose_name="Image URL (HE)",
-        help_text="Upload the image via Google Cloud and provide the URL here.",
+    video_he = models.URLField(
+        verbose_name="Video URL (HE)",
+        help_text="Upload the video via Google Cloud to the Bucket 'guides-resources' and provide the URL here.",
         blank=True,
     )
-    image_alt_en = models.CharField(
+    video_alt_en = models.CharField(
         max_length=255,
-        verbose_name="Image Alt Text (EN)",
+        verbose_name="Video Alt Text (EN)",
         blank=True,
-        help_text="Alternative text for the image in English"
+        help_text="Alternative text for the video in English"
     )
-    image_alt_he = models.CharField(
+    video_alt_he = models.CharField(
         max_length=255,
-        verbose_name="Image Alt Text (HE)",
+        verbose_name="Video Alt Text (HE)",
         blank=True,
-        help_text="Alternative text for the image in Hebrew"
+        help_text="Alternative text for the video in Hebrew"
     )
 
     def __str__(self):

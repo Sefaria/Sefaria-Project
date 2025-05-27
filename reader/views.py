@@ -86,7 +86,7 @@ from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
 from sefaria.helper.texts.tasks import save_version, save_changes, save_link
-from sourcesheets.models import *
+from guides.models import *
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -4819,8 +4819,8 @@ def tips_api(request, guide_key=None):
                     "id": str,
                     "title": {"en": str, "he": str},
                     "text": {"en": str, "he": str},
-                    "imageUrl": str|null,
-                    "imageAlt": {"en": str, "he": str}
+                    "videoUrl": {"en": str, "he": str},
+                    "videoAlt": {"en": str, "he": str}
                 },
                 ...
             ]
@@ -4840,9 +4840,6 @@ def tips_api(request, guide_key=None):
     # Build the tips array
     tips = []
     for card in info_cards:
-        # Determine which image URL to use (prefer English, fallback to Hebrew, then None)
-        image_url = card.image_en or card.image_he or None
-        
         tips.append({
             "id": str(card.id),
             "title": {
@@ -4853,10 +4850,13 @@ def tips_api(request, guide_key=None):
                 "en": card.text_en,
                 "he": card.text_he
             },
-            "imageUrl": image_url,
-            "imageAlt": {
-                "en": card.image_alt_en,
-                "he": card.image_alt_he
+            "videoUrl": {
+                "en": card.video_en,
+                "he": card.video_he
+            },
+            "videoAlt": {
+                "en": card.video_alt_en,
+                "he": card.video_alt_he
             }
         })
     

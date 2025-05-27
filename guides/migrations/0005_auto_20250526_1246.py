@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sourcesheets', '0004_auto_20250526_1244'),
+        ('guides', '0004_auto_20250526_1244'),
     ]
 
     operations = [

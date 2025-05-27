@@ -7,8 +7,8 @@ from django.db import migrations
 
 def create_default_guide_and_link_infocards(apps, schema_editor):
     """Create a default 'sheets' guide and link all existing InfoCards to it"""
-    Guide = apps.get_model('sourcesheets', 'Guide')
-    InfoCard = apps.get_model('sourcesheets', 'InfoCard')
+    Guide = apps.get_model('guides', 'Guide')
+    InfoCard = apps.get_model('guides', 'InfoCard')
     
     # Create default guide
     default_guide, created = Guide.objects.get_or_create(
@@ -26,14 +26,14 @@ def create_default_guide_and_link_infocards(apps, schema_editor):
 
 def reverse_migration(apps, schema_editor):
     """Reverse the migration by removing the default guide"""
-    Guide = apps.get_model('sourcesheets', 'Guide')
+    Guide = apps.get_model('guides', 'Guide')
     Guide.objects.filter(key='sheets').delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sourcesheets', '0002_auto_20250526_1241'),
+        ('guides', '0002_auto_20250526_1241'),
     ]
 
     operations = [

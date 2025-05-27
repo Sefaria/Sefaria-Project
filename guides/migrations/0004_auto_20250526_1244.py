@@ -9,13 +9,13 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sourcesheets', '0003_auto_20250526_1241'),
+        ('guides', '0003_auto_20250526_1241'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='infocard',
             name='guide',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='info_cards', to='sourcesheets.Guide', verbose_name='Guide'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='info_cards', to='guides.Guide', verbose_name='Guide'),
         ),
     ]
