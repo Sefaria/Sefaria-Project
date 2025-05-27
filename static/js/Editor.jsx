@@ -2625,6 +2625,20 @@ function useUnsavedChangesWatcher(timeoutSeconds, hasUnsavedChanges, savingState
     };
   }, [hasUnsavedChanges, savingState]);
 }
+function useBlockEditorInputWhenDisabled(isEditingBlocked, ...elementRefs) {
+  useEffect(() => {
+    elementRefs.forEach(elementRef => {
+      const element = elementRef.current;
+      if (!element) return;
+
+      if (isEditingBlocked) {
+        sheetsUtils.disableUserInput(element);
+      } else {
+        sheetsUtils.enableUserInput(element);
+      }
+    });
+  }, [isEditingBlocked, ...elementRefs.map(ref => ref.current)]);
+}
 
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
@@ -2648,19 +2662,8 @@ const SefariaEditor = (props) => {
     const setSavingState = props.setNewEditorSaveState;
     const isMultiPanel = Sefaria.multiPanel;
     useUnsavedChangesWatcher(20, hasUnsavedChanges, savingState, setSavingState);
+    useBlockEditorInputWhenDisabled(blockEditing, editorContentContainer, editorTitleContainer);
 
-    useEffect(() => {
-      const contentRoot = editorContentContainer.current;
-      const titleRoot = editorTitleContainer.current;
-
-      if (blockEditing) {
-        if (contentRoot) sheetsUtils.disableUserInput(contentRoot);
-        if (titleRoot) sheetsUtils.disableUserInput(titleRoot);
-      } else {
-        if (contentRoot) sheetsUtils.enableUserInput(contentRoot);
-        if (titleRoot) sheetsUtils.enableUserInput(titleRoot);
-      }
-    }, [blockEditing, editorContentContainer.current, editorTitleContainer.current]);
 
     // alert user before (hard-) leaving the page if there are unsaved changes
     useEffect(() => {
