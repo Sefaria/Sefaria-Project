@@ -35,7 +35,7 @@ class FollowRelationship(object):
         return self
 
     def unfollow(self):
-        db.following.remove({"follower": self.follower, "followee": self.followee})
+        db.following.delete_one({"follower": self.follower, "followee": self.followee})
 
 
 class FollowSet(object):
