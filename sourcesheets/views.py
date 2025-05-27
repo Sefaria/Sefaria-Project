@@ -368,7 +368,7 @@ def delete_sheet_api(request, sheet_id):
     if user.id != sheet["owner"]:
         return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
 
-    db.sheets.remove({"id": id})
+    db.sheets.delete_one({"id": id})
     process_sheet_deletion_in_collections(id)
     process_sheet_deletion_in_notifications(id)
 
