@@ -456,9 +456,9 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 	Saves sheet to the db, with user_id as owner.
 	"""
 	def next_sheet_id():
-		last_id = db.sheets.find().sort([['id', -1]]).limit(1)
-		if last_id.count():
-			sheet_id = last_id.next()["id"] + 1
+		last_document = db.sheets.find_one(sort=[['id', -1]])
+		if last_document:
+			sheet_id = last_document["id"] + 1
 		else:
 			sheet_id = 1
 		return sheet_id
