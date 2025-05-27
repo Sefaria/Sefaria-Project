@@ -457,7 +457,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 	"""
 	def next_sheet_id():
 		last_id = db.sheets.find().sort([['id', -1]]).limit(1)
-		if last_id.count():
+		if len(list(last_id.clone())):
 			sheet_id = last_id.next()["id"] + 1
 		else:
 			sheet_id = 1
