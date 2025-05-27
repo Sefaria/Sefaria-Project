@@ -839,8 +839,8 @@ def sheet_stats(request):
     from dateutil.relativedelta import relativedelta
     html  = ""
 
-    html += "Total Sheets: %d\n" % db.sheets.find().count()
-    html += "Public Sheets: %d\n" % db.sheets.find({"status": "public"}).count()
+    html += "Total Sheets: %d\n" % len(list(db.sheets.find()))
+    html += "Public Sheets: %d\n" % len(list(db.sheets.find({"status": "public"})))
 
 
     html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
@@ -852,10 +852,10 @@ def sheet_stats(request):
         start    = end - relativedelta(years=1)
         query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
         cursor   = db.sheets.find(query)
-        total    = cursor.count()
+        total    = len(list(cursor.clone()))
         creators = len(cursor.distinct("owner"))
         query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}, "status": "public"}
-        ptotal   = db.sheets.find(query).count()
+        ptotal   = len(list(db.sheets.find(query)))
         html += "{}: {} / {} / {}\n".format(start.strftime("%Y"), total, ptotal, creators)
 
     html += "\n\nUnique Source Sheet creators per month:\n\n"
@@ -997,7 +997,7 @@ def profile_spam_dashboard(request):
         profiles_list = []
 
         for user in users_to_check:
-            history_count = db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}}).count()
+            history_count = len(list(db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}})))
             if history_count < 10:
                 profile = model.user_profile.UserProfile(id=user["id"])
 
