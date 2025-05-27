@@ -2652,6 +2652,86 @@ function useBeforeUnloadWarning(savingState) {
   }, [savingState]);
 }
 
+function useSavingStateSideEffects(
+  savingState,
+  {
+    setBlockEditing,
+    setConnectionLostPolling,
+    setUserUnauthenticated,
+    setUnknownErrorDetected,
+  }
+) {
+  useEffect(() => {
+    if (savingState === 'saved') {
+      setBlockEditing(false);
+      setConnectionLostPolling(false);
+    } else if (savingState === 'userUnauthenticated') {
+      setUserUnauthenticated(true);
+      setBlockEditing(true);
+    } else if (savingState === 'connectionLost') {
+      setConnectionLostPolling(true);
+      setBlockEditing(true);
+    } else if (savingState === 'unknownError') {
+      setUnknownErrorDetected(true);
+      setBlockEditing(true);
+    }
+  }, [savingState]);
+}
+function useOfflinePollingSave(
+  connectionLostPolling,
+  documentDraft,
+  saveDocument,
+  setHasUnsavedChanges,
+  canUseDOM,
+  intervalMs = 2000,
+  debounceMs = 500
+) {
+  useEffect(() => {
+    if (!canUseDOM || !connectionLostPolling) return;
+    const interval = setInterval(() => {
+      setHasUnsavedChanges(true);
+      const timeout = setTimeout(() => saveDocument(documentDraft), debounceMs);
+      return () => clearTimeout(timeout);
+    }, intervalMs);
+    return () => clearInterval(interval);
+  }, [
+    connectionLostPolling,
+    documentDraft,
+    canUseDOM,
+    intervalMs,
+    debounceMs,
+  ]);
+}
+
+function useSaveStateManagement({
+  hasUnsavedChanges,
+  savingState,
+  setSavingState,
+  blockEditing,
+  setBlockEditing,
+  editorContentContainer,
+  editorTitleContainer,
+  connectionLostPolling,
+  currentDocument,
+  saveDocument,
+  setHasUnsavedChanges,
+  canUseDOM,
+  setConnectionLostPolling,
+  setUserUnauthenticated,
+  setUnknownErrorDetected,
+}) {
+  useUnsavedChangesWatcher(20, hasUnsavedChanges, savingState, setSavingState);
+  useBlockEditorInputWhenDisabled(blockEditing, editorContentContainer, editorTitleContainer);
+  useBeforeUnloadWarning(savingState);
+  useOfflinePollingSave(connectionLostPolling, currentDocument, saveDocument, setHasUnsavedChanges, canUseDOM);
+  useSavingStateSideEffects(savingState, {
+    setBlockEditing,
+    setConnectionLostPolling,
+    setUserUnauthenticated,
+    setUnknownErrorDetected,
+  });
+}
+
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
     const editorContentContainer = useRef();
@@ -2673,29 +2753,15 @@ const SefariaEditor = (props) => {
     const savingState = props.newEditorSaveState;
     const setSavingState = props.setNewEditorSaveState;
     const isMultiPanel = Sefaria.multiPanel;
-    useUnsavedChangesWatcher(20, hasUnsavedChanges, savingState, setSavingState);
-    useBlockEditorInputWhenDisabled(blockEditing, editorContentContainer, editorTitleContainer);
-    isMultiPanel && useBeforeUnloadWarning(savingState);
+    isMultiPanel && useSaveStateManagement({
+      hasUnsavedChanges, savingState, setSavingState,
+      blockEditing, setBlockEditing,
+      editorContentContainer, editorTitleContainer,
+      connectionLostPolling, currentDocument, saveDocument,
+      setHasUnsavedChanges, canUseDOM,
+      setConnectionLostPolling, setUserUnauthenticated, setUnknownErrorDetected
+});
 
-
-    useEffect(() => {
-        if (!isMultiPanel) {return}
-
-        if (savingState === "saved") {
-          setBlockEditing(false);
-          setConnectionLostPolling(false);
-        } else if (savingState === "saving") {
-        } else if (savingState === "userUnauthenticated") {
-          setUserUnauthenticated(true);
-          setBlockEditing(true);
-        } else if (savingState === "connectionLost") {
-          setConnectionLostPolling(true);
-          setBlockEditing(true);
-        } else if (savingState === "unknownError") {
-          setUnknownErrorDetected(true);
-          setBlockEditing(true);
-        }
-  }, [savingState]);
 
     useEffect(
         () => {
