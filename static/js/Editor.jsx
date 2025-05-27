@@ -2596,13 +2596,12 @@ const EditorSaveStateIndicator = ({ state }) => {
         </ToolTipped>
   );
 }
-function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, setSavingState) {
+function useUnsavedChangesWatcher(timeoutSeconds, hasUnsavedChanges, savingState, setSavingState) {
   const timeoutRef = useRef(null);
 
   // if failed to save and no reason is given, transition into known error state after a timeout
   useEffect(() => {
-    const hasUnsaved = unsavedChanges;
-    if (hasUnsaved && !timeoutRef.current) {
+    if (hasUnsavedChanges && !timeoutRef.current) {
       // Start a timeout only if none is running
       timeoutRef.current = setTimeout(() => {
         savingState === "saving" && setSavingState('unknownError');
@@ -2610,7 +2609,7 @@ function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, s
       }, timeoutSeconds * 1000);
     }
 
-    if ((!hasUnsaved)
+    if ((!hasUnsavedChanges)
         && timeoutRef.current) {
       // Cancel if unsavedChanges were cleared before timeout ends
       clearTimeout(timeoutRef.current);
@@ -2624,7 +2623,7 @@ function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, s
         timeoutRef.current = null;
       }
     };
-  }, [unsavedChanges, savingState]);
+  }, [hasUnsavedChanges, savingState]);
 }
 
 const SefariaEditor = (props) => {
@@ -2636,7 +2635,7 @@ const SefariaEditor = (props) => {
     const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
-    const [unsavedChanges, setUnsavedChanges] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [blockEditing, setBlockEditing] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [canUseDOM, setCanUseDOM] = useState(false);
@@ -2648,7 +2647,7 @@ const SefariaEditor = (props) => {
     const savingState = props.newEditorSaveState;
     const setSavingState = props.setNewEditorSaveState;
     const isMultiPanel = Sefaria.multiPanel;
-    useUnsavedChangesWatcher(20, unsavedChanges, savingState, setSavingState);
+    useUnsavedChangesWatcher(20, hasUnsavedChanges, savingState, setSavingState);
 
     useEffect(() => {
       const contentRoot = editorContentContainer.current;
@@ -2700,7 +2699,7 @@ const SefariaEditor = (props) => {
                 return
             }
 
-            setUnsavedChanges(true);
+            setHasUnsavedChanges(true);
             // Update debounced value after delay
             const handler = setTimeout(() => {
                 saveDocument(currentDocument);
@@ -2721,7 +2720,7 @@ const SefariaEditor = (props) => {
         if (!canUseDOM || !connectionLostPolling) return;
 
         const interval = setInterval(() => {
-            setUnsavedChanges(true);
+            setHasUnsavedChanges(true);
 
             const handler = setTimeout(() => {
                 saveDocument(currentDocument);
@@ -3014,7 +3013,7 @@ const SefariaEditor = (props) => {
         $.post("/api/sheets/", {"json": json}, res => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
-            setUnsavedChanges(false);
+            setHasUnsavedChanges(false);
             setSavingState("saved");
 
             const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
