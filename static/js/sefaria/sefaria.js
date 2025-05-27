@@ -693,10 +693,10 @@ Sefaria = extend(Sefaria, {
     });
   },
   _tips: {},
-  getTips: function() {
+  getTips: function(guideKey = "sheets") {
     return this._cachedApiPromise({
-      url: `${Sefaria.apiHost}/api/tips`,
-      key: "tips",
+      url: `${Sefaria.apiHost}/api/tips/${guideKey}`,
+      key: `tips_${guideKey}`,
       store: this._tips
     });
   },

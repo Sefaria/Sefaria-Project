@@ -472,7 +472,7 @@ urlpatterns += [
 
 # Tips
 urlpatterns += [
-    url(r'^api/tips$', reader_views.tips_api),
+    url(r'^api/tips/(?P<guide_key>[^/]+)$', reader_views.tips_api),
 ]
 
 # add static files to urls

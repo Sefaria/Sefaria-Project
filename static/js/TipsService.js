@@ -10,7 +10,7 @@ class TipsService {
   constructor() {
     this._cache = {}; // Cache tips by guide type
     
-    // Placeholder data until API is implemented
+    // Placeholder data until API is implemented (sefaria.js/getTips())
     this._placeholderData = {
       sheets: {
         titlePrefix: {
@@ -60,7 +60,7 @@ class TipsService {
                 </ul>
               `
             },
-            imageUrl: null, // Will use placeholder
+            imageUrl: null, // Will use placeholder - TODO: Change to https://storage.cloud.google.com/guides-resources/test-video-tips-16x9.mp4
             imageAlt: {
               en: "Adding sources to sheets",
               he: "הוספת מקורות לדפים"
@@ -199,25 +199,27 @@ class TipsService {
     
     console.log(`Fetching tips for ${guideType}`);
     
-    // For now, return placeholder data
-    // In the future, this would make an API call:
-    // const data = await Sefaria._ApiPromise(`/api/tips/${guideType}`);
-    
-    // Simulate network delay for testing
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const data = this._placeholderData[guideType] || { 
-      tips: [], 
-      titlePrefix: { en: "", he: "" }, 
-      footerLinks: [] 
-    };
-    
-    // Auto-calculate total tips count
-    data.totalTips = data.tips.length;
-    
-    // Cache the data
-    this._cache[guideType] = data;
-    return data;
+    try {
+      const data = await Sefaria.getTips(guideType);
+      
+      // Cache the data
+      this._cache[guideType] = data;
+      return data;
+    } catch (error) {
+      console.error(`Error fetching tips for ${guideType}:`, error);
+      
+      // Fallback to placeholder data if API fails
+      const fallbackData = this._placeholderData[guideType] || { 
+        tips: [], 
+        titlePrefix: { en: "", he: "" }, 
+        footerLinks: [] 
+      };
+      
+      // Auto-calculate total tips count for fallback
+      fallbackData.totalTips = fallbackData.tips.length;
+      
+      return fallbackData;
+    }
   }
 
   /**

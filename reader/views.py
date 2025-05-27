@@ -4800,39 +4800,75 @@ def application_health_api(request):
 
     return http.JsonResponse(resp, status=statusCode)
 
-def tips_api(request):
+@catch_error_as_json
+def tips_api(request, guide_key=None):
     """
-    API endpoint that returns all InfoCard objects as JSON.
+    API endpoint that returns tips data for a specific guide.
+    
+    Args:
+        guide_key (str): The guide key to fetch tips for (e.g., 'sheets', 'test_heb')
     
     Returns:
         JSON response with the following structure:
-        [
-            {
-                "id": int,
-                "title_en": str,
-                "body_en": str,
-                "image_en": str,
-                "title_he": str,
-                "body_he": str,
-                "image_he": str,
-                "order": int
-            },
-            ...
-        ]
+        {
+            "totalTips": int,
+            "titlePrefix": {"en": str, "he": str},
+            "footerLinks": [{"text": {"en": str, "he": str}, "url": str}, ...],
+            "tips": [
+                {
+                    "id": str,
+                    "title": {"en": str, "he": str},
+                    "text": {"en": str, "he": str},
+                    "imageUrl": str|null,
+                    "imageAlt": {"en": str, "he": str}
+                },
+                ...
+            ]
+        }
     """
-    infoCards = InfoCard.objects.all().order_by('order')
+    if not guide_key:
+        return jsonResponse({"error": "Guide key is required"}, status=400)
     
+    try:
+        guide = Guide.objects.get(key=guide_key)
+    except Guide.DoesNotExist:
+        return jsonResponse({"error": f"Guide '{guide_key}' not found"}, status=404)
+    
+    # Get all info cards for this guide, ordered by their sort order
+    info_cards = guide.info_cards.all().order_by('order')
+    
+    # Build the tips array
     tips = []
-    for card in infoCards:
+    for card in info_cards:
+        # Determine which image URL to use (prefer English, fallback to Hebrew, then None)
+        image_url = card.image_en or card.image_he or None
+        
         tips.append({
-            "id": card.id,
-            "title_en": card.title_en,
-            "body_en": card.body_en,
-            "image_en": card.image_en,
-            "title_he": card.title_he,
-            "body_he": card.body_he,
-            "image_he": card.image_he,
-            "order": card.order
+            "id": str(card.id),
+            "title": {
+                "en": card.title_en,
+                "he": card.title_he
+            },
+            "text": {
+                "en": card.text_en,
+                "he": card.text_he
+            },
+            "imageUrl": image_url,
+            "imageAlt": {
+                "en": card.image_alt_en,
+                "he": card.image_alt_he
+            }
         })
     
-    return jsonResponse(tips)
+    # Build the response
+    response_data = {
+        "totalTips": len(tips),
+        "titlePrefix": {
+            "en": guide.title_prefix_en,
+            "he": guide.title_prefix_he
+        },
+        "footerLinks": guide.footer_links,
+        "tips": tips
+    }
+    
+    return jsonResponse(response_data)
