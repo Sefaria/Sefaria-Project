@@ -469,3 +469,7 @@ instrumentation:
   enabled: false
   otelEndpoint: ""
   jaegerEndpoint: ""
+
+subdomains:
+  sheets:
+    enable: false
