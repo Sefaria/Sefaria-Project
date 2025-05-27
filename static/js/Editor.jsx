@@ -2648,7 +2648,7 @@ function useBeforeUnloadWarning(savingState) {
       e.returnValue = '';
     };
     window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
+    return () => {window.removeEventListener('beforeunload', handler)};
   }, [savingState]);
 }
 
