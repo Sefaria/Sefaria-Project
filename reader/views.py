@@ -3674,11 +3674,7 @@ def profile_api(request, slug=None):
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
-def validate_session(request):
-    if request.user.is_authenticated:
-        return jsonResponse({'valid': True})
-    else:
-        return jsonResponse({'valid': False}, status=401)
+
 
 @login_required
 @csrf_protect
