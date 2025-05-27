@@ -2639,6 +2639,18 @@ function useBlockEditorInputWhenDisabled(isEditingBlocked, ...elementRefs) {
     });
   }, [isEditingBlocked, ...elementRefs.map(ref => ref.current)]);
 }
+function useBeforeUnloadWarning(savingState) {
+    // alert user before (hard-) leaving the page if there are unsaved changes
+  useEffect(() => {
+    const handler = e => {
+      if (savingState === 'saved') return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [savingState]);
+}
 
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
@@ -2663,19 +2675,8 @@ const SefariaEditor = (props) => {
     const isMultiPanel = Sefaria.multiPanel;
     useUnsavedChangesWatcher(20, hasUnsavedChanges, savingState, setSavingState);
     useBlockEditorInputWhenDisabled(blockEditing, editorContentContainer, editorTitleContainer);
+    isMultiPanel && useBeforeUnloadWarning(savingState);
 
-
-    // alert user before (hard-) leaving the page if there are unsaved changes
-    useEffect(() => {
-      const handleBeforeUnload = (e) => {
-        if (savingState === 'saved' || !isMultiPanel) return;
-        e.preventDefault();
-        e.returnValue = '';
-      };
-
-      window.addEventListener('beforeunload', handleBeforeUnload);
-      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [savingState]);
 
     useEffect(() => {
         if (!isMultiPanel) {return}
