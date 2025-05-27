@@ -1048,7 +1048,7 @@ def delete_user_by_email(request):
     from sefaria.utils.user import delete_user_account
     if request.method == 'GET':
         form = SefariaDeleteUserForm()
-        return render_template(request, "registration/delete_user_account.html", None, {'form': form, 'next': next})
+        return render_template(request, "registration/delete_user_account.html", None, {'form': form, 'next': next, "renderStatic": True})
     elif request.method == 'POST':
         user = User.objects.get(id=request.user.id)
         email = request.POST.get("email")
@@ -1076,7 +1076,7 @@ def delete_sheet_by_id(request):
     from sefaria.utils.user import delete_user_account
     if request.method == 'GET':
         form = SefariaDeleteSheet()
-        return render_template(request, "delete-sheet.html", None, {'form': form, 'next': next})
+        return render_template(request, "delete-sheet.html", None, {'form': form, 'next': next, "renderStatic": True})
     elif request.method == 'POST':
         user = User.objects.get(id=request.user.id)
         sheet_id = request.POST.get("sid")
