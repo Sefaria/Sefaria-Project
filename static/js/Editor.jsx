@@ -6,6 +6,7 @@ import {Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocus
 import isHotkey from 'is-hotkey'
 import Sefaria from './sefaria/sefaria';
 import * as sheetsUtils from './sefaria/sheetsUtils'
+import EditorSaveStates from './sefaria/sheetsUtils'
 
 
 import {
@@ -2750,8 +2751,8 @@ const SefariaEditor = (props) => {
     const [connectionLostPolling, setConnectionLostPolling] = useState(false);
     const [userUnauthenticated, setUserUnauthenticated] = useState(false);
     const [unknownErrorDetected, setUnknownErrorDetected] = useState(false);
-    const savingState = props.newEditorSaveState;
-    const setSavingState = props.setNewEditorSaveState;
+    const savingState = props.editorSaveState;
+    const setSavingState = props.setEditorSaveState;
     const isMultiPanel = Sefaria.multiPanel;
     isMultiPanel && useSaveStateManagement({
       hasUnsavedChanges, savingState, setSavingState,

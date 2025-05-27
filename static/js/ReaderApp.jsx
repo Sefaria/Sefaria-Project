@@ -122,11 +122,11 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
-      newEditorSaveState: 'saved',
+      editorSaveState: 'saved',
     };
   }
-  setNewEditorSaveState = (nextState) => {
-        this.setState({ newEditorSaveState: nextState });
+  setEditorSaveState = (nextState) => {
+        this.setState({ editorSaveState: nextState });
     };
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
@@ -1082,7 +1082,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (!href) {
       return;
     }
-    const newEditorSaveState = this.state.newEditorSaveState;
+    const newEditorSaveState = this.state.editorSaveState;
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
       const handled = this.openURL(href, true);
@@ -1682,8 +1682,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   closePanel(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     if (this.state.panels.length === 1 && n === 0) {
-      const newEditorSaveState = this.state.newEditorSaveState;
-      if (newEditorSaveState && newEditorSaveState !== "saved") {
+      const editorSaveState = this.state.editorSaveState;
+      if (editorSaveState && editorSaveState !== "saved") {
         if (!this.alertUnsavedChangesConfirmed()) {
           return;
         }
@@ -2135,7 +2135,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         hasBoxShadow={headerHasBoxShadow}
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference}
-        newEditorSaveState={this.state.newEditorSaveState}
       />
     );
 
@@ -2248,8 +2247,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
-                      newEditorSaveState={this.state.newEditorSaveState}
-                      setNewEditorSaveState={this.setNewEditorSaveState}
+                      editorSaveState={this.state.editorSaveState}
+                      setEditorSaveState={this.setEditorSaveState}
                     />
                   </div>);
     }

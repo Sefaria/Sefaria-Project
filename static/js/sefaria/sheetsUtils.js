@@ -67,6 +67,15 @@ function shouldBeSegmented(ref){
     const categories =  Sefaria.refCategories(ref);
     return !(categories[0] in {"Tanakh": 1, "Talmud": 1});
 }
+
+export const EditorSaveStates = {
+  SAVED: 'saved',
+  SAVING: 'saving',
+  UNSAVED: 'unsaved',
+  CONNECTION_LOST: 'connectionLost',
+  USER_UNAUTHENTICATED: 'userUnauthenticated',
+  UNKNOWN_ERROR: 'unknownError',
+};
     /*
     Temporarily disables all user interactions (e.g. mouse, touch, keyboard, clipboard, form input) on a given DOM element and its children.
     */

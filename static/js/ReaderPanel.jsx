@@ -767,8 +767,8 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
-          newEditorSaveState={this.props.newEditorSaveState}
-          setNewEditorSaveState={this.props.setNewEditorSaveState}
+          editorSaveState={this.props.editorSaveState}
+          setEditorSaveState={this.props.setEditorSaveState}
         />
       );
     }
