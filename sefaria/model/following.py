@@ -25,7 +25,7 @@ class FollowRelationship(object):
     def follow(self):
         from sefaria.model.notification import Notification
 
-        db.following.save(vars(self))
+        db.following.insert_one(vars(self))
 
         # Notification for the Followee
         notification = Notification({"uid": self.followee})
