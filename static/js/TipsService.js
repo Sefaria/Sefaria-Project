@@ -8,7 +8,6 @@
 
 class TipsService {
   constructor() {
-    this._cache = {}; // Cache tips by guide type
     
     // Placeholder data until API is implemented (sefaria.js/getTips())
     this._placeholderData = {
@@ -191,43 +190,14 @@ class TipsService {
    *   }
    */
   async getTips(guideType = "sheets") {
-    // Return from cache if available
-    if (this._cache[guideType]) {
-      console.log(`Returning cached tips for ${guideType}`);
-      return this._cache[guideType];
-    }
-    
     console.log(`Fetching tips for ${guideType}`);
     
     try {
       const data = await Sefaria.getTips(guideType);
-      
-      // Cache the data
-      this._cache[guideType] = data;
       return data;
     } catch (error) {
-      console.error(`Error fetching tips for ${guideType}:`, error);
-      
-      // Fallback to placeholder data if API fails
-      const fallbackData = this._placeholderData[guideType] || { 
-        tips: [], 
-        titlePrefix: { en: "", he: "" }, 
-        footerLinks: [] 
-      };
-      
-      // Auto-calculate total tips count for fallback
-      fallbackData.totalTips = fallbackData.tips.length;
-      
-      return fallbackData;
+      throw new Error(`Error fetching tips for ${guideType}:`, error);
     }
-  }
-
-  /**
-   * Clear the tips cache
-   */
-  clearCache() {
-    this._cache = {};
-    console.log("Tips cache cleared");
   }
 }
 

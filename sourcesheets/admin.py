@@ -5,7 +5,7 @@ from .models import Guide, InfoCard
 class InfoCardInline(admin.TabularInline):
     model = InfoCard
     extra = 0
-    fields = ('title_en', 'title_he', 'text_en', 'text_he', 'order')
+    fields = ('title_en', 'title_he', 'text_en', 'text_he', 'image_en', 'image_he', 'image_alt_en', 'image_alt_he', 'order')
     readonly_fields = ()
 
 @admin.register(Guide)
@@ -19,9 +19,13 @@ class GuideAdmin(admin.ModelAdmin):
         ('Basic Information', {
             'fields': ('key', 'title_prefix_en', 'title_prefix_he')
         }),
-        ('Footer Links', {
-            'fields': ('footer_links_json',),
-            'description': 'JSON format: [{"text": {"en": "Link Text", "he": "טקסט קישור"}, "url": "/path"}]'
+        ('Footer Link 1', {
+            'fields': ('footer_link_1_text_en', 'footer_link_1_text_he', 'footer_link_1_url'),
+            'description': 'First footer link (all fields optional - link will only appear if URL is provided)'
+        }),
+        ('Footer Link 2', {
+            'fields': ('footer_link_2_text_en', 'footer_link_2_text_he', 'footer_link_2_url'),
+            'description': 'Second footer link (all fields optional - link will only appear if URL is provided)'
         }),
     )
 

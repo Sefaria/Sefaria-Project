@@ -22,24 +22,72 @@ class Guide(models.Model):
         verbose_name="Title Prefix (HE)",
         help_text="Prefix shown before tips in Hebrew"
     )
-    footer_links_json = models.TextField(
-        default="[]",
-        verbose_name="Footer Links",
-        help_text="JSON array of footer links with structure: [{'text': {'en': 'Link Text', 'he': 'טקסט קישור'}, 'url': '/path'}]"
+    # Footer Link 1
+    footer_link_1_text_en = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Footer Link 1 Text (EN)",
+        help_text="Text for the first footer link in English (optional)"
+    )
+    footer_link_1_text_he = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Footer Link 1 Text (HE)",
+        help_text="Text for the first footer link in Hebrew (optional)"
+    )
+    footer_link_1_url = models.URLField(
+        blank=True,
+        verbose_name="Footer Link 1 URL",
+        help_text="URL for the first footer link (optional)"
+    )
+    
+    # Footer Link 2
+    footer_link_2_text_en = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Footer Link 2 Text (EN)",
+        help_text="Text for the second footer link in English (optional)"
+    )
+    footer_link_2_text_he = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Footer Link 2 Text (HE)",
+        help_text="Text for the second footer link in Hebrew (optional)"
+    )
+    footer_link_2_url = models.URLField(
+        blank=True,
+        verbose_name="Footer Link 2 URL",
+        help_text="URL for the second footer link (optional)"
     )
     
     @property
     def footer_links(self):
-        """Parse JSON string to Python object"""
-        try:
-            return json.loads(self.footer_links_json)
-        except (json.JSONDecodeError, TypeError):
-            return []
-    
-    @footer_links.setter
-    def footer_links(self, value):
-        """Serialize Python object to JSON string"""
-        self.footer_links_json = json.dumps(value)
+        """Generate footer links array from individual fields"""
+        links = []
+        
+        # Add first link if it has text and URL
+        if self.footer_link_1_text_en or self.footer_link_1_text_he:
+            if self.footer_link_1_url:
+                links.append({
+                    'text': {
+                        'en': self.footer_link_1_text_en,
+                        'he': self.footer_link_1_text_he
+                    },
+                    'url': self.footer_link_1_url
+                })
+        
+        # Add second link if it has text and URL
+        if self.footer_link_2_text_en or self.footer_link_2_text_he:
+            if self.footer_link_2_url:
+                links.append({
+                    'text': {
+                        'en': self.footer_link_2_text_en,
+                        'he': self.footer_link_2_text_he
+                    },
+                    'url': self.footer_link_2_url
+                })
+        
+        return links
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
