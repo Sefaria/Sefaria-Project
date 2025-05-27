@@ -1039,12 +1039,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     return true;
   }
   handleInAppClickWithModifiers(e){
-    // const newEditorSaveState = this.state.newEditorSaveState
-    // if (newEditorSaveState && newEditorSaveState !== "saved"){
-    //     if (!this.alertUnsavedChangesConfirmed(e)) {
-    //         return;
-    //     }
-    // }
     //Make sure to respect ctrl/cmd etc modifier keys when a click on a link happens
     const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
     if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
@@ -1090,11 +1084,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       return;
     }
     const newEditorSaveState = this.state.newEditorSaveState;
-    // if (newEditorSaveState && newEditorSaveState !== "saved") {
-    //   if (!this.alertUnsavedChangesConfirmed(e)) {
-    //     return;
-    //   }
-    // }
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
       const handled = this.openURL(href, true);

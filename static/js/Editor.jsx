@@ -640,7 +640,7 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
-const BoxedSheetElement = ({ attributes, children, element, divineName}) => {
+const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
@@ -1014,7 +1014,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
 }
 
-const AddInterface = ({ attributes, children, element}) => {
+const AddInterface = ({ attributes, children, element }) => {
     const editor = useSlate();
     const [active, setActive] = useState(false)
     const [itemToAdd, setItemToAdd] = useState(null)
@@ -1126,7 +1126,7 @@ const AddInterface = ({ attributes, children, element}) => {
 }
 
 const Element = (props) => {
-    const { attributes, children, element} = props;
+    const { attributes, children, element } = props;
     const editor = useSlate();
 
 
@@ -2646,7 +2646,6 @@ const SefariaEditor = (props) => {
     const [connectionLostPolling, setConnectionLostPolling] = useState(false);
     const [userUnauthenticated, setUserUnauthenticated] = useState(false);
     const [unknownErrorDetected, setUnknownErrorDetected] = useState(false);
-    // const [savingState, setSavingState] = useState('saved');
     const savingState = props.newEditorSaveState;
     const setSavingState = props.setNewEditorSaveState;
     const isMultiPanel = Sefaria.multiPanel;
@@ -2762,20 +2761,6 @@ const SefariaEditor = (props) => {
         [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
     );
 
-    // useEffect(() => {
-    //   // If no unsaved changes, do nothing
-    //   if (!unsavedChanges ) return;
-    //
-    //   const timeout = setTimeout(() => {
-    //     console.log("time up");
-    //     if (!unsavedChanges ) return;
-    //     setUnknownErrorDetected(true);
-    //     setBlockEditing(true);
-    //   }, 2000); // 20 seconds
-    //
-    //   // Cleanup if unsavedChanges changes or on unmount
-    //   return () => clearTimeout(timeout);
-    // }, [unsavedChanges]);
 
     useEffect(() => {
         if (!canUseDOM || !connectionLostPolling) return;
