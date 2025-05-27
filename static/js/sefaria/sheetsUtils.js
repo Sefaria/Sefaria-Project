@@ -68,7 +68,7 @@ function shouldBeSegmented(ref){
     return !(categories[0] in {"Tanakh": 1, "Talmud": 1});
 }
 
-export const EditorSaveStates = {
+export const editorSaveStates = {
   SAVED: 'saved',
   SAVING: 'saving',
   UNSAVED: 'unsaved',
