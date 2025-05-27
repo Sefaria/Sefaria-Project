@@ -2550,28 +2550,28 @@ const BlockButton = ({format, icon}) => {
 const EditorSaveStateIndicator = ({ state }) => {
     const localize = (inputStr) => Sefaria._(inputStr, "EditorSaveIndicator");
     const stateToIcon = {
-      "connectionLost": "/static/icons/new_editor_saving/cloud-off-rounded.svg",
-      "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
-      "saving": "/static/icons/new_editor_saving/directory-sync-rounded.svg",
-      "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg",
-      "unknownError": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
-    };
+        "connectionLost": "/static/icons/new_editor_saving/cloud-off-rounded.svg",
+        "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
+        "saving": "/static/icons/new_editor_saving/directory-sync-rounded.svg",
+        "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg",
+        "unknownError": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
+        };
     const stateToTooltip = {
-    "saved": "Your sheet is saved to Sefaria",
-    "saving": "We are saving your changes to Sefaria",
-    "connectionLost": "No internet connection detected",
-    "userUnauthenticated": "You are not logged in to Sefaria",
-    "unknownError": "If this problem persists, please try again later and contact us at hello@sefaria.org"
-  };
+        "saved": "Your sheet is saved to Sefaria",
+        "saving": "We are saving your changes to Sefaria",
+        "connectionLost": "No internet connection detected",
+        "userUnauthenticated": "You are not logged in to Sefaria",
+        "unknownError": "If this problem persists, please try again later and contact us at hello@sefaria.org"
+        };
 
     const path = window.location.pathname + window.location.search;
     const stateToMessage = {
-      "connectionLost": "Trying to connect…",
-      "userUnauthenticated": <>{localize("User Logged out")}. <a href={`/login?next=${path}`}>{localize("Log in")}</a></>,
-      "saving": "Saving...",
-      "saved": "Saved",
-      "unknownError": "Something went wrong. Try refreshing the page."
-    };
+        "connectionLost": "Trying to connect…",
+        "userUnauthenticated": <>{localize("User Logged out")}. <a href={`/login?next=${path}`}>{localize("Log in")}</a></>,
+        "saving": "Saving...",
+        "saved": "Saved",
+        "unknownError": "Something went wrong. Try refreshing the page."
+        };
     const loadedIcons = new Set();
     useEffect(() => {
       if (state === "connectionLost") {
