@@ -2604,8 +2604,6 @@ function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, s
     if (hasUnsaved && !timeoutRef.current) {
       // Start a timeout only if none is running
       timeoutRef.current = setTimeout(() => {
-        console.log("time up");
-        console.log("savingState", savingState)
         savingState === "saving" && setSavingState('unknownError');
         timeoutRef.current = null; // Reset the ref
       }, timeoutSeconds * 1000);
@@ -2743,13 +2741,11 @@ const SefariaEditor = (props) => {
                 return
             }
 
-
             setUnsavedChanges(true);
             // Update debounced value after delay
             const handler = setTimeout(() => {
                 saveDocument(currentDocument);
             }, 500);
-            console.log(unsavedChanges)
 
             // Cancel the timeout if value changes (also on delay change or unmount)
             // This is how we prevent debounced value from updating if value is changed ...

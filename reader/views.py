@@ -3675,7 +3675,6 @@ def profile_api(request, slug=None):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-
 @login_required
 @csrf_protect
 def account_user_update(request):
