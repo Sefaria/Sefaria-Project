@@ -126,7 +126,7 @@ class ReaderApp extends Component {
     };
   }
   setEditorSaveState = (nextState) => {
-        this.setState({ editorSaveState: nextState });
+    this.setState({ editorSaveState: nextState });
     };
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
