@@ -1082,7 +1082,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (!href) {
       return;
     }
-    const newEditorSaveState = this.state.editorSaveState;
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
       const handled = this.openURL(href, true);
