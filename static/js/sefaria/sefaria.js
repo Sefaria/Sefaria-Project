@@ -3020,8 +3020,8 @@ _media: {},
             }
             this._loadSheetByID[id] = data;
             callback(data);
-          });
-        }
+         });
+      }
       return sheet;
     },
     deleteSheetById: function(id) {
