@@ -2577,7 +2577,7 @@ const EditorSaveStateIndicator = ({ state }) => {
       if (state === "connectionLost") {
         return;
       }
-
+      // Preload icons for all states if they are not already loaded.
       Object.values(stateToIcon).forEach((src) => {
         if (!loadedIcons.has(src)) {
           const img = new Image();
@@ -2599,6 +2599,7 @@ const EditorSaveStateIndicator = ({ state }) => {
 function useUnsavedChangesWatcher(timeoutSeconds, unsavedChanges, savingState, setSavingState) {
   const timeoutRef = useRef(null);
 
+  // if failed to save and no reason is given, transition into known error state after a timeout
   useEffect(() => {
     const hasUnsaved = unsavedChanges;
     if (hasUnsaved && !timeoutRef.current) {
@@ -2662,6 +2663,7 @@ const SefariaEditor = (props) => {
       }
     }, [blockEditing, editorContentContainer.current, editorTitleContainer.current]);
 
+    // alert user before (hard-) leaving the page if there are unsaved changes
     useEffect(() => {
       const handleBeforeUnload = (e) => {
         if (savingState === 'saved' || !isMultiPanel) return;
@@ -2985,6 +2987,7 @@ const SefariaEditor = (props) => {
 
 
     function saveDocument(doc) {
+        // transition into saving state only if previous state is a valid "saved" state
         savingState === "saved" && setSavingState("saving")
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {

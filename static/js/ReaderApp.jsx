@@ -1028,7 +1028,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   alertUnsavedChangesConfirmed(e) {
     // If the user has unsaved changes, we want to prevent the default action of the click
     // and show a confirmation dialog instead.
-    // e.preventDefault();
     const ok = window.confirm(
         "You have unsaved changes that may be lost. Continue?"
     );
