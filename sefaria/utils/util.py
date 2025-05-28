@@ -523,6 +523,16 @@ def short_to_long_lang_code(code):
         code = "english"
     return code
 
+def get_short_lang(language):
+    """
+    Converts a language to a code.
+    :param language: 'english', 'hebrew', 'bilingual'
+    :return: A short language code 'he' or 'en'
+    """
+    if language == "english":
+        return "en"
+    else:
+        return "he"
 
 def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
     """
