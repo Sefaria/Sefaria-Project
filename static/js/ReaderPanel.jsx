@@ -36,6 +36,7 @@ import {
   MenuButton,
   DisplaySettingsButton,
   SaveButton,
+  GuideButton,
   CategoryColorLine,
   CategoryAttribution,
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
@@ -56,7 +57,8 @@ class ReaderPanel extends Component {
       initialAnalyticsTracked: false,
       width: this.props.multiPanel ? 1000 : 500, // Assume we're in a small panel not using multipanel
       backButtonSettings: null,
-      data: null
+      data: null,
+      forceTipsOverlay: false, // State to force tips overlay to show
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -479,6 +481,20 @@ class ReaderPanel extends Component {
       menuOpen: "search",
       searchQuery: query
     });
+  }
+  showTips() {
+    // Force the tips overlay to show
+    this.setState({forceTipsOverlay: true});
+  }
+  closeTipsOverlay() {
+    // Reset the force tips overlay state when tips are closed
+    this.setState({forceTipsOverlay: false});
+  }
+  shouldShowGuides() {
+    // Centralized check for when to show guides (tips button and tips overlay)
+    // Currently only shows on sheets, but can be extended for other guide types
+    return this.props.panelPosition === 0 && // Don't show on resources panel
+           (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections");
   }
   setDisplaySettingsOpen(bool) {
     this.conditionalSetState({displaySettingsOpen: bool});
@@ -1141,6 +1157,8 @@ class ReaderPanel extends Component {
               setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
               data={this.state.data}
               backButtonSettings={this.state.backButtonSettings}
+              showTips={this.showTips.bind(this)}
+              shouldShowGuides={this.shouldShowGuides.bind(this)}
             />}
 
           {(items.length > 0 && !menu) ?
@@ -1149,12 +1167,12 @@ class ReaderPanel extends Component {
           </div> : null}
 
           {menu}
-          {/* Only show the tips overlay on the sheets pages and only on the first panel */}
-          {this.props.panelPosition === 0 && 
-           (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections") &&
+          {/* Tips overlay for guides - currently only shows on sheets but can be extended for other guide types */}
+          {this.shouldShowGuides() && 
             <TipsOverlay 
-              onClose={this.closeTipsOverlay} 
+              onClose={this.closeTipsOverlay.bind(this)} 
               guideType="sheets" 
+              forceShow={this.state.forceTipsOverlay}
             />
           }
 
@@ -1391,6 +1409,13 @@ class ReaderControls extends Component {
     let displaySettingsMenu = (<ReaderDisplayOptionsMenu/>);
     let rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
+          {/* Tips button for guides - currently only shows on sheets but can be extended for other guide types */}
+          {this.props.shouldShowGuides && this.props.shouldShowGuides() && 
+            <GuideButton
+              onShowTips={this.props.showTips}
+              tooltip={true}
+            />
+          }
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
@@ -1456,6 +1481,8 @@ ReaderControls.propTypes = {
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   backButtonSettings:      PropTypes.object,
+  showTips:                PropTypes.func,
+  shouldShowGuides:        PropTypes.func,
 };
 
 
