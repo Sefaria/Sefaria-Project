@@ -307,6 +307,13 @@ const Strings = {
     "Uncategorized": "לא מסווג",
     "Text display options": "אפשרויות תצוגת טקסט",
 
+    // Tips Overlay
+    "Show tips": "הצג טיפים",
+    "Previous tip": "הטיפ הקודם",
+    "Next tip": "הטיפ הבא",
+    "Previous": "הקודם",
+    "Next": "הבא",
+
     // Collections
     "Collections": "אסופות",
     "My Collections": "אסופות שלי",
