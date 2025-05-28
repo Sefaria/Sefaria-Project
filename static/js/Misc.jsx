@@ -1296,7 +1296,7 @@ SaveButton.propTypes = {
  * @param {boolean} tooltip - Whether to show a tooltip when the button is hovered
  */
 function GuideButton({onShowTips}) {
-  const classes = classNames({saveButton: 1, "tooltip-toggle": true});
+  const classes = classNames({guideButton: 1, "tooltip-toggle": true});
   const altText = Sefaria._("Show tips");
 
   function onClick(event) {

@@ -5766,6 +5766,7 @@ h1.topic-landing-header {
   height: 56px;
   cursor: pointer;
 }
+
 .saveButton img {
   height: 18px;
   width: 18px;
@@ -5778,6 +5779,21 @@ h1.topic-landing-header {
 .interface-hebrew .rightButtons .saveButton.tooltip-toggle::before {
   left: auto;
   right: -50px;
+}
+/* GuideButton styles - based on SaveButton */
+.rightButtons .guideButton {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 56px;
+  cursor: pointer;
+  margin-right: 15px; 
+}
+.interface-hebrew .rightButtons .guideButton {
+  margin-left: 15px; 
+}
+.rightButtons .guideButton.tooltip-toggle::before {
+  top: 47px;
 }
 .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
