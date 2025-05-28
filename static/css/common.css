@@ -6,22 +6,26 @@
 @font-face {
   font-family: 'Taamey Frank';
   src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf');
+  unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
   font-family: 'Taamey Frank';
   src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf');
   font-weight: bold;
+  unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
   font-family: 'Taamey Frank';
   src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf');
   font-style: italic;
+  unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
   font-family: 'Taamey Frank';
   src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf');
   font-style: italic;
   font-weight: bold;
+  unicode-range: U+0590-05FF, U+25CC;
 }
 /* Avoid Flash of Unstyled Text with Google Web Font Loader */
 .wf-loading {
