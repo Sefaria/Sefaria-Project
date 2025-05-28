@@ -232,7 +232,7 @@ def delete_sheet_publication(sheet_id, user_id):
     Deletes the activity feed item for a sheet publication
     (for when a user unpublishes a sheet)
     """
-    db.history.remove({
+    db.history.delete_many({
             "user": user_id,
             "sheet": sheet_id,
             "rev_type": "publish sheet"
