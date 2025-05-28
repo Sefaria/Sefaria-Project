@@ -60,17 +60,20 @@ TipsFooter.propTypes = {
  * TipsOverlay component displays helpful tips and guides to users
  * Matches Figma design with proper spacing, scrollable content, and consistent layout
  * Only shows on first time user opens sheets, using cookie-based persistence
+ * Can be forced to show using the forceShow prop
  * 
  * @param {Object} props - Component props
  * @param {function} props.onClose - Function to call when overlay is closed
  * @param {string} props.guideType - Type of guide to display (e.g., "reader", "sheets")
+ * @param {boolean} props.forceShow - Force the overlay to show regardless of cookie state
  */
 const TipsOverlay = ({ 
   onClose,
-  guideType = "sheets"
+  guideType = "sheets",
+  forceShow = false
 }) => {
   const cookieName = `tips_overlay_seen_${guideType}`;
-  const initialShouldShow = !$.cookie(cookieName);
+  const initialShouldShow = forceShow || !$.cookie(cookieName);
   
   const [isOpen, setIsOpen] = useState(false);
   const [tipData, setTipData] = useState(null);
@@ -270,7 +273,19 @@ const TipsOverlay = ({
 
 TipsOverlay.propTypes = {
   onClose: PropTypes.func.isRequired,
-  guideType: PropTypes.string
+  guideType: PropTypes.string,
+  forceShow: PropTypes.bool
+};
+
+/**
+ * Utility function to clear the tips overlay cookie for a given guide type
+ * Useful for testing and development - allows the overlay to show again
+ * @param {string} guideType - The type of guide (e.g., "sheets", "reader")
+ */
+export const clearTipsOverlayCookie = (guideType) => {
+  const cookieName = `tips_overlay_seen_${guideType}`;
+  $.removeCookie(cookieName, {path: "/"});
+  console.log(`Cleared tips overlay cookie for guide type: ${guideType}`);
 };
 
 export default TipsOverlay; 
