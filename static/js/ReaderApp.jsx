@@ -38,6 +38,7 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import {shouldUseEditor} from './sefaria/sheetsUtils';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -1025,14 +1026,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       parent = parent.parentNode;
     }
   }
-  alertUnsavedChangesConfirmed(e) {
+  alertUnsavedChangesConfirmed() {
     // If the user has unsaved changes, we want to prevent the default action of the click
     // and show a confirmation dialog instead.
     const ok = window.confirm(
         "You have unsaved changes that may be lost. Continue?"
     );
     if (!ok) {
-        e.stopImmediatePropagation();
         return false;
     }
     return true;
@@ -1100,6 +1100,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   openURL(href, replace=true, overrideContentLang=false) {
+    if (this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return true;
+      }
+    }
     // Attempts to open `href` in app, return true if successful.
     href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
     let url;
@@ -1678,15 +1683,22 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     Sefaria.notificationCount = n;
     this.forceUpdate();
   }
+
+  shouldAlertBeforeCloseEditor() {
+    const sheetId = this.state.panels[0].sheetID;
+    return !!(sheetId && shouldUseEditor(sheetId) &&
+        this.state.panels[0].mode === "Sheet" &&
+        this.state.editorSaveState && this.state.editorSaveState !== "saved");
+
+  }
   closePanel(n) {
+    if (n===0 && this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return false;
+      }
+    }
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     if (this.state.panels.length === 1 && n === 0) {
-      const editorSaveState = this.state.editorSaveState;
-      if (editorSaveState && editorSaveState !== "saved") {
-        if (!this.alertUnsavedChangesConfirmed()) {
-          return;
-        }
-      }
       this.state.panels = [];
     } else {
       // If this is a Connection panel, we need to unset the filter in the base panel
