@@ -6,7 +6,6 @@ import {Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocus
 import isHotkey from 'is-hotkey'
 import Sefaria from './sefaria/sefaria';
 import * as sheetsUtils from './sefaria/sheetsUtils'
-import {editorSaveStates} from './sefaria/sheetsUtils'
 
 
 import {
@@ -2605,7 +2604,7 @@ function useUnsavedChangesWatcher(timeoutSeconds, hasUnsavedChanges, savingState
     if (hasUnsavedChanges && !timeoutRef.current) {
       // Start a timeout only if none is running
       timeoutRef.current = setTimeout(() => {
-        savingState === "saving" && setSavingState(editorSaveStates.UNKNOWN_ERROR);
+        savingState === "saving" && setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
         timeoutRef.current = null; // Reset the ref
       }, timeoutSeconds * 1000);
     }
@@ -2638,7 +2637,7 @@ function useBlockEditorInputWhenDisabled(isEditingBlocked, ...elementRefs) {
         sheetsUtils.enableUserInput(element);
       }
     });
-  }, [isEditingBlocked, ...elementRefs.map(ref => ref.current)]);
+  }, [isEditingBlocked, ...elementRefs]);
 }
 function useBeforeUnloadWarning(savingState) {
     // alert user before (hard-) leaving the page if there are unsaved changes
@@ -3058,7 +3057,7 @@ const SefariaEditor = (props) => {
 
     function saveDocument(doc) {
         // transition into saving state only if previous state is a valid "saved" state
-        savingState === "saved" && setSavingState(editorSaveStates.SAVING)
+        savingState === "saved" && setSavingState(sheetsUtils.editorSaveStates.SAVING)
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {
             return
@@ -3068,12 +3067,12 @@ const SefariaEditor = (props) => {
         function handlePostError(jqXHR, textStatus, errorThrown) {
             if (jqXHR.status === 0) {
                 console.warn("No network connection or request blocked.");
-                setSavingState(editorSaveStates.CONNECTION_LOST);
+                setSavingState(sheetsUtils.editorSaveStates.CONNECTION_LOST);
             } else if (jqXHR.status === 401) {
-                setSavingState(editorSaveStates.USER_UNAUTHENTICATED);
+                setSavingState(sheetsUtils.editorSaveStates.USER_UNAUTHENTICATED);
             } else {
                 console.warn("Unknown error:", textStatus, errorThrown);
-                setSavingState(editorSaveStates.UNKNOWN_ERROR);
+                setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
             }
         }
         if(Sefaria.testUnkownNewEditorSaveError) {
@@ -3085,7 +3084,7 @@ const SefariaEditor = (props) => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
             setHasUnsavedChanges(false);
-            setSavingState(editorSaveStates.SAVED);
+            setSavingState(sheetsUtils.editorSaveStates.SAVED);
 
             const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
             Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet

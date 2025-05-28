@@ -1685,10 +1685,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
 
   shouldAlertBeforeCloseEditor() {
-    const sheetId = this.state.panels[0].sheetID;
-    return !!(sheetId && shouldUseEditor(sheetId) &&
+    const sheetId = this.state.panels[0]?.sheetID;
+    return !!(sheetId &&
         this.state.panels[0].mode === "Sheet" &&
-        this.state.editorSaveState && this.state.editorSaveState !== "saved");
+        this.state.editorSaveState && this.state.editorSaveState !== "saved")
+        && shouldUseEditor(sheetId);
 
   }
   closePanel(n) {
