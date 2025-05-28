@@ -727,6 +727,7 @@ Sefaria = extend(Sefaria, {
     "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi"},
     "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes juifs en français"},
     "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
+    "ro": {"name": "Romanian", "nativeName": "română", "title": "Texte evreiești în limba română"},
     "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
     "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
@@ -1781,48 +1782,8 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSortHebrew: function(category, a, b) {
     return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
-  commentarySectionRef: function(commentator, baseRef) {
-    // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
-    // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
-    // Even though most commentaries have a 1:1 structural match to basetexts, this is not alway so.
-    // Works by examining links available on baseRef, returns null if no links are in cache.
-    if (commentator == "Abarbanel") {
-      return null; // This text is too giant, optimizing up to section level is too slow. TODO: generalize.
-    }
-    var links = Sefaria.getLinksFromCache(baseRef);
-    links = Sefaria._filterLinks(links, [commentator]);
-    if (!links || !links.length || links[0].isSheet) { return null; }
-
-    var pRefs = links.map(link => Sefaria.parseRef(link.sourceRef));
-    if (pRefs.some(pRef => "error" in pRef)) { return null; } // Give up on bad refs
-
-    var books = pRefs.map(pRef => pRef.book).unique();
-    if (books.length > 1) { return null; } // Can't handle multiple index titles or schemaNodes
-
-    try {
-      var startSections = pRefs.map(pRef => pRef.sections[0]);
-      var endSections   = pRefs.map(pRef => pRef.toSections[0]);
-    } catch(e) {
-      return null;
-    }
-
-    const sorter = (a, b) => {
-      return a.match(/\d+[ab]/) ?
-        Sefaria.hebrew.dafToInt(a) - Sefaria.hebrew.dafToInt(b)
-        : parseInt(a) - parseInt(b);
-    };
-
-    var commentaryRef = {
-      book: books[0],
-      sections: startSections.sort(sorter).slice(0,1),
-      toSections: endSections.sort(sorter).reverse().slice(0,1)
-    };
-    var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryRef));
-
-    return ref;
-  },
-    _descDict: {}, // cache for the description dictionary
-      getDescriptions: function(keyName, categoryList) {
+  _descDict: {}, // cache for the description dictionary
+  getDescriptions: function(keyName, categoryList) {
       const catlist = Sefaria.tocItemsByCategories(categoryList)
         let catmap = catlist.map((e) => [e.category || e.title, e.enShortDesc, e.heShortDesc])
         let d = {}
@@ -1841,7 +1802,7 @@ Sefaria = extend(Sefaria, {
         let heShortDesc = descs && descs[1]? descs[1]: null;
         return [enShortDesc, heShortDesc];
   },
-    getDescriptionDict: function(keyName, categoryList){
+  getDescriptionDict: function(keyName, categoryList){
         let desc = this._cachedApi([keyName, categoryList], this._descDict, null);
         if (Object.keys(this._descDict).length === 0){
             //Init of the Dict with the Category level descriptions
@@ -1864,9 +1825,8 @@ Sefaria = extend(Sefaria, {
         {
             return [null, null];
         }
-    },
-
-    _notes: {},
+  },
+  _notes: {},
   notes: function(ref, callback) {
     var notes = null;
     if (typeof ref == "string") {
@@ -2812,10 +2772,6 @@ _media: {},
   _tableOfContentsDedications: {},
     _strapiContent: null,
   _inAppAds: null,
-  _stories: {
-    stories: [],
-    page: 0
-  },
   _upcomingDay: {},  // for example, possible keys are 'parasha' and 'holiday'
   getUpcomingDay: function(day) {
       // currently `day` can be 'holiday' or 'parasha'
@@ -3676,7 +3632,10 @@ Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(re
 
 Sefaria = extend(Sefaria, Strings);
 
-Sefaria.setup = function(data, props = null) {
+Sefaria.setup = function(data, props = null, resetCache = false) {
+    if (resetCache) {
+        Sefaria.resetCache();
+    }
     Sefaria.loadServerData(data);
     let baseProps = props !=null ? props : (typeof DJANGO_VARS === "undefined" ? undefined : DJANGO_VARS.props);
     Sefaria.unpackBaseProps(baseProps);
@@ -3695,5 +3654,64 @@ Sefaria.setup = function(data, props = null) {
 };
 Sefaria.setup();
 
+Sefaria.resetCache = function() {
+    // Used when site is run in a server context for SSR.
+    // Clears out caches that are intended for browser rendering, and resets system to clean state.
+
+    // Caches that are user-level or can grow unbounded
+    this.last_place = [];   // Code smell: user state stored in library
+    this._parseRef = {};
+    this._texts = {};
+    this._textsStore = {};
+    this._refmap = {};
+    this._bulkTexts = {};
+    this._bulkSheets = {};
+    this._versions = {};
+    this._translateVersions = {};
+    this._shape = {};
+    this._lookups = {};
+    this._lexiconCompletions = {};
+    this._lexiconLookups = {};
+    this._links = {};
+    this._linkSummaries = {};
+    this._notes = {};
+    this._privateNotes = {};
+    this._media = {};
+    this._webpages = {};
+    this._processedWebpages = {};
+    this._refTopicLinks = {};
+    this._related = {};
+    this._relatedPrivate = {};
+    this._manuscripts = {};
+    this._guides = {};
+    this._profiles = {};
+    this._topics = {};
+    this._translations = {};
+    this._collections = {};
+    this._collectionsList = {};
+    this._userCollections = {};
+    this._userCollectionsForSheet = {};
+    this._ajaxObjects = {};
+    this._i18nInterfaceStringsWithContext = {}; // Not sure about this one.  May be retainable.
+    this._siteSettings = {}; // Where does this get set?
+
+    // These change slowly, but they do change
+    this._inAppAds = {};
+    this._upcomingDay = {};
+    this._parashaNextRead = {};
+    this._featuredTopic = {};
+    this._seasonalTopic = {};
+    this._index = {};
+    this._indexDetails = {};
+    this._bookSearchPathFilter  = {};
+    this.booksDict    = {};  // This gets built from setup, via  _makeBooksDict
+    this._tocOrderLookup = {};  // This gets built from setup, via _cacheFromToc
+    this._translateTerms = {}; // This gets built from setup, via  _cacheHebrewTerms
+    this._i18nInterfaceStrings = {}; // This gets built from setup, via  _cacheSiteInterfaceStrings
+    this._descDict = {};  // Stays constant
+    this._TopicsByPool = {};  // constant
+    this._portals = {}; // constant
+    this._tableOfContentsDedications  = {};
+};
 
 export default Sefaria;

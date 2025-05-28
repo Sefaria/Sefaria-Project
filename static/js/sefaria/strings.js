@@ -407,6 +407,7 @@ const Strings = {
     "Portuguese": "פורטוגזית",
     "Spanish": "ספרדית",
     "French": "צרפתית",
+    "Romanian": "רומנית",
     "German": "גרמנית",
     "Arabic": "ערבית",
     "Italian": "איטלקית",
