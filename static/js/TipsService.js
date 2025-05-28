@@ -29,8 +29,7 @@ class TipsService {
     console.log(`Fetching tips for ${guideType}`);
     
     try {
-      const data = await Sefaria.getTips(guideType);
-      return data;
+      return await Sefaria.getTips(guideType);
     } catch (error) {
       throw new Error(`Error fetching tips for ${guideType}:`, error);
     }

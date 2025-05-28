@@ -5,6 +5,8 @@ import { tipsService } from './TipsService';
 import Sefaria from './sefaria/sefaria';
 import '../css/TipsOverlay.css';
 
+const localize = (str) => Sefaria._(str, "Guide");
+
 /**
  * Title component with prefix
  * Text will naturally truncate if it exceeds container width
@@ -87,7 +89,7 @@ const TipsOverlay = ({
     const loadTips = async () => {
       setLoading(true);
       try {
-        const data = await tipsService.getTips(guideType);
+        const data = await tipsService.getTips(guideType); // TODO: Remove the tipsService and use Sefaria.getTips directly.
         setTipData(data);
         setCurrentTipIndex(0);
       } catch (error) {
@@ -159,7 +161,6 @@ const TipsOverlay = ({
   
   const currentTip = tipData.tips[currentTipIndex];
   const showNavigation = tipData.tips.length > 1;
-  const isHebrew = Sefaria.interfaceLang === "hebrew";
   
   return (
     <div className="tipsOverlay">
@@ -178,34 +179,31 @@ const TipsOverlay = ({
               <button 
                 onClick={prevTip} 
                 className="paginationArrowButton"
-                aria-label={Sefaria._("Previous tip")}
+                aria-label={localize("Previous tip")}
               >
                 <InterfaceText>
                   <EnglishText>
-                    <img src="/static/img/zondicons_arrow-left.svg" alt={Sefaria._("Previous")} />
+                    <img src="/static/img/zondicons_arrow-left.svg" alt={localize("Previous")} />
                   </EnglishText>
                   <HebrewText>
-                    <img src="/static/img/zondicons_arrow-right.svg" alt={Sefaria._("Previous")} />
+                    <img src="/static/img/zondicons_arrow-right.svg" alt={localize("Previous")} />
                   </HebrewText>
                 </InterfaceText>
               </button>
               <span className="tipsPaginationNumber">
-                <InterfaceText>
-                  <EnglishText>{currentTipIndex + 1} of {tipData.tips.length}</EnglishText>
-                  <HebrewText>{currentTipIndex + 1} מתוך {tipData.tips.length}</HebrewText>
-                </InterfaceText>
+                <InterfaceText>{`${currentTipIndex + 1} ${localize("of")} ${tipData.tips.length}`}</InterfaceText>
               </span>
               <button 
                 onClick={nextTip} 
                 className="paginationArrowButton"
-                aria-label={Sefaria._("Next tip")}
+                aria-label={localize("Next tip")}
               >
                 <InterfaceText>
                   <EnglishText>
-                    <img src="/static/img/zondicons_arrow-right.svg" alt={Sefaria._("Next")} />
+                    <img src="/static/img/zondicons_arrow-right.svg" alt={localize("Next")} />
                   </EnglishText>
                   <HebrewText>
-                    <img src="/static/img/zondicons_arrow-left.svg" alt={Sefaria._("Next")} />
+                    <img src="/static/img/zondicons_arrow-left.svg" alt={localize("Next")} />
                   </HebrewText>
                 </InterfaceText>
               </button>
@@ -223,19 +221,16 @@ const TipsOverlay = ({
             <div className="tipsOverlayVideoContainer">
               {currentTip.videoUrl.en ? ( // Using en becasue I assume that it's more likely to be available. In edge case where en exists but he doesn't, the an empty video will be shown in he.
                 <video 
-                  src={isHebrew ? currentTip.videoUrl.he : currentTip.videoUrl.en}
+                  src={Sefaria.getLocalizedVideoDataFromCard(currentTip).videoUrl}
                   className="tipsOverlayVideo" 
                   controls
                   preload="metadata"
-                  aria-label={isHebrew ? (currentTip.videoAlt?.he || "וידאו הדרכה") : (currentTip.videoAlt?.en || "Tutorial video")}
+                  aria-label={Sefaria.getLocalizedVideoDataFromCard(currentTip).videoAlt}
                 >
                   {/* TODO: Add a fallback for browsers that don't support the video tag */}
-                  <InterfaceText>
-                    <EnglishText>Your browser does not support the video tag.</EnglishText>
-                    <HebrewText>הדפדפן שלך אינו תומך בתגית הווידאו.</HebrewText>
-                  </InterfaceText>
+                  <InterfaceText>{localize("Your browser does not support the video tag.")}</InterfaceText>
                 </video>
-              ) : ( // TODO Add fallback if no video is available.
+              ) : ( // TODO Add remove this fallback.
                 <div className="tipsOverlayVideoPlaceholder">
                   <div className="placeholderContent">
                     <InterfaceText>

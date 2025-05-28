@@ -1297,7 +1297,7 @@ SaveButton.propTypes = {
  */
 function GuideButton({onShowTips}) {
   const classes = classNames({guideButton: 1, "tooltip-toggle": true});
-  const altText = Sefaria._("Show tips");
+  const altText = Sefaria._("Show tips", "Guide");
 
   function onClick(event) {
     event.preventDefault();
