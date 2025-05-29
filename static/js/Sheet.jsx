@@ -18,6 +18,7 @@ import {
   LearnAboutNewEditorBanner,
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
+import {shouldUseEditor} from './sefaria/sheetsUtils';
 
 
 class Sheet extends Component {
@@ -151,7 +152,7 @@ class Sheet extends Component {
             />
         </div>
        </>);
-    const usingEditor = sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor;
+    const usingEditor = shouldUseEditor(sheet?.id);
     return ( usingEditor ? editor : content )
   }
 }

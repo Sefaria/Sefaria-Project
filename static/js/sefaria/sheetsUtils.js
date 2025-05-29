@@ -125,6 +125,6 @@ export const enableUserInput = (root) => {
   root.style.userSelect = '';
 }
 export const shouldUseEditor = (sheetID) => {
-    const { owner } = Sefaria.sheets.loadSheetByID(sheetID);
+    const owner = Sefaria.sheets.loadSheetByID(sheetID)?.owner;
     return Sefaria._uid === owner && Sefaria._uses_new_editor;
 }
