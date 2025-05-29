@@ -6421,7 +6421,7 @@ def process_index_title_change_in_sheets(indx, **kwargs):
         for source in sheet.get("sources", []):
             if "ref" in source:
                 source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), source["ref"]) else source["ref"]
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
 
 
 def process_index_delete_in_versions(indx, **kwargs):

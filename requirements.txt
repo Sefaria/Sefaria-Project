@@ -1,7 +1,6 @@
 Appium-Python-Client==1.2.0
 Cerberus
 PyJWT==1.7.1 # pinned b/c current version 2.0.0 breaks simplejwt. waiting for 2.0.1
-apscheduler==3.6.*
 babel
 django-admin-sortable==2.1.13
 bleach==1.4.2
@@ -53,7 +52,7 @@ pillow==10.0.1; sys_platform != 'linux'
 pillow==8.0.1; sys_platform == 'linux'
 psycopg2==2.8.6 #for dev: psycopg2-binary==2.8.6
 py2-py3-django-email-as-username==1.7.1
-pymongo==3.12.*
+pymongo==4.13.*
 pytest~=7.4.4
 python-bidi
 pytz
