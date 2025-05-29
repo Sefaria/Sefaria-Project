@@ -4718,6 +4718,7 @@ class Ref(object, metaclass=RefCacheType):
 
     def url(self, encode_html=True):
         """
+        :param encode_html: boolean - True for encoding also HTML chars, or only our own things (like space to underscore)
         :return string: normal url form
         """
         if not self._url or not encode_html:
