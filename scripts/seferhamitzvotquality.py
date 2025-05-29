@@ -5,6 +5,19 @@ from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.helper.schema import refresh_version_state
 
+jsonlist = []
+for index in library.get_indexes_in_corpus("Tanakh"):
+    print(index)
+    for seg_ref in library.get_index(index).all_segment_refs():
+        tanakh_en = seg_ref.text('en').text
+        rashi_en = ""
+        for l in LinkSet({"refs": seg_ref.normal(), "type": "Commentary", "auto": True}):
+            if f"Rashi on {seg_ref}" in str(l.refs):
+                rashi_ref = l.refs[0] if "Rashi on " in l.refs[0] else l.refs[1]
+                rashi_en = Ref(rashi_ref).text('en').text
+        if rashi_en != "":
+            jsonlist.append({"prompt": tanakh_en, "completion": rashi_en})
+
 def create_terms(titles, he_titles):
     for title, he_title in zip(titles, he_titles):
         title = " ".join(title.split(" ")[0:2])
