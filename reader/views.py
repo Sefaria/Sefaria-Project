@@ -291,7 +291,7 @@ def catchall(request, tref, sheet=None):
         except InputError:
             raise Http404
 
-        uref = oref.url()
+        uref = oref.url(False)
         if uref and tref != uref:
             return reader_redirect(uref)
 

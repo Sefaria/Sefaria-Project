@@ -4716,21 +4716,27 @@ class Ref(object, metaclass=RefCacheType):
         """
         return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted)
 
-    def url(self):
+    def url(self, encode_html=True):
         """
+        :param encode_html: boolean - True for encoding also HTML chars, or only our own things (like space to underscore)
         :return string: normal url form
         """
-        if not self._url:
-            self._url = self.normal().replace(" ", "_").replace(":", ".").replace("?", "%3F")
+        if not self._url or not encode_html:
+            url = self.normal()
+
+            html_encoding_map = {'?': '%3F'}
+            pretty_url_map = {' ': '_', ':': '.'}
+            replace_map = pretty_url_map if not encode_html else pretty_url_map | html_encoding_map
+            for key, value in replace_map.items():
+                url = url.replace(key, value)
 
             # Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
             if len(self.sections) > 0:
-                last = self._url.rfind("_")
-                if last == -1:
-                    return self._url
-                lref = list(self._url)
-                lref[last] = "."
-                self._url = "".join(lref)
+                url = '.'.join(url.rsplit('_', 1))
+
+            if not encode_html:
+                return url
+            self._url = url
         return self._url
 
     def noteset(self, public=True, uid=None):
