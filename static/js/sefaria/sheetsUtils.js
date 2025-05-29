@@ -80,7 +80,7 @@ export const editorSaveStates = {
     Temporarily disables all user interactions (e.g. mouse, touch, keyboard, clipboard, form input) on a given DOM element and its children.
     */
 export const disableUserInput = (root) => {
-      if (!root) return;
+      if (!root) { return; }
 
       const blockEvent = (e) => {
         e.preventDefault();
@@ -112,7 +112,7 @@ export const disableUserInput = (root) => {
      re-enables all user interactions on a given DOM element and its children that were previously disabled.
     */
 export const enableUserInput = (root) => {
-  if (!root || !root._blockEventHandler || !root._blockedEvents) return;
+  if (!root || !root._blockEventHandler || !root._blockedEvents) {return;}
 
   root._blockedEvents.forEach(event => {
     root.removeEventListener(event, root._blockEventHandler, { capture: true });
