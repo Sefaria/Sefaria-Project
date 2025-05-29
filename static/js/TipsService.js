@@ -1,6 +1,6 @@
 /**
  * TipsService.js
- * 
+ *  
  * Service for managing tips data in Sefaria
  * This service handles fetching, caching, and providing tips data
  * for different guide types across the application.
