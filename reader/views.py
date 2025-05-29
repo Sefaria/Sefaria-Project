@@ -178,6 +178,7 @@ def base_props(request):
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "is_sustainer": profile.is_sustainer,
+            "experiments": profile.settings.get("experiments", False),
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
@@ -199,6 +200,7 @@ def base_props(request):
             "is_moderator": False,
             "is_editor": False,
             "is_sustainer": False,
+            "experiments": False,
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
@@ -4778,7 +4780,7 @@ def application_health_api(request):
         except SystemError as ivne:
             return False
 
-    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable() and is_database_reachable()
+    allReady = isRedisReachable() and isMultiserverReachable() and is_database_reachable()
 
     resp = {
         'allReady': allReady,

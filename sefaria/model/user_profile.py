@@ -365,6 +365,7 @@ class UserProfile(object):
             "textual_custom" : "sephardi",
             "reading_history" : True,
             "translation_language_preference": None,
+            "experiments": False,
         }
         self.version_preferences_by_corpus = {}
 
