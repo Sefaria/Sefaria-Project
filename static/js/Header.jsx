@@ -215,12 +215,12 @@ class Header extends Component {
 
     const libraryLogoPath = Sefaria.interfaceLang === "hebrew"  ? "logo-hebrew.png" : "logo.svg";
     const libraryLogo = (
-      <img src={`/static/img/${libraryLogoPath}`} alt="Sefaria Logo"/>
+      <img src={`/static/img/${libraryLogoPath}`} className="home" alt="Sefaria Logo"/>
     );
 
     const sheetsLogoPath = `/static/img/${short_lang}_sheets_logo.svg`;
     const sheetsLogo = (
-      <img src={sheetsLogoPath} alt="Sefaria Sheets Logo"/>
+      <img src={sheetsLogoPath} alt="Sefaria Sheets Logo" className="home"/>
     );
 
     const logo = this.props.module === "library" ? libraryLogo : sheetsLogo;

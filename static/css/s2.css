@@ -394,7 +394,7 @@ input.noselect {
   display: flex;
   justify-content: flex-start;
 }
-.headerInner .headerNavSection a {
+.headerInner .headerNavSection a, .header .headerInner .home {
   font-size: 16px;
   color: #666;
   margin-inline-end: 30px;
@@ -619,13 +619,8 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .ui-autocomplete .ui-menu-item.english-result a {
   direction: ltr;
 }
-.header .home {
-  margin-top: 2px;
-}
-.header .home img {
+.header img.home {
   vertical-align: middle;
-  height: 25px;
-  margin-top: -7px;
   width: 92px;
 }
 .interface-hebrew .header .home img {
