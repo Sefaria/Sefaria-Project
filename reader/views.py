@@ -173,7 +173,6 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
-            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -836,22 +835,6 @@ def search(request):
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation."),
         "noindex": True
     })
-
-
-@login_required
-def enable_new_editor(request):
-    profile = UserProfile(id=request.user.id)
-    profile.update({"uses_new_editor": True, "show_editor_toggle": True})
-    profile.save()
-    return redirect(f"/profile/{profile.slug}")
-
-@login_required
-def disable_new_editor(request):
-    profile = UserProfile(id=request.user.id)
-    profile.update({"uses_new_editor": False})
-    profile.save()
-    return redirect(f"/profile/{profile.slug}")
-
 
 def public_collections(request):
     props = base_props(request)

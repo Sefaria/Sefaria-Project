@@ -7558,6 +7558,7 @@ But not to use a display block directive that might break continuous mode for ot
   color: #999;
   text-decoration: underline;
 }
+
 .manuscriptImage {
   width: auto;
   max-height: 180px;
