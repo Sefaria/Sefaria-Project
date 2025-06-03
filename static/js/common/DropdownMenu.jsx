@@ -62,9 +62,11 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
           <InterfaceText>{textEn}</InterfaceText>
         </span>
       </div>
-      <div className='dropdownDesc'>
-        <InterfaceText text={{'en': descEn, 'he': descHe}} />
-      </div>
+      {!!descEn  && 
+        <div className='dropdownDesc'>
+          <InterfaceText text={{'en': descEn, 'he': descHe}} />
+        </div>
+      }
   </>
   );
 }

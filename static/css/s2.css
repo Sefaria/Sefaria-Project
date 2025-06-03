@@ -14720,7 +14720,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownHeader {
-  margin-bottom: 10px;
+  margin-block: 10px;
   font-family: Roboto;
   font-size: 16px;
   font-weight: 400;
@@ -14894,7 +14894,6 @@ span.ref-link-color-3 {color: blue}
 .dropdownLinks-options {
   display: flex;
   flex-direction: column;
-  padding: 4px;
   max-width: 220px;
 }
 
