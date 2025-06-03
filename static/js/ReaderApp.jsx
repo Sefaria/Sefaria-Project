@@ -1693,6 +1693,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   }
   closePanel(n) {
+    // currently we assume that the editor is always the first panel,
+    // TODO: enforce this assumption
     if (n===0 && this.shouldAlertBeforeCloseEditor()) {
       if (!this.alertUnsavedChangesConfirmed()) {
         return false;
