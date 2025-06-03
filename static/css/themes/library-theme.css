@@ -32,10 +32,10 @@
 
 }
 
-[data-active-module="library"] .header img.home 
-{
+[data-active-module="library"] .header img.home {
   height: 25px;
 }
+
 /**
 either a secondary button inside active module or a button with active module on it explicitly
 **/

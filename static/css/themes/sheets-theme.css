@@ -31,9 +31,12 @@
   --theme-button-dropshadow: none;
 }
 
-[data-active-module="library"] .header img.home 
-{
+[data-active-module="sheets"] .header img.home {
   height: 30px;
+}
+
+[data-active-module="sheets"] .interface-hebrew .header img.home {
+  height: 25px;
 }
 
 /**
