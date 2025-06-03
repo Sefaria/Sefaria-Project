@@ -70,7 +70,7 @@ unicodecsv==0.14.1
 unidecode==1.1.1
 user-agents==2.2.0
 pytest-django==4.9.*
-
+redis==5.2.1
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
