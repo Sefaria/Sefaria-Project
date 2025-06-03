@@ -403,10 +403,13 @@ input.noselect {
   vertical-align: middle;
 }
 .headerInner .headerLinksSection {
-  display: flex;
-  justify-content: flex-end;
-  min-width: 40%;
-  align-items: center;
+	display: flex;
+	justify-content: flex-end;
+	min-width: 50%;
+	align-items: center;
+}
+.headerInner .headerLinksSection > * {
+  margin-inline-start: 2%;
 }
 .header .header-nav {
   margin-top: 1px;
@@ -452,7 +455,7 @@ input.noselect {
   text-align: inherit;
   background: #EDEDEC;
   border-radius: 250px;
-  width: 140px;
+  width: 250px;
   height: 30px;
 }
 .header .searchBox.searchFocused {
@@ -619,10 +622,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .ui-autocomplete .ui-menu-item.english-result a {
   direction: ltr;
 }
-.header img.home {
-  vertical-align: middle;
-  width: 92px;
-}
 .interface-hebrew .header .home img {
   width: 77px;
 }
@@ -666,7 +665,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   align-items: center;
   height: 100%;
   margin-top: 4px;
-  margin-inline-start: 4px;
 }
 .header .interfaceLinks {
   display: flex;
@@ -4689,10 +4687,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-transform: uppercase;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.search-container{
-  position: relative;
-  padding-right: 10px;
-}
+
 .autocomplete-dropdown{
   background: #FFFFFF;
   position: absolute;
@@ -14771,9 +14766,6 @@ span.ref-link-color-3 {color: blue}
   margin-bottom: 4px;
   color: #666;
   position: relative;
-  -webkit-margin-start: 20px;
-  -moz-margin-start: 20px;
-  margin-inline-start: 10px;
 }
 .headerDropdownMenu .toolsButtonContainer {
   margin: revert;
@@ -15318,7 +15310,6 @@ span.ref-link-color-3 {color: blue}
 .sheetsNotificationsHeaderIcon {
   width: 20px;
   height: 18px;
-  margin-inline-start: 6px;
   margin-top: 2px;
   margin-bottom: 2px;
 }

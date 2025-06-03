@@ -675,7 +675,7 @@ const SignUpButton = () => {
 
 const CreateButton = () => {
   return (
-    <Button variant={"secondary"} onClick={() => window.location.href="/sheets/new"}>
+    <Button onClick={() => window.location.href="/sheets/new"}>
       {/* Hebrew is a placeholder */}
       <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} /> 
     </Button>
