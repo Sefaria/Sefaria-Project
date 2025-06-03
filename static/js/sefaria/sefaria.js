@@ -2911,8 +2911,8 @@ _media: {},
         tabs.sources.refs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
       }
 
-      // set up admin tab which is all 'sources'
-      if (Sefaria.is_moderator) {
+      // set up admin tab which contains all 'sources'
+      if (Sefaria.is_moderator && !!tabs.sources) {
         tabs["admin"] = {...tabs["sources"]};
         tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
       }
