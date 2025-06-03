@@ -1359,7 +1359,13 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         if index is None:
             raise InputError("Versions cannot be created for non existing Index records")
         assert self._check_node_offsets(self.chapter, index.nodes), 'there are more sections than index_offsets_by_depth'
-
+        if getattr(self, "direction", None) not in ["rtl", "ltr"]:
+            raise InputError("Version direction must be either 'rtl' or 'ltr'")
+        assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
+        assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
+        isAnyOtherVersionPrimary = any([v.isPrimary for v in VersionSet({"title": self.title}) if v.versionTitle != self.versionTitle])
+        if not any([self.isPrimary, isAnyOtherVersionPrimary]):  # if all are False, return true
+            raise InputError("There must be at least one version that is primary.")
         return True
 
     def _check_arrays_lengths(self, array1, array2):

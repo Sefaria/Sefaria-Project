@@ -3445,6 +3445,9 @@ a.cardTitle:hover {
 .bookPage .versionEditForm label#versionNotes_label {
   display: block;
 }
+.bookPage .versionEditForm label + input {
+  margin-inline-end: 30px;
+}
 .bookPage .versionEditForm #versionTitle,
 .bookPage .versionEditForm #versionSource,
 .bookPage .versionEditForm #versionNotes,
@@ -3458,9 +3461,6 @@ a.cardTitle:hover {
 }
 .bookPage .versionEditForm #priority {
   width: 25px;
-}
-.bookPage .versionEditForm #digitzedBySefaria {
-  margin-right: 10px;
 }
 .bookPage .versionEditForm #save_button,
 .bookPage .versionEditForm #delete_button {
@@ -3767,6 +3767,10 @@ a.cardTitle:hover {
   justify-content: start;
   align-items: flex-start;
   margin-bottom: 10px;
+}
+.versionBlock .error {
+  font-size: xx-large;
+  color: var(--halakhah-red);
 }
 .versionBlock .versionTitle {
   font-size: 18px;
