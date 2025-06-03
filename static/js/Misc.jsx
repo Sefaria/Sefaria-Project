@@ -25,6 +25,7 @@ import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
 
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -1641,11 +1642,6 @@ const SheetListing = ({
       </div>
       <div className="sheetRight">
         {
-          editable && !Sefaria._uses_new_editor ?
-            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
-            : null
-        }
-        {
           collectable ?
             <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
             : null
@@ -1889,8 +1885,8 @@ const replaceNewLinesWithLinebreaks = (content) => {
 }
 
 const InterruptingMessage = ({
-  onClose,
-}) => {
+                               onClose,
+                             }) => {
   const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
@@ -2074,10 +2070,15 @@ const GenericBanner = ({message, children}) => {
 
 const LearnAboutNewEditorBanner = () => {
   const cookieName = "learned_about_new_editor";
-  const shouldShowNotification = Sefaria._inBrowser && !document.cookie.includes(cookieName);
-  const [showNotification, toggleShowNotification] = useState(shouldShowNotification);
+  const initialShouldShowNotification = !$.cookie(cookieName);
+  const [showNotification, setShowNotification] = useState(false);
   const [enURL, heURL] = ["/sheets/393695", "/sheets/399333"];
   const linkURL = Sefaria._v({en: enURL, he: heURL});
+
+  useEffect(() => {
+    // Force rerendering of the component when initially rendered by ssr
+    setShowNotification(initialShouldShowNotification);
+  }, [initialShouldShowNotification]);
 
   const handleLearnMoreClick = () => {
     window.open(linkURL, '_blank');
@@ -2085,7 +2086,7 @@ const LearnAboutNewEditorBanner = () => {
 
   const setCookie = () => {
     $.cookie(cookieName, 1, {path: "/", expires: 20*365});
-    toggleShowNotification(false);
+    setShowNotification(false);
   }
 
   if (!showNotification) {

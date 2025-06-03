@@ -1265,10 +1265,20 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
             # or (2) topic is an author (which means linkType is not 'about') as curated primacy is irrelevant to authors
             # this code sets the new source at the top of the topic page, because otherwise it can be hard to find.
             # curated primacy's default value for all links is 0 so set it to 1 + num of links in this language
-            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang})) + 1
+            curated_lang_query = {
+                "toTopic": slug,
+                "linkType": linkType,
+                f"order.curatedPrimacy.{interface_lang}": {"$exists": True}
+            }
+            links = RefTopicLinkSet(curated_lang_query)
+            primacies = [
+                link.order["curatedPrimacy"][interface_lang]
+                for link in links
+            ]
+            new_primacy = max(primacies, default=0) + 1
             if 'curatedPrimacy' not in link.order:
                 link.order['curatedPrimacy'] = {}
-            link.order['curatedPrimacy'][interface_lang] = num_curr_links
+            link.order['curatedPrimacy'][interface_lang] = new_primacy
 
     link.save()
     # process link for client-side, especially relevant in TopicSearch.jsx

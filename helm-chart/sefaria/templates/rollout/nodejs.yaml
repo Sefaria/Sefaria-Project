@@ -62,6 +62,8 @@ spec:
             value: redis-{{ .Values.deployEnv }}
           - name: DEBUG
             value: {{ .Values.localSettings.DEBUG | quote }}
+          - name: NODE_OPTIONS
+            value: "--max-old-space-size={{ .Values.nodejs.heapSize }}"
         envFrom:
           - configMapRef:
               name: local-settings-node-{{ .Values.deployEnv }}
