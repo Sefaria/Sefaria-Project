@@ -633,6 +633,12 @@ TopicPage.propTypes = {
 const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePreference, versionPref,
                             scrollableElement, langPref, setLangPref, toggleSignUpModal, topicTestVersion,
                             onSetTopicSort, topicSort}) => {
+    /*
+    This component is a wrapper for the `TabView` component.  The core logic of this component is in `setupTabsWithSources`.
+    `setupTabsWithSources`, based on the `tabs` property in `topicData`, sets up the tabs to display and incrementally 
+    loads the data for each tab as the user scrolls down. 
+    `setupAdditionalTabs` sets up additional tabs that are not related to sources, such as filter and language toggle.
+     */
     const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [showLangSelectInterface, setShowLangSelectInterface] = useState(false);

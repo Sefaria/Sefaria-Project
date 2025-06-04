@@ -41,6 +41,7 @@ static_pages = [
     "powered-by-sefaria-contest-2021",
     "ramban-sponsorships",
     "rabbis",
+    "edit_collection",
     "contest",
     "design-system",
     "powered-by",
@@ -53,7 +54,8 @@ static_pages = [
     'mobile-about-menu',
     "updates",
     "pioneers",
-    "ai"
+    "ai",
+    "metrics"
 ]
 
 static_pages_by_lang = [
