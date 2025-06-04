@@ -729,6 +729,8 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           if (!selected) {
               setSourceActive(false)
               setActiveSourceLangContent(null)
+          } else {
+              setSourceActive(true);
           }
       },
       [selected]
@@ -758,12 +760,12 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
   const onClick = (e) => {
 
-    if ((e.target).closest('.he') && sourceActive) {
+    if ((e.target).closest('.he .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('he')
         if (window.chrome) {suppressParentContentEditable(false)}
 
     }
-    else if ((e.target).closest('.en') && sourceActive) {
+    else if ((e.target).closest('.en .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('en')
         if (window.chrome) {suppressParentContentEditable(false)}
     }
@@ -792,7 +794,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         }
     }
 
-  const isActive = selected;
+  const isActive = sourceActive;
   const sheetItemClasses = {sheetItem: 1, highlight: parentEditor.highlightedNode === (element.node ? element.node.toString() : null)}
   const classes = {
       SheetSource: element.ref ? 1 : 0,
