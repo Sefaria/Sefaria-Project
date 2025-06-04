@@ -568,6 +568,7 @@ const Strings = {
     "Composed": "זמן חיבור",
     "Author": "מחבר",
     "Authors": "מחברים",
+    "Top Citations": "ציטוטים עיקריים",
 
     "Install Now": "התקינו עכשיו",
 

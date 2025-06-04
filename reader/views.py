@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 
 from django.utils.http import is_safe_url
+from django_topics.models import Topic as DjangoTopic
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
@@ -50,7 +51,7 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
@@ -170,6 +171,7 @@ def base_props(request):
 
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
+        active_module = getattr(request, "active_module", "library")
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
@@ -187,7 +189,7 @@ def base_props(request):
             "blocking": profile.blockees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
-            "notifications": profile.recent_notifications().client_contents(),
+            "notifications": profile.recent_notifications(scope=active_module).client_contents(),
             "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
             "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True)
         }
@@ -231,7 +233,6 @@ def base_props(request):
             "color":             request.COOKIES.get("color", "light"),
             "fontSize":          request.COOKIES.get("fontSize", 62.5),
         },
-        "trendingTopics": trending_topics(days=7, ntags=5),
         "numLibraryTopics": get_num_library_topics(),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG
@@ -730,7 +731,7 @@ def topics_category_page(request, topicCategory):
         }
     }
 
-    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    short_lang = get_short_lang(request.interfaceLang)
     title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
     desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
 
@@ -1075,7 +1076,8 @@ def user_stats(request):
 def notifications(request):
     # Notifications content is not rendered server side
     title = _("Sefaria Notifications")
-    notifications = UserProfile(user_obj=request.user).recent_notifications()
+    active_module = getattr(request, 'active_module', 'library')
+    notifications = UserProfile(user_obj=request.user).recent_notifications(scope=active_module)
     props = {
         "notifications": notifications.client_contents(),
     }
@@ -1121,7 +1123,7 @@ def _crumb(pos, id, name):
 def sheet_crumbs(request, sheet=None):
     if sheet is None:
         return ""
-    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    short_lang = get_short_lang(request.interfaceLang)
     main_topic = get_top_topic(sheet)
     if main_topic is None:  # crumbs make no sense if there are no topics on sheet
         return ""
@@ -1176,7 +1178,7 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
             for snode in oref.index_node.ancestors()[1:] + [oref.index_node]:
                 if snode.is_default():
                     continue
-                name = snode.primary_title("he") if request.interfaceLang == "hebrew" else  snode.primary_title("en")
+                name = snode.primary_title(get_short_lang(request.interfaceLang)) 
                 breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), name)]
                 nextPosition += 1
 
@@ -2299,7 +2301,7 @@ def visualize_parasha_colors(request):
 def visualize_links_through_rashi(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
-    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file})
+    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file, "renderStatic": True})
 
 def talmudic_relationships(request):
     json_file = "../static/files/talmudic_relationships_data.json"
@@ -2924,8 +2926,9 @@ def notifications_api(request):
 
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
+    scope = str(request.GET.get("scope", "library"))
 
-    notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)
+    notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page, scope=scope)
 
     return jsonResponse({
         "notifications": notifications.client_contents(),
@@ -3101,49 +3104,55 @@ def topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
     }
+    desc = "Explore Jewish Texts by Topic on Sefaria" if request.active_module == "library" else "Explore Source Sheets by Topic on Sefaria"
     return render_template(request, 'base.html', props, {
         "title":          _("Topics") + " | " + _("Sefaria"),
-        "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
+        "desc":           _(desc),
     })
 
 
-def topic_page_b(request, topic):
-    return topic_page(request, topic, test_version="b")
+def topic_page_b(request, slug):
+    return topic_page(request, slug, test_version="b")
 
 @sanitize_get_params
-def topic_page(request, topic, test_version=None):
+def topic_page(request, slug, test_version=None):
     """
     Page of an individual Topic
     """
-    topic_obj = Topic.init(topic)
-    if topic_obj is None:
-        # try to normalize
-        topic_obj = Topic.init(SluggedAbstractMongoRecord.normalize_slug(topic))
-        if topic_obj is None:
-            raise Http404
-        topic = topic_obj.slug
+    slug = SluggedAbstractMongoRecord.normalize_slug(slug)
+    topic_obj = Topic.init(slug)
+    if topic_obj is None or request.active_module not in DjangoTopic.objects.slug_to_pools[slug]:
+        raise Http404
+
+    short_lang = get_short_lang(request.interfaceLang)
+    desc = title = ""
+    short_title = topic_obj.get_primary_title(short_lang)
+    if request.active_module == "library":
+        title = short_title + " | " + _("Texts from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
+    elif request.active_module == "sheets":
+        title = short_title + " | " + _("Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Source Sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
+
+    topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
+    if topic_desc is not None:
+        desc += " " + topic_desc
 
     props = {
         "initialMenu": "topics",
-        "initialTopic": topic,
+        "initialTopic": slug,
         "initialTab": urllib.parse.unquote(request.GET.get('tab', 'notable-sources')),
         "initialTopicSort": urllib.parse.unquote(request.GET.get('sort', 'Relevance')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         },
-        "topicData": _topic_page_data(topic, request.interfaceLang),
+        "topicData": _topic_page_data(slug, request.interfaceLang),
     }
 
     if test_version is not None:
         props["topicTestVersion"] = test_version
 
-    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
-    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
-    topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
-    if topic_desc is not None:
-        desc += " " + topic_desc
     return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
@@ -3386,7 +3395,7 @@ def topic_ref_api(request, tref):
     except Exception as e:
         data = json.loads(request.body)
     slug = data.get('topic')
-    interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
+    interface_lang = get_short_lang(data.get('interface_lang'))
     tref = Ref(tref).normal()  # normalize input
     linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
     annotate = bool(int(data.get("annotate", False)))
@@ -3411,7 +3420,7 @@ def topic_ref_api(request, tref):
 def reorder_sources(request):
     sources = json.loads(request.body).get("sources", [])
     slug = request.GET.get('topic')
-    lang = 'en' if request.GET.get('lang') == 'english' else 'he'
+    lang = get_short_lang(request.GET.get('lang'))
     return jsonResponse(update_order_of_topic_sources(slug, sources, request.user.id, lang=lang))
 
 _CAT_REF_LINK_TYPE_FILTER_MAP = {
@@ -3997,6 +4006,7 @@ def edit_profile(request):
       'user': request.user,
       'profile': profile,
       'sheets': sheets,
+      "renderStatic": True
     })
 
 

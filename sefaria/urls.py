@@ -47,6 +47,7 @@ urlpatterns = [
     url(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
+    url(r'^sheets/notifications/?$', reader_views.notifications),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^modtools/links$', sefaria_views.links_upload_api),
@@ -107,8 +108,10 @@ urlpatterns += [
     url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
     url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),
     url(r'^topics/?$', reader_views.topics_page),
-    url(r'^topics/b/(?P<topic>.+)$', reader_views.topic_page_b),
-    url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
+    url(r'^topics/b/(?P<slug>.+)$', reader_views.topic_page_b),
+    url(r'^topics/(?P<slug>.+)$', reader_views.topic_page),
+    url(r'^sheets/topics/(?P<slug>.+)$', reader_views.topic_page),
+    url(r'^sheets/topics/?$', reader_views.topics_page),
     url(r'^_api/topics/images/secondary/(?P<slug>.+)$', reader_views.topic_upload_photo, {"secondary": True}),
     url(r'^_api/topics/images/(?P<slug>.+)$', reader_views.topic_upload_photo)
 
