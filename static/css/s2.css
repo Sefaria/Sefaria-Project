@@ -394,7 +394,7 @@ input.noselect {
   display: flex;
   justify-content: flex-start;
 }
-.headerInner .headerNavSection a, .header .headerInner .home {
+.headerInner .headerNavSection a, .header img.home {
   font-size: 16px;
   color: #666;
   margin-inline-end: 30px;
