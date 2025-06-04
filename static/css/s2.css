@@ -8384,14 +8384,14 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .notification .sheetTitle,
 .notification .collectionName {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 24px;
   display: block;
 }
 .notification .sheetSummary {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   color: var(--dark-grey);
   font-size: 18px;
   margin-top: 10px;
@@ -15283,6 +15283,10 @@ span.ref-link-color-3 {color: blue}
 }
 .sheetsProfileList .loadingMessage {
   margin-top: 30px;
+}
+
+.notificationUserName {
+  color: var(--midrash-green) !important;
 }
 
 .emptyNotificationsTitle{
