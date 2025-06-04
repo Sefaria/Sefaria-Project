@@ -1,4 +1,5 @@
 {% load static %}
+{% load full_static %}
 {% get_static_prefix as STATIC_PREFIX %}
 <!DOCTYPE html>
 <html lang="en">
@@ -106,7 +107,7 @@
         <input id="filter" type="button" onclick="add_filter()" value="Update">
     </div>
     <div id="DiffTable"/>
-    <script src="/data.{{ last_cached_short }}.js"></script>
+    <script src="{{ SITE_SETTINGS.FRONT_END_URL }}/data.{{ last_cached_short }}.js"></script>
 
     <script type="text/javascript">
     {% autoescape off %}
@@ -119,6 +120,6 @@
 
     {% endautoescape %}
     </script>
-    <script src="{% static 'bundles/diffPage/diffPage.js' %}"></script>
+    <script src="{% full_static 'bundles/diffPage/diffPage.js' %}"></script>
 </body>
 </html>
