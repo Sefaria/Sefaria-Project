@@ -943,9 +943,18 @@ class ReaderPanel extends Component {
           />
         );
       } else {
-        menu = <TopicsLandingPage openTopic={this.props.openTopic}/>
+        if (Sefaria.activeModule === 'library') {
+          menu = (
+              <TopicsLandingPage openTopic={this.props.openTopic}/>
+          );
+        } else if (Sefaria.activeModule === "sheets") {
+          menu = <TopicsPage
+                      key={"TopicsPage"}
+                      setNavTopic={this.setNavigationTopic}
+                      multiPanel={this.props.multiPanel}
+                      initialWidth={this.state.width}/>;
+        }
       }
-
     } else if (this.state.menuOpen === "allTopics") {
       menu = (
         <TopicPageAll

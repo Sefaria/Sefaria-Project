@@ -960,7 +960,11 @@ def trending_tags_api(request):
     """
     API to retrieve the list of trending tags.
     """
-    response = trending_topics(ntags=18)
+    try:
+        ntags = int(request.GET.get('n', 10))
+    except ValueError:
+        return jsonResponse({"error": "Invalid value for parameter 'n'. It must be an integer."})
+    response = trending_topics(ntags=ntags)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
