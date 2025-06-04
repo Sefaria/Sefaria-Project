@@ -3616,11 +3616,14 @@ Sefaria.resetCache = function() {
     this.booksDict    = {};  // This gets built from setup, via  _makeBooksDict
     this._tocOrderLookup = {};  // This gets built from setup, via _cacheFromToc
     this._translateTerms = {}; // This gets built from setup, via  _cacheHebrewTerms
-    this._i18nInterfaceStrings = {}; // This gets built from setup, via  _cacheSiteInterfaceStrings
     this._descDict = {};  // Stays constant
     this._TopicsByPool = {};  // constant
     this._portals = {}; // constant
     this._tableOfContentsDedications  = {};
-};
+    
+    // Resetting _i18nInterfaceStrings will break ssr translation
+    // this._i18nInterfaceStrings = {}; // This gets built from setup, via  _cacheSiteInterfaceStrings
+
+  };
 
 export default Sefaria;
