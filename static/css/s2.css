@@ -9042,6 +9042,8 @@ a .button:hover {
 }
 .sheetMetaDataBox .title {
   display: block;
+  position: relative;
+  z-index: 2;
 }
 .sheetMetaDataBox .title br { /* hide the line breaks that are stripped before saving */
     display: none;
