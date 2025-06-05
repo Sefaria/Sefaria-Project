@@ -13,4 +13,4 @@ RUN npm run $TYPE
 COPY . /app/
 EXPOSE 3000
 
-CMD forever start static/bundles/server/server-bundle.js
+CMD ["forever", "start", "-l", "/dev/stdout", "-o", "/dev/null", "-e", "/dev/stderr", "static/bundles/server/server-bundle.js"]
