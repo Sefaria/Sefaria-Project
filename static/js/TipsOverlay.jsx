@@ -223,7 +223,9 @@ const TipsOverlay = ({
                   src={Sefaria.getLocalizedVideoDataFromCard(currentTip).videoUrl}
                   className="tipsOverlayVideo" 
                   controls
-                  preload="metadata"
+                  preload="auto"
+                  loop
+                  autoPlay
                   aria-label={Sefaria.getLocalizedVideoDataFromCard(currentTip).videoAlt}
                 >
                   {/* TODO: Add a fallback for browsers that don't support the video tag */}
