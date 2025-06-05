@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
-import { InterfaceText } from '../Misc';
+import { InterfaceText, getCurrentPage } from '../Misc';
 
 
 const DropdownMenuSeparator = () => {
@@ -62,9 +62,11 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
           <InterfaceText>{textEn}</InterfaceText>
         </span>
       </div>
-      <div className='dropdownDesc'>
-        <InterfaceText text={{'en': descEn, 'he': descHe}} />
-      </div>
+      {!!descEn && descEn.length > 0 &&
+        <div className='dropdownDesc'>
+          <InterfaceText text={{'en': descEn, 'he': descHe}} />
+        </div>
+      }
   </>
   );
 }
@@ -134,11 +136,33 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
   DropdownMenu.propTypes = {
     buttonComponent: PropTypes.element.isRequired,
   };
+
+
+
+const DropdownLanguageToggle = () => (
+    <>
+      <div className="languageHeader">
+        <InterfaceText>Site Language</InterfaceText>
+      </div>
+      <div className='dropdownLanguageToggle'>
+      <span className='englishLanguageButton'>
+        <a href={`/interface/english?next=${getCurrentPage()}`} target="_blank">
+          English
+        </a>
+      </span>
+      <a href={`/interface/hebrew?next=${getCurrentPage()}`} target="_blank">
+        עברית
+      </a>
+      </div>
+    </>
+)
+
   export {
     DropdownMenu,
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
     DropdownMenuItemLink,
     DropdownMenuItem, 
-    DropdownMenuItemWithCallback
+    DropdownMenuItemWithCallback,
+    DropdownLanguageToggle
   };
