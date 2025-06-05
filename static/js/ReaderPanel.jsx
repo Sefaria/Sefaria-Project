@@ -80,7 +80,6 @@ class ReaderPanel extends Component {
       const curPanel = $(".readerPanel")[this.props.panelPosition];
       $(curPanel).find(':focusable').first().focus();
     }
-    console.log("Temp. ReaderPanel mounted");
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
