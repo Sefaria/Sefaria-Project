@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText, EnglishText, HebrewText, CloseButton } from './Misc';
-import { tipsService } from './TipsService';
 import Sefaria from './sefaria/sefaria';
 import '../css/TipsOverlay.css';
 
@@ -89,7 +88,7 @@ const TipsOverlay = ({
     const loadTips = async () => {
       setLoading(true);
       try {
-        const data = await tipsService.getTips(guideType); // TODO: Remove the tipsService and use Sefaria.getTips directly.
+        const data = await Sefaria.getTips(guideType);
         setTipData(data);
         setCurrentTipIndex(0);
       } catch (error) {
