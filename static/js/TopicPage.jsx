@@ -217,8 +217,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 *** Components
 */
 
-const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
-  openSearch}) => {
+const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
@@ -230,13 +229,8 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
         setSubtopics(Sefaria.topicTocPage(topic));
     }, [topic]);
 
-    const shouldDisplay = (t) => {
-      const inActiveModule = t.pools.includes(Sefaria.activeModule);
-      return t.shouldDisplay !== false && inActiveModule;
-    }
-
     let topicBlocks = subtopics
-      .filter(shouldDisplay)
+      .filter(Sefaria.shouldDisplayTopic)
       .sort(Sefaria.sortTopicsCompareFn)
       .map((topic, i) => <TopicTOCCard topic={topic} setTopic={setTopic} setNavTopic={setNavTopic} key={i}/>);
 
@@ -264,9 +258,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
-                      <div className="readerNavCategories">
-                        <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />
-                      </div>
+                    <div className="TOCCardsWrapper table">{topicBlocks}</div>
                   </div>
                   <NavSidebar sidebarModules={sidebarModules} />
                 </div>
