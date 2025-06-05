@@ -18,7 +18,10 @@ import {HeaderAutocomplete} from './HeaderAutocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemLink, DropdownMenuItemWithIcon, DropdownMenuItemWithCallback } from './common/DropdownMenu';
 import Button from './common/Button';
 
-
+const getCurrentPage = () => {
+  return encodeURIComponent(Sefaria.util.currentPath());
+}
+  
 const LoggedOutDropdown = ({module}) => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
@@ -36,10 +39,7 @@ const LoggedOutDropdown = ({module}) => {
       setRegisterLink("/register?next="+next);
     }
   })
-
-  const getCurrentPage = () => {
-    return encodeURIComponent(Sefaria.util.currentPath());
-  }
+  
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/logged_out.svg'/>}>
           <div className='dropdownLinks-options'>
@@ -53,16 +53,7 @@ const LoggedOutDropdown = ({module}) => {
               <div className="languageHeader">
                   <InterfaceText>Site Language</InterfaceText>
               </div>
-              <div className='languageToggleFlexContainer'>
-                <span className='englishLanguageButton'>
-                  <DropdownMenuItemLink url={`/interface/english?next=${getCurrentPage()}`}>
-                    English
-                  </DropdownMenuItemLink>
-                </span>
-                  <DropdownMenuItemLink url={`/interface/hebrew?next=${getCurrentPage()}`}>
-                      עברית
-                  </DropdownMenuItemLink>
-              </div>
+              <DropdownLanguageToggle/>
               <DropdownMenuSeparator/>
               { module === 'library' &&
                 <DropdownMenuItemLink url={'/updates'}>
@@ -77,13 +68,21 @@ const LoggedOutDropdown = ({module}) => {
 );
 }
 
+const DropdownLanguageToggle = () => (
+      <div className='DropdownLanguageToggleContainer'>
+      <span className='englishLanguageButton'>
+        <DropdownMenuItemLink url={`/interface/english?next=${getCurrentPage()}`}>
+          English
+        </DropdownMenuItemLink>
+      </span>
+        <DropdownMenuItemLink url={`/interface/hebrew?next=${getCurrentPage()}`}>
+            עברית
+        </DropdownMenuItemLink>
+    </div>
+)
+
 
 const LoggedInDropdown = ({module}) => {
-
-  const getCurrentPage = () => {
-    return encodeURIComponent(Sefaria.util.currentPath());
-  }
-
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" 
                     buttonComponent={<ProfilePic url={Sefaria.profile_pic_url}
@@ -135,15 +134,7 @@ const LoggedInDropdown = ({module}) => {
               <div className="languageHeader">
                   <InterfaceText>Site Language</InterfaceText>
               </div>
-              <div className='languageToggleFlexContainer'>
-                  <DropdownMenuItemLink url={`/interface/english?next=${getCurrentPage()}`}>
-                      English
-                  </DropdownMenuItemLink>
-                  <span className="languageDot">&#183;</span>
-                  <DropdownMenuItemLink url={`/interface/hebrew?next=${getCurrentPage()}`}>
-                      עברית
-                  </DropdownMenuItemLink>
-              </div>
+              <DropdownLanguageToggle/>
               <DropdownMenuSeparator/>
               
               { module === 'library' && 
@@ -588,9 +579,6 @@ const ProfilePicMenu = ({len, url, name}) => {
       document.removeEventListener('click', handleClickOutside, true);
     };
   }, []);
-  const getCurrentPage = () => {
-    return encodeURIComponent(Sefaria.util.currentPath());
-  };
   return (
     <div className="myProfileBox" ref={wrapperRef}>
         <a href="/my/profile" className="my-profile" onClick={profilePicClick}>
@@ -630,7 +618,7 @@ const ProfilePicMenu = ({len, url, name}) => {
 
 
 const MobileInterfaceLanguageToggle = () => {
-  const currentURL = encodeURIComponent(Sefaria.util.currentPath());
+  const currentURL = getCurrentPage();
 
   const links = Sefaria.interfaceLang == "hebrew" ?
     <>
