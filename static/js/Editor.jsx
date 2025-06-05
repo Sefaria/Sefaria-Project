@@ -673,14 +673,60 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
+function removeEmptyTextNodes(nodes) {
+  return nodes
+    .map(node => {
+      // If it's a text node (no `type`), keep only if it contains non-whitespace
+      if (!node.type && typeof node.text === 'string') {
+        return node.text.trim() === '' ? null : node;
+      }
+
+      // // If it's an element node, recurse into children
+      // if (node.children) {
+      //   const cleanedChildren = removeEmptyTextNodes(node.children);
+      //   return {
+      //     ...node,
+      //     children: cleanedChildren
+      //   };
+      // }
+       if (node.children.length === 1 && node.children[0].text.trim() === '') {
+           return null;
+      }
+
+      return node; // In case it's an unexpected format, keep it as-is
+    })
+    .filter(Boolean); // Remove nulls
+}
+function normalizeSlateNodes(nodes) {
+  return nodes.map(node => {
+    if (node.type && Array.isArray(node.children)) {
+      // If it's a block and children are empty, add one empty text node
+      const hasValidChildren = node.children.some(
+        child => child.text?.trim() !== ""
+      );
+      return {
+        ...node,
+        children:
+          node.children.length === 0 || !hasValidChildren
+            ? [{ text: "" }]
+            : normalizeSlateNodes(node.children)
+      };
+    }
+    return node;
+  });
+}
+
+
+
 const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(element.enText)
-  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText)
-  const [unsavedChanges, setUnsavedChanges] = useState(false)
+  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(removeEmptyTextNodes(element.heText))
+  console.log(JSON.stringify(sheetHeSourceValue, null, 2))
+    const [unsavedChanges, setUnsavedChanges] = useState(false)
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -689,23 +735,23 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
 
-    useEffect(
-        () => {
-            const replacement = divineName || "noSub"
-            const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
-            for (const editor of editors) {
-                const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
-                for (const [node, path] of nodes) {
-                    if (node.text) {
-                        const newStr = replaceDivineNames(node.text, replacement)
-                        if (newStr != node.text) {
-                            Transforms.insertText(editor, newStr, {at: path})
-                        }
-                    }
-                }
-            }
-        }, [divineName]
-    )
+    // useEffect(
+    //     () => {
+    //         const replacement = divineName || "noSub"
+    //         const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
+    //         for (const editor of editors) {
+    //             const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
+    //             for (const [node, path] of nodes) {
+    //                 if (node.text) {
+    //                     const newStr = replaceDivineNames(node.text, replacement)
+    //                     if (newStr != node.text) {
+    //                         Transforms.insertText(editor, newStr, {at: path})
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }, [divineName]
+    // )
 
 
   const onHeChange = (value) => {
