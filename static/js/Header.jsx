@@ -10,17 +10,13 @@ import {
   GlobalWarningMessage,
   InterfaceLanguageMenu,
   InterfaceText,
-  LanguageToggleButton,
+  getCurrentPage,
   DonateLink
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
-import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemLink, DropdownMenuItemWithIcon, DropdownMenuItemWithCallback } from './common/DropdownMenu';
+import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemLink, DropdownMenuItemWithIcon, DropdownLanguageToggle } from './common/DropdownMenu';
 import Button from './common/Button';
-
-const getCurrentPage = () => {
-  return encodeURIComponent(Sefaria.util.currentPath());
-}
   
 const LoggedOutDropdown = ({module}) => {
   const [isClient, setIsClient] = useState(false);
@@ -43,44 +39,27 @@ const LoggedOutDropdown = ({module}) => {
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/logged_out.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItemLink url={loginLink}>
+              <DropdownMenuItem url={loginLink}>
                   <InterfaceText text={{'en': 'Log in', 'he': 'התחברות'}}/>
-              </DropdownMenuItemLink>
-              <DropdownMenuItemLink url={registerLink}>
+              </DropdownMenuItem>
+              <DropdownMenuItem url={registerLink}>
                   <InterfaceText text={{'en': 'Sign up', 'he': 'להרשמה'}}/>
-              </DropdownMenuItemLink>
+              </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <div className="languageHeader">
-                  <InterfaceText>Site Language</InterfaceText>
-              </div>
               <DropdownLanguageToggle/>
               <DropdownMenuSeparator/>
               { module === 'library' &&
-                <DropdownMenuItemLink url={'/updates'}>
+                <DropdownMenuItem url={'/updates'}>
                     <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
-                </DropdownMenuItemLink>
+                </DropdownMenuItem>
               }
-              <DropdownMenuItemLink url={'/help'}>
+              <DropdownMenuItem url={'/help'}>
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
-              </DropdownMenuItemLink>
+              </DropdownMenuItem>
           </div>
       </DropdownMenu>
 );
 }
-
-const DropdownLanguageToggle = () => (
-      <div className='DropdownLanguageToggleContainer'>
-      <span className='englishLanguageButton'>
-        <DropdownMenuItemLink url={`/interface/english?next=${getCurrentPage()}`}>
-          English
-        </DropdownMenuItemLink>
-      </span>
-        <DropdownMenuItemLink url={`/interface/hebrew?next=${getCurrentPage()}`}>
-            עברית
-        </DropdownMenuItemLink>
-    </div>
-)
-
 
 const LoggedInDropdown = ({module}) => {
   return (
@@ -95,61 +74,58 @@ const LoggedInDropdown = ({module}) => {
                 </DropdownMenuItem>
               }
                { module === 'sheets' && 
-                <DropdownMenuItemLink url={'/my/profile'} preventClose={true}>
+                <DropdownMenuItem url={'/my/profile'} preventClose={true}>
                     <strong>{Sefaria.full_name}</strong>
-                </DropdownMenuItemLink>
+                </DropdownMenuItem>
               }
               <DropdownMenuSeparator/>
 
               { module === 'library' && 
                 <>
-                <DropdownMenuItemLink url={'/settings/account'}>
+                <DropdownMenuItem url={'/settings/account'}>
                     <InterfaceText>Account Settings</InterfaceText>
-                </DropdownMenuItemLink>
-                <DropdownMenuItemLink url={'/torahtracker'}>
+                </DropdownMenuItem>
+                <DropdownMenuItem url={'/torahtracker'}>
                     <InterfaceText text={{'en': 'Torah Tracker', 'he': 'לימוד במספרים'}}/>
-                </DropdownMenuItemLink>
+                </DropdownMenuItem>
                 </> 
               }
 
 
               { module === 'sheets' && 
                 <>
-                <DropdownMenuItemLink url={'/my/profile'}>
+                <DropdownMenuItem url={'/my/profile'}>
                     <InterfaceText>Profile</InterfaceText>
-                </DropdownMenuItemLink>
-                <DropdownMenuItemLink url={'/sheets/saved'}>
+                </DropdownMenuItem>
+                <DropdownMenuItem url={'/sheets/saved'}>
                   <InterfaceText>Saved</InterfaceText>
-                </DropdownMenuItemLink>
-                <DropdownMenuItemLink url={'/sheets/history'}>
+                </DropdownMenuItem>
+                <DropdownMenuItem url={'/sheets/history'}>
                   <InterfaceText>History</InterfaceText>
-                </DropdownMenuItemLink>
-                <DropdownMenuItemLink url={'/settings/account'}>
+                </DropdownMenuItem>
+                <DropdownMenuItem url={'/settings/account'}>
                     <InterfaceText>Account Settings</InterfaceText>
-                </DropdownMenuItemLink>
+                </DropdownMenuItem>
                 </> 
               }
               
               <DropdownMenuSeparator/>
-              <div className="languageHeader">
-                  <InterfaceText>Site Language</InterfaceText>
-              </div>
               <DropdownLanguageToggle/>
               <DropdownMenuSeparator/>
               
               { module === 'library' && 
-                <DropdownMenuItemLink url={'/updates'}>
+                <DropdownMenuItem url={'/updates'}>
                     <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
-                </DropdownMenuItemLink>
+                </DropdownMenuItem>
               }
 
-              <DropdownMenuItemLink preventClose={true} url={'/help'}>
+              <DropdownMenuItem preventClose={true} url={'/help'}>
                   <InterfaceText text={{'en': 'Help', 'he': 'עזרה'}}/>
-              </DropdownMenuItemLink>
+              </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItemLink url={Sefaria.getLogoutUrl()}>
+              <DropdownMenuItem url={Sefaria.getLogoutUrl()}>
                   <InterfaceText text={{'en': 'Log Out', 'he': 'ניתוק'}}/>
-              </DropdownMenuItemLink>
+              </DropdownMenuItem>
           </div>
       </DropdownMenu>
 );
@@ -172,9 +148,9 @@ const ModuleSwitcher = () => {
                   <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItemLink url={'/products'} newTab={true}>
-                  <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
-              </DropdownMenuItemLink>
+              <DropdownMenuItem url={'/products'} newTab={true}>
+                <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
+              </DropdownMenuItem>
           </div>
       </DropdownMenu>
 );
@@ -655,9 +631,11 @@ const HelpButton = () => {
 
 const SignUpButton = () => {
   return (
-    <a href="/register">
-      <InterfaceText>Sign Up</InterfaceText>
-    </a>
+    <Button>
+      <a href="/register">
+        <InterfaceText>Sign Up</InterfaceText>
+      </a>
+    </Button>
   )
 }
 

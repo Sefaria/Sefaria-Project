@@ -631,6 +631,10 @@ TextBlockLink.defaultProps = {
 };
 
 
+const getCurrentPage = () => {
+  return encodeURIComponent(Sefaria.util.currentPath());
+}
+
 class LanguageToggleButton extends Component {
   toggle(e) {
     e.preventDefault();
@@ -3330,5 +3334,6 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
-  LearnAboutNewEditorBanner
+  LearnAboutNewEditorBanner,
+  getCurrentPage
 };
