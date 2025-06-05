@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText, EnglishText, HebrewText, CloseButton } from './Misc';
 import Sefaria from './sefaria/sefaria';
-import '../css/TipsOverlay.css';
 
 const localize = (str) => Sefaria._(str, "Guide");
 

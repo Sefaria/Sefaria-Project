@@ -9464,6 +9464,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   --hebrew-font: var(--hebrew-serif-font-family);
   --english-font: var(--english-serif-font-family);
 }
+
 .collectionPage .collectionDescription .en .dedication {
   font-style: italic;
   font-size: 18px;
@@ -14712,3 +14713,441 @@ span.ref-link-color-3 {color: blue}
 87.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.5),-2.6em 0 0 0 rgba(0,0,0,0.7),-1.8em -1.8em 0 0 #fff}
 }
 /* end css code for loading bezel */
+
+/* ========== TIPS OVERLAY COMPONENT STYLES - START ========== */
+/* TipsOverlay Component Styles */
+
+.tipsOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #fbfbfb;
+  box-shadow: 0px -1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  z-index: 1000;
+}
+
+.tipsOverlayContent {
+  width: 100%;
+  padding: 20px 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 250px;
+}
+
+/* Header with title on left, pagination in center, close button on right */
+.tipsOverlayHeader {
+  width: 800px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+/* Close button using reusable component */
+.tipsOverlayHeader .readerNavMenuCloseButton.circledX {
+  flex-shrink: 0;
+  order: 3; /* Ensure close button is always on the right */
+}
+
+/* Pagination with arrows around page number */
+.tipsOverlayPagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  order: 2; /* Pagination in the center */
+}
+
+.paginationArrowButton {
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.paginationArrowButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.paginationArrowButton img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.paginationArrowButton:hover img {
+  opacity: 1;
+}
+
+.tipsPaginationNumber {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 12px;
+  color: #666666;
+  white-space: nowrap;
+  min-width: 40px;
+  text-align: center;
+}
+
+.interface-hebrew .tipsPaginationNumber {
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
+/* Title section */
+.tipsOverlayTitleSection {
+  flex: 1;
+  min-width: 0; /* Allow shrinking for text truncation */
+  order: 1; /* Title on the left */
+  display: flex;
+  align-items: center;
+}
+
+.tipsOverlayTitle {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  /* Text will naturally truncate with ellipsis if it overflows */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.titlePrefix {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: 0%;
+  color: #666666;
+}
+
+.titleVariable {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: 300;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: 0%;
+  color: #333333;
+}
+
+/* Centered content container with specific width */
+.tipsOverlayCenteredContent {
+  width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Main content area */
+.tipsOverlayBody {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  width: 800px;
+  justify-content: flex-start;
+}
+
+/* Video container */
+.tipsOverlayVideoContainer {
+  width: 480px;
+  height: 270px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.tipsOverlayVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tipsOverlayVideoPlaceholder {
+  width: 100%;
+  height: 100%;
+  background-color: #f0f0f0;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholderContent {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 12px;
+  color: #999999;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.interface-hebrew .placeholderContent {
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
+/* Text container with scrolling - specific dimensions */
+.tipsOverlayTextContainer {
+  width: 300px;
+  height: 270px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tipsOverlayText {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.4;
+  letter-spacing: 0%;
+  color: #555555;
+  overflow-y: auto;
+  height: 100%;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.interface-hebrew .tipsOverlayText {
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  padding-right: 0;
+  padding-left: 8px;
+}
+
+.tipsOverlayText::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tipsOverlayText::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tipsOverlayText::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.tipsOverlayText::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* HTML content styles within text */
+.tipsOverlayText p {
+  margin: 0 0 12px 0;
+}
+
+.tipsOverlayText p:last-child {
+  margin-bottom: 0;
+}
+
+.tipsOverlayText ul,
+.tipsOverlayText ol {
+  margin: 0 0 12px 0;
+  padding-left: 20px;
+}
+
+.tipsOverlayText li {
+  margin-bottom: 4px;
+}
+
+.tipsOverlayText li:last-child {
+  margin-bottom: 0;
+}
+
+.tipsOverlayText strong,
+.tipsOverlayText b {
+  font-weight: 500;
+}
+
+.tipsOverlayText em,
+.tipsOverlayText i {
+  font-style: italic;
+}
+
+.tipsOverlayText a {
+  color: #4472C4;
+  text-decoration: none;
+}
+
+.tipsOverlayText a:hover {
+  text-decoration: underline;
+}
+
+/* Footer styles */
+.tipsOverlayFooter {
+  width: 800px;
+  height: 19px;
+  padding-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.tipsOverlayFooterLink {
+  color: #666666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.interface-hebrew .tipsOverlayFooterLink {
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
+.tipsOverlayFooterLink:hover {
+  color: #4472C4;
+  text-decoration: underline;
+}
+
+.footerDivider {
+  color: #cccccc;
+  font-size: 12px;
+}
+
+/* Loading state */
+.loadingMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  color: #666666;
+}
+
+.interface-hebrew .loadingMessage {
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
+/* RTL support */
+.interface-hebrew .tipsOverlayBody {
+  flex-direction: row-reverse;
+}
+
+.interface-hebrew .tipsOverlayHeader {
+  flex-direction: row-reverse;
+}
+
+.interface-hebrew .tipsOverlayPagination {
+  flex-direction: row-reverse;
+}
+
+/* RTL text alignment and spacing */
+.interface-hebrew .tipsOverlayTitle {
+  text-align: start; /* Use logical property - start means right in RTL */
+  direction: rtl;
+  justify-content: flex-start; /* In RTL context, flex-start is the right side */
+  /* For proper RTL text truncation */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  unicode-bidi: isolate;
+}
+
+.interface-hebrew .tipsOverlayTitleSection {
+  direction: rtl;
+  text-align: right;
+}
+
+.interface-hebrew .titlePrefix,
+.interface-hebrew .titleVariable {
+  direction: rtl;
+  text-align: right;
+  display: inline;
+}
+
+.interface-hebrew .tipsOverlayText {
+  text-align: right;
+  direction: rtl;
+}
+
+.interface-hebrew .tipsOverlayFooter {
+  direction: rtl;
+}
+
+/* RTL list styling */
+.interface-hebrew .tipsOverlayText ul,
+.interface-hebrew .tipsOverlayText ol {
+  padding-left: 0;
+  padding-right: 20px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tipsOverlayContent {
+    padding: 16px 20px;
+  }
+  
+  .tipsOverlayCenteredContent {
+    max-width: 100%;
+  }
+  
+  .tipsOverlayHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .interface-hebrew .tipsOverlayHeader {
+    align-items: flex-end;
+  }
+  
+  .tipsOverlayBody {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .interface-hebrew .tipsOverlayBody {
+    flex-direction: column; /* Override row-reverse for mobile */
+  }
+  
+  .tipsOverlayVideoContainer {
+    flex: none;
+    height: 120px;
+    max-width: 300px;
+    align-self: center;
+  }
+  
+  .tipsOverlayTextContainer {
+    max-width: 100%;
+  }
+  
+  .tipsOverlayText {
+    max-height: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tipsOverlayContent {
+    padding: 12px 16px;
+  }
+  
+  .tipsOverlayTitle {
+    font-size: 18px;
+  }
+  
+  .tipsOverlayText {
+    font-size: 14px;
+  }
+  
+  .tipsOverlayVideoContainer {
+    max-width: 250px;
+  }
+}
+/* ========== TIPS OVERLAY COMPONENT STYLES - END ========== */
