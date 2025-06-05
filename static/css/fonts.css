@@ -33,32 +33,6 @@ Notice that we are loading some fonts, and some with a restricted list of charac
   unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F; /*All the glyphs in font except Latin characters*/
 }
 
-/*HebrewInEnglish Serif Font*/
-@font-face {
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
-  unicode-range: U+0590-05FF, U+25CC, U+FB1D-FB4F;
-}
-@font-face {
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf'), local(Georgia), local(serif);
-  font-weight: bold;
-  unicode-range: U+0590-05FF, U+25CC, U+FB1D-FB4F;
-}
-@font-face {
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf'), local(Georgia), local(serif);
-  font-style: italic;
-  unicode-range: U+0590-05FF, U+25CC, U+FB1D-FB4F;
-}
-@font-face {
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf'), local(Georgia), local(serif);
-  font-weight: bold;
-  font-style: italic;
-  unicode-range: U+0590-05FF, U+25CC, U+FB1D-FB4F;
-}
-
 /*Noto Color Emoji - flags emojis within Hebrew text*/
 @font-face {
   font-family: 'Noto Color Emoji';
@@ -86,8 +60,8 @@ Notice that we are loading some fonts, and some with a restricted list of charac
           "Cardo", /*Greek*/
           "Meltho", /*Syriac*/
           "Noto Sans Samaritan", /*Samaritan - this font is loaded in base.html for only Samaritan characters*/
-          "HebrewInEnglish Serif Font", /*Hebrew*/
           "adobe-garamond-pro", /*basic English font (including punctuation etc.)*/
+          "Taamey Frank", /*Hebrew (punctuation was already caught by adobe-garamond-pro*/
           "Crimson Text", /*this font is loaded in base.html only for some latin letters with diacritics*/
           "Georgia", /*this font ssems to be here for historical reasons, but actually it applies for Cyrillic*/
           "Times New Roman", serif; /*fallbacks*/
