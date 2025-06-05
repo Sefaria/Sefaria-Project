@@ -729,6 +729,7 @@ Sefaria = extend(Sefaria, {
     "ro": {"name": "Romanian", "nativeName": "română", "title": "Texte evreiești în limba română"},
     "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
+    "ro": {"name": "Romanian", "nativeName": "română", "title": "Texte evreiești în limba română", "showTranslations": 1},
     "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
     "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
     "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
@@ -3178,6 +3179,7 @@ _media: {},
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     }
   },
+    testUnkownNewEditorSaveError: false,
   _translations: {},
   getTranslation: function(key) {
     const url = Sefaria.apiHost + "/api/texts/translations/" + key;
@@ -3470,7 +3472,6 @@ Sefaria.unpackBaseProps = function(props){
       const dataPassedAsProps = [
       "_uid",
       "_email",
-      "_uses_new_editor",
       "slug",
       "is_moderator",
       "is_editor",
@@ -3615,11 +3616,14 @@ Sefaria.resetCache = function() {
     this.booksDict    = {};  // This gets built from setup, via  _makeBooksDict
     this._tocOrderLookup = {};  // This gets built from setup, via _cacheFromToc
     this._translateTerms = {}; // This gets built from setup, via  _cacheHebrewTerms
-    this._i18nInterfaceStrings = {}; // This gets built from setup, via  _cacheSiteInterfaceStrings
     this._descDict = {};  // Stays constant
     this._TopicsByPool = {};  // constant
     this._portals = {}; // constant
     this._tableOfContentsDedications  = {};
-};
+    
+    // Resetting _i18nInterfaceStrings will break ssr translation
+    // this._i18nInterfaceStrings = {}; // This gets built from setup, via  _cacheSiteInterfaceStrings
+
+  };
 
 export default Sefaria;

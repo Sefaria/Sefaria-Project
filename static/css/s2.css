@@ -3362,6 +3362,9 @@ a.cardTitle:hover {
 .bookPage .versionEditForm label#versionNotes_label {
   display: block;
 }
+.bookPage .versionEditForm label + input {
+  margin-inline-end: 30px;
+}
 .bookPage .versionEditForm #versionTitle,
 .bookPage .versionEditForm #versionSource,
 .bookPage .versionEditForm #versionNotes,
@@ -3375,9 +3378,6 @@ a.cardTitle:hover {
 }
 .bookPage .versionEditForm #priority {
   width: 25px;
-}
-.bookPage .versionEditForm #digitzedBySefaria {
-  margin-right: 10px;
 }
 .bookPage .versionEditForm #save_button,
 .bookPage .versionEditForm #delete_button {
@@ -3684,6 +3684,10 @@ a.cardTitle:hover {
   justify-content: start;
   align-items: flex-start;
   margin-bottom: 10px;
+}
+.versionBlock .error {
+  font-size: xx-large;
+  color: var(--halakhah-red);
 }
 .versionBlock .versionTitle {
   font-size: 18px;
@@ -7471,6 +7475,7 @@ But not to use a display block directive that might break continuous mode for ot
   color: #999;
   text-decoration: underline;
 }
+
 .manuscriptImage {
   width: auto;
   max-height: 180px;
@@ -8954,6 +8959,8 @@ a .button:hover {
 }
 .sheetMetaDataBox .title {
   display: block;
+  position: relative;
+  z-index: 2;
 }
 .sheetMetaDataBox .title br { /* hide the line breaks that are stripped before saving */
     display: none;
@@ -9214,10 +9221,49 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
+.editorSaveStateIndicator{
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  z-index: 1;
+  background: white;
+  padding: 3px;
+}
+
+.editorSaveStateIndicator.tooltip-toggle{
+}
+.interface-english .editorSaveStateIndicator.tooltip-toggle::before{
+  margin-inline-start: 75px;
+}
+.editorSaveStateIndicator .saveStateMessage{
+  font-family: Roboto;
+  margin-inline-start: 2px;
+  font-size: 16px;
+  width: max-content;
+}
+.editorSaveStateIndicator .saveStateMessage a{
+  font-family: Roboto;
+  color: #18345D;
+}
+.interface-hebrew .editorSaveStateIndicator .saveStateMessage{
+  direction: rtl;
+}
+.interface-hebrew .editorSaveStateIndicator {
+  flex-direction: row-reverse;
+}
+.floatingEditorIcons{
+  display: flex;
+  position: sticky;
+  flex-direction: row;
+  justify-content: space-between;
+  top: 80px;
+  z-index: 1;
+}
+.interface-hebrew .floatingEditorIcons{
+    flex-direction: row-reverse;
+}
+
 .editorSidebarToggle {
-  position: fixed;
-  top: 200px;
-  right: 30px;
   height: 30px;
   width: 30px;
   border-radius: 30px;
@@ -9237,9 +9283,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
-  position: absolute;
-  top: 7px;
-  left: 13px;
+  top: 2px;
+  position: relative;
 }
 .collectionListingImage {
   height: 100%;
