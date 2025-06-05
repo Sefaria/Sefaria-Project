@@ -228,7 +228,8 @@ const TipsOverlay = ({
                   controls
                   loop
                   autoPlay
-                  muted
+                  muted // Added to avoid autoplay issues with browsers
+                  playsInline // Added to avoid autoplay issues on mobile (even though we will likely not show this on mobile)
                   aria-label={Sefaria.getLocalizedVideoDataFromCard(tip).videoAlt}
                 >
                   {/* TODO: Add a fallback for browsers that don't support the video tag */}
