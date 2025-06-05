@@ -10,7 +10,7 @@ $fonts-path: "/static/fonts";
     font-style: $style;
     font-weight: $weight;
     @if $unicode {
-      unicode-range: $unicode;
+      unicode-range: unquote($unicode);
     }
   }
 }
@@ -24,7 +24,7 @@ $path: "Taamey-Frank/TaameyFrankCLM-";
 $range: "U+0000-0040, U+005B-0060, U+007B-FB4F";
 @include font-face($name, '#{$path}Medium.ttf', normal, normal, $range);
 @include font-face($name, '#{$path}Bold.ttf', normal, bold, $range);
-@include font-face($name, '#{$path}MediumOblique.ttf', italic, $range);
+@include font-face($name, '#{$path}MediumOblique.ttf', italic, normal, $range);
 @include font-face($name, '#{$path}BoldOblique.ttf', italic, bold, $range);
 
 // HebrewInEnglish Serif Font - Taamey-Frank with only Hebrew characters (excluding punctuation etc.)
@@ -32,7 +32,7 @@ $name: 'HebrewInEnglish Serif Font';
 $range: "U+0590-05FF, U+25CC, U+FB1D-FB4F";
 @include font-face($name, '#{$path}Medium.ttf', normal, normal, $range);
 @include font-face($name, '#{$path}Bold.ttf', normal, bold, $range);
-@include font-face($name, '#{$path}MediumOblique.ttf', italic, $range);
+@include font-face($name, '#{$path}MediumOblique.ttf', italic, normal, $range);
 @include font-face($name, '#{$path}BoldOblique.ttf', italic, bold, $range);
 
 // Noto Color Emoji
