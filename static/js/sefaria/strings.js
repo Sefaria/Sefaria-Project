@@ -684,6 +684,15 @@ const Strings = {
     },
     "WebPageList": {
       'Author': 'מחבר'
+    },
+    "Guide": { // Also knows as Tips
+    "Show tips": "הצג טיפים",
+    "Previous tip": "הטיפ הקודם",
+    "Next tip": "הטיפ הבא",
+    "Previous": "הקודם",
+    "Next": "הבא",
+    "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
+    "of": "מתוך",
     }
   },
 };

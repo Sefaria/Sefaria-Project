@@ -692,6 +692,19 @@ Sefaria = extend(Sefaria, {
       store: this._bulkSheets
     });
   },
+  _tips: {},
+  getTips: function(guideKey = "sheets") {
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/api/tips/${guideKey}`,
+      key: `tips_${guideKey}`,
+      store: this._tips
+    });
+  },
+  // Putting the localization logic here because I want the component to be language agnostic.
+  getLocalizedVideoDataFromCard: function(card) {
+    const lang = this.interfaceLang === "hebrew" ? "he" : "en";
+    return {videoUrl: card.videoUrl[lang], videoAlt: card.videoAlt[lang]};
+  },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
     if (!ref || typeof ref === "object" || typeof ref === "undefined") { debugger; }

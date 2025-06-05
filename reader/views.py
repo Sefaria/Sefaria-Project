@@ -86,6 +86,7 @@ from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
 from sefaria.helper.texts.tasks import save_version, save_changes, save_link
+from guides.models import *
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -4782,3 +4783,76 @@ def application_health_api(request):
         logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
 
     return http.JsonResponse(resp, status=statusCode)
+
+@catch_error_as_json
+def tips_api(request, guide_key=None):
+    """
+    API endpoint that returns tips data for a specific guide.
+    
+    Args:
+        guide_key (str): The guide key to fetch tips for (e.g., 'sheets', 'test_heb')
+    
+    Returns:
+        JSON response with the following structure:
+        {
+            "totalTips": int,
+            "titlePrefix": {"en": str, "he": str},
+            "footerLinks": [{"text": {"en": str, "he": str}, "url": str}, ...],
+            "tips": [
+                {
+                    "id": str,
+                    "title": {"en": str, "he": str},
+                    "text": {"en": str, "he": str},
+                    "videoUrl": {"en": str, "he": str},
+                    "videoAlt": {"en": str, "he": str}
+                },
+                ...
+            ]
+        }
+    """
+    if not guide_key:
+        return jsonResponse({"error": "Guide key is required"}, status=400)
+    
+    try:
+        guide = Guide.objects.get(key=guide_key)
+    except Guide.DoesNotExist:
+        return jsonResponse({"error": f"Guide '{guide_key}' not found"}, status=404)
+    
+    # Get all info cards for this guide, ordered by their sort order
+    info_cards = guide.info_cards.all().order_by('order')
+    
+    # Build the tips array
+    tips = []
+    for card in info_cards:
+        tips.append({
+            "id": str(card.id),
+            "title": {
+                "en": card.title_en,
+                "he": card.title_he
+            },
+            "text": {
+                "en": card.text_en,
+                "he": card.text_he
+            },
+            "videoUrl": {
+                "en": card.video_en,
+                "he": card.video_he
+            },
+            "videoAlt": {
+                "en": card.video_alt_en,
+                "he": card.video_alt_he
+            }
+        })
+    
+    # Build the response
+    response_data = {
+        "totalTips": len(tips),
+        "titlePrefix": {
+            "en": guide.title_prefix_en,
+            "he": guide.title_prefix_he
+        },
+        "footerLinks": guide.footer_links,
+        "tips": tips
+    }
+    
+    return jsonResponse(response_data)

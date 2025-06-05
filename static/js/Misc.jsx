@@ -1290,6 +1290,32 @@ SaveButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
+/**
+ * A button that shows a guide for the given guide type
+ * @param {string} guideType - The guide type to show (e.g. "sheets", "reader")
+ * @param {function} onShowTips - A function to call when the button is clicked
+ * @param {boolean} tooltip - Whether to show a tooltip when the button is hovered
+ */
+function GuideButton({onShowTips}) {
+  const classes = classNames({guideButton: 1, "tooltip-toggle": true});
+  const altText = Sefaria._("Show tips", "Guide");
+
+  function onClick(event) {
+    event.preventDefault();
+    if (onShowTips) {
+      onShowTips();
+    }
+  }
+
+  return (
+    <ToolTipped {...{ altText, classes, onClick }}>
+      <img src="/static/img/bulb.svg" alt={altText}/>
+    </ToolTipped>
+  );
+}
+GuideButton.propTypes = {
+  onShowTips: PropTypes.func.isRequired,
+};
 
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   const analyticsContext = useContext(AdContext)
@@ -3305,5 +3331,6 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
-  LearnAboutNewEditorBanner
+  LearnAboutNewEditorBanner,
+  GuideButton
 };
