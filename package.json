@@ -40,7 +40,7 @@
     "t": "npm run test",
     "to": "npm run test-one",
     "postinstall": "patch-package",
-    "scss": "sass --watch static/css/scss:static/css/css"
+    "scss": "sass --watch static/css:static/css"
   },
   "dependencies": {
     "@playwright/test": "^1.42.1",
