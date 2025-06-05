@@ -41,6 +41,7 @@
     "to": "npm run test-one",
     "postinstall": "patch-package",
     "scss": "sass --watch static/css:static/css",
+    "scss-compile": "sass static/css:static/css",
     "prepare": "husky install"
   },
   "dependencies": {
