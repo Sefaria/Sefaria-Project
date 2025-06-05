@@ -110,6 +110,7 @@
     "babel-watch": "^2.0.0",
     "concurrently": "^9.1.2",
     "css-loader": "^3.2.0",
+    "husky": "^9.1.7",
     "jest": "^24.9.0",
     "nodemon": "^1.9.2",
     "playwright": "^1.42.1",
