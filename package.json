@@ -23,7 +23,7 @@
     "build-sefaria": "webpack --config ./node/webpack.sefaria.js",
     "build-timeline": "webpack --config ./node/webpack.timeline.js ",
     "build-categorizeSheets": "webpack --config ./node/webpack.categorizeSheets.js ",
-    "watch": "webpack --config ./node/webpack.config.js --progress -w --watch-options-stdin",
+    "watch": "concurrently \"npm run scss\" \"webpack --config ./node/webpack.config.js --progress -w --watch-options-stdin\"",
     "watch-server": "webpack --config ./node/webpack.server.js --progress -w --watch-options-stdin",
     "watch-client": "webpack --config ./node/webpack.client.js --progress -w --watch-options-stdin",
     "watch-client-server": "webpack --config ./node/webpack.client-server.js --progress -w --watch-options-stdin",
