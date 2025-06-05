@@ -6,7 +6,7 @@ django-admin-sortable==2.1.13
 bleach==1.4.2
 boto3==1.16.6
 bs4==0.0.1
-celery[redis]
+celery[redis]==5.5.2
 convertdate==2.2.2
 cython==0.29.14
 dateutils==0.6.12
@@ -58,7 +58,6 @@ python-bidi
 pytz
 pyyaml==6.0.1
 rauth==0.7.3
-redis==3.5.3
 regex==2020.10.23
 requests
 roman==3.3
@@ -71,7 +70,7 @@ unicodecsv==0.14.1
 unidecode==1.1.1
 user-agents==2.2.0
 pytest-django==4.9.*
-
+redis==5.2.1
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
