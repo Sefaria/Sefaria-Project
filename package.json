@@ -111,6 +111,7 @@
     "jest": "^24.9.0",
     "nodemon": "^1.9.2",
     "playwright": "^1.42.1",
+    "sass": "^1.89.1",
     "source-map-support": "^0.4.15",
     "style-loader": "^1.0.0",
     "webpack": "^5.60.0",
