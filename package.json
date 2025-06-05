@@ -40,7 +40,8 @@
     "t": "npm run test",
     "to": "npm run test-one",
     "postinstall": "patch-package",
-    "scss": "sass --watch static/css:static/css"
+    "scss": "sass --watch static/css:static/css",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@playwright/test": "^1.42.1",
@@ -110,7 +111,7 @@
     "babel-watch": "^2.0.0",
     "concurrently": "^9.1.2",
     "css-loader": "^3.2.0",
-    "husky": "^9.1.7",
+    "husky": "^8.0.0",
     "jest": "^24.9.0",
     "nodemon": "^1.9.2",
     "playwright": "^1.42.1",
