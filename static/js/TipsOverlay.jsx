@@ -83,7 +83,6 @@ const TipsOverlay = ({
   
   // Load tips data on component mount
   useEffect(() => {
-    console.log("TipsOverlay component mounted, loading tips for:", guideType);
     
     const loadTips = async () => {
       setLoading(true);
@@ -114,7 +113,6 @@ const TipsOverlay = ({
   };
 
   const handleClose = () => {
-    console.log("TipsOverlay closing");
     setCookie();
     if (onClose) onClose();
   };
@@ -268,7 +266,6 @@ TipsOverlay.propTypes = {
 export const clearTipsOverlayCookie = (guideType) => {
   const cookieName = `tips_overlay_seen_${guideType}`;
   $.removeCookie(cookieName, {path: "/"});
-  console.log(`Cleared tips overlay cookie for guide type: ${guideType}`);
 };
 
 export default TipsOverlay; 
