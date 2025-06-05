@@ -228,6 +228,7 @@ const TipsOverlay = ({
                   controls
                   loop
                   autoPlay
+                  muted
                   aria-label={Sefaria.getLocalizedVideoDataFromCard(tip).videoAlt}
                 >
                   {/* TODO: Add a fallback for browsers that don't support the video tag */}
