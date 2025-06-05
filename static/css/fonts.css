@@ -33,34 +33,6 @@
   unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F;
 }
 @font-face {
-  font-family: "HebrewInEnglish Serif Font";
-  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf");
-  font-style: normal;
-  font-weight: normal;
-  unicode-range: U+0590-05FF, U+25CC, U+FB1D-FB4F;
-}
-@font-face {
-  font-family: "HebrewInEnglish Serif Font";
-  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf");
-  font-style: normal;
-  font-weight: bold;
-  unicode-range: U+0590-05FF, U+25CC, U+FB1D-FB4F;
-}
-@font-face {
-  font-family: "HebrewInEnglish Serif Font";
-  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf");
-  font-style: italic;
-  font-weight: normal;
-  unicode-range: U+0590-05FF, U+25CC, U+FB1D-FB4F;
-}
-@font-face {
-  font-family: "HebrewInEnglish Serif Font";
-  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf");
-  font-style: italic;
-  font-weight: bold;
-  unicode-range: U+0590-05FF, U+25CC, U+FB1D-FB4F;
-}
-@font-face {
   font-family: "Noto Color Emoji";
   src: url("/static/fonts/NotoColorEmoji.ttf");
   font-style: normal;
@@ -89,8 +61,8 @@
           "Cardo", /*Greek*/
           "Meltho", /*Syriac*/
           "Noto Sans Samaritan", /*Samaritan - this font is loaded in base.html for only Samaritan characters*/
-          "HebrewInEnglish Serif Font", /*Hebrew*/
           "adobe-garamond-pro", /*basic English font (including punctuation etc.)*/
+          "Taamey Frank", /*Hebrew, punctuation will be caught by adobe-garamond-pro*/
           "Crimson Text", /*this font is loaded in base.html only for some latin letters with diacritics*/
           "Georgia", /*this font ssems to be here for historical reasons, but actually it applies for Cyrillic*/
           "Times New Roman", serif; /*fallbacks*/

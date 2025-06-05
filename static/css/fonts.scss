@@ -27,14 +27,6 @@ $range: "U+0000-0040, U+005B-0060, U+007B-FB4F";
 @include font-face($name, '#{$path}MediumOblique.ttf', italic, normal, $range);
 @include font-face($name, '#{$path}BoldOblique.ttf', italic, bold, $range);
 
-// HebrewInEnglish Serif Font - Taamey-Frank with only Hebrew characters (excluding punctuation etc.)
-$name: 'HebrewInEnglish Serif Font';
-$range: "U+0590-05FF, U+25CC, U+FB1D-FB4F";
-@include font-face($name, '#{$path}Medium.ttf', normal, normal, $range);
-@include font-face($name, '#{$path}Bold.ttf', normal, bold, $range);
-@include font-face($name, '#{$path}MediumOblique.ttf', italic, normal, $range);
-@include font-face($name, '#{$path}BoldOblique.ttf', italic, bold, $range);
-
 // Noto Color Emoji
 @include font-face('Noto Color Emoji', 'NotoColorEmoji.ttf', normal, normal, U+1F1E6-1F1FF);
 
@@ -52,8 +44,8 @@ $range: "U+0590-05FF, U+25CC, U+FB1D-FB4F";
           "Cardo", /*Greek*/
           "Meltho", /*Syriac*/
           "Noto Sans Samaritan", /*Samaritan - this font is loaded in base.html for only Samaritan characters*/
-          "HebrewInEnglish Serif Font", /*Hebrew*/
           "adobe-garamond-pro", /*basic English font (including punctuation etc.)*/
+          "Taamey Frank", /*Hebrew, punctuation will be caught by adobe-garamond-pro*/
           "Crimson Text", /*this font is loaded in base.html only for some latin letters with diacritics*/
           "Georgia", /*this font ssems to be here for historical reasons, but actually it applies for Cyrillic*/
           "Times New Roman", serif; /*fallbacks*/
