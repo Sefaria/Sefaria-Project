@@ -218,37 +218,22 @@ const TipsOverlay = ({
           <div className="tipsOverlayBody">
             {/* Video container or placeholder */}
             <div className="tipsOverlayVideoContainer">
-              {currentTip.videoUrl.en ? ( // Using en becasue I assume that it's more likely to be available. In edge case where en exists but he doesn't, the an empty video will be shown in he.
-                <video 
-                  src={Sefaria.getLocalizedVideoDataFromCard(currentTip).videoUrl}
+              {tipData.tips.map((tip, index) => (
+                <video
+                  key={index}
+                  src={Sefaria.getLocalizedVideoDataFromCard(tip).videoUrl}
+                  preload="auto"
+                  style={{ display: index === currentTipIndex ? 'block' : 'none' }}
                   className="tipsOverlayVideo" 
                   controls
-                  preload="auto"
                   loop
                   autoPlay
-                  aria-label={Sefaria.getLocalizedVideoDataFromCard(currentTip).videoAlt}
+                  aria-label={Sefaria.getLocalizedVideoDataFromCard(tip).videoAlt}
                 >
                   {/* TODO: Add a fallback for browsers that don't support the video tag */}
                   <InterfaceText>{localize("Your browser does not support the video tag.")}</InterfaceText>
                 </video>
-              ) : ( // TODO Add remove this fallback.
-                <div className="tipsOverlayVideoPlaceholder">
-                  <div className="placeholderContent">
-                    <InterfaceText>
-                      <EnglishText>
-                        <div>1600x900</div>
-                        <div>Video</div>
-                        <div>at 480px wide ( x 270)</div>
-                      </EnglishText>
-                      <HebrewText>
-                        <div>1600x900</div>
-                        <div>וידאו</div>
-                        <div>ברוחב 480px ( x 270)</div>
-                      </HebrewText>
-                    </InterfaceText>
-                  </div>
-                </div>
-              )}
+              ))}
             </div>
             
             {/* Scrollable text content - narrower width */}
