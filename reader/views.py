@@ -37,7 +37,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.text_reuqest_adapter import TextRequestAdapter
+from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
@@ -134,12 +134,11 @@ def render_react_component(component, props):
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
-    encoded_args = urllib.parse.urlencode({
-        "propsJSON": propsJSON,
-    }).encode("utf-8")
+    data = propsJSON.encode("utf-8")
+    headers = {"Content-Type": "application/json; charset=utf-8"}
     try:
-        req = urllib.request.Request(url)
-        response = urllib.request.urlopen(req, encoded_args, NODE_TIMEOUT)
+        req = urllib.request.Request(url, data=data, headers=headers)
+        response = urllib.request.urlopen(req, timeout=NODE_TIMEOUT)
         html = response.read().decode("utf-8")
         return html
     except Exception as e:

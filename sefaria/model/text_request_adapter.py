@@ -143,54 +143,97 @@ class TextRequestAdapter:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
     def _format_text(self):
-        def wrap_links(string):
-            link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(
-                string, lang=language, citing_only=True)
-            return library.get_wrapped_refs_string(string, lang=language, citing_only=True,
-                                                   reg=link_wrapping_reg, title_nodes=title_nodes)
+        # Early return for default format to avoid any processing
+        if self.return_format == 'default':
+            return
 
-        def make_named_entities_dict():
-            named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in all_segment_refs]},
-                                              "charLevelData.versionTitle": version['versionTitle'],
-                                              "charLevelData.language": language})
-            # assumption is that refTopicLinks are all to unranged refs
-            ne_by_secs = defaultdict(list)
-            for ne in named_entities:
-                try:
-                    ne_ref = Ref(ne.ref)
-                except InputError:
-                    continue
-                ne_by_secs[ne_ref.sections[-1]-1,] += [ne]
-            return ne_by_secs
-
+        # Pre-compute shared data outside the version loop
+        shared_data = {}
+        
         if self.return_format == 'wrap_all_entities':
             all_segment_refs = self.oref.all_segment_refs()
             query = self.oref.ref_regex_query()
             query.update({"inline_citation": True})
-            text_modification_funcs = [lambda string, sections: library.get_wrapped_named_entities_string(ne_by_secs[(sections[-1],)], string)]
-            if Link().load(query):
-                text_modification_funcs.append(lambda string, _: wrap_links(string))
+            
+            # Check for links only once
+            has_links = bool(Link().load(query))
+            shared_data['has_links'] = has_links
+            shared_data['all_segment_refs'] = all_segment_refs
 
-        elif self.return_format == 'text_only':
-            text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
-                                       lambda string, _: text.AbstractTextRecord.remove_html(string),
-                                       lambda string, _: ' '.join(string.split())]
+        def make_named_entities_dict(version_title, language):
+            # Cache named entities per version to avoid repeated DB queries
+            cache_key = f"{version_title}_{language}"
+            if cache_key not in shared_data:
+                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in shared_data['all_segment_refs']]},
+                                                  "charLevelData.versionTitle": version_title,
+                                                  "charLevelData.language": language})
+                # assumption is that refTopicLinks are all to unranged refs
+                ne_by_secs = defaultdict(list)
+                for ne in named_entities:
+                    try:
+                        ne_ref = Ref(ne.ref)
+                    except InputError:
+                        continue
+                    ne_by_secs[ne_ref.sections[-1]-1,] += [ne]
+                shared_data[cache_key] = ne_by_secs
+            return shared_data[cache_key]
+
+        # helper to build a segment-level link-wrapper once per version
+        def build_link_wrapper(lang, version_text):
+            # Compile regex once for entire version to cover all titles that appear anywhere
+            reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(version_text, lang=lang, citing_only=True)
+
+            # Return a function that wraps refs in an individual segment using the precompiled regex
+            return lambda string, _: library.get_wrapped_refs_string(string, lang=lang, citing_only=True,
+                                                                      reg=reg, title_nodes=title_nodes)
+
+        # Define text modification functions based on return format
+        text_modification_funcs = []
+        
+        if self.return_format == 'text_only':
+            # Combine all text_only operations into a single function to minimize passes
+            def combined_text_only(string, _):
+                string = text.AbstractTextRecord.strip_itags(string)
+                string = text.AbstractTextRecord.remove_html(string)
+                return ' '.join(string.split())
+            text_modification_funcs = [combined_text_only]
 
         elif self.return_format == 'strip_only_footnotes':
-            text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
-                                       lambda string, _: ' '.join(string.split())]
+            # Combine strip operations into a single function
+            def combined_strip_footnotes(string, _):
+                string = text.AbstractTextRecord.strip_itags(string)
+                return ' '.join(string.split())
+            text_modification_funcs = [combined_strip_footnotes]
 
-        else:
-            return
-
+        # Process each version
         for version in self.return_obj['versions']:
+            current_funcs = text_modification_funcs.copy()
+            
             if self.return_format == 'wrap_all_entities':
-                language = 'he' if version['direction'] == 'rtl' else 'en' #this is neccesary because we want to get rif of the language attribute in future
-                ne_by_secs = make_named_entities_dict()
+                language = 'he' if version['direction'] == 'rtl' else 'en'
+                ne_by_secs = make_named_entities_dict(version['versionTitle'], language)
+                
+                # Create closure-safe functions by capturing values explicitly
+                def make_ne_wrapper(ne_dict):
+                    return lambda string, sections: library.get_wrapped_named_entities_string(ne_dict[(sections[-1],)], string)
+                
+                current_funcs.append(make_ne_wrapper(ne_by_secs))
+                
+                # Build link-wrapper once per version
+                flat_version_text = " ".join(JaggedTextArray(version['text']).flatten_to_array())
+                current_funcs.append(build_link_wrapper(language, flat_version_text))
 
-            ja = JaggedTextArray(version['text'])  # JaggedTextArray works also with depth 0, i.e. a string
-            composite_func = lambda string, sections: reduce(lambda s, f: f(s, sections), text_modification_funcs, string) # wrap all functions into one function
-            version['text'] = ja.modify_by_function(composite_func)
+            # Only process if there are functions to apply
+            if current_funcs:
+                ja = JaggedTextArray(version['text'])
+                
+                # Combine all functions into one to minimize passes over the text
+                if len(current_funcs) == 1:
+                    composite_func = current_funcs[0]
+                else:
+                    composite_func = lambda string, sections: reduce(lambda s, f: f(s, sections), current_funcs, string)
+                
+                version['text'] = ja.modify_by_function(composite_func)
 
     def get_versions_for_query(self) -> dict:
         self.oref = self.oref.default_child_ref()
