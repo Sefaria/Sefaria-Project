@@ -35,9 +35,9 @@ const sheet_item_els = {
 const voidElements = [
     "ProfilePic",
     "SheetMedia",
-    "SheetSource",
     "SheetOutsideBiText",
-    "horizontal-line"
+    "horizontal-line",
+  "SheetSource"
 ];
 
 
@@ -738,6 +738,9 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   useEffect(() => {setCanUseDOM(true)}, [])
 
   const onMouseDown = (e) => {
+      console.log("onMouseDown", e.target, e.currentTarget, e.target.classList, e.currentTarget.classList);
+      const elementPath = ReactEditor.findPath(parentEditor, element);
+      Transforms.select(parentEditor, elementPath); // Ensure the element is selected
       //Slate tries to auto position the cursor, but on long boxed sources this leads to jumping. This hack should fix it.
       const elementTop = e.currentTarget.offsetTop;
       const divTop = document.querySelector(".sheetsInPanel").offsetTop;
@@ -749,6 +752,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       e.currentTarget.querySelector(".boxedSourceChildren").style.top = `${elementRelativeTop + clickOffset}px`;
 
   }
+  
 
   const suppressParentContentEditable = (toggle) => {
       // Chrome treats nested contenteditables as one giant editor so keyboard shortcuts like `Control + A` or `Alt + Up`
@@ -757,7 +761,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   }
 
   const onClick = (e) => {
-
+    console.log("onClick", e.target, e.currentTarget, e.target.classList, e.currentTarget.classList);
     if ((e.target).closest('.he') && sourceActive) {
         setActiveSourceLangContent('he')
         if (window.chrome) {suppressParentContentEditable(false)}
@@ -1431,7 +1435,13 @@ const withSefariaSheet = editor => {
     };
 
     editor.isVoid = element => {
-        return (voidElements.includes(element.type)) ? true : isVoid(element)
+        console.log(element, element.type, voidElements.includes(element.type));
+        if (voidElements.includes(element.type)) {
+            return true;
+        }
+        else {
+            return isVoid(element);
+        }
     };
 
     editor.deleteForward = () => {
@@ -2451,8 +2461,8 @@ const HoverMenu = (opt) => {
             <FormatButton editor={editor} format="bold"/>
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
+            <HighlightButton/>
             {buttons == "basic" ? null : <>
-                <HighlightButton/>
                 <AddLinkButton/>
                 <BlockButton editor={editor} format="header" icon="header"/>
                 <BlockButton editor={editor} format="numbered-list" icon="list-ol"/>
@@ -2515,21 +2525,26 @@ const HighlightButton = () => {
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
     const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
-    const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onClick={e => {
-        const isActive = isFormatActive(editor, "background-color", color);
-        if (isActive) {
-            Editor.removeMark(editor, "background-color")
-        } else {
-            Editor.addMark(editor, "background-color", color)
-        }
-  }}><div className="highlightDot" style={{"background-color":color}}></div></button>
-    )}</>
-
+    const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
+    e.stopPropagation(); // Prevent interference with mousedown
+}} onClick={e => {
+    console.log("highlight clicked", color);
+    const isActive = isFormatActive(editor, "background-color", color);
+    console.log("isActive", isActive);
+    if (isActive) {
+        Editor.removeMark(editor, "background-color")
+    } else {
+        Editor.addMark(editor, "background-color", color)
+    }
+}}><div className="highlightDot" style={{"backgroundColor":color}}></div></button>
+)}</>;
     useEffect(() => {
         const el = ref.current;
         if (el) {
             const checkIfClickedOutside = e => {
+                console.log("checkIfClickedOutside", showPortal, ref.current, e.target);
                 if (showPortal && ref.current && !ref.current.contains(e.target)) {
+                    console.log("Clicked outside of portal, closing it");
                     setShowPortal(false)
                 }
             }
