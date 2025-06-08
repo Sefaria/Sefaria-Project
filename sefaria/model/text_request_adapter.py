@@ -149,16 +149,13 @@ class TextRequestAdapter:
 
         # Pre-compute shared data outside the version loop
         shared_data = {}
-        
         if self.return_format == 'wrap_all_entities':
-            all_segment_refs = self.oref.all_segment_refs()
+            # Check for links and load segment refs only once
+            shared_data['all_segment_refs'] = self.oref.all_segment_refs()
+
             query = self.oref.ref_regex_query()
             query.update({"inline_citation": True})
-            
-            # Check for links only once
-            has_links = bool(Link().load(query))
-            shared_data['has_links'] = has_links
-            shared_data['all_segment_refs'] = all_segment_refs
+            shared_data['has_links'] = bool(Link().load(query))
 
         def make_named_entities_dict(version_title, language):
             # Cache named entities per version to avoid repeated DB queries
@@ -189,7 +186,9 @@ class TextRequestAdapter:
 
         # Define text modification functions based on return format
         text_modification_funcs = []
-        
+
+
+
         if self.return_format == 'text_only':
             # Combine all text_only operations into a single function to minimize passes
             def combined_text_only(string, _):
@@ -221,7 +220,8 @@ class TextRequestAdapter:
                 
                 # Build link-wrapper once per version
                 flat_version_text = " ".join(JaggedTextArray(version['text']).flatten_to_array())
-                current_funcs.append(build_link_wrapper(language, flat_version_text))
+                if shared_data['has_links']:
+                    current_funcs.append(build_link_wrapper(language, flat_version_text))
 
             # Only process if there are functions to apply
             if current_funcs:
