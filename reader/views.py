@@ -254,14 +254,18 @@ def user_credentials(request):
 
 def _reader_redirect_add_languages(request, tref):
     versions = Ref(tref).version_list()
-    query_params = QueryDict(mutable=True)
+    query_params = QueryDict(request.GET.urlencode(), mutable=True)
     for vlang, direction in [('ven', 'ltr'), ('vhe', 'rtl')]:
         version_title = request.GET.get(vlang)
         if version_title:
             version_title = version_title.replace('_', ' ')
-            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title))
-            query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title), None)
+            if version is not None:
+                query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+            else:
+                query_params.pop(vlang)
     return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
+
 
 
 @ensure_csrf_cookie
