@@ -689,41 +689,21 @@ function removeEmptyTextNodes(nodes) {
       //     children: cleanedChildren
       //   };
       // }
-       if (node.children.length === 1 && node.children[0].text.trim() === '') {
-           return null;
-      }
+      //  if (node.children.length === 1 && node.children[0].text.trim() === '') {
+      //      return null;
+      // }
 
       return node; // In case it's an unexpected format, keep it as-is
     })
     .filter(Boolean); // Remove nulls
 }
-function normalizeSlateNodes(nodes) {
-  return nodes.map(node => {
-    if (node.type && Array.isArray(node.children)) {
-      // If it's a block and children are empty, add one empty text node
-      const hasValidChildren = node.children.some(
-        child => child.text?.trim() !== ""
-      );
-      return {
-        ...node,
-        children:
-          node.children.length === 0 || !hasValidChildren
-            ? [{ text: "" }]
-            : normalizeSlateNodes(node.children)
-      };
-    }
-    return node;
-  });
-}
-
-
 
 const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
-  const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(element.enText)
+  const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(removeEmptyTextNodes(element.enText))
   const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(removeEmptyTextNodes(element.heText))
   console.log(JSON.stringify(sheetHeSourceValue, null, 2))
     const [unsavedChanges, setUnsavedChanges] = useState(false)
