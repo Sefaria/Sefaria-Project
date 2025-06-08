@@ -14739,9 +14739,16 @@ span.ref-link-color-3 {color: blue}
   min-height: 250px;
 }
 
+/* Shared width for all sections */
+.tipsOverlayHeader,
+.tipsOverlayCenteredContent,
+.tipsOverlayBody,
+.tipsOverlayFooter {
+  width: 800px;
+}
+
 /* Header with title on left, pagination in center, close button on right */
 .tipsOverlayHeader {
-  width: 800px;
   height: 34px;
   display: flex;
   align-items: center;
@@ -14846,7 +14853,6 @@ span.ref-link-color-3 {color: blue}
 
 /* Centered content container with specific width */
 .tipsOverlayCenteredContent {
-  width: 800px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -14857,7 +14863,6 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
-  width: 800px;
   justify-content: flex-start;
 }
 
@@ -14988,7 +14993,6 @@ span.ref-link-color-3 {color: blue}
 
 /* Footer styles */
 .tipsOverlayFooter {
-  width: 800px;
   height: 19px;
   padding-top: 12px;
   display: flex;
