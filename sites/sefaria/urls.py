@@ -66,8 +66,6 @@ static_pages_by_lang = [
 
 # Static and Semi Static Content
 site_urlpatterns = [
-    url(r'^enable_new_editor/?$', reader_views.enable_new_editor),
-    url(r'^disable_new_editor/?$', reader_views.disable_new_editor),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),

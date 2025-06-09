@@ -1360,7 +1360,13 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         if index is None:
             raise InputError("Versions cannot be created for non existing Index records")
         assert self._check_node_offsets(self.chapter, index.nodes), 'there are more sections than index_offsets_by_depth'
-
+        if getattr(self, "direction", None) not in ["rtl", "ltr"]:
+            raise InputError("Version direction must be either 'rtl' or 'ltr'")
+        assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
+        assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
+        isAnyOtherVersionPrimary = any([v.isPrimary for v in VersionSet({"title": self.title}) if v.versionTitle != self.versionTitle])
+        if not any([self.isPrimary, isAnyOtherVersionPrimary]):  # if all are False, return true
+            raise InputError("There must be at least one version that is primary.")
         return True
 
     def _check_arrays_lengths(self, array1, array2):
@@ -4717,21 +4723,27 @@ class Ref(object, metaclass=RefCacheType):
         """
         return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted)
 
-    def url(self):
+    def url(self, encode_html=True):
         """
+        :param encode_html: boolean - True for encoding also HTML chars, or only our own things (like space to underscore)
         :return string: normal url form
         """
-        if not self._url:
-            self._url = self.normal().replace(" ", "_").replace(":", ".").replace("?", "%3F")
+        if not self._url or not encode_html:
+            url = self.normal()
+
+            html_encoding_map = {'?': '%3F'}
+            pretty_url_map = {' ': '_', ':': '.'}
+            replace_map = pretty_url_map if not encode_html else pretty_url_map | html_encoding_map
+            for key, value in replace_map.items():
+                url = url.replace(key, value)
 
             # Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
             if len(self.sections) > 0:
-                last = self._url.rfind("_")
-                if last == -1:
-                    return self._url
-                lref = list(self._url)
-                lref[last] = "."
-                self._url = "".join(lref)
+                url = '.'.join(url.rsplit('_', 1))
+
+            if not encode_html:
+                return url
+            self._url = url
         return self._url
 
     def noteset(self, public=True, uid=None):
@@ -6423,7 +6435,7 @@ def process_index_title_change_in_sheets(indx, **kwargs):
         for source in sheet.get("sources", []):
             if "ref" in source:
                 source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), source["ref"]) else source["ref"]
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
 
 
 def process_index_delete_in_versions(indx, **kwargs):

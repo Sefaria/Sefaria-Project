@@ -175,7 +175,6 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
-            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -293,7 +292,7 @@ def catchall(request, tref, sheet=None):
         except InputError:
             raise Http404
 
-        uref = oref.url()
+        uref = oref.url(False)
         if uref and tref != uref:
             return reader_redirect(uref)
 
@@ -439,9 +438,10 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     if "." in sheet_id:
         highlighted_node = int(sheet_id.split(".")[1])
         sheet_id = int(sheet_id.split(".")[0])
-    sheet_id = int(sheet_id)
+    else:
+        sheet_id = int(sheet_id)
 
-    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": sheet_id}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(sheet_id)
     if "error" in sheet and sheet["error"] != "Sheet updated.":
         raise Http404
@@ -832,22 +832,6 @@ def search(request):
         "noindex": True
     })
 
-
-@login_required
-def enable_new_editor(request):
-    profile = UserProfile(id=request.user.id)
-    profile.update({"uses_new_editor": True, "show_editor_toggle": True})
-    profile.save()
-    return redirect(f"/sheets/profile/{profile.slug}")
-
-@login_required
-def disable_new_editor(request):
-    profile = UserProfile(id=request.user.id)
-    profile.update({"uses_new_editor": False})
-    profile.save()
-    return redirect(f"/sheets/profile/{profile.slug}")
-
-
 def public_collections(request):
     props = base_props(request)
     props.update({
@@ -1178,7 +1162,7 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
             for snode in oref.index_node.ancestors()[1:] + [oref.index_node]:
                 if snode.is_default():
                     continue
-                name = snode.primary_title(get_short_lang(request.interfaceLang)) 
+                name = snode.primary_title(get_short_lang(request.interfaceLang))
                 breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), name)]
                 nextPosition += 1
 
@@ -2393,7 +2377,7 @@ def flag_text_api(request, title, lang, version):
         vobj.save()
         return jsonResponse({"status": "ok"})
 
-    _attributes_to_save = Version.optional_attrs + ["versionSource"]
+    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
 
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
