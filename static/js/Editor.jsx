@@ -729,8 +729,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           if (!selected) {
               setSourceActive(false)
               setActiveSourceLangContent(null)
-          } else {
-              setSourceActive(true);
           }
       },
       [selected]
@@ -774,7 +772,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         if (window.chrome) {suppressParentContentEditable(true)}
     }
     setSourceActive(true)
-
   }
 
   const onBlur = (e) => {
@@ -794,7 +791,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         }
     }
 
-  const isActive = sourceActive;
+  const isActive = selected;
   const sheetItemClasses = {sheetItem: 1, highlight: parentEditor.highlightedNode === (element.node ? element.node.toString() : null)}
   const classes = {
       SheetSource: element.ref ? 1 : 0,
@@ -1351,13 +1348,19 @@ const Element = (props) => {
 }
 
 const getClosestSheetElement = (editor, path, elementType) => {
-    for(const node of Node.ancestors(editor, path)) {
-        if (node[0].type == elementType) {
+    for (const node of Node.ancestors(editor, path)) {
+        if (node[0].type === elementType) {
             return node;
-            break
         }
     }
-    return(null);
+    return null;
+}
+
+const sourceBoxIsClosestSelectedElement = (editor) => {
+    /**
+     * Returns true if BoxedSheetElement is the closest selected element to the cursor.
+     */
+    return getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource");
 }
 
 const activeSheetSources = editor => {
@@ -1448,9 +1451,9 @@ const withSefariaSheet = editor => {
         }
 
         //if selected element is sheet source, delete it as normal
-        if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+        if (sourceBoxIsClosestSelectedElement(editor)) {
             deleteBackward();
-            return
+            return;
         } else {
             //check to see if we're in a spacer to apply special delete rules
             let inSpacer = false;
@@ -1465,11 +1468,11 @@ const withSefariaSheet = editor => {
 
             //we do a dance to see if we'll accidently delete a sheetsource and select it instead if we will
             Transforms.move(editor, {reverse: true})
-            if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+            if (sourceBoxIsClosestSelectedElement(editor)) {
                 //deletes the extra spacer space that would otherwise be left behind
                 if (inSpacer) {
                     Transforms.move(editor, {distance: 2});
-                    if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+                    if (sourceBoxIsClosestSelectedElement(editor)) {
                             Transforms.move(editor, {reverse: true, distance: 2})
                     }
                     else {
@@ -3218,6 +3221,14 @@ const SefariaEditor = (props) => {
         // Add or remove ref highlighting
         if (event.key === " " || Node.get(editor, editor.selection.focus.path).isRef) {
             getRefInText(editor, false)
+        }
+
+        if (event.key === 'Backspace' || event.key === 'Delete') {
+            // Because of the inner editor in boxed sources, sometimes the main editor.deleteBackward() callback doesn't get called.
+            // Detect delete/backspace and call it manually if the source box is the closest selected element.
+            if (sourceBoxIsClosestSelectedElement(editor)) {
+                editor.deleteBackward();
+            }
         }
     };
 
