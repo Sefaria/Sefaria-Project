@@ -693,6 +693,8 @@ const Strings = {
     "Next": "הבא",
     "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
     "of": "מתוך",
+    "Sorry, we couldn't load the guide tips. Please try refreshing the page.": "לצערנו, לא ניתן לטעון את הטיפים. אנא נסו לרענן את הדף.",
+    "The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it.": "המדריך לא נטען בזמן מהיר מספיק והוחסר. אנא נסו לרענן את הדף אם ברצונכם לצפות בו.",
     }
   },
 };

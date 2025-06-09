@@ -66,11 +66,13 @@ TipsFooter.propTypes = {
  * @param {function} props.onClose - Function to call when overlay is closed
  * @param {string} props.guideType - Type of guide to display (e.g., "reader", "sheets")
  * @param {boolean} props.forceShow - Force the overlay to show regardless of cookie state
+ * @param {number} props.timeoutLength - Timeout length in seconds - After this time, the overlay will be closed and the user will be alerted that the guide is taking too long to load.
  */
 const TipsOverlay = ({ 
   onClose,
   guideType = "sheets",
-  forceShow = false
+  forceShow = false,
+  timeoutLength = 3
 }) => {
   const cookieName = `tips_overlay_seen_${guideType}`;
   const initialShouldShow = forceShow || !$.cookie(cookieName);
@@ -80,40 +82,80 @@ const TipsOverlay = ({
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   
-  // Load tips data on component mount
   useEffect(() => {
+    // Force rerendering of the component when initially rendered
+    setIsOpen(initialShouldShow);
+  }, [initialShouldShow]);
+
+  // Load tips data only when component is actually open/visible
+  useEffect(() => {
+    if (!isOpen) return;
     
+    let isComponentMounted = true;
+    let timeoutId;
+
+    // Set up timeout to close component if loading takes too long
+    // It's cleared with clearTimeout if the data is loaded successfully
+    // The guide is meant to clarify the page functionality, if it causes more problems, it isn't worth the hassle
+    timeoutId = setTimeout(() => {
+      if (isComponentMounted) {
+        console.warn(`Tips loading timed out after ${timeoutLength} seconds`);
+        handleClose();
+        // TODO: add an analytics event for this
+        console.log(Sefaria._("The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it.")); //TODO fix - heb isn't showing up
+        alert(Sefaria._("The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it."));
+      }
+    }, timeoutLength * 1000);
+
     const loadTips = async () => {
       setLoading(true);
+
       try {
+        // Add artificial delay for testing loading state TODO: remove this
+        // await new Promise(resolve => setTimeout(resolve, 4000)); // 4 second delay for testing
+        
         const data = await Sefaria.getTips(guideType);
-        setTipData(data);
-        setCurrentTipIndex(0);
+
+        if (isComponentMounted) {
+          clearTimeout(timeoutId); // Clear the timeout if the data is loaded successfully
+          setTipData(data);
+          setCurrentTipIndex(0);
+        }
       } catch (error) {
         console.error("Error loading tips:", error);
+        if (isComponentMounted) {
+          clearTimeout(timeoutId); // Clear the timeout if there is an error
+          console.error("Error loading tips:", error);
+          handleClose();
+          // TODO: add an analytics event for this
+          alert(Sefaria._("Sorry, we couldn't load the guide tips. Please try refreshing the page."));
+        }
       } finally {
-        setLoading(false);
+        if (isComponentMounted) {
+          setLoading(false);
+        }
       }
     };
     
     loadTips();
-  }, [guideType]);
-
-  useEffect(() => {
-    // Force rerendering of the component when initially rendered by ssr
-    setIsOpen(initialShouldShow);
-  }, [initialShouldShow]);
+    
+    // Cleanup function
+    return () => {
+      isComponentMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [isOpen, guideType, timeoutLength]);
   
   const setCookie = () => {
     // Store the current date when user dismisses the overlay
     const currentDate = new Date().toISOString();
     $.cookie(cookieName, currentDate, {path: "/", expires: 20*365}); // 20 year expiration
-    setIsOpen(false);
   };
 
   const handleClose = () => {
     setCookie();
     if (onClose) onClose();
+    setIsOpen(false);
   };
 
   /**
@@ -254,7 +296,8 @@ const TipsOverlay = ({
 TipsOverlay.propTypes = {
   onClose: PropTypes.func.isRequired,
   guideType: PropTypes.string,
-  forceShow: PropTypes.bool
+  forceShow: PropTypes.bool,
+  timeoutLength: PropTypes.number
 };
 
 /**
