@@ -14801,12 +14801,15 @@ span.ref-link-color-3 {color: blue}
 }
 
 .tipsPaginationNumber {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 12px;
+  font-family: "Roboto";
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  text-align: center;
   color: #666666;
   white-space: nowrap;
   min-width: 40px;
-  text-align: center;
 }
 
 .interface-hebrew .tipsPaginationNumber {

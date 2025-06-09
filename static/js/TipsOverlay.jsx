@@ -217,14 +217,7 @@ const TipsOverlay = ({
                 className="paginationArrowButton"
                 aria-label={localize("Previous tip")}
               >
-                <InterfaceText>
-                  <EnglishText>
-                    <img src="/static/img/zondicons_arrow-left.svg" alt={localize("Previous")} />
-                  </EnglishText>
-                  <HebrewText>
-                    <img src="/static/img/zondicons_arrow-right.svg" alt={localize("Previous")} />
-                  </HebrewText>
-                </InterfaceText>
+                <img src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-right-bold" : "arrow-left-bold"}.svg`} alt={localize("Previous")} />
               </button>
               <span className="tipsPaginationNumber">
                 <InterfaceText>{`${currentTipIndex + 1} ${localize("of")} ${tipData.tips.length}`}</InterfaceText>
@@ -234,14 +227,7 @@ const TipsOverlay = ({
                 className="paginationArrowButton"
                 aria-label={localize("Next tip")}
               >
-                <InterfaceText>
-                  <EnglishText>
-                    <img src="/static/img/zondicons_arrow-right.svg" alt={localize("Next")} />
-                  </EnglishText>
-                  <HebrewText>
-                    <img src="/static/img/zondicons_arrow-left.svg" alt={localize("Next")} />
-                  </HebrewText>
-                </InterfaceText>
+                <img src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-left-bold" : "arrow-right-bold"}.svg`} alt={localize("Next")} />
               </button>
             </div>
           )}
