@@ -204,13 +204,15 @@ const insertNewLine = (editor) => {
 }
 
 export const deserialize = el => {
-    if (el.nodeType === 3) {
-        return el.textContent
-    } else if (el.nodeType !== 1) {
-        return null
-    } else if (el.nodeName === 'BR') {
-        return null
-    }
+  if (el.nodeType === 3) {
+    const t = el.textContent ?? '';
+    return t.trim() === '' ? null : t;      // ⬅ ignore pure whitespace
+  } else if (el.nodeType !== 1) {
+      return null
+  } else if (el.nodeName === 'BR') {
+      // return null
+        return '\n';
+  }
 
     const checkForStyles = () => {
         if (el.getAttribute("style")) {
@@ -538,6 +540,7 @@ function flattenLists(htmlString) {
 }
 
 function parseSheetItemHTML(rawhtml) {
+    console.log(rawhtml);
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml
       .replace(/\u00A0/g, ' ')
@@ -547,6 +550,7 @@ function parseSheetItemHTML(rawhtml) {
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
+    console.log(JSON.stringify(slateJSON, null, 2));
     return slateJSON[0].type === 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
 }
 
@@ -703,10 +707,9 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
-  const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(removeEmptyTextNodes(element.enText))
-  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(removeEmptyTextNodes(element.heText))
-  console.log(JSON.stringify(sheetHeSourceValue, null, 2))
-    const [unsavedChanges, setUnsavedChanges] = useState(false)
+  const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(element.enText)
+  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText);
+  const [unsavedChanges, setUnsavedChanges] = useState(false)
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -1253,6 +1256,8 @@ const Element = (props) => {
             );
         case 'SheetOutsideText':
                 const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
+                console.log(element.node);
+                console.log(children)
                 return (
                   <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                     <div className={SheetOutsideTextClasses} {...attributes}>
