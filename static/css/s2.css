@@ -14835,22 +14835,23 @@ span.ref-link-color-3 {color: blue}
   white-space: nowrap;
 }
 
-.titlePrefix {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-weight: 500;
+/* Shared title styles */
+.titlePrefix,
+.titleVariable {
+  font-family: "Roboto";
   font-size: 22px;
-  line-height: 1.2;
+  line-height: 100%;
   letter-spacing: 0%;
-  color: #666666;
+  color: #333333;
+}
+
+.titlePrefix {
+  font-weight: 700;
+  margin-right: 0.5rem; /* Consistent spacing in rem units */
 }
 
 .titleVariable {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: 300;
-  font-size: 22px;
-  line-height: 1.2;
-  letter-spacing: 0%;
-  color: #333333;
 }
 
 /* Centered content container with specific width */

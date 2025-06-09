@@ -14,7 +14,7 @@ const TitleWithPrefix = ({ prefix, title }) => {
     <h2 className="tipsOverlayTitle">
       {prefix && (
         <span className="titlePrefix">
-          <InterfaceText text={prefix} />{' '}
+          <InterfaceText text={prefix} />
         </span>
       )}
       <span className="titleVariable">
