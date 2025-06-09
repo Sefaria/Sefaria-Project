@@ -492,7 +492,9 @@ class ReaderPanel extends Component {
   shouldShowGuides() {
     // Centralized check for when to show guides (tips button and tips overlay)
     // Currently only shows on sheets, but can be extended for other guide types
-    return this.props.panelPosition === 0 && // Don't show on resources panel
+    // Don't show on mobile (when multiPanel is false)
+    return this.props.multiPanel && // Don't show on mobile
+           this.props.panelPosition === 0 && // Don't show on resources panel
            (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections");
   }
   setDisplaySettingsOpen(bool) {
