@@ -210,8 +210,7 @@ export const deserialize = el => {
   } else if (el.nodeType !== 1) {
       return null
   } else if (el.nodeName === 'BR') {
-      // return null
-        return '\n';
+      return null
   }
 
     const checkForStyles = () => {
@@ -538,6 +537,9 @@ function flattenLists(htmlString) {
 
   return doc.body.innerHTML;
 }
+function replaceBrWithNewLine(html) {
+  return html.replace(/<br\s*\/?>\s*/gi, '\n');
+  }
 
 function parseSheetItemHTML(rawhtml) {
     console.log(rawhtml);
@@ -545,6 +547,8 @@ function parseSheetItemHTML(rawhtml) {
     let preparseHtml = rawhtml
       .replace(/\u00A0/g, ' ')
       .replace(/(\r\n|\n|\r|\t)/gm, " ");
+    preparseHtml = replaceBrWithNewLine(preparseHtml);
+    console.log(preparseHtml);
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
