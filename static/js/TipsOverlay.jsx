@@ -278,7 +278,7 @@ const TipsOverlay = ({
             {/* Scrollable text content - narrower width */}
             <div className="tipsOverlayTextContainer">
               <div className="tipsOverlayText">
-                <InterfaceText html={currentTip.text} />
+                <InterfaceText markdown={currentTip.text} />
               </div>
             </div>
           </div>

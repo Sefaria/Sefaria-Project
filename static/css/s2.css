@@ -8667,7 +8667,7 @@ a.button.mini {
 a .button:hover {
   text-decoration: none;
 }
-.reactMarkdown a {
+©arkdown a {
   color: var(--commentary-blue);
 }
 .button.small {
@@ -14949,47 +14949,7 @@ span.ref-link-color-3 {color: blue}
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-/* HTML content styles within text */
-.tipsOverlayText p {
-  margin: 0 0 12px 0;
-}
 
-.tipsOverlayText p:last-child {
-  margin-bottom: 0;
-}
-
-.tipsOverlayText ul,
-.tipsOverlayText ol {
-  margin: 0 0 12px 0;
-  padding-left: 20px;
-}
-
-.tipsOverlayText li {
-  margin-bottom: 4px;
-}
-
-.tipsOverlayText li:last-child {
-  margin-bottom: 0;
-}
-
-.tipsOverlayText strong,
-.tipsOverlayText b {
-  font-weight: 500;
-}
-
-.tipsOverlayText em,
-.tipsOverlayText i {
-  font-style: italic;
-}
-
-.tipsOverlayText a {
-  color: #4472C4;
-  text-decoration: none;
-}
-
-.tipsOverlayText a:hover {
-  text-decoration: underline;
-}
 
 /* Footer styles */
 .tipsOverlayFooter {
